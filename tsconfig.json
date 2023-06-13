@@ -1,0 +1,45 @@
+{
+  // https://stackoverflow.com/a/71907867/1922857
+  "ts-node": {
+    // these options are overrides used only by ts-node
+    // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types", "src/horizon-ui/types"],
+    "target": "es2016",
+    "lib": ["dom", "dom.iterable", "esnext", "es2015.iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "downlevelIteration": true,
+    "baseUrl": "src",
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false /* relax on model properties */,
+    "paths": {
+      "@assets/*": ["./src/assetsassets/*"]
+    },
+    "incremental": true
+  },
+  "exclude": ["node_modules"],
+  "include": [
+    "./src",
+    "src/api",
+    "src/shared",
+    "next-env.d.ts", "**/*.ts", "**/*.tsx", "next.config.js"],
+}
