@@ -17,37 +17,26 @@ import tClientBrowser from "../tClientBrowser";
 import { IYuanjianUser } from "../shared/user";
 import { EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
+import useUserInfo from 'useUserInfo';
 
 const UserProfile: NextPageWithLayout = () => {
-  const [userProfile, setUserProfile] = useState<IYuanjianUser | null>(null);
-  const [name, setName] = useState<string | undefined>(' ');
+  const user = useUserInfo();
+  const [name, setName] = useState<string>('');
   const [show, setShow] = useState(false);
 
-  const handleUserProfile = async () => {
-    tClientBrowser.user.profile.query({})
-      .then((user) => {
-        setUserProfile(user)
-        setName(user.name)
-      })
-  };
-
   useEffect(() => {
-    handleUserProfile()
-  }, [show]);
-
-  if (!userProfile) {
-    return <Box>loading</Box>
-  };
+    setName(user.name)
+  }, [user]);
 
   const handleSubmit = async () => {
     if (name) {
       const updatedUser: IYuanjianUser = {
-        id: userProfile.id,
+        id: user.id,
         pinyin: name,
         name: name,
-        email: userProfile.email,
-        roles: userProfile.roles,
-        clientId: userProfile.clientId,
+        email: user.email,
+        roles: user.roles,
+        clientId: user.clientId,
       }
 
       tClientBrowser.user.updateProfile.mutate(updatedUser).then(
@@ -69,7 +58,7 @@ const UserProfile: NextPageWithLayout = () => {
             Email
           </InputLeftAddon>
           <Input
-            placeholder={userProfile.email}
+            placeholder={user.email}
             isReadOnly
           />
           <InputRightAddon>
