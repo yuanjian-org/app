@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertIcon,
   Avatar,
   Box,
   Button,
@@ -6,13 +8,21 @@ import {
   CardBody,
   CardHeader,
   Flex,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   Heading,
   StackDivider,
   Text,
   VStack,
   useColorModeValue,
+  FormLabel,
+  Input,
+  FormControl,
 } from '@chakra-ui/react';
-import React from 'react'
+import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import AppLayout from "../layouts";
 import useUserInfo from "../useUserInfo";
@@ -21,15 +31,102 @@ import tClientNext from "../tClientNext";
 import PublicUser from '../shared/publicModels/PublicUser';
 import PublicGroup from '../shared/publicModels/PublicGroup';
 import { MdVideocam } from 'react-icons/md';
+import { HSeparator } from 'horizon-ui/components/separator/Separator';
+import { IYuanjianUser } from 'shared/user';
+import { toast } from "react-toastify";
 
 const AppIndex: NextPageWithLayout = () => {
   const user = useUserInfo();
+  if(!user.name){
+    return <Box paddingTop={'80px'}><SetName u = {user} /><Meetings /></Box>
+  };
   return <Box paddingTop={'80px'}><Meetings /></Box>;
 }
 
 AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default AppIndex;
+
+function SetName({u} : {u:IYuanjianUser}) {
+  const textColor = useColorModeValue('navy.700', 'white');
+  const brandStars = useColorModeValue('brand.500', 'brand.400');
+  const [isOpen, setOpen] = useState(true);
+  const [name, setName] = useState('');
+  
+  const handleSubmit = async () => {
+    if (name) {
+      const updatedUser: IYuanjianUser = {
+        id: u.id,
+        pinyin: name,
+        name: name,
+        email: u.email,
+        roles: u.roles,
+        clientId: u.clientId,
+      };
+
+      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
+        res => {
+          if (res === "ok") {
+            console.log("user update succeeded");
+            setOpen(false);     
+          }
+        }
+      ).catch(e => toast.error(e.message, { autoClose: false }))
+    };
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={() => setOpen(false)}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>新用户登录</ModalHeader>
+        <ModalBody>
+          <Text>
+            请填写个人中文全名
+          </Text>
+          <Box mt={4}>
+            <Flex align='center' mb='25px'>
+              <HSeparator />
+            </Flex>
+            <FormControl>
+              <FormLabel display='flex' ms='4px' fontSize='md' fontWeight='500' color={textColor} mb='8px'>
+                Email: <Text ml={4} fontSize='md' fontWeight='900' color={textColor}>{u.email}</Text>
+              </FormLabel>
+              {!name && (
+                <Alert status="error" mt={4}>
+                  <AlertIcon />
+                  用户姓名不能为空
+                </Alert>
+              )}
+              <FormLabel display='flex' ms='4px' fontSize='md' fontWeight='500' color={textColor} mb='8px'>
+                姓名<Text color={brandStars}>*</Text>
+              </FormLabel>
+              <Input
+                isRequired={true}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                variant='auth'
+                fontSize='sm'
+                ms={{ base: '0px', md: '0px' }}
+                type='email'
+                placeholder='张三'
+                mb='24px'
+                fontWeight='500'
+                size='lg'
+              />
+              <Button
+                onClick={handleSubmit}
+                loadingText='Creating'
+                fontSize='sm' variant='brand' fontWeight='500' w='100%' h='50' mb='24px'>
+                确认提交
+              </Button>
+            </FormControl>
+          </Box>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+}
 
 function Meetings() {
   const { data } = tClientNext.myMeetings.list.useQuery({});
@@ -42,7 +139,7 @@ function Meetings() {
       </CardHeader>
       <CardBody>
         <VStack divider={<StackDivider />} align='left' spacing='6'>
-          {data && 
+          {data &&
             data.groupList.map((group: PublicGroup, idx: any) => Meeting(myUserId, group, data.userMap))
           }
         </VStack>
@@ -58,12 +155,12 @@ function Meeting(myUserId: string, group: PublicGroup, userMap: Record<string, P
       <Button variant='outline' leftIcon={<MdVideocam />} onClick={async () => launchMeeting(group.id)}>进入会议</Button>
       {
         group.userIdList.filter(id => id !== myUserId).map(id => {
-            const name = userMap[id].name;
-            return <>
-              <Avatar name={name} />
-              <Text color={textColor}>{name}</Text>
-            </>;
-          }
+          const name = userMap[id].name;
+          return <>
+            <Avatar name={name} />
+            <Text color={textColor}>{name}</Text>
+          </>;
+        }
         )
       }
     </Flex>
@@ -71,6 +168,6 @@ function Meeting(myUserId: string, group: PublicGroup, userMap: Record<string, P
 }
 
 async function launchMeeting(groupId: string) {
-  const meetingLink = await tClientBrowser.myMeetings.generateMeetingLink.mutate({groupId: groupId});
+  const meetingLink = await tClientBrowser.myMeetings.generateMeetingLink.mutate({ groupId: groupId });
   window.location.href = meetingLink;
 }
