@@ -37,38 +37,32 @@ import { toast } from "react-toastify";
 
 const AppIndex: NextPageWithLayout = () => {
   const user = useUserInfo();
-  if(!user.name){
-    return <Box paddingTop={'80px'}><SetName u = {user} /><Meetings /></Box>
-  };
-  return <Box paddingTop={'80px'}><Meetings /></Box>;
+  // if (!user.name) {
+  //   return <Box paddingTop={'80px'}><SetNameModal u={user} /><Meetings /></Box>
+  // };
+  return <Box paddingTop={'80px'}> {user.name ? <></>:<SetNameModal />}<Meetings /></Box>
 }
 
 AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default AppIndex;
 
-function SetName({u} : {u:IYuanjianUser}) {
-  const textColor = useColorModeValue('navy.700', 'white');
+function SetNameModal() {
   const brandStars = useColorModeValue('brand.500', 'brand.400');
   const [isOpen, setOpen] = useState(true);
   const [name, setName] = useState('');
-  
+
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser: IYuanjianUser = {
-        id: u.id,
-        pinyin: name,
+      const updatedUser = {
         name: name,
-        email: u.email,
-        roles: u.roles,
-        clientId: u.clientId,
       };
 
       tClientBrowser.user.updateProfile.mutate(updatedUser).then(
         res => {
           if (res === "ok") {
-            console.log("user update succeeded");
-            setOpen(false);     
+            console.log("user name update succeeded");
+            setOpen(false);
           }
         }
       ).catch(e => toast.error(e.message, { autoClose: false }))
@@ -76,29 +70,26 @@ function SetName({u} : {u:IYuanjianUser}) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={() => setOpen(false)}>
+    <Modal isOpen={isOpen} onClose={() => undefined}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>新用户登录</ModalHeader>
         <ModalBody>
           <Text>
-            请填写个人中文全名
+            请填写中文全名
           </Text>
           <Box mt={4}>
             <Flex align='center' mb='25px'>
               <HSeparator />
             </Flex>
             <FormControl>
-              <FormLabel display='flex' ms='4px' fontSize='md' fontWeight='500' color={textColor} mb='8px'>
-                Email: <Text ml={4} fontSize='md' fontWeight='900' color={textColor}>{u.email}</Text>
-              </FormLabel>
               {!name && (
                 <Alert status="error" mt={4}>
                   <AlertIcon />
-                  用户姓名不能为空
+                  姓名不能为空
                 </Alert>
               )}
-              <FormLabel display='flex' ms='4px' fontSize='md' fontWeight='500' color={textColor} mb='8px'>
+              <FormLabel display='flex'>
                 姓名<Text color={brandStars}>*</Text>
               </FormLabel>
               <Input
