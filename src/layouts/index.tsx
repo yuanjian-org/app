@@ -20,7 +20,7 @@ import {
 // React 18
 // 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react18/normal/src/pages/Callback.tsx
 import { GuardProvider, User, Guard } from '@authing/guard-react18';
-import { UserInfoContext } from "../useUserInfo";
+import { UserPropContext } from "../useUserInfo";
 import browserEnv from "../browserEnv";
 import tClientBrowser from "../tClientBrowser";
 import { IYuanjianUser } from "../shared/user";
@@ -32,13 +32,16 @@ interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
 
-const Guarded: FC<{children: (userInfo: IYuanjianUser) => ReactNode}> = (props) => {
-  const guard = new Guard({ appId: browserEnv.NEXT_PUBLIC_AUTHING_APP_ID,
+const Guarded: FC<{ children: (userInfo: IYuanjianUser) => ReactNode }> = (props) => {
+  const guard = new Guard({
+    appId: browserEnv.NEXT_PUBLIC_AUTHING_APP_ID,
     redirectUri:
       typeof window !== 'undefined' ? (location.origin + '/callback') : '',
-    });
-  
+  });
+
   const [userInfo, setUserInfo] = useState<IYuanjianUser | null>(null);
+  // user context in child components will be passed back and updated here
+  const updateUser = (IYuanjianUser: IYuanjianUser) => { setUserInfo(IYuanjianUser) };
 
   useEffect(() => {
     guard.trackSession().then((res: User | null) => {
@@ -47,7 +50,7 @@ const Guarded: FC<{children: (userInfo: IYuanjianUser) => ReactNode}> = (props) 
         location.href = '/login'
       }
     }).then(
-      
+
       () => tClientBrowser.user.onEnterApp.mutate({}).then(res => {
         if (res === "ok") {
           return tClientBrowser.user.profile.query({}).then((user) => {
@@ -68,17 +71,17 @@ const Guarded: FC<{children: (userInfo: IYuanjianUser) => ReactNode}> = (props) 
         alignContent: "center",
         height: "100vh",
         justifyContent: "center",
-        alignItems: "center",  
+        alignItems: "center",
       }}
     />
   }
-  return <UserInfoContext.Provider value={userInfo}>
+  return <UserPropContext.Provider value={{ user: userInfo, updateUser }}>
     {props.children(userInfo)}
-  </UserInfoContext.Provider>
+  </UserPropContext.Provider>
 };
 
 // Custom Chakra theme
-export default function AppLayout (props: DashboardLayoutProps) {
+export default function AppLayout(props: DashboardLayoutProps) {
   const { children, ...rest } = props
   // states and functions
   const [fixed] = useState(false)
@@ -94,7 +97,7 @@ export default function AppLayout (props: DashboardLayoutProps) {
 
   const currentResource = useMemo(() => {
     // console.log('router', router);
-    const currentRoute =  routes.find(r => r.path === router.pathname);
+    const currentRoute = routes.find(r => r.path === router.pathname);
 
     if (!currentRoute) {
       return 'unknown';
@@ -105,12 +108,12 @@ export default function AppLayout (props: DashboardLayoutProps) {
 
   return (
     <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
-                   redirectUri={
-                     typeof window !== 'undefined' ? (location.origin + '/callback') : ''
-                   }
+      redirectUri={
+        typeof window !== 'undefined' ? (location.origin + '/callback') : ''
+      }
     >
       <Guarded>
-        
+
         {(userInfo) => <Box>
           <SidebarContext.Provider
             value={{

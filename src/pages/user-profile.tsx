@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 import useUserInfo from 'useUserInfo';
 
 const UserProfile: NextPageWithLayout = () => {
-  const user = useUserInfo();
+  const { user, updateUser } = useUserInfo();
   const [name, setName] = useState<string>('');
   const [show, setShow] = useState(false);
 
@@ -30,23 +30,24 @@ const UserProfile: NextPageWithLayout = () => {
 
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser: IYuanjianUser = {
+      const nameUpdatedUser: IYuanjianUser = {
         id: user.id,
-        pinyin: name,
+        pinyin: user.pinyin,
         name: name,
         email: user.email,
         roles: user.roles,
         clientId: user.clientId,
-      }
+      };
 
-      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
+      tClientBrowser.user.updateProfile.mutate(nameUpdatedUser).then(
         res => {
           if (res === "ok") {
-            console.log("user update succeeded")
-            setShow(!show)
+            console.log("user name update succeeded");
+            updateUser(nameUpdatedUser);
+            setShow(!show);
           }
         }
-      ).catch(e => toast.error(e.message, { autoClose: false }))
+      ).catch(e => toast.error(e.message, { autoClose: false }));
     }
   };
 

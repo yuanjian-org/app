@@ -22,7 +22,7 @@ import { Guard, useGuard } from "@authing/guard-react18";
 import useUserInfo from '../../../useUserInfo';
 import { isPermitted } from "../../../shared/RBAC";
 
-const logoutMod = async function(this: Guard) {
+const logoutMod = async function (this: Guard) {
 	const authClient = await this.getAuthClient();
 	await authClient.logout();
 	localStorage.clear();
@@ -46,7 +46,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 	const borderButton = useColorModeValue('secondaryGray.500', 'whiteAlpha.200');
 
 	const guard = useGuard();
-	const userInfo = useUserInfo();
+	const { user: userInfo } = useUserInfo();
 
 	return (
 		<Flex
@@ -136,7 +136,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 							fontSize='sm'
 							fontWeight='700'
 							color={textColor}>
-							你好，{userInfo.email} 👋
+							你好，{userInfo.name} 👋
 						</Text>
 					</Flex>
 					<Flex flexDirection='column' p='10px'>
