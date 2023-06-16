@@ -20,10 +20,10 @@ import {
 // React 18
 // 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react18/normal/src/pages/Callback.tsx
 import { GuardProvider, User, Guard } from '@authing/guard-react18';
-import { UserInfoContext } from "../useUserInfo";
+import { UserContext } from "../useUserContext";
 import browserEnv from "../browserEnv";
 import tClientBrowser from "../tClientBrowser";
-import { IYuanjianUser } from "../shared/user";
+import { IUser } from "../shared/user";
 import { useRouter } from "next/router";
 import { isPermitted } from "../shared/RBAC";
 import { BeatLoader } from 'react-spinners'
@@ -32,16 +32,16 @@ interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
 
-const Guarded: FC<{ children: (userInfo: IYuanjianUser) => ReactNode }> = (props) => {
+const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
   const guard = new Guard({
     appId: browserEnv.NEXT_PUBLIC_AUTHING_APP_ID,
     redirectUri:
       typeof window !== 'undefined' ? (location.origin + '/callback') : '',
   });
 
-  const [userInfo, setUserInfo] = useState<IYuanjianUser | null>(null);
+  const [userInfo, setUserInfo] = useState<IUser | null>(null);
   // user context in child components will be passed back and updated here
-  const setUser = (IYuanjianUser: IYuanjianUser) => { setUserInfo(IYuanjianUser) };
+  const setUser = (IYuanjianUser: IUser) => { setUserInfo(IYuanjianUser) };
 
   useEffect(() => {
     guard.trackSession().then((res: User | null) => {
@@ -75,9 +75,9 @@ const Guarded: FC<{ children: (userInfo: IYuanjianUser) => ReactNode }> = (props
       }}
     />
   }
-  return <UserInfoContext.Provider value={[userInfo, setUser]}>
+  return <UserContext.Provider value={[userInfo, setUser]}>
     {props.children(userInfo)}
-  </UserInfoContext.Provider>
+  </UserContext.Provider>
 };
 
 // Custom Chakra theme

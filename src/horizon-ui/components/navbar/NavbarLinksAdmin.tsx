@@ -19,7 +19,7 @@ import { MdNotificationsNone } from 'react-icons/md';
 import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes';
 import { Guard, useGuard } from "@authing/guard-react18";
-import useUserInfo from '../../../useUserInfo';
+import useUserContext from '../../../useUserContext';
 import { isPermitted } from "../../../shared/RBAC";
 
 const logoutMod = async function (this: Guard) {
@@ -46,7 +46,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 	const borderButton = useColorModeValue('secondaryGray.500', 'whiteAlpha.200');
 
 	const guard = useGuard();
-	const [userInfo] = useUserInfo();
+	const [user] = useUserContext();
 
 	return (
 		<Flex
@@ -78,7 +78,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 				</Text>
 			</Flex>
 			<SidebarResponsive routes={
-				routes.filter(r => isPermitted(userInfo.roles, r.resource))
+				routes.filter(r => isPermitted(user.roles, r.resource))
 			} />
 			<Menu>
 				<MenuButton p='0px'>
@@ -117,7 +117,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 					<Avatar
 						_hover={{ cursor: 'pointer' }}
 						color='white'
-						name={userInfo.name || userInfo.email || ""}
+						name={user.name || user.email || ""}
 						bg='#11047A'
 						size='sm'
 						w='40px'
@@ -136,7 +136,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 							fontSize='sm'
 							fontWeight='700'
 							color={textColor}>
-							你好，{userInfo.name} 👋
+							你好，{user.name} 👋
 						</Text>
 					</Flex>
 					<Flex flexDirection='column' p='10px'>

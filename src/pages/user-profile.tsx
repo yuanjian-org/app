@@ -16,10 +16,10 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import tClientBrowser from "../tClientBrowser";
 import { EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
-import useUserInfo from 'useUserInfo';
+import useUserContext from 'useUserContext';
 
 const UserProfile: NextPageWithLayout = () => {
-  const [user, setUser] = useUserInfo();
+  const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
   const [show, setShow] = useState(false);
 
