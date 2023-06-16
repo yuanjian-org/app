@@ -36,36 +36,38 @@ import { IYuanjianUser } from 'shared/user';
 import { toast } from "react-toastify";
 
 const AppIndex: NextPageWithLayout = () => {
-  const user = useUserInfo();
-  // if (!user.name) {
-  //   return <Box paddingTop={'80px'}><SetNameModal u={user} /><Meetings /></Box>
-  // };
-  return <Box paddingTop={'80px'}> {user.name ? <></>:<SetNameModal />}<Meetings /></Box>
+  const [user, updateUser] = useUserInfo();
+  return <Box paddingTop={'80px'}> {user.name ? <></> : <SetNameModal u={user} updateUser={updateUser} />} <Meetings /></Box>
 }
 
 AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default AppIndex;
 
-function SetNameModal() {
-  const brandStars = useColorModeValue('brand.500', 'brand.400');
+function SetNameModal({ u, updateUser }: { u: IYuanjianUser, updateUser: (IYuanjianUser: IYuanjianUser) => void }) {
   const [isOpen, setOpen] = useState(true);
   const [name, setName] = useState('');
 
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser = {
+      const nameUpdatedUser: IYuanjianUser = {
+        id: u.id,
+        pinyin: u.pinyin,
         name: name,
+        email: u.email,
+        roles: u.roles,
+        clientId: u.clientId,
       };
 
-      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
+      tClientBrowser.user.updateProfile.mutate(nameUpdatedUser).then(
         res => {
           if (res === "ok") {
             console.log("user name update succeeded");
+            updateUser(nameUpdatedUser);
             setOpen(false);
           }
         }
-      ).catch(e => toast.error(e.message, { autoClose: false }))
+      ).catch(e => toast.error(e.message, { autoClose: false }));
     };
   };
 
@@ -89,8 +91,8 @@ function SetNameModal() {
                   姓名不能为空
                 </Alert>
               )}
-              <FormLabel display='flex'>
-                姓名<Text color={brandStars}>*</Text>
+              <FormLabel>
+                姓名
               </FormLabel>
               <Input
                 isRequired={true}
@@ -99,7 +101,6 @@ function SetNameModal() {
                 variant='auth'
                 fontSize='sm'
                 ms={{ base: '0px', md: '0px' }}
-                type='email'
                 placeholder='张三'
                 mb='24px'
                 fontWeight='500'
@@ -107,7 +108,6 @@ function SetNameModal() {
               />
               <Button
                 onClick={handleSubmit}
-                loadingText='Creating'
                 fontSize='sm' variant='brand' fontWeight='500' w='100%' h='50' mb='24px'>
                 确认提交
               </Button>
@@ -121,7 +121,7 @@ function SetNameModal() {
 
 function Meetings() {
   const { data } = tClientNext.myMeetings.list.useQuery({});
-  const { id: myUserId } = useUserInfo();
+  const [ user ] = useUserInfo();
 
   return (
     <Card>
@@ -131,7 +131,7 @@ function Meetings() {
       <CardBody>
         <VStack divider={<StackDivider />} align='left' spacing='6'>
           {data &&
-            data.groupList.map((group: PublicGroup, idx: any) => Meeting(myUserId, group, data.userMap))
+            data.groupList.map((group: PublicGroup, idx: any) => Meeting(user.id, group, data.userMap))
           }
         </VStack>
       </CardBody>
