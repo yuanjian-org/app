@@ -14,13 +14,12 @@ import { useEffect, useState } from 'react'
 import AppLayout from 'layouts'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import tClientBrowser from "../tClientBrowser";
-import { IYuanjianUser } from "../shared/user";
 import { EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import useUserInfo from 'useUserInfo';
 
 const UserProfile: NextPageWithLayout = () => {
-  const [user, updateUser] = useUserInfo();
+  const [user, setUser] = useUserInfo();
   const [name, setName] = useState<string>('');
   const [show, setShow] = useState(false);
 
@@ -30,20 +29,14 @@ const UserProfile: NextPageWithLayout = () => {
 
   const handleSubmit = async () => {
     if (name) {
-      const nameUpdatedUser: IYuanjianUser = {
-        id: user.id,
-        pinyin: user.pinyin,
-        name: name,
-        email: user.email,
-        roles: user.roles,
-        clientId: user.clientId,
-      };
+      const updatedUser = structuredClone(user);
+      updatedUser.name = name;
 
-      tClientBrowser.user.updateProfile.mutate(nameUpdatedUser).then(
+      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
         res => {
           if (res === "ok") {
             console.log("user name update succeeded");
-            updateUser(nameUpdatedUser);
+            setUser(updatedUser);
             setShow(!show);
           }
         }

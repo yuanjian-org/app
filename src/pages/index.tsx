@@ -32,38 +32,32 @@ import PublicUser from '../shared/publicModels/PublicUser';
 import PublicGroup from '../shared/publicModels/PublicGroup';
 import { MdVideocam } from 'react-icons/md';
 import { HSeparator } from 'horizon-ui/components/separator/Separator';
-import { IYuanjianUser } from 'shared/user';
 import { toast } from "react-toastify";
 
 const AppIndex: NextPageWithLayout = () => {
-  const [user, updateUser] = useUserInfo();
-  return <Box paddingTop={'80px'}> {user.name ? <></> : <SetNameModal u={user} updateUser={updateUser} />} <Meetings /></Box>
+  const [user] = useUserInfo();
+  return <Box paddingTop={'80px'}> {user.name ? <></> : <SetNameModal />} <Meetings /></Box>
 }
 
 AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default AppIndex;
 
-function SetNameModal({ u, updateUser }: { u: IYuanjianUser, updateUser: (IYuanjianUser: IYuanjianUser) => void }) {
+function SetNameModal() {
+  const [u, setUser] = useUserInfo();
   const [isOpen, setOpen] = useState(true);
   const [name, setName] = useState('');
 
   const handleSubmit = async () => {
     if (name) {
-      const nameUpdatedUser: IYuanjianUser = {
-        id: u.id,
-        pinyin: u.pinyin,
-        name: name,
-        email: u.email,
-        roles: u.roles,
-        clientId: u.clientId,
-      };
+      const updatedUser = structuredClone(u);
+      updatedUser.name = name;
 
-      tClientBrowser.user.updateProfile.mutate(nameUpdatedUser).then(
+      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
         res => {
           if (res === "ok") {
             console.log("user name update succeeded");
-            updateUser(nameUpdatedUser);
+            setUser(updatedUser);
             setOpen(false);
           }
         }
@@ -71,6 +65,8 @@ function SetNameModal({ u, updateUser }: { u: IYuanjianUser, updateUser: (IYuanj
     };
   };
 
+  // onClose is required by Modal
+  // returning undefined to avoid user access page without entering name
   return (
     <Modal isOpen={isOpen} onClose={() => undefined}>
       <ModalOverlay />
@@ -121,7 +117,7 @@ function SetNameModal({ u, updateUser }: { u: IYuanjianUser, updateUser: (IYuanj
 
 function Meetings() {
   const { data } = tClientNext.myMeetings.list.useQuery({});
-  const [ user ] = useUserInfo();
+  const [user] = useUserInfo();
 
   return (
     <Card>

@@ -41,7 +41,7 @@ const Guarded: FC<{ children: (userInfo: IYuanjianUser) => ReactNode }> = (props
 
   const [userInfo, setUserInfo] = useState<IYuanjianUser | null>(null);
   // user context in child components will be passed back and updated here
-  const updateUser = (IYuanjianUser: IYuanjianUser) => { setUserInfo(IYuanjianUser) };
+  const setUser = (IYuanjianUser: IYuanjianUser) => { setUserInfo(IYuanjianUser) };
 
   useEffect(() => {
     guard.trackSession().then((res: User | null) => {
@@ -75,7 +75,7 @@ const Guarded: FC<{ children: (userInfo: IYuanjianUser) => ReactNode }> = (props
       }}
     />
   }
-  return <UserInfoContext.Provider value={[userInfo, updateUser]}>
+  return <UserInfoContext.Provider value={[userInfo, setUser]}>
     {props.children(userInfo)}
   </UserInfoContext.Provider>
 };
