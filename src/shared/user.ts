@@ -1,6 +1,6 @@
 import { Role } from "./RBAC";
 
-export interface IYuanjianUser {
+export interface IUser {
   id: string;
 
   // Obtained from the database, not authing.cn.

@@ -25,7 +25,7 @@ import {
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import AppLayout from "../layouts";
-import useUserInfo from "../useUserInfo";
+import useUserContext from "../useUserContext";
 import tClientBrowser from "../tClientBrowser";
 import tClientNext from "../tClientNext";
 import PublicUser from '../shared/publicModels/PublicUser';
@@ -35,7 +35,7 @@ import { HSeparator } from 'horizon-ui/components/separator/Separator';
 import { toast } from "react-toastify";
 
 const AppIndex: NextPageWithLayout = () => {
-  const [user] = useUserInfo();
+  const [user] = useUserContext();
   return <Box paddingTop={'80px'}> {user.name ? <></> : <SetNameModal />} <Meetings /></Box>
 }
 
@@ -44,13 +44,13 @@ AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default AppIndex;
 
 function SetNameModal() {
-  const [u, setUser] = useUserInfo();
+  const [user, setUser] = useUserContext();
   const [isOpen, setOpen] = useState(true);
   const [name, setName] = useState('');
 
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser = structuredClone(u);
+      const updatedUser = structuredClone(user);
       updatedUser.name = name;
 
       tClientBrowser.user.updateProfile.mutate(updatedUser).then(
@@ -117,7 +117,7 @@ function SetNameModal() {
 
 function Meetings() {
   const { data } = tClientNext.myMeetings.list.useQuery({});
-  const [user] = useUserInfo();
+  const [user] = useUserContext();
 
   return (
     <Card>

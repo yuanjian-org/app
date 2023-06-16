@@ -38,8 +38,8 @@ We extend `next.js`'s [code structure](https://nextjs.org/docs/getting-started/p
 **IMPORTANT**: To prevent security and programming issues,
 
 * files in `src/shared` must not refer to files outside of `src/shared`,
-* files in `src/api` must not refer to files outside of `src/api` or `src/shared`.
-* files outside of `src/api` must not refer to files inside `src/api`.
+* files in `src/api` must not refer to files outside of `src/api` or `src/shared`, and
+* files outside of `src/api` must not refer to files in `src/api`.
 
 That is, only the dependencies demonstrated below are allowed:
 
@@ -49,7 +49,7 @@ graph TD;
     src/api-->|ok|src/shared;
 ```
 
-## How-Tos
+## HOW-TOs
 
 To create a new page, copy `src/pages/user-management.tsx` and update `src/routes.tsx`.
 

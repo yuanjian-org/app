@@ -3,7 +3,7 @@ import { z } from "zod";
 import auth from "../auth";
 import apiEnv from "../apiEnv";
 import User from "../database/models/User";
-import { IYuanjianUser } from "../../shared/user";
+import { IUser } from "../../shared/user";
 import { Role } from "../../shared/RBAC";
 import invariant from "tiny-invariant";
 import pinyin from 'tiny-pinyin';
@@ -22,7 +22,7 @@ const user = router({
     z.object({
     }),
   ).query(async ({ input, ctx }) => {
-    return findUser(ctx).then(u => u as IYuanjianUser);
+    return findUser(ctx).then(u => u as IUser);
   }),
 
   onEnterApp: procedure.input(z.object({})).mutation(async ({ input, ctx }) => {

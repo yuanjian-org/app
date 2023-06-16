@@ -24,7 +24,7 @@ import NormalTable from "../horizon-ui/components/NormalTable";
 import tClientBrowser from "../tClientBrowser";
 import { Role, ALL_ROLES } from "../shared/RBAC";
 import { HSeparator } from "../horizon-ui/components/separator/Separator";
-import { IYuanjianUser } from "../shared/user";
+import { IUser } from "../shared/user";
 import { toast } from "react-toastify";
 import tClientNext from "../tClientNext";
 
@@ -38,7 +38,7 @@ const UserManagement: NextPageWithLayout = () => {
   const textColor = useColorModeValue('navy.700', 'white');
   const brandStars = useColorModeValue('brand.500', 'brand.400');
 
-  const [user, setUser] = useState<IYuanjianUser | undefined>();
+  const [user, setUser] = useState<IUser | undefined>();
   const [name, setName] = useState('');
   const [roles, setRoles] = useState([] as Role[]);
   const [isCreating, setCreating] = useState(false);
