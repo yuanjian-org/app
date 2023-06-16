@@ -39,9 +39,7 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
       typeof window !== 'undefined' ? (location.origin + '/callback') : '',
   });
 
-  const [userInfo, setUserInfo] = useState<IUser | null>(null);
-  // user context in child components will be passed back and updated here
-  const setUser = (IYuanjianUser: IUser) => { setUserInfo(IYuanjianUser) };
+  const [user, setUser] = useState<IUser | null>(null);
 
   useEffect(() => {
     guard.trackSession().then((res: User | null) => {
@@ -54,7 +52,7 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
       () => tClientBrowser.user.onEnterApp.mutate({}).then(res => {
         if (res === "ok") {
           return tClientBrowser.user.profile.query({}).then((user) => {
-            setUserInfo(user);
+            setUser(user);
           })
         } else {
           return;
@@ -62,7 +60,7 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
       }));
   }, [])
 
-  if (!userInfo) {
+  if (!user) {
     //'跳转中...' 
     return <BeatLoader
       color="rgba(54, 89, 214, 1)"
@@ -75,8 +73,8 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
       }}
     />
   }
-  return <UserContext.Provider value={[userInfo, setUser]}>
-    {props.children(userInfo)}
+  return <UserContext.Provider value={[user, setUser]}>
+    {props.children(user)}
   </UserContext.Provider>
 };
 
