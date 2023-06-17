@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertIcon,
   Avatar,
   Box,
   Button,
@@ -31,17 +29,17 @@ import tClientNext from "../tClientNext";
 import PublicUser from '../shared/publicModels/PublicUser';
 import PublicGroup from '../shared/publicModels/PublicGroup';
 import { MdVideocam } from 'react-icons/md';
-import { HSeparator } from 'horizon-ui/components/separator/Separator';
 import { toast } from "react-toastify";
+import pinyin from 'tiny-pinyin';
 
-const AppIndex: NextPageWithLayout = () => {
+const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
   return <Box paddingTop={'80px'}> {user.name ? <></> : <SetNameModal />} <Meetings /></Box>
 }
 
-AppIndex.getLayout = (page) => <AppLayout>{page}</AppLayout>;
+Index.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
-export default AppIndex;
+export default Index;
 
 function SetNameModal() {
   const [user, setUser] = useUserContext();
@@ -65,47 +63,28 @@ function SetNameModal() {
     };
   };
 
-  // onClose is required by Modal
-  // returning undefined to avoid user access page without entering name
   return (
-    <Modal isOpen={isOpen} onClose={() => undefined}>
-      <ModalOverlay />
+  // onClose returns undefined to prevent user from closing the modal without entering name.
+  <Modal isOpen={isOpen} onClose={() => undefined}>
+      <ModalOverlay backdropFilter='blur(8px)' />
       <ModalContent>
-        <ModalHeader>新用户登录</ModalHeader>
+        <ModalHeader>欢迎你，新用户 👋</ModalHeader>
         <ModalBody>
-          <Text>
-            请填写中文全名
-          </Text>
           <Box mt={4}>
-            <Flex align='center' mb='25px'>
-              <HSeparator />
-            </Flex>
             <FormControl>
-              {!name && (
-                <Alert status="error" mt={4}>
-                  <AlertIcon />
-                  姓名不能为空
-                </Alert>
-              )}
-              <FormLabel>
-                姓名
-              </FormLabel>
+              <FormLabel>请填写中文全名</FormLabel>
               <Input
                 isRequired={true}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                variant='auth'
-                fontSize='sm'
-                ms={{ base: '0px', md: '0px' }}
-                placeholder='张三'
+                placeholder='请勿使用英文或其他符号'
                 mb='24px'
-                fontWeight='500'
-                size='lg'
               />
               <Button
                 onClick={handleSubmit}
-                fontSize='sm' variant='brand' fontWeight='500' w='100%' h='50' mb='24px'>
-                确认提交
+                isDisabled={!isValidChineseName(name)}
+                variant='brand' w='100%' mb='24px'>
+                提交
               </Button>
             </FormControl>
           </Box>
@@ -113,6 +92,10 @@ function SetNameModal() {
       </ModalContent>
     </Modal>
   );
+}
+
+function isValidChineseName(s: string) : boolean {
+  return s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
 }
 
 function Meetings() {
