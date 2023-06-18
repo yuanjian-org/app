@@ -47,16 +47,11 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
         location.href = '/login'
       }
     }).then(
-      () => tClientBrowser.user.enter.mutate({}).then(res => {
-        if (res === "ok") {
-          return tClientBrowser.user.profile.query({}).then((user) => {
-            setUser(user);
-          })
-        } else {
-          return;
-        }
-      }));
-  }, [])
+      () => tClientBrowser.user.profile.mutate({}).then((user) => {
+        setUser(user);
+      })
+    );
+  }, [])    
 
   if (!user) {
     //'跳转中...' 
