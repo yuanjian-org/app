@@ -11,6 +11,12 @@ const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
   // fix pg vercel bug
   // https://github.com/orgs/vercel/discussions/234
   dialectModule: require('pg'),
+  retry: {
+    match: [
+      /ConnectionError/
+    ],
+    max: 3
+}
 });
 
 hookIsPartialAfterSequelizeInit();
