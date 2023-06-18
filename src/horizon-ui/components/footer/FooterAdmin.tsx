@@ -36,7 +36,7 @@ export default function Footer() {
 						base: '20px',
 						md: '44px'
 					}}>
-					<Link fontWeight='500' color={textColor} href='http://app.yuanjian.org'>
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://app.yuanjian.org'>
 						资源库
 					</Link>
 				</ListItem>
@@ -45,12 +45,12 @@ export default function Footer() {
 						base: '20px',
 						md: '44px'
 					}}>
-					<Link fontWeight='500' color={textColor} href='http://yuanjian.org'>
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org'>
 						官网
 					</Link>
 				</ListItem>
 				<ListItem>
-					<Link fontWeight='500' color={textColor} href='http://yuanjian.org/blog'>
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org/blog'>
 						博客
 					</Link>
 				</ListItem>
