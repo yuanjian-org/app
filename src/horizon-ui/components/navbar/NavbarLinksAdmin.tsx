@@ -2,14 +2,12 @@
 import {
 	Avatar,
 	Flex,
-	Icon,
 	Menu,
 	MenuButton,
 	MenuDivider,
 	MenuItem,
 	MenuList,
 	Text,
-  Link,
 	useColorModeValue,
 } from '@chakra-ui/react';
 // Custom Components
@@ -17,8 +15,6 @@ import { SidebarResponsive } from 'horizon-ui/components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
 import React from 'react';
 // Assets
-import { MdNotificationsNone } from 'react-icons/md';
-import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes';
 import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
@@ -69,7 +65,9 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 					/>
 				</MenuButton>
 				<MenuList>
-          <MenuItem as='a' href='/user-profile'>个人信息</MenuItem>
+          <MenuItem as='a' href='/user-profile'>
+            <Text fontSize='sm'>个人信息</Text>
+          </MenuItem>
           <MenuDivider />
           <MenuItem
             _hover={{ bg: 'none' }}
@@ -83,7 +81,9 @@ export default function HeaderLinks(props: { secondary: boolean }) {
               await logoutMod.call(guard);
               location.href = '/';
             }}
-          >退出登录</MenuItem>
+          >
+            <Text fontSize='sm'>退出登录</Text>
+          </MenuItem>
 				</MenuList>
 			</Menu>
 		</Flex>
