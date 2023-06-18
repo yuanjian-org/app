@@ -7,13 +7,11 @@ import GroupUser from "./models/GroupUser";
 
 const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
   models: [User, Group, GroupUser],
-
-  // fix pg vercel bug
-  // https://github.com/orgs/vercel/discussions/234
   dialectModule: require('pg'),
   retry: {
+    // Error types: https://sequelize.org/api/v6/identifiers.html#errors
     match: [
-      /ConnectionError/
+      /ConnectionError/   // Fix pg vercel bug: https://github.com/orgs/vercel/discussions/234
     ],
     max: 3
 }

@@ -8,6 +8,7 @@ import { Role } from "../../shared/RBAC";
 import invariant from "tiny-invariant";
 import pinyin from 'tiny-pinyin';
 import { Context } from "api/context";
+import { UniqueConstraintError } from "sequelize";
 
 async function findUser(ctx: Context) {
   const user = await User.findOne({ where: { clientId: ctx.authingUser?.id } });
@@ -24,7 +25,9 @@ const user = router({
     return findUser(ctx).then(u => u as IUser);
   }),
 
-  enter: procedure.input(z.object({})).mutation(async ({ input, ctx }) => {
+  enter: procedure.input(
+    z.object({})
+  ).mutation(async ({ input, ctx }) => {
     // this is a public API available to all
     // when the user logged in for the first time
     //  1. there is an authing user
@@ -34,49 +37,69 @@ const user = router({
       return 'No token found in header' as const;
     }
 
-    // auto create admin user
     if (ctx.authingUser.email) {
-      const count = await User.count({
-        where: {
-          clientId: ctx.authingUser.id
-        }
-      });
-
-      if (count == 0) {
-        const isAdmin = apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(ctx.authingUser.email);
-        const roles : [Role] = [isAdmin ? 'ADMIN' : 'VISITOR'];
-
-        console.log('creating user for', ctx.authingUser.id, ctx.authingUser.email, roles);
-        invariant(ctx.authingUser.email);
-
-        await User.create({
-          name: "", // need to be manually entered
-          pinyin: "",
-          email: ctx.authingUser.email,
-          clientId: ctx.authingUser.id,
-          roles
-        });
-      }
+      await createUserIfNotExist(ctx.authingUser.id, ctx.authingUser.email);
     }
-
     return 'ok' as const;
   }),
 
   updateProfile: procedure.use(
     auth('profile:write')
-  ).input(z.object({
-    name: z.string().min(1, "required"),
-  }))
-    .mutation(async ({ input, ctx }) => {
-      const updatedUser = findUser(ctx)
-        .then(u => u.update({
-          name: input.name,
-          pinyin: pinyin.convertToPinyin(input.name),
-        }));
+  ).input(
+    z.object({ name: z.string().min(1, "required")})
+  ).mutation(async ({ input, ctx }) => {
+    const updatedUser = findUser(ctx)
+      .then(u => u.update({
+        name: input.name,
+        pinyin: pinyin.convertToPinyin(input.name),
+      }));
 
-      return 'ok' as const;
-    })
-
+    return 'ok' as const;
+  })
 });
 
 export default user;
+
+async function createUserIfNotExist(id: string, email: string) {
+  invariant(email);
+
+  /**
+   * Frontend calls user.enter multiple times when a new user logs in, causing parallel User.create() from time to
+   * time which results in unique constraint errors.
+   * 
+   * As a speed optimization, we simply retry on such errors instead of using pessimistic locking.
+   * 
+   * TODO: Fix the frontend to suppress unnecessary calls to user.enter.  
+   */
+  while (true) {
+    const count = await User.count({
+      where: {
+        clientId: id
+      },
+    });
+
+    if (count == 0) {
+      const isAdmin = apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(email);
+      const roles: [Role] = [isAdmin ? 'ADMIN' : 'VISITOR'];
+      try {
+        console.log(`Creating user ${email} roles ${roles} id ${id}`);
+        await User.create({
+          name: "",
+          pinyin: "",
+          email: email,
+          clientId: id,
+          roles
+        });
+      } catch (e) {
+        if (e instanceof UniqueConstraintError) {
+          console.log(`Unique constraint error when creating user ${email}. Assuming user already exists. Retry.`);
+          continue;
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    break;
+  }
+}
