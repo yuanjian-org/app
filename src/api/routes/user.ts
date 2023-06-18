@@ -7,25 +7,24 @@ import { IUser } from "../../shared/user";
 import { Role } from "../../shared/RBAC";
 import invariant from "tiny-invariant";
 import pinyin from 'tiny-pinyin';
-import { User as authingUser } from "authing-js-sdk"; // conflict with db User model
+import { Context } from "api/context";
 
-async function findUser(ctx: { email: string; authingUser: authingUser; }){
-  const user = await User.findOne({ where: { clientId: ctx.authingUser.id } });
-    invariant(user);
-    return user;
+async function findUser(ctx: Context) {
+  const user = await User.findOne({ where: { clientId: ctx.authingUser?.id } });
+  invariant(user);
+  return user;
 }
 
 const user = router({
   profile: procedure.use(
     auth('profile:read')
   ).input(
-    z.object({
-    }),
+    z.object({}),
   ).query(async ({ input, ctx }) => {
     return findUser(ctx).then(u => u as IUser);
   }),
 
-  onEnterApp: procedure.input(z.object({})).mutation(async ({ input, ctx }) => {
+  enter: procedure.input(z.object({})).mutation(async ({ input, ctx }) => {
     // this is a public API available to all
     // when the user logged in for the first time
     //  1. there is an authing user
@@ -37,19 +36,15 @@ const user = router({
 
     // auto create admin user
     if (ctx.authingUser.email) {
-      const existingUser = await User.findOne({
+      const count = await User.count({
         where: {
           clientId: ctx.authingUser.id
         }
       });
 
-      if (!existingUser) {
-        let roles: Role[];
-        if (apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(ctx.authingUser.email)) {
-          roles = ["ADMIN"];
-        } else {
-          roles = ["VISITOR"];
-        }
+      if (count == 0) {
+        const isAdmin = apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(ctx.authingUser.email);
+        const roles : [Role] = [isAdmin ? 'ADMIN' : 'VISITOR'];
 
         console.log('creating user for', ctx.authingUser.id, ctx.authingUser.email, roles);
         invariant(ctx.authingUser.email);
@@ -73,14 +68,11 @@ const user = router({
     name: z.string().min(1, "required"),
   }))
     .mutation(async ({ input, ctx }) => {
-
       const updatedUser = findUser(ctx)
         .then(u => u.update({
           name: input.name,
           pinyin: pinyin.convertToPinyin(input.name),
         }));
-
-      console.log('updated user info', updatedUser);
 
       return 'ok' as const;
     })

@@ -43,13 +43,11 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
 
   useEffect(() => {
     guard.trackSession().then((res: User | null) => {
-      //console.log('res', res);
       if (!res) {
         location.href = '/login'
       }
     }).then(
-
-      () => tClientBrowser.user.onEnterApp.mutate({}).then(res => {
+      () => tClientBrowser.user.enter.mutate({}).then(res => {
         if (res === "ok") {
           return tClientBrowser.user.profile.query({}).then((user) => {
             setUser(user);
