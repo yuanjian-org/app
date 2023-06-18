@@ -5,9 +5,11 @@ import {
 	Icon,
 	Menu,
 	MenuButton,
+	MenuDivider,
 	MenuItem,
 	MenuList,
 	Text,
+  Link,
 	useColorModeValue,
 } from '@chakra-ui/react';
 // Custom Components
@@ -36,7 +38,6 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 	const textColor = useColorModeValue('secondaryGray.900', 'white');
 	const textColorBrand = useColorModeValue('brand.700', 'brand.400');
 	const ethColor = useColorModeValue('gray.700', 'white');
-	const borderColor = useColorModeValue('#E6ECFA', 'rgba(135, 140, 189, 0.3)');
 	const ethBg = useColorModeValue('secondaryGray.300', 'navy.900');
 	const ethBox = useColorModeValue('white', 'navy.800');
 	const shadow = useColorModeValue(
@@ -124,44 +125,22 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 						h='40px'
 					/>
 				</MenuButton>
-				<MenuList boxShadow={shadow} p='0px' mt='10px' borderRadius='20px' bg={menuBg} border='none'>
-					<Flex w='100%' mb='0px'>
-						<Text
-							ps='20px'
-							pt='16px'
-							pb='10px'
-							w='100%'
-							borderBottom='1px solid'
-							borderColor={borderColor}
-							fontSize='sm'
-							fontWeight='700'
-							color={textColor}>
-							你好，{user.name} 👋
-						</Text>
-					</Flex>
-					<Flex flexDirection='column' p='10px'>
-						{/*<MenuItem _hover={{ bg: 'none' }} _focus={{ bg: 'none' }} borderRadius='8px' px='14px'>*/}
-						{/*	<Text fontSize='sm'>Profile Settings</Text>*/}
-						{/*</MenuItem>*/}
-						{/*<MenuItem _hover={{ bg: 'none' }} _focus={{ bg: 'none' }} borderRadius='8px' px='14px'>*/}
-						{/*	<Text fontSize='sm'>Newsletter Settings</Text>*/}
-						{/*</MenuItem>*/}
-						<MenuItem
-							_hover={{ bg: 'none' }}
-							_focus={{ bg: 'none' }}
-							color='red.400'
-							borderRadius='8px'
-							px='14px'
-							onClick={async () => {
-								// Wait until this is fixed
-								// https://github.com/Authing/Guard/issues/179
-								await logoutMod.call(guard);
-								location.href = '/';
-							}}
-						>
-							<Text fontSize='sm'>退出登录</Text>
-						</MenuItem>
-					</Flex>
+				<MenuList>
+          <MenuItem as='a' href='/user-profile'>个人信息</MenuItem>
+          <MenuDivider />
+          <MenuItem
+            _hover={{ bg: 'none' }}
+            _focus={{ bg: 'none' }}
+            color='red.400'
+            borderRadius='8px'
+            px='14px'
+            onClick={async () => {
+              // Wait until this is fixed
+              // https://github.com/Authing/Guard/issues/179
+              await logoutMod.call(guard);
+              location.href = '/';
+            }}
+          >退出登录</MenuItem>
 				</MenuList>
 			</Menu>
 		</Flex>

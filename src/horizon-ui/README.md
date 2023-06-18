@@ -7,4 +7,4 @@ Exceptions (TODO: move them out of the horizon-ui folder?):
 - components/sidebar/components/Brand.tsx
 - components/sidebar/components/Content.tsx
 - components/sidebar/components/NavbarLinksAdmin.tsx
-- components/sidebar/components/Links.tsx (to replace `route.layout === '/admin'` with `route.layout === '/'`)
+- components/sidebar/components/Links.tsx
