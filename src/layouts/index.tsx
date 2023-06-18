@@ -27,6 +27,7 @@ import { IUser } from "../shared/user";
 import { useRouter } from "next/router";
 import { isPermitted } from "../shared/RBAC";
 import { BeatLoader } from 'react-spinners'
+import { toast } from 'react-toastify'
 
 interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
@@ -42,16 +43,15 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
   const [user, setUser] = useState<IUser | null>(null);
 
   useEffect(() => {
-    guard.trackSession().then((res: User | null) => {
-      if (!res) {
-        location.href = '/login'
+    const fetchUser = async () => {
+      if (await guard.trackSession()) {
+        setUser(await tClientBrowser.user.profile.mutate({}));
+      } else {
+        location.href = '/login';
       }
-    }).then(
-      () => tClientBrowser.user.profile.mutate({}).then((user) => {
-        setUser(user);
-      })
-    );
-  }, [])    
+    };
+    fetchUser().catch(toast.error);
+  }, []);
 
   if (!user) {
     //'跳转中...' 
