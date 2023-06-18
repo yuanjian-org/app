@@ -9,4 +9,5 @@ export interface IRoute {
   resource: Resource;
   secondary?: boolean;
   path: string;
+  hiddenFromSidebar?: boolean;
 }

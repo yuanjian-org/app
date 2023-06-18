@@ -21,6 +21,7 @@ const routes: IRoute[] = [
     path: '/user-profile',
     icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
     resource: 'profile:write',
+    hiddenFromSidebar: true,
   },
   {
     name: '用户管理',
