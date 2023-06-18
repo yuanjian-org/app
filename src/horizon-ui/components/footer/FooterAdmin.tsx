@@ -26,12 +26,8 @@ export default function Footer() {
 				}}
 				mb={{ base: '20px', xl: '0px' }}>
 				{' '}
-				&copy; {new Date().getFullYear()}
 				<Text as='span' fontWeight='500' ms='4px'>
-					Horizon UI. All Rights Reserved. Made with love by
-					<Link mx='3px' color={textColor} href='https://www.simmmple.com' target='_blank' fontWeight='700'>
-						Simmmple!
-					</Link>
+					&copy; {new Date().getFullYear()} 远见教育基金会
 				</Text>
 			</Text>
 			<List display='flex'>
@@ -40,8 +36,8 @@ export default function Footer() {
 						base: '20px',
 						md: '44px'
 					}}>
-					<Link fontWeight='500' color={textColor} href='mailto:hello@simmmple.com'>
-						Support
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://app.yuanjian.org'>
+						资源库
 					</Link>
 				</ListItem>
 				<ListItem
@@ -49,22 +45,13 @@ export default function Footer() {
 						base: '20px',
 						md: '44px'
 					}}>
-					<Link fontWeight='500' color={textColor} href='https://www.simmmple.com/licenses'>
-						License
-					</Link>
-				</ListItem>
-				<ListItem
-					me={{
-						base: '20px',
-						md: '44px'
-					}}>
-					<Link fontWeight='500' color={textColor} href='https://simmmple.com/terms-of-service'>
-						Terms of Use
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org'>
+						官网
 					</Link>
 				</ListItem>
 				<ListItem>
-					<Link fontWeight='500' color={textColor} href='https://www.blog.simmmple.com/'>
-						Blog
+					<Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org/blog'>
+						博客
 					</Link>
 				</ListItem>
 			</List>
