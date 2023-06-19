@@ -5,9 +5,10 @@ import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
 import { UniqueConstraintError } from "sequelize";
+import { AuthenticationClient } from 'authing-js-sdk'
 
 const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
-  const authingUser = ctx.authingUser;
+  const authingUser = ctx.authToken ? await getAuthingUser(ctx.authToken) : null;  
   if (!authingUser) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
@@ -15,6 +16,7 @@ const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
     });
   }
 
+  // We only allow email-based accounts. If this line fails, check authing.cn configuration.
   invariant(authingUser.email);
   const user = await findOrCreateUser(authingUser.id, authingUser.email);
 
@@ -34,6 +36,15 @@ const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
 });
 
 export default auth;
+
+async function getAuthingUser(authToken: string) {
+  const authing = new AuthenticationClient({
+    appId: apiEnv.NEXT_PUBLIC_AUTHING_APP_ID,
+    appHost: apiEnv.NEXT_PUBLIC_AUTHING_APP_HOST,
+    token: authToken
+  });
+  return await authing.getCurrentUser();
+}
 
 async function findOrCreateUser(clientId: string, email: string): Promise<User> {  
   /**

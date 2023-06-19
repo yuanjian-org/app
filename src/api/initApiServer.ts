@@ -1,17 +1,9 @@
 import sequelizeInstance from "./database/sequelizeInstance";
 import invariant from "tiny-invariant";
 
-let isInitDone = false;
-
-const initApiServer = async () => {
-  if (isInitDone) {
-    return;
-  }
-
+const initApiServer = () => {
   // ensure database is loaded
   invariant(sequelizeInstance);
-
-  isInitDone = true;
 };
 
 export default initApiServer;
