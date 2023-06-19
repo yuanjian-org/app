@@ -19,7 +19,7 @@ const user = router({
    */
   profile: procedure.input(
     z.object({}),
-  ).mutation(async ({ input, ctx }) => {
+  ).query(async ({ input, ctx }) => {
     // Return null when the user is logged out.
     if (!ctx.authingUser) return null;
     invariant(ctx.authingUser.email);

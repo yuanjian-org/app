@@ -5,7 +5,7 @@ import Footer from 'horizon-ui/components/footer/FooterAdmin'
 import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
 import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
 import { SidebarContext } from 'horizon-ui/contexts/SidebarContext'
-import { FC, PropsWithChildren, ReactNode, useEffect, useMemo, useState } from 'react'
+import { FC, PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import routes from 'routes'
 import {
   getActiveNavbar,
@@ -41,15 +41,21 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
   });
 
   const [user, setUser] = useState<IUser | null>(null);
+  const userFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
-        setUser(await tClientBrowser.user.profile.mutate({}));
+        setUser(await tClientBrowser.user.profile.query({}));
       } else {
         location.href = '/login';
       }
     };
+
+    // Avoid React calling fetchUser() twice which is expensive with several calls to authing.cn and our server.
+    // Reference: https://upmostly.com/tutorials/why-is-my-useeffect-hook-running-twice-in-react
+    if (userFetchedRef.current) return;
+    userFetchedRef.current = true;
     fetchUser().catch(toast.error);
   }, []);
 
@@ -87,7 +93,6 @@ export default function AppLayout(props: DashboardLayoutProps) {
   const router = useRouter();
 
   const currentResource = useMemo(() => {
-    // console.log('router', router);
     const currentRoute = routes.find(r => r.path === router.pathname);
 
     if (!currentRoute) {
