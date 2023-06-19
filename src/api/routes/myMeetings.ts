@@ -130,24 +130,13 @@ const myMeetings = router({
     auth('my-meetings:read')
   ).input(z.object({
   })).query(async ({ input, ctx }) => {
-
-    const email = ctx.email;
-
-    const user = await User.findOne({
-      where: {
-        email,
-      }
-    });
-
-    invariant(user);
-
     const groupUserList = await GroupUser.findAll({
       where: {
-        userId: user.id
+        userId: ctx.user.id
       },
     });
 
-    const userIdSet = new Set([user.id]);
+    const userIdSet = new Set([ctx.user.id]);
 
     const groupList = (await Group.findAll({
       include: {
