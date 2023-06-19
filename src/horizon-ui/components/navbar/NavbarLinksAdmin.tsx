@@ -20,7 +20,7 @@ import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
 import { isPermitted } from "../../../shared/RBAC";
 
-const logoutMod = async function (this: Guard) {
+const logout = async function (this: Guard) {
 	const authClient = await this.getAuthClient();
 	await authClient.logout();
 	localStorage.clear();
@@ -78,7 +78,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
             onClick={async () => {
               // Wait until this is fixed
               // https://github.com/Authing/Guard/issues/179
-              await logoutMod.call(guard);
+              await logout.call(guard);
               location.href = '/';
             }}
           >

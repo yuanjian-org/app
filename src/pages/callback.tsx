@@ -1,11 +1,4 @@
-// callback.tsx
-
-// React 16/17
-// 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react/normal/src/pages/Callback.tsx
-// import { JwtTokenStatus, useGuard, User } from '@authing/guard-react';
-
-// React 18
-// 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react18/normal/src/pages/Callback.tsx
+// Example: https://github.com/Authing/Guard/blob/dev-v6/examples/guard-nextjs-react18/pages/callback.tsx
 import { Guard, GuardProvider, JwtTokenStatus, useGuard, User } from '@authing/guard-react18';
 
 import React, { useEffect } from 'react';
