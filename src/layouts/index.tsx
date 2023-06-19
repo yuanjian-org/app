@@ -5,7 +5,7 @@ import Footer from 'horizon-ui/components/footer/FooterAdmin'
 import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
 import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
 import { SidebarContext } from 'horizon-ui/contexts/SidebarContext'
-import { FC, PropsWithChildren, ReactNode, useEffect, useMemo, useState } from 'react'
+import { FC, PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import routes from 'routes'
 import {
   getActiveNavbar,
@@ -27,6 +27,7 @@ import { IUser } from "../shared/user";
 import { useRouter } from "next/router";
 import { isPermitted } from "../shared/RBAC";
 import { BeatLoader } from 'react-spinners'
+import { toast } from 'react-toastify'
 
 interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
@@ -40,23 +41,23 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
   });
 
   const [user, setUser] = useState<IUser | null>(null);
+  const userFetchedRef = useRef(false);
 
   useEffect(() => {
-    guard.trackSession().then((res: User | null) => {
-      if (!res) {
-        location.href = '/login'
+    const fetchUser = async () => {
+      if (await guard.trackSession()) {
+        setUser(await tClientBrowser.user.profile.query({}));
+      } else {
+        location.href = '/login';
       }
-    }).then(
-      () => tClientBrowser.user.enter.mutate({}).then(res => {
-        if (res === "ok") {
-          return tClientBrowser.user.profile.query({}).then((user) => {
-            setUser(user);
-          })
-        } else {
-          return;
-        }
-      }));
-  }, [])
+    };
+
+    // Avoid React calling fetchUser() twice which is expensive with several calls to authing.cn and our server.
+    // Reference: https://upmostly.com/tutorials/why-is-my-useeffect-hook-running-twice-in-react
+    if (userFetchedRef.current) return;
+    userFetchedRef.current = true;
+    fetchUser().catch(toast.error);
+  }, []);
 
   if (!user) {
     //'跳转中...' 
@@ -92,7 +93,6 @@ export default function AppLayout(props: DashboardLayoutProps) {
   const router = useRouter();
 
   const currentResource = useMemo(() => {
-    // console.log('router', router);
     const currentRoute = routes.find(r => r.path === router.pathname);
 
     if (!currentRoute) {
