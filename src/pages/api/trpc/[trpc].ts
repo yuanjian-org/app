@@ -10,7 +10,7 @@ export default trpcNext.createNextApiHandler({
   onError({ error, type, path, input, ctx, req }) {
     console.error('Error:', error);
     if (error.code === 'INTERNAL_SERVER_ERROR') {
-      // send to bug reporting
+      // TODO: send to bug reporting
     }
   },
 });
