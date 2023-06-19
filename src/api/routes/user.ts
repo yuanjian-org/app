@@ -1,6 +1,6 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth from "../auth";
+import auth, { invalidateLocalUserCache } from "../auth";
 import { IUser } from "../../shared/user";
 import pinyin from 'tiny-pinyin';
 
@@ -13,6 +13,10 @@ const user = router({
     return ctx.user as IUser;
   }),
 
+  /**
+   * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
+   * TODO: add a warning message in profile change UI.
+   */
   updateProfile: procedure.use(
     auth('profile:write')
   ).input(
@@ -23,6 +27,7 @@ const user = router({
       name: input.name,
       pinyin: pinyin.convertToPinyin(input.name),
     });
+    invalidateLocalUserCache();
   })
 });
 

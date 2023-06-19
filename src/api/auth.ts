@@ -6,36 +6,63 @@ import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
 import { UniqueConstraintError } from "sequelize";
 import { AuthenticationClient } from 'authing-js-sdk'
+import { LRUCache } from 'lru-cache'
+
+const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 
 const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
-  const authingUser = ctx.authToken ? await getAuthingUser(ctx.authToken) : null;  
-  if (!authingUser) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Please login first',
-    });
-  }
-
-  // We only allow email-based accounts. If this line fails, check authing.cn configuration.
-  invariant(authingUser.email);
-  const user = await findOrCreateUser(authingUser.id, authingUser.email);
-
-  if (!isPermitted(user.roles, resource)) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Permission denied',
-    });
-  }
-  
-  return await next({
-    ctx: {
-      user,
-      authingUser: authingUser,
-    }
-  });
+  if (!ctx.authToken) throw unauthorized();
+  const user = await userCache.fetch(ctx.authToken);
+  invariant(user);
+  if (!isPermitted(user.roles, resource)) throw forbidden();
+  return await next({ ctx: { user: user }});
 });
 
 export default auth;
+
+/**
+ * In Serverless or Edge environment where multiple API instances may run, this function only clears the cache of the
+ * current process.
+ */
+export function invalidateLocalUserCache() {
+  userCache.clear();
+}
+
+const unauthorized = () => new TRPCError({
+  code: 'UNAUTHORIZED',
+  message: 'Please login first',
+});
+
+const forbidden = () => new TRPCError({
+  code: 'FORBIDDEN',
+  message: 'Access denied',
+});
+
+const userCache = new LRUCache<string, User>({
+  max: 1000,
+  ttl: USER_CACHE_TTL_IN_MS,
+  updateAgeOnGet: true,
+
+  fetchMethod: async(authToken: string) => {
+    const start = Date.now();
+    const authingUser = await getAuthingUser(authToken);
+    if (!authingUser) throw unauthorized();
+
+    const startUser = Date.now();
+    // We only allow email-based accounts. If this line fails, check authing.cn configuration.
+    invariant(authingUser.email);
+    const user = await findOrCreateUser(authingUser.id, authingUser.email);
+    const end = Date.now();
+
+    console.log(`
+      > User cache miss for '${user.email}'. Time spent in ms:
+      >
+      > getAuthingUser():   ${startUser - start}
+      > findOrCreateUser(): ${end - startUser}
+    `);
+    return user;
+  }
+});
 
 async function getAuthingUser(authToken: string) {
   const authing = new AuthenticationClient({
@@ -48,12 +75,10 @@ async function getAuthingUser(authToken: string) {
 
 async function findOrCreateUser(clientId: string, email: string): Promise<User> {  
   /**
-   * Frontend calls user.profile multiple times when a new user logs in, causing parallel User.create() from time to
+   * Multiple APIs may be called at the same time, causing parallel User.create() calls from time to
    * time which results in unique constraint errors.
    * 
    * As a speed optimization, we simply retry on such errors instead of using pessimistic locking.
-   * 
-   * TODO: Fix the frontend to suppress unnecessary calls to user.profile.
    */
   while (true) {
     const user = await User.findOne({ where: { clientId: clientId } });
