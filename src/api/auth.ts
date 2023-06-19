@@ -1,46 +1,71 @@
 import { middleware } from "./tServer";
 import { TRPCError } from "@trpc/server";
-import { isPermitted, Resource } from "../shared/RBAC";
+import { isPermitted, Resource, Role } from "../shared/RBAC";
 import User from "./database/models/User";
 import invariant from "tiny-invariant";
+import apiEnv from "./apiEnv";
+import { UniqueConstraintError } from "sequelize";
 
 const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
-  if (!ctx.authingUser) {
+  const authingUser = ctx.authingUser;
+  if (!authingUser) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'Please login first',
     });
   }
 
-  const yuanjianUser = await User.findOne({
-    where: {
-      clientId: ctx.authingUser.id
-    }
-  });
+  invariant(authingUser.email);
+  const user = await findOrCreateUser(authingUser.id, authingUser.email);
 
-  if (!yuanjianUser) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'No yuanjian user found',
-    });
-  }
-
-  if (!isPermitted(yuanjianUser.roles, resource)) {
+  if (!isPermitted(user.roles, resource)) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Permission denied',
     });
   }
   
-  const email = ctx.authingUser.email;
-  invariant(typeof email  === 'string');
-
   return await next({
     ctx: {
-      authingUser: ctx.authingUser,
-      email,
+      user,
+      authingUser: authingUser,
     }
   });
 });
 
 export default auth;
+
+async function findOrCreateUser(clientId: string, email: string): Promise<User> {  
+  /**
+   * Frontend calls user.profile multiple times when a new user logs in, causing parallel User.create() from time to
+   * time which results in unique constraint errors.
+   * 
+   * As a speed optimization, we simply retry on such errors instead of using pessimistic locking.
+   * 
+   * TODO: Fix the frontend to suppress unnecessary calls to user.profile.
+   */
+  while (true) {
+    const user = await User.findOne({ where: { clientId: clientId } });
+    if (user) return user;
+
+    const isAdmin = apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(email);
+    const roles: [Role] = [isAdmin ? 'ADMIN' : 'VISITOR'];
+    console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
+    try {
+      return await User.create({
+        name: "",
+        pinyin: "",
+        email,
+        clientId,
+        roles,
+      });
+    } catch (e) {
+      if (e instanceof UniqueConstraintError) {
+        console.log(`Unique constraint error when creating user ${email}. Assuming user already exists. Retry.`);
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+  
