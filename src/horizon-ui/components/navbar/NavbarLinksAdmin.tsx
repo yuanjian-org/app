@@ -20,7 +20,7 @@ import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
 import { isPermitted } from "../../../shared/RBAC";
 
-const logout = async function (this: Guard) {
+const logout = async funct ion (this: Guard) {
 	const authClient = await this.getAuthClient();
 	await authClient.logout();
 	localStorage.clear();
