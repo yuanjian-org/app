@@ -130,6 +130,9 @@ const myMeetings = router({
     auth('my-meetings:read')
   ).input(z.object({
   })).query(async ({ input, ctx }) => {
+
+    // TODO: use a single JOIN query to return <meeting_id, user_name> tuples directly from DB.
+
     const groupUserList = await GroupUser.findAll({
       where: {
         userId: ctx.user.id
@@ -148,15 +151,11 @@ const myMeetings = router({
         }
       }
     })).filter(g => {
-      console.log('comparing', new Set(g.users.map(u => u.id)),
-        userIdSet);
       return isSubset(
         new Set(g.users.map(u => u.id)),
         userIdSet
       );
     });
-
-    // console.log('result', groupList);
 
     const userMap = {} as Record<string, PublicUser>;
     for (const g of groupList) {
