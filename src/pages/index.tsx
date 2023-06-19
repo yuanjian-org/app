@@ -50,15 +50,15 @@ function SetNameModal() {
       const updatedUser = structuredClone(user);
       updatedUser.name = name;
 
-      tClientBrowser.user.updateProfile.mutate(updatedUser).then(
-        res => {
-          if (res === "ok") {
-            console.log("user name update succeeded");
-            setUser(updatedUser);
-            setOpen(false);
-          }
-        }
-      ).catch(e => toast.error(e.message, { autoClose: false }));
+      // TODO: Handle error display globally. Redact server-side errors.
+      try {
+        await tClientBrowser.user.updateProfile.mutate(updatedUser);
+        console.log("user name update succeeded");
+        setUser(updatedUser);
+        setOpen(false);
+      } catch (e) {
+        toast.error((e as Error).message);
+      }
     };
   };
 
