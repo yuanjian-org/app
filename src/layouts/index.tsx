@@ -13,12 +13,7 @@ import {
   getActiveRoute,
 } from 'navigation'
 
-// React 16/17
-// 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react/normal/src/pages/Callback.tsx
-// import { JwtTokenStatus, useGuard, User } from '@authing/guard-react';
-
-// React 18
-// 代码示例：https://github.com/Authing/Guard/blob/master/examples/guard-react18/normal/src/pages/Callback.tsx
+// Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
 import { GuardProvider, User, Guard } from '@authing/guard-react18';
 import { UserContext } from "../useUserContext";
 import browserEnv from "../browserEnv";
@@ -26,20 +21,15 @@ import tClientBrowser from "../tClientBrowser";
 import { IUser } from "../shared/user";
 import { useRouter } from "next/router";
 import { isPermitted } from "../shared/RBAC";
-import { BeatLoader } from 'react-spinners'
-import { toast } from 'react-toastify'
+import { BeatLoader } from 'react-spinners';
+import { toast } from 'react-toastify';
+import guard from '../guard';
 
 interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
 
 const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
-  const guard = new Guard({
-    appId: browserEnv.NEXT_PUBLIC_AUTHING_APP_ID,
-    redirectUri:
-      typeof window !== 'undefined' ? (location.origin + '/callback') : '',
-  });
-
   const [user, setUser] = useState<IUser | null>(null);
   const userFetchedRef = useRef(false);
 
