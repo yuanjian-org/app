@@ -16,7 +16,8 @@ const user = router({
   updateProfile: procedure.use(
     auth('profile:write')
   ).input(
-    z.object({ name: z.string().min(1, "required")})
+    // A Chinese name must have at least 2 characters.
+    z.object({ name: z.string().min(2, "required")})
   ).mutation(async ({ input, ctx }) => {
     await ctx.user.update({
       name: input.name,
