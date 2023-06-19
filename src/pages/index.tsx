@@ -110,7 +110,7 @@ function Meetings() {
         <VStack divider={<StackDivider />} align='left' spacing='6'>
           {data &&
             data.groupList.map((group: PublicGroup, idx: any) => 
-              <Meeting key={idx} user={user} group={group} userMap={data.userMap} />)
+              <Meeting key={idx} userId={user.id} group={group} userMap={data.userMap} />)
           }
         </VStack>
       </CardBody>
@@ -127,7 +127,7 @@ function Meeting(props) {
         onClick={async () => launchMeeting(props.group.id)}>进入会议
       </Button>
       {
-        props.group.userIdList.filter((id: string) => id !== props.user).map((id: string) => {
+        props.group.userIdList.filter((id: string) => id !== props.userId).map((id: string) => {
           const name = props.userMap[id].name;
           return <Fragment key={id}>
             <Avatar name={name} />
