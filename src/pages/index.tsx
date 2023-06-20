@@ -98,7 +98,7 @@ function isValidChineseName(s: string) : boolean {
 }
 
 function Meetings() {
-  const { data } = tClientNext.myMeetings.list.useQuery({});
+  const { data, isLoading } = tClientNext.myMeetings.list.useQuery({});
   const [user] = useUserContext();
 
   return (
@@ -107,6 +107,19 @@ function Meetings() {
         <Heading size='md'>会议列表</Heading>
       </CardHeader>
       <CardBody>
+        {!data
+        && isLoading
+        && <Text align='center'>
+            正在加载会议...
+        </Text>}
+        
+        {data
+        && data.groupList.length == 0
+        && !isLoading
+        && <Text align='center'>
+            会议将在管理员设置后可见
+           </Text>}
+        
         <VStack divider={<StackDivider />} align='left' spacing='6'>
           {data &&
             data.groupList.map((group: PublicGroup, idx: any) => 
