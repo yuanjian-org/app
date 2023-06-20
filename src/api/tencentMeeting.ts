@@ -57,7 +57,7 @@ const tmRequest = async (
   method: 'POST' | 'GET',
   requestUri: string,
   query: Record<string, string | number>,
-  body: Record<string, string>,
+  body: Record<string, string> = {},
 ) => {
   const enterpriseId = apiEnv.TM_ENTERPRISE_ID;
   const appId = apiEnv.TM_APP_ID;
@@ -116,18 +116,20 @@ const tmRequest = async (
 
   const port = _port ?? (protocol === 'http:' ? "80" : "443");
 
-  return requestWithBody(bodyText, {
+  return JSON.parse(await requestWithBody(bodyText, {
     host,
     port,
     path: "/" + path,
     protocol,
     method,
     headers,
-  });
+  }));
 };
 
 /**
- * Create a meeting. API: https://cloud.tencent.com/document/product/1095/42417
+ * Create a meeting.
+ * 
+ * https://cloud.tencent.com/document/product/1095/42417
  */
 export const createMeeting = async (
   meetingSubject: string,
@@ -147,11 +149,13 @@ export const createMeeting = async (
 };
 
 /**
- * List all meetings of user apiEnv.TM_ADMIN_USER_ID. API: https://cloud.tencent.com/document/product/1095/42421
+ * List meetings of user apiEnv.TM_ADMIN_USER_ID.
+ * 
+ * https://cloud.tencent.com/document/product/1095/42421
  */
 export const listMeetings = async () => {
-  console.log(LOG_HEADER, 'listMeetings()')
-  const zResult = z.intersection(z.object({
+  console.log(LOG_HEADER, 'listMeetings()');
+  const zRes = z.intersection(z.object({
     meeting_number: z.number(),
     remaining: z.number(),
     next_post: z.number(),
@@ -178,10 +182,100 @@ export const listMeetings = async () => {
     // "disable_invitation": 0
   })));
 
-  return zResult.parse(await tmRequest('GET', '/v1/meetings', {
+  const res = await tmRequest('GET', '/v1/meetings', {
     'userid': apiEnv.TM_ADMIN_USER_ID,
     'instanceid': "1",
-  }, {}));
+  });
+
+  return zRes.parse(res);
 }
 
-// listMeetings().then(console.log);
+/**
+ * List meeting recordings since 31 days ago (max allowed date range).
+ * 
+ * https://cloud.tencent.com/document/product/1095/51189
+ */
+export async function listRecords() {
+  console.log(LOG_HEADER, 'listRecords()');
+  const zRes = z.object({
+    total_count: z.number(),
+    // current_size: z.number(),
+    // current_page: z.number(),
+    // total_page: z.number(),
+    record_meetings: z.array(
+      z.object({
+        meeting_record_id: z.string(), // needed for script download
+        meeting_id: z.string(),
+        // meeting_code: z.string(),
+        // host_user_id: z.string(),
+        // media_start_time: z.number(),
+        // subject: z.string(),
+        state: z.number(), // 3 - ready for download
+        record_files: z.array(
+          z.object({
+            record_file_id: z.string(), // needed for script download
+            // record_start_time: z.number(),
+            // record_end_time: z.number(),
+            // record_size: z.number(),
+            // sharing_state: z.number(),
+            // required_same_corp: z.boolean(),
+            // required_participant: z.boolean(),
+            // password: z.string(),
+            // sharing_expire: z.number(),
+            // allow_download: z.boolean()
+          })
+        )
+      })
+    )
+  });
+
+  return zRes.parse(await tmRequest('GET', '/v1/records', {
+    'userid': apiEnv.TM_ADMIN_USER_ID,
+    // 31d is earliest allowed date
+    'start_time': JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
+    'end_time': JSON.stringify(Math.trunc(Date.now() / 1000)),
+  }));
+}
+
+/**
+ * Get record file download URLs given a meeting record id retrieved from listRecords().
+ * 
+ * https://cloud.tencent.com/document/product/1095/51174
+ */
+export async function getRecordURLs(meetingRecordId : string) {
+  console.log(LOG_HEADER, `getRecordURLs(${meetingRecordId})`);
+  const zRes = z.object({
+    meeting_record_id: z.string(),
+    meeting_id: z.string(),
+    meeting_code: z.string(),
+    subject: z.string(),
+    total_count: z.number(),
+    current_size: z.number(),
+    total_page: z.number(),
+    record_files: z.array(
+      z.object({
+        record_file_id: z.string(),
+        view_address: z.string().url(),
+        download_address: z.string().url(),
+        download_address_file_type: z.string(),
+        audio_address: z.string().url(),
+        audio_address_file_type: z.string(),
+        meeting_summary: z.array(
+          z.object({
+            download_address: z.string().url(),
+            file_type: z.string(),
+            //file_type: z.literal('txt')
+          })
+        ).optional()
+      })
+    )
+  });
+
+  return zRes.parse(await tmRequest('GET', '/v1/addresses', {
+    meeting_record_id: meetingRecordId,
+    userid: apiEnv.TM_ADMIN_USER_ID,
+  }));
+}
+
+// Uncomment and modify this line to debug TM APIs.
+// listRecords().then(res => console.log(JSON.stringify(res, null, 2)));
