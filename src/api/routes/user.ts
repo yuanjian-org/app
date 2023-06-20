@@ -21,9 +21,9 @@ const user = router({
     auth('profile:write')
   ).input(
     // A Chinese name must have at least 2 characters.
-    z.object({ name: z.string().min(2, "required")})
+    z.object({ name: z.string().min(2, "required") })
   ).mutation(async ({ input, ctx }) => {
-    await ctx.user.update({
+  await ctx.user.update({
       name: input.name,
       pinyin: pinyin.convertToPinyin(input.name),
     });
