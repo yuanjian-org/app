@@ -19,6 +19,7 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   return true;
 }
 
+// TODO: Move zod schemas into tecentMeeting.ts.
 /*
 {
   "meeting_number": 1,
@@ -51,27 +52,27 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   ]
 }*/
 
-const hostSchema = z.object({
+const zHost = z.object({
   userid: z.string(),
 });
 
-const settingsSchema = z.object({
+const zSettings = z.object({
   mute_enable_join: z.boolean(),
   allow_unmute_self: z.boolean(),
   mute_all: z.boolean(),
   mute_enable_type_join: z.number(),
 });
 
-const meetingInfoSchema = z.object({
+const zMeetingInfo = z.object({
   subject: z.string(),
   meeting_id: z.string(),
   meeting_code: z.string(),
   type: z.number(),
   join_url: z.string().url(),
-  hosts: z.array(hostSchema),
+  hosts: z.array(zHost),
   start_time: z.string(),
   end_time: z.string(),
-  settings: settingsSchema,
+  settings: zSettings,
   meeting_type: z.number(),
   enable_live: z.boolean(),
   media_set_type: z.number(),
@@ -79,9 +80,9 @@ const meetingInfoSchema = z.object({
   host_key: z.string().optional(),
 });
 
-const createMeetingReturnSchema = z.object({
+const zCreateMeetingRes = z.object({
   meeting_number: z.number(),
-  meeting_info_list: z.array(meetingInfoSchema),
+  meeting_info_list: z.array(zMeetingInfo),
 });
 
 const myMeetings = router({
@@ -102,16 +103,14 @@ const myMeetings = router({
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const resText = await createMeeting(
+    const res = await createMeeting(
       "Meeting of " + group.users.map(u => u.name).join(', '),
       now,
       now + 3600,
       "scheduled"
     );
 
-    console.log(resText);
-
-    const obj = createMeetingReturnSchema.parse(JSON.parse(resText));
+    const obj = zCreateMeetingRes.parse(res);
     invariant(obj.meeting_info_list.length === 1);
 
     const meetingLink = obj.meeting_info_list[0].join_url;
