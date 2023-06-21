@@ -1,6 +1,6 @@
 import SharedEnv from "../shared/SharedEnv";
 import { loadEnvConfig } from '@next/env';
-import { IsEmail, IsNotEmpty, validateOrReject } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, validateOrReject } from "class-validator";
 import { stringOrEmpty } from "../shared/utils/string";
 
 // force load env before app.prepare()
@@ -19,6 +19,9 @@ class ApiEnv extends SharedEnv {
   AUTHING_USER_POOL_ID: string = stringOrEmpty(process.env.AUTHING_USER_POOL_ID);
   @IsNotEmpty()
   AUTHING_USER_POOL_SECRET: string = stringOrEmpty(process.env.AUTHING_USER_POOL_SECRET);
+
+  @IsOptional()
+  INTEGRATION_AUTH_TOKEN: string | undefined = process.env.INTEGRATION_AUTH_TOKEN;
 
   @IsNotEmpty()
   TM_ENTERPRISE_ID: string = stringOrEmpty(process.env.TM_ENTERPRISE_ID);

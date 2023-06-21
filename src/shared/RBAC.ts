@@ -5,7 +5,8 @@ export type Role = ArrayElement<typeof ALL_ROLES>;
 
 export const ALL_ROLES = [
   'ADMIN',
-  'VISITOR'
+  'VISITOR',
+  'INTEGRATION',
 ] as const;
 
 export const zRoleArr = z.array(z.enum(ALL_ROLES));
@@ -20,6 +21,8 @@ export const RBAC_DEF = {
   'users:write': ['ADMIN'] as Role[],
   'groups:read': ['ADMIN'] as Role[],
   'groups:write': ['ADMIN'] as Role[],
+
+  'transcripts:read': ['INTEGRATION'] as Role[],
 
   'unknown': [] as Role[],
 } as const;
