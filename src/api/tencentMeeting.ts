@@ -4,6 +4,7 @@ import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z from "zod";
+import { TRPCError } from '@trpc/server';
 
 const LOG_HEADER = "[TecentMeeting]"
 
@@ -148,6 +149,11 @@ export const createMeeting = async (
   });
 };
 
+const paginationNotSupported = () => new TRPCError({
+  code: 'METHOD_NOT_SUPPORTED',
+  message: "Pagination isn't supported",
+});
+
 /**
  * List meetings of user apiEnv.TM_ADMIN_USER_ID.
  * 
@@ -201,7 +207,7 @@ export async function listRecords() {
     total_count: z.number(),
     // current_size: z.number(),
     // current_page: z.number(),
-    // total_page: z.number(),
+    total_page: z.number(),
     record_meetings: z.array(
       z.object({
         meeting_record_id: z.string(), // needed for script download
@@ -229,12 +235,15 @@ export async function listRecords() {
     )
   });
 
-  return zRes.parse(await tmRequest('GET', '/v1/records', {
+  const res = zRes.parse(await tmRequest('GET', '/v1/records', {
     'userid': apiEnv.TM_ADMIN_USER_ID,
     // 31d is earliest allowed date
     'start_time': JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
     'end_time': JSON.stringify(Math.trunc(Date.now() / 1000)),
   }));
+
+  if (res.total_page != 1) throw paginationNotSupported();
+  return res;
 }
 
 /**
@@ -243,38 +252,40 @@ export async function listRecords() {
  * https://cloud.tencent.com/document/product/1095/51174
  */
 export async function getRecordURLs(meetingRecordId : string) {
-  console.log(LOG_HEADER, `getRecordURLs(${meetingRecordId})`);
+  console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
   const zRes = z.object({
-    meeting_record_id: z.string(),
+    // meeting_record_id: z.string(),
     meeting_id: z.string(),
-    meeting_code: z.string(),
-    subject: z.string(),
-    total_count: z.number(),
-    current_size: z.number(),
+    // meeting_code: z.string(),
+    // subject: z.string(),
+    // total_count: z.number(),
+    // current_size: z.number(),
     total_page: z.number(),
     record_files: z.array(
       z.object({
         record_file_id: z.string(),
-        view_address: z.string().url(),
-        download_address: z.string().url(),
-        download_address_file_type: z.string(),
-        audio_address: z.string().url(),
-        audio_address_file_type: z.string(),
+        // view_address: z.string().url(),
+        // download_address: z.string().url(),
+        // download_address_file_type: z.string(),
+        // audio_address: z.string().url(),
+        // audio_address_file_type: z.string(),
         meeting_summary: z.array(
           z.object({
             download_address: z.string().url(),
             file_type: z.string(),
-            //file_type: z.literal('txt')
           })
         ).optional()
       })
     )
   });
 
-  return zRes.parse(await tmRequest('GET', '/v1/addresses', {
+  const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
     meeting_record_id: meetingRecordId,
     userid: apiEnv.TM_ADMIN_USER_ID,
   }));
+
+  if (res.total_page != 1) throw paginationNotSupported();
+  return res;
 }
 
 // Uncomment and modify this line to debug TM APIs.
