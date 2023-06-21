@@ -11,16 +11,16 @@ export const ALL_ROLES = [
 export const zRoleArr = z.array(z.enum(ALL_ROLES));
 
 export const RBAC_DEF = {
-  'home:read': ['ADMIN', 'VISITOR'] as Role[],
-  'profile:read': ['ADMIN', 'VISITOR'] as Role[],
-  'profile:write': ['ADMIN', 'VISITOR'] as Role[],
-  'meeting:read': ['ADMIN', 'VISITOR'] as Role[], 
-  'user-management:read': ['ADMIN'] as Role[],
-  'user-management:write': ['ADMIN'] as Role[],
-  'group-management:read': ['ADMIN'] as Role[],
-  'group-management:write': ['ADMIN'] as Role[],
-  'my-meetings:create': ['ADMIN', 'VISITOR'] as Role[],
-  'my-meetings:read': ['ADMIN', 'VISITOR'] as Role[],
+  'me:read': ['ADMIN', 'VISITOR'] as Role[],
+  'me:write': ['ADMIN', 'VISITOR'] as Role[],
+  'my-groups:read': ['ADMIN', 'VISITOR'] as Role[],
+  'my-groups:write': ['ADMIN', 'VISITOR'] as Role[],
+
+  'users:read': ['ADMIN'] as Role[],
+  'users:write': ['ADMIN'] as Role[],
+  'groups:read': ['ADMIN'] as Role[],
+  'groups:write': ['ADMIN'] as Role[],
+
   'unknown': [] as Role[],
 } as const;
 

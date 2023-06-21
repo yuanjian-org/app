@@ -6,7 +6,7 @@ import pinyin from 'tiny-pinyin';
 
 const me = router({
   profile: procedure.use(
-    auth('profile:read')
+    auth('me:read')
   ).input(
     z.object({}),
   ).query(async ({ input, ctx }) => {
@@ -18,7 +18,7 @@ const me = router({
    * TODO: add a warning message in profile change UI.
    */
   updateProfile: procedure.use(
-    auth('profile:write')
+    auth('me:write')
   ).input(
     // A Chinese name must have at least 2 characters.
     z.object({ name: z.string().min(2, "required") })

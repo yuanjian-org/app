@@ -87,7 +87,7 @@ const zCreateMeetingRes = z.object({
 
 const myGroups = router({
   generateMeetingLink: procedure.use(
-    auth('my-meetings:create')
+    auth('my-groups:write')
   ).input(z.object({
     groupId: z.string(),
   })).mutation(async ({ input, ctx }) => {
@@ -127,7 +127,7 @@ const myGroups = router({
   }),
 
   list: procedure.use(
-    auth('my-meetings:read')
+    auth('my-groups:read')
   ).input(z.object({
   })).query(async ({ input, ctx }) => {
 

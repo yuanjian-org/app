@@ -30,7 +30,7 @@ const dedupe = <T>(list: T[]) => [...new Set(list)];
 
 const groups = router({
   create: procedure.use(
-    auth('group-management:write')
+    auth('groups:write')
   ).input(z.object({
     meetingLink: z.string().nullable(),
     userIdList: z.array(z.string()).min(2),
@@ -78,7 +78,7 @@ const groups = router({
     }
   }),
   list: procedure.use(
-    auth('group-management:read')
+    auth('groups:read')
   ).input(z.object({
     userIdList: z.string().array(),
     // offset: z.number(),

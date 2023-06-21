@@ -18,7 +18,7 @@ const managementClient = new ManagementClient({
 
 const users = router({
   createInOurDb: procedure.use(
-    auth('user-management:write')
+    auth('users:write')
   ).input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
@@ -53,7 +53,7 @@ const users = router({
   }),
 
   search: procedure.use(
-    auth('user-management:read')
+    auth('users:read')
   ).input(z.object({
     offset: z.number(),
     limit: z.number(),
@@ -74,7 +74,7 @@ const users = router({
   }),
 
   listFromAuthing: procedure.use(
-    auth('user-management:read')
+    auth('users:read')
   ).input(z.object({
     offset: z.number(),
     limit: z.number(),
