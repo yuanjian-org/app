@@ -29,7 +29,7 @@ import { toast } from "react-toastify";
 import tClientNext from "../tClientNext";
 
 const UserManagement: NextPageWithLayout = () => {
-  const { isLoading, error, data, refetch } = tClientNext.userManagement.listFromAuthing.useQuery({
+  const { isLoading, error, data, refetch } = tClientNext.users.listFromAuthing.useQuery({
     offset: 0,
     limit: 10,
   });
@@ -48,7 +48,7 @@ const UserManagement: NextPageWithLayout = () => {
       return;
     }
     setCreating(true);
-    tClientBrowser.userManagement.createInOurDb.mutate({
+    tClientBrowser.users.createInOurDb.mutate({
       name,
       pinyin: user.pinyin,
       email: user.email,

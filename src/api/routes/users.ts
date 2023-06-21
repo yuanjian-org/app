@@ -16,7 +16,7 @@ const managementClient = new ManagementClient({
   secret: apiEnv.AUTHING_USER_POOL_SECRET
 });
 
-const userManagement = router({
+const users = router({
   createInOurDb: procedure.use(
     auth('user-management:write')
   ).input(z.object({
@@ -72,6 +72,7 @@ const userManagement = router({
       userList: userList.map(presentPublicUser),
     }
   }),
+
   listFromAuthing: procedure.use(
     auth('user-management:read')
   ).input(z.object({
@@ -114,4 +115,4 @@ const userManagement = router({
   })
 });
 
-export default userManagement;
+export default users;

@@ -23,7 +23,7 @@ const loadOptions = (
   inputValue: string,
   callback: (options: Option[]) => void
 ) => {
-  tClientBrowser.userManagement.search.query({
+  tClientBrowser.users.search.query({
     offset: 0,
     limit: 10,
     query: inputValue,
@@ -40,13 +40,13 @@ const UserManagement: NextPageWithLayout = () => {
   const [selected, setSelected] = useState([] as {label: string, value: string}[]);
   const [isCreating, setCreating] = useState(false);
 
-  const { data, refetch } = tClientNext.groupManagement.list.useQuery({
+  const { data, refetch } = tClientNext.groups.list.useQuery({
     userIdList: selected.map(option => option.value),
   });
 
   const createGroup = async () => {
     setCreating(true);
-    tClientBrowser.groupManagement.create.mutate({
+    tClientBrowser.groups.create.mutate({
       meetingLink: null,
       userIdList: selected.map(option => option.value),
     })

@@ -4,7 +4,7 @@ import auth, { invalidateLocalUserCache } from "../auth";
 import { IUser } from "../../shared/user";
 import pinyin from 'tiny-pinyin';
 
-const user = router({
+const me = router({
   profile: procedure.use(
     auth('profile:read')
   ).input(
@@ -31,4 +31,4 @@ const user = router({
   })
 });
 
-export default user;
+export default me;
