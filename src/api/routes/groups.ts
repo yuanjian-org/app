@@ -1,6 +1,6 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth from "../auth";
+import { authUser } from "../auth";
 import Group from "../database/models/Group";
 import GroupUser from "../database/models/GroupUser";
 import { Op } from "sequelize";
@@ -30,7 +30,7 @@ const dedupe = <T>(list: T[]) => [...new Set(list)];
 
 const groups = router({
   create: procedure.use(
-    auth('groups:write')
+    authUser('groups:write')
   ).input(z.object({
     meetingLink: z.string().nullable(),
     userIdList: z.array(z.string()).min(2),
@@ -78,7 +78,7 @@ const groups = router({
     }
   }),
   list: procedure.use(
-    auth('groups:read')
+    authUser('groups:read')
   ).input(z.object({
     userIdList: z.string().array(),
     // offset: z.number(),

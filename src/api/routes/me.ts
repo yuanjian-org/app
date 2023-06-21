@@ -1,12 +1,12 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth, { invalidateLocalUserCache } from "../auth";
+import { authUser, invalidateLocalUserCache } from "../auth";
 import { IUser } from "../../shared/user";
 import pinyin from 'tiny-pinyin';
 
 const me = router({
   profile: procedure.use(
-    auth('me:read')
+    authUser('me:read')
   ).input(
     z.object({}),
   ).query(async ({ input, ctx }) => {
@@ -18,7 +18,7 @@ const me = router({
    * TODO: add a warning message in profile change UI.
    */
   updateProfile: procedure.use(
-    auth('me:write')
+    authUser('me:write')
   ).input(
     // A Chinese name must have at least 2 characters.
     z.object({ name: z.string().min(2, "required") })

@@ -1,6 +1,6 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth from "../auth";
+import { authUser } from "../auth";
 import GroupUser from "../database/models/GroupUser";
 import { Op } from "sequelize";
 import Group from "../database/models/Group";
@@ -87,7 +87,7 @@ const zCreateMeetingRes = z.object({
 
 const myGroups = router({
   generateMeetingLink: procedure.use(
-    auth('my-groups:write')
+    authUser('my-groups:write')
   ).input(z.object({
     groupId: z.string(),
   })).mutation(async ({ input, ctx }) => {
@@ -127,7 +127,7 @@ const myGroups = router({
   }),
 
   list: procedure.use(
-    auth('my-groups:read')
+    authUser('my-groups:read')
   ).input(z.object({
   })).query(async ({ input, ctx }) => {
 
