@@ -1,14 +1,16 @@
 import { router } from './tServer';
-import user from "./routes/user";
-import userManagement from "./routes/userManagement";
-import myMeetings from "./routes/myMeetings";
-import groupManagement from "./routes/groupManagement";
+import me from "./routes/me";
+import users from "./routes/users";
+import myGroups from "./routes/myGroups";
+import groups from "./routes/groups";
+import transcripts from './routes/transcripts';
 
 export const apiRouter = router({
-  user,
-  userManagement,
-  groupManagement,
-  myMeetings,
+  me,
+  users,
+  groups,
+  myGroups,
+  transcripts,
 });
 
 export type ApiRouter = typeof apiRouter;

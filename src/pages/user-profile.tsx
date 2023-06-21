@@ -34,7 +34,7 @@ const UserProfile: NextPageWithLayout = () => {
 
       // TODO: Handle error display globally. Redact server-side errors.
       try {
-        await tClientBrowser.user.updateProfile.mutate(updatedUser);
+        await tClientBrowser.me.updateProfile.mutate(updatedUser);
         console.log("user name update succeeded");
         setUser(updatedUser);
         setShow(!show);
