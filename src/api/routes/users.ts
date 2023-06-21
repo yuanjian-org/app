@@ -1,6 +1,6 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth from "../auth";
+import { authUser } from "../auth";
 import { ManagementClient } from 'authing-js-sdk'
 import invariant from "tiny-invariant";
 import apiEnv from "../apiEnv";
@@ -18,7 +18,7 @@ const managementClient = new ManagementClient({
 
 const users = router({
   createInOurDb: procedure.use(
-    auth('users:write')
+    authUser('users:write')
   ).input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
@@ -53,7 +53,7 @@ const users = router({
   }),
 
   search: procedure.use(
-    auth('users:read')
+    authUser('users:read')
   ).input(z.object({
     offset: z.number(),
     limit: z.number(),
@@ -74,7 +74,7 @@ const users = router({
   }),
 
   listFromAuthing: procedure.use(
-    auth('users:read')
+    authUser('users:read')
   ).input(z.object({
     offset: z.number(),
     limit: z.number(),

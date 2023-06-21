@@ -10,15 +10,13 @@ import { LRUCache } from 'lru-cache'
 
 const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 
-const auth = (resource: Resource) => middleware(async ({ ctx, next }) => {
+export const authUser = (resource: Resource) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw unauthorized();
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);
   if (!isPermitted(user.roles, resource)) throw forbidden();
   return await next({ ctx: { user: user } });
 });
-
-export default auth;
 
 /**
  * In Serverless or Edge environment where multiple API instances may run, this function only clears the cache of the
