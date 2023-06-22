@@ -283,30 +283,13 @@ export async function listRecords() {
         // sharing_expire: z.number(),
         // allow_download: z.boolean()
       })
+    )
+  });
   const zRes = z.object({
     total_count: z.number(),
     // current_size: z.number(),
     // current_page: z.number(),
     total_page: z.number(),
-    record_meetings: z.array(
-      z.object({
-        meeting_record_id: z.string(), // needed for script download
-        meeting_id: z.string(),
-        // meeting_code: z.string(),
-        // host_user_id: z.string(),
-        // media_start_time: z.number(),
-        subject: z.string(),
-        state: z.number(), // 3 - ready for download
-        record_files: z.array(
-          z.object({
-            record_file_id: z.string(), // needed for script download
-            // record_start_time: z.number(),
-            // record_end_time: z.number(),
-            // record_size: z.number(),
-            // sharing_state: z.number(),
-            // required_same_corp: z.boolean(),
-            // required_participant: z.boolean(),
-            // password: z.string(),
     record_meetings: z.array(zRecordMeetings)
   });
 
