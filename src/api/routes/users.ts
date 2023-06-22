@@ -62,6 +62,7 @@ const users = router({
     const userList = await User.findAll({
       where: {
         [Op.or]: [
+          { pinyin: { [Op.iLike]: `%${input.query}%` } },
           { name: { [Op.iLike]: `%${input.query}%` } },
           { email: { [Op.iLike]: `%${input.query}%` } },
         ],
