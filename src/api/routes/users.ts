@@ -74,44 +74,11 @@ const users = router({
     }
   }),
 
-  listFromAuthing: procedure.use(
+  listUsers: procedure.use(
     authUser('users:read')
-  ).input(z.object({
-    offset: z.number(),
-    limit: z.number(),
-  })).query(async ({ input, ctx }) => {
-    invariant(input.offset % input.limit === 0);
-    const page = Math.floor(input.offset / input.limit) + 1;
-    const pageSize = input.limit;
-
-    const userListFromAuthing = await managementClient.users.list(page, pageSize);
-
-    const clientIdList = userListFromAuthing.list.map(u => u.id);
-
-    const userList = await User.findAll({
-      where: {
-        clientId: {
-          [Op.in]: clientIdList
-        }
-      }
-    });
-
+  ).query(async () => {
     return {
-      userList: userListFromAuthing.list.map(authingUser => {
-        const found = userList.find(u => u.clientId === authingUser.id);
-        if (found) {
-          return {
-            id: found.id,
-            pinyin: found.pinyin,
-            name: found.name,
-            roles: found.roles,
-            clientId: found.clientId,
-            email: found.email,
-          } as IUser;
-        } else {
-          return false;
-        }
-      }).filter(Boolean) as IUser[]
+      userList: await User.findAll() as IUser[]
     };
   })
 });

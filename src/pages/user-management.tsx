@@ -29,10 +29,7 @@ import { toast } from "react-toastify";
 import tClientNext from "../tClientNext";
 
 const UserManagement: NextPageWithLayout = () => {
-  const { isLoading, error, data, refetch } = tClientNext.users.listFromAuthing.useQuery({
-    offset: 0,
-    limit: 10,
-  });
+  const { isLoading, error, data, refetch } = tClientNext.users.listUsers.useQuery();
 
   const [isOpen, setOpen] = useState(false);
   const textColor = useColorModeValue('navy.700', 'white');
