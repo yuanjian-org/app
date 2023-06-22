@@ -24,7 +24,7 @@ const tClientNext = createTRPCNext<ApiRouter>({
              * If you want to use SSR, you need to use the server's full URL
              * @link https://trpc.io/docs/ssr
              **/
-            url: `${getBaseUrl()}/api/trpc`,
+            url: `${getBaseUrl()}/api/v1`,
             headers: () => {
               // console.log('getting headers', localStorage.getItem('_authing_token'));
               return {
