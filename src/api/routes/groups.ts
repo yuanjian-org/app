@@ -1,6 +1,6 @@
 import { procedure, router } from "../tServer";
 import { z } from "zod";
-import auth from "../auth";
+import { authUser } from "../auth";
 import Group from "../database/models/Group";
 import GroupUser from "../database/models/GroupUser";
 import { Op } from "sequelize";
@@ -28,9 +28,9 @@ function areStringSetsEqual(set1: Set<string>, set2: Set<string>): boolean {
 
 const dedupe = <T>(list: T[]) => [...new Set(list)];
 
-const groupManagement = router({
+const groups = router({
   create: procedure.use(
-    auth('group-management:write')
+    authUser('groups:write')
   ).input(z.object({
     meetingLink: z.string().nullable(),
     userIdList: z.array(z.string()).min(2),
@@ -78,7 +78,7 @@ const groupManagement = router({
     }
   }),
   list: procedure.use(
-    auth('group-management:read')
+    authUser('groups:read')
   ).input(z.object({
     userIdList: z.string().array(),
     // offset: z.number(),
@@ -115,8 +115,6 @@ const groupManagement = router({
       );
     });
 
-    // console.log('result', groupList);
-
     const userMap = {} as Record<string, PublicUser>;
     for (const g of groupList) {
       g.users.forEach(u => {
@@ -133,4 +131,4 @@ const groupManagement = router({
   }),
 });
 
-export default groupManagement;
+export default groups;

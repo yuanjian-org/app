@@ -13,14 +13,14 @@ const routes: IRoute[] = [
     layout: '/',
     path: '/',
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
-    resource: 'meeting:read',
+    resource: 'my-groups:read',
   },
   {
     name: '个人信息',
     layout: '/',
     path: '/user-profile',
     icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
-    resource: 'profile:write',
+    resource: 'me:write',
     hiddenFromSidebar: true,
   },
   {
@@ -28,14 +28,14 @@ const routes: IRoute[] = [
     layout: '/',
     path: '/user-management',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
-    resource: 'user-management:write',
+    resource: 'users:write',
   },
   {
     name: '分组管理',
     layout: '/',
     path: '/group-management',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
-    resource: 'group-management:write',
+    resource: 'groups:write',
   },
 ]
 

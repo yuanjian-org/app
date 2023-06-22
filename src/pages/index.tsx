@@ -52,7 +52,7 @@ function SetNameModal() {
 
       // TODO: Handle error display globally. Redact server-side errors.
       try {
-        await tClientBrowser.user.updateProfile.mutate(updatedUser);
+        await tClientBrowser.me.updateProfile.mutate(updatedUser);
         console.log("user name update succeeded");
         setUser(updatedUser);
         setOpen(false);
@@ -98,7 +98,7 @@ function isValidChineseName(s: string) : boolean {
 }
 
 function Meetings() {
-  const { data, isLoading } = tClientNext.myMeetings.list.useQuery({});
+  const { data, isLoading } = tClientNext.myGroups.list.useQuery({});
   const [user] = useUserContext();
 
   return (
@@ -153,6 +153,6 @@ function Meeting(props) {
 }
 
 async function launchMeeting(groupId: string) {
-  const meetingLink = await tClientBrowser.myMeetings.generateMeetingLink.mutate({ groupId: groupId });
+  const meetingLink = await tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId });
   window.location.href = meetingLink;
 }
