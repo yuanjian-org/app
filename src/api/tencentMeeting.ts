@@ -3,7 +3,7 @@ import qs from 'qs';
 import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
-import z from "zod";
+import z, { TypeOf } from "zod";
 import { TRPCError } from '@trpc/server';
 
 const LOG_HEADER = "[TecentMeeting]"
@@ -262,6 +262,27 @@ export async function listMeetings() {
  */
 export async function listRecords() {
   console.log(LOG_HEADER, 'listRecords()');
+  const zRecordMeetings = z.object({
+    meeting_record_id: z.string(), // needed for script download
+    // meeting_id: z.string(),
+    // meeting_code: z.string(),
+    // host_user_id: z.string(),
+    // media_start_time: z.number(),
+    subject: z.string(),
+    state: z.number(), // 3 - ready for download
+    record_files: z.array(
+      z.object({
+        record_file_id: z.string(),
+        record_start_time: z.number(),
+        record_end_time: z.number(),
+        // record_size: z.number(),
+        // sharing_state: z.number(),
+        // required_same_corp: z.boolean(),
+        // required_participant: z.boolean(),
+        // password: z.string(),
+        // sharing_expire: z.number(),
+        // allow_download: z.boolean()
+      })
   const zRes = z.object({
     total_count: z.number(),
     // current_size: z.number(),
@@ -286,23 +307,25 @@ export async function listRecords() {
             // required_same_corp: z.boolean(),
             // required_participant: z.boolean(),
             // password: z.string(),
-            // sharing_expire: z.number(),
-            // allow_download: z.boolean()
-          })
-        )
-      })
-    )
+    record_meetings: z.array(zRecordMeetings)
   });
 
-  const res = zRes.parse(await tmRequest('GET', '/v1/records', {
-    userid: apiEnv.TM_ADMIN_USER_ID,
-    // 31d is earliest allowed date
-    start_time: JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
-    end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
-  }));
-
-  // if (res.total_page != 1) throw paginationNotSupported();
-  return res;
+  var ret : TypeOf<typeof zRecordMeetings>[] = []
+  var page = 1;
+  while (true) {
+    const res = zRes.parse(await tmRequest('GET', '/v1/records', {
+      userid: apiEnv.TM_ADMIN_USER_ID,
+      // 31d is earliest allowed date
+      start_time: JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
+      end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
+      page_size: 20,  // max page size
+      page
+    }));
+    ret = ret.concat(res.record_meetings)
+    if (page >= res.total_page) break;
+    page++;
+  }
+  return ret;
 }
 
 /**
@@ -314,7 +337,7 @@ export async function getRecordURLs(meetingRecordId : string) {
   console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
   const zRes = z.object({
     // meeting_record_id: z.string(),
-    meeting_id: z.string(),
+    // meeting_id: z.string(),
     // meeting_code: z.string(),
     // subject: z.string(),
     // total_count: z.number(),
