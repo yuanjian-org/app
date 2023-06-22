@@ -24,16 +24,16 @@ export const sendEmail = async (personalization: PersonalizationData[], template
 export const sendEmailToAdmin = async (new_user_email: string) => {
     const template_id = 'd-2e3aabdb9a3c45a393877596534c57c2'; // temporary holder, change to required template id
 
-    const adminList = await User.findAll({
+    const admin = await User.findAll({
         where: {
             roles: { [Op.contains]: ["ADMIN"] },
         }
     })
 
-    const sendList = adminList.map(({ name, email }) => ({ name, email }))
+    const toSend = admin.map(({ name, email }) => ({ name, email }))
 
     const personalizations: PersonalizationData[] = [{
-        to: sendList,
+        to: toSend,
         // edit accordingly on the template parameters
         dynamicTemplateData: {
             receiver: 'Admin',
