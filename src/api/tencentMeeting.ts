@@ -132,22 +132,81 @@ const tmRequest = async (
  * 
  * https://cloud.tencent.com/document/product/1095/42417
  */
-export const createMeeting = async (
-  meetingSubject: string,
+export async function createMeeting(
+  subject: string,
   startTimeSecond: number,
   endTimeSecond: number,
-  type: 'scheduled' | 'fast',
-) => {
-  console.log(LOG_HEADER, `createMeeting('${meetingSubject}', ${startTimeSecond}, ${endTimeSecond})`)
-  return await tmRequest('POST', '/v1/meetings', {}, {
-    "userid": apiEnv.TM_ADMIN_USER_ID,
-    "instanceid": "1",
-    "subject": meetingSubject,
-    "start_time": "" + startTimeSecond,
-    "end_time": "" + endTimeSecond,
-    "type": type === 'scheduled' ? "0" : "1",
+) {
+  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond}, ${endTimeSecond})`)
+
+  /* Sample request result:
+  {
+    "meeting_number": 1,
+    "meeting_info_list": [
+      {
+        "subject": "test meeting ts4",
+        "meeting_id": "8920608318088532478",
+        "meeting_code": "123371270",
+        "type": 1,
+        "join_url": "https://meeting.tencent.com/dm/49fYCUGV0YHe",
+        "hosts": [
+          {
+            "userid": "1764d9d81a924fdf9269b7a54e519f30"
+          }
+        ],
+        "start_time": "1683093659",
+        "end_time": "1683136859",
+        "settings": {
+          "mute_enable_join": true,
+          "allow_unmute_self": true,
+          "mute_all": true,
+          "mute_enable_type_join": 1
+        },
+        "meeting_type": 0,
+        "enable_live": false,
+        "media_set_type": 0,
+        "location": "",
+        "host_key": "123456"
+      }
+    ]
+  }*/
+
+  const zRes = z.object({
+    meeting_number: z.number(),
+    meeting_info_list: z.array(z.object({
+      subject: z.string(),
+      meeting_id: z.string(),
+      meeting_code: z.string(),
+      type: z.number(),
+      join_url: z.string().url(),
+      hosts: z.array(z.object({
+        userid: z.string(),
+      })),
+      start_time: z.string(),
+      end_time: z.string(),
+      settings: z.object({
+        mute_enable_join: z.boolean(),
+        allow_unmute_self: z.boolean(),
+        mute_all: z.boolean(),
+        mute_enable_type_join: z.number(),
+      }),
+      meeting_type: z.number(),
+      enable_live: z.boolean(),
+      media_set_type: z.number(),
+      location: z.string(),
+      host_key: z.string().optional(),
+    })),
   });
-};
+
+  return zRes.parse(await tmRequest('POST', '/v1/meetings', {}, {
+    userid: apiEnv.TM_ADMIN_USER_ID,
+    instanceid: "1",
+    subject: subject,
+    start_time: "" + startTimeSecond,
+    end_time: "" + endTimeSecond,
+    type: "0", // 0: scheduled, 1: fast
+  }));
+}
 
 const paginationNotSupported = () => new TRPCError({
   code: 'METHOD_NOT_SUPPORTED',
@@ -159,7 +218,7 @@ const paginationNotSupported = () => new TRPCError({
  * 
  * https://cloud.tencent.com/document/product/1095/42421
  */
-export const listMeetings = async () => {
+export async function listMeetings() {
   console.log(LOG_HEADER, 'listMeetings()');
   const zRes = z.intersection(z.object({
     meeting_number: z.number(),
@@ -167,14 +226,14 @@ export const listMeetings = async () => {
     next_post: z.number(),
     next_cursory: z.number(),
   }), z.array(z.object({
-    "subject": z.string(),
-    "meeting_id": z.string(),
-    "meeting_code": z.string(),
-    "status": z.string(),
+    subject: z.string(),
+    meeting_id: z.string(),
+    meeting_code: z.string(),
+    status: z.string(),
     // "type": 0,
-    "join_url": z.string(),
-    "start_time": z.string(),
-    "end_time": z.string(),
+    join_url: z.string(),
+    start_time: z.string(),
+    end_time: z.string(),
     // "meeting_type": 6,
     // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
     // "current_sub_meeting_id": "1679763600",
@@ -189,8 +248,8 @@ export const listMeetings = async () => {
   })));
 
   const res = await tmRequest('GET', '/v1/meetings', {
-    'userid': apiEnv.TM_ADMIN_USER_ID,
-    'instanceid': "1",
+    userid: apiEnv.TM_ADMIN_USER_ID,
+    instanceid: "1",
   });
 
   return zRes.parse(res);
@@ -215,7 +274,7 @@ export async function listRecords() {
         // meeting_code: z.string(),
         // host_user_id: z.string(),
         // media_start_time: z.number(),
-        // subject: z.string(),
+        subject: z.string(),
         state: z.number(), // 3 - ready for download
         record_files: z.array(
           z.object({
@@ -236,13 +295,13 @@ export async function listRecords() {
   });
 
   const res = zRes.parse(await tmRequest('GET', '/v1/records', {
-    'userid': apiEnv.TM_ADMIN_USER_ID,
+    userid: apiEnv.TM_ADMIN_USER_ID,
     // 31d is earliest allowed date
-    'start_time': JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
-    'end_time': JSON.stringify(Math.trunc(Date.now() / 1000)),
+    start_time: JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
+    end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
   }));
 
-  if (res.total_page != 1) throw paginationNotSupported();
+  // if (res.total_page != 1) throw paginationNotSupported();
   return res;
 }
 
