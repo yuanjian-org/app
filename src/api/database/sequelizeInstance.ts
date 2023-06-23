@@ -4,9 +4,11 @@ import apiEnv from "../apiEnv";
 import { hookIsPartialAfterSequelizeInit } from "./modelHelpers/ZodColumn";
 import Group from "./models/Group";
 import GroupUser from "./models/GroupUser";
+import Transcript from "./models/Transcript";
+import Summary from "./models/Summary";
 
 const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
-  models: [User, Group, GroupUser],
+  models: [User, Group, GroupUser, Transcript, Summary],
   dialectModule: require('pg'),
   retry: {
     // Error types: https://sequelize.org/api/v6/identifiers.html#errors

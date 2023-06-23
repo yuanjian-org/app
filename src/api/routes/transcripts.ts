@@ -49,7 +49,7 @@ const transcripts = router({
         .map(summary => {
           const id = 
           res.push({
-            transcriptId: formatTranscriptId(meeting.subject, file.record_file_id, startTime, endTime),
+            transcriptId: encodeTranscriptId(meeting.subject, file.record_file_id, startTime, endTime),
             url: summary.download_address,
           });
         })
@@ -63,17 +63,17 @@ const transcripts = router({
 
 export default transcripts;
 
-function formatTranscriptId(groupId: string, recordFileId: string, startTime: number, endTime: number): string {
-  return `${groupId}.${recordFileId}.${startTime}.${endTime}`; 
+export function encodeTranscriptId(groupId: string, transcriptId: string, startTime: number, endTime: number): string {
+  return `${groupId}.${transcriptId}.${startTime}.${endTime}`; 
 }
 
-function parseTranscriptId(transcriptId: string) {
-  const parsed = transcriptId.split('.');
-  if (parsed.length !== 4 || !parsed.every(s => s.length > 1)) throw Error(`Invalid Transcript Id: ${transcriptId}`);
+export function decodeTranscriptId(encoded: string) {
+  const parsed = encoded.split('.');
+  if (parsed.length !== 4 || !parsed.every(s => s.length > 1)) throw Error(`Invalid Encode Transcript Id: ${encoded}`);
   return {
     groupId: parsed[0],
-    recordFileId: parsed[1],
-    startTime: Number(parsed[2]),
-    endTime: Number(parsed[3]),
+    transcriptId: parsed[1],
+    startedAt: Number(parsed[2]),
+    endedAt: Number(parsed[3]),
   }
 }

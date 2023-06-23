@@ -23,6 +23,7 @@ export const RBAC_DEF = {
   'groups:write': ['ADMIN'] as Role[],
 
   'transcripts:read': ['INTEGRATION'] as Role[],
+  'summaries:write': ['INTEGRATION'] as Role[],
 
   'unknown': [] as Role[],
 } as const;
