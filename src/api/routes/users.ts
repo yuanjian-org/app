@@ -1,4 +1,4 @@
-import { procedure, router } from "../tServer";
+import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import { ManagementClient } from 'authing-js-sdk'
