@@ -1,6 +1,6 @@
-import { procedure, router } from "../tServer";
+import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
-import { getRecordURLs, listRecords } from "api/tencentMeeting";
+import { getRecordURLs, listRecords } from "api/TencentMeeting";
 import invariant from "tiny-invariant";
 
 const transcripts = router({

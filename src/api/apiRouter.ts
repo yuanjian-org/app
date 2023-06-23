@@ -1,4 +1,4 @@
-import { router } from './tServer';
+import { router } from './trpc';
 import me from "./routes/me";
 import users from "./routes/users";
 import myGroups from "./routes/myGroups";

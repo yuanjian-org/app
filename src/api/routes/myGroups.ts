@@ -1,4 +1,4 @@
-import { procedure, router } from "../tServer";
+import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import GroupUser from "../database/models/GroupUser";
@@ -8,7 +8,7 @@ import User from "../database/models/User";
 import PublicUser from "../../shared/publicModels/PublicUser";
 import { presentPublicGroup } from "../../shared/publicModels/PublicGroup";
 import invariant from "tiny-invariant";
-import { createMeeting } from "../tencentMeeting";
+import { createMeeting } from "../TencentMeeting";
 
 function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   for (const item of subset) {
