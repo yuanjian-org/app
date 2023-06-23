@@ -11,6 +11,10 @@ export default function Footer() {
 				base: 'column',
 				xl: 'row'
 			}}
+			position='fixed'
+			left='290px' // 290px is the box size 
+			bottom='0'
+			right='0'
 			alignItems={{
 				base: 'center',
 				xl: 'start'
