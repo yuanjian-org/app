@@ -9,7 +9,7 @@ import {
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { STRING, UUID } from "sequelize";
+import { UUID } from "sequelize";
 import User from "./User";
 import Group from "./Group";
 

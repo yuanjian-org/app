@@ -4,6 +4,7 @@ import users from "./routes/users";
 import myGroups from "./routes/myGroups";
 import groups from "./routes/groups";
 import transcripts from './routes/transcripts';
+import summaries from './routes/summaries';
 
 export const apiRouter = router({
   me,
@@ -11,6 +12,7 @@ export const apiRouter = router({
   groups,
   myGroups,
   transcripts,
+  summaries,
 });
 
 export type ApiRouter = typeof apiRouter;
