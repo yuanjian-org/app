@@ -134,9 +134,21 @@ function Meetings() {
 // @ts-ignore type checking for props is anonying
 function Meeting(props) {
   const textColor = useColorModeValue('secondaryGray.700', 'white');
+  const [isJoiningMeeting, setJoining] = useState(false);
+  const launchMeeting = async (groupId: string) => {
+    setJoining(true)
+    tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId })
+      .then((meetingLink) => {
+        window.location.href = meetingLink;
+      })
+      .catch((e) => toast.error(e.message, { autoClose: false }))
+      .finally(() => setJoining(false));;
+  }
+
   return (
     <Flex flexWrap='wrap' gap={4}>
-      <Button variant='outline' leftIcon={<MdVideocam />} 
+      <Button variant='outline' leftIcon={<MdVideocam />}
+        isLoading={isJoiningMeeting} loadingText={'加入中...'}
         onClick={async () => launchMeeting(props.group.id)}>进入会议
       </Button>
       {
@@ -150,9 +162,4 @@ function Meeting(props) {
       }
     </Flex>
   );
-}
-
-async function launchMeeting(groupId: string) {
-  const meetingLink = await tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId });
-  window.location.href = meetingLink;
 }
