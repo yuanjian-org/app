@@ -1,4 +1,4 @@
-import { middleware } from "./tServer";
+import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import { isPermitted, Resource, Role } from "../shared/RBAC";
 import User from "./database/models/User";

@@ -1,6 +1,7 @@
-import { procedure, router } from "../tServer";
+import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
-import { getRecordURLs, listRecords } from "api/tencentMeeting";
+import { getRecordURLs, listRecords } from "api/TencentMeeting";
+import invariant from "tiny-invariant";
 
 const transcripts = router({
 
@@ -10,16 +11,16 @@ const transcripts = router({
    * 
    * Example:
    * 
-   *  $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" http://${HOST}/api/trpc/transcripts.list | jq .
+   *  $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${HOST}/api/v1/transcripts.list | jq .
    *  {
    *    "result": {
    *      "data": [
    *        {
-   *          "transcriptId": "4859248761693668472-1671044366052950017",
+   *          "transcriptId": "a6df5959-1270-4b7b-9abe-82a8c59efb25.1671044366052950017.1685580846073.1685582675575",
    *          "url": "https://...myqcloud.com/..."
    *        },
    *        {
-   *          "transcriptId": "12764896794187134991-1666665499764408321",
+   *          "transcriptId": "59d15da1-a684-40ab-ad82-a3f8cf79ba5b.1666665499764408321.1685584316215.1685584547679",
    *          "url": "https://...myqcloud.com/..."
    *        }
    *      ]
@@ -34,16 +35,21 @@ const transcripts = router({
       url: string,
     }> = [];
 
-    const promises = (await listRecords()).record_meetings
+    const promises = (await listRecords())
     // Only interested in records that are ready to download.
     .filter(meeting => meeting.state === 3)
     .map(async meeting => {
+      invariant(meeting.record_files.length == 1);
+      const startTime = meeting.record_files[0].record_start_time;
+      const endTime = meeting.record_files[0].record_end_time;
+
       const record = await getRecordURLs(meeting.meeting_record_id);
       record.record_files.map(file => {
         file.meeting_summary?.filter(summary => summary.file_type === 'txt')
         .map(summary => {
+          const id = 
           res.push({
-            transcriptId: formatTranscriptId(record.meeting_id, file.record_file_id),
+            transcriptId: encodeTranscriptId(meeting.subject, file.record_file_id, startTime, endTime),
             url: summary.download_address,
           });
         })
@@ -57,15 +63,17 @@ const transcripts = router({
 
 export default transcripts;
 
-function formatTranscriptId(meetingId: string, record_file_id: string): string {
-  return `${meetingId}-${record_file_id}`; 
+export function encodeTranscriptId(groupId: string, transcriptId: string, startTime: number, endTime: number): string {
+  return `${groupId}.${transcriptId}.${startTime}.${endTime}`; 
 }
 
-function parseTranscriptId(transcriptId: string) {
-  const parsed = transcriptId.split('-');
-  if (parsed.length !== 2 || !parsed.every(s => s.length > 1)) throw Error(`Invalid Transcript Id: ${transcriptId}`);
+export function decodeTranscriptId(encoded: string) {
+  const parsed = encoded.split('.');
+  if (parsed.length !== 4 || !parsed.every(s => s.length > 1)) throw Error(`Invalid Encode Transcript Id: ${encoded}`);
   return {
-    meetingId: parsed[0],
-    recordFileId: parsed[1],
+    groupId: parsed[0],
+    transcriptId: parsed[1],
+    startedAt: Number(parsed[2]),
+    endedAt: Number(parsed[3]),
   }
 }

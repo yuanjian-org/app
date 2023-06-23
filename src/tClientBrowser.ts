@@ -21,7 +21,7 @@ const tClientBrowser = createTRPCProxyClient<ApiRouter>({
     ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
     requestFinishLink(),
     httpBatchLink({
-      url: getBaseUrl() + '/api/trpc',
+      url: getBaseUrl() + '/api/v1',
       headers: () => {
         return {
           Authorization: `Bearer ${localStorage.getItem('_authing_token')}`,

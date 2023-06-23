@@ -1,4 +1,4 @@
-import { procedure, router } from "../tServer";
+import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import { ManagementClient } from 'authing-js-sdk'
@@ -10,11 +10,6 @@ import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
 import { IUser } from "../../shared/user";
 import { presentPublicUser } from "../../shared/publicModels/PublicUser";
-
-const managementClient = new ManagementClient({
-  userPoolId: apiEnv.AUTHING_USER_POOL_ID,
-  secret: apiEnv.AUTHING_USER_POOL_SECRET
-});
 
 const users = router({
   createInOurDb: procedure.use(
@@ -74,44 +69,11 @@ const users = router({
     }
   }),
 
-  listFromAuthing: procedure.use(
+  listUsers: procedure.use(
     authUser('users:read')
-  ).input(z.object({
-    offset: z.number(),
-    limit: z.number(),
-  })).query(async ({ input, ctx }) => {
-    invariant(input.offset % input.limit === 0);
-    const page = Math.floor(input.offset / input.limit) + 1;
-    const pageSize = input.limit;
-
-    const userListFromAuthing = await managementClient.users.list(page, pageSize);
-
-    const clientIdList = userListFromAuthing.list.map(u => u.id);
-
-    const userList = await User.findAll({
-      where: {
-        clientId: {
-          [Op.in]: clientIdList
-        }
-      }
-    });
-
+  ).query(async () => {
     return {
-      userList: userListFromAuthing.list.map(authingUser => {
-        const found = userList.find(u => u.clientId === authingUser.id);
-        if (found) {
-          return {
-            id: found.id,
-            pinyin: found.pinyin,
-            name: found.name,
-            roles: found.roles,
-            clientId: found.clientId,
-            email: found.email,
-          } as IUser;
-        } else {
-          return false;
-        }
-      }).filter(Boolean) as IUser[]
+      userList: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
     };
   })
 });

@@ -3,7 +3,6 @@ import type {
   InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
-  AllowNull,
   BelongsToMany,
   Column,
   Table,
