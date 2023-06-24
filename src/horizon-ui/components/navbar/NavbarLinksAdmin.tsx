@@ -65,7 +65,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 					/>
 				</MenuButton>
 				<MenuList>
-          <MenuItem as='a' href='/user-profile'>
+          <MenuItem as='a' href='/profile'>
             <Text fontSize='sm'>个人信息</Text>
           </MenuItem>
           <MenuDivider />

@@ -51,9 +51,9 @@ graph TD;
 
 ## HOW-TOs
 
-To create a new page, copy `src/pages/user-management.tsx` and update `src/routes.tsx`.
+To create a new page, copy `src/pages/users.tsx` and update `src/routes.tsx`.
 
-To create a new API, copy `src/api/routes/userManagement.tsx` and update `src/api/apiRouter.ts`.
+To create a new API, copy `src/api/routes/users.ts` and update `src/api/apiRouter.ts`.
 
 To create a new database table, copy `src/api/database/models/User.ts`, update `src/api/database/sequelizeInstance.ts`, and run `yarn sync-database`.
 
