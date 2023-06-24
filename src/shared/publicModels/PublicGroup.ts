@@ -1,3 +1,8 @@
+/**
+ * 
+ * TODO deprecated public models and use trpc's output validator instead
+ * 
+ */
 interface PublicGroup {
   id: string;
   meetingLink: string;

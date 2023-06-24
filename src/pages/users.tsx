@@ -4,6 +4,13 @@ import {
   SimpleGrid,
   useColorModeValue,
   Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Heading,
   Badge,
   Flex,
   Modal,
@@ -20,7 +27,6 @@ import {
 import React, { useState } from 'react'
 import AppLayout from 'layouts'
 import { NextPageWithLayout } from '../NextPageWithLayout'
-import NormalTable from "../horizon-ui/components/NormalTable";
 import tClientBrowser from "../tClientBrowser";
 import { Role, ALL_ROLES } from "../shared/RBAC";
 import { HSeparator } from "../horizon-ui/components/separator/Separator";
@@ -62,66 +68,50 @@ const UserManagement: NextPageWithLayout = () => {
 
   return (
     <Box paddingTop={'80px'}>
+      {/* TODO: move this long block into a separate function */}
+      <Heading as="h1" mb="3">用户管理</Heading>
+      {!data && <Button isLoading={true} loadingText={'读取用户信息中...'} disabled={true} />}
       <SimpleGrid
         mb='20px'
         columns={1}
         spacing={{ base: '20px', xl: '20px' }}
       >
-        {!data && <Button isLoading={true} loadingText={'读取用户信息中...'} disabled={true} />}
-
-        {/* TODO: move this long block into a separate function */}
         {data &&
-          <NormalTable
-            tableTitle={'用户管理'}
-            tableData={data.userList}
-            columnsData={[
-              {
-                Header: "电子邮箱",
-                accessor: "email",
-              },
-              {
-                Header: "姓名",
-                accessor: "name",
-              },
-              {
-                Header: "拼音",
-                accessor: "pinyin",
-              },
-              {
-                Header: "权限",
-                accessor: "roles",
-                Cell: ({ value, row }) => {
-                  if (value) {
-                    return <Flex gap={1}>
-                      {(value as Role[]).map(role =>
-                        <Badge variant='outline' colorScheme='blue' key={role} fontSize='sm'>
-                          {role}
-                        </Badge>)}
-                    </Flex>
-                  } else {
-                    return <Button colorScheme='blue' onClick={() => {
-                      setName('');
-                      setRoles([]);
-                      setUser(row.original as any);
-                      setOpen(true);
-                    }}>Create and assign roles</Button>
-                  }
-                },
-              },
-              {
-                Header: "用户ID",
-                accessor: "id",
-              },
-              {
-                Header: "Authing ID",
-                accessor: "clientId",
-              },
-              // {
-              //   Header: "Authing created at",
-              //   accessor: "date",
-              // },
-            ]}
-          />
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>电子邮箱</Th>
+                <Th>姓名</Th>
+                <Th>拼音</Th>
+                <Th>权限</Th>
+                <Th>用户ID</Th>
+                <Th>AuthingID</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {data.userList.map((item) => (
+                <Tr key={item.id}>
+                  <Td>{item.email}</Td>
+                  <Td>{item.name}</Td>
+                  <Td>{item.pinyin}</Td>
+                  <Td>
+                    {item.roles ?
+                      <Badge variant='outline' colorScheme='blue' fontSize='sm'>
+                        {item.roles}
+                      </Badge> : <Button colorScheme='blue' onClick={() => {
+                        setName('');
+                        setRoles([]);
+                        setUser(item as IUser);
+                        setOpen(true);
+                      }}>Create and assign roles</Button>
+                    }
+                  </Td>
+                  <Td>{item.id}</Td>
+                  <Td>{item.clientId}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         }
       </SimpleGrid>
 

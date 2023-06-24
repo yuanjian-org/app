@@ -26,7 +26,6 @@ import AppLayout from "../layouts";
 import useUserContext from "../useUserContext";
 import tClientBrowser from "../tClientBrowser";
 import tClientNext from "../tClientNext";
-import PublicGroup from '../shared/publicModels/PublicGroup';
 import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
@@ -98,7 +97,7 @@ function isValidChineseName(s: string) : boolean {
 }
 
 function Meetings() {
-  const { data, isLoading } = tClientNext.myGroups.list.useQuery({});
+  const { data: groups, isLoading } = tClientNext.myGroups.list.useQuery();
   const [user] = useUserContext();
 
   return (
@@ -107,23 +106,23 @@ function Meetings() {
         <Heading size='md'>会议列表</Heading>
       </CardHeader>
       <CardBody>
-        {!data
+        {!groups
         && isLoading
         && <Text align='center'>
             正在加载会议...
         </Text>}
         
-        {data
-        && data.groupList.length == 0
+        {groups
+        && groups.length == 0
         && !isLoading
         && <Text align='center'>
             会议将在管理员设置后可见
            </Text>}
         
         <VStack divider={<StackDivider />} align='left' spacing='6'>
-          {data &&
-            data.groupList.map((group: PublicGroup, idx: any) => 
-              <Meeting key={idx} userId={user.id} group={group} userMap={data.userMap} />)
+          {groups &&
+            groups.map((group, idx) => 
+              <Meeting key={idx} userId={user.id} group={group} />)
           }
         </VStack>
       </CardBody>
@@ -133,6 +132,7 @@ function Meetings() {
 
 // @ts-ignore type checking for props is anonying
 function Meeting(props) {
+  const transcriptCount = props.group.transcripts.length;
   const textColor = useColorModeValue('secondaryGray.700', 'white');
   const [isJoiningMeeting, setJoining] = useState(false);
   const launchMeeting = async (groupId: string) => {
@@ -147,16 +147,22 @@ function Meeting(props) {
 
   return (
     <Flex flexWrap='wrap' gap={4}>
-      <Button variant='outline' leftIcon={<MdVideocam />}
-        isLoading={isJoiningMeeting} loadingText={'加入中...'}
-        onClick={async () => launchMeeting(props.group.id)}>进入会议
-      </Button>
+      <VStack>
+        <Button variant='outline' leftIcon={<MdVideocam />}
+          isLoading={isJoiningMeeting} loadingText={'加入中...'}
+          onClick={async () => launchMeeting(props.group.id)}>进入会议
+        </Button>
+        <Text color={textColor} fontSize='sm'>
+          {(transcriptCount ? `${transcriptCount} 个` : '无') + '会议摘要'}
+        </Text>
+      </VStack>
       {
-        props.group.userIdList.filter((id: string) => id !== props.userId).map((id: string) => {
-          const name = props.userMap[id].name;
-          return <Fragment key={id}>
-            <Avatar name={name} />
-            <Text color={textColor}>{name}</Text>
+        props.group.users
+        .filter((user: any) => user.id != props.userId)
+        .map((user: any) => {
+          return <Fragment key={user.name}>
+            <Avatar name={user.name} />
+            <Text color={textColor}>{user.name}</Text>
           </Fragment>;
         })
       }

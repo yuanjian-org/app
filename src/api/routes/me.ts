@@ -7,9 +7,7 @@ import pinyin from 'tiny-pinyin';
 const me = router({
   profile: procedure.use(
     authUser('me:read')
-  ).input(
-    z.object({}),
-  ).query(async ({ input, ctx }) => {
+  ).query(async ({ ctx }) => {
     return ctx.user as IUser;
   }),
 
