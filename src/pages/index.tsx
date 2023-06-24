@@ -30,6 +30,7 @@ import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
 import { TRPCClientError } from '@trpc/client';
+import Link from 'next/link';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -104,7 +105,7 @@ function Meetings() {
   return (
     <Card>
       <CardHeader>
-        <Heading size='md'>会议列表</Heading>
+        <Heading size='md'>我的会议</Heading>
       </CardHeader>
       <CardBody>
         {!groups
@@ -157,9 +158,11 @@ function Meeting(props) {
           isLoading={isJoiningMeeting} loadingText={'进入中...'}
           onClick={async () => launchMeeting(props.group.id)}>进入会议
         </Button>
-        <Text color={textColor} fontSize='sm'>
-          {(transcriptCount ? `${transcriptCount} 个` : '无') + '会议摘要'}
-        </Text>
+        <Link href={`/groups/${props.group.id}`}>
+          <Text color={textColor} fontSize='sm' >
+            {(transcriptCount ? `${transcriptCount} 个` : '无') + '历史摘要'}
+          </Text>
+        </Link>
       </VStack>
       {
         props.group.users

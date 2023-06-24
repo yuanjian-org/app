@@ -22,10 +22,11 @@ export const RBAC_DEF = {
   'groups:read': ['ADMIN'] as Role[],
   'groups:write': ['ADMIN'] as Role[],
 
+  'open-to-all': ['ADMIN', 'VISITOR'] as Role[],
+  'no-access': [] as Role[],
+
   'transcripts:read': ['INTEGRATION'] as Role[],
   'summaries:write': ['INTEGRATION'] as Role[],
-
-  'unknown': [] as Role[],
 } as const;
 
 type StringKeys<objType extends {}> = Array<Extract<keyof objType, string>>

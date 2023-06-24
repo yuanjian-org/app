@@ -18,6 +18,7 @@ class Transcript extends Model {
     type: STRING,
     unique: true,
   })
+  // TODO: rename to simply 'id'?
   transcriptId: string;
 
   @Column(UUID)
@@ -28,10 +29,10 @@ class Transcript extends Model {
   group: Group;
 
   @Column(DATE)
-  startedAt: string;
+  startedAt: Date;
 
   @Column(DATE)
-  endedAt: string;
+  endedAt: Date;
 
   @HasMany(() => Summary)
   summaries: Summary[];

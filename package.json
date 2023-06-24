@@ -31,6 +31,7 @@
     "framer-motion": "^6.5.1",
     "inquirer": "^8.0.0",
     "lru-cache": "^10.0.0",
+    "moment": "^2.29.4",
     "next": "^13.4.1-canary.2",
     "pg": "^8.9.0",
     "qs": "^6.11.1",

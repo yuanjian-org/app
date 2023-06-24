@@ -20,7 +20,7 @@ import browserEnv from "../browserEnv";
 import tClientBrowser from "../tClientBrowser";
 import { IUser } from "../shared/user";
 import { useRouter } from "next/router";
-import { isPermitted } from "../shared/RBAC";
+import { Resource, isPermitted } from "../shared/RBAC";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import guard from '../guard';
@@ -82,11 +82,11 @@ export default function AppLayout(props: DashboardLayoutProps) {
 
   const router = useRouter();
 
-  const currentResource = useMemo(() => {
+  const currentResource = useMemo((): Resource => {
     const currentRoute = routes.find(r => r.path === router.pathname);
 
     if (!currentRoute) {
-      return 'unknown';
+      return 'no-access';
     } else {
       return currentRoute.resource;
     }
