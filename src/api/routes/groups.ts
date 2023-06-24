@@ -77,13 +77,12 @@ const groups = router({
       groupUsers,
     }
   }),
+
   list: procedure.use(
     authUser('groups:read')
   ).input(z.object({
     userIdList: z.string().array(),
-    // offset: z.number(),
-    // limit: z.number(),
-  })).query(async ({ input, ctx }) => {
+  })).query(async ({ input }) => {
     const groupUserList = await GroupUser.findAll({
       where: {
         ...(input.userIdList.length ? {

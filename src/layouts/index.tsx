@@ -36,7 +36,7 @@ const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
   useEffect(() => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
-        setUser(await tClientBrowser.me.profile.query({}));
+        setUser(await tClientBrowser.me.profile.query());
       } else {
         location.href = '/login';
       }
