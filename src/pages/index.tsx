@@ -29,6 +29,7 @@ import tClientNext from "../tClientNext";
 import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
+import Link from 'next/link';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -152,9 +153,11 @@ function Meeting(props) {
           isLoading={isJoiningMeeting} loadingText={'加入中...'}
           onClick={async () => launchMeeting(props.group.id)}>进入会议
         </Button>
-        <Text color={textColor} fontSize='sm'>
-          {(transcriptCount ? `${transcriptCount} 个` : '无') + '会议摘要'}
-        </Text>
+        <Link href={`/groups/${props.group.id}`}>
+          <Text color={textColor} fontSize='sm' >
+            {(transcriptCount ? `${transcriptCount} 个` : '无') + '历史摘要'}
+          </Text>
+        </Link>
       </VStack>
       {
         props.group.users

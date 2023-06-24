@@ -8,6 +8,8 @@ import User from "../database/models/User";
 import { presentPublicGroup } from "../../shared/publicModels/PublicGroup";
 import PublicUser from "../../shared/publicModels/PublicUser";
 import { TRPCError } from "@trpc/server";
+import Transcript from "api/database/models/Transcript";
+import Summary from "api/database/models/Summary";
 
 function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   for (const item of subset) {
@@ -28,7 +30,26 @@ function areStringSetsEqual(set1: Set<string>, set2: Set<string>): boolean {
 
 const dedupe = <T>(list: T[]) => [...new Set(list)];
 
+const zGetGroupResponse = z.object({
+  id: z.string(),
+  transcripts: z.array(z.object({
+    transcriptId: z.string(),
+    startedAt: z.date(),
+    endedAt: z.date(),
+    summaries: z.array(z.object({
+        summaryKey: z.string(),
+    }))
+  })),
+  users: z.array(z.object({
+    id: z.string(),
+    name: z.string().nullable(),
+  }))
+});
+
+export type GetGroupResponse = z.TypeOf<typeof zGetGroupResponse>;
+
 const groups = router({
+
   create: procedure.use(
     authUser('groups:write')
   ).input(z.object({
@@ -128,6 +149,33 @@ const groups = router({
       userMap,
     };
   }),
+
+  get: procedure.use(
+    // We will throw access denied later if the user isn't a privileged user and isn't in the group.
+    authUser('open-to-all')
+  )
+  .input(z.object({ id: z.string() }))
+  .output(zGetGroupResponse)
+  .query(async ({ input, ctx }) => {
+    const g = await Group.findByPk(input.id, {
+      include: [{
+        model: User,
+        attributes: ['id', 'name'],
+      }, {
+        model: Transcript,
+        include: [{
+          model: Summary,
+          attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
+        }]
+      }]
+    });
+    if (!g) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: `Group ${input.id} not found` });
+    } else if (!g.users.some(u => u.id === ctx.user.id )) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}`});
+    }
+    return g;
+  })
 });
 
 export default groups;

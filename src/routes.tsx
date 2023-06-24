@@ -24,6 +24,14 @@ const routes: IRoute[] = [
     hiddenFromSidebar: true,
   },
   {
+    name: '会议详情',
+    layout: '/',
+    path: '/groups/[id]',
+    icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
+    resource: 'me:write',
+    hiddenFromSidebar: true,
+  },
+  {
     name: '用户管理',
     layout: '/',
     path: '/users',
