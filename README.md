@@ -18,8 +18,7 @@ A Web app that supports mentorship programs at [Visionary Education Foundation (
 
 - Frontend and backend powered by [Next.js](https://nextjs.org/).
 - End-to-end type safety with `typescript`, [`trpc`](https://trpc.io/), `zod` and `class-validator`.
-- UI components from [Chakra UI](https://chakra-ui.com/).
-- UI template provided by [Horizon UI](https://github.com/horizon-ui/horizon-ui-chakra-nextjs/).
+- UI styling and components from [Chakra UI](https://chakra-ui.com/).
 
 ## Code Structure
 
