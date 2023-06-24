@@ -5,8 +5,9 @@ import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
 import { UniqueConstraintError } from "sequelize";
-import { AuthenticationClient } from 'authing-js-sdk'
-import { LRUCache } from 'lru-cache'
+import { AuthenticationClient } from 'authing-js-sdk';
+import { LRUCache } from 'lru-cache';
+import { emailAdminsIgnoreError } from './sendgrid';
 
 const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 
@@ -91,7 +92,7 @@ async function getAuthingUser(authToken: string) {
   return await authing.getCurrentUser();
 }
 
-async function findOrCreateUser(clientId: string, email: string): Promise<User> {  
+async function findOrCreateUser(clientId: string, email: string): Promise<User> {
   /**
    * Multiple APIs may be called at the same time, causing parallel User.create() calls from time to
    * time which results in unique constraint errors.
@@ -105,6 +106,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     const isAdmin = apiEnv.ASSIGN_ADMIN_ROLE_ON_SIGN_UP.includes(email);
     const roles: [Role] = [isAdmin ? 'ADMIN' : 'VISITOR'];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
+    emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
     try {
       return await User.create({
         name: "",
@@ -122,3 +124,4 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     }
   }
 }
+  
