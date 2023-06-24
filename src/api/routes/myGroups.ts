@@ -6,6 +6,7 @@ import Group from "../database/models/Group";
 import User from "../database/models/User";
 import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
+import Transcript from "../database/models/Transcript";
 
 function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   for (const item of subset) {
@@ -51,6 +52,10 @@ const myGroups = router({
   ).output(
     z.array(z.object({
       id: z.string(),
+      transcripts: z.array(z.object({
+        // The UI that calls this API only need a transcript count
+        // so no fields need to be returned.
+      })),
       users: z.array(z.object({
         id: z.string(),
         name: z.string()
@@ -61,9 +66,7 @@ const myGroups = router({
       where: { userId: ctx.user.id },
       include: [{
         model: Group,
-        include: [{
-          model: User,
-        }]
+        include: [User, Transcript]
       }]
     }))
     .map(groupUser => groupUser.group)
