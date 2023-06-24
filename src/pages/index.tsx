@@ -29,6 +29,7 @@ import tClientNext from "../tClientNext";
 import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
+import { TRPCClientError } from '@trpc/client';
 import Link from 'next/link';
 
 const Index: NextPageWithLayout = () => {
@@ -137,20 +138,24 @@ function Meeting(props) {
   const textColor = useColorModeValue('secondaryGray.700', 'white');
   const [isJoiningMeeting, setJoining] = useState(false);
   const launchMeeting = async (groupId: string) => {
-    setJoining(true)
-    tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId })
-      .then((meetingLink) => {
-        window.location.href = meetingLink;
-      })
-      .catch((e) => toast.error(e.message, { autoClose: false }))
-      .finally(() => setJoining(false));;
+    setJoining(true);
+    try {
+      const link = await tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId });
+      window.location.href = link;
+    } catch (e) {
+      toast.error((e as Error).message, { autoClose: false });
+    } finally {
+      // More time is needed to redirect to the meeting page. Keep it spinning.
+      // We should uncomment this line if we pop the page in a new window.
+      // setJoining(false);
+    }
   }
 
   return (
     <Flex flexWrap='wrap' gap={4}>
       <VStack>
         <Button variant='outline' leftIcon={<MdVideocam />}
-          isLoading={isJoiningMeeting} loadingText={'加入中...'}
+          isLoading={isJoiningMeeting} loadingText={'进入中...'}
           onClick={async () => launchMeeting(props.group.id)}>进入会议
         </Button>
         <Link href={`/groups/${props.group.id}`}>
