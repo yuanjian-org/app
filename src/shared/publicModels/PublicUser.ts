@@ -1,3 +1,9 @@
+/**
+ * 
+ * TODO deprecated public models and use trpc's output validator instead
+ * 
+ */
+
 import { Role } from "../RBAC";
 
 interface PublicUser {
