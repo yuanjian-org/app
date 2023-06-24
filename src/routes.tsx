@@ -9,7 +9,7 @@ import { IRoute } from 'horizon-ui/types/navigation'
 
 const routes: IRoute[] = [
   {
-    name: '会议列表',
+    name: '我的会议',
     layout: '/',
     path: '/',
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,

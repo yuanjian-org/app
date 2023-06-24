@@ -19,16 +19,16 @@ import {
   Tbody,
   Tr,
   Td,
-  Icon,
+  Heading,
 } from '@chakra-ui/react';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
+import { ArrowForwardIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import React, { Fragment } from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../layouts";
 import useUserContext from "../../useUserContext";
 import tClientBrowser from "../../tClientBrowser";
 import tClientNext from "../../tClientNext";
-import { MdOutlineArrowCircleRight, MdVideocam } from 'react-icons/md';
+import { MdVideocam } from 'react-icons/md';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GetGroupResponse } from 'api/routes/groups';
@@ -51,12 +51,12 @@ function GroupCard() {
   return (
     <Card>
       <CardHeader>
-        <Breadcrumb>
+        <Breadcrumb separator={<ChevronRightIcon />}>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} href='/'>我的会议</BreadcrumbLink>
+            <BreadcrumbLink as={Link} href='/'><Heading size="md">我的会议</Heading></BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
-            <BreadcrumbLink>会议详情</BreadcrumbLink>
+            <BreadcrumbLink><Heading size="md">会议详情</Heading></BreadcrumbLink>
           </BreadcrumbItem>
         </Breadcrumb>
       </CardHeader>
@@ -101,7 +101,7 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
     <Table variant='striped'>
       <Thead>
         <Tr>
-          <Th>日期</Th>
+          <Th>历史会议</Th>
           <Th>时长</Th>
           <Th>摘要版本</Th>
           <Th>详情</Th>
