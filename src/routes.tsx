@@ -26,9 +26,10 @@ const routes: IRoute[] = [
   {
     name: '会议详情',
     layout: '/',
-    path: '/groups/[id]',
+    path: '/groups/[groupId]',
     icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
-    resource: 'me:write',
+    // Permission varies based on `id`.
+    resource: 'open-to-all',
     hiddenFromSidebar: true,
   },
   {

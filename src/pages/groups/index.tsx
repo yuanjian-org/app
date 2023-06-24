@@ -7,13 +7,13 @@ import {
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'layouts'
-import { NextPageWithLayout } from '../NextPageWithLayout'
-import NormalTable from "../horizon-ui/components/NormalTable";
-import tClientBrowser from "../tClientBrowser";
+import { NextPageWithLayout } from '../../NextPageWithLayout'
+import NormalTable from "../../horizon-ui/components/NormalTable";
+import tClientBrowser from "../../tClientBrowser";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
 import invariant from "tiny-invariant";
-import tClientNext from "../tClientNext";
+import tClientNext from "../../tClientNext";
 
 type Option = {
   label: string;
@@ -90,7 +90,6 @@ const UserManagement: NextPageWithLayout = () => {
               Header: "用户",
               accessor: "userIdList",
               Cell: ({ value, row }) => {
-                // console.log('value', value);
                 invariant(data.userMap);
                 const userList = (value as string[]).map(id => data.userMap[id]);
                 return <div>
