@@ -12,6 +12,7 @@ import ParanoidModel from "../modelHelpers/ParanoidModel";
 import { STRING } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
+import Transcript from "./Transcript";
 
 @Table({ tableName: "groups", modelName: "group" })
 @Fix
@@ -31,6 +32,9 @@ class Group extends ParanoidModel<
 
   @HasMany(() => GroupUser)
   groupUsers: NonAttribute<GroupUser[]>;
+
+  @HasMany(() => Transcript)
+  transcripts: NonAttribute<Transcript[]>;
 }
 
 export default Group;

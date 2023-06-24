@@ -132,12 +132,18 @@ function Meetings() {
 
 // @ts-ignore type checking for props is anonying
 function Meeting(props) {
+  const transcriptCount = props.group.transcripts.length;
   const textColor = useColorModeValue('secondaryGray.700', 'white');
   return (
     <Flex flexWrap='wrap' gap={4}>
-      <Button variant='outline' leftIcon={<MdVideocam />} 
-        onClick={async () => launchMeeting(props.group.id)}>进入会议
-      </Button>
+      <VStack>
+        <Button variant='outline' leftIcon={<MdVideocam />} 
+          onClick={async () => launchMeeting(props.group.id)}>进入会议
+        </Button>
+        <Text color={textColor} fontSize='sm'>
+          {(transcriptCount ? `${transcriptCount} 个` : '无') + '会议摘要'}
+        </Text>
+      </VStack>
       {
         props.group.users
         .filter((user: any) => user.id != props.userId)
