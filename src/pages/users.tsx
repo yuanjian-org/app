@@ -77,12 +77,11 @@ const UserManagement: NextPageWithLayout = () => {
         spacing={{ base: '20px', xl: '20px' }}
       >
         {data &&
-          <Table variant="simple">
+          <Table variant='striped'>
             <Thead>
               <Tr>
                 <Th>电子邮箱</Th>
                 <Th>姓名</Th>
-                <Th>拼音</Th>
                 <Th>权限</Th>
                 <Th>用户ID</Th>
                 <Th>AuthingID</Th>
@@ -93,7 +92,6 @@ const UserManagement: NextPageWithLayout = () => {
                 <Tr key={item.id}>
                   <Td>{item.email}</Td>
                   <Td>{item.name}</Td>
-                  <Td>{item.pinyin}</Td>
                   <Td>
                     {item.roles ?
                       <Badge variant='outline' colorScheme='blue' fontSize='sm'>

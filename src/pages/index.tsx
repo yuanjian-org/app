@@ -104,7 +104,7 @@ function Meetings() {
   return (
     <Card>
       <CardHeader>
-        <Heading size='md'>会议列表</Heading>
+        <Heading size='md'>我的会议</Heading>
       </CardHeader>
       <CardBody>
         {!groups
