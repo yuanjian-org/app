@@ -154,7 +154,7 @@ const groups = router({
     // We will throw access denied later if the user isn't a privileged user and isn't in the group.
     authUser('open-to-all')
   )
-  .input(z.object({ id: z.string() }))
+  .input(z.object({ id: z.string().uuid() }))
   .output(zGetGroupResponse)
   .query(async ({ input, ctx }) => {
     const g = await Group.findByPk(input.id, {
@@ -172,7 +172,7 @@ const groups = router({
     if (!g) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Group ${input.id} not found` });
     } else if (!g.users.some(u => u.id === ctx.user.id )) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}`});
+      throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}` });
     }
     return g;
   })
