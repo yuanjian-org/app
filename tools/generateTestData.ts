@@ -91,16 +91,18 @@ async function generateSummaries(users: TestUser[]) {
   invariant(groupId);
 
   const start = moment('2023-6-20', 'YYYY-MM-DD');
-  const end = start.add(45, 'minute');
+  const end = start.clone().add(33, 'minute');
 
   const md = '\n\n### 三号标题\n正文**加粗**.\n\n1. 列表*斜体*\n2. 列表~~划掉~~';
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-A', 
+  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-A',
     '> transcript-1, summary-A' + md);
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-B', 
+  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-B',
     '> transcript-1, summary-B' + md);
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-C', 
+  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-C',
     '> transcript-1, summary-C' + md);
-  await upsertSummary(groupId, `transcript-2-${groupId}`, start.add(3, 'day').valueOf(), start.add(2.5, 'day').valueOf(), 'summary-A', 
+  await upsertSummary(groupId, `transcript-2-${groupId}`, 
+    start.clone().add(3, 'day').valueOf(), 
+    start.clone().add(1.5, 'hour').valueOf(), 'summary-A', 
     '> transcript-2, summary-A' + md);
 }
 
