@@ -8,8 +8,8 @@ import User from "../database/models/User";
 import { presentPublicGroup } from "../../shared/publicModels/PublicGroup";
 import PublicUser from "../../shared/publicModels/PublicUser";
 import { TRPCError } from "@trpc/server";
-import Transcript from "api/database/models/Transcript";
-import Summary from "api/database/models/Summary";
+import Transcript from "../database/models/Transcript";
+import Summary from "../database/models/Summary";
 
 function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   for (const item of subset) {
@@ -53,50 +53,9 @@ const groups = router({
   create: procedure.use(
     authUser('groups:write')
   ).input(z.object({
-    meetingLink: z.string().nullable(),
-    userIdList: z.array(z.string()).min(2),
-  })).mutation(async ({ input, ctx }) => {
-    // TODO guard duplicate
-    const existing = await GroupUser.findAll({
-      where: {
-        userId: input.userIdList[0],
-      }
-    });
-
-    const inputUserIdSet = new Set(input.userIdList);
-    const groupIdList = dedupe(existing.map(gu => gu.groupId));
-    // console.log('existing', JSON.stringify(existing.map(e => e.id)), JSON.stringify(groupIdList));
-    for (const groupId of groupIdList) {
-      const userList = await GroupUser.findAll({
-        where: {
-          groupId: groupId,
-        }
-      });
-      // console.log('iterating ', JSON.stringify(userList));
-      if (areStringSetsEqual(
-        new Set(userList.map(u => u.userId)),
-        inputUserIdSet
-      )) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'group exists!'
-        });
-      }
-    }
-
-    const group = await Group.create({
-      meetingLink: input.meetingLink,
-    });
-
-    const groupUsers = await GroupUser.bulkCreate(input.userIdList.map(userId => ({
-      userId: userId,
-      groupId: group.id,
-    })));
-
-    return {
-      group,
-      groupUsers,
-    }
+    userIds: z.array(z.string()).min(2),
+  })).mutation(async ({ input }) => {
+    return await createGroup(input.userIds);
   }),
 
   list: procedure.use(
@@ -179,3 +138,45 @@ const groups = router({
 });
 
 export default groups;
+
+export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = 'Group already exists.';
+
+export async function createGroup(userIds: string[]) {
+  // TODO: Optimize db queries. Refer to generateTestData.findGroup().
+  const existing = await GroupUser.findAll({
+    where: {
+      userId: userIds[0],
+    }
+  });
+
+  const inputUserIds = new Set(userIds);
+  const groupIds = dedupe(existing.map(gu => gu.groupId));
+  for (const groupId of groupIds) {
+    const userList = await GroupUser.findAll({
+      where: {
+        groupId: groupId,
+      }
+    });
+    if (areStringSetsEqual(
+      new Set(userList.map(u => u.userId)),
+      inputUserIds
+    )) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: GROUP_ALREADY_EXISTS_ERROR_MESSAGE,
+      });
+    }
+  }
+
+  const group = await Group.create({});
+
+  const groupUsers = await GroupUser.bulkCreate(userIds.map(userId => ({
+    userId: userId,
+    groupId: group.id,
+  })));
+
+  return {
+    group,
+    groupUsers,
+  }
+}

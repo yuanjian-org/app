@@ -1,12 +1,12 @@
 import { procedure, router } from "../trpc";
 import { authIntegration, authUser } from "../auth";
-import { getRecordURLs, listRecords } from "api/TencentMeeting";
+import { getRecordURLs, listRecords } from "../TencentMeeting";
 import invariant from "tiny-invariant";
 import { z } from "zod";
-import Transcript from "api/database/models/Transcript";
-import Summary from "api/database/models/Summary";
-import Group from "api/database/models/Group";
-import User from "api/database/models/User";
+import Transcript from "../database/models/Transcript";
+import Summary from "../database/models/Summary";
+import Group from "../database/models/Group";
+import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 
 const zGetTranscriptResponse = z.object({

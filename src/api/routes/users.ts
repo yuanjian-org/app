@@ -1,9 +1,7 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
-import { ManagementClient } from 'authing-js-sdk'
 import invariant from "tiny-invariant";
-import apiEnv from "../apiEnv";
 import { zRoleArr } from "../../shared/RBAC";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
@@ -12,7 +10,7 @@ import { IUser } from "../../shared/user";
 import { presentPublicUser } from "../../shared/publicModels/PublicUser";
 
 const users = router({
-  createInOurDb: procedure.use(
+  create: procedure.use(
     authUser('users:write')
   ).input(z.object({
     name: z.string().min(1, "required"),
@@ -21,8 +19,6 @@ const users = router({
     clientId: z.string().min(1, "required"),
     roles: zRoleArr.min(1, "required"),
   })).mutation(async ({ input, ctx }) => {
-    invariant(!input.roles.find(r => r === "ADMIN"), "Admins should be created programmatically");
-
     const user = await User.findOne({
       where: {
         clientId: input.clientId
@@ -73,7 +69,7 @@ const users = router({
     authUser('users:read')
   ).query(async () => {
     return {
-      userList: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
+      users: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
     };
   })
 });

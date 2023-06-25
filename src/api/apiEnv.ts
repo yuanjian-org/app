@@ -12,9 +12,6 @@ class ApiEnv extends SharedEnv {
   @IsNotEmpty()
   DATABASE_URI: string = stringOrEmpty(process.env.DATABASE_URI);
 
-  @IsEmail({}, { each: true })
-  ASSIGN_ADMIN_ROLE_ON_SIGN_UP: string[] = process.env.ASSIGN_ADMIN_ROLE_ON_SIGN_UP?.split(',') || [];
-
   @IsNotEmpty()
   AUTHING_USER_POOL_ID: string = stringOrEmpty(process.env.AUTHING_USER_POOL_ID);
   @IsNotEmpty()

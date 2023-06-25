@@ -47,8 +47,7 @@ const UserManagement: NextPageWithLayout = () => {
   const createGroup = async () => {
     setCreating(true);
     tClientBrowser.groups.create.mutate({
-      meetingLink: null,
-      userIdList: selected.map(option => option.value),
+      userIds: selected.map(option => option.value),
     })
       .then(() => {
         refetch();
