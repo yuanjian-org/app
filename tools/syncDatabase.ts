@@ -1,6 +1,3 @@
-import { loadEnvConfig } from '@next/env';
-loadEnvConfig('./');
-
 import inquirer from 'inquirer';
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
 
@@ -21,7 +18,8 @@ inquirer
     console.log(`Your action is ${answers.action}.`);
 
     if (answers.action.startsWith('Delete')) {
-      sequelizeInstance.sync({ force: true }); // this line deletes all the data and recreates the database
+      console.log('### NO-OP. Modify source code if you really intend to drop all data.');
+      // sequelizeInstance.sync({ force: true });
     } else if (answers.action.startsWith('Alter')) {
       sequelizeInstance.sync({ alter: { drop: false } });
     }

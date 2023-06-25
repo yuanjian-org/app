@@ -1,4 +1,4 @@
-# Yuanjian App
+# Yuanjian App - 远见教育平台
 
 A Web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org), developed by VEF volunteers.
 
@@ -9,10 +9,11 @@ A Web app that supports mentorship programs at [Visionary Education Foundation (
 1. Create file `.env.local` in the repository root, and:
    - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724) and follow instructions on this page to set undefined variables.
    - Otherwise, copy content from `.env.template` and follow instructions in this file to set undefined variables.
-1. Run command `yarn` to install dependency packages.
-1. Run command `yarn sync-database` to initialize the database.
+1. Run `yarn` to install dependency packages.
+1. Run `yarn sync-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
-1. Visit the local server on your broswer. Log in using the email address specified in `ASSIGN_ADMIN_ROLE_ON_SIGN_UP` in your `.env.local`. This account will become the first Admin.
+1. Visit this local server from broswer. Log in with your email.
+1. Run `yarn gen-test-data` to populate test data.
 
 ## Frameworks used
 

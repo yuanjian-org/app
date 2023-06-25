@@ -34,8 +34,8 @@ import { IUser } from "../shared/user";
 import { toast } from "react-toastify";
 import tClientNext from "../tClientNext";
 
-const UserManagement: NextPageWithLayout = () => {
-  const { isLoading, error, data, refetch } = tClientNext.users.listUsers.useQuery();
+const Page: NextPageWithLayout = () => {
+  const { data, refetch } = tClientNext.users.listUsers.useQuery();
 
   const [isOpen, setOpen] = useState(false);
   const textColor = useColorModeValue('navy.700', 'white');
@@ -51,7 +51,7 @@ const UserManagement: NextPageWithLayout = () => {
       return;
     }
     setCreating(true);
-    tClientBrowser.users.createInOurDb.mutate({
+    tClientBrowser.users.create.mutate({
       name,
       pinyin: user.pinyin,
       email: user.email,
@@ -88,7 +88,7 @@ const UserManagement: NextPageWithLayout = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {data.userList.map((item) => (
+              {data.users.map((item) => (
                 <Tr key={item.id}>
                   <Td>{item.email}</Td>
                   <Td>{item.name}</Td>
@@ -196,6 +196,6 @@ const UserManagement: NextPageWithLayout = () => {
   )
 }
 
-UserManagement.getLayout = (page) => <AppLayout>{page}</AppLayout>;
+Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
-export default UserManagement;
+export default Page;

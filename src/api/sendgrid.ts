@@ -24,7 +24,7 @@ export async function emailAdminsIgnoreError(subject: string, content: string) {
       where: {
         roles: { [Op.contains]: ["ADMIN"] },
       }
-    })
+    });
     await email('d-99d2ae84fe654400b448f8028238d461', [{
       to: admins.map(({ name, email }) => ({ name, email })),
       dynamicTemplateData: { subject, content },

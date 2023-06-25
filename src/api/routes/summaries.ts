@@ -2,8 +2,8 @@ import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 import { z } from "zod";
 import { decodeTranscriptId } from "./transcripts";
-import Transcript from "api/database/models/Transcript";
-import Summary from "api/database/models/Summary";
+import Transcript from "../database/models/Transcript";
+import Summary from "../database/models/Summary";
 
 const summaries = router({
 
@@ -34,18 +34,23 @@ const summaries = router({
     })
   ).mutation(async ({ input }) => {
     const { groupId, transcriptId, startedAt, endedAt } = decodeTranscriptId(input.transcriptId);
-    await Transcript.upsert({
-      transcriptId,
-      groupId, 
-      startedAt, 
-      endedAt
-    });
-    await Summary.upsert({
-      transcriptId, 
-      summaryKey: input.summaryKey,
-      summary: input.summary
-    });
+    await upsertSummary(groupId, transcriptId, startedAt, endedAt, input.summaryKey, input.summary);
   }),
 });
 
 export default summaries;
+
+export async function upsertSummary(groupId: string, transcriptId: string, startedAt: number, endedAt: number,
+  summaryKey: string, summary: string) {
+  await Transcript.upsert({
+    transcriptId,
+    groupId,
+    startedAt,
+    endedAt
+  });
+  await Summary.upsert({
+    transcriptId,
+    summaryKey,
+    summary
+  });
+}
