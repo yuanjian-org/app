@@ -14,7 +14,7 @@ import Link from 'next/link';
 import useUserContext from 'useUserContext';
 
 // @ts-ignore TODO: fix me.
-export default function MeetingBanner(props) {
+export default function GroupBanner(props) {
   const [user] = useUserContext();
   const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
   const textColor = useColorModeValue('secondaryGray.700', 'white');

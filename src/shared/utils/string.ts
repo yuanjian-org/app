@@ -18,3 +18,6 @@ export const stringOrEmpty = (value: string | undefined) => {
 //   return value ? !!JSON.parse(value) : false;
 // }
 
+export function capitalizeFirstChar(str : string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

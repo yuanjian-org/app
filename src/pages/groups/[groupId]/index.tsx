@@ -22,9 +22,10 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GetGroupResponse } from 'api/routes/groups';
 import moment from 'moment';
-import MeetingBanner from 'components/MeetingBanner';
+import GroupBanner from 'components/GroupBanner';
 import tClientNext from 'tClientNext';
 import MeetingBreadcrumb from 'components/MeetingBreadcrumb';
+import { capitalizeFirstChar } from 'shared/utils/string';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -54,8 +55,8 @@ function GroupCard() {
 
 function GroupDetail(props: { group: GetGroupResponse }) {
   return (
-    <Stack divider={<StackDivider />} spacing='10'>
-      <MeetingBanner group={props.group} />
+    <Stack divider={<StackDivider />} spacing='6'>
+      <GroupBanner group={props.group} />
       <TranscriptTable group={props.group} />
     </Stack>
   );
@@ -70,18 +71,18 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
         <Tr>
           <Th>开始时间</Th>
           <Th>时长</Th>
-          <Th>摘要</Th>
           <Th>摘要版本</Th>
+          <Th>摘要文字</Th>
         </Tr>
       </Thead>
       <Tbody>
         {props.group.transcripts.map(t => {
           const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
           return <Tr key={t.transcriptId}>
-            <Td><Link href={link}>{moment(t.startedAt).fromNow()}</Link></Td>
-            <Td><Link href={link}>{moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize()}</Link></Td>
-            <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
+            <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
+            <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
             <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
+            <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
           </Tr>;
         })}
       </Tbody>

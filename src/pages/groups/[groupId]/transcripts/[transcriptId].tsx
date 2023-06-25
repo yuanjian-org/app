@@ -21,11 +21,12 @@ import AppLayout from "../../../../layouts";
 import useUserContext from "../../../../useUserContext";
 import tClientNext from "../../../../tClientNext";
 import moment from 'moment';
-import MeetingBanner from 'components/MeetingBanner';
+import GroupBanner from 'components/GroupBanner';
 import { GetTranscriptResponse } from 'api/routes/transcripts';
 import MeetingBreadcrumb from 'components/MeetingBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
+import { capitalizeFirstChar } from 'shared/utils/string';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -58,8 +59,8 @@ function TranscriptCard() {
 
 function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
   return (
-    <Stack divider={<StackDivider />} spacing='10'>
-      <MeetingBanner group={props.transcript.group} />
+    <Stack divider={<StackDivider />} spacing='6'>
+      <GroupBanner group={props.transcript.group} />
       <Summaries transcript={props.transcript} />
     </Stack>
   );
@@ -78,13 +79,13 @@ function Summaries(props: { transcript: GetTranscriptResponse }) {
           <Tr>
             <Th>开始时间</Th>
             <Th>时长</Th>
-            <Th>摘要版本</Th>
+            <Th>版本</Th>
           </Tr>
         </Thead>
         <Tbody>
           <Tr>
-            <Td>{moment(t.startedAt).fromNow()}</Td>
-            <Td>{moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize()}</Td>
+            <Td>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Td>
+            <Td>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Td>
             <Td>
               <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
                 {t.summaries.map((s, idx) => (
