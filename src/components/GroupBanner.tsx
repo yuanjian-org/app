@@ -1,18 +1,14 @@
 import {
   Avatar,
-  Box,
   Button,
   Center,
-  Flex,
   HStack,
   SimpleGrid,
   Text,
-  VStack,
   Wrap,
   WrapItem,
-  useColorModeValue,
 } from '@chakra-ui/react';
-import React, { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import tClientBrowser from "../tClientBrowser";
 import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
