@@ -12,6 +12,7 @@ import {
   Tbody,
   Tr,
   Td,
+  Center,
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
@@ -47,7 +48,7 @@ function GroupCard() {
         <MeetingBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
       </CardHeader>
       <CardBody>
-        {group ? <GroupDetail group={group} /> : <Text align='center'>正在加载会议...</Text>}
+        {group ? <GroupDetail group={group} /> : <Text align='center'>正在加载...</Text>}
       </CardBody>
     </Card>
   );
@@ -66,26 +67,29 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
   // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
   moment.locale('zh-cn');
   return (
-    <Table variant='striped'>
-      <Thead>
-        <Tr>
-          <Th>开始时间</Th>
-          <Th>时长</Th>
-          <Th>摘要版本</Th>
-          <Th>摘要文字</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {props.group.transcripts.map(t => {
-          const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
-          return <Tr key={t.transcriptId}>
-            <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-            <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-            <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
-            <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
-          </Tr>;
-        })}
-      </Tbody>
-    </Table>
+    <>
+      <Table variant='striped'>
+        <Thead>
+          <Tr>
+            <Th>会议时间</Th>
+            <Th>时长</Th>
+            <Th>摘要版本</Th>
+            <Th>摘要文字</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {props.group.transcripts.map(t => {
+            const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
+            return <Tr key={t.transcriptId}>
+              <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
+              <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
+              <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
+              <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
+            </Tr>;
+          })}
+        </Tbody>
+      </Table>
+      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无摘要</Center>}
+    </>
   );
 }
