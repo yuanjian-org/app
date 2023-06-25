@@ -14,6 +14,7 @@ import {
   Td,
   Select,
   Textarea,
+  Center,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
@@ -51,7 +52,7 @@ function TranscriptCard() {
         ]} />
       </CardHeader>
       <CardBody>
-        {transcript ? <TranscriptDetail transcript={transcript} /> : <Text align='center'>正在加载摘要...</Text>}
+        {transcript ? <TranscriptDetail transcript={transcript} /> : <Text align='center'>正在加载...</Text>}
       </CardBody>
     </Card>
   );
@@ -72,14 +73,15 @@ function Summaries(props: { transcript: GetTranscriptResponse }) {
   const t = props.transcript;
   invariant(t.summaries.length > 0);
   const [summaryIndex, setSummaryIndex] = useState(0);
+
   return (
     <Stack>
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>开始时间</Th>
+            <Th>会议时间</Th>
             <Th>时长</Th>
-            <Th>版本</Th>
+            <Th>摘要版本</Th>
           </Tr>
         </Thead>
         <Tbody>
