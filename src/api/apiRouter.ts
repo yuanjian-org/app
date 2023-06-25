@@ -5,6 +5,7 @@ import myGroups from "./routes/myGroups";
 import groups from "./routes/groups";
 import transcripts from './routes/transcripts';
 import summaries from './routes/summaries';
+import cron from './routes/cron';
 
 export const apiRouter = router({
   me,
@@ -13,6 +14,7 @@ export const apiRouter = router({
   myGroups,
   transcripts,
   summaries,
+  cron,
 });
 
 export type ApiRouter = typeof apiRouter;
