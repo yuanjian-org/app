@@ -1,0 +1,6 @@
+{
+  "crons": [{
+    "path": "/api/v1/cron.uploadRawTranscripts",
+    "schedule": "*/30 * * * *"
+  }]
+}
