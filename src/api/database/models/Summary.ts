@@ -27,9 +27,11 @@ class Summary extends Model {
 
   @PrimaryKey
   @Column(STRING)
+  // TODO: rename to `key`
   summaryKey: string;
 
   @Column(STRING(1 * 1024 * 1024))
+  // TODO: rename to `text`
   summary: string;
 }
 
