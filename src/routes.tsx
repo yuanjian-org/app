@@ -33,6 +33,15 @@ const routes: IRoute[] = [
     hiddenFromSidebar: true,
   },
   {
+    name: '摘要',
+    layout: '/',
+    path: '/groups/[groupId]/transcripts/[transcriptId]',
+    icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
+    // Permission varies based on `id`.
+    resource: 'open-to-all',
+    hiddenFromSidebar: true,
+  },
+  {
     name: '用户管理',
     layout: '/',
     path: '/users',

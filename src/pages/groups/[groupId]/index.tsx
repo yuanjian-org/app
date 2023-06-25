@@ -70,8 +70,8 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
         <Tr>
           <Th>开始时间</Th>
           <Th>时长</Th>
-          <Th>摘要版本</Th>
           <Th>摘要</Th>
+          <Th>摘要版本</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -80,8 +80,8 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
           return <Tr key={t.transcriptId}>
             <Td><Link href={link}>{moment(t.startedAt).fromNow()}</Link></Td>
             <Td><Link href={link}>{moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize()}</Link></Td>
-            <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
             <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
+            <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
           </Tr>;
         })}
       </Tbody>
