@@ -118,7 +118,12 @@ export function encodeTranscriptId(groupId: string, transcriptId: string, startT
 
 export function decodeTranscriptId(encoded: string) {
   const parsed = encoded.split('.');
-  if (parsed.length !== 4 || !parsed.every(s => s.length > 1)) throw Error(`Invalid Encode Transcript Id: ${encoded}`);
+  if (parsed.length !== 4 || !parsed.every(s => s.length > 1)) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Invalid Transcript Id: ${encoded}`
+    });
+  }
   return {
     groupId: parsed[0],
     transcriptId: parsed[1],
