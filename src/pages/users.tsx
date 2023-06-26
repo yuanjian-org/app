@@ -25,7 +25,7 @@ import {
   Checkbox
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'layouts'
+import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import tClientBrowser from "../tClientBrowser";
 import { Role, ALL_ROLES } from "../shared/RBAC";

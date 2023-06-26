@@ -18,14 +18,14 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
-import AppLayout from "../layouts";
+import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
 import tClientBrowser from "../tClientBrowser";
 import tClientNext from "../tClientNext";
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
 import GroupBanner from 'components/GroupBanner';
-import MeetingBreadcrumb from 'components/MeetingBreadcrumb';
+import PageBreadcrumb from 'components/PageBreadcrumb';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -99,7 +99,7 @@ function Meetings() {
   return (
     <Card>
       <CardHeader>
-        <MeetingBreadcrumb current='我的会议' parents={[]} />
+        <PageBreadcrumb current='我的会议' parents={[]} />
       </CardHeader>
       <CardBody>
         {!groups

@@ -46,10 +46,10 @@ export default function GroupBanner(props) {
       {
         props.group.users
         .filter((u: any) => user.id != u.id)
-        .map((user: any) => 
+        .map((user: any) =>
           <WrapItem key={user.id}>
             <HStack>
-              <Avatar name={user.name} />
+              <Avatar name={user.name} boxSize={10}/>
               <Text>{user.name}</Text>
             </HStack>
           </WrapItem >
@@ -60,9 +60,9 @@ export default function GroupBanner(props) {
       {props.countTranscripts &&
           <Link href={`/groups/${props.group.id}`}>
             {transcriptCount ?
-              <>{transcriptCount} 个摘要 <ArrowForwardIcon /></>
+              <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
               : 
-              <Text color='gray.400'>无摘要 <ArrowForwardIcon /></Text>
+              <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
             }
           </Link>
         }

@@ -11,7 +11,7 @@ import {
   AlertIcon,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
-import AppLayout from 'layouts'
+import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import tClientBrowser from "../tClientBrowser";
 import { EditIcon, EmailIcon } from '@chakra-ui/icons';

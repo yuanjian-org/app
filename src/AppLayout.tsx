@@ -14,16 +14,16 @@ import {
 } from 'navigation'
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
-import { GuardProvider, User, Guard } from '@authing/guard-react18';
-import { UserContext } from "../useUserContext";
-import browserEnv from "../browserEnv";
-import tClientBrowser from "../tClientBrowser";
-import { IUser } from "../shared/user";
+import { GuardProvider } from '@authing/guard-react18';
+import { UserContext } from "./useUserContext";
+import browserEnv from "./browserEnv";
+import tClientBrowser from "./tClientBrowser";
+import { IUser } from "./shared/user";
 import { useRouter } from "next/router";
-import { Resource, isPermitted } from "../shared/RBAC";
+import { Resource, isPermitted } from "./shared/RBAC";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
-import guard from '../guard';
+import guard from './guard';
 
 interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any

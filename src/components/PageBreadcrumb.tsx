@@ -2,7 +2,7 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Heading } from "@chakra-ui/react";
 import Link from "next/link";
 
-export default function MeetingBreadcrumb(props: {
+export default function PageBreadcrumb(props: {
   current: string,
   parents: { name: string, link: string }[],
 }) {

@@ -16,13 +16,13 @@ import {
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
-import AppLayout from "../../../../layouts";
+import AppLayout from "../../../../AppLayout";
 import useUserContext from "../../../../useUserContext";
 import tClientNext from "../../../../tClientNext";
 import moment from 'moment';
 import GroupBanner from 'components/GroupBanner';
 import { GetTranscriptResponse } from 'api/routes/transcripts';
-import MeetingBreadcrumb from 'components/MeetingBreadcrumb';
+import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import { capitalizeFirstChar } from 'shared/utils/string';
@@ -44,7 +44,7 @@ function TranscriptCard() {
   return (
     <Card>
       <CardHeader>
-        <MeetingBreadcrumb current='摘要' parents={[
+        <PageBreadcrumb current='摘要' parents={[
           { name: '我的会议', link: '/' },
           { name: '会议详情', link: `/groups/${router.query.groupId}` },
         ]} />

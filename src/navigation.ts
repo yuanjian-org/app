@@ -7,7 +7,7 @@ export const findCurrentRoute = (routes: IRoute[]) => {
   const foundRoute = routes.find(
     (route) =>
       isWindowAvailable() &&
-      window.location.href.indexOf(route.layout + route.path) !== -1 &&
+      window.location.href.indexOf('/' + route.path) !== -1 &&
       route
   );
 

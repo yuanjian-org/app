@@ -17,7 +17,7 @@ import {
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
 import { NextPageWithLayout } from "../../../NextPageWithLayout";
-import AppLayout from "../../../layouts";
+import AppLayout from "../../../AppLayout";
 import useUserContext from "../../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -25,7 +25,7 @@ import { GetGroupResponse } from 'api/routes/groups';
 import moment from 'moment';
 import GroupBanner from 'components/GroupBanner';
 import tClientNext from 'tClientNext';
-import MeetingBreadcrumb from 'components/MeetingBreadcrumb';
+import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/utils/string';
 
 const Page: NextPageWithLayout = () => {
@@ -45,7 +45,7 @@ function GroupCard() {
   return (
     <Card>
       <CardHeader>
-        <MeetingBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
+        <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
       </CardHeader>
       <CardBody>
         {group ? <GroupDetail group={group} /> : <Text align='center'>正在加载...</Text>}
@@ -73,7 +73,7 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
           <Tr>
             <Th>会议时间</Th>
             <Th>时长</Th>
-            <Th>摘要版本</Th>
+            <Th>摘要</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -82,7 +82,7 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
             return <Tr key={t.transcriptId}>
               <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
               <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-              <Td><Link href={link}>{t.summaries.length} 个 <ArrowForwardIcon /></Link></Td>
+              <Td><Link href={link}>{t.summaries.length} 版摘要 <ArrowForwardIcon /></Link></Td>
             </Tr>;
           })}
         </Tbody>

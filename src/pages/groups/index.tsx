@@ -6,7 +6,7 @@ import {
   Grid
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'layouts'
+import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
 import NormalTable from "../../horizon-ui/components/NormalTable";
 import tClientBrowser from "../../tClientBrowser";
