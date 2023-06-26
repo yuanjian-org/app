@@ -100,9 +100,10 @@ async function generateSummaries(users: TestUser[]) {
     '> transcript-1, summary-B' + md);
   await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-C',
     '> transcript-1, summary-C' + md);
-  await upsertSummary(groupId, `transcript-2-${groupId}`, 
-    start.clone().add(3, 'day').valueOf(), 
-    start.clone().add(1.5, 'hour').valueOf(), 'summary-A', 
+
+  const anotherStart = start.clone().add(3, 'day');
+  const anotherEnd = anotherStart.clone().add(1, 'hour');
+  await upsertSummary(groupId, `transcript-2-${groupId}`, anotherStart.valueOf(), anotherEnd.valueOf(), 'summary-A',
     '> transcript-2, summary-A' + md);
 }
 
