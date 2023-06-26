@@ -16,7 +16,7 @@ const summaries = router({
    * 
    * Example:
    * 
-   * $ curl -X POST https://${HOST}/api/v1/summaries.update \
+   * $ curl -X POST https://${HOST}/api/v1/summaries.write \
    *    -H "Content-Type: application/json" \
    *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
    *    -d '{ \

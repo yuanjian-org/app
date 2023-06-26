@@ -74,7 +74,6 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
             <Th>会议时间</Th>
             <Th>时长</Th>
             <Th>摘要版本</Th>
-            <Th>摘要文字</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -83,8 +82,7 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
             return <Tr key={t.transcriptId}>
               <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
               <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-              <Td><Link href={link}>{t.summaries.length} 个</Link></Td>
-              <Td><Link href={link}>查看 <ArrowForwardIcon /></Link></Td>
+              <Td><Link href={link}>{t.summaries.length} 个 <ArrowForwardIcon /></Link></Td>
             </Tr>;
           })}
         </Tbody>
