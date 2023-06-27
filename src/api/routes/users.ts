@@ -5,7 +5,7 @@ import { zRoles } from "../../shared/roles";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
-import { IUser } from "../../shared/user";
+import IUser from "../../shared/IUser";
 import { presentPublicUser } from "../../shared/PublicUser";
 
 const users = router({

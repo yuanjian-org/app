@@ -1,7 +1,7 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import { IUser } from "../../shared/user";
+import IUser from "../../shared/IUser";
 import pinyin from 'tiny-pinyin';
 
 const me = router({
