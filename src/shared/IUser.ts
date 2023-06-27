@@ -1,7 +1,7 @@
 import { Role } from "./roles";
 
 // TODO: Rename to `User`
-export interface IUser {
+export default interface IUser {
   id: string;
 
   // Obtained from the database, not authing.cn.
