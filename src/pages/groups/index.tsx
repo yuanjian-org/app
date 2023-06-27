@@ -83,7 +83,7 @@ const UserManagement: NextPageWithLayout = () => {
         spacing={{ base: '20px', xl: '20px' }}
       >
         {data && <NormalTable
-          tableTitle={'小组管理'}
+          tableTitle={'分组管理'}
           columnsData={[
             {
               Header: "用户",

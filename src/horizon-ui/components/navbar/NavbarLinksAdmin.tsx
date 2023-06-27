@@ -50,9 +50,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 			borderRadius='30px'
 			boxShadow={shadow}
     >
-			<SidebarResponsive routes={
-				routes.filter(r => isPermitted(user.roles, r.resource))
-			} />
+			<SidebarResponsive routes={routes} />
 			<Menu>
 				<MenuButton p='0px'>
 					<Avatar

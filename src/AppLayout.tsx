@@ -80,18 +80,6 @@ export default function AppLayout(props: DashboardLayoutProps) {
     window.document.documentElement.dir = 'ltr'
   });
 
-  const router = useRouter();
-
-  const currentResource = useMemo((): Resource => {
-    const currentRoute = routes.find(r => r.path === router.pathname);
-
-    if (!currentRoute) {
-      return 'no-access';
-    } else {
-      return currentRoute.resource;
-    }
-  }, [router.pathname]);
-
   return (
     <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
       redirectUri={
@@ -107,9 +95,7 @@ export default function AppLayout(props: DashboardLayoutProps) {
               setToggleSidebar
             }}
           >
-            <Sidebar routes={
-              routes.filter(r => isPermitted(userInfo.roles, r.resource))
-            } display='none' {...rest} />
+            <Sidebar routes={routes} display='none' {...rest} />
             <Box
               float='right'
               minHeight='100vh'
@@ -145,11 +131,7 @@ export default function AppLayout(props: DashboardLayoutProps) {
                 minH='100vh'
                 pt='50px'
               >
-                {
-                  (
-                    !isPermitted(userInfo.roles, currentResource)) ?
-                    <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>Permission denied</Box> : children
-                }
+                {children}
               </Box>
               <Box>
                 <Footer />
