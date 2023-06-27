@@ -1,5 +1,5 @@
 /**
- * Role-based access control
+ * Role-based access control. TODO: Rename it to roles.ts after isPermittedDeprecated is deleted.
  */
 import { ArrayElement } from "./utils/ArrayElement";
 import z from "zod";
@@ -7,10 +7,19 @@ import z from "zod";
 export type Role = ArrayElement<typeof ALL_ROLES>;
 
 export const ALL_ROLES = [
-  'ANYONE',   // Implict to all users. Not to be persisted in the User table.
+  // Implict to all users. Not to be persisted in the User table.
+  'Anyone',
+  
+  // TODO: Rename to `Admin`
   'ADMIN',
-  'VISITOR',  // Deprecated. TODO: remove it from all dbs (including all local dev dbs).
-  'INTEGRATION',
+
+  'AI Researcher',
+
+  // For app integraion only.
+  'Integration',
+
+  // DEPRECATED. Do not use. TODO: remove it from all dbs (including all local dev dbs).
+  'VISITOR',
 ] as const;
 
 export const zRoleArr = z.array(z.enum(ALL_ROLES));
@@ -38,8 +47,8 @@ const ACL = {
   'open-to-all': ['ADMIN', 'VISITOR'] as Role[],
   'no-access': [] as Role[],
 
-  'transcripts:read': ['INTEGRATION'] as Role[],
-  'summaries:write': ['INTEGRATION'] as Role[],
+  'transcripts:read': ['Integration'] as Role[],
+  'summaries:write': ['Integration'] as Role[],
 } as const;
 
 type StringKeys<objType extends {}> = Array<Extract<keyof objType, string>>
@@ -47,7 +56,7 @@ type StringKeys<objType extends {}> = Array<Extract<keyof objType, string>>
 export type Resource = ArrayElement<StringKeys<typeof ACL>>;
 
 export function isPermitted(userRoles : Role[], resourceRole: Role) {
-  return resourceRole === 'ANYONE' || userRoles.includes(resourceRole); 
+  return resourceRole === 'Anyone' || userRoles.includes(resourceRole); 
 }
 
 export const isPermittedDeprecated = (roles: Role[], resource: Resource) => {

@@ -18,7 +18,7 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 export const authIntegration = (resource: Resource) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  if (!isPermittedDeprecated(['INTEGRATION'], resource)) throw forbidden();
+  if (!isPermittedDeprecated(['Integration'], resource)) throw forbidden();
   return await next({ ctx: {} });
 });
 

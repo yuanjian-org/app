@@ -3,6 +3,8 @@ import { Icon } from '@chakra-ui/react';
 import {
   MdPerson,
   MdHome,
+  MdGroups,
+  MdScience,
 } from 'react-icons/md'
 import { Role } from "shared/RBAC";
 
@@ -20,7 +22,7 @@ export const navbarItems: NavbarItem[] = [
     name: '我的会议',
     path: '/',
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
-    role: 'ANYONE',
+    role: 'Anyone',
   },
   {
     name: '用户管理',
@@ -31,7 +33,13 @@ export const navbarItems: NavbarItem[] = [
   {
     name: '分组管理',
     path: '/groups',
-    icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
+    icon: <Icon as={MdGroups} width='20px' height='20px' color='inherit' />,
+    role: 'ADMIN',
+  },
+  {
+    name: '摘要研发',
+    path: '#',
+    icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
     role: 'ADMIN',
   },
 ]
