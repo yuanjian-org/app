@@ -13,9 +13,6 @@ export const ALL_ROLES = [
 
   'AI Researcher',
 
-  // For app integraion only.
-  'Integration',
-
   // DEPRECATED. Do not use. TODO: remove it from all dbs (including all local dev dbs).
   'VISITOR',
 ] as const;
@@ -45,17 +42,14 @@ const ACL = {
   'groups:write': ['ADMIN'] as Role[],
 
   'open-to-all': ['ADMIN', 'VISITOR'] as Role[],
-
-  'transcripts:read': ['Integration'] as Role[],
-  'summaries:write': ['Integration'] as Role[],
 } as const;
 
 type StringKeys<objType extends {}> = Array<Extract<keyof objType, string>>
 
 export type Resource = ArrayElement<StringKeys<typeof ACL>>;
 
-export function isPermitted(userRoles : Role[], resourceRole: Role) {
-  return resourceRole === 'Anyone' || userRoles.includes(resourceRole); 
+export function isPermitted(userRoles : Role[], permitted: Role) {
+  return permitted === 'Anyone' || userRoles.includes(permitted); 
 }
 
 export const isPermittedDeprecated = (roles: Role[], resource: Resource) => {
