@@ -53,7 +53,7 @@ const transcripts = router({
    *  }
    */
   list: procedure.use(
-    authIntegration('transcripts:read')
+    authIntegration()
   ).query(async () => {
     const res : Array<{ 
       transcriptId: string,
@@ -64,6 +64,12 @@ const transcripts = router({
     // Only interested in records that are ready to download.
     .filter(meeting => meeting.state === 3)
     .map(async meeting => {
+      const groupId = meeting.subject;
+      if (!await groupExists(groupId)) {
+        console.log(`Group doesn't exist. Igore: ${groupId}`)
+        return;
+      }
+
       invariant(meeting.record_files.length == 1);
       const startTime = meeting.record_files[0].record_start_time;
       const endTime = meeting.record_files[0].record_end_time;
@@ -74,7 +80,7 @@ const transcripts = router({
         .map(summary => {
           const id = 
           res.push({
-            transcriptId: encodeTranscriptId(meeting.subject, file.record_file_id, startTime, endTime),
+            transcriptId: encodeTranscriptId(groupId, file.record_file_id, startTime, endTime),
             url: summary.download_address,
           });
         })
@@ -130,4 +136,11 @@ export function decodeTranscriptId(encoded: string) {
     startedAt: Number(parsed[2]),
     endedAt: Number(parsed[3]),
   }
+}
+
+async function groupExists(groupId: string) {
+  // Without `safeParse` sequalize may throw an exception on invalid UUID strings.
+  return z.string().uuid().safeParse(groupId).success && (await Group.count({
+    where: { id: groupId }
+  })) > 0;
 }

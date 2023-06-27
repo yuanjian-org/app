@@ -25,7 +25,7 @@ const summaries = router({
    *      "summary": "..." }'
    */
   write: procedure.use(
-    authIntegration('summaries:write')
+    authIntegration()
   ).input(
     z.object({ 
       transcriptId: z.string(),

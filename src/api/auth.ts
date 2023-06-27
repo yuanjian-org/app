@@ -15,10 +15,9 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
  * Authenticate for APIs used by applications as opposed to end users. These applications should use
  * "Bearer ${INTEGRATION_AUTH_TOKEN}" as their authentican token.
  */
-export const authIntegration = (resource: Resource) => middleware(async ({ ctx, next }) => {
+export const authIntegration = () => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  if (!isPermittedDeprecated(['Integration'], resource)) throw forbidden();
   return await next({ ctx: {} });
 });
 
