@@ -11,7 +11,7 @@ import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
 import { JSONB, STRING } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
-import { Role, zRoleArr } from "../../../shared/RBAC";
+import { Role, zRoles } from "../../../shared/roles";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 
@@ -39,7 +39,7 @@ class User extends ParanoidModel<
   })
   clientId: string;
 
-  @ZodColumn(JSONB, zRoleArr)
+  @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
   @BelongsToMany(() => Group, { through: () => GroupUser })

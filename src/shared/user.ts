@@ -1,4 +1,4 @@
-import { Role } from "./RBAC";
+import { Role } from "./roles";
 
 // TODO: Rename to `User`
 export interface IUser {

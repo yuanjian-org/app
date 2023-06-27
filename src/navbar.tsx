@@ -6,7 +6,7 @@ import {
   MdGroups,
   MdScience,
 } from 'react-icons/md'
-import { Role } from "shared/RBAC";
+import { Role } from "shared/roles";
 
 export interface NavbarItem {
   name: string,
@@ -40,7 +40,7 @@ export const navbarItems: NavbarItem[] = [
     name: '摘要研发',
     path: '#',
     icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
-    role: 'ADMIN',
+    role: 'AI Researcher',
   },
 ]
 
