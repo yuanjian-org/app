@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
 import AdminNavbarLinks from 'horizon-ui/components/navbar/NavbarLinksAdmin'
-import { isWindowAvailable } from 'navigation'
+import { isWindowAvailable } from 'navbar'
 
 export default function AdminNavbar (props: {
   secondary: boolean
