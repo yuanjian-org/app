@@ -3,12 +3,12 @@ import { Box, Flex, Stack } from '@chakra-ui/react';
 //   Custom components
 import Brand from 'horizon-ui/components/sidebar/components/Brand';
 import Links from 'horizon-ui/components/sidebar/components/Links';
-import { IRoute } from 'horizon-ui/types/navigation';
+import { Route } from 'routes';
 
 // FUNCTIONS
 
 interface SidebarContentProps {
-	routes: IRoute[];
+	routes: Route[];
 }
 
 function SidebarContent(props: SidebarContentProps) {

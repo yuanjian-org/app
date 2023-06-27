@@ -1,3 +1,4 @@
+import { ReactComponentElement } from "react";
 import { Icon } from '@chakra-ui/react'
 import {
   MdPerson,
@@ -5,12 +6,18 @@ import {
   MdAccountBox
 } from 'react-icons/md'
 
-import { IRoute } from 'horizon-ui/types/navigation'
+export interface Route {
+  name: string;
+  // @ts-ignore
+  icon: ReactComponentElement | string;
+  secondary?: boolean;
+  path: string;
+  hiddenFromSidebar?: boolean;
+}
 
-const routes: IRoute[] = [
+const routes: Route[] = [
   {
     name: '我的会议',
-    // layout: '/',
     path: '/',
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
   },
@@ -44,4 +51,4 @@ const routes: IRoute[] = [
   },
 ]
 
-export default routes
+export default routes;

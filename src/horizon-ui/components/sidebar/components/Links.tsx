@@ -4,10 +4,10 @@
 import { Box, Flex, HStack, Text, useColorModeValue } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { IRoute } from 'horizon-ui/types/navigation'
+import { Route } from 'routes'
 
 interface SidebarLinksProps {
-  routes: IRoute[]
+  routes: Route[]
 }
 
 export function SidebarLinks (props: SidebarLinksProps) {
@@ -31,7 +31,7 @@ export function SidebarLinks (props: SidebarLinksProps) {
   }
 
   // this function creates the links from the secondary accordions (for example auth -> sign-in -> default)
-  const createLinks = (routes: IRoute[]) => {
+  const createLinks = (routes: Route[]) => {
     return routes.filter(r => !r.hiddenFromSidebar).map((route, index: number) => {
       return (
         <Link key={index} href={route.path}>
