@@ -4,7 +4,7 @@
  * 
  */
 
-import { Role } from "../RBAC";
+import { Role } from "../roles";
 
 interface PublicUser {
   id: string;

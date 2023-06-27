@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { NavbarItem } from 'navbar'
 import useUserContext from 'useUserContext'
-import { isPermitted } from 'shared/RBAC'
+import { isPermitted } from 'shared/roles'
 
 interface SidebarLinksProps {
   routes: NavbarItem[]

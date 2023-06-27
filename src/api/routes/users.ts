@@ -1,8 +1,7 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
-import invariant from "tiny-invariant";
-import { zRoleArr } from "../../shared/RBAC";
+import { zRoles } from "../../shared/roles";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
@@ -17,7 +16,7 @@ const users = router({
     pinyin: z.string(),
     email: z.string().email(),
     clientId: z.string().min(1, "required"),
-    roles: zRoleArr.min(1, "required"),
+    roles: zRoles.min(1, "required"),
   })).mutation(async ({ input, ctx }) => {
     const user = await User.findOne({
       where: {

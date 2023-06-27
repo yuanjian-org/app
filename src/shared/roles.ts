@@ -4,8 +4,6 @@
 import { ArrayElement } from "./utils/ArrayElement";
 import z from "zod";
 
-export type Role = ArrayElement<typeof ALL_ROLES>;
-
 export const ALL_ROLES = [
   // Implict to all users. Not to be persisted in the User table.
   'Anyone',
@@ -22,10 +20,12 @@ export const ALL_ROLES = [
   'VISITOR',
 ] as const;
 
-export const zRoleArr = z.array(z.enum(ALL_ROLES));
+export type Role = ArrayElement<typeof ALL_ROLES>;
+
+export const zRoles = z.array(z.enum(ALL_ROLES));
 
 /**
- * TODO: Remove this structure. Refactor
+ * TODO: Remove this structure. Refactor:
  * 
  *  `auth{User,Integration}(r: Resource)`
  *
@@ -45,7 +45,6 @@ const ACL = {
   'groups:write': ['ADMIN'] as Role[],
 
   'open-to-all': ['ADMIN', 'VISITOR'] as Role[],
-  'no-access': [] as Role[],
 
   'transcripts:read': ['Integration'] as Role[],
   'summaries:write': ['Integration'] as Role[],
