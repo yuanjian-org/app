@@ -5,7 +5,7 @@ import Footer from 'horizon-ui/components/footer/FooterAdmin'
 import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
 import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
 import { SidebarContext } from 'horizon-ui/contexts/SidebarContext'
-import { FC, PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
 import routes from 'routes'
 import {
   getActiveNavbar,
@@ -19,8 +19,6 @@ import { UserContext } from "./useUserContext";
 import browserEnv from "./browserEnv";
 import tClientBrowser from "./tClientBrowser";
 import { IUser } from "./shared/user";
-import { useRouter } from "next/router";
-import { Resource, isPermitted } from "./shared/RBAC";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import guard from './guard';

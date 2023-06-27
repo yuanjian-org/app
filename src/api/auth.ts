@@ -1,6 +1,6 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
-import { isPermitted, Resource, Role } from "../shared/RBAC";
+import { isPermittedDeprecated, Resource, Role } from "../shared/RBAC";
 import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
@@ -18,7 +18,7 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 export const authIntegration = (resource: Resource) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  if (!isPermitted(['INTEGRATION'], resource)) throw forbidden();
+  if (!isPermittedDeprecated(['INTEGRATION'], resource)) throw forbidden();
   return await next({ ctx: {} });
 });
 
@@ -30,7 +30,7 @@ export const authUser = (resource: Resource) => middleware(async ({ ctx, next })
   if (!ctx.authToken) throw noToken();
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);
-  if (!isPermitted(user.roles, resource)) throw forbidden();
+  if (!isPermittedDeprecated(user.roles, resource)) throw forbidden();
   return await next({ ctx: { user: user } });
 });
 
@@ -104,7 +104,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     if (user) return user;
 
     // Set the first user as an admin
-    const roles: [Role] = [(await User.count()) == 0 ? 'ADMIN' : 'VISITOR'];
+    const roles: Role[] = (await User.count()) == 0 ? ['ADMIN'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
     emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
     try {

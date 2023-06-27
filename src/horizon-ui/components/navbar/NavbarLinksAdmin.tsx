@@ -18,7 +18,6 @@ import React from 'react';
 import routes from 'routes';
 import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
-import { isPermitted } from "../../../shared/RBAC";
 import Link from 'next/link';
 
 const logout = async function (this: Guard) {

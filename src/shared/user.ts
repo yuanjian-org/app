@@ -1,5 +1,6 @@
 import { Role } from "./RBAC";
 
+// TODO: Rename to `User`
 export interface IUser {
   id: string;
 

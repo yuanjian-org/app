@@ -3,8 +3,8 @@ import { Icon } from '@chakra-ui/react'
 import {
   MdPerson,
   MdHome,
-  MdAccountBox
 } from 'react-icons/md'
+import { Role } from "shared/RBAC";
 
 export interface Route {
   name: string;
@@ -12,7 +12,7 @@ export interface Route {
   icon: ReactComponentElement | string;
   secondary?: boolean;
   path: string;
-  hiddenFromSidebar?: boolean;
+  role: Role,
 }
 
 const routes: Route[] = [
@@ -20,34 +20,19 @@ const routes: Route[] = [
     name: '我的会议',
     path: '/',
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
-  },
-  {
-    name: '个人信息',
-    path: '/profile',
-    icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
-    hiddenFromSidebar: true,
-  },
-  {
-    name: '会议详情',
-    path: '/groups/[groupId]',
-    icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
-    hiddenFromSidebar: true,
-  },
-  {
-    name: '摘要',
-    path: '/groups/[groupId]/transcripts/[transcriptId]',
-    icon: <Icon as={MdAccountBox} width='20px' height='20px' color='inherit' />,
-    hiddenFromSidebar: true,
+    role: 'ANYONE',
   },
   {
     name: '用户管理',
     path: '/users',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
+    role: 'ADMIN',
   },
   {
     name: '分组管理',
     path: '/groups',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
+    role: 'ADMIN',
   },
 ]
 
