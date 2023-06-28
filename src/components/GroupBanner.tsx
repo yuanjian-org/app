@@ -42,22 +42,9 @@ export default function GroupBanner(props) {
           isLoading={isJoiningMeeting} loadingText={'加入中...'}
           onClick={async () => launchMeeting(props.group.id)}>加入</Button>
       </Center>
-      <Wrap spacing='1.5em'>
-      {
-        props.group.users
-        .filter((u: any) => user.id != u.id)
-        .map((user: any) =>
-          <WrapItem key={user.id}>
-            <HStack>
-              <Avatar name={user.name} boxSize={10}/>
-              <Text>{user.name}</Text>
-            </HStack>
-          </WrapItem >
-        )
-      }
-      </Wrap>
-    <Center>
-      {props.countTranscripts &&
+      <UserList currentUserId={user.id} users={props.group.users} />
+      <Center>
+        {props.countTranscripts &&
           <Link href={`/groups/${props.group.id}`}>
             {transcriptCount ?
               <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
@@ -69,4 +56,19 @@ export default function GroupBanner(props) {
       </Center>
     </SimpleGrid>
   );
+}
+
+export function UserList(props: { currentUserId?: string, users: { id: string, name: string }[]}) {
+  return <Wrap spacing='1.5em'> {
+    props.users
+    .filter((u: any) => props.currentUserId != u.id)
+    .map((user: any) =>
+      <WrapItem key={user.id}>
+        <HStack>
+          <Avatar name={user.name} boxSize={10}/>
+          <Text>{user.name}</Text>
+        </HStack>
+      </WrapItem >
+    )
+  } </Wrap>
 }

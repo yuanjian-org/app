@@ -107,6 +107,10 @@ async function generateSummaries(users: TestUser[]) {
     '> transcript-2, summary-A' + md);
 }
 
+/**
+ * Find the group that contains all the `users` and no more. Return null if no such group is found.
+ * TODO: use groups.ts:findGroup()
+ */
 async function findGroupId(users: TestUser[]) {
   invariant(users.length > 1);
 

@@ -1,19 +1,21 @@
 import {
   Box,
   Button,
-  SimpleGrid,
-  Badge,
-  Grid
+  Grid,
+  Table,
+  Tbody,
+  Tr,
+  Td,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
-import NormalTable from "../../horizon-ui/components/NormalTable";
 import tClientBrowser from "../../tClientBrowser";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
-import invariant from "tiny-invariant";
 import tClientNext from "../../tClientNext";
+import { UserList } from 'components/GroupBanner';
+import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 type Option = {
   label: string;
@@ -24,11 +26,9 @@ const loadOptions = (
   callback: (options: Option[]) => void
 ) => {
   tClientBrowser.users.search.query({
-    offset: 0,
-    limit: 10,
     query: inputValue,
-  }).then(({ userList }) => {
-    callback(userList.map(u => {
+  }).then(({ users }) => {
+    callback(users.map(u => {
       return {
         label: `${u.name} (${u.email})`,
         value: u.id,
@@ -36,7 +36,8 @@ const loadOptions = (
     }));
   })
 }
-const UserManagement: NextPageWithLayout = () => {
+
+const Page: NextPageWithLayout = () => {
   const [selected, setSelected] = useState([] as {label: string, value: string}[]);
   const [isCreating, setCreating] = useState(false);
 
@@ -77,38 +78,24 @@ const UserManagement: NextPageWithLayout = () => {
           </Button>
         </Grid>
       </Box>
-      <SimpleGrid
-        mb='20px'
-        columns={1}
-        spacing={{ base: '20px', xl: '20px' }}
-      >
-        {data && <NormalTable
-          tableTitle={'分组管理'}
-          columnsData={[
-            {
-              Header: "用户",
-              accessor: "userIdList",
-              Cell: ({ value, row }) => {
-                invariant(data.userMap);
-                const userList = (value as string[]).map(id => data.userMap[id]);
-                return <div>
-                  {userList.map(({ name, id }) => <Badge key={id}>{name}</Badge>)}
-                </div>
-              }
-            },
-            {
-              Header: "会议链接",
-              accessor: "meetingLink",
-            },
-          ]}
-          tableData={data.groupList}
-        />}
-        {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
-      </SimpleGrid>
+      {data && <Table variant="striped">
+        {/* TODO: Use GroupBanner instead of this table. */}
+        <Tbody>
+          {
+            data.map(group => <Tr key={group.id}>
+              <Td><UserList users={group.users} /></Td>
+              <Td>{group.transcripts && group.transcripts.length ? `${group.transcripts.length} 个历史记录` : "无历史" } 
+                <ArrowForwardIcon />
+              </Td>
+            </Tr>)
+          }
+        </Tbody>
+      </Table>}
+      {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
     </Box>
   )
 }
 
-UserManagement.getLayout = (page) => <AppLayout>{page}</AppLayout>;
+Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
-export default UserManagement;
+export default Page;
