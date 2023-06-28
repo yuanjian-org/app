@@ -28,7 +28,7 @@ import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import tClientBrowser from "../tClientBrowser";
-import { Role, ALL_ROLES } from "../shared/roles";
+import Role, { ALL_ROLES } from "../shared/Role";
 import { HSeparator } from "../horizon-ui/components/separator/Separator";
 import IUser from "../shared/IUser";
 import { toast } from "react-toastify";

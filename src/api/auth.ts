@@ -1,6 +1,6 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
-import { isPermitted, Role } from "../shared/roles";
+import Role, { isPermitted } from "../shared/Role";
 import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
