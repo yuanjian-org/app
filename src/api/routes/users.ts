@@ -46,12 +46,10 @@ const users = router({
   search: procedure
   .use(authUser('ADMIN'))
   .input(z.object({
-    offset: z.number(),
-    limit: z.number(),
     query: z.string(),
   }))
-  .query(async ({ input, ctx }) => {
-    const userList = await User.findAll({
+  .query(async ({ input }) => {
+    const users = await User.findAll({
       where: {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${input.query}%` } },
@@ -62,7 +60,7 @@ const users = router({
     });
 
     return {
-      userList: userList.map(presentPublicUser),
+      users: users.map(presentPublicUser),
     }
   }),
 

@@ -70,6 +70,7 @@ const transcripts = router({
         return;
       }
 
+      if (!meeting.record_files) return;
       invariant(meeting.record_files.length == 1);
       const startTime = meeting.record_files[0].record_start_time;
       const endTime = meeting.record_files[0].record_end_time;
