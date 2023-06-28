@@ -35,13 +35,16 @@ export default function GroupBanner(props) {
     }
   }
 
+  const join = props.showJoinButton;
   return (
-    <SimpleGrid columns={3} templateColumns={'7em 2fr 1fr'} spacing={2}>
-      <Center>
-        <Button variant='outline' leftIcon={<MdVideocam />}
-          isLoading={isJoiningMeeting} loadingText={'加入中...'}
-          onClick={async () => launchMeeting(props.group.id)}>加入</Button>
-      </Center>
+    <SimpleGrid columns={join ? 3 : 2} templateColumns={(join ? '7em ' : '') + '2fr 1fr'} spacing={2}>
+      {join &&
+        <Center>
+          <Button variant='outline' leftIcon={<MdVideocam />}
+            isLoading={isJoiningMeeting} loadingText={'加入中...'}
+            onClick={async () => launchMeeting(props.group.id)}>加入</Button>
+        </Center>
+      }
       <UserList currentUserId={user.id} users={props.group.users} />
       <Center>
         {props.countTranscripts &&
@@ -58,7 +61,7 @@ export default function GroupBanner(props) {
   );
 }
 
-export function UserList(props: { currentUserId?: string, users: { id: string, name: string }[]}) {
+function UserList(props: { currentUserId?: string, users: { id: string, name: string | null }[]}) {
   return <Wrap spacing='1.5em'> {
     props.users
     .filter((u: any) => props.currentUserId != u.id)

@@ -2,10 +2,8 @@ import {
   Box,
   Button,
   Grid,
-  Table,
-  Tbody,
-  Tr,
-  Td,
+  VStack,
+  StackDivider
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -14,12 +12,11 @@ import tClientBrowser from "../../tClientBrowser";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
 import tClientNext from "../../tClientNext";
-import { UserList } from 'components/GroupBanner';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
+import GroupBanner from 'components/GroupBanner';
 
 type Option = {
-  label: string;
-  value: string;
+  label: string,
+  value: string,
 }
 const loadOptions = (
   inputValue: string,
@@ -78,19 +75,9 @@ const Page: NextPageWithLayout = () => {
           </Button>
         </Grid>
       </Box>
-      {data && <Table variant="striped">
-        {/* TODO: Use GroupBanner instead of this table. */}
-        <Tbody>
-          {
-            data.map(group => <Tr key={group.id}>
-              <Td><UserList users={group.users} /></Td>
-              <Td>{group.transcripts && group.transcripts.length ? `${group.transcripts.length} 个历史记录` : "无历史" } 
-                <ArrowForwardIcon />
-              </Td>
-            </Tr>)
-          }
-        </Tbody>
-      </Table>}
+      <VStack divider={<StackDivider />} align='left' spacing='3'>
+        {data && data.map(group => <GroupBanner key={group.id} group={group} countTranscripts />)}
+      </VStack>
       {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
     </Box>
   )
