@@ -11,7 +11,7 @@ import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
 import { JSONB, STRING } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
-import { Role, zRoles } from "../../../shared/roles";
+import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 

@@ -6,7 +6,7 @@ import {
   MdGroups,
   MdScience,
 } from 'react-icons/md'
-import { Role } from "shared/roles";
+import Role from "shared/Role";
 
 export interface NavbarItem {
   name: string,

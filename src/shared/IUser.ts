@@ -1,4 +1,4 @@
-import { Role } from "./roles";
+import Role from "./Role";
 
 // TODO: Rename to `User`
 export default interface IUser {
