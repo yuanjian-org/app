@@ -25,7 +25,7 @@ export const authIntegration = () => middleware(async ({ ctx, next }) => {
  * Authenticate for APIs used by end users as opposed to integration applications. All end user auth tokens are
  * acquired from authing.cn.
  */
-export const authUser = (permitted?: Role) => middleware(async ({ ctx, next }) => {
+export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);

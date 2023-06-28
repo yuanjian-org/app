@@ -37,9 +37,9 @@ export const navbarItems: NavbarItem[] = [
   },
   {
     name: '摘要研发',
-    path: '#',
+    path: '/groups/lab',
     icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
-    role: 'AI Researcher',
+    role: 'AIResearcher',
   },
 ]
 

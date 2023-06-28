@@ -8,6 +8,7 @@ import Summary from "../database/models/Summary";
 import Group from "../database/models/Group";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
+import { isPermitted } from "shared/Role";
 
 const zGetTranscriptResponse = z.object({
   transcriptId: z.string(),
@@ -109,7 +110,8 @@ const transcripts = router({
     });
     if (!t) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Transcript ${input.id} not found` });
-    } else if (!t.group.users.some(u => u.id === ctx.user.id )) {
+    }
+    if (!isPermitted(ctx.user.roles, 'AIResearcher') && !t.group.users.some(u => u.id === ctx.user.id )) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Transcript ${input.id}` });
     }
     return t;
