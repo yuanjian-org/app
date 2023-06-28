@@ -4,14 +4,13 @@
 import { ArrayElement } from "./utils/ArrayElement";
 import z from "zod";
 
+/**
+ * TODO: Rename 'ADMIN' to `Admin`. Remove 'VISITOR' from all dbs.
+ */
 export const ALL_ROLES = [
-  // TODO: Rename to `Admin` in all dbs.
   'ADMIN',
-
-  'AI Researcher',
-
-  // DEPRECATED. Do not use. TODO: remove it from all dbs.
-  'VISITOR',
+  'AIResearcher',
+  'VISITOR',      // DEPRECATED. Do not use.
 ] as const;
 
 type Role = ArrayElement<typeof ALL_ROLES>;
@@ -23,7 +22,9 @@ export const zRoles = z.array(z.enum(ALL_ROLES));
 /**
  * @param permitted When absent, this function always returns true.
  */
-export function isPermitted(userRoles : Role[], permitted?: Role) {
-  return permitted === undefined || userRoles.includes(permitted);
+export function isPermitted(userRoles : Role[], permitted?: Role | Role[]) {
+  if (permitted === undefined) return true;
+  if (typeof permitted === 'string') return userRoles.includes(permitted);
+  return userRoles.some(ur => permitted.some(pr => pr === ur));
 }
 

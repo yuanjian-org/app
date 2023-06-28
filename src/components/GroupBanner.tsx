@@ -17,7 +17,13 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props) {
+export default function GroupBanner(props: {
+  group: any,
+  showSelf?: boolean,
+  showJoinButton?: boolean,
+  countTranscripts?: boolean,
+  showTranscriptLink?: boolean,   // Effective ony when countTranscripts is true
+}) {
   const [user] = useUserContext();
   const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
   const [isJoiningMeeting, setJoining] = useState(false);
@@ -45,16 +51,26 @@ export default function GroupBanner(props) {
             onClick={async () => launchMeeting(props.group.id)}>加入</Button>
         </Center>
       }
-      <UserList currentUserId={user.id} users={props.group.users} />
+      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
       <Center>
         {props.countTranscripts &&
-          <Link href={`/groups/${props.group.id}`}>
-            {transcriptCount ?
-              <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
-              : 
-              <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
-            }
-          </Link>
+          (props.showTranscriptLink ? 
+            <Link href={`/groups/${props.group.id}`}>
+              {transcriptCount ?
+                <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
+                : 
+                <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
+              }
+            </Link>
+            :
+            <>
+              {transcriptCount ?
+                <>{transcriptCount} 个历史记录</>
+                : 
+                <Text color='gray.400'>无历史</Text>
+              }
+            </>
+          )
         }
       </Center>
     </SimpleGrid>

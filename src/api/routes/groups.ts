@@ -10,6 +10,7 @@ import Transcript from "../database/models/Transcript";
 import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
 import _ from "lodash";
+import { isPermitted } from "shared/Role";
 
 const zGetGroupResponse = z.object({
   id: z.string(),
@@ -44,7 +45,7 @@ const groups = router({
    * @returns All groups if `userIds` is empty, otherwise return the group that contains all the given users and no more.
    */
   list: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser(['ADMIN', 'AIResearcher']))
   .input(
     z.object({
       userIds: z.string().array(),
@@ -99,7 +100,8 @@ const groups = router({
     });
     if (!g) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Group ${input.id} not found` });
-    } else if (!g.users.some(u => u.id === ctx.user.id )) {
+    }
+    if (!isPermitted(ctx.user.roles, 'AIResearcher') && !g.users.some(u => u.id === ctx.user.id)) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}` });
     }
     return g;
