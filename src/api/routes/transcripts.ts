@@ -52,9 +52,9 @@ const transcripts = router({
    *    }
    *  }
    */
-  list: procedure.use(
-    authIntegration()
-  ).query(async () => {
+  list: procedure
+  .use(authIntegration())
+  .query(async () => {
     const res : Array<{ 
       transcriptId: string,
       url: string,
@@ -91,10 +91,9 @@ const transcripts = router({
     return res;
   }),
 
-  get: procedure.use(
+  get: procedure
     // We will throw access denied later if the user isn't a privileged user and isn't in the group.
-    authUser('open-to-all')
-  )
+  .use(authUser())
   .input(z.object({ id: z.string() }))
   .output(zGetTranscriptResponse)
   .query(async ({ input, ctx }) => {

@@ -18,11 +18,14 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
 }
 
 const myGroups = router({
-  generateMeetingLink: procedure.use(
-    authUser('my-groups:write')
-  ).input(z.object({
-    groupId: z.string(),
-  })).mutation(async ({ input }) => {
+
+  /**
+   * TODO: Only allow group users to call this function.
+   */
+  generateMeetingLink: procedure
+  .use(authUser())
+  .input(z.object({ groupId: z.string() }))
+  .mutation(async ({ input }) => {
     const group = await Group.findByPk(input.groupId);
     invariant(group);
 
@@ -47,9 +50,9 @@ const myGroups = router({
     return meetingLink;
   }),
 
-  list: procedure.use(
-    authUser('my-groups:read')
-  ).output(
+  list: procedure
+  .use(authUser())
+  .output(
     z.array(z.object({
       id: z.string(),
       transcripts: z.array(z.object({

@@ -1,6 +1,6 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
-import { isPermittedDeprecated, Resource, Role } from "../shared/roles";
+import { isPermitted, Role } from "../shared/roles";
 import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
@@ -25,11 +25,11 @@ export const authIntegration = () => middleware(async ({ ctx, next }) => {
  * Authenticate for APIs used by end users as opposed to integration applications. All end user auth tokens are
  * acquired from authing.cn.
  */
-export const authUser = (resource: Resource) => middleware(async ({ ctx, next }) => {
+export const authUser = (permitted?: Role) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);
-  if (!isPermittedDeprecated(user.roles, resource)) throw forbidden();
+  if (!isPermitted(user.roles, permitted)) throw forbidden();
   return await next({ ctx: { user: user } });
 });
 
