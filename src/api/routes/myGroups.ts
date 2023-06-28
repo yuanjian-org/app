@@ -56,8 +56,7 @@ const myGroups = router({
     z.array(z.object({
       id: z.string(),
       transcripts: z.array(z.object({
-        // The UI that calls this API only need a transcript count
-        // so no fields need to be returned.
+        // The UI that calls this API only need a transcript count so no fields need to be returned.
       })),
       users: z.array(z.object({
         id: z.string(),

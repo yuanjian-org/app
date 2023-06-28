@@ -59,24 +59,27 @@ const groups = router({
     return await createGroup(input.userIds);
   }),
 
+  /**
+   * @returns All groups if `userIds` is empty, otherwise return groups of the given users.
+   */
   list: procedure
   .use(authUser('ADMIN'))
   .input(z.object({
-    userIdList: z.string().array(),
+    userIds: z.string().array(),
   }))
   .query(async ({ input }) => {
     const groupUserList = await GroupUser.findAll({
       where: {
-        ...(input.userIdList.length ? {
+        ...(input.userIds.length ? {
           userId: {
-            [Op.in]: input.userIdList
+            [Op.in]: input.userIds
           }
         } : {
         })
       },
     });
 
-    const userIdSet = new Set(input.userIdList);
+    const userIdSet = new Set(input.userIds);
 
     const groupList = (await Group.findAll({
       include: {

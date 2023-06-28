@@ -283,14 +283,14 @@ export async function listRecords() {
         // sharing_expire: z.number(),
         // allow_download: z.boolean()
       })
-    )
+    ).optional()
   });
   const zRes = z.object({
     total_count: z.number(),
     // current_size: z.number(),
     // current_page: z.number(),
     total_page: z.number(),
-    record_meetings: z.array(zRecordMeetings)
+    record_meetings: z.array(zRecordMeetings).optional()
   });
 
   var ret : TypeOf<typeof zRecordMeetings>[] = []
@@ -304,7 +304,7 @@ export async function listRecords() {
       page_size: 20,  // max page size
       page
     }));
-    ret = ret.concat(res.record_meetings)
+    ret = ret.concat(res.record_meetings || [])
     if (page >= res.total_page) break;
     page++;
   }
