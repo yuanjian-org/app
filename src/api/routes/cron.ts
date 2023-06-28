@@ -10,7 +10,8 @@ const cron = router({
   /**
    * Download transcripts and then upload them as summaries as is.
    */
-  uploadRawTranscripts: procedure.query(async () => {
+  uploadRawTranscripts: procedure
+  .query(async () => {
     const baseUrl = `https://beta.yuanjian.org/api/v1/`;
     const headers = { 'Authorization': `Bearer ${apiEnv.INTEGRATION_AUTH_TOKEN}` };
   

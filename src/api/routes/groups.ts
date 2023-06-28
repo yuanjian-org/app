@@ -50,19 +50,21 @@ export type GetGroupResponse = z.TypeOf<typeof zGetGroupResponse>;
 
 const groups = router({
 
-  create: procedure.use(
-    authUser('groups:write')
-  ).input(z.object({
+  create: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     userIds: z.array(z.string()).min(2),
-  })).mutation(async ({ input }) => {
+  }))
+  .mutation(async ({ input }) => {
     return await createGroup(input.userIds);
   }),
 
-  list: procedure.use(
-    authUser('groups:read')
-  ).input(z.object({
+  list: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     userIdList: z.string().array(),
-  })).query(async ({ input }) => {
+  }))
+  .query(async ({ input }) => {
     const groupUserList = await GroupUser.findAll({
       where: {
         ...(input.userIdList.length ? {
@@ -109,10 +111,9 @@ const groups = router({
     };
   }),
 
-  get: procedure.use(
-    // We will throw access denied later if the user isn't a privileged user and isn't in the group.
-    authUser('open-to-all')
-  )
+  get: procedure
+  // We will throw access denied later if the user isn't a privileged user and isn't in the group.
+  .use(authUser())
   .input(z.object({ id: z.string().uuid() }))
   .output(zGetGroupResponse)
   .query(async ({ input, ctx }) => {

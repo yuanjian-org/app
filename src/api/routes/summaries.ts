@@ -24,9 +24,9 @@ const summaries = router({
    *      "summaryKey": "llm_v1", \
    *      "summary": "..." }'
    */
-  write: procedure.use(
-    authIntegration()
-  ).input(
+  write: procedure
+  .use(authIntegration())
+  .input(
     z.object({ 
       transcriptId: z.string(),
       summaryKey: z.string(),

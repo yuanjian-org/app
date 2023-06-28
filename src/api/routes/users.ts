@@ -9,15 +9,16 @@ import IUser from "../../shared/IUser";
 import { presentPublicUser } from "../../shared/PublicUser";
 
 const users = router({
-  create: procedure.use(
-    authUser('users:write')
-  ).input(z.object({
+  create: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
     email: z.string().email(),
     clientId: z.string().min(1, "required"),
     roles: zRoles.min(1, "required"),
-  })).mutation(async ({ input, ctx }) => {
+  }))
+  .mutation(async ({ input, ctx }) => {
     const user = await User.findOne({
       where: {
         clientId: input.clientId
@@ -42,13 +43,14 @@ const users = router({
     return 'ok' as const;
   }),
 
-  search: procedure.use(
-    authUser('users:read')
-  ).input(z.object({
+  search: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     offset: z.number(),
     limit: z.number(),
     query: z.string(),
-  })).query(async ({ input, ctx }) => {
+  }))
+  .query(async ({ input, ctx }) => {
     const userList = await User.findAll({
       where: {
         [Op.or]: [
@@ -64,9 +66,9 @@ const users = router({
     }
   }),
 
-  listUsers: procedure.use(
-    authUser('users:read')
-  ).query(async () => {
+  listUsers: procedure
+  .use(authUser('ADMIN'))
+  .query(async () => {
     return {
       users: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
     };
