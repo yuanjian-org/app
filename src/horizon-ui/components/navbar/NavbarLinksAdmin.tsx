@@ -15,10 +15,9 @@ import { SidebarResponsive } from 'horizon-ui/components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
 import React from 'react';
 // Assets
-import routes from 'routes';
+import { navbarItems } from 'navbar';
 import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
-import { isPermitted } from "../../../shared/RBAC";
 import Link from 'next/link';
 
 const logout = async function (this: Guard) {
@@ -50,9 +49,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 			borderRadius='30px'
 			boxShadow={shadow}
     >
-			<SidebarResponsive routes={
-				routes.filter(r => isPermitted(user.roles, r.resource))
-			} />
+			<SidebarResponsive routes={navbarItems} />
 			<Menu>
 				<MenuButton p='0px'>
 					<Avatar

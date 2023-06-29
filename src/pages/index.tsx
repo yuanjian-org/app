@@ -118,7 +118,7 @@ function Meetings() {
         <VStack divider={<StackDivider />} align='left' spacing='6'>
           {groups &&
             groups.map(group => 
-              <GroupBanner key={group.id} group={group} countTranscripts={true} />)
+              <GroupBanner key={group.id} group={group} showJoinButton countTranscripts showTranscriptLink />)
           }
         </VStack>
       </CardBody>

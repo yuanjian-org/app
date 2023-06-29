@@ -220,32 +220,33 @@ const paginationNotSupported = () => new TRPCError({
  */
 export async function listMeetings() {
   console.log(LOG_HEADER, 'listMeetings()');
-  const zRes = z.intersection(z.object({
+  const zRes = z.object({
     meeting_number: z.number(),
     remaining: z.number(),
-    next_post: z.number(),
-    next_cursory: z.number(),
-  }), z.array(z.object({
-    subject: z.string(),
-    meeting_id: z.string(),
-    meeting_code: z.string(),
-    status: z.string(),
-    // "type": 0,
-    join_url: z.string(),
-    start_time: z.string(),
-    end_time: z.string(),
-    // "meeting_type": 6,
-    // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
-    // "current_sub_meeting_id": "1679763600",
-    // "has_vote": false,
-    // "current_hosts": [{"userid": "1764d9d81a924fdf9269b7a54e519f30"}],
-    // "join_meeting_role": "creator",
-    // "location": "",
-    // "enable_enroll": false,
-    // "enable_host_key": false,
-    // "time_zone": "",
-    // "disable_invitation": 0
-  })));
+    // next_pos: z.number(),
+    // next_cursory: z.number(),
+    meeting_info_list: z.array(z.object({
+      subject: z.string(),
+      meeting_id: z.string(),
+      meeting_code: z.string(),
+      status: z.string(),
+      //type: 0,
+      join_url: z.string(),
+      start_time: z.string(),
+      end_time: z.string(),
+      // "meeting_type": 6,
+      // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
+      // "current_sub_meeting_id": "1679763600",
+      // "has_vote": false,
+      // "current_hosts": [{"userid": "1764d9d81a924fdf9269b7a54e519f30"}],
+      // "join_meeting_role": "creator",
+      // "location": "",
+      // "enable_enroll": false,
+      // "enable_host_key": false,
+      // "time_zone": "",
+      // "disable_invitation": 0
+    }))
+  });
 
   const res = await tmRequest('GET', '/v1/meetings', {
     userid: apiEnv.TM_ADMIN_USER_ID,
@@ -283,17 +284,17 @@ export async function listRecords() {
         // sharing_expire: z.number(),
         // allow_download: z.boolean()
       })
-    )
+    ).optional()
   });
   const zRes = z.object({
     total_count: z.number(),
     // current_size: z.number(),
     // current_page: z.number(),
     total_page: z.number(),
-    record_meetings: z.array(zRecordMeetings)
+    record_meetings: z.array(zRecordMeetings).optional()
   });
 
-  var ret : TypeOf<typeof zRecordMeetings>[] = []
+  var ret: TypeOf<typeof zRecordMeetings>[] = []
   var page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
@@ -304,7 +305,7 @@ export async function listRecords() {
       page_size: 20,  // max page size
       page
     }));
-    ret = ret.concat(res.record_meetings)
+    ret = ret.concat(res.record_meetings || [])
     if (page >= res.total_page) break;
     page++;
   }
@@ -316,7 +317,7 @@ export async function listRecords() {
  * 
  * https://cloud.tencent.com/document/product/1095/51174
  */
-export async function getRecordURLs(meetingRecordId : string) {
+export async function getRecordURLs(meetingRecordId: string) {
   console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
   const zRes = z.object({
     // meeting_record_id: z.string(),

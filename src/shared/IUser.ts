@@ -1,6 +1,7 @@
-import { Role } from "./RBAC";
+import Role from "./Role";
 
-export interface IUser {
+// TODO: Rename to `User`
+export default interface IUser {
   id: string;
 
   // Obtained from the database, not authing.cn.
