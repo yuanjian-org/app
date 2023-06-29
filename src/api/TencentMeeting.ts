@@ -220,32 +220,33 @@ const paginationNotSupported = () => new TRPCError({
  */
 export async function listMeetings() {
   console.log(LOG_HEADER, 'listMeetings()');
-  const zRes = z.intersection(z.object({
+  const zRes = z.object({
     meeting_number: z.number(),
     remaining: z.number(),
-    next_post: z.number(),
-    next_cursory: z.number(),
-  }), z.array(z.object({
-    subject: z.string(),
-    meeting_id: z.string(),
-    meeting_code: z.string(),
-    status: z.string(),
-    // "type": 0,
-    join_url: z.string(),
-    start_time: z.string(),
-    end_time: z.string(),
-    // "meeting_type": 6,
-    // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
-    // "current_sub_meeting_id": "1679763600",
-    // "has_vote": false,
-    // "current_hosts": [{"userid": "1764d9d81a924fdf9269b7a54e519f30"}],
-    // "join_meeting_role": "creator",
-    // "location": "",
-    // "enable_enroll": false,
-    // "enable_host_key": false,
-    // "time_zone": "",
-    // "disable_invitation": 0
-  })));
+    // next_pos: z.number(),
+    // next_cursory: z.number(),
+    meeting_info_list: z.array(z.object({
+      subject: z.string(),
+      meeting_id: z.string(),
+      meeting_code: z.string(),
+      status: z.string(),
+      //type: 0,
+      join_url: z.string(),
+      start_time: z.string(),
+      end_time: z.string(),
+      // "meeting_type": 6,
+      // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
+      // "current_sub_meeting_id": "1679763600",
+      // "has_vote": false,
+      // "current_hosts": [{"userid": "1764d9d81a924fdf9269b7a54e519f30"}],
+      // "join_meeting_role": "creator",
+      // "location": "",
+      // "enable_enroll": false,
+      // "enable_host_key": false,
+      // "time_zone": "",
+      // "disable_invitation": 0
+    }))
+  });
 
   const res = await tmRequest('GET', '/v1/meetings', {
     userid: apiEnv.TM_ADMIN_USER_ID,
@@ -351,42 +352,6 @@ export async function getRecordURLs(meetingRecordId: string) {
 
   if (res.total_page != 1) throw paginationNotSupported();
   return res;
-}
-
-export async function countOngoingMeeting() {
-  const zRes = z.object({
-    meeting_number: z.number(),
-    // next_pos: z.number(),
-    // remaining: z.number(),
-    meeting_info_list: z.array(
-      z.object({
-        subject: z.string(),
-        // meeting_id: z.string(),
-        status: z.string(),
-        // start_time: z.string(),
-        // end_time: z.string(),
-        // hosts: z.array(z.string()),
-        // join_meeting_role: z.string(),
-        // meeting_type: z.string(),
-        // recurring_rule: z.object({
-        //   recurring_type: z.number(),
-        //   util_type: z.number(),
-        //   until_count: z.number(),
-        // }),
-        // has_more_sub_meetings: z.number(),
-        // remain_sub_meetings: z.number(),
-        // current_sub_meeting_id: z.string()
-      })
-    )
-  });
-
-  const res = zRes.parse(await tmRequest('GET', '/v1/meetings', {
-    userid: apiEnv.TM_ADMIN_USER_ID,
-    instanceid: '1',
-  }));
-
-  return res;
-
 }
 
 // Uncomment and modify this line to debug TM APIs.

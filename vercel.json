@@ -6,7 +6,7 @@
     },
     {
       "path":"/api/v1/cron.currentMeetingNumbers",
-      "schedule": "2 * * * *"
+      "schedule": "59 23 * * *"
     }
   ]
 }

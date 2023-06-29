@@ -1,7 +1,7 @@
 import { procedure, router } from "../trpc";
 import axios from "axios";
 import apiEnv from "api/apiEnv";
-import { countOngoingMeeting } from "api/TencentMeeting";
+import { listMeetings } from "api/TencentMeeting";
 import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
 import invariant from "tiny-invariant";
 
@@ -44,11 +44,11 @@ const cron = router({
   }),
 
   /**
-   * Check the numbers of meetings ongoing and update the OngoingMeetingCount table
+   * Check the ongoing meetings and update the OngoingMeetingCount table
    */
 
   updateOngoingMeetingCounts: procedure.mutation(async () => {
-    const count = (await countOngoingMeeting()).meeting_info_list.filter(obj => obj.status === 'MEETING_STATE_STARTED').length;
+    const count = (await listMeetings()).meeting_info_list.filter(obj => obj.status === 'MEETING_STATE_STARTED').length;
 
     OngoingMeetingCount.upsert({
       TMUserId: apiEnv.TM_ADMIN_USER_ID,
