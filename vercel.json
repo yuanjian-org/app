@@ -1,6 +1,12 @@
 {
-  "crons": [{
-    "path": "/api/v1/cron.uploadRawTranscripts",
-    "schedule": "30 9 * * *"
-  }]
+  "crons": [
+    {
+      "path": "/api/v1/cron.uploadRawTranscripts",
+      "schedule": "30 9 * * *"
+    },
+    {
+      "path":"/api/v1/cron.currentMeetingNumbers",
+      "schedule": "59 23 * * *"
+    }
+  ]
 }
