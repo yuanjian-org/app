@@ -46,12 +46,11 @@ const cron = router({
   /**
    * Check the ongoing meetings and update the OngoingMeetingCount table
    */
-
   updateOngoingMeetingCounts: procedure.mutation(async () => {
     const count = (await listMeetings()).meeting_info_list.filter(obj => obj.status === 'MEETING_STATE_STARTED').length;
 
     OngoingMeetingCount.upsert({
-      TMUserId: apiEnv.TM_ADMIN_USER_ID,
+      TMAdminUserId: apiEnv.TM_ADMIN_USER_ID,
       count,
     })
   })

@@ -17,7 +17,7 @@ import { INTEGER, STRING } from "sequelize";
 class OngoingMeetingCount extends Model {
   @PrimaryKey
   @Column(STRING)
-  TMUserId: string;
+  TMAdminUserId: string;
 
   @Column(INTEGER)
   count: number;
