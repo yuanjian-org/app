@@ -1,24 +1,24 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
-import invariant from "tiny-invariant";
-import { zRoleArr } from "../../shared/RBAC";
+import { zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
-import { IUser } from "../../shared/user";
-import { presentPublicUser } from "../../shared/publicModels/PublicUser";
+import IUser from "../../shared/IUser";
+import { presentPublicUser } from "../../shared/PublicUser";
 
 const users = router({
-  create: procedure.use(
-    authUser('users:write')
-  ).input(z.object({
+  create: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
     email: z.string().email(),
     clientId: z.string().min(1, "required"),
-    roles: zRoleArr.min(1, "required"),
-  })).mutation(async ({ input, ctx }) => {
+    roles: zRoles.min(1, "required"),
+  }))
+  .mutation(async ({ input, ctx }) => {
     const user = await User.findOne({
       where: {
         clientId: input.clientId
@@ -43,14 +43,13 @@ const users = router({
     return 'ok' as const;
   }),
 
-  search: procedure.use(
-    authUser('users:read')
-  ).input(z.object({
-    offset: z.number(),
-    limit: z.number(),
+  search: procedure
+  .use(authUser('ADMIN'))
+  .input(z.object({
     query: z.string(),
-  })).query(async ({ input, ctx }) => {
-    const userList = await User.findAll({
+  }))
+  .query(async ({ input }) => {
+    const users = await User.findAll({
       where: {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${input.query}%` } },
@@ -61,13 +60,13 @@ const users = router({
     });
 
     return {
-      userList: userList.map(presentPublicUser),
+      users: users.map(presentPublicUser),
     }
   }),
 
-  listUsers: procedure.use(
-    authUser('users:read')
-  ).query(async () => {
+  listUsers: procedure
+  .use(authUser('ADMIN'))
+  .query(async () => {
     return {
       users: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
     };

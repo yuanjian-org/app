@@ -23,11 +23,11 @@ import { Scrollbars } from 'react-custom-scrollbars-2'
 
 // Assets
 import { IoMenuOutline } from 'react-icons/io5'
-import { IRoute } from 'horizon-ui/types/navigation'
-import { isWindowAvailable } from 'navigation'
+import { isWindowAvailable } from 'navbar'
+import { NavbarItem } from 'navbar'
 
 interface SidebarResponsiveProps {
-  routes: IRoute[]
+  routes: NavbarItem[]
 }
 
 interface SidebarProps extends SidebarResponsiveProps {

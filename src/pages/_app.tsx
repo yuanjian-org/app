@@ -25,7 +25,7 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
   return (
     <ChakraProvider theme={theme}>
       <Head>
-        <title>远见</title>
+        <title>远见教育平台</title>
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <meta name='theme-color' content='#000000' />
       </Head>

@@ -1,6 +1,6 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
-import { isPermitted, Resource, Role } from "../shared/RBAC";
+import Role, { isPermitted } from "../shared/Role";
 import User from "./database/models/User";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
@@ -15,10 +15,9 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
  * Authenticate for APIs used by applications as opposed to end users. These applications should use
  * "Bearer ${INTEGRATION_AUTH_TOKEN}" as their authentican token.
  */
-export const authIntegration = (resource: Resource) => middleware(async ({ ctx, next }) => {
+export const authIntegration = () => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  if (!isPermitted(['INTEGRATION'], resource)) throw forbidden();
   return await next({ ctx: {} });
 });
 
@@ -26,11 +25,11 @@ export const authIntegration = (resource: Resource) => middleware(async ({ ctx, 
  * Authenticate for APIs used by end users as opposed to integration applications. All end user auth tokens are
  * acquired from authing.cn.
  */
-export const authUser = (resource: Resource) => middleware(async ({ ctx, next }) => {
+export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);
-  if (!isPermitted(user.roles, resource)) throw forbidden();
+  if (!isPermitted(user.roles, permitted)) throw forbidden();
   return await next({ ctx: { user: user } });
 });
 
@@ -104,7 +103,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     if (user) return user;
 
     // Set the first user as an admin
-    const roles: [Role] = [(await User.count()) == 0 ? 'ADMIN' : 'VISITOR'];
+    const roles: Role[] = (await User.count()) == 0 ? ['ADMIN'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
     emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
     try {

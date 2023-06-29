@@ -8,6 +8,7 @@ import Summary from "../database/models/Summary";
 import Group from "../database/models/Group";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
+import { isPermitted } from "shared/Role";
 
 const zGetTranscriptResponse = z.object({
   transcriptId: z.string(),
@@ -52,9 +53,9 @@ const transcripts = router({
    *    }
    *  }
    */
-  list: procedure.use(
-    authIntegration('transcripts:read')
-  ).query(async () => {
+  list: procedure
+  .use(authIntegration())
+  .query(async () => {
     const res : Array<{ 
       transcriptId: string,
       url: string,
@@ -64,6 +65,13 @@ const transcripts = router({
     // Only interested in records that are ready to download.
     .filter(meeting => meeting.state === 3)
     .map(async meeting => {
+      const groupId = meeting.subject;
+      if (!await groupExists(groupId)) {
+        console.log(`Group doesn't exist. Igore: ${groupId}`)
+        return;
+      }
+
+      if (!meeting.record_files) return;
       invariant(meeting.record_files.length == 1);
       const startTime = meeting.record_files[0].record_start_time;
       const endTime = meeting.record_files[0].record_end_time;
@@ -74,7 +82,7 @@ const transcripts = router({
         .map(summary => {
           const id = 
           res.push({
-            transcriptId: encodeTranscriptId(meeting.subject, file.record_file_id, startTime, endTime),
+            transcriptId: encodeTranscriptId(groupId, file.record_file_id, startTime, endTime),
             url: summary.download_address,
           });
         })
@@ -85,10 +93,9 @@ const transcripts = router({
     return res;
   }),
 
-  get: procedure.use(
+  get: procedure
     // We will throw access denied later if the user isn't a privileged user and isn't in the group.
-    authUser('open-to-all')
-  )
+  .use(authUser())
   .input(z.object({ id: z.string() }))
   .output(zGetTranscriptResponse)
   .query(async ({ input, ctx }) => {
@@ -103,7 +110,8 @@ const transcripts = router({
     });
     if (!t) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Transcript ${input.id} not found` });
-    } else if (!t.group.users.some(u => u.id === ctx.user.id )) {
+    }
+    if (!isPermitted(ctx.user.roles, 'AIResearcher') && !t.group.users.some(u => u.id === ctx.user.id )) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Transcript ${input.id}` });
     }
     return t;
@@ -130,4 +138,11 @@ export function decodeTranscriptId(encoded: string) {
     startedAt: Number(parsed[2]),
     endedAt: Number(parsed[3]),
   }
+}
+
+async function groupExists(groupId: string) {
+  // Without `safeParse` sequalize may throw an exception on invalid UUID strings.
+  return z.string().uuid().safeParse(groupId).success && (await Group.count({
+    where: { id: groupId }
+  })) > 0;
 }

@@ -17,7 +17,13 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props) {
+export default function GroupBanner(props: {
+  group: any,
+  showSelf?: boolean,
+  showJoinButton?: boolean,
+  countTranscripts?: boolean,
+  showTranscriptLink?: boolean,   // Effective ony when countTranscripts is true
+}) {
   const [user] = useUserContext();
   const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
   const [isJoiningMeeting, setJoining] = useState(false);
@@ -35,38 +41,53 @@ export default function GroupBanner(props) {
     }
   }
 
+  const join = props.showJoinButton;
   return (
-    <SimpleGrid columns={3} templateColumns={'7em 2fr 1fr'} spacing={2}>
-      <Center>
-        <Button variant='outline' leftIcon={<MdVideocam />}
-          isLoading={isJoiningMeeting} loadingText={'加入中...'}
-          onClick={async () => launchMeeting(props.group.id)}>加入</Button>
-      </Center>
-      <Wrap spacing='1.5em'>
-      {
-        props.group.users
-        .filter((u: any) => user.id != u.id)
-        .map((user: any) =>
-          <WrapItem key={user.id}>
-            <HStack>
-              <Avatar name={user.name} boxSize={10}/>
-              <Text>{user.name}</Text>
-            </HStack>
-          </WrapItem >
-        )
+    <SimpleGrid columns={join ? 3 : 2} templateColumns={(join ? '7em ' : '') + '2fr 1fr'} spacing={2}>
+      {join &&
+        <Center>
+          <Button variant='outline' leftIcon={<MdVideocam />}
+            isLoading={isJoiningMeeting} loadingText={'加入中...'}
+            onClick={async () => launchMeeting(props.group.id)}>加入</Button>
+        </Center>
       }
-      </Wrap>
-    <Center>
-      {props.countTranscripts &&
-          <Link href={`/groups/${props.group.id}`}>
-            {transcriptCount ?
-              <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
-              : 
-              <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
-            }
-          </Link>
+      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
+      <Center>
+        {props.countTranscripts &&
+          (props.showTranscriptLink ? 
+            <Link href={`/groups/${props.group.id}`}>
+              {transcriptCount ?
+                <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
+                : 
+                <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
+              }
+            </Link>
+            :
+            <>
+              {transcriptCount ?
+                <>{transcriptCount} 个历史记录</>
+                : 
+                <Text color='gray.400'>无历史</Text>
+              }
+            </>
+          )
         }
       </Center>
     </SimpleGrid>
   );
+}
+
+function UserList(props: { currentUserId?: string, users: { id: string, name: string | null }[]}) {
+  return <Wrap spacing='1.5em'> {
+    props.users
+    .filter((u: any) => props.currentUserId != u.id)
+    .map((user: any) =>
+      <WrapItem key={user.id}>
+        <HStack>
+          <Avatar name={user.name} boxSize={10}/>
+          <Text>{user.name}</Text>
+        </HStack>
+      </WrapItem >
+    )
+  } </Wrap>
 }
