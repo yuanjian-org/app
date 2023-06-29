@@ -57,4 +57,5 @@ To create a new API, copy `src/api/routes/users.ts` and update `src/api/apiRoute
 
 To create a new database table, copy `src/api/database/models/User.ts`, update `src/api/database/sequelizeInstance.ts`, and run `yarn sync-database`.
 
-To create a unit test, copy `src/shared/utils/string.test.ts`.
+To create a unit test, copy `src/shared/utils/string.test.ts`, and run `yarn test`. 
+* For users experiencing 'TS_NODE_PROJECT' is not recognized as an internal or external commend ERROR, add `"cross-env"` in front of  `"TS_NODE_PROJECT..."` at "test" in package.json
