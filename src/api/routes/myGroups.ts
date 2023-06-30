@@ -18,10 +18,10 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   return true;
 }
 
-export function meetingLinkIsExpired(meetingLinkCreatedBy : Date) {
+export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
   // check if the link is created within 30 days
-  return moment() > moment(meetingLinkCreatedBy).add(30, 'days');
+  return moment() > moment(meetingLinkCreatedAt).add(30, 'days');
 }
 
 const myGroups = router({
