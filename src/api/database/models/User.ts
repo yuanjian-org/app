@@ -3,13 +3,14 @@ import type {
   InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
+  AllowNull,
   BelongsToMany,
   Column,
   Table,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { JSONB, STRING } from "sequelize";
+import { DATE, JSONB, STRING } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
@@ -44,6 +45,10 @@ class User extends ParanoidModel<
 
   @BelongsToMany(() => Group, { through: () => GroupUser })
   groups: NonAttribute<Group[]>;
+
+  @AllowNull(true)
+  @Column(DATE)
+  consentFormAcceptedAt: Date | null;
 }
 
 export default User;
