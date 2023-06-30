@@ -59,3 +59,9 @@ To create a new database table, copy `src/api/database/models/User.ts`, update `
 
 To create a unit test, copy `src/shared/utils/string.test.ts`, and run `yarn test`. 
 * For users experiencing 'TS_NODE_PROJECT' is not recognized as an internal or external commend ERROR, add `"cross-env"` in front of  `"TS_NODE_PROJECT..."` at "test" in package.json
+
+<div class="vercel banner">
+<a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+	<Img src="./public/img/vercel-banner.svg" alt="Vercel Banner" />
+</a>
+</div>
