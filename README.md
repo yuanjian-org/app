@@ -48,3 +48,14 @@ graph TD;
     src[the rest of src]-->|ok|src/shared;
     src/api-->|ok|src/shared;
 ```
+
+## HOW-TOs
+
+To create a new page, copy `src/pages/users.tsx` and update `src/routes.tsx`.
+
+To create a new API, copy `src/api/routes/users.ts` and update `src/api/apiRouter.ts`.
+
+To create a new database table, copy `src/api/database/models/User.ts`, update `src/api/database/sequelizeInstance.ts`, and run `yarn sync-database`.
+
+To create a unit test, copy `src/shared/utils/string.test.ts`, and run `yarn test`. 
+* For users experiencing 'TS_NODE_PROJECT' is not recognized as an internal or external commend ERROR, add `"cross-env"` in front of  `"TS_NODE_PROJECT..."` at "test" in package.json
