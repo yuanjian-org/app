@@ -8,7 +8,7 @@ import Summary from "../database/models/Summary";
 import Group from "../database/models/Group";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
-import { isPermitted } from "shared/Role";
+import { isPermitted } from "../../shared/Role";
 
 const zGetTranscriptResponse = z.object({
   transcriptId: z.string(),
