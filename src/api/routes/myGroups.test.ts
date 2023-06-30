@@ -1,8 +1,8 @@
 import moment from "moment";
 import { expect } from 'chai';
-import { meetingLinkIsExpired } from "./routes/myGroups";
+import { meetingLinkIsExpired } from "./myGroups";
 
-describe('meetingLinkIsExpired', () => {
+describe('myGroups/meetingLinkIsExpired', () => {
     it('should return true', async () => {
         // a group that was updated 31 days ago should be expired
         const expiredLinkGroup = ({
@@ -14,7 +14,7 @@ describe('meetingLinkIsExpired', () => {
         })
 
         // Act
-        const result = meetingLinkIsExpired(expiredLinkGroup);
+        const result = meetingLinkIsExpired(expiredLinkGroup.updatedAt);
 
         // Assert
         expect(result).equal(true);
@@ -32,7 +32,7 @@ describe('meetingLinkIsExpired', () => {
         }
 
         // Act
-        const result = meetingLinkIsExpired(validLinkGroup);
+        const result = meetingLinkIsExpired(validLinkGroup.updatedAt);
 
         // Assert
         expect(result).equal(false);
