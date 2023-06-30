@@ -17,7 +17,7 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props: {
+export default function GroupBar(props: {
   group: any,
   showSelf?: boolean,
   showJoinButton?: boolean,
