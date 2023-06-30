@@ -12,7 +12,7 @@ import tClientBrowser from "../../tClientBrowser";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
 import tClientNext from "../../tClientNext";
-import GroupBanner from 'components/GroupBanner';
+import GroupBar from 'components/GroupBar';
 
 type Option = {
   label: string,
@@ -76,7 +76,7 @@ const Page: NextPageWithLayout = () => {
         </Grid>
       </Box>
       <VStack divider={<StackDivider />} align='left' spacing='3'>
-        {data && data.map(group => <GroupBanner key={group.id} group={group} countTranscripts />)}
+        {data && data.map(group => <GroupBar key={group.id} group={group} countTranscripts showSelf />)}
       </VStack>
       {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
     </Box>

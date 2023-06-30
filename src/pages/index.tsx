@@ -24,7 +24,7 @@ import tClientBrowser from "../tClientBrowser";
 import tClientNext from "../tClientNext";
 import { toast } from "react-toastify";
 import pinyin from 'tiny-pinyin';
-import GroupBanner from 'components/GroupBanner';
+import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 
 const Index: NextPageWithLayout = () => {
@@ -118,7 +118,7 @@ function Meetings() {
         <VStack divider={<StackDivider />} align='left' spacing='6'>
           {groups &&
             groups.map(group => 
-              <GroupBanner key={group.id} group={group} showJoinButton countTranscripts showTranscriptLink />)
+              <GroupBar key={group.id} group={group} showJoinButton countTranscripts showTranscriptLink />)
           }
         </VStack>
       </CardBody>

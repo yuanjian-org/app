@@ -17,7 +17,7 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props: {
+export default function GroupBar(props: {
   group: any,
   showSelf?: boolean,
   showJoinButton?: boolean,
@@ -51,7 +51,7 @@ export default function GroupBanner(props: {
             onClick={async () => launchMeeting(props.group.id)}>加入</Button>
         </Center>
       }
-      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
+      <UserList currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
       <Center>
         {props.countTranscripts &&
           (props.showTranscriptLink ? 

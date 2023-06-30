@@ -8,7 +8,7 @@ import React from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
 import tClientNext from "../../tClientNext";
-import GroupBanner from 'components/GroupBanner';
+import GroupBar from 'components/GroupBar';
 
 const Page: NextPageWithLayout = () => {
   const { data } = tClientNext.groups.list.useQuery({ userIds: [] });
@@ -16,7 +16,7 @@ const Page: NextPageWithLayout = () => {
   return (
     <Box paddingTop={'80px'}>
       <VStack divider={<StackDivider />} align='left' spacing='3'>
-        {data && data.map(group => <GroupBanner key={group.id} group={group} showSelf countTranscripts showTranscriptLink />)}
+        {data && data.map(group => <GroupBar key={group.id} group={group} showSelf countTranscripts showTranscriptLink />)}
       </VStack>
       {!data && <Button isLoading={true} loadingText={'加载中...'} disabled={true}/>}
     </Box>
