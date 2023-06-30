@@ -18,7 +18,7 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   return true;
 }
 
-function meetingLinkIsExpired(group: Group) {
+export function meetingLinkIsExpired(group: Group| {updatedAt: Date}) {
   // meeting is valid for 31 days after start time
   // check if the link is created within 30 days
   return moment() > moment(group.updatedAt).add(30, 'days');

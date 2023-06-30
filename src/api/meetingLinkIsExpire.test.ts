@@ -1,25 +1,11 @@
 import moment from "moment";
 import { expect } from 'chai';
-//import { meetingLinkIsExpired } from "./routes/myGroups";
-
-// Testing using a simpler Group type than the complete model
-interface Group {
-    meetingLink: string,
-    deletedAt: Date | null,
-    id: string,
-    createdAt: Date,
-    updatedAt: Date,
-}
-
-// Same function in myGroups with different input Group type
-function meetingLinkIsExpired(group: Group) {
-    return moment() > moment(group.updatedAt).add(30, 'days');
-}
+import { meetingLinkIsExpired } from "./routes/myGroups";
 
 describe('meetingLinkIsExpired', () => {
     it('should return true', async () => {
         // a group that was updated 31 days ago should be expired
-        const expiredLinkGroup: Group = ({
+        const expiredLinkGroup = ({
             meetingLink: "dummy",
             deletedAt: null,
             id: "expired link group",
@@ -37,7 +23,7 @@ describe('meetingLinkIsExpired', () => {
 
     it('should return false', async () => {
         // a group that was updated 15 days ago is not expired
-        const validLinkGroup: Group = {
+        const validLinkGroup = {
             meetingLink: "dummy",
             deletedAt: null,
             id: "valid link group",
