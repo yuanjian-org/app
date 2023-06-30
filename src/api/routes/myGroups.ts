@@ -76,12 +76,10 @@ const myGroups = router({
         .map(groupUser => groupUser.group)
     }),
 
-  countOngoingMeeting: procedure
-    .use(authUser())
-    .query(async () => {
-      // change later if multiple TM admin user ids are used
-      return (await OngoingMeetingCount.findByPk(apiEnv.TM_ADMIN_USER_ID))?.count
-    }),
+  countOngoingMeeting: procedure.use(authUser()).query(async () => {
+    // change later if multiple TM admin user ids are used
+    return (await OngoingMeetingCount.findByPk(apiEnv.TM_ADMIN_USER_ID))?.count
+  }),
 
 });
 
