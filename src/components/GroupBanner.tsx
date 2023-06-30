@@ -51,7 +51,7 @@ export default function GroupBanner(props: {
             onClick={async () => launchMeeting(props.group.id)}>加入</Button>
         </Center>
       }
-      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
+      <UserList currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
       <Center>
         {props.countTranscripts &&
           (props.showTranscriptLink ? 

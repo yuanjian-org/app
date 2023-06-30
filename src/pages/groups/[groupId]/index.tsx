@@ -57,7 +57,7 @@ function GroupCard() {
 function GroupDetail(props: { group: GetGroupResponse }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBanner group={props.group} />
+      <GroupBanner group={props.group} showJoinButton />
       <TranscriptTable group={props.group} />
     </Stack>
   );
