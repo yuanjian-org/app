@@ -10,7 +10,7 @@ import {
   ModalFooter,
   Link,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
 import useUserContext from "../useUserContext";
 import tClientBrowser from "../tClientBrowser";
 import { toast } from "react-toastify";
@@ -23,6 +23,7 @@ export function consentFormAccepted(user: UserProfile) {
 
 export default function ConsentModal() {
   const [user, setUser] = useUserContext();
+  const [declined, setDeclined] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     const updatedUser = structuredClone(user);
@@ -39,9 +40,9 @@ export default function ConsentModal() {
 
   const MyLink = (props: any) => <Link isExternal color='teal.500' {...props} />;
 
-  return (
-    // onClose returns undefined to prevent user from closing the modal without entering name.
-    <Modal isOpen onClose={() => undefined}>
+  return <>
+    {/* onClose returns undefined to prevent user from closing the modal without entering name. */}
+    <Modal isOpen={!declined} onClose={() => undefined}>
       <ModalOverlay backdropFilter='blur(8px)' />
       <ModalContent>
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
@@ -55,10 +56,23 @@ export default function ConsentModal() {
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button variant='ghost'>拒绝使用</Button>
+          <Button variant='ghost' onClick={() => setDeclined(true)}>拒绝使用</Button>
           <Button variant='brand' onClick={handleSubmit}>已阅，同意使用本网站</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
-  );
+
+    <Modal isOpen={declined} onClose={() => undefined}>
+      <ModalOverlay backdropFilter='blur(8px)' />
+      <ModalContent>
+        <ModalHeader> </ModalHeader>
+        <ModalBody>
+          <Text>您已拒绝继续使用，请关闭浏览器窗口。</Text>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={() => setDeclined(false)}>重新选择</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  </>;
 }
