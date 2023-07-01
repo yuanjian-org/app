@@ -7,6 +7,7 @@ import User from "../database/models/User";
 import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
+import moment from 'moment';
 import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
 import apiEnv from "api/apiEnv";
 
@@ -17,6 +18,12 @@ function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
     }
   }
   return true;
+}
+
+export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
+  // meeting is valid for 31 days after start time
+  // check if the link is created within 30 days
+  return moment() > moment(meetingLinkCreatedAt).add(30, 'days');
 }
 
 const myGroups = router({
@@ -31,9 +38,9 @@ const myGroups = router({
       const group = await Group.findByPk(input.groupId);
       invariant(group);
 
-      if (group.meetingLink) {
-        return group.meetingLink;
-      }
+    if (group.meetingLink && !meetingLinkIsExpired(group.updatedAt)) {
+      return group.meetingLink;
+    }
 
       const now = Math.floor(Date.now() / 1000);
       const res = await createMeeting(group.id, now, now + 3600);

@@ -25,7 +25,7 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props: {
+export default function GroupBar(props: {
   group: any,
   showSelf?: boolean,
   showJoinButton?: boolean,
@@ -34,8 +34,7 @@ export default function GroupBanner(props: {
 }) {
   const [user] = useUserContext();
   const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
-  const [isJoiningMeeting, setJoining] = useState(false);
-  const [isMeetingOccupied, setOccupancy] = useState(false);
+  const [isJoiningMeeting, setJoining] = useState(false); const [isMeetingOccupied, setOccupancy] = useState(false);
   const launchMeeting = async (groupId: string) => {
     if ((await tClientBrowser.myGroups.countOngoingMeeting.query()) !== 0) {
       setOccupancy(true);
@@ -84,14 +83,14 @@ export default function GroupBanner(props: {
         </Center>
       }
       <OngoingMeetingWarning />
-      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
+      <UserList currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
       <Center>
         {props.countTranscripts &&
-          (props.showTranscriptLink ?
+          (props.showTranscriptLink ? 
             <Link href={`/groups/${props.group.id}`}>
               {transcriptCount ?
                 <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
-                :
+                : 
                 <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
               }
             </Link>
@@ -99,7 +98,7 @@ export default function GroupBanner(props: {
             <>
               {transcriptCount ?
                 <>{transcriptCount} 个历史记录</>
-                :
+                : 
                 <Text color='gray.400'>无历史</Text>
               }
             </>
@@ -110,17 +109,17 @@ export default function GroupBanner(props: {
   );
 }
 
-function UserList(props: { currentUserId?: string, users: { id: string, name: string | null }[] }) {
+function UserList(props: { currentUserId?: string, users: { id: string, name: string | null }[]}) {
   return <Wrap spacing='1.5em'> {
     props.users
-      .filter((u: any) => props.currentUserId != u.id)
-      .map((user: any) =>
-        <WrapItem key={user.id}>
-          <HStack>
-            <Avatar name={user.name} boxSize={10} />
-            <Text>{user.name}</Text>
-          </HStack>
-        </WrapItem >
-      )
+    .filter((u: any) => props.currentUserId != u.id)
+    .map((user: any) =>
+      <WrapItem key={user.id}>
+        <HStack>
+          <Avatar name={user.name} boxSize={10}/>
+          <Text>{user.name}</Text>
+        </HStack>
+      </WrapItem >
+    )
   } </Wrap>
 }

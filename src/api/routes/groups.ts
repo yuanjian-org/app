@@ -3,14 +3,14 @@ import { z } from "zod";
 import { authUser } from "../auth";
 import Group from "../database/models/Group";
 import GroupUser from "../database/models/GroupUser";
-import { Includeable, Op } from "sequelize";
+import { Includeable } from "sequelize";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import Transcript from "../database/models/Transcript";
 import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import { isPermitted } from "shared/Role";
+import { isPermitted } from "../../shared/Role";
 
 const zGetGroupResponse = z.object({
   id: z.string(),

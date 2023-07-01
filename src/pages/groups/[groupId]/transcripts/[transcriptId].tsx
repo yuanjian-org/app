@@ -20,7 +20,7 @@ import AppLayout from "../../../../AppLayout";
 import useUserContext from "../../../../useUserContext";
 import tClientNext from "../../../../tClientNext";
 import moment from 'moment';
-import GroupBanner from 'components/GroupBanner';
+import GroupBar from 'components/GroupBar';
 import { GetTranscriptResponse } from 'api/routes/transcripts';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
@@ -59,7 +59,7 @@ function TranscriptCard() {
 function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBanner group={props.transcript.group} />
+      <GroupBar group={props.transcript.group} />
       <Summaries transcript={props.transcript} />
     </Stack>
   );

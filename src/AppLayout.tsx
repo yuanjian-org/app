@@ -18,23 +18,25 @@ import { GuardProvider } from '@authing/guard-react18';
 import { UserContext } from "./useUserContext";
 import browserEnv from "./browserEnv";
 import tClientBrowser from "./tClientBrowser";
-import IUser from "./shared/IUser";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import guard from './guard';
+import UserProfile from './shared/UserProfile'
 
 interface DashboardLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
 
-const Guarded: FC<{ children: (userInfo: IUser) => ReactNode }> = (props) => {
-  const [user, setUser] = useState<IUser | null>(null);
+const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
+  // TODO: Use zod type
+  const [user, setUser] = useState<UserProfile | null>(null);
   const userFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
-        setUser(await tClientBrowser.me.profile.query());
+        // For some reason ts cries when `as UserProfile` is absent
+        setUser(await tClientBrowser.me.profile.query() as UserProfile);
       } else {
         location.href = '/login';
       }

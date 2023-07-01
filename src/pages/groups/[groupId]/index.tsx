@@ -23,7 +23,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GetGroupResponse } from 'api/routes/groups';
 import moment from 'moment';
-import GroupBanner from 'components/GroupBanner';
+import GroupBar from 'components/GroupBar';
 import tClientNext from 'tClientNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/utils/string';
@@ -57,7 +57,7 @@ function GroupCard() {
 function GroupDetail(props: { group: GetGroupResponse }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBanner group={props.group} />
+      <GroupBar group={props.group} showJoinButton />
       <TranscriptTable group={props.group} />
     </Stack>
   );

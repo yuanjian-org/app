@@ -18,13 +18,14 @@ import { EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import useUserContext from 'useUserContext';
 
+// Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setName(user.name)
+    setName(user.name || '')
   }, [user]);
 
   const handleSubmit = async () => {
