@@ -110,7 +110,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     if (user) return user;
 
     // Set the first user as an admin
-    const roles: Role[] = (await User.count()) == 0 ? ['ADMIN'] : [];
+    const roles: Role[] = (await User.count()) == 0 ? ['UserManager'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
     emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
     try {

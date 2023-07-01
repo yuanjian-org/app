@@ -87,7 +87,7 @@ function TranscriptTable(props: { group: GetGroupResponse }) {
           })}
         </Tbody>
       </Table>
-      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无摘要</Center>}
+      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无会议历史</Center>}
     </>
   );
 }

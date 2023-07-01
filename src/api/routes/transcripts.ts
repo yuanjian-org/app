@@ -111,7 +111,7 @@ const transcripts = router({
     if (!t) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Transcript ${input.id} not found` });
     }
-    if (!isPermitted(ctx.user.roles, 'AIResearcher') && !t.group.users.some(u => u.id === ctx.user.id )) {
+    if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !t.group.users.some(u => u.id === ctx.user.id )) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Transcript ${input.id}` });
     }
     return t;

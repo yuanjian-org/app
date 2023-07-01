@@ -10,7 +10,7 @@ import UserProfile from "shared/UserProfile";
 
 const users = router({
   create: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
@@ -44,7 +44,7 @@ const users = router({
   }),
 
   search: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .input(z.object({
     query: z.string(),
   }))
@@ -65,7 +65,7 @@ const users = router({
   }),
 
   listUsers: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .query(async () => {
     return {
       users: await User.findAll({ order: [['pinyin', 'ASC']] }) as UserProfile[]

@@ -33,7 +33,7 @@ export type GetGroupResponse = z.TypeOf<typeof zGetGroupResponse>;
 const groups = router({
 
   create: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .input(z.object({
     userIds: z.array(z.string()).min(2),
   }))
@@ -45,7 +45,7 @@ const groups = router({
    * @returns All groups if `userIds` is empty, otherwise return the group that contains all the given users and no more.
    */
   list: procedure
-  .use(authUser(['ADMIN', 'AIResearcher']))
+  .use(authUser(['UserManager', 'SummaryEngineer']))
   .input(
     z.object({
       userIds: z.string().array(),
@@ -101,7 +101,7 @@ const groups = router({
     if (!g) {
       throw new TRPCError({ code: 'NOT_FOUND', message: `Group ${input.id} not found` });
     }
-    if (!isPermitted(ctx.user.roles, 'AIResearcher') && !g.users.some(u => u.id === ctx.user.id)) {
+    if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}` });
     }
     return g;
@@ -116,7 +116,7 @@ export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = 'Group already exists.';
  * @returns The group that contains all the given users and no more, or null if no such group is found.
  * @param includes Optional `include`s in the returned group.
  */
-async function findGroup(userIds: string[], includes?: Includeable[]): Promise<Group | null> {
+export async function findGroup(userIds: string[], includes?: Includeable[]): Promise<Group | null> {
   invariant(userIds.length > 0);
 
   const gus = await GroupUser.findAll({

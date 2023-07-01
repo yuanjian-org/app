@@ -3,6 +3,7 @@ import mail from '@sendgrid/mail';
 import apiEnv from './apiEnv';
 import User from './database/models/User';
 import { Op } from 'sequelize';
+import Role from '../shared/Role';
 
 mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
@@ -20,9 +21,11 @@ export async function email(template_id: string, personalization: Personalizatio
 
 export async function emailAdminsIgnoreError(subject: string, content: string) {
   try {
+    // Use type system to capture typos.
+    const role : Role = "UserManager";
     const admins = await User.findAll({
       where: {
-        roles: { [Op.contains]: ["ADMIN"] },
+        roles: { [Op.contains]: [role] },
       }
     });
     await email('d-99d2ae84fe654400b448f8028238d461', [{

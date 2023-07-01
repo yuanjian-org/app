@@ -2,14 +2,13 @@ import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
 import pinyin from 'tiny-pinyin';
-import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup } from "../src/api/routes/groups";
+import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroup } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
-import Group from "../src/api/database/models/Group";
-import GroupUser from "../src/api/database/models/GroupUser";
 import _ from "lodash";
 import { upsertSummary } from "../src/api/routes/summaries";
 import moment from "moment";
+import Role from "../src/shared/Role";
 
 type TestUser = {
   name: string,
@@ -41,8 +40,17 @@ async function main() {
   // Force sequelize initialization
   const _ = sequelizeInstance;
   
+  await migrateRoles();
   await generateUsers();
   await generateGroupsAndSummaries();
+}
+
+async function migrateRoles()
+{
+  console.log('Migration roles column');
+  await sequelizeInstance.query(`update users set roles = '[]' where roles = '["VISITOR"]'`);
+  await sequelizeInstance.query(`update users set roles = '["UserManager"]' where roles = '["ADMIN"]'`);
+  await sequelizeInstance.query(`update users set roles = '["SummaryEngineer"]' where roles = '["AIResearcher"]'`);
 }
 
 async function generateUsers() {
@@ -53,7 +61,7 @@ async function generateUsers() {
       pinyin: pinyin.convertToPinyin(u.name),
       email: u.email,
       clientId: u.email,
-      roles: ['VISITOR'],
+      roles: [],
     }))[0].id;
   }
 }
@@ -70,8 +78,10 @@ async function generateGroupsAndSummaries() {
 }
 
 async function getAdmins() {
+  // Use type system to capture typos.
+  const role : Role = "UserManager";
   return await User.findAll({ where: {
-    roles: { [Op.contains]: ["ADMIN"] },
+    roles: { [Op.contains]: [role] },
   } });
 }
 
@@ -87,51 +97,23 @@ async function generateGroup(users: TestUser[]) {
 
 async function generateSummaries(users: TestUser[]) {
   console.log('Creating summaries for', users.map(u => u.name));
-  const groupId = await findGroupId(users);
-  invariant(groupId);
+  const group = await findGroup(users.map(u => u.id as string));
+  invariant(group);
+  const gid = group.id;
 
   const start = moment('2023-6-20', 'YYYY-MM-DD');
   const end = start.clone().add(33, 'minute');
 
   const md = '\n\n### 三号标题\n正文**加粗**.\n\n1. 列表*斜体*\n2. 列表~~划掉~~';
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-A',
+  await upsertSummary(gid, `transcript-1-${gid}`, start.valueOf(), end.valueOf(), 'summary-A',
     '> transcript-1, summary-A' + md);
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-B',
+  await upsertSummary(gid, `transcript-1-${gid}`, start.valueOf(), end.valueOf(), 'summary-B',
     '> transcript-1, summary-B' + md);
-  await upsertSummary(groupId, `transcript-1-${groupId}`, start.valueOf(), end.valueOf(), 'summary-C',
+  await upsertSummary(gid, `transcript-1-${gid}`, start.valueOf(), end.valueOf(), 'summary-C',
     '> transcript-1, summary-C' + md);
 
   const anotherStart = start.clone().add(3, 'day');
   const anotherEnd = anotherStart.clone().add(1, 'hour');
-  await upsertSummary(groupId, `transcript-2-${groupId}`, anotherStart.valueOf(), anotherEnd.valueOf(), 'summary-A',
+  await upsertSummary(gid, `transcript-2-${gid}`, anotherStart.valueOf(), anotherEnd.valueOf(), 'summary-A',
     '> transcript-2, summary-A' + md);
-}
-
-/**
- * Find the group that contains all the `users` and no more. Return null if no such group is found.
- * TODO: use groups.ts:findGroup()
- */
-async function findGroupId(users: TestUser[]) {
-  invariant(users.length > 1);
-
-  const gus = await GroupUser.findAll({
-    where: {
-      userId: users[0].id as string,
-    },
-    include: [{
-      model: Group,
-      attributes: ['id'],
-      include: [{
-        model: GroupUser,
-        attributes: ['userId'],
-      }]
-    }]
-  })
-
-  for (const gu of gus) {
-    const set1 = new Set(gu.group.groupUsers.map(gu => gu.userId));
-    const set2 = new Set(users.map(u => u.id));
-    if (_.isEqual(set1, set2)) return gu.groupId;
-  }
-  return null;
 }
