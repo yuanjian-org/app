@@ -123,12 +123,11 @@ export default function AppLayout(props: DashboardLayoutProps) {
                   />
                 </Box>
               </Portal>
-
               <Box
                 mx='auto'
                 p={{ base: '20px', md: '30px' }}
                 pe='20px'
-                minH='100vh'
+                minH={{ base: 'calc( 100vh - 100px )', xl: 'calc( 100vh - 55px )' }}
                 pt='50px'
               >
                 {children}
