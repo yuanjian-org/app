@@ -15,7 +15,7 @@ A Web app that supports mentorship programs at [Visionary Education Foundation (
 1. Visit this local server from broswer. Log in with your email.
 1. Run `yarn gen-test-data` to populate test data.
 
-## Frameworks used
+## Frameworks Used
 
 - Frontend and backend powered by [Next.js](https://nextjs.org/).
 - End-to-end type safety with `typescript`, [`trpc`](https://trpc.io/), `zod` and `class-validator`.
@@ -50,5 +50,7 @@ graph TD;
 ```
 
 ## FAQ
-* What to do if users experiencing `'TS_NODE_PROJECT' is not recognized as an internal or external commend ERROR`?
-* Add `"cross-env"` in front of  `"TS_NODE_PROJECT..."` at "scripts-test" in package.json
+
+Q: What to do if I got `'TS_NODE_PROJECT' is not recognized as an internal or external command ERROR`?
+
+A: Add `cross-env` in front of  `TS_NODE_PROJECT...` in package.json
