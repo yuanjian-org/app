@@ -31,7 +31,7 @@ const myGroups = router({
   /**
    * TODO: Only allow group users to call this function.
    */
-  generateMeetingLink: procedure
+  joinMeeting: procedure
     .use(authUser())
     .input(z.object({ groupId: z.string() }))
     .mutation(async ({ input }) => {

@@ -34,14 +34,15 @@ export default function GroupBar(props: {
 }) {
   const [user] = useUserContext();
   const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
-  const [isJoiningMeeting, setJoining] = useState(false); const [isMeetingOccupied, setOccupancy] = useState(false);
+  const [joining, setJoining] = useState(false); 
+  const [hasMeetingQuota, setHasMeetingQuota] = useState(false);
   const launchMeeting = async (groupId: string) => {
     if ((await tClientBrowser.myGroups.countOngoingMeeting.query()) !== 0) {
-      setOccupancy(true);
+      setHasMeetingQuota(true);
     } else {
       setJoining(true);
       try {
-        const link = await tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId });
+        const link = await tClientBrowser.myGroups.joinMeeting.mutate({ groupId: groupId });
         window.location.href = link;
       } catch (e) {
         toast.error((e as Error).message, { autoClose: false });
@@ -54,7 +55,7 @@ export default function GroupBar(props: {
   }
 
   function OngoingMeetingWarning() {
-    return <Modal isOpen={isMeetingOccupied} onClose={() => setOccupancy(false)} isCentered>
+    return <Modal isOpen={hasMeetingQuota} onClose={() => setHasMeetingQuota(false)}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>当前无法加入会议</ModalHeader>
@@ -64,7 +65,7 @@ export default function GroupBar(props: {
           <p>如有特殊请求请联系管理员</p>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme='blue' mr={4} onClick={() => setOccupancy(false)}>
+          <Button mr={4} onClick={() => setHasMeetingQuota(false)}>
             确认
           </Button>
         </ModalFooter>
@@ -78,7 +79,7 @@ export default function GroupBar(props: {
       {join &&
         <Center>
           <Button variant='outline' leftIcon={<MdVideocam />}
-            isLoading={isJoiningMeeting} loadingText={'加入中...'}
+            isLoading={joining} loadingText={'加入中...'}
             onClick={async () => launchMeeting(props.group.id)}>加入</Button>
         </Center>
       }
