@@ -44,7 +44,7 @@ export default Index;
 
 function SetNameModal() {
   const [user, setUser] = useUserContext();
-  const [name, setName] = useState(user.name);
+  const [name, setName] = useState(user.name || '');
   const handleSubmit = async () => {
     if (name) {
       const updatedUser = structuredClone(user);

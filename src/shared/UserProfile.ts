@@ -4,7 +4,7 @@ import { zRoles } from "./Role";
 export const zUserProfile = z.object({
   roles: zRoles,
   id: z.string().uuid(),
-  name: z.string(),
+  name: z.string().nullable(),
   email: z.string().email(),
   // For some reason coerce is needed to avoid zod input validation error.
   consentFormAcceptedAt: z.coerce.date().nullable(),
