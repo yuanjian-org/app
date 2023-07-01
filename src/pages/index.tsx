@@ -30,7 +30,7 @@ import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
-  const userHasName = user.name !== '';
+  const userHasName = !!user.name;
   return <>
     {!userHasName && <SetNameModal />}
     {userHasName && !consentFormAccepted(user) && <ConsentModal />}

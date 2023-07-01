@@ -1,5 +1,4 @@
 import { procedure, router } from "../trpc";
-import { z } from "zod";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
