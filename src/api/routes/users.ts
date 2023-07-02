@@ -46,26 +46,27 @@ const users = router({
     return 'ok' as const;
   }),
 
-  search: procedure
-  .use(authUser('UserManager'))
-  .input(z.object({ query: z.string() }))
+  /**
+   * @return all the users if `fullTextSearch` isn't specified, otherwise only matching users, ordered by Pinyin.
+   */
+  list: procedure
+  .use(authUser(['UserManager', 'GroupManager']))
+  .input(z.object({ searchTerm: z.string() }).optional())
   .output(z.array(zUserProfile))
   .query(async ({ input }) => {
-    return await User.findAll({
-      where: {
-        [Op.or]: [
-          { pinyin: { [Op.iLike]: `%${input.query}%` } },
-          { name: { [Op.iLike]: `%${input.query}%` } },
-          { email: { [Op.iLike]: `%${input.query}%` } },
-        ],
-      }
+    return await User.findAll({ 
+      order: [['pinyin', 'ASC']],
+      ...input?.searchTerm ? {
+        where: {
+          [Op.or]: [
+            { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
+            { name: { [Op.iLike]: `%${input.searchTerm}%` } },
+            { email: { [Op.iLike]: `%${input.searchTerm}%` } },
+          ],
+        }
+      } : {},
     });
   }),
-
-  list: procedure
-  .use(authUser('UserManager'))
-  .output(z.array(zUserProfile))
-  .query(async () => await User.findAll({ order: [['pinyin', 'ASC']] })),
 
   /**
    * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
