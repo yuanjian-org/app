@@ -11,7 +11,6 @@ import {
 import React, { useState } from 'react';
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
-import { toast } from "react-toastify";
 import moment from 'moment';
 import UserProfile from '../shared/UserProfile';
 import ModalWithBackdrop from './ModalWithBackdrop';
