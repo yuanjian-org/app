@@ -10,7 +10,7 @@ import 'horizon-ui/styles/Contact.css'
 import 'react-calendar/dist/Calendar.css'
 import 'horizon-ui/styles/MiniCalendar.css'
 import Head from 'next/head'
-import tClientNext from "../tClientNext";
+import trpcNext from "../trpcNext";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.min.css';
@@ -35,4 +35,4 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
   )
 }
 
-export default tClientNext.withTRPC(MyApp);
+export default trpcNext.withTRPC(MyApp);

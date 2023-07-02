@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
-import tClientBrowser from "../tClientBrowser";
+import trpc from "../trpc";
 import { EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import useUserContext from 'useUserContext';
@@ -35,7 +35,7 @@ const UserProfile: NextPageWithLayout = () => {
 
       // TODO: Handle error display globally. Redact server-side errors.
       try {
-        await tClientBrowser.users.update.mutate(updatedUser);
+        await trpc.users.update.mutate(updatedUser);
         setUser(updatedUser);
         setShow(!show);
       } catch(e) {
