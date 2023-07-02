@@ -22,6 +22,7 @@ import {
   FormErrorMessage,
   Stack,
   Checkbox,
+  Badge,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -32,10 +33,12 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName } from 'shared/utils/string';
 import { AllRoles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
+import useUserContext from 'useUserContext';
 
 const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
   const [UserBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
+  const [user] = useUserContext();
   
   const closeUserEditor = () => {
     setUserBeingEdited(null);
@@ -65,7 +68,7 @@ const Page: NextPageWithLayout = () => {
               {data.map((u: any) => (
                 <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
                   <Td>{u.email}</Td>
-                  <Td>{u.name}</Td>
+                  <Td>{u.name} {user.id === u.id ? <Badge variant='brand'>本人</Badge> : <></>}</Td>
                   <Td>{u.roles.join(', ')}</Td>
                 </Tr>
               ))}
