@@ -22,6 +22,7 @@ import {
   Stack,
   Checkbox,
   Badge,
+  Icon,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -33,10 +34,11 @@ import { isValidChineseName } from 'shared/utils/string';
 import Role, { Roles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';
+import { MdEditNote } from 'react-icons/md';
 
 const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
-  const [UserBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
+  const [userBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
   const [user] = useUserContext();
   
   const closeUserEditor = () => {
@@ -46,8 +48,7 @@ const Page: NextPageWithLayout = () => {
 
   return (
     <Box paddingTop={'80px'}>
-      {UserBeingEdited && <UserEditor user={UserBeingEdited} onClose={closeUserEditor}/>}
-      <Text marginY={4}>点击用户进行编辑：</Text>
+      {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
       {!data && <Button isLoading={true} loadingText={'读取用户信息中...'} disabled={true} />}
       <SimpleGrid
         mb='20px'
@@ -58,6 +59,7 @@ const Page: NextPageWithLayout = () => {
           <Table variant='striped'>
             <Thead>
               <Tr>
+                <Th />
                 <Th>电子邮箱</Th>
                 <Th>姓名</Th>
                 <Th>角色</Th>
@@ -66,6 +68,7 @@ const Page: NextPageWithLayout = () => {
             <Tbody>
               {data.map((u: any) => (
                 <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
+                  <Td><Icon as={MdEditNote} /></Td>
                   <Td>{u.email}</Td>
                   <Td>{u.name} {user.id === u.id ? <Badge variant='brand'>本人</Badge> : <></>}</Td>
                   <Td>{u.roles.map((r: Role) => RoleProfiles[r].displayName).join('、')}</Td>
@@ -91,6 +94,7 @@ function UserEditor(props: {
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
   const [roles, setRoles] = useState(u.roles);
+  const [saving, setSaving] = useState(false);
   const validName = isValidChineseName(name);
 
   const setRole = (e: any) => {
@@ -99,12 +103,17 @@ function UserEditor(props: {
   }
 
   const save = async () => {
-    const su = structuredClone(props.user);
-    su.email = email;
-    su.name = name;
-    su.roles = roles;
-    await trpc.users.update.mutate(su);
-    props.onClose();
+    setSaving(true);
+    try {
+      const su = structuredClone(props.user);
+      su.email = email;
+      su.name = name;
+      su.roles = roles;
+      await trpc.users.update.mutate(su);
+      props.onClose();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
@@ -139,7 +148,7 @@ function UserEditor(props: {
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand' onClick={save}>保存</Button>
+        <Button variant='brand' isLoading={saving} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;
