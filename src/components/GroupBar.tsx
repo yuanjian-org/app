@@ -32,8 +32,6 @@ export default function GroupBar(props: {
     try {
       const link = await trpc.myGroups.generateMeetingLink.mutate({ groupId: groupId });
       window.location.href = link;
-    } catch (e) {
-      toast.error((e as Error).message, { autoClose: false });
     } finally {
       // More time is needed to redirect to the meeting page. Keep it spinning.
       // We should uncomment this line if we pop the page in a new window.

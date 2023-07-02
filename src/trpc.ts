@@ -1,6 +1,8 @@
-import { createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
+import { TRPCClientError, TRPCLink, createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
 import type { ApiRouter } from './api/apiRouter';
 import { requestFinishLink } from "./requestFinishLink";
+import { observable } from '@trpc/server/observable';
+import { toast } from "react-toastify";
 
 function getBaseUrl() {
   // browser should use relative path
@@ -13,7 +15,32 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
+/**
+ * Show toasts on all TRPC errors.
+ * https://trpc.io/docs/client/links#example
+ */
+const errorToastLink: TRPCLink<ApiRouter> = () => {
+  return ({ next, op }) => {
+    return observable((observer) => {
+      const unsubscribe = next(op).subscribe({
+        next(value) {
+          observer.next(value);
+        },
+        error(err: TRPCClientError<ApiRouter>) {
+          console.log('TRPC got an error:', err);
+          toast.error(err.message);
+        },
+        complete() {
+          observer.complete();
+        },
+      });
+      return unsubscribe;
+    });
+  };
+};
+
 export const links = [
+  errorToastLink,
   ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
   requestFinishLink(),
   httpBatchLink({
