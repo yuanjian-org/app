@@ -7,11 +7,11 @@ import {
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../../NextPageWithLayout'
-import trpc from "../../trpc";
+import { NextPageWithLayout } from '../NextPageWithLayout'
+import trpc from "../trpc";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
-import trpcNext from "../../trpcNext";
+import trpcNext from "../trpcNext";
 import GroupBar from 'components/GroupBar';
 
 type Option = {
