@@ -5091,6 +5091,11 @@ nyc@^15.1.0:
     test-exclude "^6.0.0"
     yargs "^15.0.2"
 
+nzh@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/nzh/-/nzh-1.0.9.tgz#7ec0bfdee2f01706523a28abacf76f942f3e5b87"
+  integrity sha512-8RfOkMI5BpaeP/xX/0w7B+G/8vorfr/E8BTPWGApD0wTqsYlSsRFHf1wTTIjNA8VawtJ04ClyU2W98bFxWq6CA==
+
 object-assign@^4.0.1, object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"

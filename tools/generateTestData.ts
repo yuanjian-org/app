@@ -42,6 +42,10 @@ async function main() {
   
   await migrateRoles();
   const mgrs = await getUserManagers();
+  if (mgrs.length == 0) {
+    console.error('ERROR: No uesr is found. Please follow README.md and log into your local server first.');
+    process.exit(1);
+  }
   await upgradeUsers(mgrs);
   await generateUsers();
   await generateGroupsAndSummaries(mgrs);
