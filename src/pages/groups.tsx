@@ -9,7 +9,6 @@ import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
-import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
 import trpcNext from "../trpcNext";
 import GroupBar from 'components/GroupBar';
@@ -24,7 +23,7 @@ const loadOptions = (
 ) => {
   trpc.users.search.query({
     query: inputValue,
-  }).then(({ users }) => {
+  }).then(users => {
     callback(users.map(u => {
       return {
         label: `${u.name} (${u.email})`,
