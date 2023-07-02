@@ -11,7 +11,7 @@ export default function PageBreadcrumb(props: {
       <BreadcrumbLink as={Link} href={p.link}><Heading size="md">{p.name}</Heading></BreadcrumbLink>
     </BreadcrumbItem>
   ));
-  return <Breadcrumb separator={<ChevronRightIcon />}>
+  return <Breadcrumb separator={<ChevronRightIcon />} marginBottom={10}>
     {parents}
     <BreadcrumbItem isCurrentPage>
       <BreadcrumbLink><Heading size="md">{props.current}</Heading></BreadcrumbLink>

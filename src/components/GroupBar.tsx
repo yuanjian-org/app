@@ -2,8 +2,10 @@ import {
   Avatar,
   Button,
   Center,
+  Flex,
   HStack,
   SimpleGrid,
+  Spacer,
   Text,
   Wrap,
   WrapItem,
@@ -40,41 +42,44 @@ export default function GroupBar(props: {
   }
 
   return (
-    <SimpleGrid 
-      columns={(props.showJoinButton ? 1 : 0) + 1 + (props.showTranscriptCount ? 1 : 0)} 
-      templateColumns={(props.showJoinButton ? '7em ' : '') + '2fr' + (props.showTranscriptCount ? ' 1fr' : '')} 
-      spacing={2}
-    >
+    <Flex>
       {props.showJoinButton &&
         <Center>
-          <Button variant='outline' leftIcon={<MdVideocam />}
+          <Button
+            boxShadow="md"
+            marginRight={6}
+            leftIcon={<MdVideocam />}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={async () => launchMeeting(props.group.id)}>加入</Button>
+            onClick={async () => launchMeeting(props.group.id)}
+          >加入</Button>
         </Center>
       }
       <UserChips currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
-      <Center>
-        {props.showTranscriptCount &&
-          (props.showTranscriptLink ? 
-            <Link href={`/groups/${props.group.id}`}>
-              {transcriptCount ?
-                <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
-                : 
-                <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
-              }
-            </Link>
-            :
-            <>
-              {transcriptCount ?
-                <>{transcriptCount} 个历史记录</>
-                : 
-                <Text color='gray.400'>无历史</Text>
-              }
-            </>
-          )
-        }
-      </Center>
-    </SimpleGrid>
+      {props.showTranscriptCount && (
+        <>
+          <Spacer marginLeft={6} />
+          <Center>
+            {props.showTranscriptLink ? 
+              <Link href={`/groups/${props.group.id}`}>
+                {transcriptCount ?
+                  <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
+                  : 
+                  <Text color='gray.400'>无历史 <ArrowForwardIcon /></Text>
+                }
+              </Link>
+              :
+              <>
+                {transcriptCount ?
+                  <>{transcriptCount} 个历史记录</>
+                  : 
+                  <Text color='gray.400'>无历史</Text>
+                }
+              </>
+            }
+          </Center>
+        </>
+      )}
+    </Flex>
   );
 }
 

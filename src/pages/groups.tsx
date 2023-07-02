@@ -18,6 +18,8 @@ import {
   Center,
   Icon,
   FormErrorMessage,
+  Flex,
+  Spacer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -116,12 +118,13 @@ const Page: NextPageWithLayout = () => {
       </Wrap>
       <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
         {data && data.map(group => 
-          <HStack key={group.id} spacing={8} cursor='pointer'
+          <Flex key={group.id} cursor='pointer'
             onClick={() => setGroupBeingEdited(group)} 
           >
-            <Icon as={MdEditNote} />
             <GroupBar group={group} showSelf />
-          </HStack>
+            <Spacer />
+            <Center><Icon as={MdEditNote} marginX={4} /></Center>
+          </Flex>
         )}
       </VStack>
       {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
@@ -179,12 +182,14 @@ function GroupEditor(props: {
             <FormLabel>移除用户</FormLabel>
           </FormControl>
           {users.map(u =>
-            <FormControl key={u.id}>
-              <SimpleGrid columns={2} templateColumns='1fr 4em' cursor='pointer'
-                onClick={() => setUsers(users.filter(user => user.id !== u.id))}>
-                <UserChip user={u} />
-                <Center><Icon as={MdPersonRemove} boxSize={6}/></Center>
-              </SimpleGrid>
+            <FormControl key={u.id} cursor='pointer'
+              onClick={() => setUsers(users.filter(user => user.id !== u.id))}
+            >
+              <Flex>
+              <UserChip user={u} />
+              <Spacer />
+              <Icon as={MdPersonRemove} boxSize={6}/>
+              </Flex>
             </FormControl>
           )}
           <FormControl isInvalid={!isValid}>
@@ -193,6 +198,8 @@ function GroupEditor(props: {
         </VStack>
       </ModalBody>
       <ModalFooter>
+        <Button>删除分组</Button>
+        <Spacer />
         <Button variant='brand' isLoading={saving} isDisabled={!isValid} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>

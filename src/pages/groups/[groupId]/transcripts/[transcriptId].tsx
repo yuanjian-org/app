@@ -1,8 +1,5 @@
 import {
   Box,
-  Card,
-  CardBody,
-  CardHeader,
   StackDivider,
   Text,
   Stack,
@@ -41,19 +38,13 @@ function TranscriptCard() {
   const id = typeof router.query.transcriptId === 'string' ? router.query.transcriptId : 'nonexistence';
   const { data: transcript } : { data: GetTranscriptResponse | undefined } = trpcNext.transcripts.get.useQuery({ id });
 
-  return (
-    <Card>
-      <CardHeader>
-        <PageBreadcrumb current='摘要' parents={[
-          { name: '我的会议', link: '/' },
-          { name: '会议详情', link: `/groups/${router.query.groupId}` },
-        ]} />
-      </CardHeader>
-      <CardBody>
-        {transcript ? <TranscriptDetail transcript={transcript} /> : <Text align='center'>正在加载...</Text>}
-      </CardBody>
-    </Card>
-  );
+  return (<>
+    <PageBreadcrumb current='摘要' parents={[
+      { name: '我的会议', link: '/' },
+      { name: '会议详情', link: `/groups/${router.query.groupId}` },
+    ]} />
+    {transcript ? <TranscriptDetail transcript={transcript} /> : <Text align='center'>正在加载...</Text>}
+  </>);
 }
 
 function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
