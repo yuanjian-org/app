@@ -31,6 +31,7 @@ import GroupBar, { UserChip } from 'components/GroupBar';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdEditNote, MdPersonRemove } from 'react-icons/md';
+import formatGroupName from 'formatGroupName';
 
 function UserSelector(props: {
   value: any,
@@ -141,7 +142,7 @@ function GroupEditor(props: {
   group: Group,
   onClose: () => void,
 }) {
-  const [name, setName] = useState(undefined);
+  const [name, setName] = useState<string>(props.group.name || '');
   const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
   const [users, setUsers] = useState(props.group.users);
   const [saving, setSaving] = useState(false);
@@ -152,6 +153,7 @@ function GroupEditor(props: {
     setSaving(true);
     try {
       const group = structuredClone(props.group);
+      group.name = name
       group.users = [
         ...selected.map(s => ({ id: s.value, name: null })),
         ...users,
@@ -172,7 +174,8 @@ function GroupEditor(props: {
         <VStack spacing={6}>
           <FormControl>
             <FormLabel>分组名称</FormLabel>
-            <Input value={name} placeholder='若为空则用默认名称' />
+            <Input value={name} onChange={(e) => setName(e.target.value)}
+              placeholder={`若为空则显示默认名称：“${formatGroupName(null, props.group.users.length)}”`} />
           </FormControl>
           <FormControl>
             <FormLabel>添加用户</FormLabel>

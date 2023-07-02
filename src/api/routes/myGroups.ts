@@ -8,6 +8,7 @@ import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
+import { zGroup } from "./groups";
 
 function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
   for (const item of subset) {
@@ -59,18 +60,8 @@ const myGroups = router({
 
   list: procedure
   .use(authUser())
-  .output(
-    z.array(z.object({
-      id: z.string(),
-      transcripts: z.array(z.object({
-        // The UI that calls this API only need a transcript count so no fields need to be returned.
-      })),
-      users: z.array(z.object({
-        id: z.string(),
-        name: z.string().nullable(),
-      }))
-    })).optional()
-  ).query(async ({ ctx }) => {
+  .output(z.array(zGroup))
+  .query(async ({ ctx }) => {
     return (await GroupUser.findAll({
       where: { userId: ctx.user.id },
       include: [{
