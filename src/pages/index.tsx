@@ -18,8 +18,8 @@ import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
-import tClientBrowser from "../tClientBrowser";
-import tClientNext from "../tClientNext";
+import trpc from "../trpc";
+import trpcNext from "../trpcNext";
 import { toast } from "react-toastify";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -51,7 +51,7 @@ function SetNameModal() {
 
       // TODO: Handle error display globally. Redact server-side errors.
       try {
-        await tClientBrowser.users.update.mutate(updatedUser);
+        await trpc.users.update.mutate(updatedUser);
         setUser(updatedUser);
       } catch (e) {
         toast.error((e as Error).message);
@@ -90,7 +90,7 @@ function SetNameModal() {
 }
 
 function Meetings() {
-  const { data: groups, isLoading } = tClientNext.myGroups.list.useQuery();
+  const { data: groups, isLoading } = trpcNext.myGroups.list.useQuery();
 
   return (
     <Card>

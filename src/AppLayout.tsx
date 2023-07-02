@@ -17,7 +17,7 @@ import {
 import { GuardProvider } from '@authing/guard-react18';
 import { UserContext } from "./useUserContext";
 import browserEnv from "./browserEnv";
-import tClientBrowser from "./tClientBrowser";
+import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import guard from './guard';
@@ -36,7 +36,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
         // For some reason ts cries when `as UserProfile` is absent
-        setUser(await tClientBrowser.me.profile.query() as UserProfile);
+        setUser(await trpc.me.profile.query() as UserProfile);
       } else {
         location.href = '/login';
       }

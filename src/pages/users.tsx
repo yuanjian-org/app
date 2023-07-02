@@ -26,15 +26,15 @@ import {
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
-import tClientNext from "../tClientNext";
+import trpcNext from "../trpcNext";
 import UserProfile from 'shared/UserProfile';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName } from 'shared/utils/string';
 import { AllRoles, isPermitted } from 'shared/Role';
-import tClientBrowser from 'tClientBrowser';
+import trpc from 'trpc';
 
 const Page: NextPageWithLayout = () => {
-  const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = tClientNext.users.list.useQuery();
+  const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
   const [UserBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
   
   const closeUserEditor = () => {
@@ -101,7 +101,7 @@ function UserEditor(props: {
     su.email = email;
     su.name = name;
     su.roles = roles;
-    await tClientBrowser.users.update.mutate(su);
+    await trpc.users.update.mutate(su);
     props.onClose();
   }
 

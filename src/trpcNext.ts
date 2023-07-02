@@ -1,4 +1,4 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { httpBatchLink } from '@trpc/client';
 import type { ApiRouter } from './api/apiRouter';
 import { createTRPCNext } from "@trpc/next";
 function getBaseUrl() {
@@ -15,7 +15,7 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
-const tClientNext = createTRPCNext<ApiRouter>({
+const trpcNext = createTRPCNext<ApiRouter>({
     config({ ctx }) {
       return {
         links: [
@@ -46,4 +46,4 @@ const tClientNext = createTRPCNext<ApiRouter>({
     ssr: false,
 });
 
-export default tClientNext;
+export default trpcNext;

@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import useUserContext from "../useUserContext";
-import tClientBrowser from "../tClientBrowser";
+import trpc from "../trpc";
 import { toast } from "react-toastify";
 import moment from 'moment';
 import UserProfile from '../shared/UserProfile';
@@ -30,7 +30,7 @@ export default function ConsentModal() {
 
     // TODO: Handle error display globally. Redact server-side errors.
     try {
-      await tClientBrowser.users.update.mutate(updatedUser);
+      await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
     } catch (e) {
       toast.error((e as Error).message);

@@ -16,7 +16,7 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
-const tClientBrowser = createTRPCProxyClient<ApiRouter>({
+const trpc = createTRPCProxyClient<ApiRouter>({
   links: [
     ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
     requestFinishLink(),
@@ -32,4 +32,4 @@ const tClientBrowser = createTRPCProxyClient<ApiRouter>({
   ]
 });
 
-export default tClientBrowser;
+export default trpc;
