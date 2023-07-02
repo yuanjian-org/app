@@ -3,6 +3,7 @@ import type {
   InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
+  AllowNull,
   BelongsToMany,
   Column, HasMany,
   Table,
@@ -21,10 +22,12 @@ class Group extends ParanoidModel<
   InferCreationAttributes<Group>
   > {
 
-  @Column({
-    type: STRING,
-    allowNull: true
-  })
+  @AllowNull(true)
+  @Column(STRING)
+  name: string | null;
+
+  @AllowNull(true)
+  @Column(STRING)
   meetingLink: string | null;
 
   @BelongsToMany(() => User, { through: () => GroupUser })

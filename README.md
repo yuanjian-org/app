@@ -14,6 +14,7 @@ A Web app that supports mentorship programs at [Visionary Education Foundation (
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
 1. Visit this local server from broswer. Log in with your email.
 1. Run `yarn gen-test-data` to populate test data.
+1. Finally, restart your local server to clean up server cache and read pupulated data fresh.
 
 ## Frameworks Used
 
