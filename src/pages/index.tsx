@@ -4,8 +4,6 @@ import {
   Card,
   CardBody,
   CardHeader,
-  Modal,
-  ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalBody,
@@ -23,10 +21,11 @@ import useUserContext from "../useUserContext";
 import tClientBrowser from "../tClientBrowser";
 import tClientNext from "../tClientNext";
 import { toast } from "react-toastify";
-import pinyin from 'tiny-pinyin';
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
+import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import { isValidChineseName } from '../shared/utils/string';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -52,7 +51,7 @@ function SetNameModal() {
 
       // TODO: Handle error display globally. Redact server-side errors.
       try {
-        await tClientBrowser.me.updateProfile.mutate(updatedUser);
+        await tClientBrowser.users.update.mutate(updatedUser);
         setUser(updatedUser);
       } catch (e) {
         toast.error((e as Error).message);
@@ -62,8 +61,7 @@ function SetNameModal() {
 
   return (
     // onClose returns undefined to prevent user from closing the modal without entering name.
-    <Modal isOpen onClose={() => undefined}>
-      <ModalOverlay backdropFilter='blur(8px)' />
+    <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
         <ModalHeader>欢迎你，新用户 👋</ModalHeader>
         <ModalBody>
@@ -87,12 +85,8 @@ function SetNameModal() {
           </Box>
         </ModalBody>
       </ModalContent>
-    </Modal>
+    </ModalWithBackdrop>
   );
-}
-
-function isValidChineseName(s: string) : boolean {
-  return s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
 }
 
 function Meetings() {
