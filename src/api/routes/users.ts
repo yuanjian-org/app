@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import Role, { isPermitted, zRoles } from "../../shared/Role";
+import Role, { RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
@@ -121,13 +121,17 @@ export default users;
 async function emailUserAboutNewRoles(userManagerName: string, user: User, newRoles: Role[], baseUrl: string) {
   const added = newRoles.filter(r => !user.roles.includes(r));
   for (const r of added) {
+    const rp = RoleProfiles[r];
     await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
       to: [{ 
         name: user.name, 
         email: user.email 
       }],
       dynamicTemplateData: {
-        'role': r,
+        'roleDisplayName': rp.displayName,
+        'roleActions': rp.actions,
+        'roleDataAccess': rp.dataAccess,
+        'name': user.name,
         'manager': userManagerName,
       }
     }], baseUrl);
