@@ -1,10 +1,23 @@
 import {
   Box,
   Button,
-  VStack,
   StackDivider,
   WrapItem,
-  Wrap
+  Wrap,
+  HStack,
+  SimpleGrid,
+  ModalHeader,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  VStack,
+  Center,
+  Icon,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -12,31 +25,56 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
 import trpcNext from "../trpcNext";
-import GroupBar from 'components/GroupBar';
+import GroupBar, { UserChip } from 'components/GroupBar';
+import { Group } from 'api/routes/groups';
+import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import { MdEditNote, MdPersonRemove } from 'react-icons/md';
 
-type Option = {
-  label: string,
-  value: string,
-}
-const loadOptions = (
-  inputValue: string,
-  callback: (options: Option[]) => void
-) => {
-  trpc.users.list.query({
-    searchTerm: inputValue,
-  }).then(users => {
-    callback(users.map(u => {
-      return {
-        label: `${u.name} (${u.email})`,
-        value: u.id,
-      };
-    }));
-  })
+function UserSelector(props: {
+  value: any,
+  onChange: any,
+  placeholder?: string,
+}) {
+  type Option = {
+    label: string,
+    value: string,
+  };
+
+  const LoadOptions = (
+    inputValue: string,
+    callback: (options: Option[]) => void
+  ) => {
+    trpc.users.list.query({
+      searchTerm: inputValue,
+    }).then(users => {
+      callback(users.map(u => {
+        return {
+          label: `${u.name} (${u.email})`,
+          value: u.id,
+        };
+      }));
+    })
+  }
+
+  // https://react-select.com/props
+  return <AsyncSelect
+    cacheOptions
+    // @ts-ignore
+    loadOptions={LoadOptions}
+    isMulti
+    value={props.value}
+    noOptionsMessage={() => "可以用姓名拼音、中文或email检索"}
+    loadingMessage={() => "正在检索..."}
+    placeholder={props.placeholder ?? '按用户过滤，或为创建分组输入两名或以上用户'}
+    // @ts-ignore
+    onChange={props.onChange}
+  />
 }
 
 const Page: NextPageWithLayout = () => {
-  const [selected, setSelected] = useState<{label: string, value: string}[]>([]);
+  const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
 
   const { data, refetch } = trpcNext.groups.list.useQuery({
     userIds: selected.map(option => option.value),
@@ -54,21 +92,17 @@ const Page: NextPageWithLayout = () => {
     }
   };
 
+  const closeGroupEditor = () => {
+    setGroupBeingEdited(null);
+    refetch();
+  };
+
   return (
     <Box paddingTop={'80px'}>
+      {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
       <Wrap spacing={6}>
         <WrapItem minWidth={100}>
-          {/* https://react-select.com/props */}
-          <AsyncSelect
-            cacheOptions
-            loadOptions={loadOptions}
-            isMulti
-            value={selected}
-            noOptionsMessage={() => "可以用姓名拼音、中文或email检索"}
-            loadingMessage={() => "正在检索..."}
-            placeholder='按用户过滤，或为创建分组选择两名或更多用户...&nbsp;&nbsp;&nbsp;'
-            onChange={(v) => setSelected(v.map(item => ({ label: item.label, value: item.value })))}
-          />
+          <UserSelector value={selected} onChange={setSelected} />
         </WrapItem>
         <WrapItem>
           <Button
@@ -81,7 +115,14 @@ const Page: NextPageWithLayout = () => {
         </WrapItem>
       </Wrap>
       <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
-        {data && data.map(group => <GroupBar key={group.id} group={group} showSelf />)}
+        {data && data.map(group => 
+          <HStack key={group.id} spacing={8} cursor='pointer'
+            onClick={() => setGroupBeingEdited(group)} 
+          >
+            <Icon as={MdEditNote} />
+            <GroupBar group={group} showSelf />
+          </HStack>
+        )}
       </VStack>
       {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
     </Box>
@@ -91,3 +132,69 @@ const Page: NextPageWithLayout = () => {
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
+
+
+function GroupEditor(props: { 
+  group: Group,
+  onClose: () => void,
+}) {
+  const [name, setName] = useState(undefined);
+  const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
+  const [users, setUsers] = useState(props.group.users);
+  const [saving, setSaving] = useState(false);
+
+  const isValid = users.length + selected.length > 1;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const group = structuredClone(props.group);
+      group.users = [
+        ...selected.map(s => ({ id: s.value, name: null })),
+        ...users,
+      ];
+
+      await trpc.groups.update.mutate(group);
+      props.onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return <ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalContent>
+      <ModalHeader>编辑分组</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <VStack spacing={6}>
+          <FormControl>
+            <FormLabel>分组名称</FormLabel>
+            <Input value={name} placeholder='若为空则用默认名称' />
+          </FormControl>
+          <FormControl>
+            <FormLabel>添加用户</FormLabel>
+            <UserSelector value={selected} placeholder='' onChange={setSelected} />
+          </FormControl>
+          <FormControl>
+            <FormLabel>移除用户</FormLabel>
+          </FormControl>
+          {users.map(u =>
+            <FormControl key={u.id}>
+              <SimpleGrid columns={2} templateColumns='1fr 4em' cursor='pointer'
+                onClick={() => setUsers(users.filter(user => user.id !== u.id))}>
+                <UserChip user={u} />
+                <Center><Icon as={MdPersonRemove} boxSize={6}/></Center>
+              </SimpleGrid>
+            </FormControl>
+          )}
+          <FormControl isInvalid={!isValid}>
+            <FormErrorMessage>需要至少两名用户。</FormErrorMessage>
+          </FormControl>
+        </VStack>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant='brand' isLoading={saving} isDisabled={!isValid} onClick={save}>保存</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}
