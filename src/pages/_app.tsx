@@ -27,7 +27,7 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
       </Head>
       {getLayout(<Component {...pageProps}></Component>)}
       <ToastContainer
-        position="bottom-left"
+        position="bottom-center"
         autoClose={5000}
         hideProgressBar
         newestOnTop
