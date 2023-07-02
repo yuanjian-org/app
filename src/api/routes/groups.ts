@@ -56,8 +56,7 @@ async function listGroups(userIds: string[]) {
   if (userIds.length === 0) {
     return await Group.findAll({ include: includes });
   } else {
-    const group = await findGroup(userIds, includes);
-    return group == null ? [] : [group];
+    return await findGroups(userIds, 'inclusive', includes);
   }
 }
 
@@ -73,7 +72,7 @@ const groups = router({
   }),
 
   /**
-   * @returns All groups if `userIds` is empty, otherwise return the group that contains all the given users and no more.
+   * @returns All groups if `userIds` is empty, otherwise return groups that has all the given users.
    */
   list: procedure
   .use(authUser(['GroupManager']))
@@ -109,10 +108,10 @@ const groups = router({
       }]
     });
     if (!g) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: `Group ${input.id} not found` });
+      throw new TRPCError({ code: 'NOT_FOUND', message: `分组 ${input.id} 没有找到` });
     }
     if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: `User has no access to Group ${input.id}` });
+      throw new TRPCError({ code: 'FORBIDDEN', message: `用户没有权限访问分组 ${input.id}` });
     }
     return g;
   }),
@@ -120,13 +119,14 @@ const groups = router({
 
 export default groups;
 
-export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = 'Group already exists.';
+export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = '分组已经存在。';
 
 /**
- * @returns The group that contains all the given users and no more, or null if no such group is found.
+ * @returns groups that contain all the given users.
+ * @param mode if `exclusive`, return the singleton group that contains no more other users.
  * @param includes Optional `include`s in the returned group.
  */
-export async function findGroup(userIds: string[], includes?: Includeable[]): Promise<Group | null> {
+export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusive', includes?: Includeable[]): Promise<Group[]> {
   invariant(userIds.length > 0);
 
   const gus = await GroupUser.findAll({
@@ -143,18 +143,20 @@ export async function findGroup(userIds: string[], includes?: Includeable[]): Pr
     }]
   })
 
-  for (const gu of gus) {
-    const set1 = new Set(gu.group.groupUsers.map(gu => gu.userId));
-    const set2 = new Set(userIds);
-    if (_.isEqual(set1, set2)) return gu.group;
-  }
-  return null;
+  const res = gus.filter(gu => {
+    const set = new Set(gu.group.groupUsers.map(gu => gu.userId));
+    const isSubset = userIds.every(uid => set.has(uid));
+    return isSubset && (mode === 'inclusive' || userIds.length === set.size);
+  }).map(gu => gu.group);
+
+  invariant(mode === 'inclusive' || res.length <= 1);
+  return res;
 }
 
 
 export async function createGroup(userIds: string[]) {
-  const existing = await findGroup(userIds);
-  if (existing) {
+  const existing = await findGroups(userIds, 'exclusive');
+  if (existing.length > 0) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
       message: GROUP_ALREADY_EXISTS_ERROR_MESSAGE,

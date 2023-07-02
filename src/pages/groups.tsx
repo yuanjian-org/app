@@ -1,9 +1,10 @@
 import {
   Box,
   Button,
-  Grid,
   VStack,
-  StackDivider
+  StackDivider,
+  WrapItem,
+  Wrap
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -21,8 +22,8 @@ const loadOptions = (
   inputValue: string,
   callback: (options: Option[]) => void
 ) => {
-  trpc.users.search.query({
-    query: inputValue,
+  trpc.users.list.query({
+    searchTerm: inputValue,
   }).then(users => {
     callback(users.map(u => {
       return {
@@ -34,47 +35,52 @@ const loadOptions = (
 }
 
 const Page: NextPageWithLayout = () => {
-  const [selected, setSelected] = useState([] as {label: string, value: string}[]);
-  const [isCreating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<{label: string, value: string}[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const { data, refetch } = trpcNext.groups.list.useQuery({
     userIds: selected.map(option => option.value),
   });
 
   const createGroup = async () => {
-    setCreating(true);
+    setIsCreating(true);
     try {
       await trpc.groups.create.mutate({
         userIds: selected.map(option => option.value),
       });
       refetch();
     } finally {
-      setCreating(false);
+      setIsCreating(false);
     }
   };
 
   return (
     <Box paddingTop={'80px'}>
-      <Box>
-        <Grid templateColumns={'3fr 1fr'} columnGap={'20px'}>
+      <Wrap spacing={6}>
+        <WrapItem minWidth={100}>
+          {/* https://react-select.com/props */}
           <AsyncSelect
             cacheOptions
             loadOptions={loadOptions}
             isMulti
             value={selected}
+            noOptionsMessage={() => "可以用姓名拼音、中文或email检索"}
+            loadingMessage={() => "正在检索..."}
+            placeholder='按用户过滤，或为创建分组选择两名或更多用户...&nbsp;&nbsp;&nbsp;'
             onChange={(v) => setSelected(v.map(item => ({ label: item.label, value: item.value })))}
           />
+        </WrapItem>
+        <WrapItem>
           <Button
             isLoading={isCreating}
+            isDisabled={selected.length < 2}
             loadingText='创建分组中...'
-            fontSize='sm' variant='brand' fontWeight='500' mb='24px' onClick={async () => {
-              createGroup();
-          }}>
-            创建新分组
+            variant='brand' onClick={createGroup}>
+            创建分组
           </Button>
-        </Grid>
-      </Box>
-      <VStack divider={<StackDivider />} align='left' spacing='3'>
+        </WrapItem>
+      </Wrap>
+      <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
         {data && data.map(group => <GroupBar key={group.id} group={group} showSelf />)}
       </VStack>
       {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
