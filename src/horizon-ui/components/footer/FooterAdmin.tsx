@@ -62,7 +62,7 @@ export default function Footer() {
 				</ListItem>
 				<ListItem>
 					<a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-						<Image src={vercelIcon} alt="Vercel Banner" />
+						<Image src={vercelIcon} alt="Vercel Banner" height="20" />
 					</a>
 				</ListItem>
 			</List>

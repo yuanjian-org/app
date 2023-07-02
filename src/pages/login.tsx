@@ -34,7 +34,11 @@ export default function Login() {
       <Center>
         <Container as="footer">
           <a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-            <Image src={vercelBanner} alt="Vercel Banner" />
+            <Image 
+            src={vercelBanner} 
+            alt="Vercel Banner"  
+            height="30"
+            />
           </a>
         </Container>
       </Center>
