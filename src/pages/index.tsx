@@ -1,9 +1,6 @@
 import {
   Box,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   ModalContent,
   ModalHeader,
   ModalBody,
@@ -20,7 +17,6 @@ import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
 import trpcNext from "../trpcNext";
-import { toast } from "react-toastify";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
@@ -86,32 +82,26 @@ function SetNameModal() {
 function Meetings() {
   const { data: groups, isLoading } = trpcNext.myGroups.list.useQuery();
 
-  return (
-    <Card>
-      <CardHeader>
-        <PageBreadcrumb current='我的会议' parents={[]} />
-      </CardHeader>
-      <CardBody>
-        {!groups
-        && isLoading
-        && <Text align='center'>
-            正在加载会议...
+  return (<>
+    <PageBreadcrumb current='我的会议' parents={[]} />
+    {!groups
+    && isLoading
+    && <Text align='center'>
+        正在加载会议...
+    </Text>}
+    
+    {groups
+    && groups.length == 0
+    && !isLoading
+    && <Text align='center'>
+        会议将在管理员设置后可见
         </Text>}
-        
-        {groups
-        && groups.length == 0
-        && !isLoading
-        && <Text align='center'>
-            会议将在管理员设置后可见
-           </Text>}
-        
-        <VStack divider={<StackDivider />} align='left' spacing='6'>
-          {groups &&
-            groups.map(group => 
-              <GroupBar key={group.id} group={group} showJoinButton showTranscriptCount showTranscriptLink />)
-          }
-        </VStack>
-      </CardBody>
-    </Card>
-  );
+    
+    <VStack divider={<StackDivider />} align='left' spacing='6'>
+      {groups &&
+        groups.map(group => 
+          <GroupBar key={group.id} group={group} showJoinButton showTranscriptCount showTranscriptLink />)
+      }
+    </VStack>
+  </>);
 }
