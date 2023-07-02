@@ -1,6 +1,9 @@
-import { useEffect } from 'react'
-import '@authing/guard-react18/dist/esm/guard.min.css'
+import { Center, Container, Flex } from '@chakra-ui/react'
+import Image from "next/image";
+import { useEffect } from 'react';
+import '@authing/guard-react18/dist/esm/guard.min.css';
 import guard from "../guard";
+import vercelBanner from '../../public/img/vercel-banner.svg';
 
 export default function Login() {
   const guardEffects = async () => {
@@ -22,8 +25,19 @@ export default function Login() {
   }, [])
 
   return (
-    <div>
+    <Flex
+      justifyContent="center"
+      alignItems="flex-end"
+      minHeight="99vh"
+    >
       <div id="authing-guard-container"></div>
-    </div>
+      <Center>
+        <Container as="footer">
+          <a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+            <Image src={vercelBanner} alt="Vercel Banner" />
+          </a>
+        </Container>
+      </Center>
+    </Flex>
   )
 }

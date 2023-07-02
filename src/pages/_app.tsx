@@ -2,17 +2,13 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { AppProps } from 'next/app'
 import React from 'react'
 import theme from 'horizon-ui/theme/theme'
-
-import 'horizon-ui/styles/Fonts.css'
-import 'horizon-ui/styles/App.css'
-import 'horizon-ui/styles/Contact.css'
-
-import 'react-calendar/dist/Calendar.css'
-import 'horizon-ui/styles/MiniCalendar.css'
 import Head from 'next/head'
 import trpcNext from "../trpcNext";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
+
+import '../app.css'
+import 'horizon-ui/styles/Fonts.css'
 import 'react-toastify/dist/ReactToastify.min.css';
 
 type AppPropsWithLayout = AppProps & {

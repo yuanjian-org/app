@@ -9,8 +9,7 @@ export async function createContext({ req }: CreateNextContextOptions) {
   const absolute = absoluteUrl(req);
   return { 
     authToken: authToken,
-    host: absolute.host,
-    protocol: absolute.protocol,
+    baseUrl: `${absolute.protocol}//${absolute.host}`,
   };
 }
 

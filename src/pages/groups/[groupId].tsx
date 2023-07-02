@@ -16,9 +16,9 @@ import {
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
-import { NextPageWithLayout } from "../../../NextPageWithLayout";
-import AppLayout from "../../../AppLayout";
-import useUserContext from "../../../useUserContext";
+import { NextPageWithLayout } from "../../NextPageWithLayout";
+import AppLayout from "../../AppLayout";
+import useUserContext from "../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GetGroupResponse } from 'api/routes/groups';

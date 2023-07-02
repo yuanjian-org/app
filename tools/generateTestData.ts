@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
 import pinyin from 'tiny-pinyin';
-import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroup } from "../src/api/routes/groups";
+import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroups } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
@@ -97,9 +97,9 @@ async function generateGroup(users: TestUser[]) {
 
 async function generateSummaries(users: TestUser[]) {
   console.log('Creating summaries for', users.map(u => u.name));
-  const group = await findGroup(users.map(u => u.id as string));
-  invariant(group);
-  const gid = group.id;
+  const groups = await findGroups(users.map(u => u.id as string), 'exclusive');
+  invariant(groups.length == 1);
+  const gid = groups[0].id;
 
   const start = moment('2023-6-20', 'YYYY-MM-DD');
   const end = start.clone().add(33, 'minute');

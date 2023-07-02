@@ -46,7 +46,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
     // Reference: https://upmostly.com/tutorials/why-is-my-useeffect-hook-running-twice-in-react
     if (userFetchedRef.current) return;
     userFetchedRef.current = true;
-    fetchUser().catch(toast.error);
+    fetchUser();
   }, []);
 
   if (!user) {

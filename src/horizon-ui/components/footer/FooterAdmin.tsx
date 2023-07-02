@@ -1,7 +1,7 @@
 /*eslint-disable*/
 
 import { Flex, Link, List, ListItem, Text, useColorModeValue } from '@chakra-ui/react';
-import vercelBanner from '../../../../public/img/vercel-banner.svg';
+import vercelIcon from '../../../../public/img/vercel.svg';
 import Image from "next/image";
 
 export default function Footer() {
@@ -62,7 +62,7 @@ export default function Footer() {
 				</ListItem>
 				<ListItem>
 					<a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-						<Image src={vercelBanner} alt="Vercel Banner" />
+						<Image src={vercelIcon} alt="Vercel Banner" />
 					</a>
 				</ListItem>
 			</List>

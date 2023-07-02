@@ -33,7 +33,7 @@ export const navbarItems: NavbarItem[] = [
     name: '分组管理',
     path: '/groups',
     icon: <Icon as={MdGroups} width='20px' height='20px' color='inherit' />,
-    role: 'UserManager',
+    role: 'GroupManager',
   },
   {
     name: '摘要研发',

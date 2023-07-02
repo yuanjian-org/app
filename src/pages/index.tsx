@@ -48,14 +48,8 @@ function SetNameModal() {
     if (name) {
       const updatedUser = structuredClone(user);
       updatedUser.name = name;
-
-      // TODO: Handle error display globally. Redact server-side errors.
-      try {
-        await trpc.users.update.mutate(updatedUser);
-        setUser(updatedUser);
-      } catch (e) {
-        toast.error((e as Error).message);
-      }
+      await trpc.users.update.mutate(updatedUser);
+      setUser(updatedUser);
     };
   };
 

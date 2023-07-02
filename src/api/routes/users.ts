@@ -1,15 +1,15 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import { isPermitted, zRoles } from "../../shared/Role";
+import Role, { RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
-import { presentPublicUser } from "../../shared/PublicUser";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
 import { isValidChineseName } from "../../shared/utils/string";
 import invariant from 'tiny-invariant';
+import { email } from "api/sendgrid";
 
 const users = router({
   create: procedure
@@ -46,29 +46,27 @@ const users = router({
     return 'ok' as const;
   }),
 
-  search: procedure
-  .use(authUser('UserManager'))
-  .input(z.object({ query: z.string() }))
-  .query(async ({ input }) => {
-    const users = await User.findAll({
-      where: {
-        [Op.or]: [
-          { pinyin: { [Op.iLike]: `%${input.query}%` } },
-          { name: { [Op.iLike]: `%${input.query}%` } },
-          { email: { [Op.iLike]: `%${input.query}%` } },
-        ],
-      }
-    });
-
-    return {
-      users: users.map(presentPublicUser),
-    }
-  }),
-
+  /**
+   * @return all the users if `fullTextSearch` isn't specified, otherwise only matching users, ordered by Pinyin.
+   */
   list: procedure
-  .use(authUser('UserManager'))
+  .use(authUser(['UserManager', 'GroupManager']))
+  .input(z.object({ searchTerm: z.string() }).optional())
   .output(z.array(zUserProfile))
-  .query(async () => await User.findAll({ order: [['pinyin', 'ASC']] })),
+  .query(async ({ input }) => {
+    return await User.findAll({ 
+      order: [['pinyin', 'ASC']],
+      ...input?.searchTerm ? {
+        where: {
+          [Op.or]: [
+            { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
+            { name: { [Op.iLike]: `%${input.searchTerm}%` } },
+            { email: { [Op.iLike]: `%${input.searchTerm}%` } },
+          ],
+        }
+      } : {},
+    });
+  }),
 
   /**
    * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
@@ -84,12 +82,13 @@ const users = router({
     if (!isUserManager && !isSelf) {
       throw new TRPCError({
         code: 'FORBIDDEN',
+        message: '用户权限不足。'
       })
     }
     if (!isValidChineseName(input.name)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Invalid user name.'
+        message: '中文姓名无效。'
       })
     }
     invariant(input.name);
@@ -98,11 +97,13 @@ const users = router({
     if (!user) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: `User ${input.id} not found.`
+        message: `用户ID不存在：${input.id}`,
       });
     }
 
-    user.update({
+    if (!isSelf) await emailUserAboutNewRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+
+    await user.update({
       name: input.name,
       pinyin: pinyin.convertToPinyin(input.name),
       consentFormAcceptedAt: input.consentFormAcceptedAt,
@@ -116,3 +117,24 @@ const users = router({
 });
 
 export default users;
+
+async function emailUserAboutNewRoles(userManagerName: string, user: User, newRoles: Role[], baseUrl: string) {
+  const added = newRoles.filter(r => !user.roles.includes(r));
+  for (const r of added) {
+    const rp = RoleProfiles[r];
+    await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
+      to: [{ 
+        name: user.name, 
+        email: user.email 
+      }],
+      dynamicTemplateData: {
+        'roleDisplayName': rp.displayName,
+        'roleActions': rp.actions,
+        'roleDataAccess': rp.dataAccess,
+        'name': user.name,
+        'manager': userManagerName,
+      }
+    }], baseUrl);
+  }
+}
+
