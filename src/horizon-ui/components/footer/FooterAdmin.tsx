@@ -1,6 +1,8 @@
 /*eslint-disable*/
 
 import { Flex, Link, List, ListItem, Text, useColorModeValue } from '@chakra-ui/react';
+import vercelIcon from '../../../../public/img/vercel.svg';
+import Image from "next/image";
 
 export default function Footer() {
 	const textColor = useColorModeValue('gray.400', 'white');
@@ -49,10 +51,19 @@ export default function Footer() {
 						官网
 					</Link>
 				</ListItem>
-				<ListItem>
+				<ListItem
+					me={{
+						base: '20px',
+						md: '44px'
+					}}>
 					<Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org/blog'>
 						博客
 					</Link>
+				</ListItem>
+				<ListItem>
+					<a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+						<Image src={vercelIcon} alt="Vercel Banner" height="20" />
+					</a>
 				</ListItem>
 			</List>
 		</Flex>
