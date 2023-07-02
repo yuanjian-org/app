@@ -18,7 +18,7 @@ import AppLayout from "../../AppLayout";
 import useUserContext from "../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { GetGroupResponse } from 'api/routes/groups';
+import { GroupWithTranscripts } from 'api/routes/groups';
 import moment from 'moment';
 import GroupBar from 'components/GroupBar';
 import trpcNext from 'trpcNext';
@@ -37,7 +37,7 @@ export default Page;
 function GroupCard() {
   const router = useRouter();
   const id = typeof router.query.groupId === 'string' ? router.query.groupId : 'nonexistence';
-  const { data: group } : { data: GetGroupResponse | undefined } = trpcNext.groups.get.useQuery({ id });
+  const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (<>
     <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
@@ -45,7 +45,7 @@ function GroupCard() {
   </>);
 }
 
-function GroupDetail(props: { group: GetGroupResponse }) {
+function GroupDetail(props: { group: GroupWithTranscripts }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
       <GroupBar group={props.group} showJoinButton />
@@ -54,7 +54,7 @@ function GroupDetail(props: { group: GetGroupResponse }) {
   );
 }
 
-function TranscriptTable(props: { group: GetGroupResponse }) {
+function TranscriptTable(props: { group: GroupWithTranscripts }) {
   // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
   moment.locale('zh-cn');
   return (
