@@ -7,7 +7,7 @@ import apiEnv from "./apiEnv";
 import { UniqueConstraintError } from "sequelize";
 import { AuthenticationClient } from 'authing-js-sdk';
 import { LRUCache } from 'lru-cache';
-import { emailAdminsIgnoreError } from './sendgrid';
+import { emailUserManagersIgnoreError } from './sendgrid';
 
 const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 
@@ -18,10 +18,7 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 export const authIntegration = () => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  return await next({ ctx: { 
-    host: ctx.host,
-    protocol: ctx.protocol,
-  } });
+  return await next({ ctx: { baseUrl: ctx.baseUrl } });
 });
 
 /**
@@ -30,14 +27,10 @@ export const authIntegration = () => middleware(async ({ ctx, next }) => {
  */
 export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
-  const user = await userCache.fetch(ctx.authToken);
+  const user = await userCache.fetch(ctx.authToken, { context: { baseUrl: ctx.baseUrl } });
   invariant(user);
   if (!isPermitted(user.roles, permitted)) throw forbidden();
-  return await next({ ctx: { 
-    user: user, 
-    host: ctx.host,
-    protocol: ctx.protocol,
-  } });
+  return await next({ ctx: { user, baseUrl: ctx.baseUrl } });
 });
 
 /**
@@ -63,12 +56,12 @@ const forbidden = () => new TRPCError({
   message: 'Access denied',
 });
 
-const userCache = new LRUCache<string, User>({
+const userCache = new LRUCache<string, User, { baseUrl: string }>({
   max: 1000,
   ttl: USER_CACHE_TTL_IN_MS,
   updateAgeOnGet: true,
 
-  fetchMethod: async(authToken: string) => {
+  fetchMethod: async (authToken: string, staleValue: any, { options, signal, context }) => {
     const start = Date.now();
     const authingUser = await getAuthingUser(authToken);
     if (!authingUser) throw invalidToken();
@@ -76,7 +69,7 @@ const userCache = new LRUCache<string, User>({
     const startUser = Date.now();
     // We only allow email-based accounts. If this line fails, check authing.cn configuration.
     invariant(authingUser.email);
-    const user = await findOrCreateUser(authingUser.id, authingUser.email);
+    const user = await findOrCreateUser(authingUser.id, authingUser.email, context.baseUrl);
     const end = Date.now();
 
     console.log(`
@@ -98,7 +91,7 @@ async function getAuthingUser(authToken: string) {
   return await authing.getCurrentUser();
 }
 
-async function findOrCreateUser(clientId: string, email: string): Promise<User> {
+async function findOrCreateUser(clientId: string, email: string, baseUrl: string): Promise<User> {
   /**
    * Multiple APIs may be called at the same time, causing parallel User.create() calls from time to
    * time which results in unique constraint errors.
@@ -112,7 +105,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     // Set the first user as an admin
     const roles: Role[] = (await User.count()) == 0 ? ['UserManager'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
-    emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
+    emailUserManagersIgnoreError("新用户注册", `新用户 ${email} 注册。`, baseUrl);
     try {
       return await User.create({
         name: "",

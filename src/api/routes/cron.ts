@@ -20,7 +20,7 @@ const cron = router({
   .query(async ({ ctx }) => {
     console.log('Retriving transcript URLs...');
     const headers = { 'Authorization': `Bearer ${apiEnv.INTEGRATION_AUTH_TOKEN}` };
-    const baseUrl = `${ctx.protocol}//${ctx.host}/api/v1`;
+    const baseUrl = `${ctx.baseUrl}/api/v1`;
     const res = await axios.get(`${baseUrl}/transcripts.list`, { headers });
 
     const promises = res.data.result.data.map(async (transcript: any) => {
