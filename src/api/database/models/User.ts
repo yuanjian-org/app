@@ -7,6 +7,7 @@ import {
   BelongsToMany,
   Column,
   Table,
+  Unique,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
@@ -28,16 +29,12 @@ class User extends ParanoidModel<
   @Column(STRING)
   pinyin: string;
 
-  @Column({
-    type: STRING,
-    unique: true,
-  })
+  @Unique
+  @Column(STRING)
   email: string;
 
-  @Column({
-    type: STRING,
-    unique: true,
-  })
+  @Unique
+  @Column(STRING)
   clientId: string;
 
   @ZodColumn(JSONB, zRoles)
