@@ -1,7 +1,5 @@
 import {
   Button,
-  Modal,
-  ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalBody,
@@ -12,10 +10,11 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import useUserContext from "../useUserContext";
-import tClientBrowser from "../tClientBrowser";
+import trpc from "../trpc";
 import { toast } from "react-toastify";
 import moment from 'moment';
 import UserProfile from '../shared/UserProfile';
+import ModalWithBackdrop from './ModalWithBackdrop';
 
 export function consentFormAccepted(user: UserProfile) {
   return user.consentFormAcceptedAt && moment(user.consentFormAcceptedAt) >= moment("20111031", "YYYYMMDD");
@@ -31,7 +30,7 @@ export default function ConsentModal() {
 
     // TODO: Handle error display globally. Redact server-side errors.
     try {
-      await tClientBrowser.me.updateProfile.mutate(updatedUser);
+      await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
     } catch (e) {
       toast.error((e as Error).message);
@@ -42,8 +41,7 @@ export default function ConsentModal() {
 
   return <>
     {/* onClose returns undefined to prevent user from closing the modal without entering name. */}
-    <Modal isOpen={!declined} onClose={() => undefined}>
-      <ModalOverlay backdropFilter='blur(8px)' />
+    <ModalWithBackdrop isOpen={!declined} onClose={() => undefined}>
       <ModalContent>
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
         <ModalBody>
@@ -60,10 +58,9 @@ export default function ConsentModal() {
           <Button variant='brand' onClick={handleSubmit}>已阅，同意使用本网站</Button>
         </ModalFooter>
       </ModalContent>
-    </Modal>
+    </ModalWithBackdrop>
 
-    <Modal isOpen={declined} onClose={() => undefined}>
-      <ModalOverlay backdropFilter='blur(8px)' />
+    <ModalWithBackdrop isOpen={declined} onClose={() => undefined}>
       <ModalContent>
         <ModalHeader> </ModalHeader>
         <ModalBody>
@@ -73,6 +70,6 @@ export default function ConsentModal() {
           <Button onClick={() => setDeclined(false)}>重新选择</Button>
         </ModalFooter>
       </ModalContent>
-    </Modal>
+    </ModalWithBackdrop>
   </>;
 }

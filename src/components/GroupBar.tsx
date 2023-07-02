@@ -9,7 +9,7 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import tClientBrowser from "../tClientBrowser";
+import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import { toast } from "react-toastify";
 import Link from 'next/link';
@@ -30,7 +30,7 @@ export default function GroupBar(props: {
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await tClientBrowser.myGroups.generateMeetingLink.mutate({ groupId: groupId });
+      const link = await trpc.myGroups.generateMeetingLink.mutate({ groupId: groupId });
       window.location.href = link;
     } catch (e) {
       toast.error((e as Error).message, { autoClose: false });

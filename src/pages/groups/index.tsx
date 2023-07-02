@@ -8,10 +8,10 @@ import {
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
-import tClientBrowser from "../../tClientBrowser";
+import trpc from "../../trpc";
 import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
-import tClientNext from "../../tClientNext";
+import trpcNext from "../../trpcNext";
 import GroupBar from 'components/GroupBar';
 
 type Option = {
@@ -22,7 +22,7 @@ const loadOptions = (
   inputValue: string,
   callback: (options: Option[]) => void
 ) => {
-  tClientBrowser.users.search.query({
+  trpc.users.search.query({
     query: inputValue,
   }).then(({ users }) => {
     callback(users.map(u => {
@@ -38,13 +38,13 @@ const Page: NextPageWithLayout = () => {
   const [selected, setSelected] = useState([] as {label: string, value: string}[]);
   const [isCreating, setCreating] = useState(false);
 
-  const { data, refetch } = tClientNext.groups.list.useQuery({
+  const { data, refetch } = trpcNext.groups.list.useQuery({
     userIds: selected.map(option => option.value),
   });
 
   const createGroup = async () => {
     setCreating(true);
-    tClientBrowser.groups.create.mutate({
+    trpc.groups.create.mutate({
       userIds: selected.map(option => option.value),
     })
       .then(() => {

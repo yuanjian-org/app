@@ -7,11 +7,11 @@ import {
 import React from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
-import tClientNext from "../../tClientNext";
+import trpcNext from "../../trpcNext";
 import GroupBar from 'components/GroupBar';
 
 const Page: NextPageWithLayout = () => {
-  const { data } = tClientNext.groups.listAndCountTranscripts.useQuery({ userIds: [] });
+  const { data } = trpcNext.groups.listAndCountTranscripts.useQuery({ userIds: [] });
 
   return (
     <Box paddingTop={'80px'}>

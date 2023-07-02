@@ -1,12 +1,15 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import { authUser } from "../auth";
-import { zRoles } from "../../shared/Role";
+import { isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
 import { presentPublicUser } from "../../shared/PublicUser";
-import UserProfile from "shared/UserProfile";
+import { authUser, invalidateLocalUserCache } from "../auth";
+import pinyin from 'tiny-pinyin';
+import { zUserProfile } from "shared/UserProfile";
+import { isValidChineseName } from "../../shared/utils/string";
+import invariant from 'tiny-invariant';
 
 const users = router({
   create: procedure
@@ -45,9 +48,7 @@ const users = router({
 
   search: procedure
   .use(authUser('UserManager'))
-  .input(z.object({
-    query: z.string(),
-  }))
+  .input(z.object({ query: z.string() }))
   .query(async ({ input }) => {
     const users = await User.findAll({
       where: {
@@ -64,12 +65,53 @@ const users = router({
     }
   }),
 
-  listUsers: procedure
+  list: procedure
   .use(authUser('UserManager'))
-  .query(async () => {
-    return {
-      users: await User.findAll({ order: [['pinyin', 'ASC']] }) as UserProfile[]
-    };
+  .output(z.array(zUserProfile))
+  .query(async () => await User.findAll({ order: [['pinyin', 'ASC']] })),
+
+  /**
+   * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
+   * TODO: add a warning message in profile change UI.
+   */
+  update: procedure
+  .use(authUser())
+  .input(zUserProfile)
+  .mutation(async ({ input, ctx }) => {
+    const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
+    const isSelf = ctx.user.id === input.id;
+    // Anyone can update user profiles, but non-UserManagers can only update their own.
+    if (!isUserManager && !isSelf) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+      })
+    }
+    if (!isValidChineseName(input.name)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Invalid user name.'
+      })
+    }
+    invariant(input.name);
+
+    const user = await User.findByPk(input.id);
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: `User ${input.id} not found.`
+      });
+    }
+
+    user.update({
+      name: input.name,
+      pinyin: pinyin.convertToPinyin(input.name),
+      consentFormAcceptedAt: input.consentFormAcceptedAt,
+      ...isUserManager ? {
+        roles: input.roles,
+        email: input.email,
+      } : {},
+    });
+    invalidateLocalUserCache();
   })
 });
 

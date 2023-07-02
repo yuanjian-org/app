@@ -9,19 +9,43 @@ import {
   Th,
   Td,
   Heading,
-  Badge,
+  ModalHeader,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  Text,
+  VStack,
+  FormErrorMessage,
+  Stack,
+  Checkbox,
 } from '@chakra-ui/react'
-import React from 'react'
+import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
-import tClientNext from "../tClientNext";
+import trpcNext from "../trpcNext";
+import UserProfile from 'shared/UserProfile';
+import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import { isValidChineseName } from 'shared/utils/string';
+import { AllRoles, isPermitted } from 'shared/Role';
+import trpc from 'trpc';
 
 const Page: NextPageWithLayout = () => {
-  const { data, refetch } = tClientNext.users.listUsers.useQuery();
+  const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
+  const [UserBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
+  
+  const closeUserEditor = () => {
+    setUserBeingEdited(null);
+    refetch();
+  };
 
   return (
     <Box paddingTop={'80px'}>
-      <Heading as="h1" mb="3">用户管理</Heading>
+      {UserBeingEdited && <UserEditor user={UserBeingEdited} onClose={closeUserEditor}/>}
+      <Text marginY={4}>点击用户进行编辑：</Text>
       {!data && <Button isLoading={true} loadingText={'读取用户信息中...'} disabled={true} />}
       <SimpleGrid
         mb='20px'
@@ -35,16 +59,14 @@ const Page: NextPageWithLayout = () => {
                 <Th>电子邮箱</Th>
                 <Th>姓名</Th>
                 <Th>角色</Th>
-                <Th>ID</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {data.users.map((item) => (
-                <Tr key={item.id}>
-                  <Td>{item.email}</Td>
-                  <Td>{item.name}</Td>
-                  <Td>{item.roles}</Td>
-                  <Td>{item.id}</Td>
+              {data.map((u: any) => (
+                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
+                  <Td>{u.email}</Td>
+                  <Td>{u.name}</Td>
+                  <Td>{u.roles.join(', ')}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -58,3 +80,63 @@ const Page: NextPageWithLayout = () => {
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
+
+function UserEditor(props: { 
+  user: UserProfile,
+  onClose: () => void,
+}) {
+  const u = props.user;
+  const [email, setEmail] = useState(u.email);
+  const [name, setName] = useState(u.name || '');
+  const [roles, setRoles] = useState(u.roles);
+  const validName = isValidChineseName(name);
+
+  const setRole = (e: any) => {
+    if (e.target.checked) setRoles([...roles, e.target.value]);
+    else setRoles(roles.filter(r => r !== e.target.value));
+  }
+
+  const save = async () => {
+    const su = structuredClone(props.user);
+    su.email = email;
+    su.name = name;
+    su.roles = roles;
+    await trpc.users.update.mutate(su);
+    props.onClose();
+  }
+
+  return <ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalContent>
+      <ModalHeader>{u.name}</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <VStack spacing={6}>
+          <FormControl>
+            <FormLabel>ID</FormLabel>
+            <Text fontFamily='monospace'>{u.id}</Text>
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Email</FormLabel>
+            <Input type='email' value={email} onChange={e => setEmail(e.target.value)} />
+          </FormControl>
+          <FormControl isRequired isInvalid={!validName}>
+            <FormLabel>姓名</FormLabel>
+            <Input value={name} onChange={e => setName(e.target.value)} />
+            <FormErrorMessage>中文姓名无效。</FormErrorMessage>
+          </FormControl>
+          <FormControl>
+            <FormLabel>角色</FormLabel>
+            <Stack>
+              {AllRoles.map(role => (
+                <Checkbox key={role} value={role} isChecked={isPermitted(roles, role)} onChange={setRole}>{role}</Checkbox>  
+              ))}
+            </Stack>
+          </FormControl>
+        </VStack>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant='brand' onClick={save}>保存</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}

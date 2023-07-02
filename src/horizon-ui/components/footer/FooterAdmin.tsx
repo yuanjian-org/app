@@ -13,13 +13,6 @@ export default function Footer() {
 				base: 'column',
 				xl: 'row'
 			}}
-			position='fixed'
-			left={{
-				base: '0',
-				xl: '290px' // 290px is the box size when the sidebar is visible
-			}}
-			bottom='0'
-			right='0'
 			alignItems={{
 				base: 'center',
 				xl: 'start'

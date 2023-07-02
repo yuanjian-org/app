@@ -17,7 +17,7 @@ import {
 import { GuardProvider } from '@authing/guard-react18';
 import { UserContext } from "./useUserContext";
 import browserEnv from "./browserEnv";
-import tClientBrowser from "./tClientBrowser";
+import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import guard from './guard';
@@ -36,7 +36,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
         // For some reason ts cries when `as UserProfile` is absent
-        setUser(await tClientBrowser.me.profile.query() as UserProfile);
+        setUser(await trpc.me.profile.query() as UserProfile);
       } else {
         location.href = '/login';
       }
@@ -123,12 +123,11 @@ export default function AppLayout(props: DashboardLayoutProps) {
                   />
                 </Box>
               </Portal>
-
               <Box
                 mx='auto'
                 p={{ base: '20px', md: '30px' }}
                 pe='20px'
-                minH='100vh'
+                minH={{ base: 'calc( 100vh - 100px )', xl: 'calc( 100vh - 55px )' }}
                 pt='50px'
               >
                 {children}

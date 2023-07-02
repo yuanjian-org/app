@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { GetGroupResponse } from 'api/routes/groups';
 import moment from 'moment';
 import GroupBar from 'components/GroupBar';
-import tClientNext from 'tClientNext';
+import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/utils/string';
 
@@ -40,7 +40,7 @@ export default Page;
 function GroupCard() {
   const router = useRouter();
   const id = typeof router.query.groupId === 'string' ? router.query.groupId : 'nonexistence';
-  const { data: group } : { data: GetGroupResponse | undefined } = tClientNext.groups.get.useQuery({ id });
+  const { data: group } : { data: GetGroupResponse | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (
     <Card>
