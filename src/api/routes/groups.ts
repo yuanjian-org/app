@@ -11,8 +11,7 @@ import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
 import _ from "lodash";
 import { isPermitted } from "../../shared/Role";
-import { useId } from "react";
-import sequelizeInstance from "api/database/sequelizeInstance";
+import sequelizeInstance from "../database/sequelizeInstance";
 
 const zGroup = z.object({
   id: z.string(),
@@ -83,24 +82,17 @@ const groups = router({
     checkMinimalGroupSize(newUserIds);
 
     await sequelizeInstance.transaction(async (t) => {
-      const oldUserIds = (await GroupUser.findAll({
+      const oldGUs = await GroupUser.findAll({
         where: { groupId: input.id }
-      })).map(gu => gu.userId);
+      });
 
-      for (const oldId of oldUserIds) {
-        if (!newUserIds.includes(oldId)) {
-          const oldGU = await GroupUser.findOne({ where: {
-            groupId: input.id,
-            userId: oldId,
-          } });
-          if (!oldGU) throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: `分组用户 <${input.id}, ${oldId}> 不存在`
-          });
+      for (const oldGU of oldGUs) {
+        if (!newUserIds.includes(oldGU.userId)) {
           await oldGU.destroy({ transaction: t });
         }
       }
 
+      const oldUserIds = oldGUs.map(gu => gu.userId);
       for (const newId of newUserIds) {
         if (!oldUserIds.includes(newId)) {
           await GroupUser.create({

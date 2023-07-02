@@ -1,13 +1,15 @@
 import { ArrayElement } from "./utils/ArrayElement";
 import z from "zod";
 
-export const Roles = [
+export const AllRoles = [
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
+  // You may ask, why not simply use displayName as the role key?
+  // Well, we're just too lazy to type Chinese characters everywhere.
   displayName: string,
   actions: string,
   dataAccess: string,
@@ -29,11 +31,11 @@ export const RoleProfiles: { [key: string]: {
   },
 }
 
-type Role = ArrayElement<typeof Roles>;
+type Role = ArrayElement<typeof AllRoles>;
 
 export default Role;
 
-export const zRoles = z.array(z.enum(Roles));
+export const zRoles = z.array(z.enum(AllRoles));
 
 /**
  * @param permitted When absent, this function always returns true.

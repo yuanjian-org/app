@@ -31,7 +31,7 @@ import trpcNext from "../trpcNext";
 import UserProfile from 'shared/UserProfile';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName } from 'shared/utils/string';
-import Role, { Roles, RoleProfiles, isPermitted } from 'shared/Role';
+import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';
 import { MdEditNote } from 'react-icons/md';
@@ -138,7 +138,7 @@ function UserEditor(props: {
           <FormControl>
             <FormLabel>角色</FormLabel>
             <Stack>
-              {Roles.map(role => (
+              {AllRoles.map(role => (
                 <Checkbox key={role} value={role} isChecked={isPermitted(roles, role)} onChange={setRole}>
                   {RoleProfiles[role].displayName}（{role}）
                 </Checkbox>
