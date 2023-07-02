@@ -19,7 +19,6 @@ import { UserContext } from "./useUserContext";
 import browserEnv from "./browserEnv";
 import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
-import { toast } from 'react-toastify';
 import guard from './guard';
 import UserProfile from './shared/UserProfile'
 

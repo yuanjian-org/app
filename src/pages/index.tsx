@@ -20,7 +20,6 @@ import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
 import trpcNext from "../trpcNext";
-import { toast } from "react-toastify";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';

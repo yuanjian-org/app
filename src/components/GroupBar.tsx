@@ -11,7 +11,6 @@ import {
 import React, { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
-import { toast } from "react-toastify";
 import Link from 'next/link';
 import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
