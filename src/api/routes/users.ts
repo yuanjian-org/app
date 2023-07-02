@@ -4,13 +4,12 @@ import Role, { isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
-import { presentPublicUser } from "../../shared/PublicUser";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
 import { isValidChineseName } from "../../shared/utils/string";
 import invariant from 'tiny-invariant';
-import { email, emailUserManagersIgnoreError } from "api/sendgrid";
+import { email } from "api/sendgrid";
 
 const users = router({
   create: procedure
@@ -50,8 +49,9 @@ const users = router({
   search: procedure
   .use(authUser('UserManager'))
   .input(z.object({ query: z.string() }))
+  .output(z.array(zUserProfile))
   .query(async ({ input }) => {
-    const users = await User.findAll({
+    return await User.findAll({
       where: {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${input.query}%` } },
@@ -60,10 +60,6 @@ const users = router({
         ],
       }
     });
-
-    return {
-      users: users.map(presentPublicUser),
-    }
   }),
 
   list: procedure
