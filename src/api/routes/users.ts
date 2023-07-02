@@ -84,12 +84,13 @@ const users = router({
     if (!isUserManager && !isSelf) {
       throw new TRPCError({
         code: 'FORBIDDEN',
+        message: '用户权限不足。'
       })
     }
     if (!isValidChineseName(input.name)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Invalid user name.'
+        message: '中文姓名无效。'
       })
     }
     invariant(input.name);
@@ -98,7 +99,7 @@ const users = router({
     if (!user) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: `User ${input.id} not found.`
+        message: `用户ID不存在：${input.id}`
       });
     }
 

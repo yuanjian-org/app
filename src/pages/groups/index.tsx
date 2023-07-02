@@ -44,14 +44,14 @@ const Page: NextPageWithLayout = () => {
 
   const createGroup = async () => {
     setCreating(true);
-    trpc.groups.create.mutate({
-      userIds: selected.map(option => option.value),
-    })
-      .then(() => {
-        refetch();
-      })
-      .catch((e) => toast.error(e.message, { autoClose: false }))
-      .finally(() => setCreating(false));
+    try {
+      await trpc.groups.create.mutate({
+        userIds: selected.map(option => option.value),
+      });
+      refetch();
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
