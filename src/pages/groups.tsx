@@ -66,7 +66,7 @@ function UserSelector(props: {
     loadOptions={LoadOptions}
     isMulti
     value={props.value}
-    noOptionsMessage={() => "可以用姓名拼音、中文或email检索"}
+    noOptionsMessage={() => "可以用姓名拼音、中文或email搜索"}
     loadingMessage={() => "正在检索..."}
     placeholder={props.placeholder ?? '按用户过滤，或为创建分组输入两名或以上用户'}
     // @ts-ignore
@@ -145,12 +145,13 @@ function GroupEditor(props: {
   const [name, setName] = useState<string>(props.group.name || '');
   const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
   const [users, setUsers] = useState(props.group.users);
-  const [saving, setSaving] = useState(false);
+  const [working, setWorking] = useState(false);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
 
   const isValid = users.length + selected.length > 1;
 
   const save = async () => {
-    setSaving(true);
+    setWorking(true);
     try {
       const group = structuredClone(props.group);
       group.name = name
@@ -158,52 +159,83 @@ function GroupEditor(props: {
         ...selected.map(s => ({ id: s.value, name: null })),
         ...users,
       ];
-
       await trpc.groups.update.mutate(group);
       props.onClose();
     } finally {
-      setSaving(false);
+      setWorking(false);
     }
   }
 
-  return <ModalWithBackdrop isOpen onClose={props.onClose}>
+  const destroy = async () => {
+    setConfirmingDeletion(false);
+    try {
+      await trpc.groups.destroy.mutate({ groupId: props.group.id });
+    } finally {
+      props.onClose();
+    }
+  };
+
+  return <>
+    <ModalWithBackdrop isOpen onClose={props.onClose}>
+      <ModalContent>
+        <ModalHeader>编辑分组</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={6}>
+            <FormControl>
+              <FormLabel>分组名称</FormLabel>
+              <Input value={name} onChange={(e) => setName(e.target.value)}
+                placeholder={`若为空则显示默认名称：“${formatGroupName(null, props.group.users.length)}”`} />
+            </FormControl>
+            <FormControl>
+              <FormLabel>添加用户</FormLabel>
+              <UserSelector value={selected} placeholder='搜索用户...' onChange={setSelected} />
+            </FormControl>
+            <FormControl>
+              <FormLabel>移除用户</FormLabel>
+            </FormControl>
+            {users.map(u =>
+              <FormControl key={u.id} cursor='pointer'
+                onClick={() => setUsers(users.filter(user => user.id !== u.id))}
+              >
+                <Flex>
+                <UserChip user={u} />
+                <Spacer />
+                <Icon as={MdPersonRemove} boxSize={6}/>
+                </Flex>
+              </FormControl>
+            )}
+            <FormControl isInvalid={!isValid}>
+              <FormErrorMessage>需要至少两名用户。</FormErrorMessage>
+            </FormControl>
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={() => setConfirmingDeletion(true)}>删除分组</Button>
+          <Spacer />
+          <Button variant='brand' isLoading={working} isDisabled={!isValid} onClick={save}>保存</Button>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+    {confirmingDeletion && <ConfirmingDeletionModal onConfirm={destroy} onCancel={() => setConfirmingDeletion(false)}/>}
+  </>;
+}
+
+function ConfirmingDeletionModal(props: {
+  onConfirm: () => void,
+  onCancel: () => void
+}) {
+  return <ModalWithBackdrop isOpen onClose={props.onCancel}>
     <ModalContent>
-      <ModalHeader>编辑分组</ModalHeader>
+      <ModalHeader />
       <ModalCloseButton />
       <ModalBody>
-        <VStack spacing={6}>
-          <FormControl>
-            <FormLabel>分组名称</FormLabel>
-            <Input value={name} onChange={(e) => setName(e.target.value)}
-              placeholder={`若为空则显示默认名称：“${formatGroupName(null, props.group.users.length)}”`} />
-          </FormControl>
-          <FormControl>
-            <FormLabel>添加用户</FormLabel>
-            <UserSelector value={selected} placeholder='' onChange={setSelected} />
-          </FormControl>
-          <FormControl>
-            <FormLabel>移除用户</FormLabel>
-          </FormControl>
-          {users.map(u =>
-            <FormControl key={u.id} cursor='pointer'
-              onClick={() => setUsers(users.filter(user => user.id !== u.id))}
-            >
-              <Flex>
-              <UserChip user={u} />
-              <Spacer />
-              <Icon as={MdPersonRemove} boxSize={6}/>
-              </Flex>
-            </FormControl>
-          )}
-          <FormControl isInvalid={!isValid}>
-            <FormErrorMessage>需要至少两名用户。</FormErrorMessage>
-          </FormControl>
-        </VStack>
+        确定删除此分组？删除后，相关数据仍保留在数据库中，直到管理员手工清除。
       </ModalBody>
       <ModalFooter>
-        <Button>删除分组</Button>
+        <Button onClick={props.onCancel}>取消</Button>
         <Spacer />
-        <Button variant='brand' isLoading={saving} isDisabled={!isValid} onClick={save}>保存</Button>
+        <Button color='red' onClick={props.onConfirm}>确定删除</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

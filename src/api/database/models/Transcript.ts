@@ -5,7 +5,8 @@ import {
   BelongsTo,
   Model,
   PrimaryKey,
-  HasMany
+  HasMany,
+  BeforeDestroy
 } from "sequelize-typescript";
 import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
@@ -36,6 +37,15 @@ class Transcript extends Model {
 
   @HasMany(() => Summary)
   summaries: Summary[];
+
+  @BeforeDestroy
+  static async cascadeDestroy(tr: Transcript, options: any) {
+    const promises = (await Summary.findAll({
+      where: { transcriptId: tr.transcriptId }
+    })).map(async s => { await s.destroy(options); });
+
+    Promise.all(promises);
+  }
 }
 
 export default Transcript;
