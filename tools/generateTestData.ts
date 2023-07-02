@@ -8,7 +8,7 @@ import invariant from "tiny-invariant";
 import _ from "lodash";
 import { upsertSummary } from "../src/api/routes/summaries";
 import moment from "moment";
-import Role from "../src/shared/Role";
+import Role, { AllRoles } from "../src/shared/Role";
 
 type TestUser = {
   name: string,
@@ -41,16 +41,27 @@ async function main() {
   const _ = sequelizeInstance;
   
   await migrateRoles();
+  const mgrs = await getUserManagers();
+  await upgradeUsers(mgrs);
   await generateUsers();
-  await generateGroupsAndSummaries();
+  await generateGroupsAndSummaries(mgrs);
 }
 
 async function migrateRoles()
 {
-  console.log('Migration roles column');
+  console.log('Migrating roles column');
   await sequelizeInstance.query(`update users set roles = '[]' where roles = '["VISITOR"]'`);
   await sequelizeInstance.query(`update users set roles = '["UserManager"]' where roles = '["ADMIN"]'`);
   await sequelizeInstance.query(`update users set roles = '["SummaryEngineer"]' where roles = '["AIResearcher"]'`);
+}
+
+async function upgradeUsers(users: User[]) {
+  console.log('Upgrading user roles for', users.map(u => u.email));
+  for (const user of users) {
+    await user.update({
+      roles: [...AllRoles],
+    });
+  }
 }
 
 async function generateUsers() {
@@ -66,18 +77,17 @@ async function generateUsers() {
   }
 }
 
-async function generateGroupsAndSummaries() {
-  const admins = await getAdmins();
-  await generateGroup([...admins, mentees[0]]);
-  await generateGroup([...admins, mentees[1]]);
-  await generateGroup([...admins, mentees[0], mentees[1]]);
-  await generateGroup([...admins, mentors[0]]);
+async function generateGroupsAndSummaries(include: User[]) {
+  await generateGroup([...include, mentees[0]]);
+  await generateGroup([...include, mentees[1]]);
+  await generateGroup([...include, mentees[0], mentees[1]]);
+  await generateGroup([...include, mentors[0]]);
 
-  await generateSummaries([...admins, mentees[1]]);
-  await generateSummaries([...admins, mentors[0]]);
+  await generateSummaries([...include, mentees[1]]);
+  await generateSummaries([...include, mentors[0]]);
 }
 
-async function getAdmins() {
+async function getUserManagers() {
   // Use type system to capture typos.
   const role : Role = "UserManager";
   return await User.findAll({ where: {
