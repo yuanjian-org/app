@@ -18,5 +18,5 @@ export const zRoles = z.array(z.enum(AllRoles));
 export function isPermitted(userRoles : Role[], permitted?: Role | Role[]) {
   if (permitted === undefined) return true;
   if (typeof permitted === 'string') return userRoles.includes(permitted);
-  return userRoles.some(ur => permitted.some(pr => pr === ur));
+  return userRoles.some(r => permitted.includes(r));
 }

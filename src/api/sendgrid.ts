@@ -21,7 +21,7 @@ export async function email(templateId: string, personalization: Personalization
     }
   }
 
-  console.log(`Sending mail via SendGrid: ${JSON.stringify(ps, null, 2)}`);
+  console.log(`Sending mail via SendGrid, template id: ${templateId}, personalizations: ${JSON.stringify(ps, null, 2)}`);
   await mail.send({
     personalizations: ps,
     from: apiEnv.SENDGRID_FROM_EMAIL,
@@ -29,20 +29,24 @@ export async function email(templateId: string, personalization: Personalization
   });
 }
 
-export async function emailUserManagersIgnoreError(subject: string, content: string, baseUrl: string) {
+export async function emailIgnoreError(templateId: string, personalization: PersonalizationData[], baseUrl: string) {
   try {
-    // Use type system to capture typos.
-    const role : Role = "UserManager";
-    const admins = await User.findAll({
-      where: {
-        roles: { [Op.contains]: [role] },
-      }
-    });
-    await email('d-99d2ae84fe654400b448f8028238d461', [{
-      to: admins.map(({ name, email }) => ({ name, email })),
-      dynamicTemplateData: { subject, content },
-    }], baseUrl);
+    await email(templateId, personalization, baseUrl);
   } catch (e) {
-    console.log(`Error ignored in emailAdminsIgnoreError("${subject}", "${content}")`, e);
+    console.log(`emailIgnoreError() ignored error:`, e);
   }
+}
+
+export async function emailUserManagersIgnoreError(subject: string, content: string, baseUrl: string) {
+  // Use type system to capture typos.
+  const role : Role = "UserManager";
+  const admins = await User.findAll({
+    where: {
+      roles: { [Op.contains]: [role] },
+    }
+  });
+  await emailIgnoreError('d-99d2ae84fe654400b448f8028238d461', [{
+    to: admins.map(({ name, email }) => ({ name, email })),
+    dynamicTemplateData: { subject, content },
+  }], baseUrl);
 }
