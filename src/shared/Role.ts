@@ -3,6 +3,7 @@ import z from "zod";
 
 export const AllRoles = [
   'UserManager',
+  'GroupManager',
   'SummaryEngineer',
 ] as const;
 
