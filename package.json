@@ -1,5 +1,5 @@
 {
-  "name": "yuanjian-growth-landform",
+  "name": "yuanjian-app",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -36,6 +36,7 @@
     "lru-cache": "^10.0.0",
     "moment": "^2.29.4",
     "next": "^13.4.1-canary.2",
+    "next-absolute-url": "^1.2.2",
     "pg": "^8.9.0",
     "qs": "^6.11.1",
     "react": "^18.2.0",
@@ -69,7 +70,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src src-api src-shared",
+    "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "predeploy": "yarn run build",
     "deploy": "gh-pages -d build"
   },

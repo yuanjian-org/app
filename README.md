@@ -15,7 +15,7 @@ A Web app that supports mentorship programs at [Visionary Education Foundation (
 1. Visit this local server from broswer. Log in with your email.
 1. Run `yarn gen-test-data` to populate test data.
 
-## Frameworks used
+## Frameworks Used
 
 - Frontend and backend powered by [Next.js](https://nextjs.org/).
 - End-to-end type safety with `typescript`, [`trpc`](https://trpc.io/), `zod` and `class-validator`.
@@ -49,16 +49,11 @@ graph TD;
     src/api-->|ok|src/shared;
 ```
 
-## HOW-TOs
+## FAQ
 
-To create a new page, copy `src/pages/users.tsx` and update `src/routes.tsx`.
+Q: What to do if I got `'TS_NODE_PROJECT' is not recognized as an internal or external command ERROR`?
 
-To create a new API, copy `src/api/routes/users.ts` and update `src/api/apiRouter.ts`.
-
-To create a new database table, copy `src/api/database/models/User.ts`, update `src/api/database/sequelizeInstance.ts`, and run `yarn sync-database`.
-
-To create a unit test, copy `src/shared/utils/string.test.ts`, and run `yarn test`. 
-* For users experiencing 'TS_NODE_PROJECT' is not recognized as an internal or external commend ERROR, add `"cross-env"` in front of  `"TS_NODE_PROJECT..."` at "test" in package.json
+A: Add `cross-env` in front of  `TS_NODE_PROJECT...` in package.json
 
 <div class="vercel banner">
 <a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">

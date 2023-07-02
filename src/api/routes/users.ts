@@ -5,12 +5,12 @@ import { zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
-import IUser from "../../shared/IUser";
 import { presentPublicUser } from "../../shared/PublicUser";
+import UserProfile from "shared/UserProfile";
 
 const users = router({
   create: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .input(z.object({
     name: z.string().min(1, "required"),
     pinyin: z.string(),
@@ -44,7 +44,7 @@ const users = router({
   }),
 
   search: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .input(z.object({
     query: z.string(),
   }))
@@ -65,10 +65,10 @@ const users = router({
   }),
 
   listUsers: procedure
-  .use(authUser('ADMIN'))
+  .use(authUser('UserManager'))
   .query(async () => {
     return {
-      users: await User.findAll({ order: [['pinyin', 'ASC']] }) as IUser[]
+      users: await User.findAll({ order: [['pinyin', 'ASC']] }) as UserProfile[]
     };
   })
 });

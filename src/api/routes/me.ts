@@ -1,15 +1,15 @@
 import { procedure, router } from "../trpc";
-import { z } from "zod";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import IUser from "../../shared/IUser";
 import pinyin from 'tiny-pinyin';
+import { zUserProfile } from "shared/UserProfile";
+import { TRPCError } from "@trpc/server";
 
 const me = router({
+
   profile: procedure
   .use(authUser())
-  .query(async ({ ctx }) => {
-    return ctx.user as IUser;
-  }),
+  .output(zUserProfile)
+  .query(async ({ ctx }) => ctx.user),
 
   /**
    * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
@@ -17,13 +17,21 @@ const me = router({
    */
   updateProfile: procedure
   .use(authUser())
-  .input(
-    // A Chinese name must have at least 2 characters.
-    z.object({ name: z.string().min(2, "required") })
-  ).mutation(async ({ input, ctx }) => {
-  await ctx.user.update({
+  .input(zUserProfile)
+  .mutation(async ({ input, ctx }) => {
+    // Chinese names have at least two characters.
+    if (!input.name || input.name.length < 2) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Invalid user name'
+      })
+    }
+
+    await ctx.user.update({
       name: input.name,
       pinyin: pinyin.convertToPinyin(input.name),
+      consentFormAcceptedAt: input.consentFormAcceptedAt,
+      // We don't allow users to update their own roles
     });
     invalidateLocalUserCache();
   })

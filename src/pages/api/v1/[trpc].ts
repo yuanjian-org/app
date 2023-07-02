@@ -7,7 +7,7 @@ import { apiRouter } from "../../../api/apiRouter";
 export default trpcNext.createNextApiHandler({
   router: apiRouter,
   createContext,
-  onError({ error, type, path, input, ctx, req }) {
+  onError({ error }) {
     console.error('Error:', error);
     if (error.code === 'INTERNAL_SERVER_ERROR') {
       // TODO: send to bug reporting

@@ -27,19 +27,19 @@ export const navbarItems: NavbarItem[] = [
     name: '用户管理',
     path: '/users',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
-    role: 'ADMIN',
+    role: 'UserManager',
   },
   {
     name: '分组管理',
     path: '/groups',
     icon: <Icon as={MdGroups} width='20px' height='20px' color='inherit' />,
-    role: 'ADMIN',
+    role: 'UserManager',
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
     icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
-    role: 'AIResearcher',
+    role: 'SummaryEngineer',
   },
 ]
 

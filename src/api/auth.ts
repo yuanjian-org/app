@@ -18,7 +18,10 @@ const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 export const authIntegration = () => middleware(async ({ ctx, next }) => {
   if (!ctx.authToken) throw noToken();
   if (ctx.authToken !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidToken();
-  return await next({ ctx: {} });
+  return await next({ ctx: { 
+    host: ctx.host,
+    protocol: ctx.protocol,
+  } });
 });
 
 /**
@@ -30,7 +33,11 @@ export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, 
   const user = await userCache.fetch(ctx.authToken);
   invariant(user);
   if (!isPermitted(user.roles, permitted)) throw forbidden();
-  return await next({ ctx: { user: user } });
+  return await next({ ctx: { 
+    user: user, 
+    host: ctx.host,
+    protocol: ctx.protocol,
+  } });
 });
 
 /**
@@ -103,7 +110,7 @@ async function findOrCreateUser(clientId: string, email: string): Promise<User> 
     if (user) return user;
 
     // Set the first user as an admin
-    const roles: Role[] = (await User.count()) == 0 ? ['ADMIN'] : [];
+    const roles: Role[] = (await User.count()) == 0 ? ['UserManager'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
     emailAdminsIgnoreError("新用户注册", `新用户 ${email} 注册。`);
     try {

@@ -17,15 +17,15 @@ import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
 
 // @ts-ignore TODO: fix me.
-export default function GroupBanner(props: {
+export default function GroupBar(props: {
   group: any,
   showSelf?: boolean,
   showJoinButton?: boolean,
-  countTranscripts?: boolean,
+  showTranscriptCount?: boolean,
   showTranscriptLink?: boolean,   // Effective ony when countTranscripts is true
 }) {
   const [user] = useUserContext();
-  const transcriptCount = props.countTranscripts ? props.group.transcripts.length : 0;
+  const transcriptCount = (props.group.transcripts || []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
@@ -51,9 +51,9 @@ export default function GroupBanner(props: {
             onClick={async () => launchMeeting(props.group.id)}>加入</Button>
         </Center>
       }
-      <UserList currentUserId={props.showSelf ? user.id : undefined} users={props.group.users} />
+      <UserList currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
       <Center>
-        {props.countTranscripts &&
+        {props.showTranscriptCount &&
           (props.showTranscriptLink ? 
             <Link href={`/groups/${props.group.id}`}>
               {transcriptCount ?
