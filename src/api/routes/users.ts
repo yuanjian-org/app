@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import { isPermitted, zRoles } from "../../shared/Role";
+import Role, { isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
@@ -10,6 +10,7 @@ import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
 import { isValidChineseName } from "../../shared/utils/string";
 import invariant from 'tiny-invariant';
+import { email, emailUserManagersIgnoreError } from "api/sendgrid";
 
 const users = router({
   create: procedure
@@ -99,11 +100,13 @@ const users = router({
     if (!user) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: `用户ID不存在：${input.id}`
+        message: `用户ID不存在：${input.id}`,
       });
     }
 
-    user.update({
+    if (!isSelf) await emailUserAboutNewRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+
+    await user.update({
       name: input.name,
       pinyin: pinyin.convertToPinyin(input.name),
       consentFormAcceptedAt: input.consentFormAcceptedAt,
@@ -117,3 +120,20 @@ const users = router({
 });
 
 export default users;
+
+async function emailUserAboutNewRoles(userManagerName: string, user: User, newRoles: Role[], baseUrl: string) {
+  const added = newRoles.filter(r => !user.roles.includes(r));
+  for (const r of added) {
+    await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
+      to: [{ 
+        name: user.name, 
+        email: user.email 
+      }],
+      dynamicTemplateData: {
+        'role': r,
+        'manager': userManagerName,
+      }
+    }], baseUrl);
+  }
+}
+
