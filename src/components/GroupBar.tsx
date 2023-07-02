@@ -53,7 +53,7 @@ export default function GroupBar(props: {
       {props.showJoinButton && <Box />}
 
       {/* row 1 col 2 */}
-      <Text as='b' color='grey' fontSize='sm'>{formatGroupName(props.group.name, props.group.users.length)}</Text>
+      <Text color='grey' fontSize='sm'>{formatGroupName(props.group.name, props.group.users.length)}</Text>
       
       {/* row 2 col 1 */}
       {props.showJoinButton &&

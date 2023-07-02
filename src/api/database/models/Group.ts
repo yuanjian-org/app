@@ -4,6 +4,7 @@ import type {
 } from "sequelize";
 import {
   AllowNull,
+  BeforeDestroy,
   BelongsToMany,
   Column, HasMany,
   Table,
@@ -38,6 +39,23 @@ class Group extends ParanoidModel<
 
   @HasMany(() => Transcript)
   transcripts: NonAttribute<Transcript[]>;
+
+  @BeforeDestroy
+  static async cascadeDestroy(group: Group, options: any) {
+    const promises1 = (await GroupUser.findAll({
+      where: { groupId: group.id }
+    })).map(async gu => { await gu.destroy(options); });
+
+    // For some reason the two Promise.all can't be moved together. Otherwise errors like
+    // "commit has been called on this transaction" would occur.
+    Promise.all(promises1);
+
+    const promises2 = (await Transcript.findAll({
+      where: { groupId: group.id }
+    })).map(async t => { await t.destroy(options); });
+
+    Promise.all(promises2);
+  }
 }
 
 export default Group;
