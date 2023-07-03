@@ -105,7 +105,7 @@ async function findOrCreateUser(clientId: string, email: string, baseUrl: string
     // Set the first user as an admin
     const roles: Role[] = (await User.count()) == 0 ? ['UserManager'] : [];
     console.log(`Creating user ${email} roles ${roles} id ${clientId}`);
-    await emailUserManagersIgnoreError("新用户注册", `新用户 ${email} 注册。`, baseUrl);
+    await emailUserManagersIgnoreError("新用户注册", `${email} 注册新用户 。`, baseUrl);
     try {
       return await User.create({
         name: "",

@@ -22,7 +22,6 @@ import {
   Stack,
   Checkbox,
   Badge,
-  Icon,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -34,7 +33,7 @@ import { isValidChineseName, toPinyin } from 'shared/string';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';
-import { MdEditNote } from 'react-icons/md';
+import { EditIcon } from '@chakra-ui/icons';
 
 const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
@@ -73,7 +72,7 @@ const Page: NextPageWithLayout = () => {
                   <Td>{u.name} {user.id === u.id ? <Badge variant='brand' marginLeft={2}>本人</Badge> : <></>}</Td>
                   <Td>{toPinyin(u.name ?? '')}</Td>
                   <Td>{u.roles.map((r: Role) => RoleProfiles[r].displayName).join('、')}</Td>
-                  <Td><Icon as={MdEditNote} /></Td>
+                  <Td><EditIcon /></Td>
                 </Tr>
               ))}
             </Tbody>

@@ -4,8 +4,6 @@ import {
   StackDivider,
   WrapItem,
   Wrap,
-  HStack,
-  SimpleGrid,
   ModalHeader,
   ModalContent,
   ModalBody,
@@ -30,8 +28,9 @@ import trpcNext from "../trpcNext";
 import GroupBar, { UserChip } from 'components/GroupBar';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { MdEditNote, MdPersonRemove } from 'react-icons/md';
+import { MdPersonRemove } from 'react-icons/md';
 import { formatGroupName } from 'shared/formatNames';
+import { EditIcon } from '@chakra-ui/icons';
 
 function UserSelector(props: {
   value: any,
@@ -124,7 +123,7 @@ const Page: NextPageWithLayout = () => {
           >
             <GroupBar group={group} showSelf />
             <Spacer />
-            <Center><Icon as={MdEditNote} marginX={4} /></Center>
+            <Center><EditIcon marginX={4} /></Center>
           </Flex>
         )}
       </VStack>
