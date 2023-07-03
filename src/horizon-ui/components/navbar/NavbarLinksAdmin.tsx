@@ -15,7 +15,7 @@ import { SidebarResponsive } from 'horizon-ui/components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
 import React from 'react';
 // Assets
-import { navbarItems } from 'navbar';
+import { sidebarItems } from 'sidebar';
 import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from '../../../useUserContext';
 import Link from 'next/link';
@@ -49,7 +49,7 @@ export default function HeaderLinks(props: { secondary: boolean }) {
 			borderRadius='30px'
 			boxShadow={shadow}
     >
-			<SidebarResponsive routes={navbarItems} />
+			<SidebarResponsive routes={sidebarItems} />
 			<Menu>
 				<MenuButton p='0px'>
 					<Avatar

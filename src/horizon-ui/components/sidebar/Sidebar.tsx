@@ -23,11 +23,11 @@ import { Scrollbars } from 'react-custom-scrollbars-2'
 
 // Assets
 import { IoMenuOutline } from 'react-icons/io5'
-import { isWindowAvailable } from 'navbar'
-import { NavbarItem } from 'navbar'
+import { isWindowAvailable } from 'sidebar'
+import { SidebarItem } from 'sidebar'
 
 interface SidebarResponsiveProps {
-  routes: NavbarItem[]
+  routes: SidebarItem[]
 }
 
 interface SidebarProps extends SidebarResponsiveProps {

@@ -7,11 +7,11 @@ import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
 import { SidebarContext } from 'horizon-ui/contexts/SidebarContext'
 import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
 import {
-  getActiveNavbar,
-  getActiveNavbarText,
+  getActiveSidebar,
+  getActiveSidebarText,
   getActiveRoute,
-  navbarItems,
-} from 'navbar'
+  sidebarItems,
+} from 'sidebar'
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
 import { GuardProvider } from '@authing/guard-react18';
@@ -94,7 +94,7 @@ export default function AppLayout(props: DashboardLayoutProps) {
               setToggleSidebar
             }}
           >
-            <Sidebar routes={navbarItems} display='none' {...rest} />
+            <Sidebar routes={sidebarItems} display='none' {...rest} />
             <Box
               float='right'
               minHeight='100vh'
@@ -114,9 +114,9 @@ export default function AppLayout(props: DashboardLayoutProps) {
                   <Navbar
                     onOpen={onOpen}
                     logoText={'Horizon UI Dashboard PRO'}
-                    brandText={getActiveRoute(navbarItems)}
-                    secondary={getActiveNavbar(navbarItems)}
-                    message={getActiveNavbarText(navbarItems)}
+                    brandText={getActiveRoute(sidebarItems)}
+                    secondary={getActiveSidebar(sidebarItems)}
+                    message={getActiveSidebarText(sidebarItems)}
                     fixed={fixed}
                     {...rest}
                   />

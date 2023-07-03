@@ -8,7 +8,7 @@ import {
 } from 'react-icons/md'
 import Role from "./shared/Role";
 
-export interface NavbarItem {
+export interface SidebarItem {
   name: string,
   // @ts-ignore
   icon: ReactComponentElement | string,
@@ -17,7 +17,7 @@ export interface NavbarItem {
   role?: Role,
 }
 
-export const navbarItems: NavbarItem[] = [
+export const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
     path: '/',
@@ -43,10 +43,10 @@ export const navbarItems: NavbarItem[] = [
   },
 ]
 
-// NextJS Requirement. TODO: This function is out of place
+// NextJS Requirement. TODO: This function is out of place and only used by Horizon UI.
 export const isWindowAvailable = () => typeof window !== "undefined";
 
-export const findCurrentRoute = (routes: NavbarItem[]) => {
+const findCurrentRoute = (routes: SidebarItem[]) => {
   const foundRoute = routes.find(
     (route) =>
       isWindowAvailable() &&
@@ -57,16 +57,16 @@ export const findCurrentRoute = (routes: NavbarItem[]) => {
   return foundRoute;
 };
 
-export const getActiveRoute = (routes: NavbarItem[]): string => {
+export const getActiveRoute = (routes: SidebarItem[]): string => {
   const route = findCurrentRoute(routes);
   return route?.name || "Default Brand Text";
 };
 
-export const getActiveNavbar = (routes: NavbarItem[]): boolean => {
+export const getActiveSidebar = (routes: SidebarItem[]): boolean => {
   const route = findCurrentRoute(routes);
   return route?.secondary ?? false;
 };
 
-export const getActiveNavbarText = (routes: NavbarItem[]): string | boolean => {
+export const getActiveSidebarText = (routes: SidebarItem[]): string | boolean => {
   return getActiveRoute(routes) || false;
 };

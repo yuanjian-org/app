@@ -2,7 +2,7 @@
 import { CacheProvider } from '@emotion/react'
 import createCache from '@emotion/cache'
 import rtl from 'stylis-plugin-rtl'
-import { isWindowAvailable } from 'navbar'
+import { isWindowAvailable } from 'sidebar'
 import { ExoticComponent, ReactElement, ReactNode, ReactPortal } from 'react'
 import { JsxElement } from 'typescript'
 // NB: A unique `key` is important for it to work!
