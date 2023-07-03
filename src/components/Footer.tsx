@@ -4,6 +4,9 @@ import { Center, Flex, Link, List, ListItem, Text, useColorModeValue } from '@ch
 import vercelBanner from '../../public/img/vercel-banner.svg';
 import Image from "next/image";
 
+// The minimal height of the blank space between body and footer.
+export const bodyFooterSpacing = 80;
+
 export default function Footer() {
 	const textColor = useColorModeValue('gray.400', 'white');
 	return (
@@ -20,6 +23,7 @@ export default function Footer() {
 			justifyContent='space-between'
 			paddingX={{ base: '30px', md: '50px' }}
 			paddingBottom='30px'
+      paddingTop={`${bodyFooterSpacing}px`}
     >
 			<Text
 				color={textColor}

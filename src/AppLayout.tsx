@@ -1,6 +1,6 @@
 // Chakra imports
 import { Portal, Box, useDisclosure } from '@chakra-ui/react'
-import Footer from 'components/Footer'
+import Footer, { bodyFooterSpacing } from 'components/Footer'
 // Layout components
 import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
 import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
@@ -123,11 +123,14 @@ export default function AppLayout(props: DashboardLayoutProps) {
                 </Box>
               </Portal>
               <Box
-                mx='auto'
-                p={{ base: '20px', md: '30px' }}
-                pe='20px'
-                minH={{ base: 'calc( 100vh - 100px )', xl: 'calc( 100vh - 55px )' }}
-                pt='50px'
+                marginX='auto'
+                padding={{ base: '20px', md: '30px' }}
+                paddingEnd='20px'
+                minHeight={{ 
+                  base: `calc( 100vh - 100px - ${bodyFooterSpacing}px )`, 
+                  xl: `calc( 100vh - 55px - ${bodyFooterSpacing}px )`,
+                }}
+                paddingTop='50px'
               >
                 {children}
               </Box>
