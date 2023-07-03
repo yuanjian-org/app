@@ -82,6 +82,7 @@ const groups = router({
     const newUserIds = input.users.map(u => u.id);
     checkMinimalGroupSize(newUserIds);
 
+    const addUserIds: string[] = [];
     await sequelizeInstance.transaction(async (t) => {
       const group = await DbGroup.findByPk(input.id, {
         include: GroupUser
@@ -109,7 +110,7 @@ const groups = router({
 
       // Add new users
       const oldUserIds = group.groupUsers.map(gu => gu.userId);
-      const addUserIds = newUserIds.filter(uid => !oldUserIds.includes(uid));    
+      addUserIds.push(...newUserIds.filter(uid => !oldUserIds.includes(uid)));
       const promises = addUserIds.map(async uid => {
         // upsert because the matching row may have been previously deleted.
         await GroupUser.upsert({
@@ -119,9 +120,10 @@ const groups = router({
         }, { transaction: t })
       });
       await Promise.all(promises);
-
-      await emailNewUsersOfGroupIgnoreError(ctx, group.id, addUserIds);
     });
+
+    // new users are persisted only after the transaction is committed (not read-your-write yet).
+    await emailNewUsersOfGroupIgnoreError(ctx, input.id, addUserIds);
   }),
 
   destroy: procedure
@@ -247,7 +249,7 @@ export async function createGroup(userIds: string[]) {
 
 async function emailNewUsersOfGroupIgnoreError(ctx: any, groupId: string, userIds: string[]) {
   try {
-    emailNewUsersOfGroup(ctx, groupId, userIds);
+    await emailNewUsersOfGroup(ctx, groupId, userIds);
   } catch (e) {
     console.log('Error ignored by emailNewUsersOfGroupIgnoreError()', e);
   }
@@ -290,7 +292,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
     }
   });
 
-  email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);
+  await email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);
 }
 
 function checkMinimalGroupSize(userIds: string[]) {
