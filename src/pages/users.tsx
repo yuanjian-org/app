@@ -30,7 +30,7 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpcNext from "../trpcNext";
 import UserProfile from 'shared/UserProfile';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName } from 'shared/utils/string';
+import { isValidChineseName } from 'shared/string';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';

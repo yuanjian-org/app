@@ -21,7 +21,7 @@ import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName } from '../shared/utils/string';
+import { isValidChineseName } from '../shared/string';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();

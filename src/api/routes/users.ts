@@ -7,9 +7,10 @@ import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
-import { isValidChineseName } from "../../shared/utils/string";
+import { isValidChineseName } from "../../shared/string";
 import invariant from 'tiny-invariant';
 import { email } from "api/sendgrid";
+import { formatUserName } from "shared/formatNames";
 
 const users = router({
   create: procedure
@@ -131,7 +132,7 @@ async function emailUserAboutNewRoles(userManagerName: string, user: User, newRo
         'roleDisplayName': rp.displayName,
         'roleActions': rp.actions,
         'roleDataAccess': rp.dataAccess,
-        'name': user.name,
+        'name': formatUserName(user.name, 'friendly'),
         'manager': userManagerName,
       }
     }], baseUrl);

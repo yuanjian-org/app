@@ -23,7 +23,7 @@ import moment from 'moment';
 import GroupBar from 'components/GroupBar';
 import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { capitalizeFirstChar } from 'shared/utils/string';
+import { capitalizeFirstChar } from 'shared/string';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();

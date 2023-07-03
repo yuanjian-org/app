@@ -31,7 +31,7 @@ import GroupBar, { UserChip } from 'components/GroupBar';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdEditNote, MdPersonRemove } from 'react-icons/md';
-import formatGroupName from 'shared/formatGroupName';
+import { formatGroupName } from 'shared/formatNames';
 
 function UserSelector(props: {
   value: any,

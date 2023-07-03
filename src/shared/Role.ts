@@ -1,4 +1,4 @@
-import { ArrayElement } from "./utils/ArrayElement";
+import { ArrayElement } from "./ArrayElement";
 import z from "zod";
 
 export const AllRoles = [

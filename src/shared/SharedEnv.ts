@@ -1,5 +1,5 @@
 import { IsNotEmpty } from "class-validator";
-import { stringOrEmpty } from "./utils/string";
+import { stringOrEmpty } from "./string";
 
 // See .env.template to see what are these env variables and how to configure them.
 class SharedEnv {
