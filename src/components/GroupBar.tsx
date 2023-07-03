@@ -18,7 +18,7 @@ import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import useUserContext from 'useUserContext';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
-import formatGroupName from 'formatGroupName';
+import formatGroupName from 'shared/formatGroupName';
 
 // @ts-ignore TODO: fix me.
 export default function GroupBar(props: {

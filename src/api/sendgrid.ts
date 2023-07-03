@@ -9,6 +9,24 @@ mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
 /**
  * Send email using SendGrid API. See https://docs.sendgrid.com/api-reference/mail-send/mail-send for parameter details.
+ * Example personalizations:
+ * 
+    [{
+      to: [
+        {
+          name: 'foo',
+          email: 'bar',
+        },
+        {
+          name: 'foo2',
+          email: 'bar2',
+        },
+      ],
+      dynamicTemplateData: { 
+        key: value, 
+        key2: value2,
+      }
+    }, ...]
  */
 export async function email(templateId: string, personalization: PersonalizationData[], baseUrl: string) {
   // Always attach `base_url` as dynamic template data

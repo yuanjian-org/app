@@ -46,15 +46,11 @@ class Group extends ParanoidModel<
       where: { groupId: group.id }
     })).map(async gu => { await gu.destroy(options); });
 
-    // For some reason the two Promise.all can't be moved together. Otherwise errors like
-    // "commit has been called on this transaction" would occur.
-    Promise.all(promises1);
-
     const promises2 = (await Transcript.findAll({
       where: { groupId: group.id }
     })).map(async t => { await t.destroy(options); });
 
-    Promise.all(promises2);
+    await Promise.all([...promises1, ...promises2]);
   }
 }
 
