@@ -9,6 +9,12 @@ export const bodyFooterSpacing = 80;
 
 export default function Footer() {
   const textColor = useColorModeValue('gray.400', 'white');
+  const FooterItem = (props: any) =>
+    <ListItem marginEnd={{
+      base: '20px',
+      md: '44px'
+    }}>{props.children}</ListItem>;
+
   return (
     <Flex
       zIndex='3'
@@ -38,33 +44,21 @@ export default function Footer() {
         </Text>
       </Text>
       <List display='flex'>
-        <ListItem
-          marginEnd={{
-            base: '20px',
-            md: '44px'
-          }}>
-          <Link fontWeight='500' color={textColor} target='_blank' href='http://app.yuanjian.org'>
+        <FooterItem>
+          <Link fontWeight='500' color={textColor} isExternal href='mailto:hi@yuanjian.org'>
+            联系我们
+          </Link>
+        </FooterItem>
+        <FooterItem>
+          <Link fontWeight='500' color={textColor} isExternal href='http://app.yuanjian.org'>
             资源库
           </Link>
-        </ListItem>
-        <ListItem
-          marginEnd={{
-            base: '20px',
-            md: '44px'
-          }}>
-          <Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org'>
-            官网
-          </Link>
-        </ListItem>
-        <ListItem
-          marginEnd={{
-            base: '20px',
-            md: '44px'
-          }}>
-          <Link fontWeight='500' color={textColor} target='_blank' href='http://yuanjian.org/blog'>
+        </FooterItem>
+        <FooterItem>
+          <Link fontWeight='500' color={textColor} isExternal href='http://yuanjian.org/blog'>
             博客
           </Link>
-        </ListItem>
+        </FooterItem>
         <Center opacity='50%'>
           <ListItem>
               <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
