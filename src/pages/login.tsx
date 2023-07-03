@@ -33,7 +33,7 @@ export default function Login() {
       <div id="authing-guard-container"></div>
       <Center>
         <Container as="footer">
-          <Link target='_blank' href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+          <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
             <Image 
             src={vercelBanner} 
             alt="Vercel Banner"  

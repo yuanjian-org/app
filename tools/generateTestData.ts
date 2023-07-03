@@ -1,7 +1,6 @@
 import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
-import pinyin from 'tiny-pinyin';
 import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroups } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
@@ -9,6 +8,7 @@ import _ from "lodash";
 import { upsertSummary } from "../src/api/routes/summaries";
 import moment from "moment";
 import Role, { AllRoles } from "../src/shared/Role";
+import { toPinyin } from "../src/shared/string";
 
 type TestUser = {
   name: string,
@@ -73,7 +73,7 @@ async function generateUsers() {
     console.log('Creating user', [u.name]);
     u.id = (await User.upsert({
       name: u.name,
-      pinyin: pinyin.convertToPinyin(u.name),
+      pinyin: toPinyin(u.name),
       email: u.email,
       clientId: u.email,
       roles: [],
