@@ -44,9 +44,18 @@ export async function email(templateId: string, personalization: Personalization
     personalizations: ps,
     templateId,
     from: {
-      email: apiEnv.SENDGRID_FROM_EMAIL,
-      name: '远见',
+      email: 'app@yuanjian.org',
+      name: '远见教育平台',
     },
+    replyTo: {
+      email: 'hi@yuanjian.org',
+      name: '远见团队',
+    },
+    trackingSettings: {
+      openTracking: {
+        enable: true,
+      },
+    }
   });
 }
 

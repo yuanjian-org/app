@@ -32,8 +32,6 @@ class ApiEnv extends SharedEnv {
   TM_ADMIN_USER_ID: string = stringOrEmpty(process.env.TM_ADMIN_USER_ID);
   @IsOptional()
   SENDGRID_API_KEY: string = stringOrEmpty(process.env.SENDGRID_API_KEY);
-  @IsOptional()
-  SENDGRID_FROM_EMAIL: string = stringOrEmpty(process.env.SENDGRID_FROM_EMAIL);
 }
 
 const apiEnv = new ApiEnv();
