@@ -18,23 +18,24 @@ export default function Footer() {
 				xl: 'start'
 			}}
 			justifyContent='space-between'
-			px={{ base: '30px', md: '50px' }}
-			pb='30px'>
+			paddingX={{ base: '30px', md: '50px' }}
+			paddingBottom='30px'
+    >
 			<Text
 				color={textColor}
 				textAlign={{
 					base: 'center',
 					xl: 'start'
 				}}
-				mb={{ base: '20px', xl: '0px' }}>
+				paddingBottom={{ base: '20px', xl: '0px' }}>
 				{' '}
-				<Text as='span' fontWeight='500' ms='4px'>
+				<Text as='span' fontWeight='500' marginStart='4px'>
 					&copy; {new Date().getFullYear()} 远见教育基金会
 				</Text>
 			</Text>
 			<List display='flex'>
 				<ListItem
-					me={{
+					marginEnd={{
 						base: '20px',
 						md: '44px'
 					}}>
@@ -43,7 +44,7 @@ export default function Footer() {
 					</Link>
 				</ListItem>
 				<ListItem
-					me={{
+					marginEnd={{
 						base: '20px',
 						md: '44px'
 					}}>
@@ -62,9 +63,9 @@ export default function Footer() {
 				</ListItem>
         <Center opacity='50%'>
           <ListItem>
-              <a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+              <Link target='_blank' href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
                 <Image src={vercelBanner} alt="Vercel Banner" height="22" />
-              </a>
+              </Link>
           </ListItem>
         </Center>
 			</List>

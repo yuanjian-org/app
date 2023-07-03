@@ -1,4 +1,4 @@
-import { Center, Container, Flex } from '@chakra-ui/react'
+import { Center, Container, Flex, Link } from '@chakra-ui/react'
 import Image from "next/image";
 import { useEffect } from 'react';
 import '@authing/guard-react18/dist/esm/guard.min.css';
@@ -33,13 +33,13 @@ export default function Login() {
       <div id="authing-guard-container"></div>
       <Center>
         <Container as="footer">
-          <a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+          <Link target='_blank' href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
             <Image 
             src={vercelBanner} 
             alt="Vercel Banner"  
             height="30"
             />
-          </a>
+          </Link>
         </Container>
       </Center>
     </Flex>
