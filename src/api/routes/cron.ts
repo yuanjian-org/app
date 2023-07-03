@@ -30,7 +30,7 @@ const cron = router({
         const res = await axios.get(transcript.url);
         console.log(`Uploading ${id}...`);
         try {
-          await axios.post(`${baseUrl}summaries.write`, {
+          await axios.post(`${baseUrl}/summaries.write`, {
             transcriptId: id,
             summaryKey: '原始文字（仅试验期用）',
             summary: res.data,
