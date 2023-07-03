@@ -71,7 +71,7 @@ const Page: NextPageWithLayout = () => {
                 <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
                   <Td>{u.email}</Td>
                   <Td>{u.name} {user.id === u.id ? <Badge variant='brand' marginLeft={2}>本人</Badge> : <></>}</Td>
-                  <Td>{toPinyin(u.name)}</Td>
+                  <Td>{toPinyin(u.name ?? '')}</Td>
                   <Td>{u.roles.map((r: Role) => RoleProfiles[r].displayName).join('、')}</Td>
                   <Td><Icon as={MdEditNote} /></Td>
                 </Tr>

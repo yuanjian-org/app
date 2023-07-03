@@ -32,8 +32,8 @@ export type GetTranscriptResponse = z.TypeOf<typeof zGetTranscriptResponse>;
 const transcripts = router({
 
   /**
-   * @returns An array of transcript Ids and download URLs of all the transcripts created since the last 31 days
-   * (max date range allowed by TencentMeeting). Note that the URLs are valid only for a short period of time.
+   * @returns An array of transcript Ids and download URLs of all the transcripts created in the last 31 days
+   * (31 is the max date range allowed by TencentMeeting). Note that the URLs are valid only for a short period of time.
    * 
    * Example:
    * 
@@ -65,9 +65,10 @@ const transcripts = router({
     // Only interested in records that are ready to download.
     .filter(meeting => meeting.state === 3)
     .map(async meeting => {
+      // Only interested in records that refers to valid groups.
       const groupId = meeting.subject;
       if (!await groupExists(groupId)) {
-        console.log(`Group doesn't exist. Igore: ${groupId}`)
+        console.log(`Group doesn't exist. Igore: "${groupId}"`)
         return;
       }
 

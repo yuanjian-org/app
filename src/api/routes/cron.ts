@@ -16,7 +16,9 @@ const cron = router({
    * @returns An Id array of uploaded transcripts.
    */
   uploadRawTranscripts: procedure
-  .output(z.array(z.string()))
+  .output(z.object({
+    uploadedTranscripts: z.array(z.string()),
+  }))
   .query(async ({ ctx }) => {
     console.log('Retriving transcript URLs...');
     const headers = { 'Authorization': `Bearer ${apiEnv.INTEGRATION_AUTH_TOKEN}` };
@@ -26,25 +28,19 @@ const cron = router({
     const promises = res.data.result.data.map(async (transcript: any) => {
       const id = transcript.transcriptId;
       console.log(`Downloading ${id}...`);
-      try {
-        const res = await axios.get(transcript.url);
-        console.log(`Uploading ${id}...`);
-        try {
-          await axios.post(`${baseUrl}/summaries.write`, {
-            transcriptId: id,
-            summaryKey: '原始文字（仅试验期用）',
-            summary: res.data,
-          }, { headers });
-        } catch (e) {
-          console.error(`Error uploading ${id}. Ignored:`, (e as Error).message);
-        }
-      } catch (e) {
-        console.error(`Error downloading ${id}. Ignored:`, (e as Error).message);
-      }
+      const res = await axios.get(transcript.url);
+      console.log(`Uploading ${id}...`);
+      await axios.post(`${baseUrl}/summaries.write`, {
+        transcriptId: id,
+        summaryKey: '原始文字（仅试验期用）',
+        summary: res.data,
+      }, { headers });
     });
     await Promise.all(promises);
 
-    return res.data.result.data.map((t: any) => t.transcriptId);
+    return {
+      uploadedTranscripts: res.data.result.data.map((t: any) => t.transcriptId),
+    }
   }),
 
   /**
