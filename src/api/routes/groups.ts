@@ -87,7 +87,7 @@ const groups = router({
       const group = await DbGroup.findByPk(input.id, {
         include: GroupUser
       });
-      if (!group) throw notFound(input.id);
+      if (!group) throw notFoundError(input.id);
 
       // Delete old users
       var deleted = false;
@@ -131,7 +131,7 @@ const groups = router({
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
     const group = await DbGroup.findByPk(input.groupId);
-    if (!group) throw notFound(input.groupId);
+    if (!group) throw notFoundError(input.groupId);
 
     // Need a transaction for cascading destroys
     await sequelizeInstance.transaction(async (t) => {
@@ -175,9 +175,9 @@ const groups = router({
         }]
       }]
     });
-    if (!g) throw notFound(input.id);
+    if (!g) throw notFoundError(input.id);
     if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: `用户没有权限访问分组 ${input.id}` });
+      throw noPermissionError(input.id);
     }
     return g;
   }),
@@ -187,9 +187,11 @@ export default groups;
 
 export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = '分组已经存在。';
 
-function notFound(groupId: string) {
-  return new TRPCError({ code: 'NOT_FOUND', message: `分组 ${groupId} 不存在。` });
-}
+export const notFoundError = (groupId: string) =>
+  new TRPCError({ code: 'NOT_FOUND', message: `分组 ${groupId} 不存在。` });
+
+export const noPermissionError = (groupId: string) =>
+new TRPCError({ code: 'FORBIDDEN', message: `没有权限访问分组 ${groupId}。` });
 
 /**
  * @returns groups that contain all the given users.
@@ -264,7 +266,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
       attributes: ['id', 'name', 'email'],
     }]
   });
-  if (!group) throw notFound(groupId);
+  if (!group) throw notFoundError(groupId);
 
   const formatNames = (names: string[]) =>
     names.slice(0, 3).join('、') + (names.length > 3 ? `等${nzh.cn.encodeS(names.length)}人` : '');

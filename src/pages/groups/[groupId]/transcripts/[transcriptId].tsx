@@ -50,7 +50,7 @@ function TranscriptCard() {
 function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBar group={props.transcript.group} />
+      <GroupBar group={props.transcript.group} showJoinButton />
       <Summaries transcript={props.transcript} />
     </Stack>
   );

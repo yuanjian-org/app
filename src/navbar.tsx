@@ -24,6 +24,12 @@ export const navbarItems: NavbarItem[] = [
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
   },
   {
+    name: '摘要研发',
+    path: '/groups/lab',
+    icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
+    role: 'SummaryEngineer',
+  },
+  {
     name: '用户管理',
     path: '/users',
     icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
@@ -34,12 +40,6 @@ export const navbarItems: NavbarItem[] = [
     path: '/groups',
     icon: <Icon as={MdGroups} width='20px' height='20px' color='inherit' />,
     role: 'GroupManager',
-  },
-  {
-    name: '摘要研发',
-    path: '/groups/lab',
-    icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
-    role: 'SummaryEngineer',
   },
 ]
 

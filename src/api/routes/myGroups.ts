@@ -1,3 +1,6 @@
+/**
+ * TODO: move myGroups.list to gorups.listMine, myGroups.generateMeetingLink to meetings.generateLinkForGroup.
+ */
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
@@ -8,16 +11,7 @@ import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
-import { zGroupCountingTranscripts } from "./groups";
-
-function isSubset<T>(superset: Set<T>, subset: Set<T>): boolean {
-  for (const item of subset) {
-    if (!superset.has(item)) {
-      return false;
-    }
-  }
-  return true;
-}
+import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
 
 export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
@@ -27,15 +21,16 @@ export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
 
 const myGroups = router({
 
-  /**
-   * TODO: Only allow group users to call this function.
-   */
   generateMeetingLink: procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
-  .mutation(async ({ input }) => {
-    const group = await Group.findByPk(input.groupId);
-    invariant(group);
+  .mutation(async ({ ctx, input }) => {
+    const group = await Group.findByPk(input.groupId, {
+      include: [GroupUser]
+    });
+    if (!group) throw notFoundError(input.groupId);
+    // Only meeting members have access to this method.
+    if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) throw noPermissionError(input.groupId);
 
     if (group.meetingLink && !meetingLinkIsExpired(group.updatedAt)) {
       return group.meetingLink;
