@@ -67,7 +67,7 @@ export default function Footer() {
         </ListItem>
         <Center opacity='50%'>
           <ListItem>
-              <Link target='_blank' href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
+              <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
                 <Image src={vercelBanner} alt="Vercel Banner" height="22" />
               </Link>
           </ListItem>

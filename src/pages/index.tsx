@@ -10,6 +10,7 @@ import {
   FormLabel,
   Input,
   FormControl,
+  Link,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
@@ -94,7 +95,8 @@ function Meetings() {
     && groups.length == 0
     && !isLoading
     && <Text align='center'>
-        会议将在管理员设置后可见
+        会议将在管理员设置后可见。请确保腾讯会议已安装。
+        <Link color='teal' isExternal href='https://meeting.tencent.com/download/'>点击此处下载</Link>。
         </Text>}
     
     <VStack divider={<StackDivider />} align='left' spacing='6'>

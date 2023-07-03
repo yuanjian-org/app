@@ -11,3 +11,7 @@ export function capitalizeFirstChar(str : string) {
 export function isValidChineseName(s: string | null): boolean {
   return !!s && s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
 }
+
+export function toPinyin(s: string) {
+  return pinyin.convertToPinyin(s, /*separator=*/ '', /*lowerCase=*/ true);
+}

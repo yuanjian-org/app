@@ -5,9 +5,8 @@ import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import pinyin from 'tiny-pinyin';
 import { zUserProfile } from "shared/UserProfile";
-import { isValidChineseName } from "../../shared/string";
+import { isValidChineseName, toPinyin } from "../../shared/string";
 import invariant from 'tiny-invariant';
 import { email } from "api/sendgrid";
 import { formatUserName } from "shared/formatNames";
@@ -106,7 +105,7 @@ const users = router({
 
     await user.update({
       name: input.name,
-      pinyin: pinyin.convertToPinyin(input.name),
+      pinyin: toPinyin(input.name),
       consentFormAcceptedAt: input.consentFormAcceptedAt,
       ...isUserManager ? {
         roles: input.roles,
