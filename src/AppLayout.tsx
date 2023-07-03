@@ -1,6 +1,6 @@
 // Chakra imports
 import { Portal, Box, useDisclosure } from '@chakra-ui/react'
-import Footer from 'horizon-ui/components/footer/FooterAdmin'
+import Footer from 'components/Footer'
 // Layout components
 import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
 import Sidebar from 'horizon-ui/components/sidebar/Sidebar'

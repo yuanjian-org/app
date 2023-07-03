@@ -1,7 +1,7 @@
 /*eslint-disable*/
 
 import { Center, Flex, Link, List, ListItem, Text, useColorModeValue } from '@chakra-ui/react';
-import vercelBanner from '../../../../public/img/vercel-banner.svg';
+import vercelBanner from '../../public/img/vercel-banner.svg';
 import Image from "next/image";
 
 export default function Footer() {
