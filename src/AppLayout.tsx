@@ -27,10 +27,6 @@ interface AppLayoutProps extends PropsWithChildren {
 }
 
 export default function AppLayout(props: AppLayoutProps) {
-  useEffect(() => {
-    window.document.documentElement.dir = 'ltr'
-  });
-
   return (
     <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
       redirectUri={typeof window !== 'undefined' ? (location.origin + '/callback') : ''}
