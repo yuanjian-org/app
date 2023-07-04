@@ -64,6 +64,7 @@ export default function GroupBar(props: {
         <Center>
           <Button
             boxShadow="md"
+            borderRadius="16px"
             leftIcon={<MdVideocam />}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
             onClick={async () => launchMeeting(props.group.id)}

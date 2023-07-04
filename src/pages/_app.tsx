@@ -1,7 +1,7 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import { AppProps } from 'next/app'
 import React from 'react'
-import theme from 'horizon-ui/theme/theme'
+import theme from '../theme'
 import Head from 'next/head'
 import trpcNext from "../trpcNext";
 import { NextPageWithLayout } from "../NextPageWithLayout";

@@ -8,7 +8,7 @@ import Image from "next/image";
 export const bodyFooterSpacing = 80;
 
 export default function Footer() {
-  const textColor = useColorModeValue('gray.400', 'white');
+  const color = 'gray.400';
   const FooterItem = (props: any) =>
     <ListItem marginEnd={{
       base: '20px',
@@ -32,7 +32,7 @@ export default function Footer() {
       paddingTop={`${bodyFooterSpacing}px`}
     >
       <Text
-        color={textColor}
+        color={color}
         textAlign={{
           base: 'center',
           xl: 'start'
@@ -45,17 +45,17 @@ export default function Footer() {
       </Text>
       <List display='flex'>
         <FooterItem>
-          <Link fontWeight='500' color={textColor} isExternal href='mailto:hi@yuanjian.org'>
+          <Link fontWeight='500' color={color} isExternal href='mailto:hi@yuanjian.org'>
             联系我们
           </Link>
         </FooterItem>
         <FooterItem>
-          <Link fontWeight='500' color={textColor} isExternal href='http://app.yuanjian.org'>
+          <Link fontWeight='500' color={color} isExternal href='http://app.yuanjian.org'>
             资源库
           </Link>
         </FooterItem>
         <FooterItem>
-          <Link fontWeight='500' color={textColor} isExternal href='http://yuanjian.org/blog'>
+          <Link fontWeight='500' color={color} isExternal href='http://yuanjian.org/blog'>
             博客
           </Link>
         </FooterItem>

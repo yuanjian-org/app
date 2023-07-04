@@ -34,6 +34,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';
 import { EditIcon } from '@chakra-ui/icons';
+import Loader from 'components/Loader';
 
 const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
@@ -48,7 +49,7 @@ const Page: NextPageWithLayout = () => {
   return (
     <Box paddingTop={'80px'}>
       {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
-      {!data && <Button isLoading={true} loadingText={'读取用户信息中...'} disabled={true} />}
+      {!data && <Loader />}
       <SimpleGrid
         mb='20px'
         columns={1}
