@@ -22,13 +22,15 @@ import useUserContext from 'useUserContext';
 const UserProfile: NextPageWithLayout = () => {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
-  const [show, setShow] = useState(false);
+  const [loaded, setLoaded] = useState(true);
 
   useEffect(() => {
     setName(user.name || '')
   }, [user]);
 
   const handleSubmit = async () => {
+    setLoaded(false);
+
     if (name) {
       const updatedUser = structuredClone(user);
       updatedUser.name = name;
@@ -36,8 +38,11 @@ const UserProfile: NextPageWithLayout = () => {
       // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
+        toast.success("个人信息已保存", {
+          position: toast.POSITION.TOP_CENTER
+        })
         setUser(updatedUser);
-        setShow(!show);
+        setLoaded(true);
       } catch(e) {
         toast.error((e as Error).message);
       }
@@ -64,10 +69,10 @@ const UserProfile: NextPageWithLayout = () => {
             中文全名
           </InputLeftAddon>
           <Input
-            backgroundColor={show ? 'white' : 'brandscheme'}
+            backgroundColor={loaded ? 'white' : 'brandscheme'}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            isReadOnly={!show}
+            isReadOnly={!loaded}
           />
           <InputRightAddon>
             <Icon as={EditIcon} color="gray.500" />
@@ -79,17 +84,18 @@ const UserProfile: NextPageWithLayout = () => {
             用户姓名不能为空
           </Alert>
         )}
-        {!show && <Button
-          onClick={() => setShow(!show)}
-          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          修改个人信息
-        </Button>}
-
-        {show && <Button
+        {loaded && <Button
           backgroundColor='orange'
           onClick={handleSubmit}
           fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
           保存
+        </Button>}
+      
+        {!loaded && <Button
+          backgroundColor="gray.500"
+          disabled
+          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
+          加载中
         </Button>}
       </Stack>
     </Box>
