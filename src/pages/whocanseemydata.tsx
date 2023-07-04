@@ -2,8 +2,6 @@ import {
   Box,
   Heading,
   Link,
-  VStack,
-  Stack,
   Text,
   Flex,
   Table,
@@ -33,9 +31,9 @@ const Page: NextPageWithLayout = () => {
           以及已授权数据访问的人员名单。这些信息会随时间变化而调整，恕不另行通知。欢迎您随时访问本网页，查阅最新信息。如有任何问题，请随时
           <Link isExternal href="mailto:hi@yuanjian.org">联系我们</Link>。
         </Text>
-        <Heading size="md">人员角色和名单</Heading>
+        <Heading size="md">角色和人员名单</Heading>
         {privileged ? <Privileged privileged={privileged} /> : <Loader />}
-        <Heading size="md">数据类型和权限</Heading>
+        <Heading size="md">数据访问权限</Heading>
         <DataTable />
     </Flex>
   </Box>
@@ -52,7 +50,7 @@ function DataTable() {
   return (
     <Table>
       <Thead>
-        <Tr><Th>数据类型</Th><Th>访问权限</Th></Tr>
+        <Tr><Th>数据</Th><Th>可以访问该数据的角色</Th></Tr>
       </Thead>
       <Tbody>
         <Tr>
@@ -68,7 +66,7 @@ function DataTable() {
           <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员（注：此类数据仅在网站内测期间搜集）</Td>
         </Tr>
         <Tr>
-          <Td>会议摘要</Td>
+          <Td>根据转录文字生成的摘要</Td>
           <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员</Td>
         </Tr>
       </Tbody>
