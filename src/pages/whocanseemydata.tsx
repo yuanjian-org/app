@@ -46,7 +46,7 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
 
-const dp = (r: Role) => <b>{RoleProfiles[r].displayName}</b>;
+const dp = (r: Role) => <>{RoleProfiles[r].displayName}</>;
 
 function DataTable() {
   return (
