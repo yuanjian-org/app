@@ -24,6 +24,7 @@ import GroupBar from 'components/GroupBar';
 import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/string';
+import Loader from 'components/Loader';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -41,7 +42,7 @@ function GroupCard() {
 
   return (<>
     <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
-    {group ? <GroupDetail group={group} /> : <Text align='center'>正在加载...</Text>}
+    {group ? <GroupDetail group={group} /> : <Loader />}
   </>);
 }
 

@@ -23,6 +23,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName } from '../shared/string';
+import Loader from 'components/Loader';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -85,11 +86,7 @@ function Meetings() {
 
   return (<>
     <PageBreadcrumb current='我的会议' parents={[]} />
-    {!groups
-    && isLoading
-    && <Text align='center'>
-        正在加载会议...
-    </Text>}
+    {isLoading && <Loader />}
     
     {groups
     && groups.length == 0

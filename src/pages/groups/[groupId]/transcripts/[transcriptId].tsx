@@ -43,7 +43,7 @@ function TranscriptCard() {
       { name: '我的会议', link: '/' },
       { name: '会议详情', link: `/groups/${router.query.groupId}` },
     ]} />
-    {transcript ? <TranscriptDetail transcript={transcript} /> : <Text align='center'>正在加载...</Text>}
+    {transcript ? <TranscriptDetail transcript={transcript} /> : <Loader />}
   </>);
 }
 
@@ -97,6 +97,7 @@ function Summaries(props: { transcript: GetTranscriptResponse }) {
 // the "navigator is not defined" issue.
 import "easymde/dist/easymde.min.css";
 import dynamic from "next/dynamic";
+import Loader from 'components/Loader';
 const SimpleMdeEditor = dynamic(
 	() => import("react-simplemde-editor"),
 	{ ssr: false }

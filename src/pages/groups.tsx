@@ -31,6 +31,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
 import { formatGroupName } from 'shared/formatNames';
 import { EditIcon } from '@chakra-ui/icons';
+import Loader from 'components/Loader';
 
 function UserSelector(props: {
   value: any,
@@ -127,7 +128,7 @@ const Page: NextPageWithLayout = () => {
           </Flex>
         )}
       </VStack>
-      {!data && <Button isLoading={true} loadingText={'载入组员信息中...'} disabled={true}/>}
+      {!data && <Loader />}
     </Box>
   )
 }
