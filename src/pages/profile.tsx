@@ -38,13 +38,12 @@ const UserProfile: NextPageWithLayout = () => {
       // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
-        toast.success("个人信息已保存", {
-          position: toast.POSITION.TOP_CENTER
-        })
+        toast.success("个人信息已保存")
         setUser(updatedUser);
         setLoaded(true);
       } catch(e) {
         toast.error((e as Error).message);
+        setLoaded(true);
       }
     }
   };
@@ -95,7 +94,7 @@ const UserProfile: NextPageWithLayout = () => {
           backgroundColor="gray.500"
           disabled
           fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          加载中
+          保存中
         </Button>}
       </Stack>
     </Box>
