@@ -6,6 +6,7 @@ import {
   AllowNull,
   BelongsToMany,
   Column,
+  Index,
   Table,
   Unique,
 } from "sequelize-typescript";
@@ -37,6 +38,10 @@ class User extends ParanoidModel<
   @Column(STRING)
   clientId: string;
 
+  @Index({
+    name: 'user-roles-index',
+    using: 'gin'
+  })
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
