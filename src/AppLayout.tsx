@@ -22,12 +22,25 @@ import { BeatLoader } from 'react-spinners';
 import guard from './guard';
 import UserProfile from './shared/UserProfile'
 
-interface DashboardLayoutProps extends PropsWithChildren {
+interface AppLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
 
+export default function AppLayout(props: AppLayoutProps) {
+  useEffect(() => {
+    window.document.documentElement.dir = 'ltr'
+  });
+
+  return (
+    <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
+      redirectUri={typeof window !== 'undefined' ? (location.origin + '/callback') : ''}
+    >
+      <Guarded>{() => <AppContent {...props} />}</Guarded>
+    </GuardProvider>
+  )
+}
+
 const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
-  // TODO: Use zod type
   const [user, setUser] = useState<UserProfile | null>(null);
   const userFetchedRef = useRef(false);
 
@@ -41,7 +54,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
       }
     };
 
-    // Avoid React calling fetchUser() twice which is expensive with several calls to authing.cn and our server.
+    // Avoid React calling fetchUser() twice which is expensive.
     // Reference: https://upmostly.com/tutorials/why-is-my-useeffect-hook-running-twice-in-react
     if (userFetchedRef.current) return;
     userFetchedRef.current = true;
@@ -49,7 +62,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
   }, []);
 
   if (!user) {
-    //'跳转中...' 
+    // Redirecting...
     return <BeatLoader
       color="rgba(54, 89, 214, 1)"
       cssOverride={{
@@ -66,81 +79,64 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
   </UserContext.Provider>
 };
 
-// Custom Chakra theme
-export default function AppLayout(props: DashboardLayoutProps) {
-  const { children, ...rest } = props
-  // states and functions
-  const [fixed] = useState(false)
-  const [toggleSidebar, setToggleSidebar] = useState(false)
+function AppContent(props: AppLayoutProps) {
+  const { children, ...rest } = props;
+  const [fixed] = useState(false);
+  const [toggleSidebar, setToggleSidebar] = useState(false);
   // functions for changing the states from components
-  const { onOpen } = useDisclosure()
+  const { onOpen } = useDisclosure();
 
-  useEffect(() => {
-    window.document.documentElement.dir = 'ltr'
-  });
-
-  return (
-    <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
-      redirectUri={
-        typeof window !== 'undefined' ? (location.origin + '/callback') : ''
-      }
+  return <Box>
+    <SidebarContext.Provider
+      value={{
+        toggleSidebar,
+        setToggleSidebar
+      }}
     >
-      <Guarded>
-
-        {(userInfo) => <Box>
-          <SidebarContext.Provider
-            value={{
-              toggleSidebar,
-              setToggleSidebar
-            }}
-          >
-            <Sidebar routes={sidebarItems} display='none' {...rest} />
-            <Box
-              float='right'
-              minHeight='100vh'
-              height='100%'
-              overflow='auto'
-              position='relative'
-              maxHeight='100%'
-              w={{ base: '100%', xl: 'calc( 100% - 290px )' }}
-              maxWidth={{ base: '100%', xl: 'calc( 100% - 290px )' }}
-              transition='all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1)'
-              transitionDuration='.2s, .2s, .35s'
-              transitionProperty='top, bottom, width'
-              transitionTimingFunction='linear, linear, ease'
-            >
-              <Portal>
-                <Box>
-                  <Navbar
-                    onOpen={onOpen}
-                    logoText={'Horizon UI Dashboard PRO'}
-                    brandText={getActiveRoute(sidebarItems)}
-                    secondary={getActiveSidebar(sidebarItems)}
-                    message={getActiveSidebarText(sidebarItems)}
-                    fixed={fixed}
-                    {...rest}
-                  />
-                </Box>
-              </Portal>
-              <Box
-                marginX='auto'
-                padding={{ base: '20px', md: '30px' }}
-                paddingEnd='20px'
-                minHeight={{ 
-                  base: `calc( 100vh - 100px - ${bodyFooterSpacing}px )`, 
-                  xl: `calc( 100vh - 55px - ${bodyFooterSpacing}px )`,
-                }}
-                paddingTop='50px'
-              >
-                {children}
-              </Box>
-              <Box>
-                <Footer />
-              </Box>
-            </Box>
-          </SidebarContext.Provider>
-        </Box>}
-      </Guarded>
-    </GuardProvider>
-  )
+      <Sidebar routes={sidebarItems} display='none' {...rest} />
+      <Box
+        float='right'
+        minHeight='100vh'
+        height='100%'
+        overflow='auto'
+        position='relative'
+        maxHeight='100%'
+        w={{ base: '100%', xl: 'calc( 100% - 290px )' }}
+        maxWidth={{ base: '100%', xl: 'calc( 100% - 290px )' }}
+        transition='all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1)'
+        transitionDuration='.2s, .2s, .35s'
+        transitionProperty='top, bottom, width'
+        transitionTimingFunction='linear, linear, ease'
+      >
+        <Portal>
+          <Box>
+            <Navbar
+              onOpen={onOpen}
+              logoText={'Horizon UI Dashboard PRO'}
+              brandText={getActiveRoute(sidebarItems)}
+              secondary={getActiveSidebar(sidebarItems)}
+              message={getActiveSidebarText(sidebarItems)}
+              fixed={fixed}
+              {...rest}
+            />
+          </Box>
+        </Portal>
+        <Box
+          marginX='auto'
+          padding={{ base: '20px', md: '30px' }}
+          paddingEnd='20px'
+          minHeight={{ 
+            base: `calc( 100vh - 100px - ${bodyFooterSpacing}px )`, 
+            xl: `calc( 100vh - 55px - ${bodyFooterSpacing}px )`,
+          }}
+          paddingTop='50px'
+        >
+          {children}
+        </Box>
+        <Box>
+          <Footer />
+        </Box>
+      </Box>
+    </SidebarContext.Provider>
+  </Box>;
 }
