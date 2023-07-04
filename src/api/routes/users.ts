@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import Role, { RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
+import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
@@ -113,7 +113,28 @@ const users = router({
       } : {},
     });
     invalidateLocalUserCache();
-  })
+  }),
+
+  /**
+   * List all privilaged users and their roles.
+   */
+  listPriviledged: procedure
+  .use(authUser())
+  .output(z.array(z.object({
+    name: z.string(),
+    roles: zRoles,
+  })))
+  .query(async () => {
+    return await User.findAll({ 
+      // TODO: Optimize with postgres `?|` operator
+      where: {
+        [Op.or]: AllRoles.map(r => ({
+          roles: { [Op.contains]: r }
+        })),
+      },
+      attributes: ['name', 'roles'],
+    });
+  }),
 });
 
 export default users;
@@ -130,7 +151,6 @@ async function emailUserAboutNewRoles(userManagerName: string, user: User, newRo
       dynamicTemplateData: {
         'roleDisplayName': rp.displayName,
         'roleActions': rp.actions,
-        'roleDataAccess': rp.dataAccess,
         'name': formatUserName(user.name, 'friendly'),
         'manager': userManagerName,
       }

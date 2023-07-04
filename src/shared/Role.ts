@@ -12,22 +12,18 @@ export const RoleProfiles: { [key: string]: {
   // Well, we're just too lazy to type Chinese characters everywhere.
   displayName: string,
   actions: string,
-  dataAccess: string,
 }} = {
   UserManager: {
     displayName: '用户管理员',
-    actions: '管理用户信息和角色',
-    dataAccess: '所有用户的email和角色',
+    actions: '管理用户信息和授权角色',
   },
   GroupManager: {
     displayName: '分组管理员',
-    actions: '管理分组',
-    dataAccess: '所有用户的email',
+    actions: '管理会议分组',
   },
   SummaryEngineer: {
     displayName: '摘要工程师',
     actions: '研发自动会议摘要功能',
-    dataAccess: '所有会议的转录文字、摘要，以及用户对摘要的反馈和手工修改',
   },
 }
 

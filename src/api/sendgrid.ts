@@ -4,6 +4,7 @@ import apiEnv from './apiEnv';
 import User from './database/models/User';
 import { Op } from 'sequelize';
 import Role, { RoleProfiles } from '../shared/Role';
+import z from 'zod';
 
 mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
@@ -70,13 +71,22 @@ export async function emailIgnoreError(templateId: string, personalization: Pers
 export async function emailUserManagersIgnoreError(subject: string, content: string, baseUrl: string) {
   // Use type system to capture typos.
   const role : Role = "UserManager";
-  const admins = await User.findAll({
+
+  const zTo = z.array(z.object({
+    name: z.string(),
+    email: z.string(),
+  }));
+
+  const managers = zTo.parse(await User.findAll({
     where: {
+      // For some reason the compiler prefers `[role]` far more than `role`.
       roles: { [Op.contains]: [role] },
-    }
-  });
+    },
+    attributes: ['name', 'email'],
+  }));
+
   await emailIgnoreError('d-99d2ae84fe654400b448f8028238d461', [{
-    to: admins.map(({ name, email }) => ({ name, email })),
+    to: managers,
     dynamicTemplateData: { 
       subject, 
       content,
