@@ -35,7 +35,7 @@ import useUserContext from 'useUserContext';
 import sidebarItems, { SidebarItem } from 'sidebarItems';
 import { isPermitted } from 'shared/Role';
 import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
-import yuanjianLogo96x96 from '../../public/img/yuanjian-logo-96x96.png';
+import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 
 import Image from "next/image";
 import { useRouter } from 'next/router';
@@ -190,7 +190,7 @@ const Topbar = ({ onOpen, ...rest }: TopbarProps) => {
       />
 
       <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
-        <Image src={yuanjianLogo96x96} alt="远见教育基金会" width={48} />
+        <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />
       </Box>
 
       <HStack spacing={{ base: '0', [sidebarBreakpoint]: '6' }}>
