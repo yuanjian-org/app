@@ -31,7 +31,6 @@ We extend `next.js`'s [code structure](https://nextjs.org/docs/getting-started/p
 | `public` | Static assets. |
 | `src` | Source folder. Files under `src` but outside of `src/api` may be executed either in the browser or on the server. |
 | `src/api` | Files to be executed on the server only. |
-| `src/horzion-ui` | [Horizon UI](https://github.com/horizon-ui/horizon-ui-chakra-nextjs/) source files. See [`src/horizon-ui/README.md`](src/horizon-ui/README.md) for details. |
 | `src/pages` | `next.js` [Page Router](https://nextjs.org/docs/pages/building-your-application/routing). Migrating to App Router remains future work. |
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
 | `tools` | Command-line scripts.

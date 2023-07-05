@@ -1,17 +1,5 @@
 import { extendTheme } from '@chakra-ui/react';
-import { mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
-
-import { globalStyles } from './horizon-ui/theme/styles';
-import { CardComponent } from './horizon-ui/theme/additions/card/card';
-import { buttonStyles } from './horizon-ui/theme//components/button';
-import { badgeStyles } from './horizon-ui/theme/components/badge';
-import { inputStyles } from './horizon-ui/theme/components/input';
-import { progressStyles } from './horizon-ui/theme/components/progress';
-import { sliderStyles } from './horizon-ui/theme/components/slider';
-import { textareaStyles } from './horizon-ui/theme/components/textarea';
-import { switchStyles } from './horizon-ui/theme/components/switch';
-import { linkStyles } from './horizon-ui/theme/components/link';
-import { breakpoints } from './horizon-ui/theme/foundations/breakpoints';
+import { createBreakpoints, mode, StyleFunctionProps } from "@chakra-ui/theme-tools";
 
 // Yuanjian's brand colors. 
 // See https://www.notion.so/yuanjian/d443cc0615ad48c69ef6d6a59510836f?pvs=4#e2bd7d60169948a584b6291bdb8e3d0f
@@ -80,6 +68,17 @@ const links = {
 		}
 	}
 };
+
+// Copied from https://github.com/horizon-ui/horizon-ui-chakra/blob/bf44338c30b7a3d07770f424dfe2ec036c0033ab/src/theme/foundations/breakpoints.js
+const breakpoints = createBreakpoints({
+  sm: "320px",
+  "2sm": "380px",
+  md: "768px",
+  lg: "960px",
+  xl: "1200px",
+  "2xl": "1600px",
+  "3xl": "1920px",
+});
 
 export default extendTheme(
 	{ breakpoints },

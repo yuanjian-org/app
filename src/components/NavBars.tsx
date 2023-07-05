@@ -32,12 +32,13 @@ import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from 'useUserContext';
-import { SidebarItem, sidebarItems } from 'sidebar';
+import sidebarItems, { SidebarItem } from 'sidebarItems';
 import { isPermitted } from 'shared/Role';
 import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
 import yuanjianLogo96x96 from '../../public/img/yuanjian-logo-96x96.png';
 
 import Image from "next/image";
+import { useRouter } from 'next/router';
 
 const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -125,11 +126,13 @@ interface SidebarRowProps extends SidebarProps {
   item: SidebarItem,
 }
 const SidebarRow = ({ item, onClose, children, ...rest }: SidebarRowProps) => {
+  const { pathname } = useRouter();
+  const active = pathname === item.path;
   return (
     <Link 
       as={NextLink} 
       href={item.path}
-      color="gray.500" 
+      color={active ? "brand.c" : "gray.500"}
       fontWeight="bold"
       onClick={onClose}
     >
@@ -139,14 +142,14 @@ const SidebarRow = ({ item, onClose, children, ...rest }: SidebarRowProps) => {
         paddingBottom={8}
         marginX="4"
         role="group"
-        cursor="pointer"
-        _hover={{ color: 'brand.c' }}
+        cursor={active ? "default" : "pointer"}
+        _hover={active ? {} : { color: 'brand.b' }}
         {...rest}
       >
         {item.icon && (
           <Icon
             marginRight="4"
-            _groupHover={{ color: 'brand.c' }}
+            _groupHover={active ? {} : { color: 'brand.b' }}
             as={item.icon}
           />
         )}
