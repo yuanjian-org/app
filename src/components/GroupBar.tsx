@@ -84,17 +84,17 @@ export default function GroupBar(props: {
             {props.showTranscriptLink ? 
               <Link href={`/groups/${props.group.id}`}>
                 {transcriptCount ?
-                  <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
+                  <>{transcriptCount} 个历史会议 <ArrowForwardIcon /></>
                   : 
-                  <Text color='grey'>无历史 <ArrowForwardIcon /></Text>
+                  <Text color='grey'>无历史会议 <ArrowForwardIcon /></Text>
                 }
               </Link>
               :
               <>
                 {transcriptCount ?
-                  <>{transcriptCount} 个历史记录</>
+                  <>{transcriptCount} 个历史会议</>
                   : 
-                  <Text color='grey'>无历史</Text>
+                  <Text color='grey'>无历史会议</Text>
                 }0
               </>
             }

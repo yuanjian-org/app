@@ -34,7 +34,9 @@ import { Guard, useGuard } from "@authing/guard-react18";
 import useUserContext from 'useUserContext';
 import { SidebarItem, sidebarItems } from 'sidebar';
 import { isPermitted } from 'shared/Role';
-import yuanjianLogo from '../../public/img/yuanjian-logo.png';
+import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
+import yuanjianLogo96x96 from '../../public/img/yuanjian-logo-96x96.png';
+
 import Image from "next/image";
 
 const sidebarWidth = 60;
@@ -64,7 +66,7 @@ export default function Navbars({
         onClose={onClose}
         returnFocusOnClose={false}
         onOverlayClick={onClose}
-        size="full">
+        size="xs">
         <DrawerContent>
           <SidebarContent onClose={onClose} />
         </DrawerContent>
@@ -80,7 +82,6 @@ export default function Navbars({
 interface SidebarProps extends BoxProps {
   onClose: () => void;
 }
-
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   const [user] = useUserContext();
 
@@ -90,30 +91,29 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
       bg={useColorModeValue('white', 'gray.900')}
       borderRight="1px"
       borderRightColor={useColorModeValue('gray.200', 'gray.700')}
-      w={{ base: 'full', [sidebarBreakpoint]: sidebarWidth }}
+      w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
       pos="fixed"
       h="full"
       {...rest}>
       <Flex 
-        height={{
-          base: "100px",
-          [sidebarBreakpoint]: topbarHeight,
-        }}
+        height={topbarHeight}
         alignItems="center"
         marginX="8" 
         justifyContent="space-between"
       >
-        <Image src={yuanjianLogo} alt="远见教育基金会" style={{ width: 112 }}/>
+        <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
+          <Image src={yuanjianLogo224x97} alt="远见教育基金会" width={112} />
+        </Box>
         <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} onClick={onClose} />
       </Flex>
       <Box height={{
-        base: 0,
+        base: 4,
         [sidebarBreakpoint]: sidebarContentMarginTop,
         }}/>
       {sidebarItems
         .filter(item => isPermitted(user.roles, item.role))
         .map(item => (
-        <SidebarRow key={item.path} item={item}>
+        <SidebarRow key={item.path} item={item} onClose={onClose}>
           {item.name}
         </SidebarRow>
       ))}
@@ -121,16 +121,17 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   );
 };
 
-interface SidebarRowProps extends FlexProps {
-  item: SidebarItem;
+interface SidebarRowProps extends SidebarProps {
+  item: SidebarItem,
 }
-const SidebarRow = ({ item, children, ...rest }: SidebarRowProps) => {
+const SidebarRow = ({ item, onClose, children, ...rest }: SidebarRowProps) => {
   return (
     <Link 
       as={NextLink} 
       href={item.path}
       color="gray.500" 
-      fontWeight={500}
+      fontWeight="bold"
+      onClick={onClose}
     >
       <Flex
         align="center"
@@ -188,13 +189,9 @@ const Topbar = ({ onOpen, ...rest }: TopbarProps) => {
         icon={<FiMenu />}
       />
 
-      <Text
-        display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
-        fontSize="2xl"
-        fontFamily="monospace"
-        fontWeight="bold">
-        Logo Mobile
-      </Text>
+      <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
+        <Image src={yuanjianLogo96x96} alt="远见教育基金会" width={48} />
+      </Box>
 
       <HStack spacing={{ base: '0', [sidebarBreakpoint]: '6' }}>
         {/* <IconButton

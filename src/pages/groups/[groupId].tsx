@@ -35,7 +35,7 @@ function GroupCard() {
   const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (<>
-    <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
+    <PageBreadcrumb current='会议历史' parents={[{ name: '我的会议', link: '/' }]} />
     {group ? <GroupDetail group={group} /> : <Loader />}
   </>);
 }
@@ -43,7 +43,7 @@ function GroupCard() {
 function GroupDetail(props: { group: GroupWithTranscripts }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBar group={props.group} showJoinButton />
+      <GroupBar group={props.group} showJoinButton showSelf />
       <TranscriptTable group={props.group} />
     </Stack>
   );
@@ -73,7 +73,7 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
           })}
         </Tbody>
       </Table>
-      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无会议历史</Center>}
+      {!props.group.transcripts.length && <Center margin={10} color='gray'>无会议历史。（由于技术限制，历史会议在24小时之后才能显示在这里。我们之后会解决这个限制。）</Center>}
     </>
   );
 }
