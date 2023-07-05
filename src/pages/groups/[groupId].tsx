@@ -36,7 +36,7 @@ function GroupCard() {
   const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (<>
-    <PageBreadcrumb current='会议历史' parents={[{ name: '我的会议', link: '/' }]} />
+    <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
     {group ? <GroupDetail group={group} /> : <Loader />}
   </>);
 }
@@ -44,7 +44,7 @@ function GroupCard() {
 function GroupDetail(props: { group: GroupWithTranscripts }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBar group={props.group} showJoinButton showSelf />
+      <GroupBar group={props.group} showJoinButton showSelf abbreviateOnMobile={false} />
       <TranscriptTable group={props.group} />
     </Stack>
   );

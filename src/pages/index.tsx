@@ -99,7 +99,9 @@ function Meetings() {
     <VStack divider={<StackDivider />} align='left' spacing='6'>
       {groups &&
         groups.map(group => 
-          <GroupBar key={group.id} group={group} showJoinButton showTranscriptCount showTranscriptLink />)
+          <GroupBar key={group.id} group={group} 
+            showJoinButton showTranscriptCount showTranscriptLink abbreviateOnMobile
+          />)
       }
     </VStack>
   </>);

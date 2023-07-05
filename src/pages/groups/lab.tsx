@@ -15,7 +15,9 @@ const Page: NextPageWithLayout = () => {
   return <>
     {!data && <Loader />}
     <VStack divider={<StackDivider />} align='left' spacing='3'>
-      {data && data.map(group => <GroupBar key={group.id} group={group} showSelf showTranscriptCount showTranscriptLink />)}
+      {data && data
+        .filter(group => group.transcripts?.length)
+        .map(group => <GroupBar key={group.id} group={group} showSelf showTranscriptCount showTranscriptLink />)}
     </VStack>
   </>;
 }
