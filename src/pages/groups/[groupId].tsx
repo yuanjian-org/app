@@ -8,8 +8,8 @@ import {
   Tr,
   Td,
   Center,
+  Icon,
 } from '@chakra-ui/react';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
@@ -22,6 +22,7 @@ import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/string';
 import Loader from 'components/Loader';
+import { MdChevronRight } from 'react-icons/md';
 
 const Page: NextPageWithLayout = () => <GroupCard />;
 
@@ -68,7 +69,7 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
             return <Tr key={t.transcriptId}>
               <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
               <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-              <Td><Link href={link}>{t.summaries.length} 版摘要 <ArrowForwardIcon /></Link></Td>
+              <Td><Link href={link}>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Link></Td>
             </Tr>;
           })}
         </Tbody>

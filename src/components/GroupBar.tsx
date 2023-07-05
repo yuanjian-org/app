@@ -8,16 +8,15 @@ import {
   SimpleGrid,
   Spacer,
   Text,
-  VStack,
   Wrap,
   WrapItem,
+  Icon
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
-import { MdVideocam } from 'react-icons/md';
+import { MdChevronRight, MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import useUserContext from 'useUserContext';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
 import { formatGroupName } from 'shared/formatNames';
 
 // @ts-ignore TODO: fix me.
@@ -84,15 +83,15 @@ export default function GroupBar(props: {
             {props.showTranscriptLink ? 
               <Link href={`/groups/${props.group.id}`}>
                 {transcriptCount ?
-                  <>{transcriptCount} 个历史会议 <ArrowForwardIcon /></>
+                  <Text>{transcriptCount}个历史会议 <Icon as={MdChevronRight} /></Text>
                   : 
-                  <Text color='grey'>无历史会议 <ArrowForwardIcon /></Text>
+                  <Text color='grey'>无历史会议 <Icon as={MdChevronRight} /></Text>
                 }
               </Link>
               :
               <>
                 {transcriptCount ?
-                  <>{transcriptCount} 个历史会议</>
+                  <Text>{transcriptCount} 个历史会议</Text>
                   : 
                   <Text color='grey'>无历史会议</Text>
                 }0

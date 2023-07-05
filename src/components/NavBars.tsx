@@ -39,7 +39,7 @@ import yuanjianLogo96x96 from '../../public/img/yuanjian-logo-96x96.png';
 
 import Image from "next/image";
 import { useRouter } from 'next/router';
-import { MdArrowLeft, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdChevronRight } from 'react-icons/md';
 
 const sidebarWidth = 60;
 export const topbarHeight = "60px";
