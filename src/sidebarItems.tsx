@@ -9,8 +9,7 @@ import { IconType } from "react-icons";
 
 export interface SidebarItem {
   name: string,
-  icon?: IconType,
-  secondary?: boolean,
+  icon: IconType,
   path: string,
   role?: Role,
 }

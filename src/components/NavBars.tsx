@@ -39,6 +39,7 @@ import yuanjianLogo96x96 from '../../public/img/yuanjian-logo-96x96.png';
 
 import Image from "next/image";
 import { useRouter } from 'next/router';
+import { MdArrowLeft, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 
 const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -114,9 +115,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
       {sidebarItems
         .filter(item => isPermitted(user.roles, item.role))
         .map(item => (
-        <SidebarRow key={item.path} item={item} onClose={onClose}>
-          {item.name}
-        </SidebarRow>
+        <SidebarRow key={item.path} item={item} onClose={onClose} />
       ))}
     </Box>
   );
@@ -125,7 +124,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 interface SidebarRowProps extends SidebarProps {
   item: SidebarItem,
 }
-const SidebarRow = ({ item, onClose, children, ...rest }: SidebarRowProps) => {
+const SidebarRow = ({ item, onClose, ...rest }: SidebarRowProps) => {
   const { pathname } = useRouter();
   const active = pathname === item.path;
   return (
@@ -143,17 +142,15 @@ const SidebarRow = ({ item, onClose, children, ...rest }: SidebarRowProps) => {
         marginX="4"
         role="group"
         cursor={active ? "default" : "pointer"}
-        _hover={active ? {} : { color: 'brand.b' }}
         {...rest}
       >
-        {item.icon && (
-          <Icon
-            marginRight="4"
-            _groupHover={active ? {} : { color: 'brand.b' }}
-            as={item.icon}
-          />
-        )}
-        {children}
+        <Icon as={item.icon} />
+        <Text marginX={4}>{item.name}</Text>
+        <Icon
+          as={MdChevronRight}
+          opacity={0}
+          _groupHover={active ? {} : { opacity: 100 }}
+        />
       </Flex>
     </Link>
   );
