@@ -31,7 +31,7 @@ const Index: NextPageWithLayout = () => {
   return <>
     {!userHasName && <SetNameModal />}
     {userHasName && !consentFormAccepted(user) && <ConsentModal />}
-    <Box paddingTop={'80px'}><Meetings /></Box>
+    <Meetings />
   </>;
 }
 

@@ -7,11 +7,11 @@ import {
   MdScience,
 } from 'react-icons/md'
 import Role from "./shared/Role";
+import { IconType } from "react-icons";
 
 export interface SidebarItem {
   name: string,
-  // @ts-ignore
-  icon: ReactComponentElement | string,
+  icon?: IconType,
   secondary?: boolean,
   path: string,
   role?: Role,
@@ -21,24 +21,24 @@ export const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
     path: '/',
-    icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
+    icon: MdHome,
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
-    icon: <Icon as={MdScience} width='20px' height='20px' color='inherit' />,
+    icon: MdScience,
     role: 'SummaryEngineer',
   },
   {
     name: '用户管理',
     path: '/users',
-    icon: <Icon as={MdPerson} width='20px' height='20px' color='inherit' />,
+    icon: MdPerson,
     role: 'UserManager',
   },
   {
     name: '分组管理',
     path: '/groups',
-    icon: <Icon as={MdGroups} width='20px' height='20px' color='inherit' />,
+    icon: MdGroups,
     role: 'GroupManager',
   },
 ]

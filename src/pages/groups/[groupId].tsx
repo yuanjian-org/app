@@ -1,7 +1,5 @@
 import {
-  Box,
   StackDivider,
-  Text,
   Stack,
   Table,
   Thead,
@@ -15,7 +13,6 @@ import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
-import useUserContext from "../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from 'api/routes/groups';
@@ -26,10 +23,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/string';
 import Loader from 'components/Loader';
 
-const Page: NextPageWithLayout = () => {
-  const [user] = useUserContext();
-  return <Box paddingTop={'80px'}><GroupCard /></Box>
-}
+const Page: NextPageWithLayout = () => <GroupCard />;
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 

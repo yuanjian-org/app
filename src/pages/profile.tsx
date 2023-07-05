@@ -45,54 +45,52 @@ const UserProfile: NextPageWithLayout = () => {
   };
 
   return (
-    <Box paddingTop={'80px'}>
-      <Stack spacing={4}>
-        <InputGroup>
-          <InputLeftAddon>
-            Email
-          </InputLeftAddon>
-          <Input
-            placeholder={user.email}
-            isReadOnly
-          />
-          <InputRightAddon>
-            <Icon as={EmailIcon} color="gray.500" />
-          </InputRightAddon>
-        </InputGroup>
-        <InputGroup>
-          <InputLeftAddon>
-            中文全名
-          </InputLeftAddon>
-          <Input
-            backgroundColor={show ? 'white' : 'brandscheme'}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            isReadOnly={!show}
-          />
-          <InputRightAddon>
-            <Icon as={EditIcon} color="gray.500" />
-          </InputRightAddon>
-        </InputGroup>
-        {!name && (
-          <Alert status="error" mt={4}>
-            <AlertIcon />
-            用户姓名不能为空
-          </Alert>
-        )}
-        {!show && <Button
-          onClick={() => setShow(!show)}
-          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          修改个人信息
-        </Button>}
+    <Stack spacing={4}>
+      <InputGroup>
+        <InputLeftAddon>
+          Email
+        </InputLeftAddon>
+        <Input
+          placeholder={user.email}
+          isReadOnly
+        />
+        <InputRightAddon>
+          <Icon as={EmailIcon} color="gray.500" />
+        </InputRightAddon>
+      </InputGroup>
+      <InputGroup>
+        <InputLeftAddon>
+          中文全名
+        </InputLeftAddon>
+        <Input
+          backgroundColor={show ? 'white' : 'brandscheme'}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          isReadOnly={!show}
+        />
+        <InputRightAddon>
+          <Icon as={EditIcon} color="gray.500" />
+        </InputRightAddon>
+      </InputGroup>
+      {!name && (
+        <Alert status="error" mt={4}>
+          <AlertIcon />
+          用户姓名不能为空
+        </Alert>
+      )}
+      {!show && <Button
+        onClick={() => setShow(!show)}
+        fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
+        修改个人信息
+      </Button>}
 
-        {show && <Button
-          backgroundColor='orange'
-          onClick={handleSubmit}
-          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          保存
-        </Button>}
-      </Stack>
-    </Box>
+      {show && <Button
+        backgroundColor='orange'
+        onClick={handleSubmit}
+        fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
+        保存
+      </Button>}
+    </Stack>
   )
 }
 

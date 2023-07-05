@@ -1,17 +1,6 @@
-// Chakra imports
-import { Portal, Box, useDisclosure } from '@chakra-ui/react'
-import Footer, { bodyFooterSpacing } from 'components/Footer'
-// Layout components
-import Navbar from 'horizon-ui/components/navbar/NavbarAdmin'
-import Sidebar from 'horizon-ui/components/sidebar/Sidebar'
-import { SidebarContext } from 'horizon-ui/contexts/SidebarContext'
+import { Box } from '@chakra-ui/react'
+import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer'
 import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
-import {
-  getActiveSidebar,
-  getActiveSidebarText,
-  getActiveRoute,
-  sidebarItems,
-} from 'sidebar'
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
 import { GuardProvider } from '@authing/guard-react18';
@@ -21,12 +10,17 @@ import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
 import UserProfile from './shared/UserProfile'
+import NavBarFrame, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/NavBars'
 
 interface AppLayoutProps extends PropsWithChildren {
   [x: string]: any
 }
-
 export default function AppLayout(props: AppLayoutProps) {
+  useEffect(() => {
+    // Left-to-right layout
+    window.document.documentElement.dir = 'ltr'
+  });
+
   return (
     <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
       redirectUri={typeof window !== 'undefined' ? (location.origin + '/callback') : ''}
@@ -76,63 +70,27 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
 };
 
 function AppContent(props: AppLayoutProps) {
-  const { children, ...rest } = props;
-  const [fixed] = useState(false);
-  const [toggleSidebar, setToggleSidebar] = useState(false);
-  // functions for changing the states from components
-  const { onOpen } = useDisclosure();
-
-  return <Box>
-    <SidebarContext.Provider
-      value={{
-        toggleSidebar,
-        setToggleSidebar
-      }}
-    >
-      <Sidebar routes={sidebarItems} display='none' {...rest} />
+  return <>
+    <NavBarFrame>
       <Box
-        float='right'
-        minHeight='100vh'
-        height='100%'
-        overflow='auto'
-        position='relative'
-        maxHeight='100%'
-        w={{ base: '100%', xl: 'calc( 100% - 290px )' }}
-        maxWidth={{ base: '100%', xl: 'calc( 100% - 290px )' }}
-        transition='all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1)'
-        transitionDuration='.2s, .2s, .35s'
-        transitionProperty='top, bottom, width'
-        transitionTimingFunction='linear, linear, ease'
+        marginTop={sidebarContentMarginTop}
+        paddingX={{ 
+          base: "16px",
+          [sidebarBreakpoint]: "30px" 
+        }}
+        maxWidth={{
+          base: "100%",
+          xl: "1200px"
+        }}
+        // TODO: 100px and 55px are empirically measured footer heights. Replace them with constants.
+        minHeight={{
+          base: `calc(100vh - ${topbarHeight} - (100px + ${footerMarginTop}))`,
+          [footerBreakpoint]: `calc(100vh - ${topbarHeight} - (55px + ${footerMarginTop}))`,
+        }}      
       >
-        <Portal>
-          <Box>
-            <Navbar
-              onOpen={onOpen}
-              logoText={'Horizon UI Dashboard PRO'}
-              brandText={getActiveRoute(sidebarItems)}
-              secondary={getActiveSidebar(sidebarItems)}
-              message={getActiveSidebarText(sidebarItems)}
-              fixed={fixed}
-              {...rest}
-            />
-          </Box>
-        </Portal>
-        <Box
-          marginX='auto'
-          padding={{ base: '20px', md: '30px' }}
-          paddingEnd='20px'
-          minHeight={{ 
-            base: `calc( 100vh - 100px - ${bodyFooterSpacing}px )`, 
-            xl: `calc( 100vh - 55px - ${bodyFooterSpacing}px )`,
-          }}
-          paddingTop='50px'
-        >
-          {children}
-        </Box>
-        <Box>
-          <Footer />
-        </Box>
+        {props.children}
       </Box>
-    </SidebarContext.Provider>
-  </Box>;
+      <Footer />
+    </NavBarFrame>
+  </>;
 }

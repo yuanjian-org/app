@@ -55,7 +55,6 @@ export function SidebarLinks (props: SidebarLinksProps) {
                       }
                       me='18px'
                     >
-                      {route.icon}
                     </Box>
                     <Text
                       me='auto'

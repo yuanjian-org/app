@@ -14,7 +14,6 @@ import {
 import React, { useMemo, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
-import useUserContext from "../../../../useUserContext";
 import trpcNext from "../../../../trpcNext";
 import moment from 'moment';
 import GroupBar from 'components/GroupBar';
@@ -24,10 +23,7 @@ import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import { capitalizeFirstChar } from 'shared/string';
 
-const Page: NextPageWithLayout = () => {
-  const [user] = useUserContext();
-  return <Box paddingTop={'80px'}><TranscriptCard /></Box>
-}
+const Page: NextPageWithLayout = () => <TranscriptCard />;
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
