@@ -68,7 +68,7 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
             const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
             return <Tr key={t.transcriptId}>
               <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-              <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
+              <Td><Link href={link}>{moment.duration(moment(t.endedAt).diff(t.startedAt)).minutes()} 分钟</Link></Td>
               <Td><Link href={link}>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Link></Td>
             </Tr>;
           })}

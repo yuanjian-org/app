@@ -17,7 +17,7 @@ import AppLayout from "../../../../AppLayout";
 import trpcNext from "../../../../trpcNext";
 import moment from 'moment';
 import GroupBar from 'components/GroupBar';
-import { GetTranscriptResponse } from 'api/routes/transcripts';
+import { Transcript } from 'api/routes/transcripts';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
@@ -32,7 +32,7 @@ export default Page;
 function TranscriptCard() {
   const router = useRouter();
   const id = typeof router.query.transcriptId === 'string' ? router.query.transcriptId : 'nonexistence';
-  const { data: transcript } : { data: GetTranscriptResponse | undefined } = trpcNext.transcripts.get.useQuery({ id });
+  const { data: transcript } : { data: Transcript | undefined } = trpcNext.transcripts.get.useQuery({ id });
 
   return (<>
     <PageBreadcrumb current='摘要' parents={[
@@ -43,7 +43,7 @@ function TranscriptCard() {
   </>);
 }
 
-function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
+function TranscriptDetail(props: { transcript: Transcript }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
       <GroupBar group={props.transcript.group} showJoinButton showSelf abbreviateOnMobile={false} />
@@ -52,7 +52,7 @@ function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
   );
 }
 
-function Summaries(props: { transcript: GetTranscriptResponse }) {
+function Summaries(props: { transcript: Transcript }) {
   // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
   moment.locale('zh-cn');
   const t = props.transcript;
@@ -72,7 +72,7 @@ function Summaries(props: { transcript: GetTranscriptResponse }) {
         <Tbody>
           <Tr>
             <Td>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Td>
-            <Td>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Td>
+            <Td>{moment.duration(moment(t.endedAt).diff(t.startedAt)).minutes()} 分钟</Td>
             <Td>
               <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
                 {t.summaries.map((s, idx) => (
