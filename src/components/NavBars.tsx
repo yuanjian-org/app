@@ -40,6 +40,7 @@ import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import { MdChevronRight } from 'react-icons/md';
+import colors from 'theme/colors';
 
 const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -56,7 +57,7 @@ export default function Navbars({
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   return (
-    <Box minHeight="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
+    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
       <SidebarContent
         onClose={() => onClose}
         display={{ base: 'none', [sidebarBreakpoint]: 'block' }}
