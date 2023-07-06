@@ -16,7 +16,6 @@ import AppLayout from "../../AppLayout";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from 'api/routes/groups';
-import moment from 'moment';
 import GroupBar from 'components/GroupBar';
 import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -51,14 +50,12 @@ function GroupDetail(props: { group: GroupWithTranscripts }) {
 }
 
 function TranscriptTable(props: { group: GroupWithTranscripts }) {
-  // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
-  moment.locale('zh-cn');
   return (
     <>
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>会议时间</Th>
+            <Th>日期</Th>
             <Th>时长</Th>
             <Th>摘要</Th>
           </Tr>
