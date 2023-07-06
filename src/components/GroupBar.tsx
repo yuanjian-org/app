@@ -10,7 +10,6 @@ import {
   Text,
   Wrap,
   WrapItem,
-  Icon,
   LinkBox,
   LinkOverlay,
   AvatarGroup
@@ -120,10 +119,13 @@ function UserChips(props: {
 
   return <>
     {/* Abbreviated mode */}
-    <AvatarGroup max={3} display={{
-      base: abbreviateOnMobile ? "flex" : "none",
-      [sidebarBreakpoint]: "none",
-    }}>
+    <AvatarGroup 
+      max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
+      display={{
+        base: abbreviateOnMobile ? "flex" : "none",
+        [sidebarBreakpoint]: "none",
+      }}
+    >
       {displayUsers.map(user => <Avatar key={user.id} name={user.name || undefined} />)}
     </AvatarGroup>
 
