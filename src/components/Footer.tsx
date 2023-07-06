@@ -45,8 +45,8 @@ export default function Footer() {
       </Text>
       <List display='flex'>
         <FooterItem>
-          <Link fontWeight='500' color={color} isExternal href='mailto:hi@yuanjian.org'>
-            联系我们
+          <Link fontWeight='500' color={color} isExternal href='http://yuanjian.org/blog'>
+            博客
           </Link>
         </FooterItem>
         <FooterItem>
@@ -55,8 +55,8 @@ export default function Footer() {
           </Link>
         </FooterItem>
         <FooterItem>
-          <Link fontWeight='500' color={color} isExternal href='http://yuanjian.org/blog'>
-            博客
+          <Link fontWeight='500' color={color} isExternal href='https://github.com/yuanjian-org/app/issues/new'>
+            报告问题
           </Link>
         </FooterItem>
         <Center opacity='50%'>
