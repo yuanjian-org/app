@@ -4,6 +4,7 @@ import apiEnv from "api/apiEnv";
 import { listMeetings } from "api/TencentMeeting";
 import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
 import z from "zod";
+import invariant from "tiny-invariant";
 
 /**
  * These API are to be periodically triggered for background operations and housekeeping.
@@ -47,7 +48,10 @@ const cron = router({
    * Check the ongoing meetings and update the OngoingMeetingCount table
    */
   updateOngoingMeetingCounts: procedure.mutation(async () => {
-    const count = (await listMeetings()).meeting_info_list.filter(obj => obj.status === 'MEETING_STATE_STARTED').length;
+    const ongoingMeeting = await OngoingMeetingCount.findByPk(apiEnv.TM_ADMIN_USER_ID);
+    invariant(ongoingMeeting);
+
+    const count = (await listMeetings(ongoingMeeting.meetingId)).meeting_info_list[0].status === 'MEETING_STATE_STARTED'? 1 : 0;
 
     OngoingMeetingCount.upsert({
       TMAdminUserId: apiEnv.TM_ADMIN_USER_ID,
