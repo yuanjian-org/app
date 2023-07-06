@@ -11,7 +11,7 @@ import {
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { STRING } from "sequelize";
+import { DATE, STRING } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
@@ -30,6 +30,14 @@ class Group extends ParanoidModel<
   @AllowNull(true)
   @Column(STRING)
   meetingLink: string | null;
+
+  @AllowNull(true)
+  @Column(STRING)
+  meetingId: string | null;
+
+  @AllowNull(true)
+  @Column(DATE)
+  meetingLinkCreatedAt: Date | null;
 
   @BelongsToMany(() => User, { through: () => GroupUser })
   users: NonAttribute<User[]>;

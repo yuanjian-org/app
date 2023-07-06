@@ -19,6 +19,9 @@ class OngoingMeetingCount extends Model {
   @Column(STRING)
   TMAdminUserId: string;
 
+  @Column(STRING)
+  meetingId: string;
+
   @Column(INTEGER)
   count: number;
 }
