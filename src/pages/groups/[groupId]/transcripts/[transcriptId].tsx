@@ -21,7 +21,7 @@ import { Transcript } from 'api/routes/transcripts';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
-import { capitalizeFirstChar } from 'shared/string';
+import { prettifyDate, prettifyDuration } from 'shared/strings';
 
 const Page: NextPageWithLayout = () => <TranscriptCard />;
 
@@ -71,8 +71,8 @@ function Summaries(props: { transcript: Transcript }) {
         </Thead>
         <Tbody>
           <Tr>
-            <Td>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Td>
-            <Td>{moment.duration(moment(t.endedAt).diff(t.startedAt)).asMinutes()} 分钟</Td>
+            <Td>{prettifyDate(t.startedAt)}</Td>
+            <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
             <Td>
               <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
                 {t.summaries.map((s, idx) => (

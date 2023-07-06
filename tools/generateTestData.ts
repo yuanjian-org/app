@@ -7,7 +7,7 @@ import invariant from "tiny-invariant";
 import _ from "lodash";
 import moment from "moment";
 import Role, { AllRoles } from "../src/shared/Role";
-import { toPinyin } from "../src/shared/string";
+import { toPinyin } from "../src/shared/strings";
 import Transcript from "../src/api/database/models/Transcript";
 import Summary from "../src/api/database/models/Summary";
 

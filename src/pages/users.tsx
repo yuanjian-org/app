@@ -29,7 +29,7 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpcNext from "../trpcNext";
 import UserProfile from 'shared/UserProfile';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName, toPinyin } from 'shared/string';
+import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import useUserContext from 'useUserContext';

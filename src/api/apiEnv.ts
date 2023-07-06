@@ -1,7 +1,7 @@
 import SharedEnv from "../shared/SharedEnv";
 import { loadEnvConfig } from '@next/env';
 import { IsEmail, IsNotEmpty, IsOptional, validateOrReject } from "class-validator";
-import { stringOrEmpty } from "../shared/string";
+import { stringOrEmpty } from "../shared/strings";
 
 // force load env before app.prepare()
 const projectDir = process.cwd();

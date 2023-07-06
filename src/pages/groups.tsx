@@ -29,7 +29,7 @@ import GroupBar, { UserChip } from 'components/GroupBar';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
-import { formatGroupName } from 'shared/formatNames';
+import { formatGroupName } from 'shared/strings';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 

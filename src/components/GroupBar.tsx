@@ -17,10 +17,10 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
-import { MdChevronRight, MdVideocam } from 'react-icons/md';
+import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import useUserContext from 'useUserContext';
-import { formatGroupName } from 'shared/formatNames';
+import { formatGroupName } from 'shared/strings';
 import { sidebarBreakpoint } from './NavBars';
 
 // @ts-ignore TODO: fix me.

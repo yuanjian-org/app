@@ -20,7 +20,7 @@ import moment from 'moment';
 import GroupBar from 'components/GroupBar';
 import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { capitalizeFirstChar } from 'shared/string';
+import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';
 import { MdChevronRight } from 'react-icons/md';
 
@@ -67,8 +67,8 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
           {props.group.transcripts.map(t => {
             const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
             return <Tr key={t.transcriptId}>
-              <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-              <Td><Link href={link}>{moment.duration(moment(t.endedAt).diff(t.startedAt)).asMinutes()} 分钟</Link></Td>
+              <Td><Link href={link}>{prettifyDate(t.startedAt)}</Link></Td>
+              <Td><Link href={link}>{prettifyDuration(t.startedAt, t.endedAt)}</Link></Td>
               <Td><Link href={link}>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Link></Td>
             </Tr>;
           })}

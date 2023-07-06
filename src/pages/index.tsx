@@ -22,7 +22,7 @@ import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName } from '../shared/string';
+import { isValidChineseName } from '../shared/strings';
 import Loader from 'components/Loader';
 
 const Index: NextPageWithLayout = () => {

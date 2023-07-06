@@ -6,10 +6,10 @@ import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import { zUserProfile } from "shared/UserProfile";
-import { isValidChineseName, toPinyin } from "../../shared/string";
+import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "api/sendgrid";
-import { formatUserName } from "shared/formatNames";
+import { formatUserName } from 'shared/strings';
 
 const users = router({
   create: procedure
