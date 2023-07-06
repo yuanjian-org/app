@@ -15,7 +15,6 @@ import {
   Editable,
   EditablePreview,
   EditableInput,
-  EditableControls,
   useEditableControls,
   ButtonGroup,
   IconButton,
