@@ -1,11 +1,11 @@
 /*eslint-disable*/
 
-import { Center, Flex, Link, List, ListItem, Text, useColorModeValue } from '@chakra-ui/react';
+import { Center, Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
 import vercelBanner from '../../public/img/vercel-banner.svg';
 import Image from "next/image";
 
-// The minimal height of the blank space between body and footer.
-export const bodyFooterSpacing = 80;
+export const footerMarginTop = "80px";
+export const footerBreakpoint = "lg";
 
 export default function Footer() {
   const color = 'gray.400';
@@ -20,24 +20,24 @@ export default function Footer() {
       zIndex='3'
       flexDirection={{
         base: 'column',
-        xl: 'row'
+        [footerBreakpoint]: 'row'
       }}
       alignItems={{
         base: 'center',
-        xl: 'start'
+        [footerBreakpoint]: 'start'
       }}
       justifyContent='space-between'
-      paddingX={{ base: '30px', md: '50px' }}
+      paddingX="30px"
       paddingBottom='30px'
-      paddingTop={`${bodyFooterSpacing}px`}
+      paddingTop={footerMarginTop}
     >
       <Text
         color={color}
         textAlign={{
           base: 'center',
-          xl: 'start'
+          [footerBreakpoint]: 'start'
         }}
-        paddingBottom={{ base: '20px', xl: '0px' }}>
+        paddingBottom={{ base: '20px', [footerBreakpoint]: '0px' }}>
         {' '}
         <Text as='span' fontWeight='500' marginStart='4px'>
           &copy; {new Date().getFullYear()} 远见教育基金会

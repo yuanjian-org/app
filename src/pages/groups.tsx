@@ -100,37 +100,35 @@ const Page: NextPageWithLayout = () => {
     refetch();
   };
 
-  return (
-    <Box paddingTop={'80px'}>
-      {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
-      <Wrap spacing={6}>
-        <WrapItem minWidth={100}>
-          <UserSelector value={selected} onChange={setSelected} />
-        </WrapItem>
-        <WrapItem>
-          <Button
-            isLoading={isCreating}
-            isDisabled={selected.length < 2}
-            loadingText='创建分组中...'
-            variant='brand' onClick={createGroup}>
-            创建分组
-          </Button>
-        </WrapItem>
-      </Wrap>
-      <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
-        {data && data.map(group => 
-          <Flex key={group.id} cursor='pointer'
-            onClick={() => setGroupBeingEdited(group)} 
-          >
-            <GroupBar group={group} showSelf />
-            <Spacer />
-            <Center><EditIcon marginX={4} /></Center>
-          </Flex>
-        )}
-      </VStack>
-      {!data && <Loader />}
-    </Box>
-  )
+  return <>
+    {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
+    <Wrap spacing={6}>
+      <WrapItem minWidth={100}>
+        <UserSelector value={selected} onChange={setSelected} />
+      </WrapItem>
+      <WrapItem>
+        <Button
+          isLoading={isCreating}
+          isDisabled={selected.length < 2}
+          loadingText='创建分组中...'
+          variant='brand' onClick={createGroup}>
+          创建分组
+        </Button>
+      </WrapItem>
+    </Wrap>
+    <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
+      {data && data.map(group => 
+        <Flex key={group.id} cursor='pointer'
+          onClick={() => setGroupBeingEdited(group)} 
+        >
+          <GroupBar group={group} showSelf />
+          <Spacer />
+          <Center><EditIcon marginX={4} /></Center>
+        </Flex>
+      )}
+    </VStack>
+    {!data && <Loader />}
+  </>
 }
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;

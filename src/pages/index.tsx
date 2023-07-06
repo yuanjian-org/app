@@ -31,7 +31,7 @@ const Index: NextPageWithLayout = () => {
   return <>
     {!userHasName && <SetNameModal />}
     {userHasName && !consentFormAccepted(user) && <ConsentModal />}
-    <Box paddingTop={'80px'}><Meetings /></Box>
+    <Meetings />
   </>;
 }
 
@@ -99,7 +99,9 @@ function Meetings() {
     <VStack divider={<StackDivider />} align='left' spacing='6'>
       {groups &&
         groups.map(group => 
-          <GroupBar key={group.id} group={group} showJoinButton showTranscriptCount showTranscriptLink />)
+          <GroupBar key={group.id} group={group} 
+            showJoinButton showTranscriptCount showTranscriptLink abbreviateOnMobile
+          />)
       }
     </VStack>
   </>);

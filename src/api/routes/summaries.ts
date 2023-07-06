@@ -1,17 +1,75 @@
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 import { z } from "zod";
-import { decodeTranscriptId } from "./transcripts";
 import Transcript from "../database/models/Transcript";
 import Summary from "../database/models/Summary";
+import { getRecordURLs, listRecords } from "../TencentMeeting";
+import invariant from "tiny-invariant";
+import Group from "../database/models/Group";
+import { TRPCError } from "@trpc/server";
+
+const crudeSummaryKey = "原始文字";
+
+export interface CrudeSummaryDescriptor {
+  groupId: string,
+  transcriptId: string,
+  startedAt: number,
+  endedAt: number,
+  url: string,
+};
+
+const zSummariesListInput = z.object({ 
+  key: z.string(),
+  excludeTranscriptsWithKey: z.string().optional(),
+});
+
+type SummariesListInput = z.TypeOf<typeof zSummariesListInput>;
 
 const summaries = router({
 
   /**
-   * Upload a summary for a transcript. Each summary is identified by a (`transcriptId`, `summaryKey`) tuple.
+   * Return all summaries identified by the summary key `key`. If `excludeTranscriptsWithKey` is specified, exclude
+   * summaries for the transcripts that already have summaries identified by this key.
+   * 
+   * See docs/summarization.md for usage.
+   * 
+   * Example:
+   * 
+   * $ curl -G https://${HOST}/api/v1/summaries.list \
+   *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+   *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeIfHasKey": "SummaryKey2" }'
+   */
+  list: procedure
+  .use(authIntegration())
+  .input(zSummariesListInput)
+  .output(
+    z.array(z.object({
+      transcriptId: z.string(),
+      summary: z.string(),
+    }))
+  ).query(async ({ input }: { input: SummariesListInput }) => {
+    // TODO: Optimize and use a single query to return final results.
+    const summaries = await Summary.findAll({ 
+      where: { summaryKey: input.key },
+      attributes: ['transcriptId', 'summary'],
+    });
+
+    const skippedTranscriptIds = input.excludeTranscriptsWithKey ? (await Summary.findAll({
+      where: { summaryKey: input.excludeTranscriptsWithKey },
+      attributes: ['transcriptId'],
+    })).map(s => s.transcriptId) : [];
+
+    return summaries
+      .filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+  }),
+
+  /**
+   * Upload a summary for a transcript. Each summary is identified by `transcriptId` and `summaryKey`.
    * Uploading a summary that already exists overwrites it.
    * 
-   * @param transcriptId Returned from /api/v1/transcripts.list
+   * See docs/summarization.md for usage.
+   * 
+   * @param transcriptId Returned from /api/v1/summaries.list
    * @param summaryKey An arbitrary string determined by the caller
    * 
    * Example:
@@ -20,7 +78,7 @@ const summaries = router({
    *    -H "Content-Type: application/json" \
    *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
    *    -d '{ \
-   *      "transcriptId": "4e446385-4cf8-4230-a662-39e82cac6855.1671726726708793345.1687405685480.1687405712444", \
+   *      "transcriptId": "1671726726708793345", \
    *      "summaryKey": "llm_v1", \
    *      "summary": "..." }'
    */
@@ -33,24 +91,97 @@ const summaries = router({
       summary: z.string(),
     })
   ).mutation(async ({ input }) => {
-    const { groupId, transcriptId, startedAt, endedAt } = decodeTranscriptId(input.transcriptId);
-    await upsertSummary(groupId, transcriptId, startedAt, endedAt, input.summaryKey, input.summary);
+    if (input.summaryKey === crudeSummaryKey) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Summaries with key "${crudeSummaryKey}" are read-only`,
+      })
+    }
+    // By design, this statement fails if the transcript doesn't exist.
+    await Summary.upsert({
+      transcriptId: input.transcriptId,
+      summaryKey: input.summaryKey,
+      summary: input.summary,
+    });
   }),
 });
 
 export default summaries;
 
-export async function upsertSummary(groupId: string, transcriptId: string, startedAt: number, endedAt: number,
-  summaryKey: string, summary: string) {
+export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: string) {
+  // `upsert` not `insert` because the system may fail after inserting the transcript row and before inserting the 
+  // summary.
   await Transcript.upsert({
-    transcriptId,
-    groupId,
-    startedAt,
-    endedAt
+    transcriptId: meta.transcriptId,
+    groupId: meta.groupId,
+    startedAt: meta.startedAt,
+    endedAt: meta.endedAt,
   });
-  await Summary.upsert({
-    transcriptId,
-    summaryKey,
+  await Summary.create({
+    transcriptId: meta.transcriptId,
+    summaryKey: crudeSummaryKey,
     summary
   });
+}
+
+async function groupExists(groupId: string) {
+  // Without `safeParse` sequalize may throw an exception on invalid UUID strings.
+  return z.string().uuid().safeParse(groupId).success && (await Group.count({
+    where: { id: groupId }
+  })) > 0;
+}
+
+/**
+ * Returns crude summaries that 1) were created in the last 31 days, and 2) only exist in Tencent Meeting but not 
+ * locally. 31 days are the max query range allowed by Tencent. 
+ * 
+ * Note that the returned URLs are valid only for a short period of time.
+ */
+export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescriptor[]> {
+  const ret: CrudeSummaryDescriptor[] = [];
+
+  const promises = (await listRecords())
+  // Only interested in meetings that are ready to download.
+  .filter(meeting => meeting.state === 3)
+  .map(async meeting => {
+    // Only interested in meetings that refers to valid groups.
+    const groupId = meeting.subject;
+    if (!await groupExists(groupId)) {
+      console.log(`Ignoring non-existing group "${groupId}"`)
+      return;
+    }
+
+    if (!meeting.record_files) return;
+    invariant(meeting.record_files.length == 1);
+    const startTime = meeting.record_files[0].record_start_time;
+    const endTime = meeting.record_files[0].record_end_time;
+
+    const record = await getRecordURLs(meeting.meeting_record_id);
+    const promises = record.record_files.map(async file => {
+      // Only interested in records that we don't already have.
+      const transcriptId = file.record_file_id;
+      if (await Summary.count({ where: {
+        transcriptId,
+        summaryKey: crudeSummaryKey,
+      } }) > 0) {
+        console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`)
+        return;
+      }
+
+      file.meeting_summary?.filter(summary => summary.file_type === 'txt')
+      .map(summary => {
+        ret.push({
+          groupId,
+          startedAt: startTime,
+          endedAt: endTime,
+          transcriptId,
+          url: summary.download_address,
+        });
+      })
+    });
+    await Promise.all(promises);    
+  })
+
+  await Promise.all(promises);
+  return ret;
 }

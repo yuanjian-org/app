@@ -9,3 +9,4 @@ This file lists alphabetically libraries that this repository depends on, their 
 - trpc: [MIT](https://github.com/trpc/trpc/blob/main/LICENSE)
 - typescript: [Apache 2.0](https://github.com/TypeStrong/learn-typescript/blob/master/LICENSE)
 - zod: [MIT](https://github.com/colinhacks/zod/blob/master/LICENSE)
+- [Chakra Templates](https://github.com/hauptrolle/chakra-templates): [MIT](https://github.com/hauptrolle/chakra-templates/blob/main/LICENSE)

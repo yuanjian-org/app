@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/v1/cron.uploadRawTranscripts",
+      "path": "/api/v1/cron.syncCrudeSummaries",
       "schedule": "30 9 * * *"
     },
     {

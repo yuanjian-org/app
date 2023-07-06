@@ -1,7 +1,5 @@
 import {
-  Box,
   StackDivider,
-  Text,
   Stack,
   Table,
   Thead,
@@ -10,12 +8,11 @@ import {
   Tr,
   Td,
   Center,
+  Icon,
 } from '@chakra-ui/react';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
-import useUserContext from "../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from 'api/routes/groups';
@@ -25,11 +22,9 @@ import trpcNext from 'trpcNext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { capitalizeFirstChar } from 'shared/string';
 import Loader from 'components/Loader';
+import { MdChevronRight } from 'react-icons/md';
 
-const Page: NextPageWithLayout = () => {
-  const [user] = useUserContext();
-  return <Box paddingTop={'80px'}><GroupCard /></Box>
-}
+const Page: NextPageWithLayout = () => <GroupCard />;
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
@@ -49,7 +44,7 @@ function GroupCard() {
 function GroupDetail(props: { group: GroupWithTranscripts }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBar group={props.group} showJoinButton />
+      <GroupBar group={props.group} showJoinButton showSelf abbreviateOnMobile={false} />
       <TranscriptTable group={props.group} />
     </Stack>
   );
@@ -73,13 +68,13 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
             const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
             return <Tr key={t.transcriptId}>
               <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-              <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-              <Td><Link href={link}>{t.summaries.length} 版摘要 <ArrowForwardIcon /></Link></Td>
+              <Td><Link href={link}>{moment.duration(moment(t.endedAt).diff(t.startedAt)).asMinutes()} 分钟</Link></Td>
+              <Td><Link href={link}>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Link></Td>
             </Tr>;
           })}
         </Tbody>
       </Table>
-      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无会议历史</Center>}
+      {!props.group.transcripts.length && <Center margin={10} color='gray'>无会议历史。（由于技术限制，历史会议在24小时之后才能显示在这里。我们之后会解决这个限制。）</Center>}
     </>
   );
 }

@@ -8,7 +8,6 @@ import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
 
 import '../app.css'
-import 'horizon-ui/styles/Fonts.css'
 import 'react-toastify/dist/ReactToastify.min.css';
 
 type AppPropsWithLayout = AppProps & {
