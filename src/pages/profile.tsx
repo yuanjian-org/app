@@ -1,14 +1,8 @@
 import {
   Box,
   Button,
-  Icon,
   Input,
   Stack,
-  InputGroup,
-  InputLeftAddon,
-  InputRightAddon,
-  Alert,
-  AlertIcon,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -18,7 +12,6 @@ import {
   useEditableControls,
   ButtonGroup,
   IconButton,
-  Flex,
   Spacer,
   HStack,
 } from '@chakra-ui/react'
@@ -105,7 +98,7 @@ const UserProfile: NextPageWithLayout = () => {
           <Box>
             <Editable
               defaultValue={user.name ? user.name : undefined}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(newName) => setName(newName)}
             >
               <HStack>
                 <Box>
