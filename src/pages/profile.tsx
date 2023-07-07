@@ -105,6 +105,7 @@ const UserProfile: NextPageWithLayout = () => {
           <Box>
             <Editable
               defaultValue={user.name ? user.name : undefined}
+              onChange={(e) => setName(e.target.value)}
             >
               <HStack>
                 <Box>
@@ -114,7 +115,6 @@ const UserProfile: NextPageWithLayout = () => {
                     backgroundColor={notLoaded ? 'brandscheme' : 'white'}
                     value={name}
                     isReadOnly={notLoaded}
-                    onChange={(e) => setName(e.target.value)}
                   />
                 </Box>
                 <Spacer />
