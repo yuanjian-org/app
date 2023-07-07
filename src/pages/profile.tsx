@@ -15,7 +15,7 @@ import {
   Spacer,
   HStack,
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
@@ -88,46 +88,51 @@ const UserProfile: NextPageWithLayout = () => {
     )
   }
 
-  const NameField = () => {
+  const NameEditable = useMemo(() => {
+    return (
+      <Editable
+        defaultValue={user.name ? user.name : undefined}
+        onChange={(e) => setName(e)}
+      >
+        <HStack>
+          <Box>
+            <EditablePreview />
+            <Input
+              as={EditableInput}
+              backgroundColor={notLoaded ? 'brandscheme' : 'white'}
+              isReadOnly={notLoaded}
+            />
+          </Box>
+          <Spacer />
+          <Box>
+            <EditableControls />
+          </Box>
+        </HStack>
+      </Editable>
+    )
+  }, []);
+
+  const NameField = useMemo(() => {
     return (
       <FormControl isInvalid={!name}>
         <HStack spacing='24px'>
-          <Box>
-            <FormLabel marginTop='10px'>中文全名</FormLabel>
-          </Box>
-          <Box>
-            <Editable
-              defaultValue={user.name ? user.name : undefined}
-              onChange={(newName) => setName(newName)}
-            >
-              <HStack>
-                <Box>
-                  <EditablePreview />
-                  <Input
-                    as={EditableInput}
-                    backgroundColor={notLoaded ? 'brandscheme' : 'white'}
-                    value={name}
-                    isReadOnly={notLoaded}
-                  />
-                </Box>
-                <Spacer />
-                <Box>
-                  <EditableControls />
-                </Box>
-              </HStack>
-            </Editable>
-          </Box>
-        </HStack>
+        <Box>
+          <FormLabel marginTop='10px'>中文全名</FormLabel>
+        </Box>
+        <Box>
+          {NameEditable}
+        </Box>
+      </HStack>
         <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
       </FormControl>
     )
-  }
+  }, [name]);
 
   return (
     <Box paddingTop={'80px'}>
       <Stack spacing={4}>
         <EmailField />
-        <NameField />
+        {NameField}
         <Button 
           onClick={handleSubmit} 
           isLoading={notLoaded}
