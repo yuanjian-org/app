@@ -11,6 +11,8 @@ import {
   Input,
   FormControl,
   Link,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
@@ -88,13 +90,18 @@ function Meetings() {
     <PageBreadcrumb current='我的会议' parents={[]} />
     {isLoading && <Loader />}
     
-    {groups
-    && groups.length == 0
-    && !isLoading
-    && <Text align='center'>
-        会议将在管理员设置后可见。请确保腾讯会议已安装。
-        <Link isExternal href='https://meeting.tencent.com/download/'>点击此处下载</Link>。
-        </Text>}
+    {groups && groups.length == 0 && !isLoading && <>
+      <Text>会议将在管理员设置后可见。在继续使用前：</Text>
+      <br />
+      <UnorderedList>
+        <ListItem>
+          国内用户请安装腾讯会议（<Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
+        </ListItem>
+        <ListItem>
+          海外用户请安装 VooV Meeting（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
+        </ListItem>
+      </UnorderedList>
+    </>}
     
     <VStack divider={<StackDivider />} align='left' spacing='6'>
       {groups &&
