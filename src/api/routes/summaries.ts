@@ -37,7 +37,7 @@ const summaries = router({
    * 
    * $ curl -G https://${HOST}/api/v1/summaries.list \
    *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
-   *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeIfHasKey": "SummaryKey2" }'
+   *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeTranscriptsWithKey": "SummaryKey2" }'
    */
   list: procedure
   .use(authIntegration())

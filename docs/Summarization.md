@@ -8,7 +8,7 @@ identify the LLM configuration and prompt set. Let's use `llm-v1` as an example.
 ```
 $ curl -G https://${HOST}/api/v1/summaries.list \
   -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
-  --data-urlencode 'input={ "key": "原始文字", "excludeIfHasKey": "llm-v1" }' \
+  --data-urlencode 'input={ "key": "原始文字", "excludeTranscriptsWithKey": "llm-v1" }' \
   | jq .
 ```
 
