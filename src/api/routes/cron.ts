@@ -20,7 +20,7 @@ const cron = router({
   .output(z.object({
     syncedCrudeSummaries: z.array(z.string()),
   }))
-  .query(async ({ ctx }) => {
+  .mutation(async () => {
     console.log('Looking for missing crude summaries...');
     const summaries = await findMissingCrudeSummaries();
 
