@@ -47,10 +47,11 @@ const sign = (
   httpMethod: string, headerNonce: number,
   headerTimestamp: number, requestUri: string, requestBody: string
 ) => {
-  const tobeSig = `${httpMethod}\nX-TC-Key=${secretId}&X-TC-Nonce=${headerNonce}&X-TC-Timestamp=${headerTimestamp}\n${requestUri}\n${requestBody}`
+  const tobeSigned = `${httpMethod}\nX-TC-Key=${secretId}&X-TC-Nonce=${headerNonce}&X-TC-Timestamp=${headerTimestamp}` +
+    `\n${requestUri}\n${requestBody}`;
   const signature = crypto.createHmac('sha256', secretKey)
-    .update(tobeSig)
-    .digest('hex')
+    .update(tobeSigned)
+    .digest('hex');
   return Buffer.from(signature, "utf8").toString('base64');
 }
 
@@ -64,15 +65,8 @@ const tmRequest = async (
   query: Record<string, string | number>,
   body: Record<string, string> = {},
 ) => {
-  const enterpriseId = apiEnv.TM_ENTERPRISE_ID;
-  const appId = apiEnv.TM_APP_ID;
-  const secretId = apiEnv.TM_SECRET_ID;
-  const secretKey = apiEnv.TM_SECRET_KEY;
-
   const now = Math.floor(Date.now() / 1000);
-
   const hasQuery = Object.keys(query).length > 0;
-
   const pathWithQuery = requestUri + (hasQuery ? `?${qs.stringify(query)}` : "");
 
   // authentication docs location
@@ -82,8 +76,8 @@ const tmRequest = async (
   const bodyText = method === "GET" ? "" : JSON.stringify(body);
 
   const signature = sign(
-    secretId,
-    secretKey,
+    apiEnv.TM_SECRET_ID,
+    apiEnv.TM_SECRET_KEY,
     method,
     nonce,
     now,
@@ -95,9 +89,9 @@ const tmRequest = async (
     // "Accept": "*/*",
     // "Accept-Encoding": "gzip, deflate",
     "Content-Type": "application/json",
-    "X-TC-Key": secretId,
-    "AppId": enterpriseId,
-    "SdkId": appId,
+    "X-TC-Key": apiEnv.TM_SECRET_ID,
+    "AppId": apiEnv.TM_ENTERPRISE_ID,
+    "SdkId": apiEnv.TM_APP_ID,
     "X-TC-Timestamp": "" + now,
     "X-TC-Nonce": "" + nonce,
     "X-TC-Signature": signature,
