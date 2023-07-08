@@ -19,7 +19,7 @@ import { NextPageWithLayout } from "../NextPageWithLayout";
 import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';

@@ -3,7 +3,7 @@ import { AppProps } from 'next/app'
 import React from 'react'
 import theme from '../theme'
 import Head from 'next/head'
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
 

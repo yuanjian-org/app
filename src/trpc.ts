@@ -3,6 +3,7 @@ import type { ApiRouter } from './api/apiRouter';
 import { requestFinishLink } from "./requestFinishLink";
 import { observable } from '@trpc/server/observable';
 import { toast } from "react-toastify";
+import { createTRPCNext } from "@trpc/next";
 
 function getBaseUrl() {
   // browser should use relative path
@@ -58,3 +59,15 @@ export const links = [
 const trpc = createTRPCProxyClient<ApiRouter>({ links });
 
 export default trpc;
+
+export const trpcNext = createTRPCNext<ApiRouter>({
+  config({ ctx }) {
+    return {
+      links,
+      // https://tanstack.com/query/v4/docs/reference/QueryClient
+      // queryClientConfig: { defaultOptions: { queries: { staleTime: 60 } } },
+    };
+  },
+  // https://trpc.io/docs/ssr
+  ssr: false,
+});

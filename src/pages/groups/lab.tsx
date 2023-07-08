@@ -5,7 +5,7 @@ import {
 import React from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
-import trpcNext from "../../trpcNext";
+import { trpcNext } from "../../trpc";
 import GroupBar from 'components/GroupBar';
 import Loader from 'components/Loader';
 

@@ -24,7 +24,7 @@ import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import GroupBar, { UserChip } from 'components/GroupBar';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';

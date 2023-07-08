@@ -17,7 +17,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from 'api/routes/groups';
 import GroupBar from 'components/GroupBar';
-import trpcNext from 'trpcNext';
+import { trpcNext } from "../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';

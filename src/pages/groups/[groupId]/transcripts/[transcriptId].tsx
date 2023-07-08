@@ -14,7 +14,7 @@ import {
 import React, { useMemo, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
-import trpcNext from "../../../../trpcNext";
+import { trpcNext } from "../../../../trpc";
 import GroupBar from 'components/GroupBar';
 import { Transcript } from 'api/routes/transcripts';
 import PageBreadcrumb from 'components/PageBreadcrumb';
