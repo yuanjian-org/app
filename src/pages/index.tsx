@@ -95,7 +95,7 @@ function Meetings() {
       <br /><br />
       🇨🇳 国内用户请安装腾讯会议（<Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
       <br /><br />
-      🌎 海外用户请安装腾讯会议海外版，VooV Meeting（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
+      🌎 海外用户请安装海外版腾讯会议（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
     </Text>}
     
     <VStack divider={<StackDivider />} align='left' spacing='6'>

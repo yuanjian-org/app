@@ -7,6 +7,7 @@ import { getRecordURLs, listRecords } from "../TencentMeeting";
 import invariant from "tiny-invariant";
 import Group from "../database/models/Group";
 import { TRPCError } from "@trpc/server";
+import { safeDecodeMeetingSubject } from "./meetings";
 
 const crudeSummaryKey = "原始文字";
 
@@ -124,13 +125,6 @@ export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: st
   });
 }
 
-async function groupExists(groupId: string) {
-  // Without `safeParse` sequalize may throw an exception on invalid UUID strings.
-  return z.string().uuid().safeParse(groupId).success && (await Group.count({
-    where: { id: groupId }
-  })) > 0;
-}
-
 /**
  * Returns crude summaries that 1) were created in the last 31 days, and 2) only exist in Tencent Meeting but not 
  * locally. 31 days are the max query range allowed by Tencent. 
@@ -145,8 +139,8 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
   .filter(meeting => meeting.state === 3)
   .map(async meeting => {
     // Only interested in meetings that refers to valid groups.
-    const groupId = meeting.subject;
-    if (!await groupExists(groupId)) {
+    const groupId = safeDecodeMeetingSubject(meeting.subject);
+    if (!groupId || !(await Group.count({ where: { id: groupId } }))) {
       console.log(`Ignoring non-existing group "${groupId}"`)
       return;
     }

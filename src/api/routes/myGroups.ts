@@ -12,6 +12,8 @@ import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
 import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
+import { encodeMeetingSubject } from "./meetings";
+import { formatGroupName } from "shared/strings";
 
 export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
@@ -37,7 +39,8 @@ const myGroups = router({
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const res = await createMeeting(group.id, now, now + 3600);
+    const groupName = formatGroupName(group.name, group.groupUsers.length);
+    const res = await createMeeting(encodeMeetingSubject(group.id, groupName), now, now + 3600);
     invariant(res.meeting_info_list.length === 1);
 
     const meetingLink = res.meeting_info_list[0].join_url;

@@ -1,7 +1,5 @@
 import { procedure, router } from "../trpc";
-import { authIntegration, authUser } from "../auth";
-import { getRecordURLs, listRecords } from "../TencentMeeting";
-import invariant from "tiny-invariant";
+import { authUser } from "../auth";
 import { z } from "zod";
 import DBTranscript from "../database/models/Transcript";
 import Summary from "../database/models/Summary";

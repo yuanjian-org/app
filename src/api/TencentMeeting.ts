@@ -54,6 +54,10 @@ const sign = (
   return Buffer.from(signature, "utf8").toString('base64');
 }
 
+/**
+ * TODO: handle error responses
+ * TODO: rewrite using `axios` and remove `requestWithBody`
+ */
 const tmRequest = async (
   method: 'POST' | 'GET',
   requestUri: string,
@@ -74,18 +78,7 @@ const tmRequest = async (
   // authentication docs location
   // https://cloud.tencent.com/document/product/1095/42413
   const url = "https://api.meeting.qq.com" + pathWithQuery;
-
   const nonce = Math.floor(Math.random() * 100000);
-
-  // const body = {
-  //   "userid": "...",
-  //   "subject": "testing meeting",
-  //   "type": 0,
-  //   "instanceid": 1,
-  //   "start_time": "" + now,
-  //   "end_time": "" + (now + 3600)
-  // }
-
   const bodyText = method === "GET" ? "" : JSON.stringify(body);
 
   const signature = sign(
@@ -198,14 +191,16 @@ export async function createMeeting(
     })),
   });
 
-  return zRes.parse(await tmRequest('POST', '/v1/meetings', {}, {
+  const res = await tmRequest('POST', '/v1/meetings', {}, {
     userid: apiEnv.TM_ADMIN_USER_ID,
     instanceid: "1",
     subject: subject,
     start_time: "" + startTimeSecond,
     end_time: "" + endTimeSecond,
     type: "0", // 0: scheduled, 1: fast
-  }));
+  });
+
+  return zRes.parse(res);
 }
 
 const paginationNotSupported = () => new TRPCError({
