@@ -23,6 +23,7 @@ class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
   > {
+  // Always use `formatUserName` to display user names.
   @Column(STRING)
   name: string;
 

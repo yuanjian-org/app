@@ -141,7 +141,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
     // Only interested in meetings that refers to valid groups.
     const groupId = safeDecodeMeetingSubject(meeting.subject);
     if (!groupId || !(await Group.count({ where: { id: groupId } }))) {
-      console.log(`Ignoring non-existing group "${groupId}"`)
+      console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`)
       return;
     }
 
