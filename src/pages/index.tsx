@@ -90,19 +90,13 @@ function Meetings() {
     <PageBreadcrumb current='我的会议' parents={[]} />
     {isLoading && <Loader />}
     
-    {groups && groups.length == 0 && !isLoading && <>
-      <Text>会议将在管理员设置后可见。在继续使用前：</Text>
-      <br />
-      <UnorderedList>
-        <ListItem>
-          国内用户请安装腾讯会议（<Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
-        </ListItem>
-        <br />
-        <ListItem>
-          海外用户请安装 VooV Meeting（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
-        </ListItem>
-      </UnorderedList>
-    </>}
+    {groups && groups.length == 0 && !isLoading && <Text>
+      会议将在管理员设置后可见。在继续使用前：
+      <br /><br />
+      🇨🇳 国内用户请安装腾讯会议（<Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
+      <br /><br />
+      🌎 海外用户请安装腾讯会议海外版，VooV Meeting（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
+    </Text>}
     
     <VStack divider={<StackDivider />} align='left' spacing='6'>
       {groups &&
