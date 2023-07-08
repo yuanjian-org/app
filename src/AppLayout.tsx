@@ -70,7 +70,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
 };
 
 function AppContent(props: AppLayoutProps) {
-  return <>
+  return (
     <NavBarFrame>
       <Box
         marginTop={sidebarContentMarginTop}
@@ -92,5 +92,5 @@ function AppContent(props: AppLayoutProps) {
       </Box>
       <Footer />
     </NavBarFrame>
-  </>;
+  );
 }

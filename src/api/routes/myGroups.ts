@@ -14,6 +14,7 @@ import moment from 'moment';
 import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
 import { encodeMeetingSubject } from "./meetings";
 import { formatGroupName } from "shared/strings";
+import apiEnv from "api/apiEnv";
 
 export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
@@ -33,6 +34,12 @@ const myGroups = router({
     if (!group) throw notFoundError(input.groupId);
     // Only meeting members have access to this method.
     if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) throw noPermissionError(input.groupId);
+
+    if (!apiEnv.hasTencentMeeting()) {
+      console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return "/fakeMeeting";
+    }
 
     if (group.meetingLink && !meetingLinkIsExpired(group.updatedAt)) {
       return group.meetingLink;
