@@ -5,10 +5,11 @@ import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroups } from "../
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import { upsertSummary } from "../src/api/routes/summaries";
 import moment from "moment";
 import Role, { AllRoles } from "../src/shared/Role";
-import { toPinyin } from "../src/shared/string";
+import { toPinyin } from "../src/shared/strings";
+import Transcript from "../src/api/database/models/Transcript";
+import Summary from "../src/api/database/models/Summary";
 
 type TestUser = {
   name: string,
@@ -130,4 +131,19 @@ async function generateSummaries(users: TestUser[]) {
   const anotherEnd = anotherStart.clone().add(1, 'hour');
   await upsertSummary(gid, `transcript-2-${gid}`, anotherStart.valueOf(), anotherEnd.valueOf(), 'summary-A',
     '> transcript-2, summary-A' + md);
+}
+
+async function upsertSummary(groupId: string, transcriptId: string, startedAt: number, endedAt: number,
+  summaryKey: string, summary: string) {
+  await Transcript.upsert({
+    transcriptId,
+    groupId,
+    startedAt,
+    endedAt
+  });
+  await Summary.upsert({
+    transcriptId,
+    summaryKey,
+    summary
+  });
 }

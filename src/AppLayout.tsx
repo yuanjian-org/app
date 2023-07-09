@@ -70,7 +70,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
 };
 
 function AppContent(props: AppLayoutProps) {
-  return <>
+  return (
     <NavBarFrame>
       <Box
         marginTop={sidebarContentMarginTop}
@@ -82,15 +82,15 @@ function AppContent(props: AppLayoutProps) {
           base: "100%",
           xl: "1200px"
         }}
-        // TODO: 100px and 55px are empirically measured footer heights. Replace them with constants.
+        // TODO: these hard-coded numbers are empirically measured footer heights. Replace them with constants.
         minHeight={{
-          base: `calc(100vh - ${topbarHeight} - (100px + ${footerMarginTop}))`,
-          [footerBreakpoint]: `calc(100vh - ${topbarHeight} - (55px + ${footerMarginTop}))`,
+          base: `calc(100vh - ${topbarHeight} - (140px + ${footerMarginTop}))`,
+          [footerBreakpoint]: `calc(100vh - ${topbarHeight} - (95px + ${footerMarginTop}))`,
         }}      
       >
         {props.children}
       </Box>
       <Footer />
     </NavBarFrame>
-  </>;
+  );
 }

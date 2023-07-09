@@ -12,7 +12,7 @@ import invariant from "tiny-invariant";
 import _ from "lodash";
 import { isPermitted } from "../../shared/Role";
 import sequelizeInstance from "../database/sequelizeInstance";
-import { formatGroupName, formatUserName } from "../../shared/formatNames";
+import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 
@@ -157,6 +157,9 @@ const groups = router({
   .output(z.array(zGroupCountingTranscripts))
   .query(async ({ input }) => listGroups(input.userIds)),
 
+  /**
+   * Transcripts in the return value are sorted by reverse chronological order.
+   */
   get: procedure
   // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
@@ -172,8 +175,11 @@ const groups = router({
         include: [{
           model: Summary,
           attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
-        }]
-      }]
+        }],
+      }],
+      order: [
+        [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
+      ],
     });
     if (!g) throw notFoundError(input.id);
     if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {

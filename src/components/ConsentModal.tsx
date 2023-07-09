@@ -12,12 +12,15 @@ import {
 import React, { useState } from 'react';
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
-import moment from 'moment';
 import UserProfile from '../shared/UserProfile';
 import ModalWithBackdrop from './ModalWithBackdrop';
 
+const consentContentLastUpdatedAt = new Date("2023-06-01");
+
 export function consentFormAccepted(user: UserProfile) {
-  return user.consentFormAcceptedAt && moment(user.consentFormAcceptedAt) >= moment("20111031", "YYYYMMDD");
+  return user.consentFormAcceptedAt && (
+    new Date(user.consentFormAcceptedAt).getTime() >= consentContentLastUpdatedAt.getTime()
+  );
 }
 
 export default function ConsentModal() {

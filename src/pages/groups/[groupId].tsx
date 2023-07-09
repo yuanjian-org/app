@@ -16,11 +16,10 @@ import AppLayout from "../../AppLayout";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from 'api/routes/groups';
-import moment from 'moment';
 import GroupBar from 'components/GroupBar';
-import trpcNext from 'trpcNext';
+import { trpcNext } from "../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { capitalizeFirstChar } from 'shared/string';
+import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';
 import { MdChevronRight } from 'react-icons/md';
 
@@ -51,14 +50,12 @@ function GroupDetail(props: { group: GroupWithTranscripts }) {
 }
 
 function TranscriptTable(props: { group: GroupWithTranscripts }) {
-  // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
-  moment.locale('zh-cn');
   return (
     <>
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>会议时间</Th>
+            <Th>日期</Th>
             <Th>时长</Th>
             <Th>摘要</Th>
           </Tr>
@@ -67,8 +64,8 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
           {props.group.transcripts.map(t => {
             const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
             return <Tr key={t.transcriptId}>
-              <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-              <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
+              <Td><Link href={link}>{prettifyDate(t.startedAt)}</Link></Td>
+              <Td><Link href={link}>{prettifyDuration(t.startedAt, t.endedAt)}</Link></Td>
               <Td><Link href={link}>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Link></Td>
             </Tr>;
           })}

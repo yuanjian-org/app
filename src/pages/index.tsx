@@ -11,18 +11,20 @@ import {
   Input,
   FormControl,
   Link,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import AppLayout from "../AppLayout";
 import useUserContext from "../useUserContext";
 import trpc from "../trpc";
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName } from '../shared/string';
+import { isValidChineseName } from '../shared/strings';
 import Loader from 'components/Loader';
 
 const Index: NextPageWithLayout = () => {
@@ -88,13 +90,13 @@ function Meetings() {
     <PageBreadcrumb current='我的会议' parents={[]} />
     {isLoading && <Loader />}
     
-    {groups
-    && groups.length == 0
-    && !isLoading
-    && <Text align='center'>
-        会议将在管理员设置后可见。请确保腾讯会议已安装。
-        <Link isExternal href='https://meeting.tencent.com/download/'>点击此处下载</Link>。
-        </Text>}
+    {groups && groups.length == 0 && !isLoading && <Text>
+      会议将在管理员设置后可见。在继续使用前：
+      <br /><br />
+      🇨🇳 国内用户请安装腾讯会议（<Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
+      <br /><br />
+      🌎 海外用户请安装海外版腾讯会议（<Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
+    </Text>}
     
     <VStack divider={<StackDivider />} align='left' spacing='6'>
       {groups &&

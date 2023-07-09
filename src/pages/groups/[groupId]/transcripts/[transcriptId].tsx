@@ -14,14 +14,13 @@ import {
 import React, { useMemo, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
-import trpcNext from "../../../../trpcNext";
-import moment from 'moment';
+import { trpcNext } from "../../../../trpc";
 import GroupBar from 'components/GroupBar';
-import { GetTranscriptResponse } from 'api/routes/transcripts';
+import { Transcript } from 'api/routes/transcripts';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
-import { capitalizeFirstChar } from 'shared/string';
+import { prettifyDate, prettifyDuration } from 'shared/strings';
 
 const Page: NextPageWithLayout = () => <TranscriptCard />;
 
@@ -32,7 +31,7 @@ export default Page;
 function TranscriptCard() {
   const router = useRouter();
   const id = typeof router.query.transcriptId === 'string' ? router.query.transcriptId : 'nonexistence';
-  const { data: transcript } : { data: GetTranscriptResponse | undefined } = trpcNext.transcripts.get.useQuery({ id });
+  const { data: transcript } : { data: Transcript | undefined } = trpcNext.transcripts.get.useQuery({ id });
 
   return (<>
     <PageBreadcrumb current='摘要' parents={[
@@ -43,7 +42,7 @@ function TranscriptCard() {
   </>);
 }
 
-function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
+function TranscriptDetail(props: { transcript: Transcript }) {
   return (
     <Stack divider={<StackDivider />} spacing='6'>
       <GroupBar group={props.transcript.group} showJoinButton showSelf abbreviateOnMobile={false} />
@@ -52,9 +51,7 @@ function TranscriptDetail(props: { transcript: GetTranscriptResponse }) {
   );
 }
 
-function Summaries(props: { transcript: GetTranscriptResponse }) {
-  // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
-  moment.locale('zh-cn');
+function Summaries(props: { transcript: Transcript }) {
   const t = props.transcript;
   invariant(t.summaries.length > 0);
   const [summaryIndex, setSummaryIndex] = useState(0);
@@ -64,15 +61,15 @@ function Summaries(props: { transcript: GetTranscriptResponse }) {
       <Table variant='striped'>
         <Thead>
           <Tr>
-            <Th>会议时间</Th>
+            <Th>日期</Th>
             <Th>时长</Th>
             <Th>摘要版本</Th>
           </Tr>
         </Thead>
         <Tbody>
           <Tr>
-            <Td>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Td>
-            <Td>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Td>
+            <Td>{prettifyDate(t.startedAt)}</Td>
+            <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
             <Td>
               <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
                 {t.summaries.map((s, idx) => (

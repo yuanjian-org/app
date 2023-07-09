@@ -12,6 +12,8 @@ import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
 import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
+import { encodeMeetingSubject } from "./meetings";
+import { formatGroupName } from "shared/strings";
 import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
 import apiEnv from "api/apiEnv";
 
@@ -36,14 +38,20 @@ const myGroups = router({
     // Only meeting members have access to this method.
     if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) throw noPermissionError(input.groupId);
 
-    if (group.meetingLinkCreatedAt && !meetingLinkIsExpired(group.meetingLinkCreatedAt)) {
-      meetingLink = group.meetingLink;
-      meetingId = group.meetingId;
-    } else {
+    if (!apiEnv.hasTencentMeeting()) {
+      console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return "/fakeMeeting";
+    }else{
 
-      const now = Math.floor(Date.now() / 1000);
-      const res = await createMeeting(group.id, now, now + 3600);
-      invariant(res.meeting_info_list.length === 1);
+    if (group.meetingLink && !meetingLinkIsExpired(group.updatedAt)) {
+      return group.meetingLink;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const groupName = formatGroupName(group.name, group.groupUsers.length);
+    const res = await createMeeting(encodeMeetingSubject(group.id, groupName), now, now + 3600);
+    invariant(res.meeting_info_list.length === 1);
 
       meetingLink = res.meeting_info_list[0].join_url;
       meetingId = res.meeting_info_list[0].meeting_id;

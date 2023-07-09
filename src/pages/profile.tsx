@@ -9,12 +9,24 @@ import {
   InputRightAddon,
   Alert,
   AlertIcon,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  useEditableControls,
+  ButtonGroup,
+  IconButton,
+  Flex,
+  Spacer,
+  HStack,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
-import { EditIcon, EmailIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import useUserContext from 'useUserContext';
 
@@ -22,13 +34,15 @@ import useUserContext from 'useUserContext';
 const UserProfile: NextPageWithLayout = () => {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
-  const [show, setShow] = useState(false);
+  const [notLoaded, setNotLoaded] = useState(false);
 
   useEffect(() => {
     setName(user.name || '')
   }, [user]);
 
   const handleSubmit = async () => {
+    setNotLoaded(true);
+
     if (name) {
       const updatedUser = structuredClone(user);
       updatedUser.name = name;
@@ -36,61 +50,100 @@ const UserProfile: NextPageWithLayout = () => {
       // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
+        toast.success("个人信息已保存")
         setUser(updatedUser);
-        setShow(!show);
       } catch(e) {
         toast.error((e as Error).message);
+      } finally {
+        setNotLoaded(false);
       }
     }
   };
 
-  return (
-    <Stack spacing={4}>
-      <InputGroup>
-        <InputLeftAddon>
-          Email
-        </InputLeftAddon>
-        <Input
-          placeholder={user.email}
-          isReadOnly
-        />
-        <InputRightAddon>
-          <Icon as={EmailIcon} color="gray.500" />
-        </InputRightAddon>
-      </InputGroup>
-      <InputGroup>
-        <InputLeftAddon>
-          中文全名
-        </InputLeftAddon>
-        <Input
-          backgroundColor={show ? 'white' : 'brandscheme'}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          isReadOnly={!show}
-        />
-        <InputRightAddon>
-          <Icon as={EditIcon} color="gray.500" />
-        </InputRightAddon>
-      </InputGroup>
-      {!name && (
-        <Alert status="error" mt={4}>
-          <AlertIcon />
-          用户姓名不能为空
-        </Alert>
-      )}
-      {!show && <Button
-        onClick={() => setShow(!show)}
-        fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-        修改个人信息
-      </Button>}
+  const EditableControls = () => {
+    const {
+      isEditing,
+      getSubmitButtonProps,
+      getCancelButtonProps,
+      getEditButtonProps,
+    } = useEditableControls()
 
-      {show && <Button
-        backgroundColor='orange'
-        onClick={handleSubmit}
-        fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-        保存
-      </Button>}
-    </Stack>
+    return isEditing ? (
+      <ButtonGroup justifyContent='center' size='sm'>
+        <IconButton aria-label='confirm name change button' icon={<CheckIcon />} {...getSubmitButtonProps()} />
+        <IconButton aria-label='cancel name change button' icon={<CloseIcon />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <ButtonGroup justifyContent='center' size='sm'>
+        <IconButton aria-label='edit name button' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+      </ButtonGroup>
+    )
+  }
+
+  const EmailField = () => {
+    return (
+      <FormControl>
+        <HStack spacing='24px'>
+          <Box>
+            <FormLabel marginTop='10px'>邮箱</FormLabel>
+          </Box>
+          <Box>
+            {user.email}
+          </Box>
+        </HStack>
+      </FormControl>
+    )
+  }
+
+  const NameField = () => {
+    return (
+      <FormControl isInvalid={!name}>
+        <HStack spacing='24px'>
+          <Box>
+            <FormLabel marginTop='10px'>中文全名</FormLabel>
+          </Box>
+          <Box>
+            <Editable defaultValue={user.name ? user.name : undefined}>
+              <HStack>
+                <Box>
+                  <EditablePreview />
+                  <Input
+                    as={EditableInput}
+                    backgroundColor={notLoaded ? 'brandscheme' : 'white'}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    isReadOnly={notLoaded}
+                  />
+                </Box>
+                <Spacer />
+                <Box>
+                  <EditableControls />
+                </Box>
+              </HStack>
+            </Editable>
+          </Box>
+        </HStack>
+        <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
+      </FormControl>
+    )
+  }
+
+  return (
+    <Box paddingTop={'80px'}>
+      <Stack spacing={4}>
+        <EmailField />
+        <NameField />
+        <Button 
+          onClick={handleSubmit} 
+          isLoading={notLoaded}
+          loadingText="保存中"
+          variant='brand'
+          marginBottom='24px'
+        >
+          保存
+        </Button>
+      </Stack>
+    </Box>
   )
 }
 
