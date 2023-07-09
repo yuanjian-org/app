@@ -4,7 +4,6 @@ import {
   Button,
   Center,
   Flex,
-  HStack,
   SimpleGrid,
   Spacer,
   Text,
@@ -21,6 +20,8 @@ import Link from 'next/link';
 import useUserContext from 'useUserContext';
 import { formatGroupName } from 'shared/strings';
 import { sidebarBreakpoint } from './NavBars';
+import UserChip from './UserChip';
+import { MinUserProfile } from 'shared/UserProfile';
 
 // @ts-ignore TODO: fix me.
 export default function GroupBar(props: {
@@ -108,7 +109,7 @@ export default function GroupBar(props: {
 
 function UserChips(props: { 
   currentUserId?: string, 
-  users: { id: string, name: string | null }[],
+  users: MinUserProfile[],
   abbreviateOnMobile?: boolean,
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
@@ -141,13 +142,4 @@ function UserChips(props: {
       )}
     </Wrap>
   </>;
-}
-
-export function UserChip(props: {
-  user: { id: string, name: string | null }
-}) {
-  return <HStack>
-    <Avatar name={props.user.name || undefined} boxSize={10}/>
-    <Text>{props.user.name}</Text>
-  </HStack>;
 }

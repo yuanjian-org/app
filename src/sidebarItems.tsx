@@ -33,10 +33,16 @@ const sidebarItems: SidebarItem[] = [
     role: 'UserManager',
   },
   {
-    name: '分组管理',
+    name: '会议分组管理',
     path: '/groups',
     icon: MdGroups,
     role: 'GroupManager',
+  },
+  {
+    name: '导师匹配管理',
+    path: '/partnerships',
+    icon: MdGroups,
+    role: 'PartnershipManager',
   },
 ]
 

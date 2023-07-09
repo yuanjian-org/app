@@ -15,14 +15,12 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
+import { minUserProfileAttributes, zMinUserProfile } from "shared/UserProfile";
 
 const zGroup = z.object({
   id: z.string(),
   name: z.string().nullable(),
-  users: z.array(z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-  }))
+  users: z.array(zMinUserProfile),
 });
 
 export type Group = z.TypeOf<typeof zGroup>;
@@ -169,7 +167,7 @@ const groups = router({
     const g = await DbGroup.findByPk(input.id, {
       include: [{
         model: User,
-        attributes: ['id', 'name'],
+        attributes: minUserProfileAttributes,
       }, {
         model: Transcript,
         include: [{

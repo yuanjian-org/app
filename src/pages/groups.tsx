@@ -23,7 +23,8 @@ import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
-import GroupBar, { UserChip } from 'components/GroupBar';
+import GroupBar from 'components/GroupBar';
+import UserChip from 'components/UserChip';
 import { Group } from 'api/routes/groups';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
