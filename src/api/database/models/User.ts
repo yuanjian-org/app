@@ -6,6 +6,7 @@ import {
   AllowNull,
   BelongsToMany,
   Column,
+  HasMany,
   Table,
   Unique,
 } from "sequelize-typescript";
@@ -16,6 +17,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
+import Partnership from "./Partnership";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
@@ -38,6 +40,7 @@ class User extends ParanoidModel<
   @Column(STRING)
   clientId: string;
 
+  // TODO chaneg to use array type
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
@@ -47,6 +50,13 @@ class User extends ParanoidModel<
   @AllowNull(true)
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
+
+  // A mentee can have multiple mentors, although commonly just one.
+  @HasMany(() => Partnership, { foreignKey: 'menteeId' })
+  menteeOf: NonAttribute<Partnership>;
+
+  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
+  mentorOf: NonAttribute<Partnership>;
 }
 
 export default User;

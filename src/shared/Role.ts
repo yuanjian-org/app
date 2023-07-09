@@ -5,6 +5,7 @@ export const AllRoles = [
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
+  'PartnershipManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -24,6 +25,10 @@ export const RoleProfiles: { [key: string]: {
   SummaryEngineer: {
     displayName: '摘要工程师',
     actions: '研发自动会议摘要功能',
+  },
+  PartnershipManager: {
+    displayName: '导师匹配管理员',
+    actions: '管理导师匹配',
   },
 }
 

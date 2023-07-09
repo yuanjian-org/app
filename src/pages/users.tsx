@@ -1,7 +1,5 @@
 import {
-  Box,
   Button,
-  SimpleGrid,
   Table,
   Thead,
   Tbody,
@@ -48,8 +46,7 @@ const Page: NextPageWithLayout = () => {
 
   return <>
     {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
-    {!data && <Loader />}
-    {data &&
+    {!data ? <Loader /> :
       <Table variant='striped'>
         <Thead>
           <Tr>
