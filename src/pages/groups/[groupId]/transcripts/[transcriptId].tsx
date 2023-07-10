@@ -21,6 +21,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import { prettifyDate, prettifyDuration } from 'shared/strings';
+import { parseQueryParameter } from '../../../../parseQueryParamter';
 
 const Page: NextPageWithLayout = () => <TranscriptCard />;
 
@@ -30,13 +31,14 @@ export default Page;
 
 function TranscriptCard() {
   const router = useRouter();
-  const id = typeof router.query.transcriptId === 'string' ? router.query.transcriptId : 'nonexistence';
+  const id = parseQueryParameter(router, "transcriptId");
+  const groupId = parseQueryParameter(router, "groupId");
   const { data: transcript } : { data: Transcript | undefined } = trpcNext.transcripts.get.useQuery({ id });
 
   return (<>
     <PageBreadcrumb current='摘要' parents={[
       { name: '我的会议', link: '/' },
-      { name: '会议详情', link: `/groups/${router.query.groupId}` },
+      { name: '会议详情', link: `/groups/${groupId}` },
     ]} />
     {transcript ? <TranscriptDetail transcript={transcript} /> : <Loader />}
   </>);

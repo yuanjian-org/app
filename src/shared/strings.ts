@@ -22,7 +22,7 @@ export function prettifyDuration(from: Date, to: Date) {
   return `${diffInMinutes(from, to)} 分钟`;
 }
 
-export function prettifyDate(str: Date) {
+export function prettifyDate(str: Date | string) {
   const date = new Date(str);
   const now = new Date();
   const dim = diffInMinutes(date, now);

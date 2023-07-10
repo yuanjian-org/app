@@ -6,6 +6,7 @@ export const AllRoles = [
   'GroupManager',
   'SummaryEngineer',
   'PartnershipManager',
+  'PartnershipAssessor',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -30,6 +31,10 @@ export const RoleProfiles: { [key: string]: {
     displayName: '导师匹配管理员',
     actions: '管理导师匹配',
   },
+  PartnershipAssessor: {
+    displayName: '跟踪评估员',
+    actions: '跟踪评估一对一导师辅导效果',
+  }
 }
 
 type Role = ArrayElement<typeof AllRoles>;

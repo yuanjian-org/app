@@ -22,6 +22,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';
 import { MdChevronRight } from 'react-icons/md';
+import { parseQueryParameter } from '../../parseQueryParamter';
 
 const Page: NextPageWithLayout = () => <GroupCard />;
 
@@ -30,8 +31,7 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default Page;
 
 function GroupCard() {
-  const router = useRouter();
-  const id = typeof router.query.groupId === 'string' ? router.query.groupId : 'nonexistence';
+  const id = parseQueryParameter(useRouter(), "groupId");
   const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (<>

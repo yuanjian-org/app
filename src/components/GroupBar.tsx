@@ -107,10 +107,10 @@ export default function GroupBar(props: {
   );
 }
 
-function UserChips(props: { 
+export function UserChips(props: { 
   currentUserId?: string, 
   users: MinUserProfile[],
-  abbreviateOnMobile?: boolean,
+  abbreviateOnMobile?: boolean, // default: true
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
   const abbreviateOnMobile = (props.abbreviateOnMobile === undefined || props.abbreviateOnMobile) 

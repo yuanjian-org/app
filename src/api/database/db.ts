@@ -8,6 +8,7 @@ import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
 import OngoingMeetingCount from "./models/OngoingMeetingCount";
 import Partnership from './models/Partnership';
+import Assessment from "./models/Assessment";
 
 const db = {
   Partnership,
@@ -17,6 +18,7 @@ const db = {
   Transcript, 
   Summary, 
   OngoingMeetingCount,
+  Assessment,
 };
 
 export default db;

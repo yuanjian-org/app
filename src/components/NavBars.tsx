@@ -146,9 +146,9 @@ const SidebarRow = ({ item, onClose, ...rest }: SidebarRowProps) => {
     >
       <Flex
         align="center"
-        paddingX={4}
+        marginX={4}
+        paddingLeft={4}
         paddingBottom={8}
-        marginX="4"
         role="group"
         cursor={active ? "default" : "pointer"}
         {...rest}

@@ -7,7 +7,6 @@ import {
   ModalCloseButton,
   FormControl,
   FormLabel,
-  Text,
   VStack,
   FormErrorMessage,
   Table,
@@ -16,10 +15,9 @@ import {
   Tr,
   Th,
   Td,
-  SimpleGrid,
   Flex,
   Box,
-  Divider,
+  Link,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -29,34 +27,51 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
 import { AddIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
-import Partnership, { isValidPartnershipIds } from 'shared/Partnership';
+import { PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Partnership';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import UserChip from 'components/UserChip';
 import { sidebarBreakpoint } from 'components/NavBars';
+import useUserContext from 'useUserContext';
+import { isPermitted } from 'shared/Role';
+import NextLink from 'next/link';
 
 const Page: NextPageWithLayout = () => {
-  const { data: partnerships, refetch } : { data: Partnership[] | undefined, refetch: () => void } 
-    = trpcNext.partnerships.list.useQuery();
+  const [user] = useUserContext();
+  const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery
+    <PartnershipCountingAssessments[] | undefined>();
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
 
+  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
+  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
+
   return <Flex direction='column' gap={6}>
-    <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setModalIsOpen(true)}>创建导师匹配</Button>
-    </Box>
+    {showAddButton && <Box>
+      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setModalIsOpen(true)}>创建一对一匹配</Button>
+    </Box>}
+
     {modalIsOpen && <AddModel onClose={() => {
       setModalIsOpen(false);
       refetch();
     }} />}
+
     {!partnerships ? <Loader /> : <Table>
       <Thead>
-        <Tr><Th>学生</Th><Th>老师</Th></Tr>
+        <Tr>
+          <Th>学生</Th><Th>导师</Th>
+          {showAssessment && <Th>跟踪评估</Th>}
+        </Tr>
       </Thead>
       <Tbody>
-      {partnerships.map((p, idx) => (
-        <Tr key={idx}>
+      {partnerships.map(p => (
+        <Tr key={p.id}>
           <Td width={{ [sidebarBreakpoint]: '12em' }}><UserChip user={p.mentee} /></Td>
           <Td><UserChip user={p.mentor} /></Td>
+          {showAssessment && <Td>
+            <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
+              查看（{p.assessments.length}）
+            </Link>
+          </Td>}
         </Tr>
       ))}
       </Tbody>
@@ -94,7 +109,7 @@ function AddModel(props: {
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
     <ModalContent>
-      <ModalHeader>创建导师匹配</ModalHeader>
+      <ModalHeader>创建一对一匹配</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>
