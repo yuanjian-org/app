@@ -2,10 +2,12 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import _ from "lodash";
 import db from "api/database/db";
-import { isValidPartnershipIds, zPartnership } from "shared/Partnership";
+import { isValidPartnershipIds, zPartnership, zPartnershipCountingAssessments, zPartnershipWithAssessments } from "shared/Partnership";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { minUserProfileAttributes } from "shared/UserProfile";
+import { minUserProfileAttributes } from "../../shared/UserProfile";
+import Assessment from "../database/models/Assessment";
+import invariant from "tiny-invariant";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -30,24 +32,53 @@ const create = procedure
 
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zPartnership))
+  .output(z.array(zPartnershipCountingAssessments))
   .query(async () => 
 {
   const res = await db.Partnership.findAll({
-    include: [{
-      association: 'mentor',
-      attributes: minUserProfileAttributes,
-    }, {
-      association: 'mentee',
-      attributes: minUserProfileAttributes,
-    }]
+    include: [
+      ...includePartnershipUsers,
+      {
+        model: Assessment,
+        attributes: ['id'],
+      }
+    ]
   });
+  return res;
+});
+
+const getWithAssessments = procedure
+  .use(authUser('PartnershipAssessor'))
+  .input(z.object({ id: z.string().uuid() }))
+  .output(zPartnershipWithAssessments)
+  // @ts-ignore
+  .query(async ({ input }) => 
+{
+  const res = await db.Partnership.findByPk(input.id, {
+    include: [
+      ...includePartnershipUsers,
+      Assessment,
+    ]
+  });
+  if (!res) throw new TRPCError({
+    code: "NOT_FOUND",
+    message: `一对一导师匹配 ${input.id} 不存在`,
+  })
   return res;
 });
 
 const routes = router({
   create,
   list,
+  getWithAssessments,
 });
 
 export default routes;
+
+export const includePartnershipUsers = [{
+  association: 'mentor',
+  attributes: minUserProfileAttributes,
+}, {
+  association: 'mentee',
+  attributes: minUserProfileAttributes,
+}];

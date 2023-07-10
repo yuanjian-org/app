@@ -5,9 +5,13 @@ import {
   BelongsTo,
   Model,
   PrimaryKey,
+  IsUUID,
+  Default,
+  HasMany,
 } from "sequelize-typescript";
-import { UUID } from "sequelize";
+import { CreationOptional, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
+import Assessment from "./Assessment";
 
 /**
  * A partnership is a mentee-mentor pair
@@ -20,7 +24,12 @@ import User from "./User";
   }]
 })
 class Partnership extends Model {
+  @IsUUID(4)
   @PrimaryKey
+  @Default(UUIDV4)
+  @Column(UUID)
+  id: CreationOptional<string>;
+
   @ForeignKey(() => User)
   @Column(UUID)
   mentorId: string;
@@ -28,13 +37,15 @@ class Partnership extends Model {
   @BelongsTo(() => User, { foreignKey: 'mentorId' })
   mentor: User;
 
-  @PrimaryKey
   @ForeignKey(() => User)
   @Column(UUID)
   menteeId: string;
 
   @BelongsTo(() => User, { foreignKey: 'menteeId' })
   mentee: User;
+
+  @HasMany(() => Assessment)
+  assessments: Assessment[];
 }
 
 export default Partnership;

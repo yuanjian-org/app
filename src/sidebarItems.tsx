@@ -3,6 +3,7 @@ import {
   MdHome,
   MdGroups,
   MdScience,
+  MdGroup,
 } from 'react-icons/md'
 import Role from "./shared/Role";
 import { IconType } from "react-icons";
@@ -39,9 +40,9 @@ const sidebarItems: SidebarItem[] = [
     role: 'GroupManager',
   },
   {
-    name: '导师匹配管理',
+    name: '一对一导师管理',
     path: '/partnerships',
-    icon: MdGroups,
+    icon: MdGroup,
     role: 'PartnershipManager',
   },
 ]
