@@ -133,15 +133,17 @@ const UserProfile: NextPageWithLayout = () => {
       <Stack spacing={4}>
         <EmailField />
         <NameField />
-        <Button 
-          onClick={handleSubmit} 
-          isLoading={notLoaded}
-          loadingText="保存中"
-          variant='brand'
-          marginBottom='24px'
-        >
-          保存
-        </Button>
+        <Box>
+          <Button 
+            onClick={handleSubmit} 
+            isLoading={notLoaded}
+            loadingText="保存中"
+            variant='brand'
+            marginBottom='24px'
+          >
+            保存
+          </Button>
+        </Box>
       </Stack>
     </Box>
   )
