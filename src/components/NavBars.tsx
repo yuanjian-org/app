@@ -1,7 +1,7 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   IconButton,
   Avatar,
@@ -41,6 +41,8 @@ import Image from "next/image";
 import { useRouter } from 'next/router';
 import { MdChevronRight } from 'react-icons/md';
 import colors from 'theme/colors';
+import AutosaveIndicator, { AutosaveState, addPendingSaver, initialState, removePendingSaver } from './AutosaveIndicator';
+import AutosaveContext from 'AutosaveContext';
 
 const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -56,6 +58,22 @@ export default function Navbars({
   children: ReactNode;
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [ autosaveState, setAutosateState] = useState<AutosaveState>(initialState);
+
+  /**
+   * Use a reference holder to keep the values of addPS and removePS independent of autosaveState, and thus avoid
+   * re-rendering the whole page every time autosaveState changes.
+   */
+  const ref = useMemo(() => ({ state: initialState }), []);
+  const addPS = useCallback((id: string) => {
+    ref.state = addPendingSaver(ref.state, id);
+    setAutosateState(ref.state);
+  }, [ref]);
+  const removePS = useCallback((id: string) => {
+    ref.state = removePendingSaver(ref.state, id);
+    setAutosateState(ref.state);
+  }, [ref]);
+  
   return (
     <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
       <SidebarContent
@@ -74,9 +92,14 @@ export default function Navbars({
           <SidebarContent onClose={onClose} />
         </DrawerContent>
       </Drawer>
-      <Topbar onOpen={onOpen} />
+      <Topbar onOpen={onOpen} autosaveState={autosaveState} />
       <Box marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}>
-        {children}
+        <AutosaveContext.Provider value={{
+          addPendingSaver: addPS,
+          removePendingSaver: removePS,
+        }}>
+          {children}
+        </AutosaveContext.Provider>
       </Box>
     </Box>
   );
@@ -166,10 +189,11 @@ const SidebarRow = ({ item, onClose, ...rest }: SidebarRowProps) => {
 };
 
 interface TopbarProps extends FlexProps {
-  onOpen: () => void;
+  onOpen: () => void,
+  autosaveState: AutosaveState,
 }
 
-const Topbar = ({ onOpen, ...rest }: TopbarProps) => {
+const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
 	const guard = useGuard();
 	const [user] = useUserContext();
 
@@ -187,16 +211,23 @@ const Topbar = ({ onOpen, ...rest }: TopbarProps) => {
       bg={useColorModeValue('white', 'gray.900')}
       borderBottomWidth="1px"
       borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
-      justifyContent={{ base: 'space-between', [sidebarBreakpoint]: 'flex-end' }}
+      justifyContent={{ base: 'space-between' }}
       {...rest}
     >
-      <IconButton
-        display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
-        onClick={onOpen}
-        variant="outline"
-        aria-label="open menu"
-        icon={<FiMenu />}
-      />
+      <HStack spacing={6}>
+        <IconButton
+          display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
+          onClick={onOpen}
+          variant="outline"
+          aria-label="open menu"
+          icon={<FiMenu />}
+        />
+        <AutosaveIndicator
+          // TODO: Implement on mobile UI
+          display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
+          state={autosaveState} 
+        />
+      </HStack>
 
       <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
         <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />

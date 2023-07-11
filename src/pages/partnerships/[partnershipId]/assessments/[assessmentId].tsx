@@ -8,7 +8,7 @@ import { parseQueryParameter } from '../../../../parseQueryParamter';
 import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import MarkdownEditor from 'components/MarkdownEditor';
-import Autosave from 'components/Autosave';
+import Autosaver from 'components/Autosaver';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 
@@ -27,7 +27,7 @@ function AssessmentEditor() {
     setEdited(summary);
   }, []);
 
-  const save = useCallback((summary: string) => {
+  const save = useCallback(async (summary: string) => {
     console.log(">>> saving", summary);
   }, []);
 
@@ -45,7 +45,7 @@ function AssessmentEditor() {
 
     {!assessment ? <Loader /> : <>
       {editor}
-      <Autosave data={edited} onSave={save} />
+      <Autosaver data={edited} onSave={save} />
     </>}
   </>);
 }
