@@ -17,7 +17,7 @@ import React, { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
 import { sidebarBreakpoint } from './NavBars';
 import UserChip from './UserChip';

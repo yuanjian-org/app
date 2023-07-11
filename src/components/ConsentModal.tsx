@@ -10,7 +10,7 @@ import {
   Spacer,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import useUserContext from "../useUserContext";
+import { useUserContext } from "../UserContext";
 import trpc from "../trpc";
 import UserProfile from '../shared/UserProfile';
 import ModalWithBackdrop from './ModalWithBackdrop';

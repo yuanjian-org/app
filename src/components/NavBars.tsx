@@ -31,7 +31,7 @@ import {
 import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { Guard, useGuard } from "@authing/guard-react18";
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 import sidebarItems, { SidebarItem } from 'sidebarItems';
 import { isPermitted } from 'shared/Role';
 import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
