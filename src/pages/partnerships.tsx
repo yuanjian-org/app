@@ -32,7 +32,7 @@ import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import UserChip from 'components/UserChip';
 import { sidebarBreakpoint } from 'components/NavBars';
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
 

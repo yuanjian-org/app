@@ -30,7 +30,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 
