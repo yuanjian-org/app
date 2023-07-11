@@ -9,6 +9,7 @@ import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import MarkdownEditor from 'components/MarkdownEditor';
 import Autosaver from 'components/Autosaver';
+import sleep from 'shared/sleep';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 
@@ -28,7 +29,9 @@ function AssessmentEditor() {
   }, []);
 
   const save = useCallback(async (summary: string) => {
-    console.log(">>> saving", summary);
+    console.log("saving", summary);
+    await sleep(2000);
+    // throw Error('hohoho');
   }, []);
 
   // Receating the editor on each render will reset its focus (and possibly other states). So don't do it.

@@ -13,8 +13,9 @@ import Transcript from "../database/models/Transcript";
 import moment from 'moment';
 import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
 import { encodeMeetingSubject } from "./meetings";
-import { formatGroupName } from "shared/strings";
-import apiEnv from "api/apiEnv";
+import { formatGroupName } from "../../shared/strings";
+import apiEnv from "../apiEnv";
+import sleep from "../../shared/sleep";
 
 export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
@@ -37,7 +38,7 @@ const myGroups = router({
 
     if (!apiEnv.hasTencentMeeting()) {
       console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await sleep(2000);
       return "/fakeMeeting";
     }
 
