@@ -8,16 +8,20 @@ import Partnership from "api/database/models/Partnership";
 import { includePartnershipUsers } from "./partnerships";
 import { TRPCError } from "@trpc/server";
 
+/**
+ * @returns the ID of the created assessment.
+ */
 const create = procedure
   .use(authUser('PartnershipAssessor'))
   .input(z.object({
     partnershipId: z.string().uuid(),
   }))
+  .output(z.string())
   .mutation(async ({ input }) => 
 {
-  await db.Assessment.create({
+  return (await db.Assessment.create({
     partnershipId: input.partnershipId,
-  });
+  })).id;
 });
 
 const get = procedure
@@ -26,7 +30,6 @@ const get = procedure
     id: z.string().uuid(),
   }))
   .output(zAssessment)
-  // @ts-ignore
   .query(async ({ input }) => 
 {
   const res = await db.Assessment.findByPk(input.id, {
