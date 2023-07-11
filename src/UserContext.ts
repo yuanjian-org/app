@@ -1,8 +1,11 @@
 import { createContext, useContext } from "react";
 import UserProfile from "./shared/UserProfile";
 
-// @ts-ignore
-const UserContext = createContext<[UserProfile, (u: UserProfile) => void]>(null);
+const UserContext = createContext<[UserProfile, (u: UserProfile) => void]>([
+  // @ts-ignore
+  null, 
+  () => {},
+]);
 export default UserContext;
 
 export const useUserContext = () => useContext(UserContext);
