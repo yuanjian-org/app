@@ -7,7 +7,6 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { minUserProfileAttributes } from "../../shared/UserProfile";
 import Assessment from "../database/models/Assessment";
-import invariant from "tiny-invariant";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -51,7 +50,6 @@ const getWithAssessments = procedure
   .use(authUser('PartnershipAssessor'))
   .input(z.object({ id: z.string().uuid() }))
   .output(zPartnershipWithAssessments)
-  // @ts-ignore
   .query(async ({ input }) => 
 {
   const res = await db.Partnership.findByPk(input.id, {

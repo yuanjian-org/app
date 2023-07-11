@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const zAssessment = z.object({
   id: z.string().uuid(),
-  createdAt: z.date(),
+  createdAt: z.date().optional(), // For some reason optional() is needed to avoid ts type check errors.
   summary: z.string().nullable(),
 });
 type Assessment = z.TypeOf<typeof zAssessment>;

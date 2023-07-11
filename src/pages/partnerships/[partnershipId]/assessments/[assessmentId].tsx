@@ -1,5 +1,4 @@
-
-import React, { useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import { trpcNext } from "../../../../trpc";
@@ -8,6 +7,7 @@ import { useRouter } from 'next/router';
 import { parseQueryParameter } from '../../../../parseQueryParamter';
 import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
+import MarkdownEditor from 'components/MarkdownEditor';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 
@@ -20,6 +20,11 @@ function AssessmentEditor() {
   const id = parseQueryParameter(router, "assessmentId");
   const partnershipId = parseQueryParameter(router, "partnershipId");
   const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>({ id });
+  const [summary, setSummary] = useState(assessment ? assessment.summary : undefined);
+
+  const onChange = useCallback((value: string) => {
+    setSummary(value);
+  }, []);
 
   return (<>
     <PageBreadcrumb current='评估详情' parents={[
@@ -27,27 +32,9 @@ function AssessmentEditor() {
       { name: "评估列表", link: `/partnerships/${partnershipId}/assessments` },
     ]} />
 
-    {!assessment ? <Loader /> : <Editor 
-      value={assessment.summary || ''} />
-    }
+    {!assessment ? <Loader /> : <MarkdownEditor 
+      value={summary || ''}
+      onChange={onChange}
+    />}
   </>);
-}
-
-// Markdown editor from https://www.npmjs.com/package/react-simplemde-editor.
-// Beow is a hack from https://github.com/dabit3/next.js-amplify-workshop/issues/21#issuecomment-843188036 to work around
-// the "navigator is not defined" issue.
-import "easymde/dist/easymde.min.css";
-import dynamic from "next/dynamic";
-const SimpleMdeEditor = dynamic(
-	() => import("react-simplemde-editor"),
-	{ ssr: false }
-);
-
-function Editor(props : { value: string }) {
-  // See https://www.npmjs.com/package/react-simplemde-editor#options on why using memo here.
-  const options = useMemo(() => ({
-      spellChecker: false,
-      readOnly: true,
-    }), []);
-  return <SimpleMdeEditor value={props.value} options={options} />;
 }

@@ -11,7 +11,7 @@ import {
   Td,
   Select,
 } from '@chakra-ui/react';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import { trpcNext } from "../../../../trpc";
@@ -22,6 +22,8 @@ import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import { prettifyDate, prettifyDuration } from 'shared/strings';
 import { parseQueryParameter } from '../../../../parseQueryParamter';
+import MarkdownEditor from 'components/MarkdownEditor';
+import Loader from 'components/Loader';
 
 const Page: NextPageWithLayout = () => <TranscriptCard />;
 
@@ -82,27 +84,9 @@ function Summaries(props: { transcript: Transcript }) {
           </Tr>
         </Tbody>
       </Table>
-      <Editor value={t.summaries[summaryIndex].summary} />;
+      <MarkdownEditor value={t.summaries[summaryIndex].summary} options={{
+        toolbar: false,
+      }}/>;
     </Stack>
   );
-}
-
-// Markdown editor from https://www.npmjs.com/package/react-simplemde-editor.
-// Beow is a hack from https://github.com/dabit3/next.js-amplify-workshop/issues/21#issuecomment-843188036 to work around
-// the "navigator is not defined" issue.
-import "easymde/dist/easymde.min.css";
-import dynamic from "next/dynamic";
-import Loader from 'components/Loader';
-const SimpleMdeEditor = dynamic(
-	() => import("react-simplemde-editor"),
-	{ ssr: false }
-);
-
-function Editor(props : { value: string }) {
-  // See https://www.npmjs.com/package/react-simplemde-editor#options on why using memo here.
-  const options = useMemo(() => ({
-      spellChecker: false,
-      readOnly: true,
-    }), []);
-  return <SimpleMdeEditor value={props.value} options={options} />;
 }
