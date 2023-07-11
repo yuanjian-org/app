@@ -53,12 +53,3 @@ export function parseSpeakerStats(data: string): SpeakerStats[] {
   return speakerStats;
 }
 
-// normal test case
-const data = `
-Speaker A(00:00:10): Hello!
-Speaker B(00:00:15): Hi!
-Speaker A(00:00:20): How are you?
-`;
-
-const speakerStats = parseSpeakerStats(data);
-console.log(speakerStats);
