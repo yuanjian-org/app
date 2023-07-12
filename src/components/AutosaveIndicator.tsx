@@ -15,7 +15,7 @@ export default function AutosaveIndicator({ state: s, ...rest }: CenterProps & {
         {errors.length > 0 ?
           <><WarningIcon {...iconProps} color="red"/><Text fontSize="sm" color="red">{errors[0].toString()}</Text></>
           :
-          <><RepeatIcon {...iconProps} /><Text fontSize="sm">保存中...</Text></>
+          <><RepeatIcon {...iconProps} color="disabled"/><Text fontSize="sm" color="disabled">保存中...</Text></>
         }
       </Center>
     </motion.div>

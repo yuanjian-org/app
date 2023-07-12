@@ -7,6 +7,7 @@ import { zAssessment } from "shared/Assessment";
 import Partnership from "api/database/models/Partnership";
 import { includePartnershipUsers } from "./partnerships";
 import { TRPCError } from "@trpc/server";
+import { notFoundError } from "api/errors";
 
 /**
  * @returns the ID of the created assessment.
@@ -22,6 +23,21 @@ const create = procedure
   return (await db.Assessment.create({
     partnershipId: input.partnershipId,
   })).id;
+});
+
+const update = procedure
+  .use(authUser('PartnershipAssessor'))
+  .input(z.object({
+    id: z.string().uuid(),
+    summary: z.string(),
+  }))
+  .mutation(async ({ input }) => 
+{
+  const a = await db.Assessment.findByPk(input.id);
+  if (!a) throw notFoundError("评估", input.id);
+  await a.update({
+    summary: input.summary,
+  });
 });
 
 const get = procedure
@@ -48,6 +64,7 @@ const get = procedure
 const routes = router({
   create,
   get,
+  update,
 });
 
 export default routes;
