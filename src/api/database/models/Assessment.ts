@@ -33,7 +33,7 @@ class Assessment extends Model {
   partnership: Partnership;
 
   @AllowNull
-  @Column(STRING)
+  @Column(STRING(1 * 1024 * 1024))
   summary: string | null;
 }
 

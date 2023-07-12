@@ -26,10 +26,10 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import NextLink from "next/link";
 import Assessment from 'shared/Assessment';
 
-const Page: NextPageWithLayout = () => {;
+const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryParameter(useRouter(), "partnershipId");
-  const { data: partnership } = trpcNext.partnerships.getWithAssessments.useQuery
-    <PartnershipWithAssessments | undefined>({ id: partnershipId });
+  const { data: partnership } = trpcNext.partnerships.getWithAssessments
+    .useQuery<PartnershipWithAssessments | undefined>({ id: partnershipId });
 
   return <>
     <PageBreadcrumb current="评估列表" parents={[
@@ -46,13 +46,12 @@ const Page: NextPageWithLayout = () => {;
               key={a.id} 
               partnershipId={partnershipId} 
               assessmentId={a.id}
-              // @ts-ignore
-              year={new Date(a.createdAt).getFullYear()}
+              date={a.createdAt}
               summary={a.summary}
             />
           )) : <AssessmentRow
             partnershipId={partnershipId}  
-            year={new Date().getFullYear()}
+            date={new Date()}
           />}
         </Tbody>
       </Table>
@@ -60,10 +59,16 @@ const Page: NextPageWithLayout = () => {;
   </>;
 }
 
-function AssessmentRow({ partnershipId, assessmentId, year, summary } : {
+// Date is optional merely to suppress typescript warning
+export function getYearText(date?: Date | string): string {
+  // @ts-ignore
+  return new Date(date).getFullYear() + "年度";
+}
+
+function AssessmentRow({ partnershipId, assessmentId, date, summary } : {
   partnershipId: string,
   assessmentId?: string,  // When undefined, create a new assessment and enter the new assessment page.
-  year: number,
+  date?: Date | string,   // Optional merely to suppress typescript warning
   summary?: string | null,
 }) {
   const router = useRouter();
@@ -75,11 +80,12 @@ function AssessmentRow({ partnershipId, assessmentId, year, summary } : {
 
   return <LinkBox as={Tr}>
     <Td>
-      {year} 年度
+      {getYearText(date)}
     </Td>
-    <Td>
-      {summary || "尚未评估"}
-    </Td>
+    {summary ? 
+      <Td>{summary}</Td> : 
+      <Td color="disabled">尚未评估</Td>
+    }
     <Td>
       <LinkOverlay as={NextLink}
         href={assessmentId ? `/partnerships/${partnershipId}/assessments/${assessmentId}` : "#"}

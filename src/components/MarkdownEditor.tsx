@@ -21,12 +21,12 @@ const options = {
   // readOnly: true,
 } /* as SimpleMDE.Options -- ts warns on this due to the above hack */;
 
-export default function MarkdownEditor(props : {
+export default function MarkdownEditor({ value, onChange, ...rest }: {
   value: string,
   // Remember to use useCallback to avoid rerendering the editor unnecessarily.
   onChange?: (value: string) => void,
   // Override default options. See https://github.com/Ionaru/easy-markdown-editor#options-list
-  options?: any,  /* SimpleMDE.Options -- ts warns on this due to the above hack */
+  [key: string]: any,  /* SimpleMDE.Options -- ts warns on this due to the above hack */
 }) {
-  return <SimpleMDE value={props.value} options={{ ...options, ...props.options }} onChange={props.onChange} />;
+  return <SimpleMDE value={value} options={{ ...options, ...rest }} onChange={onChange} />;
 }

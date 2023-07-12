@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
-import { trpcNext } from "../../../../trpc";
+import trpc, { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import { parseQueryParameter } from '../../../../parseQueryParamter';
@@ -9,7 +9,8 @@ import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import MarkdownEditor from 'components/MarkdownEditor';
 import Autosaver from 'components/Autosaver';
-import sleep from 'shared/sleep';
+import { Heading, Text, Flex } from '@chakra-ui/react';
+import { getYearText } from '../assessments';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 
@@ -29,26 +30,28 @@ function AssessmentEditor() {
   }, []);
 
   const save = useCallback(async (summary: string) => {
-    console.log("saving", summary);
-    await sleep(2000);
-    // throw Error('hohoho');
-  }, []);
+    await trpc.assessments.update.mutate({ id, summary });
+  }, [id]);
 
   // Receating the editor on each render will reset its focus (and possibly other states). So don't do it.
   const editor = useMemo(() => <MarkdownEditor 
     value={assessment?.summary || ''}
     onChange={edit}
+    maxHeight="100px"
   />, [assessment, edit]);
 
   return (<>
-    <PageBreadcrumb current='评估详情' parents={[
+    <PageBreadcrumb current={assessment ? getYearText(assessment.createdAt): "评估年度"} parents={[
       { name: "一对一导师管理", link: "/partnerships" },
       { name: "评估列表", link: `/partnerships/${partnershipId}/assessments` },
     ]} />
 
-    {!assessment ? <Loader /> : <>
+    {!assessment ? <Loader /> : <Flex direction="column" gap={6}>
+      <Heading size="sm">总评</Heading>
       {editor}
       <Autosaver data={edited} onSave={save} />
-    </>}
+      <Heading size="sm">按辅助层面评估</Heading>
+      <Text color="disabled">尚未开发</Text>
+    </Flex>}
   </>);
 }

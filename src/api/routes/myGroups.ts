@@ -11,11 +11,12 @@ import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
-import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
+import { zGroupCountingTranscripts } from "./groups";
 import { encodeMeetingSubject } from "./meetings";
 import { formatGroupName } from "../../shared/strings";
 import apiEnv from "../apiEnv";
 import sleep from "../../shared/sleep";
+import { noPermissionError, notFoundError } from "api/errors";
 
 export function meetingLinkIsExpired(meetingLinkCreatedAt : Date) {
   // meeting is valid for 31 days after start time
@@ -32,9 +33,11 @@ const myGroups = router({
     const group = await Group.findByPk(input.groupId, {
       include: [GroupUser]
     });
-    if (!group) throw notFoundError(input.groupId);
+    if (!group) throw notFoundError("分组", input.groupId);
     // Only meeting members have access to this method.
-    if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) throw noPermissionError(input.groupId);
+    if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) {
+      throw noPermissionError("分组", input.groupId);
+    }
 
     if (!apiEnv.hasTencentMeeting()) {
       console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
