@@ -42,7 +42,7 @@ const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
   const [userBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
-  const [user] = useUserContext();
+  const [me] = useUserContext();
   
   const closeUserEditor = () => {
     setUserBeingEdited(null);
@@ -73,7 +73,7 @@ const Page: NextPageWithLayout = () => {
             {data.map((u: any) => (
               <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
                 <Td>{u.email}</Td>
-                <Td>{u.name} {user.id === u.id ? "（我）" : ""}</Td>
+                <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
                 <Td>{toPinyin(u.name ?? '')}</Td>
                 <Td>
                   <Wrap>
@@ -111,6 +111,7 @@ function UserEditor(props: {
     roles: [],
   };
 
+  const [me] = useUserContext();
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
   const [roles, setRoles] = useState(u.roles);
@@ -160,11 +161,16 @@ function UserEditor(props: {
           <FormControl>
             <FormLabel>角色</FormLabel>
             <Stack>
-              {AllRoles.map(role => (
-                <Checkbox key={role} value={role} isChecked={isPermitted(roles, role)} onChange={setRole}>
-                  {RoleProfiles[role].displayName}（{role}）
-                </Checkbox>
-              ))}
+              {AllRoles
+                .filter(r => isPermitted(me.roles, "PrivilegedRoleManager") || !RoleProfiles[r].privileged)
+                .map(r => {
+                const rp = RoleProfiles[r];
+                return (
+                  <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
+                    {rp.privileged ? "*" : ""} {rp.displayName}（{r}）
+                  </Checkbox>
+                );
+              })}
             </Stack>
           </FormControl>
         </VStack>

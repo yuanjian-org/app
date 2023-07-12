@@ -5,8 +5,8 @@ type Kind = "用户" | "分组" | "评估";
 export const notFoundError = (kind: Kind, id: string) =>
   new TRPCError({ code: 'NOT_FOUND', message: `${kind} ${id} 不存在。` });
 
-export const noPermissionError = (kind: Kind, id: string) =>
-  new TRPCError({ code: 'FORBIDDEN', message: `没有权限访问${kind} ${id}。` });
+export const noPermissionError = (kind: Kind, id?: string) =>
+  new TRPCError({ code: 'FORBIDDEN', message: `没有权限访问${kind}${id ? ` ${id}` : ""}。` });
 
 export const alreadyExistsErrorMessage = (kind: Kind) => `${kind}已经存在。`;
 
