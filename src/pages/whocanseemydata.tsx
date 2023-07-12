@@ -78,7 +78,7 @@ function Privileged(props: any) {
         <Tr><Th>角色</Th><Th>职责</Th><Th>人员名单</Th></Tr>
       </Thead>
       <Tbody>{
-        AllRoles.map(r => <Tr key={r}>
+        AllRoles.filter(r => RoleProfiles[r].privileged).map(r => <Tr key={r}>
           <Td>{dp(r)}</Td>
           <Td>{RoleProfiles[r].actions}</Td>
           <Td>{props.privileged
