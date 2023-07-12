@@ -2,7 +2,6 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
 import User from "../database/models/User";
-import { TRPCError } from "@trpc/server";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
 import { zUserProfile } from "shared/UserProfile";
@@ -10,40 +9,24 @@ import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "api/sendgrid";
 import { formatUserName } from 'shared/strings';
+import { generalBadRequestError, noPermissionError, notFoundError } from "api/errors";
 
 const users = router({
   create: procedure
   .use(authUser('UserManager'))
   .input(z.object({
     name: z.string().min(1, "required"),
-    pinyin: z.string(),
     email: z.string().email(),
-    clientId: z.string().min(1, "required"),
     roles: zRoles.min(1, "required"),
   }))
-  .mutation(async ({ input, ctx }) => {
-    const user = await User.findOne({
-      where: {
-        clientId: input.clientId
-      }
-    });
-
-    if (user) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'this user is already created in our db',
-      });
-    }
-
+  .mutation(async ({ input }) => {
+    validateUserFields(input.name, input.email);
     await User.create({
       name: input.name,
-      pinyin: input.pinyin,
+      pinyin: toPinyin(input.name),
       email: input.email,
       roles: input.roles,
-      clientId: input.clientId
     });
-
-    return 'ok' as const;
   }),
 
   /**
@@ -76,33 +59,25 @@ const users = router({
   .use(authUser())
   .input(zUserProfile)
   .mutation(async ({ input, ctx }) => {
+    validateUserFields(input.name, input.email);
+
     const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
     const isSelf = ctx.user.id === input.id;
     // Anyone can update user profiles, but non-UserManagers can only update their own.
     if (!isUserManager && !isSelf) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: '用户权限不足。'
-      })
+      throw noPermissionError("用户", input.id);
     }
-    if (!isValidChineseName(input.name)) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: '中文姓名无效。'
-      })
-    }
-    invariant(input.name);
 
     const user = await User.findByPk(input.id);
     if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: `用户ID不存在：${input.id}`,
-      });
+      throw notFoundError("用户", input.id);
     }
 
-    if (!isSelf) await emailUserAboutNewRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+    if (!isSelf) {
+      await emailUserAboutNewRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+    }
 
+    invariant(input.name);
     await user.update({
       name: input.name,
       pinyin: toPinyin(input.name),
@@ -138,6 +113,16 @@ const users = router({
 });
 
 export default users;
+
+function validateUserFields(name: string | null, email: string) {
+  if (!isValidChineseName(name)) {
+    throw generalBadRequestError("中文姓名无效。");
+  }
+
+  if (!z.string().email().safeParse(email).success) {
+    throw generalBadRequestError("Email地址无效。");
+  }
+}
 
 async function emailUserAboutNewRoles(userManagerName: string, user: User, newRoles: Role[], baseUrl: string) {
   const added = newRoles.filter(r => !user.roles.includes(r));
