@@ -7,6 +7,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { minUserProfileAttributes } from "../../shared/UserProfile";
 import Assessment from "../database/models/Assessment";
+import { alreadyExistsError, generalBadRequestError } from "api/errors";
+import sequelizeInstance from "api/database/sequelizeInstance";
+import { Transaction } from "sequelize";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -16,16 +19,29 @@ const create = procedure
   }))
   .mutation(async ({ input }) => 
 {
-  if (!isValidPartnershipIds(input.mentorId, input.menteeId)) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '无效用户ID',
-    });
-  }
+  await sequelizeInstance.transaction(async (t) => {
+    const mentor = await db.User.findByPk(input.mentorId);
+    const mentee = await db.User.findByPk(input.menteeId);
+    if (mentor == null || mentee == null || mentor.id === mentee.id) {
+      throw generalBadRequestError('无效用户ID');
+    }
 
-  await db.Partnership.create({
-    mentorId: input.mentorId,
-    menteeId: input.menteeId,
+    // Assign appropriate roles.
+    mentor.roles = [...mentor.roles.filter(r => r != "Mentor"), "Mentor"];
+    mentor.save({ transaction: t });
+    mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
+    mentee.save({ transaction: t });
+
+    try {
+      await db.Partnership.create({
+        mentorId: mentor.id,
+        menteeId: mentee.id,
+      }, { transaction: t });
+    } catch (e: any) {
+      if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
+        throw alreadyExistsError("一对一匹配");
+      }
+    }
   });
 });
 

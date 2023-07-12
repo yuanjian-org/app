@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 
-type Kind = "用户" | "分组" | "评估";
+type Kind = "用户" | "分组" | "评估" | "一对一匹配";
 
 export const notFoundError = (kind: Kind, id: string) =>
   new TRPCError({ code: 'NOT_FOUND', message: `${kind} ${id} 不存在。` });
