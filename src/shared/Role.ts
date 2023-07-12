@@ -2,6 +2,7 @@ import { ArrayElement } from "./ArrayElement";
 import z from "zod";
 
 export const AllRoles = [
+  'PrivilegedRoleManager',
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
@@ -18,9 +19,14 @@ export const RoleProfiles: { [key: string]: {
   actions: string,
   privileged: boolean,
 }} = {
+  PrivilegedRoleManager: {
+    displayName: '特权角色管理员',
+    actions: '管理特权角色',
+    privileged: true,
+  },
   UserManager: {
     displayName: '用户管理员',
-    actions: '管理用户信息和授权角色',
+    actions: '管理用户信息和角色',
     privileged: true,
   },
   GroupManager: {
@@ -34,12 +40,12 @@ export const RoleProfiles: { [key: string]: {
     privileged: true,
   },
   PartnershipManager: {
-    displayName: '导师匹配管理员',
+    displayName: '一对一导师管理员',
     actions: '管理导师匹配',
     privileged: true,
   },
   PartnershipAssessor: {
-    displayName: '跟踪评估员',
+    displayName: '一对一导师评估员',
     actions: '跟踪评估一对一导师辅导效果',
     privileged: true,
   },
