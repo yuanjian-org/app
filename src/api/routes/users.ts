@@ -30,7 +30,7 @@ const users = router({
   }),
 
   /**
-   * @return all the users if `fullTextSearch` isn't specified, otherwise only matching users, ordered by Pinyin.
+   * @return all the users if `searchTerm` isn't specified, otherwise only matching users, ordered by Pinyin.
    */
   list: procedure
   .use(authUser(['UserManager', 'GroupManager']))
@@ -74,7 +74,7 @@ const users = router({
     }
 
     if (!isSelf) {
-      await emailUserAboutNewRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+      await emailUserAboutNewPrivilegedRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
     }
 
     invariant(input.name);
@@ -103,7 +103,7 @@ const users = router({
     return await User.findAll({ 
       // TODO: Optimize with postgres `?|` operator
       where: {
-        [Op.or]: AllRoles.map(r => ({
+        [Op.or]: AllRoles.filter(r => RoleProfiles[r].privileged).map(r => ({
           roles: { [Op.contains]: r }
         })),
       },
@@ -124,8 +124,8 @@ function validateUserFields(name: string | null, email: string) {
   }
 }
 
-async function emailUserAboutNewRoles(userManagerName: string, user: User, newRoles: Role[], baseUrl: string) {
-  const added = newRoles.filter(r => !user.roles.includes(r));
+async function emailUserAboutNewPrivilegedRoles(userManagerName: string, user: User, roles: Role[], baseUrl: string) {
+  const added = roles.filter(r => !user.roles.includes(r)).filter(r => RoleProfiles[r].privileged);
   for (const r of added) {
     const rp = RoleProfiles[r];
     await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
