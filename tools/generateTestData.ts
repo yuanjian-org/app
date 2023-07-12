@@ -77,7 +77,6 @@ async function generateUsers() {
       name: u.name,
       pinyin: toPinyin(u.name),
       email: u.email,
-      clientId: u.email,
       roles: [],
     }))[0].id;
   }
