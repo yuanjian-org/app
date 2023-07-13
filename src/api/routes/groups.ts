@@ -142,7 +142,7 @@ const destroy = procedure
 /**
  * @returns All groups if `userIds` is empty, otherwise return groups that has all the given users.
  */
-const list = procedure
+const listAll = procedure
   .use(authUser(['GroupManager']))
   .input(z.object({ userIds: z.string().array(), }))
   .output(z.array(zGroup))
@@ -151,7 +151,7 @@ const list = procedure
 /**
  * Identical to `list`, but additionally returns empty transcripts
  */
-const listAndCountTranscripts = procedure
+const listAllCountingTranscripts = procedure
   .use(authUser(['SummaryEngineer']))
   .input(z.object({ userIds: z.string().array(), }))
   .output(z.array(zGroupCountingTranscripts))
@@ -193,8 +193,8 @@ const groups = router({
   create,
   update,
   destroy,
-  list,
-  listAndCountTranscripts,
+  listAll,
+  listAllCountingTranscripts,
   get,
 });
 export default groups;

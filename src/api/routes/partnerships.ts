@@ -44,7 +44,7 @@ const create = procedure
   });
 });
 
-const list = procedure
+const listAll = procedure
   .use(authUser('PartnershipManager'))
   .output(z.array(zPartnershipCountingAssessments))
   .query(async () => 
@@ -82,7 +82,7 @@ const getWithAssessments = procedure
 
 const routes = router({
   create,
-  list,
+  listAll,
   getWithAssessments,
 });
 
