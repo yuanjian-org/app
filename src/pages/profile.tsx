@@ -28,7 +28,7 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 
 // Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {
@@ -133,15 +133,17 @@ const UserProfile: NextPageWithLayout = () => {
       <Stack spacing={4}>
         <EmailField />
         <NameField />
-        <Button 
-          onClick={handleSubmit} 
-          isLoading={notLoaded}
-          loadingText="保存中"
-          variant='brand'
-          marginBottom='24px'
-        >
-          保存
-        </Button>
+        <Box>
+          <Button 
+            onClick={handleSubmit} 
+            isLoading={notLoaded}
+            loadingText="保存中"
+            variant='brand'
+            marginBottom='24px'
+          >
+            保存
+          </Button>
+        </Box>
       </Stack>
     </Box>
   )

@@ -4,7 +4,7 @@ import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'r
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
 import { GuardProvider } from '@authing/guard-react18';
-import { UserContext } from "./useUserContext";
+import UserContext from "./UserContext";
 import browserEnv from "./browserEnv";
 import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';

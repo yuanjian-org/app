@@ -15,14 +15,13 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
+import { minUserProfileAttributes, zMinUserProfile } from "../../shared/UserProfile";
+import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
 
 const zGroup = z.object({
   id: z.string(),
   name: z.string().nullable(),
-  users: z.array(z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-  }))
+  users: z.array(zMinUserProfile),
 });
 
 export type Group = z.TypeOf<typeof zGroup>;
@@ -87,7 +86,7 @@ const groups = router({
       const group = await DbGroup.findByPk(input.id, {
         include: GroupUser
       });
-      if (!group) throw notFoundError(input.id);
+      if (!group) throw notFoundError("分组", input.id);
 
       // Delete old users
       var deleted = false;
@@ -131,7 +130,7 @@ const groups = router({
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
     const group = await DbGroup.findByPk(input.groupId);
-    if (!group) throw notFoundError(input.groupId);
+    if (!group) throw notFoundError("分组", input.groupId);
 
     // Need a transaction for cascading destroys
     await sequelizeInstance.transaction(async (t) => {
@@ -169,7 +168,7 @@ const groups = router({
     const g = await DbGroup.findByPk(input.id, {
       include: [{
         model: User,
-        attributes: ['id', 'name'],
+        attributes: minUserProfileAttributes,
       }, {
         model: Transcript,
         include: [{
@@ -181,23 +180,15 @@ const groups = router({
         [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
       ],
     });
-    if (!g) throw notFoundError(input.id);
+    if (!g) throw notFoundError("分组", input.id);
     if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
-      throw noPermissionError(input.id);
+      throw noPermissionError("分组", input.id);
     }
     return g;
   }),
 });
 
 export default groups;
-
-export const GROUP_ALREADY_EXISTS_ERROR_MESSAGE = '分组已经存在。';
-
-export const notFoundError = (groupId: string) =>
-  new TRPCError({ code: 'NOT_FOUND', message: `分组 ${groupId} 不存在。` });
-
-export const noPermissionError = (groupId: string) =>
-new TRPCError({ code: 'FORBIDDEN', message: `没有权限访问分组 ${groupId}。` });
 
 /**
  * @returns groups that contain all the given users.
@@ -237,10 +228,7 @@ export async function createGroup(userIds: string[]) {
   checkMinimalGroupSize(userIds);
   const existing = await findGroups(userIds, 'exclusive');
   if (existing.length > 0) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: GROUP_ALREADY_EXISTS_ERROR_MESSAGE,
-    });
+    throw alreadyExistsError("分组");
   }
 
   const group = await DbGroup.create({});
@@ -272,7 +260,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
       attributes: ['id', 'name', 'email'],
     }]
   });
-  if (!group) throw notFoundError(groupId);
+  if (!group) throw notFoundError('分组', groupId);
 
   const formatNames = (names: string[]) =>
     names.slice(0, 3).join('、') + (names.length > 3 ? `等${nzh.cn.encodeS(names.length)}人` : '');

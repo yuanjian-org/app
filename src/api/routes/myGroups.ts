@@ -11,11 +11,13 @@ import invariant from "tiny-invariant";
 import { createMeeting, listSelectedMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
-import { noPermissionError, notFoundError, zGroupCountingTranscripts } from "./groups";
+import { zGroupCountingTranscripts } from "./groups";
 import { encodeMeetingSubject } from "./meetings";
 import { formatGroupName } from "shared/strings";
 import OngoingMeetings from "api/database/models/OngoingMeetings";
 import apiEnv from "api/apiEnv";
+import sleep from "../../shared/sleep";
+import { noPermissionError, notFoundError } from "api/errors";
 
 // check if a "MEETING_STATE_READY" meeting is started 
 // if not drop/destory the meeting
@@ -44,15 +46,17 @@ const myGroups = router({
       const group = await Group.findByPk(input.groupId, {
         include: [GroupUser]
       });
-      if (!group) throw notFoundError(input.groupId);
+      if (!group) throw notFoundError("分组", input.groupId);
       // Only meeting members have access to this method.
-      if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) throw noPermissionError(input.groupId);
+      if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) {
+      throw noPermissionError("分组", input.groupId);
+    }
 
-      if (!apiEnv.hasTencentMeeting()) {
-        console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        return "/fakeMeeting";
-      }
+    if (!apiEnv.hasTencentMeeting()) {
+      console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
+      await sleep(2000);
+      return "/fakeMeeting";
+    }
 
       // if the user's group is present in OngoingMeetings Model, return the meeting link 
       const ongoingMeeting = await OngoingMeetings.findOne({ where: { groupId: group.id } });

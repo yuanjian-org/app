@@ -25,10 +25,12 @@ import React, { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './NavBars';
+import UserChip from './UserChip';
+import { MinUserProfile } from 'shared/UserProfile';
 
 // @ts-ignore TODO: fix me.
 export default function GroupBar(props: {
@@ -121,7 +123,7 @@ export default function GroupBar(props: {
   );
 }
 
-function OngoingMeetingWarning(props: {
+export function OngoingMeetingWarning(props: {
   onClose: () => void,
 }) {
   return (<ModalWithBackdrop isOpen onClose={props.onClose}>
@@ -142,10 +144,10 @@ function OngoingMeetingWarning(props: {
   );
 }
 
-function UserChips(props: { 
+export function UserChips(props: { 
   currentUserId?: string, 
-  users: { id: string, name: string | null }[],
-  abbreviateOnMobile?: boolean,
+  users: MinUserProfile[],
+  abbreviateOnMobile?: boolean, // default: true
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
   const abbreviateOnMobile = (props.abbreviateOnMobile === undefined || props.abbreviateOnMobile) 
@@ -177,13 +179,4 @@ function UserChips(props: {
       )}
     </Wrap>
   </>;
-}
-
-export function UserChip(props: {
-  user: { id: string, name: string | null }
-}) {
-  return <HStack>
-    <Avatar name={props.user.name || undefined} boxSize={10}/>
-    <Text>{props.user.name}</Text>
-  </HStack>;
 }

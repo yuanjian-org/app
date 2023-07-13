@@ -25,6 +25,8 @@ const colors = {
     d: "#69B3E7",
   },
 
+  disabled: "gray",
+
   // blue: {
   //   50: "#EFF4FB",
   //   500: "#3965FF",

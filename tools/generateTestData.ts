@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
-import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroups } from "../src/api/routes/groups";
+import { createGroup, findGroups } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
@@ -10,6 +10,7 @@ import Role, { AllRoles } from "../src/shared/Role";
 import { toPinyin } from "../src/shared/strings";
 import Transcript from "../src/api/database/models/Transcript";
 import Summary from "../src/api/database/models/Summary";
+import { alreadyExistsErrorMessage } from "../src/api/errors";
 
 type TestUser = {
   name: string,
@@ -76,7 +77,6 @@ async function generateUsers() {
       name: u.name,
       pinyin: toPinyin(u.name),
       email: u.email,
-      clientId: u.email,
       roles: [],
     }))[0].id;
   }
@@ -106,7 +106,7 @@ async function generateGroup(users: TestUser[]) {
   try {
     await createGroup(users.map(u => u.id as string));
   } catch (e) {
-    if (!(e instanceof TRPCError && e.message === GROUP_ALREADY_EXISTS_ERROR_MESSAGE)) throw e;
+    if (!(e instanceof TRPCError && e.message === alreadyExistsErrorMessage("分组"))) throw e;
   }
 }
 
