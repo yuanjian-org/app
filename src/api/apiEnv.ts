@@ -18,7 +18,7 @@ class ApiEnv extends SharedEnv {
   TM_APP_ID: string = process.env.TM_APP_ID ?? '';
   TM_SECRET_ID: string = process.env.TM_SECRET_ID ?? '';
   TM_SECRET_KEY: string = process.env.TM_SECRET_KEY ?? '';
-  TM_ADMIN_USER_ID: string = process.env.TM_ADMIN_USER_ID ?? '';
+  TM_ADMIN_USER_IDS: string = process.env.TM_ADMIN_USER_ID ?? '';
 
   SENDGRID_API_KEY: string = process.env.SENDGRID_API_KEY ?? '';
 

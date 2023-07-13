@@ -8,7 +8,7 @@ import GroupUser from "../database/models/GroupUser";
 import Group from "../database/models/Group";
 import User from "../database/models/User";
 import invariant from "tiny-invariant";
-import { createMeeting, listSelectedMeeting } from "../TencentMeeting";
+import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
 import { zGroupCountingTranscripts } from "./groups";
@@ -19,26 +19,25 @@ import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { noPermissionError, notFoundError } from "api/errors";
 
-// check if a "MEETING_STATE_READY" meeting is started 
-// if not drop/destory the meeting
-export async function meetingLinkIsStarted(meetingId: string) {
-  const selectedMeeting = await OngoingMeetings.findOne({ where: { meetingId } });
-  if (selectedMeeting && (await listSelectedMeeting(meetingId, selectedMeeting.tmUserId)).meeting_info_list[0].status !== 'MEETING_STATE_START') {
-    OngoingMeetings.destroy({ where: { meetingId } })
-  }
+async function generateMeeting(group: Group, availableTmUserId: string) {
+  const now = Math.floor(Date.now() / 1000);
+  const groupName = formatGroupName(group.name, group.groupUsers.length);
+  const res = await createMeeting(availableTmUserId, encodeMeetingSubject(group.id, groupName), now, now + 3600);
+  invariant(res.meeting_info_list.length === 1);
+  return [res.meeting_info_list[0].meeting_id, res.meeting_info_list[0].join_url];
 }
 
-const myGroups = router({
-  /**
-   * This api will join meeting if this meeting is presented in OngoingMeetings model
+ /**
+   * This api contains procedure @joinMeeting and @list
+   * @joinMeeting will find the group meeting by the input group id
+   * If this meeting is presented in OngoingMeetings model, return and join
    * If not presented, it will create a new meeting with available TM user Ids
-   * then insert in OngoingMeetings
-   * @function meetingLinkIsStarted verifies if User has joined a link
-   * If a newly generatedly link has not been joined for 10 min,
-   * this function will destory this meeting from OngoingMeetings
+   * then insert it in OngoingMeetings
    * @returns {meetingLink} returns a valid tencent meeting link
    * Otherwise, return null which will trigger a conccurent meeting warning
+   * @list find and return the groups and transcripts that are related to the user
    */
+const myGroups = router({
   joinMeeting: procedure
     .use(authUser())
     .input(z.object({ groupId: z.string() }))
@@ -65,30 +64,20 @@ const myGroups = router({
       }
       // if not shown in OngoingMeetings, check if there are empty slots to join
       // find TM user ids that are not in use and generate a meeting link using an available id
-      const TM_USER_IDS = apiEnv.TM_ADMIN_USER_ID.split(',');
-      const meetings = await OngoingMeetings.findAll();
+      const TM_USER_IDS = apiEnv.TM_ADMIN_USER_IDS.split(',');
+      const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
       if (meetings.length >= TM_USER_IDS.length) { return null; };
       // find and filter vacant ids
       const availableTmUserIds = TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
       invariant(availableTmUserIds.length > 0);
-      // generate link
-      const now = Math.floor(Date.now() / 1000);
-      const groupName = formatGroupName(group.name, group.groupUsers.length);
-      const res = await createMeeting(availableTmUserIds[0], encodeMeetingSubject(group.id, groupName), now, now + 3600);
-      invariant(res.meeting_info_list.length === 1);
-      const meetingId = res.meeting_info_list[0].meeting_id;
-      const meetingLink = res.meeting_info_list[0].join_url;
+      const [meetingId, meetingLink] = await generateMeeting(group, availableTmUserIds[0]);
 
       await OngoingMeetings.upsert({
         groupId: group.id,
         tmUserId: availableTmUserIds[0],
-        status: 'MEETING_STATE_READY',
         meetingId,
         meetingLink,
       });
-
-      // Check if the group meeting started after 10 min
-      setTimeout(() => { meetingLinkIsStarted(meetingId) }, 600000);
 
       return meetingLink;
     }),

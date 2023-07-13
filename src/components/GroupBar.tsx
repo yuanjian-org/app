@@ -44,13 +44,13 @@ export default function GroupBar(props: {
   const [user] = useUserContext();
   const transcriptCount = (props.group.transcripts || []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
-  const [hasMeetingQuota, setHasMeetingQuota] = useState(false);
+  const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
       const link = await trpc.myGroups.joinMeeting.mutate({ groupId: groupId });
       if (!link) {
-        setHasMeetingQuota(true);
+        setShowMeetingQuotaWarning(true);
         setJoining(false);
       } else {
         window.location.href = link;
@@ -72,7 +72,7 @@ export default function GroupBar(props: {
       templateColumns={(props.showJoinButton ? '6em ' : '') + '1fr'}
       spacing={4}
     >
-      {hasMeetingQuota && <OngoingMeetingWarning onClose={() => setHasMeetingQuota(false)}/>}
+      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
       {/* row 1 col 1 */}
       {props.showJoinButton && <Box />}
 
