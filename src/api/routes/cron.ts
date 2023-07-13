@@ -1,8 +1,8 @@
 import { procedure, router } from "../trpc";
 import axios from "axios";
 import apiEnv from "api/apiEnv";
-import { listMeetings } from "api/TencentMeeting";
-import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
+import { listSelectedMeeting } from "api/TencentMeeting";
+import OngoingMeetings from "api/database/models/OngoingMeetings";
 import z from "zod";
 import { findMissingCrudeSummaries, saveCrudeSummary } from "./summaries";
 import invariant from "tiny-invariant";
@@ -40,16 +40,20 @@ const cron = router({
   /**
    * Check the ongoing meetings and update the OngoingMeetingCount table
    */
-  updateOngoingMeetingCounts: procedure.mutation(async () => {
-    const ongoingMeeting = await OngoingMeetingCount.findByPk(apiEnv.TM_ADMIN_USER_ID);
-    invariant(ongoingMeeting);
-
-    const count = (await listMeetings(ongoingMeeting.meetingId)).meeting_info_list[0].status === 'MEETING_STATE_STARTED'? 1 : 0;
-
-    OngoingMeetingCount.upsert({
-      TMAdminUserId: apiEnv.TM_ADMIN_USER_ID,
-      count,
-    })
+  updateOngoingMeetings: procedure.mutation(async () => {
+    const ongoingMeetings = await OngoingMeetings.findAll();
+    if (ongoingMeetings) {
+      for (const meeting of ongoingMeetings) {
+        const status = (await listSelectedMeeting(meeting.meetingId, meeting.tmUserId)).meeting_info_list[0].status;
+        if (status === 'MEETING_STATE_STARTED') {
+          OngoingMeetings.update({ status }, { where: { groupId: meeting.groupId } })
+        } else {
+          if (meeting.status !== 'MEETING_STATE_READY') {
+            OngoingMeetings.destroy({ where: { groupId: meeting.groupId } });
+          }
+        }
+      }
+    }
   })
 
 });

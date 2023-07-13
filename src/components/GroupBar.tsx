@@ -46,7 +46,7 @@ export default function GroupBar(props: {
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.myGroups.joinMeetingLink.mutate({ groupId: groupId });
+      const link = await trpc.myGroups.joinMeeting.mutate({ groupId: groupId });
       if (!link) {
         setHasMeetingQuota(true);
         setJoining(false);
@@ -127,14 +127,13 @@ function OngoingMeetingWarning(props: {
   return (<ModalWithBackdrop isOpen onClose={props.onClose}>
     <ModalOverlay />
     <ModalContent>
-      <ModalHeader>当前无法加入会议</ModalHeader>
+      <ModalHeader>无法加入会议</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
-        <p>腾讯在线会议上限已满，请稍后再试</p>
-        <p>如有特殊请求请联系管理员</p>
+        <p>同时进行的会议数量已超过上线，请稍后再试。</p>
       </ModalBody>
       <ModalFooter>
-        <Button mr={4} onClick={props.onClose}>
+        <Button marginRight={4} onClick={props.onClose}>
           确认
         </Button>
       </ModalFooter>

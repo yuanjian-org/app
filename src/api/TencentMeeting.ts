@@ -120,6 +120,7 @@ const tmRequest = async (
  * https://cloud.tencent.com/document/product/1095/42417
  */
 export async function createMeeting(
+  userId: string,
   subject: string,
   startTimeSecond: number,
   endTimeSecond: number,
@@ -186,7 +187,7 @@ export async function createMeeting(
   });
 
   const res = await tmRequest('POST', '/v1/meetings', {}, {
-    userid: apiEnv.TM_ADMIN_USER_ID,
+    userid: userId,
     instanceid: "1",
     subject: subject,
     start_time: "" + startTimeSecond,
@@ -204,10 +205,9 @@ const paginationNotSupported = () => new TRPCError({
 
 /**
  * List meetings of user apiEnv.TM_ADMIN_USER_ID.
- * 腾讯云 查询会议
  * https://cloud.tencent.com/document/product/1095/93432
  */
-export async function listMeetings(meetingId: string) {
+export async function listSelectedMeeting(meetingId: string, tmUserId: string) {
   console.log(LOG_HEADER, 'listMeetings()');
   const zRes = z.object({
     meeting_number: z.number(),
@@ -235,7 +235,7 @@ export async function listMeetings(meetingId: string) {
   });
 
   const res = await tmRequest('GET', '/v1/meetings/' + meetingId, {
-    userid: apiEnv.TM_ADMIN_USER_ID,
+    userid: tmUserId,
     instanceid: "1",
   });
 

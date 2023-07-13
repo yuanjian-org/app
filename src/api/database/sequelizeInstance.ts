@@ -6,10 +6,10 @@ import Group from "./models/Group";
 import GroupUser from "./models/GroupUser";
 import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
-import OngoingMeetingCount from "./models/OngoingMeetingCount";
+import OngoingMeetings from "./models/OngoingMeetings";
 
 const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
-  models: [User, Group, GroupUser, Transcript, Summary, OngoingMeetingCount],
+  models: [User, Group, GroupUser, Transcript, Summary, OngoingMeetings],
   logging: false,
   dialectModule: require('pg'),
   retry: {
