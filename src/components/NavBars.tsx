@@ -138,7 +138,9 @@ interface SidebarProps extends BoxProps {
 }
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   const [me] = useUserContext();
-  const { data: partnerships } = trpcNext.partnerships.listMineAsMentor.useQuery();
+  // Save an API call if the user is not a mentor.
+  const { data: partnerships } = isPermitted(me.roles, "Mentor") ? 
+    trpcNext.partnerships.listMineAsMentor.useQuery() : { data: undefined };
   const partnershipItems = partnerships2sidebarItems(partnerships);
 
   return (
