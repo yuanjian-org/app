@@ -26,21 +26,19 @@ const zSummariesListInput = z.object({
 
 type SummariesListInput = z.TypeOf<typeof zSummariesListInput>;
 
-const summaries = router({
-
-  /**
-   * Return all summaries identified by the summary key `key`. If `excludeTranscriptsWithKey` is specified, exclude
-   * summaries for the transcripts that already have summaries identified by this key.
-   * 
-   * See docs/summarization.md for usage.
-   * 
-   * Example:
-   * 
-   * $ curl -G https://${HOST}/api/v1/summaries.list \
-   *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
-   *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeTranscriptsWithKey": "SummaryKey2" }'
-   */
-  list: procedure
+/**
+ * Return all summaries identified by the summary key `key`. If `excludeTranscriptsWithKey` is specified, exclude
+ * summaries for the transcripts that already have summaries identified by this key.
+ * 
+ * See docs/summarization.md for usage.
+ * 
+ * Example:
+ * 
+ * $ curl -G https://${HOST}/api/v1/summaries.list \
+ *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+ *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeTranscriptsWithKey": "SummaryKey2" }'
+ */
+const list = procedure
   .use(authIntegration())
   .input(zSummariesListInput)
   .output(
@@ -48,42 +46,43 @@ const summaries = router({
       transcriptId: z.string(),
       summary: z.string(),
     }))
-  ).query(async ({ input }: { input: SummariesListInput }) => {
-    // TODO: Optimize and use a single query to return final results.
-    const summaries = await Summary.findAll({ 
-      where: { summaryKey: input.key },
-      attributes: ['transcriptId', 'summary'],
-    });
+  ).query(async ({ input }: { input: SummariesListInput }) => 
+{
+  // TODO: Optimize and use a single query to return final results.
+  const summaries = await Summary.findAll({ 
+    where: { summaryKey: input.key },
+    attributes: ['transcriptId', 'summary'],
+  });
 
-    const skippedTranscriptIds = input.excludeTranscriptsWithKey ? (await Summary.findAll({
-      where: { summaryKey: input.excludeTranscriptsWithKey },
-      attributes: ['transcriptId'],
-    })).map(s => s.transcriptId) : [];
+  const skippedTranscriptIds = input.excludeTranscriptsWithKey ? (await Summary.findAll({
+    where: { summaryKey: input.excludeTranscriptsWithKey },
+    attributes: ['transcriptId'],
+  })).map(s => s.transcriptId) : [];
 
-    return summaries
-      .filter(s => !skippedTranscriptIds.includes(s.transcriptId));
-  }),
+  return summaries
+    .filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+});
 
-  /**
-   * Upload a summary for a transcript. Each summary is identified by `transcriptId` and `summaryKey`.
-   * Uploading a summary that already exists overwrites it.
-   * 
-   * See docs/summarization.md for usage.
-   * 
-   * @param transcriptId Returned from /api/v1/summaries.list
-   * @param summaryKey An arbitrary string determined by the caller
-   * 
-   * Example:
-   * 
-   * $ curl -X POST https://${HOST}/api/v1/summaries.write \
-   *    -H "Content-Type: application/json" \
-   *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
-   *    -d '{ \
-   *      "transcriptId": "1671726726708793345", \
-   *      "summaryKey": "llm_v1", \
-   *      "summary": "..." }'
-   */
-  write: procedure
+/**
+ * Upload a summary for a transcript. Each summary is identified by `transcriptId` and `summaryKey`.
+ * Uploading a summary that already exists overwrites it.
+ * 
+ * See docs/summarization.md for usage.
+ * 
+ * @param transcriptId Returned from /api/v1/summaries.list
+ * @param summaryKey An arbitrary string determined by the caller
+ * 
+ * Example:
+ * 
+ * $ curl -X POST https://${HOST}/api/v1/summaries.write \
+ *    -H "Content-Type: application/json" \
+ *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+ *    -d '{ \
+ *      "transcriptId": "1671726726708793345", \
+ *      "summaryKey": "llm_v1", \
+ *      "summary": "..." }'
+ */
+const write = procedure
   .use(authIntegration())
   .input(
     z.object({ 
@@ -91,22 +90,26 @@ const summaries = router({
       summaryKey: z.string(),
       summary: z.string(),
     })
-  ).mutation(async ({ input }) => {
-    if (input.summaryKey === crudeSummaryKey) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: `Summaries with key "${crudeSummaryKey}" are read-only`,
-      })
-    }
-    // By design, this statement fails if the transcript doesn't exist.
-    await Summary.upsert({
-      transcriptId: input.transcriptId,
-      summaryKey: input.summaryKey,
-      summary: input.summary,
-    });
-  }),
+  ).mutation(async ({ input }) => 
+{
+  if (input.summaryKey === crudeSummaryKey) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `Summaries with key "${crudeSummaryKey}" are read-only`,
+    })
+  }
+  // By design, this statement fails if the transcript doesn't exist.
+  await Summary.upsert({
+    transcriptId: input.transcriptId,
+    summaryKey: input.summaryKey,
+    summary: input.summary,
+  });
 });
 
+const summaries = router({
+  list,
+  write,
+});
 export default summaries;
 
 export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: string) {

@@ -2,14 +2,13 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import _ from "lodash";
 import db from "api/database/db";
-import { isValidPartnershipIds, zPartnership, zPartnershipCountingAssessments, zPartnershipWithAssessments } from "shared/Partnership";
+import { zPartnershipCountingAssessments, zPartnershipWithAssessments } from "shared/Partnership";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { minUserProfileAttributes } from "../../shared/UserProfile";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError } from "api/errors";
 import sequelizeInstance from "api/database/sequelizeInstance";
-import { Transaction } from "sequelize";
 
 const create = procedure
   .use(authUser('PartnershipManager'))

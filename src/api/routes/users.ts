@@ -11,112 +11,120 @@ import { email } from "api/sendgrid";
 import { formatUserName } from 'shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "api/errors";
 
-const users = router({
-  create: procedure
+const create = procedure
   .use(authUser('UserManager'))
   .input(z.object({
     name: z.string(),
     email: z.string(),
     roles: zRoles,
   }))
-  .mutation(async ({ ctx, input }) => {
-    checkUserFields(input.name, input.email);
-    checkPermissionForManagingPrivilegedRoles(ctx.user.roles, input.roles);
-    await User.create({
-      name: input.name,
-      pinyin: toPinyin(input.name),
-      email: input.email,
-      roles: input.roles,
-    });
-  }),
+  .mutation(async ({ ctx, input }) => 
+{
+  checkUserFields(input.name, input.email);
+  checkPermissionForManagingPrivilegedRoles(ctx.user.roles, input.roles);
+  await User.create({
+    name: input.name,
+    pinyin: toPinyin(input.name),
+    email: input.email,
+    roles: input.roles,
+  });
+});
 
-  /**
-   * @return all the users if `searchTerm` isn't specified, otherwise only matching users, ordered by Pinyin.
-   */
-  list: procedure
+/**
+ * @return all the users if `searchTerm` isn't specified, otherwise only matching users, ordered by Pinyin.
+ */
+const list = procedure
   .use(authUser(['UserManager', 'GroupManager']))
   .input(z.object({ searchTerm: z.string() }).optional())
   .output(z.array(zUserProfile))
-  .query(async ({ input }) => {
-    return await User.findAll({ 
-      order: [['pinyin', 'ASC']],
-      ...input?.searchTerm ? {
-        where: {
-          [Op.or]: [
-            { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
-            { name: { [Op.iLike]: `%${input.searchTerm}%` } },
-            { email: { [Op.iLike]: `%${input.searchTerm}%` } },
-          ],
-        }
-      } : {},
-    });
-  }),
+  .query(async ({ input }) => 
+{
+  return await User.findAll({ 
+    order: [['pinyin', 'ASC']],
+    ...input?.searchTerm ? {
+      where: {
+        [Op.or]: [
+          { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
+          { name: { [Op.iLike]: `%${input.searchTerm}%` } },
+          { email: { [Op.iLike]: `%${input.searchTerm}%` } },
+        ],
+      }
+    } : {},
+  });
+});
 
-  /**
-   * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
-   * TODO: add a warning message in profile change UI.
-   */
-  update: procedure
+/**
+ * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
+ * TODO: add a warning message in profile change UI.
+ */
+const update = procedure
   .use(authUser())
   .input(zUserProfile)
-  .mutation(async ({ input, ctx }) => {
-    checkUserFields(input.name, input.email);
+  .mutation(async ({ input, ctx }) => 
+{
+  checkUserFields(input.name, input.email);
 
-    const isUserOrPRManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
-    const isSelf = ctx.user.id === input.id;
-    // Anyone can update user profiles, but non-user- and non-privileged-role-managers can only update their own.
-    if (!isUserOrPRManager && !isSelf) {
-      throw noPermissionError("用户", input.id);
-    }
+  const isUserOrPRManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
+  const isSelf = ctx.user.id === input.id;
+  // Anyone can update user profiles, but non-user- and non-privileged-role-managers can only update their own.
+  if (!isUserOrPRManager && !isSelf) {
+    throw noPermissionError("用户", input.id);
+  }
 
-    const user = await User.findByPk(input.id);
-    if (!user) {
-      throw notFoundError("用户", input.id);
-    }
+  const user = await User.findByPk(input.id);
+  if (!user) {
+    throw notFoundError("用户", input.id);
+  }
 
-    const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
-    const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
-    checkPermissionForManagingPrivilegedRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
+  const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
+  const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
+  checkPermissionForManagingPrivilegedRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
 
-    if (!isSelf) {
-      await emailUserAboutNewPrivilegedRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
-    }
+  if (!isSelf) {
+    await emailUserAboutNewPrivilegedRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+  }
 
-    invariant(input.name);
-    await user.update({
-      name: input.name,
-      pinyin: toPinyin(input.name),
-      consentFormAcceptedAt: input.consentFormAcceptedAt,
-      ...isUserOrPRManager ? {
-        roles: input.roles,
-        email: input.email,
-      } : {},
-    });
-    invalidateLocalUserCache();
-  }),
+  invariant(input.name);
+  await user.update({
+    name: input.name,
+    pinyin: toPinyin(input.name),
+    consentFormAcceptedAt: input.consentFormAcceptedAt,
+    ...isUserOrPRManager ? {
+      roles: input.roles,
+      email: input.email,
+    } : {},
+  });
+  invalidateLocalUserCache();
+});
 
-  /**
-   * List all privilaged users and their roles.
-   */
-  listPriviledged: procedure
+/**
+ * List all privilaged users and their roles.
+ */
+const listPriviledged = procedure
   .use(authUser())
   .output(z.array(z.object({
     name: z.string(),
     roles: zRoles,
   })))
-  .query(async () => {
-    return await User.findAll({ 
-      // TODO: Optimize with postgres `?|` operator
-      where: {
-        [Op.or]: AllRoles.filter(r => RoleProfiles[r].privileged).map(r => ({
-          roles: { [Op.contains]: r }
-        })),
-      },
-      attributes: ['name', 'roles'],
-    });
-  }),
+  .query(async () => 
+{
+  return await User.findAll({ 
+    // TODO: Optimize with postgres `?|` operator
+    where: {
+      [Op.or]: AllRoles.filter(r => RoleProfiles[r].privileged).map(r => ({
+        roles: { [Op.contains]: r }
+      })),
+    },
+    attributes: ['name', 'roles'],
+  });
 });
 
+const users = router({
+  create,
+  list,
+  update,
+  listPriviledged,
+});
 export default users;
 
 function checkUserFields(name: string | null, email: string) {

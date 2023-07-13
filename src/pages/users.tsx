@@ -80,7 +80,7 @@ const Page: NextPageWithLayout = () => {
                   {u.roles.map((r: Role) => {
                     const rp = RoleProfiles[r];
                     return <WrapItem key={r}>
-                      <Tag bgColor={rp.privileged ? "brown" : "brand.c"} color="white">
+                      <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
                         {rp.displayName}
                       </Tag>
                     </WrapItem>;

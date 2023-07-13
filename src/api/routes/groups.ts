@@ -61,133 +61,142 @@ async function listGroups(userIds: string[]) {
   }
 }
 
-const groups = router({
-
-  create: procedure
+const create = procedure
   .use(authUser('GroupManager'))
   .input(z.object({
     userIds: z.array(z.string()).min(2),
   }))
-  .mutation(async ({ ctx, input }) => {
-    const res = await createGroup(input.userIds);
-    await emailNewUsersOfGroupIgnoreError(ctx, res.group.id, input.userIds);
-    return res;
-  }),
+  .mutation(async ({ ctx, input }) =>
+{
+  const res = await createGroup(input.userIds);
+  await emailNewUsersOfGroupIgnoreError(ctx, res.group.id, input.userIds);
+  return res;
+});
 
-  update: procedure
+const update = procedure
   .use(authUser('GroupManager'))
   .input(zGroup)
-  .mutation(async ({ ctx, input }) => {
-    const newUserIds = input.users.map(u => u.id);
-    checkMinimalGroupSize(newUserIds);
+  .mutation(async ({ ctx, input }) =>
+{
+  const newUserIds = input.users.map(u => u.id);
+  checkMinimalGroupSize(newUserIds);
 
-    const addUserIds: string[] = [];
-    await sequelizeInstance.transaction(async (t) => {
-      const group = await DbGroup.findByPk(input.id, {
-        include: GroupUser
-      });
-      if (!group) throw notFoundError("分组", input.id);
-
-      // Delete old users
-      var deleted = false;
-      for (const oldGU of group.groupUsers) {
-        if (!newUserIds.includes(oldGU.userId)) {
-          await oldGU.destroy({ transaction: t });
-          deleted = true;
-        }
-      }
-
-      // Update group itself
-      await group.update({
-        // Set to null if the input is an empty string.
-        name: input.name || null,
-        // Reset the meeting link to prevent deleted users from reusing it.
-        ...deleted ? {
-          meetingLink: null,
-        } : {}
-      }, { transaction: t });
-
-      // Add new users
-      const oldUserIds = group.groupUsers.map(gu => gu.userId);
-      addUserIds.push(...newUserIds.filter(uid => !oldUserIds.includes(uid)));
-      const promises = addUserIds.map(async uid => {
-        // upsert because the matching row may have been previously deleted.
-        await GroupUser.upsert({
-          groupId: input.id,
-          userId: uid,
-          deletedAt: null,
-        }, { transaction: t })
-      });
-      await Promise.all(promises);
+  const addUserIds: string[] = [];
+  await sequelizeInstance.transaction(async (t) => {
+    const group = await DbGroup.findByPk(input.id, {
+      include: GroupUser
     });
+    if (!group) throw notFoundError("分组", input.id);
 
-    // new users are persisted only after the transaction is committed (not read-your-write yet).
-    await emailNewUsersOfGroupIgnoreError(ctx, input.id, addUserIds);
-  }),
+    // Delete old users
+    var deleted = false;
+    for (const oldGU of group.groupUsers) {
+      if (!newUserIds.includes(oldGU.userId)) {
+        await oldGU.destroy({ transaction: t });
+        deleted = true;
+      }
+    }
 
-  destroy: procedure
+    // Update group itself
+    await group.update({
+      // Set to null if the input is an empty string.
+      name: input.name || null,
+      // Reset the meeting link to prevent deleted users from reusing it.
+      ...deleted ? {
+        meetingLink: null,
+      } : {}
+    }, { transaction: t });
+
+    // Add new users
+    const oldUserIds = group.groupUsers.map(gu => gu.userId);
+    addUserIds.push(...newUserIds.filter(uid => !oldUserIds.includes(uid)));
+    const promises = addUserIds.map(async uid => {
+      // upsert because the matching row may have been previously deleted.
+      await GroupUser.upsert({
+        groupId: input.id,
+        userId: uid,
+        deletedAt: null,
+      }, { transaction: t })
+    });
+    await Promise.all(promises);
+  });
+
+  // new users are persisted only after the transaction is committed (not read-your-write yet).
+  await emailNewUsersOfGroupIgnoreError(ctx, input.id, addUserIds);
+});
+
+const destroy = procedure
   .use(authUser('GroupManager'))
   .input(z.object({ groupId: z.string().uuid() }))
-  .mutation(async ({ input }) => {
-    const group = await DbGroup.findByPk(input.groupId);
-    if (!group) throw notFoundError("分组", input.groupId);
+  .mutation(async ({ input }) => 
+{
+  const group = await DbGroup.findByPk(input.groupId);
+  if (!group) throw notFoundError("分组", input.groupId);
 
-    // Need a transaction for cascading destroys
-    await sequelizeInstance.transaction(async (t) => {
-      await group.destroy({ transaction: t });
-    });
-  }),
+  // Need a transaction for cascading destroys
+  await sequelizeInstance.transaction(async (t) => {
+    await group.destroy({ transaction: t });
+  });
+});
 
-  /**
-   * @returns All groups if `userIds` is empty, otherwise return groups that has all the given users.
-   */
-  list: procedure
+/**
+ * @returns All groups if `userIds` is empty, otherwise return groups that has all the given users.
+ */
+const list = procedure
   .use(authUser(['GroupManager']))
   .input(z.object({ userIds: z.string().array(), }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds)),
+  .query(async ({ input }) => listGroups(input.userIds));
 
-  /**
-   * Identical to `list`, but additionally returns empty transcripts
-   */
-  listAndCountTranscripts: procedure
+/**
+ * Identical to `list`, but additionally returns empty transcripts
+ */
+const listAndCountTranscripts = procedure
   .use(authUser(['SummaryEngineer']))
   .input(z.object({ userIds: z.string().array(), }))
   .output(z.array(zGroupCountingTranscripts))
-  .query(async ({ input }) => listGroups(input.userIds)),
+  .query(async ({ input }) => listGroups(input.userIds));
 
-  /**
-   * Transcripts in the return value are sorted by reverse chronological order.
-   */
-  get: procedure
+/**
+ * Transcripts in the return value are sorted by reverse chronological order.
+ */
+const get = procedure
   // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
   .input(z.object({ id: z.string().uuid() }))
   .output(zGroupWithTranscripts)
-  .query(async ({ input, ctx }) => {
-    const g = await DbGroup.findByPk(input.id, {
+  .query(async ({ input, ctx }) => 
+{
+  const g = await DbGroup.findByPk(input.id, {
+    include: [{
+      model: User,
+      attributes: minUserProfileAttributes,
+    }, {
+      model: Transcript,
       include: [{
-        model: User,
-        attributes: minUserProfileAttributes,
-      }, {
-        model: Transcript,
-        include: [{
-          model: Summary,
-          attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
-        }],
+        model: Summary,
+        attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
       }],
-      order: [
-        [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
-      ],
-    });
-    if (!g) throw notFoundError("分组", input.id);
-    if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
-      throw noPermissionError("分组", input.id);
-    }
-    return g;
-  }),
+    }],
+    order: [
+      [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
+    ],
+  });
+  if (!g) throw notFoundError("分组", input.id);
+  if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
+    throw noPermissionError("分组", input.id);
+  }
+  return g;
 });
 
+const groups = router({
+  create,
+  update,
+  destroy,
+  list,
+  listAndCountTranscripts,
+  get,
+});
 export default groups;
 
 /**
