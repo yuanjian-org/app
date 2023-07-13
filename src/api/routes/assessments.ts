@@ -1,13 +1,13 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import _ from "lodash";
-import db from "api/database/db";
+import db from "../database/db";
 import { z } from "zod";
-import { zAssessment } from "shared/Assessment";
-import Partnership from "api/database/models/Partnership";
-import { includePartnershipUsers } from "./partnerships";
+import { zAssessment } from "../../shared/Assessment";
+import Partnership from "../database/models/Partnership";
 import { TRPCError } from "@trpc/server";
-import { notFoundError } from "api/errors";
+import { notFoundError } from "../errors";
+import { includePartnershipUsers } from "../../shared/Partnership";
 
 /**
  * @returns the ID of the created assessment.

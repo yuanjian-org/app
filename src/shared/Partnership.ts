@@ -1,12 +1,14 @@
 import { z } from "zod";
 import { zMinUserProfile } from "./UserProfile";
 import { zAssessment } from "./Assessment";
+import { minUserProfileAttributes } from "./UserProfile";
 
 export const zPartnership = z.object({
   id: z.string().uuid(),
   mentor: zMinUserProfile,
   mentee: zMinUserProfile,
 });
+export type Partnership = z.TypeOf<typeof zPartnership>;
 
 export const zPartnershipCountingAssessments = zPartnership.merge(z.object({
   assessments: z.array(z.object({})),
@@ -23,3 +25,11 @@ export function isValidPartnershipIds(menteeId: string | null, mentorId: string 
     && z.string().uuid().safeParse(mentorId).success
     && menteeId !== mentorId;
 }
+
+export const includePartnershipUsers = [{
+  association: 'mentor',
+  attributes: minUserProfileAttributes,
+}, {
+  association: 'mentee',
+  attributes: minUserProfileAttributes,
+}];

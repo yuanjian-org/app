@@ -2,10 +2,13 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import _ from "lodash";
 import db from "api/database/db";
-import { zPartnershipCountingAssessments, zPartnershipWithAssessments } from "shared/Partnership";
+import { 
+  includePartnershipUsers, 
+  zPartnership, 
+  zPartnershipCountingAssessments, 
+  zPartnershipWithAssessments } from "../../shared/Partnership";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { minUserProfileAttributes } from "../../shared/UserProfile";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError } from "api/errors";
 import sequelizeInstance from "api/database/sequelizeInstance";
@@ -61,6 +64,17 @@ const listAll = procedure
   return res;
 });
 
+const listMineAsMentor = procedure
+  .use(authUser())
+  .output(z.array(zPartnership))
+  .query(async ({ ctx }) => 
+{
+  return await db.Partnership.findAll({
+    where: { mentorId: ctx.user.id },
+    include: includePartnershipUsers,
+  });
+});
+
 const getWithAssessments = procedure
   .use(authUser('PartnershipAssessor'))
   .input(z.object({ id: z.string().uuid() }))
@@ -83,15 +97,8 @@ const getWithAssessments = procedure
 const routes = router({
   create,
   listAll,
+  listMineAsMentor,
   getWithAssessments,
 });
 
 export default routes;
-
-export const includePartnershipUsers = [{
-  association: 'mentor',
-  attributes: minUserProfileAttributes,
-}, {
-  association: 'mentee',
-  attributes: minUserProfileAttributes,
-}];
