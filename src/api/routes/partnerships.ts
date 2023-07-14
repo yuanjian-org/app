@@ -10,8 +10,9 @@ import {
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import Assessment from "../database/models/Assessment";
-import { alreadyExistsError, generalBadRequestError } from "api/errors";
+import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "api/errors";
 import sequelizeInstance from "api/database/sequelizeInstance";
+import { isPermitted } from "shared/Role";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -77,10 +78,10 @@ const listMineAsMentor = procedure
 
 // TODO: remove this function. Use partnership.get + assessments.listAllOfPartnership instead.
 const getWithAssessments = procedure
-  .use(authUser('PartnershipAssessor'))
+  .use(authUser())
   .input(z.string())
   .output(zPartnershipWithAssessments)
-  .query(async ({ input: id }) => 
+  .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
     include: [
@@ -88,10 +89,13 @@ const getWithAssessments = procedure
       Assessment,
     ]
   });
-  if (!res) throw new TRPCError({
-    code: "NOT_FOUND",
-    message: `一对一导师匹配 ${id} 不存在`,
-  })
+  if (!res) throw notFoundError("一对一匹配", id);
+
+  // Only assessors and mentors can access the partnership.
+  if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentorId !== ctx.user.id) {
+    throw noPermissionError("一对一匹配", id);
+  }
+
   return res;
 });
 
