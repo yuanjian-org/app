@@ -54,7 +54,7 @@ type PartnershipProps = {
 function MenteeTabs({ partnership } : PartnershipProps) {
   return <Tabs isFitted isLazy index={3}>
     <TabList>
-      <Tab isDisabled><Head>通话摘要（0）</Head></Tab>
+      <Tab isDisabled><Head>通话摘要</Head></Tab>
       <Tab isDisabled><Head>基本资料</Head></Tab>
       <Tab isDisabled><Head>面试材料</Head></Tab>
       <Tab><Head>评估辅助</Head></Tab>

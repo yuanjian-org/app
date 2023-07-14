@@ -1,8 +1,7 @@
-
 /**
  * Markdown editor from https://www.npmjs.com/package/react-simplemde-editor.
  */
-import React, { useMemo } from 'react';
+import React from 'react';
 import "easymde/dist/easymde.min.css";
 
 // This block is a hack from https://github.com/dabit3/next.js-amplify-workshop/issues/21#issuecomment-843188036 to work
@@ -17,6 +16,7 @@ const SimpleMDE = dynamic(
 const options = {
   spellChecker: false,
   autofocus: true,
+  hideIcons: ["link", "image", "side-by-side", "fullscreen"],
   // This has no effect. Need more research.
   // readOnly: true,
 } /* as SimpleMDE.Options -- ts warns on this due to the above hack */;
@@ -28,5 +28,6 @@ export default function MarkdownEditor({ value, onChange, ...rest }: {
   // Other options. See https://github.com/Ionaru/easy-markdown-editor#options-list
   [key: string]: any,  /* SimpleMDE.Options -- ts warns on this due to the above hack */
 }) {
+  // @ts-ignore
   return <SimpleMDE value={value} options={{ ...options, ...rest }} onChange={onChange} />;
 }
