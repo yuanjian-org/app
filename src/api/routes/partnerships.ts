@@ -75,13 +75,14 @@ const listMineAsMentor = procedure
   });
 });
 
+// TODO: remove this function. Use partnership.get + assessments.listAllOfPartnership instead.
 const getWithAssessments = procedure
   .use(authUser('PartnershipAssessor'))
-  .input(z.object({ id: z.string().uuid() }))
+  .input(z.string())
   .output(zPartnershipWithAssessments)
-  .query(async ({ input }) => 
+  .query(async ({ input: id }) => 
 {
-  const res = await db.Partnership.findByPk(input.id, {
+  const res = await db.Partnership.findByPk(id, {
     include: [
       ...includePartnershipUsers,
       Assessment,
@@ -89,7 +90,7 @@ const getWithAssessments = procedure
   });
   if (!res) throw new TRPCError({
     code: "NOT_FOUND",
-    message: `一对一导师匹配 ${input.id} 不存在`,
+    message: `一对一导师匹配 ${id} 不存在`,
   })
   return res;
 });

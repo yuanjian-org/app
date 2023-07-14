@@ -10,7 +10,7 @@ import Loader from 'components/Loader';
 import MarkdownEditor from 'components/MarkdownEditor';
 import Autosaver from 'components/Autosaver';
 import { Heading, Text, Flex } from '@chakra-ui/react';
-import { getYearText } from '../assessments';
+import { getYearText } from 'components/AssessmentsPanel';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 
@@ -22,7 +22,7 @@ function AssessmentEditor() {
   const router = useRouter();
   const id = parseQueryParameter(router, "assessmentId");
   const partnershipId = parseQueryParameter(router, "partnershipId");
-  const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>({ id });
+  const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>(id);
   const [edited, setEdited] = useState<string | undefined>();
 
   const edit = useCallback((summary: string) => {
