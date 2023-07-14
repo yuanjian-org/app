@@ -13,7 +13,7 @@ import UserProfile from './shared/UserProfile'
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
-  [x: string]: any
+  unlimitedPageWidth?: boolean,
 }
 export default function AppLayout(props: AppLayoutProps) {
   useEffect(() => {
@@ -80,7 +80,7 @@ function AppContent(props: AppLayoutProps) {
         }}
         maxWidth={{
           base: "100%",
-          xl: "1200px"
+          ...props.unlimitedPageWidth ? {} : { xl: "1200px" }
         }}
         // TODO: these hard-coded numbers are empirically measured footer heights. Replace them with constants.
         minHeight={{
