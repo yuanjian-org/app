@@ -2,6 +2,7 @@ import type {
   InferAttributes,
   InferCreationAttributes, NonAttribute,
 } from "sequelize";
+import {Op} from 'sequelize';
 import {
   AllowNull,
   BeforeDestroy,
@@ -26,8 +27,7 @@ class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
   > {
-  @Column(UUID)
-  userId:string;
+  
   
   // Always use `formatUserName` to display user names.
   @Column(STRING)
@@ -65,8 +65,10 @@ class User extends ParanoidModel<
     })).map( async gu => {await gu.destroy(options); });
 
     const promises2 = (await Partnership.findAll({
-      where: { userId: user.id }
-    })).map( async pa => {await pa.destroy(options); });
+      where: { 
+        [Op.or]: [{menteeId: user.id}, {mentorId: user.id}] 
+      }
+    })).map(async p => { await p.destroy(options); });
     
     await Promise.all([...promises1, promises2]);
   }
