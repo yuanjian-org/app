@@ -26,6 +26,7 @@ class User extends ParanoidModel<
   InferCreationAttributes<User>
   > {
   // Always use `formatUserName` to display user names.
+  // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
   name: string;
 
@@ -33,17 +34,18 @@ class User extends ParanoidModel<
   pinyin: string;
 
   @Unique
+  @AllowNull(false)
   @Column(STRING)
   email: string;
 
   // TODO chaneg to use array type
+  @AllowNull(false)
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
   @BelongsToMany(() => Group, { through: () => GroupUser })
   groups: NonAttribute<Group[]>;
 
-  @AllowNull(true)
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
 

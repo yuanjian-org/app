@@ -49,12 +49,6 @@ graph TD;
     src/api-->|ok|src/shared;
 ```
 
-## FAQ
-
-Q: What to do if I got `'TS_NODE_PROJECT' is not recognized as an internal or external command ERROR`?
-
-A: Add `cross-env` in front of  `TS_NODE_PROJECT...` in package.json
-
 <br>
 <br>
 <br>

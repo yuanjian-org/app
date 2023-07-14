@@ -3,10 +3,16 @@ import { zMinUserProfile } from "./UserProfile";
 import { zAssessment } from "./Assessment";
 import { minUserProfileAttributes } from "./UserProfile";
 
+export const zPrivateMentorNotes = z.object({
+  memo: z.string().optional(),
+});
+export type PrivateMentorNotes = z.TypeOf<typeof zPrivateMentorNotes>;
+
 export const zPartnership = z.object({
   id: z.string().uuid(),
   mentor: zMinUserProfile,
   mentee: zMinUserProfile,
+  privateMentorNotes: zPrivateMentorNotes.nullable(),
 });
 export type Partnership = z.TypeOf<typeof zPartnership>;
 

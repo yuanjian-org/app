@@ -1,18 +1,17 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import _ from "lodash";
-import db from "api/database/db";
+import db from "../database/db";
 import { 
   includePartnershipUsers, 
   zPartnership, 
   zPartnershipCountingAssessments, 
   zPartnershipWithAssessments } from "../../shared/Partnership";
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
 import Assessment from "../database/models/Assessment";
-import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "api/errors";
-import sequelizeInstance from "api/database/sequelizeInstance";
-import { isPermitted } from "shared/Role";
+import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import sequelizeInstance from "../database/sequelizeInstance";
+import { isPermitted } from "../../shared/Role";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
