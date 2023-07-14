@@ -10,7 +10,7 @@ import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
 import UserProfile from './shared/UserProfile'
-import NavBarFrame, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
+import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
   [x: string]: any
@@ -71,7 +71,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
 
 function AppContent(props: AppLayoutProps) {
   return (
-    <NavBarFrame>
+    <NavBars>
       <Box
         marginTop={sidebarContentMarginTop}
         paddingX={{ 
@@ -91,6 +91,6 @@ function AppContent(props: AppLayoutProps) {
         {props.children}
       </Box>
       <Footer />
-    </NavBarFrame>
+    </NavBars>
   );
 }

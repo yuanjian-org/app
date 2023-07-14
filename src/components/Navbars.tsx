@@ -1,7 +1,7 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React, { ReactNode, useCallback, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   IconButton,
   Avatar,
@@ -61,19 +61,19 @@ export default function Navbars({
    * Use a reference holder to keep the values of addPS and removePS independent of autosaveState, and thus avoid
    * re-rendering the whole page every time autosaveState changes.
    */
-  const ref = useMemo(() => ({ state: initialState }), []);
+  const stateRef = useRef(initialState);
   const addPS = useCallback((id: string) => {
-    ref.state = addPendingSaver(ref.state, id);
-    setAutosateState(ref.state);
-  }, [ref]);
+    stateRef.current = addPendingSaver(stateRef.current, id);
+    setAutosateState(stateRef.current);
+  }, [stateRef]);
   const removePS = useCallback((id: string) => {
-    ref.state = removePendingSaver(ref.state, id);
-    setAutosateState(ref.state);
-  }, [ref]);
+    stateRef.current = removePendingSaver(stateRef.current, id);
+    setAutosateState(stateRef.current);
+  }, [stateRef]);
   const setPSError = useCallback((id: string, e?: any) => {
-    ref.state = setPendingSaverError(ref.state, id, e);
-    setAutosateState(ref.state);
-  }, [ref]);
+    stateRef.current = setPendingSaverError(stateRef.current, id, e);
+    setAutosateState(stateRef.current);
+  }, [stateRef]);
   
   return (
     <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>

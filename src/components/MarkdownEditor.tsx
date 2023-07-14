@@ -25,7 +25,7 @@ export default function MarkdownEditor({ value, onChange, ...rest }: {
   value: string,
   // Remember to use useCallback to avoid rerendering the editor unnecessarily.
   onChange?: (value: string) => void,
-  // Override default options. See https://github.com/Ionaru/easy-markdown-editor#options-list
+  // Other options. See https://github.com/Ionaru/easy-markdown-editor#options-list
   [key: string]: any,  /* SimpleMDE.Options -- ts warns on this due to the above hack */
 }) {
   return <SimpleMDE value={value} options={{ ...options, ...rest }} onChange={onChange} />;
