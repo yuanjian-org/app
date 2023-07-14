@@ -38,7 +38,7 @@ import NextLink from 'next/link';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
-  const { data: partnerships, refetch } = trpcNext.partnerships.listAll.useQuery
+  const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery
     <PartnershipCountingAssessments[] | undefined>();
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
 

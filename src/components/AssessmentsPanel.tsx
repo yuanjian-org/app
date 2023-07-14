@@ -3,25 +3,23 @@ import {
   Tbody,
   Tr,
   Td,
-  Flex,
   LinkBox,
   LinkOverlay,
 } from '@chakra-ui/react'
 import React from 'react'
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
-import { Partnership } from 'shared/Partnership';
 import { useRouter } from 'next/router';
 import NextLink from "next/link";
 import Assessment from 'shared/Assessment';
 import trpc from 'trpc';
 
-export default function AssessmentsPanel({ partnership, assessments, allowEdit } : {
-  partnership: Partnership | undefined | null,
+export default function AssessmentsPanel({ partnershipId, assessments, allowEdit } : {
+  partnershipId: string,
   assessments: Assessment[] | undefined | null,
   allowEdit?: boolean,
 }) {
-  return !partnership || !assessments ? 
+  return !assessments ? 
     <Loader /> 
     : 
     <Table>
@@ -29,7 +27,7 @@ export default function AssessmentsPanel({ partnership, assessments, allowEdit }
         {assessments.length > 0 ? assessments.map(a => (
           <AssessmentRow
             key={a.id} 
-            partnershipId={partnership.id} 
+            partnershipId={partnershipId} 
             assessmentId={a.id}
             date={a.createdAt}
             summary={a.summary}
@@ -38,7 +36,7 @@ export default function AssessmentsPanel({ partnership, assessments, allowEdit }
         ))
         : 
         <AssessmentRow
-          partnershipId={partnership.id}
+          partnershipId={partnershipId}
           date={new Date()}
           allowEdit={allowEdit}
         />}

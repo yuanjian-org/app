@@ -3,10 +3,13 @@ import { authUser } from "../auth";
 import _ from "lodash";
 import db from "../database/db";
 import { 
-  includePartnershipUsers, 
-  zPartnership, 
+  includePartnershipUsers,
+  minAttributes,
+  zPartnership,
   zPartnershipCountingAssessments, 
-  zPartnershipWithAssessments } from "../../shared/Partnership";
+  zPartnershipWithAssessments, 
+  zPartnershipWithPrivateMentorNotes, 
+  zPrivateMentorNotes } from "../../shared/Partnership";
 import { z } from "zod";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
@@ -47,12 +50,13 @@ const create = procedure
   });
 });
 
-const listAll = procedure
+const list = procedure
   .use(authUser('PartnershipManager'))
   .output(z.array(zPartnershipCountingAssessments))
   .query(async () => 
 {
   const res = await db.Partnership.findAll({
+    attributes: minAttributes,
     include: [
       ...includePartnershipUsers,
       {
@@ -71,18 +75,40 @@ const listMineAsMentor = procedure
 {
   return await db.Partnership.findAll({
     where: { mentorId: ctx.user.id },
+    attributes: minAttributes,
     include: includePartnershipUsers,
   });
 });
 
-// TODO: remove this function. Use partnership.get + assessments.listAllOfPartnership instead.
-const getWithAssessments = procedure
+/**
+ * Get all information of a partnership including notes.
+ * Only accessible by the mentor
+ */
+const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zPartnershipWithAssessments)
+  .output(zPartnershipWithPrivateMentorNotes)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
+    attributes: [...minAttributes, 'privateMentorNotes'],
+    include: includePartnershipUsers,
+  });
+  if (!res || res.mentorId !== ctx.user.id) {
+    throw noPermissionError("一对一匹配", id);
+  }
+  return res;
+});
+
+// TODO: remove this function. Use partnership.get + assessments.listAllOfPartnership instead.
+const getWithAssessmentsDeprecated = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zPartnershipWithAssessments)
+  .query(async ({ ctx, input: id }) =>
+{
+  const res = await db.Partnership.findByPk(id, {
+    attributes: minAttributes,
     include: [
       ...includePartnershipUsers,
       Assessment,
@@ -98,11 +124,30 @@ const getWithAssessments = procedure
   return res;
 });
 
+const update = procedure
+  .use(authUser())
+  .input(z.object({
+    id: z.string(),
+    privateMentorNotes: zPrivateMentorNotes,
+  }))
+  .mutation(async ({ ctx, input }) => 
+{
+  const partnership = await db.Partnership.findByPk(input.id);
+  if (!partnership || partnership.mentorId !== ctx.user.id) {
+    throw noPermissionError("一对一匹配", input.id);
+  }
+
+  partnership.privateMentorNotes = input.privateMentorNotes;
+  partnership.save();
+});
+
 const routes = router({
   create,
-  listAll,
+  get,
+  getWithAssessmentsDeprecated,
+  list,
   listMineAsMentor,
-  getWithAssessments,
+  update,
 });
 
 export default routes;

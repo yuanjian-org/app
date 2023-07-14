@@ -16,7 +16,7 @@ import AssessmentsPanel from 'components/AssessmentsPanel';
 
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryParameter(useRouter(), "partnershipId");
-  const { data: partnership } = trpcNext.partnerships.getWithAssessments
+  const { data: partnership } = trpcNext.partnerships.getWithAssessmentsDeprecated
     .useQuery<PartnershipWithAssessments | undefined>(partnershipId);
 
   return !partnership ? <Loader /> : <>

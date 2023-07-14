@@ -2,20 +2,19 @@ import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
 import { parseQueryParameter } from 'parseQueryParamter';
-import { trpcNext } from 'trpc';
+import trpc, { trpcNext } from 'trpc';
 import PageBreadcrumb, { pageBreadcrumbMarginBottom } from 'components/PageBreadcrumb';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, HStack, Heading, Text, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, HStack, Text, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
 import { JoinButton } from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
-import MarkdownEditor from 'components/MarkdownEditor';
+import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import AssessmentsPanel from 'components/AssessmentsPanel';
-import { Partnership } from 'shared/Partnership';
+import { PrivateMentorNotes } from 'shared/Partnership';
 
 const Page: NextPageWithLayout = () => {
-  const { data: partnership } = trpcNext.partnerships.getWithAssessments.useQuery(
-    parseQueryParameter(useRouter(), 'partnershipId')
-  );
+  const partnershipId = parseQueryParameter(useRouter(), 'partnershipId');
+  const { data: partnership } = trpcNext.partnerships.get.useQuery(partnershipId);
   if (!partnership) return <Loader />
 
   return <>
@@ -25,10 +24,13 @@ const Page: NextPageWithLayout = () => {
     </HStack>
     <Grid templateColumns={{ base: "1fr", [sidebarBreakpoint]: "0.382fr 0.618fr" }} gap={10}>
       <GridItem>
-        <PrivateNotes />
+        <PrivateNotes 
+          partnershipId={partnershipId}
+          loading={partnership == null}
+          notes={partnership?.privateMentorNotes} />
       </GridItem>
       <GridItem>
-        <MenteeTabs partnership={partnership} />
+        <MenteeTabs partnershipId={partnershipId} />
       </GridItem>
     </Grid>
   </>;
@@ -40,18 +42,31 @@ export default Page;
 
 const Head = ({ children }: any) => <Text>{children}</Text>;
 
-function PrivateNotes() {
+function PrivateNotes({ partnershipId, notes, loading }: { 
+  partnershipId: string,
+  notes: PrivateMentorNotes | null,
+  loading: boolean,
+}) {
+
+  const save = async (editedMemo: string) => {
+    await trpc.partnerships.update.mutate({ 
+      id: partnershipId, 
+      privateMentorNotes: { memo: editedMemo },
+    });
+  };
+
   return <Flex direction="column" gap={6}>
     <Head>私人备忘录</Head>
-    <MarkdownEditor value="可记录未来通话主题等任意数据（尚未实现保存）" />
+    {loading ? <Loader /> : 
+      <AutosavingMarkdownEditor key={partnershipId} initialValue={notes?.memo || ''} onSave={save} />}
   </Flex>;
 }
 
 type PartnershipProps = {
-  partnership: Partnership,
+  partnershipId: string,
 };
 
-function MenteeTabs({ partnership } : PartnershipProps) {
+function MenteeTabs({ partnershipId } : PartnershipProps) {
   return <Tabs isFitted isLazy index={3}>
     <TabList>
       <Tab isDisabled><Head>通话摘要</Head></Tab>
@@ -71,14 +86,14 @@ function MenteeTabs({ partnership } : PartnershipProps) {
         TODO
       </TabPanel>
       <TabPanel>
-        <AssessmentTabPanel partnership={partnership} />
+        <AssessmentTabPanel partnershipId={partnershipId} />
       </TabPanel>
     </TabPanels>
   </Tabs>;
 }
 
-function AssessmentTabPanel({ partnership } : PartnershipProps) {
-  const { data: assessments } = trpcNext.assessments.listAllOfPartneship.useQuery(partnership.id);
+function AssessmentTabPanel({ partnershipId } : PartnershipProps) {
+  const { data: assessments } = trpcNext.assessments.listAllOfPartneship.useQuery(partnershipId);
   // @ts-ignore so weird
-  return <AssessmentsPanel partnership={partnership} assessments={assessments} />;
+  return <AssessmentsPanel partnershipId={partnershipId} assessments={assessments} />;
 }
