@@ -40,6 +40,7 @@ import AutosaveIndicator, {
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
+import { formatUserName } from 'shared/strings';
 
 export const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -170,14 +171,14 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
                   size={'sm'}
                   bg="brand.a"
                   color="white"
-                  name={user.name || ""}
+                  name={formatUserName(user.name, "formal")}
                 />
                 <Text 
                   display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
                   marginLeft="2"
                   fontSize="sm"
                 >
-                  {user.name || ""}
+                  {formatUserName(user.name, "formal")}
                 </Text>
                 <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
                   <FiChevronDown />

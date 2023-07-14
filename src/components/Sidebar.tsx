@@ -34,6 +34,7 @@ import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
 import { parseQueryParameter } from 'parseQueryParamter';
+import { formatUserName } from 'shared/strings';
 
 export interface SidebarItem {
   name: string,
@@ -80,7 +81,7 @@ const sidebarItems: SidebarItem[] = [
 function partnerships2Items(partnerships: Partnership[] | undefined): SidebarItem[] {
   if (!partnerships) return [];
   return partnerships.map(p => ({
-    name: p.mentee.name ?? '',
+    name: formatUserName(p.mentee.name, "formal"),
     icon: MdFace,
     path: `/partnerships/${p.id}`,
     basePath: "/partnerships/",

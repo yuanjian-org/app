@@ -11,6 +11,7 @@ import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import AssessmentsPanel from 'components/AssessmentsPanel';
 import { PrivateMentorNotes } from 'shared/Partnership';
+import { formatUserName } from 'shared/strings';
 
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryParameter(useRouter(), 'partnershipId');
@@ -19,7 +20,7 @@ const Page: NextPageWithLayout = () => {
 
   return <>
     <HStack spacing={10} marginBottom={pageBreadcrumbMarginBottom}>
-      <PageBreadcrumb current={`我的朋友${partnership.mentee.name}`} marginBottom={0} />
+      <PageBreadcrumb current={`我的朋友${formatUserName(partnership.mentee.name, "friendly")}`} marginBottom={0} />
       <JoinButton isDisabled>开始通话</JoinButton>
     </HStack>
     <Grid templateColumns={{ base: "1fr", [sidebarBreakpoint]: "0.382fr 0.618fr" }} gap={10}>
