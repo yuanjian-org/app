@@ -31,7 +31,7 @@ import { PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Pa
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import UserChip from 'components/UserChip';
-import { sidebarBreakpoint } from 'components/NavBars';
+import { sidebarBreakpoint } from 'components/Navbars';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';

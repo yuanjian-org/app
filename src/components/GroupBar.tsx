@@ -19,7 +19,7 @@ import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
-import { sidebarBreakpoint } from './NavBars';
+import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
 

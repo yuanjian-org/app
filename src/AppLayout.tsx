@@ -10,7 +10,7 @@ import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
 import UserProfile from './shared/UserProfile'
-import NavBarFrame, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/NavBars'
+import NavBarFrame, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
   [x: string]: any

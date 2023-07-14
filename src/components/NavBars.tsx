@@ -6,24 +6,19 @@ import {
   IconButton,
   Avatar,
   Box,
-  CloseButton,
   Flex,
   HStack,
-  Icon,
   useColorModeValue,
-  Link,
   Drawer,
   DrawerContent,
   Text,
   useDisclosure,
-  BoxProps,
   FlexProps,
   Menu,
   MenuButton,
   MenuDivider,
   MenuItem,
   MenuList,
-  Divider,
 } from '@chakra-ui/react';
 import {
   FiMenu,
@@ -33,14 +28,8 @@ import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { Guard, useGuard } from "@authing/guard-react18";
 import { useUserContext } from 'UserContext';
-import sidebarItems, { SidebarItem } from 'sidebarItems';
-import { isPermitted } from 'shared/Role';
-import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
-
 import Image from "next/image";
-import { useRouter } from 'next/router';
-import { MdChevronRight, MdFace } from 'react-icons/md';
 import colors from 'theme/colors';
 import AutosaveIndicator, { 
   AutosaveState,
@@ -50,10 +39,9 @@ import AutosaveIndicator, {
   setPendingSaverError
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
-import { trpcNext } from 'trpc';
-import { Partnership } from 'shared/Partnership';
+import Sidebar from './Sidebar';
 
-const sidebarWidth = 60;
+export const sidebarWidth = 60;
 export const topbarHeight = "60px";
 export const sidebarBreakpoint = "lg";
 export const sidebarContentMarginTop = 10;
@@ -89,7 +77,7 @@ export default function Navbars({
   
   return (
     <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
-      <SidebarContent
+      <Sidebar
         onClose={() => onClose}
         display={{ base: 'none', [sidebarBreakpoint]: 'block' }}
       />
@@ -102,7 +90,7 @@ export default function Navbars({
         onOverlayClick={onClose}
         size="xs">
         <DrawerContent>
-          <SidebarContent onClose={onClose} />
+          <Sidebar onClose={onClose} />
         </DrawerContent>
       </Drawer>
       <Topbar onOpen={onOpen} autosaveState={autosaveState} />
@@ -118,110 +106,6 @@ export default function Navbars({
     </Box>
   );
 }
-
-/**
- * TODO: Extract Sidebar functions to a separate file
- */
-const sidebarItemPaddingY = 4;
-
-function partnerships2sidebarItems(partnerships: Partnership[] | undefined): SidebarItem[] {
-  if (!partnerships) return [];
-  return partnerships.map(p => ({
-    name: p.mentee.name ?? '',
-    icon: MdFace,
-    path: `/partnership/${p.id}`,
-  }));
-}
-
-interface SidebarProps extends BoxProps {
-  onClose: () => void;
-}
-const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
-  const [me] = useUserContext();
-  // Save an API call if the user is not a mentor.
-  const { data: partnerships } = isPermitted(me.roles, "Mentor") ? 
-    trpcNext.partnerships.listMineAsMentor.useQuery() : { data: undefined };
-  const partnershipItems = partnerships2sidebarItems(partnerships);
-
-  return (
-    <Box
-      transition="3s ease"
-      bg={useColorModeValue('white', 'gray.900')}
-      borderRight="1px"
-      borderRightColor={useColorModeValue('gray.200', 'gray.700')}
-      w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
-      pos="fixed"
-      h="full"
-      {...rest}>
-      <Flex 
-        height={topbarHeight}
-        alignItems="center"
-        marginX="8" 
-        justifyContent="space-between"
-      >
-        <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-          <Image
-            src={yuanjianLogo224x97} 
-            alt="远见教育基金会" 
-            width={112}
-            // Without `priority` we would get a warning from Chrome that this image "was detected as the Largest 
-            // Contentful Paint (LCP). Please add the "priority" property if this image is above the fold. Read more: 
-            // https://nextjs.org/docs/api-reference/next/image#priority"
-            priority
-            />
-        </Box>
-        <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} onClick={onClose} />
-      </Flex>
-      <Box height={{
-        base: 0,
-        [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
-      }}/>
-
-      {sidebarItems
-        .filter(item => isPermitted(me.roles, item.role))
-        .map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
-      
-      {partnershipItems?.length > 0 && <Divider marginY={2} />}
-
-      {partnershipItems.map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
-    </Box>
-  );
-};
-
-interface SidebarRowProps extends SidebarProps {
-  item: SidebarItem,
-}
-const SidebarRow = ({ item, onClose, ...rest }: SidebarRowProps) => {
-  const { pathname } = useRouter();
-  const active = pathname === item.path;
-  return (
-    <Link 
-      as={NextLink} 
-      href={item.path}
-      color={active ? "brand.c" : "gray.500"}
-      fontWeight="bold"
-      onClick={onClose}
-    >
-      <Flex
-        align="center"
-        marginX={4}
-        paddingLeft={4}
-        paddingY={sidebarItemPaddingY}
-        role="group"
-        cursor={active ? "default" : "pointer"}
-        {...rest}
-      >
-        <Icon as={item.icon} />
-        <Text marginX={4}>{item.name}</Text>
-        <Icon
-          as={MdChevronRight}
-          opacity={0}
-          _groupHover={active ? {} : { opacity: 100 }}
-        />
-      </Flex>
-    </Link>
-  );
-};
 
 interface TopbarProps extends FlexProps {
   onOpen: () => void,
