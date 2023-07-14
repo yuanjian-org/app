@@ -4,6 +4,7 @@ import type {
 } from "sequelize";
 import {
   AllowNull,
+  BeforeDestroy,
   BelongsToMany,
   Column,
   HasMany,
@@ -12,7 +13,7 @@ import {
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { DATE, JSONB, STRING } from "sequelize";
+import { DATE, JSONB, STRING, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
@@ -25,6 +26,9 @@ class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
   > {
+  @Column(UUID)
+  userId:string;
+  
   // Always use `formatUserName` to display user names.
   @Column(STRING)
   name: string;
@@ -53,6 +57,19 @@ class User extends ParanoidModel<
 
   @HasMany(() => Partnership, { foreignKey: 'mentorId' })
   mentorOf: NonAttribute<Partnership>;
+
+  @BeforeDestroy
+  static async cascadeDestory( user: User, options: any){
+    const promises1 = (await GroupUser.findAll({
+      where: { userId: user.id }
+    })).map( async gu => {await gu.destroy(options); });
+
+    const promises2 = (await Partnership.findAll({
+      where: { userId: user.id }
+    })).map( async pa => {await pa.destroy(options); });
+    
+    await Promise.all([...promises1, promises2]);
+  }
 }
 
 export default User;
