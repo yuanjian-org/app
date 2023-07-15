@@ -6,7 +6,8 @@ import {
   Model,
   PrimaryKey,
   HasMany,
-  BeforeDestroy
+  BeforeDestroy,
+  Unique
 } from "sequelize-typescript";
 import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
@@ -14,11 +15,9 @@ import Summary from "./Summary";
 
 @Table({ paranoid: true })
 class Transcript extends Model {
+  @Unique
   @PrimaryKey
-  @Column({
-    type: STRING,
-    unique: true,
-  })
+  @Column(STRING)
   // TODO: rename to simply 'id'?
   transcriptId: string;
 
