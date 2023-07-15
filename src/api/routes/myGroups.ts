@@ -11,7 +11,7 @@ import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
-import { zGroupCountingTranscripts } from "./groups";
+import { zGroupCountingTranscripts } from "../../shared/Group";
 import { encodeMeetingSubject } from "./meetings";
 import { formatGroupName } from "../../shared/strings";
 import apiEnv from "../apiEnv";

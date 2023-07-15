@@ -25,7 +25,7 @@ import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import UserChip from 'components/UserChip';
-import { Group } from 'api/routes/groups';
+import { Group } from '../shared/Group';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
 import { formatGroupName } from 'shared/strings';
@@ -38,7 +38,7 @@ const Page: NextPageWithLayout = () => {
   const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
 
-  const { data, refetch } = trpcNext.groups.listAll.useQuery({ userIds });
+  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds });
 
   const createGroup = async () => {
     setCreating(true);

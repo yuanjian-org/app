@@ -23,10 +23,10 @@ import { formatGroupName } from 'shared/strings';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
+import { Group, GroupCountingTranscripts } from 'shared/Group';
 
-// @ts-ignore TODO: fix me.
 export default function GroupBar(props: {
-  group: any,
+  group: Group | GroupCountingTranscripts,
   showSelf?: boolean,             // default: false
   showJoinButton?: boolean,       // default: false
   showTranscriptCount?: boolean,  // default: false
@@ -34,7 +34,7 @@ export default function GroupBar(props: {
   abbreviateOnMobile?: boolean,   // default: true
 }) {
   const [user] = useUserContext();
-  const transcriptCount = (props.group.transcripts || []).length;
+  const transcriptCount = ("transcripts" in props.group ? props.group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
