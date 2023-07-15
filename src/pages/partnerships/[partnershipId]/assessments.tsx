@@ -26,8 +26,9 @@ const Page: NextPageWithLayout = () => {
     <Flex direction='column' gap={6}>
       <UserChips users={[partnership.mentee, partnership.mentor]} abbreviateOnMobile={false} />
       <Divider />
-      {/* @ts-ignore so wierd */}
-      <AssessmentsPanel allowEdit partnership={partnership} assessments={partnership?.assessments} />
+      <AssessmentsPanel allowEdit partnershipId={partnership.id} 
+        // @ts-ignore so weird
+        assessments={partnership?.assessments} />
     </Flex>
   </>;
 }
