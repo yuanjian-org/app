@@ -13,7 +13,10 @@ import {
   LinkOverlay,
   AvatarGroup,
   ButtonProps,
-  SimpleGridProps
+  SimpleGridProps,
+  Tag,
+  HStack,
+  Tooltip
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
@@ -25,6 +28,7 @@ import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
 import { Group, GroupCountingTranscripts } from 'shared/Group';
+import QuestionIconTooltip from './QuestionIconTooltip';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
@@ -70,7 +74,10 @@ export default function GroupBar({
 
       {/* row 1 col 2 */}
       {showGroupName ?
-        <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>
+        <HStack spacing={4}>
+          {ownerTag(group)}
+          <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>
+        </HStack>
         :
         null
       }
@@ -112,6 +119,10 @@ export default function GroupBar({
       </LinkBox>
     </SimpleGrid>
   );
+}
+
+function ownerTag(group: Group) {
+  return group.partnershipId ? <Tag color="white" bgColor="gray">一对一导师</Tag> : null;
 }
 
 export function JoinButton(props: ButtonProps) {
