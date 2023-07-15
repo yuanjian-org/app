@@ -181,7 +181,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         });
         await Promise.all(promises);
       })
-      await Promise.all(promises);
+    await Promise.all(promises);
   }
   return ret;
 }

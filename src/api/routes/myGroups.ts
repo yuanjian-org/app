@@ -84,7 +84,7 @@ const myGroups = router({
     }),
 
   /**
-   *  list function find and return the groups and transcripts that are related to the current user
+   *  find and return the groups and transcripts that are related to the current user
    */
   list: procedure
     .use(authUser())
