@@ -84,7 +84,7 @@ function Summaries(props: { transcript: Transcript }) {
           </Tr>
         </Tbody>
       </Table>
-      <MarkdownEditor value={t.summaries[summaryIndex].summary} options={{
+      <MarkdownEditor initialValue={t.summaries[summaryIndex].summary} options={{
         toolbar: false,
       }}/>;
     </Stack>

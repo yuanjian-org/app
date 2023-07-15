@@ -38,7 +38,7 @@ const Page: NextPageWithLayout = () => {
   const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
 
-  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds });
+  const { data, refetch } = trpcNext.groups.listAll.useQuery({ userIds });
 
   const createGroup = async () => {
     setCreating(true);

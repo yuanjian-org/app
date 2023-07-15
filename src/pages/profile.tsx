@@ -40,20 +40,17 @@ const UserProfile: NextPageWithLayout = () => {
     setName(user.name || '')
   }, [user]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (newName: string) => {
     setNotLoaded(true);
 
-    if (name) {
+    if (newName) {
       const updatedUser = structuredClone(user);
-      updatedUser.name = name;
+      updatedUser.name = newName;
 
-      // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
         toast.success("个人信息已保存")
         setUser(updatedUser);
-      } catch(e) {
-        toast.error((e as Error).message);
       } finally {
         setNotLoaded(false);
       }
@@ -103,16 +100,15 @@ const UserProfile: NextPageWithLayout = () => {
             <FormLabel marginTop='10px'>中文全名</FormLabel>
           </Box>
           <Box>
-            <Editable defaultValue={user.name ? user.name : undefined}>
+            <Editable 
+              defaultValue={user.name ? user.name : undefined}
+              onSubmit={(newName) => handleSubmit(newName)}
+            >
               <HStack>
                 <Box>
                   <EditablePreview />
-                  <Input
-                    as={EditableInput}
+                  <EditableInput 
                     backgroundColor={notLoaded ? 'brandscheme' : 'white'}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    isReadOnly={notLoaded}
                   />
                 </Box>
                 <Spacer />
@@ -133,17 +129,6 @@ const UserProfile: NextPageWithLayout = () => {
       <Stack spacing={4}>
         <EmailField />
         <NameField />
-        <Box>
-          <Button 
-            onClick={handleSubmit} 
-            isLoading={notLoaded}
-            loadingText="保存中"
-            variant='brand'
-            marginBottom='24px'
-          >
-            保存
-          </Button>
-        </Box>
       </Stack>
     </Box>
   )

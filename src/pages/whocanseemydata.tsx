@@ -21,7 +21,7 @@ const Page: NextPageWithLayout = () => {
   const { data: privileged } = trpcNext.users.listPriviledged.useQuery();
 
   return <>
-    <PageBreadcrumb current='谁能看到我的数据' parents={[{ name: '首页', link: '/' }]} />
+    <PageBreadcrumb current='谁能看到我的数据' />
     <Flex direction='column' gap={10}>
       <Text>
         <Link isExternal href='http://yuanjian.org'>远见教育基金会</Link>（远见）致力保护个人隐私，仅收集供服务所需的最少信息。

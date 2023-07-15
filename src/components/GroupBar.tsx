@@ -19,16 +19,17 @@ import {
   WrapItem,
   LinkBox,
   LinkOverlay,
-  AvatarGroup
+  AvatarGroup,
+  ButtonProps
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { Children, useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
-import { sidebarBreakpoint } from './NavBars';
+import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
 
@@ -81,17 +82,12 @@ export default function GroupBar(props: {
       
       {/* row 2 col 1 */}
       {props.showJoinButton &&
-        <Center>
-          <Button
-            boxShadow="md"
-            borderRadius="16px"
-            bgColor="white"
-            leftIcon={<MdVideocam />}
+        <Box>
+          <JoinButton
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
             onClick={async () => launchMeeting(props.group.id)}
-          >加入</Button>
-          <Spacer />
-        </Center>
+          >加入</JoinButton>
+        </Box>
       }
 
       {/* row 2 col 2 */}
@@ -121,6 +117,16 @@ export default function GroupBar(props: {
       </LinkBox>
     </SimpleGrid>
   );
+}
+
+export function JoinButton(props: ButtonProps) {
+  return <Button
+    boxShadow="md"
+    borderRadius="16px"
+    bgColor="white"
+    leftIcon={<MdVideocam />}
+    {...props}
+  >{props.children ? props.children : "加入"}</Button>;
 }
 
 export function OngoingMeetingWarning(props: {
