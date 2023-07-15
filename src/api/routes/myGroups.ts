@@ -24,20 +24,21 @@ async function generateMeeting(group: Group, availableTmUserId: string) {
   const groupName = formatGroupName(group.name, group.groupUsers.length);
   const res = await createMeeting(availableTmUserId, encodeMeetingSubject(group.id, groupName), now, now + 3600);
   invariant(res.meeting_info_list.length === 1);
-  return [res.meeting_info_list[0].meeting_id, res.meeting_info_list[0].join_url];
+  return {
+    meetingId: res.meeting_info_list[0].meeting_id,
+    meetingLink: res.meeting_info_list[0].join_url
+  };
 }
 
- /**
-   * This api contains procedure @joinMeeting and @list
-   * @joinMeeting will find the group meeting by the input group id
-   * If this meeting is presented in OngoingMeetings model, return and join
-   * If not presented, it will create a new meeting with available TM user Ids
-   * then insert it in OngoingMeetings
-   * @returns {meetingLink} returns a valid tencent meeting link
-   * Otherwise, return null which will trigger a conccurent meeting warning
-   * @list find and return the groups and transcripts that are related to the user
-   */
 const myGroups = router({
+  /**
+  * joinMeeting function will find the group meeting by the input group id
+  * If this meeting is presented in OngoingMeetings model, return and join
+  * If not presented, it will create a new meeting with available TM user Ids
+  * then insert it in OngoingMeetings
+  * @returns returns a valid tencent meeting link
+  * Otherwise, return null which will trigger a conccurent meeting warning
+  */
   joinMeeting: procedure
     .use(authUser())
     .input(z.object({ groupId: z.string() }))
@@ -48,15 +49,16 @@ const myGroups = router({
       if (!group) throw notFoundError("分组", input.groupId);
       // Only meeting members have access to this method.
       if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) {
-      throw noPermissionError("分组", input.groupId);
-    }
+        throw noPermissionError("分组", input.groupId);
+      }
 
-    if (!apiEnv.hasTencentMeeting()) {
-      console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
-      await sleep(2000);
-      return "/fakeMeeting";
-    }
+      if (!apiEnv.hasTencentMeeting()) {
+        console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
+        await sleep(2000);
+        return "/fakeMeeting";
+      }
 
+      // TODO: implement a lock option to the find query, details: https://stackoverflow.com/a/48297781
       // if the user's group is present in OngoingMeetings Model, return the meeting link 
       const ongoingMeeting = await OngoingMeetings.findOne({ where: { groupId: group.id } });
       if (ongoingMeeting) {
@@ -64,15 +66,14 @@ const myGroups = router({
       }
       // if not shown in OngoingMeetings, check if there are empty slots to join
       // find TM user ids that are not in use and generate a meeting link using an available id
-      const TM_USER_IDS = apiEnv.TM_ADMIN_USER_IDS.split(',');
       const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
-      if (meetings.length >= TM_USER_IDS.length) { return null; };
+      if (meetings.length >= apiEnv.TM_ADMIN_USER_IDS.length) { return null; };
       // find and filter vacant ids
-      const availableTmUserIds = TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
+      const availableTmUserIds = apiEnv.TM_ADMIN_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
       invariant(availableTmUserIds.length > 0);
-      const [meetingId, meetingLink] = await generateMeeting(group, availableTmUserIds[0]);
+      const { meetingId, meetingLink } = await generateMeeting(group, availableTmUserIds[0]);
 
-      await OngoingMeetings.upsert({
+      await OngoingMeetings.create({
         groupId: group.id,
         tmUserId: availableTmUserIds[0],
         meetingId,
@@ -82,6 +83,9 @@ const myGroups = router({
       return meetingLink;
     }),
 
+  /**
+   *  list function find and return the groups and transcripts that are related to the current user
+   */
   list: procedure
     .use(authUser())
     .output(z.array(zGroupCountingTranscripts))

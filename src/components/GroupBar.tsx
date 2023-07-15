@@ -135,7 +135,7 @@ export function OngoingMeetingWarning(props: {
         <p>同时进行的会议数量已超过上线，请稍后再试。</p>
       </ModalBody>
       <ModalFooter>
-        <Button marginRight={4} onClick={props.onClose}>
+        <Button onClick={props.onClose}>
           确认
         </Button>
       </ModalFooter>

@@ -3,19 +3,17 @@ import {
   Column,
   Table,
   Model,
+  Unique,
   PrimaryKey
 } from "sequelize-typescript";
 import { STRING } from "sequelize";
 
 /*
-* This table maps TencentMeeting admin user ids with the number of ongoing meetings associated with the TM admin user ids. 
+* This table maps TencentMeeting User(admin/host) ids with the infos of ongoing meeting associated with the user id. 
 */
 
 @Table({
   indexes: [{
-    unique: true,
-    fields: ['groupId', 'meetingId']
-  }, {
     fields: ['groupId']
   }]
 })
@@ -25,14 +23,17 @@ class OngoingMeetings extends Model {
   tmUserId: string;
 
   @AllowNull(false)
+  @Unique(true)
   @Column(STRING)
   groupId: string;
 
   @AllowNull(false)
+  @Unique(true)
   @Column(STRING)
   meetingId: string;
 
   @AllowNull(false)
+  @Unique(true)
   @Column(STRING)
   meetingLink: string;
 }

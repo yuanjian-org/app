@@ -248,7 +248,7 @@ export async function getMeeting(meetingId: string, tmUserId: string) {
  * 
  * https://cloud.tencent.com/document/product/1095/51189
  */
-export async function listRecords() {
+export async function listRecords(tmUserId: string) {
   console.log(LOG_HEADER, 'listRecords()');
   const zRecordMeetings = z.object({
     meeting_record_id: z.string(), // needed for script download
@@ -285,7 +285,7 @@ export async function listRecords() {
   var page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
-      userid: apiEnv.TM_ADMIN_USER_IDS,
+      userid: tmUserId,
       // 31d is earliest allowed date
       start_time: JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
       end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
@@ -304,7 +304,7 @@ export async function listRecords() {
  * 
  * https://cloud.tencent.com/document/product/1095/51174
  */
-export async function getRecordURLs(meetingRecordId: string) {
+export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
   console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
   const zRes = z.object({
     // meeting_record_id: z.string(),
@@ -334,7 +334,7 @@ export async function getRecordURLs(meetingRecordId: string) {
 
   const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
     meeting_record_id: meetingRecordId,
-    userid: apiEnv.TM_ADMIN_USER_IDS,
+    userid: tmUserId,
   }));
 
   if (res.total_page != 1) throw paginationNotSupported();
