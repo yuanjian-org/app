@@ -6,7 +6,6 @@ export const zMinUserProfile = z.object({
   name: z.string().nullable(),
 });
 export type MinUserProfile = z.TypeOf<typeof zMinUserProfile>;
-export const minUserProfileAttributes = ['id', 'name'];
 
 export const zUserProfile = zMinUserProfile.merge(z.object({
   roles: zRoles,

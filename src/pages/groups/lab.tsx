@@ -10,7 +10,7 @@ import GroupBar from 'components/GroupBar';
 import Loader from 'components/Loader';
 
 const Page: NextPageWithLayout = () => {
-  const { data } = trpcNext.groups.listAllCountingTranscripts.useQuery({ userIds: [] });
+  const { data } = trpcNext.groups.listCountingTranscripts.useQuery({ userIds: [] });
 
   return <>
     {!data && <Loader />}

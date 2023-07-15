@@ -1,9 +1,8 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
-import DbGroup from "../database/models/Group";
-import GroupUser from "../database/models/GroupUser";
-import { Includeable } from "sequelize";
+import db from "../database/db";
+import { Includeable, Transaction } from "sequelize";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import Transcript from "../database/models/Transcript";
@@ -15,39 +14,15 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
-import { minUserProfileAttributes, zMinUserProfile } from "../../shared/UserProfile";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
+import { Group, GroupCountingTranscripts, zGroup, zGroupCountingTranscripts, 
+  zGroupWithTranscripts } from "../../shared/Group";
+import { includeForGroup } from "../database/models/attributesAndIncludes";
 
-const zGroup = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  users: z.array(zMinUserProfile),
-});
-
-export type Group = z.TypeOf<typeof zGroup>;
-
-export const zGroupCountingTranscripts = zGroup.merge(z.object({
-  transcripts: z.array(z.object({})).optional()
-}));
-
-const zGroupWithTranscripts = zGroup.merge(z.object({
-  transcripts: z.array(z.object({
-    transcriptId: z.string(),
-    startedAt: z.date(),
-    endedAt: z.date(),
-    summaries: z.array(z.object({
-        summaryKey: z.string(),
-    }))
-  })),
-}));
-
-export type GroupWithTranscripts = z.TypeOf<typeof zGroupWithTranscripts>;
-
-async function listGroups(userIds: string[]) {
-  const includes: Includeable[] = [{
-    model: User,
-    attributes: ['id', 'name']
-  }, {
+async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
+  Promise<GroupCountingTranscripts[]> 
+{
+  const includes: Includeable[] = [...includeForGroup, {
     model: Transcript,
     // We don't need to return any attributes, but sequelize seems to require at least one attribute.
     // TODO: Any way to return transcript count?
@@ -55,9 +30,9 @@ async function listGroups(userIds: string[]) {
   }];
 
   if (userIds.length === 0) {
-    return await DbGroup.findAll({ include: includes });
+    return await db.Group.findAll({ where: additionalWhere, include: includes });
   } else {
-    return await findGroups(userIds, 'inclusive', includes);
+    return (await findGroups(userIds, 'inclusive', includes, additionalWhere)) as GroupCountingTranscripts[];
   }
 }
 
@@ -68,7 +43,7 @@ const create = procedure
   }))
   .mutation(async ({ ctx, input }) =>
 {
-  const res = await createGroup(input.userIds);
+  const res = await createGroupDeprecated(input.userIds);
   await emailNewUsersOfGroupIgnoreError(ctx, res.group.id, input.userIds);
   return res;
 });
@@ -83,8 +58,8 @@ const update = procedure
 
   const addUserIds: string[] = [];
   await sequelizeInstance.transaction(async (t) => {
-    const group = await DbGroup.findByPk(input.id, {
-      include: GroupUser
+    const group = await db.Group.findByPk(input.id, {
+      include: db.GroupUser
     });
     if (!group) throw notFoundError("分组", input.id);
 
@@ -112,7 +87,7 @@ const update = procedure
     addUserIds.push(...newUserIds.filter(uid => !oldUserIds.includes(uid)));
     const promises = addUserIds.map(async uid => {
       // upsert because the matching row may have been previously deleted.
-      await GroupUser.upsert({
+      await db.GroupUser.upsert({
         groupId: input.id,
         userId: uid,
         deletedAt: null,
@@ -130,7 +105,7 @@ const destroy = procedure
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => 
 {
-  const group = await DbGroup.findByPk(input.groupId);
+  const group = await db.Group.findByPk(input.groupId);
   if (!group) throw notFoundError("分组", input.groupId);
 
   // Need a transaction for cascading destroys
@@ -140,18 +115,22 @@ const destroy = procedure
 });
 
 /**
- * @returns All groups if `userIds` is empty, otherwise return groups that has all the given users.
+ * @param userIds Return all the groups if `userIds` is empty, otherwise groups that contains the given users.
+ * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
-const listAll = procedure
+const list = procedure
   .use(authUser(['GroupManager']))
-  .input(z.object({ userIds: z.string().array(), }))
+  .input(z.object({ 
+    userIds: z.string().array(),
+    includeOwned: z.boolean(),
+  }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds));
+  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : { partnershipId: null }));
 
 /**
  * Identical to `list`, but additionally returns empty transcripts
  */
-const listAllCountingTranscripts = procedure
+const listCountingTranscripts = procedure
   .use(authUser(['SummaryEngineer']))
   .input(z.object({ userIds: z.string().array(), }))
   .output(z.array(zGroupCountingTranscripts))
@@ -167,11 +146,8 @@ const get = procedure
   .output(zGroupWithTranscripts)
   .query(async ({ input, ctx }) => 
 {
-  const g = await DbGroup.findByPk(input.id, {
-    include: [{
-      model: User,
-      attributes: minUserProfileAttributes,
-    }, {
+  const g = await db.Group.findByPk(input.id, {
+    include: [...includeForGroup, {
       model: Transcript,
       include: [{
         model: Summary,
@@ -193,33 +169,31 @@ const groups = router({
   create,
   update,
   destroy,
-  listAll,
-  listAllCountingTranscripts,
+  list,
+  listCountingTranscripts,
   get,
 });
 export default groups;
 
 /**
  * @returns groups that contain all the given users.
- * @param mode if `exclusive`, return the singleton group that contains no more other users.
+ * @param mode if `exclusive`, return the singleton group that contains no more other users, or an empty array if no
+ * such group exists.
  * @param includes Optional `include`s in the returned group.
  */
-export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusive', includes?: Includeable[]):
-  Promise<DbGroup[]> 
+export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusive', includes?: Includeable[], 
+  additionalWhere?: { [k: string]: any }): Promise<Group[] | GroupCountingTranscripts[]> 
 {
   invariant(userIds.length > 0);
 
-  const gus = await GroupUser.findAll({
+  const gus = await db.GroupUser.findAll({
     where: {
       userId: userIds[0] as string,
     },
     include: [{
-      model: DbGroup,
-      attributes: ['id', 'name'],
-      include: [{
-        model: GroupUser,
-        attributes: ['userId'],
-      }, ...(includes || [])]
+      model: db.Group,
+      include: [db.GroupUser, ...(includes || [])],
+      where: additionalWhere,
     }]
   })
 
@@ -233,15 +207,28 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
   return res;
 }
 
-export async function createGroup(userIds: string[]) {
+export async function createGroup(userIds: string[], partnershipId: string | null, t: Transaction): Promise<Group>
+{
+  const g = await db.Group.create({ partnershipId }, { transaction: t });
+  await db.GroupUser.bulkCreate(userIds.map(userId => ({
+    userId,
+    groupId: g.id,
+  })), { transaction: t });
+  return g;
+}
+
+/**
+ * Use createGroup instead
+ */
+export async function createGroupDeprecated(userIds: string[]) {
   checkMinimalGroupSize(userIds);
   const existing = await findGroups(userIds, 'exclusive');
   if (existing.length > 0) {
     throw alreadyExistsError("分组");
   }
 
-  const group = await DbGroup.create({});
-  const groupUsers = await GroupUser.bulkCreate(userIds.map(userId => ({
+  const group = await db.Group.create({});
+  const groupUsers = await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId: userId,
     groupId: group.id,
   })));
@@ -263,7 +250,7 @@ async function emailNewUsersOfGroupIgnoreError(ctx: any, groupId: string, userId
 async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: string[]) {
   if (newUserIds.length == 0) return;
 
-  const group = await DbGroup.findByPk(groupId, {
+  const group = await db.Group.findByPk(groupId, {
     include: [{
       model: User,
       attributes: ['id', 'name', 'email'],

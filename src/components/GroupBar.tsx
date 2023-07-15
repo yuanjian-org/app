@@ -20,9 +20,13 @@ import {
   LinkBox,
   LinkOverlay,
   AvatarGroup,
-  ButtonProps
+  ButtonProps,
+  SimpleGridProps,
+  Tag,
+  HStack,
+  Tooltip
 } from '@chakra-ui/react';
-import React, { Children, useState } from 'react';
+import React, { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
@@ -32,18 +36,22 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
+import { Group, GroupCountingTranscripts } from 'shared/Group';
+import QuestionIconTooltip from './QuestionIconTooltip';
 
-// @ts-ignore TODO: fix me.
-export default function GroupBar(props: {
-  group: any,
+export default function GroupBar({
+  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
+} : {
+  group: Group | GroupCountingTranscripts,
   showSelf?: boolean,             // default: false
   showJoinButton?: boolean,       // default: false
   showTranscriptCount?: boolean,  // default: false
   showTranscriptLink?: boolean,   // Effective ony if showTranscriptCount is true
   abbreviateOnMobile?: boolean,   // default: true
-}) {
+  showGroupName?: boolean,        // default: true
+} & SimpleGridProps) {
   const [user] = useUserContext();
-  const transcriptCount = (props.group.transcripts || []).length;
+  const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
@@ -67,25 +75,35 @@ export default function GroupBar(props: {
     }
   }
 
+  if (showGroupName == undefined) showGroupName = true;
+
   return (
     <SimpleGrid 
-      columns={(props.showJoinButton ? 2 : 1)} 
-      templateColumns={(props.showJoinButton ? '6em ' : '') + '1fr'}
+      columns={(showJoinButton ? 2 : 1)} 
+      templateColumns={(showJoinButton ? '6em ' : '') + '1fr'}
       spacing={4}
+      {...rest}
     >
       {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
       {/* row 1 col 1 */}
-      {props.showJoinButton && <Box />}
+      {showGroupName && showJoinButton && <Box />}
 
       {/* row 1 col 2 */}
-      <Text color='grey' fontSize='sm'>{formatGroupName(props.group.name, props.group.users.length)}</Text>
-      
+      {showGroupName ?
+        <HStack spacing={4}>
+          {ownerTag(group)}
+          <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>
+        </HStack>
+        :
+        null
+      }
+
       {/* row 2 col 1 */}
-      {props.showJoinButton &&
+      {showJoinButton &&
         <Box>
           <JoinButton
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={async () => launchMeeting(props.group.id)}
+            onClick={async () => launchMeeting(group.id)}
           >加入</JoinButton>
         </Box>
       }
@@ -94,17 +112,17 @@ export default function GroupBar(props: {
       <LinkBox>
         <Flex>
           <UserChips 
-            currentUserId={props.showSelf ? undefined : user.id} 
-            users={props.group.users}
-            abbreviateOnMobile={props.abbreviateOnMobile}
+            currentUserId={showSelf ? undefined : user.id} 
+            users={group.users}
+            abbreviateOnMobile={abbreviateOnMobile}
           />
 
-          {props.showTranscriptCount && <>
+          {showTranscriptCount && <>
             <Spacer marginLeft={4}/>
             <Center>
               <Text color={transcriptCount ? 'default': 'gray'}>
-                {props.showTranscriptLink ?
-                  <LinkOverlay as={Link} href={`/groups/${props.group.id}`}>
+                {showTranscriptLink ?
+                  <LinkOverlay as={Link} href={`/groups/${group.id}`}>
                     详情 ({transcriptCount})
                   </LinkOverlay>
                   :
@@ -117,6 +135,10 @@ export default function GroupBar(props: {
       </LinkBox>
     </SimpleGrid>
   );
+}
+
+function ownerTag(group: Group) {
+  return group.partnershipId ? <Tag color="white" bgColor="gray">一对一导师</Tag> : null;
 }
 
 export function JoinButton(props: ButtonProps) {

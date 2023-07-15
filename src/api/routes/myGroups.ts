@@ -11,7 +11,7 @@ import invariant from "tiny-invariant";
 import { createMeeting } from "../TencentMeeting";
 import Transcript from "../database/models/Transcript";
 import moment from 'moment';
-import { zGroupCountingTranscripts } from "./groups";
+import { zGroupCountingTranscripts } from "../../shared/Group";
 import { encodeMeetingSubject } from "./meetings";
 import { formatGroupName } from "shared/strings";
 import OngoingMeetings from "api/database/models/OngoingMeetings";
@@ -84,21 +84,26 @@ const myGroups = router({
     }),
 
   /**
-   *  find and return the groups and transcripts that are related to the current user
+   * Unowned groups are the ones not assoicated with a partnership.
    */
-  list: procedure
-    .use(authUser())
-    .output(z.array(zGroupCountingTranscripts))
-    .query(async ({ ctx }) => {
-      return (await GroupUser.findAll({
-        where: { userId: ctx.user.id },
-        include: [{
-          model: Group,
-          include: [User, Transcript]
-        }]
-      }))
-        .map(groupUser => groupUser.group)
-    }),
+  listUnowned: procedure
+  .use(authUser())
+  .output(z.array(zGroupCountingTranscripts))
+  .query(async ({ ctx }) => {
+    return (await GroupUser.findAll({
+      where: { 
+        userId: ctx.user.id,
+      },
+      include: [{
+        model: Group,
+        include: [User, Transcript],
+        where: {
+          partnershipId: null,
+        }
+      }]
+    }))
+      .map(groupUser => groupUser.group)
+  }),
 });
 
 export default myGroups;
