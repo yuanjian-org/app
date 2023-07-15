@@ -15,7 +15,7 @@ export function formatUserName(name: string | null, mood: 'friendly' | 'formal')
 }
 
 export function formatGroupName(name: string | null, userCount: number): string {
-  return name ?? (userCount <= 2 ? '一对一通话' : `${nzh.cn.encodeS(userCount)}人通话`);
+  return name ?? `${nzh.cn.encodeS(userCount)}人通话`;
 }
 
 export function prettifyDuration(from: Date, to: Date) {

@@ -17,6 +17,7 @@ import {
   FormErrorMessage,
   Flex,
   Spacer,
+  Checkbox
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -32,13 +33,14 @@ import { formatGroupName } from 'shared/strings';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
+import QuestionIconTooltip from "../components/QuestionIconTooltip"
 
 const Page: NextPageWithLayout = () => {
   const [userIds, setUserIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
-
-  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds });
+  const [includeOwned, setIncludOwned] = useState(false);
+  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds, includeOwned });
 
   const createGroup = async () => {
     setCreating(true);
@@ -58,10 +60,10 @@ const Page: NextPageWithLayout = () => {
   return <>
     {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
     <Wrap spacing={6}>
-      <WrapItem minWidth={100}>
+      <WrapItem minWidth={100} alignItems="center">
         <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入两名或以上用户" onSelect={setUserIds} />
       </WrapItem>
-      <WrapItem>
+      <WrapItem alignItems="center">
         <Button
           isLoading={creating}
           isDisabled={userIds.length < 2}
@@ -69,6 +71,10 @@ const Page: NextPageWithLayout = () => {
           variant='brand' onClick={createGroup}>
           创建分组
         </Button>
+      </WrapItem>
+      <WrapItem alignItems="center">
+        <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示自动分组</Checkbox>
+        <QuestionIconTooltip label="”自动分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”手动分组“。" />
       </WrapItem>
     </Wrap>
     <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
