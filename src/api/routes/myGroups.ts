@@ -36,7 +36,7 @@ const myGroups = router({
   * If this meeting is presented in OngoingMeetings model, return and join
   * If not presented, it will create a new meeting with available TM user Ids
   * then insert it in OngoingMeetings
-  * @returns returns a valid tencent meeting link
+  * @returns a valid tencent meeting link
   * Otherwise, return null which will trigger a conccurent meeting warning
   */
   joinMeeting: procedure
@@ -67,9 +67,9 @@ const myGroups = router({
       // if not shown in OngoingMeetings, check if there are empty slots to join
       // find TM user ids that are not in use and generate a meeting link using an available id
       const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
-      if (meetings.length >= apiEnv.TM_ADMIN_USER_IDS.length) { return null; };
+      if (meetings.length >= apiEnv.TM_USER_IDS.length) { return null; };
       // find and filter vacant ids
-      const availableTmUserIds = apiEnv.TM_ADMIN_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
+      const availableTmUserIds = apiEnv.TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
       invariant(availableTmUserIds.length > 0);
       const { meetingId, meetingLink } = await generateMeeting(group, availableTmUserIds[0]);
 

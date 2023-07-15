@@ -19,21 +19,23 @@ import { STRING } from "sequelize";
 })
 class OngoingMeetings extends Model {
   @PrimaryKey
+  @AllowNull(false)
+  @Unique
   @Column(STRING)
   tmUserId: string;
 
   @AllowNull(false)
-  @Unique(true)
+  @Unique
   @Column(STRING)
   groupId: string;
 
   @AllowNull(false)
-  @Unique(true)
+  @Unique
   @Column(STRING)
   meetingId: string;
 
   @AllowNull(false)
-  @Unique(true)
+  @Unique
   @Column(STRING)
   meetingLink: string;
 }

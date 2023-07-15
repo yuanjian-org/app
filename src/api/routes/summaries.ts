@@ -137,9 +137,8 @@ export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: st
  */
 export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescriptor[]> {
   const ret: CrudeSummaryDescriptor[] = [];
-  const promises = [];
-  for (const tmUserId of apiEnv.TM_ADMIN_USER_IDS) {
-    const promise = (await listRecords(tmUserId))
+  for (const tmUserId of apiEnv.TM_USER_IDS) {
+    const promises = (await listRecords(tmUserId))
       // Only interested in meetings that are ready to download.
       .filter(meeting => meeting.state === 3)
       .map(async meeting => {
@@ -156,7 +155,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         const endTime = meeting.record_files[0].record_end_time;
 
         const record = await getRecordURLs(meeting.meeting_record_id, tmUserId);
-        const p = record.record_files.map(async file => {
+        const promises = record.record_files.map(async file => {
           // Only interested in records that we don't already have.
           const transcriptId = file.record_file_id;
           if (await Summary.count({
@@ -180,10 +179,9 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
               });
             })
         });
-        await Promise.all(p);
+        await Promise.all(promises);
       })
-    promises.push(promise);
+      await Promise.all(promises);
   }
-  await Promise.all(promises);
   return ret;
 }

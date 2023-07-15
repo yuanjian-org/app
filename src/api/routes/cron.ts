@@ -44,7 +44,7 @@ const cron = router({
     const ongoingMeetings = await OngoingMeetings.findAll({ attributes: ["tmUserId", "meetingId"] });
     for (const meeting of ongoingMeetings) {
       if ((await getMeeting(meeting.meetingId, meeting.tmUserId)).status !== 'MEETING_STATE_STARTED') {
-        OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId } });
+        await OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId } });
       }
     }
   })
