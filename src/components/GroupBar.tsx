@@ -56,7 +56,7 @@ export default function GroupBar({
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.myGroups.joinMeeting.mutate({ groupId: groupId });
+      const link = await trpc.meetings.join.mutate({ groupId: groupId });
       if (!link) {
         setShowMeetingQuotaWarning(true);
         setJoining(false);

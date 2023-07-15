@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import axios from "axios";
 import z from "zod";
 import { findMissingCrudeSummaries, saveCrudeSummary } from "./summaries";
-import { updateOngoingMeetings } from "./myGroups";
+import { updateOngoingMeetings } from "./meetings";
 
 /**
  * These API are to be periodically triggered for background operations and housekeeping.

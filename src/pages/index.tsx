@@ -82,7 +82,7 @@ function SetNameModal() {
 }
 
 function Meetings() {
-  const { data: groups, isLoading } = trpcNext.myGroups.listUnowned.useQuery();
+  const { data: groups, isLoading } = trpcNext.groups.listMyUnowned.useQuery();
 
   return (<>
     <PageBreadcrumb current='我的会议' parents={[]} />
