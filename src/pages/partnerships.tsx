@@ -60,7 +60,7 @@ const Page: NextPageWithLayout = () => {
       <Thead>
         <Tr>
           <Th>学生</Th><Th>学生拼音</Th><Th>导师</Th><Th>导师拼音</Th>
-          {showAssessment && <Th>跟踪评估</Th>}
+          {showAssessment && <Th>跟踪评估</Th>} <Th>ID（仅调试用）</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -75,6 +75,7 @@ const Page: NextPageWithLayout = () => {
               查看（{p.assessments.length}）
             </Link>
           </Td>}
+          <Td>{p.id}</Td>
         </Tr>
       ))}
       </Tbody>
