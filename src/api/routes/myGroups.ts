@@ -67,15 +67,23 @@ const myGroups = router({
     return meetingLink;
   }),
 
-  list: procedure
+  /**
+   * Unowned groups are the ones not assoicated with a partnership.
+   */
+  listUnowned: procedure
   .use(authUser())
   .output(z.array(zGroupCountingTranscripts))
   .query(async ({ ctx }) => {
     return (await GroupUser.findAll({
-      where: { userId: ctx.user.id },
+      where: { 
+        userId: ctx.user.id,
+      },
       include: [{
         model: Group,
-        include: [User, Transcript]
+        include: [User, Transcript],
+        where: {
+          partnershipId: null,
+        }
       }]
     }))
       .map(groupUser => groupUser.group)

@@ -15,7 +15,7 @@ import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { GroupWithTranscripts } from 'api/routes/groups';
+import { GroupWithTranscripts } from '../../shared/Group';
 import GroupBar from 'components/GroupBar';
 import { trpcNext } from "../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';

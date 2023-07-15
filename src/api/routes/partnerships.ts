@@ -3,18 +3,23 @@ import { authUser } from "../auth";
 import _ from "lodash";
 import db from "../database/db";
 import { 
-  includePartnershipUsers,
-  minAttributes,
   zPartnership,
   zPartnershipCountingAssessments, 
   zPartnershipWithAssessments, 
-  zPartnershipWithPrivateMentorNotes, 
+  zPartnershipWithGroupAndNotes, 
   zPrivateMentorNotes } from "../../shared/Partnership";
 import { z } from "zod";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { isPermitted } from "../../shared/Role";
+import Group from "api/database/models/Group";
+import { 
+  defaultAttributesForPartnership,
+  includeForGroup,
+  includeForPartnership } from "api/database/models/attributesAndIncludes";
+import { createGroup } from "./groups";
+import invariant from "tiny-invariant";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -25,8 +30,8 @@ const create = procedure
   .mutation(async ({ input }) => 
 {
   await sequelizeInstance.transaction(async (t) => {
-    const mentor = await db.User.findByPk(input.mentorId);
-    const mentee = await db.User.findByPk(input.menteeId);
+    const mentor = await db.User.findByPk(input.mentorId, { lock: true, transaction: t });
+    const mentee = await db.User.findByPk(input.menteeId, { lock: true, transaction: t });
     if (mentor == null || mentee == null || mentor.id === mentee.id) {
       throw generalBadRequestError('无效用户ID');
     }
@@ -37,8 +42,9 @@ const create = procedure
     mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
     mentee.save({ transaction: t });
 
+    let partnership;
     try {
-      await db.Partnership.create({
+      partnership = await db.Partnership.create({
         mentorId: mentor.id,
         menteeId: mentee.id,
       }, { transaction: t });
@@ -47,6 +53,10 @@ const create = procedure
         throw alreadyExistsError("一对一匹配");
       }
     }
+
+    // Create the group
+    invariant(partnership);
+    await createGroup([input.mentorId, input.menteeId], partnership.id, t);
   });
 });
 
@@ -56,9 +66,9 @@ const list = procedure
   .query(async () => 
 {
   const res = await db.Partnership.findAll({
-    attributes: minAttributes,
+    attributes: defaultAttributesForPartnership,
     include: [
-      ...includePartnershipUsers,
+      ...includeForPartnership,
       {
         model: Assessment,
         attributes: ['id'],
@@ -75,24 +85,26 @@ const listMineAsMentor = procedure
 {
   return await db.Partnership.findAll({
     where: { mentorId: ctx.user.id },
-    attributes: minAttributes,
-    include: includePartnershipUsers,
+    attributes: defaultAttributesForPartnership,
+    include: includeForPartnership,
   });
 });
 
 /**
- * Get all information of a partnership including notes.
+ * Get all information of a partnership including private notes.
  * Only accessible by the mentor
  */
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zPartnershipWithPrivateMentorNotes)
+  .output(zPartnershipWithGroupAndNotes)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
-    attributes: [...minAttributes, 'privateMentorNotes'],
-    include: includePartnershipUsers,
+    include: [...includeForPartnership, {
+      model: Group,
+      include: includeForGroup,
+    }],
   });
   if (!res || res.mentorId !== ctx.user.id) {
     throw noPermissionError("一对一匹配", id);
@@ -108,9 +120,9 @@ const getWithAssessmentsDeprecated = procedure
   .query(async ({ ctx, input: id }) =>
 {
   const res = await db.Partnership.findByPk(id, {
-    attributes: minAttributes,
+    attributes: defaultAttributesForPartnership,
     include: [
-      ...includePartnershipUsers,
+      ...includeForPartnership,
       Assessment,
     ]
   });

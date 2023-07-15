@@ -18,6 +18,10 @@ import User from "./User";
 import Transcript from "./Transcript";
 import Partnership from "./Partnership";
 
+/**
+ * A group is said to be "owned" by a partnership if the partnership field is non-null. Otherwise the group is said to
+ * be "unowned".
+ */
 @Table({ tableName: "groups", modelName: "group" })
 @Fix
 class Group extends ParanoidModel<
@@ -42,6 +46,7 @@ class Group extends ParanoidModel<
   @HasMany(() => Transcript)
   transcripts: NonAttribute<Transcript[]>;
 
+  // A group is said to be "owned" by a partnership if this field is non-null.
   @ForeignKey(() => Partnership)
   @Column(UUID)
   partnershipId: string | null;
