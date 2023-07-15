@@ -23,7 +23,7 @@ export default function Autosaver({ data, onSave }: {
   const debouncedSave = useCallback(debounce(async () => {
     memo.saving = true;
     try {
-      while (memo.data) {
+      while (memo.data !== null) {
         const data = memo.data;
         memo.data = null;
         console.debug(`Autosaver ${memo.id}: Savinging data.`);

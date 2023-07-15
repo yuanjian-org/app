@@ -49,7 +49,7 @@ export function AutosavingMarkdownEditor({ initialValue, onSave }: {
 
   // Receating the editor on each change on `edited` will reset its focus (and possibly other states). So don't do it.
   const editor = useMemo(() => <>
-    <MarkdownEditor initialValue={initialValue || ''} onChange={v => setEdited(v)} />
+    <MarkdownEditor initialValue={initialValue || ''} onChange={v => setEdited(v)} placeholder="内容自动保存" />
   </>, [initialValue, setEdited]);
   return <>
     {editor}
