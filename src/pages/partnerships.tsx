@@ -35,6 +35,7 @@ import { sidebarBreakpoint } from 'components/Navbars';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
+import { formatUserName, toPinyin } from 'shared/strings';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -58,15 +59,17 @@ const Page: NextPageWithLayout = () => {
     {!partnerships ? <Loader /> : <Table>
       <Thead>
         <Tr>
-          <Th>学生</Th><Th>导师</Th>
+          <Th>学生</Th><Th>学生拼音</Th><Th>导师</Th><Th>导师拼音</Th>
           {showAssessment && <Th>跟踪评估</Th>}
         </Tr>
       </Thead>
       <Tbody>
       {partnerships.map(p => (
         <Tr key={p.id}>
-          <Td width={{ [sidebarBreakpoint]: '12em' }}><UserChip user={p.mentee} /></Td>
-          <Td><UserChip user={p.mentor} /></Td>
+          <Td>{formatUserName(p.mentee.name, "formal")}</Td>
+          <Td>{toPinyin(p.mentee.name ?? "")}</Td>
+          <Td>{formatUserName(p.mentor.name, "formal")}</Td>
+          <Td>{toPinyin(p.mentor.name ?? "")}</Td>
           {showAssessment && <Td>
             <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
               查看（{p.assessments.length}）
