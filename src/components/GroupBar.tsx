@@ -23,7 +23,6 @@ import {
   ButtonProps,
   SimpleGridProps,
   Tag,
-  HStack,
   Tooltip
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
