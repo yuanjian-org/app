@@ -47,13 +47,10 @@ const UserProfile: NextPageWithLayout = () => {
       const updatedUser = structuredClone(user);
       updatedUser.name = newName;
 
-      // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
         toast.success("个人信息已保存")
         setUser(updatedUser);
-      } catch(e) {
-        toast.error((e as Error).message);
       } finally {
         setNotLoaded(false);
       }
