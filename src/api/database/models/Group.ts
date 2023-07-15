@@ -33,10 +33,6 @@ class Group extends ParanoidModel<
   @Column(STRING)
   name: string | null;
 
-  @AllowNull(true)
-  @Column(STRING)
-  meetingLink: string | null;
-
   @BelongsToMany(() => User, { through: () => GroupUser })
   users: NonAttribute<User[]>;
 

@@ -8,6 +8,7 @@ import invariant from "tiny-invariant";
 import Group from "../database/models/Group";
 import { TRPCError } from "@trpc/server";
 import { safeDecodeMeetingSubject } from "./meetings";
+import apiEnv from "api/apiEnv";
 
 const crudeSummaryKey = "原始文字";
 
@@ -19,7 +20,7 @@ export interface CrudeSummaryDescriptor {
   url: string,
 };
 
-const zSummariesListInput = z.object({ 
+const zSummariesListInput = z.object({
   key: z.string(),
   excludeTranscriptsWithKey: z.string().optional(),
 });
@@ -136,49 +137,51 @@ export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: st
  */
 export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescriptor[]> {
   const ret: CrudeSummaryDescriptor[] = [];
+  for (const tmUserId of apiEnv.TM_USER_IDS) {
+    const promises = (await listRecords(tmUserId))
+      // Only interested in meetings that are ready to download.
+      .filter(meeting => meeting.state === 3)
+      .map(async meeting => {
+        // Only interested in meetings that refers to valid groups.
+        const groupId = safeDecodeMeetingSubject(meeting.subject);
+        if (!groupId || !(await Group.count({ where: { id: groupId } }))) {
+          console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`)
+          return;
+        }
 
-  const promises = (await listRecords())
-  // Only interested in meetings that are ready to download.
-  .filter(meeting => meeting.state === 3)
-  .map(async meeting => {
-    // Only interested in meetings that refers to valid groups.
-    const groupId = safeDecodeMeetingSubject(meeting.subject);
-    if (!groupId || !(await Group.count({ where: { id: groupId } }))) {
-      console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`)
-      return;
-    }
+        if (!meeting.record_files) return;
+        invariant(meeting.record_files.length == 1);
+        const startTime = meeting.record_files[0].record_start_time;
+        const endTime = meeting.record_files[0].record_end_time;
 
-    if (!meeting.record_files) return;
-    invariant(meeting.record_files.length == 1);
-    const startTime = meeting.record_files[0].record_start_time;
-    const endTime = meeting.record_files[0].record_end_time;
+        const record = await getRecordURLs(meeting.meeting_record_id, tmUserId);
+        const promises = record.record_files.map(async file => {
+          // Only interested in records that we don't already have.
+          const transcriptId = file.record_file_id;
+          if (await Summary.count({
+            where: {
+              transcriptId,
+              summaryKey: crudeSummaryKey,
+            }
+          }) > 0) {
+            console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`)
+            return;
+          }
 
-    const record = await getRecordURLs(meeting.meeting_record_id);
-    const promises = record.record_files.map(async file => {
-      // Only interested in records that we don't already have.
-      const transcriptId = file.record_file_id;
-      if (await Summary.count({ where: {
-        transcriptId,
-        summaryKey: crudeSummaryKey,
-      } }) > 0) {
-        console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`)
-        return;
-      }
-
-      file.meeting_summary?.filter(summary => summary.file_type === 'txt')
-      .map(summary => {
-        ret.push({
-          groupId,
-          startedAt: startTime,
-          endedAt: endTime,
-          transcriptId,
-          url: summary.download_address,
+          file.meeting_summary?.filter(summary => summary.file_type === 'txt')
+            .map(summary => {
+              ret.push({
+                groupId,
+                startedAt: startTime,
+                endedAt: endTime,
+                transcriptId,
+                url: summary.download_address,
+              });
+            })
         });
+        await Promise.all(promises);
       })
-    });
-    await Promise.all(promises);    
-  })
-
-  await Promise.all(promises);
+    await Promise.all(promises);
+  }
   return ret;
 }

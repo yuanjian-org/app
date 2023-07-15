@@ -4,6 +4,14 @@ import {
   Button,
   Center,
   Flex,
+  HStack,
+  Modal,
+  ModalHeader,
+  ModalContent,
+  ModalCloseButton,
+  ModalOverlay,
+  ModalBody,
+  ModalFooter,
   SimpleGrid,
   Spacer,
   Text,
@@ -15,7 +23,6 @@ import {
   ButtonProps,
   SimpleGridProps,
   Tag,
-  HStack,
   Tooltip
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
@@ -24,6 +31,7 @@ import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
+import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUserProfile } from 'shared/UserProfile';
@@ -44,11 +52,17 @@ export default function GroupBar({
   const [user] = useUserContext();
   const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
+  const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.myGroups.generateMeetingLink.mutate({ groupId: groupId });
-      window.location.href = link;
+      const link = await trpc.myGroups.joinMeeting.mutate({ groupId: groupId });
+      if (!link) {
+        setShowMeetingQuotaWarning(true);
+        setJoining(false);
+      } else {
+        window.location.href = link;
+      }
     } catch (e) {
       // See comments in the `finally` block below.
       setJoining(false);
@@ -69,6 +83,7 @@ export default function GroupBar({
       spacing={4}
       {...rest}
     >
+      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
       {/* row 1 col 1 */}
       {showGroupName && showJoinButton && <Box />}
 
@@ -133,6 +148,27 @@ export function JoinButton(props: ButtonProps) {
     leftIcon={<MdVideocam />}
     {...props}
   >{props.children ? props.children : "加入"}</Button>;
+}
+
+export function OngoingMeetingWarning(props: {
+  onClose: () => void,
+}) {
+  return (<ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalOverlay />
+    <ModalContent>
+      <ModalHeader>无法加入会议</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <p>同时进行的会议数量已超过上线，请稍后再试。</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={props.onClose}>
+          确认
+        </Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>
+  );
 }
 
 export function UserChips(props: { 
