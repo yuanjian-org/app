@@ -39,7 +39,6 @@ class User extends ParanoidModel<
   clientId: string;
 
   @Index({
-    name: 'user-roles-index',
     using: 'gin'
   })
   @ZodColumn(JSONB, zRoles)
