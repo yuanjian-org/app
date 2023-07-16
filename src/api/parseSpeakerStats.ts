@@ -3,6 +3,9 @@ export interface SpeakerStats {
   totalSpeakingSeconds: number;
 }
 
+/**
+ * Given a transcript downloaded from Tencent Meeting, return speaker statistics.
+ */
 export function parseSpeakerStats(data: string): SpeakerStats[] {
   const speakerTimes: Map<string, number> = new Map();
   const lines = data.split('\n');
