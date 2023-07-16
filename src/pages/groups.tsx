@@ -69,12 +69,12 @@ const Page: NextPageWithLayout = () => {
           isDisabled={userIds.length < 2}
           loadingText='创建分组中...'
           variant='brand' onClick={createGroup}>
-          创建分组
+          创建自由分组
         </Button>
       </WrapItem>
       <WrapItem alignItems="center">
         <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示自动分组</Checkbox>
-        <QuestionIconTooltip label="”自动分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”手动分组“。" />
+        <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
       </WrapItem>
     </Wrap>
     <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
