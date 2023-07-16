@@ -73,7 +73,7 @@ const Page: NextPageWithLayout = () => {
         </Button>
       </WrapItem>
       <WrapItem alignItems="center">
-        <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示自动分组</Checkbox>
+        <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示托管分组</Checkbox>
         <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
       </WrapItem>
     </Wrap>
