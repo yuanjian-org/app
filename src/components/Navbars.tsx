@@ -150,7 +150,9 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
       </HStack>
 
       <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
-        <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />
+        <NextLink href="http://yuanjian.org" target="_blank">
+          <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />
+        </NextLink>
       </Box>
 
       <HStack spacing={{ base: '0', [sidebarBreakpoint]: '6' }}>

@@ -18,6 +18,7 @@ import {
   Flex,
   Box,
   Link,
+  TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -56,7 +57,7 @@ const Page: NextPageWithLayout = () => {
       refetch();
     }} />}
 
-    {!partnerships ? <Loader /> : <Table>
+    {!partnerships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
           <Th>学生</Th><Th>学生拼音</Th><Th>导师</Th><Th>导师拼音</Th>
@@ -79,7 +80,7 @@ const Page: NextPageWithLayout = () => {
         </Tr>
       ))}
       </Tbody>
-    </Table>}
+    </Table></TableContainer>}
 
   </Flex>
 }

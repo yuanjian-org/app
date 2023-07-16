@@ -119,15 +119,17 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
         justifyContent="space-between"
       >
         <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-          <Image
-            src={yuanjianLogo224x97} 
-            alt="远见教育基金会" 
-            width={112}
-            // Without `priority` we would get a warning from Chrome that this image "was detected as the Largest 
-            // Contentful Paint (LCP). Please add the "priority" property if this image is above the fold. Read more: 
-            // https://nextjs.org/docs/api-reference/next/image#priority"
-            priority
-            />
+          <NextLink href="http://yuanjian.org" target="_blank">
+            <Image
+              src={yuanjianLogo224x97} 
+              alt="远见教育基金会" 
+              width={112}
+              // Without `priority` we would get a warning from Chrome that this image "was detected as the Largest 
+              // Contentful Paint (LCP). Please add the "priority" property if this image is above the fold. Read more: 
+              // https://nextjs.org/docs/api-reference/next/image#priority"
+              priority
+              />
+            </NextLink>
         </Box>
         <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} onClick={onClose} />
       </Flex>

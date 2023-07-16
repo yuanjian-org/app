@@ -23,6 +23,7 @@ import {
   Wrap,
   WrapItem,
   Flex,
+  TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -59,40 +60,42 @@ const Page: NextPageWithLayout = () => {
         <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
       </Box>
       {!data ? <Loader /> :
-        <Table minWidth={200}>
-          <Thead>
-            <Tr>
-              <Th>电子邮箱</Th>
-              <Th>姓名</Th>
-              <Th>拼音</Th>
-              <Th>角色</Th>
-              <Th />
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data.map((u: any) => (
-              <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
-                <Td>{u.email}</Td>
-                <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
-                <Td>{toPinyin(u.name ?? '')}</Td>
-                <Td>
-                  <Wrap>
-                  {u.roles.map((r: Role) => {
-                    const rp = RoleProfiles[r];
-                    return <WrapItem key={r}>
-                      <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
-                        {rp.displayName}
-                      </Tag>
-                    </WrapItem>;
-                  })}
-                  </Wrap>
-                </Td>
-                <Td><EditIcon /></Td>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>电子邮箱</Th>
+                <Th>姓名</Th>
+                <Th>拼音</Th>
+                <Th>角色</Th>
+                <Th />
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-    }
+            </Thead>
+            <Tbody>
+              {data.map((u: any) => (
+                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
+                  <Td>{u.email}</Td>
+                  <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
+                  <Td>{toPinyin(u.name ?? '')}</Td>
+                  <Td>
+                    <Wrap>
+                    {u.roles.map((r: Role) => {
+                      const rp = RoleProfiles[r];
+                      return <WrapItem key={r}>
+                        <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
+                          {rp.displayName}
+                        </Tag>
+                      </WrapItem>;
+                    })}
+                    </Wrap>
+                  </Td>
+                  <Td><EditIcon /></Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      }
     </Flex>
   </>
 }
