@@ -3,12 +3,11 @@ import { AppProps } from 'next/app'
 import React from 'react'
 import theme from '../theme'
 import Head from 'next/head'
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
 
 import '../app.css'
-import 'horizon-ui/styles/Fonts.css'
 import 'react-toastify/dist/ReactToastify.min.css';
 
 type AppPropsWithLayout = AppProps & {

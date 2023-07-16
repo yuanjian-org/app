@@ -1,14 +1,16 @@
 import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
-import { GROUP_ALREADY_EXISTS_ERROR_MESSAGE, createGroup, findGroups } from "../src/api/routes/groups";
+import { createGroupDeprecated, findGroups } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import { upsertSummary } from "../src/api/routes/summaries";
 import moment from "moment";
 import Role, { AllRoles } from "../src/shared/Role";
-import { toPinyin } from "../src/shared/string";
+import { toPinyin } from "../src/shared/strings";
+import Transcript from "../src/api/database/models/Transcript";
+import Summary from "../src/api/database/models/Summary";
+import { alreadyExistsErrorMessage } from "../src/api/errors";
 
 type TestUser = {
   name: string,
@@ -40,7 +42,6 @@ async function main() {
   // Force sequelize initialization
   const _ = sequelizeInstance;
   
-  await migrateRoles();
   const mgrs = await getUserManagers();
   if (mgrs.length == 0) {
     console.error('ERROR: No uesr is found. Please follow README.md and log into your local server first.');
@@ -49,14 +50,6 @@ async function main() {
   await upgradeUsers(mgrs);
   await generateUsers();
   await generateGroupsAndSummaries(mgrs);
-}
-
-async function migrateRoles()
-{
-  console.log('Migrating roles column');
-  await sequelizeInstance.query(`update users set roles = '[]' where roles = '["VISITOR"]'`);
-  await sequelizeInstance.query(`update users set roles = '["UserManager"]' where roles = '["ADMIN"]'`);
-  await sequelizeInstance.query(`update users set roles = '["SummaryEngineer"]' where roles = '["AIResearcher"]'`);
 }
 
 async function upgradeUsers(users: User[]) {
@@ -75,7 +68,6 @@ async function generateUsers() {
       name: u.name,
       pinyin: toPinyin(u.name),
       email: u.email,
-      clientId: u.email,
       roles: [],
     }))[0].id;
   }
@@ -103,9 +95,9 @@ async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
   try {
-    await createGroup(users.map(u => u.id as string));
+    await createGroupDeprecated(users.map(u => u.id as string));
   } catch (e) {
-    if (!(e instanceof TRPCError && e.message === GROUP_ALREADY_EXISTS_ERROR_MESSAGE)) throw e;
+    if (!(e instanceof TRPCError && e.message === alreadyExistsErrorMessage("分组"))) throw e;
   }
 }
 
@@ -130,4 +122,19 @@ async function generateSummaries(users: TestUser[]) {
   const anotherEnd = anotherStart.clone().add(1, 'hour');
   await upsertSummary(gid, `transcript-2-${gid}`, anotherStart.valueOf(), anotherEnd.valueOf(), 'summary-A',
     '> transcript-2, summary-A' + md);
+}
+
+async function upsertSummary(groupId: string, transcriptId: string, startedAt: number, endedAt: number,
+  summaryKey: string, summary: string) {
+  await Transcript.upsert({
+    transcriptId,
+    groupId,
+    startedAt,
+    endedAt
+  });
+  await Summary.upsert({
+    transcriptId,
+    summaryKey,
+    summary
+  });
 }

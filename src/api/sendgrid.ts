@@ -6,7 +6,7 @@ import { Op } from 'sequelize';
 import Role, { RoleProfiles } from '../shared/Role';
 import z from 'zod';
 
-mail.setApiKey(apiEnv.SENDGRID_API_KEY);
+if (apiEnv.hasSendGrid()) mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
 /**
  * Send email using SendGrid API. See https://docs.sendgrid.com/api-reference/mail-send/mail-send for parameter details.
@@ -41,6 +41,11 @@ export async function email(templateId: string, personalization: Personalization
   }
 
   console.log(`Sending mail via SendGrid, template id: ${templateId}, personalizations: ${JSON.stringify(ps, null, 2)}`);
+  if (!apiEnv.hasSendGrid()) {
+    console.log('SendGrid not configured. Skip calling actual API.');
+    return;
+  }
+
   await mail.send({
     personalizations: ps,
     templateId,
@@ -68,10 +73,7 @@ export async function emailIgnoreError(templateId: string, personalization: Pers
   }
 }
 
-export async function emailUserManagersIgnoreError(subject: string, content: string, baseUrl: string) {
-  // Use type system to capture typos.
-  const role : Role = "UserManager";
-
+export async function emailRoleIgnoreError(role: Role, subject: string, content: string, baseUrl: string) {
   const zTo = z.array(z.object({
     name: z.string(),
     email: z.string(),

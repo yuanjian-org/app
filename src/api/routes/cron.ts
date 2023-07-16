@@ -1,9 +1,8 @@
 import { procedure, router } from "../trpc";
 import axios from "axios";
-import apiEnv from "api/apiEnv";
-import { listMeetings } from "api/TencentMeeting";
-import OngoingMeetingCount from "api/database/models/OngoingMeetingCount";
 import z from "zod";
+import { findMissingCrudeSummaries, saveCrudeSummary } from "./summaries";
+import { updateOngoingMeetings } from "./meetings";
 
 /**
  * These API are to be periodically triggered for background operations and housekeeping.
@@ -11,50 +10,31 @@ import z from "zod";
 const cron = router({
 
   /**
-   * Download transcripts and then upload them as summaries as is.
+   * Download crude summaries from Tencent Meeting and save them locally.
    * 
-   * @returns An Id array of uploaded transcripts.
+   * @returns the transcriptIds of synced transcripts.
    */
-  uploadRawTranscripts: procedure
+  syncCrudeSummaries: procedure
   .output(z.object({
-    uploadedTranscripts: z.array(z.string()),
+    syncedCrudeSummaries: z.array(z.string()),
   }))
-  .query(async ({ ctx }) => {
-    console.log('Retriving transcript URLs...');
-    const headers = { 'Authorization': `Bearer ${apiEnv.INTEGRATION_AUTH_TOKEN}` };
-    const baseUrl = `${ctx.baseUrl}/api/v1`;
-    const res = await axios.get(`${baseUrl}/transcripts.list`, { headers });
+  .mutation(async () => {
+    console.log('Looking for missing crude summaries...');
+    const summaries = await findMissingCrudeSummaries();
 
-    const promises = res.data.result.data.map(async (transcript: any) => {
-      const id = transcript.transcriptId;
-      console.log(`Downloading ${id}...`);
-      const res = await axios.get(transcript.url);
-      console.log(`Uploading ${id}...`);
-      await axios.post(`${baseUrl}/summaries.write`, {
-        transcriptId: id,
-        summaryKey: '原始文字（仅试验期用）',
-        summary: res.data,
-      }, { headers });
+    const promises = summaries.map(async summary => {
+      console.log(`Downloading ${summary.transcriptId}...`);
+      const res = await axios.get(summary.url);
+      await saveCrudeSummary(summary, res.data);
     });
     await Promise.all(promises);
 
     return {
-      uploadedTranscripts: res.data.result.data.map((t: any) => t.transcriptId),
+      syncedCrudeSummaries: summaries.map((t: any) => t.transcriptId),
     }
   }),
 
-  /**
-   * Check the ongoing meetings and update the OngoingMeetingCount table
-   */
-  updateOngoingMeetingCounts: procedure.mutation(async () => {
-    const count = (await listMeetings()).meeting_info_list.filter(obj => obj.status === 'MEETING_STATE_STARTED').length;
-
-    OngoingMeetingCount.upsert({
-      TMAdminUserId: apiEnv.TM_ADMIN_USER_ID,
-      count,
-    })
-  })
-
+  updateOngoingMeetings: procedure.mutation(updateOngoingMeetings)
 });
 
 export default cron;

@@ -1,7 +1,5 @@
 import {
-  Box,
   Button,
-  SimpleGrid,
   Table,
   Thead,
   Tbody,
@@ -16,47 +14,54 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Text,
   VStack,
   FormErrorMessage,
   Stack,
   Checkbox,
-  Badge,
+  Box,
+  Tag,
+  Wrap,
+  WrapItem,
+  Flex,
+  TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
-import trpcNext from "../trpcNext";
+import { trpcNext } from "../trpc";
 import UserProfile from 'shared/UserProfile';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName, toPinyin } from 'shared/string';
+import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
-import useUserContext from 'useUserContext';
-import { EditIcon } from '@chakra-ui/icons';
+import { useUserContext } from 'UserContext';
+import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
+import z from "zod";
 
 const Page: NextPageWithLayout = () => {
   const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
   const [userBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
-  const [user] = useUserContext();
+  const [creatingNewUser, setCreatingNewUser] = useState(false);
+  const [me] = useUserContext();
   
   const closeUserEditor = () => {
     setUserBeingEdited(null);
+    setCreatingNewUser(false);
     refetch();
   };
 
-  return (
-    <Box paddingTop={'80px'}>
-      {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
-      {!data && <Loader />}
-      <SimpleGrid
-        mb='20px'
-        columns={1}
-        spacing={{ base: '20px', xl: '20px' }}
-      >
-        {data &&
-          <Table variant='striped'>
+  return <>
+    {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
+    {creatingNewUser && <UserEditor onClose={closeUserEditor}/>}
+
+    <Flex direction='column' gap={6}>
+      <Box>
+        <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
+      </Box>
+      {!data ? <Loader /> :
+        <TableContainer>
+          <Table>
             <Thead>
               <Tr>
                 <Th>电子邮箱</Th>
@@ -70,18 +75,29 @@ const Page: NextPageWithLayout = () => {
               {data.map((u: any) => (
                 <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
                   <Td>{u.email}</Td>
-                  <Td>{u.name} {user.id === u.id ? <Badge variant='brand' marginLeft={2}>本人</Badge> : <></>}</Td>
+                  <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
                   <Td>{toPinyin(u.name ?? '')}</Td>
-                  <Td>{u.roles.map((r: Role) => RoleProfiles[r].displayName).join('、')}</Td>
+                  <Td>
+                    <Wrap>
+                    {u.roles.map((r: Role) => {
+                      const rp = RoleProfiles[r];
+                      return <WrapItem key={r}>
+                        <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
+                          {rp.displayName}
+                        </Tag>
+                      </WrapItem>;
+                    })}
+                    </Wrap>
+                  </Td>
                   <Td><EditIcon /></Td>
                 </Tr>
               ))}
             </Tbody>
           </Table>
-        }
-      </SimpleGrid>
-    </Box>
-  )
+        </TableContainer>
+      }
+    </Flex>
+  </>
 }
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
@@ -89,15 +105,22 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default Page;
 
 function UserEditor(props: { 
-  user: UserProfile,
+  user?: UserProfile, // When absent, create a new user.
   onClose: () => void,
 }) {
-  const u = props.user;
+  const u = props.user ?? {
+    email: '',
+    name: '',
+    roles: [],
+  };
+
+  const [me] = useUserContext();
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
   const [roles, setRoles] = useState(u.roles);
   const [saving, setSaving] = useState(false);
   const validName = isValidChineseName(name);
+  const validEmail = z.string().email().safeParse(email).success;
 
   const setRole = (e: any) => {
     if (e.target.checked) setRoles([...roles, e.target.value]);
@@ -107,11 +130,15 @@ function UserEditor(props: {
   const save = async () => {
     setSaving(true);
     try {
-      const su = structuredClone(props.user);
-      su.email = email;
-      su.name = name;
-      su.roles = roles;
-      await trpc.users.update.mutate(su);
+      if (props.user) {
+        const u = structuredClone(props.user);
+        u.email = email;
+        u.name = name;
+        u.roles = roles;
+        await trpc.users.update.mutate(u);
+      } else {
+        await trpc.users.create.mutate({ name, email, roles });
+      }
       props.onClose();
     } finally {
       setSaving(false);
@@ -124,33 +151,35 @@ function UserEditor(props: {
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>
-          <FormControl>
-            <FormLabel>ID</FormLabel>
-            <Text fontFamily='monospace'>{u.id}</Text>
-          </FormControl>
-          <FormControl isRequired>
+          <FormControl isRequired isInvalid={!validEmail}>
             <FormLabel>Email</FormLabel>
             <Input type='email' value={email} onChange={e => setEmail(e.target.value)} />
+            <FormErrorMessage>需要填写有效Email地址。</FormErrorMessage>
           </FormControl>
           <FormControl isRequired isInvalid={!validName}>
             <FormLabel>姓名</FormLabel>
             <Input value={name} onChange={e => setName(e.target.value)} />
-            <FormErrorMessage>中文姓名无效。</FormErrorMessage>
+            <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
           </FormControl>
           <FormControl>
             <FormLabel>角色</FormLabel>
             <Stack>
-              {AllRoles.map(role => (
-                <Checkbox key={role} value={role} isChecked={isPermitted(roles, role)} onChange={setRole}>
-                  {RoleProfiles[role].displayName}（{role}）
-                </Checkbox>
-              ))}
+              {AllRoles
+                .filter(r => isPermitted(me.roles, "PrivilegedRoleManager") || !RoleProfiles[r].privileged)
+                .map(r => {
+                const rp = RoleProfiles[r];
+                return (
+                  <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
+                    {rp.privileged ? "*" : ""} {rp.displayName}（{r}）
+                  </Checkbox>
+                );
+              })}
             </Stack>
           </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand' isLoading={saving} onClick={save}>保存</Button>
+        <Button variant='brand' isLoading={saving} onClick={save} isDisabled={!validEmail || !validName}>保存</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

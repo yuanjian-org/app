@@ -9,88 +9,126 @@ import {
   InputRightAddon,
   Alert,
   AlertIcon,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  useEditableControls,
+  ButtonGroup,
+  IconButton,
+  Flex,
+  Spacer,
+  HStack,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
-import { EditIcon, EmailIcon } from '@chakra-ui/icons';
+import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
-import useUserContext from 'useUserContext';
+import { useUserContext } from 'UserContext';
 
 // Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
-  const [show, setShow] = useState(false);
+  const [notLoaded, setNotLoaded] = useState(false);
 
   useEffect(() => {
     setName(user.name || '')
   }, [user]);
 
-  const handleSubmit = async () => {
-    if (name) {
-      const updatedUser = structuredClone(user);
-      updatedUser.name = name;
+  const handleSubmit = async (newName: string) => {
+    setNotLoaded(true);
 
-      // TODO: Handle error display globally. Redact server-side errors.
+    if (newName) {
+      const updatedUser = structuredClone(user);
+      updatedUser.name = newName;
+
       try {
         await trpc.users.update.mutate(updatedUser);
+        toast.success("个人信息已保存")
         setUser(updatedUser);
-        setShow(!show);
-      } catch(e) {
-        toast.error((e as Error).message);
+      } finally {
+        setNotLoaded(false);
       }
     }
   };
 
+  const EditableControls = () => {
+    const {
+      isEditing,
+      getSubmitButtonProps,
+      getCancelButtonProps,
+      getEditButtonProps,
+    } = useEditableControls()
+
+    return isEditing ? (
+      <ButtonGroup justifyContent='center' size='sm'>
+        <IconButton aria-label='confirm name change button' icon={<CheckIcon />} {...getSubmitButtonProps()} />
+        <IconButton aria-label='cancel name change button' icon={<CloseIcon />} {...getCancelButtonProps()} />
+      </ButtonGroup>
+    ) : (
+      <ButtonGroup justifyContent='center' size='sm'>
+        <IconButton aria-label='edit name button' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
+      </ButtonGroup>
+    )
+  }
+
+  const EmailField = () => {
+    return (
+      <FormControl>
+        <HStack spacing='24px'>
+          <Box>
+            <FormLabel marginTop='10px'>邮箱</FormLabel>
+          </Box>
+          <Box>
+            {user.email}
+          </Box>
+        </HStack>
+      </FormControl>
+    )
+  }
+
+  const NameField = () => {
+    return (
+      <FormControl isInvalid={!name}>
+        <HStack spacing='24px'>
+          <Box>
+            <FormLabel marginTop='10px'>中文全名</FormLabel>
+          </Box>
+          <Box>
+            <Editable 
+              defaultValue={user.name ? user.name : undefined}
+              onSubmit={(newName) => handleSubmit(newName)}
+            >
+              <HStack>
+                <Box>
+                  <EditablePreview />
+                  <EditableInput 
+                    backgroundColor={notLoaded ? 'brandscheme' : 'white'}
+                  />
+                </Box>
+                <Spacer />
+                <Box>
+                  <EditableControls />
+                </Box>
+              </HStack>
+            </Editable>
+          </Box>
+        </HStack>
+        <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
+      </FormControl>
+    )
+  }
+
   return (
     <Box paddingTop={'80px'}>
       <Stack spacing={4}>
-        <InputGroup>
-          <InputLeftAddon>
-            Email
-          </InputLeftAddon>
-          <Input
-            placeholder={user.email}
-            isReadOnly
-          />
-          <InputRightAddon>
-            <Icon as={EmailIcon} color="gray.500" />
-          </InputRightAddon>
-        </InputGroup>
-        <InputGroup>
-          <InputLeftAddon>
-            中文全名
-          </InputLeftAddon>
-          <Input
-            backgroundColor={show ? 'white' : 'brandscheme'}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            isReadOnly={!show}
-          />
-          <InputRightAddon>
-            <Icon as={EditIcon} color="gray.500" />
-          </InputRightAddon>
-        </InputGroup>
-        {!name && (
-          <Alert status="error" mt={4}>
-            <AlertIcon />
-            用户姓名不能为空
-          </Alert>
-        )}
-        {!show && <Button
-          onClick={() => setShow(!show)}
-          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          修改个人信息
-        </Button>}
-
-        {show && <Button
-          backgroundColor='orange'
-          onClick={handleSubmit}
-          fontSize='sm' variant='brand' fontWeight='500' mb='24px'>
-          保存
-        </Button>}
+        <EmailField />
+        <NameField />
       </Stack>
     </Box>
   )

@@ -7,6 +7,7 @@ import {
   BelongsToMany,
   Column,
   Index,
+  HasMany,
   Table,
   Unique,
 } from "sequelize-typescript";
@@ -17,6 +18,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
+import Partnership from "./Partnership";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
@@ -24,6 +26,8 @@ class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
   > {
+  // Always use `formatUserName` to display user names.
+  // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
   name: string;
 
@@ -31,8 +35,10 @@ class User extends ParanoidModel<
   pinyin: string;
 
   @Unique
+  @AllowNull(false)
   @Column(STRING)
   email: string;
+
 
   @Unique
   @Column(STRING)
@@ -41,15 +47,23 @@ class User extends ParanoidModel<
   @Index({
     using: 'gin'
   })
+  // TODO chaneg to use array type
+  @AllowNull(false)
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
   @BelongsToMany(() => Group, { through: () => GroupUser })
   groups: NonAttribute<Group[]>;
 
-  @AllowNull(true)
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
+
+  // A mentee can have multiple mentors, although commonly just one.
+  @HasMany(() => Partnership, { foreignKey: 'menteeId' })
+  menteeOf: NonAttribute<Partnership>;
+
+  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
+  mentorOf: NonAttribute<Partnership>;
 }
 
 export default User;

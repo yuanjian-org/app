@@ -5,37 +5,63 @@ import {
   Center,
   Flex,
   HStack,
+  Modal,
+  ModalHeader,
+  ModalContent,
+  ModalCloseButton,
+  ModalOverlay,
+  ModalBody,
+  ModalFooter,
   SimpleGrid,
   Spacer,
   Text,
-  VStack,
   Wrap,
   WrapItem,
+  LinkBox,
+  LinkOverlay,
+  AvatarGroup,
+  ButtonProps,
+  SimpleGridProps,
+  Tag,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
-import useUserContext from 'useUserContext';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
-import { formatGroupName } from 'shared/formatNames';
+import { useUserContext } from 'UserContext';
+import { formatGroupName } from 'shared/strings';
+import ModalWithBackdrop from './ModalWithBackdrop';
+import { sidebarBreakpoint } from './Navbars';
+import UserChip from './UserChip';
+import { MinUserProfile } from 'shared/UserProfile';
+import { Group, GroupCountingTranscripts } from 'shared/Group';
+import QuestionIconTooltip from './QuestionIconTooltip';
 
-// @ts-ignore TODO: fix me.
-export default function GroupBar(props: {
-  group: any,
-  showSelf?: boolean,
-  showJoinButton?: boolean,
-  showTranscriptCount?: boolean,
+export default function GroupBar({
+  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
+} : {
+  group: Group | GroupCountingTranscripts,
+  showSelf?: boolean,             // default: false
+  showJoinButton?: boolean,       // default: false
+  showTranscriptCount?: boolean,  // default: false
   showTranscriptLink?: boolean,   // Effective ony if showTranscriptCount is true
-}) {
+  abbreviateOnMobile?: boolean,   // default: true
+  showGroupName?: boolean,        // default: true
+} & SimpleGridProps) {
   const [user] = useUserContext();
-  const transcriptCount = (props.group.transcripts || []).length;
+  const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
+  const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.myGroups.generateMeetingLink.mutate({ groupId: groupId });
-      window.location.href = link;
+      const link = await trpc.meetings.join.mutate({ groupId: groupId });
+      if (!link) {
+        setShowMeetingQuotaWarning(true);
+        setJoining(false);
+      } else {
+        window.location.href = link;
+      }
     } catch (e) {
       // See comments in the `finally` block below.
       setJoining(false);
@@ -47,81 +73,133 @@ export default function GroupBar(props: {
     }
   }
 
+  if (showGroupName == undefined) showGroupName = true;
+
   return (
     <SimpleGrid 
-      columns={(props.showJoinButton ? 2 : 1)} 
-      templateColumns={(props.showJoinButton ? '6em ' : '') + '1fr'}
+      columns={(showJoinButton ? 2 : 1)} 
+      templateColumns={(showJoinButton ? '6em ' : '') + '1fr'}
       spacing={4}
+      {...rest}
     >
+      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
       {/* row 1 col 1 */}
-      {props.showJoinButton && <Box />}
+      {showGroupName && showJoinButton && <Box />}
 
       {/* row 1 col 2 */}
-      <Text color='grey' fontSize='sm'>{formatGroupName(props.group.name, props.group.users.length)}</Text>
-      
+      {showGroupName ? <GroupTagOrName group={group} /> : null}
+
       {/* row 2 col 1 */}
-      {props.showJoinButton &&
-        <Center>
-          <Button
-            boxShadow="md"
-            borderRadius="16px"
-            bgColor="white"
-            leftIcon={<MdVideocam />}
+      {showJoinButton &&
+        <Box>
+          <JoinButton
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={async () => launchMeeting(props.group.id)}
-          >加入</Button>
-          <Spacer />
-        </Center>
+            onClick={async () => launchMeeting(group.id)}
+          >加入</JoinButton>
+        </Box>
       }
 
       {/* row 2 col 2 */}
-      <Flex>
-        <UserChips currentUserId={props.showSelf ? undefined : user.id} users={props.group.users} />
+      <LinkBox>
+        <Flex>
+          <UserChips 
+            currentUserId={showSelf ? undefined : user.id} 
+            users={group.users}
+            abbreviateOnMobile={abbreviateOnMobile}
+          />
 
-        {props.showTranscriptCount && <>
-          <Spacer marginLeft={4}/>
-          <Center>
-            {props.showTranscriptLink ? 
-              <Link href={`/groups/${props.group.id}`}>
-                {transcriptCount ?
-                  <>{transcriptCount} 个历史记录 <ArrowForwardIcon /></>
-                  : 
-                  <Text color='grey'>无历史 <ArrowForwardIcon /></Text>
+          {showTranscriptCount && <>
+            <Spacer marginLeft={4}/>
+            <Center>
+              <Text color={transcriptCount ? 'default': 'gray'}>
+                {showTranscriptLink ?
+                  <LinkOverlay as={Link} href={`/groups/${group.id}`}>
+                    详情 ({transcriptCount})
+                  </LinkOverlay>
+                  :
+                  <>详情 ({transcriptCount})</>
                 }
-              </Link>
-              :
-              <>
-                {transcriptCount ?
-                  <>{transcriptCount} 个历史记录</>
-                  : 
-                  <Text color='grey'>无历史</Text>
-                }0
-              </>
-            }
-          </Center>
-        </>}
-      </Flex>
+              </Text>
+            </Center>
+          </>}
+        </Flex>
+      </LinkBox>
     </SimpleGrid>
   );
 }
 
-function UserChips(props: { currentUserId?: string, users: { id: string, name: string | null }[]}) {
-  return <Wrap spacing='1.5em'> {
-    props.users
-    .filter((u: any) => props.currentUserId != u.id)
-    .map((user: any) =>
-      <WrapItem key={user.id}>
-        <UserChip user={user} />
-      </WrapItem >
-    )
-  } </Wrap>
+function GroupTagOrName({ group }: { group: Group }) {
+  return group.partnershipId ?
+    // Without this Box the tag will fill the whole grid row
+    <Box justifyItems="left"><Tag color="white" bgColor="gray">一对一导师</Tag></Box>
+    :
+    <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>;
 }
 
-export function UserChip(props: {
-  user: { id: string, name: string | null }
+export function JoinButton(props: ButtonProps) {
+  return <Button
+    boxShadow="md"
+    borderRadius="16px"
+    bgColor="white"
+    leftIcon={<MdVideocam />}
+    {...props}
+  >{props.children ? props.children : "加入"}</Button>;
+}
+
+export function OngoingMeetingWarning(props: {
+  onClose: () => void,
 }) {
-  return <HStack>
-    <Avatar name={props.user.name || undefined} boxSize={10}/>
-    <Text>{props.user.name}</Text>
-  </HStack>;
+  return (<ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalOverlay />
+    <ModalContent>
+      <ModalHeader>无法加入会议</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <p>抱歉，同时进行的会议数量已超过上线。请稍后再试。<br /><br />系统管理员已收到通知，会及时处理。</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={props.onClose}>
+          确认
+        </Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>
+  );
+}
+
+export function UserChips(props: { 
+  currentUserId?: string, 
+  users: MinUserProfile[],
+  abbreviateOnMobile?: boolean, // default: true
+}) {
+  const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
+  const abbreviateOnMobile = (props.abbreviateOnMobile === undefined || props.abbreviateOnMobile) 
+    // Mobile screen can only accommodate one person per row when their names are displayed. So abbreviate as long as
+    // there are more than one user.
+    && displayUsers.length > 1;
+
+  return <>
+    {/* Abbreviated mode */}
+    <AvatarGroup 
+      max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
+      display={{
+        base: abbreviateOnMobile ? "flex" : "none",
+        [sidebarBreakpoint]: "none",
+      }}
+    >
+      {displayUsers.map(user => <Avatar key={user.id} name={user.name || undefined} />)}
+    </AvatarGroup>
+
+    {/* Unabridged mode */}
+    <Wrap spacing='1.5em' display={{
+      base: abbreviateOnMobile ? "none" : "flex",
+      [sidebarBreakpoint]: "flex",
+    }}>
+      {displayUsers.map((user: any, idx: number) =>
+        <WrapItem key={user.id}>
+          <UserChip user={user} />
+        </WrapItem >
+      )}
+    </Wrap>
+  </>;
 }

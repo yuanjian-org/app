@@ -1,43 +1,39 @@
 import {
-  Box,
   StackDivider,
-  Text,
   Stack,
   Table,
-  Thead,
-  Th,
   Tbody,
   Tr,
   Td,
   Center,
+  Icon,
+  Heading,
+  LinkOverlay,
+  LinkBox,
+  TableContainer,
 } from '@chakra-ui/react';
-import { ArrowForwardIcon } from '@chakra-ui/icons';
 import React from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
-import useUserContext from "../../useUserContext";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { GroupWithTranscripts } from 'api/routes/groups';
-import moment from 'moment';
+import { GroupWithTranscripts } from '../../shared/Group';
 import GroupBar from 'components/GroupBar';
-import trpcNext from 'trpcNext';
+import { trpcNext } from "../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { capitalizeFirstChar } from 'shared/string';
+import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';
+import { MdChevronRight } from 'react-icons/md';
+import { parseQueryParameter } from '../../parseQueryParamter';
 
-const Page: NextPageWithLayout = () => {
-  const [user] = useUserContext();
-  return <Box paddingTop={'80px'}><GroupCard /></Box>
-}
+const Page: NextPageWithLayout = () => <GroupCard />;
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
 
 function GroupCard() {
-  const router = useRouter();
-  const id = typeof router.query.groupId === 'string' ? router.query.groupId : 'nonexistence';
+  const id = parseQueryParameter(useRouter(), "groupId");
   const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
 
   return (<>
@@ -48,38 +44,35 @@ function GroupCard() {
 
 function GroupDetail(props: { group: GroupWithTranscripts }) {
   return (
-    <Stack divider={<StackDivider />} spacing='6'>
-      <GroupBar group={props.group} showJoinButton />
+    <Stack divider={<StackDivider />} spacing={6}>
+      <GroupBar group={props.group} showJoinButton showSelf abbreviateOnMobile={false} />
       <TranscriptTable group={props.group} />
     </Stack>
   );
 }
 
 function TranscriptTable(props: { group: GroupWithTranscripts }) {
-  // TODO: it doesn't seem to work. https://github.com/moment/moment/blob/develop/locale/zh-cn.js
-  moment.locale('zh-cn');
   return (
     <>
-      <Table variant='striped'>
-        <Thead>
-          <Tr>
-            <Th>会议时间</Th>
-            <Th>时长</Th>
-            <Th>摘要</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {props.group.transcripts.map(t => {
-            const link = `/groups/${props.group.id}/transcripts/${t.transcriptId}`;
-            return <Tr key={t.transcriptId}>
-              <Td><Link href={link}>{capitalizeFirstChar(moment(t.startedAt).fromNow())}</Link></Td>
-              <Td><Link href={link}>{capitalizeFirstChar(moment.duration(moment(t.endedAt).diff(t.startedAt)).humanize())}</Link></Td>
-              <Td><Link href={link}>{t.summaries.length} 版摘要 <ArrowForwardIcon /></Link></Td>
-            </Tr>;
-          })}
-        </Tbody>
-      </Table>
-      {!props.group.transcripts.length && <Center margin={10} color='gray.400'>无会议历史</Center>}
+      <Heading size="sm" marginBottom={3}>会议历史</Heading>
+      <TableContainer>
+        <Table>
+          <Tbody>
+            {props.group.transcripts.map(t => {
+              return <LinkBox as={Tr} key={t.transcriptId}>
+                <Td>{prettifyDate(t.startedAt)}</Td>
+                <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
+                <Td><LinkOverlay as={Link} href={`/groups/${props.group.id}/transcripts/${t.transcriptId}`}>
+                  {t.summaries.length} 版摘要 <Icon as={MdChevronRight} />
+                </LinkOverlay></Td>
+              </LinkBox>;
+            })}
+          </Tbody>
+        </Table>
+      </TableContainer>
+      {!props.group.transcripts.length && <Center margin={10} color='gray'>
+        无会议历史。（会议结束后一小时之内会显示在这里。）
+      </Center>}
     </>
   );
 }

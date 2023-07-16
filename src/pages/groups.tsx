@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   StackDivider,
   WrapItem,
@@ -18,80 +17,38 @@ import {
   FormErrorMessage,
   Flex,
   Spacer,
+  Checkbox
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
-import AsyncSelect from "react-select/async";
-import trpcNext from "../trpcNext";
-import GroupBar, { UserChip } from 'components/GroupBar';
-import { Group } from 'api/routes/groups';
+import { trpcNext } from "../trpc";
+import GroupBar from 'components/GroupBar';
+import UserChip from 'components/UserChip';
+import { Group } from '../shared/Group';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
-import { formatGroupName } from 'shared/formatNames';
+import { formatGroupName } from 'shared/strings';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
-
-function UserSelector(props: {
-  value: any,
-  onChange: any,
-  placeholder?: string,
-}) {
-  type Option = {
-    label: string,
-    value: string,
-  };
-
-  const LoadOptions = (
-    inputValue: string,
-    callback: (options: Option[]) => void
-  ) => {
-    trpc.users.list.query({
-      searchTerm: inputValue,
-    }).then(users => {
-      callback(users.map(u => {
-        return {
-          label: `${u.name} (${u.email})`,
-          value: u.id,
-        };
-      }));
-    })
-  }
-
-  // https://react-select.com/props
-  return <AsyncSelect
-    cacheOptions
-    // @ts-ignore
-    loadOptions={LoadOptions}
-    isMulti
-    value={props.value}
-    noOptionsMessage={() => "可以用姓名拼音、中文或email搜索"}
-    loadingMessage={() => "正在检索..."}
-    placeholder={props.placeholder ?? '按用户过滤，或为创建分组输入两名或以上用户'}
-    // @ts-ignore
-    onChange={props.onChange}
-  />
-}
+import UserSelector from '../components/UserSelector';
+import QuestionIconTooltip from "../components/QuestionIconTooltip"
 
 const Page: NextPageWithLayout = () => {
-  const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
+  const [userIds, setUserIds] = useState<string[]>([]);
+  const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
-
-  const { data, refetch } = trpcNext.groups.list.useQuery({
-    userIds: selected.map(option => option.value),
-  });
+  const [includeOwned, setIncludOwned] = useState(false);
+  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds, includeOwned });
 
   const createGroup = async () => {
-    setIsCreating(true);
+    setCreating(true);
     try {
-      await trpc.groups.create.mutate({
-        userIds: selected.map(option => option.value),
-      });
+      await trpc.groups.create.mutate({ userIds });
       refetch();
     } finally {
-      setIsCreating(false);
+      setCreating(false);
     }
   };
 
@@ -100,37 +57,39 @@ const Page: NextPageWithLayout = () => {
     refetch();
   };
 
-  return (
-    <Box paddingTop={'80px'}>
-      {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
-      <Wrap spacing={6}>
-        <WrapItem minWidth={100}>
-          <UserSelector value={selected} onChange={setSelected} />
-        </WrapItem>
-        <WrapItem>
-          <Button
-            isLoading={isCreating}
-            isDisabled={selected.length < 2}
-            loadingText='创建分组中...'
-            variant='brand' onClick={createGroup}>
-            创建分组
-          </Button>
-        </WrapItem>
-      </Wrap>
-      <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
-        {data && data.map(group => 
-          <Flex key={group.id} cursor='pointer'
-            onClick={() => setGroupBeingEdited(group)} 
-          >
-            <GroupBar group={group} showSelf />
-            <Spacer />
-            <Center><EditIcon marginX={4} /></Center>
-          </Flex>
-        )}
-      </VStack>
-      {!data && <Loader />}
-    </Box>
-  )
+  return <>
+    {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
+    <Wrap spacing={6}>
+      <WrapItem minWidth={100} alignItems="center">
+        <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入两名或以上用户" onSelect={setUserIds} />
+      </WrapItem>
+      <WrapItem alignItems="center">
+        <Button
+          isLoading={creating}
+          isDisabled={userIds.length < 2}
+          loadingText='创建分组中...'
+          variant='brand' onClick={createGroup}>
+          创建自由分组
+        </Button>
+      </WrapItem>
+      <WrapItem alignItems="center">
+        <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示托管分组</Checkbox>
+        <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
+      </WrapItem>
+    </Wrap>
+    <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
+      {data && data.map(group => 
+        <Flex key={group.id} cursor='pointer'
+          onClick={() => setGroupBeingEdited(group)} 
+        >
+          <GroupBar group={group} showSelf />
+          <Spacer />
+          <Center><EditIcon marginX={4} /></Center>
+        </Flex>
+      )}
+    </VStack>
+    {!data && <Loader />}
+  </>
 }
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
@@ -143,12 +102,12 @@ function GroupEditor(props: {
   onClose: () => void,
 }) {
   const [name, setName] = useState<string>(props.group.name || '');
-  const [selected, setSelected] = useState<{ value: string, label: string }[]>([]);
+  const [newUserIds, setNewUserIds] = useState<string[]>([]);
   const [users, setUsers] = useState(props.group.users);
   const [working, setWorking] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
 
-  const isValid = users.length + selected.length > 1;
+  const isValid = users.length + newUserIds.length > 1;
 
   const save = async () => {
     setWorking(true);
@@ -156,7 +115,7 @@ function GroupEditor(props: {
       const group = structuredClone(props.group);
       group.name = name
       group.users = [
-        ...selected.map(s => ({ id: s.value, name: null })),
+        ...newUserIds.map(n => ({ id: n, name: null })),
         ...users,
       ];
       await trpc.groups.update.mutate(group);
@@ -189,7 +148,7 @@ function GroupEditor(props: {
             </FormControl>
             <FormControl>
               <FormLabel>添加用户</FormLabel>
-              <UserSelector value={selected} placeholder='搜索用户...' onChange={setSelected} />
+              <UserSelector isMulti onSelect={setNewUserIds} />
             </FormControl>
             <FormControl>
               <FormLabel>移除用户</FormLabel>
