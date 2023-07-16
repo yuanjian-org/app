@@ -1,30 +1,31 @@
 # Yuanjian App - 远见教育平台
 
-A Web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org), developed by VEF volunteers.
+A Web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org),
+developed by VEF volunteers.
 
 ## Getting Started
 
 1. Install `node.js` and `yarn`
 1. Install `postgresql` and start it locally. Aternatively, create a remote test db at [Neon](http://neon.tech).
 1. Create file `.env.local` in the repository root, and:
-   - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724) and follow instructions on this page to set undefined variables.
-   - Otherwise, copy content from `.env.template` and follow instructions in this file to set undefined variables.
+   - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
+   - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
 1. Run `yarn` to install dependency packages.
 1. Run `yarn sync-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
-1. Visit this local server from broswer. Log in with your email.
-1. Run `yarn gen-test-data` to populate test data.
-1. Finally, restart your local server to clean up server cache and read pupulated data fresh.
+1. Visit this local server from broswer. Log in with your personal email address.
+1. Run `yarn gen-test-data` to finish setup and populate test data.
+1. Finally, restart your local server to clean up cached data.
 
 ## Frameworks Used
 
-- Frontend and backend powered by [Next.js](https://nextjs.org/).
-- End-to-end type safety with `typescript`, [`trpc`](https://trpc.io/), `zod` and `class-validator`.
-- UI styling and components from [Chakra UI](https://chakra-ui.com/).
+- Full stack: [Next.js](https://nextjs.org/)
+- Typing: `typescript`, [`trpc`](https://trpc.io/), `zod`
+- UI: [Chakra UI](https://chakra-ui.com/)
 
 ## Code Structure
 
-We extend `next.js`'s [code structure](https://nextjs.org/docs/getting-started/project-structure#top-level-folders):
+We follow [next.js convention](https://nextjs.org/docs/getting-started/project-structure#top-level-folders):
 
 |  |  |
 |---|---|
