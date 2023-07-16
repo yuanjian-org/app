@@ -6,7 +6,7 @@ export interface SpeakerStats {
 export function parseSpeakerStats(data: string): SpeakerStats[] {
   const speakerTimes: Map<string, number> = new Map();
   const lines = data.split('\n');
-  const pattern = /^(.+?)\((\d{2}):(\d{2}):(\d{2})\):/;
+  const pattern = /^\s*(.+?)\((\d{2}):(\d{2}):(\d{2})\):/;
   
   let lastTimestamp: number | null = null;
   let lastSpeaker: string | null = null;
