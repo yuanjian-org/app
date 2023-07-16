@@ -24,6 +24,7 @@ import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName } from '../shared/strings';
 import Loader from 'components/Loader';
+import { isPermitted } from 'shared/Role';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -82,7 +83,12 @@ function SetNameModal() {
 }
 
 function Meetings() {
-  const { data: groups, isLoading } = trpcNext.groups.listMyUnowned.useQuery();
+  const [me] = useUserContext();
+  const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
+    // Mentors have mentee groups listed in partnership pages.
+    // TODO: This is a hack. Do it properly.
+    includeOwned: !isPermitted(me.roles, "Mentor"),
+  });
 
   return (<>
     <PageBreadcrumb current='我的会议' parents={[]} />

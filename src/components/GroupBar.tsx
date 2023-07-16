@@ -23,7 +23,6 @@ import {
   ButtonProps,
   SimpleGridProps,
   Tag,
-  Tooltip
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
@@ -88,14 +87,7 @@ export default function GroupBar({
       {showGroupName && showJoinButton && <Box />}
 
       {/* row 1 col 2 */}
-      {showGroupName ?
-        <HStack spacing={4}>
-          {ownerTag(group)}
-          <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>
-        </HStack>
-        :
-        null
-      }
+      {showGroupName ? <GroupTagOrName group={group} /> : null}
 
       {/* row 2 col 1 */}
       {showJoinButton &&
@@ -136,8 +128,12 @@ export default function GroupBar({
   );
 }
 
-function ownerTag(group: Group) {
-  return group.partnershipId ? <Tag color="white" bgColor="gray">一对一导师</Tag> : null;
+function GroupTagOrName({ group }: { group: Group }) {
+  return group.partnershipId ?
+    // Without this Box the tag will fill the whole grid row
+    <Box justifyItems="left"><Tag color="white" bgColor="gray">一对一导师</Tag></Box>
+    :
+    <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>;
 }
 
 export function JoinButton(props: ButtonProps) {
