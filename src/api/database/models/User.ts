@@ -39,11 +39,6 @@ class User extends ParanoidModel<
   @Column(STRING)
   email: string;
 
-
-  @Unique
-  @Column(STRING)
-  clientId: string;
-
   @Index({
     using: 'gin'
   })
