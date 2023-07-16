@@ -98,9 +98,10 @@ const update = procedure
 });
 
 /**
- * List all privilaged users and their roles.
+ * List all users and their roles who have privileged user data access. See RoleProfile.privilegeUserDataAccess for an
+ * explanation.
  */
-const listPriviledged = procedure
+const listPriviledgedUserDataAccess = procedure
   .use(authUser())
   .output(z.array(z.object({
     name: z.string(),
@@ -111,7 +112,7 @@ const listPriviledged = procedure
   return await User.findAll({ 
     // TODO: Optimize with postgres `?|` operator
     where: {
-      [Op.or]: AllRoles.filter(r => RoleProfiles[r].privileged).map(r => ({
+      [Op.or]: AllRoles.filter(r => RoleProfiles[r].privilegedUserDataAccess).map(r => ({
         roles: { [Op.contains]: r }
       })),
     },
@@ -123,7 +124,7 @@ const users = router({
   create,
   list,
   update,
-  listPriviledged,
+  listPriviledgedUserDataAccess,
 });
 export default users;
 

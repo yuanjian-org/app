@@ -73,10 +73,7 @@ export async function emailIgnoreError(templateId: string, personalization: Pers
   }
 }
 
-export async function emailUserManagersIgnoreError(subject: string, content: string, baseUrl: string) {
-  // Use type system to capture typos.
-  const role : Role = "UserManager";
-
+export async function emailRoleIgnoreError(role: Role, subject: string, content: string, baseUrl: string) {
   const zTo = z.array(z.object({
     name: z.string(),
     email: z.string(),

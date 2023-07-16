@@ -10,22 +10,22 @@ import OngoingMeetings from "api/database/models/OngoingMeetings";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { noPermissionError, notFoundError } from "api/errors";
+import { emailRoleIgnoreError } from 'api/sendgrid';
 
 /**
-* Find the group meeting by the input group id.
-* If this meeting is presented in OngoingMeetings model, return and join.
-* If not presented, it will create a new meeting with available TM user Ids then insert it into OngoingMeetings.
-* @returns a valid tencent meeting link or null which will trigger a conccurent meeting warning.
-*/
+ * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the
+ * existing meeting link. Otherwise, if there is still meeting quota, create a new meeting with an available TM user Id
+ * and return the new meeting link. If there is no more available quota, return null to trigger a conccurent meeting 
+ * warning.
+ */
 const join = procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
   .mutation(async ({ ctx, input }) => 
 {
-  const group = await db.Group.findByPk(input.groupId, {
-    include: [db.GroupUser]
-  });
+  const group = await db.Group.findByPk(input.groupId, { include: [db.GroupUser] });
   if (!group) throw notFoundError("分组", input.groupId);
+
   // Only meeting members have access to this method.
   if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) {
     throw noPermissionError("分组", input.groupId);
@@ -45,14 +45,20 @@ const join = procedure
   if (ongoingMeeting) {
     return ongoingMeeting.meetingLink;
   }
-  // if not shown in OngoingMeetings, check if there are empty slots to join
-  // find TM user ids that are not in use and generate a meeting link using an available id
+
+  // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
+  // generate a meeting link using this user id.
   const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
-  if (meetings.length >= apiEnv.TM_USER_IDS.length) { return null; };
+  if (meetings.length >= apiEnv.TM_USER_IDS.length) {
+    await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
+      `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
+    return null;
+  }
+
   // find and filter vacant ids
   const availableTmUserIds = apiEnv.TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
   invariant(availableTmUserIds.length > 0);
-  const { meetingId, meetingLink } = await generateMeeting(group, availableTmUserIds[0]);
+  const { meetingId, meetingLink } = await create(group, availableTmUserIds[0]);
 
   await OngoingMeetings.create({
     groupId: group.id,
@@ -68,7 +74,6 @@ const meetings = router({
   join,
 });
 export default meetings;
-
 
 const meetingSubjectseparator = ' | ';
 
@@ -88,7 +93,7 @@ export function safeDecodeMeetingSubject(subject: string): string | null {
   return parsed.success ? parsed.data : null;
 }
 
-async function generateMeeting(group: DbGroup, availableTmUserId: string) {
+async function create(group: DbGroup, availableTmUserId: string) {
   const now = Math.floor(Date.now() / 1000);
   const groupName = formatGroupName(group.name, group.groupUsers.length);
   const res = await createMeeting(availableTmUserId, encodeMeetingSubject(group.id, groupName), now, now + 3600);
