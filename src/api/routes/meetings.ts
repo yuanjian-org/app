@@ -11,6 +11,8 @@ import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { noPermissionError, notFoundError } from "api/errors";
 import { emailRoleIgnoreError } from 'api/sendgrid';
+import moment from 'moment';
+import sequelizeInstance from 'api/database/sequelizeInstance';
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the
@@ -36,16 +38,18 @@ const join = procedure
     await sleep(2000);
     return "/fakeMeeting";
   }
-  
+
   updateOngoingMeetings();
 
-  // TODO: implement a lock option to the find query, details: https://stackoverflow.com/a/48297781
-  // if the user's group is present in OngoingMeetings Model, return the meeting link 
-  const ongoingMeeting = await OngoingMeetings.findOne({ where: { groupId: group.id } });
-  if (ongoingMeeting) {
-    return ongoingMeeting.meetingLink;
-  }
-
+    // TODO: implement a lock option to the find query, details: https://stackoverflow.com/a/48297781
+    // if the user's group is present in OngoingMeetings Model, return the meeting link 
+  await sequelizeInstance.transaction(async (t) => {
+    const ongoingMeeting = await OngoingMeetings.findOne({ where: { groupId: group.id }, lock: true, transaction: t });
+    if (ongoingMeeting) {
+      return ongoingMeeting.meetingLink;
+    }
+  });
+  
   // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
   // generate a meeting link using this user id.
   const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
@@ -107,7 +111,9 @@ async function create(group: DbGroup, availableTmUserId: string) {
 export async function updateOngoingMeetings() {
   const ongoingMeetings = await OngoingMeetings.findAll({ attributes: ["tmUserId", "meetingId"] });
   for (const meeting of ongoingMeetings) {
-    if ((await getMeeting(meeting.meetingId, meeting.tmUserId)).status !== 'MEETING_STATE_STARTED') {
+    const meetingInfo = await getMeeting(meeting.meetingId, meeting.tmUserId);
+    if (meetingInfo.status !== 'MEETING_STATE_STARTED' &&
+      (moment() > moment.unix(parseInt(meetingInfo.start_time)).add(10, "minutes"))) {
       await OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId } });
     }
   }
