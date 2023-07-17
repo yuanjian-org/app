@@ -6,6 +6,7 @@ import {
   AllowNull,
   BelongsToMany,
   Column,
+  Index,
   HasMany,
   Table,
   Unique,
@@ -38,6 +39,9 @@ class User extends ParanoidModel<
   @Column(STRING)
   email: string;
 
+  @Index({
+    using: 'gin'
+  })
   // TODO chaneg to use array type
   @AllowNull(false)
   @ZodColumn(JSONB, zRoles)
