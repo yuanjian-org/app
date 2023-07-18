@@ -6,7 +6,6 @@ import db from "../database/db";
 import DbGroup from "../database/models/Group";
 import { createMeeting, getMeeting } from "../TencentMeeting";
 import { formatGroupName } from "shared/strings";
-import OngoingMeetings from "api/database/models/OngoingMeetings";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { noPermissionError, notFoundError } from "api/errors";
@@ -41,7 +40,9 @@ const join = procedure
 
   updateOngoingMeetings();
 
-    // TODO: implement a lock option to the find query, details: https://stackoverflow.com/a/48297781
+    // lock option is applied to transactions in order to prevent conflicts 
+    // when multiple transactions are trying to access or modify the same data simultaneously
+    // details: https://stackoverflow.com/a/48297781
     // if the user's group is present in OngoingMeetings Model, return the meeting link 
   await sequelizeInstance.transaction(async (t) => {
     const ongoingMeeting = await db.OngoingMeetings.findOne({ where: { groupId: group.id }, lock: true, transaction: t });
@@ -51,7 +52,7 @@ const join = procedure
     
     // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
     // generate a meeting link using this user id.
-    const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction: t });
+    const meetings = await db.OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction: t });
     if (meetings.length >= apiEnv.TM_USER_IDS.length) {
       await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
         `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
@@ -63,7 +64,7 @@ const join = procedure
     invariant(availableTmUserIds.length > 0);
     const { meetingId, meetingLink } = await create(group, availableTmUserIds[0]);
 
-    await OngoingMeetings.create({
+    await db.OngoingMeetings.create({
       groupId: group.id,
       tmUserId: availableTmUserIds[0],
       meetingId,
@@ -110,14 +111,14 @@ async function create(group: DbGroup, availableTmUserId: string) {
 
 export async function updateOngoingMeetings() {
   await sequelizeInstance.transaction(async (t) => {
-    const ongoingMeetings = await OngoingMeetings.findAll({
-      attributes: ["tmUserId", "meetingId"], transaction: t
+    const ongoingMeetings = await db.OngoingMeetings.findAll({
+      attributes: ["tmUserId", "meetingId"], lock: true, transaction: t
     });
   for (const meeting of ongoingMeetings) {
     const meetingInfo = await getMeeting(meeting.meetingId, meeting.tmUserId);
     if (meetingInfo.status !== 'MEETING_STATE_STARTED' &&
       (moment() > moment.unix(parseInt(meetingInfo.start_time)).add(10, "minutes"))) {
-      await OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction: t });
+      await db.OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction: t });
       }
     }
   });
