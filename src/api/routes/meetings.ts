@@ -6,11 +6,12 @@ import db from "../database/db";
 import DbGroup from "../database/models/Group";
 import { createMeeting, getMeeting } from "../TencentMeeting";
 import { formatGroupName } from "shared/strings";
-import OngoingMeetings from "api/database/models/OngoingMeetings";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { noPermissionError, notFoundError } from "api/errors";
 import { emailRoleIgnoreError } from 'api/sendgrid';
+import moment from 'moment';
+import sequelizeInstance from 'api/database/sequelizeInstance';
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the
@@ -36,38 +37,42 @@ const join = procedure
     await sleep(2000);
     return "/fakeMeeting";
   }
-  
+
   updateOngoingMeetings();
 
-  // TODO: implement a lock option to the find query, details: https://stackoverflow.com/a/48297781
-  // if the user's group is present in OngoingMeetings Model, return the meeting link 
-  const ongoingMeeting = await OngoingMeetings.findOne({ where: { groupId: group.id } });
-  if (ongoingMeeting) {
-    return ongoingMeeting.meetingLink;
-  }
+    // lock option is applied to transactions in order to prevent conflicts 
+    // when multiple transactions are trying to access or modify the same data simultaneously
+    // details: https://stackoverflow.com/a/48297781
+    // if the user's group is present in OngoingMeetings Model, return the meeting link 
+  await sequelizeInstance.transaction(async (t) => {
+    const ongoingMeeting = await db.OngoingMeetings.findOne({ where: { groupId: group.id }, lock: true, transaction: t });
+    if (ongoingMeeting) {
+      return ongoingMeeting.meetingLink;
+    }
+    
+    // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
+    // generate a meeting link using this user id.
+    const meetings = await db.OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction: t });
+    if (meetings.length >= apiEnv.TM_USER_IDS.length) {
+      await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
+        `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
+      return null;
+    }
 
-  // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
-  // generate a meeting link using this user id.
-  const meetings = await OngoingMeetings.findAll({ attributes: ["tmUserId"] });
-  if (meetings.length >= apiEnv.TM_USER_IDS.length) {
-    await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
-      `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
-    return null;
-  }
+    // find and filter vacant ids
+    const availableTmUserIds = apiEnv.TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
+    invariant(availableTmUserIds.length > 0);
+    const { meetingId, meetingLink } = await create(group, availableTmUserIds[0]);
 
-  // find and filter vacant ids
-  const availableTmUserIds = apiEnv.TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
-  invariant(availableTmUserIds.length > 0);
-  const { meetingId, meetingLink } = await create(group, availableTmUserIds[0]);
+    await db.OngoingMeetings.create({
+      groupId: group.id,
+      tmUserId: availableTmUserIds[0],
+      meetingId,
+      meetingLink,
+    }, { transaction: t });
 
-  await OngoingMeetings.create({
-    groupId: group.id,
-    tmUserId: availableTmUserIds[0],
-    meetingId,
-    meetingLink,
+    return meetingLink;
   });
-
-  return meetingLink;
 });
 
 const meetings = router({
@@ -105,10 +110,16 @@ async function create(group: DbGroup, availableTmUserId: string) {
 }
 
 export async function updateOngoingMeetings() {
-  const ongoingMeetings = await OngoingMeetings.findAll({ attributes: ["tmUserId", "meetingId"] });
+  await sequelizeInstance.transaction(async (t) => {
+    const ongoingMeetings = await db.OngoingMeetings.findAll({
+      attributes: ["tmUserId", "meetingId"], lock: true, transaction: t
+    });
   for (const meeting of ongoingMeetings) {
-    if ((await getMeeting(meeting.meetingId, meeting.tmUserId)).status !== 'MEETING_STATE_STARTED') {
-      await OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId } });
+    const meetingInfo = await getMeeting(meeting.meetingId, meeting.tmUserId);
+    if (meetingInfo.status !== 'MEETING_STATE_STARTED' &&
+      (moment() > moment.unix(parseInt(meetingInfo.start_time)).add(10, "minutes"))) {
+      await db.OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction: t });
+      }
     }
-  }
+  });
 }
