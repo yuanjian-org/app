@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
-import UserProfile from "./shared/UserProfile";
+import User from "./shared/User";
 
-const UserContext = createContext<[UserProfile, (u: UserProfile) => void]>([
+const UserContext = createContext<[User, (u: User) => void]>([
   // @ts-ignore
   null, 
   () => {},

@@ -1,9 +1,9 @@
 import { Avatar, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
-import { MinUserProfile } from 'shared/UserProfile';
+import { MinUser } from 'shared/User';
 
 export default function UserChip(props: {
-  user: MinUserProfile;
+  user: MinUser;
 }) {
   return <HStack>
     <Avatar name={props.user.name || undefined} boxSize={10} />

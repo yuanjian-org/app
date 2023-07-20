@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { zMinUserProfile } from "./UserProfile";
+import { zMinUser } from "./User";
 
 export const zGroup = z.object({
   id: z.string(),
   name: z.string().nullable(),
-  users: z.array(zMinUserProfile),
+  users: z.array(zMinUser),
   partnershipId: z.string().uuid().nullable(),
 });
 export type Group = z.TypeOf<typeof zGroup>;

@@ -29,7 +29,7 @@ import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import UserProfile from 'shared/UserProfile';
+import User from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
@@ -40,8 +40,8 @@ import Loader from 'components/Loader';
 import z from "zod";
 
 const Page: NextPageWithLayout = () => {
-  const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
-  const [userBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
+  const { data, refetch } : { data: User[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
+  const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
   const [me] = useUserContext();
   
@@ -105,7 +105,7 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default Page;
 
 function UserEditor(props: { 
-  user?: UserProfile, // When absent, create a new user.
+  user?: User, // When absent, create a new user.
   onClose: () => void,
 }) {
   const u = props.user ?? {

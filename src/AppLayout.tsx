@@ -9,7 +9,7 @@ import browserEnv from "./browserEnv";
 import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
-import UserProfile from './shared/UserProfile'
+import User from './shared/User'
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
@@ -30,15 +30,15 @@ export default function AppLayout(props: AppLayoutProps) {
   )
 }
 
-const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
+  const [user, setUser] = useState<User | null>(null);
   const userFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
-        // For some reason ts cries when `as UserProfile` is absent
-        setUser(await trpc.me.profile.query() as UserProfile);
+        // For some reason ts cries when `as User` is absent
+        setUser(await trpc.me.profile.query() as User);
       } else {
         location.href = '/login';
       }

@@ -33,7 +33,7 @@ import { formatGroupName } from 'shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
-import { MinUserProfile } from 'shared/UserProfile';
+import { MinUser } from 'shared/User';
 import { Group, GroupCountingTranscripts } from 'shared/Group';
 import QuestionIconTooltip from './QuestionIconTooltip';
 
@@ -169,7 +169,7 @@ export function OngoingMeetingWarning(props: {
 
 export function UserChips(props: { 
   currentUserId?: string, 
-  users: MinUserProfile[],
+  users: MinUser[],
   abbreviateOnMobile?: boolean, // default: true
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
