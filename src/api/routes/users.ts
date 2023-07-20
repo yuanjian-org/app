@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import User from "../database/models/User";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import { zUserProfile } from "shared/UserProfile";
+import { zUser } from "shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "api/sendgrid";
@@ -36,7 +36,7 @@ const create = procedure
 const list = procedure
   .use(authUser(['UserManager', 'GroupManager']))
   .input(z.object({ searchTerm: z.string() }).optional())
-  .output(z.array(zUserProfile))
+  .output(z.array(zUser))
   .query(async ({ input }) => 
 {
   return await User.findAll({ 
@@ -59,7 +59,7 @@ const list = procedure
  */
 const update = procedure
   .use(authUser())
-  .input(zUserProfile)
+  .input(zUser)
   .mutation(async ({ input, ctx }) => 
 {
   checkUserFields(input.name, input.email);

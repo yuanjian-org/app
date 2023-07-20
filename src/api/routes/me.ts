@@ -1,10 +1,10 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
-import { zUserProfile } from "shared/UserProfile";
+import { zUser } from "shared/User";
 
 const profile = procedure
   .use(authUser())
-  .output(zUserProfile)
+  .output(zUser)
   .query(async ({ ctx }) => ctx.user);
 
 const me = router({

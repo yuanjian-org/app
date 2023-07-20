@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zMinUserProfile } from "./UserProfile";
+import { zMinUser } from "./User";
 import { zAssessment } from "./Assessment";
 import { zGroup } from "./Group";
 
@@ -10,8 +10,8 @@ export type PrivateMentorNotes = z.TypeOf<typeof zPrivateMentorNotes>;
 
 export const zPartnership = z.object({
   id: z.string().uuid(),
-  mentor: zMinUserProfile,
-  mentee: zMinUserProfile,
+  mentor: zMinUser,
+  mentee: zMinUser,
 });
 export type Partnership = z.TypeOf<typeof zPartnership>;
 
