@@ -1,26 +1,6 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "object-curly-spacing": ["warn", "always"],
-    "import/no-restricted-paths": ["error",
-    {
-      "zones": [{
-        "target": "./src/api",
-        "from": ["./src"],
-        "except":["./api", "./shared"],
-        "message": "src/api cannot refer the files outside /shared or /api, see README"
-      },
-      {
-        "target": "./src/shared",
-        "from": ["./src"],
-        "except":["./shared"],
-        "message": "src/shared cannot refer the files outside /shared, see README"
-      },
-      {
-        "target": ["./src/!(api)/**/*","./src/*.tsx"],
-        "from": ["./src/api/**/*"],
-        "message": "files outside src/api cannot refer files in /api, see README"
-      }]
-    }
-  ]}
+    "object-curly-spacing": ["warn", "always"]
+  }
 }
