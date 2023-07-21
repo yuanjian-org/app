@@ -22,6 +22,8 @@ class ApiEnv extends SharedEnv {
 
   SENDGRID_API_KEY: string = process.env.SENDGRID_API_KEY ?? '';
 
+  WEBHOOK_TOKEN: string = process.env.WEBHOOK_TOKEN ?? '';
+
   hasSendGrid() { return this.SENDGRID_API_KEY.length != 0; }
 
   // 'DUMMY' was used in some old development environments

@@ -120,13 +120,12 @@ const listPriviledgedUserDataAccess = procedure
   });
 });
 
-const users = router({
+export default router({
   create,
   list,
   update,
   listPriviledgedUserDataAccess,
 });
-export default users;
 
 function checkUserFields(name: string | null, email: string) {
   if (!isValidChineseName(name)) {

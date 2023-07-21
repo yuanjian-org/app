@@ -1,9 +1,7 @@
 import sequelizeInstance from "./database/sequelizeInstance";
 import invariant from "tiny-invariant";
 
-const initApiServer = () => {
+export default function initApiServer() {
   // ensure database is loaded
   invariant(sequelizeInstance);
 };
-
-export default initApiServer;

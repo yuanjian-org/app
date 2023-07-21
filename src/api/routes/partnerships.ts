@@ -153,7 +153,7 @@ const update = procedure
   partnership.save();
 });
 
-const routes = router({
+export default router({
   create,
   get,
   getWithAssessmentsDeprecated,
@@ -161,5 +161,3 @@ const routes = router({
   listMineAsMentor,
   update,
 });
-
-export default routes;

@@ -30,8 +30,7 @@ const syncCrudeSummaries = procedure
   }
 });
 
-const cron = router({
+export default router({
   syncCrudeSummaries,
   updateOngoingMeetings: procedure.mutation(updateOngoingMeetings),
 });
-export default cron;

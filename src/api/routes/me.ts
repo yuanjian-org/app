@@ -7,7 +7,6 @@ const profile = procedure
   .output(zUser)
   .query(async ({ ctx }) => ctx.user);
 
-const me = router({
+export default router({
   profile,
 });
-export default me;

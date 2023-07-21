@@ -77,11 +77,9 @@ const listAllOfPartneship = procedure
   });
 });
 
-const routes = router({
+export default router({
   create,
   get,
   update,
   listAllOfPartneship,
 });
-
-export default routes;

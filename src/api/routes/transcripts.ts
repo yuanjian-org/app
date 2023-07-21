@@ -34,7 +34,6 @@ const get = procedure
   return t;
 });
 
-const transcripts = router({
+export default router({
   get,
 });
-export default transcripts;
