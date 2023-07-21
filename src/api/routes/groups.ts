@@ -131,7 +131,7 @@ const listMine = procedure
     },
     include: [{
       model: db.Group,
-      include: [User, Transcript],
+      include: [...includeForGroup, Transcript],
       where: input.includeOwned ? {} : { partnershipId: null },
     }]
   })).map(groupUser => groupUser.group);

@@ -19,6 +19,8 @@ import Role, { zRoles } from "../../../shared/Role";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Partnership from "./Partnership";
+import z from "zod";
+import { toPinyin } from "../../../shared/strings";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
@@ -47,11 +49,20 @@ class User extends ParanoidModel<
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
-  @BelongsToMany(() => Group, { through: () => GroupUser })
-  groups: NonAttribute<Group[]>;
-
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
+
+  @Column(STRING)
+  sex: string | null;
+
+  @Column(STRING)
+  wechat: string | null;
+
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  menteeApplication: string | null;
+
+  @BelongsToMany(() => Group, { through: () => GroupUser })
+  groups: NonAttribute<Group[]>;
 
   // A mentee can have multiple mentors, although commonly just one.
   @HasMany(() => Partnership, { foreignKey: 'menteeId' })
@@ -62,3 +73,10 @@ class User extends ParanoidModel<
 }
 
 export default User;
+
+export async function createUser(fields: any) {
+  const f = structuredClone(fields);
+  if (!("name" in f)) f.name = "";
+  f.pinyin = toPinyin(f.name);
+  return await User.create(f);
+}
