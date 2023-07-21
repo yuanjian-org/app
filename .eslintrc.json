@@ -17,8 +17,9 @@
         "message": "src/shared cannot refer the files outside /shared, see README"
       },
       {
-        "target": ["./src/!(api)/**/*","./src/*.tsx"],
-        "from": ["./src/api/**/*"],
+        "target": ["./src/!(api|pages)/**/*","./src/pages/!(api)/**/*","./src/*.[t]*","./src/pages/*.[t]*"],
+        "from": ["./src/api/"],
+        "except": ["./apiRouter.ts"],
         "message": "files outside src/api cannot refer files in /api, see README"
       }]
     }

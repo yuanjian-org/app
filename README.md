@@ -40,7 +40,7 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 
 * files in `src/shared` must not refer to files outside of `src/shared`,
 * files in `src/api` must not refer to files outside of `src/api` or `src/shared`, and
-* files outside of `src/api` must not refer to files in `src/api`.
+* files outside of `src/api` must not refer to files in `src/api`, except in the case of `src/trpc.ts` refers to `src/api/apiRouter.ts`
 
 That is, only the dependencies demonstrated below are allowed:
 

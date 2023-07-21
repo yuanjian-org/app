@@ -13,7 +13,7 @@ import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import { trpcNext } from "../../../../trpc";
 import GroupBar from 'components/GroupBar';
-import { Transcript } from 'api/routes/transcripts';
+import { Transcript } from '../../../../shared/Transcript';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
