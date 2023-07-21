@@ -7,20 +7,7 @@ import Group from "../database/models/Group";
 import User from "../database/models/User";
 import { TRPCError } from "@trpc/server";
 import { isPermitted } from "../../shared/Role";
-import { zGroup } from "shared/Group";
-
-const zTranscript = z.object({
-  transcriptId: z.string(),
-  startedAt: z.date(),
-  endedAt: z.date(),
-  group: zGroup,
-  summaries: z.array(z.object({
-      summaryKey: z.string(),
-      summary: z.string(),
-  })),
-});
-
-export type Transcript = z.TypeOf<typeof zTranscript>;
+import { zTranscript } from "shared/Transcript";
 
 const get = procedure
     // We will throw access denied later if the user isn't a privileged user and isn't in the group.

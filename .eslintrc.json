@@ -1,6 +1,27 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "object-curly-spacing": ["warn", "always"]
-  }
+    "object-curly-spacing": ["warn", "always"],
+    "import/no-restricted-paths": ["error",
+    {
+      "zones": [{
+        "target": "./src/api",
+        "from": ["./src"],
+        "except":["./api", "./shared"],
+        "message": "src/api cannot refer the files outside /shared or /api, see README.md"
+      },
+      {
+        "target": "./src/shared",
+        "from": ["./src"],
+        "except":["./shared"],
+        "message": "src/shared cannot refer the files outside /shared, see README.md"
+      },
+      {
+        "target": ["./src/!(api|pages)/**/*","./src/pages/!(api)/**/*","./src/*.[t]*","./src/pages/*.[t]*"],
+        "from": ["./src/api/"],
+        "except": ["./apiRouter.ts"],
+        "message": "files outside src/api cannot refer files in /api, see README.md"
+      }]
+    }
+  ]}
 }
