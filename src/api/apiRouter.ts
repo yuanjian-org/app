@@ -8,6 +8,7 @@ import summaries from './routes/summaries';
 import cron from './routes/cron';
 import partnerships from './routes/partnerships';
 import assessments from './routes/assessments';
+import webhooks from './webhooks';
 
 export const apiRouter = router({
   me,
@@ -19,6 +20,7 @@ export const apiRouter = router({
   cron,
   partnerships,
   assessments,
+  webhooks,
 });
 
 export type ApiRouter = typeof apiRouter;
