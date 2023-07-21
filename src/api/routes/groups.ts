@@ -188,7 +188,7 @@ const get = procedure
   return g;
 });
 
-const groups = router({
+export default router({
   create,
   update,
   destroy,
@@ -197,7 +197,6 @@ const groups = router({
   listCountingTranscripts,
   get,
 });
-export default groups;
 
 /**
  * @returns groups that contain all the given users.

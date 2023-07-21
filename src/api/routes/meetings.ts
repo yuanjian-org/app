@@ -77,10 +77,9 @@ const join = procedure
   });
 });
 
-const meetings = router({
+export default router({
   join,
 });
-export default meetings;
 
 const meetingSubjectseparator = ' | ';
 

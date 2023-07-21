@@ -107,11 +107,10 @@ const write = procedure
   });
 });
 
-const summaries = router({
+export default router({
   list,
   write,
 });
-export default summaries;
 
 export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: string) {
   // `upsert` not `insert` because the system may fail after inserting the transcript row and before inserting the 
