@@ -66,7 +66,7 @@
   "scripts": {
     "sync-database": "ts-node tools/syncDatabase.ts",
     "gen-test-data": "ts-node tools/generateTestData.ts",
-    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha -r ts-node/register src/**/*.test.ts",
+    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register 'src/**/*.test.ts' --recursive",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

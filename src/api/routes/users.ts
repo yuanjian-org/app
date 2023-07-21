@@ -4,12 +4,12 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import User from "../database/models/User";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import { zUser } from "shared/User";
+import { zUser } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
-import { email } from "api/sendgrid";
-import { formatUserName } from 'shared/strings';
-import { generalBadRequestError, noPermissionError, notFoundError } from "api/errors";
+import { email } from "../sendgrid";
+import { formatUserName } from '../../shared/strings';
+import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -81,7 +81,7 @@ const update = procedure
   checkPermissionForManagingPrivilegedRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
 
   if (!isSelf) {
-    await emailUserAboutNewPrivilegedRoles(ctx.user.name, user, input.roles, ctx.baseUrl);
+    await emailUserAboutNewPrivilegedRoles(ctx.user.name ?? "", user, input.roles, ctx.baseUrl);
   }
 
   invariant(input.name);
@@ -161,4 +161,3 @@ async function emailUserAboutNewPrivilegedRoles(userManagerName: string, user: U
     }], baseUrl);
   }
 }
-

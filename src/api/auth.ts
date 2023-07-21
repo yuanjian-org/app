@@ -1,13 +1,16 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import Role, { isPermitted } from "../shared/Role";
-import User from "./database/models/User";
+import { createUser } from "./database/models/User";
+import db from "./database/db";
 import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
 import { UniqueConstraintError } from "sequelize";
 import { AuthenticationClient } from 'authing-js-sdk';
 import { LRUCache } from 'lru-cache';
 import { emailRoleIgnoreError } from './sendgrid';
+import User from "../shared/User";
+import { userAttributes } from "./database/models/attributesAndIncludes";
 
 const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
 
@@ -99,20 +102,18 @@ async function findOrCreateUser(email: string, baseUrl: string): Promise<User> {
    * As a speed optimization, we simply retry on such errors instead of using pessimistic locking.
    */
   while (true) {
-    const user = await User.findOne({ where: { email } });
+    const user = await db.User.findOne({ 
+      where: { email },
+      attributes: userAttributes,
+    });
     if (user) return user;
 
     // Set the first user as an admin
-    const roles: Role[] = (await User.count()) == 0 ? ['UserManager'] : [];
+    const roles: Role[] = (await db.User.count()) == 0 ? ['UserManager'] : [];
     console.log(`Creating user ${email} roles ${roles}`);
     await emailRoleIgnoreError("UserManager", "新用户注册", `${email} 注册新用户 。`, baseUrl);
     try {
-      return await User.create({
-        name: "",
-        pinyin: "",
-        email,
-        roles,
-      });
+      return await createUser({ email, roles });
     } catch (e) {
       if (e instanceof UniqueConstraintError) {
         console.log(`Unique constraint error when creating user ${email}. Assuming user already exists. Retry.`);

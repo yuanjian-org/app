@@ -7,9 +7,9 @@ import User from "./User";
  * User
  */
 
-const minUserProfileAttributes = ['id', 'name'];
+export const minUserAttributes = ['id', 'name'];
 
-export default minUserProfileAttributes;
+export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt"];
 
 /**
  * Group
@@ -17,7 +17,7 @@ export default minUserProfileAttributes;
 
 export const includeForGroup = [{
   model: User,
-  attributes: minUserProfileAttributes,
+  attributes: minUserAttributes,
 }];
 
 /**
@@ -29,8 +29,8 @@ export const defaultAttributesForPartnership = ['id', 'menteeId', 'mentorId'];
 
 export const includeForPartnership = [{
   association: 'mentor',
-  attributes: minUserProfileAttributes,
+  attributes: minUserAttributes,
 }, {
   association: 'mentee',
-  attributes: minUserProfileAttributes,
+  attributes: minUserAttributes,
 }];
