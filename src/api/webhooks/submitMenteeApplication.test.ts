@@ -225,7 +225,7 @@ describe('parseInput', () => {
   });
 
   it('should submit correctly', async () => {
-    await submit(inputApplication);
+    await submit(inputApplication, "unittest");
     const u = await User.findOne({ where: { email: "test@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("dingyi");
