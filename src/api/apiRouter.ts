@@ -1,5 +1,4 @@
 import { router } from './trpc';
-import me from "./routes/me";
 import users from "./routes/users";
 import meetings from "./routes/meetings";
 import groups from "./routes/groups";
@@ -11,7 +10,6 @@ import assessments from './routes/assessments';
 import webhooks from './webhooks';
 
 export const apiRouter = router({
-  me,
   users,
   groups,
   meetings,

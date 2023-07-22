@@ -38,7 +38,7 @@ const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
         // For some reason ts cries when `as User` is absent
-        setUser(await trpc.me.profile.query() as User);
+        setUser(await trpc.users.me.query() as User);
       } else {
         location.href = '/login';
       }

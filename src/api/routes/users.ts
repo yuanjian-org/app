@@ -11,6 +11,11 @@ import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 
+const me = procedure
+  .use(authUser())
+  .output(zUser)
+  .query(async ({ ctx }) => ctx.user);
+
 const create = procedure
   .use(authUser('UserManager'))
   .input(z.object({
@@ -121,6 +126,7 @@ const listPriviledgedUserDataAccess = procedure
 });
 
 export default router({
+  me,
   create,
   list,
   update,
