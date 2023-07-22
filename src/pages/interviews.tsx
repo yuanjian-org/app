@@ -27,7 +27,6 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
-import { AddIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import { PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Partnership';
 import UserSelector from 'components/UserSelector';
@@ -45,7 +44,7 @@ const Page: NextPageWithLayout = () => {
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
 
   const showAddButton = isPermitted(user.roles, 'InterviewManager');
-  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
+  const showFeedback = isPermitted(user.roles, 'PartnershipAssessor');
 
   return <Flex direction='column' gap={6}>
     {showAddButton && <HStack spacing={6}>
@@ -62,7 +61,7 @@ const Page: NextPageWithLayout = () => {
       <Thead>
         <Tr>
           <Th>学生</Th><Th>学生拼音</Th><Th>导师</Th><Th>导师拼音</Th>
-          {showAssessment && <Th>跟踪评估</Th>} <Th>ID（仅调试用）</Th>
+          {showFeedback && <Th>跟踪评估</Th>}
         </Tr>
       </Thead>
       <Tbody>
@@ -72,12 +71,11 @@ const Page: NextPageWithLayout = () => {
           <Td>{toPinyin(p.mentee.name ?? "")}</Td>
           <Td>{formatUserName(p.mentor.name, "formal")}</Td>
           <Td>{toPinyin(p.mentor.name ?? "")}</Td>
-          {showAssessment && <Td>
+          {showFeedback && <Td>
             <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
               查看（{p.assessments.length}）
             </Link>
           </Td>}
-          <Td>{p.id}</Td>
         </Tr>
       ))}
       </Tbody>

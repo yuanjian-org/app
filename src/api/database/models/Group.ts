@@ -48,16 +48,10 @@ class Group extends ParanoidModel<
   @Column(UUID)
   partnershipId: string | null;
 
-  @BelongsTo(() => Partnership)
-  partnership: NonAttribute<Partnership>;
-
   // A group is said to be "owned" by an interview if this field is non-null.
   @ForeignKey(() => Interview)
   @Column(UUID)
   interviewId: string | null;
-
-  @BelongsTo(() => Interview)
-  interview: NonAttribute<Interview>;
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {
