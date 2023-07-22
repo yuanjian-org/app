@@ -16,7 +16,7 @@ import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import z from "zod";
-import InterviewAssessment from "./InterviewAssessment";
+import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
 
 const zInterviewType = z.enum(["Mentee", "Mentor"]);
@@ -45,8 +45,8 @@ class Interview extends Model {
   @BelongsTo(() => User)
   interviewee: User;
 
-  @HasMany(() => InterviewAssessment)
-  assessements: InterviewAssessment;
+  @HasMany(() => InterviewFeedback)
+  feedbacks: InterviewFeedback;
 
   @HasOne(() => Group)
   group: Group;

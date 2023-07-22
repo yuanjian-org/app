@@ -10,7 +10,7 @@ import OngoingMeetings from "./models/OngoingMeetings";
 import Partnership from './models/Partnership';
 import Assessment from "./models/Assessment";
 import Interview from "./models/Interview";
-import InterviewAssessment from "./models/InterviewAssessment";
+import InterviewFeedback from "./models/InterviewFeedback";
 
 const db = {
   Partnership,
@@ -22,7 +22,7 @@ const db = {
   OngoingMeetings,
   Assessment,
   Interview,
-  InterviewAssessment,
+  InterviewFeedback,
 };
 
 export default db;

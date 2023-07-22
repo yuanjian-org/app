@@ -18,7 +18,7 @@ import Interview from "./Interview";
 @Table({
   paranoid: true,
 })
-class InterviewAssessment extends Model {
+class InterviewFeedback extends Model {
   @Unique
   @IsUUID(4)
   @PrimaryKey
@@ -37,7 +37,7 @@ class InterviewAssessment extends Model {
   interviewerId: string;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  assessment: object | null;
+  feedback: object | null;
 }
 
-export default InterviewAssessment;
+export default InterviewFeedback;
