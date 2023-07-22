@@ -16,9 +16,10 @@ import {
   Th,
   Td,
   Flex,
-  Box,
   Link,
   TableContainer,
+  HStack,
+  Icon,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -26,7 +27,6 @@ import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
-import { AddIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import { PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Partnership';
 import UserSelector from 'components/UserSelector';
@@ -35,6 +35,7 @@ import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
 import { formatUserName, toPinyin } from 'shared/strings';
+import { MdFace, MdPerson3 } from 'react-icons/md';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -42,13 +43,14 @@ const Page: NextPageWithLayout = () => {
     <PartnershipCountingAssessments[] | undefined>();
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
 
-  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
-  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
+  const showAddButton = isPermitted(user.roles, 'InterviewManager');
+  const showFeedback = isPermitted(user.roles, 'PartnershipAssessor');
 
   return <Flex direction='column' gap={6}>
-    {showAddButton && <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setModalIsOpen(true)}>创建一对一匹配</Button>
-    </Box>}
+    {showAddButton && <HStack spacing={6}>
+      <Button variant='brand' leftIcon={<Icon as={MdFace} />} onClick={() => setModalIsOpen(true)}>创建学生面试</Button>
+      <Button variant='brand' leftIcon={<Icon as={MdPerson3} />} onClick={() => setModalIsOpen(true)}>创建导师面试</Button>
+    </HStack>}
 
     {modalIsOpen && <AddModel onClose={() => {
       setModalIsOpen(false);
@@ -59,7 +61,7 @@ const Page: NextPageWithLayout = () => {
       <Thead>
         <Tr>
           <Th>学生</Th><Th>学生拼音</Th><Th>导师</Th><Th>导师拼音</Th>
-          {showAssessment && <Th>跟踪评估</Th>} <Th>ID（仅调试用）</Th>
+          {showFeedback && <Th>跟踪评估</Th>}
         </Tr>
       </Thead>
       <Tbody>
@@ -69,12 +71,11 @@ const Page: NextPageWithLayout = () => {
           <Td>{toPinyin(p.mentee.name ?? "")}</Td>
           <Td>{formatUserName(p.mentor.name, "formal")}</Td>
           <Td>{toPinyin(p.mentor.name ?? "")}</Td>
-          {showAssessment && <Td>
+          {showFeedback && <Td>
             <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
               查看（{p.assessments.length}）
             </Link>
           </Td>}
-          <Td>{p.id}</Td>
         </Tr>
       ))}
       </Tbody>

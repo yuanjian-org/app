@@ -1,13 +1,11 @@
 import type {
   InferAttributes,
-  InferCreationAttributes, NonAttribute,
+  InferCreationAttributes,
 } from "sequelize";
 import {
   AllowNull,
-  BelongsToMany,
   Column,
   Index,
-  HasMany,
   Table,
   Unique,
 } from "sequelize-typescript";
@@ -16,9 +14,6 @@ import ParanoidModel from "../modelHelpers/ParanoidModel";
 import { DATE, JSONB, STRING } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
-import Group from "./Group";
-import GroupUser from "./GroupUser";
-import Partnership from "./Partnership";
 import z from "zod";
 import { toPinyin } from "../../../shared/strings";
 
@@ -59,17 +54,7 @@ class User extends ParanoidModel<
   wechat: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  menteeApplication: string | null;
-
-  @BelongsToMany(() => Group, { through: () => GroupUser })
-  groups: NonAttribute<Group[]>;
-
-  // A mentee can have multiple mentors, although commonly just one.
-  @HasMany(() => Partnership, { foreignKey: 'menteeId' })
-  menteeOf: NonAttribute<Partnership>;
-
-  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
-  mentorOf: NonAttribute<Partnership>;
+  menteeApplication: object | null;
 }
 
 export default User;
