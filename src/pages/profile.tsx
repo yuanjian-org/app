@@ -113,6 +113,7 @@ const UserProfile: NextPageWithLayout = () => {
             </Editable>
           </Box>
         </SimpleGrid>
+        <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
       </FormControl>
     )
   }
