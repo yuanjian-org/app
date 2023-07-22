@@ -16,9 +16,10 @@ import {
   Th,
   Td,
   Flex,
-  Box,
   Link,
   TableContainer,
+  HStack,
+  Icon,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -35,6 +36,7 @@ import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
 import { formatUserName, toPinyin } from 'shared/strings';
+import { MdFace, MdPerson3 } from 'react-icons/md';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
@@ -42,13 +44,14 @@ const Page: NextPageWithLayout = () => {
     <PartnershipCountingAssessments[] | undefined>();
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
 
-  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
+  const showAddButton = isPermitted(user.roles, 'InterviewManager');
   const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
 
   return <Flex direction='column' gap={6}>
-    {showAddButton && <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setModalIsOpen(true)}>创建一对一匹配</Button>
-    </Box>}
+    {showAddButton && <HStack spacing={6}>
+      <Button variant='brand' leftIcon={<Icon as={MdFace} />} onClick={() => setModalIsOpen(true)}>创建学生面试</Button>
+      <Button variant='brand' leftIcon={<Icon as={MdPerson3} />} onClick={() => setModalIsOpen(true)}>创建导师面试</Button>
+    </HStack>}
 
     {modalIsOpen && <AddModel onClose={() => {
       setModalIsOpen(false);

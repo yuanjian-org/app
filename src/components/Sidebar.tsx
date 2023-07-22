@@ -71,6 +71,12 @@ const sidebarItems: SidebarItem[] = [
     role: 'GroupManager',
   },
   {
+    name: '面试分组管理',
+    path: '/interviews',
+    icon: MdGroup,
+    role: 'InterviewManager',
+  },
+  {
     name: '一对一导师管理',
     path: '/partnerships',
     icon: MdGroup,

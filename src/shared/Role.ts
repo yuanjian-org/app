@@ -9,6 +9,7 @@ export const AllRoles = [
   'SummaryEngineer',
   'PartnershipManager',
   'PartnershipAssessor',
+  'InterviewManager',
   'Mentor',
   'Mentee',
 ] as const;
@@ -66,6 +67,12 @@ export const RoleProfiles: { [key: string]: {
     actions: '跟踪评估一对一导师辅导效果',
     privileged: true,
     privilegedUserDataAccess: true,
+  },
+  InterviewManager: {
+    displayName: '面试分组管理员',
+    actions: '管理导师与学生面试匹配',
+    privileged: true,
+    privilegedUserDataAccess: false,
   },
   Mentor: {
     displayName: '导师',
