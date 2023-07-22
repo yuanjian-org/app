@@ -1,14 +1,6 @@
 import {
   Box,
-  Button,
-  Icon,
-  Input,
   Stack,
-  InputGroup,
-  InputLeftAddon,
-  InputRightAddon,
-  Alert,
-  AlertIcon,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -18,9 +10,9 @@ import {
   useEditableControls,
   ButtonGroup,
   IconButton,
-  Flex,
   Spacer,
   HStack,
+  SimpleGrid,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -29,6 +21,8 @@ import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import { useUserContext } from 'UserContext';
+import { isValidChineseName } from 'shared/strings';
+import Loader from 'components/Loader';
 
 // Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {
@@ -80,14 +74,14 @@ const UserProfile: NextPageWithLayout = () => {
   const EmailField = () => {
     return (
       <FormControl>
-        <HStack spacing='24px'>
+        <SimpleGrid columns={8}>
           <Box>
-            <FormLabel marginTop='10px'>邮箱</FormLabel>
+            <FormLabel>邮箱</FormLabel>
           </Box>
-          <Box>
+          <Box width="200%">
             {user.email}
           </Box>
-        </HStack>
+        </SimpleGrid>
       </FormControl>
     )
   }
@@ -95,11 +89,11 @@ const UserProfile: NextPageWithLayout = () => {
   const NameField = () => {
     return (
       <FormControl isInvalid={!name}>
-        <HStack spacing='24px'>
+        <SimpleGrid columns={8}>
           <Box>
-            <FormLabel marginTop='10px'>中文全名</FormLabel>
+            <FormLabel marginTop='5px'>中文全名</FormLabel>
           </Box>
-          <Box>
+          <Box width="200%">
             <Editable 
               defaultValue={user.name ? user.name : undefined}
               onSubmit={(newName) => handleSubmit(newName)}
@@ -118,8 +112,7 @@ const UserProfile: NextPageWithLayout = () => {
               </HStack>
             </Editable>
           </Box>
-        </HStack>
-        <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
+        </SimpleGrid>
       </FormControl>
     )
   }
@@ -129,6 +122,9 @@ const UserProfile: NextPageWithLayout = () => {
       <Stack spacing={4}>
         <EmailField />
         <NameField />
+        {
+          notLoaded && <Loader loadingText='保存中...'/>
+        }
       </Stack>
     </Box>
   )
