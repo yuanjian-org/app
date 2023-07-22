@@ -8,19 +8,19 @@
         "target": "./src/api",
         "from": ["./src"],
         "except":["./api", "./shared"],
-        "message": "src/api cannot refer the files outside /shared or /api, see README.md"
+        "message": "Files in `src/api` must not refer to files outside of `src/api` or `src/shared`. See README.md"
       },
       {
         "target": "./src/shared",
         "from": ["./src"],
         "except":["./shared"],
-        "message": "src/shared cannot refer the files outside /shared, see README.md"
+        "message": "Files in `src/shared` must not refer to files outside of `src/shared`. See README.md"
       },
       {
         "target": ["./src/!(api|pages)/**/*","./src/pages/!(api)/**/*","./src/*.[t]*","./src/pages/*.[t]*"],
         "from": ["./src/api/"],
         "except": ["./apiRouter.ts"],
-        "message": "files outside src/api cannot refer files in /api, see README.md"
+        "message": "Files outside of `src/api` must not refer to files in `src/api`. See README.md"
       }]
     }
   ]}
