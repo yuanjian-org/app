@@ -59,17 +59,17 @@ class User extends ParanoidModel<
   wechat: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  menteeApplication: string | null;
+  menteeApplication: object | null;
 
   @BelongsToMany(() => Group, { through: () => GroupUser })
   groups: NonAttribute<Group[]>;
 
-  // A mentee can have multiple mentors, although commonly just one.
-  @HasMany(() => Partnership, { foreignKey: 'menteeId' })
-  menteeOf: NonAttribute<Partnership>;
+  // // A mentee can have multiple mentors, although commonly just one.
+  // @HasMany(() => Partnership, { foreignKey: 'menteeId' })
+  // menteeOf: NonAttribute<Partnership>;
 
-  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
-  mentorOf: NonAttribute<Partnership>;
+  // @HasMany(() => Partnership, { foreignKey: 'mentorId' })
+  // mentorOf: NonAttribute<Partnership>;
 }
 
 export default User;

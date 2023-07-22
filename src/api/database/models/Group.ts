@@ -17,10 +17,11 @@ import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
 import Partnership from "./Partnership";
+import Interview from "./Interview";
 
 /**
- * A group is said to be "owned" by a partnership if the partnership field is non-null. Otherwise the group is said to
- * be "unowned".
+ * A group is said to be "owned" if the partnership or interview field is non-null.
+ * Otherwise the group is said to be "unowned".
  */
 @Table({ tableName: "groups", modelName: "group" })
 @Fix
@@ -49,6 +50,14 @@ class Group extends ParanoidModel<
 
   @BelongsTo(() => Partnership)
   partnership: NonAttribute<Partnership>;
+
+  // A group is said to be "owned" by an interview if this field is non-null.
+  @ForeignKey(() => Interview)
+  @Column(UUID)
+  interviewId: string | null;
+
+  @BelongsTo(() => Interview)
+  interview: NonAttribute<Interview>;
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {
