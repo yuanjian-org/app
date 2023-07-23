@@ -23,12 +23,16 @@ class GroupUser extends ParanoidModel<
   @ForeignKey(() => User)
   userId: string;
 
-  @BelongsTo(() => User)
-  user: NonAttribute<User>;
-
   @Column(UUID)
   @ForeignKey(() => Group)
   groupId: string;
+
+  /**
+   * Associations
+   */
+
+  @BelongsTo(() => User)
+  user: NonAttribute<User>;
 
   @BelongsTo(() => Group)
   group: NonAttribute<Group>;

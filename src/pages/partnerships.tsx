@@ -38,12 +38,12 @@ import { formatUserName, toPinyin } from 'shared/strings';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();
+  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
+  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
+
   const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery
     <PartnershipCountingAssessments[] | undefined>();
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
-
-  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
-  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
 
   return <Flex direction='column' gap={6}>
     {showAddButton && <Box>
