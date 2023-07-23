@@ -35,6 +35,7 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 | `src/pages` | `next.js` [Page Router](https://nextjs.org/docs/pages/building-your-application/routing). Migrating to App Router remains future work. |
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
 | `tools` | Command-line scripts.
+| `test` | End-to-end tests.
 
 **IMPORTANT**: To prevent security and programming issues,
 

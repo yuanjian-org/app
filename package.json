@@ -73,7 +73,9 @@
     "lint": "next lint",
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "predeploy": "yarn run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "cypress-run": "cypress run --project ./test/",
+    "cypress-open": "cypress open --project ./test/"
   },
   "browserslist": {
     "production": [
@@ -97,6 +99,7 @@
     "@types/react-calendar": "^3.5.2",
     "@types/react-table": "^7.7.12",
     "chai": "^4.3.7",
+    "cypress": "^12.17.2",
     "eslint": "^8.23.0",
     "eslint-config-next": "^12.2.5",
     "eslint-nibble": "^8.1.0",
