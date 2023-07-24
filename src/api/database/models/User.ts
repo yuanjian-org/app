@@ -2,7 +2,6 @@ import type {
   InferAttributes,
   InferCreationAttributes,
 } from "sequelize";
-import {Op} from 'sequelize';
 import {
   AllowNull,
   Column,
@@ -12,7 +11,7 @@ import {
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { DATE, JSONB, STRING, UUID } from "sequelize";
+import { DATE, JSONB, STRING } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -24,8 +23,6 @@ class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
   > {
-  
-  
   // Always use `formatUserName` to display user names.
   // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
@@ -55,6 +52,9 @@ class User extends ParanoidModel<
 
   @Column(STRING)
   wechat: string | null;
+
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  menteeApplication: object | null;
 }
 
 export default User;
