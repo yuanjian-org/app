@@ -55,9 +55,6 @@ class User extends ParanoidModel<
 
   @Column(STRING)
   wechat: string | null;
-
-  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
-  mentorOf: NonAttribute<Partnership>;
 }
 
 export default User;
