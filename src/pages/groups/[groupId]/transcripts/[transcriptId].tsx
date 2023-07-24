@@ -1,22 +1,19 @@
 import {
-  Box,
   StackDivider,
-  Text,
   Stack,
   Table,
-  Thead,
-  Th,
   Tbody,
   Tr,
   Td,
   Select,
+  TableContainer,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import { trpcNext } from "../../../../trpc";
 import GroupBar from 'components/GroupBar';
-import { Transcript } from 'api/routes/transcripts';
+import { Transcript } from '../../../../shared/Transcript';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
@@ -48,7 +45,7 @@ function TranscriptCard() {
 
 function TranscriptDetail(props: { transcript: Transcript }) {
   return (
-    <Stack divider={<StackDivider />} spacing='6'>
+    <Stack>
       <GroupBar group={props.transcript.group} showJoinButton showSelf abbreviateOnMobile={false} />
       <Summaries transcript={props.transcript} />
     </Stack>
@@ -62,31 +59,24 @@ function Summaries(props: { transcript: Transcript }) {
 
   return (
     <Stack>
-      <Table variant='striped'>
-        <Thead>
-          <Tr>
-            <Th>日期</Th>
-            <Th>时长</Th>
-            <Th>摘要版本</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          <Tr>
-            <Td>{prettifyDate(t.startedAt)}</Td>
-            <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
-            <Td>
-              <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
-                {t.summaries.map((s, idx) => (
-                  <option key={idx} value={idx}>{s.summaryKey}</option>
-                ))}
-              </Select>
-            </Td>
-          </Tr>
-        </Tbody>
-      </Table>
-      <MarkdownEditor value={t.summaries[summaryIndex].summary} options={{
-        toolbar: false,
-      }}/>;
+      <TableContainer>
+        <Table variant='striped'>
+          <Tbody>
+            <Tr>
+              <Td>{prettifyDate(t.startedAt)}</Td>
+              <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
+              <Td>
+                <Select value={summaryIndex} onChange={ev => setSummaryIndex(parseInt(ev.target.value))}>
+                  {t.summaries.map((s, idx) => (
+                    <option key={idx} value={idx}>{s.summaryKey}</option>
+                  ))}
+                </Select>
+              </Td>
+            </Tr>
+          </Tbody>
+        </Table>
+        </TableContainer>
+      <MarkdownEditor initialValue={t.summaries[summaryIndex].summary} toolbar={false} maxHeight="600px" />;
     </Stack>
   );
 }

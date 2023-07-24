@@ -2,13 +2,13 @@ import { useAutosaveContext } from 'AutosaveContext';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import sleep from 'shared/sleep';
 
-const autosaveDelayMs = 800;
+const autosaveDelayMs = 500;
 const retryIntervalSec = 8;
 
 /**
  * Reference implementation: https://www.synthace.com/blog/autosave-with-react-hooks
  */
-export default function Autosaver(props: {
+export default function Autosaver({ data, onSave }: {
   data: any,
   onSave: (data: any) => Promise<void>,
 }) {
@@ -23,32 +23,32 @@ export default function Autosaver(props: {
   const debouncedSave = useCallback(debounce(async () => {
     memo.saving = true;
     try {
-      while (memo.data) {
+      while (memo.data !== null) {
         const data = memo.data;
         memo.data = null;
-        console.debug("Autosaver: Savinging data.");
-        await saveWithRetry(props.onSave, data, (e) => setPendingSaverError(memo.id, e));
+        console.debug(`Autosaver ${memo.id}: Savinging data.`);
+        await saveWithRetry(onSave, data, (e) => setPendingSaverError(memo.id, e));
       }
     } finally {
       memo.saving = false;
     }
-    console.debug("Autosaver: Done all savingings.");
+    console.debug(`Autosaver ${memo.id}: Done all savingings.`);
     removePendingSaver(memo.id);
-}, autosaveDelayMs), [memo, props.onSave, removePendingSaver]);
+  }, autosaveDelayMs), [memo, onSave, removePendingSaver]);
 
   // This block is triggered whenever props.data changes.
   useEffect(() => {
-    if (props.data == null || props.data == undefined) return;
+    if (data == null || data == undefined) return;
     // Discard previously queued data.
-    memo.data = props.data;
+    memo.data = data;
     if (memo.saving) {
-      console.debug("Autosaver: Enqueue data only.");
+      console.debug(`Autosaver ${memo.id}: Enqueue data only.`);
     } else {
-      console.debug("Autosaver: Enqueue data and schedule savinging.");
+      console.debug(`Autosaver ${memo.id}: Enqueue data and schedule savinging.`);
       debouncedSave();
     }
     addPendingSaver(memo.id);
-  }, [memo, props.data, addPendingSaver, debouncedSave]);
+  }, [memo, data, addPendingSaver, debouncedSave]);
 
   return null;
 }

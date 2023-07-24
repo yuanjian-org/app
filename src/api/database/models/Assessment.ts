@@ -14,6 +14,7 @@ import Partnership from "./Partnership";
 
 /**
  * An assessment is an evaluation of a mentoring partnership.
+ * TODO: Rename to PartnershipAssessment.
  */
 @Table({
   paranoid: true,

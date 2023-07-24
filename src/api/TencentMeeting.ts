@@ -120,6 +120,7 @@ const tmRequest = async (
  * https://cloud.tencent.com/document/product/1095/42417
  */
 export async function createMeeting(
+  tmUserId: string,
   subject: string,
   startTimeSecond: number,
   endTimeSecond: number,
@@ -186,7 +187,7 @@ export async function createMeeting(
   });
 
   const res = await tmRequest('POST', '/v1/meetings', {}, {
-    userid: apiEnv.TM_ADMIN_USER_ID,
+    userid: tmUserId,
     instanceid: "1",
     subject: subject,
     start_time: "" + startTimeSecond,
@@ -203,17 +204,13 @@ const paginationNotSupported = () => new TRPCError({
 });
 
 /**
- * List meetings of user apiEnv.TM_ADMIN_USER_ID.
- * 
- * https://cloud.tencent.com/document/product/1095/42421
+ * List meeting info of the input meeting and tencent user id
+ * https://cloud.tencent.com/document/product/1095/93432
  */
-export async function listMeetings() {
+export async function getMeeting(meetingId: string, tmUserId: string) {
   console.log(LOG_HEADER, 'listMeetings()');
   const zRes = z.object({
     meeting_number: z.number(),
-    remaining: z.number(),
-    // next_pos: z.number(),
-    // next_cursory: z.number(),
     meeting_info_list: z.array(z.object({
       subject: z.string(),
       meeting_id: z.string(),
@@ -237,12 +234,13 @@ export async function listMeetings() {
     }))
   });
 
-  const res = await tmRequest('GET', '/v1/meetings', {
-    userid: apiEnv.TM_ADMIN_USER_ID,
-    instanceid: "1",
-  });
-
-  return zRes.parse(res);
+  return zRes.parse(
+    await tmRequest('GET', '/v1/meetings/' + meetingId,
+      {
+        userid: tmUserId,
+        instanceid: "1",
+      })
+  ).meeting_info_list[0];
 }
 
 /**
@@ -250,7 +248,7 @@ export async function listMeetings() {
  * 
  * https://cloud.tencent.com/document/product/1095/51189
  */
-export async function listRecords() {
+export async function listRecords(tmUserId: string) {
   console.log(LOG_HEADER, 'listRecords()');
   const zRecordMeetings = z.object({
     meeting_record_id: z.string(), // needed for script download
@@ -287,7 +285,7 @@ export async function listRecords() {
   var page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
-      userid: apiEnv.TM_ADMIN_USER_ID,
+      userid: tmUserId,
       // 31d is earliest allowed date
       start_time: JSON.stringify(Math.trunc(Date.now() / 1000 - 31 * 24 * 3600)),
       end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
@@ -306,7 +304,7 @@ export async function listRecords() {
  * 
  * https://cloud.tencent.com/document/product/1095/51174
  */
-export async function getRecordURLs(meetingRecordId: string) {
+export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
   console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
   const zRes = z.object({
     // meeting_record_id: z.string(),
@@ -336,7 +334,7 @@ export async function getRecordURLs(meetingRecordId: string) {
 
   const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
     meeting_record_id: meetingRecordId,
-    userid: apiEnv.TM_ADMIN_USER_ID,
+    userid: tmUserId,
   }));
 
   if (res.total_page != 1) throw paginationNotSupported();

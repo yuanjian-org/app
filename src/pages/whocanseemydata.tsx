@@ -18,10 +18,10 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import Role, { AllRoles, RoleProfiles } from '../shared/Role';
 
 const Page: NextPageWithLayout = () => {
-  const { data: privileged } = trpcNext.users.listPriviledged.useQuery();
+  const { data: privileged } = trpcNext.users.listPriviledgedUserDataAccess.useQuery();
 
   return <>
-    <PageBreadcrumb current='谁能看到我的数据' parents={[{ name: '首页', link: '/' }]} />
+    <PageBreadcrumb current='谁能看到我的数据' />
     <Flex direction='column' gap={10}>
       <Text>
         <Link isExternal href='http://yuanjian.org'>远见教育基金会</Link>（远见）致力保护个人隐私，仅收集供服务所需的最少信息。
@@ -78,7 +78,7 @@ function Privileged(props: any) {
         <Tr><Th>角色</Th><Th>职责</Th><Th>人员名单</Th></Tr>
       </Thead>
       <Tbody>{
-        AllRoles.filter(r => RoleProfiles[r].privileged).map(r => <Tr key={r}>
+        AllRoles.filter(r => RoleProfiles[r].privilegedUserDataAccess).map(r => <Tr key={r}>
           <Td>{dp(r)}</Td>
           <Td>{RoleProfiles[r].actions}</Td>
           <Td>{props.privileged

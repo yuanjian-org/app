@@ -1,7 +1,9 @@
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
+import migrateData from "./migrateData";
 
 console.log();
 console.log("Syncing database... It may take a while. Grab a coffee.");
-console.log();
 
-sequelizeInstance.sync({ alter: { drop: false } }).then();
+sequelizeInstance.sync({ alter: { drop: false } }).then(
+  () => migrateData().then()
+);

@@ -9,11 +9,11 @@ import browserEnv from "./browserEnv";
 import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
-import UserProfile from './shared/UserProfile'
-import NavBarFrame, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/NavBars'
+import User from './shared/User'
+import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
-  [x: string]: any
+  unlimitedPageWidth?: boolean,
 }
 export default function AppLayout(props: AppLayoutProps) {
   useEffect(() => {
@@ -30,15 +30,15 @@ export default function AppLayout(props: AppLayoutProps) {
   )
 }
 
-const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
+  const [user, setUser] = useState<User | null>(null);
   const userFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       if (await guard.trackSession()) {
-        // For some reason ts cries when `as UserProfile` is absent
-        setUser(await trpc.me.profile.query() as UserProfile);
+        // For some reason ts cries when `as User` is absent
+        setUser(await trpc.users.me.query() as User);
       } else {
         location.href = '/login';
       }
@@ -71,7 +71,7 @@ const Guarded: FC<{ children: (_: UserProfile) => ReactNode }> = (props) => {
 
 function AppContent(props: AppLayoutProps) {
   return (
-    <NavBarFrame>
+    <NavBars>
       <Box
         marginTop={sidebarContentMarginTop}
         paddingX={{ 
@@ -80,7 +80,7 @@ function AppContent(props: AppLayoutProps) {
         }}
         maxWidth={{
           base: "100%",
-          xl: "1200px"
+          ...props.unlimitedPageWidth ? {} : { xl: "1200px" }
         }}
         // TODO: these hard-coded numbers are empirically measured footer heights. Replace them with constants.
         minHeight={{
@@ -91,6 +91,6 @@ function AppContent(props: AppLayoutProps) {
         {props.children}
       </Box>
       <Footer />
-    </NavBarFrame>
+    </NavBars>
   );
 }

@@ -1,14 +1,6 @@
 import {
   Box,
-  Button,
-  Icon,
-  Input,
   Stack,
-  InputGroup,
-  InputLeftAddon,
-  InputRightAddon,
-  Alert,
-  AlertIcon,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -18,9 +10,9 @@ import {
   useEditableControls,
   ButtonGroup,
   IconButton,
-  Flex,
   Spacer,
   HStack,
+  SimpleGrid,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -29,6 +21,8 @@ import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import { useUserContext } from 'UserContext';
+import { isValidChineseName } from 'shared/strings';
+import Loader from 'components/Loader';
 
 // Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {
@@ -40,20 +34,17 @@ const UserProfile: NextPageWithLayout = () => {
     setName(user.name || '')
   }, [user]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (newName: string) => {
     setNotLoaded(true);
 
-    if (name) {
+    if (newName) {
       const updatedUser = structuredClone(user);
-      updatedUser.name = name;
+      updatedUser.name = newName;
 
-      // TODO: Handle error display globally. Redact server-side errors.
       try {
         await trpc.users.update.mutate(updatedUser);
         toast.success("个人信息已保存")
         setUser(updatedUser);
-      } catch(e) {
-        toast.error((e as Error).message);
       } finally {
         setNotLoaded(false);
       }
@@ -83,14 +74,14 @@ const UserProfile: NextPageWithLayout = () => {
   const EmailField = () => {
     return (
       <FormControl>
-        <HStack spacing='24px'>
+        <SimpleGrid columns={8}>
           <Box>
-            <FormLabel marginTop='10px'>邮箱</FormLabel>
+            <FormLabel>邮箱</FormLabel>
           </Box>
-          <Box>
+          <Box width="200%">
             {user.email}
           </Box>
-        </HStack>
+        </SimpleGrid>
       </FormControl>
     )
   }
@@ -98,21 +89,20 @@ const UserProfile: NextPageWithLayout = () => {
   const NameField = () => {
     return (
       <FormControl isInvalid={!name}>
-        <HStack spacing='24px'>
+        <SimpleGrid columns={8}>
           <Box>
-            <FormLabel marginTop='10px'>中文全名</FormLabel>
+            <FormLabel marginTop='5px'>中文全名</FormLabel>
           </Box>
-          <Box>
-            <Editable defaultValue={user.name ? user.name : undefined}>
+          <Box width="200%">
+            <Editable 
+              defaultValue={user.name ? user.name : undefined}
+              onSubmit={(newName) => handleSubmit(newName)}
+            >
               <HStack>
                 <Box>
                   <EditablePreview />
-                  <Input
-                    as={EditableInput}
+                  <EditableInput 
                     backgroundColor={notLoaded ? 'brandscheme' : 'white'}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    isReadOnly={notLoaded}
                   />
                 </Box>
                 <Spacer />
@@ -122,7 +112,7 @@ const UserProfile: NextPageWithLayout = () => {
               </HStack>
             </Editable>
           </Box>
-        </HStack>
+        </SimpleGrid>
         <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
       </FormControl>
     )
@@ -133,17 +123,9 @@ const UserProfile: NextPageWithLayout = () => {
       <Stack spacing={4}>
         <EmailField />
         <NameField />
-        <Box>
-          <Button 
-            onClick={handleSubmit} 
-            isLoading={notLoaded}
-            loadingText="保存中"
-            variant='brand'
-            marginBottom='24px'
-          >
-            保存
-          </Button>
-        </Box>
+        {
+          notLoaded && <Loader loadingText='保存中...'/>
+        }
       </Stack>
     </Box>
   )

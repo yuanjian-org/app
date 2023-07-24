@@ -4,6 +4,14 @@ import {
   Button,
   Center,
   Flex,
+  HStack,
+  Modal,
+  ModalHeader,
+  ModalContent,
+  ModalCloseButton,
+  ModalOverlay,
+  ModalBody,
+  ModalFooter,
   SimpleGrid,
   Spacer,
   Text,
@@ -11,7 +19,10 @@ import {
   WrapItem,
   LinkBox,
   LinkOverlay,
-  AvatarGroup
+  AvatarGroup,
+  ButtonProps,
+  SimpleGridProps,
+  Tag,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
@@ -19,27 +30,38 @@ import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
-import { sidebarBreakpoint } from './NavBars';
+import ModalWithBackdrop from './ModalWithBackdrop';
+import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
-import { MinUserProfile } from 'shared/UserProfile';
+import { MinUser } from 'shared/User';
+import { Group, GroupCountingTranscripts } from 'shared/Group';
+import QuestionIconTooltip from './QuestionIconTooltip';
 
-// @ts-ignore TODO: fix me.
-export default function GroupBar(props: {
-  group: any,
+export default function GroupBar({
+  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
+} : {
+  group: Group | GroupCountingTranscripts,
   showSelf?: boolean,             // default: false
   showJoinButton?: boolean,       // default: false
   showTranscriptCount?: boolean,  // default: false
   showTranscriptLink?: boolean,   // Effective ony if showTranscriptCount is true
   abbreviateOnMobile?: boolean,   // default: true
-}) {
+  showGroupName?: boolean,        // default: true
+} & SimpleGridProps) {
   const [user] = useUserContext();
-  const transcriptCount = (props.group.transcripts || []).length;
+  const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
+  const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.myGroups.generateMeetingLink.mutate({ groupId: groupId });
-      window.location.href = link;
+      const link = await trpc.meetings.join.mutate({ groupId: groupId });
+      if (!link) {
+        setShowMeetingQuotaWarning(true);
+        setJoining(false);
+      } else {
+        window.location.href = link;
+      }
     } catch (e) {
       // See comments in the `finally` block below.
       setJoining(false);
@@ -51,48 +73,47 @@ export default function GroupBar(props: {
     }
   }
 
+  if (showGroupName == undefined) showGroupName = true;
+
   return (
     <SimpleGrid 
-      columns={(props.showJoinButton ? 2 : 1)} 
-      templateColumns={(props.showJoinButton ? '6em ' : '') + '1fr'}
+      columns={(showJoinButton ? 2 : 1)} 
+      templateColumns={(showJoinButton ? '6em ' : '') + '1fr'}
       spacing={4}
+      {...rest}
     >
+      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
       {/* row 1 col 1 */}
-      {props.showJoinButton && <Box />}
+      {showGroupName && showJoinButton && <Box />}
 
       {/* row 1 col 2 */}
-      <Text color='grey' fontSize='sm'>{formatGroupName(props.group.name, props.group.users.length)}</Text>
-      
+      {showGroupName ? <GroupTagOrName group={group} /> : null}
+
       {/* row 2 col 1 */}
-      {props.showJoinButton &&
-        <Center>
-          <Button
-            boxShadow="md"
-            borderRadius="16px"
-            bgColor="white"
-            leftIcon={<MdVideocam />}
+      {showJoinButton &&
+        <Box>
+          <JoinButton
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={async () => launchMeeting(props.group.id)}
-          >加入</Button>
-          <Spacer />
-        </Center>
+            onClick={async () => launchMeeting(group.id)}
+          >加入</JoinButton>
+        </Box>
       }
 
       {/* row 2 col 2 */}
       <LinkBox>
         <Flex>
           <UserChips 
-            currentUserId={props.showSelf ? undefined : user.id} 
-            users={props.group.users}
-            abbreviateOnMobile={props.abbreviateOnMobile}
+            currentUserId={showSelf ? undefined : user.id} 
+            users={group.users}
+            abbreviateOnMobile={abbreviateOnMobile}
           />
 
-          {props.showTranscriptCount && <>
+          {showTranscriptCount && <>
             <Spacer marginLeft={4}/>
             <Center>
               <Text color={transcriptCount ? 'default': 'gray'}>
-                {props.showTranscriptLink ?
-                  <LinkOverlay as={Link} href={`/groups/${props.group.id}`}>
+                {showTranscriptLink ?
+                  <LinkOverlay as={Link} href={`/groups/${group.id}`}>
                     详情 ({transcriptCount})
                   </LinkOverlay>
                   :
@@ -107,9 +128,48 @@ export default function GroupBar(props: {
   );
 }
 
+function GroupTagOrName({ group }: { group: Group }) {
+  return group.partnershipId ?
+    // Without this Box the tag will fill the whole grid row
+    <Box justifyItems="left"><Tag color="white" bgColor="gray">一对一导师</Tag></Box>
+    :
+    <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>;
+}
+
+export function JoinButton(props: ButtonProps) {
+  return <Button
+    boxShadow="md"
+    borderRadius="16px"
+    bgColor="white"
+    leftIcon={<MdVideocam />}
+    {...props}
+  >{props.children ? props.children : "加入"}</Button>;
+}
+
+export function OngoingMeetingWarning(props: {
+  onClose: () => void,
+}) {
+  return (<ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalOverlay />
+    <ModalContent>
+      <ModalHeader>无法加入会议</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <p>抱歉，同时进行的会议数量已超过上线。请稍后再试。<br /><br />系统管理员已收到通知，会及时处理。</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={props.onClose}>
+          确认
+        </Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>
+  );
+}
+
 export function UserChips(props: { 
   currentUserId?: string, 
-  users: MinUserProfile[],
+  users: MinUser[],
   abbreviateOnMobile?: boolean, // default: true
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);

@@ -6,9 +6,11 @@ import Group from "./models/Group";
 import GroupUser from "./models/GroupUser";
 import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
-import OngoingMeetingCount from "./models/OngoingMeetingCount";
+import OngoingMeetings from "./models/OngoingMeetings";
 import Partnership from './models/Partnership';
 import Assessment from "./models/Assessment";
+import Interview from "./models/Interview";
+import InterviewFeedback from "./models/InterviewFeedback";
 
 const db = {
   Partnership,
@@ -17,8 +19,10 @@ const db = {
   GroupUser, 
   Transcript, 
   Summary, 
-  OngoingMeetingCount,
+  OngoingMeetings,
   Assessment,
+  Interview,
+  InterviewFeedback,
 };
 
 export default db;

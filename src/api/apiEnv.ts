@@ -18,9 +18,11 @@ class ApiEnv extends SharedEnv {
   TM_APP_ID: string = process.env.TM_APP_ID ?? '';
   TM_SECRET_ID: string = process.env.TM_SECRET_ID ?? '';
   TM_SECRET_KEY: string = process.env.TM_SECRET_KEY ?? '';
-  TM_ADMIN_USER_ID: string = process.env.TM_ADMIN_USER_ID ?? '';
+  TM_USER_IDS: string[] = (process.env.TM_USER_IDS ?? '').split(',');
 
   SENDGRID_API_KEY: string = process.env.SENDGRID_API_KEY ?? '';
+
+  WEBHOOK_TOKEN: string = process.env.WEBHOOK_TOKEN ?? '';
 
   hasSendGrid() { return this.SENDGRID_API_KEY.length != 0; }
 

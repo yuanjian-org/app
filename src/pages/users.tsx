@@ -23,12 +23,13 @@ import {
   Wrap,
   WrapItem,
   Flex,
+  TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import UserProfile from 'shared/UserProfile';
+import User from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
@@ -39,8 +40,8 @@ import Loader from 'components/Loader';
 import z from "zod";
 
 const Page: NextPageWithLayout = () => {
-  const { data, refetch } : { data: UserProfile[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
-  const [userBeingEdited, setUserBeingEdited] = useState<UserProfile | null>(null);
+  const { data, refetch } : { data: User[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
+  const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
   const [me] = useUserContext();
   
@@ -59,40 +60,42 @@ const Page: NextPageWithLayout = () => {
         <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
       </Box>
       {!data ? <Loader /> :
-        <Table minWidth={200}>
-          <Thead>
-            <Tr>
-              <Th>电子邮箱</Th>
-              <Th>姓名</Th>
-              <Th>拼音</Th>
-              <Th>角色</Th>
-              <Th />
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data.map((u: any) => (
-              <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
-                <Td>{u.email}</Td>
-                <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
-                <Td>{toPinyin(u.name ?? '')}</Td>
-                <Td>
-                  <Wrap>
-                  {u.roles.map((r: Role) => {
-                    const rp = RoleProfiles[r];
-                    return <WrapItem key={r}>
-                      <Tag bgColor={rp.privileged ? "brown" : "brand.c"} color="white">
-                        {rp.displayName}
-                      </Tag>
-                    </WrapItem>;
-                  })}
-                  </Wrap>
-                </Td>
-                <Td><EditIcon /></Td>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>电子邮箱</Th>
+                <Th>姓名</Th>
+                <Th>拼音</Th>
+                <Th>角色</Th>
+                <Th />
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-    }
+            </Thead>
+            <Tbody>
+              {data.map((u: any) => (
+                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
+                  <Td>{u.email}</Td>
+                  <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
+                  <Td>{toPinyin(u.name ?? '')}</Td>
+                  <Td>
+                    <Wrap>
+                    {u.roles.map((r: Role) => {
+                      const rp = RoleProfiles[r];
+                      return <WrapItem key={r}>
+                        <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
+                          {rp.displayName}
+                        </Tag>
+                      </WrapItem>;
+                    })}
+                    </Wrap>
+                  </Td>
+                  <Td><EditIcon /></Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      }
     </Flex>
   </>
 }
@@ -102,7 +105,7 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default Page;
 
 function UserEditor(props: { 
-  user?: UserProfile, // When absent, create a new user.
+  user?: User, // When absent, create a new user.
   onClose: () => void,
 }) {
   const u = props.user ?? {
