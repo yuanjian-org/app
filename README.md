@@ -36,8 +36,8 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 | `src/api` | Files to be executed on the server only. |
 | `src/pages` | `next.js` [Page Router](https://nextjs.org/docs/pages/building-your-application/routing). Migrating to App Router remains future work. |
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
-| `tools` | Command-line scripts.
-| `test` | End-to-end tests.
+| `tools` | Command-line scripts. |
+| `cypress/e2e` | End-to-end tests. See [`cypress/README.md`](cypress/README.md) for details. |
 
 **IMPORTANT**: To prevent security and programming issues,
 

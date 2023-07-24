@@ -72,10 +72,8 @@
     "start": "next start",
     "lint": "next lint",
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
-    "predeploy": "yarn run build",
-    "deploy": "gh-pages -d build",
-    "cypress-run": "cypress run --project ./test/",
-    "cypress-open": "cypress open --project ./test/"
+    "cypress-run": "cypress run",
+    "cypress-open": "cypress open"
   },
   "browserslist": {
     "production": [
