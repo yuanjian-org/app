@@ -23,7 +23,7 @@ developed by VEF volunteers.
 - Full stack: [Next.js](https://nextjs.org/)
 - Typing: `typescript`, [`trpc`](https://trpc.io/), `zod`
 - UI: [Chakra UI](https://chakra-ui.com/)
-- Testing: [Cypress](https://www.cypress.io/)
+- End-to-end Testing: [Cypress](https://www.cypress.io/)
 
 ## Code Structure
 
