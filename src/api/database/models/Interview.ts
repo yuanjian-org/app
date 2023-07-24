@@ -11,16 +11,14 @@ import {
   AllowNull,
   Unique,
   HasOne,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
-import z from "zod";
 import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
-
-const zInterviewType = z.enum(["Mentee", "Mentor"]);
-type InterviewType = z.TypeOf<typeof zInterviewType>;
+import { InterviewType, zInterviewType } from "../../../shared/Interview";
 
 @Table({
   paranoid: true,
@@ -42,14 +40,31 @@ class Interview extends Model {
   @Column(UUID)
   intervieweeId: string;
 
+  /**
+   * Associations
+   */
+
   @BelongsTo(() => User)
   interviewee: User;
 
   @HasMany(() => InterviewFeedback)
-  feedbacks: InterviewFeedback;
+  feedbacks: InterviewFeedback[];
 
   @HasOne(() => Group)
   group: Group;
+
+  @BeforeDestroy
+  static async cascadeDestroy(i: Interview, options: any) {
+    const promises1 = (await InterviewFeedback.findAll({
+      where: { interviewId: i.id }
+    })).map(async feedback => { await feedback.destroy(options); });
+
+    const promises2 = (await Group.findAll({
+      where: { interviewId: i.id }
+    })).map(async g => { await g.destroy(options); });
+
+    await Promise.all([...promises1, ...promises2]);
+  }
 }
 
 export default Interview;

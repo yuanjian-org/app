@@ -6,6 +6,7 @@ export const zGroup = z.object({
   name: z.string().nullable(),
   users: z.array(zMinUser),
   partnershipId: z.string().uuid().nullable(),
+  interviewId: z.string().uuid().nullable(),
 });
 export type Group = z.TypeOf<typeof zGroup>;
 
@@ -25,3 +26,7 @@ export const zGroupWithTranscripts = zGroup.merge(z.object({
   })),
 }));
 export type GroupWithTranscripts = z.TypeOf<typeof zGroupWithTranscripts>;
+
+export function isOwned(g: Group) {
+  return g.partnershipId || g.interviewId;
+}

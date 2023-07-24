@@ -6,13 +6,17 @@ export default function UserSelector(props: {
   onSelect: (userIds: string[]) => void;
   placeholder?: string;
   isMulti?: boolean;    // Default is false
+  initialValue?: {
+    label: string,
+    value: string,
+  }[],
 }) {
   const isMulti = props.isMulti ? true : false;
   type Option = {
     label: string;
     value: string;
   };
-  const [value, setValue] = useState<Option[]>([]);
+  const [value, setValue] = useState<Option[]>(props.initialValue ? props.initialValue : []);
 
   const LoadOptions = (
     inputValue: string,

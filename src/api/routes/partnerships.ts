@@ -15,7 +15,7 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { isPermitted } from "../../shared/Role";
 import Group from "api/database/models/Group";
 import { 
-  defaultAttributesForPartnership,
+  defaultPartnershipAttributes,
   includeForGroup,
   includeForPartnership } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
@@ -56,7 +56,7 @@ const create = procedure
 
     // Create the group
     invariant(partnership);
-    await createGroup([input.mentorId, input.menteeId], partnership.id, t);
+    await createGroup([input.mentorId, input.menteeId], partnership.id, null, t);
   });
 });
 
@@ -66,7 +66,7 @@ const list = procedure
   .query(async () => 
 {
   const res = await db.Partnership.findAll({
-    attributes: defaultAttributesForPartnership,
+    attributes: defaultPartnershipAttributes,
     include: [
       ...includeForPartnership,
       {
@@ -85,7 +85,7 @@ const listMineAsMentor = procedure
 {
   return await db.Partnership.findAll({
     where: { mentorId: ctx.user.id },
-    attributes: defaultAttributesForPartnership,
+    attributes: defaultPartnershipAttributes,
     include: includeForPartnership,
   });
 });
@@ -120,7 +120,7 @@ const getWithAssessmentsDeprecated = procedure
   .query(async ({ ctx, input: id }) =>
 {
   const res = await db.Partnership.findByPk(id, {
-    attributes: defaultAttributesForPartnership,
+    attributes: defaultPartnershipAttributes,
     include: [
       ...includeForPartnership,
       Assessment,

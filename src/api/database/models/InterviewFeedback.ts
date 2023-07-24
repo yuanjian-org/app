@@ -8,8 +8,9 @@ import {
   Default,
   AllowNull,
   Unique,
+  BelongsTo,
 } from "sequelize-typescript";
-import { CreationOptional, JSONB, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import z from "zod";
@@ -38,6 +39,16 @@ class InterviewFeedback extends Model {
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   feedback: object | null;
+
+  @Column(DATE)
+  feedbackCreatedAt: string | null;
+
+  /**
+   * Associations
+   */
+
+  @BelongsTo(() => User)
+  interviewer: User;
 }
 
 export default InterviewFeedback;
