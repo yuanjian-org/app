@@ -2,14 +2,14 @@ import React, { useCallback } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import trpc, { trpcNext } from "../../../../trpc";
-import PageBreadcrumb from 'components/PageBreadcrumb';
+import PageBreadcrumb from '../../../../components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import { parseQueryParameter } from '../../../../parseQueryParamter';
-import Assessment from 'shared/Assessment';
-import Loader from 'components/Loader';
-import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
+import Assessment from '../../../../shared/Assessment';
+import Loader from '../../../../components/Loader';
+import { AutosavingMarkdownEditor } from '../../../../components/MarkdownEditor';
 import { Heading, Text, Flex } from '@chakra-ui/react';
-import { getYearText } from 'components/AssessmentsPanel';
+import { getYearText } from '../../../../components/AssessmentsPanel';
 
 const Page: NextPageWithLayout = () => <AssessmentEditor />;
 

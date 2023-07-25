@@ -13,11 +13,11 @@ import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { isPermitted } from "../../shared/Role";
-import Group from "api/database/models/Group";
+import Group from "../../api/database/models/Group";
 import { 
   defaultPartnershipAttributes,
   includeForGroup,
-  includeForPartnership } from "api/database/models/attributesAndIncludes";
+  includeForPartnership } from "../../api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 

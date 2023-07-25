@@ -7,7 +7,7 @@ import { zAssessment } from "../../shared/Assessment";
 import Partnership from "../database/models/Partnership";
 import { TRPCError } from "@trpc/server";
 import { noPermissionError, notFoundError } from "../errors";
-import { includeForPartnership } from "api/database/models/attributesAndIncludes";
+import { includeForPartnership } from "../../api/database/models/attributesAndIncludes";
 
 /**
  * @returns the ID of the created assessment.

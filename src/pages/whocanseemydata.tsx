@@ -10,11 +10,11 @@ import {
   Thead,
   Tbody,
 } from '@chakra-ui/react';
-import AppLayout from 'AppLayout';
+import AppLayout from '../AppLayout';
 import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
-import Loader from 'components/Loader';
-import PageBreadcrumb from 'components/PageBreadcrumb';
+import Loader from '../components/Loader';
+import PageBreadcrumb from '../components/PageBreadcrumb';
 import Role, { AllRoles, RoleProfiles } from '../shared/Role';
 
 const Page: NextPageWithLayout = () => {

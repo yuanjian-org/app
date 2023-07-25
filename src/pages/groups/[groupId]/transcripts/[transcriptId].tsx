@@ -12,15 +12,15 @@ import React, { useState } from 'react';
 import { NextPageWithLayout } from "../../../../NextPageWithLayout";
 import AppLayout from "../../../../AppLayout";
 import { trpcNext } from "../../../../trpc";
-import GroupBar from 'components/GroupBar';
+import GroupBar from '../../../../components/GroupBar';
 import { Transcript } from '../../../../shared/Transcript';
-import PageBreadcrumb from 'components/PageBreadcrumb';
+import PageBreadcrumb from '../../../../components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
-import { prettifyDate, prettifyDuration } from 'shared/strings';
+import { prettifyDate, prettifyDuration } from '../../../../shared/strings';
 import { parseQueryParameter } from '../../../../parseQueryParamter';
-import MarkdownEditor from 'components/MarkdownEditor';
-import Loader from 'components/Loader';
+import MarkdownEditor from '../../../../components/MarkdownEditor';
+import Loader from '../../../../components/Loader';
 
 const Page: NextPageWithLayout = () => <TranscriptCard />;
 

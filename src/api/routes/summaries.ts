@@ -8,7 +8,7 @@ import invariant from "tiny-invariant";
 import Group from "../database/models/Group";
 import { TRPCError } from "@trpc/server";
 import { safeDecodeMeetingSubject } from "./meetings";
-import apiEnv from "api/apiEnv";
+import apiEnv from "../../api/apiEnv";
 
 const crudeSummaryKey = "原始文字";
 

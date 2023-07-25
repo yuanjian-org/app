@@ -15,14 +15,14 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
-import AppLayout from 'AppLayout'
+import AppLayout from '../AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { toast } from "react-toastify";
 import { useUserContext } from 'UserContext';
-import { isValidChineseName } from 'shared/strings';
-import Loader from 'components/Loader';
+import { isValidChineseName } from '../shared/strings';
+import Loader from '../components/Loader';
 
 // Dedupe code with index.tsx:SetNameModal
 const UserProfile: NextPageWithLayout = () => {

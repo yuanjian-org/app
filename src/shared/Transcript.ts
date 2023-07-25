@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zGroup } from "shared/Group";
+import { zGroup } from "../shared/Group";
 
 export const zTranscript = z.object({
     transcriptId: z.string(),

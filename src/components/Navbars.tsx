@@ -30,7 +30,7 @@ import { Guard, useGuard } from "@authing/guard-react18";
 import { useUserContext } from 'UserContext';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
-import colors from 'theme/colors';
+import colors from '../theme/colors';
 import AutosaveIndicator, { 
   AutosaveState,
   addPendingSaver,
@@ -38,9 +38,9 @@ import AutosaveIndicator, {
   removePendingSaver,
   setPendingSaverError
 } from './AutosaveIndicator';
-import AutosaveContext from 'AutosaveContext';
+import AutosaveContext from '../AutosaveContext';
 import Sidebar from './Sidebar';
-import { formatUserName } from 'shared/strings';
+import { formatUserName } from '../shared/strings';
 
 export const sidebarWidth = 60;
 export const topbarHeight = "60px";

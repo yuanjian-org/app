@@ -4,7 +4,7 @@ import { z } from "zod";
 import db from "../database/db";
 import { TRPCError } from "@trpc/server";
 import { isPermitted } from "../../shared/Role";
-import { zTranscript } from "shared/Transcript";
+import { zTranscript } from "../../shared/Transcript";
 import { includeForGroup } from "../database/models/attributesAndIncludes";
 
 const get = procedure

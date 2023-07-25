@@ -1,4 +1,4 @@
-import apiEnv from "api/apiEnv";
+import apiEnv from "../../api/apiEnv";
 import { router } from "../trpc";
 import submitMenteeApplication from "./submitMenteeApplication";
 

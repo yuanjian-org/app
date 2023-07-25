@@ -1,15 +1,15 @@
-import AppLayout from 'AppLayout';
+import AppLayout from '../../AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
-import trpc, { trpcNext } from 'trpc';
-import Loader from 'components/Loader';
+import { parseQueryParameter } from '../../parseQueryParamter';
+import trpc, { trpcNext } from '../../trpc';
+import Loader from '../../components/Loader';
 import { Flex, Grid, GridItem, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Heading, Tooltip, Box, Center } from '@chakra-ui/react';
-import GroupBar from 'components/GroupBar';
-import { sidebarBreakpoint } from 'components/Navbars';
-import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import AssessmentsPanel from 'components/AssessmentsPanel';
-import { PrivateMentorNotes } from 'shared/Partnership';
+import GroupBar from '../../components/GroupBar';
+import { sidebarBreakpoint } from '../../components/Navbars';
+import { AutosavingMarkdownEditor } from '../../components/MarkdownEditor';
+import AssessmentsPanel from '../../components/AssessmentsPanel';
+import { PrivateMentorNotes } from '../../shared/Partnership';
 import { QuestionIcon } from '@chakra-ui/icons';
 
 const Page: NextPageWithLayout = () => {

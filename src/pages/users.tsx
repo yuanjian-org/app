@@ -26,17 +26,17 @@ import {
   TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
+import AppLayout from '../AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import User from 'shared/User';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName, toPinyin } from 'shared/strings';
-import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
-import trpc from 'trpc';
+import User from '../shared/User';
+import ModalWithBackdrop from '../components/ModalWithBackdrop';
+import { isValidChineseName, toPinyin } from '../shared/strings';
+import Role, { AllRoles, RoleProfiles, isPermitted } from '../shared/Role';
+import trpc from '../trpc';
 import { useUserContext } from 'UserContext';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
-import Loader from 'components/Loader';
+import Loader from '../components/Loader';
 import z from "zod";
 
 const Page: NextPageWithLayout = () => {

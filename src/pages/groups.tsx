@@ -20,18 +20,18 @@ import {
   Checkbox
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
+import AppLayout from '../AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
-import GroupBar from 'components/GroupBar';
-import UserChip from 'components/UserChip';
+import GroupBar from '../components/GroupBar';
+import UserChip from '../components/UserChip';
 import { Group } from '../shared/Group';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import ModalWithBackdrop from '../components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
-import { formatGroupName } from 'shared/strings';
+import { formatGroupName } from '../shared/strings';
 import { EditIcon } from '@chakra-ui/icons';
-import Loader from 'components/Loader';
+import Loader from '../components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip"
 

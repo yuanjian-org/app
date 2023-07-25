@@ -27,12 +27,12 @@ import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { useUserContext } from 'UserContext';
-import { formatGroupName } from 'shared/strings';
+import { formatGroupName } from '../shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
-import { MinUser } from 'shared/User';
-import { Group, GroupCountingTranscripts, isOwned } from 'shared/Group';
+import { MinUser } from '../shared/User';
+import { Group, GroupCountingTranscripts, isOwned } from '../shared/Group';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest

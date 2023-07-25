@@ -1,5 +1,6 @@
 {
   "extends": "next/core-web-vitals",
+  "plugins": ["import"],
   "rules": {
     "object-curly-spacing": ["warn", "always"],
     "import/no-restricted-paths": ["error",
@@ -23,6 +24,31 @@
         "message": "Files outside of `src/api` must not refer to files in `src/api`. See README.md"
       }]
     }],
-    "import/no-absolute-path":"error"
+    "import/no-absolute-path":"error",
+    "no-restricted-imports": [
+      "error",{
+        "paths":[
+          // files under src
+        "AppLayout",
+        "AutosaveContext",
+        "guard",
+        "NextPageWithLayout",
+        "parseQueryParamter",
+        "requestFinishLink",
+        "trpc",
+        "UseContext"],
+        "patterns": [
+          {
+            "group": [
+              "api/*",
+              "components/*",
+              "pages/*",
+              "shared/*",
+              "theme/*"
+            ],
+            "message": "Please use relatvie path"
+          }
+        ]
+    }]
   }
 }

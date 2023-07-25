@@ -18,13 +18,13 @@ import AppLayout from "../AppLayout";
 import { useUserContext } from "../UserContext";
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
-import GroupBar from 'components/GroupBar';
-import PageBreadcrumb from 'components/PageBreadcrumb';
+import GroupBar from '../components/GroupBar';
+import PageBreadcrumb from '../components/PageBreadcrumb';
 import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import ModalWithBackdrop from '../components/ModalWithBackdrop';
 import { isValidChineseName } from '../shared/strings';
-import Loader from 'components/Loader';
-import { isPermitted } from 'shared/Role';
+import Loader from '../components/Loader';
+import { isPermitted } from '../shared/Role';
 
 const Index: NextPageWithLayout = () => {
   const [user] = useUserContext();

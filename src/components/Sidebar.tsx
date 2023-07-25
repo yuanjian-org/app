@@ -15,14 +15,14 @@ import {
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
-import { isPermitted } from 'shared/Role';
+import { isPermitted } from '../shared/Role';
 import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
 
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import { MdChevronRight, MdFace } from 'react-icons/md';
-import { trpcNext } from 'trpc';
-import { Partnership } from 'shared/Partnership';
+import { trpcNext } from '../trpc';
+import { Partnership } from '../shared/Partnership';
 import {
   MdPerson,
   MdHome,
@@ -33,8 +33,8 @@ import {
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
-import { parseQueryParameter } from 'parseQueryParamter';
-import { formatUserName } from 'shared/strings';
+import { parseQueryParameter } from '../parseQueryParamter';
+import { formatUserName } from '../shared/strings';
 
 export interface SidebarItem {
   name: string,

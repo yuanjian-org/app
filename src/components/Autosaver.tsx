@@ -1,6 +1,6 @@
-import { useAutosaveContext } from 'AutosaveContext';
+import { useAutosaveContext } from '../AutosaveContext';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import sleep from 'shared/sleep';
+import sleep from '../shared/sleep';
 
 const autosaveDelayMs = 500;
 const retryIntervalSec = 8;

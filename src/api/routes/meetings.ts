@@ -5,12 +5,12 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import DbGroup from "../database/models/Group";
 import { createMeeting, getMeeting } from "../TencentMeeting";
-import { formatGroupName } from "shared/strings";
-import apiEnv from "api/apiEnv";
+import { formatGroupName } from "../../shared/strings";
+import apiEnv from "../../api/apiEnv";
 import sleep from "../../shared/sleep";
-import { noPermissionError, notFoundError } from "api/errors";
-import { emailRoleIgnoreError } from 'api/sendgrid';
-import sequelizeInstance from 'api/database/sequelizeInstance';
+import { noPermissionError, notFoundError } from "../../api/errors";
+import { emailRoleIgnoreError } from '../../api/sendgrid';
+import sequelizeInstance from '../../api/database/sequelizeInstance';
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the

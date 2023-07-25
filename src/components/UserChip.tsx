@@ -1,6 +1,6 @@
 import { Avatar, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
-import { MinUser } from 'shared/User';
+import { MinUser } from '../shared/User';
 
 export default function UserChip(props: {
   user: MinUser;

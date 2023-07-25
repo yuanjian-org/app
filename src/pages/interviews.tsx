@@ -24,17 +24,17 @@ import {
   LinkBox,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
+import AppLayout from '../AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import trpc from 'trpc';
-import Loader from 'components/Loader';
-import UserSelector from 'components/UserSelector';
+import ModalWithBackdrop from './../components/ModalWithBackdrop';
+import trpc from '../trpc';
+import Loader from './../components/Loader';
+import UserSelector from './../components/UserSelector';
 import invariant from 'tiny-invariant';
-import { formatUserName, toPinyin } from 'shared/strings';
+import { formatUserName, toPinyin } from './../shared/strings';
 import { useRouter } from 'next/router';
-import { Interview, InterviewType } from 'shared/Interview';
+import { Interview, InterviewType } from './../shared/Interview';
 import { AddIcon } from '@chakra-ui/icons';
 
 const Page: NextPageWithLayout = () => {

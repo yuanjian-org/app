@@ -21,20 +21,20 @@ import {
   TableContainer,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
+import AppLayout from '../AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import trpc from 'trpc';
+import ModalWithBackdrop from '../components/ModalWithBackdrop';
+import trpc from '../trpc';
 import { AddIcon } from '@chakra-ui/icons';
-import Loader from 'components/Loader';
-import { PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Partnership';
-import UserSelector from 'components/UserSelector';
+import Loader from '../components/Loader';
+import { PartnershipCountingAssessments, isValidPartnershipIds } from '../shared/Partnership';
+import UserSelector from '../components/UserSelector';
 import invariant from 'tiny-invariant';
 import { useUserContext } from 'UserContext';
-import { isPermitted } from 'shared/Role';
+import { isPermitted } from '../shared/Role';
 import NextLink from 'next/link';
-import { formatUserName, toPinyin } from 'shared/strings';
+import { formatUserName, toPinyin } from '../shared/strings';
 
 const Page: NextPageWithLayout = () => {
   const [user] = useUserContext();

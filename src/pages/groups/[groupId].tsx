@@ -18,11 +18,11 @@ import AppLayout from "../../AppLayout";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { GroupWithTranscripts } from '../../shared/Group';
-import GroupBar from 'components/GroupBar';
+import GroupBar from '../../components/GroupBar';
 import { trpcNext } from "../../trpc";
-import PageBreadcrumb from 'components/PageBreadcrumb';
-import { prettifyDate, prettifyDuration } from 'shared/strings';
-import Loader from 'components/Loader';
+import PageBreadcrumb from '../../components/PageBreadcrumb';
+import { prettifyDate, prettifyDuration } from '../../shared/strings';
+import Loader from '../../components/Loader';
 import { MdChevronRight } from 'react-icons/md';
 import { parseQueryParameter } from '../../parseQueryParamter';
 

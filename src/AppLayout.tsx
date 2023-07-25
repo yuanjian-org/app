@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react'
-import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer'
+import Footer, { footerBreakpoint, footerMarginTop } from './components/Footer'
 import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
@@ -10,7 +10,7 @@ import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
 import User from './shared/User'
-import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
+import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from './components/Navbars'
 
 interface AppLayoutProps extends PropsWithChildren {
   unlimitedPageWidth?: boolean,
