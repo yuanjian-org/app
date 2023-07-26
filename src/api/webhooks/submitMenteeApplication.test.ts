@@ -217,7 +217,7 @@ const outputApplication = {
   ]
 };
 
-describe('parseInput', () => {
+describe('submitMenteeApplication', () => {
   before(async () => {
     initApiServer();
     const u = await User.findOne({ where: { email: "test@email.com" } });

@@ -1,61 +1,72 @@
-import { strict as assert } from 'assert';
-import { parseSpeakerStats } from './parseSpeakerStats';
 import { expect } from 'chai';
+import { parseSpeakerStats, SpeakerStats } from './parseSpeakerStats';
 
 describe('parseSpeakerStats', () => {
+
   it('should return empty array on random string', () => {
-    const input = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+    const input = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
     expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
-  it('is a huge test that should be broken down into small atomic tests using chai instead of assert', () => {
-    // 记录没有包含发言者的姓名
-    const noName = '(00:00:10): Hello!\n';
-    assert.deepStrictEqual(parseSpeakerStats(noName), []);
+  it('should return empty array when name is missing', () => {
+    const input = '(00:00:10): Hello!\n';
+    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+  });
 
-    // 记录没有包含时间
-    const noTime = 'Speaker A: Hello!\n';
-    assert.deepStrictEqual(parseSpeakerStats(noTime), []);
+  it('should return empty array when time is missing', () => {
+    const input = 'Speaker A: Hello!\n';
+    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+  });
 
-    // 记录没有包含发言内容
-    const noContent = 'Speaker A(00:00:10):\n';
-    assert.deepStrictEqual(parseSpeakerStats(noContent), [{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  it('should return array with one element when content is missing', () => {
+    const input = 'Speaker A(00:00:10):\n';
+    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  });
 
-    // regular 3 line
-    const regular = 'Speaker A(00:00:10): Hello!\nSpeaker B(00:00:15): Hi!\nSpeaker A(00:00:20): How are you?\n';
-    assert.deepStrictEqual(parseSpeakerStats(regular), [
+  it('should calculate speaking time for regular 3 line input', () => {
+    const input = 'Speaker A(00:00:10): Hello!\nSpeaker B(00:00:15): Hi!\nSpeaker A(00:00:20): How are you?\n';
+    const expectedOutput: SpeakerStats[] = [
       { name: 'Speaker A', totalSpeakingSeconds: 5 },
       { name: 'Speaker B', totalSpeakingSeconds: 5 }
-    ]);
+    ];
+    expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
+  });
 
-    // 时间是错误的格式
-    const incorrectTimeFormat = 'Speaker A(00:60:10): Hello!\n Speaker A(00:60:20): Hello!\n';
-    assert.deepStrictEqual(parseSpeakerStats(incorrectTimeFormat), []);
+  it('should return empty array for incorrect time format', () => {
+    const input = 'Speaker A(00:60:10): Hello!\n Speaker A(00:60:20): Hello!\n';
+    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+  });
 
-    // empty
-    assert.deepStrictEqual(parseSpeakerStats(''), []);
+  it('should return empty array for empty string', () => {
+    const input = '';
+    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+  });
 
-    // 单行记录
-    const singleLine = 'Speaker A(00:00:10): Hello!\n';
-    assert.deepStrictEqual(parseSpeakerStats(singleLine), [{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  it('should return array with one element for single line record', () => {
+    const input = 'Speaker A(00:00:10): Hello!\n';
+    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  });
 
-    // 两行记录
-    const twoLines = 'Speaker A(00:00:10): Hello!\nSpeaker B(00:00:15): Hi!\n';
-    assert.deepStrictEqual(parseSpeakerStats(twoLines), [
+  it('should calculate speaking time for two lines record', () => {
+    const input = 'Speaker A(00:00:10): Hello!\nSpeaker B(00:00:15): Hi!\n';
+    expect(parseSpeakerStats(input)).to.deep.equal([
       { name: 'Speaker A', totalSpeakingSeconds: 5 },
       { name: 'Speaker B', totalSpeakingSeconds: 0 }
     ]);
+  });
 
-    // 不完整的记录
-    const incompleteRecord = 'Speaker A(00:00:10): Hello!\nSpeaker B';
-    assert.deepStrictEqual(parseSpeakerStats(incompleteRecord), [{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  it('should return array with one element for incomplete record', () => {
+    const input = 'Speaker A(00:00:10): Hello!\nSpeaker B';
+    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+  });
 
-    // 格式错误的记录
-    const incorrectFormat = 'Speaker A 00:00:10): Hello!\n';
-    assert.deepStrictEqual(parseSpeakerStats(incorrectFormat), []);
+  it('should return empty array for incorrect format record', () => {
+    const input = 'Speaker A 00:00:10): Hello!\n';
+    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+  });
 
-    // someting like real life by ChatGPT
-    const longConversation = `
+  it('should calculate speaking time for long conversation also with space before speaker name', () => {
+    const input = `
     Speaker A(00:00:00): Hello everyone, welcome to the meeting.
     Speaker B(00:00:05): Hi Speaker A, nice to be here.
     Speaker A(00:00:10): Let's get started with the first topic.
@@ -73,11 +84,12 @@ describe('parseSpeakerStats', () => {
     Speaker A(00:01:10): Agreed. Let's all work towards this goal.
     Speaker C(00:01:15): Definitely.
     `;
-
-    assert.deepStrictEqual(parseSpeakerStats(longConversation), [
+    const expectedOutput: SpeakerStats[] = [
       { name: 'Speaker A', totalSpeakingSeconds: 30 },
       { name: 'Speaker B', totalSpeakingSeconds: 25 },
       { name: 'Speaker C', totalSpeakingSeconds: 20 }
-    ]);
+    ];
+    expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
   });
+
 });

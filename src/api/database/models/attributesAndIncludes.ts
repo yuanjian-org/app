@@ -1,6 +1,7 @@
 /**
  * Collect things in this file as opposed to model files to avoid cyclic dependencies.
  */
+import InterviewFeedback from "./InterviewFeedback";
 import User from "./User";
 
 /**
@@ -25,7 +26,7 @@ export const includeForGroup = [{
  */
 
 // Don't include private notes.
-export const defaultAttributesForPartnership = ['id', 'menteeId', 'mentorId'];
+export const defaultPartnershipAttributes = ['id', 'menteeId', 'mentorId'];
 
 export const includeForPartnership = [{
   association: 'mentor',
@@ -33,4 +34,28 @@ export const includeForPartnership = [{
 }, {
   association: 'mentee',
   attributes: minUserAttributes,
+}];
+
+/**
+ * InterviewFeedback
+ */
+
+export const minInterviewFeedbackAttributes = ["id", "feedbackCreatedAt"];
+
+/**
+ * Interview
+ */
+
+export const interviewAttributes = ["id", "type"];
+
+export const includeForInterview = [{
+  model: User,
+  attributes: minUserAttributes,
+}, {
+  model: InterviewFeedback,
+  attributes: minInterviewFeedbackAttributes,
+  include: [{
+    model: User,
+    attributes: minUserAttributes
+  }],
 }];

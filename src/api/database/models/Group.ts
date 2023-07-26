@@ -5,7 +5,6 @@ import type {
 import {
   AllowNull,
   BeforeDestroy,
-  BelongsTo,
   BelongsToMany,
   Column, ForeignKey, HasMany,
   Table,

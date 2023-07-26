@@ -54,51 +54,62 @@ const update = procedure
   .mutation(async ({ ctx, input }) =>
 {
   const newUserIds = input.users.map(u => u.id);
-  checkMinimalGroupSize(newUserIds);
+  const addedUserIds = await sequelizeInstance.transaction(
+    async (t) => updateGroup(input.id, input.name, newUserIds, t)
+  );
+  await emailNewUsersOfGroupIgnoreError(ctx, input.id, addedUserIds);
+});
+
+export async function updateGroup(id: string, name: string | null, userIds: string[], transaction: Transaction) {
+  checkMinimalGroupSize(userIds);
 
   const addUserIds: string[] = [];
-  await sequelizeInstance.transaction(async (t) => {
-    const group = await db.Group.findByPk(input.id, {
-      include: db.GroupUser
-    });
-    if (!group) throw notFoundError("分组", input.id);
+  const group = await db.Group.findByPk(id, {
+    // SQL complains that "FOR UPDATE cannot be applied to the nullable side of an outer join" if GroupUser is included.
+    // include: db.GroupUser,
+    lock: true, transaction,
+  });
+  if (!group) throw notFoundError("分组", id);
 
-    // Delete old users
-    var deleted = false;
-    for (const oldGU of group.groupUsers) {
-      if (!newUserIds.includes(oldGU.userId)) {
-        await oldGU.destroy({ transaction: t });
-        deleted = true;
-      }
-    }
-
-    // Update group itself
-    await group.update({
-      // Set to null if the input is an empty string.
-      name: input.name || null,
-      // Reset the meeting link to prevent deleted users from reusing it.
-      ...deleted ? {
-        meetingLink: null,
-      } : {}
-    }, { transaction: t });
-
-    // Add new users
-    const oldUserIds = group.groupUsers.map(gu => gu.userId);
-    addUserIds.push(...newUserIds.filter(uid => !oldUserIds.includes(uid)));
-    const promises = addUserIds.map(async uid => {
-      // upsert because the matching row may have been previously deleted.
-      await db.GroupUser.upsert({
-        groupId: input.id,
-        userId: uid,
-        deletedAt: null,
-      }, { transaction: t })
-    });
-    await Promise.all(promises);
+  const groupUsers = await db.GroupUser.findAll({
+    where: { groupId: id },
+    lock: true, transaction,
   });
 
-  // new users are persisted only after the transaction is committed (not read-your-write yet).
-  await emailNewUsersOfGroupIgnoreError(ctx, input.id, addUserIds);
-});
+  // Delete old users
+  var deleted = false;
+  for (const oldGU of groupUsers) {
+    if (!userIds.includes(oldGU.userId)) {
+      await oldGU.destroy({ transaction });
+      deleted = true;
+    }
+  }
+
+  // Update group itself
+  await group.update({
+    // Set to null if the input is an empty string.
+    name: name || null,
+    // Reset the meeting link to prevent deleted users from reusing it.
+    ...deleted ? {
+      meetingLink: null,
+    } : {}
+  }, { transaction });
+
+  // Add new users
+  const oldUserIds = groupUsers.map(gu => gu.userId);
+  addUserIds.push(...userIds.filter(uid => !oldUserIds.includes(uid)));
+  const promises = addUserIds.map(async uid => {
+    // upsert because the matching row may have been previously deleted.
+    await db.GroupUser.upsert({
+      groupId: id,
+      userId: uid,
+      deletedAt: null,
+    }, { transaction })
+  });
+  await Promise.all(promises);
+
+  return addUserIds;
+}
 
 const destroy = procedure
   .use(authUser('GroupManager'))
@@ -148,7 +159,8 @@ const list = procedure
     includeOwned: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : { partnershipId: null }));
+  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : 
+    { partnershipId: null, interviewId: null }));
 
 /**
  * Identical to `list`, but additionally returns empty transcripts
@@ -211,7 +223,7 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
 
   const gus = await db.GroupUser.findAll({
     where: {
-      userId: userIds[0] as string,
+      userId: userIds[0],
     },
     include: [{
       model: db.Group,
@@ -230,9 +242,12 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
   return res;
 }
 
-export async function createGroup(userIds: string[], partnershipId: string | null, t: Transaction): Promise<Group>
+export async function createGroup(userIds: string[], partnershipId: string | null, interviewId: string | null, 
+  t: Transaction): Promise<Group>
 {
-  const g = await db.Group.create({ partnershipId }, { transaction: t });
+  invariant(!partnershipId || !interviewId);
+
+  const g = await db.Group.create({ partnershipId, interviewId }, { transaction: t });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
     groupId: g.id,

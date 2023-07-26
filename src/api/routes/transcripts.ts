@@ -1,28 +1,23 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
-import DBTranscript from "../database/models/Transcript";
-import Summary from "../database/models/Summary";
-import Group from "../database/models/Group";
-import User from "../database/models/User";
+import db from "../database/db";
 import { TRPCError } from "@trpc/server";
 import { isPermitted } from "../../shared/Role";
 import { zTranscript } from "shared/Transcript";
+import { includeForGroup } from "../database/models/attributesAndIncludes";
 
 const get = procedure
-    // We will throw access denied later if the user isn't a privileged user and isn't in the group.
+  // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
   .input(z.object({ id: z.string() }))
   .output(zTranscript)
   .query(async ({ input, ctx }) =>
 {
-  const t = await DBTranscript.findByPk(input.id, {
-    include: [Summary, {
-      model: Group,
-      include: [{
-        model: User,
-        attributes: ['id', 'name'],
-      }]
+  const t = await db.Transcript.findByPk(input.id, {
+    include: [db.Summary, {
+      model: db.Group,
+      include: includeForGroup,
     }]
   });
   if (!t) {

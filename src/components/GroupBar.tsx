@@ -4,8 +4,6 @@ import {
   Button,
   Center,
   Flex,
-  HStack,
-  Modal,
   ModalHeader,
   ModalContent,
   ModalCloseButton,
@@ -34,8 +32,7 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUser } from 'shared/User';
-import { Group, GroupCountingTranscripts } from 'shared/Group';
-import QuestionIconTooltip from './QuestionIconTooltip';
+import { Group, GroupCountingTranscripts, isOwned } from 'shared/Group';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
@@ -129,9 +126,13 @@ export default function GroupBar({
 }
 
 function GroupTagOrName({ group }: { group: Group }) {
-  return group.partnershipId ?
+  return isOwned(group) ?
     // Without this Box the tag will fill the whole grid row
-    <Box justifyItems="left"><Tag color="white" bgColor="gray">一对一导师</Tag></Box>
+    <Box justifyItems="left">
+      <Tag color="white" bgColor="gray">
+        {group.partnershipId ? "一对一导师" : "面试" }
+      </Tag>
+    </Box>
     :
     <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>;
 }

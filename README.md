@@ -16,12 +16,14 @@ developed by VEF volunteers.
 1. Visit this local server from broswer. Log in with your personal email address.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
 1. Finally, restart your local server to clean up cached data.
+1. To run e2e tests, see [Cypress E2E Testing](./test/README.md)
 
 ## Frameworks Used
 
 - Full stack: [Next.js](https://nextjs.org/)
 - Typing: `typescript`, [`trpc`](https://trpc.io/), `zod`
 - UI: [Chakra UI](https://chakra-ui.com/)
+- End-to-end Testing: [Cypress](https://www.cypress.io/)
 
 ## Code Structure
 
@@ -34,7 +36,8 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 | `src/api` | Files to be executed on the server only. |
 | `src/pages` | `next.js` [Page Router](https://nextjs.org/docs/pages/building-your-application/routing). Migrating to App Router remains future work. |
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
-| `tools` | Command-line scripts.
+| `tools` | Command-line scripts. |
+| `cypress/e2e` | End-to-end tests. See [`cypress/README.md`](cypress/README.md) for details. |
 
 **IMPORTANT**: To prevent security and programming issues,
 
