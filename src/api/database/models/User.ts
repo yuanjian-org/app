@@ -63,17 +63,22 @@ class User extends ParanoidModel<
 
   @BeforeDestroy
   static async cascadeDestory( user: User, options: any){
-    const promises1 = (await GroupUser.findAll({
+    const groupPromise = (await GroupUser.findAll({
       where: { userId: user.id }
     })).map( async gu => {await gu.destroy(options); });
 
-    const promises2 = (await Partnership.findAll({
-      where: { 
-        [Op.or]: [{menteeId: user.id}, {mentorId: user.id}] 
-      }
-    })).map(async p => { await p.destroy(options); });
+    // TODO: 目前数据库中不允许使用user对partner进行cascadeDelete
+    // const partnershipPromise = (await Partnership.findAll({
+    //   where: { 
+    //     [Op.or]: [{menteeId: user.id}, {mentorId: user.id}] 
+    //   }
+    // })).map(async p => { await p.destroy(options); });
+
     
-    await Promise.all([...promises1, promises2]);
+    await Promise.all([...
+      groupPromise, 
+      // partnershipPromise
+    ]);
   }
   
 }
