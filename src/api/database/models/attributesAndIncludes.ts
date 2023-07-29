@@ -40,7 +40,7 @@ export const includeForPartnership = [{
  * InterviewFeedback
  */
 
-export const minInterviewFeedbackAttributes = ["id", "feedbackCreatedAt"];
+export const minInterviewFeedbackAttributes = ["id", "feedbackUpdatedAt"];
 
 export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
 

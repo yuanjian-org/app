@@ -45,7 +45,7 @@ const Page: NextPageWithLayout = () => {
         </Td>
         <Td><Wrap spacing="2">
           {i.feedbacks.filter(f => f.interviewer.id !== me.id).map(f => 
-            <WrapItem key={f.id} fontWeight={f.feedbackCreatedAt ? "bold" : "normal"}>
+            <WrapItem key={f.id} fontWeight={f.feedbackUpdatedAt ? "bold" : "normal"}>
               {formatUserName(f.interviewer.name, "formal")}
             </WrapItem>
           )}
