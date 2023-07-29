@@ -2,14 +2,39 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { InterviewType, zInterview, zInterviewType } from "../../shared/Interview";
-import { includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
+import { InterviewType, zInterview, zInterviewType, zInterviewWithGroup } from "../../shared/Interview";
+import { includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
-import { generalBadRequestError, notFoundError } from "../errors";
+import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
+
+/**
+ * Only the interviewers of an interview are allowed to get it.
+ */
+const get = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zInterviewWithGroup)
+  .query(async ({ ctx, input: id }) =>
+{
+  const i = await db.Interview.findByPk(id, {
+    attributes: interviewAttributes,
+    include: [...includeForInterview, {
+      model: Group,
+      include: includeForGroup,
+    }],
+  });
+  if (!i) {
+    throw notFoundError("面试", id);
+  }
+  if (!i.feedbacks.some(f => f.interviewer.id === ctx.user.id )) {
+    throw noPermissionError("面试", id);
+  }
+  return i;
+});
 
 const list = procedure
   .use(authUser("InterviewManager"))
@@ -22,6 +47,22 @@ const list = procedure
     attributes: interviewAttributes,
     include: includeForInterview,
   })
+});
+
+const listMine = procedure
+  .use(authUser())
+  .output(z.array(zInterview))
+  .query(async ({ ctx }) =>
+{
+  return (await db.InterviewFeedback.findAll({
+    where: { interviewerId: ctx.user.id },
+    attributes: [],
+    include: [{
+      model: db.Interview,
+      attributes: interviewAttributes,
+      include: includeForInterview
+    }]
+  })).map(feedback => feedback.interview);
 });
 
 const create = procedure
@@ -142,7 +183,9 @@ function validate(intervieweeId: string, interviewerIds: string[]) {
 }
 
 export default router({
+  get,
   list,
+  listMine,
   create,
   update,
 });

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { zMinUser } from './User';
 import { zMinInterviewFeedback } from './InterviewFeedback';
+import { zGroup } from './Group';
 
-// TODO: rename to Mentee/MentorInterview
 export const zInterviewType = z.enum(["MenteeInterview", "MentorInterview"]);
 export type InterviewType = z.TypeOf<typeof zInterviewType>;
 
@@ -13,3 +13,7 @@ export const zInterview = z.object({
     feedbacks: z.array(zMinInterviewFeedback),
   });
 export type Interview = z.TypeOf<typeof zInterview>;
+
+export const zInterviewWithGroup = zInterview.merge(z.object({
+  group: zGroup,
+}));

@@ -61,7 +61,7 @@ const Page: NextPageWithLayout = () => {
       refetch();
     }} />}
 
-    <Text>黑体标示已经填写了面试反馈的面试官：</Text>
+    <Text><b>黑体</b>是已经填写了面试反馈的面试官：</Text>
 
     {!interviews ? <Loader /> : <TableContainer><Table>
       <Thead>

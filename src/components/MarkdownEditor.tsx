@@ -44,18 +44,25 @@ export default function MarkdownEditor({ initialValue, onChange, ...rest }: {
  * TODO: For some reason using `...rest` to pass in the remaining options to <MarkdownEditor> causes it to reload 
  * whenver the user types. It seems that on every type event the system thinks `rest` has changed.
  */
-export function AutosavingMarkdownEditor({ initialValue, onSave, maxHeight }: {
+export function AutosavingMarkdownEditor({ initialValue, onSave, maxHeight, toolbar, status, placeholder }: {
   initialValue?: string | null,
   onSave: (edited: string) => Promise<void>,
+  placeholder?: string,
   maxHeight?: string,
+  toolbar?: boolean,
+  status?: boolean,
 }) {
   const [edited, setEdited] = useState<string | undefined>();
 
   // Receating the editor on each change on `edited` will reset its focus (and possibly other states). So don't do it.
-  const editor = useMemo(() => <>
-    <MarkdownEditor initialValue={initialValue || ''} onChange={v => setEdited(v)} placeholder="内容会自动保存" 
-      {...maxHeight ? { maxHeight } : {}} />
-  </>, [initialValue, setEdited, maxHeight]);
+  const editor = useMemo(() => <MarkdownEditor 
+      initialValue={initialValue || ''} 
+      onChange={v => setEdited(v)} 
+      placeholder={placeholder ? placeholder : "内容会自动保存"}
+      {...maxHeight == undefined ? {} : { maxHeight }} 
+      {...toolbar == undefined ? {} : { toolbar }}
+      {...status == undefined ? {} : { status }}
+    />, [initialValue, setEdited, maxHeight, toolbar, status, placeholder]);
   return <>
     {editor}
     <Autosaver data={edited} onSave={onSave} />

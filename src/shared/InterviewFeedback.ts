@@ -7,4 +7,7 @@ export const zMinInterviewFeedback = z.object({
   feedbackCreatedAt: z.string().datetime().nullable(),
 });
 
-export type MinInterviewFeedback = z.TypeOf<typeof zMinInterviewFeedback>;
+export const zInterviewFeedback = zMinInterviewFeedback.merge(z.object({
+  feedback: z.record(z.string(), z.any()).nullable(),
+}));
+export type InterviewFeedback = z.ZodType<typeof zInterviewFeedback>;

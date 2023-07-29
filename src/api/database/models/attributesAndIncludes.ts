@@ -42,6 +42,13 @@ export const includeForPartnership = [{
 
 export const minInterviewFeedbackAttributes = ["id", "feedbackCreatedAt"];
 
+export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
+
+export const includeForInterviewFeedback = [{
+  model: User,
+  attributes: minUserAttributes
+}];
+
 /**
  * Interview
  */
@@ -54,8 +61,5 @@ export const includeForInterview = [{
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
-  include: [{
-    model: User,
-    attributes: minUserAttributes
-  }],
+  include: includeForInterviewFeedback,
 }];
