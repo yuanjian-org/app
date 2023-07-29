@@ -35,7 +35,7 @@ import invariant from 'tiny-invariant';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview, InterviewType } from 'shared/Interview';
-import { AddIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon } from '@chakra-ui/icons';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -61,7 +61,7 @@ const Page: NextPageWithLayout = () => {
       refetch();
     }} />}
 
-    <Text><b>黑体</b>是已经填写了面试反馈的面试官：</Text>
+    <Text><CheckIcon /> 表示已经填写了面试反馈的面试官：</Text>
 
     {!interviews ? <Loader /> : <TableContainer><Table>
       <Thead>
@@ -79,9 +79,10 @@ const Page: NextPageWithLayout = () => {
           </Td>
           <Td>{toPinyin(i.interviewee.name ?? "")}</Td>
           <Td><Wrap spacing="2">
-            {i.feedbacks.map(f => 
-              <WrapItem key={f.id} fontWeight={f.feedbackCreatedAt ? "bold" : "normal"}>
+            {i.feedbacks.map(f =>
+              <WrapItem key={f.id}>
                 {formatUserName(f.interviewer.name, "formal")}
+                {f.feedbackUpdatedAt && <CheckIcon />}
               </WrapItem>
             )}
           </Wrap></Td>

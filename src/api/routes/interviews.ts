@@ -136,11 +136,11 @@ export async function updateInterview(id: string, type: InterviewType, interview
   if (type !== i.type) {
     throw generalBadRequestError("面试类型错误");
   }
-  if (intervieweeId !== i.intervieweeId && i.feedbacks.some(f => f.feedbackCreatedAt != null)) {
+  if (intervieweeId !== i.intervieweeId && i.feedbacks.some(f => f.feedbackUpdatedAt != null)) {
     throw generalBadRequestError("面试反馈已经递交，无法更改候选人");
   }
   for (const f of i.feedbacks) {
-    if (f.feedbackCreatedAt && !interviewerIds.includes(f.interviewer.id)) {
+    if (f.feedbackUpdatedAt && !interviewerIds.includes(f.interviewer.id)) {
       throw generalBadRequestError(`面试官${formatUserName(f.interviewer.name, "formal")}已经递交反馈，无法移出`);
     }
   }

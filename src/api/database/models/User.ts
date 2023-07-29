@@ -54,7 +54,7 @@ class User extends ParanoidModel<
   wechat: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  menteeApplication: object | null;
+  menteeApplication: Record<string, any> | null;
 }
 
 export default User;

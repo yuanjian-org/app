@@ -41,7 +41,7 @@ class InterviewFeedback extends Model {
   feedback: Record<string, any> | null;
 
   @Column(DATE)
-  feedbackCreatedAt: string | null;
+  feedbackUpdatedAt: string | null;
 
   /**
    * Associations
