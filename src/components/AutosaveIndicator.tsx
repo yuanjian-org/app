@@ -1,15 +1,17 @@
 import { CheckIcon, RepeatIcon, WarningIcon } from '@chakra-ui/icons';
 import { Center, CenterProps, Text } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
+import { useRouter } from 'next/router';
 
-export default function AutosaveIndicator({ state: s, ...rest }: CenterProps & {
+export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
   state: AutosaveState,
 }) {
-  const errors = [...s.id2state.values()].filter(v => v !== null);
+  const errors = [...state.id2state.values()].filter(v => v !== null);
   const iconProps = { boxSize: 3.5, marginRight: 2, };
-  return s.id2state.size ? 
+  return hasPendingSavers(state) ? <>
+    <LeavePagePrompt />
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <Center {...rest}>
         {errors.length > 0 ?
@@ -19,12 +21,39 @@ export default function AutosaveIndicator({ state: s, ...rest }: CenterProps & {
         }
       </Center>
     </motion.div>
-    : s.virgin ? null : 
+  </> : state.virgin ? null : 
     <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3 }}>
       <Center {...rest}>
         <CheckIcon {...iconProps} color="green" /><Text fontSize="sm" color="green">已保存</Text>
       </Center>
     </motion.div>;
+}
+
+/**
+ * Reference: https://stackoverflow.com/a/70841409
+ */
+function LeavePagePrompt() {
+  const router = useRouter();
+  useEffect(() => {
+    const warningText = "正在保存中。确定离开当前页面？";
+    const handleWindowClose = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      return (e.returnValue = warningText);
+    };
+    const handleBrowseAway = () => {
+      if (window.confirm(warningText)) return;
+      router.events.emit('routeChangeError');
+      throw 'routeChange aborted.';
+    };
+    window.addEventListener('beforeunload', handleWindowClose);
+    router.events.on('routeChangeStart', handleBrowseAway);
+    return () => {
+      window.removeEventListener('beforeunload', handleWindowClose);
+      router.events.off('routeChangeStart', handleBrowseAway);
+    };
+  }, [router]);
+
+  return null;
 }
 
 export type AutosaveState = {
@@ -43,6 +72,10 @@ export const initialState: AutosaveState = {
 
 function hasPendingSaver(s: AutosaveState, id: string): boolean {
   return s.id2state.has(id);
+}
+
+function hasPendingSavers(s: AutosaveState): boolean {
+  return s.id2state.size > 0;
 }
 
 /**
