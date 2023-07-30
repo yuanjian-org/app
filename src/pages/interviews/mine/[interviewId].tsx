@@ -11,11 +11,10 @@ import { Flex, Grid, GridItem,
   SliderFilledTrack,
   SliderThumb,
   SliderMark,
-  Text,
   Tooltip,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
-import { sidebarBreakpoint, sidebarWidth } from 'components/Navbars';
+import { sidebarBreakpoint } from 'components/Navbars';
 import { useUserContext } from 'UserContext';
 import invariant from "tiny-invariant";
 import { Interview } from 'shared/Interview';
@@ -69,7 +68,8 @@ type FeedbackDimension = {
 const defaultScore = 1;
 const defaultCommentAndSummary = "";
 
-function findDimension(f: Feedback, dimensionName: string): FeedbackDimension | null {
+function findDimension(f: Feedback | null, dimensionName: string): FeedbackDimension | null {
+  if (!f) return null;
   const ds = f.dimensions.filter(d => d.name === dimensionName);
   if (ds.length > 0) {
     invariant(ds.length == 1);
@@ -97,10 +97,16 @@ function FeedbackEditor({ interview }: {
   const feedbackId = getFeedbackId();
   const { data: interviewFeedback } = trpcNext.interviewFeedbacks.get.useQuery<InterviewFeedback | null>(feedbackId);
   useEffect(() => {
-    if (interviewFeedback) setFeedback(interviewFeedback.feedback as Feedback);
+    if (interviewFeedback?.feedback) setFeedback(interviewFeedback.feedback as Feedback);
   }, [interviewFeedback]);
 
   const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
+
+  const save = async (f: Feedback) => {
+    if (_.isEqual(f, feedback)) return;
+    setFeedback(f);
+    await trpc.interviewFeedbacks.update.mutate({ id: feedbackId, feedback: f });
+  };
 
   const saveDimension = async (edited: FeedbackDimension) => {
     const f = structuredClone(feedback);
@@ -113,12 +119,13 @@ function FeedbackEditor({ interview }: {
     } else {
       f.dimensions.push(edited);
     }
-    if (_.isEqual(f, feedback)) {
-      return;
-    }
+    await save(f);
+  };
 
-    setFeedback(f);
-    await trpc.interviewFeedbacks.update.mutate({ id: feedbackId, feedback: f });
+  const saveSummary = async (edited: string) => {
+    const f = structuredClone(feedback);
+    f.summary = edited;
+    await save(f);
   };
 
   return !interviewFeedback ? <Loader /> : <Flex direction="column" gap={6}>
@@ -133,6 +140,17 @@ function FeedbackEditor({ interview }: {
         onSave={async (d) => await saveDimension(d)}
       />;
     })}
+
+    <Box><b>总结评价</b></Box>
+    <AutosavingMarkdownEditor
+      key={`${feedbackId}-summary`}
+      initialValue={(interviewFeedback.feedback as Feedback | null)?.summary || defaultCommentAndSummary}
+      onSave={async (s) => await saveSummary(s)}
+      placeholder="（自动保存）"
+      toolbar={false} 
+      status={false} 
+      maxHeight="200px" 
+    />
   </Flex>;
 }
 
@@ -178,9 +196,14 @@ function FeedbackDimensionEditor({ editorKey, name, initialScore, initialComment
         onSave={async (_) => await onSave({ name, score, comment })}
       />
     </Flex>
-    <AutosavingMarkdownEditor key={editorKey} initialValue={initialComment} 
+    <AutosavingMarkdownEditor
+      key={editorKey} 
+      initialValue={initialComment} 
       onSave={async (edited) => { setComment(edited); await onSave({ name, score, comment: edited }); }}
       placeholder="评分理由（自动保存）"
-      toolbar={false} status={false} maxHeight="80px" />
+      toolbar={false} 
+      status={false} 
+      maxHeight="80px" 
+    />
   </>;
 }
