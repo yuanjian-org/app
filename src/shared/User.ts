@@ -15,4 +15,12 @@ export const zUser = zMinUser.merge(z.object({
 }));
 type User = z.TypeOf<typeof zUser>;
 
+// TODO: export as non-default
 export default User;
+
+export const zUserFilter = z.object({
+  hasMenteeApplication: z.boolean().optional(),
+  isMenteeInterviewee: z.boolean().optional(),
+  matchNameOrEmail: z.string().optional(),
+});
+export type UserFilter = z.TypeOf<typeof zUserFilter>;

@@ -4,12 +4,14 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import User, { zUser } from "../../shared/User";
+import User, { zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import Interview from "api/database/models/Interview";
+import { InterviewType } from "shared/Interview";
 
 const me = procedure
   .use(authUser())
@@ -36,26 +38,47 @@ const create = procedure
 });
 
 /**
- * @return all the users if `searchTerm` isn't specified, otherwise only matching users, ordered by Pinyin.
+ * Returned users are ordered by Pinyin.
  */
 const list = procedure
   .use(authUser(['UserManager', 'GroupManager']))
-  .input(z.object({ searchTerm: z.string() }).optional())
+  .input(zUserFilter)
   .output(z.array(zUser))
-  .query(async ({ input }) => 
+  .query(async ({ input: filter }) => 
 {
-  return await db.User.findAll({ 
+  // Force typescript checking
+  const interviewType: InterviewType = "MenteeInterview";
+
+  const res = await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
-    ...input?.searchTerm ? {
-      where: {
+
+    where: {
+      ...filter.hasMenteeApplication == undefined ? {} : {
+        menteeApplication: { 
+          ...filter.hasMenteeApplication ? { [Op.ne]: null } : { [Op.eq]: null }
+        },
+      },
+
+      ...filter.matchNameOrEmail == undefined ? {} : {
         [Op.or]: [
-          { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
-          { name: { [Op.iLike]: `%${input.searchTerm}%` } },
-          { email: { [Op.iLike]: `%${input.searchTerm}%` } },
+          { pinyin: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
+          { name: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
+          { email: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
         ],
-      }
-    } : {},
+      },
+    },
+
+    include: [      
+      ...filter.isMenteeInterviewee == undefined ? [] : [{
+        model: Interview,
+        attributes: ["id"],
+        ...filter.isMenteeInterviewee ? { where: { type: interviewType } } : {},
+      }],
+    ],
   });
+
+  if (filter.isMenteeInterviewee == false) return res.filter(u => u.interviews.length == 0);
+  else return res;
 });
 
 /**

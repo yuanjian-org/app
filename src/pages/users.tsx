@@ -24,12 +24,13 @@ import {
   WrapItem,
   Flex,
   TableContainer,
+  Divider,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import { trpcNext } from "../trpc";
-import User from 'shared/User';
+import User, { UserFilter } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
@@ -38,13 +39,15 @@ import { useUserContext } from 'UserContext';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
+import UserFilterSelector from 'components/UserFilterSelector';
 
 const Page: NextPageWithLayout = () => {
-  const { data, refetch } : { data: User[] | undefined, refetch: () => void } = trpcNext.users.list.useQuery();
+  const [filter, setFilter] = useState<UserFilter>({});
+  const { data: users, refetch } = trpcNext.users.list.useQuery<User[] | null>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
   const [me] = useUserContext();
-  
+
   const closeUserEditor = () => {
     setUserBeingEdited(null);
     setCreatingNewUser(false);
@@ -56,10 +59,13 @@ const Page: NextPageWithLayout = () => {
     {creatingNewUser && <UserEditor onClose={closeUserEditor}/>}
 
     <Flex direction='column' gap={6}>
-      <Box>
+      <Wrap spacing={4} align="center">
         <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
-      </Box>
-      {!data ? <Loader /> :
+        <Divider orientation="vertical" />
+        <UserFilterSelector filter={filter} onChange={f => setFilter(f)} />
+      </Wrap>
+
+      {!users ? <Loader /> :
         <TableContainer>
           <Table>
             <Thead>
@@ -72,7 +78,7 @@ const Page: NextPageWithLayout = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {data.map((u: any) => (
+              {users.map((u: any) => (
                 <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
                   <Td>{u.email}</Td>
                   <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>

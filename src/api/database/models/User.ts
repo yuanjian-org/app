@@ -1,10 +1,12 @@
 import type {
   InferAttributes,
   InferCreationAttributes,
+  NonAttribute,
 } from "sequelize";
 import {
   AllowNull,
   Column,
+  HasMany,
   Index,
   Table,
   Unique,
@@ -16,6 +18,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
 import { toPinyin } from "../../../shared/strings";
+import Interview from "./Interview";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
@@ -55,6 +58,13 @@ class User extends ParanoidModel<
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
+
+  /**
+   * Associations
+   */
+
+  @HasMany(() => Interview)
+  interviews: NonAttribute<Interview[]>;
 }
 
 export default User;

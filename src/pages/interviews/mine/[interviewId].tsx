@@ -141,12 +141,12 @@ function FeedbackEditor({ interview }: {
       />;
     })}
 
-    <Box><b>总结评价</b></Box>
+    <Box><b>总评</b></Box>
     <AutosavingMarkdownEditor
       key={`${feedbackId}-summary`}
       initialValue={(interviewFeedback.feedback as Feedback | null)?.summary || defaultCommentAndSummary}
       onSave={async (s) => await saveSummary(s)}
-      placeholder="（自动保存）"
+      placeholder="总评（自动保存）"
       toolbar={false} 
       status={false} 
       maxHeight="200px" 
