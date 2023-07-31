@@ -36,10 +36,10 @@
     },
     "incremental": true
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules","*/**/*.cy.ts"],
   "include": [
     "./src",
     "src/api",
     "src/shared",
-    "next-env.d.ts", "**/*.ts", "**/*.tsx", "next.config.js"],
+    "next-env.d.ts", "**/*.ts", "**/*.tsx", "next.config.js", "cypress/tsconfig.json"],
 }
