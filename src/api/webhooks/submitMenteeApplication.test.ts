@@ -13,7 +13,7 @@ const inputApplication = {
     "field_57": "女",
     "field_110": "",
     "field_106": "微信号",
-    "field_113": "test@email.com",
+    "field_113": "test1@email.com",
     "field_61": "",
     "field_165": "某基金会: 某ID",
     "field_149": "全日制大学专科生",
@@ -217,20 +217,77 @@ const outputApplication = {
   ]
 };
 
+const inputProxiedApplication = {
+  "form": "S74k0V",
+  "form_name": "代理申请表",
+  "entry": {
+    "token": "CyfYLp4B",
+    "serial_number": 1,
+    "field_104": "王小汉",
+    "field_57": "男",
+    "field_106": "微信号2",
+    "field_113": "test2@email.com",
+    "field_165": "树华教育基金会: 12-1234",
+    "field_149": "全日制大学专科生",
+    "field_108": "不知道学校",
+    "field_172": "不知道专业",
+    "field_167": 2022,
+    "field_170": [
+      "foo",
+      "bar",
+    ],
+    "field_171": [
+      "baz",
+      "qux",
+      "noz",
+    ],
+  }
+};
+
+const outputProxiedApplication = {
+  "其他申请材料": [
+    "baz",
+    "qux",
+    "noz",
+  ],
+  "合作机构来源": "树华教育基金会: 12-1234",
+  "大学一年级入学年份": 2022,
+  "就读专业": "不知道专业",
+  "就读学校": "不知道学校",
+  "就读种类": "全日制大学专科生",
+  "申请表": [
+    "foo",
+    "bar",
+  ],
+};
+
 describe('submitMenteeApplication', () => {
-  before(async () => {
-    initApiServer();
-    const u = await User.findOne({ where: { email: "test@email.com" } });
-    if (u) await u.destroy({ force: true });
+  before(initApiServer);
+
+  after(async () => {
+    const u1 = await User.findOne({ where: { email: "test1@email.com" } });
+    if (u1) await u1.destroy({ force: true });
+    const u2 = await User.findOne({ where: { email: "test2@email.com" } });
+    if (u2) await u2.destroy({ force: true });
   });
 
-  it('should submit correctly', async () => {
-    await submit(inputApplication, "unittest");
-    const u = await User.findOne({ where: { email: "test@email.com" } });
+  it('should submit application', async () => {
+    await submit(inputApplication, "baseurl");
+    const u = await User.findOne({ where: { email: "test1@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("dingyi");
     expect(u?.sex).is.equal("女");
     expect(u?.wechat).is.equal("微信号");
     expect(u?.menteeApplication).is.deep.equal(outputApplication);
+  });
+
+  it('should submit proxied application', async () => {
+    await submit(inputProxiedApplication, "baseurl");
+    const u = await User.findOne({ where: { email: "test2@email.com" } });
+    expect(u).is.not.null;
+    expect(u?.pinyin).is.equal("wangxiaohan");
+    expect(u?.sex).is.equal("男");
+    expect(u?.wechat).is.equal("微信号2");
+    expect(u?.menteeApplication).is.deep.equal(outputProxiedApplication);
   });
 });

@@ -69,9 +69,9 @@ class User extends ParanoidModel<
 
 export default User;
 
-export async function createUser(fields: any) {
+export async function createUser(fields: any, mode: "create" | "upsert" = "create"): Promise<User> {
   const f = structuredClone(fields);
   if (!("name" in f)) f.name = "";
   f.pinyin = toPinyin(f.name);
-  return await User.create(f);
+  return mode == "create" ? await User.create(f) : (await User.upsert(f))[0];
 }
