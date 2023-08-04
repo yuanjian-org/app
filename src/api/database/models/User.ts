@@ -39,16 +39,20 @@ class User extends ParanoidModel<
   @Column(STRING)
   email: string;
 
+  // TODO use array type
   @Index({
     using: 'gin'
   })
-  // TODO chaneg to use array type
   @AllowNull(false)
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
+  // TODO use string type
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
+
+  @Column(DATE)
+  menteeInterviewerTestLastPassedAt: string | null;
 
   @Column(STRING)
   sex: string | null;
