@@ -102,7 +102,7 @@ function Instructions({ interviewers }: {
       <ListItem>用<Icon as={BsWechat} marginX={1.5} />微信发起视频群聊。</ListItem>
       {first !== null && <>
         <ListItem>
-          <Text as="span" color="red.600">你负责提问维度 {first ? "1到4" : "5 到 8"} 的问题；</Text>
+          <Text as="span" color="red.600">你负责提问维度 {first ? "1 到 4" : "5 到 8"} 的问题；</Text>
           {formatUserName(other?.name ?? null, "friendly")}负责维度 {first ? "5 到 8" : "1 到 4"}。
         </ListItem>
         <ListItem><Text color="red.600">请填写所有8个维度的评价和总评。</Text></ListItem>
