@@ -135,7 +135,6 @@ function FeedbackEditor({ interview }: {
   interview: Interview,
 }) {
   const [me] = useUserContext();
-  const [feedback, setFeedback] = useState<Feedback>({ dimensions: [] });
 
   const getFeedbackId = () => {
     const feedbacks = interview.feedbacks.filter(f => f.interviewer.id === me.id);
@@ -147,17 +146,14 @@ function FeedbackEditor({ interview }: {
   const { data: interviewFeedback } = trpcNext.interviewFeedbacks.get.useQuery<InterviewFeedback | null>(feedbackId);
   const getFeedback = () => interviewFeedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
 
-  useEffect(() => {
-    if (interviewFeedback?.feedback) setFeedback(interviewFeedback.feedback as Feedback);
-  }, [interviewFeedback]);
-
   const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
   const summaryDimensionName = "总评";
   const summaryDimensions = getFeedback().dimensions.filter(d => d.name === summaryDimensionName);
   const summaryDimension = summaryDimensions.length == 1 ? summaryDimensions[0] : null;
 
   const saveDimension = async (edited: FeedbackDimension) => {
-    const f = structuredClone(feedback);
+    const old = getFeedback();
+    const f = structuredClone(old);
     const d = findDimension(f, edited.name);
     if (edited.score == defaultScore && edited.comment == defaultComment) {
       f.dimensions = f.dimensions.filter(d => d.name !== edited.name);
@@ -168,8 +164,7 @@ function FeedbackEditor({ interview }: {
       f.dimensions.push(edited);
     }
     
-    if (_.isEqual(f, feedback)) return;
-    setFeedback(f);
+    if (_.isEqual(f, old)) return;
     await trpc.interviewFeedbacks.update.mutate({ id: feedbackId, feedback: f });    
   };
 
@@ -185,7 +180,7 @@ function FeedbackEditor({ interview }: {
     />
 
     {dimensionNames.map((dn, idx) => {
-      const d = findDimension(interviewFeedback.feedback as Feedback, dn);
+      const d = findDimension(getFeedback(), dn);
       return <FeedbackDimensionEditor 
         key={dn} 
         editorKey={`${feedbackId}-${dn}`}
