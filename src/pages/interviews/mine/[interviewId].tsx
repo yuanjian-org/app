@@ -17,7 +17,6 @@ import { Flex, Grid, GridItem,
   UnorderedList,
   ListItem,
   Text,
-  Center,
 } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { useUserContext } from 'UserContext';
@@ -34,36 +33,54 @@ import MenteeApplication from 'components/MenteeApplication';
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from 'shared/User';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import moment from "moment";
+import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 
 const Page: NextPageWithLayout = () => {
   const interviewId = parseQueryParameter(useRouter(), 'interviewId');
   const { data: interview } = trpcNext.interviews.get.useQuery(interviewId);
-  
+  const { data: meNoCache } = trpcNext.users.meNoCache.useQuery();
+
+  const interviewerTestPassed = () => {
+    const passed = meNoCache?.menteeInterviewerTestLastPassedAt;
+    return passed ? moment().diff(moment(passed), "days") < 300 : false;
+  }
+
   if (!interview) return <Loader />;
 
   return <>
     <PageBreadcrumb current={formatUserName(interview.interviewee.name, "formal")} parents={[{
       name: "我的面试", link: "/interviews/mine",
     }]}/>
-    {/* <GroupBar group={interview.group} showGroupName={false} showJoinButton marginBottom={8} /> */}
-    {/* TODO: For some reason "1fr 1fr" doens't work */}
-    <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "40% 50%" }} gap={10}>
-      <GridItem>
-        <Flex direction="column" gap={10}>
-          <Instructions interviewers={interview.feedbacks.map(f => f.interviewer)} />
-          <FeedbackEditor interview={interview} />
-        </Flex>
-      </GridItem>
-      <GridItem>
-        {interview.type == "MenteeInterview" ? <MenteeApplication menteeUserId={interview.interviewee.id} /> : <Box />}
-      </GridItem>
-    </Grid>
+
+    {!meNoCache ? <Loader /> : !interviewerTestPassed() ? <PassTestFirst /> :
+      // <GroupBar group={interview.group} showGroupName={false} showJoinButton marginBottom={8} />
+      // TODO: For some reason "1fr 1fr" doens't work
+      <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "47% 47%" }} gap={sectionSpacing}>
+        <GridItem>
+          <Flex direction="column" gap={sectionSpacing}>
+            <Instructions interviewers={interview.feedbacks.map(f => f.interviewer)} />
+            <FeedbackEditor interview={interview} />
+          </Flex>
+        </GridItem>
+        <GridItem>
+          {interview.type == "MenteeInterview" ? <MenteeApplication menteeUserId={interview.interviewee.id} /> : <Box />}
+        </GridItem>
+      </Grid>
+    }
   </>;
 };
 
 Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
 
 export default Page;
+
+function PassTestFirst() {
+  return <Flex direction="column" gap={paragraphSpacing}>
+    <b>请首先完成面试官测试</b>
+    <p>通过<Link isExternal href="https://jinshuju.net/f/w02l95">《面试流程和标准测试》</Link>后，刷新此页，即可看到面试信息。</p>
+  </Flex>;
+}
 
 function Instructions({ interviewers }: {
   interviewers: MinUser[],
@@ -79,31 +96,33 @@ function Instructions({ interviewers }: {
   }
 
   const marginEnd = 1.5;
-  return <Flex direction="column" gap={6}>
+  return <Flex direction="column" gap={sectionSpacing}>
     {/* <b>面试官必读</b> */}
     <UnorderedList>
       <ListItem>用<Icon as={BsWechat} marginX={1.5} />微信发起视频群聊。</ListItem>
       {first !== null && <>
         <ListItem>
-          <Text as="span" color="red.600">你主持维度 {first ? "1到4" : "5 到 8"} 的问题；</Text>
-          {formatUserName(other?.name ?? null, "friendly")}主持维度 {first ? "5 到 8" : "1 到 4"}。
+          <Text as="span" color="red.600">你负责提问维度 {first ? "1到4" : "5 到 8"} 的问题；</Text>
+          {formatUserName(other?.name ?? null, "friendly")}负责维度 {first ? "5 到 8" : "1 到 4"}。
         </ListItem>
-        <ListItem><Text color="red.600">填写所有8个维度的评价和总评。</Text></ListItem>
+        <ListItem><Text color="red.600">请填写所有8个维度的评价和总评。</Text></ListItem>
       </>}
     </UnorderedList>
-    <b>参考资料</b>
-    <UnorderedList>
-    <ListItem>
-        <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-          面试维度和参考题库 <ExternalLinkIcon />
-        </Link>
-      </ListItem>
+    <Flex direction="column" gap={paragraphSpacing}>
+      <b>参考资料</b>
+      <UnorderedList>
       <ListItem>
-        <Link isExternal href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe">
-          面试须知 <ExternalLinkIcon />
-        </Link>
-      </ListItem>
-    </UnorderedList>
+          <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
+            面试维度和参考题库 <ExternalLinkIcon />
+          </Link>
+        </ListItem>
+        <ListItem>
+          <Link isExternal href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe">
+            面试须知 <ExternalLinkIcon />
+          </Link>
+        </ListItem>
+      </UnorderedList>
+    </Flex>
   </Flex>;
 }
 

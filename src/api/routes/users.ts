@@ -12,11 +12,27 @@ import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import Interview from "api/database/models/Interview";
 import { InterviewType } from "shared/Interview";
+import { userAttributes } from "../database/models/attributesAndIncludes";
 
 const me = procedure
   .use(authUser())
   .output(zUser)
   .query(async ({ ctx }) => ctx.user);
+
+const meNoCache = procedure
+  .use(authUser())
+  .output(zUser)
+  .query(async ({ ctx }) => 
+{
+  // invalidate catch so next time `me` will also return fresh data
+  invalidateLocalUserCache();
+
+  const user = await db.User.findByPk(ctx.user.id, {
+    attributes: userAttributes,
+  });
+  invariant(user);
+  return user;
+});
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -179,6 +195,7 @@ const listPriviledgedUserDataAccess = procedure
 
 export default router({
   me,
+  meNoCache,
   create,
   list,
   update,

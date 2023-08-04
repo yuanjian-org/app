@@ -10,7 +10,8 @@ import User from "./User";
 
 export const minUserAttributes = ['id', 'name'];
 
-export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt"];
+export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt",
+  "menteeInterviewerTestLastPassedAt"];
 
 /**
  * Group
