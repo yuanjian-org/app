@@ -2,7 +2,6 @@ import { procedure } from "../trpc";
 import z from "zod";
 import { generalBadRequestError, notFoundError } from "../errors";
 import db from "../database/db";
-import moment from "moment";
 
 /**
  * The Webhook for 金数据 form https://jinshuju.net/f/w02l95.
