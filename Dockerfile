@@ -10,8 +10,7 @@ WORKDIR /app
 
 # Install dependencies with yarn
 COPY package.json yarn.lock ./
-RUN yarn
-# Or RUN yarn --frozen-lockfile
+RUN yarn --frozen-lockfile
 
 # 2. Rebuild the source code only when needed
 FROM deps AS builder
