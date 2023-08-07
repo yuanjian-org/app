@@ -32,8 +32,8 @@ model = model.eval()
 url_get = "https://beta.yuanjian.org/api/v1/summaries.list"
 url_post = 'https://beta.yuanjian.org/api/v1/summaries.write'
 params = {"key": "原始文字", "excludeTranscriptsWithKey": "xxx_llm_1000"}
-headers_get = {"Authorization": "Bearer {}".format(os.environ['YUANJIAN_TOKEN'])}
-headers_post = ["Authorization: Bearer {}".format(os.environ['YUANJIAN_TOKEN']),
+headers_get = {"Authorization": "Bearer {}".format(os.environ['INTEGRATION_AUTH_TOKEN'])}
+headers_post = ["Authorization: Bearer {}".format(os.environ['INTEGRATION_AUTH_TOKEN']),
                 "Content-Type: application/x-www-form-urlencoded"]  #
 
 
