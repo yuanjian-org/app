@@ -9,3 +9,5 @@ services:
     build:
       args:
         - env=prod
+    environment:
+      NODE_ENV: production
