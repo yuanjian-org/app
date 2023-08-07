@@ -28,7 +28,7 @@ developed by VEF volunteers.
 1. Visit [`localhost:3000`](http://localhost:3000) from broswer. Log in with your personal email address.
 1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
 
-## Getting Started locally
+## Getting Started Locally
 
 1. Install `node.js` and `yarn`.
 1. Install `postgresql` and start it locally. Aternatively, create a remote test db at [Neon](http://neon.tech).
