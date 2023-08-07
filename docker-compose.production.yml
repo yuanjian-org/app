@@ -1,6 +1,6 @@
 version: '3'
 
-# WIP might not be usable.
+# WIP, might not be usable.
 services:
   yuanjian-app:
     extends:

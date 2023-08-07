@@ -72,7 +72,7 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 
 That is, only the dependencies demonstrated below are allowed:
 
-```mermaidn
+```mermaid
 graph TD;
     src[the rest of src]-->|ok|src/shared;
     src/api-->|ok|src/shared;
