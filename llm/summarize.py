@@ -1,5 +1,5 @@
 """
-Please set environment variable YUANJIAN_TOKEN for beta.yuanjian.org
+Please set environment variable INTEGRATION_AUTH_TOKEN for beta.yuanjian.org
 """
 
 import requests
