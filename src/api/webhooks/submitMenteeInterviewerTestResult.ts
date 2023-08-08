@@ -21,13 +21,14 @@ export async function submit({ form, entry }: Record<string, any>) {
     return;
   }
 
-  const u = await db.User.findOne({
+  // There may be multiple users under the same name because users may have used wrong email to sign up.
+  // Update all of them.
+  const us = await db.User.findAll({
     where: { name }
   });
-  if (!u) {
-    throw notFoundError("用户", name);
+  
+  for (const u of us) {
+    u.menteeInterviewerTestLastPassedAt = new Date().toISOString();
+    await u.save();
   }
-
-  u.menteeInterviewerTestLastPassedAt = new Date().toISOString();
-  await u.save();
 }
