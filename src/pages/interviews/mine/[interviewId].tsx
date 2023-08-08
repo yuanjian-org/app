@@ -158,7 +158,7 @@ function FeedbackEditor({ interview }: {
 
   const feedbackId = getFeedbackId();
   const { data: interviewFeedback } = trpcNext.interviewFeedbacks.get.useQuery<InterviewFeedback | null>(feedbackId);
-  const getFeedback = () => interviewFeedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
+  const getFeedback = () => interviewFeedback?.feedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
 
   const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
   const summaryDimensionName = "总评";

@@ -29,17 +29,15 @@ const Page: NextPageWithLayout = () => {
   return !interviews ? <Loader /> : <TableContainer><Table>
     <Thead>
       <Tr>
-        <Th>类型</Th><Th>姓名</Th><Th>其他面试官</Th><Th>开始面试</Th>
+        <Th>候选人</Th><Th>其他面试官</Th><Th>进入面试</Th>
       </Tr>
     </Thead>
     <Tbody>
     {interviews.map(i => (
       <LinkBox as={Tr} key={i.id}>
         <Td>
-          {i.type === "MenteeInterview" ? "候选学生" : "候选导师"}
-        </Td>
-        <Td>
           <LinkOverlay as={NextLink} href={`/interviews/mine/${i.id}`}>
+            {i.type === "MenteeInterview" ? "学生" : "导师"}：
             {formatUserName(i.interviewee.name, "formal")}
           </LinkOverlay>
         </Td>

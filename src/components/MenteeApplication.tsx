@@ -20,7 +20,7 @@ export default function MenteeApplication({ menteeUserId } : {
   const { data: app, isLoading } = trpcNext.users.getMenteeApplication.useQuery(menteeUserId);
 
   return isLoading ? <Loader /> : <Flex direction="column" gap={sectionSpacing}>
-    <Heading size="md">申请材料</Heading>
+    <Heading size="md">学生申请材料</Heading>
     {!app ? "没有申请数据。" : menteeApplicationFields.map(f => {
       if (f.name in app) {
         return <Flex key={f.name} direction="column" gap={paragraphSpacing}>
