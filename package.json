@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "sharp": "0.32.4",
     "@authing/guard-react18": "^5.1.11",
     "@chakra-ui/icons": "^1.1.5",
     "@chakra-ui/react": "^2.0.0",
@@ -74,7 +75,8 @@
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi"
+    "prepare": "if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi",
+    "docker-dev": "docker compose up --build -d"
   },
   "browserslist": {
     "production": [
