@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  yuanjian-app-dev:
+    build:
+      context: ./
+      target: runner
+      args:
+        - env=dev
+    volumes:
+      - .:/app
+    command: yarn dev
+    container_name: yuanjian-app-dev
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
