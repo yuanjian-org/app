@@ -3,7 +3,23 @@
 A Web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org),
 developed by VEF volunteers.
 
-## Getting Started With Docker (Work In Progress)
+## Getting Started
+
+1. Install `node.js` and `yarn`.
+1. Install `postgresql` and start it locally. Aternatively, create a remote test db at [Neon](http://neon.tech).
+1. Create file `.env.local` in the repository root, and:
+   - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
+   - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
+1. Run `yarn` to install dependency packages.
+1. Run `yarn sync-database` to initialize the database.
+1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
+1. Visit this local server from broswer. Log in with your personal email address.
+1. Run `yarn gen-test-data` to finish setup and populate test data.
+1. Finally, restart your local server to clean up cached data.
+1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
+
+## Getting Started Using Docker (Work In Progress)
+
 1. Install [Docker](https://www.docker.com/).
 1. [TODO] Postgresql instructions TBD. Currently you must use Neon for database if using Docker.
 1. Create file `.env.local` in the repository root, and:
@@ -26,21 +42,6 @@ developed by VEF volunteers.
             - `-f`: Skip removal confirmation.
         - [more](https://docs.docker.com/engine/reference/commandline/cli/).
 1. Visit [`localhost:3000`](http://localhost:3000) from broswer. Log in with your personal email address.
-1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
-
-## Getting Started Locally
-
-1. Install `node.js` and `yarn`.
-1. Install `postgresql` and start it locally. Aternatively, create a remote test db at [Neon](http://neon.tech).
-1. Create file `.env.local` in the repository root, and:
-   - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
-   - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
-1. Run `yarn` to install dependency packages.
-1. Run `yarn sync-database` to initialize the database.
-1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
-1. Visit this local server from broswer. Log in with your personal email address.
-1. Run `yarn gen-test-data` to finish setup and populate test data.
-1. Finally, restart your local server to clean up cached data.
 1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
 
 ## Frameworks Used
