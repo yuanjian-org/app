@@ -41,12 +41,8 @@
     "*/**/*.cy.ts" /* .cy.test files are covered by cypress/tsconfig */
   ],
   "include": [
-    "./src",
-    "src/api",
-    "src/shared",
-    "next-env.d.ts",
+    "src",  
     "**/*.ts",
     "**/*.tsx",
-    "next.config.js"
   ],
 }
