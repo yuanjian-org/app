@@ -191,6 +191,7 @@ function FeedbackEditor({ interview }: {
       initialScore={summaryDimension?.score || defaultScore}
       initialComment={summaryDimension?.comment || defaultComment}
       onSave={async (d) => await saveDimension(d)}
+      placeholder="评分理由、学生特点、未来导师需关注的情况等（自动保存）"
     />
 
     {dimensionNames.map((dn, idx) => {
@@ -204,6 +205,7 @@ function FeedbackEditor({ interview }: {
         initialScore={d?.score || defaultScore}
         initialComment={d?.comment || defaultComment}
         onSave={async (d) => await saveDimension(d)}
+        placeholder="评分理由，包括学生回答的具体例子（自动保存）"
       />;
     })}
   </Flex>;
@@ -213,7 +215,7 @@ function FeedbackEditor({ interview }: {
  * N.B. scores are 1-indexed while labels are 0-index.
  */
 function FeedbackDimensionEditor({ 
-  editorKey, dimensionName, dimensionLabel, scoreLabels, initialScore, initialComment, onSave,
+  editorKey, dimensionName, dimensionLabel, scoreLabels, initialScore, initialComment, onSave, placeholder
 }: {
   editorKey: string,
   dimensionName: string,
@@ -221,6 +223,7 @@ function FeedbackDimensionEditor({
   scoreLabels: string[],
   initialScore: number,
   initialComment: string,
+  placeholder: string,
   onSave: (d: FeedbackDimension) => Promise<void>,
 }) {
   const [score, setScore] = useState<number>(initialScore);
@@ -256,7 +259,7 @@ function FeedbackDimensionEditor({
       key={editorKey} 
       initialValue={initialComment} 
       onSave={async (edited) => { setComment(edited); await onSave({ name: dimensionName, score, comment: edited }); }}
-      placeholder="评分理由（自动保存）"
+      placeholder={placeholder}
       toolbar={false} 
       status={false} 
       maxHeight="120px" 
