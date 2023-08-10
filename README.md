@@ -1,6 +1,6 @@
-# Yuanjian App - 远见教育平台
+# 远图教育平台
 
-A Web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org),
+远图 is a web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org),
 developed by VEF volunteers.
 
 ## Getting Started

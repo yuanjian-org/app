@@ -135,7 +135,7 @@ function Editor({ type, interview, onClose }: {
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>创建面试</ModalHeader>
+      <ModalHeader>{interview ? "修改" : "创建"}面试</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>
