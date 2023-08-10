@@ -40,8 +40,7 @@
     "node_modules",
     "*/**/*.cy.ts" /* .cy.test files are covered by cypress/tsconfig */
   ],
-  "include": [
-    "src",  
+  "include": [ 
     "**/*.ts",
     "**/*.tsx",
   ],
