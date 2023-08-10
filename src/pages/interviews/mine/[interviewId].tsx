@@ -102,27 +102,22 @@ function Instructions({ interviewers }: {
       <ListItem>用<Icon as={BsWechat} marginX={1.5} />微信发起视频群聊。</ListItem>
       {first !== null && <>
         <ListItem>
-          <Text as="span" color="red.600">你负责提问维度 {first ? "1 到 4" : "5 到 8"} 的问题；</Text>
+          你负责<mark>提问维度 {first ? "1 到 4" : "5 到 8"} </mark>的问题；
           {formatUserName(other?.name ?? null, "friendly")}负责维度 {first ? "5 到 8" : "1 到 4"}。
         </ListItem>
-        <ListItem><Text color="red.600">请填写所有8个维度的评价和总评。</Text></ListItem>
+        <ListItem><mark>填写所有八个维度</mark>的评价和总评。</ListItem>
       </>}
-    </UnorderedList>
-    <Flex direction="column" gap={paragraphSpacing}>
-      <b>参考资料</b>
-      <UnorderedList>
       <ListItem>
-          <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-            面试维度和参考题库 <ExternalLinkIcon />
-          </Link>
-        </ListItem>
-        <ListItem>
-          <Link isExternal href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe">
-            面试须知 <ExternalLinkIcon />
-          </Link>
-        </ListItem>
-      </UnorderedList>
-    </Flex>
+        <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
+          面试维度和参考题库 <ExternalLinkIcon />
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link isExternal href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe">
+          面试须知 <ExternalLinkIcon />
+        </Link>
+      </ListItem>
+    </UnorderedList>
   </Flex>;
 }
 
@@ -163,7 +158,7 @@ function FeedbackEditor({ interview }: {
 
   const feedbackId = getFeedbackId();
   const { data: interviewFeedback } = trpcNext.interviewFeedbacks.get.useQuery<InterviewFeedback | null>(feedbackId);
-  const getFeedback = () => interviewFeedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
+  const getFeedback = () => interviewFeedback?.feedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
 
   const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
   const summaryDimensionName = "总评";
@@ -191,11 +186,12 @@ function FeedbackEditor({ interview }: {
     <FeedbackDimensionEditor 
       editorKey={`${feedbackId}-${summaryDimensionName}`}
       dimensionName={summaryDimensionName}
-      dimensionLabel={summaryDimensionName}
+      dimensionLabel={`${summaryDimensionName}与备注`}
       scoreLabels={["拒", "弱拒", "弱收", "收"]}
       initialScore={summaryDimension?.score || defaultScore}
       initialComment={summaryDimension?.comment || defaultComment}
       onSave={async (d) => await saveDimension(d)}
+      placeholder="评分理由、学生特点、未来导师需关注的情况等（自动保存）"
     />
 
     {dimensionNames.map((dn, idx) => {
@@ -209,6 +205,7 @@ function FeedbackEditor({ interview }: {
         initialScore={d?.score || defaultScore}
         initialComment={d?.comment || defaultComment}
         onSave={async (d) => await saveDimension(d)}
+        placeholder="评分理由，包括学生回答的具体例子（自动保存）"
       />;
     })}
   </Flex>;
@@ -218,7 +215,7 @@ function FeedbackEditor({ interview }: {
  * N.B. scores are 1-indexed while labels are 0-index.
  */
 function FeedbackDimensionEditor({ 
-  editorKey, dimensionName, dimensionLabel, scoreLabels, initialScore, initialComment, onSave,
+  editorKey, dimensionName, dimensionLabel, scoreLabels, initialScore, initialComment, onSave, placeholder
 }: {
   editorKey: string,
   dimensionName: string,
@@ -226,6 +223,7 @@ function FeedbackDimensionEditor({
   scoreLabels: string[],
   initialScore: number,
   initialComment: string,
+  placeholder: string,
   onSave: (d: FeedbackDimension) => Promise<void>,
 }) {
   const [score, setScore] = useState<number>(initialScore);
@@ -261,7 +259,7 @@ function FeedbackDimensionEditor({
       key={editorKey} 
       initialValue={initialComment} 
       onSave={async (edited) => { setComment(edited); await onSave({ name: dimensionName, score, comment: edited }); }}
-      placeholder="评分理由（自动保存）"
+      placeholder={placeholder}
       toolbar={false} 
       status={false} 
       maxHeight="120px" 

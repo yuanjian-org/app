@@ -41,7 +41,7 @@ export default function ConsentModal() {
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
         <ModalBody>
           <VStack spacing={6} marginBottom={10} align='left'>
-            <Text>本网站是<Link isExternal href="http://yuanjian.org">远见教育基金会</Link>（远见）教育平台的内测版。
+            <Text>本网站是<Link isExternal href="http://yuanjian.org">远见教育基金会</Link>（远见）下属的“远图”教育平台内部测试版。
               为了测试自动会议摘要的质量，<b>在内测期间，网站会自动将会议全程转录成文字、生成会议摘要、并保存这些文字和摘要</b>。</Text>
 
             <Text>为确保个人隐私，远见严格限制转录文字和摘要的访问权限。只有用户本人和少量已签署保密协议的远见工作人员能够访问这些数据。

@@ -57,7 +57,7 @@ export async function email(templateId: string, personalization: Personalization
     templateId,
     from: {
       email: 'app@yuanjian.org',
-      name: '远见教育平台',
+      name: '远图',
     },
     replyTo: {
       email: 'hi@yuanjian.org',
