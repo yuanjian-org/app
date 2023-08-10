@@ -16,7 +16,6 @@ const SimpleMDE = dynamic(
 // See https://www.npmjs.com/package/react-simplemde-editor#options on the reason for using a global constant.
 const options = {
   spellChecker: false,
-  autofocus: true,
   hideIcons: ["link", "image", "side-by-side", "fullscreen"],
   // This has no effect. Need more research.
   // readOnly: true,
