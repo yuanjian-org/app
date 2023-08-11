@@ -9,6 +9,7 @@ export type InterviewType = z.TypeOf<typeof zInterviewType>;
 export const zInterview = z.object({
     id: z.string(),
     type: zInterviewType,
+    calibrationId: z.string().nullable(),
     interviewee: zMinUser,
     feedbacks: z.array(zMinInterviewFeedback),
   });

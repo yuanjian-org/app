@@ -11,6 +11,7 @@ import Partnership from './models/Partnership';
 import Assessment from "./models/Assessment";
 import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";
+import Calibration from "./models/Calibration";
 
 const db = {
   Partnership,
@@ -23,6 +24,7 @@ const db = {
   Assessment,
   Interview,
   InterviewFeedback,
+  Calibration,
 };
 
 export default db;
