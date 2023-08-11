@@ -22,6 +22,9 @@ import {
   Wrap,
   LinkOverlay,
   LinkBox,
+  HStack,
+  Input,
+  Select,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -41,8 +44,9 @@ const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
 
   const { data: interviews, refetch } = trpcNext.interviews.list.useQuery<Interview[] | undefined>(type);
-  const [editorIsOpen, setEditorIsOpen] = useState(false);
+  const [interviewEditorIsOpen, setEditorIsOpen] = useState(false);
   const [interviewBeingEdited, setInterviewBeingEdited] = useState<Interview | null>(null);
+  const [calibrationEditorIsOpen, setCalibrationEditorIsOpen] = useState(false);
 
   const editInterview = (i: Interview | null) => {
     setInterviewBeingEdited(i);
@@ -51,15 +55,22 @@ const Page: NextPageWithLayout = () => {
 
   return <Flex direction='column' gap={6}>
     <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => editInterview(null)}>
-        创建{type == "MenteeInterview" ? "学生": "导师"}面试
-      </Button>
+      <HStack spacing={4}>
+        <Button variant='brand' leftIcon={<AddIcon />} onClick={() => editInterview(null)}>
+          创建{type == "MenteeInterview" ? "学生": "导师"}面试
+        </Button>
+        <Button leftIcon={<AddIcon />} onClick={() => setCalibrationEditorIsOpen(true)}>
+          创建面试讨论组
+        </Button>
+      </HStack>
     </Box>
 
-    {editorIsOpen && <Editor type={type} interview={interviewBeingEdited} onClose={() => {
+    {interviewEditorIsOpen && <InterviewEditor type={type} interview={interviewBeingEdited} onClose={() => {
       setEditorIsOpen(false);
       refetch();
     }} />}
+
+    {calibrationEditorIsOpen && <CalibrationEditor type={type} onClose={() => setCalibrationEditorIsOpen(false)} />}
 
     <Text><CheckIcon /> 表示已经填写了面试反馈的面试官：</Text>
 
@@ -98,7 +109,7 @@ Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
 
-function Editor({ type, interview, onClose }: {
+function InterviewEditor({ type, interview, onClose }: {
   type: InterviewType,
   interview: Interview | null,  // Create a new interview when null
   onClose: () => void,
@@ -111,6 +122,10 @@ function Editor({ type, interview, onClose }: {
     interview ? interview.feedbacks.map(f => f.interviewer.id) : []);
   const [saving, setSaving] = useState(false);
 
+  const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
+  // When selecting "无“ <Select> emits "".
+  const [calibrationId, setCalibrationId] = useState<string>(interview?.calibrationId || "");
+  
   const isValid = () => intervieweeId != null && interviewerIds.length > 0;
 
   const save = async () => {
@@ -118,15 +133,17 @@ function Editor({ type, interview, onClose }: {
     try {
       invariant(isValid());
       invariant(intervieweeId);
+      const cid = calibrationId.length ? calibrationId : null;
       if (interview) {
         await trpc.interviews.update.mutate({
-          id: interview.id, type, intervieweeId, interviewerIds,
+          id: interview.id, type, calibrationId: cid, intervieweeId, interviewerIds,
         });
       } else {
         await trpc.interviews.create.mutate({
-          type, intervieweeId, interviewerIds
+          type, calibrationId: cid, intervieweeId, interviewerIds,
         });
       }
+
       onClose();
     } finally {
       setSaving(false);
@@ -135,7 +152,7 @@ function Editor({ type, interview, onClose }: {
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>{interview ? "修改" : "创建"}面试</ModalHeader>
+      <ModalHeader>{interview ? "修改" : "创建"}{type == "MenteeInterview" ? "学生": "导师"}面试</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>
@@ -160,12 +177,67 @@ function Editor({ type, interview, onClose }: {
               }))}
             />
           </FormControl>
+          <FormControl>
+            <FormLabel>面试讨论组</FormLabel>
+            <Select placeholder="无"
+              onChange={e => setCalibrationId(e.target.value)}
+              value={calibrationId}
+            >
+              {calibrations?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </Select>
+          </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
         <Button variant='brand' 
           isDisabled={!isValid()}
           isLoading={saving} onClick={save}>保存</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}
+
+
+function CalibrationEditor({ type, onClose }: {
+  type: InterviewType,
+  onClose: () => void,
+}) {
+  const [name, setName] = useState<string>('');
+  const [saving, setSaving] = useState<boolean>(false);
+
+  const isValid = () => name.length > 0;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      invariant(isValid());
+      await trpc.calibrations.create.mutate({ type, name });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return <ModalWithBackdrop isOpen onClose={onClose}>
+    <ModalContent>
+      <ModalHeader>创建面试讨论组</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <VStack spacing={6}>
+          <FormControl>
+            <FormLabel>讨论组名称</FormLabel>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)} 
+              placeholder="比如：2024届中科大"
+            />
+          </FormControl>
+        </VStack>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant='brand' 
+          isDisabled={!isValid()}
+          isLoading={saving} onClick={save}>创建</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

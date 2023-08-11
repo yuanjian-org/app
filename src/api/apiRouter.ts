@@ -10,6 +10,7 @@ import assessments from './routes/assessments';
 import webhooks from './webhooks';
 import interviews from './routes/interviews';
 import interviewFeedbacks from './routes/interviewFeedbacks';
+import calibrations from './routes/calibrations';
 
 export const apiRouter = router({
   users,
@@ -23,6 +24,7 @@ export const apiRouter = router({
   webhooks,
   interviews,
   interviewFeedbacks,
+  calibrations,
 });
 
 export type ApiRouter = typeof apiRouter;

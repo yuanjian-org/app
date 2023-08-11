@@ -17,6 +17,7 @@ import User from "./User";
 import Transcript from "./Transcript";
 import Partnership from "./Partnership";
 import Interview from "./Interview";
+import Calibration from "./Calibration";
 
 /**
  * A group is said to be "owned" if the partnership or interview field is non-null.
@@ -42,6 +43,11 @@ class Group extends ParanoidModel<
   @ForeignKey(() => Interview)
   @Column(UUID)
   interviewId: string | null;
+
+  // A group is said to be "owned" by a calibration if this field is non-null.
+  @ForeignKey(() => Calibration)
+  @Column(UUID)
+  calibrationId: string | null;
 
   /**
    * Associations
