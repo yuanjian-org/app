@@ -20,8 +20,6 @@ import {
   Box,
   WrapItem,
   Wrap,
-  LinkOverlay,
-  LinkBox,
   HStack,
   Input,
   Select,
@@ -40,6 +38,7 @@ import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
+import TrLink from 'components/TrLink';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -83,11 +82,9 @@ const Page: NextPageWithLayout = () => {
       </Thead>
       <Tbody>
       {interviews.map(i => (
-        <LinkBox as={Tr} key={i.id}>
+        <TrLink key={i.id} href="#" onClick={() => editInterview(i)}>
           <Td>
-            <LinkOverlay href="#" onClick={() => editInterview(i)}>
-              {formatUserName(i.interviewee.name, "formal")}
-            </LinkOverlay>
+            {formatUserName(i.interviewee.name, "formal")}
           </Td>
           <Td>{toPinyin(i.interviewee.name ?? "")}</Td>
           <Td><Wrap spacing="2">
@@ -101,7 +98,7 @@ const Page: NextPageWithLayout = () => {
           <Td>
             {i.calibration?.name}
           </Td>
-        </LinkBox>
+        </TrLink>
       ))}
       </Tbody>
     </Table></TableContainer>}

@@ -8,8 +8,6 @@ import {
   TableContainer,
   WrapItem,
   Wrap,
-  LinkOverlay,
-  LinkBox,
   Tabs,
   TabList,
   Tab,
@@ -26,9 +24,9 @@ import Loader from 'components/Loader';
 import { formatUserName } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import NextLink from "next/link";
 import { Calibration } from 'shared/Calibration';
 import { CheckIcon } from '@chakra-ui/icons';
+import TrLink from 'components/TrLink';
 
 const Page: NextPageWithLayout = () => {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
@@ -71,12 +69,10 @@ function Interviews({ interviews, showMe }: {
     </Thead>
     <Tbody>
     {interviews.map(i => (
-      <LinkBox as={Tr} key={i.id}>
+      <TrLink key={i.id} href={`/interviews/mine/${i.id}`}>
         <Td>
-          <LinkOverlay as={NextLink} href={`/interviews/mine/${i.id}`}>
-            {/* {i.type === "MenteeInterview" ? "学生" : "导师"}： */}
-            {formatUserName(i.interviewee.name, "formal")}
-          </LinkOverlay>
+          {/* {i.type === "MenteeInterview" ? "学生" : "导师"}： */}
+          {formatUserName(i.interviewee.name, "formal")}
         </Td>
         <Td><Wrap spacing="2">
           {i.feedbacks.filter(f => showMe || f.interviewer.id !== me.id).map(f => 
@@ -86,7 +82,7 @@ function Interviews({ interviews, showMe }: {
             </WrapItem>
           )}
         </Wrap></Td>
-      </LinkBox>
+      </TrLink>
     ))}
     </Tbody>
   </Table></TableContainer>;
