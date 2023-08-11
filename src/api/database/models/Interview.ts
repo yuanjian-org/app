@@ -18,7 +18,7 @@ import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
-import { InterviewType, zInterviewType } from "../../../shared/Interview";
+import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 import Calibration from "./Calibration";
 
 @Table({
@@ -48,6 +48,8 @@ class Interview extends Model {
   /**
    * Associations
    */
+  @BelongsTo(() => Calibration)
+  calibration: Calibration | null;
 
   @BelongsTo(() => User)
   interviewee: User;

@@ -14,7 +14,7 @@ import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
-import { Group, GroupCountingTranscripts, zGroup, zGroupCountingTranscripts, 
+import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
 import { includeForGroup } from "../database/models/attributesAndIncludes";
 
@@ -124,6 +124,7 @@ const destroy = procedure
   });
 });
 
+
 /**
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
@@ -142,7 +143,7 @@ const listMine = procedure
     include: [{
       model: db.Group,
       include: [...includeForGroup, Transcript],
-      where: input.includeOwned ? {} : { partnershipId: null },
+      where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
 });
@@ -158,8 +159,7 @@ const list = procedure
     includeOwned: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : 
-    { partnershipId: null, interviewId: null, calibrationId: null }));
+  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : whereUnowned));
 
 /**
  * Identical to `list`, but additionally returns empty transcripts

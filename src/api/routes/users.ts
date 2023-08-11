@@ -11,7 +11,7 @@ import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import Interview from "api/database/models/Interview";
-import { InterviewType } from "shared/Interview";
+import { InterviewType } from "shared/InterviewType";
 import { userAttributes } from "../database/models/attributesAndIncludes";
 
 const me = procedure

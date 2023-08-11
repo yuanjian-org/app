@@ -1,6 +1,7 @@
 /**
  * Collect things in this file as opposed to model files to avoid cyclic dependencies.
  */
+import Calibration from "./Calibration";
 import InterviewFeedback from "./InterviewFeedback";
 import User from "./User";
 
@@ -51,10 +52,16 @@ export const includeForInterviewFeedback = [{
 }];
 
 /**
+ * Callibration
+ */
+
+export const calibrationAttributes = ["id", "type", "name"];
+
+/**
  * Interview
  */
 
-export const interviewAttributes = ["id", "type", "calibrationId"];
+export const interviewAttributes = ["id", "type"];
 
 export const includeForInterview = [{
   model: User,
@@ -63,10 +70,7 @@ export const includeForInterview = [{
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
   include: includeForInterviewFeedback,
+}, {
+  model: Calibration,
+  attributes: calibrationAttributes,
 }];
-
-/**
- * Callibration
- */
-
-export const calibrationAttributes = ["id", "type", "name"];

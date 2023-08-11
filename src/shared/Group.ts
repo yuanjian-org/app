@@ -31,3 +31,5 @@ export type GroupWithTranscripts = z.TypeOf<typeof zGroupWithTranscripts>;
 export function isOwned(g: Group) {
   return g.partnershipId || g.interviewId || g.calibrationId;
 }
+
+export const whereUnowned = { partnershipId: null, interviewId: null, calibrationId: null };

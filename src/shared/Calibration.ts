@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zInterviewType } from './Interview';
+import { zInterviewType } from './InterviewType';
 
 export const zCalibration = z.object({
     id: z.string(),
