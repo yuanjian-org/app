@@ -1,8 +1,6 @@
 import {
   Column,
-  ForeignKey,
   Table,
-  BelongsTo,
   Model,
   PrimaryKey,
   IsUUID,
@@ -11,13 +9,12 @@ import {
   AllowNull,
   Unique,
   HasOne,
-  BeforeDestroy,
 } from "sequelize-typescript";
 import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
 import Group from "./Group";
-import { InterviewType, zInterviewType } from "../../../shared/Interview";
+import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 
 @Table({
   paranoid: true,

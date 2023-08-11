@@ -37,13 +37,14 @@ import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
-import { Interview, InterviewType } from 'shared/Interview';
+import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon } from '@chakra-ui/icons';
+import { InterviewType } from 'shared/InterviewType';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
 
-  const { data: interviews, refetch } = trpcNext.interviews.list.useQuery<Interview[] | undefined>(type);
+  const { data: interviews, refetch } = trpcNext.interviews.list.useQuery(type);
   const [interviewEditorIsOpen, setEditorIsOpen] = useState(false);
   const [interviewBeingEdited, setInterviewBeingEdited] = useState<Interview | null>(null);
   const [calibrationEditorIsOpen, setCalibrationEditorIsOpen] = useState(false);
@@ -77,7 +78,7 @@ const Page: NextPageWithLayout = () => {
     {!interviews ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音</Th><Th>面试官</Th>
+          <Th>候选人</Th><Th>拼音</Th><Th>面试官</Th><Th>面试讨论组</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -97,6 +98,9 @@ const Page: NextPageWithLayout = () => {
               </WrapItem>
             )}
           </Wrap></Td>
+          <Td>
+            {i.calibration?.name}
+          </Td>
         </LinkBox>
       ))}
       </Tbody>
@@ -124,7 +128,7 @@ function InterviewEditor({ type, interview, onClose }: {
 
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
   // When selecting "无“ <Select> emits "".
-  const [calibrationId, setCalibrationId] = useState<string>(interview?.calibrationId || "");
+  const [calibrationId, setCalibrationId] = useState<string>(interview?.calibration?.id || "");
   
   const isValid = () => intervieweeId != null && interviewerIds.length > 0;
 

@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { InterviewType, zInterview, zInterviewType, zInterviewWithGroup } from "../../shared/Interview";
+import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
 import { includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
@@ -11,6 +11,7 @@ import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import { syncCalibrationGroup } from "./calibrations";
+import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 
 /**
  * Only the interviewers of an interview are allowed to get it.
