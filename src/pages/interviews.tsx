@@ -94,7 +94,7 @@ const Page: NextPageWithLayout = () => {
             {i.feedbacks.map(f =>
               <WrapItem key={f.id}>
                 {formatUserName(f.interviewer.name, "formal")}
-                {f.feedbackUpdatedAt && <CheckIcon />}
+                {f.feedbackUpdatedAt && <CheckIcon marginStart={1} />}
               </WrapItem>
             )}
           </Wrap></Td>
