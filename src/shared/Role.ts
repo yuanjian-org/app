@@ -70,7 +70,7 @@ export const RoleProfiles: { [key: string]: {
     privilegedUserDataAccess: true,
   },
   InterviewManager: {
-    displayName: '面试分组管理员',
+    displayName: '面试管理员',
     actions: '管理导师与学生面试匹配',
     privileged: true,
     privilegedUserDataAccess: false,
