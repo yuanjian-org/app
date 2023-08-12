@@ -56,8 +56,7 @@ const Page: NextPageWithLayout = () => {
         <GridItem>
           <Flex direction="column" gap={sectionSpacing}>
             <Instructions interviewers={interview.feedbacks.map(f => f.interviewer)} />
-            <Text color="red" fontWeight="bold">由于技术故障，记录功能暂时无法使用。请用暂用其他媒介记录面试反馈。维汉深表歉意。</Text>
-            <InterviewFeedbackEditor feedbackId={getMyFeedbackId()} editable={false} />
+            <InterviewFeedbackEditor feedbackId={getMyFeedbackId()} />
           </Flex>
         </GridItem>
         <GridItem>
