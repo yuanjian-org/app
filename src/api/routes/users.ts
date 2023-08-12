@@ -141,13 +141,17 @@ const update = procedure
   invalidateLocalUserCache();
 });
 
+/**
+ * Only InterviewManagers and interviewers of the application are allowed to call this route.
+ */
 const getMenteeApplication = procedure
   .use(authUser())
   .input(z.string())
   .output(z.record(z.string(), z.any()).nullable())
   .query(async ({ ctx, input: menteeUserId }) =>
 {
-  // Only allow interviewers of the mentee to read.
+  const isIM = isPermitted(ctx.user.roles, "InterviewManager");
+
   const interviews = await db.Interview.findAll({
     where: {
       type: "MenteeInterview",
@@ -157,7 +161,7 @@ const getMenteeApplication = procedure
     include: [{
       model: db.InterviewFeedback,
       attributes: [],
-      where: { interviewerId: ctx.user.id },
+      ...isIM ? {} : { where: { interviewerId: ctx.user.id } }
     }, {
       model: db.User,
       attributes: ["menteeApplication"],
