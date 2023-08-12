@@ -77,7 +77,30 @@ const update = procedure
   return getEtag(now);
 });
 
+/**
+ * Changelogging for auditing and data loss prevention.
+ *
+ * TODO: A holistic solution.
+ */
+const logUpdateAttempt = procedure
+  .use(authUser())
+  .input(z.object({
+    id: z.string(),
+    feedback: zFeedback,
+    etag: z.number(),
+  }))
+  .mutation(async ({ ctx, input }) =>
+{
+  await db.InterviewFeedbackUpdateAttempt.create({
+    userId: ctx.user.id,
+    interviewFeedbackId: input.id,
+    feedback: input.feedback,
+    etag: input.etag,
+  });
+});
+
 export default router({
   get,
   update,
+  logUpdateAttempt,
 });
