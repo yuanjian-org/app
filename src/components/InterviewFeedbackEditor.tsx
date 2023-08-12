@@ -159,7 +159,7 @@ function FeedbackDimensionEditor({
         maxHeight="120px"
       />
       :
-      <Textarea resize="none" isReadOnly value={initialComment} height="142px" />
+      <Textarea isReadOnly value={initialComment} height="142px" />
     }
   </>;
 }
