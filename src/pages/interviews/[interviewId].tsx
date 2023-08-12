@@ -26,12 +26,12 @@ const Page: NextPageWithLayout = () => {
       gap={sectionSpacing}
     >
       {interview.feedbacks
-        // Stablize dislay order
+        // Fix dislay order
         .sort((f1, f2) => f1.id.localeCompare(f2.id))
         .map(f => <GridItem key={f.id}>
         <Flex direction="column" gap={sectionSpacing}>
           <Heading size="md">{formatUserName(f.interviewer.name, "formal")}</Heading>
-          <InterviewFeedbackEditor feedbackId={f.id} editable={me.id == f.interviewer.id} />
+          <InterviewFeedbackEditor feedbackId={f.id} readonly={me.id !== f.interviewer.id} />
         </Flex>
       </GridItem>)}
 
