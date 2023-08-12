@@ -15,3 +15,6 @@ export const alreadyExistsError = (kind: Kind) =>
 
 export const generalBadRequestError = (message: string) =>
   new TRPCError({ code: 'BAD_REQUEST', message });
+
+export const conflictError = () =>
+  new TRPCError({ code: "CONFLICT", message: "版本冲突" });

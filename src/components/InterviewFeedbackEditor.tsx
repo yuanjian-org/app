@@ -13,10 +13,13 @@ import {
 } from '@chakra-ui/react';
 import invariant from "tiny-invariant";
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
 import { InterviewFeedback } from 'shared/InterviewFeedback';
 import _ from "lodash";
+import moment from 'moment';
+import { TRPCError } from '@trpc/server';
+import { TRPCClientError } from '@trpc/client';
 
 type Feedback = {
   dimensions: FeedbackDimension[],
@@ -46,8 +49,11 @@ export default function InterviewFeedbackEditor({ feedbackId, editable }: {
   feedbackId: string,
   editable: boolean,
 }) {
-  const { data: interviewFeedback } = trpcNext.interviewFeedbacks.get.useQuery<InterviewFeedback | null>(feedbackId);
-  const getFeedback = () => interviewFeedback?.feedback ? interviewFeedback.feedback as Feedback : { dimensions: [] };
+  const { data } = trpcNext.interviewFeedbacks.get.useQuery(feedbackId);
+  const refEtag = useRef<number | null>(null);
+
+  const getFeedback = () => data?.interviewFeedback.feedback ? 
+    data.interviewFeedback.feedback as Feedback : { dimensions: [] };
 
   const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
   const summaryDimensionName = "总评";
@@ -55,6 +61,9 @@ export default function InterviewFeedbackEditor({ feedbackId, editable }: {
   const summaryDimension = summaryDimensions.length == 1 ? summaryDimensions[0] : null;
 
   const saveDimension = async (edited: FeedbackDimension) => {
+    if (!data) return;
+    if (refEtag.current == null) refEtag.current = data.etag;
+
     const old = getFeedback();
     const f = structuredClone(old);
     const d = findDimension(f, edited.name);
@@ -68,10 +77,21 @@ export default function InterviewFeedbackEditor({ feedbackId, editable }: {
     }
     
     if (_.isEqual(f, old)) return;
-    await trpc.interviewFeedbacks.update.mutate({ id: feedbackId, feedback: f });    
+
+    try {
+      refEtag.current = await trpc.interviewFeedbacks.update.mutate({ 
+        id: feedbackId,
+        feedback: f,
+        etag: refEtag.current,
+      });
+    } catch (e) {
+      if (e instanceof TRPCClientError && e.data.code == "CONFLICT") {
+        window.alert("有更新版本，无法继续保存。请刷新此页重试。");
+      }
+    }
   };
 
-  return !interviewFeedback ? <Loader /> : <Flex direction="column" gap={6}>
+  return !data ? <Loader /> : <Flex direction="column" gap={6}>
     <FeedbackDimensionEditor 
       editorKey={`${feedbackId}-${summaryDimensionName}`}
       dimensionName={summaryDimensionName}

@@ -12,7 +12,7 @@ import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import { syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
-import { isPermitted } from "shared/Role";
+import { isPermitted } from "../../shared/Role";
 
 /**
  * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.
