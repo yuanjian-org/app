@@ -117,7 +117,7 @@ function InterviewFeedbackEditorWithData({ id, feedback: original, etag, readonl
       dimension={getDimension(feedback, name)}
       dimensionLabel={`${idx + 1}. ${name}`}
       scoreLabels={["明显低于预期", "低于预期", "达到预期", "高于预期", "明显高于预期"]}
-      commentPlaceholder="评分理由，包括学生回答的具体例子（自动保存）"
+      commentPlaceholder="评分理由，并例举学生的具体回答（自动保存）"
       readonly={readonly}
       onChange={d => setFeedback(setDimension(feedback, d))}
     />)}
