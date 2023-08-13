@@ -21,7 +21,7 @@ import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../../NextPageWithLayout'
 import { trpcNext } from "../../trpc";
 import Loader from 'components/Loader';
-import { formatUserName } from 'shared/strings';
+import { formatUserName, compareUUID } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
 import { Calibration } from 'shared/Calibration';
@@ -68,7 +68,8 @@ function Interviews({ interviews, showMe }: {
       </Tr>
     </Thead>
     <Tbody>
-    {interviews.map(i => (
+    {/* Fix dislay order */}
+    {interviews.sort((i1, i2) => compareUUID(i1.id, i2.id)).map(i => (
       <TrLink key={i.id} href={`/interviews/${i.id}/feedback`}>
         <Td>
           {/* {i.type === "MenteeInterview" ? "学生" : "导师"}： */}

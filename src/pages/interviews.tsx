@@ -125,7 +125,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       }} 
     />}
 
-    <Tr key={applicant.id}>
+    <Tr key={applicant.id} _hover={{ bg: "white" }}>
       <Td>
         <Link href="#" onClick={() => setInterviewInEditor(interview)}>
           {interview ? <EditIcon /> : <AddIcon />}

@@ -10,7 +10,7 @@ import _ from "lodash";
 import MenteeApplication from 'components/MenteeApplication';
 import { sectionSpacing } from 'theme/metrics';
 import InterviewFeedbackEditor from 'components/InterviewFeedbackEditor';
-import { formatUserName } from 'shared/strings';
+import { formatUserName, compareUUID } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 
 const Page: NextPageWithLayout = () => {
@@ -27,7 +27,7 @@ const Page: NextPageWithLayout = () => {
     >
       {interview.feedbacks
         // Fix dislay order
-        .sort((f1, f2) => f1.id.localeCompare(f2.id))
+        .sort((f1, f2) => compareUUID(f1.id, f2.id))
         .map(f => <GridItem key={f.id}>
         <Flex direction="column" gap={sectionSpacing}>
           <Heading size="md">{formatUserName(f.interviewer.name, "formal")}</Heading>
