@@ -21,6 +21,7 @@ export default User;
 
 export const zUserFilter = z.object({
   hasMenteeApplication: z.boolean().optional(),
+  hasMentorApplication: z.boolean().optional(),
   isMenteeInterviewee: z.boolean().optional(),
   matchNameOrEmail: z.string().optional(),
 });
