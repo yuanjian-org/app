@@ -9,6 +9,8 @@ module.exports = nextConfig;
 
 
 // Injected content via Sentry wizard below
+// for mannual setup or config, see:
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/?original_referrer=https%3A%2F%2Fwww.google.com%2F
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
@@ -22,7 +24,7 @@ module.exports = withSentryConfig(
     silent: true,
 
     org: "visionary-education-foundation",
-    project: "javascript-nextjs",
+    project: "javascript-nextjs-app",
   },
   {
     // For all available options, see:

@@ -17,5 +17,5 @@ Sentry.init({
 
   environment: "production",
 
-  tracePropagationTargets: [/^https:\/\/beta\.yuanjian\.org/],
+  tracePropagationTargets: [/.*/],
 });
