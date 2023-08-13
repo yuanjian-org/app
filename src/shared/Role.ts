@@ -71,9 +71,9 @@ export const RoleProfiles: { [key: string]: {
   },
   InterviewManager: {
     displayName: '面试管理员',
-    actions: '管理导师与学生面试匹配',
+    actions: '管理导师与学生面试',
     privileged: true,
-    privilegedUserDataAccess: false,
+    privilegedUserDataAccess: true,
   },
   Mentor: {
     displayName: '导师',
