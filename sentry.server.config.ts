@@ -2,6 +2,7 @@
 // The config you add here will be used whenever the server handles a request.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
+import { Integrations } from '@sentry/node';
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
@@ -14,4 +15,8 @@ Sentry.init({
   debug: false,
 
   environment: "production",
+
+  integrations: [
+    new Integrations.Http({ tracing: true }),
+  ],
 });
