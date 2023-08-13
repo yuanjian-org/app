@@ -7,7 +7,9 @@ const autosaveDelayMs = 500;
 const retryIntervalSec = 8;
 
 /**
- * Reference implementation: https://www.synthace.com/blog/autosave-with-react-hooks
+ * TODO: use type template
+ *
+ * @param data null or undefined to disable auto saving.
  */
 export default function Autosaver({ data, onSave }: {
   data: any,

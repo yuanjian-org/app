@@ -12,9 +12,10 @@ import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import { syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
+import { isPermitted } from "../../shared/Role";
 
 /**
- * Only the interviewers of an interview are allowed to get it.
+ * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.
  */
 const get = procedure
   .use(authUser())
@@ -32,7 +33,7 @@ const get = procedure
   if (!i) {
     throw notFoundError("面试", id);
   }
-  if (!i.feedbacks.some(f => f.interviewer.id === ctx.user.id )) {
+  if (!i.feedbacks.some(f => f.interviewer.id === ctx.user.id) && !isPermitted(ctx.user.roles, "InterviewManager")) {
     throw noPermissionError("面试", id);
   }
   return i;

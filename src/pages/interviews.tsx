@@ -36,9 +36,10 @@ import invariant from 'tiny-invariant';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
-import { AddIcon, CheckIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
 import TrLink from 'components/TrLink';
+import Link from 'next/link';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -72,17 +73,21 @@ const Page: NextPageWithLayout = () => {
 
     {calibrationEditorIsOpen && <CalibrationEditor type={type} onClose={() => setCalibrationEditorIsOpen(false)} />}
 
-    <Text><CheckIcon /> 表示已经填写了面试反馈的面试官：</Text>
-
     {!interviews ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音</Th><Th>面试官</Th><Th>面试讨论组</Th>
+          <Th>修改</Th><Th>查看</Th><Th>候选人</Th><Th>拼音</Th><Th>面试官</Th><Th>面试讨论组</Th>
         </Tr>
       </Thead>
       <Tbody>
       {interviews.map(i => (
-        <TrLink key={i.id} href="#" onClick={() => editInterview(i)}>
+        <Tr key={i.id}>
+          <Td>
+            <Link href="#" onClick={() => editInterview(i)}><EditIcon /></Link>
+          </Td>
+          <Td>
+            <Link href={`/interviews/${i.id}`}><ViewIcon /></Link>
+          </Td>
           <Td>
             {formatUserName(i.interviewee.name, "formal")}
           </Td>
@@ -98,11 +103,12 @@ const Page: NextPageWithLayout = () => {
           <Td>
             {i.calibration?.name}
           </Td>
-        </TrLink>
+        </Tr>
       ))}
       </Tbody>
     </Table></TableContainer>}
 
+    <Text fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
   </Flex>
 }
 

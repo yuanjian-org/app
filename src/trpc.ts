@@ -29,7 +29,10 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
         },
         error(err: TRPCClientError<ApiRouter>) {
           console.log('TRPC got an error:', err);
-          toast.error(`糟糕！${err.message}`);
+          // Assume UI will manually handle this error.
+          if (err.data?.code !== "CONFLICT") {
+            toast.error(`糟糕！${err.message}`);
+          }
           observer.error(err);
         },
         complete() {
