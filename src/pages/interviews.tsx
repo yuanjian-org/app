@@ -20,11 +20,22 @@ import {
   Box,
   WrapItem,
   Wrap,
-  HStack,
   Input,
   Select,
   Tooltip,
   TableCellProps,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  Switch,
+  HStack,
+  useEditableControls,
+  IconButton,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -35,7 +46,7 @@ import trpc from 'trpc';
 import Loader from 'components/Loader';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
-import { formatUserName, toPinyin } from 'shared/strings';
+import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
@@ -43,32 +54,44 @@ import { InterviewType } from 'shared/InterviewType';
 import { MinUser } from 'shared/User';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import TdLink from 'components/TdLink';
+import moment from 'moment';
+import { Calibration } from 'shared/Calibration';
+import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
 
   const { data: applicants } = trpcNext.users.list.useQuery(type == "MenteeInterview" ?
     { hasMenteeApplication: true } : { hasMentorApplication: true });
-  const { data: interviews, refetch } = trpcNext.interviews.list.useQuery(type);
-  const [calibrationEditorIsOpen, setCalibrationEditorIsOpen] = useState(false);
+  const { data: interviews, refetch: refetchInterview } = trpcNext.interviews.list.useQuery(type);
+  const { data: calibrations, refetch: refetchCalibrations } = trpcNext.calibrations.list.useQuery(type);
 
   return <Flex direction='column' gap={6}>
-    <Box>
-      <HStack spacing={4}>
-        <Button leftIcon={<AddIcon />} onClick={() => setCalibrationEditorIsOpen(true)}>
-          创建面试讨论组
-        </Button>
-      </HStack>
-    </Box>
+    <Tabs isLazy>
+      <TabList>
+        <Tab>{type == "MenteeInterview" ? "学生" : "老师"}候选人</Tab>
+        <Tab>面试讨论</Tab>
+      </TabList>
 
-    {calibrationEditorIsOpen && <CalibrationEditor type={type} onClose={
-      () => setCalibrationEditorIsOpen(false)}
-    />}
-
-    {!interviews || !applicants ? <Loader /> : 
-      <Applicants type={type} applicants={applicants} interviews={interviews} refetchInterviews={refetch} />}
-
-    <Text fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
+      <TabPanels>
+        <TabPanel>
+          {!interviews || !applicants ? <Loader /> : 
+            <Applicants type={type} applicants={applicants} interviews={interviews} 
+              refetchInterviews={refetchInterview} 
+            />
+          }
+        </TabPanel>
+        <TabPanel>
+          {!calibrations ? <Loader /> : 
+            <Calibrations type={type} calibrations={calibrations} refetch={() => {
+              refetchCalibrations();
+              // When calibration name changes, interviews may need a refetch as well.
+              refetchInterview();
+            }} />
+          }
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   </Flex>
 }
 
@@ -82,19 +105,23 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
   interviews: Interview[], 
   refetchInterviews: () => any,
 }) {
-  return <TableContainer><Table>
-    <Thead>
-      <Tr>
-        <Th>创建/修改</Th><Th>查看详情</Th><Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
-        <Th>面试官</Th><Th>面试讨论组</Th>
-      </Tr>
-    </Thead>
-    <Tbody>
-      {applicants.map(a => 
-        <Applicant key={a.id} type={type} applicant={a} interviews={interviews} refetchInterviews={refetchInterviews} />)
-      }
-    </Tbody>
-  </Table></TableContainer>;
+  return <TableContainer>
+    <Table>
+      <Thead>
+        <Tr>
+          <Th>修改面试</Th><Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
+          <Th>面试官</Th><Th>面试讨论组</Th><Th>查看详情</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        {applicants.map(a => 
+          <Applicant key={a.id} type={type} applicant={a} interviews={interviews} refetchInterviews={refetchInterviews} />)
+        }
+      </Tbody>
+    </Table>
+
+    <Text marginTop={sectionSpacing} fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
+  </TableContainer>;
 }
 
 function Applicant({ type, applicant, interviews, refetchInterviews } : {
@@ -134,7 +161,6 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       <TdEditLink>
         {interview ? <EditIcon /> : <AddIcon />}
       </TdEditLink>
-      {interview ? <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink> : <Td />}
       <TdEditLink>
         {formatUserName(applicant.name, "formal")}
       </TdEditLink>
@@ -153,6 +179,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       <TdEditLink>
         {interview && interview.calibration?.name}
       </TdEditLink>
+      {interview ? <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink> : <Td />}
     </Tr>
   </>;
 }
@@ -170,7 +197,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
   const [saving, setSaving] = useState(false);
 
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
-  // When selecting "无“ <Select> emits "".
+  // When selecting "-“ <Select> emits "".
   const [calibrationId, setCalibrationId] = useState<string>(interview?.calibration?.id || "");
   
   const isValid = () => interviewerIds.length > 0;
@@ -219,7 +246,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
           </FormControl>
           <FormControl>
             <FormLabel>面试讨论组</FormLabel>
-            <Select placeholder="无"
+            <Select placeholder="-"
               onChange={e => setCalibrationId(e.target.value)}
               value={calibrationId}
             >
@@ -237,48 +264,80 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
   </ModalWithBackdrop>;
 }
 
-
-function CalibrationEditor({ type, onClose }: {
+function Calibrations({ type, calibrations, refetch }: {
   type: InterviewType,
-  onClose: () => void,
+  calibrations: Calibration[],
+  refetch: () => void,
 }) {
-  const [name, setName] = useState<string>('');
-  const [saving, setSaving] = useState<boolean>(false);
-
-  const isValid = () => name.length > 0;
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      invariant(isValid());
-      await trpc.calibrations.create.mutate({ type, name });
-      onClose();
-    } finally {
-      setSaving(false);
-    }
+  const create = async () => {
+    // Find an unused name
+    let name: string;
+    let count = 1;
+    do {
+      name = `新面试讨论 (${count++})`;
+    } while (calibrations.some(c => c.name === name));
+    await trpc.calibrations.create.mutate({ type, name });
+    refetch();
   }
 
-  return <ModalWithBackdrop isOpen onClose={onClose}>
-    <ModalContent>
-      <ModalHeader>创建面试讨论组</ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-        <VStack spacing={6}>
-          <FormControl>
-            <FormLabel>讨论组名称</FormLabel>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)} 
-              placeholder="比如：2024届中科大"
-            />
-          </FormControl>
-        </VStack>
-      </ModalBody>
-      <ModalFooter>
-        <Button variant='brand' 
-          isDisabled={!isValid()}
-          isLoading={saving} onClick={save}>创建</Button>
-      </ModalFooter>
-    </ModalContent>
-  </ModalWithBackdrop>;
+  const update = async (old: Calibration, name: string, active: boolean) => {
+    if (old.name === name && old.active === active) return;
+    await trpc.calibrations.update.mutate({ id: old.id, name, active });
+    refetch();
+  };
+
+  return <Flex direction="column" gap={paragraphSpacing}>
+    <HStack spacing={6}>
+      <Button leftIcon={<AddIcon />} onClick={create}>新建</Button>
+      <Text>开启的面试讨论将显示在所有讨论所涉及面试官的”我的面试“页。</Text>
+    </HStack>
+
+    <TableContainer><Table>
+      <Thead>
+        <Tr>
+          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>查看</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        {calibrations
+          // Sort by creation time desending
+          .sort((c1, c2) => moment(c2.createdAt).diff(moment(c1.createdAt), "seconds"))
+          .map(c => {
+            return <Tr key={c.id}>
+              <Td>
+                <EditableCalibrationName calibration={c} update={update} />
+              </Td>
+              <Td>
+                <Switch isChecked={c.active} onChange={e => update(c, c.name, e.target.checked)} />
+                {" "} {c.active ? "开启" : "关闭"}
+              </Td>
+              <Td>
+                {c.createdAt && prettifyDate(c.createdAt)}
+              </Td>
+              <TdLink href={`/calibrations/${c.id}`}>
+                <ViewIcon />
+              </TdLink>
+            </Tr>;
+          })
+        }
+      </Tbody>
+    </Table></TableContainer>
+  </Flex>;
+}
+
+function EditableCalibrationName({ calibration: c, update }: {
+  calibration: Calibration,
+  update: (c: Calibration, name: string, active: boolean) => void,
+}) {
+  // See https://chakra-ui.com/docs/components/editable#with-custom-input-and-controls
+  const EditableControls = () => {
+    const { isEditing, getEditButtonProps } = useEditableControls();
+    return isEditing ? null : <IconButton aria-label='Edit' icon={<EditIcon />} {...getEditButtonProps()} />;
+  }
+
+  return <Editable defaultValue={c.name} maxWidth={60} onSubmit={v => update(c, v, c.active)}>
+    <EditablePreview />
+    <EditableInput />
+    <EditableControls />
+  </Editable>;
 }
