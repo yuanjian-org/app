@@ -3,12 +3,11 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { includeForInterviewFeedback, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
-import { conflictError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { conflictError, noPermissionError, notFoundError } from "../errors";
 import { zFeedback, zInterviewFeedback } from "shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
-import InterviewFeedback from "api/database/models/InterviewFeedback";
 
 /**
  * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.

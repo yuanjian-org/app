@@ -55,7 +55,7 @@ export const includeForInterviewFeedback = [{
  * Callibration
  */
 
-export const calibrationAttributes = ["id", "type", "name"];
+export const calibrationAttributes = ["id", "type", "name", "active", "createdAt"];
 
 /**
  * Interview
