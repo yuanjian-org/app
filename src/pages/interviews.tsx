@@ -69,7 +69,7 @@ const Page: NextPageWithLayout = () => {
   return <Flex direction='column' gap={6}>
     <Tabs isLazy>
       <TabList>
-        <Tab>{type == "MenteeInterview" ? "学生" : "老师"}候选人</Tab>
+        <Tab>{type == "MenteeInterview" ? "学生" : "导师"}面试</Tab>
         <Tab>面试讨论</Tab>
       </TabList>
 

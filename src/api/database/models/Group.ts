@@ -7,6 +7,7 @@ import {
   BeforeDestroy,
   BelongsToMany,
   Column, ForeignKey, HasMany,
+  Index,
   Table,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
@@ -45,6 +46,9 @@ class Group extends ParanoidModel<
   interviewId: string | null;
 
   // A group is said to be "owned" by a calibration if this field is non-null.
+  //
+  // The index is used by getCalibrationAndCheckPermissionSafe()
+  @Index  
   @ForeignKey(() => Calibration)
   @Column(UUID)
   calibrationId: string | null;
