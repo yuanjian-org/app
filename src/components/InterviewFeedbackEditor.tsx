@@ -172,7 +172,7 @@ function FeedbackDimensionEditor({
 
     <Textarea
       isReadOnly={readonly} 
-      placeholder={commentPlaceholder}
+      {...readonly ? {} : { placeholder: commentPlaceholder }}
       height="150px"
       {...readonly ? {} : { background: "white" }}
       {...d.comment ? { value: d.comment } : {}}

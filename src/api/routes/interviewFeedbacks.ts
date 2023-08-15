@@ -8,9 +8,11 @@ import { zFeedback, zInterviewFeedback } from "shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
+import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 
 /**
- * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.
+ * Only InterviewManagers, the interviewer of the feedback, and participant's of the interview's calibration (only if
+ * the calibration is active) are allowed to call this route.
  */
 const get = procedure
   .use(authUser())
@@ -21,26 +23,33 @@ const get = procedure
   }))
   .query(async ({ ctx, input: id }) =>
 {
-  const f = await getInterviewFeedback(id, ctx.user, /*allowInterviewManager=*/ true);
+  const f = await getInterviewFeedback(id, ctx.user, /*allowOnlyInterviewer=*/ false);
   return {
     interviewFeedback: f,
     etag: getEtag(f.feedbackUpdatedAt),
   }
 });
 
-async function getInterviewFeedback(id: string, me: User, allowInterviewManager: boolean) {
+async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: boolean) {
   const f = await db.InterviewFeedback.findByPk(id, {
-    attributes: interviewFeedbackAttributes,
+    attributes: [...interviewFeedbackAttributes, "interviewId"],
     include: includeForInterviewFeedback,
   });
-  if (!f) {
-    throw notFoundError("面试反馈", id);
-  }
-  if (f.interviewer.id !== me.id && !(allowInterviewManager && isPermitted(me.roles, "InterviewManager"))) {
-    throw noPermissionError("面试反馈", id);
+  if (!f) throw notFoundError("面试反馈", id);
+
+  if (f.interviewer.id == me.id) return f;
+
+  if (!allowOnlyInterviewer) {
+    if (isPermitted(me.roles, "InterviewManager")) return f;
+
+    // Check if the user is a participant of the interview's calibration and the calibration is active.
+    const i = await db.Interview.findByPk(f.interviewId, {
+      attributes: ["calibrationId"],
+    });
+    if (i?.calibrationId && await getCalibrationAndCheckPermissionSafe(me, i.calibrationId)) return f;
   }
 
-  return f;
+  throw noPermissionError("面试反馈", id);
 }
 
 function getEtag(feedbackUpdatedAt: any | null) {
@@ -48,7 +57,7 @@ function getEtag(feedbackUpdatedAt: any | null) {
 }
 
 /**
- * Only the interviewer of a feedback are allowed to call this route.
+ * Only the interviewer of the feedback are allowed to call this route.
  * 
  * @return etag
  */
@@ -62,7 +71,7 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx, input }) =>
 {
-  const f = await getInterviewFeedback(input.id, ctx.user, /*allowInterviewManager=*/ false);
+  const f = await getInterviewFeedback(input.id, ctx.user, /*allowOnlyInterviewer=*/ true);
   if (getEtag(f.feedbackUpdatedAt) !== input.etag) {
     throw conflictError();
   }

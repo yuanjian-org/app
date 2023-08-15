@@ -10,12 +10,13 @@ import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
-import { syncCalibrationGroup } from "./calibrations";
+import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 
 /**
- * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.
+ * Only InterviewManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
+ * to call this route.
  */
 const get = procedure
   .use(authUser())
@@ -24,19 +25,21 @@ const get = procedure
   .query(async ({ ctx, input: id }) =>
 {
   const i = await db.Interview.findByPk(id, {
-    attributes: interviewAttributes,
+    attributes: [...interviewAttributes, "calibrationId"],
     include: [...includeForInterview, {
       model: Group,
       include: includeForGroup,
     }],
   });
-  if (!i) {
-    throw notFoundError("面试", id);
-  }
-  if (!i.feedbacks.some(f => f.interviewer.id === ctx.user.id) && !isPermitted(ctx.user.roles, "InterviewManager")) {
-    throw noPermissionError("面试", id);
-  }
-  return i;
+  if (!i) throw notFoundError("面试", id);
+
+  if (isPermitted(ctx.user.roles, "InterviewManager")) return i;
+
+  if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return i;
+
+  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return i;
+
+  throw noPermissionError("面试", id);
 });
 
 const list = procedure
