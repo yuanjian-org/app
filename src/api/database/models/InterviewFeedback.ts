@@ -13,8 +13,8 @@ import {
 import { CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
-import z from "zod";
 import Interview from "./Interview";
+import z from "zod";
 
 @Table({
   paranoid: true,
@@ -38,10 +38,10 @@ class InterviewFeedback extends Model {
   interviewerId: string;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  feedback: object | null;
+  feedback: Record<string, any> | null;
 
   @Column(DATE)
-  feedbackCreatedAt: string | null;
+  feedbackUpdatedAt: string | null;
 
   /**
    * Associations
@@ -49,6 +49,9 @@ class InterviewFeedback extends Model {
 
   @BelongsTo(() => User)
   interviewer: User;
+
+  @BelongsTo(() => Interview)
+  interview: Interview;
 }
 
 export default InterviewFeedback;

@@ -4,7 +4,6 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
 import User from "../database/models/User";
-import { TRPCError } from "@trpc/server";
 import Transcript from "../database/models/Transcript";
 import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
@@ -15,7 +14,7 @@ import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
-import { Group, GroupCountingTranscripts, zGroup, zGroupCountingTranscripts, 
+import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
 import { includeForGroup } from "../database/models/attributesAndIncludes";
 
@@ -61,19 +60,19 @@ const update = procedure
 });
 
 export async function updateGroup(id: string, name: string | null, userIds: string[], transaction: Transaction) {
-  checkMinimalGroupSize(userIds);
-
   const addUserIds: string[] = [];
   const group = await db.Group.findByPk(id, {
     // SQL complains that "FOR UPDATE cannot be applied to the nullable side of an outer join" if GroupUser is included.
     // include: db.GroupUser,
-    lock: true, transaction,
+    transaction,
+    lock: true,
   });
   if (!group) throw notFoundError("分组", id);
 
   const groupUsers = await db.GroupUser.findAll({
     where: { groupId: id },
-    lock: true, transaction,
+    transaction,
+    lock: true,
   });
 
   // Delete old users
@@ -125,6 +124,7 @@ const destroy = procedure
   });
 });
 
+
 /**
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
@@ -143,7 +143,7 @@ const listMine = procedure
     include: [{
       model: db.Group,
       include: [...includeForGroup, Transcript],
-      where: input.includeOwned ? {} : { partnershipId: null },
+      where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
 });
@@ -159,8 +159,7 @@ const list = procedure
     includeOwned: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : 
-    { partnershipId: null, interviewId: null }));
+  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : whereUnowned));
 
 /**
  * Identical to `list`, but additionally returns empty transcripts
@@ -242,12 +241,12 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
   return res;
 }
 
-export async function createGroup(userIds: string[], partnershipId: string | null, interviewId: string | null, 
-  t: Transaction): Promise<Group>
+export async function createGroup(name: string | null, userIds: string[], partnershipId: string | null, interviewId: string | null, 
+  calibrationId: string | null, t: Transaction): Promise<Group>
 {
   invariant(!partnershipId || !interviewId);
 
-  const g = await db.Group.create({ partnershipId, interviewId }, { transaction: t });
+  const g = await db.Group.create({ name, partnershipId, interviewId, calibrationId }, { transaction: t });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
     groupId: g.id,
@@ -259,7 +258,6 @@ export async function createGroup(userIds: string[], partnershipId: string | nul
  * Use createGroup instead
  */
 export async function createGroupDeprecated(userIds: string[]) {
-  checkMinimalGroupSize(userIds);
   const existing = await findGroups(userIds, 'exclusive');
   if (existing.length > 0) {
     throw alreadyExistsError("分组");
@@ -323,14 +321,4 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
   });
 
   await email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);
-}
-
-function checkMinimalGroupSize(userIds: string[]) {
-  // Some userIds may be duplicates
-  if ((new Set(userIds)).size < 2) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '每个分组需要至少两名用户。'
-    })
-  }
 }

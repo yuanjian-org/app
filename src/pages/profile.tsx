@@ -18,10 +18,8 @@ import { useEffect, useState } from 'react'
 import AppLayout from 'AppLayout'
 import { NextPageWithLayout } from '../NextPageWithLayout'
 import trpc from "../trpc";
-import { CheckIcon, CloseIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
-import { toast } from "react-toastify";
+import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { useUserContext } from 'UserContext';
-import { isValidChineseName } from 'shared/strings';
 import Loader from 'components/Loader';
 
 // Dedupe code with index.tsx:SetNameModal
@@ -43,7 +41,6 @@ const UserProfile: NextPageWithLayout = () => {
 
       try {
         await trpc.users.update.mutate(updatedUser);
-        toast.success("个人信息已保存")
         setUser(updatedUser);
       } finally {
         setNotLoaded(false);
@@ -74,11 +71,11 @@ const UserProfile: NextPageWithLayout = () => {
   const EmailField = () => {
     return (
       <FormControl>
-        <SimpleGrid columns={8}>
+        <SimpleGrid columns={6}>
           <Box>
             <FormLabel>邮箱</FormLabel>
           </Box>
-          <Box width="200%">
+          <Box>
             {user.email}
           </Box>
         </SimpleGrid>
@@ -89,11 +86,11 @@ const UserProfile: NextPageWithLayout = () => {
   const NameField = () => {
     return (
       <FormControl isInvalid={!name}>
-        <SimpleGrid columns={8}>
+        <SimpleGrid columns={6}>
           <Box>
             <FormLabel marginTop='5px'>中文全名</FormLabel>
           </Box>
-          <Box width="200%">
+          <Box>
             <Editable 
               defaultValue={user.name ? user.name : undefined}
               onSubmit={(newName) => handleSubmit(newName)}

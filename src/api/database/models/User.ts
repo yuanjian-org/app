@@ -1,12 +1,14 @@
 import type {
   InferAttributes,
   InferCreationAttributes,
+  NonAttribute,
 } from "sequelize";
 import {
   AllowNull,
   BeforeBulkDestroy,
   BeforeDestroy,
   Column,
+  HasMany,
   Index,
   Table,
   Unique,
@@ -18,6 +20,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
 import { toPinyin } from "../../../shared/strings";
+import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Partnership from "./Partnership";
 
@@ -41,16 +44,20 @@ class User extends ParanoidModel<
   @Column(STRING)
   email: string;
 
+  // TODO use array type
   @Index({
     using: 'gin'
   })
-  // TODO chaneg to use array type
   @AllowNull(false)
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
+  // TODO use string type
   @Column(DATE)
   consentFormAcceptedAt: Date | null;
+
+  @Column(DATE)
+  menteeInterviewerTestLastPassedAt: string | null;
 
   @Column(STRING)
   sex: string | null;
@@ -59,7 +66,15 @@ class User extends ParanoidModel<
   wechat: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  menteeApplication: object | null;
+  menteeApplication: Record<string, any> | null;
+
+  /**
+   * Associations
+   */
+
+  @HasMany(() => Interview)
+  interviews: NonAttribute<Interview[]>;
+  
 
 
 
@@ -87,9 +102,9 @@ class User extends ParanoidModel<
 
 export default User;
 
-export async function createUser(fields: any) {
+export async function createUser(fields: any, mode: "create" | "upsert" = "create"): Promise<User> {
   const f = structuredClone(fields);
   if (!("name" in f)) f.name = "";
   f.pinyin = toPinyin(f.name);
-  return await User.create(f);
+  return mode == "create" ? await User.create(f) : (await User.upsert(f))[0];
 }

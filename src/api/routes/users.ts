@@ -1,20 +1,38 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
-import User from "../database/models/User";
+import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser, invalidateLocalUserCache } from "../auth";
-import { zUser } from "../../shared/User";
+import User, { zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
-import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
+import Interview from "api/database/models/Interview";
+import { InterviewType, zInterviewType } from "shared/InterviewType";
+import { userAttributes } from "../database/models/attributesAndIncludes";
 
 const me = procedure
   .use(authUser())
   .output(zUser)
   .query(async ({ ctx }) => ctx.user);
+
+const meNoCache = procedure
+  .use(authUser())
+  .output(zUser)
+  .query(async ({ ctx }) => 
+{
+  // invalidate catch so next time `me` will also return fresh data
+  invalidateLocalUserCache();
+
+  const user = await db.User.findByPk(ctx.user.id, {
+    attributes: userAttributes,
+  });
+  invariant(user);
+  return user;
+});
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -27,7 +45,7 @@ const create = procedure
 {
   checkUserFields(input.name, input.email);
   checkPermissionForManagingPrivilegedRoles(ctx.user.roles, input.roles);
-  await User.create({
+  await db.User.create({
     name: input.name,
     pinyin: toPinyin(input.name),
     email: input.email,
@@ -36,26 +54,49 @@ const create = procedure
 });
 
 /**
- * @return all the users if `searchTerm` isn't specified, otherwise only matching users, ordered by Pinyin.
+ * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(['UserManager', 'GroupManager']))
-  .input(z.object({ searchTerm: z.string() }).optional())
+  .use(authUser(['UserManager', 'GroupManager', 'InterviewManager']))
+  .input(zUserFilter)
   .output(z.array(zUser))
-  .query(async ({ input }) => 
+  .query(async ({ input: filter }) =>
 {
-  return await User.findAll({ 
+  if (filter.hasMentorApplication) throw notImplemnetedError();
+
+  // Force typescript checking
+  const interviewType: InterviewType = "MenteeInterview";
+
+  const res = await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
-    ...input?.searchTerm ? {
-      where: {
+
+    where: {
+      ...filter.hasMenteeApplication == undefined ? {} : {
+        menteeApplication: { 
+          ...filter.hasMenteeApplication ? { [Op.ne]: null } : { [Op.eq]: null }
+        },
+      },
+
+      ...filter.matchNameOrEmail == undefined ? {} : {
         [Op.or]: [
-          { pinyin: { [Op.iLike]: `%${input.searchTerm}%` } },
-          { name: { [Op.iLike]: `%${input.searchTerm}%` } },
-          { email: { [Op.iLike]: `%${input.searchTerm}%` } },
+          { pinyin: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
+          { name: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
+          { email: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
         ],
-      }
-    } : {},
+      },
+    },
+
+    include: [      
+      ...filter.isMenteeInterviewee == undefined ? [] : [{
+        model: Interview,
+        attributes: ["id"],
+        ...filter.isMenteeInterviewee ? { where: { type: interviewType } } : {},
+      }],
+    ],
   });
+
+  if (filter.isMenteeInterviewee == false) return res.filter(u => u.interviews.length == 0);
+  else return res;
 });
 
 /**
@@ -76,7 +117,7 @@ const update = procedure
     throw noPermissionError("用户", input.id);
   }
 
-  const user = await User.findByPk(input.id);
+  const user = await db.User.findByPk(input.id);
   if (!user) {
     throw notFoundError("用户", input.id);
   }
@@ -103,6 +144,53 @@ const update = procedure
 });
 
 /**
+ * Only InterviewManagers and interviewers of the application are allowed to call this route.
+ */
+const getApplication = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    type: zInterviewType,
+  }))
+  .output(z.record(z.string(), z.any()).nullable())
+  .query(async ({ ctx, input }) =>
+{
+  if (input.type !== "MenteeInterview") throw notImplemnetedError();
+
+  if (isPermitted(ctx.user.roles, "InterviewManager")) {
+    // for interview managers, directly query users table
+    const u = await db.User.findByPk(input.userId, {
+      attributes: ["menteeApplication"],
+    });
+    if (!u) throw notFoundError("用户", input.userId);
+    return u.menteeApplication;
+
+  } else {
+    // for other users, only allows their access if they are an interviewer of the applicant.
+    const interviews = await db.Interview.findAll({
+      where: {
+        type: "MenteeInterview",
+        intervieweeId: input.userId,
+      },
+      attributes: [],
+      include: [{
+        model: db.InterviewFeedback,
+        attributes: [],
+        where: { interviewerId: ctx.user.id },
+      }, {
+        model: db.User,
+        attributes: ["menteeApplication"],
+      }],
+    });
+    if (interviews.length == 0) {
+      throw noPermissionError("申请资料", input.userId);
+    }
+
+    return interviews[0].interviewee.menteeApplication;
+  }
+});
+
+/**
  * List all users and their roles who have privileged user data access. See RoleProfile.privilegeUserDataAccess for an
  * explanation.
  */
@@ -114,7 +202,7 @@ const listPriviledgedUserDataAccess = procedure
   })))
   .query(async () => 
 {
-  return await User.findAll({ 
+  return await db.User.findAll({ 
     // TODO: Optimize with postgres `?|` operator
     where: {
       [Op.or]: AllRoles.filter(r => RoleProfiles[r].privilegedUserDataAccess).map(r => ({
@@ -127,10 +215,12 @@ const listPriviledgedUserDataAccess = procedure
 
 export default router({
   me,
+  meNoCache,
   create,
   list,
   update,
   listPriviledgedUserDataAccess,
+  getApplication,
 });
 
 function checkUserFields(name: string | null, email: string) {
@@ -155,7 +245,7 @@ async function emailUserAboutNewPrivilegedRoles(userManagerName: string, user: U
     const rp = RoleProfiles[r];
     await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
       to: [{ 
-        name: user.name, 
+        name: formatUserName(user.name, 'formal'), 
         email: user.email 
       }],
       dynamicTemplateData: {

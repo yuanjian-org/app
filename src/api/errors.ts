@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 
-type Kind = "用户" | "分组" | "评估" | "一对一匹配" | "面试";
+type Kind = "用户" | "分组" | "评估" | "一对一匹配" | "面试" | "面试反馈" | "申请资料" | "面试讨论";
 
 export const notFoundError = (kind: Kind, id: string) =>
   new TRPCError({ code: 'NOT_FOUND', message: `${kind} ${id} 不存在。` });
@@ -15,3 +15,9 @@ export const alreadyExistsError = (kind: Kind) =>
 
 export const generalBadRequestError = (message: string) =>
   new TRPCError({ code: 'BAD_REQUEST', message });
+
+export const conflictError = () =>
+  new TRPCError({ code: "CONFLICT", message: "版本冲突" });
+
+  export const notImplemnetedError = () =>
+  new TRPCError({ code: "METHOD_NOT_SUPPORTED", message: "功能尚未实现" });

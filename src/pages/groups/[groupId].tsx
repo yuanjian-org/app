@@ -3,20 +3,16 @@ import {
   Stack,
   Table,
   Tbody,
-  Tr,
   Td,
   Center,
   Icon,
   Heading,
-  LinkOverlay,
-  LinkBox,
   TableContainer,
 } from '@chakra-ui/react';
 import React from 'react';
 import { NextPageWithLayout } from "../../NextPageWithLayout";
 import AppLayout from "../../AppLayout";
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { GroupWithTranscripts } from '../../shared/Group';
 import GroupBar from 'components/GroupBar';
 import { trpcNext } from "../../trpc";
@@ -25,6 +21,7 @@ import { prettifyDate, prettifyDuration } from 'shared/strings';
 import Loader from 'components/Loader';
 import { MdChevronRight } from 'react-icons/md';
 import { parseQueryParameter } from '../../parseQueryParamter';
+import TrLink from 'components/TrLink';
 
 const Page: NextPageWithLayout = () => <GroupCard />;
 
@@ -59,13 +56,11 @@ function TranscriptTable(props: { group: GroupWithTranscripts }) {
         <Table>
           <Tbody>
             {props.group.transcripts.map(t => {
-              return <LinkBox as={Tr} key={t.transcriptId}>
+              return <TrLink key={t.transcriptId} href={`/groups/${props.group.id}/transcripts/${t.transcriptId}`}>
                 <Td>{prettifyDate(t.startedAt)}</Td>
                 <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
-                <Td><LinkOverlay as={Link} href={`/groups/${props.group.id}/transcripts/${t.transcriptId}`}>
-                  {t.summaries.length} 版摘要 <Icon as={MdChevronRight} />
-                </LinkOverlay></Td>
-              </LinkBox>;
+                <Td>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Td>
+              </TrLink>;
             })}
           </Tbody>
         </Table>

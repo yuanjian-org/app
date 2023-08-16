@@ -17,6 +17,7 @@ import User from "./User";
 import Transcript from "./Transcript";
 import Partnership from "./Partnership";
 import Interview from "./Interview";
+import Calibration from "./Calibration";
 
 /**
  * A group is said to be "owned" if the partnership or interview field is non-null.
@@ -33,15 +34,6 @@ class Group extends ParanoidModel<
   @Column(STRING)
   name: string | null;
 
-  @BelongsToMany(() => User, { through: () => GroupUser })
-  users: NonAttribute<User[]>;
-
-  @HasMany(() => GroupUser)
-  groupUsers: NonAttribute<GroupUser[]>;
-
-  @HasMany(() => Transcript)
-  transcripts: NonAttribute<Transcript[]>;
-
   // A group is said to be "owned" by a partnership if this field is non-null.
   @ForeignKey(() => Partnership)
   @Column(UUID)
@@ -51,6 +43,24 @@ class Group extends ParanoidModel<
   @ForeignKey(() => Interview)
   @Column(UUID)
   interviewId: string | null;
+
+  // A group is said to be "owned" by a calibration if this field is non-null.
+  @ForeignKey(() => Calibration)
+  @Column(UUID)
+  calibrationId: string | null;
+
+  /**
+   * Associations
+   */
+
+  @BelongsToMany(() => User, { through: () => GroupUser })
+  users: NonAttribute<User[]>;
+
+  @HasMany(() => GroupUser)
+  groupUsers: NonAttribute<GroupUser[]>;
+
+  @HasMany(() => Transcript)
+  transcripts: NonAttribute<Transcript[]>;
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {

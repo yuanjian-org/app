@@ -1,12 +1,15 @@
 import { useAutosaveContext } from 'AutosaveContext';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import sleep from 'shared/sleep';
+import _ from "lodash";
 
 const autosaveDelayMs = 500;
 const retryIntervalSec = 8;
 
 /**
- * Reference implementation: https://www.synthace.com/blog/autosave-with-react-hooks
+ * TODO: use type template
+ *
+ * @param data null or undefined to disable auto saving.
  */
 export default function Autosaver({ data, onSave }: {
   data: any,
@@ -15,19 +18,22 @@ export default function Autosaver({ data, onSave }: {
   const { addPendingSaver, removePendingSaver, setPendingSaverError } = useAutosaveContext();
   const memo = useMemo(() => ({ 
     id: crypto.randomUUID(),
-    data: null,
+    pendingData: null,
+    lastSavedData: null,
     saving: false,
+    timeout: null,
   }), []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSave = useCallback(debounce(async () => {
+  const debouncedSave = useCallback(debounce(memo, async () => {
     memo.saving = true;
     try {
-      while (memo.data !== null) {
-        const data = memo.data;
-        memo.data = null;
+      while (memo.pendingData !== null) {
+        const data = memo.pendingData;
+        memo.pendingData = null;
         console.debug(`Autosaver ${memo.id}: Savinging data.`);
         await saveWithRetry(onSave, data, (e) => setPendingSaverError(memo.id, e));
+        memo.lastSavedData = data;
       }
     } finally {
       memo.saving = false;
@@ -36,11 +42,10 @@ export default function Autosaver({ data, onSave }: {
     removePendingSaver(memo.id);
   }, autosaveDelayMs), [memo, onSave, removePendingSaver]);
 
-  // This block is triggered whenever props.data changes.
   useEffect(() => {
-    if (data == null || data == undefined) return;
+    if (data == null || data == undefined || _.isEqual(memo.lastSavedData, data)) return;
     // Discard previously queued data.
-    memo.data = data;
+    memo.pendingData = data;
     if (memo.saving) {
       console.debug(`Autosaver ${memo.id}: Enqueue data only.`);
     } else {
@@ -65,17 +70,16 @@ async function saveWithRetry(
       break;
     } catch (e) {
       console.error(`Autosaver: error during saving. retry in ${retryIntervalSec} secs:`, e);
-      setError(`保存失败。自动重试中：${e}`);
+      setError(`保存失败，自动重试中。`);
       await sleep(retryIntervalSec * 1000);
     }
   }
 }
 
-function debounce(func: Function, delayInMs: number): Function {
-  let timeout: any;
+function debounce(memo: any, func: Function, delayInMs: number): Function {
   return (...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
+    clearTimeout(memo.timeout);
+    memo.timeout = setTimeout(() => {
       func.apply(null, args);
     }, delayInMs);
   };

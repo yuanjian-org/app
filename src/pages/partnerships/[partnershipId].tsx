@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { parseQueryParameter } from 'parseQueryParamter';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Heading, Tooltip, Box, Center } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Tooltip } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
@@ -52,7 +52,7 @@ function PrivateNotes({ partnershipId, notes, loading }: {
 
   return <Flex direction="column" gap={6}>
     <Flex alignItems="center">
-      <b>私人笔记</b>
+      <b>导师笔记</b>
       <Tooltip label="学生无法看到笔记内容。详见《谁能看到我的数据》页。">
         <QuestionIcon color="gray" marginStart={2} />
       </Tooltip>

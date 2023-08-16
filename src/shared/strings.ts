@@ -38,3 +38,7 @@ export function prettifyDate(str: Date | string) {
 function diffInMinutes(from: Date, to: Date): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60)
 }
+
+export function compareUUID(id1: string, id2: string): number {
+  return id1.localeCompare(id2);
+}

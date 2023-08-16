@@ -1,6 +1,7 @@
 /**
  * Collect things in this file as opposed to model files to avoid cyclic dependencies.
  */
+import Calibration from "./Calibration";
 import InterviewFeedback from "./InterviewFeedback";
 import User from "./User";
 
@@ -10,7 +11,8 @@ import User from "./User";
 
 export const minUserAttributes = ['id', 'name'];
 
-export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt"];
+export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt",
+  "menteeInterviewerTestLastPassedAt"];
 
 /**
  * Group
@@ -40,7 +42,20 @@ export const includeForPartnership = [{
  * InterviewFeedback
  */
 
-export const minInterviewFeedbackAttributes = ["id", "feedbackCreatedAt"];
+export const minInterviewFeedbackAttributes = ["id", "feedbackUpdatedAt"];
+
+export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
+
+export const includeForInterviewFeedback = [{
+  model: User,
+  attributes: minUserAttributes
+}];
+
+/**
+ * Callibration
+ */
+
+export const calibrationAttributes = ["id", "type", "name", "active", "createdAt"];
 
 /**
  * Interview
@@ -54,8 +69,8 @@ export const includeForInterview = [{
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
-  include: [{
-    model: User,
-    attributes: minUserAttributes
-  }],
+  include: includeForInterviewFeedback,
+}, {
+  model: Calibration,
+  attributes: calibrationAttributes,
 }];
