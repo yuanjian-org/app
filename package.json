@@ -75,8 +75,13 @@
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi",
-    "docker-dev": "docker compose up --build -d"
+    "docker-dev": "docker compose up --build -d",
+    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn build"
+    }
   },
   "browserslist": {
     "production": [
@@ -105,7 +110,7 @@
     "eslint-config-next": "^12.2.5",
     "eslint-nibble": "^8.1.0",
     "gh-pages": "^3.2.3",
-    "husky": "^8.0.3",
+    "husky": "^8.0.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "regenerator-runtime": "^0.13.11",
