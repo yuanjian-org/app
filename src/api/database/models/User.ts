@@ -27,7 +27,7 @@ import Partnership from "./Partnership";
 class User extends ParanoidModel<
   InferAttributes<User>,
   InferCreationAttributes<User>
-  > {
+> {
   // Always use `formatUserName` to display user names.
   // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
@@ -61,26 +61,28 @@ class User extends ParanoidModel<
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: object | null;
 
+
+
   @BeforeDestroy
-  static async cascadeDestory( user: User, options: any){
-    const groupPromise = (await GroupUser.findAll({
-      where: { userId: user.id }
-    })).map( async gu => {await gu.destroy(options); });
+  static async cascadeSoftDelete(user: User, options: any) {
 
-    // TODO: 目前数据库中不允许使用user对partner进行cascadeDelete
-    // const partnershipPromise = (await Partnership.findAll({
-    //   where: { 
-    //     [Op.or]: [{menteeId: user.id}, {mentorId: user.id}] 
-    //   }
-    // })).map(async p => { await p.destroy(options); });
+    const moment = require('moment-timezone');
+    const timestamp = moment().format('YYYY-MM-DD HH:mm:ss.SSSZ');
 
-    
-    await Promise.all([...
-      groupPromise, 
-      // partnershipPromise
-    ]);
+    await GroupUser.update(
+      { deletedAt: timestamp },
+      { where: { userId: user.id } }
+    );
+
+    await Partnership.update(
+      { deletedAt: timestamp },
+      { where: {
+          [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
+        }
+      });
   }
-  
+
+
 }
 
 export default User;

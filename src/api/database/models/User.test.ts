@@ -70,7 +70,7 @@ describe('User', () => {
 
       const foundGroup = await Group.findOne({
         where: { name: 'testgroup' },
-        include: { model : User }
+        include: { model: User }
       });
 
       // 确认新的组内用户数量为2
@@ -99,57 +99,73 @@ describe('User', () => {
 
       // 确认找到的partnership存在
       expect(foundPartnership).to.exist;
-      });
-
-
-
-
-    // //删除行为开始
-    // //由于数据库设置，删除user前必须删除partnership，所以无法通过删除user对partnership进行cascade delete
-
-    it('should delete the partnership and verify deletion', async () => {
-      // TODO: 数据库依赖冲突？目前使用force进行删除
-      await partnership.destroy({force:true});
-
-      const foundPartnership = await Partnership.findOne({
-        where: { mentorId: user1.id, menteeId: user2.id },
-      });
-
-      expect(foundPartnership).to.be.null;
     });
 
 
-    // it('should delete user1 and all related partnerships', async () => {
-    //   await user1.destroy();
 
-    //   const findUser1 = await User.findByPk(user1.id);
-    //   expect(findUser1).to.be.null;
 
-    //   const findPartnership = await Partnership.findOne({
-    //     where: {
-    //       mentorId: user1.id,
-    //       menteeId: user2.id
-    //     }
-    //   });
-    //   expect(findPartnership).to.be.null;
-    // });
+    // 删除行为开始
+    // 检测partnership中的deletedAt是否存在值
 
-    // 删除user2以测试是否删除了group中的groupUser
-    it('should delete user2 and all related GroupUser instances', async () => {
+    // ...
+
+    it('should delete user1 and soft delete all related partnerships', async () => {
+      await user1.destroy();
+
+      const findUser1 = await User.findByPk(user1.id, { paranoid: false });
+      if (findUser1) {
+        expect(findUser1.deletedAt).to.not.be.null;
+      } else {
+        throw new Error("findUser1 is null.");
+      }
+
+      const findPartnership = await Partnership.findOne({
+        where: {
+          mentorId: user1.id,
+          menteeId: user2.id
+        },
+        paranoid: false
+      });
+      if (findPartnership) {
+        expect(findPartnership.deletedAt).to.not.be.null;
+      } else {
+        throw new Error("findPartnership is null.");
+      }
+    });
+
+    it('should delete user2 and soft delete all related GroupUser instances', async () => {
       await user2.destroy();
 
-      const findUser2 = await User.findByPk(user2.id);
-      expect(findUser2).to.be.null;
+      const findUser2 = await User.findByPk(user2.id, { paranoid: false });
+      if (findUser2) {
+        expect(findUser2.deletedAt).to.not.be.null;
+      } else {
+        throw new Error("findUser2 is null.");
+      }
 
       const findUser2inGroup = await GroupUser.findAll({
-        where: { userId: user2.id }
+        where: { userId: user2.id },
+        paranoid: false
       });
-      expect(findUser2inGroup).to.have.lengthOf(0);
-
+      for (const gu of findUser2inGroup) {
+        expect(gu.deletedAt).to.not.be.null;
+      }
     });
 
     // 使用force彻底删除测试用例
-    it('should delete test user1 and test group', async () => {
+    it('should delete test users and test group', async () => {
+      await Partnership.destroy({
+        where: {
+          [Op.or]: [
+            { mentorId: user1.id },
+            { menteeId: user1.id },
+            { mentorId: user2.id },
+            { menteeId: user2.id }
+          ]
+        },
+        force: true
+      });
+    
       await User.destroy({ where: { name: '测试用户一' }, force: true });
       await User.destroy({ where: { name: '测试用户二' }, force: true });
       await Group.destroy({ where: { name: 'testgroup' }, force: true });
