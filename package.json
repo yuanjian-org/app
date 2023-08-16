@@ -78,11 +78,6 @@
     "docker-dev": "docker compose up --build -d",
     "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn build"
-    }
-  },
   "browserslist": {
     "production": [
       ">0.2%",
