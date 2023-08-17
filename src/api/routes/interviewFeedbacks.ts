@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { includeForInterviewFeedback, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
+import { interviewFeedbackInclude, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
 import { conflictError, noPermissionError, notFoundError } from "../errors";
 import { zFeedback, zInterviewFeedback } from "shared/InterviewFeedback";
 import User from "../../shared/User";
@@ -33,7 +33,7 @@ const get = procedure
 async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: boolean) {
   const f = await db.InterviewFeedback.findByPk(id, {
     attributes: [...interviewFeedbackAttributes, "interviewId"],
-    include: includeForInterviewFeedback,
+    include: interviewFeedbackInclude,
   });
   if (!f) throw notFoundError("面试反馈", id);
 

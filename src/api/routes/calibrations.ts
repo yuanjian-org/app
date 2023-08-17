@@ -7,7 +7,7 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
-import { calibrationAttributes, includeForGroup, includeForInterview, interviewAttributes, groupAttributes, includeForCalibration
+import { calibrationAttributes, groupInclude, interviewInclude, interviewAttributes, groupAttributes, calibrationInclude
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
@@ -69,7 +69,7 @@ const list = procedure
   return await db.Calibration.findAll({
     where: { type },
     attributes: calibrationAttributes,
-    include: includeForCalibration,
+    include: calibrationInclude,
   })
 });
 
@@ -125,7 +125,7 @@ const getInterviews = procedure
   return await db.Interview.findAll({
     where: { calibrationId },
     attributes: interviewAttributes,
-    include: includeForInterview,
+    include: interviewInclude,
   });
 });
 
@@ -162,7 +162,7 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
     include: [{
       model: db.Group,
       attributes: groupAttributes,
-      include: includeForGroup,
+      include: groupInclude,
     }]
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
@@ -189,7 +189,7 @@ export async function syncCalibrationGroup(calibrationId: string, transaction: T
     include: [db.Group, {
       model: db.Interview,
       attributes: interviewAttributes,
-      include: includeForInterview,
+      include: interviewInclude,
     }],
     transaction,
   });

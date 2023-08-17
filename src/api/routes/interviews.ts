@@ -3,7 +3,7 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
-import { groupAttributes, includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude, interviewInclude, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
@@ -26,10 +26,10 @@ const get = procedure
 {
   const i = await db.Interview.findByPk(id, {
     attributes: [...interviewAttributes, "calibrationId"],
-    include: [...includeForInterview, {
+    include: [...interviewInclude, {
       model: Group,
       attributes: groupAttributes,
-      include: includeForGroup,
+      include: groupInclude,
     }],
   });
   if (!i) throw notFoundError("面试", id);
@@ -52,7 +52,7 @@ const list = procedure
   return await db.Interview.findAll({
     where: { type },
     attributes: interviewAttributes,
-    include: includeForInterview,
+    include: interviewInclude,
   })
 });
 
@@ -67,7 +67,7 @@ const listMine = procedure
     include: [{
       model: db.Interview,
       attributes: interviewAttributes,
-      include: includeForInterview
+      include: interviewInclude
     }]
   })).map(feedback => feedback.interview);
 });
@@ -144,7 +144,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
 
   await sequelizeInstance.transaction(async (transaction) => {
     const i = await db.Interview.findByPk(id, {
-      include: [...includeForInterview, Group],
+      include: [...interviewInclude, Group],
       transaction
     });
 
