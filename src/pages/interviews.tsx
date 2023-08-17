@@ -33,6 +33,9 @@ import {
   HStack,
   useEditableControls,
   IconButton,
+  Box,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -67,8 +70,8 @@ const Page: NextPageWithLayout = () => {
   return <Flex direction='column' gap={6}>
     <TabsWithUrlParam isLazy>
       <TabList>
-        <Tab>{type == "MenteeInterview" ? "学生" : "导师"}面试</Tab>
-        <Tab>面试讨论</Tab>
+        <Tab>{type == "MenteeInterview" ? "学生" : "导师"}候选人列表</Tab>
+        <Tab>面试讨论组</Tab>
       </TabList>
 
       <TabPanels>
@@ -285,15 +288,22 @@ function Calibrations({ type, calibrations, refetch }: {
   };
 
   return <Flex direction="column" gap={paragraphSpacing}>
-    <HStack spacing={6}>
-      <Button leftIcon={<AddIcon />} onClick={create}>新建</Button>
-      <Text>开启的面试讨论将显示在所有讨论所涉及面试官的”我的面试“页。</Text>
-    </HStack>
+    <Box>
+      说明：
+      <UnorderedList>
+        <ListItem>通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。</ListItem>
+        <ListItem>如果候选人A属于面试讨论组C，那么A的所有面试官都是C的参与者。</ListItem>
+        <ListItem>C的参与者能够访问属于C的所有候选人的申请材料和面试反馈记录。</ListItem>
+        <ListItem>当C的状态是”开启“时，C的参与者可以在”我的面试“页看到并进入C。</ListItem>
+      </UnorderedList>
+    </Box>
+
+    <Box><Button leftIcon={<AddIcon />} onClick={create}>新建面试讨论组</Button></Box>
 
     <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>查看</Th>
+          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
         </Tr>
       </Thead>
       <Tbody>
