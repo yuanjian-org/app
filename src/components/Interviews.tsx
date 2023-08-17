@@ -19,7 +19,6 @@ import { useUserContext } from 'UserContext';
 import { CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
 import TrLink from 'components/TrLink';
 import { sectionSpacing } from 'theme/metrics';
-import { MdChevronRight } from 'react-icons/md';
 
 /**
  * @param forCalibration when true, show the current user in the interviewer list, and link to `/interviews/<id>` as
@@ -41,7 +40,10 @@ export default function Interviews({ interviews, forCalibration }: {
       <Tbody>
       {/* Fix dislay order */}
       {interviews.sort((i1, i2) => compareUUID(i1.id, i2.id)).map(i => (
-        <TrLink key={i.id} href={forCalibration ? `/interviews/${i.id}` : `/interviews/${i.id}/feedback`}>
+        <TrLink key={i.id} 
+          href={forCalibration ? `/interviews/${i.id}` : `/interviews/${i.id}/feedback`}
+          _hover={{ bg: "white" }}
+        >
           <Td>
             {/* {i.type === "MenteeInterview" ? "学生" : "导师"}： */}
             {formatUserName(i.interviewee.name, "formal")}

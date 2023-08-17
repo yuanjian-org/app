@@ -30,7 +30,6 @@ import {
   EditablePreview,
   EditableInput,
   Switch,
-  HStack,
   useEditableControls,
   IconButton,
   Box,
@@ -110,8 +109,8 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table>
       <Thead>
         <Tr>
-          <Th>修改面试</Th><Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
-          <Th>面试官</Th><Th>面试讨论组</Th><Th>查看详情</Th>
+          <Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
+          <Th>面试官</Th><Th>面试讨论组</Th><Th>修改面试</Th><Th>查看详情</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -160,9 +159,6 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
       <TdEditLink>
-        {interview ? <EditIcon /> : <AddIcon />}
-      </TdEditLink>
-      <TdEditLink>
         {formatUserName(applicant.name, "formal")}
       </TdEditLink>
       <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
@@ -179,6 +175,9 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       </Wrap></TdEditLink>
       <TdEditLink>
         {interview && interview.calibration?.name}
+      </TdEditLink>
+      <TdEditLink>
+        {interview ? <EditIcon /> : <AddIcon />}
       </TdEditLink>
       {interview ? <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink> : <Td />}
     </Tr>
