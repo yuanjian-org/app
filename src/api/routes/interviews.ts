@@ -3,7 +3,7 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
-import { includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
+import { groupAttributes, includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
@@ -28,6 +28,7 @@ const get = procedure
     attributes: [...interviewAttributes, "calibrationId"],
     include: [...includeForInterview, {
       model: Group,
+      attributes: groupAttributes,
       include: includeForGroup,
     }],
   });

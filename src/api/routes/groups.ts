@@ -16,7 +16,7 @@ import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
 import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
-import { includeForGroup } from "../database/models/attributesAndIncludes";
+import { groupAttributes, includeForGroup } from "../database/models/attributesAndIncludes";
 
 async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
   Promise<GroupCountingTranscripts[]> 
@@ -29,7 +29,11 @@ async function listGroups(userIds: string[], additionalWhere?: { [k: string]: an
   }];
 
   if (userIds.length === 0) {
-    return await db.Group.findAll({ where: additionalWhere, include: includes });
+    return await db.Group.findAll({ 
+      attributes: groupAttributes,
+      include: includes,
+      where: additionalWhere,
+    });
   } else {
     return (await findGroups(userIds, 'inclusive', includes, additionalWhere)) as GroupCountingTranscripts[];
   }
@@ -142,6 +146,7 @@ const listMine = procedure
     },
     include: [{
       model: db.Group,
+      attributes: groupAttributes,
       include: [...includeForGroup, Transcript],
       where: input.includeOwned ? {} : whereUnowned,
     }]
@@ -226,6 +231,7 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
     },
     include: [{
       model: db.Group,
+      attributes: groupAttributes,
       include: [db.GroupUser, ...(includes || [])],
       where: additionalWhere,
     }]
