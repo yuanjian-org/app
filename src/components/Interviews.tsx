@@ -9,15 +9,17 @@ import {
   WrapItem,
   Wrap,
   Text,
+  Icon,
 } from '@chakra-ui/react'
 import React from 'react'
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import { CheckIcon } from '@chakra-ui/icons';
+import { CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
 import TrLink from 'components/TrLink';
 import { sectionSpacing } from 'theme/metrics';
+import { MdChevronRight } from 'react-icons/md';
 
 /**
  * @param forCalibration when true, show the current user in the interviewer list, and link to `/interviews/<id>` as
@@ -33,7 +35,7 @@ export default function Interviews({ interviews, forCalibration }: {
     <Table>
       <Thead>
         <Tr>
-          <Th>点击进入</Th><Th>{forCalibration ? "" : "其他"}面试官</Th>
+        <Th>候选人</Th><Th>{forCalibration ? "" : "其他"}面试官</Th><Th>进入</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -52,6 +54,7 @@ export default function Interviews({ interviews, forCalibration }: {
               </WrapItem>
             )}
           </Wrap></Td>
+          <Td>{forCalibration ? <ViewIcon /> : <EditIcon />}</Td>
         </TrLink>
       ))}
       </Tbody>

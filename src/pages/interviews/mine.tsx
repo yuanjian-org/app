@@ -12,6 +12,7 @@ import { NextPageWithLayout } from '../../NextPageWithLayout'
 import { trpcNext } from "../../trpc";
 import Calibration from 'components/Calibration';
 import Interviews from 'components/Interviews';
+import { sectionSpacing } from 'theme/metrics';
 
 const Page: NextPageWithLayout = () => {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
@@ -30,7 +31,11 @@ const Page: NextPageWithLayout = () => {
         <TabPanel>
           <Interviews interviews={interviews} forCalibration={false} />
         </TabPanel>
-        {calibrations && calibrations.map(c => <TabPanel key={c.id}><Calibration calibration={c} /></TabPanel>)}
+        {calibrations && calibrations.map(c => 
+          <TabPanel key={c.id}>
+            <Calibration calibration={c} marginTop={sectionSpacing} />
+          </TabPanel>
+        )}
       </TabPanels>
     </Tabs>
   </Flex>;
