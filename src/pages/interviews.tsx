@@ -17,14 +17,11 @@ import {
   Td,
   Flex,
   TableContainer,
-  Box,
   WrapItem,
   Wrap,
-  Input,
   Select,
   Tooltip,
   TableCellProps,
-  Tabs,
   TabList,
   Tab,
   TabPanels,
@@ -57,6 +54,7 @@ import TdLink from 'components/TdLink';
 import moment from 'moment';
 import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -67,7 +65,7 @@ const Page: NextPageWithLayout = () => {
   const { data: calibrations, refetch: refetchCalibrations } = trpcNext.calibrations.list.useQuery(type);
 
   return <Flex direction='column' gap={6}>
-    <Tabs isLazy>
+    <TabsWithUrlParam isLazy>
       <TabList>
         <Tab>{type == "MenteeInterview" ? "学生" : "导师"}面试</Tab>
         <Tab>面试讨论</Tab>
@@ -91,7 +89,7 @@ const Page: NextPageWithLayout = () => {
           }
         </TabPanel>
       </TabPanels>
-    </Tabs>
+    </TabsWithUrlParam>
   </Flex>
 }
 

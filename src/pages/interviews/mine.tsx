@@ -1,5 +1,4 @@
 import {
-  Tabs,
   TabList,
   Tab,
   TabPanels,
@@ -13,13 +12,14 @@ import { trpcNext } from "../../trpc";
 import Calibration from 'components/Calibration';
 import Interviews from 'components/Interviews';
 import { sectionSpacing } from 'theme/metrics';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 const Page: NextPageWithLayout = () => {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
   const { data: calibrations } = trpcNext.calibrations.listMine.useQuery();
 
   return <Flex direction='column' gap={6}>
-    <Tabs isLazy>
+    <TabsWithUrlParam isLazy>
       <TabList>
         <Tab>我的面试</Tab>
         {calibrations && calibrations.map(c => <Tab key={c.id}>
@@ -37,7 +37,7 @@ const Page: NextPageWithLayout = () => {
           </TabPanel>
         )}
       </TabPanels>
-    </Tabs>
+    </TabsWithUrlParam>
   </Flex>;
 }
 
