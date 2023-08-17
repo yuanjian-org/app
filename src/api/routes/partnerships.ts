@@ -17,8 +17,8 @@ import Group from "api/database/models/Group";
 import { 
   defaultPartnershipAttributes,
   groupAttributes,
-  includeForGroup,
-  includeForPartnership } from "api/database/models/attributesAndIncludes";
+  groupInclude,
+  partnershipInclude } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 
@@ -69,7 +69,7 @@ const list = procedure
   const res = await db.Partnership.findAll({
     attributes: defaultPartnershipAttributes,
     include: [
-      ...includeForPartnership,
+      ...partnershipInclude,
       {
         model: Assessment,
         attributes: ['id'],
@@ -87,7 +87,7 @@ const listMineAsMentor = procedure
   return await db.Partnership.findAll({
     where: { mentorId: ctx.user.id },
     attributes: defaultPartnershipAttributes,
-    include: includeForPartnership,
+    include: partnershipInclude,
   });
 });
 
@@ -102,10 +102,10 @@ const get = procedure
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
-    include: [...includeForPartnership, {
+    include: [...partnershipInclude, {
       model: Group,
       attributes: groupAttributes,
-      include: includeForGroup,
+      include: groupInclude,
     }],
   });
   if (!res || res.mentorId !== ctx.user.id) {
@@ -124,7 +124,7 @@ const getWithAssessmentsDeprecated = procedure
   const res = await db.Partnership.findByPk(id, {
     attributes: defaultPartnershipAttributes,
     include: [
-      ...includeForPartnership,
+      ...partnershipInclude,
       Assessment,
     ]
   });

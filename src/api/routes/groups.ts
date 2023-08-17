@@ -16,12 +16,12 @@ import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
 import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
-import { groupAttributes, includeForGroup } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
 
 async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
   Promise<GroupCountingTranscripts[]> 
 {
-  const includes: Includeable[] = [...includeForGroup, {
+  const includes: Includeable[] = [...groupInclude, {
     model: Transcript,
     // We don't need to return any attributes, but sequelize seems to require at least one attribute.
     // TODO: Any way to return transcript count?
@@ -147,7 +147,7 @@ const listMine = procedure
     include: [{
       model: db.Group,
       attributes: groupAttributes,
-      include: [...includeForGroup, Transcript],
+      include: [...groupInclude, Transcript],
       where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
@@ -186,7 +186,7 @@ const get = procedure
   .query(async ({ input, ctx }) => 
 {
   const g = await db.Group.findByPk(input.id, {
-    include: [...includeForGroup, {
+    include: [...groupInclude, {
       model: Transcript,
       include: [{
         model: Summary,

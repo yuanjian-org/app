@@ -21,7 +21,7 @@ export const userAttributes = [...minUserAttributes, "email", "roles", "consentF
 
 export const groupAttributes = ["id", "name", "partnershipId", "interviewId", "calibrationId"];
 
-export const includeForGroup = [{
+export const groupInclude = [{
   model: User,
   attributes: minUserAttributes,
 }];
@@ -33,7 +33,7 @@ export const includeForGroup = [{
 // Don't include private notes.
 export const defaultPartnershipAttributes = ['id', 'menteeId', 'mentorId'];
 
-export const includeForPartnership = [{
+export const partnershipInclude = [{
   association: 'mentor',
   attributes: minUserAttributes,
 }, {
@@ -49,7 +49,7 @@ export const minInterviewFeedbackAttributes = ["id", "feedbackUpdatedAt"];
 
 export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
 
-export const includeForInterviewFeedback = [{
+export const interviewFeedbackInclude = [{
   model: User,
   attributes: minUserAttributes
 }];
@@ -60,10 +60,10 @@ export const includeForInterviewFeedback = [{
 
 export const calibrationAttributes = ["id", "type", "name", "active", "createdAt"];
 
-export const includeForCalibration = [{
+export const calibrationInclude = [{
   model: Group,
   attributes: groupAttributes,
-  include: includeForGroup,
+  include: groupInclude,
 }];
 
 /**
@@ -72,15 +72,15 @@ export const includeForCalibration = [{
 
 export const interviewAttributes = ["id", "type"];
 
-export const includeForInterview = [{
+export const interviewInclude = [{
   model: User,
   attributes: minUserAttributes,
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
-  include: includeForInterviewFeedback,
+  include: interviewFeedbackInclude,
 }, {
   model: Calibration,
   attributes: calibrationAttributes,
-  include: includeForCalibration,
+  include: calibrationInclude,
 }];

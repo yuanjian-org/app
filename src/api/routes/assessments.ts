@@ -7,7 +7,7 @@ import { zAssessment } from "../../shared/Assessment";
 import Partnership from "../database/models/Partnership";
 import { TRPCError } from "@trpc/server";
 import { noPermissionError, notFoundError } from "../errors";
-import { includeForPartnership } from "api/database/models/attributesAndIncludes";
+import { partnershipInclude } from "api/database/models/attributesAndIncludes";
 
 /**
  * @returns the ID of the created assessment.
@@ -49,7 +49,7 @@ const get = procedure
   const res = await db.Assessment.findByPk(id, {
     include: [{
       model: Partnership,
-      include: includeForPartnership,
+      include: partnershipInclude,
     }],
   });
   if (!res) throw new TRPCError({
