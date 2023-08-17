@@ -16,6 +16,7 @@ import { isPermitted } from "../../shared/Role";
 import Group from "api/database/models/Group";
 import { 
   defaultPartnershipAttributes,
+  groupAttributes,
   includeForGroup,
   includeForPartnership } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
@@ -103,6 +104,7 @@ const get = procedure
   const res = await db.Partnership.findByPk(id, {
     include: [...includeForPartnership, {
       model: Group,
+      attributes: groupAttributes,
       include: includeForGroup,
     }],
   });
