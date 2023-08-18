@@ -233,10 +233,10 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
     }
     // Update group
     await updateGroup(i.group.id, null, [intervieweeId, ...interviewerIds], transaction);
-    // Update calibration
-    if (oldCalibrationId !== calibrationId) {
-      if (oldCalibrationId) await syncCalibrationGroup(oldCalibrationId, transaction);
-      if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
+    // Update calibration. When the interviwer list is updated, the calibration group needs an update, too.
+    if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
+    if (oldCalibrationId && oldCalibrationId !== calibrationId) {
+      await syncCalibrationGroup(oldCalibrationId, transaction);
     }
   });
 }
