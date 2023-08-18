@@ -26,7 +26,7 @@ const get = procedure
   const f = await getInterviewFeedback(id, ctx.user, /*allowOnlyInterviewer=*/ false);
   return {
     interviewFeedback: f,
-    etag: getEtag(f.feedbackUpdatedAt),
+    etag: updatedAt2etag(f.feedbackUpdatedAt),
   }
 });
 
@@ -52,7 +52,7 @@ async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: 
   throw noPermissionError("面试反馈", id);
 }
 
-function getEtag(feedbackUpdatedAt: any | null) {
+export function updatedAt2etag(feedbackUpdatedAt: string | Date | null) {
   return feedbackUpdatedAt ? moment(feedbackUpdatedAt).unix() : 0;
 }
 
@@ -71,8 +71,9 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx, input }) =>
 {
+  // TODO: Use transaction
   const f = await getInterviewFeedback(input.id, ctx.user, /*allowOnlyInterviewer=*/ true);
-  if (getEtag(f.feedbackUpdatedAt) !== input.etag) {
+  if (updatedAt2etag(f.feedbackUpdatedAt) !== input.etag) {
     throw conflictError();
   }
 
@@ -82,7 +83,7 @@ const update = procedure
     feedbackUpdatedAt: now,
   });
 
-  return getEtag(now);
+  return updatedAt2etag(now);
 });
 
 /**
