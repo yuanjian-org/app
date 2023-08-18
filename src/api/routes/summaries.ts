@@ -9,6 +9,8 @@ import Group from "../database/models/Group";
 import { TRPCError } from "@trpc/server";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
+import { Sequelize, Op } from "sequelize";
+
 
 const crudeSummaryKey = "原始文字";
 
@@ -47,22 +49,20 @@ const list = procedure
       transcriptId: z.string(),
       summary: z.string(),
     }))
-  ).query(async ({ input }: { input: SummariesListInput }) => 
-{
-  // TODO: Optimize and use a single query to return final results.
-  const summaries = await Summary.findAll({ 
-    where: { summaryKey: input.key },
-    attributes: ['transcriptId', 'summary'],
+  ).query(async ({ input }: { input: SummariesListInput }) => {
+    return await Summary.findAll({
+      where: {
+        summaryKey: input.key,
+        transcriptId: {
+          [Op.notIn]: Sequelize.literal(`
+            (SELECT "transcriptId" FROM "Summaries" 
+            WHERE "summaryKey" = '${input.excludeTranscriptsWithKey}')
+          `),
+        },
+      },
+      attributes: ['transcriptId', 'summary'],
+    });
   });
-
-  const skippedTranscriptIds = input.excludeTranscriptsWithKey ? (await Summary.findAll({
-    where: { summaryKey: input.excludeTranscriptsWithKey },
-    attributes: ['transcriptId'],
-  })).map(s => s.transcriptId) : [];
-
-  return summaries
-    .filter(s => !skippedTranscriptIds.includes(s.transcriptId));
-});
 
 /**
  * Upload a summary for a transcript. Each summary is identified by `transcriptId` and `summaryKey`.
@@ -86,26 +86,25 @@ const list = procedure
 const write = procedure
   .use(authIntegration())
   .input(
-    z.object({ 
+    z.object({
       transcriptId: z.string(),
       summaryKey: z.string(),
       summary: z.string(),
     })
-  ).mutation(async ({ input }) => 
-{
-  if (input.summaryKey === crudeSummaryKey) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: `Summaries with key "${crudeSummaryKey}" are read-only`,
-    })
-  }
-  // By design, this statement fails if the transcript doesn't exist.
-  await Summary.upsert({
-    transcriptId: input.transcriptId,
-    summaryKey: input.summaryKey,
-    summary: input.summary,
+  ).mutation(async ({ input }) => {
+    if (input.summaryKey === crudeSummaryKey) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Summaries with key "${crudeSummaryKey}" are read-only`,
+      })
+    }
+    // By design, this statement fails if the transcript doesn't exist.
+    await Summary.upsert({
+      transcriptId: input.transcriptId,
+      summaryKey: input.summaryKey,
+      summary: input.summary,
+    });
   });
-});
 
 export default router({
   list,
