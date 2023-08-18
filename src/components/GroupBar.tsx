@@ -111,10 +111,10 @@ export default function GroupBar({
               <Text color={transcriptCount ? 'default': 'gray'}>
                 {showTranscriptLink ?
                   <LinkOverlay as={Link} href={`/groups/${group.id}`}>
-                    详情 ({transcriptCount})
+                    历史 ({transcriptCount})
                   </LinkOverlay>
                   :
-                  <>详情 ({transcriptCount})</>
+                  <>历史 ({transcriptCount})</>
                 }
               </Text>
             </Center>

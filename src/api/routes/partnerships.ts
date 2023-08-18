@@ -17,7 +17,7 @@ import Group from "api/database/models/Group";
 import { 
   defaultPartnershipAttributes,
   groupAttributes,
-  groupInclude,
+  groupCountingTranscriptsInclude,
   partnershipInclude } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
@@ -105,7 +105,7 @@ const get = procedure
     include: [...partnershipInclude, {
       model: Group,
       attributes: groupAttributes,
-      include: groupInclude,
+      include: groupCountingTranscriptsInclude,
     }],
   });
   if (!res || res.mentorId !== ctx.user.id) {
