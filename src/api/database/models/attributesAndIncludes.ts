@@ -4,6 +4,7 @@
 import Calibration from "./Calibration";
 import Group from "./Group";
 import InterviewFeedback from "./InterviewFeedback";
+import Transcript from "./Transcript";
 import User from "./User";
 
 /**
@@ -25,6 +26,13 @@ export const groupInclude = [{
   model: User,
   attributes: minUserAttributes,
 }];
+
+export const groupCountingTranscriptsInclude = [...groupInclude,
+  {
+    model: Transcript,
+    attributes: ["transcriptId"],
+  }
+];
 
 /**
  * Partnership
@@ -63,7 +71,7 @@ export const calibrationAttributes = ["id", "type", "name", "active", "createdAt
 export const calibrationInclude = [{
   model: Group,
   attributes: groupAttributes,
-  include: groupInclude,
+  include: groupCountingTranscriptsInclude,
 }];
 
 /**

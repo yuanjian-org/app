@@ -12,7 +12,7 @@ export default function Calibration({ calibration: c, ...rest } : {
   const { data: interviews } = trpcNext.calibrations.getInterviews.useQuery(c.id);
   
   return <Flex direction="column" gap={sectionSpacing} {...rest}>
-    <GroupBar group={c.group} showSelf showJoinButton showGroupName={false} />
+    <GroupBar group={c.group} showSelf showJoinButton showGroupName={false} showTranscriptCount showTranscriptLink />
     <Interviews interviews={interviews} forCalibration />
   </Flex>;
 }

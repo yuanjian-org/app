@@ -3,9 +3,6 @@ import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
-import User from "../database/models/User";
-import Transcript from "../database/models/Transcript";
-import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
 import _ from "lodash";
 import { isPermitted } from "../../shared/Role";
@@ -16,26 +13,20 @@ import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
 import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
-import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupCountingTranscriptsInclude, groupInclude } from "../database/models/attributesAndIncludes";
 
 async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
   Promise<GroupCountingTranscripts[]> 
 {
-  const includes: Includeable[] = [...groupInclude, {
-    model: Transcript,
-    // We don't need to return any attributes, but sequelize seems to require at least one attribute.
-    // TODO: Any way to return transcript count?
-    attributes: ['transcriptId']
-  }];
-
   if (userIds.length === 0) {
     return await db.Group.findAll({ 
       attributes: groupAttributes,
-      include: includes,
+      include: groupCountingTranscriptsInclude,
       where: additionalWhere,
     });
   } else {
-    return (await findGroups(userIds, 'inclusive', includes, additionalWhere)) as GroupCountingTranscripts[];
+    const gs = await findGroups(userIds, 'inclusive', groupCountingTranscriptsInclude, additionalWhere)
+    return gs as GroupCountingTranscripts[];
   }
 }
 
@@ -147,7 +138,7 @@ const listMine = procedure
     include: [{
       model: db.Group,
       attributes: groupAttributes,
-      include: [...groupInclude, Transcript],
+      include: groupCountingTranscriptsInclude,
       where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
@@ -187,14 +178,14 @@ const get = procedure
 {
   const g = await db.Group.findByPk(input.id, {
     include: [...groupInclude, {
-      model: Transcript,
+      model: db.Transcript,
       include: [{
-        model: Summary,
+        model: db.Summary,
         attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
       }],
     }],
     order: [
-      [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
+      [{ model: db.Transcript, as: 'transcripts' }, 'startedAt', 'desc']
     ],
   });
   if (!g) throw notFoundError("分组", input.id);
@@ -294,7 +285,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
 
   const group = await db.Group.findByPk(groupId, {
     include: [{
-      model: User,
+      model: db.User,
       attributes: ['id', 'name', 'email'],
     }]
   });

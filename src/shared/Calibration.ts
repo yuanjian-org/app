@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { zInterviewType } from './InterviewType';
-import { zGroup } from './Group';
+import { zGroupCountingTranscripts } from './Group';
 
 export const zCalibration = z.object({
     id: z.string(),
@@ -11,6 +11,6 @@ export const zCalibration = z.object({
     // for some reason type checking between zInterview and Interview doesn't work even though checking between
     // zCalibration and Calibration works.
     createdAt: z.coerce.string().optional(),
-    group: zGroup,
+    group: zGroupCountingTranscripts,
   });
 export type Calibration = z.TypeOf<typeof zCalibration>;

@@ -7,13 +7,13 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
-import { calibrationAttributes, groupInclude, interviewInclude, interviewAttributes, groupAttributes, calibrationInclude
+import { calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import Calibration from "api/database/models/Calibration";
 import { zInterview } from "../../shared/Interview";
-import Role, { isPermitted } from "../../shared/Role";
+import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
 
 const create = procedure
@@ -159,11 +159,7 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
 {
   const c = await db.Calibration.findByPk(calibrationId, {
     attributes: calibrationAttributes,
-    include: [{
-      model: db.Group,
-      attributes: groupAttributes,
-      include: groupInclude,
-    }]
+    include: calibrationInclude,
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
