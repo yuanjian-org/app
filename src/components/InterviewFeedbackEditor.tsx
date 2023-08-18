@@ -53,48 +53,50 @@ function setDimension(f: Feedback, dimension: FeedbackDimension): Feedback {
   };
 }
 
-export default function InterviewFeedbackEditor({ feedbackId, readonly }: { 
-  feedbackId: string,
+export default function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: { 
+  interviewFeedbackId: string,
   readonly?: boolean,
 }) {
-  const { data } = trpcNext.interviewFeedbacks.get.useQuery(feedbackId);
+  const { data } = trpcNext.interviewFeedbacks.get.useQuery(interviewFeedbackId);
+  if (!data) return <Loader />;
 
-  if (!data) {
-    return <Loader />;
-  } else {
-    const f = data.interviewFeedback;
-    return <InterviewFeedbackEditorWithData
-      id={f.id}
-      feedback={f.feedback ? f.feedback as Feedback : { dimensions: [] }}
-      etag={data.etag}
-      readonly={readonly}
-    />
-  }
-}
+  const f = data.interviewFeedback;
 
-function InterviewFeedbackEditorWithData({ id, feedback: original, etag, readonly }: {
-  id: string,
-  feedback: Feedback,
-  etag: number,
-  readonly?: boolean,
-}) {
-  // Only load the original feedback once, and do not reload if the parent auto refreshes it.
-  // Reloading during edits may confuses users to hell.
-  const [feedback, setFeedback] = useState<Feedback>(original);
-  const refEtag = useRef<number>(etag);
-
-  const save = async (f: Feedback) => {
+  const save = async (feedback: Feedback, etag: number) => {
     const data = {
-      id,
-      feedback: f,
-      etag: refEtag.current,
+      id: f.id,
+      feedback,
+      etag,
     };
-
     // TODO: A holistic solution.
     await trpc.interviewFeedbacks.logUpdateAttempt.mutate(data);
+    return await trpc.interviewFeedbacks.update.mutate(data);    
+  };
 
+  return <LoadedEditor
+    id={f.id}
+    defaultFeedback={f.feedback ? f.feedback as Feedback : { dimensions: [] }}
+    etag={data.etag}
+    save={save}
+    readonly={readonly}
+  />;
+}
+
+function LoadedEditor({ id, defaultFeedback, etag, save, readonly }: {
+  id: string,
+  defaultFeedback: Feedback,
+  etag: number,
+  save: (f: Feedback, etag: number) => Promise<number>,
+  readonly?: boolean,
+}) {
+  // Only load the original feedback once, and not when the parent auto refetches it.
+  // Changing content during edits may confuses the user to hell.
+  const [feedback, setFeedback] = useState<Feedback>(defaultFeedback);
+  const refEtag = useRef<number>(etag);
+
+  const onSave = async (f: Feedback) => {
     try {
-      refEtag.current = await trpc.interviewFeedbacks.update.mutate(data);
+      refEtag.current = await save(f, refEtag.current);
     } catch (e) {
       if (e instanceof TRPCClientError && e.data.code == "CONFLICT") {
         window.alert("内容已被更新其他用户或窗口更新。无法在此页继续保存。请刷新以查看最新内容。");
@@ -103,7 +105,7 @@ function InterviewFeedbackEditorWithData({ id, feedback: original, etag, readonl
   };
 
   return <Flex direction="column" gap={6}>
-    <FeedbackDimensionEditor 
+    <DimensionEditor 
       dimension={getDimension(feedback, summaryDimensionName)}
       dimensionLabel={`${summaryDimensionName}与备注`}
       scoreLabels={["拒", "弱拒", "弱收", "收"]}
@@ -112,7 +114,7 @@ function InterviewFeedbackEditorWithData({ id, feedback: original, etag, readonl
       onChange={d => setFeedback(setDimension(feedback, d))}
     />
 
-    {dimensionNames.map((name, idx) => <FeedbackDimensionEditor 
+    {dimensionNames.map((name, idx) => <DimensionEditor 
       key={name}
       dimension={getDimension(feedback, name)}
       dimensionLabel={`${idx + 1}. ${name}`}
@@ -124,13 +126,13 @@ function InterviewFeedbackEditorWithData({ id, feedback: original, etag, readonl
 
     {!readonly && <Autosaver
       // This conditional is to prevent initial page loading from triggering auto saving.
-      data={_.isEqual(feedback, original) ? null : feedback}
-      onSave={f => save(f)}
+      data={_.isEqual(feedback, defaultFeedback) ? null : feedback}
+      onSave={onSave}
     />}
   </Flex>;
 }
 
-function FeedbackDimensionEditor({ 
+function DimensionEditor({ 
   dimension: d, dimensionLabel, scoreLabels, commentPlaceholder, readonly, onChange,
 }: {
   dimension: FeedbackDimension,
