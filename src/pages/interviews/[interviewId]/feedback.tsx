@@ -111,7 +111,7 @@ function Instructions({ interviewers }: {
       </>}
       <ListItem>
         <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-          面试维度和参考题库 <ExternalLinkIcon />
+          考察维度和参考题库 <ExternalLinkIcon />
         </Link>
       </ListItem>
       <ListItem>

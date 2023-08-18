@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { parseQueryParameter } from 'parseQueryParamter';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Heading, Text, Link, HStack } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Heading, Text, Link } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
 import _ from "lodash";
 import MenteeApplication from 'components/MenteeApplication';
@@ -14,6 +14,7 @@ import { formatUserName, compareUUID } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { Feedback } from 'shared/InterviewFeedback';
+import MobileExperienceAlert from 'components/MobileExperienceAlert';
 
 const Page: NextPageWithLayout = () => {
   const interviewId = parseQueryParameter(useRouter(), 'interviewId');
@@ -24,8 +25,10 @@ const Page: NextPageWithLayout = () => {
   const i = data.interviewWithGroup;
 
   return <Flex direction="column" gap={sectionSpacing}>
+    <MobileExperienceAlert />
+
     <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-      面试维度和参考题库 <ExternalLinkIcon />
+      考察维度和参考题库 <ExternalLinkIcon />
     </Link>
 
     <Grid 
