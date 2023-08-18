@@ -32,7 +32,7 @@ const Page: NextPageWithLayout = () => {
         .map(f => <GridItem key={f.id}>
         <Flex direction="column" gap={sectionSpacing}>
           <Heading size="md">{formatUserName(f.interviewer.name, "formal")}</Heading>
-          <InterviewFeedbackEditor feedbackId={f.id} readonly={me.id !== f.interviewer.id} />
+          <InterviewFeedbackEditor interviewFeedbackId={f.id} readonly={me.id !== f.interviewer.id} />
         </Flex>
       </GridItem>)}
 
