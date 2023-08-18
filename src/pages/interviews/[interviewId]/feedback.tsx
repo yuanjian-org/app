@@ -23,11 +23,11 @@ import { MinUser } from 'shared/User';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
-import InterviewFeedbackEditor from 'components/InterviewFeedbackEditor';
+import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 
 const Page: NextPageWithLayout = () => {
   const interviewId = parseQueryParameter(useRouter(), 'interviewId');
-  const { data: interview } = trpcNext.interviews.get.useQuery(interviewId);
+  const { data } = trpcNext.interviews.get.useQuery(interviewId);
   const { data: meNoCache } = trpcNext.users.meNoCache.useQuery();
   const [me] = useUserContext();
 
@@ -36,16 +36,18 @@ const Page: NextPageWithLayout = () => {
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
   }
 
-  if (!interview) return <Loader />;
+  if (!data) return <Loader />;
+
+  const i = data.interviewWithGroup;
 
   const getMyFeedbackId = () => {
-    const feedbacks = interview.feedbacks.filter(f => f.interviewer.id === me.id);
+    const feedbacks = i.feedbacks.filter(f => f.interviewer.id === me.id);
     invariant(feedbacks.length == 1);
     return feedbacks[0].id;
   };
 
   return <>
-    <PageBreadcrumb current={formatUserName(interview.interviewee.name, "formal")} parents={[{
+    <PageBreadcrumb current={formatUserName(i.interviewee.name, "formal")} parents={[{
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 
@@ -55,13 +57,13 @@ const Page: NextPageWithLayout = () => {
       <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "1fr 1fr" }} gap={sectionSpacing}>
         <GridItem>
           <Flex direction="column" gap={sectionSpacing}>
-            <Instructions interviewers={interview.feedbacks.map(f => f.interviewer)} />
+            <Instructions interviewers={i.feedbacks.map(f => f.interviewer)} />
             <InterviewFeedbackEditor interviewFeedbackId={getMyFeedbackId()} />
           </Flex>
         </GridItem>
         <GridItem>
-          {interview.type == "MenteeInterview" ? 
-            <MenteeApplication menteeUserId={interview.interviewee.id} /> 
+          {i.type == "MenteeInterview" ? 
+            <MenteeApplication menteeUserId={i.interviewee.id} /> 
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }

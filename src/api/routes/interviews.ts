@@ -5,7 +5,7 @@ import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
 import { groupAttributes, groupInclude, interviewInclude, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
-import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { conflictError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
@@ -13,6 +13,9 @@ import Group from "../database/models/Group";
 import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
+import { updatedAt2etag as date2etag } from "./interviewFeedbacks";
+import { zFeedback } from "shared/InterviewFeedback";
+import { now } from "cypress/types/lodash";
 
 /**
  * Only InterviewManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
@@ -21,11 +24,14 @@ import { isPermitted } from "../../shared/Role";
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zInterviewWithGroup)
+  .output(z.object({
+    interviewWithGroup: zInterviewWithGroup,
+    etag: z.number(),
+  }))
   .query(async ({ ctx, input: id }) =>
 {
   const i = await db.Interview.findByPk(id, {
-    attributes: [...interviewAttributes, "calibrationId"],
+    attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
     include: [...interviewInclude, {
       model: Group,
       attributes: groupAttributes,
@@ -34,11 +40,16 @@ const get = procedure
   });
   if (!i) throw notFoundError("面试", id);
 
-  if (isPermitted(ctx.user.roles, "InterviewManager")) return i;
+  const ret = {
+    interviewWithGroup: i,
+    etag: date2etag(i.decisionUpdatedAt),
+  };
 
-  if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return i;
+  if (isPermitted(ctx.user.roles, "InterviewManager")) return ret;
 
-  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return i;
+  if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return ret;
+
+  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return ret;
 
   throw noPermissionError("面试", id);
 });
@@ -137,6 +148,38 @@ const update = procedure
   await updateInterview(input.id, input.type, input.calibrationId, input.intervieweeId, input.interviewerIds);
 })
 
+/**
+ * @return etag
+ */
+const updateDecision = procedure
+  .use(authUser("InterviewManager"))
+  .input(z.object({
+    interviewId: z.string(),
+    decision: zFeedback,
+    etag: z.number(),
+  }))
+  .output(z.number())
+  .mutation(async ({ input }) =>
+{
+  return await sequelizeInstance.transaction(async transaction => {
+    const i = await db.Interview.findByPk(input.interviewId, {
+      attributes: ["id", "decisionUpdatedAt"],
+      transaction,
+      lock: true,
+    });
+    if (!i) throw notFoundError("面试", input.interviewId);
+    if (date2etag(i.decisionUpdatedAt) !== input.etag) throw conflictError();
+
+    i.decision = input.decision;
+    const now = new Date();
+    await i.update({
+      decision: input.decision,
+      decisionUpdatedAt: now,
+    }, { transaction });
+    return date2etag(now);
+  });
+})
+
 export async function updateInterview(id: string, type: InterviewType, calibrationId: string | null,
   intervieweeId: string, interviewerIds: string[]) 
 {
@@ -211,4 +254,5 @@ export default router({
   listMine,
   create,
   update,
+  updateDecision,
 });

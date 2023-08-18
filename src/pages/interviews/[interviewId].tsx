@@ -4,29 +4,35 @@ import { useRouter } from 'next/router';
 import { parseQueryParameter } from 'parseQueryParamter';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Heading, Text, Link } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Heading, Text, Link, HStack } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
 import _ from "lodash";
 import MenteeApplication from 'components/MenteeApplication';
 import { sectionSpacing } from 'theme/metrics';
-import InterviewFeedbackEditor from 'components/InterviewFeedbackEditor';
+import { InterviewDecisionEditor, InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { formatUserName, compareUUID } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { Feedback } from 'shared/InterviewFeedback';
 
 const Page: NextPageWithLayout = () => {
   const interviewId = parseQueryParameter(useRouter(), 'interviewId');
-  const { data: interview } = trpcNext.interviews.get.useQuery(interviewId);
+  const { data } = trpcNext.interviews.get.useQuery(interviewId);
   const [me] = useUserContext();
 
-  if (!interview) return <Loader />;
+  if (!data) return <Loader />;
+  const i = data.interviewWithGroup;
 
-  return <>
+  return <Flex direction="column" gap={sectionSpacing}>
+    <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
+      面试维度和参考题库 <ExternalLinkIcon />
+    </Link>
+
     <Grid 
-      templateColumns={{ base: "100%", [sidebarBreakpoint]: `repeat(${interview.feedbacks.length + 1}, 1fr)` }} 
+      templateColumns={{ base: "100%", [sidebarBreakpoint]: `repeat(${i.feedbacks.length + 1}, 1fr)` }} 
       gap={sectionSpacing}
     >
-      {interview.feedbacks
+      {i.feedbacks
         // Fix dislay order
         .sort((f1, f2) => compareUUID(f1.id, f2.id))
         .map(f => <GridItem key={f.id}>
@@ -38,11 +44,11 @@ const Page: NextPageWithLayout = () => {
 
       <GridItem>
         <Flex direction="column" gap={sectionSpacing}>
-          <OverallFeedbackEditor />
-          {interview.type == "MenteeInterview" ?
+          <DecisionEditor interviewId={i.id} decision={i.decision} etag={data.etag} />
+          {i.type == "MenteeInterview" ?
             <MenteeApplication 
-              menteeUserId={interview.interviewee.id}
-              title={formatUserName(interview.interviewee.name, "formal")}
+              menteeUserId={i.interviewee.id}
+              title={formatUserName(i.interviewee.name, "formal")}
             />
             : 
             <Text>（导师申请材料页尚未实现）</Text>
@@ -50,21 +56,20 @@ const Page: NextPageWithLayout = () => {
         </Flex>
       </GridItem>
     </Grid>
-  </>;
+  </Flex>;
 };
 
 Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
 
 export default Page;
 
-function OverallFeedbackEditor() {
+function DecisionEditor({ interviewId, decision, etag }: {
+  interviewId: string,
+  decision: Feedback | null,
+  etag: number,
+}) {
   return <>
     <Heading size="md">最终评价</Heading>
-    <Text>TODO</Text>
-    <Text>
-      <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-        面试维度和参考题库 <ExternalLinkIcon />
-      </Link>
-    </Text>
+    <InterviewDecisionEditor interviewId={interviewId} decision={decision} etag={etag} />
   </>;
 }

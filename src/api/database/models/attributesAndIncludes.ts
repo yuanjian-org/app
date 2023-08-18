@@ -70,7 +70,7 @@ export const calibrationInclude = [{
  * Interview
  */
 
-export const interviewAttributes = ["id", "type"];
+export const interviewAttributes = ["id", "type", "decision"];
 
 export const interviewInclude = [{
   model: User,

@@ -16,6 +16,9 @@ import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
 import _ from "lodash";
 import { TRPCClientError } from '@trpc/client';
+import { Feedback as SharedFeedback } from "shared/InterviewFeedback";
+import { useUserContext } from 'UserContext';
+import { isPermitted } from 'shared/Role';
 
 type Feedback = {
   dimensions: FeedbackDimension[],
@@ -53,7 +56,7 @@ function setDimension(f: Feedback, dimension: FeedbackDimension): Feedback {
   };
 }
 
-export default function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: { 
+export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: { 
   interviewFeedbackId: string,
   readonly?: boolean,
 }) {
@@ -73,25 +76,39 @@ export default function InterviewFeedbackEditor({ interviewFeedbackId, readonly 
     return await trpc.interviewFeedbacks.update.mutate(data);    
   };
 
-  return <LoadedEditor
-    id={f.id}
-    defaultFeedback={f.feedback ? f.feedback as Feedback : { dimensions: [] }}
-    etag={data.etag}
-    save={save}
-    readonly={readonly}
+  return <Editor defaultFeedback={f.feedback} etag={data.etag} save={save} showDimensions readonly={readonly} />;
+}
+
+export function InterviewDecisionEditor({ interviewId, decision, etag }: { 
+  interviewId: string,
+  decision: SharedFeedback | null,
+  etag: number,
+}) {
+  const [me] = useUserContext();
+
+  const save = async (decision: Feedback, etag: number) => {
+    return await trpc.interviews.updateDecision.mutate({
+      interviewId,
+      decision,
+      etag,
+    });    
+  };
+
+  return <Editor defaultFeedback={decision} etag={etag} save={save} showDimensions={false}
+    readonly={!isPermitted(me.roles, "InterviewManager")}
   />;
 }
 
-function LoadedEditor({ id, defaultFeedback, etag, save, readonly }: {
-  id: string,
-  defaultFeedback: Feedback,
+function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
+  defaultFeedback: SharedFeedback | null,
   etag: number,
   save: (f: Feedback, etag: number) => Promise<number>,
+  showDimensions: boolean,
   readonly?: boolean,
 }) {
   // Only load the original feedback once, and not when the parent auto refetches it.
   // Changing content during edits may confuses the user to hell.
-  const [feedback, setFeedback] = useState<Feedback>(defaultFeedback);
+  const [feedback, setFeedback] = useState<Feedback>(defaultFeedback as Feedback || { dimensions: [] });
   const refEtag = useRef<number>(etag);
 
   const onSave = async (f: Feedback) => {
@@ -114,7 +131,7 @@ function LoadedEditor({ id, defaultFeedback, etag, save, readonly }: {
       onChange={d => setFeedback(setDimension(feedback, d))}
     />
 
-    {dimensionNames.map((name, idx) => <DimensionEditor 
+    {showDimensions && dimensionNames.map((name, idx) => <DimensionEditor 
       key={name}
       dimension={getDimension(feedback, name)}
       dimensionLabel={`${idx + 1}. ${name}`}
@@ -165,7 +182,7 @@ function DimensionEditor({
           placement='top'
           isOpen={showTooltip}
           // N.B. scores are 1-indexed while labels are 0-index.
-          label={`${d.score}: ${scoreLabels[d.score ? d.score - 1 : 0]}`}
+          label={`${d.score ?? 1}: ${scoreLabels[d.score ? d.score - 1 : 0]}`}
         >
           <SliderThumb bg="brand.b" />
         </Tooltip>
@@ -173,7 +190,7 @@ function DimensionEditor({
     </Flex>
 
     <Textarea
-      isReadOnly={readonly} 
+      isReadOnly={readonly}
       {...readonly ? {} : { placeholder: commentPlaceholder }}
       height="150px"
       {...readonly ? {} : { background: "white" }}
