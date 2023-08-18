@@ -159,7 +159,15 @@ function DimensionEditor({
   onChange: (d: FeedbackDimension) => void,
   readonly?: boolean,
 }) {
+  invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
+  const backgrounds = [
+    "orange.600", "orange", 
+    ...scoreLabels.length == 4 ? [] : ["grey"],
+    "green.400", "green"
+  ];
+  
   const [showTooltip, setShowTooltip] = useState(false);
+  const score = d.score ?? 1;
 
   return <>
     <Flex direction="row" gap={3}>
@@ -167,24 +175,23 @@ function DimensionEditor({
       <Slider min={1} max={scoreLabels.length} step={1} isReadOnly={readonly}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        value={d.score == null ? 1 : d.score}
+        value={score}
         onChange={v => onChange({
           name: d.name,
           score: v,
           comment: d.comment,
         })}
       >
-        <SliderTrack><SliderFilledTrack bg="brand.b" /></SliderTrack>
+        <SliderTrack><SliderFilledTrack bg={backgrounds[score - 1]} /></SliderTrack>
         {scoreLabels.map((_, idx) => <SliderMark key={idx} value={idx + 1}>.</SliderMark>)}
         
         <Tooltip
           hasArrow
           placement='top'
           isOpen={showTooltip}
-          // N.B. scores are 1-indexed while labels are 0-index.
-          label={`${d.score ?? 1}: ${scoreLabels[d.score ? d.score - 1 : 0]}`}
+          label={`${score}: ${scoreLabels[score - 1]}`}
         >
-          <SliderThumb bg="brand.b" />
+          <SliderThumb bg={backgrounds[score - 1]} />
         </Tooltip>
       </Slider>
     </Flex>
