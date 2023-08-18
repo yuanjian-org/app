@@ -161,9 +161,9 @@ function DimensionEditor({
 }) {
   invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
   const backgrounds = [
-    "orange.600", "orange", 
+    "red.600", "orange", 
     ...scoreLabels.length == 4 ? [] : ["grey"],
-    "green.400", "green"
+    "green.300", "green.600"
   ];
   
   const [showTooltip, setShowTooltip] = useState(false);
