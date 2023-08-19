@@ -72,7 +72,7 @@ function DecisionEditor({ interviewId, decision, etag }: {
   etag: number,
 }) {
   return <>
-    <Heading size="md">最终评价</Heading>
+    <Heading size="md">面试讨论</Heading>
     <InterviewDecisionEditor interviewId={interviewId} decision={decision} etag={etag} />
   </>;
 }

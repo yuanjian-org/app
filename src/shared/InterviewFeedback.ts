@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { zMinUser } from './User';
 
+// TODO: rename to Interviewer
 export const zMinInterviewFeedback = z.object({
   id: z.string(),
   interviewer: zMinUser,

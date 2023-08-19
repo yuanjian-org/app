@@ -10,6 +10,8 @@ export const zInterview = z.object({
     type: zInterviewType,
     calibration: zCalibration.nullable(),
     interviewee: zMinUser,
+
+    // TODO: rename to calibrationFeedback & interviewers respectively
     decision: zFeedback.nullable(),
     feedbacks: z.array(zMinInterviewFeedback),
   });
