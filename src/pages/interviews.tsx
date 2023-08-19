@@ -199,13 +199,10 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
   // When selecting "-“ <Select> emits "".
   const [calibrationId, setCalibrationId] = useState<string>(interview?.calibration?.id || "");
-  
-  const isValid = () => interviewerIds.length > 0;
 
   const save = async () => {
     setSaving(true);
     try {
-      invariant(isValid());
       const cid = calibrationId.length ? calibrationId : null;
       if (interview) {
         await trpc.interviews.update.mutate({
@@ -256,8 +253,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand' 
-          isDisabled={!isValid()}
+        <Button variant='brand'
           isLoading={saving} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>
