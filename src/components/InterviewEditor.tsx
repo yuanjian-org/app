@@ -16,24 +16,40 @@ import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
 import _ from "lodash";
 import { TRPCClientError } from '@trpc/client';
-import { Feedback as SharedFeedback } from "shared/InterviewFeedback";
+import { Feedback } from "shared/InterviewFeedback";
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 
-type Feedback = {
-  dimensions: FeedbackDimension[],
+/**
+ * This data type is only used by the frontend. The backend / database is unaware of it and instead uses
+ * shared/InterviewFeedbak:Feedback. Therefore, type conversion is necesary.
+ * 
+ * TODO: use EditorFeedback as a shared type?
+ */
+export type EditorFeedback = {
+  dimensions: EditorFeedbackDimension[],
 };
 
-type FeedbackDimension = {
+export type EditorFeedbackDimension = {
   name: string,
   score: number | null,
   comment: string | null,
 };
 
-const dimensionNames = ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"];
-const summaryDimensionName = "总评";
+export const summaryDimensionName = "总评";
+export const summaryScoreLabels = ["拒", "弱拒", "弱收", "收"];
 
-function getDimension(f: Feedback, name: string): FeedbackDimension {
+export function getScoreColor(scoreLabels: string[], score: number): string {
+  invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
+  const backgrounds = [
+    "red.600", "orange", 
+    ...scoreLabels.length == 4 ? [] : ["grey"],
+    "green.300", "green.600"
+  ];
+  return backgrounds[score - 1];
+}
+
+function getDimension(f: EditorFeedback, name: string): EditorFeedbackDimension {
   const ds = f.dimensions.filter(d => d.name === name);
   if (ds.length > 0) {
     invariant(ds.length == 1);
@@ -50,7 +66,7 @@ function getDimension(f: Feedback, name: string): FeedbackDimension {
 /**
  * @returns a new Feedback object
  */
-function setDimension(f: Feedback, dimension: FeedbackDimension): Feedback {
+function setDimension(f: EditorFeedback, dimension: EditorFeedbackDimension): EditorFeedback {
   return {
     dimensions: [...f.dimensions.filter(d => dimension.name !== d.name), dimension],
   };
@@ -65,7 +81,7 @@ export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: {
 
   const f = data.interviewFeedback;
 
-  const save = async (feedback: Feedback, etag: number) => {
+  const save = async (feedback: EditorFeedback, etag: number) => {
     const data = {
       id: f.id,
       feedback,
@@ -81,12 +97,12 @@ export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: {
 
 export function InterviewDecisionEditor({ interviewId, decision, etag }: { 
   interviewId: string,
-  decision: SharedFeedback | null,
+  decision: Feedback | null,
   etag: number,
 }) {
   const [me] = useUserContext();
 
-  const save = async (decision: Feedback, etag: number) => {
+  const save = async (decision: EditorFeedback, etag: number) => {
     return await trpc.interviews.updateDecision.mutate({
       interviewId,
       decision,
@@ -100,18 +116,18 @@ export function InterviewDecisionEditor({ interviewId, decision, etag }: {
 }
 
 function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
-  defaultFeedback: SharedFeedback | null,
+  defaultFeedback: Feedback | null,
   etag: number,
-  save: (f: Feedback, etag: number) => Promise<number>,
+  save: (f: EditorFeedback, etag: number) => Promise<number>,
   showDimensions: boolean,
   readonly?: boolean,
 }) {
   // Only load the original feedback once, and not when the parent auto refetches it.
   // Changing content during edits may confuses the user to hell.
-  const [feedback, setFeedback] = useState<Feedback>(defaultFeedback as Feedback || { dimensions: [] });
+  const [feedback, setFeedback] = useState<EditorFeedback>(defaultFeedback as EditorFeedback || { dimensions: [] });
   const refEtag = useRef<number>(etag);
 
-  const onSave = async (f: Feedback) => {
+  const onSave = async (f: EditorFeedback) => {
     try {
       refEtag.current = await save(f, refEtag.current);
     } catch (e) {
@@ -125,13 +141,14 @@ function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
     <DimensionEditor 
       dimension={getDimension(feedback, summaryDimensionName)}
       dimensionLabel={`${summaryDimensionName}与备注`}
-      scoreLabels={["拒", "弱拒", "弱收", "收"]}
-      commentPlaceholder="评分理由、学生特点、未来导师需关注的情况等（自动保存）"
+      scoreLabels={summaryScoreLabels}
+      commentPlaceholder="评分理由、未来导师需关注的情况、自由记录（自动保存）"
       readonly={readonly}
       onChange={d => setFeedback(setDimension(feedback, d))}
     />
 
-    {showDimensions && dimensionNames.map((name, idx) => <DimensionEditor 
+    {showDimensions && ["成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维", "个人潜力", "远见价值"]
+    .map((name, idx) => <DimensionEditor 
       key={name}
       dimension={getDimension(feedback, name)}
       dimensionLabel={`${idx + 1}. ${name}`}
@@ -152,22 +169,16 @@ function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
 function DimensionEditor({ 
   dimension: d, dimensionLabel, scoreLabels, commentPlaceholder, readonly, onChange,
 }: {
-  dimension: FeedbackDimension,
+  dimension: EditorFeedbackDimension,
   dimensionLabel: string,
   scoreLabels: string[],
   commentPlaceholder: string,
-  onChange: (d: FeedbackDimension) => void,
+  onChange: (d: EditorFeedbackDimension) => void,
   readonly?: boolean,
-}) {
-  invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
-  const backgrounds = [
-    "red.600", "orange", 
-    ...scoreLabels.length == 4 ? [] : ["grey"],
-    "green.300", "green.600"
-  ];
-  
+}) {  
   const [showTooltip, setShowTooltip] = useState(false);
   const score = d.score ?? 1;
+  const color = getScoreColor(scoreLabels, score);
 
   return <>
     <Flex direction="row" gap={3}>
@@ -182,7 +193,7 @@ function DimensionEditor({
           comment: d.comment,
         })}
       >
-        <SliderTrack><SliderFilledTrack bg={backgrounds[score - 1]} /></SliderTrack>
+        <SliderTrack><SliderFilledTrack bg={color} /></SliderTrack>
         {scoreLabels.map((_, idx) => <SliderMark key={idx} value={idx + 1}>.</SliderMark>)}
         
         <Tooltip
@@ -191,7 +202,7 @@ function DimensionEditor({
           isOpen={showTooltip}
           label={`${score}: ${scoreLabels[score - 1]}`}
         >
-          <SliderThumb bg={backgrounds[score - 1]} />
+          <SliderThumb bg={color} />
         </Tooltip>
       </Slider>
     </Flex>

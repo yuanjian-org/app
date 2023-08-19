@@ -16,6 +16,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
 import { Feedback, zFeedback } from "../../../shared/InterviewFeedback";
 
+// TODO: rename to Interviewer
 @Table({
   paranoid: true,
 })
