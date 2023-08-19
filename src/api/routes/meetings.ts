@@ -3,14 +3,16 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import DbGroup from "../database/models/Group";
 import { createMeeting, getMeeting } from "../TencentMeeting";
 import { formatGroupName } from "shared/strings";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
-import { noPermissionError, notFoundError } from "api/errors";
+import {  notFoundError } from "api/errors";
 import { emailRoleIgnoreError } from 'api/sendgrid';
 import sequelizeInstance from 'api/database/sequelizeInstance';
+import { checkPermissionForGroup } from './groups';
+import { groupAttributes, groupInclude } from 'api/database/models/attributesAndIncludes';
+import { Group } from '../../shared/Group';
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the
@@ -23,13 +25,13 @@ const join = procedure
   .input(z.object({ groupId: z.string() }))
   .mutation(async ({ ctx, input }) => 
 {
-  const group = await db.Group.findByPk(input.groupId, { include: [db.GroupUser] });
-  if (!group) throw notFoundError("分组", input.groupId);
+  const g = await db.Group.findByPk(input.groupId, { 
+    attributes: groupAttributes,
+    include: groupInclude,
+  });
+  if (!g) throw notFoundError("分组", input.groupId);
 
-  // Only meeting members have access to this method.
-  if (!group.groupUsers.some(gu => gu.userId === ctx.user.id)) {
-    throw noPermissionError("分组", input.groupId);
-  }
+  checkPermissionForGroup(ctx.user, g);
 
   if (!apiEnv.hasTencentMeeting()) {
     console.log("TencentMeeting isn't configured. Fake a delay and return a mock meeting link.");
@@ -45,7 +47,7 @@ const join = procedure
   // if the user's group is present in OngoingMeetings Model, return the meeting link 
   return await sequelizeInstance.transaction(async (t) => {
     const ongoingMeeting = await db.OngoingMeetings.findOne({ 
-      where: { groupId: group.id },
+      where: { groupId: g.id },
       lock: true, transaction: t,
     });
     if (ongoingMeeting) {
@@ -64,10 +66,10 @@ const join = procedure
     // find and filter vacant ids
     const availableTmUserIds = apiEnv.TM_USER_IDS.filter(uid => !meetings.some(m => m.tmUserId === uid));
     invariant(availableTmUserIds.length > 0);
-    const { meetingId, meetingLink } = await create(group, availableTmUserIds[0]);
+    const { meetingId, meetingLink } = await create(g, availableTmUserIds[0]);
 
     await db.OngoingMeetings.create({
-      groupId: group.id,
+      groupId: g.id,
       tmUserId: availableTmUserIds[0],
       meetingId,
       meetingLink,
@@ -99,10 +101,10 @@ export function safeDecodeMeetingSubject(subject: string): string | null {
   return parsed.success ? parsed.data : null;
 }
 
-async function create(group: DbGroup, availableTmUserId: string) {
+async function create(g: Group, availableTmUserId: string) {
   const now = Math.floor(Date.now() / 1000);
-  const groupName = formatGroupName(group.name, group.groupUsers.length);
-  const res = await createMeeting(availableTmUserId, encodeMeetingSubject(group.id, groupName), now, now + 3600);
+  const groupName = formatGroupName(g.name, g.users.length);
+  const res = await createMeeting(availableTmUserId, encodeMeetingSubject(g.id, groupName), now, now + 3600);
   invariant(res.meeting_info_list.length === 1);
   return {
     meetingId: res.meeting_info_list[0].meeting_id,

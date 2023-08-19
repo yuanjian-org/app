@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
-import { createGroupDeprecated, findGroups } from "../src/api/routes/groups";
+import { createGroup, findGroups } from "../src/api/routes/groups";
 import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
@@ -94,11 +94,9 @@ async function getUserManagers() {
 async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
-  try {
-    await createGroupDeprecated(users.map(u => u.id as string));
-  } catch (e) {
-    if (!(e instanceof TRPCError && e.message === alreadyExistsErrorMessage("分组"))) throw e;
-  }
+  const userIds = users.map(u => u.id as string)
+  if ((await findGroups(userIds, 'exclusive')).length == 0) return;
+  await sequelizeInstance.transaction(async t => await createGroup(null, userIds, [], null, null, null, t));
 }
 
 async function generateSummaries(users: TestUser[]) {

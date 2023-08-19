@@ -14,7 +14,7 @@ import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./ca
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { updatedAt2etag as date2etag } from "./interviewFeedbacks";
-import { zFeedback } from "shared/InterviewFeedback";
+import { zFeedback } from "../../shared/InterviewFeedback";
 
 /**
  * Only InterviewManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
@@ -125,7 +125,7 @@ export async function createInterview(type: InterviewType, calibrationId: string
       await u.save({ transaction });
     }
 
-    await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null, transaction);
+    await createGroup(null, [intervieweeId, ...interviewerIds], [], null, i.id, null, transaction);
 
     if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
 
