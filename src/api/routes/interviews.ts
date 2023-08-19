@@ -3,40 +3,54 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
-import { includeForGroup, includeForInterview, interviewAttributes } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude, interviewInclude, interviewAttributes } from "../database/models/attributesAndIncludes";
 import sequelizeInstance from "../database/sequelizeInstance";
-import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { conflictError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
-import { syncCalibrationGroup } from "./calibrations";
+import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
+import { updatedAt2etag as date2etag } from "./interviewFeedbacks";
+import { zFeedback } from "../../shared/InterviewFeedback";
 
 /**
- * Only InterviewManagers and the interviewer of a feedback are allowed to call this route.
+ * Only InterviewManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
+ * to call this route.
  */
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zInterviewWithGroup)
+  .output(z.object({
+    interviewWithGroup: zInterviewWithGroup,
+    etag: z.number(),
+  }))
   .query(async ({ ctx, input: id }) =>
 {
   const i = await db.Interview.findByPk(id, {
-    attributes: interviewAttributes,
-    include: [...includeForInterview, {
+    attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
+    include: [...interviewInclude, {
       model: Group,
-      include: includeForGroup,
+      attributes: groupAttributes,
+      include: groupInclude,
     }],
   });
-  if (!i) {
-    throw notFoundError("面试", id);
-  }
-  if (!i.feedbacks.some(f => f.interviewer.id === ctx.user.id) && !isPermitted(ctx.user.roles, "InterviewManager")) {
-    throw noPermissionError("面试", id);
-  }
-  return i;
+  if (!i) throw notFoundError("面试", id);
+
+  const ret = {
+    interviewWithGroup: i,
+    etag: date2etag(i.decisionUpdatedAt),
+  };
+
+  if (isPermitted(ctx.user.roles, "InterviewManager")) return ret;
+
+  if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return ret;
+
+  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return ret;
+
+  throw noPermissionError("面试", id);
 });
 
 const list = procedure
@@ -48,7 +62,7 @@ const list = procedure
   return await db.Interview.findAll({
     where: { type },
     attributes: interviewAttributes,
-    include: includeForInterview,
+    include: interviewInclude,
   })
 });
 
@@ -63,7 +77,7 @@ const listMine = procedure
     include: [{
       model: db.Interview,
       attributes: interviewAttributes,
-      include: includeForInterview
+      include: interviewInclude
     }]
   })).map(feedback => feedback.interview);
 });
@@ -111,7 +125,7 @@ export async function createInterview(type: InterviewType, calibrationId: string
       await u.save({ transaction });
     }
 
-    await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null, transaction);
+    await createGroup(null, [intervieweeId, ...interviewerIds], [], null, i.id, null, transaction);
 
     if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
 
@@ -133,6 +147,38 @@ const update = procedure
   await updateInterview(input.id, input.type, input.calibrationId, input.intervieweeId, input.interviewerIds);
 })
 
+/**
+ * @return etag
+ */
+const updateDecision = procedure
+  .use(authUser("InterviewManager"))
+  .input(z.object({
+    interviewId: z.string(),
+    decision: zFeedback,
+    etag: z.number(),
+  }))
+  .output(z.number())
+  .mutation(async ({ input }) =>
+{
+  return await sequelizeInstance.transaction(async transaction => {
+    const i = await db.Interview.findByPk(input.interviewId, {
+      attributes: ["id", "decisionUpdatedAt"],
+      transaction,
+      lock: true,
+    });
+    if (!i) throw notFoundError("面试", input.interviewId);
+    if (date2etag(i.decisionUpdatedAt) !== input.etag) throw conflictError();
+
+    i.decision = input.decision;
+    const now = new Date();
+    await i.update({
+      decision: input.decision,
+      decisionUpdatedAt: now,
+    }, { transaction });
+    return date2etag(now);
+  });
+})
+
 export async function updateInterview(id: string, type: InterviewType, calibrationId: string | null,
   intervieweeId: string, interviewerIds: string[]) 
 {
@@ -140,7 +186,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
 
   await sequelizeInstance.transaction(async (transaction) => {
     const i = await db.Interview.findByPk(id, {
-      include: [...includeForInterview, Group],
+      include: [...interviewInclude, Group],
       transaction
     });
 
@@ -187,10 +233,10 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
     }
     // Update group
     await updateGroup(i.group.id, null, [intervieweeId, ...interviewerIds], transaction);
-    // Update calibration
-    if (oldCalibrationId !== calibrationId) {
-      if (oldCalibrationId) await syncCalibrationGroup(oldCalibrationId, transaction);
-      if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
+    // Update calibration. When the interviwer list is updated, the calibration group needs an update, too.
+    if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
+    if (oldCalibrationId && oldCalibrationId !== calibrationId) {
+      await syncCalibrationGroup(oldCalibrationId, transaction);
     }
   });
 }
@@ -207,4 +253,5 @@ export default router({
   listMine,
   create,
   update,
+  updateDecision,
 });
