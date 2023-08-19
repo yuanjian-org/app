@@ -20,7 +20,7 @@ export const userAttributes = [...minUserAttributes, "email", "roles", "consentF
  * Group
  */
 
-export const groupAttributes = ["id", "name", "partnershipId", "interviewId", "calibrationId"];
+export const groupAttributes = ["id", "name", "roles", "partnershipId", "interviewId", "calibrationId"];
 
 export const groupInclude = [{
   model: User,

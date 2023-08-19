@@ -35,7 +35,7 @@ export async function createCalibration(type: InterviewType, name: string): Prom
   if (!name.length) throw generalBadRequestError("名称不能为空");
   return await sequelizeInstance.transaction(async (transaction) => {
     const c = await db.Calibration.create({ type, name, active: false }, { transaction });
-    await createGroup(null, [], null, null, c.id, transaction);
+    await createGroup(null, [], ["InterviewManager"], null, null, c.id, transaction);
     return c.id;
   });
 }
@@ -80,9 +80,7 @@ const listMine = procedure
 {
   const cids = (await db.Calibration.findAll({
     attributes: ["id"],
-    where: {
-      active: true,
-    },
+    where: { active: true },
   })).map(c => c.id);
 
   const cs: Calibration[] = [];

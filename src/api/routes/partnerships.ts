@@ -57,7 +57,7 @@ const create = procedure
 
     // Create the group
     invariant(partnership);
-    await createGroup(null, [input.mentorId, input.menteeId], partnership.id, null, null, t);
+    await createGroup(null, [input.mentorId, input.menteeId], [], partnership.id, null, null, t);
   });
 });
 

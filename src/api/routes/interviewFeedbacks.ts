@@ -4,7 +4,7 @@ import { z } from "zod";
 import db from "../database/db";
 import { interviewFeedbackInclude, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
 import { conflictError, noPermissionError, notFoundError } from "../errors";
-import { zFeedback, zInterviewFeedback } from "shared/InterviewFeedback";
+import { zFeedback, zInterviewFeedback } from "../../shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
