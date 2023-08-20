@@ -70,16 +70,17 @@ const Page: NextPageWithLayout = () => {
           <Table>
             <Thead>
               <Tr>
+                <Th>编辑</Th>
                 <Th>电子邮箱</Th>
                 <Th>姓名</Th>
                 <Th>拼音</Th>
                 <Th>角色</Th>
-                <Th />
               </Tr>
             </Thead>
             <Tbody>
               {users.map((u: any) => (
-                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer'>
+                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer' _hover={{ bg: "white" }}>
+                  <Td><EditIcon /></Td>
                   <Td>{u.email}</Td>
                   <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
                   <Td>{toPinyin(u.name ?? '')}</Td>
@@ -95,7 +96,6 @@ const Page: NextPageWithLayout = () => {
                     })}
                     </Wrap>
                   </Td>
-                  <Td><EditIcon /></Td>
                 </Tr>
               ))}
             </Tbody>

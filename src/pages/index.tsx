@@ -85,9 +85,8 @@ function SetNameModal() {
 function Meetings() {
   const [me] = useUserContext();
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
-    // Mentors have mentee groups listed in partnership pages.
     // TODO: This is a hack. Do it properly.
-    includeOwned: !isPermitted(me.roles, "Mentor"),
+    includeOwned: isPermitted(me.roles, "Mentee"),
   });
 
   return (<>

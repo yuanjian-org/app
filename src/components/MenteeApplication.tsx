@@ -18,7 +18,10 @@ export default function MenteeApplication({ menteeUserId, title } : {
   menteeUserId: string,
   title?: string,
 }) {
-  const { data: app, isLoading } = trpcNext.users.getMenteeApplication.useQuery(menteeUserId);
+  const { data: app, isLoading } = trpcNext.users.getApplication.useQuery({ 
+    userId: menteeUserId, 
+    type: "MenteeInterview",
+  });
 
   return isLoading ? <Loader /> : <Flex direction="column" gap={sectionSpacing}>
     <Heading size="md">{title || "学生申请材料"}</Heading>

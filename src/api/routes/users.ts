@@ -9,10 +9,11 @@ import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
-import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
 import Interview from "api/database/models/Interview";
-import { InterviewType } from "shared/InterviewType";
+import { InterviewType, zInterviewType } from "shared/InterviewType";
 import { userAttributes } from "../database/models/attributesAndIncludes";
+import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 
 const me = procedure
   .use(authUser())
@@ -57,11 +58,13 @@ const create = procedure
  * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(['UserManager', 'GroupManager']))
+  .use(authUser(['UserManager', 'GroupManager', 'InterviewManager']))
   .input(zUserFilter)
   .output(z.array(zUser))
-  .query(async ({ input: filter }) => 
+  .query(async ({ input: filter }) =>
 {
+  if (filter.hasMentorApplication) throw notImplemnetedError();
+
   // Force typescript checking
   const interviewType: InterviewType = "MenteeInterview";
 
@@ -142,36 +145,56 @@ const update = procedure
 });
 
 /**
- * Only InterviewManagers and interviewers of the application are allowed to call this route.
+ * Only InterviewManagers, interviewers of the application, and participants of the calibration (only if the calibration
+ * is active) are allowed to call this route.
  */
-const getMenteeApplication = procedure
+const getApplication = procedure
   .use(authUser())
-  .input(z.string())
+  .input(z.object({
+    userId: z.string(),
+    type: zInterviewType,
+  }))
   .output(z.record(z.string(), z.any()).nullable())
-  .query(async ({ ctx, input: menteeUserId }) =>
+  .query(async ({ ctx, input }) =>
 {
-  const isIM = isPermitted(ctx.user.roles, "InterviewManager");
+  if (input.type !== "MenteeInterview") throw notImplemnetedError();
 
-  const interviews = await db.Interview.findAll({
+  const u = await db.User.findByPk(input.userId, {
+    attributes: ["menteeApplication"],
+  });
+  if (!u) throw notFoundError("用户", input.userId);
+  const application = u.menteeApplication;
+
+  if (isPermitted(ctx.user.roles, "InterviewManager")) return application;
+
+  // Check if the user is an interviewer
+  const myInterviews = await db.Interview.findAll({
     where: {
-      type: "MenteeInterview",
-      intervieweeId: menteeUserId,
+      type: input.type,
+      intervieweeId: input.userId,
     },
     attributes: [],
     include: [{
       model: db.InterviewFeedback,
       attributes: [],
-      ...isIM ? {} : { where: { interviewerId: ctx.user.id } }
-    }, {
-      model: db.User,
-      attributes: ["menteeApplication"],
+      where: { interviewerId: ctx.user.id },
     }],
   });
-  if (interviews.length == 0) {
-    throw noPermissionError("学生申请资料", menteeUserId);
+  if (myInterviews.length) return application;
+
+  // Check if the user is a calibration participant
+  const allInterviews = await db.Interview.findAll({
+    where: {
+      type: input.type,
+      intervieweeId: input.userId,
+    },
+    attributes: ["calibrationId"],
+  });
+  for (const i of allInterviews) {
+    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return application;
   }
 
-  return interviews[0].interviewee.menteeApplication;
+  throw noPermissionError("申请资料", input.userId);
 });
 
 /**
@@ -204,7 +227,7 @@ export default router({
   list,
   update,
   listPriviledgedUserDataAccess,
-  getMenteeApplication,
+  getApplication,
 });
 
 function checkUserFields(name: string | null, email: string) {
