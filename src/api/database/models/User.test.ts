@@ -101,14 +101,7 @@ describe('User', () => {
       expect(foundPartnership).to.exist;
     });
 
-
-
-
-    // 删除行为开始
-    // 检测partnership中的deletedAt是否存在值
-
-    // ...
-
+    //删除user1，检查相关partner是否被删除
     it('should delete user1 and soft delete all related partnerships', async () => {
       await user1.destroy();
 
@@ -133,6 +126,7 @@ describe('User', () => {
       }
     });
 
+    //删除user2，检查相关groupUser是否被删除
     it('should delete user2 and soft delete all related GroupUser instances', async () => {
       await user2.destroy();
 
@@ -152,7 +146,7 @@ describe('User', () => {
       }
     });
 
-    // 使用force彻底删除测试用例
+    // 使用force彻底清理测试用例
     it('should delete test users and test group', async () => {
       await Partnership.destroy({
         where: {

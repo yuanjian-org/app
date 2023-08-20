@@ -5,7 +5,6 @@ import type {
 } from "sequelize";
 import {
   AllowNull,
-  BeforeBulkDestroy,
   BeforeDestroy,
   Column,
   HasMany,
@@ -74,28 +73,45 @@ class User extends ParanoidModel<
 
   @HasMany(() => Interview)
   interviews: NonAttribute<Interview[]>;
-  
+
 
 
 
   @BeforeDestroy
-  static async cascadeSoftDelete(user: User, options: any) {
+  static async cascadeDelete(user: User, options: any) {
 
-    const moment = require('moment-timezone');
-    const timestamp = moment().format('YYYY-MM-DD HH:mm:ss.SSSZ');
-
-    await GroupUser.update(
-      { deletedAt: timestamp },
-      { where: { userId: user.id } }
-    );
-
-    await Partnership.update(
-      { deletedAt: timestamp },
-      { where: {
-          [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
-        }
+    if (options.force) {
+      await GroupUser.destroy({
+        where: { userId: user.id },
+        force: true
       });
+
+      await Partnership.destroy({
+        where: {
+          [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
+        },
+        force: true
+      });
+
+    } else {
+      const moment = require('moment-timezone');
+      const timestamp = moment().format('YYYY-MM-DD HH:mm:ss.SSSZ');
+
+      await GroupUser.update(
+        { deletedAt: timestamp },
+        { where: { userId: user.id } }
+      );
+      await Partnership.update(
+        { deletedAt: timestamp },
+        {
+          where: {
+            [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
+          }
+        }
+      );
+    }
   }
+
 
 
 }
