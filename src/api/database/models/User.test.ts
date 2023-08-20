@@ -64,7 +64,7 @@ describe('User', () => {
 
     // 建立组
     it('should create a group related to the users', async () => {
-      group = await Group.create({ name: 'testgroup' });
+      group = await Group.create({name:'testgroup', roles:['Mentor', 'Mentee']});
       await group.$add('users', [user1, user2]);
       await group.reload();
 
