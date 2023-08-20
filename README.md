@@ -17,6 +17,7 @@ developed by VEF volunteers.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
 1. Finally, restart your local server to clean up cached data.
 1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
+1. To activate husky/git hooks for Mac users, run `chmod ug+x .husky/*` after installation
 
 ## Getting Started Using Docker (Work In Progress)
 

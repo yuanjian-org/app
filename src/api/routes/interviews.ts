@@ -13,7 +13,7 @@ import Group from "../database/models/Group";
 import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
-import { updatedAt2etag as date2etag } from "./interviewFeedbacks";
+import { date2etag } from "./interviewFeedbacks";
 import { zFeedback } from "../../shared/InterviewFeedback";
 
 /**

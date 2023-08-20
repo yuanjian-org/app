@@ -76,7 +76,8 @@ export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: {
   interviewFeedbackId: string,
   readonly?: boolean,
 }) {
-  const { data } = trpcNext.interviewFeedbacks.get.useQuery(interviewFeedbackId);
+  // See Editor()'s comment on the reason for `catchTime: 0`
+  const { data } = trpcNext.interviewFeedbacks.get.useQuery(interviewFeedbackId, { cacheTime: 0 });
   if (!data) return <Loader />;
 
   const f = data.interviewFeedback;
@@ -115,6 +116,12 @@ export function InterviewDecisionEditor({ interviewId, decision, etag }: {
   />;
 }
 
+/**
+ * WARNING: Set useQuery()'s option { catchTime: 0 } when fetching `defaultFeedback`. Otherwise, useQuery() may return
+ * cached but stale data first and then return newer data after a fetch. Becuase the editor ignors subsequent data loads
+ * (see `useState` below), this would cause etag validation error when the user attempts to edit data.
+ * See https://tanstack.com/query/v4/docs/react/guides/caching
+ */
 function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
   defaultFeedback: Feedback | null,
   etag: number,
@@ -158,11 +165,7 @@ function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
       onChange={d => setFeedback(setDimension(feedback, d))}
     />)}
 
-    {!readonly && <Autosaver
-      // This conditional is to prevent initial page loading from triggering auto saving.
-      data={_.isEqual(feedback, defaultFeedback) ? null : feedback}
-      onSave={onSave}
-    />}
+    {!readonly && <Autosaver data={feedback} onSave={onSave} />}
   </Flex>;
 }
 
@@ -210,7 +213,7 @@ function DimensionEditor({
     <Textarea
       isReadOnly={readonly}
       {...readonly ? {} : { placeholder: commentPlaceholder }}
-      height="150px"
+      height="200px"
       {...readonly ? {} : { background: "white" }}
       {...d.comment ? { value: d.comment } : {}}
       onChange={e => onChange({
