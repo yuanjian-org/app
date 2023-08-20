@@ -44,8 +44,8 @@ export default function Interviews({ interviews, forCalibration }: {
       <Thead><Tr>
         <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
-        <Th>拼音（便于搜索）</Th>
         {forCalibration && <>
+          <Th>拼音（便于页内查找）</Th>
           <Th>讨论结果</Th>
           <Th>讨论备注（悬停光标看全文）</Th>
         </>}
@@ -73,16 +73,16 @@ export default function Interviews({ interviews, forCalibration }: {
               </WrapItem>
             )}
           </Wrap></Td>
-          <Td>
-            {toPinyin(i.interviewee.name ?? "")},
-            {i.feedbacks
-              .filter(f => forCalibration || f.interviewer.id !== me.id)
-              .map(f => toPinyin(f.interviewer.name ?? "")).join(",")
-            }
-          </Td>
           {forCalibration ? <>
-              <Td><DesicionScore interview={i} /></Td>
-              <Td><DesicionComment interview={i} /></Td>
+              <Td>
+                {toPinyin(i.interviewee.name ?? "")},
+                {i.feedbacks
+                  .filter(f => forCalibration || f.interviewer.id !== me.id)
+                  .map(f => toPinyin(f.interviewer.name ?? "")).join(",")
+                }
+              </Td>
+              <Td><DecisionScore interview={i} /></Td>
+              <Td><DecisionComment interview={i} /></Td>
               <Td><ViewIcon /></Td>
             </>
             :
@@ -97,7 +97,7 @@ export default function Interviews({ interviews, forCalibration }: {
   </TableContainer>;
 }
 
-function DesicionScore({ interview } : {
+function DecisionScore({ interview } : {
   interview: Interview,
 }) {
   const d = getDimension(interview);
@@ -107,7 +107,7 @@ function DesicionScore({ interview } : {
   </HStack> : null;
 }
 
-function DesicionComment({ interview } : {
+function DecisionComment({ interview } : {
   interview: Interview,
 }) {
   const d = getDimension(interview);
