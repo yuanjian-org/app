@@ -5,7 +5,7 @@ import db from "../database/db";
 import { TRPCError } from "@trpc/server";
 import { isPermitted } from "../../shared/Role";
 import { zTranscript } from "shared/Transcript";
-import { includeForGroup } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
 
 const get = procedure
   // We will throw access denied later if the user isn't a privileged user and isn't in the group.
@@ -17,7 +17,8 @@ const get = procedure
   const t = await db.Transcript.findByPk(input.id, {
     include: [db.Summary, {
       model: db.Group,
-      include: includeForGroup,
+      attributes: groupAttributes,
+      include: groupInclude,
     }]
   });
   if (!t) {

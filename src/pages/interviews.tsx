@@ -17,14 +17,11 @@ import {
   Td,
   Flex,
   TableContainer,
-  Box,
   WrapItem,
   Wrap,
-  Input,
   Select,
   Tooltip,
   TableCellProps,
-  Tabs,
   TabList,
   Tab,
   TabPanels,
@@ -33,9 +30,11 @@ import {
   EditablePreview,
   EditableInput,
   Switch,
-  HStack,
   useEditableControls,
   IconButton,
+  Box,
+  UnorderedList,
+  ListItem,
 } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import AppLayout from 'AppLayout'
@@ -57,6 +56,7 @@ import TdLink from 'components/TdLink';
 import moment from 'moment';
 import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -67,10 +67,10 @@ const Page: NextPageWithLayout = () => {
   const { data: calibrations, refetch: refetchCalibrations } = trpcNext.calibrations.list.useQuery(type);
 
   return <Flex direction='column' gap={6}>
-    <Tabs isLazy>
+    <TabsWithUrlParam isLazy>
       <TabList>
-        <Tab>{type == "MenteeInterview" ? "学生" : "老师"}候选人</Tab>
-        <Tab>面试讨论</Tab>
+        <Tab>{type == "MenteeInterview" ? "学生" : "导师"}候选人列表</Tab>
+        <Tab>面试讨论组</Tab>
       </TabList>
 
       <TabPanels>
@@ -91,7 +91,7 @@ const Page: NextPageWithLayout = () => {
           }
         </TabPanel>
       </TabPanels>
-    </Tabs>
+    </TabsWithUrlParam>
   </Flex>
 }
 
@@ -109,8 +109,8 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table>
       <Thead>
         <Tr>
-          <Th>修改面试</Th><Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
-          <Th>面试官</Th><Th>面试讨论组</Th><Th>查看详情</Th>
+          <Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th>
+          <Th>面试官</Th><Th>面试讨论组</Th><Th>修改面试</Th><Th>查看详情</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -159,9 +159,6 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
       <TdEditLink>
-        {interview ? <EditIcon /> : <AddIcon />}
-      </TdEditLink>
-      <TdEditLink>
         {formatUserName(applicant.name, "formal")}
       </TdEditLink>
       <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
@@ -178,6 +175,9 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       </Wrap></TdEditLink>
       <TdEditLink>
         {interview && interview.calibration?.name}
+      </TdEditLink>
+      <TdEditLink>
+        {interview ? <EditIcon /> : <AddIcon />}
       </TdEditLink>
       {interview ? <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink> : <Td />}
     </Tr>
@@ -199,13 +199,10 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
   // When selecting "-“ <Select> emits "".
   const [calibrationId, setCalibrationId] = useState<string>(interview?.calibration?.id || "");
-  
-  const isValid = () => interviewerIds.length > 0;
 
   const save = async () => {
     setSaving(true);
     try {
-      invariant(isValid());
       const cid = calibrationId.length ? calibrationId : null;
       if (interview) {
         await trpc.interviews.update.mutate({
@@ -256,8 +253,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand' 
-          isDisabled={!isValid()}
+        <Button variant='brand'
           isLoading={saving} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>
@@ -287,15 +283,22 @@ function Calibrations({ type, calibrations, refetch }: {
   };
 
   return <Flex direction="column" gap={paragraphSpacing}>
-    <HStack spacing={6}>
-      <Button leftIcon={<AddIcon />} onClick={create}>新建</Button>
-      <Text>开启的面试讨论将显示在所有讨论所涉及面试官的”我的面试“页。</Text>
-    </HStack>
+    <Box>
+      说明：
+      <UnorderedList>
+        <ListItem>通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。</ListItem>
+        <ListItem>如果候选人A属于面试讨论组C，那么A的所有面试官都是C的参与者。</ListItem>
+        <ListItem>C的参与者能够访问属于C的所有候选人的申请材料和面试反馈记录。</ListItem>
+        <ListItem>当C的状态是”开启“时，C的参与者可以在”我的面试“页看到并进入C。</ListItem>
+      </UnorderedList>
+    </Box>
+
+    <Box><Button leftIcon={<AddIcon />} onClick={create}>新建面试讨论组</Button></Box>
 
     <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>查看</Th>
+          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
         </Tr>
       </Thead>
       <Tbody>

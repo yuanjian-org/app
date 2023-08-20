@@ -7,13 +7,14 @@ import sequelizeInstance from "../database/sequelizeInstance";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
-import { calibrationAttributes, includeForInterview, interviewAttributes
+import { calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import Calibration from "api/database/models/Calibration";
 import { zInterview } from "../../shared/Interview";
-import { isPermitted } from "shared/Role";
+import { isPermitted } from "../../shared/Role";
+import User from "../../shared/User";
 
 const create = procedure
   .use(authUser("InterviewManager"))
@@ -34,7 +35,7 @@ export async function createCalibration(type: InterviewType, name: string): Prom
   if (!name.length) throw generalBadRequestError("名称不能为空");
   return await sequelizeInstance.transaction(async (transaction) => {
     const c = await db.Calibration.create({ type, name, active: false }, { transaction });
-    await createGroup(null, [], null, null, c.id, transaction);
+    await createGroup(null, [], ["InterviewManager"], null, null, c.id, transaction);
     return c.id;
   });
 }
@@ -68,60 +69,46 @@ const list = procedure
   return await db.Calibration.findAll({
     where: { type },
     attributes: calibrationAttributes,
+    include: calibrationInclude,
   })
 });
 
-/**
- * List only active calibrations.
- */
 const listMine = procedure
   .use(authUser())
   .output(z.array(zCalibration))
   .query(async ({ ctx }) =>
 {
-  const feedbacks = await db.InterviewFeedback.findAll({
-    where: { interviewerId: ctx.user.id },
-    include: [{
-      model: db.Interview,
-      attributes: [ "id" ],
-      include: [{
-        model: db.Calibration,
-        attributes: calibrationAttributes,
-      }]
-    }]
-  });
+  const cids = (await db.Calibration.findAll({
+    attributes: ["id"],
+    where: { active: true },
+  })).map(c => c.id);
 
   const cs: Calibration[] = [];
-  for (const f of feedbacks) {
-    const fic = f.interview.calibration;
-    if (!fic || !fic.active) continue;
-    if (!cs.some(c => c.id == fic.id)) cs.push(fic);
+  for (const cid of cids) {
+    const c = await getCalibrationAndCheckPermissionSafe(ctx.user, cid);
+    if (c) cs.push(c);
   }
-
   return cs;
 });
 
 /**
+ * See `checkPermission` on access control.
+ * 
  * TODO: return zCaibrationWithInterview and merge with getInterviews?
  */
 const get = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser())
   .input(z.string())
   .output(zCalibration)
-  .query(async ({ input: id }) =>
+  .query(async ({ ctx, input: id }) =>
 {
-  const c = await db.Calibration.findByPk(id, {
-    attributes: calibrationAttributes,
-  });
-  if (!c) throw notFoundError("面试讨论", id);
-  return c;
+  return await getCalibrationAndCheckPermission(ctx.user, id);
 });
 
 /**
- * Access is allowed only if 1) the current user is one of the interviewers the calibration includes or an
- * InterviewManager.
+ * See `checkCalibrationPermission` on access control.
  * 
- * @param Calibration Id
+ * @param Calibration id
  * 
  * TODO: merge into `get` which should return zCaibrationWithInterview?
  */
@@ -131,19 +118,13 @@ const getInterviews = procedure
   .output(z.array(zInterview))
   .query(async ({ ctx, input: calibrationId }) =>
 {
-  const interviews = await db.Interview.findAll({
+  const _ = await getCalibrationAndCheckPermission(ctx.user, calibrationId);
+
+  return await db.Interview.findAll({
     where: { calibrationId },
     attributes: interviewAttributes,
-    include: includeForInterview,
+    include: interviewInclude,
   });
-
-  if (!isPermitted(ctx.user.roles, "InterviewManager") 
-    && !interviews.some(i => i.feedbacks.some(f => f.interviewer.id == ctx.user.id))) 
-  {
-    throw noPermissionError("面试讨论", calibrationId);
-  }
-
-  return interviews;
 });
 
 export default router({
@@ -155,12 +136,54 @@ export default router({
   getInterviews,
 });
 
+async function getCalibrationAndCheckPermission(me: User, calibrationId: string):
+  Promise<Calibration>
+{
+  const c = await getCalibrationAndCheckPermissionSafe(me, calibrationId);
+  if (!c) throw noPermissionError("面试讨论", calibrationId);
+  return c;
+}
+
+/**
+ * Only InterviewManagers and participants of the calibration are allowed. In the latter case, the calibration
+ * must be active.
+ * 
+ * @return the calibration if access is allowed. null otherwise
+ * 
+ * TODO: optimize queries. combine queries from the call site.
+ */
+export async function getCalibrationAndCheckPermissionSafe(me: User, calibrationId: string):
+  Promise<Calibration | null>
+{
+  const c = await db.Calibration.findByPk(calibrationId, {
+    attributes: calibrationAttributes,
+    include: calibrationInclude,
+  });
+  if (!c) throw notFoundError("面试讨论", calibrationId);
+
+  if (isPermitted(me.roles, "InterviewManager")) return c;
+
+  if (!c.active) return null;
+
+  const g = await db.Group.findOne({
+    where: { calibrationId: calibrationId },
+    include: [{
+      model: db.User,
+      attributes: [],
+      where: { id: me.id },
+    }],
+  });
+  if (!g) return null;
+
+  return c;
+}
+
 export async function syncCalibrationGroup(calibrationId: string, transaction: Transaction) {
   const c = await db.Calibration.findByPk(calibrationId, {
     include: [db.Group, {
       model: db.Interview,
       attributes: interviewAttributes,
-      include: includeForInterview,
+      include: interviewInclude,
     }],
     transaction,
   });
