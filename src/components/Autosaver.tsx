@@ -1,5 +1,5 @@
 import { useAutosaveContext } from 'AutosaveContext';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import sleep from 'shared/sleep';
 import _ from "lodash";
 
@@ -8,21 +8,21 @@ const retryIntervalSec = 8;
 
 /**
  * TODO: use type template
- *
- * @param data null or undefined to disable auto saving.
  */
 export default function Autosaver({ data, onSave }: {
   data: any,
   onSave: (data: any) => Promise<void>,
 }) {
   const { addPendingSaver, removePendingSaver, setPendingSaverError } = useAutosaveContext();
+  // Once initialized, initialData never changes on subsequent renders.
+  const [initialData] = useState(data);
   const memo = useMemo(() => ({ 
     id: crypto.randomUUID(),
     pendingData: null,
-    lastSavedData: null,
+    lastSavedData: initialData,
     saving: false,
     timeout: null,
-  }), []);
+  }), [initialData]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSave = useCallback(debounce(memo, async () => {
@@ -43,7 +43,7 @@ export default function Autosaver({ data, onSave }: {
   }, autosaveDelayMs), [memo, onSave, removePendingSaver]);
 
   useEffect(() => {
-    if (data == null || data == undefined || _.isEqual(memo.lastSavedData, data)) return;
+    if (_.isEqual(memo.lastSavedData, data)) return;
     // Discard previously queued data.
     memo.pendingData = data;
     if (memo.saving) {
