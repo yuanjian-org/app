@@ -74,9 +74,6 @@ class User extends ParanoidModel<
   @HasMany(() => Interview)
   interviews: NonAttribute<Interview[]>;
 
-
-
-
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
 
@@ -111,9 +108,6 @@ class User extends ParanoidModel<
       );
     }
   }
-
-
-
 }
 
 export default User;
