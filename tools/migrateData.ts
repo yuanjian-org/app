@@ -1,3 +1,4 @@
+import sequelizeInstance from "../src/api/database/sequelizeInstance";
 import db from "../src/api/database/db";
 import { Op } from "sequelize";
 
@@ -9,4 +10,7 @@ export default async function migrateData() {
   });
   console.log(`${gs.length} groups to be migrated`);
   for (const g of gs) await g.update({ roles: [] });
+
+  // manual update column type
+  await sequelizeInstance.query('alter table "InterviewFeedbackUpdateAttempts" alter column etag type BIGINT');
 }
