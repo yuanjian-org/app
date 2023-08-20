@@ -213,7 +213,7 @@ function DimensionEditor({
     <Textarea
       isReadOnly={readonly}
       {...readonly ? {} : { placeholder: commentPlaceholder }}
-      height="150px"
+      height="200px"
       {...readonly ? {} : { background: "white" }}
       {...d.comment ? { value: d.comment } : {}}
       onChange={e => onChange({
