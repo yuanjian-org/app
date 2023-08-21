@@ -24,7 +24,7 @@ module.exports = withSentryConfig(
     silent: true,
 
     org: "visionary-education-foundation",
-    project: "javascript-nextjs-app",
+    project: "javascript-nextjs",
   },
   {
     // For all available options, see:
