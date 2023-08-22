@@ -3,7 +3,7 @@ import {
   Table,
   Model,
 } from "sequelize-typescript";
-import { INTEGER, JSONB, UUID } from "sequelize";
+import { BIGINT, JSONB, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import z from "zod";
 
@@ -18,6 +18,6 @@ export default class InterviewFeedbackUpdateAttempt extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()))
   feedback: Record<string, any> | null;
 
-  @Column(INTEGER)
+  @Column(BIGINT)
   etag: number;
 };

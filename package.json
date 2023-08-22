@@ -75,8 +75,8 @@
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi",
-    "docker-dev": "docker compose up --build -d"
+    "docker-dev": "docker compose up --build -d",
+    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi"
   },
   "browserslist": {
     "production": [
