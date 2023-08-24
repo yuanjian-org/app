@@ -1,24 +1,38 @@
 import type {
+  CreationOptional,
   InferAttributes,
   InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
-  Column, ForeignKey,
+  Column,
+  ForeignKey,
+  Model,
   Table,
-  BelongsTo
+  BelongsTo,
+  Default,
+  IsUUID,
+  Unique,
+  PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { UUID } from "sequelize";
+import { UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Group from "./Group";
 
-@Table({ tableName: "group_users", modelName: "group_user" })
+
+@Table({ paranoid: true, tableName: "group_users", modelName: "group_user" })
 @Fix
-class GroupUser extends ParanoidModel<
+class GroupUser extends Model<
   InferAttributes<GroupUser>,
   InferCreationAttributes<GroupUser>
-  > {
+> {
+  @Unique
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(UUIDV4)
+  @Column(UUID)
+  id: CreationOptional<string>;
+
   @Column(UUID)
   @ForeignKey(() => User)
   userId: string;

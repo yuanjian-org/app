@@ -1,4 +1,5 @@
 import type {
+  CreationOptional,
   InferAttributes,
   InferCreationAttributes,
   NonAttribute,
@@ -10,10 +11,14 @@ import {
   Index,
   Table,
   Unique,
+  Model,
+  Default,
+  IsUUID,
+  PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { DATE, JSONB, STRING } from "sequelize";
+import { DATE, JSONB, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -22,10 +27,17 @@ import Interview from "./Interview";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
-class User extends ParanoidModel<
+class User extends Model<
   InferAttributes<User>,
   InferCreationAttributes<User>
-  > {
+> {
+  @Unique
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(UUIDV4)
+  @Column(UUID)
+  id: CreationOptional<string>;
+
   // Always use `formatUserName` to display user names.
   // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
