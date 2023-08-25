@@ -52,11 +52,13 @@ function DataTable() {
       <Tbody>
         <Tr>
           <Td>姓名</Td>
-          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('SummaryEngineer')}、同一会议分组的其他成员</Td>
+          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('SummaryEngineer')}、{dp('InterviewManager')}
+            、同一会议分组的其他成员
+          </Td>
         </Tr>
         <Tr>
           <Td>电子邮箱</Td>
-          <Td>{dp('UserManager')}、{dp('GroupManager')}</Td>
+          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('InterviewManager')}</Td>
         </Tr>
         <Tr>
           <Td>会议转录文字</Td>

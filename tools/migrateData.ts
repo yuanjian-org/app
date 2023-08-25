@@ -1,49 +1,16 @@
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
 import db from "../src/api/database/db";
-import { createGroupDeprecated, findGroups } from "../src/api/routes/groups";
-import invariant from "tiny-invariant";
+import { Op } from "sequelize";
 
 export default async function migrateData() {
-  await migrateRoles();
-  await migrateGroupsForPartnerships();
-}
-
-async function migrateRoles()
-{
-  console.log('Migrating users.roles column');
-  await sequelizeInstance.query(`update users set roles = '[]' where roles = '["VISITOR"]'`);
-  await sequelizeInstance.query(`update users set roles = '["UserManager"]' where roles = '["ADMIN"]'`);
-  await sequelizeInstance.query(`update users set roles = '["SummaryEngineer"]' where roles = '["AIResearcher"]'`);
-}
-
-async function migrateGroupsForPartnerships()
-{
-  console.log('Migrating groups for partnerships');
-  const partnerships = await db.Partnership.findAll({
-    include: [db.Group],
+  console.log("Migrating group.roles...");
+  const gs: any = await db.Group.findAll({
+    // @ts-ignore
+    where: { roles: { [Op.eq]: null } },
   });
-  for (const partnership of partnerships) {
-    // Already have a group, all set.
-    if (partnership.group) continue;
+  console.log(`${gs.length} groups to be migrated`);
+  for (const g of gs) await g.update({ roles: [] });
 
-    const userIds = [partnership.menteeId, partnership.mentorId];
-    const groups = await findGroups(userIds, "exclusive");
-    invariant(groups.length <= 1);
-
-    let g;
-
-    if (groups.length) {
-      // The group exists but isn't owned by the partnership.
-      g = await db.Group.findByPk(groups[0].id);
-    } else {
-      // The group doesn't exist.
-      console.log("Creating group");
-      g = (await createGroupDeprecated(userIds)).group;
-    }
-
-    invariant(g);
-    console.log(`Associating partnership ${partnership.id} and group ${g.id}`);
-    g.partnershipId = partnership.id;
-    await g.save();
-  }
+  // manual update column type
+  await sequelizeInstance.query('alter table "InterviewFeedbackUpdateAttempts" alter column etag type BIGINT');
 }

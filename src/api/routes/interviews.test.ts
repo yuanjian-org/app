@@ -51,7 +51,7 @@ describe('interviews', () => {
   it('`create` should create group', async () => {
     const interviewee = await getUserId(intervieweeEmail);
     const interviewers = [await getUserId(interviewer1Email), await getUserId(interviewer2Email)];
-    await createInterview("MenteeInterview", interviewee, interviewers);
+    await createInterview("MenteeInterview", null, interviewee, interviewers);
     const gs = await findGroups([interviewee, ...interviewers], "exclusive");
     expect(gs.length).is.equal(1);
   });
@@ -59,10 +59,10 @@ describe('interviews', () => {
   it('`update` should update group', async () => {
     const interviewee = await getUserId(intervieweeEmail);
     const interviewers = [await getUserId(interviewer2Email)];
-    const id = await createInterview("MenteeInterview", interviewee, interviewers);
+    const id = await createInterview("MenteeInterview", null, interviewee, interviewers);
 
     const newInterviewers = [await getUserId(interviewer1Email), await getUserId(interviewer3Email)];
-    await updateInterview(id, "MenteeInterview", interviewee, newInterviewers);
+    await updateInterview(id, "MenteeInterview", null, interviewee, newInterviewers);
     const gs = await findGroups([interviewee, ...newInterviewers], "exclusive");
     expect(gs.length).is.equal(1);
   });

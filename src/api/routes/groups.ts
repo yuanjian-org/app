@@ -3,36 +3,31 @@ import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
-import User from "../database/models/User";
-import { TRPCError } from "@trpc/server";
-import Transcript from "../database/models/Transcript";
-import Summary from "../database/models/Summary";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import { isPermitted } from "../../shared/Role";
+import Role, { isPermitted } from "../../shared/Role";
 import sequelizeInstance from "../database/sequelizeInstance";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { alreadyExistsError, noPermissionError, notFoundError } from "../errors";
-import { Group, GroupCountingTranscripts, zGroup, zGroupCountingTranscripts, 
+import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
   zGroupWithTranscripts } from "../../shared/Group";
-import { includeForGroup } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupCountingTranscriptsInclude, groupInclude } from "../database/models/attributesAndIncludes";
+import User from "shared/User";
 
 async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
   Promise<GroupCountingTranscripts[]> 
 {
-  const includes: Includeable[] = [...includeForGroup, {
-    model: Transcript,
-    // We don't need to return any attributes, but sequelize seems to require at least one attribute.
-    // TODO: Any way to return transcript count?
-    attributes: ['transcriptId']
-  }];
-
   if (userIds.length === 0) {
-    return await db.Group.findAll({ where: additionalWhere, include: includes });
+    return await db.Group.findAll({ 
+      attributes: groupAttributes,
+      include: groupCountingTranscriptsInclude,
+      where: additionalWhere,
+    });
   } else {
-    return (await findGroups(userIds, 'inclusive', includes, additionalWhere)) as GroupCountingTranscripts[];
+    const gs = await findGroups(userIds, 'inclusive', groupCountingTranscriptsInclude, additionalWhere)
+    return gs as GroupCountingTranscripts[];
   }
 }
 
@@ -43,9 +38,10 @@ const create = procedure
   }))
   .mutation(async ({ ctx, input }) =>
 {
-  const res = await createGroupDeprecated(input.userIds);
-  await emailNewUsersOfGroupIgnoreError(ctx, res.group.id, input.userIds);
-  return res;
+  await sequelizeInstance.transaction(async t => {
+    const g = await createGroup(null, input.userIds, [], null, null, null, t);
+    await emailNewUsersOfGroupIgnoreError(ctx, g.id, input.userIds);
+  });
 });
 
 const update = procedure
@@ -61,19 +57,19 @@ const update = procedure
 });
 
 export async function updateGroup(id: string, name: string | null, userIds: string[], transaction: Transaction) {
-  checkMinimalGroupSize(userIds);
-
   const addUserIds: string[] = [];
   const group = await db.Group.findByPk(id, {
     // SQL complains that "FOR UPDATE cannot be applied to the nullable side of an outer join" if GroupUser is included.
     // include: db.GroupUser,
-    lock: true, transaction,
+    transaction,
+    lock: true,
   });
   if (!group) throw notFoundError("分组", id);
 
   const groupUsers = await db.GroupUser.findAll({
     where: { groupId: id },
-    lock: true, transaction,
+    transaction,
+    lock: true,
   });
 
   // Delete old users
@@ -125,6 +121,7 @@ const destroy = procedure
   });
 });
 
+
 /**
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
@@ -142,8 +139,9 @@ const listMine = procedure
     },
     include: [{
       model: db.Group,
-      include: [...includeForGroup, Transcript],
-      where: input.includeOwned ? {} : { partnershipId: null },
+      attributes: groupAttributes,
+      include: groupCountingTranscriptsInclude,
+      where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
 });
@@ -159,8 +157,7 @@ const list = procedure
     includeOwned: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : 
-    { partnershipId: null, interviewId: null }));
+  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : whereUnowned));
 
 /**
  * Identical to `list`, but additionally returns empty transcripts
@@ -182,21 +179,20 @@ const get = procedure
   .query(async ({ input, ctx }) => 
 {
   const g = await db.Group.findByPk(input.id, {
-    include: [...includeForGroup, {
-      model: Transcript,
+    attributes: groupAttributes,
+    include: [...groupInclude, {
+      model: db.Transcript,
       include: [{
-        model: Summary,
+        model: db.Summary,
         attributes: [ 'summaryKey' ]  // Caller should only need to get the summary count.
       }],
     }],
     order: [
-      [{ model: Transcript, as: 'transcripts' }, 'startedAt', 'desc']
+      [{ model: db.Transcript, as: 'transcripts' }, 'startedAt', 'desc']
     ],
   });
   if (!g) throw notFoundError("分组", input.id);
-  if (!isPermitted(ctx.user.roles, 'SummaryEngineer') && !g.users.some(u => u.id === ctx.user.id)) {
-    throw noPermissionError("分组", input.id);
-  }
+  checkPermissionForGroup(ctx.user, g);
   return g;
 });
 
@@ -209,6 +205,13 @@ export default router({
   listCountingTranscripts,
   get,
 });
+
+export function checkPermissionForGroup(u: User, g: Group) {
+  if (isPermitted(u.roles, 'SummaryEngineer')) return;
+  if (isPermitted(u.roles, g.roles)) return;
+  if (g.users.some(u => u.id === u.id)) return;
+  throw noPermissionError("分组", g.id);
+}
 
 /**
  * @returns groups that contain all the given users.
@@ -227,6 +230,7 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
     },
     include: [{
       model: db.Group,
+      attributes: groupAttributes,
       include: [db.GroupUser, ...(includes || [])],
       where: additionalWhere,
     }]
@@ -242,39 +246,23 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
   return res;
 }
 
-export async function createGroup(userIds: string[], partnershipId: string | null, interviewId: string | null, 
-  t: Transaction): Promise<Group>
+export async function createGroup(
+  name: string | null,
+  userIds: string[],
+  roles: Role[],
+  partnershipId: string | null, 
+  interviewId: string | null, 
+  calibrationId: string | null,
+  transaction: Transaction): Promise<Group>
 {
   invariant(!partnershipId || !interviewId);
 
-  const g = await db.Group.create({ partnershipId, interviewId }, { transaction: t });
+  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId }, { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
     groupId: g.id,
-  })), { transaction: t });
+  })), { transaction });
   return g;
-}
-
-/**
- * Use createGroup instead
- */
-export async function createGroupDeprecated(userIds: string[]) {
-  checkMinimalGroupSize(userIds);
-  const existing = await findGroups(userIds, 'exclusive');
-  if (existing.length > 0) {
-    throw alreadyExistsError("分组");
-  }
-
-  const group = await db.Group.create({});
-  const groupUsers = await db.GroupUser.bulkCreate(userIds.map(userId => ({
-    userId: userId,
-    groupId: group.id,
-  })));
-
-  return {
-    group,
-    groupUsers,
-  }
 }
 
 async function emailNewUsersOfGroupIgnoreError(ctx: any, groupId: string, userIds: string[]) {
@@ -290,7 +278,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
 
   const group = await db.Group.findByPk(groupId, {
     include: [{
-      model: User,
+      model: db.User,
       attributes: ['id', 'name', 'email'],
     }]
   });
@@ -323,14 +311,4 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
   });
 
   await email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);
-}
-
-function checkMinimalGroupSize(userIds: string[]) {
-  // Some userIds may be duplicates
-  if ((new Set(userIds)).size < 2) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '每个分组需要至少两名用户。'
-    })
-  }
 }

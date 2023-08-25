@@ -1,10 +1,7 @@
 import {
   Table,
   Tbody,
-  Tr,
   Td,
-  LinkBox,
-  LinkOverlay,
 } from '@chakra-ui/react'
 import React from 'react'
 import { EditIcon } from '@chakra-ui/icons';
@@ -13,6 +10,7 @@ import { useRouter } from 'next/router';
 import NextLink from "next/link";
 import Assessment from 'shared/Assessment';
 import trpc from 'trpc';
+import TrLink from './TrLink';
 
 export default function AssessmentsPanel({ partnershipId, assessments, allowEdit } : {
   partnershipId: string,
@@ -64,7 +62,10 @@ function AssessmentRow({ partnershipId, assessmentId, date, summary, allowEdit }
     router.push(url(id));
   };
 
-  return <LinkBox as={Tr}>
+  return <TrLink
+    href={assessmentId ? `/partnerships/${partnershipId}/assessments/${assessmentId}` : "#"}
+    onClick={assessmentId ? undefined : createAndGo}
+  >
     <Td>
       {getYearText(date)}
     </Td>
@@ -74,13 +75,8 @@ function AssessmentRow({ partnershipId, assessmentId, date, summary, allowEdit }
     }
     {allowEdit &&
       <Td>
-        <LinkOverlay as={NextLink}
-          href={assessmentId ? `/partnerships/${partnershipId}/assessments/${assessmentId}` : "#"}
-          onClick={assessmentId ? undefined : createAndGo}
-        >
-          <EditIcon />
-        </LinkOverlay>
+        <EditIcon />
       </Td>
     }
-  </LinkBox>;
+  </TrLink>;
 }

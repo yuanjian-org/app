@@ -27,8 +27,8 @@ export default function UserFilterSelector({ filter, onChange }: {
     if (!_.isEqual(f, filter)) onChange(f);
   }, [filter, onChange, router]);
 
-  // We rely on query parameter parsing (useEffect above) to invoke onChange().
-  const updateQueryParams = ((f: UserFilter) => {
+  // We rely on url parameter parsing (useEffect above) to invoke onChange().
+  const updateUrlParams = ((f: UserFilter) => {
     const query: Record<string, any> = {};
     for (const key of Object.keys(f))  {
       // @ts-ignore
@@ -42,7 +42,7 @@ export default function UserFilterSelector({ filter, onChange }: {
       const f = structuredClone(filter);
       if (v == undefined) delete f[field];
       else f[field] = v;
-      updateQueryParams(f);
+      updateUrlParams(f);
     }} />
   };
 

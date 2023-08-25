@@ -35,15 +35,17 @@ import { MinUser } from 'shared/User';
 import { Group, GroupCountingTranscripts, isOwned } from 'shared/Group';
 
 export default function GroupBar({
-  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, showGroupName, ...rest
+  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop,
+  showGroupName, ...rest
 } : {
   group: Group | GroupCountingTranscripts,
   showSelf?: boolean,             // default: false
   showJoinButton?: boolean,       // default: false
   showTranscriptCount?: boolean,  // default: false
   showTranscriptLink?: boolean,   // Effective ony if showTranscriptCount is true
-  abbreviateOnMobile?: boolean,   // default: true
   showGroupName?: boolean,        // default: true
+  abbreviateOnMobile?: boolean,   // default: true
+  abbreviateOnDesktop?: boolean,  // default: false
 } & SimpleGridProps) {
   const [user] = useUserContext();
   const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
@@ -103,6 +105,7 @@ export default function GroupBar({
             currentUserId={showSelf ? undefined : user.id} 
             users={group.users}
             abbreviateOnMobile={abbreviateOnMobile}
+            abbreviateOnDesktop={abbreviateOnDesktop}
           />
 
           {showTranscriptCount && <>
@@ -111,10 +114,10 @@ export default function GroupBar({
               <Text color={transcriptCount ? 'default': 'gray'}>
                 {showTranscriptLink ?
                   <LinkOverlay as={Link} href={`/groups/${group.id}`}>
-                    详情 ({transcriptCount})
+                    历史 ({transcriptCount})
                   </LinkOverlay>
                   :
-                  <>详情 ({transcriptCount})</>
+                  <>历史 ({transcriptCount})</>
                 }
               </Text>
             </Center>
@@ -130,7 +133,7 @@ function GroupTagOrName({ group }: { group: Group }) {
     // Without this Box the tag will fill the whole grid row
     <Box justifyItems="left">
       <Tag color="white" bgColor="gray">
-        {group.partnershipId ? "一对一导师" : "面试" }
+        {group.partnershipId ? "一对一导师" : group.calibrationId ? "面试讨论" : "面试" }
       </Tag>
     </Box>
     :
@@ -172,6 +175,7 @@ export function UserChips(props: {
   currentUserId?: string, 
   users: MinUser[],
   abbreviateOnMobile?: boolean, // default: true
+  abbreviateOnDesktop?: boolean, // default: false
 }) {
   const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
   const abbreviateOnMobile = (props.abbreviateOnMobile === undefined || props.abbreviateOnMobile) 
@@ -185,7 +189,7 @@ export function UserChips(props: {
       max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
       display={{
         base: abbreviateOnMobile ? "flex" : "none",
-        [sidebarBreakpoint]: "none",
+        [sidebarBreakpoint]: props.abbreviateOnDesktop ? "flex" : "none",
       }}
     >
       {displayUsers.map(user => <Avatar key={user.id} name={user.name || undefined} />)}
@@ -194,7 +198,7 @@ export function UserChips(props: {
     {/* Unabridged mode */}
     <Wrap spacing='1.5em' display={{
       base: abbreviateOnMobile ? "none" : "flex",
-      [sidebarBreakpoint]: "flex",
+      [sidebarBreakpoint]: props.abbreviateOnDesktop ? "none" : "flex",
     }}>
       {displayUsers.map((user: any, idx: number) =>
         <WrapItem key={user.id}>

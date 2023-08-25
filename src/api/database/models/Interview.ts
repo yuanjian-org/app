@@ -13,12 +13,14 @@ import {
   HasOne,
   BeforeDestroy,
 } from "sequelize-typescript";
-import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, DATE, JSONB, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
-import { InterviewType, zInterviewType } from "../../../shared/Interview";
+import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
+import { Feedback, zFeedback } from "../../../shared/InterviewFeedback";
+import Calibration from "./Calibration";
 
 @Table({
   paranoid: true,
@@ -40,9 +42,21 @@ class Interview extends Model {
   @Column(UUID)
   intervieweeId: string;
 
+  @ForeignKey(() => Calibration)
+  @Column(UUID)
+  calibrationId: string | null;
+
+  @ZodColumn(JSONB, zFeedback.nullable())
+  decision: Feedback | null;
+
+  @Column(DATE)
+  decisionUpdatedAt: string | null;
+
   /**
    * Associations
    */
+  @BelongsTo(() => Calibration)
+  calibration: Calibration | null;
 
   @BelongsTo(() => User)
   interviewee: User;

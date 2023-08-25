@@ -11,6 +11,7 @@ import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import AssessmentsPanel from 'components/AssessmentsPanel';
 import { PrivateMentorNotes } from 'shared/Partnership';
 import { QuestionIcon } from '@chakra-ui/icons';
+import { sectionSpacing } from 'theme/metrics';
 
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryParameter(useRouter(), 'partnershipId');
@@ -18,7 +19,9 @@ const Page: NextPageWithLayout = () => {
   if (!partnership) return <Loader />
 
   return <>
-    <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={8} />
+    <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2}
+      showTranscriptCount showTranscriptLink
+    />
     <Grid templateColumns={{ base: "1fr", [sidebarBreakpoint]: "0.382fr 0.618fr" }} gap={10}>
       <GridItem>
         <PrivateNotes 
@@ -70,9 +73,8 @@ function MenteeTabs({ partnershipId } : PartnershipProps) {
 
   const TabHead = ({ children }: any) => <Text>{children}</Text>;
 
-  return <Tabs isFitted isLazy index={3}>
+  return <Tabs isFitted isLazy index={2}>
     <TabList>
-      <Tab isDisabled><TabHead>通话摘要</TabHead></Tab>
       <Tab isDisabled><TabHead>基本信息</TabHead></Tab>
       <Tab isDisabled><TabHead>面试材料</TabHead></Tab>
       <Tab><TabHead>评估辅助</TabHead></Tab>

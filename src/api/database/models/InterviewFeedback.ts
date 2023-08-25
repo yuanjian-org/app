@@ -14,8 +14,9 @@ import { CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
-import z from "zod";
+import { Feedback, zFeedback } from "../../../shared/InterviewFeedback";
 
+// TODO: rename to Interviewer
 @Table({
   paranoid: true,
 })
@@ -37,8 +38,8 @@ class InterviewFeedback extends Model {
   @Column(UUID)
   interviewerId: string;
 
-  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  feedback: Record<string, any> | null;
+  @ZodColumn(JSONB, zFeedback.nullable())
+  feedback: Feedback | null;
 
   @Column(DATE)
   feedbackUpdatedAt: string | null;

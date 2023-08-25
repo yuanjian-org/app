@@ -6,11 +6,13 @@ export type ApplicationField = {
   jsjProxiedField?: string,
 };
 
+export const menteeSourceField = "合作机构来源";
+
 /**
  * Field order dictates the order the fields are displayed.
  */
 const menteeApplicationFields: ApplicationField[] = [
-  { jsjField: "field_165", jsjProxiedField: "field_165", name: "合作机构来源", },
+  { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, },
   { jsjField: "field_149", jsjProxiedField: "field_149", name: "就读种类", },
   { jsjField: "field_161", name: "本科是否是第一批次（一本）？", },
   { jsjField: "field_107", jsjProxiedField: "field_108", name: "就读学校", },
