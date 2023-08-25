@@ -34,10 +34,7 @@ import Role from "shared/Role";
  */
 @Table({ paranoid: true, tableName: "groups", modelName: "group" })
 @Fix
-class Group extends Model<
-  InferAttributes<Group>,
-  InferCreationAttributes<Group>
-  > {
+class Group extends Model {
   @Unique
   @IsUUID(4)
   @PrimaryKey

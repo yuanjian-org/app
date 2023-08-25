@@ -27,10 +27,7 @@ import Interview from "./Interview";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
-class User extends Model<
-  InferAttributes<User>,
-  InferCreationAttributes<User>
-> {
+class User extends Model {
   @Unique
   @IsUUID(4)
   @PrimaryKey

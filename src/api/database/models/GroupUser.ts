@@ -22,10 +22,7 @@ import Group from "./Group";
 
 @Table({ paranoid: true, tableName: "group_users", modelName: "group_user" })
 @Fix
-class GroupUser extends Model<
-  InferAttributes<GroupUser>,
-  InferCreationAttributes<GroupUser>
-> {
+class GroupUser extends Model {
   @Unique
   @IsUUID(4)
   @PrimaryKey
