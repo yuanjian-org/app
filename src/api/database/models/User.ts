@@ -1,8 +1,5 @@
 import type {
   CreationOptional,
-  InferAttributes,
-  InferCreationAttributes,
-  NonAttribute,
 } from "sequelize";
 import {
   AllowNull,
@@ -17,7 +14,6 @@ import {
   PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import ParanoidModel from "../modelHelpers/ParanoidModel";
 import { DATE, JSONB, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
@@ -77,7 +73,7 @@ class User extends Model {
    */
 
   @HasMany(() => Interview)
-  interviews: NonAttribute<Interview[]>;
+  interviews: Interview[];
 }
 
 export default User;

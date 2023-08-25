@@ -1,7 +1,5 @@
 import type {
   CreationOptional,
-  InferAttributes,
-  InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
   AllowNull,
@@ -75,13 +73,13 @@ class Group extends Model {
    */
 
   @BelongsToMany(() => User, { through: () => GroupUser })
-  users: NonAttribute<User[]>;
+  users: User[];
 
   @HasMany(() => GroupUser)
-  groupUsers: NonAttribute<GroupUser[]>;
+  groupUsers: GroupUser[];
 
   @HasMany(() => Transcript)
-  transcripts: NonAttribute<Transcript[]>;
+  transcripts: Transcript[];
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {

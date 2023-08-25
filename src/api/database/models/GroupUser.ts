@@ -1,7 +1,5 @@
 import type {
   CreationOptional,
-  InferAttributes,
-  InferCreationAttributes, NonAttribute,
 } from "sequelize";
 import {
   Column,
@@ -43,10 +41,10 @@ class GroupUser extends Model {
    */
 
   @BelongsTo(() => User)
-  user: NonAttribute<User>;
+  user: User;
 
   @BelongsTo(() => Group)
-  group: NonAttribute<Group>;
+  group: Group;
 }
 
 export default GroupUser;
