@@ -95,7 +95,7 @@ async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
   const userIds = users.map(u => u.id as string)
-  if ((await findGroups(userIds, 'exclusive')).length == 0) return;
+  if ((await findGroups(userIds, 'exclusive')).length != 0) return;
   await sequelizeInstance.transaction(async t => await createGroup(null, userIds, [], null, null, null, t));
 }
 
