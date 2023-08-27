@@ -146,26 +146,34 @@ const update = procedure
 
 /**
  * Only InterviewManagers, interviewers of the application, and participants of the calibration (only if the calibration
- * is active) are allowed to call this route.
+ * is active) are allowed to call this route. If the user is not an InterviewManager, contact information is redacted.
  */
-const getApplication = procedure
+const getApplicant = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
     type: zInterviewType,
   }))
-  .output(z.record(z.string(), z.any()).nullable())
+  .output(z.object({
+    user: zUser,
+    application: z.record(z.string(), z.any()).nullable(),
+  }))
   .query(async ({ ctx, input }) =>
 {
   if (input.type !== "MenteeInterview") throw notImplemnetedError();
 
-  const u = await db.User.findByPk(input.userId, {
-    attributes: ["menteeApplication"],
+  const user = await db.User.findByPk(input.userId, {
+    attributes: [...userAttributes, "menteeApplication"],
   });
-  if (!u) throw notFoundError("用户", input.userId);
-  const application = u.menteeApplication;
+  if (!user) throw notFoundError("用户", input.userId);
 
-  if (isPermitted(ctx.user.roles, "InterviewManager")) return application;
+  const ret: { user: User, application: Record<string, any> | null } = { user, application: user.menteeApplication };
+
+  if (isPermitted(ctx.user.roles, "InterviewManager")) return ret;
+
+  // Redact
+  user.email = "redacted@redacted.com";
+  user.wechat = "redacted";
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -180,7 +188,7 @@ const getApplication = procedure
       where: { interviewerId: ctx.user.id },
     }],
   });
-  if (myInterviews.length) return application;
+  if (myInterviews.length) return ret;
 
   // Check if the user is a calibration participant
   const allInterviews = await db.Interview.findAll({
@@ -191,10 +199,10 @@ const getApplication = procedure
     attributes: ["calibrationId"],
   });
   for (const i of allInterviews) {
-    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return application;
+    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return ret;
   }
 
-  throw noPermissionError("申请资料", input.userId);
+  throw noPermissionError("申请资料", user.id);
 });
 
 /**
@@ -227,7 +235,7 @@ export default router({
   list,
   update,
   listPriviledgedUserDataAccess,
-  getApplication,
+  getApplicant,
 });
 
 function checkUserFields(name: string | null, email: string) {
