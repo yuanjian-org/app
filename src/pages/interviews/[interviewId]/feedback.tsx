@@ -63,7 +63,7 @@ const Page: NextPageWithLayout = () => {
         </GridItem>
         <GridItem>
           {i.type == "MenteeInterview" ? 
-            <MenteeApplicant userId={i.interviewee.id} /> 
+            <MenteeApplicant userId={i.interviewee.id} readonly /> 
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }

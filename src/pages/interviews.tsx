@@ -26,12 +26,7 @@ import {
   Tab,
   TabPanels,
   TabPanel,
-  Editable,
-  EditablePreview,
-  EditableInput,
   Switch,
-  useEditableControls,
-  IconButton,
   Box,
   UnorderedList,
   ListItem,
@@ -57,6 +52,7 @@ import moment from 'moment';
 import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
+import EditableWithIcon from 'components/EditableWithIcon';
 
 const Page: NextPageWithLayout = () => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
@@ -95,7 +91,7 @@ const Page: NextPageWithLayout = () => {
   </Flex>
 }
 
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
+Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
 
 export default Page;
 
@@ -109,8 +105,8 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table>
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th><Th>查看申请资料</Th>
-          <Th>面试官</Th><Th>面试讨论组</Th><Th>修改面试</Th><Th>查看面试</Th>
+          <Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th><Th>申请资料</Th>
+          <Th>面试官</Th><Th>面试讨论组</Th><Th>面试设置</Th><Th>面试详情</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -180,7 +176,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       <TdEditLink>
         {interview && interview.calibration?.name}
       </TdEditLink>
-      <TdEditLink><EditIcon /></TdEditLink>
+      <TdEditLink>{interview ? <EditIcon /> : <AddIcon />}</TdEditLink>
       {interview && <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink>}
     </Tr>
   </>;
@@ -310,7 +306,9 @@ function Calibrations({ type, calibrations, refetch }: {
           .map(c => {
             return <Tr key={c.id}>
               <Td>
-                <EditableCalibrationName calibration={c} update={update} />
+                <EditableWithIcon mode="input" defaultValue={c.name} maxWidth={60} 
+                  onSubmit={v => update(c, v, c.active)} 
+                />
               </Td>
               <Td>
                 <Switch isChecked={c.active} onChange={e => update(c, c.name, e.target.checked)} />
@@ -328,21 +326,4 @@ function Calibrations({ type, calibrations, refetch }: {
       </Tbody>
     </Table></TableContainer>
   </Flex>;
-}
-
-function EditableCalibrationName({ calibration: c, update }: {
-  calibration: Calibration,
-  update: (c: Calibration, name: string, active: boolean) => void,
-}) {
-  // See https://chakra-ui.com/docs/components/editable#with-custom-input-and-controls
-  const EditableControls = () => {
-    const { isEditing, getEditButtonProps } = useEditableControls();
-    return isEditing ? null : <IconButton aria-label='Edit' icon={<EditIcon />} {...getEditButtonProps()} />;
-  }
-
-  return <Editable defaultValue={c.name} maxWidth={60} onSubmit={v => update(c, v, c.active)}>
-    <EditablePreview />
-    <EditableInput />
-    <EditableControls />
-  </Editable>;
 }

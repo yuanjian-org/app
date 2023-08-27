@@ -11,7 +11,7 @@ const Page: NextPageWithLayout = () => {
 
   if (type !== "MenteeInterview") alert("Mentor application page is not implemented.");
 
-  return <MenteeApplicant userId={userId} showName showContact />;
+  return <MenteeApplicant userId={userId} showName showContact readonly={false} />;
 };
 
 Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
