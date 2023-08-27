@@ -52,9 +52,8 @@ class User extends Model {
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
-  // TODO use string type
   @Column(DATE)
-  consentFormAcceptedAt: Date | null;
+  consentFormAcceptedAt: string | null;
 
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;

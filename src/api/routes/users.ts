@@ -206,6 +206,25 @@ const getApplicant = procedure
 });
 
 /**
+ * TODO: Support etag. Refer to `interviewFeedbacks.update`.
+ */
+const updateApplication = procedure
+  .use(authUser("InterviewManager"))
+  .input(z.object({
+    userId: z.string(),
+    type: zInterviewType,
+    application: z.record(z.string(), z.any()),
+  }))
+  .mutation(async ({ input }) =>
+{
+  const [cnt] = await db.User.update({
+    [input.type == "MenteeInterview" ? "menteeApplication" : "mentorApplication"]: input.application,
+  }, { where: { id: input.userId } });
+  invariant(cnt <= 1);
+  if (!cnt) throw notFoundError("用户", input.userId);
+});
+
+/**
  * List all users and their roles who have privileged user data access. See RoleProfile.privilegeUserDataAccess for an
  * explanation.
  */
@@ -236,6 +255,7 @@ export default router({
   update,
   listPriviledgedUserDataAccess,
   getApplicant,
+  updateApplication,
 });
 
 function checkUserFields(name: string | null, email: string) {
