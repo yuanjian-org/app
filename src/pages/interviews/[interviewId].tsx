@@ -54,7 +54,7 @@ const Page: NextPageWithLayout = () => {
         <Flex direction="column" gap={sectionSpacing}>
           <DecisionEditor interviewId={i.id} decision={i.decision} etag={data.etag} />
           {i.type == "MenteeInterview" ?
-            <MenteeApplicant userId={i.interviewee.id} readonly />
+            <MenteeApplicant userId={i.interviewee.id} showTitle readonly />
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }

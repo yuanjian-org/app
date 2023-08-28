@@ -18,26 +18,28 @@ import invariant from "tiny-invariant";
 import EditableWithIcon from "components/EditableWithIcon";
 import User from 'shared/User';
 
-export default function MenteeApplicant({ userId, showName, showContact, readonly } : {
+export default function MenteeApplicant({ userId, showTitle, useNameAsTitle, showContact, readonly } : {
   userId: string,
-  readonly: boolean
-  showName?: boolean,
+  readonly: boolean,
+  showTitle?: boolean,
+  useNameAsTitle?: boolean, // Valid only if showTitle is true
   showContact?: boolean,
 }) {
   const { data, refetch } = trpcNext.users.getApplicant.useQuery({ userId, type: "MenteeInterview" });
 
   return !data ? <Loader /> :
-    <LoadedApplicant user={data.user} application={data.application} showName={showName} showContact={showContact}
-      readonly={readonly} refetch={refetch}
+    <LoadedApplicant user={data.user} application={data.application} showTitle={showTitle}
+      useNameAsTitle={useNameAsTitle} showContact={showContact} readonly={readonly} refetch={refetch}
     />;
 }
 
-function LoadedApplicant({ user, application, showName, showContact, readonly, refetch } : {
+function LoadedApplicant({ user, application, showTitle, useNameAsTitle, showContact, readonly, refetch } : {
   user: User,
   application: Record<string, any> | null,
   readonly: boolean
   refetch: () => void,
-  showName?: boolean,
+  showTitle?: boolean,
+  useNameAsTitle?: boolean,
   showContact?: boolean,
 }) {
   const update = async (name: string, value: string) => {
@@ -52,16 +54,16 @@ function LoadedApplicant({ user, application, showName, showContact, readonly, r
   };
 
   return <Flex direction="column" gap={sectionSpacing}>
-    <Heading size="md">{showName ? `${formatUserName(user.name, "formal")}` : "申请材料"}</Heading>
+    {showTitle && <Heading size="md">{useNameAsTitle ? `${formatUserName(user.name, "formal")}` : "申请材料"}</Heading>}
 
-    <FieldRow name="性别" readonly value={user.sex ?? ''} />
+    {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
 
     {showContact && <>
       <FieldRow name="微信" readonly value={user.wechat ?? ''} />
       <FieldRow name="邮箱" readonly value={user.email} />
     </>}
 
-    {!application ? "没有申请数据。" : menteeApplicationFields.map(f => {
+    {!application ? "没有申请材料。" : menteeApplicationFields.map(f => {
       invariant(application);
       if (f.name in application) {
         return <FieldRow readonly={readonly} key={f.name} name={f.name}
