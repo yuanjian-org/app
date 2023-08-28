@@ -204,7 +204,7 @@ function DimensionEditor({
         <SliderTrack><SliderFilledTrack bg={color} /></SliderTrack>
         {scoreLabels.map((_, idx) =>
           <SliderMark key={idx} value={idx + 1}
-            marginTop={3} marginLeft={-1} fontSize="xs" color="gray"
+            marginTop={3} marginLeft={-1} fontSize="xs" color="gray.400"
           >
             {idx + 1}
           </SliderMark>
