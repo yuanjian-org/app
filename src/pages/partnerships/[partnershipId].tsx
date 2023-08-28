@@ -4,14 +4,17 @@ import { useRouter } from 'next/router';
 import { parseQueryParameter } from 'parseQueryParamter';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Text, Tabs, TabList, TabPanels, Tab, TabPanel, Tooltip } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Text, TabList, TabPanels, Tab, TabPanel, Tooltip } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import AssessmentsPanel from 'components/AssessmentsPanel';
 import { PrivateMentorNotes } from 'shared/Partnership';
 import { QuestionIcon } from '@chakra-ui/icons';
-import { sectionSpacing } from 'theme/metrics';
+import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import MobileExperienceAlert from 'components/MobileExperienceAlert';
+import MenteeApplicant from 'components/MenteeApplicant';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryParameter(useRouter(), 'partnershipId');
@@ -19,18 +22,22 @@ const Page: NextPageWithLayout = () => {
   if (!partnership) return <Loader />
 
   return <>
+    <MobileExperienceAlert marginBottom={paragraphSpacing} />
     <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2}
       showTranscriptCount showTranscriptLink
     />
-    <Grid templateColumns={{ base: "1fr", [sidebarBreakpoint]: "0.382fr 0.618fr" }} gap={10}>
+    <Grid gap={10} templateColumns={{ 
+      base: "1fr", 
+      [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
+    }}>
+      <GridItem>
+        <MenteeTabs partnershipId={partnershipId} menteeId={partnership.mentee.id} />
+      </GridItem>
       <GridItem>
         <PrivateNotes 
           partnershipId={partnershipId}
           loading={partnership == null}
           notes={partnership?.privateMentorNotes} />
-      </GridItem>
-      <GridItem>
-        <MenteeTabs partnershipId={partnershipId} />
       </GridItem>
     </Grid>
   </>;
@@ -65,24 +72,24 @@ function PrivateNotes({ partnershipId, notes, loading }: {
   </Flex>;
 }
 
-type PartnershipProps = {
+function MenteeTabs({ partnershipId, menteeId }: {
   partnershipId: string,
-};
-
-function MenteeTabs({ partnershipId } : PartnershipProps) {
+  menteeId: string,
+}) {
 
   const TabHead = ({ children }: any) => <Text>{children}</Text>;
 
-  return <Tabs isFitted isLazy index={2}>
+  return <TabsWithUrlParam isFitted isLazy>
     <TabList>
-      <Tab isDisabled><TabHead>基本信息</TabHead></Tab>
-      <Tab isDisabled><TabHead>面试材料</TabHead></Tab>
+      <Tab><TabHead>申请材料</TabHead></Tab>
+      <Tab isDisabled><TabHead>通话摘要</TabHead></Tab>
+      <Tab isDisabled><TabHead>面试反馈</TabHead></Tab>
       <Tab><TabHead>评估辅助</TabHead></Tab>
     </TabList>
 
     <TabPanels>
       <TabPanel>
-        TODO
+        <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
         TODO
@@ -94,10 +101,12 @@ function MenteeTabs({ partnershipId } : PartnershipProps) {
         <AssessmentTabPanel partnershipId={partnershipId} />
       </TabPanel>
     </TabPanels>
-  </Tabs>;
+  </TabsWithUrlParam>;
 }
 
-function AssessmentTabPanel({ partnershipId } : PartnershipProps) {
+function AssessmentTabPanel({ partnershipId }: {
+  partnershipId: string,
+}) {
   const { data: assessments } = trpcNext.assessments.listAllOfPartneship.useQuery(partnershipId);
   // @ts-ignore so weird
   return <AssessmentsPanel partnershipId={partnershipId} assessments={assessments} />;
