@@ -51,8 +51,7 @@ const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
     path: '/',
-    icon: MdVideocam,
-    regex: new RegExp('^\/$|\/groups\/.'),
+    icon: MdHome,
   },
   {
     name: '我的面试',
@@ -85,22 +84,19 @@ const sidebarItems: SidebarItem[] = [
   {
     name: '管理学生面试',
     path: '/interviews?type=mentee',
-    icon: MdFace5,
-    regex: new RegExp('\/interviews\\?type=mentee'),
+    icon: MdGroup,
     role: 'InterviewManager',
   },
   {
     name: '管理导师面试',
     path: '/interviews?type=mentor',
-    icon: MdFaceUnlock,
-    regex: new RegExp('\/interviews\\?type=mentor'),
+    icon: MdGroup,
     role: 'InterviewManager',
   },
   {
     name: '管理一对一',
     path: '/partnerships',
-    icon: MdOutlineSyncAlt,
-    regex: new RegExp('^\/partnerships$'),
+    icon: MdGroup,
     role: 'PartnershipManager',
   },
 ];
@@ -181,7 +177,8 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
 } & SidebarProps) => {
   const router = useRouter();
-  const active = item.regex.test(router.pathname) || item.regex.test(router.asPath);
+  const active = item.path === router.pathname || 
+    item.path === item.basePath + parseQueryParameter(router, item.queryParam || "");
   return (
     <Link 
       as={NextLink} 
