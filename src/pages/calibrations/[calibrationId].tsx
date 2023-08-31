@@ -1,7 +1,7 @@
 import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import _ from "lodash";
@@ -9,7 +9,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import Calibration from 'components/Calibration';
 
 const Page: NextPageWithLayout = () => {
-  const calibrationId = parseQueryParameter(useRouter(), 'calibrationId');
+  const calibrationId = parseQueryStringOrUnknown(useRouter(), 'calibrationId');
   const { data: calibration } = trpcNext.calibrations.get.useQuery(calibrationId);
 
   return !calibration ? <Loader /> : <>

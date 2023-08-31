@@ -1,7 +1,7 @@
 import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem, Text, TabList, TabPanels, Tab, TabPanel, Tooltip } from '@chakra-ui/react';
@@ -17,7 +17,7 @@ import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 const Page: NextPageWithLayout = () => {
-  const partnershipId = parseQueryParameter(useRouter(), 'partnershipId');
+  const partnershipId = parseQueryStringOrUnknown(useRouter(), 'partnershipId');
   const { data: partnership } = trpcNext.partnerships.get.useQuery(partnershipId);
   if (!partnership) return <Loader />
 
