@@ -21,7 +21,7 @@ import z from "zod";
 import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
 
-@Table({ tableName: "users", modelName: "user" })
+@Table({ paranoid: true, tableName: "users", modelName: "user" })
 @Fix
 class User extends Model {
   @Unique
