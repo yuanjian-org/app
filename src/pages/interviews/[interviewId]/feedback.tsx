@@ -17,7 +17,7 @@ import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
 import _ from "lodash";
-import MenteeApplication from 'components/MenteeApplication';
+import MenteeApplicant from 'components/MenteeApplicant';
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from 'shared/User';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -63,7 +63,7 @@ const Page: NextPageWithLayout = () => {
         </GridItem>
         <GridItem>
           {i.type == "MenteeInterview" ? 
-            <MenteeApplication menteeUserId={i.interviewee.id} /> 
+            <MenteeApplicant userId={i.interviewee.id} showTitle readonly /> 
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }

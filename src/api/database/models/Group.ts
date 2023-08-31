@@ -1,18 +1,23 @@
 import type {
-  InferAttributes,
-  InferCreationAttributes, NonAttribute,
+  CreationOptional,
 } from "sequelize";
 import {
   AllowNull,
   BeforeDestroy,
   BelongsToMany,
-  Column, ForeignKey, HasMany,
+  Column, 
+  Model,
+  ForeignKey, 
+  HasMany,
   Index,
   Table,
+  Default,
+  IsUUID,
+  Unique,
+  PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { ARRAY, STRING, UUID } from "sequelize";
+import { ARRAY, STRING, UUID, UUIDV4 } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
@@ -25,12 +30,15 @@ import Role from "shared/Role";
  * A group is said to be "owned" if the partnership or interview field is non-null.
  * Otherwise the group is said to be "unowned".
  */
-@Table({ tableName: "groups", modelName: "group" })
+@Table({ paranoid: true, tableName: "groups", modelName: "group" })
 @Fix
-class Group extends ParanoidModel<
-  InferAttributes<Group>,
-  InferCreationAttributes<Group>
-  > {
+class Group extends Model {
+  @Unique
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(UUIDV4)
+  @Column(UUID)
+  id: CreationOptional<string>;
 
   @AllowNull(true)
   @Column(STRING)
@@ -65,13 +73,13 @@ class Group extends ParanoidModel<
    */
 
   @BelongsToMany(() => User, { through: () => GroupUser })
-  users: NonAttribute<User[]>;
+  users: User[];
 
   @HasMany(() => GroupUser)
-  groupUsers: NonAttribute<GroupUser[]>;
+  groupUsers: GroupUser[];
 
   @HasMany(() => Transcript)
-  transcripts: NonAttribute<Transcript[]>;
+  transcripts: Transcript[];
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {

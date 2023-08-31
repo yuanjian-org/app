@@ -28,10 +28,10 @@ export default function ConsentModal() {
   const [declined, setDeclined] = useState<boolean>(false);
 
   const handleSubmit = async () => {
-    const updatedUser = structuredClone(user);
-    updatedUser.consentFormAcceptedAt = new Date();
-    await trpc.users.update.mutate(updatedUser);
-    setUser(updatedUser);
+    const updated = structuredClone(user);
+    updated.consentFormAcceptedAt = new Date().toISOString();
+    await trpc.users.update.mutate(updated);
+    setUser(updated);
   };
 
   return <>

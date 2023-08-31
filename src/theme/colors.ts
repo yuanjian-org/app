@@ -1,9 +1,9 @@
-// TODO: Use Yuanjian brand for all color variations.
+// TODO: Apply Yuanjian brand color theme to all color variations.
 const colors = {
   
   // TODO: Use useColorModeValue()?
   text: "gray.700",
-  backgroundLight: "gray.100",
+  backgroundLight: "#f1f3f4", // "gray.100" == "#eef2f6",
   backgroundDark: "gray.900",
 
   brand: {

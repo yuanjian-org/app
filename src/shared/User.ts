@@ -10,8 +10,10 @@ export type MinUser = z.TypeOf<typeof zMinUser>;
 export const zUser = zMinUser.merge(z.object({
   roles: zRoles,
   email: z.string().email(),
-  // For some reason coerce is needed to avoid zod input validation error. TODO use string()
-  consentFormAcceptedAt: z.coerce.date().nullable(),
+  wechat: z.string().nullable(),
+  sex: z.string().nullable(),
+  // For some reason coerce is needed to avoid zod input validation error.
+  consentFormAcceptedAt: z.coerce.string().nullable(),
   menteeInterviewerTestLastPassedAt: z.coerce.string().nullable(),
 }));
 type User = z.TypeOf<typeof zUser>;

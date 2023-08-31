@@ -1,7 +1,5 @@
 import type {
-  InferAttributes,
-  InferCreationAttributes,
-  NonAttribute,
+  CreationOptional,
 } from "sequelize";
 import {
   AllowNull,
@@ -11,10 +9,13 @@ import {
   Index,
   Table,
   Unique,
+  Model,
+  Default,
+  IsUUID,
+  PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import ParanoidModel from "../modelHelpers/ParanoidModel";
-import { DATE, JSONB, Op, STRING } from "sequelize";
+import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -26,10 +27,14 @@ import Partnership from "./Partnership";
 
 @Table({ tableName: "users", modelName: "user" })
 @Fix
-class User extends ParanoidModel<
-  InferAttributes<User>,
-  InferCreationAttributes<User>
-> {
+class User extends Model {
+  @Unique
+  @IsUUID(4)
+  @PrimaryKey
+  @Default(UUIDV4)
+  @Column(UUID)
+  id: CreationOptional<string>;
+
   // Always use `formatUserName` to display user names.
   // TODO: either add `AllowNull(false)` or `| null` to both name and pinyin columns.
   @Column(STRING)
@@ -51,9 +56,8 @@ class User extends ParanoidModel<
   @ZodColumn(JSONB, zRoles)
   roles: Role[];
 
-  // TODO use string type
   @Column(DATE)
-  consentFormAcceptedAt: Date | null;
+  consentFormAcceptedAt: string | null;
 
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
@@ -72,7 +76,6 @@ class User extends ParanoidModel<
    */
 
   @HasMany(() => Interview)
-  interviews: NonAttribute<Interview[]>;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
@@ -108,6 +111,9 @@ class User extends ParanoidModel<
       );
     }
   }
+
+  interviews: Interview[];
+
 }
 
 export default User;
