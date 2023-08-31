@@ -8,5 +8,12 @@
       "path":"/api/v1/cron.updateOngoingMeetings",
       "schedule": "59 23 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://yuantu.app/$1",
+      "permanent": true
+    }
   ]
 }
