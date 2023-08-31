@@ -24,7 +24,7 @@ module.exports = withSentryConfig(
     silent: true,
 
     org: "visionary-education-foundation",
-    project: "javascript-nextjs",
+    project: "app",
   },
   {
     // For all available options, see:
@@ -34,13 +34,13 @@ module.exports = withSentryConfig(
     widenClientFileUpload: true,
 
     // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: true,
+    transpileClientSDK: false,
 
     // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
     tunnelRoute: "/monitoring",
 
     // Hides source maps from generated client bundles
-    hideSourceMaps: true,
+    hideSourceMaps: false,
 
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,
