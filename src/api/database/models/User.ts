@@ -25,7 +25,7 @@ import GroupUser from "./GroupUser";
 import Partnership from "./Partnership";
 
 
-@Table({ tableName: "users", modelName: "user" })
+@Table({ paranoid: true, tableName: "users", modelName: "user" })
 @Fix
 class User extends Model {
   @Unique
@@ -80,36 +80,16 @@ class User extends Model {
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
 
-    if (options.force) {
       await GroupUser.destroy({
         where: { userId: user.id },
-        force: true
+        ...options
       });
-
       await Partnership.destroy({
         where: {
           [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
         },
-        force: true
+        ...options
       });
-
-    } else {
-      const moment = require('moment-timezone');
-      const timestamp = moment().format('YYYY-MM-DD HH:mm:ss.SSSZ');
-
-      await GroupUser.update(
-        { deletedAt: timestamp },
-        { where: { userId: user.id } }
-      );
-      await Partnership.update(
-        { deletedAt: timestamp },
-        {
-          where: {
-            [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
-          }
-        }
-      );
-    }
   }
 
   interviews: Interview[];

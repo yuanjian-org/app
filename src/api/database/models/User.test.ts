@@ -16,7 +16,6 @@ describe('User', () => {
     it('should connect to the database successfully', async () => {
       try {
         await sequelizeInstance.authenticate();
-        console.log('Connection has been established successfully.');
       } catch (error) {
         console.error('Unable to connect to the database:', error);
         throw error;
@@ -103,8 +102,7 @@ describe('User', () => {
 
     //删除user1，检查相关partner是否被删除
     it('should delete user1 and soft delete all related partnerships', async () => {
-      await user1.destroy();
-
+      await user1.destroy();     
       const findUser1 = await User.findByPk(user1.id, { paranoid: false });
       if (findUser1) {
         expect(findUser1.deletedAt).to.not.be.null;
