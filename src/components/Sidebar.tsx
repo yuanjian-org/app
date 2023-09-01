@@ -52,55 +52,55 @@ const sidebarItems: SidebarItem[] = [
     name: '我的会议',
     path: '/',
     icon: MdVideocam,
-    regex: new RegExp('^\/$|\/groups\/.'),
+    regex: /'^\/$|\/groups\/.'/,
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdGroup,
-    regex: new RegExp('\/interviews\/mine'),
+    regex: /'\/interviews\/mine'/,
     role: 'Interviewer',
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
     icon: MdScience,
-    regex: new RegExp('\/groups\/lab'),
+    regex: /'\/groups\/lab'/,
     role: 'SummaryEngineer',
   },
   {
     name: '管理用户',
     path: '/users',
     icon: MdPerson,
-    regex: new RegExp('\/user'),
+    regex: /'\/user'/,
     role: 'UserManager',
   },
   {
     name: '管理会议分组',
     path: '/groups',
     icon: MdGroups,
-    regex: new RegExp('^\/groups$'),
+    regex: /'^\/groups$'/,
     role: 'GroupManager',
   },
   {
     name: '管理学生面试',
     path: '/interviews?type=mentee',
     icon: MdFace5,
-    regex: new RegExp('\/interviews\\?type=mentee'),
+    regex: /'\/interviews\\?type=mentee'/,
     role: 'InterviewManager',
   },
   {
     name: '管理导师面试',
     path: '/interviews?type=mentor',
     icon: MdFaceUnlock,
-    regex: new RegExp('\/interviews\\?type=mentor'),
+    regex: /'\/interviews\\?type=mentor'/,
     role: 'InterviewManager',
   },
   {
     name: '管理一对一',
     path: '/partnerships',
     icon: MdOutlineSyncAlt,
-    regex: new RegExp('^\/partnerships$'),
+    regex: /'^\/partnerships$'/,
     role: 'PartnershipManager',
   },
 ];
@@ -111,7 +111,7 @@ function partnerships2Items(partnerships: Partnership[] | undefined): SidebarIte
     name: formatUserName(p.mentee.name, "formal"),
     icon: MdFace,
     path: `/partnerships/${p.id}`,
-    regex: new RegExp('\/partnerships\/.'),
+    regex: /'\/partnerships\/.'/,
   }));
 }
 
@@ -181,7 +181,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
 } & SidebarProps) => {
   const router = useRouter();
-  const active = item.regex.test(router.asPath);
+  const active = item.regex.test(router.pathname) || item.regex.test(router.asPath);
   return (
     <Link 
       as={NextLink} 
