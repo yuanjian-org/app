@@ -36,7 +36,7 @@ import {
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { formatUserName } from 'shared/strings';
 
 export interface SidebarItem {
@@ -177,7 +177,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
 } & SidebarProps) => {
   const router = useRouter();
   const active = item.path === router.pathname || 
-    item.path === item.basePath + parseQueryParameter(router, item.queryParam || "");
+    item.path === item.basePath + parseQueryStringOrUnknown(router, item.queryParam || "");
   return (
     <Link 
       as={NextLink} 

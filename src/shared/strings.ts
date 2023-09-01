@@ -18,8 +18,8 @@ export function formatGroupName(name: string | null, userCount: number): string 
   return name ?? `${nzh.cn.encodeS(userCount)}人通话`;
 }
 
-export function prettifyDuration(from: Date, to: Date) {
-  return `${diffInMinutes(from, to)} 分钟`;
+export function prettifyDuration(from: Date | string, to: Date | string) {
+  return `${diffInMinutes(from, to)}分钟`;
 }
 
 export function prettifyDate(str: Date | string) {
@@ -35,7 +35,7 @@ export function prettifyDate(str: Date | string) {
 }
 
 // TODO: Sort out this Date-is-not-actually-string nonsense
-function diffInMinutes(from: Date, to: Date): number {
+export function diffInMinutes(from: Date | string, to: Date | string): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60)
 }
 
