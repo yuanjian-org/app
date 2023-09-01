@@ -183,6 +183,12 @@ function DimensionEditor({
   const score = d.score ?? 1;
   const color = getScoreColor(scoreLabels, score);
 
+  const change = (v: number) => onChange({
+    name: d.name,
+    score: v,
+    comment: d.comment,
+  });
+
   return <>
     <Flex direction="row" gap={3}>
       <Box minWidth={140}><b>{dimensionLabel}</b></Box>
@@ -190,14 +196,19 @@ function DimensionEditor({
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         value={score}
-        onChange={v => onChange({
-          name: d.name,
-          score: v,
-          comment: d.comment,
-        })}
+        // onChangeEnd is needed to triger events when the user clicks on the lowest score whilc d.score == null.
+        onChangeEnd={change}
+        // onChange is needed to triger events for other cases.
+        onChange={change}
       >
         <SliderTrack><SliderFilledTrack bg={color} /></SliderTrack>
-        {scoreLabels.map((_, idx) => <SliderMark key={idx} value={idx + 1}>.</SliderMark>)}
+        {scoreLabels.map((_, idx) =>
+          <SliderMark key={idx} value={idx + 1}
+            marginTop={3} marginLeft={-1} fontSize="xs" color="gray.400"
+          >
+            {idx + 1}
+          </SliderMark>
+        )}
         
         <Tooltip
           hasArrow
@@ -205,7 +216,7 @@ function DimensionEditor({
           isOpen={showTooltip}
           label={`${score}: ${scoreLabels[score - 1]}`}
         >
-          <SliderThumb bg={color} />
+          <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} />
         </Tooltip>
       </Slider>
     </Flex>

@@ -1,13 +1,13 @@
 import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Heading, Text, Link } from '@chakra-ui/react';
+import { Flex, Grid, GridItem, Heading, Text, Link, Box } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
 import _ from "lodash";
-import MenteeApplication from 'components/MenteeApplication';
+import MenteeApplicant from 'components/MenteeApplicant';
 import { sectionSpacing } from 'theme/metrics';
 import { InterviewDecisionEditor, InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { formatUserName, compareUUID } from 'shared/strings';
@@ -17,7 +17,7 @@ import { Feedback } from 'shared/InterviewFeedback';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 
 const Page: NextPageWithLayout = () => {
-  const interviewId = parseQueryParameter(useRouter(), 'interviewId');
+  const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   // See Editor()'s comment on the reason for `catchTime: 0`
   const { data } = trpcNext.interviews.get.useQuery(interviewId, { cacheTime: 0 });
   const [me] = useUserContext();
@@ -28,9 +28,13 @@ const Page: NextPageWithLayout = () => {
   return <Flex direction="column" gap={sectionSpacing}>
     <MobileExperienceAlert />
 
-    <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
-      考察维度和参考题库 <ExternalLinkIcon />
-    </Link>
+    <Heading size="md">候选人：{formatUserName(i.interviewee.name, "formal")}</Heading>
+
+    <Box>
+      <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
+        考察维度和参考题库 <ExternalLinkIcon />
+      </Link>
+    </Box>
 
     <Grid 
       templateColumns={{ base: "100%", [sidebarBreakpoint]: `repeat(${i.feedbacks.length + 1}, 1fr)` }} 
@@ -50,10 +54,7 @@ const Page: NextPageWithLayout = () => {
         <Flex direction="column" gap={sectionSpacing}>
           <DecisionEditor interviewId={i.id} decision={i.decision} etag={data.etag} />
           {i.type == "MenteeInterview" ?
-            <MenteeApplication 
-              menteeUserId={i.interviewee.id}
-              title={formatUserName(i.interviewee.name, "formal")}
-            />
+            <MenteeApplicant userId={i.interviewee.id} showTitle readonly />
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }

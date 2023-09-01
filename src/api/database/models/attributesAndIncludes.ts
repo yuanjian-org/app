@@ -13,7 +13,7 @@ import User from "./User";
 
 export const minUserAttributes = ['id', 'name'];
 
-export const userAttributes = [...minUserAttributes, "email", "roles", "consentFormAcceptedAt",
+export const userAttributes = [...minUserAttributes, "wechat", "sex", "email", "roles", "consentFormAcceptedAt",
   "menteeInterviewerTestLastPassedAt"];
 
 /**
@@ -33,6 +33,18 @@ export const groupCountingTranscriptsInclude = [...groupInclude,
     attributes: ["transcriptId"],
   }
 ];
+
+/**
+ * Transcript
+ */
+
+export const transcriptAttributes = ["transcriptId", "startedAt", "endedAt"];
+
+/**
+ * Summary
+ */
+
+export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
 
 /**
  * Partnership

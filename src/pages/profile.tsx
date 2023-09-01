@@ -48,6 +48,7 @@ const UserProfile: NextPageWithLayout = () => {
     }
   };
 
+  // TODO: Use EditableWithIcon
   const EditableControls = () => {
     const {
       isEditing,

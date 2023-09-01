@@ -17,23 +17,26 @@ import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
-
 import Image from "next/image";
 import { useRouter } from 'next/router';
-import { MdChevronRight, MdFace } from 'react-icons/md';
 import { trpcNext } from 'trpc';
 import { Partnership } from 'shared/Partnership';
 import {
   MdPerson,
-  MdHome,
   MdGroups,
   MdScience,
   MdGroup,
+  MdChevronRight, 
+  MdFace, 
+  MdFace5, 
+  MdFaceUnlock, 
+  MdOutlineSyncAlt, 
+  MdVideocam
 } from 'react-icons/md'
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { formatUserName } from 'shared/strings';
 
 export interface SidebarItem {
@@ -50,7 +53,7 @@ const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
     path: '/',
-    icon: MdHome,
+    icon: MdVideocam,
   },
   {
     name: '我的面试',
@@ -79,19 +82,19 @@ const sidebarItems: SidebarItem[] = [
   {
     name: '管理学生面试',
     path: '/interviews?type=mentee',
-    icon: MdGroup,
+    icon: MdFace5,
     role: 'InterviewManager',
   },
   {
     name: '管理导师面试',
     path: '/interviews?type=mentor',
-    icon: MdGroup,
+    icon: MdFaceUnlock,
     role: 'InterviewManager',
   },
   {
     name: '管理一对一',
     path: '/partnerships',
-    icon: MdGroup,
+    icon: MdOutlineSyncAlt,
     role: 'PartnershipManager',
   },
 ];
@@ -174,7 +177,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
 } & SidebarProps) => {
   const router = useRouter();
   const active = item.path === router.pathname || 
-    item.path === item.basePath + parseQueryParameter(router, item.queryParam || "");
+    item.path === item.basePath + parseQueryStringOrUnknown(router, item.queryParam || "");
   return (
     <Link 
       as={NextLink} 

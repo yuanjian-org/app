@@ -1,73 +1,129 @@
 import {
-  StackDivider,
+  Card,
+  CardBody,
   Stack,
-  Table,
-  Tbody,
-  Td,
-  Center,
-  Icon,
-  Heading,
-  TableContainer,
+  Select,
+  Box,
+  Button,
+  Spacer,
+  Flex,
 } from '@chakra-ui/react';
-import React from 'react';
-import { NextPageWithLayout } from "../../NextPageWithLayout";
+import React, { ReactNode } from 'react';
 import AppLayout from "../../AppLayout";
-import { useRouter } from 'next/router';
-import { GroupWithTranscripts } from '../../shared/Group';
-import GroupBar from 'components/GroupBar';
 import { trpcNext } from "../../trpc";
+import GroupBar from 'components/GroupBar';
+import { Transcript } from '../../shared/Transcript';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { prettifyDate, prettifyDuration } from 'shared/strings';
+import { useRouter } from 'next/router';
+import invariant from 'tiny-invariant';
+import { diffInMinutes, prettifyDate, prettifyDuration } from 'shared/strings';
+import { parseQueryString, parseQueryStringOrUnknown } from '../../parseQueryString';
 import Loader from 'components/Loader';
-import { MdChevronRight } from 'react-icons/md';
-import { parseQueryParameter } from '../../parseQueryParamter';
-import TrLink from 'components/TrLink';
+import ReactMarkdown from 'react-markdown';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { componentSpacing, sectionSpacing } from 'theme/metrics';
+import { Group } from 'shared/Group';
+import replaceUrlParam from 'shared/replaceUrlParam';
 
-const Page: NextPageWithLayout = () => <GroupCard />;
+export default function Page() {
+  const router = useRouter();
+  const groupId = parseQueryStringOrUnknown(router, "groupId");
+  const { data: group } = trpcNext.groups.get.useQuery(groupId);
 
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
+  return <>
+    <PageBreadcrumb current='会议详情' parents={[
+      { name: '我的会议', link: '/' },
+    ]} />
+    {group ? <GroupBox group={group} /> : <Loader />}
+  </>;
+};
 
-export default Page;
+Page.getLayout = (page: ReactNode) => <AppLayout>{page}</AppLayout>;
 
-function GroupCard() {
-  const id = parseQueryParameter(useRouter(), "groupId");
-  const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
+function GroupBox({ group }: {
+  group: Group
+}) {
+  const { data: transcripts } = trpcNext.transcripts.list.useQuery(group.id);
 
-  return (<>
-    <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
-    {group ? <GroupDetail group={group} /> : <Loader />}
-  </>);
+  return <Stack spacing={sectionSpacing}>
+    <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} />
+    {transcripts ? 
+      (transcripts.length ? <TranscriptsBox transcripts={transcripts} /> : "无会议历史。（会议结束后一小时之内会显示在这里。）")
+      :
+      <Loader />
+    }
+  </Stack>;
 }
 
-function GroupDetail(props: { group: GroupWithTranscripts }) {
-  return (
-    <Stack divider={<StackDivider />} spacing={6}>
-      <GroupBar group={props.group} showJoinButton showSelf abbreviateOnMobile={false} />
-      <TranscriptTable group={props.group} />
-    </Stack>
-  );
-}
+/**
+ * Caller should guarantee that `transcripts` has one or more items.
+ */
+function TranscriptsBox({ transcripts: unsorted }: {
+  transcripts: Transcript[]
+}) {
+  // Make a shadow copy
+  const sorted = [...unsorted];
+  // Sort by reverse chronological order
+  sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
 
-function TranscriptTable(props: { group: GroupWithTranscripts }) {
+  const router = useRouter();
+  const getTranscriptAndIndex = () => {
+    const id = parseQueryString(router, "transcriptId");
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].transcriptId == id) return { t: sorted[i], i };
+    }
+    return { t: sorted[0], i: 0 };
+  };
+  const { t: transcript, i: transcriptIndex } = getTranscriptAndIndex();
+
+  const { data: summaries } = trpcNext.summaries.listToBeRenamed.useQuery(transcript.transcriptId);
+  let summary = null;
+  if (summaries) {
+    // Every transcript should have at least one summary which is the raw transcripts.
+    invariant(summaries.length);
+    const key = parseQueryString(router, "summaryKey");
+    const match = summaries.filter(s => s.summaryKey == key);
+    summary = match.length ? match[0] : summaries[0];
+  }
+
   return (
-    <>
-      <Heading size="sm" marginBottom={3}>会议历史</Heading>
-      <TableContainer>
-        <Table>
-          <Tbody>
-            {props.group.transcripts.map(t => {
-              return <TrLink key={t.transcriptId} href={`/groups/${props.group.id}/transcripts/${t.transcriptId}`}>
-                <Td>{prettifyDate(t.startedAt)}</Td>
-                <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
-                <Td>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Td>
-              </TrLink>;
-            })}
-          </Tbody>
-        </Table>
-      </TableContainer>
-      {!props.group.transcripts.length && <Center margin={10} color='gray'>
-        无会议历史。（会议结束后一小时之内会显示在这里。）
-      </Center>}
-    </>
+    <Flex direction="column" gap={sectionSpacing}>
+      <Flex>
+        <Button variant="ghost" leftIcon={<ChevronLeftIcon />}
+          isDisabled={transcriptIndex == 0} 
+          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex - 1].transcriptId)}
+        >前一次</Button>
+        <Spacer />
+        <Box>
+          <Select value={transcript.transcriptId} 
+            onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
+          >
+            {sorted.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
+              {`${prettifyDate(t.startedAt)}，${prettifyDuration(t.startedAt, t.endedAt)}${!idx ? "（最近通话）" : ""}`}
+            </option>)}
+          </Select>
+        </Box>
+        <Box marginLeft={componentSpacing}>
+          {summaries && 
+            <Select value={summary ? summary.summaryKey : ""}
+              onChange={ev => replaceUrlParam(router, "summaryKey", ev.target.value)}
+            >
+              {summaries.map(s => <option key={s.summaryKey} value={s.summaryKey}>{s.summaryKey}</option>)}
+            </Select>
+          }
+        </Box>
+        <Spacer />
+        <Button variant="ghost" rightIcon={<ChevronRightIcon />}
+          isDisabled={transcriptIndex == sorted.length - 1}
+          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex + 1].transcriptId)}
+        >后一次</Button>
+      </Flex>
+      <Card>
+        {/* marginStart to give space for bullet points and numbers in markdown */}
+        <CardBody marginStart={5}>
+          {summary && <ReactMarkdown>{summary.summary}</ReactMarkdown>}
+        </CardBody>
+      </Card>
+    </Flex>
   );
 }
