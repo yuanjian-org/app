@@ -181,7 +181,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
 } & SidebarProps) => {
   const router = useRouter();
-  const active = item.regex.test(router.pathname) ||  item.regex.test(router.asPath);
+  const active = item.regex.test(router.asPath);
   return (
     <Link 
       as={NextLink} 
