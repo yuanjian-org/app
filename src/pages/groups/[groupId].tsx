@@ -3,10 +3,10 @@ import {
   CardBody,
   Stack,
   Select,
-  Box,
   Button,
   Spacer,
   Flex,
+  Text,
 } from '@chakra-ui/react';
 import React, { ReactNode } from 'react';
 import AppLayout from "../../AppLayout";
@@ -21,9 +21,10 @@ import { parseQueryString, parseQueryStringOrUnknown } from '../../parseQueryStr
 import Loader from 'components/Loader';
 import ReactMarkdown from 'react-markdown';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { componentSpacing, sectionSpacing } from 'theme/metrics';
+import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { Group } from 'shared/Group';
 import replaceUrlParam from 'shared/replaceUrlParam';
+import { sidebarBreakpoint } from 'components/Navbars';
 
 export default function Page() {
   const router = useRouter();
@@ -48,9 +49,10 @@ function GroupBox({ group }: {
   return <Stack spacing={sectionSpacing}>
     <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} />
     {transcripts ? 
-      (transcripts.length ? <TranscriptsBox transcripts={transcripts} /> : "无会议历史。（会议结束后一小时之内会显示在这里。）")
-      :
-      <Loader />
+      (transcripts.length ?
+        <TranscriptsBox transcripts={transcripts} /> : 
+        <Text color="gray" marginTop={paragraphSpacing}>无会议历史。（会议结束后一小时之内会显示在这里。）</Text>
+      ) : <Loader />
     }
   </Stack>;
 }
@@ -90,11 +92,11 @@ function TranscriptsBox({ transcripts: unsorted }: {
     <Flex direction="column" gap={sectionSpacing}>
       <Flex>
         <Button variant="ghost" leftIcon={<ChevronLeftIcon />}
-          isDisabled={transcriptIndex == 0} 
-          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex - 1].transcriptId)}
+          isDisabled={transcriptIndex == sorted.length - 1}
+          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
         <Spacer />
-        <Box>
+        <Flex direction={{ base: "column", [sidebarBreakpoint]: "row" }} gap={componentSpacing}>
           <Select value={transcript.transcriptId} 
             onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
           >
@@ -102,28 +104,27 @@ function TranscriptsBox({ transcripts: unsorted }: {
               {`${prettifyDate(t.startedAt)}，${prettifyDuration(t.startedAt, t.endedAt)}${!idx ? "（最近通话）" : ""}`}
             </option>)}
           </Select>
-        </Box>
-        <Box marginLeft={componentSpacing}>
-          {summaries && 
-            <Select value={summary ? summary.summaryKey : ""}
+          {summaries && summary && 
+            <Select value={summary.summaryKey}
               onChange={ev => replaceUrlParam(router, "summaryKey", ev.target.value)}
             >
               {summaries.map(s => <option key={s.summaryKey} value={s.summaryKey}>{s.summaryKey}</option>)}
             </Select>
           }
-        </Box>
+        </Flex>
         <Spacer />
         <Button variant="ghost" rightIcon={<ChevronRightIcon />}
-          isDisabled={transcriptIndex == sorted.length - 1}
-          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex + 1].transcriptId)}
+          isDisabled={transcriptIndex == 0}
+          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex - 1].transcriptId)}        
         >后一次</Button>
       </Flex>
-      <Card>
-        {/* marginStart to give space for bullet points and numbers in markdown */}
-        <CardBody marginStart={5}>
-          {summary && <ReactMarkdown>{summary.summary}</ReactMarkdown>}
-        </CardBody>
-      </Card>
+      {!summary ? <Loader /> :
+        <Card>
+          <CardBody>
+            <ReactMarkdown>{summary.summary}</ReactMarkdown>
+          </CardBody>
+        </Card>
+      }
     </Flex>
   );
 }
