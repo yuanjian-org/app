@@ -36,7 +36,6 @@ import {
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
-import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { formatUserName } from 'shared/strings';
 
 export interface SidebarItem {
@@ -52,55 +51,55 @@ const sidebarItems: SidebarItem[] = [
     name: '我的会议',
     path: '/',
     icon: MdVideocam,
-    regex: /'^\/$|\/groups\/.'/,
+    regex: /^\/$|\/groups\/.*/,
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdGroup,
-    regex: /'\/interviews\/mine'/,
+    regex: /^\/interviews\/mine/,
     role: 'Interviewer',
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
     icon: MdScience,
-    regex: /'\/groups\/lab'/,
+    regex: /^\/groups\/lab/,
     role: 'SummaryEngineer',
   },
   {
     name: '管理用户',
     path: '/users',
     icon: MdPerson,
-    regex: /'\/user'/,
+    regex: /^\/users/,
     role: 'UserManager',
   },
   {
     name: '管理会议分组',
     path: '/groups',
     icon: MdGroups,
-    regex: /'^\/groups$'/,
+    regex: /^\/groups$/,
     role: 'GroupManager',
   },
   {
     name: '管理学生面试',
     path: '/interviews?type=mentee',
     icon: MdFace5,
-    regex: /'\/interviews\\?type=mentee'/,
+    regex: /^\/interviews\?type=mentee/,
     role: 'InterviewManager',
   },
   {
     name: '管理导师面试',
     path: '/interviews?type=mentor',
     icon: MdFaceUnlock,
-    regex: /'\/interviews\\?type=mentor'/,
+    regex: /^\/interviews\?type=mentor/,
     role: 'InterviewManager',
   },
   {
     name: '管理一对一',
     path: '/partnerships',
     icon: MdOutlineSyncAlt,
-    regex: /'^\/partnerships$'/,
+    regex: /^\/partnerships$/,
     role: 'PartnershipManager',
   },
 ];
@@ -111,7 +110,7 @@ function partnerships2Items(partnerships: Partnership[] | undefined): SidebarIte
     name: formatUserName(p.mentee.name, "formal"),
     icon: MdFace,
     path: `/partnerships/${p.id}`,
-    regex: /'\/partnerships\/.'/,
+    regex: new RegExp(`^\/partnerships\/${p.id}`),
   }));
 }
 

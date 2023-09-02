@@ -116,7 +116,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
       </Tbody>
     </Table>
 
-    <Text marginTop={sectionSpacing} fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
+    <Text marginTop={sectionSpacing} color="grey" fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
   </TableContainer>;
 }
 
