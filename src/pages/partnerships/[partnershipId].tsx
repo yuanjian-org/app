@@ -15,6 +15,7 @@ import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
+import Transcripts from 'components/Transcripts';
 
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryStringOrUnknown(useRouter(), 'partnershipId');
@@ -31,7 +32,7 @@ const Page: NextPageWithLayout = () => {
       [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
     }}>
       <GridItem>
-        <MenteeTabs partnershipId={partnershipId} menteeId={partnership.mentee.id} />
+        <MenteeTabs partnershipId={partnershipId} menteeId={partnership.mentee.id} groupId={partnership.group.id} />
       </GridItem>
       <GridItem>
         <PrivateNotes 
@@ -72,30 +73,27 @@ function PrivateNotes({ partnershipId, notes, loading }: {
   </Flex>;
 }
 
-function MenteeTabs({ partnershipId, menteeId }: {
+function MenteeTabs({ partnershipId, menteeId, groupId }: {
   partnershipId: string,
   menteeId: string,
+  groupId: string,
 }) {
 
   const TabHead = ({ children }: any) => <Text>{children}</Text>;
 
   return <TabsWithUrlParam isFitted isLazy>
     <TabList>
+      <Tab><TabHead>通话摘要</TabHead></Tab>
       <Tab><TabHead>申请材料</TabHead></Tab>
-      <Tab isDisabled><TabHead>通话摘要</TabHead></Tab>
-      <Tab isDisabled><TabHead>面试反馈</TabHead></Tab>
-      <Tab><TabHead>评估辅助</TabHead></Tab>
+      <Tab><TabHead>跟踪评估</TabHead></Tab>
     </TabList>
 
     <TabPanels>
       <TabPanel>
+        <Transcripts groupId={groupId} />
+      </TabPanel>
+      <TabPanel>
         <MenteeApplicant userId={menteeId} readonly />
-      </TabPanel>
-      <TabPanel>
-        TODO
-      </TabPanel>
-      <TabPanel>
-        TODO
       </TabPanel>
       <TabPanel>
         <AssessmentTabPanel partnershipId={partnershipId} />
