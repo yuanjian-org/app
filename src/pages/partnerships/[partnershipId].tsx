@@ -24,9 +24,7 @@ const Page: NextPageWithLayout = () => {
 
   return <>
     <MobileExperienceAlert marginBottom={paragraphSpacing} />
-    <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2}
-      showTranscriptCount showTranscriptLink
-    />
+    <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
     <Grid gap={10} templateColumns={{ 
       base: "1fr", 
       [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
