@@ -47,11 +47,11 @@ function GroupBox({ group }: {
   const { data: transcripts } = trpcNext.transcripts.list.useQuery(group.id);
 
   return <Stack spacing={sectionSpacing}>
-    <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} />
+    <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} marginBottom={paragraphSpacing} />
     {transcripts ? 
       (transcripts.length ?
         <TranscriptsBox transcripts={transcripts} /> : 
-        <Text color="gray" marginTop={paragraphSpacing}>无会议历史。（会议结束后一小时之内会显示在这里。）</Text>
+        <Text color="gray">无会议历史。（会议结束后一小时之内会显示在这里。）</Text>
       ) : <Loader />
     }
   </Stack>;
