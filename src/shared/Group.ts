@@ -18,18 +18,6 @@ export const zGroupCountingTranscripts = zGroup.merge(z.object({
 }));
 export type GroupCountingTranscripts = z.TypeOf<typeof zGroupCountingTranscripts>;
 
-export const zGroupWithTranscripts = zGroup.merge(z.object({
-  transcripts: z.array(z.object({
-    transcriptId: z.string(),
-    startedAt: z.date(),
-    endedAt: z.date(),
-    summaries: z.array(z.object({
-        summaryKey: z.string(),
-    }))
-  })),
-}));
-export type GroupWithTranscripts = z.TypeOf<typeof zGroupWithTranscripts>;
-
 export function isOwned(g: Group) {
   return g.partnershipId || g.interviewId || g.calibrationId;
 }

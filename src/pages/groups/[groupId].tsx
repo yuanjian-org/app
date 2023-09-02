@@ -1,73 +1,27 @@
-import {
-  StackDivider,
-  Stack,
-  Table,
-  Tbody,
-  Td,
-  Center,
-  Icon,
-  Heading,
-  TableContainer,
-} from '@chakra-ui/react';
-import React from 'react';
-import { NextPageWithLayout } from "../../NextPageWithLayout";
+import { Stack } from '@chakra-ui/react';
+import React, { ReactNode } from 'react';
 import AppLayout from "../../AppLayout";
-import { useRouter } from 'next/router';
-import { GroupWithTranscripts } from '../../shared/Group';
-import GroupBar from 'components/GroupBar';
 import { trpcNext } from "../../trpc";
+import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { prettifyDate, prettifyDuration } from 'shared/strings';
+import { useRouter } from 'next/router';
+import { parseQueryStringOrUnknown } from '../../parseQueryString';
 import Loader from 'components/Loader';
-import { MdChevronRight } from 'react-icons/md';
-import { parseQueryParameter } from '../../parseQueryParamter';
-import TrLink from 'components/TrLink';
+import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import Transcripts from 'components/Transcripts';
 
-const Page: NextPageWithLayout = () => <GroupCard />;
+export default function Page() {
+  const router = useRouter();
+  const groupId = parseQueryStringOrUnknown(router, "groupId");
+  const { data: group } = trpcNext.groups.get.useQuery(groupId);
 
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
-
-function GroupCard() {
-  const id = parseQueryParameter(useRouter(), "groupId");
-  const { data: group } : { data: GroupWithTranscripts | undefined } = trpcNext.groups.get.useQuery({ id });
-
-  return (<>
+  return <>
     <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
-    {group ? <GroupDetail group={group} /> : <Loader />}
-  </>);
-}
+    {!group ? <Loader /> : <Stack spacing={sectionSpacing}>
+      <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} marginBottom={paragraphSpacing} />
+      <Transcripts groupId={group.id} />
+    </Stack>}
+  </>;
+};
 
-function GroupDetail(props: { group: GroupWithTranscripts }) {
-  return (
-    <Stack divider={<StackDivider />} spacing={6}>
-      <GroupBar group={props.group} showJoinButton showSelf abbreviateOnMobile={false} />
-      <TranscriptTable group={props.group} />
-    </Stack>
-  );
-}
-
-function TranscriptTable(props: { group: GroupWithTranscripts }) {
-  return (
-    <>
-      <Heading size="sm" marginBottom={3}>会议历史</Heading>
-      <TableContainer>
-        <Table>
-          <Tbody>
-            {props.group.transcripts.map(t => {
-              return <TrLink key={t.transcriptId} href={`/groups/${props.group.id}/transcripts/${t.transcriptId}`}>
-                <Td>{prettifyDate(t.startedAt)}</Td>
-                <Td>{prettifyDuration(t.startedAt, t.endedAt)}</Td>
-                <Td>{t.summaries.length} 版摘要 <Icon as={MdChevronRight} /></Td>
-              </TrLink>;
-            })}
-          </Tbody>
-        </Table>
-      </TableContainer>
-      {!props.group.transcripts.length && <Center margin={10} color='gray'>
-        无会议历史。（会议结束后一小时之内会显示在这里。）
-      </Center>}
-    </>
-  );
-}
+Page.getLayout = (page: ReactNode) => <AppLayout>{page}</AppLayout>;
