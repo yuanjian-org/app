@@ -51,7 +51,8 @@ const sidebarItems: SidebarItem[] = [
     name: '我的会议',
     path: '/',
     icon: MdVideocam,
-    regex: /^\/$|\/groups\/.*/,
+    // match "/", "/groups/.*" but not "/groups/lab.*". "?" is a lookahead sign
+    regex: /^\/$|\/groups\/(?!lab).*/,
   },
   {
     name: '我的面试',
