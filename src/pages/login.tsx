@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import '@authing/guard-react18/dist/esm/guard.min.css';
 import guard from "../guard";
 import vercelBanner from '../../public/img/vercel-banner.svg';
+import { logToSentry } from 'shared/sentryLog';
 
 export default function Login() {
   const guardEffects = async () => {
@@ -21,6 +22,15 @@ export default function Login() {
   }
 
   useEffect(() => {
+    // if local storage contains user infos means the token is damaged or missing to login
+    const user = localStorage.getItem('_authing_user');
+    if (user) {
+      logToSentry('Authing token invalid at local storage',
+        {
+          email: JSON.parse(user).email,
+          tag: 'error',
+        })
+    }
     guardEffects()
   }, [])
 
@@ -34,10 +44,10 @@ export default function Login() {
       <Center>
         <Container as="footer">
           <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-            <Image 
-            src={vercelBanner} 
-            alt="Vercel Banner"  
-            height="30"
+            <Image
+              src={vercelBanner}
+              alt="Vercel Banner"
+              height="30"
             />
           </Link>
         </Container>
