@@ -218,4 +218,4 @@ const logout = async function (this: Guard) {
 	const authClient = await this.getAuthClient();
 	await authClient.logout();
 	localStorage.clear();
-}
+};

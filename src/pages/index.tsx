@@ -34,7 +34,7 @@ const Index: NextPageWithLayout = () => {
     {userHasName && !consentFormAccepted(user) && <ConsentModal />}
     <Meetings />
   </>;
-}
+};
 
 Index.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 

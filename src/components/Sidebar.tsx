@@ -32,7 +32,7 @@ import {
   MdFaceUnlock, 
   MdOutlineSyncAlt, 
   MdVideocam
-} from 'react-icons/md'
+} from 'react-icons/md';
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';

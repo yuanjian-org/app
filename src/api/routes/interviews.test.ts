@@ -46,7 +46,7 @@ describe('interviews', () => {
     }
 
     // TODO: Remove users
-  })
+  });
 
   it('`create` should create group', async () => {
     const interviewee = await getUserId(intervieweeEmail);

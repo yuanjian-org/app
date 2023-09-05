@@ -30,10 +30,10 @@ import {
   Box,
   UnorderedList,
   ListItem,
-} from '@chakra-ui/react'
-import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -88,8 +88,8 @@ const Page: NextPageWithLayout = () => {
         </TabPanel>
       </TabPanels>
     </TabsWithUrlParam>
-  </Flex>
-}
+  </Flex>;
+};
 
 Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
 
@@ -216,7 +216,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
     } finally {
       setSaving(false);
     }
-  }
+  };
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
@@ -272,7 +272,7 @@ function Calibrations({ type, calibrations, refetch }: {
     } while (calibrations.some(c => c.name === name));
     await trpc.calibrations.create.mutate({ type, name });
     refetch();
-  }
+  };
 
   const update = async (old: Calibration, name: string, active: boolean) => {
     if (old.name === name && old.active === active) return;

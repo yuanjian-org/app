@@ -25,10 +25,10 @@ import {
   Flex,
   TableContainer,
   Divider,
-} from '@chakra-ui/react'
-import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import User, { UserFilter } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
@@ -103,8 +103,8 @@ const Page: NextPageWithLayout = () => {
         </TableContainer>
       }
     </Flex>
-  </>
-}
+  </>;
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
@@ -131,7 +131,7 @@ function UserEditor(props: {
   const setRole = (e: any) => {
     if (e.target.checked) setRoles([...roles, e.target.value]);
     else setRoles(roles.filter(r => r !== e.target.value));
-  }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -149,7 +149,7 @@ function UserEditor(props: {
     } finally {
       setSaving(false);
     }
-  }
+  };
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
     <ModalContent>

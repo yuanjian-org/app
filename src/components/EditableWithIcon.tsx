@@ -7,8 +7,8 @@ import {
   EditableProps,
   EditableTextarea,
   ButtonGroup,
-} from '@chakra-ui/react'
-import React from 'react'
+} from '@chakra-ui/react';
+import React from 'react';
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 
 export default function EditableWithIcon({ mode, ...rest }: {
@@ -25,7 +25,7 @@ export default function EditableWithIcon({ mode, ...rest }: {
       </ButtonGroup>
       :
       <IconButton aria-label='Edit' icon={<EditIcon />} {...getEditButtonProps()} />;
-  }
+  };
 
   return <Editable {...rest}>
     <EditablePreview />

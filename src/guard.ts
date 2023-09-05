@@ -1,4 +1,4 @@
-import { Guard } from '@authing/guard-react18'
+import { Guard } from '@authing/guard-react18';
 import browserEnv from "browserEnv";
 
 const guard = new Guard({ 

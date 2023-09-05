@@ -2,8 +2,8 @@ import {
   Table,
   Tbody,
   Td,
-} from '@chakra-ui/react'
-import React from 'react'
+} from '@chakra-ui/react';
+import React from 'react';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import { useRouter } from 'next/router';

@@ -34,7 +34,7 @@ const Page: NextPageWithLayout = () => {
   const interviewerTestPassed = () => {
     const passed = meNoCache?.menteeInterviewerTestLastPassedAt;
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
-  }
+  };
 
   if (!data) return <Loader />;
 

@@ -1,10 +1,10 @@
 import {
   VStack,
   StackDivider
-} from '@chakra-ui/react'
-import React from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { trpcNext } from "../../trpc";
 import GroupBar from 'components/GroupBar';
 import Loader from 'components/Loader';
@@ -20,7 +20,7 @@ const Page: NextPageWithLayout = () => {
         .map(group => <GroupBar key={group.id} group={group} showSelf showTranscriptCount showTranscriptLink />)}
     </VStack>
   </>;
-}
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
