@@ -29,7 +29,7 @@ function formatData(data: any | undefined) {
         return "\nadditional data:{ \n" + str + "}";
     } else {
         return "ERROR - invalid data Type";
-    }
-}
+    };
+};
 
 export default logToSentry;
