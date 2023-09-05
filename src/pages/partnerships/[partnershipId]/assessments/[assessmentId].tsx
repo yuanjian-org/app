@@ -4,7 +4,7 @@ import AppLayout from "../../../../AppLayout";
 import trpc, { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from '../../../../parseQueryParamter';
+import { parseQueryStringOrUnknown } from '../../../../parseQueryString';
 import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
@@ -19,8 +19,8 @@ export default Page;
 
 function AssessmentEditor() {
   const router = useRouter();
-  const id = parseQueryParameter(router, "assessmentId");
-  const partnershipId = parseQueryParameter(router, "partnershipId");
+  const id = parseQueryStringOrUnknown(router, "assessmentId");
+  const partnershipId = parseQueryStringOrUnknown(router, "partnershipId");
   const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>(id);
 
   const save = useCallback(async (summary: string) => {

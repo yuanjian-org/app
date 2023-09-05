@@ -1,7 +1,7 @@
 import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem,
@@ -26,7 +26,7 @@ import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 
 const Page: NextPageWithLayout = () => {
-  const interviewId = parseQueryParameter(useRouter(), 'interviewId');
+  const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   const { data } = trpcNext.interviews.get.useQuery(interviewId);
   const { data: meNoCache } = trpcNext.users.meNoCache.useQuery();
   const [me] = useUserContext();
