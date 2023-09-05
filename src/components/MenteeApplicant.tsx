@@ -5,8 +5,8 @@ import {
   UnorderedList,
   ListItem,
   Heading,
-} from '@chakra-ui/react'
-import React from 'react'
+} from '@chakra-ui/react';
+import React from 'react';
 import { DownloadIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import trpc, { trpcNext } from 'trpc';

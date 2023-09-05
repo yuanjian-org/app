@@ -43,7 +43,7 @@ export default function UserFilterSelector({ filter, onChange }: {
       if (v == undefined) delete f[field];
       else f[field] = v;
       updateUrlParams(f);
-    }} />
+    }} />;
   };
 
   return <>

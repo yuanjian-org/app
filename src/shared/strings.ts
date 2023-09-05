@@ -36,7 +36,7 @@ export function prettifyDate(str: Date | string) {
 
 // TODO: Sort out this Date-is-not-actually-string nonsense
 export function diffInMinutes(from: Date | string, to: Date | string): number {
-  return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60)
+  return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
 }
 
 export function compareUUID(id1: string, id2: string): number {

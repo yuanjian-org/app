@@ -27,7 +27,7 @@ const get = procedure
   return {
     interviewFeedback: f,
     etag: date2etag(f.feedbackUpdatedAt),
-  }
+  };
 });
 
 async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: boolean) {
