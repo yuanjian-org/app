@@ -18,7 +18,7 @@ interface AppLayoutProps extends PropsWithChildren {
 export default function AppLayout(props: AppLayoutProps) {
   useEffect(() => {
     // Left-to-right layout
-    window.document.documentElement.dir = 'ltr'
+    window.document.documentElement.dir = 'ltr';
   });
 
   return (
@@ -27,7 +27,7 @@ export default function AppLayout(props: AppLayoutProps) {
     >
       <Guarded>{() => <AppContent {...props} />}</Guarded>
     </GuardProvider>
-  )
+  );
 }
 
 const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
