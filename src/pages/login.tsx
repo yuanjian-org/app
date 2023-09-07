@@ -28,22 +28,20 @@ export default function Login() {
       const u = JSON.parse(user);
       if (localStorage.getItem('_authing_token')) {
         logToSentry('INFO',
+          'Authing token is invalid at local storage',
+          u.email,
           {
-            message: 'Authing token is invalid at local storage',
-            email: u.email,
-            data: {
-              lastLogin: u.lastLogin,
-              tokenExpiredAt: u.tokenExpiredAt
-            }
-          })
+            lastLogin: u.lastLogin,
+            tokenExpiredAt: u.tokenExpiredAt
+          }
+        )
       } else {
         logToSentry('ERROR',
-          {
-            message: 'Authing token is missing at local storage',
-            email: u.email
-          })
+          'Authing token is missing at local storage',
+          u.email
+        )
       }
-    }
+  }
     guardEffects()
   }, [])
 
