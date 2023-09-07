@@ -92,7 +92,7 @@ const write = procedure
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: `Summaries with key "${crudeSummaryKey}" are read-only`,
-    })
+    });
   }
   // By design, this statement fails if the transcript doesn't exist.
   await db.Summary.upsert({
@@ -140,7 +140,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         // Only interested in meetings that refers to valid groups.
         const groupId = safeDecodeMeetingSubject(meeting.subject);
         if (!groupId || !(await db.Group.count({ where: { id: groupId } }))) {
-          console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`)
+          console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`);
           return;
         }
 
@@ -159,7 +159,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
               summaryKey: crudeSummaryKey,
             }
           }) > 0) {
-            console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`)
+            console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`);
             return;
           }
 
@@ -172,10 +172,10 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
                 transcriptId,
                 url: summary.download_address,
               });
-            })
+            });
         });
         await Promise.all(promises);
-      })
+      });
     await Promise.all(promises);
   }
   return ret;

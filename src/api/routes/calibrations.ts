@@ -25,7 +25,7 @@ const create = procedure
   .mutation(async ({ input }) =>
 {
   await createCalibration(input.type, input.name);
-})
+});
 
 /**
  * @returns the calibration id.
@@ -58,7 +58,7 @@ const update = procedure
 
   invariant(affected <= 1);
   if (!affected) throw notFoundError("面试讨论", input.id);
-})
+});
 
 const list = procedure
   .use(authUser("InterviewManager"))
@@ -70,7 +70,7 @@ const list = procedure
     where: { type },
     attributes: calibrationAttributes,
     include: calibrationInclude,
-  })
+  });
 });
 
 const listMine = procedure

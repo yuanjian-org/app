@@ -17,7 +17,7 @@ export async function submit({ form, entry }: Record<string, any>) {
 
   const name = entry.field_1;
   if (entry.exam_score < 120) {
-    console.log(`MenteeInterviewerTest not passed for ${name}. Igored.`)
+    console.log(`MenteeInterviewerTest not passed for ${name}. Igored.`);
     return;
   }
 

@@ -1,10 +1,10 @@
 import {
   Flex,
   Divider,
-} from '@chakra-ui/react'
-import React from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../../../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../../../NextPageWithLayout';
 import { trpcNext } from "../../../trpc";
 import Loader from 'components/Loader';
 import { PartnershipWithAssessments } from 'shared/Partnership';
@@ -31,7 +31,7 @@ const Page: NextPageWithLayout = () => {
         assessments={partnership?.assessments} />
     </Flex>
   </>;
-}
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 

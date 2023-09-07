@@ -6,7 +6,7 @@ import http from "http";
 import z, { TypeOf } from "zod";
 import { TRPCError } from '@trpc/server';
 
-const LOG_HEADER = "[TecentMeeting]"
+const LOG_HEADER = "[TecentMeeting]";
 
 const splitFirst = (s: string, separator: string) => {
   const idx = s.indexOf(separator);
@@ -53,7 +53,7 @@ const sign = (
     .update(tobeSigned)
     .digest('hex');
   return Buffer.from(signature, "utf8").toString('base64');
-}
+};
 
 /**
  * TODO: handle error responses
@@ -83,7 +83,7 @@ const tmRequest = async (
     now,
     pathWithQuery,
     bodyText
-  )
+  );
 
   const headers = {
     // "Accept": "*/*",
@@ -125,7 +125,7 @@ export async function createMeeting(
   startTimeSecond: number,
   endTimeSecond: number,
 ) {
-  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond}, ${endTimeSecond})`)
+  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond}, ${endTimeSecond})`);
 
   /* Sample request result:
   {
@@ -281,7 +281,7 @@ export async function listRecords(tmUserId: string) {
     record_meetings: z.array(zRecordMeetings).optional()
   });
 
-  var ret: TypeOf<typeof zRecordMeetings>[] = []
+  var ret: TypeOf<typeof zRecordMeetings>[] = [];
   var page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
@@ -292,7 +292,7 @@ export async function listRecords(tmUserId: string) {
       page_size: 20,  // max page size
       page
     }));
-    ret = ret.concat(res.record_meetings || [])
+    ret = ret.concat(res.record_meetings || []);
     if (page >= res.total_page) break;
     page++;
   }
