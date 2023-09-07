@@ -7,7 +7,7 @@ const zLogObject = z.object({
     //data: z.object({}).optional(),
     //data: z.array(z.string()).optional()
     data: z.string().optional()
-})
+});
 
 // _authing_user variable at browser local storage
 // only included keys of interest
@@ -32,4 +32,4 @@ export const logToSentry = (message: string, logDetail: logObject) => {
     if ((logDetail.tag) === 'info') {
         console.info(message, moment(), logDetail);
     }
-}
+};

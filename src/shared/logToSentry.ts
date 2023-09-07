@@ -18,7 +18,7 @@ const logToSentry = (tag: keyof typeof LogLevel, message: string, email?: string
 function formatLogger(email?: string, data?: any) {
     let dataStr = '';
     if (!data) {
-        dataStr = ''
+        dataStr = '';
     } else if (typeof data === 'string' || data instanceof String) {
         dataStr = '\ndata: ' + data;
     } else if (typeof data === 'object') {
