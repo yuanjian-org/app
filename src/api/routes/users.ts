@@ -247,6 +247,29 @@ const listPriviledgedUserDataAccess = procedure
   });
 });
 
+const remove = procedure
+  .use(authUser())
+  .input(z.object({
+    id: z.string(),
+  }))
+  .mutation(async ({ input, ctx }) => 
+{
+  const isUserOrPRManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
+  
+  if (!isUserOrPRManager) {
+    throw noPermissionError("用户", input.id);
+  }
+
+  const user = await db.User.findByPk(input.id);
+  if (!user) {
+    throw notFoundError("用户", input.id);
+  }
+
+  await user.destroy();
+  invalidateLocalUserCache();
+});
+
+
 export default router({
   me,
   meNoCache,
@@ -256,6 +279,7 @@ export default router({
   listPriviledgedUserDataAccess,
   getApplicant,
   updateApplication,
+  remove,
 });
 
 function checkUserFields(name: string | null, email: string) {
