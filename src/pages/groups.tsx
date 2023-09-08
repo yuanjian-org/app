@@ -18,10 +18,10 @@ import {
   Flex,
   Spacer,
   Checkbox
-} from '@chakra-ui/react'
-import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../NextPageWithLayout';
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
@@ -33,7 +33,7 @@ import { formatGroupName } from 'shared/strings';
 import { EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
-import QuestionIconTooltip from "../components/QuestionIconTooltip"
+import QuestionIconTooltip from "../components/QuestionIconTooltip";
 
 const Page: NextPageWithLayout = () => {
   const [userIds, setUserIds] = useState<string[]>([]);
@@ -89,8 +89,8 @@ const Page: NextPageWithLayout = () => {
       )}
     </VStack>
     {!data && <Loader />}
-  </>
-}
+  </>;
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
@@ -113,7 +113,7 @@ function GroupEditor(props: {
     setWorking(true);
     try {
       const group = structuredClone(props.group);
-      group.name = name
+      group.name = name;
       group.users = [
         ...newUserIds.map(n => ({ id: n, name: null })),
         ...users,
@@ -123,7 +123,7 @@ function GroupEditor(props: {
     } finally {
       setWorking(false);
     }
-  }
+  };
 
   const destroy = async () => {
     setConfirmingDeletion(false);

@@ -25,10 +25,10 @@ import {
   Flex,
   TableContainer,
   Divider,
-} from '@chakra-ui/react'
-import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import User, { UserFilter } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
@@ -55,8 +55,8 @@ const Page: NextPageWithLayout = () => {
   };
 
   return <>
-    {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor}/>}
-    {creatingNewUser && <UserEditor onClose={closeUserEditor}/>}
+    {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor} />}
+    {creatingNewUser && <UserEditor onClose={closeUserEditor} />}
 
     <Flex direction='column' gap={6}>
       <Wrap spacing={4} align="center">
@@ -86,14 +86,14 @@ const Page: NextPageWithLayout = () => {
                   <Td>{toPinyin(u.name ?? '')}</Td>
                   <Td>
                     <Wrap>
-                    {u.roles.map((r: Role) => {
-                      const rp = RoleProfiles[r];
-                      return <WrapItem key={r}>
-                        <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
-                          {rp.displayName}
-                        </Tag>
-                      </WrapItem>;
-                    })}
+                      {u.roles.map((r: Role) => {
+                        const rp = RoleProfiles[r];
+                        return <WrapItem key={r}>
+                          <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
+                            {rp.displayName}
+                          </Tag>
+                        </WrapItem>;
+                      })}
                     </Wrap>
                   </Td>
                 </Tr>
@@ -103,14 +103,14 @@ const Page: NextPageWithLayout = () => {
         </TableContainer>
       }
     </Flex>
-  </>
-}
+  </>;
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
 export default Page;
 
-function UserEditor(props: { 
+function UserEditor(props: {
   user?: User, // When absent, create a new user.
   onClose: () => void,
 }) {
@@ -131,7 +131,7 @@ function UserEditor(props: {
   const setRole = (e: any) => {
     if (e.target.checked) setRoles([...roles, e.target.value]);
     else setRoles(roles.filter(r => r !== e.target.value));
-  }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -149,6 +149,14 @@ function UserEditor(props: {
     } finally {
       setSaving(false);
     }
+  };
+
+  const deleteUser = async () => {
+    if (props.user && window.confirm("确定要删除这个用户吗？")) {
+      await trpc.users.remove.mutate({ id: props.user.id });
+      props.onClose();
+  }
+
   }
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
@@ -173,19 +181,22 @@ function UserEditor(props: {
               {AllRoles
                 .filter(r => isPermitted(me.roles, "PrivilegedRoleManager") || !RoleProfiles[r].privileged)
                 .map(r => {
-                const rp = RoleProfiles[r];
-                return (
-                  <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
-                    {rp.privileged ? "*" : ""} {rp.displayName}（{r}）
-                  </Checkbox>
-                );
-              })}
+                  const rp = RoleProfiles[r];
+                  return (
+                    <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
+                      {rp.privileged ? "*" : ""} {rp.displayName}（{r}）
+                    </Checkbox>
+                  );
+                })}
             </Stack>
           </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand' isLoading={saving} onClick={save} isDisabled={!validEmail || !validName}>保存</Button>
+        <Flex justifyContent="space-between" width="100%">
+          <Button variant='outline' colorScheme='red' onClick={deleteUser}>删除</Button>
+          <Button variant='brand' isLoading={saving} onClick={save} isDisabled={!validEmail || !validName}>保存</Button>
+        </Flex>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

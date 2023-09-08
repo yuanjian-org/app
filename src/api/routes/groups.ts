@@ -26,7 +26,7 @@ async function listGroups(userIds: string[], additionalWhere?: { [k: string]: an
       where: additionalWhere,
     });
   } else {
-    const gs = await findGroups(userIds, 'inclusive', groupCountingTranscriptsInclude, additionalWhere)
+    const gs = await findGroups(userIds, 'inclusive', groupCountingTranscriptsInclude, additionalWhere);
     return gs as GroupCountingTranscripts[];
   }
 }
@@ -100,7 +100,7 @@ export async function updateGroup(id: string, name: string | null, userIds: stri
       groupId: id,
       userId: uid,
       deletedAt: null,
-    }, { transaction })
+    }, { transaction });
   });
   await Promise.all(promises);
 
@@ -225,7 +225,7 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
       include: [db.GroupUser, ...(includes || [])],
       where: additionalWhere,
     }]
-  })
+  });
 
   const res = gus.filter(gu => {
     const groupUserIds = gu.group.groupUsers.map(gu => gu.userId);
@@ -298,7 +298,7 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
         others: formatNames(group.users.filter(u => u.id !== uid).map(u => u.name)),
         groupUrl: `${ctx.baseUrl}/groups/${group.id}`
       }
-    }
+    };
   });
 
   await email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);

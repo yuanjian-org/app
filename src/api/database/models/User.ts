@@ -3,6 +3,7 @@ import type {
 } from "sequelize";
 import {
   AllowNull,
+  BeforeDestroy,
   Column,
   HasMany,
   Index,
@@ -14,12 +15,15 @@ import {
   PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { DATE, JSONB, STRING, UUID, UUIDV4 } from "sequelize";
+import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
 import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
+import GroupUser from "./GroupUser";
+import Partnership from "./Partnership";
+
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
 @Fix
@@ -72,7 +76,23 @@ class User extends Model {
    */
 
   @HasMany(() => Interview)
+
   interviews: Interview[];
+
+  @BeforeDestroy
+  static async cascadeDelete(user: User, options: any) {
+
+      await GroupUser.destroy({
+        where: { userId: user.id },
+        ...options
+      });
+      await Partnership.destroy({
+        where: {
+          [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
+        },
+        ...options
+      });
+  }
 }
 
 export default User;

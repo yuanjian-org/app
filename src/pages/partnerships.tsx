@@ -19,10 +19,10 @@ import {
   Box,
   Link,
   TableContainer,
-} from '@chakra-ui/react'
-import React, { useState } from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -80,8 +80,8 @@ const Page: NextPageWithLayout = () => {
       </Tbody>
     </Table></TableContainer>}
 
-  </Flex>
-}
+  </Flex>;
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 
@@ -108,7 +108,7 @@ function AddModel(props: {
     } finally {
       setSaving(false);
     }
-  }
+  };
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
     <ModalContent>

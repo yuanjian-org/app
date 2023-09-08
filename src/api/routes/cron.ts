@@ -27,7 +27,7 @@ const syncCrudeSummaries = procedure
 
   return {
     syncedCrudeSummaries: summaries.map((t: any) => t.transcriptId),
-  }
+  };
 });
 
 export default router({

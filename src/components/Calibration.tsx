@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { trpcNext } from "../trpc";
 import { Calibration } from 'shared/Calibration';
 import Interviews from './Interviews';

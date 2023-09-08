@@ -20,7 +20,7 @@ import Transcripts from 'components/Transcripts';
 const Page: NextPageWithLayout = () => {
   const partnershipId = parseQueryStringOrUnknown(useRouter(), 'partnershipId');
   const { data: partnership } = trpcNext.partnerships.get.useQuery(partnershipId);
-  if (!partnership) return <Loader />
+  if (!partnership) return <Loader />;
 
   return <>
     <MobileExperienceAlert marginBottom={paragraphSpacing} />

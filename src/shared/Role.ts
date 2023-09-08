@@ -93,7 +93,7 @@ export const RoleProfiles: { [key: string]: {
     privileged: false,
     privilegedUserDataAccess: false,
   },
-}
+};
 
 type Role = ArrayElement<typeof AllRoles>;
 
