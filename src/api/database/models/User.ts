@@ -77,6 +77,8 @@ class User extends Model {
 
   @HasMany(() => Interview)
 
+  interviews: Interview[];
+
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
 
@@ -91,9 +93,6 @@ class User extends Model {
         ...options
       });
   }
-
-  interviews: Interview[];
-
 }
 
 export default User;
