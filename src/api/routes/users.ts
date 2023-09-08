@@ -248,18 +248,12 @@ const listPriviledgedUserDataAccess = procedure
 });
 
 const remove = procedure
-  .use(authUser())
+  .use(authUser("UserManager"))
   .input(z.object({
     id: z.string(),
   }))
   .mutation(async ({ input, ctx }) => 
 {
-  const isUserOrPRManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
-  
-  if (!isUserOrPRManager) {
-    throw noPermissionError("用户", input.id);
-  }
-
   const user = await db.User.findByPk(input.id);
   if (!user) {
     throw notFoundError("用户", input.id);
