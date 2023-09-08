@@ -1,21 +1,21 @@
 import {
   Flex,
   Divider,
-} from '@chakra-ui/react'
-import React from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../../../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../../../NextPageWithLayout';
 import { trpcNext } from "../../../trpc";
 import Loader from 'components/Loader';
 import { PartnershipWithAssessments } from 'shared/Partnership';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from '../../../parseQueryParamter';
+import { parseQueryStringOrUnknown } from '../../../parseQueryString';
 import { UserChips } from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import AssessmentsPanel from 'components/AssessmentsPanel';
 
 const Page: NextPageWithLayout = () => {
-  const partnershipId = parseQueryParameter(useRouter(), "partnershipId");
+  const partnershipId = parseQueryStringOrUnknown(useRouter(), "partnershipId");
   const { data: partnership } = trpcNext.partnerships.getWithAssessmentsDeprecated
     .useQuery<PartnershipWithAssessments | undefined>(partnershipId);
 
@@ -31,7 +31,7 @@ const Page: NextPageWithLayout = () => {
         assessments={partnership?.assessments} />
     </Flex>
   </>;
-}
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 

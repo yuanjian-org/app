@@ -32,21 +32,18 @@ import {
   MdFaceUnlock, 
   MdOutlineSyncAlt, 
   MdVideocam
-} from 'react-icons/md'
+} from 'react-icons/md';
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
-import { parseQueryParameter } from 'parseQueryParamter';
 import { formatUserName } from 'shared/strings';
 
 export interface SidebarItem {
   name: string,
   icon: IconType,
   path: string,
+  regex: RegExp,
   role?: Role,
-
-  basePath?: string,
-  queryParam?: string,
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -54,47 +51,56 @@ const sidebarItems: SidebarItem[] = [
     name: '我的会议',
     path: '/',
     icon: MdVideocam,
+    // match "/", "/groups/.*" but not "/groups/lab.*". "?" is a lookahead sign
+    regex: /^\/$|\/groups\/(?!lab).*/,
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdGroup,
+    regex: /^\/interviews\/mine/,
     role: 'Interviewer',
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
     icon: MdScience,
+    regex: /^\/groups\/lab/,
     role: 'SummaryEngineer',
   },
   {
     name: '管理用户',
     path: '/users',
     icon: MdPerson,
+    regex: /^\/users/,
     role: 'UserManager',
   },
   {
     name: '管理会议分组',
     path: '/groups',
     icon: MdGroups,
+    regex: /^\/groups$/,
     role: 'GroupManager',
   },
   {
     name: '管理学生面试',
     path: '/interviews?type=mentee',
     icon: MdFace5,
+    regex: /^\/interviews\?type=mentee/,
     role: 'InterviewManager',
   },
   {
     name: '管理导师面试',
     path: '/interviews?type=mentor',
     icon: MdFaceUnlock,
+    regex: /^\/interviews\?type=mentor/,
     role: 'InterviewManager',
   },
   {
     name: '管理一对一',
     path: '/partnerships',
     icon: MdOutlineSyncAlt,
+    regex: /^\/partnerships$/,
     role: 'PartnershipManager',
   },
 ];
@@ -105,8 +111,7 @@ function partnerships2Items(partnerships: Partnership[] | undefined): SidebarIte
     name: formatUserName(p.mentee.name, "formal"),
     icon: MdFace,
     path: `/partnerships/${p.id}`,
-    basePath: "/partnerships/",
-    queryParam: "partnershipId",
+    regex: new RegExp(`^\/partnerships\/${p.id}`),
   }));
 }
 
@@ -176,8 +181,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
 } & SidebarProps) => {
   const router = useRouter();
-  const active = item.path === router.pathname || 
-    item.path === item.basePath + parseQueryParameter(router, item.queryParam || "");
+  const active = item.regex.test(router.pathname) || item.regex.test(router.asPath);
   return (
     <Link 
       as={NextLink} 

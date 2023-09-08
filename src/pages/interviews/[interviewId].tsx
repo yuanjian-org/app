@@ -1,7 +1,7 @@
 import AppLayout from 'AppLayout';
 import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
-import { parseQueryParameter } from 'parseQueryParamter';
+import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem, Heading, Text, Link, Box } from '@chakra-ui/react';
@@ -17,7 +17,7 @@ import { Feedback } from 'shared/InterviewFeedback';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 
 const Page: NextPageWithLayout = () => {
-  const interviewId = parseQueryParameter(useRouter(), 'interviewId');
+  const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   // See Editor()'s comment on the reason for `catchTime: 0`
   const { data } = trpcNext.interviews.get.useQuery(interviewId, { cacheTime: 0 });
   const [me] = useUserContext();

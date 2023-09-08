@@ -4,10 +4,10 @@ import {
   TabPanels,
   TabPanel,
   Flex,
-} from '@chakra-ui/react'
-import React from 'react'
-import AppLayout from 'AppLayout'
-import { NextPageWithLayout } from '../../NextPageWithLayout'
+} from '@chakra-ui/react';
+import React from 'react';
+import AppLayout from 'AppLayout';
+import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { trpcNext } from "../../trpc";
 import Calibration from 'components/Calibration';
 import Interviews from 'components/Interviews';
@@ -39,7 +39,7 @@ const Page: NextPageWithLayout = () => {
       </TabPanels>
     </TabsWithUrlParam>
   </Flex>;
-}
+};
 
 Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
 export default Page;

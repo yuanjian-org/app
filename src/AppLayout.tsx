@@ -1,6 +1,6 @@
-import { Box } from '@chakra-ui/react'
-import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer'
-import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
+import { Box } from '@chakra-ui/react';
+import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer';
+import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 
 // Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
 import { GuardProvider } from '@authing/guard-react18';
@@ -9,8 +9,8 @@ import browserEnv from "./browserEnv";
 import trpc from "./trpc";
 import { BeatLoader } from 'react-spinners';
 import guard from './guard';
-import User from './shared/User'
-import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars'
+import User from './shared/User';
+import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
 
 interface AppLayoutProps extends PropsWithChildren {
   unlimitedPageWidth?: boolean,
@@ -18,7 +18,7 @@ interface AppLayoutProps extends PropsWithChildren {
 export default function AppLayout(props: AppLayoutProps) {
   useEffect(() => {
     // Left-to-right layout
-    window.document.documentElement.dir = 'ltr'
+    window.document.documentElement.dir = 'ltr';
   });
 
   return (
@@ -27,7 +27,7 @@ export default function AppLayout(props: AppLayoutProps) {
     >
       <Guarded>{() => <AppContent {...props} />}</Guarded>
     </GuardProvider>
-  )
+  );
 }
 
 const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
@@ -62,11 +62,11 @@ const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
         justifyContent: "center",
         alignItems: "center",
       }}
-    />
+    />;
   }
   return <UserContext.Provider value={[user, setUser]}>
     {props.children(user)}
-  </UserContext.Provider>
+  </UserContext.Provider>;
 };
 
 function AppContent(props: AppLayoutProps) {

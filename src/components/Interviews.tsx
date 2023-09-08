@@ -11,8 +11,8 @@ import {
   Text,
   Tooltip,
   HStack,
-} from '@chakra-ui/react'
-import React from 'react'
+} from '@chakra-ui/react';
+import React from 'react';
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
@@ -93,7 +93,7 @@ export default function Interviews({ interviews, forCalibration }: {
       </Tbody>
     </Table>
     
-    <Text marginTop={sectionSpacing} fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
+    <Text marginTop={sectionSpacing} color="grey" fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
   </TableContainer>;
 }
 

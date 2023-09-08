@@ -22,17 +22,21 @@ class Summary extends Model {
   @Column(STRING)
   transcriptId: string;
 
-  @BelongsTo(() => Transcript)
-  transcript: Transcript;
-
+  // TODO: rename to `key`
   @PrimaryKey
   @Column(STRING)
-  // TODO: rename to `key`
   summaryKey: string;
 
-  @Column(STRING(1 * 1024 * 1024))
   // TODO: rename to `text`
+  @Column(STRING(1 * 1024 * 1024))
   summary: string;
+
+  /**
+   * Associations
+   */
+
+  @BelongsTo(() => Transcript)
+  transcript: Transcript;
 }
 
 export default Summary;

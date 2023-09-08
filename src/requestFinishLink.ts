@@ -2,7 +2,7 @@ import { AnyRouter } from "@trpc/server";
 import { TRPCClientError, TRPCLink } from "@trpc/client";
 import { observable, tap } from "@trpc/server/observable";
 import { toast } from "react-toastify";
-import { AuthenticationClient } from 'authing-js-sdk'
+import { AuthenticationClient } from 'authing-js-sdk';
 import browserEnv from "./browserEnv";
 import Router from "next/router";
 const authenticationClient = new AuthenticationClient({

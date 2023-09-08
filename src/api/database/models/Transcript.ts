@@ -29,10 +29,10 @@ class Transcript extends Model {
   group: Group;
 
   @Column(DATE)
-  startedAt: Date;
+  startedAt: string;
 
   @Column(DATE)
-  endedAt: Date;
+  endedAt: string;
 
   @HasMany(() => Summary)
   summaries: Summary[];

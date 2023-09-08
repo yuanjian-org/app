@@ -1,4 +1,4 @@
-import { Center, Container, Flex, Link } from '@chakra-ui/react'
+import { Center, Container, Flex, Link } from '@chakra-ui/react';
 import Image from "next/image";
 import { useEffect } from 'react';
 import '@authing/guard-react18/dist/esm/guard.min.css';
@@ -8,21 +8,21 @@ import vercelBanner from '../../public/img/vercel-banner.svg';
 export default function Login() {
   const guardEffects = async () => {
     guard.start('#authing-guard-container').then(userInfo => {
-      console.log('guard.start:', userInfo)
-    })
+      console.log('guard.start:', userInfo);
+    });
 
     guard.on('load', (e) => {
-      console.log('guard.on load:', e)
-    })
+      console.log('guard.on load:', e);
+    });
 
     guard.on('login', userInfo => {
       location.href = '/';
-    })
-  }
+    });
+  };
 
   useEffect(() => {
-    guardEffects()
-  }, [])
+    guardEffects();
+  }, []);
 
   return (
     <Flex
@@ -43,5 +43,5 @@ export default function Login() {
         </Container>
       </Center>
     </Flex>
-  )
+  );
 }

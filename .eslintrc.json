@@ -2,6 +2,7 @@
   "extends": "next/core-web-vitals",
   "rules": {
     "object-curly-spacing": ["warn", "always"],
+    "semi":["warn", "always"],
     "import/no-restricted-paths": ["error",
     {
       "zones": [{

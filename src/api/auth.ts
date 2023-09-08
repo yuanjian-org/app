@@ -12,7 +12,7 @@ import { emailRoleIgnoreError } from './sendgrid';
 import User from "../shared/User";
 import { userAttributes } from "./database/models/attributesAndIncludes";
 
-const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000
+const USER_CACHE_TTL_IN_MS = 60 * 60 * 1000;
 
 /**
  * Authenticate for APIs used by applications as opposed to end users. These applications should use
@@ -52,7 +52,7 @@ const noTokenError = () => new TRPCError({
 const invalidTokenError = () => new TRPCError({
   code: 'BAD_REQUEST',
   message: 'Invalid authorization token',
-})
+});
 
 const forbiddenError = () => new TRPCError({
   code: 'FORBIDDEN',

@@ -1,14 +1,16 @@
 import { procedure, router } from "../trpc";
-import { authIntegration } from "../auth";
+import { authIntegration, authUser } from "../auth";
 import { z } from "zod";
-import Transcript from "../database/models/Transcript";
-import Summary from "../database/models/Summary";
+import db from "../database/db";
 import { getRecordURLs, listRecords } from "../TencentMeeting";
 import invariant from "tiny-invariant";
-import Group from "../database/models/Group";
 import { TRPCError } from "@trpc/server";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
+import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
+import { zSummary } from "shared/Summary";
+import { notFoundError } from "api/errors";
+import { checkPermissionForGroup } from "./groups";
 
 const crudeSummaryKey = "原始文字";
 
@@ -20,87 +22,80 @@ export interface CrudeSummaryDescriptor {
   url: string,
 };
 
-const zSummariesListInput = z.object({
-  key: z.string(),
-  excludeTranscriptsWithKey: z.string().optional(),
-});
-
-type SummariesListInput = z.TypeOf<typeof zSummariesListInput>;
-
 /**
- * Return all summaries identified by the summary key `key`. If `excludeTranscriptsWithKey` is specified, exclude
- * summaries for the transcripts that already have summaries identified by this key.
+ * See docs/Summarization.md for details.
  * 
- * See docs/summarization.md for usage.
+ * @param excludeTranscriptsWithKey If specified, exclude summaries for the transcripts that already have summaries
+ * identified by this key.
  * 
- * Example:
- * 
- * $ curl -G https://${HOST}/api/v1/summaries.list \
- *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
- *    --data-urlencode 'input={ "key": "SummaryKey1", "excludeTranscriptsWithKey": "SummaryKey2" }'
+ * TODO: rename function to something like listRawTranscripts, hardcode key to use raw transcript's summary key.
  */
-const list = procedure
+const listForIntegration = procedure
   .use(authIntegration())
-  .input(zSummariesListInput)
-  .output(
-    z.array(z.object({
-      transcriptId: z.string(),
-      summary: z.string(),
-    }))
-  ).query(async ({ input }: { input: SummariesListInput }) => 
+  .input(z.object({
+    key: z.string(),
+    excludeTranscriptsWithKey: z.string().optional(),
+  }))
+  .output(z.array(zSummary))
+  .query(async ({ input }) => 
 {
   // TODO: Optimize and use a single query to return final results.
-  const summaries = await Summary.findAll({ 
-    where: { summaryKey: input.key },
-    attributes: ['transcriptId', 'summary'],
+  const summaries = await db.Summary.findAll({ 
+    where: { 
+      summaryKey: input.key,
+    },
+    attributes: summaryAttributes,
   });
 
-  const skippedTranscriptIds = input.excludeTranscriptsWithKey ? (await Summary.findAll({
+  const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] : (await db.Summary.findAll({
     where: { summaryKey: input.excludeTranscriptsWithKey },
     attributes: ['transcriptId'],
-  })).map(s => s.transcriptId) : [];
+  })).map(s => s.transcriptId);
 
-  return summaries
-    .filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+  return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+});
+
+const list = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(z.array(zSummary))
+  .query(async ({ ctx, input: transcriptId }) => 
+{
+  const t = await db.Transcript.findByPk(transcriptId, {
+    attributes: ["transcriptId"],
+    include: [{
+      model: db.Group,
+      attributes: groupAttributes,
+      include: groupInclude,
+    }, {
+      model: db.Summary,
+      attributes: summaryAttributes,
+    }]
+  });
+
+  if (!t) throw notFoundError("会议转录", transcriptId);
+
+  checkPermissionForGroup(ctx.user, t.group);
+
+  return t.summaries;
 });
 
 /**
- * Upload a summary for a transcript. Each summary is identified by `transcriptId` and `summaryKey`.
- * Uploading a summary that already exists overwrites it.
- * 
- * See docs/summarization.md for usage.
- * 
- * @param transcriptId Returned from /api/v1/summaries.list
- * @param summaryKey An arbitrary string determined by the caller
- * 
- * Example:
- * 
- * $ curl -X POST https://${HOST}/api/v1/summaries.write \
- *    -H "Content-Type: application/json" \
- *    -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
- *    -d '{ \
- *      "transcriptId": "1671726726708793345", \
- *      "summaryKey": "llm_v1", \
- *      "summary": "..." }'
+* See docs/Summarization.md for details.
  */
 const write = procedure
   .use(authIntegration())
-  .input(
-    z.object({ 
-      transcriptId: z.string(),
-      summaryKey: z.string(),
-      summary: z.string(),
-    })
-  ).mutation(async ({ input }) => 
+  .input(zSummary)
+  .mutation(async ({ input }) => 
 {
   if (input.summaryKey === crudeSummaryKey) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: `Summaries with key "${crudeSummaryKey}" are read-only`,
-    })
+    });
   }
   // By design, this statement fails if the transcript doesn't exist.
-  await Summary.upsert({
+  await db.Summary.upsert({
     transcriptId: input.transcriptId,
     summaryKey: input.summaryKey,
     summary: input.summary,
@@ -108,20 +103,21 @@ const write = procedure
 });
 
 export default router({
-  list,
+  list: listForIntegration,
+  listToBeRenamed: list,  // TODO: rename to `list`
   write,
 });
 
 export async function saveCrudeSummary(meta: CrudeSummaryDescriptor, summary: string) {
   // `upsert` not `insert` because the system may fail after inserting the transcript row and before inserting the 
   // summary.
-  await Transcript.upsert({
+  await db.Transcript.upsert({
     transcriptId: meta.transcriptId,
     groupId: meta.groupId,
     startedAt: meta.startedAt,
     endedAt: meta.endedAt,
   });
-  await Summary.create({
+  await db.Summary.create({
     transcriptId: meta.transcriptId,
     summaryKey: crudeSummaryKey,
     summary
@@ -143,8 +139,8 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
       .map(async meeting => {
         // Only interested in meetings that refers to valid groups.
         const groupId = safeDecodeMeetingSubject(meeting.subject);
-        if (!groupId || !(await Group.count({ where: { id: groupId } }))) {
-          console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`)
+        if (!groupId || !(await db.Group.count({ where: { id: groupId } }))) {
+          console.log(`Ignoring invalid meeting subject or non-existing group "${meeting.subject}"`);
           return;
         }
 
@@ -157,13 +153,13 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         const promises = record.record_files.map(async file => {
           // Only interested in records that we don't already have.
           const transcriptId = file.record_file_id;
-          if (await Summary.count({
+          if (await db.Summary.count({
             where: {
               transcriptId,
               summaryKey: crudeSummaryKey,
             }
           }) > 0) {
-            console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`)
+            console.log(`Ignoring existing crude summaries for transcript "${transcriptId}"`);
             return;
           }
 
@@ -176,10 +172,10 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
                 transcriptId,
                 url: summary.download_address,
               });
-            })
+            });
         });
         await Promise.all(promises);
-      })
+      });
     await Promise.all(promises);
   }
   return ret;

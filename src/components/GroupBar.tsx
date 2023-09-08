@@ -70,7 +70,7 @@ export default function GroupBar({
       // We should uncomment this line and remove this above catch block if we pop the page in a new window.
       // setJoining(false);
     }
-  }
+  };
 
   if (showGroupName == undefined) showGroupName = true;
 
