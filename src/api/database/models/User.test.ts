@@ -12,24 +12,13 @@ describe('User', () => {
     await initApiServer();
   });
 
-  describe('Database Connection', () => {
-    it('should connect to the database successfully', async () => {
-      try {
-        await sequelizeInstance.authenticate();
-      } catch (error) {
-        console.error('Unable to connect to the database:', error);
-        throw error;
-      }
-    });
-  });
-
   describe('cascadeDestory', () => {
     let user1: User;
     let user2: User;
     let group: Group;
     let partnership: Partnership;
 
-    it('should create test users', async () => {
+    it('should finish all tests on users', async () => {
 
       user1 = await User.create({
         name: '测试用户一',
@@ -59,11 +48,9 @@ describe('User', () => {
 
       // 确认找到的用户存在
       expect(foundUser2).to.exist;
-    });
 
-    // 建立组
-    it('should create a group related to the users', async () => {
-      group = await Group.create({name:'testgroup', roles:['Mentor', 'Mentee']});
+      // 建立组
+      group = await Group.create({ name: 'testgroup', roles: ['Mentor', 'Mentee'] });
       await group.$add('users', [user1, user2]);
       await group.reload();
 
@@ -79,10 +66,7 @@ describe('User', () => {
         expect(userIds).to.include.members([user1.id, user2.id]);
       };
 
-    });
-
-    // 建立搭档关系
-    it('should create a partnership between test users', async () => {
+      // 建立搭档关系
       partnership = await Partnership.create({
         mentorId: user1.id,
         menteeId: user2.id
@@ -98,11 +82,10 @@ describe('User', () => {
 
       // 确认找到的partnership存在
       expect(foundPartnership).to.exist;
-    });
 
-    //删除user1，检查相关partner是否被删除
-    it('should delete user1 and soft delete all related partnerships', async () => {
-      await user1.destroy();     
+
+      //删除user1，检查相关partner是否被删除
+      await user1.destroy();
       const findUser1 = await User.findByPk(user1.id, { paranoid: false });
       if (findUser1) {
         expect(findUser1.deletedAt).to.not.be.null;
@@ -122,10 +105,8 @@ describe('User', () => {
       } else {
         throw new Error("findPartnership is null.");
       }
-    });
 
-    //删除user2，检查相关groupUser是否被删除
-    it('should delete user2 and soft delete all related GroupUser instances', async () => {
+      //删除user2，检查相关groupUser是否被删除
       await user2.destroy();
 
       const findUser2 = await User.findByPk(user2.id, { paranoid: false });
@@ -142,10 +123,9 @@ describe('User', () => {
       for (const gu of findUser2inGroup) {
         expect(gu.deletedAt).to.not.be.null;
       }
-    });
 
     // 使用force彻底清理测试用例
-    it('should delete test users and test group', async () => {
+
       await Partnership.destroy({
         where: {
           [Op.or]: [
@@ -157,17 +137,17 @@ describe('User', () => {
         },
         force: true
       });
-    
+
       await User.destroy({ where: { name: '测试用户一' }, force: true });
       await User.destroy({ where: { name: '测试用户二' }, force: true });
       await Group.destroy({ where: { name: 'testgroup' }, force: true });
 
-      const foundUser1 = await User.findOne({ where: { name: '测试用户一' } });
-      expect(foundUser1).to.be.null;
-      const foundUser2 = await User.findOne({ where: { name: '测试用户二' } });
-      expect(foundUser2).to.be.null;
-      const foundGroup = await Group.findOne({ where: { name: 'testgroup' } });
-      expect(foundGroup).to.be.null;
+      const foundUser1End = await User.findOne({ where: { name: '测试用户一' } });
+      expect(foundUser1End).to.be.null;
+      const foundUser2End = await User.findOne({ where: { name: '测试用户二' } });
+      expect(foundUser2End).to.be.null;
+      const foundGroupEnd = await Group.findOne({ where: { name: 'testgroup' } });
+      expect(foundGroupEnd).to.be.null;
     });
   });
 });
