@@ -155,8 +155,7 @@ function UserEditor(props: {
     if (props.user && window.confirm("确定要删除这个用户吗？")) {
       await trpc.users.remove.mutate({ id: props.user.id });
       props.onClose();
-  }
-
+    }
   };
 
   return <ModalWithBackdrop isOpen onClose={props.onClose}>
