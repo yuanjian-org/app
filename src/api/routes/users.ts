@@ -3,7 +3,7 @@ import { z } from "zod";
 import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/Role";
 import db from "../database/db";
 import { Op } from "sequelize";
-import { authUser, invalidateLocalUserCache } from "../auth";
+import { authUser } from "../auth";
 import User, { zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
@@ -19,21 +19,6 @@ const me = procedure
   .use(authUser())
   .output(zUser)
   .query(async ({ ctx }) => ctx.user);
-
-const meNoCache = procedure
-  .use(authUser())
-  .output(zUser)
-  .query(async ({ ctx }) => 
-{
-  // invalidate catch so next time `me` will also return fresh data
-  invalidateLocalUserCache();
-
-  const user = await db.User.findByPk(ctx.user.id, {
-    attributes: userAttributes,
-  });
-  invariant(user);
-  return user;
-});
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -141,7 +126,6 @@ const update = procedure
       email: input.email,
     } : {},
   });
-  invalidateLocalUserCache();
 });
 
 /**
@@ -231,7 +215,7 @@ const updateApplication = procedure
 const listPriviledgedUserDataAccess = procedure
   .use(authUser())
   .output(z.array(z.object({
-    name: z.string(),
+    name: z.string().nullable(),
     roles: zRoles,
   })))
   .query(async () => 
@@ -260,13 +244,11 @@ const remove = procedure
   }
 
   await user.destroy();
-  invalidateLocalUserCache();
 });
 
 
 export default router({
   me,
-  meNoCache,
   create,
   list,
   update,

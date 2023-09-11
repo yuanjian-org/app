@@ -28,11 +28,10 @@ import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 const Page: NextPageWithLayout = () => {
   const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   const { data } = trpcNext.interviews.get.useQuery(interviewId);
-  const { data: meNoCache } = trpcNext.users.meNoCache.useQuery();
   const [me] = useUserContext();
 
   const interviewerTestPassed = () => {
-    const passed = meNoCache?.menteeInterviewerTestLastPassedAt;
+    const passed = me.menteeInterviewerTestLastPassedAt;
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
   };
 
@@ -53,7 +52,7 @@ const Page: NextPageWithLayout = () => {
 
     {/* <GroupBar group={interview.group} showGroupName={false} showJoinButton marginBottom={8} /> */}
 
-    {!meNoCache ? <Loader /> : !interviewerTestPassed() ? <PassTestFirst /> :
+    {!interviewerTestPassed() ? <PassTestFirst /> :
       <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "1fr 1fr" }} gap={sectionSpacing}>
         <GridItem>
           <Flex direction="column" gap={sectionSpacing}>
