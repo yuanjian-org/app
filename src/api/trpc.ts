@@ -1,5 +1,5 @@
 import { initTRPC } from '@trpc/server';
-import { Context } from "./context";
+import { Context } from 'pages/api/v1/[trpc]';
 
 const trpc = initTRPC.context<Context>().create();
 

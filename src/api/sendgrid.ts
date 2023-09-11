@@ -36,7 +36,7 @@ export async function email(templateId: string, personalization: Personalization
   // TODO: Use mocking instead
   if (typeof global.it === 'function') return;
 
-  // Always attach `base_url` as dynamic template data
+  // Always attach `baseUrl` as dynamic template data
   const ps: any[] = structuredClone(personalization);
   for (const p of ps) {
     if ('dynamicTemplateData' in p) {
@@ -56,7 +56,7 @@ export async function email(templateId: string, personalization: Personalization
     personalizations: ps,
     templateId,
     from: {
-      email: 'app@yuanjian.org',
+      email: 'yuantu@yuanjian.org',
       name: '远图',
     },
     replyTo: {

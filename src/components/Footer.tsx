@@ -1,19 +1,11 @@
-/*eslint-disable*/
-
-import { Center, Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
-import vercelBanner from '../../public/img/vercel-banner.svg';
-import Image from "next/image";
+import { Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
 
 export const footerMarginTop = "80px";
 export const footerBreakpoint = "lg";
 
 export default function Footer() {
   const color = 'gray.400';
-  const FooterItem = (props: any) =>
-    <ListItem marginEnd={{
-      base: '20px',
-      md: '44px'
-    }}>{props.children}</ListItem>;
+  const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
 
   return (
     <Flex
@@ -33,15 +25,14 @@ export default function Footer() {
     >
       <Text
         color={color}
+        fontWeight='500'
         textAlign={{
           base: 'center',
           [footerBreakpoint]: 'start'
         }}
-        paddingBottom={{ base: '20px', [footerBreakpoint]: '0px' }}>
-        {' '}
-        <Text as='span' fontWeight='500' marginStart='4px'>
-          &copy; {new Date().getFullYear()} 远见教育基金会
-        </Text>
+        paddingBottom={{ base: '20px', [footerBreakpoint]: '0px' }}
+      >
+        &copy; {new Date().getFullYear()} 远见教育基金会
       </Text>
       <List display='flex'>
         <FooterItem>
@@ -59,13 +50,6 @@ export default function Footer() {
             报告问题
           </Link>
         </FooterItem>
-        <Center opacity='50%'>
-          <ListItem>
-              <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-                <Image src={vercelBanner} alt="Vercel Banner" height="22" />
-              </Link>
-          </ListItem>
-        </Center>
       </List>
     </Flex>
   );

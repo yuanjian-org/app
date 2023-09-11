@@ -79,12 +79,3 @@ graph TD;
     src[the rest of src]-->|ok|src/shared;
     src/api-->|ok|src/shared;
 ```
-
-<br>
-<br>
-<br>
-<div class="vercel banner">
-<a href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-  <Img src="./public/img/vercel-banner.svg" alt="Vercel Banner" />
-</a>
-</div>
