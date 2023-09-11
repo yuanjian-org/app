@@ -26,7 +26,6 @@ import {
 } from 'react-icons/fi';
 import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
-import { Guard, useGuard } from "@authing/guard-react18";
 import { useUserContext } from 'UserContext';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
@@ -114,7 +113,6 @@ interface TopbarProps extends FlexProps {
 }
 
 const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
-	const guard = useGuard();
 	const [user] = useUserContext();
 
   return (
@@ -198,24 +196,11 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
                 <LockIcon marginRight={1} />谁能看到我的数据
               </MenuItem>
               <MenuDivider />
-              <MenuItem
-                onClick={async () => {
-                  // Wait until this is fixed
-                  // https://github.com/Authing/Guard/issues/179
-                  await logout.call(guard);
-                  location.href = '/';
-                }}              
-              >退出登录</MenuItem>
+              <MenuItem>退出登录</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
       </HStack>
     </Flex>
   );
-};
-
-const logout = async function (this: Guard) {
-	const authClient = await this.getAuthClient();
-	await authClient.logout();
-	localStorage.clear();
 };

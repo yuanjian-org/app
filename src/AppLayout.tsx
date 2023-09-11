@@ -1,69 +1,46 @@
-import { Box } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer';
-import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 
-// Code example: https://github.com/Authing/Guard/tree/dev-v6/examples/guard-nextjs-react18
-import { GuardProvider } from '@authing/guard-react18';
 import UserContext from "./UserContext";
-import browserEnv from "./browserEnv";
-import trpc from "./trpc";
-import { BeatLoader } from 'react-spinners';
-import guard from './guard';
+import trpc, { trpcNext } from "./trpc";
 import User from './shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
+import { useSession, signIn, signOut } from "next-auth/react";
+import Loader from 'components/Loader';
+import invariant from "tiny-invariant";
 
 type AppLayoutProps = {
   unlimitedPageWidth?: boolean,
 } & PropsWithChildren;
 
 export default function AppLayout(props: AppLayoutProps) {
-  return (
-    <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
-      redirectUri={typeof window !== 'undefined' ? (location.origin + '/callback') : ''}
-    >
-      <Guarded>{() => <AppContent {...props} />}</Guarded>
-    </GuardProvider>
-  );
-}
-
-const Guarded: FC<{ children: (_: User) => ReactNode }> = (props) => {
   const [user, setUser] = useState<User | null>(null);
-  const userFetchedRef = useRef(false);
 
+  // TODO: combine what userSession().data returns and our own User object.
+  const { status } = useSession();
+
+  // TODO: simplify the logic between useSession and setUser
   useEffect(() => {
-    const fetchUser = async () => {
-      if (await guard.trackSession()) {
-        // For some reason ts cries when `as User` is absent
-        setUser(await trpc.users.me.query() as User);
-      } else {
-        location.href = '/login';
-      }
-    };
+    const fetchUser = async () => setUser(await trpc.users.me.query());
+    if (status == "authenticated") fetchUser();
+  }, [status]);
 
-    // Avoid React calling fetchUser() twice which is expensive.
-    // Reference: https://upmostly.com/tutorials/why-is-my-useeffect-hook-running-twice-in-react
-    if (userFetchedRef.current) return;
-    userFetchedRef.current = true;
-    fetchUser();
-  }, []);
-
-  if (!user) {
-    // Redirecting...
-    return <BeatLoader
-      color="rgba(54, 89, 214, 1)"
-      cssOverride={{
-        display: "flex",
-        alignContent: "center",
-        height: "100vh",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    />;
+  if (status == "loading") {
+    return <Loader />;
+  } else if (status == "unauthenticated") {
+    return <Button onClick={() => signIn('sendgrid', { email: 'user@company.com' })}>Sign In</Button>;
+  } else {
+    invariant(status == "authenticated");
+    if (!user) {
+      return <Loader />;
+    } else {
+      return <UserContext.Provider value={[user, setUser]}>
+        <AppContent {...props} />
+      </UserContext.Provider>;
+    }
   }
-  return <UserContext.Provider value={[user, setUser]}>
-    {props.children(user)}
-  </UserContext.Provider>;
-};
+}
 
 function AppContent(props: AppLayoutProps) {
   return (
