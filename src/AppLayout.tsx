@@ -12,15 +12,11 @@ import guard from './guard';
 import User from './shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
 
-interface AppLayoutProps extends PropsWithChildren {
+type AppLayoutProps = {
   unlimitedPageWidth?: boolean,
-}
-export default function AppLayout(props: AppLayoutProps) {
-  useEffect(() => {
-    // Left-to-right layout
-    window.document.documentElement.dir = 'ltr';
-  });
+} & PropsWithChildren;
 
+export default function AppLayout(props: AppLayoutProps) {
   return (
     <GuardProvider appId={browserEnv.NEXT_PUBLIC_AUTHING_APP_ID}
       redirectUri={typeof window !== 'undefined' ? (location.origin + '/callback') : ''}

@@ -10,11 +10,9 @@ import { ToastContainer } from "react-toastify";
 import '../app.css';
 import 'react-toastify/dist/ReactToastify.min.css';
 
-type AppPropsWithLayout = AppProps & {
+function MyApp ({ Component, pageProps }: {
   Component: NextPageWithLayout
-}
-
-function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
+} & AppProps) {
   const getLayout = Component.getLayout || (page => page);
 
   return (
@@ -24,7 +22,9 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <meta name='theme-color' content='#000000' />
       </Head>
+
       {getLayout(<Component {...pageProps}></Component>)}
+
       <ToastContainer
         position="bottom-center"
         autoClose={5000}
