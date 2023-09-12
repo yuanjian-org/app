@@ -34,10 +34,10 @@ export default function Login() {
       <Center>
         <Container as="footer">
           <Link isExternal href="https://vercel.com/?utm_source=yuanjian&utm_campaign=oss">
-            <Image
-              src={vercelBanner}
-              alt="Vercel Banner"
-              height="30"
+            <Image 
+            src={vercelBanner} 
+            alt="Vercel Banner"  
+            height="30"
             />
           </Link>
         </Container>
