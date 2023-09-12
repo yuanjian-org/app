@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import '@authing/guard-react18/dist/esm/guard.min.css';
 import guard from "../guard";
 import vercelBanner from '../../public/img/vercel-banner.svg';
-import logToSentry from 'shared/logToSentry';
 
 export default function Login() {
   const guardEffects = async () => {
@@ -22,26 +21,6 @@ export default function Login() {
   };
 
   useEffect(() => {
-    // if local storage contains user infos means the token is damaged or missing to login
-    const user = localStorage.getItem('_authing_user');
-    if (user) {
-      const u = JSON.parse(user);
-      if (localStorage.getItem('_authing_token')) {
-        logToSentry('INFO',
-          'Authing token is invalid at local storage',
-          u.email,
-          {
-            lastLogin: u.lastLogin,
-            tokenExpiredAt: u.tokenExpiredAt
-          }
-        );
-      } else {
-        logToSentry('ERROR',
-          'Authing token is missing at local storage',
-          u.email
-        );
-      }
-  }
     guardEffects();
   }, []);
 
