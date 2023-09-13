@@ -81,7 +81,7 @@ function annotate(
     options.get = function () {
       // console.log('this._options', this._options);
       let finalZodType = zodType;
-      // @ts-ignore
+      // @ts-expect-error
       if (this._options._isPartial) {
         finalZodType = z.optional(zodType);
       }
@@ -113,24 +113,24 @@ function annotate(
 // original code: https://github.com/sequelize/sequelize/blob/main/src/model.js
 export const hookIsPartialAfterSequelizeInit = () => {
   const originalUpdate = Model.update;
-  // @ts-ignore
+  // @ts-expect-error
   Model.update = function (values, ...args) {
     // console.log("Model.update", values, ...args);
-    // @ts-ignore
+    // @ts-expect-error
     values._isPartial = true;
     return originalUpdate.call(this, values, ...args);
   };
 
   const originalBuild = Model.build;
-  // @ts-ignore
+  // @ts-expect-error
   Model.build = function (values, options) {
     // console.log("Model.build", values, options);
-    // @ts-ignore
+    // @ts-expect-error
     if (values._isPartial) {
-      // @ts-ignore
+      // @ts-expect-error
       delete values._isPartial;
       options = (options || {});
-      // @ts-ignore
+      // @ts-expect-error
       options._isPartial = true;
     }
     return originalBuild.call(this, values, options);

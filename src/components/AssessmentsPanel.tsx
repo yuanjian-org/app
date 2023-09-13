@@ -44,7 +44,7 @@ export default function AssessmentsPanel({ partnershipId, assessments, allowEdit
 
 // Date is optional merely to suppress typescript warning
 export function getYearText(date?: Date | string): string {
-  // @ts-ignore
+  // @ts-expect-error
   return new Date(date).getFullYear() + "年度";
 }
 

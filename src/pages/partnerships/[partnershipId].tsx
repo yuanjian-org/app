@@ -104,6 +104,6 @@ function AssessmentTabPanel({ partnershipId }: {
   partnershipId: string,
 }) {
   const { data: assessments } = trpcNext.assessments.listAllOfPartneship.useQuery(partnershipId);
-  // @ts-ignore so weird
+  // @ts-expect-error so weird
   return <AssessmentsPanel partnershipId={partnershipId} assessments={assessments} />;
 }

@@ -31,7 +31,7 @@ export default function UserFilterSelector({ filter, onChange }: {
   const updateUrlParams = ((f: UserFilter) => {
     const query: Record<string, any> = {};
     for (const key of Object.keys(f))  {
-      // @ts-ignore
+      // @ts-expect-error
       query[key] = f[key];
     }
     router.replace({ pathname: router.pathname, query });

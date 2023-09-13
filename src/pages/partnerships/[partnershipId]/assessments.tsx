@@ -27,7 +27,7 @@ const Page: NextPageWithLayout = () => {
       <UserChips users={[partnership.mentee, partnership.mentor]} abbreviateOnMobile={false} />
       <Divider />
       <AssessmentsPanel allowEdit partnershipId={partnership.id} 
-        // @ts-ignore so weird
+        // @ts-expect-error so weird
         assessments={partnership?.assessments} />
     </Flex>
   </>;
