@@ -10,7 +10,7 @@ Sentry.init({
 
   integrations: [
     new Sentry.BrowserTracing(),
-    new CaptureConsole({ levels: ['error', 'info'] }) // using error and info as customized tag logging service
+    new CaptureConsole({ levels: ['error', 'warn'] }) // using error and info as customized tag logging service
   ],
 
   // Adjust this value in production, or use tracesSampler for greater control
