@@ -6,15 +6,15 @@ import Head from 'next/head';
 import { trpcNext } from "../trpc";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
+import { SessionProvider } from "next-auth/react";
 
 import '../app.css';
 import 'react-toastify/dist/ReactToastify.min.css';
 
-type AppPropsWithLayout = AppProps & {
-  Component: NextPageWithLayout
-}
-
-function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
+function App({ Component, pageProps: { session, ...pageProps } }: {
+  Component: NextPageWithLayout,
+} & AppProps) {
+  // TODO: Refactor away `getLayout` to simplify code
   const getLayout = Component.getLayout || (page => page);
 
   return (
@@ -24,7 +24,11 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         <meta name='theme-color' content='#000000' />
       </Head>
-      {getLayout(<Component {...pageProps}></Component>)}
+
+      <SessionProvider session={session}>
+        {getLayout(<Component {...pageProps} />)}
+      </SessionProvider>
+
       <ToastContainer
         position="bottom-center"
         autoClose={5000}
@@ -41,4 +45,4 @@ function MyApp ({ Component, pageProps }: AppPropsWithLayout) {
   );
 }
 
-export default trpcNext.withTRPC(MyApp);
+export default trpcNext.withTRPC(App);

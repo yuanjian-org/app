@@ -44,7 +44,7 @@ export default function UserSelector(props: {
     loadingMessage={() => "正在检索..."}
     placeholder={props.placeholder ?? '搜索用户...'}
     onChange={value => {
-      // @ts-ignore
+      // @ts-expect-error
       setValue(value);
       if (isMulti) props.onSelect((value as Option[]).map(o => o.value));
       else props.onSelect(value ? [(value as Option).value] : []);

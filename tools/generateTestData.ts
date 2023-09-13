@@ -13,7 +13,7 @@ import Summary from "../src/api/database/models/Summary";
 import { alreadyExistsErrorMessage } from "../src/api/errors";
 
 type TestUser = {
-  name: string,
+  name: string | null,
   email: string,
   id?: string,
 };
@@ -66,7 +66,7 @@ async function generateUsers() {
     console.log('Creating user', [u.name]);
     u.id = (await User.upsert({
       name: u.name,
-      pinyin: toPinyin(u.name),
+      pinyin: toPinyin(u.name ?? ""),
       email: u.email,
       roles: [],
     }))[0].id;
@@ -94,7 +94,7 @@ async function getUserManagers() {
 async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
-  const userIds = users.map(u => u.id as string)
+  const userIds = users.map(u => u.id as string);
   if ((await findGroups(userIds, 'exclusive')).length != 0) return;
   await sequelizeInstance.transaction(async t => await createGroup(null, userIds, [], null, null, null, t));
 }

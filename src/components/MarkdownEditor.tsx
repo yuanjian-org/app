@@ -32,7 +32,7 @@ export default function MarkdownEditor({ initialValue, onChange, ...rest }: {
   // Other options. See https://github.com/Ionaru/easy-markdown-editor#options-list
   [key: string]: any,  /* SimpleMDE.Options -- ts warns on this due to the above hack */
 }) {
-  // @ts-ignore
+  // @ts-expect-error
   return <SimpleMDE value={initialValue} options={{ ...options, ...rest }} onChange={onChange} />;
 }
 

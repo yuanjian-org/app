@@ -67,7 +67,6 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle, showCon
       invariant(application);
       if (f.name in application) {
         return <FieldRow readonly={readonly} key={f.name} name={f.name}
-          // @ts-ignore
           value={application[f.name]}
           update={v => update(f.name, v)}
         />;
