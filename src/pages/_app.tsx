@@ -1,21 +1,24 @@
-import { ChakraProvider } from '@chakra-ui/react';
+import '../app.css';
+import 'react-toastify/dist/ReactToastify.min.css';
+
+import { ChakraProvider, Flex } from '@chakra-ui/react';
 import { AppProps } from 'next/app';
-import React from 'react';
+import React, { Component, PropsWithChildren, ReactNode } from 'react';
 import theme from '../theme';
 import Head from 'next/head';
 import { trpcNext } from "../trpc";
 import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
-import { SessionProvider } from "next-auth/react";
-
-import '../app.css';
-import 'react-toastify/dist/ReactToastify.min.css';
+import { SessionProvider, useSession } from "next-auth/react";
+import { useRouter } from 'next/router';
+import invariant from "tiny-invariant";
+import AppLayout from 'AppLayout';
+import PageLoader from 'components/PageLoader';
+import AuthPageContainer from 'components/AuthPageContainer';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: NextPageWithLayout,
 } & AppProps) {
-  // TODO: Refactor away `getLayout` to simplify code
-  const getLayout = Component.getLayout || (page => page);
 
   return (
     <SessionProvider session={session}>
@@ -26,7 +29,9 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
           <meta name='theme-color' content='#000000' />
         </Head>
 
-        {getLayout(<Component {...pageProps} />)}
+        <SwitchBoard {...pageProps}>
+          <Component />
+        </SwitchBoard>
 
         <ToastContainer
           position="bottom-center"
@@ -46,3 +51,28 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 }
 
 export default trpcNext.withTRPC(App);
+
+function SwitchBoard({ children, ...rest }: PropsWithChildren) {
+  // TODO: combine what userSession().data returns and our own User object.
+  const { status } = useSession();
+  const router = useRouter();
+
+  const isAuthPage = router.asPath.startsWith("/auth/");
+
+  if (status == "loading") {
+    return <PageLoader />;
+  } else if (status == "unauthenticated") {
+    if (isAuthPage) {
+      return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
+    } else {
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
+    }
+  } else {
+    invariant(status == "authenticated");
+    if (isAuthPage) {
+      router.replace("/");
+    } else {
+      return <AppLayout {...rest}>{children}</AppLayout>;
+    }
+  }
+}

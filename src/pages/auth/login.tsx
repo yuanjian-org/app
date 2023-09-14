@@ -1,9 +1,8 @@
-import { Button, InputGroup, InputLeftElement, Input, Alert, AlertIcon } from '@chakra-ui/react';
+import { Button, InputGroup, InputLeftElement, Input, Heading } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
-import AuthPageContainer from 'components/AuthPageContainer';
 import { useRouter } from 'next/router';
 import { parseQueryString } from 'parseQueryString';
 import { toast } from 'react-toastify';
@@ -16,7 +15,6 @@ export const localStorageKeyForLoginEmail = "loginEmail";
  */
 export default function Login() {
   const router = useRouter();
-  const { status } = useSession();
 
   // Use the last login email
   const [email, setEmail] = useState<string>("");
@@ -28,8 +26,8 @@ export default function Login() {
     setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
   }, []);
 
+  // Show the error passed in by next-auth.js if any.
   useEffect(() => {
-    // next-auth.js passes errors to this page via "?error=..."
     const err = parseQueryString(router, "error");
     if (err == "Verification") {
       toast.error("验证码无效，可能已经过期或者被使用。请重试。");
@@ -40,9 +38,8 @@ export default function Login() {
     }  
   }, [router]);
 
-  const callbackUrl = parseQueryString(router, "callbackUrl") ?? "/";
-
-  const go = async () => {
+  const submit = async () => {
+    const callbackUrl = parseQueryString(router, "callbackUrl") ?? "/";
     setIsLoading(true);
     try {
       const res = await signIn('sendgrid', { email, callbackUrl, redirect: false });
@@ -60,14 +57,11 @@ export default function Login() {
     }
   };
 
-  if (status == "authenticated") {
-    router.replace(callbackUrl);
-    return null;
-  }
-
   const isValidEmail = () => z.string().email().safeParse(email).success;
 
-  return <AuthPageContainer title="欢迎来到远图">
+  return <>
+    <Heading size="md" marginBottom={10}>欢迎来到远图</Heading>
+
     <InputGroup>
       <InputLeftElement pointerEvents='none'>
         <EmailIcon color='gray.400' />
@@ -76,12 +70,12 @@ export default function Login() {
       {/* `name="email"` to hint password management tools about the nature of this input */}
       <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱" autoFocus 
         value={email} onChange={(ev) => setEmail(ev.target.value)}
-        onKeyDown={ev => { if (ev.key == "Enter" && isValidEmail()) go(); }}
+        onKeyDown={ev => { if (ev.key == "Enter" && isValidEmail()) submit(); }}
       />
     </InputGroup>
 
-    <Button variant="brand" width="full" onClick={go} isDisabled={!isValidEmail()}
+    <Button variant="brand" width="full" onClick={submit} isDisabled={!isValidEmail()}
       isLoading={isLoading}
     >登录 / 注册</Button>
-  </AuthPageContainer>;
+  </>;
 }
