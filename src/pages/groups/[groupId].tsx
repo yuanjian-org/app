@@ -1,6 +1,5 @@
 import { Stack } from '@chakra-ui/react';
-import React, { ReactNode } from 'react';
-import AppLayout from "../../AppLayout";
+import React from 'react';
 import { trpcNext } from "../../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -23,5 +22,3 @@ export default function Page() {
     </Stack>}
   </>;
 };
-
-Page.getLayout = (page: ReactNode) => <AppLayout>{page}</AppLayout>;

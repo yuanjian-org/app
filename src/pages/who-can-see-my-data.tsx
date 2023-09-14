@@ -10,14 +10,12 @@ import {
   Thead,
   Tbody,
 } from '@chakra-ui/react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import Role, { AllRoles, RoleProfiles } from '../shared/Role';
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const { data: privileged } = trpcNext.users.listPriviledgedUserDataAccess.useQuery();
 
   return <>
@@ -36,10 +34,6 @@ const Page: NextPageWithLayout = () => {
     </Flex>
   </>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
 
 const dp = (r: Role) => <>{RoleProfiles[r].displayName}</>;
 

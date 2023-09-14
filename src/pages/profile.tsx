@@ -15,15 +15,13 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 
 // Dedupe code with index.tsx:SetNameModal
-const UserProfile: NextPageWithLayout = () => {
+export default function Page() {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState<string>('');
   const [notLoaded, setNotLoaded] = useState(false);
@@ -128,7 +126,3 @@ const UserProfile: NextPageWithLayout = () => {
     </Box>
   );
 };
-
-UserProfile.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default UserProfile;

@@ -27,8 +27,6 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import User, { UserFilter } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
@@ -41,7 +39,7 @@ import Loader from 'components/Loader';
 import z from "zod";
 import UserFilterSelector from 'components/UserFilterSelector';
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const [filter, setFilter] = useState<UserFilter>({});
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[] | null>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
@@ -105,10 +103,6 @@ const Page: NextPageWithLayout = () => {
     </Flex>
   </>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
 
 function UserEditor(props: {
   user?: User, // When absent, create a new user.

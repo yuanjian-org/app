@@ -1,25 +1,24 @@
 import '../app.css';
 import 'react-toastify/dist/ReactToastify.min.css';
 
-import { ChakraProvider, Flex } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { AppProps } from 'next/app';
-import React, { Component, PropsWithChildren, ReactNode } from 'react';
+import React, { PropsWithChildren } from 'react';
 import theme from '../theme';
 import Head from 'next/head';
 import { trpcNext } from "../trpc";
-import { NextPageWithLayout } from "../NextPageWithLayout";
 import { ToastContainer } from "react-toastify";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
 import invariant from "tiny-invariant";
-import AppLayout from 'AppLayout';
 import PageLoader from 'components/PageLoader';
+import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
+import AppPage from 'AppPage';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
-  Component: NextPageWithLayout,
+  Component: AppPage,
 } & AppProps) {
-
   return (
     <SessionProvider session={session}>
       <ChakraProvider theme={theme}>
@@ -29,22 +28,21 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
           <meta name='theme-color' content='#000000' />
         </Head>
 
-        <SwitchBoard {...pageProps}>
+        <SwitchBoard wide={Component.wide} {...pageProps}>
           <Component />
+          <ToastContainer
+            position="bottom-center"
+            autoClose={5000}
+            hideProgressBar
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </SwitchBoard>
-
-        <ToastContainer
-          position="bottom-center"
-          autoClose={5000}
-          hideProgressBar
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
       </ChakraProvider>
     </SessionProvider>
   );
@@ -52,7 +50,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
 export default trpcNext.withTRPC(App);
 
-function SwitchBoard({ children, ...rest }: PropsWithChildren) {
+function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: boolean }) {
   // TODO: combine what userSession().data returns and our own User object.
   const { status } = useSession();
   const router = useRouter();
@@ -66,13 +64,15 @@ function SwitchBoard({ children, ...rest }: PropsWithChildren) {
       return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
     } else {
       router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
+      return null;
     }
   } else {
     invariant(status == "authenticated");
     if (isAuthPage) {
       router.replace("/");
+      return null;
     } else {
-      return <AppLayout {...rest}>{children}</AppLayout>;
+      return <AppPageContainer wide={wide} {...rest}>{children}</AppPageContainer>;
     }
   }
 }
