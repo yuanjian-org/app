@@ -18,30 +18,30 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
   const getLayout = Component.getLayout || (page => page);
 
   return (
-    <ChakraProvider theme={theme}>
-      <Head>
-        <title>远图</title>
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <meta name='theme-color' content='#000000' />
-      </Head>
+    <SessionProvider session={session}>
+      <ChakraProvider theme={theme}>
+        <Head>
+          <title>远图</title>
+          <meta name='viewport' content='width=device-width, initial-scale=1' />
+          <meta name='theme-color' content='#000000' />
+        </Head>
 
-      <SessionProvider session={session}>
         {getLayout(<Component {...pageProps} />)}
-      </SessionProvider>
 
-      <ToastContainer
-        position="bottom-center"
-        autoClose={5000}
-        hideProgressBar
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-    </ChakraProvider>
+        <ToastContainer
+          position="bottom-center"
+          autoClose={5000}
+          hideProgressBar
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </ChakraProvider>
+    </SessionProvider>
   );
 }
 
