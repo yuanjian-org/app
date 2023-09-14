@@ -1,6 +1,4 @@
 import React, { useCallback } from 'react';
-import { NextPageWithLayout } from "../../../../NextPageWithLayout";
-import AppLayout from "../../../../AppLayout";
 import trpc, { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
@@ -11,11 +9,7 @@ import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import { Heading, Text, Flex } from '@chakra-ui/react';
 import { getYearText } from 'components/AssessmentsPanel';
 
-const Page: NextPageWithLayout = () => <AssessmentEditor />;
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
+export default function Page() { return <AssessmentEditor />; }
 
 function AssessmentEditor() {
   const router = useRouter();

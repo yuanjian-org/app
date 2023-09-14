@@ -1,5 +1,3 @@
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../../../NextPageWithLayout';
 import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
@@ -24,8 +22,9 @@ import { ExternalLinkIcon } from '@chakra-ui/icons';
 import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
+import { widePage } from 'AppPage';
 
-const Page: NextPageWithLayout = () => {
+export default widePage(() => {
   const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   const { data } = trpcNext.interviews.get.useQuery(interviewId);
   const [me] = useUserContext();
@@ -70,11 +69,7 @@ const Page: NextPageWithLayout = () => {
       </Grid>
     }
   </>;
-};
-
-Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
-
-export default Page;
+});
 
 function PassTestFirst() {
   return <Flex direction="column" gap={paragraphSpacing}>

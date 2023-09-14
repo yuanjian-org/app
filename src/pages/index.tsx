@@ -13,8 +13,6 @@ import {
   Link,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import { NextPageWithLayout } from "../NextPageWithLayout";
-import AppLayout from "../AppLayout";
 import { useUserContext } from "../UserContext";
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
@@ -26,7 +24,7 @@ import { isValidChineseName } from '../shared/strings';
 import Loader from 'components/Loader';
 import { isPermitted } from 'shared/Role';
 
-const Index: NextPageWithLayout = () => {
+export default function Page() {
   const [user] = useUserContext();
   const userHasName = !!user.name;
   return <>
@@ -35,10 +33,6 @@ const Index: NextPageWithLayout = () => {
     <Meetings />
   </>;
 };
-
-Index.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Index;
 
 function SetNameModal() {
   const [user, setUser] = useUserContext();

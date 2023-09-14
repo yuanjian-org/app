@@ -20,8 +20,6 @@ import {
   Checkbox
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
@@ -35,7 +33,7 @@ import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
@@ -91,11 +89,6 @@ const Page: NextPageWithLayout = () => {
     {!data && <Loader />}
   </>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
-
 
 function GroupEditor(props: { 
   group: Group,

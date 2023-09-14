@@ -1,5 +1,3 @@
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from 'parseQueryString';
 import { trpcNext } from 'trpc';
@@ -15,8 +13,9 @@ import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { Feedback } from 'shared/InterviewFeedback';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
+import { widePage } from 'AppPage';
 
-const Page: NextPageWithLayout = () => {
+export default widePage(() => {
   const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
   // See Editor()'s comment on the reason for `catchTime: 0`
   const { data } = trpcNext.interviews.get.useQuery(interviewId, { cacheTime: 0 });
@@ -62,11 +61,7 @@ const Page: NextPageWithLayout = () => {
       </GridItem>
     </Grid>
   </Flex>;
-};
-
-Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
-
-export default Page;
+});
 
 function DecisionEditor({ interviewId, decision, etag }: {
   interviewId: string,

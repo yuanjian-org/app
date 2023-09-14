@@ -32,8 +32,6 @@ import {
   ListItem,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -53,8 +51,9 @@ import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import EditableWithIcon from 'components/EditableWithIcon';
+import { widePage } from 'AppPage';
 
-const Page: NextPageWithLayout = () => {
+export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
 
   const { data: applicants } = trpcNext.users.list.useQuery(type == "MenteeInterview" ?
@@ -89,11 +88,7 @@ const Page: NextPageWithLayout = () => {
       </TabPanels>
     </TabsWithUrlParam>
   </Flex>;
-};
-
-Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
-
-export default Page;
+});
 
 function Applicants({ type, applicants, interviews, refetchInterviews }: {
   type: InterviewType,

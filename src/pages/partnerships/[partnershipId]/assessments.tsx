@@ -3,8 +3,6 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import React from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../../../NextPageWithLayout';
 import { trpcNext } from "../../../trpc";
 import Loader from 'components/Loader';
 import { PartnershipWithAssessments } from 'shared/Partnership';
@@ -14,7 +12,7 @@ import { UserChips } from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import AssessmentsPanel from 'components/AssessmentsPanel';
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const partnershipId = parseQueryStringOrUnknown(useRouter(), "partnershipId");
   const { data: partnership } = trpcNext.partnerships.getWithAssessmentsDeprecated
     .useQuery<PartnershipWithAssessments | undefined>(partnershipId);
@@ -32,7 +30,3 @@ const Page: NextPageWithLayout = () => {
     </Flex>
   </>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;

@@ -21,8 +21,6 @@ import {
   TableContainer,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../NextPageWithLayout';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -36,7 +34,7 @@ import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
 import { formatUserName, toPinyin } from 'shared/strings';
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const [user] = useUserContext();
   const showAddButton = isPermitted(user.roles, 'PartnershipManager');
   const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
@@ -83,10 +81,6 @@ const Page: NextPageWithLayout = () => {
 
   </Flex>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-
-export default Page;
 
 function AddModel(props: { 
   onClose: () => void,
