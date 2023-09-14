@@ -1,4 +1,4 @@
-import { Box, Flex } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer';
 import { PropsWithChildren, useEffect, useState } from 'react';
 
@@ -6,10 +6,7 @@ import UserContext from "./UserContext";
 import trpc from "./trpc";
 import User from './shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
-import { useSession } from "next-auth/react";
-import invariant from "tiny-invariant";
-import { useRouter } from 'next/router';
-import Loader from 'components/Loader';
+import PageLoader from 'components/PageLoader';
 
 type AppLayoutProps = {
   unlimitedPageWidth?: boolean,
@@ -17,39 +14,20 @@ type AppLayoutProps = {
 
 // TODO: Merge AppLayout into _app.tsx
 export default function AppLayout(props: AppLayoutProps) {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
-  // TODO: combine what userSession().data returns and our own User object.
-  const { status } = useSession();
-
-  // TODO: simplify the logic between useSession and setUser
+  // TODO: extend userSession().data to include other user fields, and remove this extra call to users.me
   useEffect(() => {
-    const fetchUser = async () => setUser(await trpc.users.me.query());
-    if (status == "authenticated") fetchUser();
-  }, [status]);
+    const f = async () => setUser(await trpc.users.me.query());
+    f();
+  }, []);
 
-  if (status == "loading") {
-    return <Loading />;
-  } else if (status == "unauthenticated") {
-    router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
-    return null;
-  } else {
-    invariant(status == "authenticated");
-    if (!user) {
-      return <Loading />;
-    } else {
-      return <UserContext.Provider value={[user, setUser]}>
-        <AppContent {...props} />
-      </UserContext.Provider>;
-    }
-  }
-}
-
-function Loading() {
-  return <Flex justifyContent="center" alignItems="center" minHeight="100vh" color="gray">
-    <Loader />
-  </Flex>;
+  return !user ?
+    <PageLoader /> 
+    : 
+    <UserContext.Provider value={[user, setUser]}>
+      <AppContent {...props} />
+    </UserContext.Provider>;
 }
 
 function AppContent(props: AppLayoutProps) {

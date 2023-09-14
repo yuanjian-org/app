@@ -5,6 +5,7 @@ import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
+import { toChinese } from "shared/strings";
 
 const tokenMaxAgeInMins = 5;
 
@@ -50,7 +51,7 @@ async function generateVerificationToken() {
 async function sendVerificationRequest({ identifier: email, url, token }: SendVerificationRequestParams) {
   const personalizations = [{
     to: { email },
-    dynamicTemplateData: { url, token, tokenMaxAgeInMins },
+    dynamicTemplateData: { url, token, tokenMaxAgeInMins: toChinese(tokenMaxAgeInMins) },
   }];
 
   await sendEmail("d-4f7625f48f1c494a9e2e708b89880c7a", personalizations, new URL(url).origin);

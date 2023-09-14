@@ -1,9 +1,8 @@
-import { Link, Text, HStack, PinInput, PinInputField } from '@chakra-ui/react';
-import AuthPageContainer from 'components/AuthPageContainer';
+import { Link, Text, HStack, PinInput, PinInputField, Heading } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import NextLink from "next/link";
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { localStorageKeyForLoginCallbackUrl, localStorageKeyForLoginEmail } from './login';
 
@@ -29,7 +28,9 @@ export default function VerifyRequest() {
     }
   };
 
-  return <AuthPageContainer title="输入验证码">
+  return <>
+    <Heading size="md" marginBottom={10}>输入验证码</Heading>
+
     <HStack>
       <PinInput otp onComplete={submit} size="lg" autoFocus>
         <PinInputField />
@@ -40,11 +41,12 @@ export default function VerifyRequest() {
         <PinInputField />
       </PinInput>
     </HStack>
+
     <Text>{' '}</Text>
     <Text>您应该已经收到了一封带有验证码的邮件。否则请检查垃圾邮箱，或者返回上一页重试。</Text>
     <Text><Link as={NextLink} href="/">返回重试</Link></Text>
 
     {/* For some reason `opacity=0` doesn't work */}
     <Loader {...!isLoading && { color: "white" }} />
-  </AuthPageContainer>;
+  </>;
 }
