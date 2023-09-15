@@ -13,7 +13,7 @@ import { Transcript } from '../shared/Transcript';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import { diffInMinutes, prettifyDate, prettifyDuration } from 'shared/strings';
-import { parseQueryString } from '../parseQueryString';
+import { parseQueryString } from "shared/strings";
 import Loader from 'components/Loader';
 import ReactMarkdown from 'react-markdown';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';

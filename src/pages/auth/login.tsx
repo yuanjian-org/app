@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
 import { useRouter } from 'next/router';
-import { parseQueryString } from 'parseQueryString';
+import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";

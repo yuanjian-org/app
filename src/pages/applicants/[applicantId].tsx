@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from 'parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import MenteeApplicant from 'components/MenteeApplicant';
 import { InterviewType } from 'shared/InterviewType';
 import { widePage } from 'AppPage';

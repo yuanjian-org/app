@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from 'parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem, Text, TabList, TabPanels, Tab, TabPanel, Tooltip } from '@chakra-ui/react';
