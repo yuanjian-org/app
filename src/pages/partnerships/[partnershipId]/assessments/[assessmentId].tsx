@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import trpc, { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from '../../../../parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';

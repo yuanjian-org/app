@@ -4,7 +4,7 @@ import { trpcNext } from "../../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from '../../parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import Loader from 'components/Loader';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';

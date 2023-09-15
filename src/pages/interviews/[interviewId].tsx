@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from 'parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem, Heading, Text, Link, Box } from '@chakra-ui/react';
