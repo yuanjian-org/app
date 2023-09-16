@@ -29,7 +29,8 @@ export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, 
   const email = session.user?.email;
   invariant(email);
 
-  const user = await db.User.findOne({ 
+  // TODO: extend next-auth session data to include other user fields, and remove this extra call to db
+  const user = await db.User.findOne({
     where: { email },
     attributes: userAttributes,
   });

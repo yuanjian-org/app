@@ -15,7 +15,14 @@ export function formatUserName(name: string | null, mood: 'friendly' | 'formal')
 }
 
 export function formatGroupName(name: string | null, userCount: number): string {
-  return name ?? `${nzh.cn.encodeS(userCount)}人通话`;
+  return name ?? `${toChinese(userCount)}人通话`;
+}
+
+/**
+ * Convert a number into Chinese presentation, e.g. "十三".
+ */
+export function toChinese(n: number): string {
+  return nzh.cn.encodeS(n);
 }
 
 export function prettifyDuration(from: Date | string, to: Date | string) {

@@ -2113,6 +2113,11 @@
   resolved "https://registry.yarnpkg.com/@types/qs/-/qs-6.9.7.tgz#63bb7d067db107cc1e457c303bc25d511febf6cb"
   integrity sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==
 
+"@types/random-number-csprng@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/random-number-csprng/-/random-number-csprng-1.0.0.tgz#139d6cd5d063fc34915e81dc7da5a018cdc45534"
+  integrity sha512-JmNWSCGbay5HGkHb/WF0Ju3XTHP0tMLUhAOk4fsw+b1GQ9rC/WP9uLeuulWLVERCg3KoyTCNzsJX4jSi4ShKaw==
+
 "@types/react-calendar@^3.5.2":
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/@types/react-calendar/-/react-calendar-3.9.0.tgz#b345707c9b593331a48963514f3e30ce0b3ca195"
@@ -2703,7 +2708,7 @@ blob-util@^2.0.2:
   resolved "https://registry.yarnpkg.com/blob-util/-/blob-util-2.0.2.tgz#3b4e3c281111bb7f11128518006cdc60b403a1eb"
   integrity sha512-T7JQa+zsXXEa6/8ZhHcQEW1UFfVM49Ts65uBkFL6fz2QmrElqmbajIDJvuA0tEhRe5eIjpV9ZF+0RfZR9voJFQ==
 
-bluebird@^3.7.2:
+bluebird@^3.3.3, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -3165,6 +3170,11 @@ cosmiconfig@^7.0.0:
     parse-json "^5.0.0"
     path-type "^4.0.0"
     yaml "^1.10.0"
+
+create-error@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/create-error/-/create-error-0.3.1.tgz#69810245a629e654432bf04377360003a5351a23"
+  integrity sha512-n/Q4aSCtYuuDneEW5Q+nd0IIZwbwmX/oF6wKcDUhXGJNwhmp2WHEoWKz7X+/H7rBtjimInW7f0ceouxU0SmuzQ==
 
 create-require@^1.1.0:
   version "1.1.1"
@@ -6576,6 +6586,14 @@ raf@^3.1.0:
   integrity sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
   dependencies:
     performance-now "^2.1.0"
+
+random-number-csprng@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/random-number-csprng/-/random-number-csprng-1.0.2.tgz#fcd120e62dffc2c07674c7c3fe01e16b25f73a26"
+  integrity sha512-Gb7ZsEXfz6d9xAMCUg2tD0ouRZMOZRRvLsRoUyPlVS4/pNwO31IA88yAx6AEYXon/LzogWJdsCRwFQaFlQTaHw==
+  dependencies:
+    bluebird "^3.3.3"
+    create-error "^0.3.1"
 
 randombytes@^2.1.0:
   version "2.1.0"

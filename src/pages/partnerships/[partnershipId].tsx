@@ -1,5 +1,3 @@
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from 'parseQueryString';
 import trpc, { trpcNext } from 'trpc';
@@ -16,8 +14,9 @@ import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import Transcripts from 'components/Transcripts';
+import { widePage } from 'AppPage';
 
-const Page: NextPageWithLayout = () => {
+export default widePage(() => {
   const partnershipId = parseQueryStringOrUnknown(useRouter(), 'partnershipId');
   const { data: partnership } = trpcNext.partnerships.get.useQuery(partnershipId);
   if (!partnership) return <Loader />;
@@ -40,11 +39,7 @@ const Page: NextPageWithLayout = () => {
       </GridItem>
     </Grid>
   </>;
-};
-
-Page.getLayout = (page) => <AppLayout unlimitedPageWidth>{page}</AppLayout>;
-
-export default Page;
+});
 
 function PrivateNotes({ partnershipId, notes, loading }: { 
   partnershipId: string,

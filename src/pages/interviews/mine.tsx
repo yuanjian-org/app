@@ -6,15 +6,13 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import React from 'react';
-import AppLayout from 'AppLayout';
-import { NextPageWithLayout } from '../../NextPageWithLayout';
 import { trpcNext } from "../../trpc";
 import Calibration from 'components/Calibration';
 import Interviews from 'components/Interviews';
 import { sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
-const Page: NextPageWithLayout = () => {
+export default function Page() {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
   const { data: calibrations } = trpcNext.calibrations.listMine.useQuery();
 
@@ -40,6 +38,3 @@ const Page: NextPageWithLayout = () => {
     </TabsWithUrlParam>
   </Flex>;
 };
-
-Page.getLayout = (page) => <AppLayout>{page}</AppLayout>;
-export default Page;
