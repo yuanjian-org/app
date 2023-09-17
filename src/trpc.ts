@@ -1,6 +1,5 @@
 import { TRPCClientError, TRPCLink, createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
 import type { ApiRouter } from './api/apiRouter';
-import { requestFinishLink } from "./requestFinishLink";
 import { observable } from '@trpc/server/observable';
 import { toast } from "react-toastify";
 import { createTRPCNext } from "@trpc/next";
@@ -47,7 +46,6 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
 export const links = [
   errorToastLink,
   ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
-  requestFinishLink(),
   httpBatchLink({
     url: getBaseUrl() + '/api/v1',
     headers: () => {
