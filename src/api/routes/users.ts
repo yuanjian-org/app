@@ -14,6 +14,7 @@ import Interview from "api/database/models/Interview";
 import { InterviewType, zInterviewType } from "shared/InterviewType";
 import { userAttributes } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
+import sequelizeInstance from "api/database/sequelizeInstance";
 
 const me = procedure
   .use(authUser())
@@ -236,14 +237,28 @@ const remove = procedure
   .input(z.object({
     id: z.string(),
   }))
-  .mutation(async ({ input, ctx }) => 
+  .mutation(async ({ input }) => 
 {
-  const user = await db.User.findByPk(input.id);
-  if (!user) {
-    throw notFoundError("用户", input.id);
-  }
+  await sequelizeInstance.transaction(async transaction => {
+    const user = await db.User.findByPk(input.id, { transaction });
+    if (!user) throw notFoundError("用户", input.id);
 
-  await user.destroy();
+    // Because we soft-delete a user, rename the user's email address before destroying to make sure next time the user
+    // logs in with the same email, account creation will not fail.
+    let i = 0;
+    while (true) {
+      const email = `deleted-${i++}+${user.email}`;
+      if (!await db.User.findOne({
+        where: { email }, 
+        paranoid: false,
+        transaction,
+      })) {
+        await user.update({ email }, { transaction });
+        await user.destroy({ transaction });
+        break;
+      }
+    }
+  });
 });
 
 

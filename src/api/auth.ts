@@ -43,15 +43,15 @@ export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, 
 
 const unauthorizedError = () => new TRPCError({
   code: 'UNAUTHORIZED',
-  message: 'Please login first',
+  message: '请重新登录。',
 });
 
 const invalidTokenError = () => new TRPCError({
   code: 'BAD_REQUEST',
-  message: 'Invalid authorization token',
+  message: '验证令牌无效。',
 });
 
 const forbiddenError = () => new TRPCError({
   code: 'FORBIDDEN',
-  message: 'Access denied',
+  message: '禁止访问。',
 });
