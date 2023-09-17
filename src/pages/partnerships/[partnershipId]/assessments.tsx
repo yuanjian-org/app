@@ -7,7 +7,7 @@ import { trpcNext } from "../../../trpc";
 import Loader from 'components/Loader';
 import { PartnershipWithAssessments } from 'shared/Partnership';
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from '../../../parseQueryString';
+import { parseQueryStringOrUnknown } from "shared/strings";
 import { UserChips } from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import AssessmentsPanel from 'components/AssessmentsPanel';

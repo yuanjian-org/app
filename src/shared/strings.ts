@@ -1,6 +1,8 @@
 import pinyin from 'tiny-pinyin';
 import nzh from 'nzh';
 
+import { NextRouter } from 'next/router';
+
 export function isValidChineseName(s: string | null): boolean {
   return !!s && s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
 }
@@ -48,4 +50,12 @@ export function diffInMinutes(from: Date | string, to: Date | string): number {
 
 export function compareUUID(id1: string, id2: string): number {
   return id1.localeCompare(id2);
+}
+
+export function parseQueryStringOrUnknown(router: NextRouter, slug: string): string {
+  return parseQueryString(router, slug) ?? "unknown";
+}
+
+export function parseQueryString(router: NextRouter, slug: string): string | null {
+  return typeof router.query[slug] === 'string' ? router.query[slug] as string : null;
 }

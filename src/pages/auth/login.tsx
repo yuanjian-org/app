@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
 import { useRouter } from 'next/router';
-import { parseQueryString } from 'parseQueryString';
+import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
@@ -30,7 +30,7 @@ export default function Login() {
   useEffect(() => {
     const err = parseQueryString(router, "error");
     if (err == "Verification") {
-      toast.error("验证码无效，可能已经过期或者被使用。请重试。");
+      toast.error("验证码无效，可能已经过期或者被使用。请重新登录。");
     } else if (err) {
       // See https://next-auth.js.org/configuration/pages#error-page
       console.error(`Unkonwn error on /auht/verify: ${err}`);
