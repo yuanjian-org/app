@@ -1,6 +1,5 @@
 import {
   Box,
-  Stack,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -10,11 +9,12 @@ import {
   useEditableControls,
   ButtonGroup,
   IconButton,
-  Spacer,
   HStack,
-  SimpleGrid,
+  GridItem,
+  Grid,
+  VStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import trpc from "../trpc";
 import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { useUserContext } from 'UserContext';
@@ -23,26 +23,21 @@ import Loader from 'components/Loader';
 // Dedupe code with index.tsx:SetNameModal
 export default function Page() {
   const [user, setUser] = useUserContext();
-  const [name, setName] = useState<string>('');
-  const [notLoaded, setNotLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setName(user.name || '');
-  }, [user]);
+  const name = user.name || '';
 
   const handleSubmit = async (newName: string) => {
-    setNotLoaded(true);
+    if (!newName) return;
 
-    if (newName) {
+    setIsLoading(true);
+    try {
       const updatedUser = structuredClone(user);
       updatedUser.name = newName;
-
-      try {
-        await trpc.users.update.mutate(updatedUser);
-        setUser(updatedUser);
-      } finally {
-        setNotLoaded(false);
-      }
+      await trpc.users.update.mutate(updatedUser);
+      setUser(updatedUser);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,17 +62,18 @@ export default function Page() {
     );
   };
 
+  // TODO: Use one grid for the whole page
   const EmailField = () => {
     return (
       <FormControl>
-        <SimpleGrid columns={6}>
-          <Box>
+        <Grid templateColumns="100px 1fr">
+          <GridItem>
             <FormLabel>邮箱</FormLabel>
-          </Box>
-          <Box>
+          </GridItem>
+          <GridItem>
             {user.email}
-          </Box>
-        </SimpleGrid>
+          </GridItem>
+        </Grid>
       </FormControl>
     );
   };
@@ -85,44 +81,39 @@ export default function Page() {
   const NameField = () => {
     return (
       <FormControl isInvalid={!name}>
-        <SimpleGrid columns={6}>
-          <Box>
+        <Grid templateColumns="100px 1fr">
+          <GridItem>
             <FormLabel marginTop='5px'>中文全名</FormLabel>
-          </Box>
-          <Box>
-            <Editable 
-              defaultValue={user.name ? user.name : undefined}
-              onSubmit={(newName) => handleSubmit(newName)}
-            >
-              <HStack>
-                <Box>
-                  <EditablePreview />
-                  <EditableInput 
-                    backgroundColor={notLoaded ? 'brandscheme' : 'white'}
-                  />
-                </Box>
-                <Spacer />
-                <Box>
-                  <EditableControls />
-                </Box>
-              </HStack>
-            </Editable>
-          </Box>
-        </SimpleGrid>
+          </GridItem>
+          <GridItem>
+              <Editable 
+                defaultValue={name}
+                onSubmit={(newName) => handleSubmit(newName)}
+              >
+                <HStack>
+                  <Box>
+                    <EditablePreview />
+                    <EditableInput 
+                      backgroundColor={isLoading ? 'brandscheme' : 'white'}
+                    />
+                  </Box>
+                  <Box>
+                    <EditableControls />
+                  </Box>
+                </HStack>
+              </Editable>
+          </GridItem>
+        </Grid>
         <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
       </FormControl>
     );
   };
 
   return (
-    <Box paddingTop={'80px'}>
-      <Stack spacing={4}>
-        <EmailField />
-        <NameField />
-        {
-          notLoaded && <Loader loadingText='保存中...'/>
-        }
-      </Stack>
-    </Box>
+    <VStack spacing={4}>
+      <EmailField />
+      <NameField />
+      {isLoading && <Loader loadingText='保存中...'/>}
+    </VStack>
   );
 };
