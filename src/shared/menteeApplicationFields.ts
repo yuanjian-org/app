@@ -22,6 +22,7 @@ const menteeApplicationFields: ApplicationField[] = [
   { jsjField: "field_168", name: "小学、初中、高中", },
   { jsjField: "field_156", name: "简历", },
   { jsjField: "field_162", name: "简历文件", },
+  { jsjProxiedField: "field_173", name: "合作机构推荐文字", },
   { jsjProxiedField: "field_170", name: "申请表", },
   { jsjProxiedField: "field_171", name: "其他申请材料", },
   { jsjField: "field_155", name: "个人职业网站 URL（科研组网站、领英等）", },
