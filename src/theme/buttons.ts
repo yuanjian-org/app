@@ -10,6 +10,9 @@ const buttons = {
           color: "white",
           _hover: {
             bg: mode(colors.brand[600], colors.brand.c)(props),
+            _disabled: {
+              bg: mode(colors.brand[600], colors.brand.c)(props),
+            }
           },
         }),
       },
