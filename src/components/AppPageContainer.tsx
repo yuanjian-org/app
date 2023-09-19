@@ -14,10 +14,9 @@ export default function AppPageContainer({ children, wide, ...rest }: {
   const [user, setUser] = useState<User | null>(null);
   const { data: session } = useSession();
 
-  // TODO: extend next-auth session data to include other user fields, and remove this extra call to users.me
   useEffect(() => {
     if (session) {
-      setUser(session.user); // You'll have the extended session data here
+      setUser(session.user);
     }
   }, [session]);
 
