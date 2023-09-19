@@ -6,6 +6,15 @@ import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
 import { toChinese } from "shared/strings";
+import { userAttributes } from "api/database/models/attributesAndIncludes";
+import invariant from "tiny-invariant";
+import User from "api/database/models/User";
+
+declare module "next-auth" {
+  interface Session {
+    user: User;
+  }
+}
 
 const tokenMaxAgeInMins = 5;
 
@@ -33,6 +42,19 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/login',
     // The login page respects the `?error=` URL param.
     error: '/auth/login',
+  },
+
+  callbacks: {
+    async session({ session }) {
+      const user = await db.User.findOne({
+        where: { email: session.user.email },
+        attributes: userAttributes,
+      });
+      invariant(user);
+      session.user = user;
+
+      return session;
+    }
   },
 
   events: {
