@@ -8,7 +8,7 @@
     }
   },
   "compilerOptions": {
-    "typeRoots": ["node_modules/@types", "src/horizon-ui/types"],
+    "typeRoots": ["node_modules/@types"],
     "target": "es2016",
     "lib": ["dom", "dom.iterable", "esnext", "es2015.iterable"],
     "allowJs": true,
