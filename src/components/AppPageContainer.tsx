@@ -6,30 +6,34 @@ import UserContext from "../UserContext";
 import User from '../shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
 import PageLoader from 'components/PageLoader';
-import { useSession } from 'next-auth/react';
+import { getSession } from 'next-auth/react';
 
 export default function AppPageContainer({ children, wide, ...rest }: {
   wide: boolean
 } & PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
-  const { data: session } = useSession();
 
   useEffect(() => {
-    if (session) {
-      setUser(session.user);
-    }
-  }, [session]);
+    const fetchSession = async () => {
+      const session = await getSession();
+      if (session) {
+        setUser(session.user);
+      }
+    };
+
+    fetchSession();
+  }, []);
 
   return !user ?
     <PageLoader {...rest} />
-    : 
+    :
     <UserContext.Provider value={[user, setUser]}>
       <NavBars {...rest}>
         <Box
           marginTop={sidebarContentMarginTop}
-          paddingX={{ 
+          paddingX={{
             base: "16px",
-            [sidebarBreakpoint]: "30px" 
+            [sidebarBreakpoint]: "30px"
           }}
           maxWidth={{
             base: "100%",
@@ -39,7 +43,7 @@ export default function AppPageContainer({ children, wide, ...rest }: {
           minHeight={{
             base: `calc(100vh - ${topbarHeight} - (140px + ${footerMarginTop}))`,
             [footerBreakpoint]: `calc(100vh - ${topbarHeight} - (95px + ${footerMarginTop}))`,
-          }}      
+          }}
         >
           {children}
         </Box>
