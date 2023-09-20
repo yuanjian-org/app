@@ -31,7 +31,7 @@ const create = procedure
   .mutation(async ({ ctx, input }) => 
 {
   checkUserFields(input.name, input.email);
-  checkPermissionForManagingPrivilegedRoles(ctx.user.roles, input.roles);
+  checkPermissionForManagingRoles(ctx.user.roles, input.roles);
   await db.User.create({
     name: input.name,
     pinyin: toPinyin(input.name),
@@ -86,10 +86,6 @@ const list = procedure
   else return res;
 });
 
-/**
- * In Edge or Serverless environments, user profile updates may take up to auth.USER_CACHE_TTL_IN_MS to propagate.
- * TODO: add a warning message in profile change UI.
- */
 const update = procedure
   .use(authUser())
   .input(zUser)
@@ -97,10 +93,10 @@ const update = procedure
 {
   checkUserFields(input.name, input.email);
 
-  const isUserOrPRManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
+  const isUserOrRoleManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
   const isSelf = ctx.user.id === input.id;
-  // Anyone can update user profiles, but non-user- and non-privileged-role-managers can only update their own.
-  if (!isUserOrPRManager && !isSelf) {
+  // Non-user- and non-role-managers can only update their own profile.
+  if (!isUserOrRoleManager && !isSelf) {
     throw noPermissionError("用户", input.id);
   }
 
@@ -111,10 +107,10 @@ const update = procedure
 
   const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
   const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
-  checkPermissionForManagingPrivilegedRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
+  checkPermissionForManagingRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
 
   if (!isSelf) {
-    await emailUserAboutNewPrivilegedRoles(ctx.user.name ?? "", user, input.roles, ctx.baseUrl);
+    await emailUserAboutNewManualRoles(ctx.user.name ?? "", user, input.roles, ctx.baseUrl);
   }
 
   invariant(input.name);
@@ -122,7 +118,7 @@ const update = procedure
     name: input.name,
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
-    ...isUserOrPRManager ? {
+    ...isUserOrRoleManager ? {
       roles: input.roles,
       email: input.email,
     } : {},
@@ -283,14 +279,14 @@ function checkUserFields(name: string | null, email: string) {
   }
 }
 
-function checkPermissionForManagingPrivilegedRoles(userRoles: Role[], subjectRoles: Role[]) {
-  if (subjectRoles.some(r => RoleProfiles[r].privileged) && !isPermitted(userRoles, "PrivilegedRoleManager")) {
+function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]) {
+  if (subjectRoles.length && !isPermitted(userRoles, "PrivilegedRoleManager")) {
     throw noPermissionError("用户");
   }
 }
 
-async function emailUserAboutNewPrivilegedRoles(userManagerName: string, user: User, roles: Role[], baseUrl: string) {
-  const added = roles.filter(r => !user.roles.includes(r)).filter(r => RoleProfiles[r].privileged);
+async function emailUserAboutNewManualRoles(userManagerName: string, user: User, roles: Role[], baseUrl: string) {
+  const added = roles.filter(r => !user.roles.includes(r)).filter(r => !RoleProfiles[r].automatic);
   for (const r of added) {
     const rp = RoleProfiles[r];
     await email('d-7b16e981f1df4e53802a88e59b4d8049', [{

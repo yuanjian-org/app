@@ -87,7 +87,7 @@ export default function Page() {
                       {u.roles.map((r: Role) => {
                         const rp = RoleProfiles[r];
                         return <WrapItem key={r}>
-                          <Tag bgColor={rp.privileged ? "orange" : "brand.c"} color="white">
+                          <Tag bgColor={rp.automatic ? "brand.c" : "orange"} color="white">
                             {rp.displayName}
                           </Tag>
                         </WrapItem>;
@@ -176,7 +176,7 @@ function UserEditor(props: {
                 const rp = RoleProfiles[r];
                 return (
                   <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
-                    {rp.privileged ? "*" : ""} {rp.displayName}（{r}）
+                    {rp.automatic ? "*" : ""} {rp.displayName}（{r}）
                   </Checkbox>
                 );
               })}
