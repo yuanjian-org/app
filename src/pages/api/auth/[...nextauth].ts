@@ -10,6 +10,7 @@ import { userAttributes } from "api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
 import User from "api/database/models/User";
 
+// The default session user would cause type error when using session user data
 declare module "next-auth" {
   interface Session {
     user: User;
