@@ -6,23 +6,17 @@ import UserContext from "../UserContext";
 import User from '../shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
 import PageLoader from 'components/PageLoader';
-import { getSession } from 'next-auth/react';
+import { Session } from 'next-auth';
 
-export default function AppPageContainer({ children, wide, ...rest }: {
+export default function AppPageContainer({ children, wide, session, ...rest }: {
   wide: boolean
-} & PropsWithChildren) {
+} & PropsWithChildren & {session: Session}) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const session = await getSession();
-      if (session) {
-        setUser(session.user);
-      }
-    };
-
-    fetchSession();
-  }, []);
+    const f = async () => { setUser(session.user); };
+    f();
+  }, [session]);
 
   return !user ?
     <PageLoader {...rest} />

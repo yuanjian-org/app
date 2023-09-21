@@ -50,9 +50,9 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
 export default trpcNext.withTRPC(App);
 
-function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: boolean }) {
+function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: boolean}) {
   // TODO: combine what userSession().data returns and our own User object.
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const isAuthPage = router.asPath.startsWith("/auth/");
@@ -72,7 +72,7 @@ function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: bo
       router.replace("/");
       return null;
     } else {
-      return <AppPageContainer wide={wide} {...rest}>{children}</AppPageContainer>;
+      return <AppPageContainer wide={wide} session={session} {...rest}>{children}</AppPageContainer>;
     }
   }
 }
