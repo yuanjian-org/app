@@ -50,7 +50,7 @@ class Partnership extends Model {
   menteeId: string;
 
   @ForeignKey(() => User)
-  // @AllowNull(false)
+  @AllowNull(false)
   @Column(UUID)
   coachId: string;
 
