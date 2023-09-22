@@ -51,7 +51,6 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 export default trpcNext.withTRPC(App);
 
 function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: boolean}) {
-  // TODO: combine what userSession().data returns and our own User object.
   const { data: session, status } = useSession();
   const router = useRouter();
 
