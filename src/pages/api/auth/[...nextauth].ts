@@ -9,6 +9,7 @@ import { toChinese } from "shared/strings";
 import { userAttributes } from "api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
 import User from "api/database/models/User";
+import { LRUCache } from "lru-cache";
 
 // The default session user would cause type error when using session user data
 declare module "next-auth" {
@@ -47,13 +48,9 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async session({ session }) {
-      const user = await db.User.findOne({
-        where: { email: session.user.email },
-        attributes: userAttributes,
-      });
+      const user = await userCache.fetch(session.user.email);
       invariant(user);
       session.user = user;
-
       return session;
     }
   },
@@ -79,3 +76,23 @@ async function sendVerificationRequest({ identifier: email, url, token }: SendVe
 
   await sendEmail("d-4f7625f48f1c494a9e2e708b89880c7a", personalizations, new URL(url).origin);
 }
+
+const userCache = new LRUCache<string, User>({
+  max: 1000,
+  // The TTL should not too short so most consecutive requests from a page load should get a hit.
+  // It should not be too long to keep stalenss in reasonable control.
+  ttl: 5 * 1000,  // 5 sec
+  // Do not update age so that no matter how eagerly users refreshes the page the data is guaranteed to be fresh after
+  // TTL passes.
+  // updateAgeOnGet: true,
+
+  fetchMethod: async (email: string) => {
+    const user = await db.User.findOne({
+      where: { email },
+      attributes: userAttributes,
+    });
+    // next-auth must have already created the user.
+    invariant(user);
+    return user;
+  }
+});

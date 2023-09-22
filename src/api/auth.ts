@@ -1,10 +1,7 @@
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import Role, { isPermitted } from "../shared/Role";
-import db from "./database/db";
-import invariant from "tiny-invariant";
 import apiEnv from "./apiEnv";
-import { userAttributes } from "./database/models/attributesAndIncludes";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 
