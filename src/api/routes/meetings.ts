@@ -7,12 +7,13 @@ import { createMeeting, getMeeting } from "../TencentMeeting";
 import { formatGroupName } from "shared/strings";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
-import {  notFoundError } from "api/errors";
+import { notFoundError } from "api/errors";
 import { emailRoleIgnoreError } from 'api/sendgrid';
 import sequelizeInstance from 'api/database/sequelizeInstance';
 import { checkPermissionForGroup } from './groups';
 import { groupAttributes, groupInclude } from 'api/database/models/attributesAndIncludes';
 import { Group } from '../../shared/Group';
+import moment from 'moment';
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in OngoingMeetings model, return the
@@ -115,9 +116,14 @@ async function create(g: Group, availableTmUserId: string) {
 export async function updateOngoingMeetings() {
   await sequelizeInstance.transaction(async (t) => {
     const ongoingMeetings = await db.OngoingMeetings.findAll({
-      attributes: ["tmUserId", "meetingId"], lock: true, transaction: t,
+      attributes: ["tmUserId", "meetingId", "createdAt"], lock: true, transaction: t,
     });
     for (const meeting of ongoingMeetings) {
+      // This condition is added to improve the corner case when a user created a meeting but did not join
+      // If the user did not join meeting right away, other users of the same group might create a new meeting
+      // and overwrite the link. A 3-min grace period is added after a meeting is created to prevent such case.
+      if (moment().diff(meeting.createdAt, 'minutes') < 3) continue;
+
       const meetingInfo = await getMeeting(meeting.meetingId, meeting.tmUserId);
       if (meetingInfo.status !== 'MEETING_STATE_STARTED') {
         await db.OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction: t });
