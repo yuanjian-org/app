@@ -1,20 +1,18 @@
 import { Box } from '@chakra-ui/react';
 import Footer, { footerBreakpoint, footerMarginTop } from 'components/Footer';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useState } from 'react';
 
 import UserContext from "../UserContext";
 import User from '../shared/User';
 import NavBars, { sidebarBreakpoint, sidebarContentMarginTop, topbarHeight } from 'components/Navbars';
-import PageLoader from 'components/PageLoader';
-import { Session } from 'next-auth';
 
-export default function AppPageContainer({ children, wide, session, ...rest }: {
+export default function AppPageContainer({ wide, user, children, ...rest }: {
   wide: boolean,
-  session: Session
+  user: User,
 } & PropsWithChildren) {
-  const [user, setUser] = useState<User>(session.user);
-  
-  return <UserContext.Provider value={[user, setUser]}>
+  const [u, setUser] = useState<User>(user);
+
+  return <UserContext.Provider value={[u, setUser]}>
     <NavBars {...rest}>
       <Box
         marginTop={sidebarContentMarginTop}

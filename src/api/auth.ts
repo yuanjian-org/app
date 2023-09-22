@@ -27,9 +27,7 @@ export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, 
   const session = await getServerSession(ctx.req, ctx.res, authOptions);
   if (!session) throw unauthorizedError();
 
-  const roles = session.user?.roles;
-  invariant(roles);
-  if (!isPermitted(roles, permitted)) throw forbiddenError();
+  if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
 
   return await next({ ctx: { user: session.user, baseUrl: ctx.baseUrl } });
 });

@@ -71,7 +71,7 @@ function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: bo
       router.replace("/");
       return null;
     } else {
-      return <AppPageContainer wide={wide} session={session} {...rest}>{children}</AppPageContainer>;
+      return <AppPageContainer wide={wide} user={session.user} {...rest}>{children}</AppPageContainer>;
     }
   }
 }
