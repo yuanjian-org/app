@@ -39,7 +39,7 @@ const create = procedure
   .mutation(async ({ ctx, input }) =>
 {
   await sequelizeInstance.transaction(async t => {
-    const g = await createGroup(null, input.userIds, [], null, null, null, t);
+    const g = await createGroup(null, input.userIds, [], null, null, null, null, t);
     await emailNewUsersOfGroupIgnoreError(ctx, g.id, input.userIds);
   });
 });
@@ -244,11 +244,13 @@ export async function createGroup(
   partnershipId: string | null, 
   interviewId: string | null, 
   calibrationId: string | null,
+  coachingPartnershipId: string | null,
   transaction: Transaction): Promise<Group>
 {
   invariant(!partnershipId || !interviewId);
 
-  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId }, { transaction });
+  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId, coachingPartnershipId },
+    { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
     groupId: g.id,

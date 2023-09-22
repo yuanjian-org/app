@@ -50,17 +50,17 @@ class Group extends Model {
   @Column(ARRAY(STRING))
   roles: Role[];
 
-  // A group is said to be "owned" by a partnership if this field is non-null.
+  // A group is "owned" by a partnership if this field is non-null.
   @ForeignKey(() => Partnership)
   @Column(UUID)
   partnershipId: string | null;
 
-  // A group is said to be "owned" by an interview if this field is non-null.
+  // A group is "owned" by an interview if this field is non-null.
   @ForeignKey(() => Interview)
   @Column(UUID)
   interviewId: string | null;
 
-  // A group is said to be "owned" by a calibration if this field is non-null.
+  // A group is "owned" by a calibration if this field is non-null.
   //
   // The index is used by getCalibrationAndCheckPermissionSafe()
   @Index  
@@ -68,6 +68,11 @@ class Group extends Model {
   @Column(UUID)
   calibrationId: string | null;
 
+  // A group is "owned" by a mentor-coaching relationship if this field is non-null.
+  @ForeignKey(() => Partnership)
+  @Column(UUID)
+  coachingPartnershipId: string | null;
+  
   /**
    * Associations
    */

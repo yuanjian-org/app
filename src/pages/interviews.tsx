@@ -228,10 +228,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
             <UserSelector
               isMulti 
               onSelect={userIds => setInterviewerIds(userIds)}
-              initialValue={!interview ? [] : interview.feedbacks.map(f => ({
-                label: f.interviewer.name ?? "",
-                value: f.interviewer.id,
-              }))}
+              initialValue={!interview ? [] : interview.feedbacks.map(f => f.interviewer)}
             />
           </FormControl>
           <FormControl>

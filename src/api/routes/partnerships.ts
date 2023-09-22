@@ -3,6 +3,7 @@ import { authUser } from "../auth";
 import _ from "lodash";
 import db from "../database/db";
 import { 
+  isValidPartnershipIds,
   zPartnership,
   zPartnershipCountingAssessments, 
   zPartnershipWithAssessments, 
@@ -19,46 +20,106 @@ import {
   groupAttributes,
   groupCountingTranscriptsInclude,
   partnershipInclude } from "api/database/models/attributesAndIncludes";
-import { createGroup } from "./groups";
+import { createGroup, updateGroup } from "./groups";
 import invariant from "tiny-invariant";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
   .input(z.object({
-    mentorId: z.string().uuid(),
-    menteeId: z.string().uuid(),
+    mentorId: z.string(),
+    menteeId: z.string(),
+    coachId: z.string(),
   }))
-  .mutation(async ({ input }) => 
+  .mutation(async ({ input: { mentorId, menteeId, coachId } }) => 
 {
-  await sequelizeInstance.transaction(async (t) => {
-    const mentor = await db.User.findByPk(input.mentorId, { lock: true, transaction: t });
-    const mentee = await db.User.findByPk(input.menteeId, { lock: true, transaction: t });
-    if (mentor == null || mentee == null || mentor.id === mentee.id) {
+  if (!isValidPartnershipIds(menteeId, mentorId, coachId)) {
+    throw generalBadRequestError('无效用户ID');
+  }
+
+  await sequelizeInstance.transaction(async (transaction) => {
+    const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
+    const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
+    const coach = await db.User.findByPk(menteeId, { lock: true, transaction });
+    if (!mentor || !mentee || !coach) {
       throw generalBadRequestError('无效用户ID');
     }
 
     // Assign appropriate roles.
     mentor.roles = [...mentor.roles.filter(r => r != "Mentor"), "Mentor"];
-    mentor.save({ transaction: t });
+    await mentor.save({ transaction });
     mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
-    mentee.save({ transaction: t });
+    await mentee.save({ transaction });
+    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
+    await coach.save({ transaction });
 
     let partnership;
     try {
       partnership = await db.Partnership.create({
-        mentorId: mentor.id,
-        menteeId: mentee.id,
-      }, { transaction: t });
+        mentorId, menteeId, coachId
+      }, { transaction });
     } catch (e: any) {
       if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
         throw alreadyExistsError("一对一匹配");
       }
     }
 
-    // Create the group
+    // Create groups
     invariant(partnership);
-    await createGroup(null, [input.mentorId, input.menteeId], [], partnership.id, null, null, t);
+    await createGroup(null, [mentorId, menteeId], [], partnership.id, null, null, null, transaction);
+    await createGroup(null, [mentorId, coachId], [], null, null, null, partnership.id, transaction);
   });
+});
+
+const updateCoach = procedure
+  .use(authUser('PartnershipManager'))
+  .input(z.object({
+    id: z.string(),
+    coachId: z.string(),
+  }))
+  .mutation(async ({ input: { id, coachId } }) => 
+{
+  await sequelizeInstance.transaction(async (transaction) => {
+    const p = await db.Partnership.findByPk(id, { lock: true, transaction });
+    if (!p) throw notFoundError("一对一匹配", id);
+    await p.update({ coachId }, { transaction });
+
+    // Update role
+    // TODO: Remove role from previous coach?
+    const coach = await db.User.findByPk(coachId, { lock: true, transaction });
+    if (!coach) throw notFoundError("用户", coachId);
+    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
+    await coach.save({ transaction });
+
+    // Update group membership
+    const group = await db.Group.findOne({
+      where: { coachingPartnershipId: id },
+      lock: true,
+      transaction,
+    });
+    if (group) {
+      await updateGroup(group.id, null, [p.mentorId, coachId], transaction);
+    } else {
+      // Backfill
+      await createGroup(null, [p.mentorId, coachId], [], null, null, null, id, transaction);
+    }
+  });
+});
+
+const updatePrivateMentorNotes = procedure
+  .use(authUser())
+  .input(z.object({
+    id: z.string(),
+    privateMentorNotes: zPrivateMentorNotes,
+  }))
+  .mutation(async ({ ctx, input }) => 
+{
+  const partnership = await db.Partnership.findByPk(input.id);
+  if (!partnership || partnership.mentorId !== ctx.user.id) {
+    throw noPermissionError("一对一匹配", input.id);
+  }
+
+  partnership.privateMentorNotes = input.privateMentorNotes;
+  partnership.save();
 });
 
 const list = procedure
@@ -138,28 +199,12 @@ const getWithAssessmentsDeprecated = procedure
   return res;
 });
 
-const update = procedure
-  .use(authUser())
-  .input(z.object({
-    id: z.string(),
-    privateMentorNotes: zPrivateMentorNotes,
-  }))
-  .mutation(async ({ ctx, input }) => 
-{
-  const partnership = await db.Partnership.findByPk(input.id);
-  if (!partnership || partnership.mentorId !== ctx.user.id) {
-    throw noPermissionError("一对一匹配", input.id);
-  }
-
-  partnership.privateMentorNotes = input.privateMentorNotes;
-  partnership.save();
-});
-
 export default router({
   create,
   get,
   getWithAssessmentsDeprecated,
   list,
   listMineAsMentor,
-  update,
+  updateCoach,
+  updatePrivateMentorNotes,
 });

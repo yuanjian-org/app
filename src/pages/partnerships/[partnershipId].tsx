@@ -48,7 +48,7 @@ function PrivateNotes({ partnershipId, notes, loading }: {
 }) {
 
   const save = async (editedMemo: string) => {
-    await trpc.partnerships.update.mutate({ 
+    await trpc.partnerships.updatePrivateMentorNotes.mutate({ 
       id: partnershipId, 
       privateMentorNotes: { memo: editedMemo },
     });

@@ -12,7 +12,7 @@ export function toPinyin(s: string) {
 }
 
 export function formatUserName(name: string | null, mood: 'friendly' | 'formal') {
-  if (!name) return '佚名';
+  if (!name) return '（佚名）';
   return mood === 'friendly' ? name.substring(Math.max(0, name.length - 2)) : name;
 }
 
