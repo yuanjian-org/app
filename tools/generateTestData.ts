@@ -2,7 +2,6 @@ import { Op } from "sequelize";
 import User from "../src/api/database/models/User";
 import sequelizeInstance from "../src/api/database/sequelizeInstance";
 import { createGroup, findGroups } from "../src/api/routes/groups";
-import { TRPCError } from "@trpc/server";
 import invariant from "tiny-invariant";
 import _ from "lodash";
 import moment from "moment";
@@ -10,7 +9,6 @@ import Role, { AllRoles } from "../src/shared/Role";
 import { toPinyin } from "../src/shared/strings";
 import Transcript from "../src/api/database/models/Transcript";
 import Summary from "../src/api/database/models/Summary";
-import { alreadyExistsErrorMessage } from "../src/api/errors";
 
 type TestUser = {
   name: string | null,
@@ -96,7 +94,7 @@ async function generateGroup(users: TestUser[]) {
   console.log('Creating group', users.map(u => u.name));
   const userIds = users.map(u => u.id as string);
   if ((await findGroups(userIds, 'exclusive')).length != 0) return;
-  await sequelizeInstance.transaction(async t => await createGroup(null, userIds, [], null, null, null, t));
+  await sequelizeInstance.transaction(async t => await createGroup(null, userIds, [], null, null, null, null, t));
 }
 
 async function generateSummaries(users: TestUser[]) {

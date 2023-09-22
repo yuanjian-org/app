@@ -13,6 +13,7 @@ export const AllRoles = [
   'Mentor',
   'Mentee',
   'Interviewer',
+  'MentorCoach',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -84,6 +85,12 @@ export const RoleProfiles: { [key: string]: {
     displayName: '面试官',
     actions: '面试导师或学生候选人',
     privilegedUserDataAccess: false,
+    automatic: true,
+  },
+  MentorCoach: {
+    displayName: '导师教练',
+    actions: '辅助与评估非资深导师',
+    privilegedUserDataAccess: true,
     automatic: true,
   },
 };

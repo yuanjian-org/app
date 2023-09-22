@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
+import { MinUser } from 'shared/User';
+import { formatUserName } from 'shared/strings';
 
 export default function UserSelector(props: {
   onSelect: (userIds: string[]) => void;
   placeholder?: string;
   isMulti?: boolean;    // Default is false
-  initialValue?: {
-    label: string,
-    value: string,
-  }[],
+  isDisabled?: boolean;
+  initialValue?: MinUser[],
 }) {
   const isMulti = props.isMulti ? true : false;
   type Option = {
     label: string;
     value: string;
   };
-  const [value, setValue] = useState<Option[]>(props.initialValue ? props.initialValue : []);
+  const [value, setValue] = useState<Option[]>(!props.initialValue ? [] : props.initialValue.map(u => ({
+    label: formatUserName(u.name, "formal"),
+    value: u.id,
+  })));
 
   const LoadOptions = (
     inputValue: string,
@@ -36,6 +39,7 @@ export default function UserSelector(props: {
 
   // https://react-select.com/props
   return <AsyncSelect
+    isDisabled={props.isDisabled}
     cacheOptions
     loadOptions={LoadOptions}
     isMulti={isMulti}

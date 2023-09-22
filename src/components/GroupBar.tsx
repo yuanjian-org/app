@@ -133,7 +133,11 @@ function GroupTagOrName({ group }: { group: Group }) {
     // Without this Box the tag will fill the whole grid row
     <Box justifyItems="left">
       <Tag color="white" bgColor="gray">
-        {group.partnershipId ? "一对一导师" : group.calibrationId ? "面试讨论" : "面试" }
+        {group.partnershipId ? "一对一导师" : 
+          group.calibrationId ? "面试讨论" : 
+            group.coachingPartnershipId ? "导师教练" :
+              group.interviewId ? "面试" :
+                "FIXME" }
       </Tag>
     </Box>
     :

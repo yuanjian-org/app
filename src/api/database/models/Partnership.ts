@@ -20,7 +20,9 @@ import { PrivateMentorNotes, zPrivateMentorNotes } from "../../../shared/Partner
 import Group from "./Group";
 
 /**
- * A partnership is a mentee-mentor pair
+ * A partnership is a mentee-mentor pair.
+ * 
+ * TODO: rename to Mentorship
  */
 @Table({
   paranoid: true,
@@ -42,21 +44,34 @@ class Partnership extends Model {
   @Column(UUID)
   mentorId: string;
 
-  @BelongsTo(() => User, { foreignKey: 'mentorId' })
-  mentor: User;
-
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(UUID)
   menteeId: string;
 
-  @BelongsTo(() => User, { foreignKey: 'menteeId' })
-  mentee: User;
+  @ForeignKey(() => User)
+  // @AllowNull(false)
+  @Column(UUID)
+  coachId: string;
 
   @ZodColumn(JSONB, zPrivateMentorNotes.nullable())
   privateMentorNotes: PrivateMentorNotes | null;
 
-  @HasOne(() => Group)
+  /**
+   * Associations
+   */
+
+  @BelongsTo(() => User, { foreignKey: 'mentorId' })
+  mentor: User;
+
+  @BelongsTo(() => User, { foreignKey: 'menteeId' })
+  mentee: User;
+
+  @BelongsTo(() => User, { foreignKey: 'coachId' })
+  coach: User;
+
+  // TODO: Rename to mentorshipGroup (as opposed to coachingMentorshipGroup)
+  @HasOne(() => Group, { foreignKey: "partnershipId" })
   group: Group;
 
   @HasMany(() => Assessment)

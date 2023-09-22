@@ -24,7 +24,7 @@ import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import UserChip from 'components/UserChip';
-import { Group } from '../shared/Group';
+import { Group, isOwned } from '../shared/Group';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
 import { formatGroupName } from 'shared/strings';
@@ -77,12 +77,13 @@ export default function Page() {
     </Wrap>
     <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
       {data && data.map(group => 
-        <Flex key={group.id} cursor='pointer'
-          onClick={() => setGroupBeingEdited(group)} 
-        >
+        <Flex key={group.id} {...!isOwned(group) && { 
+          cursor: 'pointer',
+          onClick: () => setGroupBeingEdited(group),
+        }}>
           <GroupBar group={group} showSelf />
           <Spacer />
-          <Center><EditIcon marginX={4} /></Center>
+          {!isOwned(group) && <Center><EditIcon marginX={4} /></Center>}
         </Flex>
       )}
     </VStack>
