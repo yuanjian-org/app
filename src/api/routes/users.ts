@@ -144,7 +144,7 @@ const getCoach = procedure
   .query(async ({ ctx, input: { userId } }) =>
 {
   if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "PartnershipManager")) {
-    throw noPermissionError("导师教练匹配", userId);
+    throw noPermissionError("资深导师匹配", userId);
   }
 
   const u = await db.User.findByPk(userId, {

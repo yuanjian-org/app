@@ -61,7 +61,7 @@ export default function Page() {
     {!partnerships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>学生</Th><Th>导师</Th><Th>导师教练</Th><Th>拼音（便于查找）</Th>
+          <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>拼音（便于查找）</Th>
           {showAssessment && <Th>跟踪评估</Th>}
         </Tr>
       </Thead>
@@ -165,7 +165,7 @@ function Editor({ partnership: p, onClose }: {
             <FormErrorMessage>导师和学生不能是同一个人。</FormErrorMessage>
           </FormControl>
           <FormControl>
-            <FormLabel>导师教练</FormLabel>
+            <FormLabel>资深导师</FormLabel>
             {oldCoach === undefined ? <Loader /> : <UserSelector
               initialValue={oldCoach ? [oldCoach] : []}
               onSelect={userIds => setCoachId(userIds.length ? userIds[0] : null)}
