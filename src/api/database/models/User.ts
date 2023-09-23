@@ -91,6 +91,9 @@ class User extends Model {
 
   @HasMany(() => Interview)
   interviews: Interview[];
+
+  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
+  partnershipsAsMentor: Partnership[];
   
   @BelongsTo(() => User, { foreignKey: 'coachId' })
   coach: User | null;

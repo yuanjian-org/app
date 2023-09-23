@@ -55,6 +55,13 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/$|\/groups\/(?!lab).*/,
   },
   {
+    name: '导师教练页',
+    path: '/coachees',
+    icon: MdGroup,
+    regex: /^\/coachees/,
+    role: 'MentorCoach',
+  },
+  {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdGroup,

@@ -114,7 +114,7 @@ const listMineAsMentor = procedure
 
 /**
  * Get all information of a partnership including private notes.
- * Only accessible by the mentor
+ * Only accessible by the mentor and mentor coaches
  */
 const get = procedure
   .use(authUser())
@@ -129,7 +129,7 @@ const get = procedure
       include: groupCountingTranscriptsInclude,
     }],
   });
-  if (!res || res.mentorId !== ctx.user.id) {
+  if (!res || (res.mentorId !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
     throw noPermissionError("一对一匹配", id);
   }
   return res;
