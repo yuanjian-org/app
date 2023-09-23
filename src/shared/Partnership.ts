@@ -21,15 +21,10 @@ export const zPartnershipWithGroupAndNotes = zPartnership.merge(z.object({
 }));
 export type PartnershipWithGroupAndNotes = z.TypeOf<typeof zPartnershipWithGroupAndNotes>;
 
-export const zPartnershipCountingAssessments = zPartnership.merge(z.object({
-  assessments: z.array(z.object({})),
-}));
-export type PartnershipCountingAssessments = z.TypeOf<typeof zPartnershipCountingAssessments>;
-
-export const zPartnershipWithAssessments = zPartnership.merge(z.object({
+export const zPartnershipWithAssessmentsDeprecated = zPartnership.merge(z.object({
   assessments: z.array(zAssessment)
 }));
-export type PartnershipWithAssessments = z.TypeOf<typeof zPartnershipWithAssessments>;
+export type PartnershipWithAssessmentsDeprecated = z.TypeOf<typeof zPartnershipWithAssessmentsDeprecated>;
 
 export function isValidPartnershipIds(menteeId: string | null, mentorId: string | null) {
   return z.string().uuid().safeParse(menteeId).success

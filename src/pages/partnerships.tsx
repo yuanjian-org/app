@@ -14,10 +14,8 @@ import {
   Tbody,
   Tr,
   Th,
-  Td,
   Flex,
   Box,
-  Link,
   TableContainer,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
@@ -26,73 +24,47 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
 import { AddIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
-import { Partnership, PartnershipCountingAssessments, isValidPartnershipIds } from 'shared/Partnership';
+import { Partnership, isValidPartnershipIds } from 'shared/Partnership';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
-import NextLink from 'next/link';
-import { formatUserName, toPinyin } from 'shared/strings';
-import { toast } from 'react-toastify';
 import { MinUser } from 'shared/User';
+import { MentorshipTableRow } from 'components/MentorshipTableRow';
 
 export default function Page() {
   const [user] = useUserContext();
 
-  const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery
-    <PartnershipCountingAssessments[] | undefined>();
+  const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery();
 
   // undefined: editor is closed. null: create a new partnership. non-nul: edit an existing partnership
-  const [ parntershipInEdit, setParntershipInEdit ] = useState<Partnership | null | undefined>(undefined);
-
-  const showAddButton = isPermitted(user.roles, 'PartnershipManager');
-  const showAssessment = isPermitted(user.roles, 'PartnershipAssessor');
+  const [ mentorshipInEdit, setMentorshipInEdit ] = useState<Partnership | null | undefined>(undefined);
 
   return <Flex direction='column' gap={6}>
-    {showAddButton && <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setParntershipInEdit(null)}>创建一对一匹配</Button>
-    </Box>}
+    <Box>
+      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setMentorshipInEdit(null)}>创建一对一匹配</Button>
+    </Box>
 
-    {parntershipInEdit !== undefined && <Editor partnership={parntershipInEdit} onClose={() => {
-      setParntershipInEdit(undefined);
+    {mentorshipInEdit !== undefined && <Editor partnership={mentorshipInEdit} onClose={() => {
+      setMentorshipInEdit(undefined);
       refetch();
     }} />}
 
     {!partnerships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>拼音（便于查找）</Th>
-          {showAssessment && <Th>跟踪评估</Th>}
+          <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>拼音（便于查找）</Th><Th>最近通话</Th>
         </Tr>
       </Thead>
       <Tbody>
-      {partnerships.map(p => <MentorshipRow key={p.id} showAssessment={showAssessment} partnership={p} 
-        edit={setParntershipInEdit} />)}
+      {partnerships.map(p => <MentorshipTableRow
+        key={p.id} showCoach showPinyin mentorship={p} edit={setMentorshipInEdit}
+      />)}
       </Tbody>
     </Table></TableContainer>}
 
   </Flex>;
 };
-
-function MentorshipRow({ partnership: p, showAssessment, edit }: {
-  partnership: PartnershipCountingAssessments,
-  showAssessment: boolean,
-  edit: (p: Partnership) => void,
-}) {
-  const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: p.mentor.id });
-
-  return <Tr cursor='pointer' _hover={{ bg: "white" }} onClick={() => edit(p)}>
-    <Td>{formatUserName(p.mentee.name, "formal")}</Td>
-    <Td>{formatUserName(p.mentor.name, "formal")}</Td>
-    <Td>{coach && formatUserName(coach.name, "formal")}</Td>
-    <Td>{toPinyin(p.mentee.name ?? "")},{toPinyin(p.mentor.name ?? "")}{coach && "," + toPinyin(coach.name ?? "")}</Td>
-    {showAssessment && <Td>
-      <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
-        查看（{p.assessments.length}）
-      </Link>
-    </Td>}
-  </Tr>;
-}
 
 function Editor({ partnership: p, onClose }: { 
   partnership: Partnership | null,
