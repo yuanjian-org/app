@@ -31,9 +31,11 @@ const get = procedure
 
 const list = procedure
   .use(authUser())
-  .input(z.string())
+  .input(z.object({
+    groupId: z.string(),
+  }))
   .output(z.array(zTranscript))
-  .query(async ({ input: groupId, ctx }) =>
+  .query(async ({ input: { groupId }, ctx }) =>
 {
   const g = await db.Group.findByPk(groupId, {
     attributes: groupAttributes,

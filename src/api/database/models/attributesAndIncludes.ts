@@ -4,7 +4,6 @@
 import Calibration from "./Calibration";
 import Group from "./Group";
 import InterviewFeedback from "./InterviewFeedback";
-import Transcript from "./Transcript";
 import User from "./User";
 
 /**
@@ -24,16 +23,14 @@ export const groupAttributes = ["id", "name", "roles", "partnershipId", "intervi
   "coacheeId"];
 
 export const groupInclude = [{
-  model: User,
+  association: "users",
   attributes: minUserAttributes,
 }];
 
-export const groupCountingTranscriptsInclude = [...groupInclude,
-  {
-    model: Transcript,
-    attributes: ["transcriptId"],
-  }
-];
+export const groupCountingTranscriptsInclude = [...groupInclude, {
+  association: "transcripts",
+  attributes: ["transcriptId", "startedAt", "endedAt"],
+}];
 
 /**
  * Transcript
@@ -51,8 +48,11 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Partnership
  */
 
-// Don't include private notes.
-export const defaultPartnershipAttributes = ['id', 'menteeId', 'mentorId'];
+// Don't include private notes by default. 
+// TODO: remove menteeId and mentorId
+export const partnershipAttributes = ['id', 'menteeId', 'mentorId'];
+
+export const partnershipWithNotesAttributes = [...partnershipAttributes, "privateMentorNotes"];
 
 export const partnershipInclude = [{
   association: 'mentor',
@@ -60,6 +60,12 @@ export const partnershipInclude = [{
 }, {
   association: 'mentee',
   attributes: minUserAttributes,
+}];
+
+export const partnershipWithGroupInclude = [...partnershipInclude, {
+  association: "group",
+  attributes: groupAttributes,
+  include: groupCountingTranscriptsInclude,
 }];
 
 /**

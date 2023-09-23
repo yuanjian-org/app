@@ -24,7 +24,7 @@ import { sidebarBreakpoint } from 'components/Navbars';
 export default function Transcripts({ groupId }: {
   groupId: string
 }) {
-  const { data: transcripts } = trpcNext.transcripts.list.useQuery(groupId);
+  const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
   return !transcripts ? <Loader /> : transcripts.length ?
     <LoadedTranscripts transcripts={transcripts} /> : 
     <Text color="gray">无通话历史。会议结束后一小时之内会显示在这里。</Text>;
