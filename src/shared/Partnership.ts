@@ -12,7 +12,6 @@ export const zPartnership = z.object({
   id: z.string().uuid(),
   mentor: zMinUser,
   mentee: zMinUser,
-  coach: zMinUser,
 });
 export type Partnership = z.TypeOf<typeof zPartnership>;
 
@@ -32,9 +31,8 @@ export const zPartnershipWithAssessments = zPartnership.merge(z.object({
 }));
 export type PartnershipWithAssessments = z.TypeOf<typeof zPartnershipWithAssessments>;
 
-export function isValidPartnershipIds(menteeId: string | null, mentorId: string | null, coachId: string | null) {
+export function isValidPartnershipIds(menteeId: string | null, mentorId: string | null) {
   return z.string().uuid().safeParse(menteeId).success
     && z.string().uuid().safeParse(mentorId).success
-    && z.string().uuid().safeParse(coachId).success
     && menteeId !== mentorId;
 }

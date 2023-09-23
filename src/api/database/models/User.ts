@@ -12,7 +12,9 @@ import {
   Model,
   Default,
   IsUUID,
-  PrimaryKey
+  PrimaryKey,
+  ForeignKey,
+  BelongsTo
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
@@ -71,6 +73,10 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
+  @ForeignKey(() => User)
+  @Column(UUID)
+  coachId: string | null;
+
   // Managed by next-auth
   @Column(DATE)
   emailVerified: Date | null;
@@ -84,8 +90,10 @@ class User extends Model {
    */
 
   @HasMany(() => Interview)
-
   interviews: Interview[];
+  
+  @BelongsTo(() => User, { foreignKey: 'coachId' })
+  coach: User | null;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {

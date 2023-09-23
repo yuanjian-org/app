@@ -69,9 +69,9 @@ class Group extends Model {
   calibrationId: string | null;
 
   // A group is "owned" by a mentor-coaching relationship if this field is non-null.
-  @ForeignKey(() => Partnership)
+  @ForeignKey(() => User)
   @Column(UUID)
-  coachingPartnershipId: string | null;
+  coacheeId: string | null;
   
   /**
    * Associations

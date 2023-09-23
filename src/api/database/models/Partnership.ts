@@ -49,11 +49,6 @@ class Partnership extends Model {
   @Column(UUID)
   menteeId: string;
 
-  @ForeignKey(() => User)
-  @AllowNull(false)
-  @Column(UUID)
-  coachId: string;
-
   @ZodColumn(JSONB, zPrivateMentorNotes.nullable())
   privateMentorNotes: PrivateMentorNotes | null;
 
@@ -67,10 +62,6 @@ class Partnership extends Model {
   @BelongsTo(() => User, { foreignKey: 'menteeId' })
   mentee: User;
 
-  @BelongsTo(() => User, { foreignKey: 'coachId' })
-  coach: User;
-
-  // TODO: Rename to mentorshipGroup (as opposed to coachingMentorshipGroup)
   @HasOne(() => Group, { foreignKey: "partnershipId" })
   group: Group;
 

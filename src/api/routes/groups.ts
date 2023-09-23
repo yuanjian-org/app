@@ -244,12 +244,12 @@ export async function createGroup(
   partnershipId: string | null, 
   interviewId: string | null, 
   calibrationId: string | null,
-  coachingPartnershipId: string | null,
+  coacheeId: string | null,
   transaction: Transaction): Promise<Group>
 {
-  invariant(!partnershipId || !interviewId);
+  invariant(!partnershipId || !interviewId || !calibrationId || !coacheeId);
 
-  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId, coachingPartnershipId },
+  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId, coacheeId },
     { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,

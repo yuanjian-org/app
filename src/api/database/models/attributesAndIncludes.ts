@@ -21,7 +21,7 @@ export const userAttributes = [...minUserAttributes, "wechat", "sex", "email", "
  */
 
 export const groupAttributes = ["id", "name", "roles", "partnershipId", "interviewId", "calibrationId",
-  "coachingPartnershipId"];
+  "coacheeId"];
 
 export const groupInclude = [{
   model: User,
@@ -59,9 +59,6 @@ export const partnershipInclude = [{
   attributes: minUserAttributes,
 }, {
   association: 'mentee',
-  attributes: minUserAttributes,
-}, {
-  association: 'coach',
   attributes: minUserAttributes,
 }];
 
