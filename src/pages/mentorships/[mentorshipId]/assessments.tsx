@@ -19,7 +19,7 @@ export default function Page() {
 
   return !partnership ? <Loader /> : <>
     <PageBreadcrumb current="评估列表" parents={[
-      { name: "一对一导师管理", link: "/partnerships" }
+      { name: "一对一导师管理", link: "/mentorships" }
     ]}/>
     <Flex direction='column' gap={6}>
       <UserChips users={[partnership.mentee, partnership.mentor]} abbreviateOnMobile={false} />

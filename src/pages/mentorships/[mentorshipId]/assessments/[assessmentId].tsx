@@ -14,7 +14,7 @@ export default function Page() { return <AssessmentEditor />; }
 function AssessmentEditor() {
   const router = useRouter();
   const id = parseQueryStringOrUnknown(router, "assessmentId");
-  const partnershipId = parseQueryStringOrUnknown(router, "partnershipId");
+  const mentorshipId = parseQueryStringOrUnknown(router, "mentorshipId");
   const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>(id);
 
   const save = useCallback(async (summary: string) => {
@@ -23,8 +23,8 @@ function AssessmentEditor() {
 
   return (<>
     <PageBreadcrumb current={assessment ? getYearText(assessment.createdAt): "评估年度"} parents={[
-      { name: "一对一导师管理", link: "/partnerships" },
-      { name: "评估列表", link: `/partnerships/${partnershipId}/assessments` },
+      { name: "一对一导师管理", link: "/mentorships" },
+      { name: "评估列表", link: `/mentorships/${mentorshipId}/assessments` },
     ]} />
 
     {!assessment ? <Loader /> : <Flex direction="column" gap={6}>

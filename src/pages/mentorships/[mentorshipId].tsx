@@ -18,30 +18,30 @@ import { widePage } from 'AppPage';
 import { useUserContext } from 'UserContext';
 
 export default widePage(() => {
-  const partnershipId = parseQueryStringOrUnknown(useRouter(), 'partnershipId');
-  const { data: partnership } = trpcNext.partnerships.get.useQuery(partnershipId);
+  const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
+  const { data: mentorship } = trpcNext.partnerships.get.useQuery(mentorshipId);
   const [user] = useUserContext();
 
-  if (!partnership) return <Loader />;
+  if (!mentorship) return <Loader />;
 
-  const iAmMentor = partnership.mentor.id === user.id;
+  const iAmMentor = mentorship.mentor.id === user.id;
 
   return <>
     <MobileExperienceAlert marginBottom={paragraphSpacing} />
     {iAmMentor && 
-      <GroupBar group={partnership.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
+      <GroupBar group={mentorship.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
     }
     <Grid gap={10} templateColumns={{ 
       base: "1fr", 
       [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
     }}>
       <GridItem>
-        <MenteeTabs partnershipId={partnershipId} menteeId={partnership.mentee.id} groupId={partnership.group.id} />
+        <MenteeTabs partnershipId={mentorshipId} menteeId={mentorship.mentee.id} groupId={mentorship.group.id} />
       </GridItem>
       <GridItem>
         <MentorPrivateNotes
-          partnershipId={partnershipId}
-          notes={partnership.privateMentorNotes}
+          partnershipId={mentorshipId}
+          notes={mentorship.privateMentorNotes}
           readonly={!iAmMentor}
         />
       </GridItem>

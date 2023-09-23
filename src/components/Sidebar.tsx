@@ -106,20 +106,20 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     name: '管理一对一',
-    path: '/partnerships',
+    path: '/mentorships',
     icon: MdOutlineSyncAlt,
-    regex: /^\/partnerships$/,
+    regex: /^\/mentorships$/,
     role: 'PartnershipManager',
   },
 ];
 
-function partnerships2Items(partnerships: Partnership[] | undefined): SidebarItem[] {
+function mentorships2Items(partnerships: Partnership[] | undefined): SidebarItem[] {
   if (!partnerships) return [];
   return partnerships.map(p => ({
     name: formatUserName(p.mentee.name, "formal"),
     icon: MdFace,
-    path: `/partnerships/${p.id}`,
-    regex: new RegExp(`^\/partnerships\/${p.id}`),
+    path: `/mentorships/${p.id}`,
+    regex: new RegExp(`^\/mentorships\/${p.id}`),
   }));
 }
 
@@ -134,7 +134,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   // Save an API call if the user is not a mentor.
   const { data: partnerships } = isPermitted(me.roles, "Mentor") ? 
     trpcNext.partnerships.listMineAsMentor.useQuery() : { data: undefined };
-  const partnershipItems = partnerships2Items(partnerships);
+  const partnershipItems = mentorships2Items(partnerships);
 
   return (
     <Box

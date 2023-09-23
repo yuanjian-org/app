@@ -25,7 +25,7 @@ export default function AssessmentsPanel({ partnershipId, assessments, allowEdit
         {assessments.length > 0 ? assessments.map(a => (
           <AssessmentRow
             key={a.id} 
-            partnershipId={partnershipId} 
+            mentorshipId={partnershipId} 
             assessmentId={a.id}
             date={a.createdAt}
             summary={a.summary}
@@ -34,7 +34,7 @@ export default function AssessmentsPanel({ partnershipId, assessments, allowEdit
         ))
         : 
         <AssessmentRow
-          partnershipId={partnershipId}
+          mentorshipId={partnershipId}
           date={new Date()}
           allowEdit={allowEdit}
         />}
@@ -48,22 +48,22 @@ export function getYearText(date?: Date | string): string {
   return new Date(date).getFullYear() + "年度";
 }
 
-function AssessmentRow({ partnershipId, assessmentId, date, summary, allowEdit } : {
-  partnershipId: string,
+function AssessmentRow({ mentorshipId, assessmentId, date, summary, allowEdit } : {
+  mentorshipId: string,
   assessmentId?: string,  // When undefined, create a new assessment and enter the new assessment page.
   date?: Date | string,   // Optional merely to suppress typescript warning
   summary?: string | null,
   allowEdit?: boolean,
 }) {
   const router = useRouter();
-  const url = (assessmentId: string) => `/partnerships/${partnershipId}/assessments/${assessmentId}`;
+  const url = (assessmentId: string) => `/mentorships/${mentorshipId}/assessments/${assessmentId}`;
   const createAndGo = async () => {
-    const id = await trpc.assessments.create.mutate({ partnershipId });
+    const id = await trpc.assessments.create.mutate({ partnershipId: mentorshipId });
     router.push(url(id));
   };
 
   return <TrLink
-    href={assessmentId ? `/partnerships/${partnershipId}/assessments/${assessmentId}` : "#"}
+    href={assessmentId ? `/mentorships/${mentorshipId}/assessments/${assessmentId}` : "#"}
     onClick={assessmentId ? undefined : createAndGo}
   >
     <Td>

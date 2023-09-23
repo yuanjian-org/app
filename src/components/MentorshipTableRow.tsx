@@ -34,7 +34,7 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
     color = "grey";
   }
 
-  return <TrLink href={`/partnerships/${m.id}`} {...edit && { onClick: () => edit(m) }}>
+  return <TrLink href={`/mentorships/${m.id}`} {...edit && { onClick: () => edit(m) }}>
     <Td>{formatUserName(m.mentee.name, "formal")}</Td>
     <Td>{formatUserName(m.mentor.name, "formal")}</Td>
     {showCoach && <Td>{coach && formatUserName(coach.name, "formal")}</Td>}
