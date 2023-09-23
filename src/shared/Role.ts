@@ -88,7 +88,7 @@ export const RoleProfiles: { [key: string]: {
     automatic: true,
   },
   MentorCoach: {
-    displayName: '导师教练',
+    displayName: '资深导师',
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,

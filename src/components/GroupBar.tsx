@@ -135,7 +135,7 @@ function GroupTagOrName({ group }: { group: Group }) {
       <Tag color="white" bgColor="gray">
         {group.partnershipId ? "一对一导师" :
           group.calibrationId ? "面试讨论" :
-            group.coacheeId ? "导师教练" :
+            group.coacheeId ? "资深导师" :
               group.interviewId ? "面试" :
                 "FIXME" }
       </Tag>
