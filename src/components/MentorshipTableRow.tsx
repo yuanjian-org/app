@@ -1,11 +1,10 @@
 import { Td } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PartnershipWithGroupAndNotes } from 'shared/Partnership';
 import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import TrLink from 'components/TrLink';
 import moment from 'moment';
-import { MinUser } from 'shared/User';
-import trpc from 'trpc';
+import { trpcNext } from 'trpc';
 
 export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit }: {
   mentorship: PartnershipWithGroupAndNotes;
@@ -13,13 +12,10 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
   showPinyin?: boolean,
   edit?: (m: PartnershipWithGroupAndNotes) => void,
 }) {
-  const [coach, setCoach] = useState<MinUser | null>(null);
-
-  useEffect(() => {
-    if (!showCoach) return;
-    const fetch = async () => setCoach(await trpc.users.getCoach.query({ userId: m.mentor.id }));
-    fetch();
-  }, [m, showCoach]);
+  // Always fetch coach data even if `!showCoach`, otherwise we have to use `useEffect`.
+  // The latter wouldn't work well becuase mentorships.tsx has a call to `utils.users.getCoach.invalidate` which
+  // will not trigger `useEffect` to re-run.
+  const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: m.mentor.id });
 
   let msg;
   let color;
