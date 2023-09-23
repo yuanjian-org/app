@@ -15,13 +15,10 @@ import { InterviewType, zInterviewType } from "shared/InterviewType";
 import { 
   minUserAttributes, 
   userAttributes, 
-  partnershipWithNotesAttributes, 
-  partnershipWithGroupInclude,
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
-import { zPartnershipWithGroupAndNotes } from "shared/Partnership";
 
 const me = procedure
   .use(authUser())
@@ -304,22 +301,6 @@ const listPriviledgedUserDataAccess = procedure
   });
 });
 
-const listMyCoachees = procedure
-  .use(authUser())
-  .output(z.array(zPartnershipWithGroupAndNotes))
-  .query(async ({ ctx }) =>
-{
-  return (await db.User.findAll({ 
-    where: { coachId: ctx.user.id },
-    attributes: [],
-    include: [{
-      association: "partnershipsAsMentor",
-      attributes: partnershipWithNotesAttributes,
-      include: partnershipWithGroupInclude,
-    }]
-  })).map(u => u.partnershipsAsMentor).flat();
-});
-
 const destroy = procedure
   .use(authUser("UserManager"))
   .input(z.object({
@@ -361,7 +342,6 @@ export default router({
 
   getCoach,
   setCoach,
-  listMyCoachees,
 });
 
 function checkUserFields(name: string | null, email: string) {

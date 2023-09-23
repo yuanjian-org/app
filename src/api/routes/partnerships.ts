@@ -5,8 +5,7 @@ import db from "../database/db";
 import { 
   isValidPartnershipIds,
   zPartnership,
-  zPartnershipCountingAssessments, 
-  zPartnershipWithAssessments, 
+  zPartnershipWithAssessmentsDeprecated, 
   zPartnershipWithGroupAndNotes, 
   zPrivateMentorNotes } from "../../shared/Partnership";
 import { z } from "zod";
@@ -20,10 +19,12 @@ import {
   groupAttributes,
   groupCountingTranscriptsInclude,
   partnershipInclude, 
-  partnershipWithNotesAttributes
+  partnershipWithNotesAttributes,
+  partnershipWithGroupInclude
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
+import { Op } from "sequelize";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
@@ -86,20 +87,29 @@ const updatePrivateMentorNotes = procedure
 
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zPartnershipCountingAssessments))
+  .output(z.array(zPartnershipWithGroupAndNotes))
   .query(async () => 
 {
-  const res = await db.Partnership.findAll({
-    attributes: partnershipAttributes,
-    include: [
-      ...partnershipInclude,
-      {
-        model: Assessment,
-        attributes: ['id'],
-      }
-    ]
+  return await db.Partnership.findAll({ 
+    attributes: partnershipWithNotesAttributes,
+    include: partnershipWithGroupInclude,
   });
-  return res;
+});
+
+const listMineAsCoach = procedure
+  .use(authUser())
+  .output(z.array(zPartnershipWithGroupAndNotes))
+  .query(async ({ ctx }) =>
+{
+  return (await db.User.findAll({ 
+    where: { coachId: ctx.user.id },
+    attributes: [],
+    include: [{
+      association: "mentorshipsAsMentor",
+      attributes: partnershipWithNotesAttributes,
+      include: partnershipWithGroupInclude,
+    }]
+  })).map(u => u.mentorshipsAsMentor).flat();
 });
 
 const listMineAsMentor = procedure
@@ -138,11 +148,11 @@ const get = procedure
   return res;
 });
 
-// TODO: remove this function. Use partnership.get + assessments.listAllOfPartnership instead.
+// TODO: remove this function. Use partnership.get + assessments.listAllForMentorship instead.
 const getWithAssessmentsDeprecated = procedure
   .use(authUser())
   .input(z.string())
-  .output(zPartnershipWithAssessments)
+  .output(zPartnershipWithAssessmentsDeprecated)
   .query(async ({ ctx, input: id }) =>
 {
   const res = await db.Partnership.findByPk(id, {
@@ -168,5 +178,6 @@ export default router({
   getWithAssessmentsDeprecated,
   list,
   listMineAsMentor,
+  listMineAsCoach,
   updatePrivateMentorNotes,
 });

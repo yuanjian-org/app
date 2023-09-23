@@ -93,7 +93,7 @@ class User extends Model {
   interviews: Interview[];
 
   @HasMany(() => Partnership, { foreignKey: 'mentorId' })
-  partnershipsAsMentor: Partnership[];
+  mentorshipsAsMentor: Partnership[];
   
   @BelongsTo(() => User, { foreignKey: 'coachId' })
   coach: User | null;

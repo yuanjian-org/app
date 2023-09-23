@@ -5,7 +5,7 @@ import {
 import React from 'react';
 import { trpcNext } from "../../../trpc";
 import Loader from 'components/Loader';
-import { PartnershipWithAssessments } from 'shared/Partnership';
+import { PartnershipWithAssessmentsDeprecated } from 'shared/Partnership';
 import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from "shared/strings";
 import { UserChips } from 'components/GroupBar';
@@ -15,7 +15,7 @@ import AssessmentsPanel from 'components/AssessmentsPanel';
 export default function Page() {
   const partnershipId = parseQueryStringOrUnknown(useRouter(), "partnershipId");
   const { data: partnership } = trpcNext.partnerships.getWithAssessmentsDeprecated
-    .useQuery<PartnershipWithAssessments | undefined>(partnershipId);
+    .useQuery<PartnershipWithAssessmentsDeprecated | undefined>(partnershipId);
 
   return !partnership ? <Loader /> : <>
     <PageBreadcrumb current="评估列表" parents={[
