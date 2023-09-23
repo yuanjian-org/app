@@ -16,41 +16,7 @@ developed by VEF volunteers.
 1. Visit the local server from broswer. Sign up with your personal email address.
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
-1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
-1. To activate husky/git hooks for Mac users, run `chmod ug+x .husky/*` after installation
-
-## Getting Started Using Docker (Work In Progress)
-
-1. Install [Docker](https://www.docker.com/).
-1. [TODO] Postgresql instructions TBD. Currently you must use Neon for database if using Docker.
-1. Create file `.env.local` in the repository root, and:
-    - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
-    - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
-1. Run `yarn docker-dev`.
-    - [Optional] Run `docker exec -it yuanjian-app-dev sh` to start a new shell session in the
-    container, then run `yarn sync-database` and/or `yarn gen-test-data` if needed. `Ctrl + d` to
-    exit.
-    - Hotswap is enabled by default.
-    - Quick references to some useful `docker` and `docker compose` commands:
-        - `docker compose logs -tf`: Show NextJS logs in the running container.
-            - `-t`: Show timestamp.
-            - `-f`: Follow log output.
-        - `docker ps`: Show all currently running containers.
-        - `docker compose ps`: Show all currently running Docker compose apps.
-        - `docker stop yuanjian-app-dev`: Stop a container.
-        - `docker compose rm -sf`: Stop and remove all containers.
-            - `-s`: Stop all containers if they are running.
-            - `-f`: Skip removal confirmation.
-        - [more](https://docs.docker.com/engine/reference/commandline/cli/).
-1. Visit [`localhost:3000`](http://localhost:3000) from broswer. Log in with your personal email address.
-1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
-
-## Frameworks Used
-
-- Full stack: [Next.js](https://nextjs.org/)
-- Typing: `typescript`, [`trpc`](https://trpc.io/), `zod`
-- UI: [Chakra UI](https://chakra-ui.com/)
-- End-to-end Testing: [Cypress](https://www.cypress.io/)
+1. If you use MacOS, run `chmod ug+x .husky/*` to activate husky/git hooks.
 
 ## Code Structure
 
@@ -64,9 +30,10 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 | `src/pages` | `next.js` [Page Router](https://nextjs.org/docs/pages/building-your-application/routing). Migrating to App Router remains future work. |
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
 | `tools` | Command-line scripts. |
-| `cypress/e2e` | End-to-end tests. See [`cypress/README.md`](cypress/README.md) for details. |
+| `cypress/e2e` | End-to-end tests. See [`documentation`](cypress/README.md). |
+| `llm` | Code for large language models. See [`documentation`](llm/README.md). |
 
-**IMPORTANT**: To prevent security and programming issues,
+To prevent security and programming issues, eslint [is configured](./.eslintrc.json) to enforce the following rules:
 
 * files in `src/shared` must not refer to files outside of `src/shared`,
 * files in `src/api` must not refer to files outside of `src/api` or `src/shared`, and
@@ -79,3 +46,12 @@ graph TD;
     src[the rest of src]-->|ok|src/shared;
     src/api-->|ok|src/shared;
 ```
+
+## Testing
+
+1. Run `yarn test` to run all unit tests.
+1. See [this doc](./cypress/README.md) for end-to-end testing.
+
+## More Documentation
+
+Browse the [`docs`](./docs/) folder.
