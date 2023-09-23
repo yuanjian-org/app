@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
-import sequelizeInstance from "../../../api/database/sequelizeInstance";
+import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
@@ -20,7 +20,7 @@ declare module "next-auth" {
 
 const tokenMaxAgeInMins = 5;
 
-export const adapter = SequelizeAdapter(sequelizeInstance, {
+export const adapter = SequelizeAdapter(sequelize, {
   models: { User: db.User },
 });
 

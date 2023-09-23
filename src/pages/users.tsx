@@ -147,7 +147,7 @@ function UserEditor(props: {
 
   const deleteUser = async () => {
     if (props.user && window.confirm("确定要删除这个用户吗？")) {
-      await trpc.users.remove.mutate({ id: props.user.id });
+      await trpc.users.destroy.mutate({ id: props.user.id });
       props.onClose();
     }
   };

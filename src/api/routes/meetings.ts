@@ -9,7 +9,7 @@ import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
 import { emailRoleIgnoreError } from 'api/sendgrid';
-import sequelizeInstance from 'api/database/sequelizeInstance';
+import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import { groupAttributes, groupInclude } from 'api/database/models/attributesAndIncludes';
 import { Group } from '../../shared/Group';
@@ -46,10 +46,11 @@ const join = procedure
   // when multiple transactions are trying to access or modify the same data simultaneously
   // details: https://stackoverflow.com/a/48297781
   // if the user's group is present in OngoingMeetings Model, return the meeting link 
-  return await sequelizeInstance.transaction(async (t) => {
+  return await sequelize.transaction(async transaction => {
     const ongoingMeeting = await db.OngoingMeetings.findOne({ 
       where: { groupId: g.id },
-      lock: true, transaction: t,
+      lock: true,
+      transaction,
     });
     if (ongoingMeeting) {
       return ongoingMeeting.meetingLink;
@@ -57,7 +58,7 @@ const join = procedure
 
     // if not in OngoingMeetings, check if there are empty slots to use. Find a TM user id that is not in use and
     // generate a meeting link using this user id.
-    const meetings = await db.OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction: t });
+    const meetings = await db.OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction });
     if (meetings.length >= apiEnv.TM_USER_IDS.length) {
       await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
         `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
@@ -74,7 +75,7 @@ const join = procedure
       tmUserId: availableTmUserIds[0],
       meetingId,
       meetingLink,
-    }, { transaction: t });
+    }, { transaction });
 
     return meetingLink;
   });
@@ -114,9 +115,9 @@ async function create(g: Group, availableTmUserId: string) {
 }
 
 export async function updateOngoingMeetings() {
-  await sequelizeInstance.transaction(async (t) => {
+  await sequelize.transaction(async transaction => {
     const ongoingMeetings = await db.OngoingMeetings.findAll({
-      attributes: ["tmUserId", "meetingId", "createdAt"], lock: true, transaction: t,
+      attributes: ["tmUserId", "meetingId", "createdAt"], lock: true, transaction,
     });
     for (const meeting of ongoingMeetings) {
       // This condition is added to improve the corner case when a user created a meeting but did not join
@@ -126,7 +127,7 @@ export async function updateOngoingMeetings() {
 
       const meetingInfo = await getMeeting(meeting.meetingId, meeting.tmUserId);
       if (meetingInfo.status !== 'MEETING_STATE_STARTED') {
-        await db.OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction: t });
+        await db.OngoingMeetings.destroy({ where: { tmUserId: meeting.tmUserId }, transaction });
       }
     }
   });

@@ -12,7 +12,7 @@ import {
 import { z } from "zod";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
-import sequelizeInstance from "../database/sequelizeInstance";
+import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
 import Group from "api/database/models/Group";
 import { 
@@ -35,7 +35,7 @@ const create = procedure
     throw generalBadRequestError('无效用户ID');
   }
 
-  await sequelizeInstance.transaction(async (transaction) => {
+  await sequelize.transaction(async transaction => {
     const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
     const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
     if (!mentor || !mentee) {

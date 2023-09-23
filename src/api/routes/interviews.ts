@@ -4,7 +4,7 @@ import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
 import { groupAttributes, groupInclude, interviewInclude, interviewAttributes } from "../database/models/attributesAndIncludes";
-import sequelizeInstance from "../database/sequelizeInstance";
+import sequelize from "../database/sequelize";
 import { conflictError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
@@ -107,7 +107,7 @@ export async function createInterview(type: InterviewType, calibrationId: string
 ): Promise<string> {
   validate(intervieweeId, interviewerIds);
 
-  return await sequelizeInstance.transaction(async (transaction) => {
+  return await sequelize.transaction(async transaction => {
     const i = await db.Interview.create({
       type, intervieweeId, calibrationId,
     }, { transaction });
@@ -160,7 +160,7 @@ const updateDecision = procedure
   .output(z.number())
   .mutation(async ({ input }) =>
 {
-  return await sequelizeInstance.transaction(async transaction => {
+  return await sequelize.transaction(async transaction => {
     const i = await db.Interview.findByPk(input.interviewId, {
       attributes: ["id", "decisionUpdatedAt"],
       transaction,
@@ -184,7 +184,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
 {
   validate(intervieweeId, interviewerIds);
 
-  await sequelizeInstance.transaction(async (transaction) => {
+  await sequelize.transaction(async transaction => {
     const i = await db.Interview.findByPk(id, {
       include: [...interviewInclude, Group],
       transaction

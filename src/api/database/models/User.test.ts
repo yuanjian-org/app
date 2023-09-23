@@ -4,7 +4,7 @@ import GroupUser from './GroupUser';
 import Partnership from './Partnership';
 import Group from './Group';
 import initApiServer from '../../initApiServer';
-import sequelizeInstance from '../sequelizeInstance';
+import sequelize from '../sequelize';
 import { Op } from 'sequelize';
 
 describe('User', () => {
