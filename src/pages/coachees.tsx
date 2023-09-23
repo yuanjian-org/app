@@ -41,17 +41,17 @@ function MentorshipRow({ mentorship: m }: {
   mentorship: PartnershipWithGroupAndNotes,
 }) {
   let msg;
-  let daysAgo;
+  let color;
   if (m.group.transcripts.length) {
     // return the most recent transcript
     const t = m.group.transcripts.reduce((a, b) => moment(a.startedAt).isBefore(b.startedAt) ? b : a);
     msg = prettifyDate(t.startedAt);
-    daysAgo = moment().diff(t.startedAt, "days");
+    const daysAgo = moment().diff(t.startedAt, "days");
+    color = daysAgo < 45 ? "green" : daysAgo < 60 ? "yellow.600" : "brown";
   } else {
     msg = "尚未通话";
-    daysAgo = moment().dayOfYear();
+    color = "grey";
   }
-  const color = daysAgo < 45 ? "green" : daysAgo < 60 ? "yellow.600" : "brown";
 
   return <TrLink href={`/partnerships/${m.id}`}>
     <Td>{formatUserName(m.mentee.name, "formal")}</Td>
