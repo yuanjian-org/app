@@ -28,9 +28,9 @@ import { Partnership, isValidPartnershipIds } from 'shared/Partnership';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import { useUserContext } from 'UserContext';
-import { isPermitted } from 'shared/Role';
 import { MinUser } from 'shared/User';
 import { MentorshipTableRow } from 'components/MentorshipTableRow';
+import { sectionSpacing } from 'theme/metrics';
 
 export default function Page() {
   const [user] = useUserContext();
@@ -40,7 +40,7 @@ export default function Page() {
   // undefined: editor is closed. null: create a new partnership. non-nul: edit an existing partnership
   const [ mentorshipInEdit, setMentorshipInEdit ] = useState<Partnership | null | undefined>(undefined);
 
-  return <Flex direction='column' gap={6}>
+  return <Flex direction='column' gap={sectionSpacing}>
     <Box>
       <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setMentorshipInEdit(null)}>创建一对一匹配</Button>
     </Box>
