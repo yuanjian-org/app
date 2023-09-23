@@ -3,7 +3,7 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
-import sequelizeInstance from "../database/sequelizeInstance";
+import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
@@ -33,7 +33,7 @@ const create = procedure
 export async function createCalibration(type: InterviewType, name: string): Promise<string> 
 {
   if (!name.length) throw generalBadRequestError("名称不能为空");
-  return await sequelizeInstance.transaction(async (transaction) => {
+  return await sequelize.transaction(async transaction => {
     const c = await db.Calibration.create({ type, name, active: false }, { transaction });
     await createGroup(null, [], ["InterviewManager"], null, null, c.id, null, transaction);
     return c.id;

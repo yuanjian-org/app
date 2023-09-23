@@ -1,4 +1,4 @@
-import sequelizeInstance, { ModelAttributeColumnOptions } from "sequelize";
+import sequelize, { ModelAttributeColumnOptions } from "sequelize";
 
 import { addAttribute } from "sequelize-typescript/dist/model/column/attribute-service";
 import { getSequelizeTypeByDesignType } from "sequelize-typescript/dist/model/shared/model-service";
@@ -8,7 +8,7 @@ import { Model } from "sequelize-typescript";
 
 type OptionsOrDataType =
   | Partial<ModelAttributeColumnOptions>
-  | sequelizeInstance.DataType;
+  | sequelize.DataType;
 
 export class ZodColumnGetError extends Error {
   constructor(propertyName: string, val: any, zodError: ZodError) {

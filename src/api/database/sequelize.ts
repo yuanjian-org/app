@@ -3,7 +3,7 @@ import apiEnv from "../apiEnv";
 import { hookIsPartialAfterSequelizeInit } from "./modelHelpers/ZodColumn";
 import db from "./db";
 
-const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
+const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
   models: Object.values(db),
   logging: false,
   dialectModule: require('pg'),
@@ -18,4 +18,4 @@ const sequelizeInstance = new Sequelize(apiEnv.DATABASE_URI, {
 
 hookIsPartialAfterSequelizeInit();
 
-export default sequelizeInstance;
+export default sequelize;

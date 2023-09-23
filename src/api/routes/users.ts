@@ -14,7 +14,7 @@ import Interview from "api/database/models/Interview";
 import { InterviewType, zInterviewType } from "shared/InterviewType";
 import { minUserAttributes, userAttributes } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
-import sequelizeInstance from "api/database/sequelizeInstance";
+import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 
 const me = procedure
@@ -161,7 +161,7 @@ const setCoach = procedure
   }))
   .mutation(async ({ input: { userId, coachId } }) =>
 {
-  await sequelizeInstance.transaction(async transaction => {
+  await sequelize.transaction(async transaction => {
     const u = await db.User.findByPk(userId, {
       attributes: ["id", "coachId"],
       transaction,
@@ -295,14 +295,14 @@ const listPriviledgedUserDataAccess = procedure
   });
 });
 
-const remove = procedure
+const destroy = procedure
   .use(authUser("UserManager"))
   .input(z.object({
     id: z.string(),
   }))
   .mutation(async ({ input }) => 
 {
-  await sequelizeInstance.transaction(async transaction => {
+  await sequelize.transaction(async transaction => {
     const user = await db.User.findByPk(input.id, { transaction });
     if (!user) throw notFoundError("用户", input.id);
 
@@ -332,7 +332,7 @@ export default router({
   listPriviledgedUserDataAccess,
   getApplicant,
   updateApplication,
-  remove,
+  destroy,
   getCoach,
   setCoach,
 });

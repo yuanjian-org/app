@@ -6,7 +6,7 @@ import { Includeable, Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import _ from "lodash";
 import Role, { isPermitted } from "../../shared/Role";
-import sequelizeInstance from "../database/sequelizeInstance";
+import sequelize from "../database/sequelize";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
@@ -38,7 +38,7 @@ const create = procedure
   }))
   .mutation(async ({ ctx, input }) =>
 {
-  await sequelizeInstance.transaction(async t => {
+  await sequelize.transaction(async t => {
     const g = await createGroup(null, input.userIds, [], null, null, null, null, t);
     await emailNewUsersOfGroupIgnoreError(ctx, g.id, input.userIds);
   });
@@ -50,9 +50,7 @@ const update = procedure
   .mutation(async ({ ctx, input }) =>
 {
   const newUserIds = input.users.map(u => u.id);
-  const addedUserIds = await sequelizeInstance.transaction(
-    async (t) => updateGroup(input.id, input.name, newUserIds, t)
-  );
+  const addedUserIds = await sequelize.transaction(async t => updateGroup(input.id, input.name, newUserIds, t));
   await emailNewUsersOfGroupIgnoreError(ctx, input.id, addedUserIds);
 });
 
@@ -116,9 +114,7 @@ const destroy = procedure
   if (!group) throw notFoundError("分组", input.groupId);
 
   // Need a transaction for cascading destroys
-  await sequelizeInstance.transaction(async (t) => {
-    await group.destroy({ transaction: t });
-  });
+  await sequelize.transaction(async transaction => await group.destroy({ transaction }));
 });
 
 
