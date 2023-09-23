@@ -24,7 +24,6 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
-import { Op } from "sequelize";
 
 const create = procedure
   .use(authUser('PartnershipManager'))
