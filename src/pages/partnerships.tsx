@@ -20,7 +20,7 @@ import {
   Link,
   TableContainer,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -33,6 +33,8 @@ import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from 'next/link';
 import { formatUserName, toPinyin } from 'shared/strings';
+import { toast } from 'react-toastify';
+import { MinUser } from 'shared/User';
 
 export default function Page() {
   const [user] = useUserContext();
@@ -64,24 +66,33 @@ export default function Page() {
         </Tr>
       </Thead>
       <Tbody>
-      {partnerships.map(p => (
-        <Tr key={p.id} cursor='pointer' _hover={{ bg: "white" }} onClick={() => setParntershipInEdit(p)}>
-          <Td>{formatUserName(p.mentee.name, "formal")}</Td>
-          <Td>{formatUserName(p.mentor.name, "formal")}</Td>
-          <Td>{formatUserName(p.coach.name, "formal")}</Td>
-          <Td>{toPinyin(p.mentee.name ?? "")},{toPinyin(p.mentor.name ?? "")},{toPinyin(p.coach.name ?? "")}</Td>
-          {showAssessment && <Td>
-            <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
-              查看（{p.assessments.length}）
-            </Link>
-          </Td>}
-        </Tr>
-      ))}
+      {partnerships.map(p => <MentorshipRow key={p.id} showAssessment={showAssessment} partnership={p} 
+        edit={setParntershipInEdit} />)}
       </Tbody>
     </Table></TableContainer>}
 
   </Flex>;
 };
+
+function MentorshipRow({ partnership: p, showAssessment, edit }: {
+  partnership: PartnershipCountingAssessments,
+  showAssessment: boolean,
+  edit: (p: Partnership) => void,
+}) {
+  const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: p.mentor.id });
+
+  return <Tr key={p.id} cursor='pointer' _hover={{ bg: "white" }} onClick={() => edit(p)}>
+    <Td>{formatUserName(p.mentee.name, "formal")}</Td>
+    <Td>{formatUserName(p.mentor.name, "formal")}</Td>
+    <Td>{coach && formatUserName(coach.name, "formal")}</Td>
+    <Td>{toPinyin(p.mentee.name ?? "")},{toPinyin(p.mentor.name ?? "")}{coach && "," + toPinyin(coach.name ?? "")}</Td>
+    {showAssessment && <Td>
+      <Link as={NextLink} href={`/partnerships/${p.id}/assessments`}>
+        查看（{p.assessments.length}）
+      </Link>
+    </Td>}
+  </Tr>;
+}
 
 function Editor({ partnership: p, onClose }: { 
   partnership: Partnership | null,
@@ -89,26 +100,41 @@ function Editor({ partnership: p, onClose }: {
 }) {
   const [menteeId, setMenteeId] = useState<string | null>(p ? p.mentee.id : null);
   const [mentorId, setMentorId] = useState<string | null>(p ? p.mentor.id : null);
-  const [coachId, setCoachId] = useState<string | null>(p ? p.coach.id : null);
+  // undefined: loading
+  const [oldCoach, setOldCoach] = useState<MinUser | null | undefined>(undefined);
+  const [coachId, setCoachId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const menteeAndMentorAreSameUser = menteeId !== null && menteeId === mentorId;
+  useEffect(() => {
+    if (!p) {
+      setOldCoach(null);
+      return;
+    }
+    const fetch = async () => {
+      const coach = await trpc.users.getCoach.query({ userId: p.mentor.id });
+      setOldCoach(coach);
+    };
+    fetch();
+  }, [p]);
 
+  const utils = trpcNext.useContext();
   const save = async () => {
     setSaving(true);
     try {
       invariant(menteeId);
       invariant(mentorId);
-      invariant(coachId);
-      if (p) {
-        await trpc.partnerships.updateCoach.mutate({
-          id: p.id, coachId
-        });
-      } else {
+      if (!p) {
         await trpc.partnerships.create.mutate({
-          mentorId, menteeId, coachId
+          mentorId, menteeId
         });
       }
+
+      if (coachId) {
+        await trpc.users.setCoach.mutate({ userId: mentorId, coachId });
+        // Force UI to refresh coach list.
+        utils.users.getCoach.invalidate({ userId: mentorId });
+      }
+
       onClose();
     } finally {
       setSaving(false);
@@ -129,7 +155,7 @@ function Editor({ partnership: p, onClose }: {
               onSelect={userIds => setMenteeId(userIds.length ? userIds[0] : null)}
             />
           </FormControl>
-          <FormControl isInvalid={menteeAndMentorAreSameUser}>
+          <FormControl isInvalid={menteeId !== null && menteeId === mentorId}>
             <FormLabel>导师</FormLabel>
             <UserSelector
               isDisabled={p !== null}
@@ -140,16 +166,16 @@ function Editor({ partnership: p, onClose }: {
           </FormControl>
           <FormControl>
             <FormLabel>导师教练</FormLabel>
-            <UserSelector
-              initialValue={p ? [p.coach] : []}
+            {oldCoach === undefined ? <Loader /> : <UserSelector
+              initialValue={oldCoach ? [oldCoach] : []}
               onSelect={userIds => setCoachId(userIds.length ? userIds[0] : null)}
-            />
+            />}
           </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
         <Button variant='brand' 
-          isDisabled={!isValidPartnershipIds(menteeId, mentorId, coachId)}
+          isDisabled={!isValidPartnershipIds(menteeId, mentorId)}
           isLoading={saving} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>

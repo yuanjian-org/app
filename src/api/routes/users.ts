@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zUser, zUserFilter } from "../../shared/User";
+import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -12,9 +12,10 @@ import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
 import Interview from "api/database/models/Interview";
 import { InterviewType, zInterviewType } from "shared/InterviewType";
-import { userAttributes } from "../database/models/attributesAndIncludes";
+import { minUserAttributes, userAttributes } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelizeInstance from "api/database/sequelizeInstance";
+import { createGroup, updateGroup } from "./groups";
 
 const me = procedure
   .use(authUser())
@@ -122,6 +123,72 @@ const update = procedure
       roles: input.roles,
       email: input.email,
     } : {},
+  });
+});
+
+/**
+ * Only the user themselves or PartnershipManager have access to this API.
+ */
+const getCoach = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zMinUser.nullable())
+  .query(async ({ ctx, input: { userId } }) =>
+{
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "PartnershipManager")) {
+    throw noPermissionError("导师教练匹配", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: [],
+    include: [{
+      association: "coach",
+      attributes: minUserAttributes,
+    }]
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u.coach;
+});
+
+const setCoach = procedure
+  .use(authUser("PartnershipManager"))
+  .input(z.object({
+    userId: z.string(),
+    coachId: z.string(),
+  }))
+  .mutation(async ({ input: { userId, coachId } }) =>
+{
+  await sequelizeInstance.transaction(async transaction => {
+    const u = await db.User.findByPk(userId, {
+      attributes: ["id", "coachId"],
+      transaction,
+      lock: true,
+    });
+    if (!u) throw notFoundError("用户", userId);
+    const oldCoachId = u.coachId;
+    await u.update({ coachId }, { transaction });
+
+    // Update role
+    // TODO: Remove role from previous coach?
+    const coach = await db.User.findByPk(coachId, { lock: true, transaction });
+    if (!coach) throw notFoundError("用户", coachId);
+    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
+    await coach.save({ transaction });
+
+    // create or update group
+    if (oldCoachId) {
+      const gs = await db.Group.findAll({
+        where: { coacheeId: userId },
+        attributes: ["id"],
+      });
+      invariant(gs.length == 1);
+      await updateGroup(gs[0].id, null, [userId, coachId], transaction);
+    } else {
+      await createGroup(null, [userId, coachId], [], null, null, null, userId, transaction);
+    }
   });
 });
 
@@ -257,7 +324,6 @@ const remove = procedure
   });
 });
 
-
 export default router({
   me,
   create,
@@ -267,6 +333,8 @@ export default router({
   getApplicant,
   updateApplication,
   remove,
+  getCoach,
+  setCoach,
 });
 
 function checkUserFields(name: string | null, email: string) {

@@ -28,19 +28,17 @@ const create = procedure
   .input(z.object({
     mentorId: z.string(),
     menteeId: z.string(),
-    coachId: z.string(),
   }))
-  .mutation(async ({ input: { mentorId, menteeId, coachId } }) => 
+  .mutation(async ({ input: { mentorId, menteeId } }) => 
 {
-  if (!isValidPartnershipIds(menteeId, mentorId, coachId)) {
+  if (!isValidPartnershipIds(menteeId, mentorId)) {
     throw generalBadRequestError('无效用户ID');
   }
 
   await sequelizeInstance.transaction(async (transaction) => {
     const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
     const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
-    const coach = await db.User.findByPk(menteeId, { lock: true, transaction });
-    if (!mentor || !mentee || !coach) {
+    if (!mentor || !mentee) {
       throw generalBadRequestError('无效用户ID');
     }
 
@@ -49,13 +47,11 @@ const create = procedure
     await mentor.save({ transaction });
     mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
     await mentee.save({ transaction });
-    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
-    await coach.save({ transaction });
 
     let partnership;
     try {
       partnership = await db.Partnership.create({
-        mentorId, menteeId, coachId
+        mentorId, menteeId
       }, { transaction });
     } catch (e: any) {
       if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
@@ -66,42 +62,6 @@ const create = procedure
     // Create groups
     invariant(partnership);
     await createGroup(null, [mentorId, menteeId], [], partnership.id, null, null, null, transaction);
-    await createGroup(null, [mentorId, coachId], [], null, null, null, partnership.id, transaction);
-  });
-});
-
-const updateCoach = procedure
-  .use(authUser('PartnershipManager'))
-  .input(z.object({
-    id: z.string(),
-    coachId: z.string(),
-  }))
-  .mutation(async ({ input: { id, coachId } }) => 
-{
-  await sequelizeInstance.transaction(async (transaction) => {
-    const p = await db.Partnership.findByPk(id, { lock: true, transaction });
-    if (!p) throw notFoundError("一对一匹配", id);
-    await p.update({ coachId }, { transaction });
-
-    // Update role
-    // TODO: Remove role from previous coach?
-    const coach = await db.User.findByPk(coachId, { lock: true, transaction });
-    if (!coach) throw notFoundError("用户", coachId);
-    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
-    await coach.save({ transaction });
-
-    // Update group membership
-    const group = await db.Group.findOne({
-      where: { coachingPartnershipId: id },
-      lock: true,
-      transaction,
-    });
-    if (group) {
-      await updateGroup(group.id, null, [p.mentorId, coachId], transaction);
-    } else {
-      // Backfill
-      await createGroup(null, [p.mentorId, coachId], [], null, null, null, id, transaction);
-    }
   });
 });
 
@@ -205,6 +165,5 @@ export default router({
   getWithAssessmentsDeprecated,
   list,
   listMineAsMentor,
-  updateCoach,
   updatePrivateMentorNotes,
 });
