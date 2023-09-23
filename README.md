@@ -13,9 +13,9 @@ developed by VEF volunteers.
 1. Run `yarn` to install dependency packages.
 1. Run `yarn sync-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
-1. Visit this local server from broswer. Log in with your personal email address.
+1. Visit the local server from broswer. Sign up with your personal email address.
+   - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
-1. Finally, restart your local server to clean up cached data.
 1. To run e2e tests, see [Cypress E2E Testing](./cypress/README.md).
 1. To activate husky/git hooks for Mac users, run `chmod ug+x .husky/*` after installation
 

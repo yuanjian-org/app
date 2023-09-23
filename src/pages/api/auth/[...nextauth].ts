@@ -1,14 +1,14 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
-import SequelizeAdapter from "@auth/sequelize-adapter";
-import sequelizeInstance from "api/database/sequelizeInstance";
+import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
+import sequelizeInstance from "../../../api/database/sequelizeInstance";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
-import { toChinese } from "shared/strings";
-import { userAttributes } from "api/database/models/attributesAndIncludes";
+import { toChinese } from "../../../shared/strings";
+import { userAttributes } from "../../../api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
-import User from "api/database/models/User";
+import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 
 // The default session user would cause type error when using session user data
@@ -20,10 +20,12 @@ declare module "next-auth" {
 
 const tokenMaxAgeInMins = 5;
 
+export const adapter = SequelizeAdapter(sequelizeInstance, {
+  models: { User: db.User },
+});
+
 export const authOptions: NextAuthOptions = {
-  adapter: SequelizeAdapter(sequelizeInstance, {
-    models: { User: db.User },
-  }),
+  adapter,
 
   session: {
     maxAge: 90 * 24 * 60 * 60, // 90 days
