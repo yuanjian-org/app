@@ -12,11 +12,16 @@ import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
 import Interview from "api/database/models/Interview";
 import { InterviewType, zInterviewType } from "shared/InterviewType";
-import { defaultPartnershipAttributes, minUserAttributes, partnershipInclude, userAttributes } from "../database/models/attributesAndIncludes";
+import { 
+  minUserAttributes, 
+  userAttributes, 
+  partnershipWithNotesAttributes, 
+  partnershipWithGroupInclude,
+} from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
-import { zPartnership } from "shared/Partnership";
+import { zPartnershipWithGroupAndNotes } from "shared/Partnership";
 
 const me = procedure
   .use(authUser())
@@ -301,16 +306,16 @@ const listPriviledgedUserDataAccess = procedure
 
 const listMyCoachees = procedure
   .use(authUser())
-  .output(z.array(zPartnership))
-  .query(async ({ ctx }) => 
+  .output(z.array(zPartnershipWithGroupAndNotes))
+  .query(async ({ ctx }) =>
 {
   return (await db.User.findAll({ 
     where: { coachId: ctx.user.id },
     attributes: [],
     include: [{
       association: "partnershipsAsMentor",
-      attributes: defaultPartnershipAttributes,
-      include: partnershipInclude,
+      attributes: partnershipWithNotesAttributes,
+      include: partnershipWithGroupInclude,
     }]
   })).map(u => u.partnershipsAsMentor).flat();
 });
