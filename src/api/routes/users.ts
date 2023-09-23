@@ -12,10 +12,11 @@ import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
 import Interview from "api/database/models/Interview";
 import { InterviewType, zInterviewType } from "shared/InterviewType";
-import { minUserAttributes, userAttributes } from "../database/models/attributesAndIncludes";
+import { defaultPartnershipAttributes, minUserAttributes, partnershipInclude, userAttributes } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
+import { zPartnership } from "shared/Partnership";
 
 const me = procedure
   .use(authUser())
@@ -193,8 +194,9 @@ const setCoach = procedure
 });
 
 /**
- * Only InterviewManagers, interviewers of the application, and participants of the calibration (only if the calibration
- * is active) are allowed to call this route. If the user is not an InterviewManager, contact information is redacted.
+ * Only InterviewManagers, MentorCoaches, interviewers of the application, and participants of the calibration
+ * (only if the calibration is active) are allowed to call this route. If the user is not an InterviewManager, contact
+ * information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -222,6 +224,8 @@ const getApplicant = procedure
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
+
+  if (isPermitted(ctx.user.roles, "MentorCoach")) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -295,6 +299,22 @@ const listPriviledgedUserDataAccess = procedure
   });
 });
 
+const listMyCoachees = procedure
+  .use(authUser())
+  .output(z.array(zPartnership))
+  .query(async ({ ctx }) => 
+{
+  return (await db.User.findAll({ 
+    where: { coachId: ctx.user.id },
+    attributes: [],
+    include: [{
+      association: "partnershipsAsMentor",
+      attributes: defaultPartnershipAttributes,
+      include: partnershipInclude,
+    }]
+  })).map(u => u.partnershipsAsMentor).flat();
+});
+
 const destroy = procedure
   .use(authUser("UserManager"))
   .input(z.object({
@@ -333,8 +353,10 @@ export default router({
   getApplicant,
   updateApplication,
   destroy,
+
   getCoach,
   setCoach,
+  listMyCoachees,
 });
 
 function checkUserFields(name: string | null, email: string) {

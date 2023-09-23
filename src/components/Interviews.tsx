@@ -57,10 +57,7 @@ export default function Interviews({ interviews, forCalibration }: {
       // Fix dislay order
       .sort((i1, i2) => compareUUID(i1.id, i2.id))
       .map(i => {
-        return <TrLink key={i.id} 
-          href={forCalibration ? `/interviews/${i.id}` : `/interviews/${i.id}/feedback`}
-          _hover={{ bg: "white" }}
-        >
+        return <TrLink key={i.id} href={forCalibration ? `/interviews/${i.id}` : `/interviews/${i.id}/feedback`}>
           <Td>
             {formatUserName(i.interviewee.name, "formal")}
           </Td>

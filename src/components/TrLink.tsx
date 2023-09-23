@@ -11,7 +11,7 @@ export default function TrLink({ href, children, ...rest } : {
   href: string
 } & TableRowProps) {
   const router = useRouter();
-  return <Tr onClick={() => router.push(href)} cursor='pointer' {...rest}>
+  return <Tr onClick={() => router.push(href)} cursor='pointer' _hover={{ bg: "white" }} {...rest}>
     {children}
   </Tr>;
 }

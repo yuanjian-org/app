@@ -81,7 +81,7 @@ function MentorshipRow({ partnership: p, showAssessment, edit }: {
 }) {
   const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: p.mentor.id });
 
-  return <Tr key={p.id} cursor='pointer' _hover={{ bg: "white" }} onClick={() => edit(p)}>
+  return <Tr cursor='pointer' _hover={{ bg: "white" }} onClick={() => edit(p)}>
     <Td>{formatUserName(p.mentee.name, "formal")}</Td>
     <Td>{formatUserName(p.mentor.name, "formal")}</Td>
     <Td>{coach && formatUserName(coach.name, "formal")}</Td>
