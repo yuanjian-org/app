@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import initApiServer from '../initApiServer';
 import db from '../database/db';
 import { createInterview, updateInterview } from './interviews';
 import { findGroups } from './groups';
@@ -29,8 +28,6 @@ async function createUserIfNotFound(email: string) {
 
 describe('interviews', () => {
   before(async () => {
-    initApiServer();
-
     await createUserIfNotFound(intervieweeEmail);
     await createUserIfNotFound(interviewer1Email);
     await createUserIfNotFound(interviewer2Email);

@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { submit } from './submitMenteeApplication';
-import initApiServer from '../initApiServer';
 import User from '../database/models/User';
 
 const inputApplication = {
@@ -262,8 +261,6 @@ const outputProxiedApplication = {
 };
 
 describe('submitMenteeApplication', () => {
-  before(initApiServer);
-
   after(async () => {
     const u1 = await User.findOne({ where: { email: "test1@email.com" } });
     if (u1) await u1.destroy({ force: true });

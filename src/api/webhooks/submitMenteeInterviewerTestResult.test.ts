@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { submit } from './submitMenteeInterviewerTestResult';
-import initApiServer from '../initApiServer';
 import User, { createUser } from '../database/models/User';
 
 const input = {
@@ -14,7 +13,6 @@ const input = {
 
 describe('submitMenteeInterviewerTestResult', () => {
   before(async () => {
-    initApiServer();
     await createUser({
       name: "测试员",
       email: "test@email.com",

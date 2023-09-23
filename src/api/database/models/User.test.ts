@@ -3,15 +3,9 @@ import User from './User';
 import GroupUser from './GroupUser';
 import Partnership from './Partnership';
 import Group from './Group';
-import initApiServer from '../../initApiServer';
-import sequelize from '../sequelize';
 import { Op } from 'sequelize';
 
 describe('User', () => {
-  before(async () => {
-    await initApiServer();
-  });
-
   describe('cascadeDestory', () => {
     let user1: User;
     let user2: User;
