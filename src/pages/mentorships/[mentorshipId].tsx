@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from "shared/strings";
+import { formatUserName, parseQueryStringOrUnknown } from "shared/strings";
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem, Text, TabList, TabPanels, Tab, TabPanel, Tooltip, Textarea } from '@chakra-ui/react';
+import {
+  Grid, GridItem, Text, TabList, TabPanels, Tabs, Tab, TabPanel, Tooltip, Textarea
+} from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
@@ -16,33 +18,38 @@ import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import Transcripts from 'components/Transcripts';
 import { widePage } from 'AppPage';
 import { useUserContext } from 'UserContext';
+import PageBreadcrumb from 'components/PageBreadcrumb';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
-  const { data: mentorship } = trpcNext.partnerships.get.useQuery(mentorshipId);
+  const { data: m } = trpcNext.partnerships.get.useQuery(mentorshipId);
   const [user] = useUserContext();
 
-  if (!mentorship) return <Loader />;
+  if (!m) return <Loader />;
 
-  const iAmMentor = mentorship.mentor.id === user.id;
+  const iAmTheMentor = m.mentor.id === user.id;
 
   return <>
     <MobileExperienceAlert marginBottom={paragraphSpacing} />
-    {iAmMentor && 
-      <GroupBar group={mentorship.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
+
+    {iAmTheMentor ?
+      <GroupBar group={m.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
+      :
+      <PageBreadcrumb current={`${formatUserName(m.mentee.name)} ⇋ ${formatUserName(m.mentor.name)}`} />
     }
+
     <Grid gap={10} templateColumns={{ 
       base: "1fr", 
       [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
     }}>
       <GridItem>
-        <MenteeTabs partnershipId={mentorshipId} menteeId={mentorship.mentee.id} groupId={mentorship.group.id} />
+        <MenteeTabs partnershipId={mentorshipId} menteeId={m.mentee.id} groupId={m.group.id} />
       </GridItem>
       <GridItem>
         <MentorPrivateNotes
           partnershipId={mentorshipId}
-          notes={mentorship.privateMentorNotes}
-          readonly={!iAmMentor}
+          notes={m.privateMentorNotes}
+          readonly={!iAmTheMentor}
         />
       </GridItem>
     </Grid>
@@ -62,17 +69,26 @@ function MentorPrivateNotes({ partnershipId, notes, readonly }: {
     });
   };
 
-  return <Flex direction="column" gap={6}>
-    <Flex alignItems="center">
-      <b>导师笔记</b>
-      <Tooltip label="学生无法看到笔记内容。详见《谁能看到我的数据》页。">
-        <QuestionIcon color="gray" marginStart={2} />
-      </Tooltip>
-    </Flex>
-    {readonly ? <Textarea isReadOnly value={notes?.memo || ""} minHeight={200} /> : 
-      <AutosavingMarkdownEditor key={partnershipId} initialValue={notes?.memo || ""} onSave={save} />
-    }
-  </Flex>;
+  return <Tabs isFitted>
+    <TabList>
+      <Tab>
+        导师笔记
+        <Tooltip label="学生无法看到笔记内容。详见《谁能看到我的数据》页。">
+          <QuestionIcon color="gray" marginStart={2} />
+        </Tooltip>
+      </Tab>
+    </TabList>
+
+    <TabPanels>
+      <TabPanel>
+        {readonly ?
+          <Textarea isReadOnly value={notes?.memo || ""} minHeight={200} />
+          :
+          <AutosavingMarkdownEditor key={partnershipId} initialValue={notes?.memo || ""} onSave={save} />
+        }
+      </TabPanel>
+    </TabPanels>
+  </Tabs>;
 }
 
 function MenteeTabs({ partnershipId, menteeId, groupId }: {
