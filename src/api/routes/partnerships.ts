@@ -76,7 +76,7 @@ const updatePrivateMentorNotes = procedure
   .mutation(async ({ ctx, input }) => 
 {
   const partnership = await db.Partnership.findByPk(input.id);
-  if (!partnership || partnership.mentorId !== ctx.user.id) {
+  if (!partnership || partnership.mentor.id !== ctx.user.id) {
     throw noPermissionError("一对一匹配", input.id);
   }
 
@@ -141,7 +141,7 @@ const get = procedure
       include: groupCountingTranscriptsInclude,
     }],
   });
-  if (!res || (res.mentorId !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
+  if (!res || (res.mentor.id !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
     throw noPermissionError("一对一匹配", id);
   }
   return res;
@@ -164,7 +164,7 @@ const getWithAssessmentsDeprecated = procedure
   if (!res) throw notFoundError("一对一匹配", id);
 
   // Only assessors and mentors can access the partnership.
-  if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentorId !== ctx.user.id) {
+  if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentor.id !== ctx.user.id) {
     throw noPermissionError("一对一匹配", id);
   }
 
