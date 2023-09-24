@@ -98,13 +98,11 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
   groupId: string,
 }) {
 
-  const TabHead = ({ children }: any) => <Text>{children}</Text>;
-
   return <TabsWithUrlParam isFitted isLazy>
     <TabList>
-      <Tab><TabHead>通话摘要</TabHead></Tab>
-      <Tab><TabHead>申请材料</TabHead></Tab>
-      <Tab><TabHead>反馈与评估</TabHead></Tab>
+      <Tab>通话摘要</Tab>
+      <Tab>申请材料</Tab>
+      <Tab>内部反馈</Tab>
     </TabList>
 
     <TabPanels>
@@ -138,11 +136,11 @@ function AssessmentsTable({ mentorshipId, assessments } : {
     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
   };
 
-  return !assessments.length ? <Text color="grey">无反馈。</Text> : <Table>
+  return !assessments.length ? <Text color="grey">无反馈内容。</Text> : <Table>
     <Tbody>
       {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
-        {/* @ts-expect-error weird that Asseessment.createdAt must have optional() */}
-        <Td>{prettifyDate(a.createdAt)}</Td>
+        {/* Weird that Asseessment.createdAt must have optional() to suppress ts's complaint */}
+        <Td>{a.createdAt && prettifyDate(a.createdAt)}</Td>
         <Td>{a.summary ?? ""}</Td>
       </TrLink>)}
     </Tbody>

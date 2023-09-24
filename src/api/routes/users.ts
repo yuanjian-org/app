@@ -130,7 +130,7 @@ const update = procedure
 });
 
 /**
- * Only the user themselves or PartnershipManager have access to this API.
+ * Only the user themselves, MentorCoach, and PartnershipManager have access to this API.
  */
 const getCoach = procedure
   .use(authUser())
@@ -140,7 +140,7 @@ const getCoach = procedure
   .output(zMinUser.nullable())
   .query(async ({ ctx, input: { userId } }) =>
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "PartnershipManager")) {
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["MentorCoach", "PartnershipManager"])) {
     throw noPermissionError("资深导师匹配", userId);
   }
 
