@@ -45,7 +45,7 @@ export default widePage(() => {
   };
 
   return <>
-    <PageBreadcrumb current={formatUserName(i.interviewee.name, "formal")} parents={[{
+    <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 

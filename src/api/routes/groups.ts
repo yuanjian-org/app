@@ -287,9 +287,9 @@ async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: strin
     const thisUser = theseUsers[0];
 
     return {
-      to: [{ 
-        email: thisUser.email, 
-        name: formatUserName(thisUser.name, "formal"),
+      to: [{
+        email: thisUser.email,
+        name: formatUserName(thisUser.name),
       }],
       dynamicTemplateData: {
         name: formatUserName(thisUser.name, 'friendly'),

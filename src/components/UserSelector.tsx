@@ -17,7 +17,7 @@ export default function UserSelector(props: {
     value: string;
   };
   const [value, setValue] = useState<Option[]>(!props.initialValue ? [] : props.initialValue.map(u => ({
-    label: formatUserName(u.name, "formal"),
+    label: formatUserName(u.name),
     value: u.id,
   })));
 

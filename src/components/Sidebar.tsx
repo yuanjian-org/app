@@ -116,7 +116,7 @@ const sidebarItems: SidebarItem[] = [
 function mentorships2Items(partnerships: Partnership[] | undefined): SidebarItem[] {
   if (!partnerships) return [];
   return partnerships.map(p => ({
-    name: formatUserName(p.mentee.name, "formal"),
+    name: formatUserName(p.mentee.name),
     icon: MdFace,
     path: `/mentorships/${p.id}`,
     regex: new RegExp(`^\/mentorships\/${p.id}`),

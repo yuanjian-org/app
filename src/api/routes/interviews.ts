@@ -201,7 +201,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
     }
     for (const f of i.feedbacks) {
       if (f.feedbackUpdatedAt && !interviewerIds.includes(f.interviewer.id)) {
-        throw generalBadRequestError(`面试官${formatUserName(f.interviewer.name, "formal")}已经递交反馈，无法移除`);
+        throw generalBadRequestError(`面试官${formatUserName(f.interviewer.name)}已经递交反馈，无法移除`);
       }
     }
 

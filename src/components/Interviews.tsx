@@ -59,13 +59,13 @@ export default function Interviews({ interviews, forCalibration }: {
       .map(i => {
         return <TrLink key={i.id} href={forCalibration ? `/interviews/${i.id}` : `/interviews/${i.id}/feedback`}>
           <Td>
-            {formatUserName(i.interviewee.name, "formal")}
+            {formatUserName(i.interviewee.name)}
           </Td>
           <Td><Wrap spacing="2">
             {i.feedbacks
               .filter(f => forCalibration || f.interviewer.id !== me.id)
               .map(f => <WrapItem key={f.id}>
-                {formatUserName(f.interviewer.name, "formal")}
+                {formatUserName(f.interviewer.name)}
                 {f.feedbackUpdatedAt && <CheckIcon marginStart={1} />}
               </WrapItem>
             )}

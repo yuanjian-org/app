@@ -54,7 +54,7 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle, showCon
   };
 
   return <Flex direction="column" gap={sectionSpacing}>
-    {showTitle && <Heading size="md">{useNameAsTitle ? `${formatUserName(user.name, "formal")}` : "申请材料"}</Heading>}
+    {showTitle && <Heading size="md">{useNameAsTitle ? `${formatUserName(user.name)}` : "申请材料"}</Heading>}
 
     {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
 

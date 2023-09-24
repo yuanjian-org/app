@@ -151,7 +151,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
       <TdEditLink>
-        {formatUserName(applicant.name, "formal")}
+        {formatUserName(applicant.name)}
       </TdEditLink>
       <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
       <TdEditLink>
@@ -164,7 +164,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       </TdLink>
       <TdEditLink><Wrap spacing="2">
         {interview && interview.feedbacks.map(f => <WrapItem key={f.id}>
-          {formatUserName(f.interviewer.name, "formal")}
+          {formatUserName(f.interviewer.name)}
           {f.feedbackUpdatedAt && <CheckIcon marginStart={1} />}
         </WrapItem>)}
       </Wrap></TdEditLink>
@@ -221,7 +221,7 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
         <VStack spacing={6}>
           <FormControl>
             <FormLabel>候选人</FormLabel>
-            <Text>{formatUserName(applicant.name, "formal")}</Text>
+            <Text>{formatUserName(applicant.name)}</Text>
           </FormControl>
           <FormControl>
             <FormLabel>面试官</FormLabel>

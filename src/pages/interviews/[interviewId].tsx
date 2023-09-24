@@ -27,7 +27,7 @@ export default widePage(() => {
   return <Flex direction="column" gap={sectionSpacing}>
     <MobileExperienceAlert />
 
-    <Heading size="md">候选人：{formatUserName(i.interviewee.name, "formal")}</Heading>
+    <Heading size="md">候选人：{formatUserName(i.interviewee.name)}</Heading>
 
     <Box>
       <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
@@ -44,7 +44,7 @@ export default widePage(() => {
         .sort((f1, f2) => compareUUID(f1.id, f2.id))
         .map(f => <GridItem key={f.id}>
         <Flex direction="column" gap={sectionSpacing}>
-          <Heading size="md">{formatUserName(f.interviewer.name, "formal")}</Heading>
+          <Heading size="md">{formatUserName(f.interviewer.name)}</Heading>
           <InterviewFeedbackEditor interviewFeedbackId={f.id} readonly={me.id !== f.interviewer.id} />
         </Flex>
       </GridItem>)}
