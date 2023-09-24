@@ -7,7 +7,7 @@ import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import { Heading, Text, Flex } from '@chakra-ui/react';
-import { getYearText } from 'components/AssessmentsPanel';
+import { getYearText } from 'components/AssessmentsTable';
 
 export default function Page() { return <AssessmentEditor />; }
 

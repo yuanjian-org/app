@@ -48,9 +48,8 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Partnership
  */
 
-// Don't include private notes by default. 
-// TODO: remove menteeId and mentorId
-export const partnershipAttributes = ['id', 'menteeId', 'mentorId'];
+// Don't include private notes by default.
+export const partnershipAttributes = ['id'];
 
 export const partnershipWithNotesAttributes = [...partnershipAttributes, "privateMentorNotes"];
 

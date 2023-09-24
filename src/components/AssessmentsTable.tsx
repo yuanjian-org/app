@@ -59,8 +59,11 @@ function AssessmentRow({ mentorshipId, assessmentId, date, summary, allowEdit } 
   };
 
   return <TrLink
-    href={assessmentId ? `/mentorships/${mentorshipId}/assessments/${assessmentId}` : "#"}
-    onClick={assessmentId ? undefined : createAndGo}
+    {...assessmentId ? 
+      { href: `/mentorships/${mentorshipId}/assessments/${assessmentId}` }
+      :
+      { onClick: createAndGo }
+    }
   >
     <Td>
       {getYearText(date)}

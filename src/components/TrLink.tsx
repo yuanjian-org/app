@@ -8,10 +8,10 @@ import { useRouter } from "next/router";
  * To define custom behavior, use `<TrLink href="#" onClick={...}>`.
  */
 export default function TrLink({ href, children, ...rest } : {
-  href: string
+  href?: string
 } & TableRowProps) {
   const router = useRouter();
-  return <Tr onClick={() => router.push(href)} cursor='pointer' _hover={{ bg: "white" }} {...rest}>
+  return <Tr {...href && { onClick: () => router.push(href) }} cursor='pointer' _hover={{ bg: "white" }} {...rest}>
     {children}
   </Tr>;
 }

@@ -8,7 +8,7 @@ import {
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import AssessmentsPanel from 'components/AssessmentsPanel';
+import AssessmentsTable from 'components/AssessmentsTable';
 import { PrivateMentorNotes } from 'shared/Partnership';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
@@ -103,7 +103,7 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
     <TabList>
       <Tab><TabHead>通话摘要</TabHead></Tab>
       <Tab><TabHead>申请材料</TabHead></Tab>
-      <Tab><TabHead>跟踪评估</TabHead></Tab>
+      <Tab><TabHead>反馈与评估</TabHead></Tab>
     </TabList>
 
     <TabPanels>
@@ -124,5 +124,5 @@ function AssessmentTabPanel({ mentorshipId }: {
   mentorshipId: string,
 }) {
   const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
-  return !assessments ? <Loader /> : <AssessmentsPanel mentorshipId={mentorshipId} assessments={assessments} />;
+  return !assessments ? <Loader /> : <AssessmentsTable mentorshipId={mentorshipId} assessments={assessments} />;
 }
