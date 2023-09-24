@@ -102,7 +102,7 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
     <TabList>
       <Tab>通话摘要</Tab>
       <Tab>申请材料</Tab>
-      <Tab>内部反馈</Tab>
+      <Tab>年度反馈</Tab>
     </TabList>
 
     <TabPanels>
@@ -113,30 +113,24 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
         <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
-        <AssessmentTabPanel mentorshipId={mentorshipId} />
+        <AssessmentsTable mentorshipId={mentorshipId} />
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
 }
 
-function AssessmentTabPanel({ mentorshipId }: {
+function AssessmentsTable({ mentorshipId } : {
   mentorshipId: string,
-}) {
-  const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
-  return !assessments ? <Loader /> : <AssessmentsTable mentorshipId={mentorshipId} assessments={assessments} />;
-}
-
-function AssessmentsTable({ mentorshipId, assessments } : {
-  mentorshipId: string,
-  assessments: Assessment[],
 }) {
   const router = useRouter();
+  const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
+
   const createAndGo = async () => {
     const id = await trpc.assessments.create.mutate({ partnershipId: mentorshipId });
     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
   };
 
-  return !assessments.length ? <Text color="grey">无反馈内容。</Text> : <Table>
+  return !assessments ? <Loader /> : !assessments.length ? <Text color="grey">无反馈内容。</Text> : <Table>
     <Tbody>
       {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
         {/* Weird that Asseessment.createdAt must have optional() to suppress ts's complaint */}

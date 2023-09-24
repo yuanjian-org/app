@@ -13,7 +13,6 @@ export default function Page() { return <AssessmentEditor />; }
 function AssessmentEditor() {
   const router = useRouter();
   const id = parseQueryStringOrUnknown(router, "assessmentId");
-  const mentorshipId = parseQueryStringOrUnknown(router, "mentorshipId");
   const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>(id);
 
   const save = useCallback(async (summary: string) => {
