@@ -5,6 +5,7 @@ import {
   UnorderedList,
   ListItem,
   Heading,
+  Text,
 } from '@chakra-ui/react';
 import React from 'react';
 import { DownloadIcon } from '@chakra-ui/icons';
@@ -63,7 +64,7 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle, showCon
       <FieldRow name="邮箱" readonly value={user.email} />
     </>}
 
-    {!application ? "没有申请材料。" : menteeApplicationFields.map(f => {
+    {!application ? <Text color="grey">无申请材料。</Text> : menteeApplicationFields.map(f => {
       invariant(application);
       if (f.name in application) {
         return <FieldRow readonly={readonly} key={f.name} name={f.name}

@@ -43,7 +43,7 @@ const get = procedure
   .use(authUser('PartnershipAssessor'))
   .input(z.string())
   .output(zAssessment)
-  .query(async ({ input: id }) => 
+  .query(async ({ input: id }) =>
 {
   const a = await db.Assessment.findByPk(id, {
     attributes: assessmentAttributes,

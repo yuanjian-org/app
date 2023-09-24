@@ -7,7 +7,6 @@ import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import { Heading, Text, Flex } from '@chakra-ui/react';
-import { getYearText } from 'components/AssessmentsTable';
 
 export default function Page() { return <AssessmentEditor />; }
 
@@ -22,10 +21,7 @@ function AssessmentEditor() {
   }, [id]);
 
   return (<>
-    <PageBreadcrumb current={assessment ? getYearText(assessment.createdAt): "评估年度"} parents={[
-      { name: "一对一导师管理", link: "/mentorships" },
-      { name: "评估列表", link: `/mentorships/${mentorshipId}/assessments` },
-    ]} />
+    <PageBreadcrumb current="反馈与评估" />
 
     {!assessment ? <Loader /> : <Flex direction="column" gap={6}>
       <Heading size="sm">总评</Heading>
@@ -34,4 +30,10 @@ function AssessmentEditor() {
       <Text color="disabled">尚未开发</Text>
     </Flex>}
   </>);
+}
+
+// Date is optional merely to suppress typescript warning
+export function getYearText(date?: Date | string): string {
+  // @ts-expect-error
+  return new Date(date).getFullYear() + "年度";
 }

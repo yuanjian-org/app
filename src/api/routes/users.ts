@@ -196,9 +196,10 @@ const setCoach = procedure
 });
 
 /**
- * Only InterviewManagers, MentorCoaches, interviewers of the application, and participants of the calibration
- * (only if the calibration is active) are allowed to call this route. If the user is not an InterviewManager, contact
- * information is redacted.
+ * Only InterviewManagers, MentorCoaches, mentor of the applicant, interviewers of the applicant, and participants of
+ * the calibration (only if the calibration is active) are allowed to call this route.
+ * 
+ * If the user is not an InterviewManager, contact information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -210,14 +211,14 @@ const getApplicant = procedure
     user: zUser,
     application: z.record(z.string(), z.any()).nullable(),
   }))
-  .query(async ({ ctx, input }) =>
+  .query(async ({ ctx, input: { userId, type } }) =>
 {
-  if (input.type !== "MenteeInterview") throw notImplemnetedError();
+  if (type !== "MenteeInterview") throw notImplemnetedError();
 
-  const user = await db.User.findByPk(input.userId, {
+  const user = await db.User.findByPk(userId, {
     attributes: [...userAttributes, "menteeApplication"],
   });
-  if (!user) throw notFoundError("用户", input.userId);
+  if (!user) throw notFoundError("用户", userId);
 
   const ret: { user: User, application: Record<string, any> | null } = { user, application: user.menteeApplication };
 
@@ -229,11 +230,18 @@ const getApplicant = procedure
 
   if (isPermitted(ctx.user.roles, "MentorCoach")) return ret;
 
+  // Check if the user is the mentor
+  const mentorship = await db.Partnership.findOne({
+    where: { menteeId: userId },
+    attributes: ["mentorId"],
+  });
+  if (mentorship && mentorship.mentorId == ctx.user.id) return ret;
+
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
     where: {
-      type: input.type,
-      intervieweeId: input.userId,
+      type,
+      intervieweeId: userId,
     },
     attributes: [],
     include: [{
@@ -247,8 +255,8 @@ const getApplicant = procedure
   // Check if the user is a calibration participant
   const allInterviews = await db.Interview.findAll({
     where: {
-      type: input.type,
-      intervieweeId: input.userId,
+      type: type,
+      intervieweeId: userId,
     },
     attributes: ["calibrationId"],
   });

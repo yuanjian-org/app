@@ -1,14 +1,13 @@
 import { useRouter } from 'next/router';
-import { formatUserName, parseQueryStringOrUnknown } from "shared/strings";
+import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/strings";
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  Grid, GridItem, Text, TabList, TabPanels, Tabs, Tab, TabPanel, Tooltip, Textarea
+  Grid, GridItem, Text, TabList, TabPanels, Tabs, Tab, TabPanel, Tooltip, Textarea, Tbody, Td, Table,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import AssessmentsTable from 'components/AssessmentsTable';
 import { PrivateMentorNotes } from 'shared/Partnership';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
@@ -19,6 +18,8 @@ import Transcripts from 'components/Transcripts';
 import { widePage } from 'AppPage';
 import { useUserContext } from 'UserContext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
+import Assessment from 'shared/Assessment';
+import TrLink from 'components/TrLink';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
@@ -125,4 +126,25 @@ function AssessmentTabPanel({ mentorshipId }: {
 }) {
   const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
   return !assessments ? <Loader /> : <AssessmentsTable mentorshipId={mentorshipId} assessments={assessments} />;
+}
+
+function AssessmentsTable({ mentorshipId, assessments } : {
+  mentorshipId: string,
+  assessments: Assessment[],
+}) {
+  const router = useRouter();
+  const createAndGo = async () => {
+    const id = await trpc.assessments.create.mutate({ partnershipId: mentorshipId });
+    router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
+  };
+
+  return !assessments.length ? <Text color="grey">无反馈。</Text> : <Table>
+    <Tbody>
+      {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
+        {/* @ts-expect-error weird that Asseessment.createdAt must have optional() */}
+        <Td>{prettifyDate(a.createdAt)}</Td>
+        <Td>{a.summary ?? ""}</Td>
+      </TrLink>)}
+    </Tbody>
+  </Table>;
 }
