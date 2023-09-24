@@ -4,10 +4,8 @@ import _ from "lodash";
 import db from "../database/db";
 import { z } from "zod";
 import { zAssessment } from "../../shared/Assessment";
-import Partnership from "../database/models/Partnership";
-import { TRPCError } from "@trpc/server";
 import { noPermissionError, notFoundError } from "../errors";
-import { partnershipInclude } from "api/database/models/attributesAndIncludes";
+import { assessmentAttributes } from "api/database/models/attributesAndIncludes";
 import { isPermitted } from "shared/Role";
 
 /**
@@ -47,17 +45,11 @@ const get = procedure
   .output(zAssessment)
   .query(async ({ input: id }) => 
 {
-  const res = await db.Assessment.findByPk(id, {
-    include: [{
-      model: Partnership,
-      include: partnershipInclude,
-    }],
+  const a = await db.Assessment.findByPk(id, {
+    attributes: assessmentAttributes,
   });
-  if (!res) throw new TRPCError({
-    code: "NOT_FOUND",
-    message: `跟踪评估 ${id} not found`,
-  });
-  return res;
+  if (!a) throw notFoundError("评估", id);
+  return a;
 });
 
 /**
@@ -65,16 +57,20 @@ const get = procedure
  */
 const listAllForMentorship = procedure
   .use(authUser())
-  .input(z.string())
-  .query(async ({ ctx, input: id }) => 
+  .input(z.object({
+    mentorshipId: z.string(),
+  }))
+  .output(z.array(zAssessment))
+  .query(async ({ ctx, input: { mentorshipId } }) =>
 {
-  const p = await db.Partnership.findByPk(id, { attributes: ["mentorId"] });
+  const p = await db.Partnership.findByPk(mentorshipId, { attributes: ["mentorId"] });
   if (p?.mentorId !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach")) {
-    throw noPermissionError("一对一匹配", id);
+    throw noPermissionError("一对一匹配", mentorshipId);
   }
 
   return await db.Assessment.findAll({
-    where: { partnershipId: id }
+    where: { partnershipId: mentorshipId },
+    attributes: assessmentAttributes,
   });
 });
 

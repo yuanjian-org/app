@@ -43,11 +43,11 @@ export default widePage(() => {
       [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
     }}>
       <GridItem>
-        <MenteeTabs partnershipId={mentorshipId} menteeId={m.mentee.id} groupId={m.group.id} />
+        <MenteeTabs mentorshipId={mentorshipId} menteeId={m.mentee.id} groupId={m.group.id} />
       </GridItem>
       <GridItem>
         <MentorPrivateNotes
-          partnershipId={mentorshipId}
+          mentorshipId={mentorshipId}
           notes={m.privateMentorNotes}
           readonly={!iAmTheMentor}
         />
@@ -56,15 +56,15 @@ export default widePage(() => {
   </>;
 });
 
-function MentorPrivateNotes({ partnershipId, notes, readonly }: { 
-  partnershipId: string,
+function MentorPrivateNotes({ mentorshipId, notes, readonly }: { 
+  mentorshipId: string,
   notes: PrivateMentorNotes | null,
   readonly: boolean,
 }) {
 
   const save = async (editedMemo: string) => {
     await trpc.partnerships.updatePrivateMentorNotes.mutate({ 
-      id: partnershipId, 
+      id: mentorshipId, 
       privateMentorNotes: { memo: editedMemo },
     });
   };
@@ -84,15 +84,15 @@ function MentorPrivateNotes({ partnershipId, notes, readonly }: {
         {readonly ?
           <Textarea isReadOnly value={notes?.memo || ""} minHeight={200} />
           :
-          <AutosavingMarkdownEditor key={partnershipId} initialValue={notes?.memo || ""} onSave={save} />
+          <AutosavingMarkdownEditor key={mentorshipId} initialValue={notes?.memo || ""} onSave={save} />
         }
       </TabPanel>
     </TabPanels>
   </Tabs>;
 }
 
-function MenteeTabs({ partnershipId, menteeId, groupId }: {
-  partnershipId: string,
+function MenteeTabs({ mentorshipId, menteeId, groupId }: {
+  mentorshipId: string,
   menteeId: string,
   groupId: string,
 }) {
@@ -114,16 +114,15 @@ function MenteeTabs({ partnershipId, menteeId, groupId }: {
         <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
-        <AssessmentTabPanel partnershipId={partnershipId} />
+        <AssessmentTabPanel mentorshipId={mentorshipId} />
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
 }
 
-function AssessmentTabPanel({ partnershipId }: {
-  partnershipId: string,
+function AssessmentTabPanel({ mentorshipId }: {
+  mentorshipId: string,
 }) {
-  const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery(partnershipId);
-  // @ts-expect-error so weird
-  return <AssessmentsPanel partnershipId={partnershipId} assessments={assessments} />;
+  const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
+  return !assessments ? <Loader /> : <AssessmentsPanel mentorshipId={mentorshipId} assessments={assessments} />;
 }

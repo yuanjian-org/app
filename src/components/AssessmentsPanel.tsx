@@ -1,45 +1,41 @@
 import {
   Table,
+  TableContainer,
   Tbody,
   Td,
 } from '@chakra-ui/react';
 import React from 'react';
 import { EditIcon } from '@chakra-ui/icons';
-import Loader from 'components/Loader';
 import { useRouter } from 'next/router';
-import NextLink from "next/link";
 import Assessment from 'shared/Assessment';
 import trpc from 'trpc';
 import TrLink from './TrLink';
 
-export default function AssessmentsPanel({ partnershipId, assessments, allowEdit } : {
-  partnershipId: string,
-  assessments: Assessment[] | undefined | null,
+export default function AssessmentsPanel({ mentorshipId, assessments, allowEdit } : {
+  mentorshipId: string,
+  assessments: Assessment[],
   allowEdit?: boolean,
 }) {
-  return !assessments ? 
-    <Loader /> 
-    : 
-    <Table>
-      <Tbody>
-        {assessments.length > 0 ? assessments.map(a => (
-          <AssessmentRow
-            key={a.id} 
-            mentorshipId={partnershipId} 
-            assessmentId={a.id}
-            date={a.createdAt}
-            summary={a.summary}
-            allowEdit={allowEdit}
-          />
-        ))
-        : 
+  return <TableContainer><Table>
+    <Tbody>
+      {assessments.length > 0 ? assessments.map(a => (
         <AssessmentRow
-          mentorshipId={partnershipId}
-          date={new Date()}
+          key={a.id} 
+          mentorshipId={mentorshipId} 
+          assessmentId={a.id}
+          date={a.createdAt}
+          summary={a.summary}
           allowEdit={allowEdit}
-        />}
-      </Tbody>
-    </Table>;
+        />
+      ))
+      : 
+      <AssessmentRow
+        mentorshipId={mentorshipId}
+        date={new Date()}
+        allowEdit={allowEdit}
+      />}
+    </Tbody>
+  </Table></TableContainer>;
 }
 
 // Date is optional merely to suppress typescript warning

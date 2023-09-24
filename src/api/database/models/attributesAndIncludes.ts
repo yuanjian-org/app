@@ -111,3 +111,9 @@ export const interviewInclude = [{
   attributes: calibrationAttributes,
   include: calibrationInclude,
 }];
+
+/**
+ * Assessment
+ */
+
+export const assessmentAttributes = ["id", "createdAt", "summary"];

@@ -14,7 +14,7 @@ import Partnership from "./Partnership";
 
 /**
  * An assessment is an evaluation of a mentoring partnership.
- * TODO: Rename to PartnershipAssessment.
+ * TODO: Rename to MentorshipAssessment.
  */
 @Table({
   paranoid: true,
@@ -29,9 +29,6 @@ class Assessment extends Model {
   @ForeignKey(() => Partnership)
   @Column(UUID)
   partnershipId: string;
-
-  @BelongsTo(() => Partnership)
-  partnership: Partnership;
 
   @AllowNull
   @Column(STRING(1 * 1024 * 1024))
