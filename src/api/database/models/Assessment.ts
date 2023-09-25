@@ -27,10 +27,10 @@ class Assessment extends Model {
   id: CreationOptional<string>;
 
   @ForeignKey(() => Partnership)
+  @AllowNull(false)
   @Column(UUID)
   partnershipId: string;
 
-  @AllowNull
   @Column(STRING(1 * 1024 * 1024))
   summary: string | null;
 }

@@ -102,6 +102,7 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
     <TabList>
       <Tab>通话摘要</Tab>
       <Tab>申请材料</Tab>
+      <Tab>内部讨论</Tab>
       <Tab>年度反馈</Tab>
     </TabList>
 
@@ -111,6 +112,9 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
       </TabPanel>
       <TabPanel>
         <MenteeApplicant userId={menteeId} readonly />
+      </TabPanel>
+      <TabPanel>
+        <Text color="grey">此功能正在开发中。</Text>
       </TabPanel>
       <TabPanel>
         <AssessmentsTable mentorshipId={mentorshipId} />

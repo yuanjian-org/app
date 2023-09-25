@@ -13,6 +13,8 @@ import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";
 import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
+import ChatThread from "./models/ChatThread";
+import ChatMessage from "./models/ChatMessage";
 
 const db = {
   Partnership,
@@ -27,6 +29,8 @@ const db = {
   InterviewFeedback,
   InterviewFeedbackUpdateAttempt,
   Calibration,
+  ChatThread,
+  ChatMessage,
 };
 
 export default db;
