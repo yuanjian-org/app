@@ -20,11 +20,6 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 
-const me = procedure
-  .use(authUser())
-  .output(zUser)
-  .query(async ({ ctx }) => ctx.user);
-
 const create = procedure
   .use(authUser('UserManager'))
   .input(z.object({
@@ -339,7 +334,6 @@ const destroy = procedure
 });
 
 export default router({
-  me,
   create,
   list,
   update,
