@@ -18,8 +18,8 @@ import Transcripts from 'components/Transcripts';
 import { widePage } from 'AppPage';
 import { useUserContext } from 'UserContext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import Assessment from 'shared/Assessment';
 import TrLink from 'components/TrLink';
+import ChatRoom from 'components/ChatRoom';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
@@ -36,7 +36,7 @@ export default widePage(() => {
     {iAmTheMentor ?
       <GroupBar group={m.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
       :
-      <PageBreadcrumb current={`${formatUserName(m.mentee.name)} ⇋ ${formatUserName(m.mentor.name)}`} />
+      <PageBreadcrumb current={`学生：${formatUserName(m.mentee.name)}，导师： ${formatUserName(m.mentor.name)}`} />
     }
 
     <Grid gap={10} templateColumns={{ 
@@ -114,16 +114,23 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
         <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
-        <Text color="grey">此功能正在开发中。</Text>
+        <InternalChatRoom {...{ mentorshipId }} />
       </TabPanel>
       <TabPanel>
-        <AssessmentsTable mentorshipId={mentorshipId} />
+        <AssessmentsTable {...{ mentorshipId }} />
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
 }
 
-function AssessmentsTable({ mentorshipId } : {
+function InternalChatRoom({ mentorshipId }: {
+  mentorshipId: string,
+}) {
+  const { data: room } = trpcNext.partnerships.internalChat.getRoom.useQuery({ mentorshipId });
+  return !room ? <Loader /> : <ChatRoom room={room} />;
+}
+
+function AssessmentsTable({ mentorshipId }: {
   mentorshipId: string,
 }) {
   const router = useRouter();

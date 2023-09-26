@@ -45,15 +45,15 @@ export const transcriptAttributes = ["transcriptId", "startedAt", "endedAt"];
 export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
 
 /**
- * Partnership
+ * Partnership / Mentorship
  */
 
 // Don't include private notes by default.
-export const partnershipAttributes = ['id'];
+export const mentorshipAttributes = ['id'];
 
-export const partnershipWithNotesAttributes = [...partnershipAttributes, "privateMentorNotes"];
+export const mentorshipWithNotesAttributes = [...mentorshipAttributes, "privateMentorNotes"];
 
-export const partnershipInclude = [{
+export const mentorshipInclude = [{
   association: 'mentor',
   attributes: minUserAttributes,
 }, {
@@ -61,7 +61,7 @@ export const partnershipInclude = [{
   attributes: minUserAttributes,
 }];
 
-export const partnershipWithGroupInclude = [...partnershipInclude, {
+export const mentorshipWithGroupInclude = [...mentorshipInclude, {
   association: "group",
   attributes: groupAttributes,
   include: groupCountingTranscriptsInclude,
@@ -116,3 +116,26 @@ export const interviewInclude = [{
  */
 
 export const assessmentAttributes = ["id", "createdAt", "summary"];
+
+/**
+ * ChatMessage
+ */
+
+export const chatMessageAttributes = ["id", "markdown", "updatedAt", "createdAt"];
+
+export const chatMessageInclude = [{
+  association: "user",
+  attributes: minUserAttributes,
+}];
+
+/**
+ * ChatRoom
+ */
+
+export const chatRoomAttributes = ["id"];
+
+export const chatRoomInclude = [{
+  association: "messages",
+  attributes: chatMessageAttributes,
+  include: chatMessageInclude,
+}];
