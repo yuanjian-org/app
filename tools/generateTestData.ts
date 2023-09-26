@@ -39,7 +39,7 @@ main().then();
 async function main() {
   // Force sequelize initialization
   const _ = sequelize;
-  
+
   const mgrs = await getUserManagers();
   if (mgrs.length == 0) {
     console.error('ERROR: No uesr is found. Please follow README.md and log into your local server first.');
@@ -79,14 +79,16 @@ async function generateGroupsAndSummaries(include: User[]) {
 
   await generateSummaries([...include, mentees[1]]);
   await generateSummaries([...include, mentors[0]]);
+  // This make sure the process doesn't hang waiting for connection closure.
+  await sequelize.close();
 }
 
 async function getUserManagers() {
   // Use type system to capture typos.
   const role : Role = "UserManager";
   return await User.findAll({ where: {
-    roles: { [Op.contains]: [role] },
-  } });
+      roles: { [Op.contains]: [role] },
+    } });
 }
 
 async function generateGroup(users: TestUser[]) {
@@ -106,7 +108,10 @@ async function generateSummaries(users: TestUser[]) {
   const start = moment('2023-6-20', 'YYYY-MM-DD');
   const end = start.clone().add(33, 'minute');
 
-  const md = '\n\n### 三号标题\n正文**加粗**.\n\n1. 列表*斜体*\n2. 列表~~划掉~~';
+  let md = '\n\n### 三号标题\n正文**加粗**.\n\n1. 列表*斜体*\n2. 列表~~划掉~~\n\n';
+  for (let i = 0; i < users.length; i++) {
+    md = md + `{{name${i}}}\n\n`;
+  }
   await upsertSummary(gid, `transcript-1-${gid}`, start.valueOf(), end.valueOf(), 'summary-A',
     '> transcript-1, summary-A' + md);
   await upsertSummary(gid, `transcript-1-${gid}`, start.valueOf(), end.valueOf(), 'summary-B',
