@@ -15,6 +15,7 @@ import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
 import ChatThread from "./models/ChatThread";
 import ChatMessage from "./models/ChatMessage";
+import NameMapping from "./models/TranscriptNameMapping";
 
 const db = {
   Partnership,
@@ -31,6 +32,7 @@ const db = {
   Calibration,
   ChatThread,
   ChatMessage,
+  NameMapping
 };
 
 export default db;
