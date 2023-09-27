@@ -6,7 +6,7 @@ import {
     BelongsTo,
     PrimaryKey,
   } from 'sequelize-typescript';
-  import { STRING } from 'sequelize';
+  import { UUID, STRING } from 'sequelize';
   import User from './User';
   import Transcript from "./Transcript";
 
@@ -21,10 +21,10 @@ import {
     @Column(STRING)
     transcriptId: string;
   
+    @Column(UUID)
     @ForeignKey(() => User)
-    @Column(STRING)
     userId: string;
-  
+
     // Associations
     @BelongsTo(() => User)
     user: User;
