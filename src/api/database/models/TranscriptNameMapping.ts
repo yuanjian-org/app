@@ -23,7 +23,7 @@ import {
   
     @Column(UUID)
     @ForeignKey(() => User)
-    userId: string;
+    userId: string | null;
 
     // Associations
     @BelongsTo(() => User)
