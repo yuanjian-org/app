@@ -1,34 +1,40 @@
 import {
-    Table,
-    Column,
-    Model,
-    ForeignKey,
-    BelongsTo,
-    PrimaryKey,
-  } from 'sequelize-typescript';
-  import { UUID, STRING } from 'sequelize';
-  import User from './User';
-  import Transcript from "./Transcript";
+  Table,
+  Column,
+  Model,
+  ForeignKey,
+  BelongsTo,
+  PrimaryKey,
+  AllowNull,
+} from 'sequelize-typescript';
+import { UUID, STRING } from 'sequelize';
+import User from './User';
+import Transcript from "./Transcript";
 
-  @Table({ paranoid: true })
-  class NameMapping extends Model {
-    @PrimaryKey
-    @Column(STRING)
-    handlebarName: string;
+/*
+* This table maps user names with handlebars(Tencent Meeting User Name) in transcripts/summaries
+*/
+@Table
+class TranscriptNameMapping extends Model {
+  @PrimaryKey
+  @Column(STRING)
+  handlebarName: string;
 
-    @PrimaryKey
-    @ForeignKey(() => Transcript)
-    @Column(STRING)
-    transcriptId: string;
-  
-    @Column(UUID)
-    @ForeignKey(() => User)
-    userId: string | null;
+  @PrimaryKey
+  @ForeignKey(() => Transcript)
+  @Column(STRING)
+  transcriptId: string;
 
-    // Associations
-    @BelongsTo(() => User)
-    user: User;
-  }
-  
-  export default NameMapping;
-  
+  @Column(UUID)
+  @ForeignKey(() => User)
+  @AllowNull(false)
+  userId: string;
+
+  /**
+   * Associations
+   */
+  @BelongsTo(() => User)
+  user: User;
+}
+
+export default TranscriptNameMapping;
