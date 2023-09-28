@@ -37,9 +37,6 @@ const allUsers = [...mentees, ...mentors];
 main().then();
 
 async function main() {
-  // Force sequelize initialization
-  const _ = sequelize;
-
   const mgrs = await getUserManagers();
   if (mgrs.length == 0) {
     console.error('ERROR: No uesr is found. Please follow README.md and log into your local server first.');
@@ -48,6 +45,8 @@ async function main() {
   await upgradeUsers(mgrs);
   await generateUsers();
   await generateGroupsAndSummaries(mgrs);
+
+  await sequelize.close();
 }
 
 async function upgradeUsers(users: User[]) {
@@ -80,7 +79,6 @@ async function generateGroupsAndSummaries(include: User[]) {
   await generateSummaries([...include, mentees[1]]);
   await generateSummaries([...include, mentors[0]]);
   // This make sure the process doesn't hang waiting for connection closure.
-  await sequelize.close();
 }
 
 async function getUserManagers() {
