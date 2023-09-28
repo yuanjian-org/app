@@ -5,7 +5,6 @@ import {
   ForeignKey,
   BelongsTo,
   PrimaryKey,
-  AllowNull,
 } from 'sequelize-typescript';
 import { UUID, STRING } from 'sequelize';
 import User from './User';
@@ -27,7 +26,6 @@ class TranscriptNameMapping extends Model {
 
   @Column(UUID)
   @ForeignKey(() => User)
-  @AllowNull(false)
   userId: string;
 
   /**
