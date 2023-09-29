@@ -54,6 +54,7 @@ const list = procedure
 });
 
 const getNameMap = procedure
+  .use(authUser())
   .input(z.string())
   .query(async ({ input: transcriptId }) => {
 
@@ -92,6 +93,7 @@ const getNameMap = procedure
   });
 
 const updateNameMap = procedure
+  .use(authUser())
   .input(z.object({}).catchall(z.string()))
   .mutation(async ({ input: nameMap }) => {
     // Construct an array of objects to upsert
