@@ -45,7 +45,7 @@ async function main() {
   await upgradeUsers(mgrs);
   await generateUsers();
   await generateGroupsAndSummaries(mgrs);
-
+  // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
 }
 
@@ -78,15 +78,14 @@ async function generateGroupsAndSummaries(include: User[]) {
 
   await generateSummaries([...include, mentees[1]]);
   await generateSummaries([...include, mentors[0]]);
-  // This make sure the process doesn't hang waiting for connection closure.
 }
 
 async function getUserManagers() {
   // Use type system to capture typos.
-  const role : Role = "UserManager";
+  const role: Role = "UserManager";
   return await User.findAll({ where: {
-      roles: { [Op.contains]: [role] },
-    } });
+    roles: { [Op.contains]: [role] },
+  } });
 }
 
 async function generateGroup(users: TestUser[]) {
