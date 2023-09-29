@@ -19,11 +19,6 @@ class TranscriptNameMapping extends Model {
   @Column(STRING)
   handlebarName: string;
 
-  @PrimaryKey
-  @ForeignKey(() => Transcript)
-  @Column(STRING)
-  transcriptId: string;
-
   @Column(UUID)
   @ForeignKey(() => User)
   userId: string;
