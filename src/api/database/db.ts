@@ -15,14 +15,15 @@ import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
 import ChatThread from "./models/ChatThread";
 import ChatMessage from "./models/ChatMessage";
+import TranscriptNameMapping from "./models/TranscriptNameMapping";
 
 const db = {
   Partnership,
   User,
-  Group, 
-  GroupUser, 
-  Transcript, 
-  Summary, 
+  Group,
+  GroupUser,
+  Transcript,
+  Summary,
   OngoingMeetings,
   Assessment,
   Interview,
@@ -31,6 +32,7 @@ const db = {
   Calibration,
   ChatThread,
   ChatMessage,
+  TranscriptNameMapping,
 };
 
 export default db;
