@@ -53,7 +53,7 @@ const list = procedure
   return g.transcripts;
 });
 
-const getHandleBars = procedure
+const getNameMap = procedure
   .input(z.string())
   .query(async ({ input: transcriptId }) => {
 
@@ -91,7 +91,7 @@ const getHandleBars = procedure
 
   });
 
-const updateHandleBars = procedure
+const updateNameMap = procedure
   .input(z.object({}).catchall(z.string()))
   .mutation(async ({ input: nameMap }) => {
     // Construct an array of objects to upsert
@@ -110,6 +110,6 @@ const updateHandleBars = procedure
 export default router({
   get,
   list,
-  getHandleBars,
-  updateHandleBars
+  getNameMap,
+  updateNameMap
 });
