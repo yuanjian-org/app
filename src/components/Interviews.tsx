@@ -45,11 +45,11 @@ export default function Interviews({ interviews, forCalibration }: {
         <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
-          <Th>拼音（便于页内查找）</Th>
           <Th>讨论结果</Th>
           <Th>讨论备注（悬停光标看全文）</Th>
         </>}
         <Th>进入</Th>
+        {forCalibration && <Th>拼音（便于查找）</Th>}
       </Tr></Thead>
       <Tbody>
       
@@ -61,6 +61,7 @@ export default function Interviews({ interviews, forCalibration }: {
           <Td>
             {formatUserName(i.interviewee.name)}
           </Td>
+
           <Td><Wrap spacing="2">
             {i.feedbacks
               .filter(f => forCalibration || f.interviewer.id !== me.id)
@@ -70,21 +71,21 @@ export default function Interviews({ interviews, forCalibration }: {
               </WrapItem>
             )}
           </Wrap></Td>
-          {forCalibration ? <>
-              <Td>
-                {toPinyin(i.interviewee.name ?? "")},
-                {i.feedbacks
-                  .filter(f => forCalibration || f.interviewer.id !== me.id)
-                  .map(f => toPinyin(f.interviewer.name ?? "")).join(",")
-                }
-              </Td>
-              <Td><DecisionScore interview={i} /></Td>
-              <Td><DecisionComment interview={i} /></Td>
-              <Td><ViewIcon /></Td>
-            </>
-            :
-            <Td><EditIcon /></Td>
-          }
+
+          {forCalibration && <>
+            <Td><DecisionScore interview={i} /></Td>
+            <Td><DecisionComment interview={i} /></Td>
+          </>}
+
+          <Td>{forCalibration ? <ViewIcon /> : <EditIcon />}</Td>
+
+          {forCalibration && <Td>
+            {toPinyin(i.interviewee.name ?? "")},
+            {i.feedbacks
+              .filter(f => forCalibration || f.interviewer.id !== me.id)
+              .map(f => toPinyin(f.interviewer.name ?? "")).join(",")
+            }
+          </Td>}
         </TrLink>;
       })}
       </Tbody>

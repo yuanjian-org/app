@@ -22,11 +22,14 @@ import { MdEdit } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
+import Loader from './Loader';
 
-export default function Room({ room } : {
- room: ChatRoom,
+export default function Room({ mentorshipId } : {
+  mentorshipId: string,
 }) {
-  return <VStack spacing={paragraphSpacing * 1.5} align="start">
+  const { data: room } = trpcNext.partnerships.internalChat.getRoom.useQuery({ mentorshipId });
+
+  return !room ? <Loader /> : <VStack spacing={paragraphSpacing * 1.5} align="start">
     {!room.messages.length && <Text color="grey">无讨论内容。点击按钮添加：</Text>}
 
     <MessageCreator roomId={room.id} />
@@ -101,7 +104,9 @@ function Editor({ roomId, message, onClose, ...rest }: {
   };
 
   return <>
-    <Textarea autoFocus background="white" value={markdown} onChange={e => setMarkdown(e.target.value)} {...rest} />
+    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
+      autoFocus background="white" height={200} {...rest} 
+    />
     <HStack>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown} variant="brand">{roomId ? "添加" : "更新"}</Button>
       <Button onClick={() => onClose()} variant="ghost">取消</Button>
