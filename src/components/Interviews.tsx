@@ -17,7 +17,7 @@ import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import { CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
+import { CheckIcon, ViewIcon } from '@chakra-ui/icons';
 import TrLink from 'components/TrLink';
 import { sectionSpacing } from 'theme/metrics';
 import {
@@ -48,7 +48,6 @@ export default function Interviews({ interviews, forCalibration }: {
           <Th>讨论结果</Th>
           <Th>讨论备注（悬停光标看全文）</Th>
         </>}
-        <Th>进入</Th>
         {forCalibration && <Th>拼音（便于查找）</Th>}
       </Tr></Thead>
       <Tbody>
@@ -76,8 +75,6 @@ export default function Interviews({ interviews, forCalibration }: {
             <Td><DecisionScore interview={i} /></Td>
             <Td><DecisionComment interview={i} /></Td>
           </>}
-
-          <Td>{forCalibration ? <ViewIcon /> : <EditIcon />}</Td>
 
           {forCalibration && <Td>
             {toPinyin(i.interviewee.name ?? "")},

@@ -5,6 +5,8 @@ import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import TrLink from 'components/TrLink';
 import moment from 'moment';
 import { trpcNext } from 'trpc';
+import TdLink from './TdLink';
+import EditIconButton from './EditIconButton';
 
 export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit }: {
   mentorship: MentorshipWithGroupAndNotes;
@@ -30,16 +32,20 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
     color = "grey";
   }
 
-  return <TrLink href={`/mentorships/${m.id}`} {...edit && { onClick: () => edit(m) }}>
-    <Td>{formatUserName(m.mentee.name)}</Td>
-    <Td>{formatUserName(m.mentor.name)}</Td>
-    {showCoach && <Td>{coach && formatUserName(coach.name)}</Td>}
+  const href=`/mentorships/${m.id}`;
 
-    <Td color={color}>{msg}</Td>
+  return <TrLink>
+    <TdLink href={href}>{formatUserName(m.mentee.name)}</TdLink>
+    <TdLink href={href}>{formatUserName(m.mentor.name)}</TdLink>
+    {showCoach && <TdLink href={href}>{coach && formatUserName(coach.name)}</TdLink>}
 
-    {showPinyin && <Td>
+    {edit && <Td><EditIconButton onClick={() => edit(m)} /></Td>}
+
+    <TdLink href={href} color={color}>{msg}</TdLink>
+
+    {showPinyin && <TdLink href={href}>
       {toPinyin(m.mentee.name ?? "")},{toPinyin(m.mentor.name ?? "")}
       {coach && "," + toPinyin(coach.name ?? "")}
-    </Td>}
+    </TdLink>}
   </TrLink>;
 }
