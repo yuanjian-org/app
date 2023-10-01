@@ -114,20 +114,13 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
         <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
-        <InternalChatRoom {...{ mentorshipId }} />
+        <ChatRoom mentorshipId={mentorshipId} />
       </TabPanel>
       <TabPanel>
-        <AssessmentsTable {...{ mentorshipId }} />
+        <AssessmentsTable mentorshipId={mentorshipId} />
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
-}
-
-function InternalChatRoom({ mentorshipId }: {
-  mentorshipId: string,
-}) {
-  const { data: room } = trpcNext.partnerships.internalChat.getRoom.useQuery({ mentorshipId });
-  return !room ? <Loader /> : <ChatRoom room={room} />;
 }
 
 function AssessmentsTable({ mentorshipId }: {

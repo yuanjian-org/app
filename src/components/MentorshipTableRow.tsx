@@ -13,7 +13,7 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
   edit?: (m: PartnershipWithGroupAndNotes) => void,
 }) {
   // Always fetch coach data even if `!showCoach`, otherwise we have to use `useEffect`.
-  // The latter wouldn't work well becuase mentorships.tsx has a call to `utils.users.getCoach.invalidate` which
+  // The latter wouldn't work well because mentorships.tsx has a call to `utils.users.getCoach.invalidate` which
   // will not trigger `useEffect` to re-run.
   const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: m.mentor.id });
 
@@ -34,10 +34,12 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
     <Td>{formatUserName(m.mentee.name)}</Td>
     <Td>{formatUserName(m.mentor.name)}</Td>
     {showCoach && <Td>{coach && formatUserName(coach.name)}</Td>}
+
+    <Td color={color}>{msg}</Td>
+
     {showPinyin && <Td>
       {toPinyin(m.mentee.name ?? "")},{toPinyin(m.mentor.name ?? "")}
       {coach && "," + toPinyin(coach.name ?? "")}
     </Td>}
-    <Td color={color}>{msg}</Td>
   </TrLink>;
 }
