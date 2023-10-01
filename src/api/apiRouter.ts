@@ -11,6 +11,7 @@ import webhooks from './webhooks';
 import interviews from './routes/interviews';
 import interviewFeedbacks from './routes/interviewFeedbacks';
 import calibrations from './routes/calibrations';
+import chat from './routes/chat';
 
 export const apiRouter = router({
   users,
@@ -25,6 +26,7 @@ export const apiRouter = router({
   interviews,
   interviewFeedbacks,
   calibrations,
+  chat,
 });
 
 export type ApiRouter = typeof apiRouter;
