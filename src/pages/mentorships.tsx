@@ -53,7 +53,7 @@ export default function Page() {
     {!mentorships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-        <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近通话</Th><Th>拼音（便于查找）</Th>
+        <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th></Th><Th>最近通话</Th><Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
       <Tbody>
