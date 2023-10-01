@@ -16,7 +16,7 @@ import { CreationOptional, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import ZodColumn from "../modelHelpers/ZodColumn";
-import { PrivateMentorNotes, zPrivateMentorNotes } from "../../../shared/Partnership";
+import { PrivateMentorNotes, zPrivateMentorNotes } from "../../../shared/Mentorship";
 import Group from "./Group";
 
 /**

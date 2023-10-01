@@ -5,7 +5,7 @@ import groups from "./routes/groups";
 import transcripts from './routes/transcripts';
 import summaries from './routes/summaries';
 import cron from './routes/cron';
-import partnerships from './routes/partnerships';
+import mentorships from './routes/mentorships';
 import assessments from './routes/assessments';
 import webhooks from './webhooks';
 import interviews from './routes/interviews';
@@ -20,7 +20,7 @@ export const apiRouter = router({
   transcripts,
   summaries,
   cron,
-  partnerships,
+  mentorships,
   assessments,
   webhooks,
   interviews,

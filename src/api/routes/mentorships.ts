@@ -2,11 +2,11 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { 
-  isValidPartnershipIds,
-  zPartnership,
-  zPartnershipWithAssessmentsDeprecated, 
-  zPartnershipWithGroupAndNotes, 
-  zPrivateMentorNotes } from "../../shared/Partnership";
+  isValidMentorshipIds,
+  zMentorship,
+  zMentorshipWithAssessmentsDeprecated, 
+  zMentorshipWithGroupAndNotes, 
+  zPrivateMentorNotes } from "../../shared/Mentorship";
 import { z } from "zod";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
@@ -32,7 +32,7 @@ const create = procedure
   }))
   .mutation(async ({ input: { mentorId, menteeId } }) => 
 {
-  if (!isValidPartnershipIds(menteeId, mentorId)) {
+  if (!isValidMentorshipIds(menteeId, mentorId)) {
     throw generalBadRequestError('无效用户ID');
   }
 
@@ -49,9 +49,9 @@ const create = procedure
     mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
     await mentee.save({ transaction });
 
-    let partnership;
+    let mentorship;
     try {
-      partnership = await db.Partnership.create({
+      mentorship = await db.Partnership.create({
         mentorId, menteeId
       }, { transaction });
     } catch (e: any) {
@@ -61,8 +61,8 @@ const create = procedure
     }
 
     // Create groups
-    invariant(partnership);
-    await createGroup(null, [mentorId, menteeId], [], partnership.id, null, null, null, transaction);
+    invariant(mentorship);
+    await createGroup(null, [mentorId, menteeId], [], mentorship.id, null, null, null, transaction);
   });
 });
 
@@ -74,18 +74,18 @@ const updatePrivateMentorNotes = procedure
   }))
   .mutation(async ({ ctx, input }) => 
 {
-  const partnership = await db.Partnership.findByPk(input.id);
-  if (!partnership || partnership.mentor.id !== ctx.user.id) {
+  const m = await db.Partnership.findByPk(input.id);
+  if (!m || m.mentor.id !== ctx.user.id) {
     throw noPermissionError("一对一匹配", input.id);
   }
 
-  partnership.privateMentorNotes = input.privateMentorNotes;
-  partnership.save();
+  m.privateMentorNotes = input.privateMentorNotes;
+  m.save();
 });
 
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zPartnershipWithGroupAndNotes))
+  .output(z.array(zMentorshipWithGroupAndNotes))
   .query(async () => 
 {
   return await db.Partnership.findAll({ 
@@ -96,7 +96,7 @@ const list = procedure
 
 const listMineAsCoach = procedure
   .use(authUser())
-  .output(z.array(zPartnershipWithGroupAndNotes))
+  .output(z.array(zMentorshipWithGroupAndNotes))
   .query(async ({ ctx }) =>
 {
   return (await db.User.findAll({ 
@@ -112,7 +112,7 @@ const listMineAsCoach = procedure
 
 const listMineAsMentor = procedure
   .use(authUser())
-  .output(z.array(zPartnership))
+  .output(z.array(zMentorship))
   .query(async ({ ctx }) => 
 {
   return await db.Partnership.findAll({
@@ -123,13 +123,13 @@ const listMineAsMentor = procedure
 });
 
 /**
- * Get all information of a partnership including private notes.
+ * Get all information of a mentorship including private notes.
  * Only accessible by the mentor and mentor coaches
  */
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zPartnershipWithGroupAndNotes)
+  .output(zMentorshipWithGroupAndNotes)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
@@ -146,11 +146,11 @@ const get = procedure
   return res;
 });
 
-// TODO: remove this function. Use partnership.get + assessments.listAllForMentorship instead.
+// TODO: remove this function. Use mentorship.get + assessments.listAllForMentorship instead.
 const getWithAssessmentsDeprecated = procedure
   .use(authUser())
   .input(z.string())
-  .output(zPartnershipWithAssessmentsDeprecated)
+  .output(zMentorshipWithAssessmentsDeprecated)
   .query(async ({ ctx, input: id }) =>
 {
   const res = await db.Partnership.findByPk(id, {
@@ -162,7 +162,7 @@ const getWithAssessmentsDeprecated = procedure
   });
   if (!res) throw notFoundError("一对一匹配", id);
 
-  // Only assessors and mentors can access the partnership.
+  // Only assessors and mentors can access the mentorship.
   if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentor.id !== ctx.user.id) {
     throw noPermissionError("一对一匹配", id);
   }

@@ -8,7 +8,7 @@ import {
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import { PrivateMentorNotes } from 'shared/Partnership';
+import { PrivateMentorNotes } from 'shared/Mentorship';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
@@ -23,7 +23,7 @@ import ChatRoom from 'components/ChatRoom';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
-  const { data: m } = trpcNext.partnerships.get.useQuery(mentorshipId);
+  const { data: m } = trpcNext.mentorships.get.useQuery(mentorshipId);
   const [user] = useUserContext();
 
   if (!m) return <Loader />;
@@ -64,7 +64,7 @@ function MentorPrivateNotes({ mentorshipId, notes, readonly }: {
 }) {
 
   const save = async (editedMemo: string) => {
-    await trpc.partnerships.updatePrivateMentorNotes.mutate({ 
+    await trpc.mentorships.updatePrivateMentorNotes.mutate({ 
       id: mentorshipId, 
       privateMentorNotes: { memo: editedMemo },
     });
@@ -130,7 +130,7 @@ function AssessmentsTable({ mentorshipId }: {
   const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
 
   const createAndGo = async () => {
-    const id = await trpc.assessments.create.mutate({ partnershipId: mentorshipId });
+    const id = await trpc.assessments.create.mutate({ mentorshipId: mentorshipId });
     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
   };
 

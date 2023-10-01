@@ -14,13 +14,13 @@ import { isPermitted } from "shared/Role";
 const create = procedure
   .use(authUser('PartnershipAssessor'))
   .input(z.object({
-    partnershipId: z.string().uuid(),
+    mentorshipId: z.string().uuid(),
   }))
   .output(z.string())
   .mutation(async ({ input }) => 
 {
   return (await db.Assessment.create({
-    partnershipId: input.partnershipId,
+    partnershipId: input.mentorshipId,
   })).id;
 });
 
