@@ -24,7 +24,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
 import { AddIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
-import { Partnership, isValidPartnershipIds } from 'shared/Partnership';
+import { Mentorship, isValidMentorshipIds } from 'shared/Mentorship';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
 import { useUserContext } from 'UserContext';
@@ -35,30 +35,30 @@ import { sectionSpacing } from 'theme/metrics';
 export default function Page() {
   const [user] = useUserContext();
 
-  const { data: partnerships, refetch } = trpcNext.partnerships.list.useQuery();
+  const { data: mentorships, refetch } = trpcNext.mentorships.list.useQuery();
 
-  // undefined: editor is closed. null: create a new partnership. non-nul: edit an existing partnership
-  const [ mentorshipInEdit, setMentorshipInEdit ] = useState<Partnership | null | undefined>(undefined);
+  // undefined: editor is closed. null: create a new mentorship. non-nul: edit an existing mentorship
+  const [ mentorshipInEdit, setMentorshipInEdit ] = useState<Mentorship | null | undefined>(undefined);
 
   return <Flex direction='column' gap={sectionSpacing}>
     <Box>
       <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setMentorshipInEdit(null)}>创建一对一匹配</Button>
     </Box>
 
-    {mentorshipInEdit !== undefined && <Editor partnership={mentorshipInEdit} onClose={() => {
+    {mentorshipInEdit !== undefined && <Editor mentorsihp={mentorshipInEdit} onClose={() => {
       setMentorshipInEdit(undefined);
       refetch();
     }} />}
 
-    {!partnerships ? <Loader /> : <TableContainer><Table>
+    {!mentorships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
         <Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近通话</Th><Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
       <Tbody>
-      {partnerships.map(p => <MentorshipTableRow
-        key={p.id} showCoach showPinyin mentorship={p} edit={setMentorshipInEdit}
+      {mentorships.map(m => <MentorshipTableRow
+        key={m.id} showCoach showPinyin mentorship={m} edit={setMentorshipInEdit}
       />)}
       </Tbody>
     </Table></TableContainer>}
@@ -66,28 +66,28 @@ export default function Page() {
   </Flex>;
 };
 
-function Editor({ partnership: p, onClose }: { 
-  partnership: Partnership | null,
+function Editor({ mentorsihp: m, onClose }: { 
+  mentorsihp: Mentorship | null,
   onClose: () => void,
 }) {
-  const [menteeId, setMenteeId] = useState<string | null>(p ? p.mentee.id : null);
-  const [mentorId, setMentorId] = useState<string | null>(p ? p.mentor.id : null);
+  const [menteeId, setMenteeId] = useState<string | null>(m ? m.mentee.id : null);
+  const [mentorId, setMentorId] = useState<string | null>(m ? m.mentor.id : null);
   // undefined: loading
   const [oldCoach, setOldCoach] = useState<MinUser | null | undefined>(undefined);
   const [coachId, setCoachId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!p) {
+    if (!m) {
       setOldCoach(null);
       return;
     }
     const fetch = async () => {
-      const coach = await trpc.users.getCoach.query({ userId: p.mentor.id });
+      const coach = await trpc.users.getCoach.query({ userId: m.mentor.id });
       setOldCoach(coach);
     };
     fetch();
-  }, [p]);
+  }, [m]);
 
   const utils = trpcNext.useContext();
   const save = async () => {
@@ -95,8 +95,8 @@ function Editor({ partnership: p, onClose }: {
     try {
       invariant(menteeId);
       invariant(mentorId);
-      if (!p) {
-        await trpc.partnerships.create.mutate({
+      if (!m) {
+        await trpc.mentorships.create.mutate({
           mentorId, menteeId
         });
       }
@@ -122,16 +122,16 @@ function Editor({ partnership: p, onClose }: {
           <FormControl>
             <FormLabel>学生</FormLabel>
             <UserSelector
-              isDisabled={p !== null}
-              initialValue={p ? [p.mentee] : []}
+              isDisabled={m !== null}
+              initialValue={m ? [m.mentee] : []}
               onSelect={userIds => setMenteeId(userIds.length ? userIds[0] : null)}
             />
           </FormControl>
           <FormControl isInvalid={menteeId !== null && menteeId === mentorId}>
             <FormLabel>导师</FormLabel>
             <UserSelector
-              isDisabled={p !== null}
-              initialValue={p ? [p.mentor] : []}
+              isDisabled={m !== null}
+              initialValue={m ? [m.mentor] : []}
               onSelect={userIds => setMentorId(userIds.length ? userIds[0] : null)}
             />
             <FormErrorMessage>导师和学生不能是同一个人。</FormErrorMessage>
@@ -147,7 +147,7 @@ function Editor({ partnership: p, onClose }: {
       </ModalBody>
       <ModalFooter>
         <Button variant='brand' 
-          isDisabled={!isValidPartnershipIds(menteeId, mentorId)}
+          isDisabled={!isValidMentorshipIds(menteeId, mentorId)}
           isLoading={saving} onClick={save}>保存</Button>
       </ModalFooter>
     </ModalContent>
