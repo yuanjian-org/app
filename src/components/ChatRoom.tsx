@@ -12,7 +12,6 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
-import { ChatRoom } from 'shared/ChatRoom';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
@@ -27,7 +26,7 @@ import Loader from './Loader';
 export default function Room({ mentorshipId } : {
   mentorshipId: string,
 }) {
-  const { data: room } = trpcNext.partnerships.internalChat.getRoom.useQuery({ mentorshipId });
+  const { data: room } = trpcNext.chat.getRoom.useQuery({ mentorshipId });
 
   return !room ? <Loader /> : <VStack spacing={paragraphSpacing * 1.5} align="start">
     {!room.messages.length && <Text color="grey">无讨论内容。点击按钮添加：</Text>}
@@ -91,12 +90,12 @@ function Editor({ roomId, message, onClose, ...rest }: {
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.partnerships.internalChat.updaateMessage.mutate({ messageId: message.id, markdown });
+        await trpc.chat.updaateMessage.mutate({ messageId: message.id, markdown });
       } else {
         invariant(roomId);
-        await trpc.partnerships.internalChat.createMessage.mutate({ roomId, markdown });
+        await trpc.chat.createMessage.mutate({ roomId, markdown });
       }
-      utils.partnerships.internalChat.getRoom.invalidate();
+      utils.chat.getRoom.invalidate();
       onClose();
     } finally {
       setSaving(false);
