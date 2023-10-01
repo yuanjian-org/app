@@ -13,7 +13,7 @@ import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";
 import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
-import ChatThread from "./models/ChatThread";
+import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
 import TranscriptNameMapping from "./models/TranscriptNameMapping";
 
@@ -30,7 +30,7 @@ const db = {
   InterviewFeedback,
   InterviewFeedbackUpdateAttempt,
   Calibration,
-  ChatThread,
+  ChatRoom,
   ChatMessage,
   TranscriptNameMapping,
 };

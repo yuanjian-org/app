@@ -15,6 +15,19 @@ const buttons = {
             }
           },
         }),
+
+        outline: {
+          _hover: {
+            bg: "gray.200",
+          },
+        },
+  
+        ghost: {
+          _hover: {
+            bg: "gray.200",
+          },
+          bg: "transparent",
+        }
       },
     },
   },
