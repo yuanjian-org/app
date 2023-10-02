@@ -8,25 +8,25 @@ export const zPrivateMentorNotes = z.object({
 });
 export type PrivateMentorNotes = z.TypeOf<typeof zPrivateMentorNotes>;
 
-export const zPartnership = z.object({
+export const zMentorship = z.object({
   id: z.string().uuid(),
   mentor: zMinUser,
   mentee: zMinUser,
 });
-export type Partnership = z.TypeOf<typeof zPartnership>;
+export type Mentorship = z.TypeOf<typeof zMentorship>;
 
-export const zPartnershipWithGroupAndNotes = zPartnership.merge(z.object({
+export const zMentorshipWithGroupAndNotes = zMentorship.merge(z.object({
   group: zGroupCountingTranscripts,
   privateMentorNotes: zPrivateMentorNotes.nullable(),
 }));
-export type PartnershipWithGroupAndNotes = z.TypeOf<typeof zPartnershipWithGroupAndNotes>;
+export type MentorshipWithGroupAndNotes = z.TypeOf<typeof zMentorshipWithGroupAndNotes>;
 
-export const zPartnershipWithAssessmentsDeprecated = zPartnership.merge(z.object({
+export const zMentorshipWithAssessmentsDeprecated = zMentorship.merge(z.object({
   assessments: z.array(zAssessment)
 }));
-export type PartnershipWithAssessmentsDeprecated = z.TypeOf<typeof zPartnershipWithAssessmentsDeprecated>;
+export type MentorshipWithAssessmentsDeprecated = z.TypeOf<typeof zMentorshipWithAssessmentsDeprecated>;
 
-export function isValidPartnershipIds(menteeId: string | null, mentorId: string | null) {
+export function isValidMentorshipIds(menteeId: string | null, mentorId: string | null) {
   return z.string().uuid().safeParse(menteeId).success
     && z.string().uuid().safeParse(mentorId).success
     && menteeId !== mentorId;

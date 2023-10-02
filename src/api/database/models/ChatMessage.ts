@@ -7,10 +7,11 @@ import {
   Default,
   ForeignKey,
   AllowNull,
+  BelongsTo,
 } from "sequelize-typescript";
-import { CreationOptional, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
-import ChatThread from "./ChatThread";
+import ChatRoom from "./ChatRoom";
 
 @Table
 class ChatMessage extends Model {
@@ -20,15 +21,29 @@ class ChatMessage extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
-  @ForeignKey(() => ChatThread)
+  @ForeignKey(() => ChatRoom)
   @AllowNull(false)
   @Column(UUID)
-  threadId: string;
+  roomId: string;
 
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(UUID)
   userId: string;
+
+  @AllowNull(false)
+  @Column(STRING(1 * 1024 * 1024))
+  markdown: string;
+
+  /**
+   * Associations
+   */
+
+  @BelongsTo(() => User)
+  user: User;
+
+  @BelongsTo(() => ChatRoom)
+  room: ChatRoom;
 }
 
 export default ChatMessage;

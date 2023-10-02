@@ -20,7 +20,7 @@ import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
-import { Partnership } from 'shared/Partnership';
+import { Mentorship } from 'shared/Mentorship';
 import {
   MdPerson,
   MdGroups,
@@ -113,9 +113,9 @@ const sidebarItems: SidebarItem[] = [
   },
 ];
 
-function mentorships2Items(partnerships: Partnership[] | undefined): SidebarItem[] {
-  if (!partnerships) return [];
-  return partnerships.map(p => ({
+function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
+  if (!mentorships) return [];
+  return mentorships.map(p => ({
     name: formatUserName(p.mentee.name),
     icon: MdFace,
     path: `/mentorships/${p.id}`,
@@ -132,9 +132,9 @@ interface SidebarProps extends BoxProps {
 const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const [me] = useUserContext();
   // Save an API call if the user is not a mentor.
-  const { data: partnerships } = isPermitted(me.roles, "Mentor") ? 
-    trpcNext.partnerships.listMineAsMentor.useQuery() : { data: undefined };
-  const partnershipItems = mentorships2Items(partnerships);
+  const { data: mentorships } = isPermitted(me.roles, "Mentor") ? 
+    trpcNext.mentorships.listMineAsMentor.useQuery() : { data: undefined };
+  const mentorshipItems = mentorships2Items(mentorships);
 
   return (
     <Box
@@ -176,9 +176,9 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
         .filter(item => isPermitted(me.roles, item.role))
         .map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
       
-      {partnershipItems?.length > 0 && <Divider marginY={2} />}
+      {mentorshipItems?.length > 0 && <Divider marginY={2} />}
 
-      {partnershipItems.map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
+      {mentorshipItems.map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
     </Box>
   );
 };

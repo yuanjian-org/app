@@ -5,12 +5,13 @@ import groups from "./routes/groups";
 import transcripts from './routes/transcripts';
 import summaries from './routes/summaries';
 import cron from './routes/cron';
-import partnerships from './routes/partnerships';
+import mentorships from './routes/mentorships';
 import assessments from './routes/assessments';
 import webhooks from './webhooks';
 import interviews from './routes/interviews';
 import interviewFeedbacks from './routes/interviewFeedbacks';
 import calibrations from './routes/calibrations';
+import chat from './routes/chat';
 
 export const apiRouter = router({
   users,
@@ -19,12 +20,13 @@ export const apiRouter = router({
   transcripts,
   summaries,
   cron,
-  partnerships,
+  mentorships,
   assessments,
   webhooks,
   interviews,
   interviewFeedbacks,
   calibrations,
+  chat,
 });
 
 export type ApiRouter = typeof apiRouter;

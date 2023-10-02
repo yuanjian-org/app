@@ -8,7 +8,7 @@ import {
 import GroupBar from 'components/GroupBar';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import { PrivateMentorNotes } from 'shared/Partnership';
+import { PrivateMentorNotes } from 'shared/Mentorship';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
@@ -18,12 +18,12 @@ import Transcripts from 'components/Transcripts';
 import { widePage } from 'AppPage';
 import { useUserContext } from 'UserContext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import Assessment from 'shared/Assessment';
 import TrLink from 'components/TrLink';
+import ChatRoom from 'components/ChatRoom';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
-  const { data: m } = trpcNext.partnerships.get.useQuery(mentorshipId);
+  const { data: m } = trpcNext.mentorships.get.useQuery(mentorshipId);
   const [user] = useUserContext();
 
   if (!m) return <Loader />;
@@ -36,7 +36,7 @@ export default widePage(() => {
     {iAmTheMentor ?
       <GroupBar group={m.group} showJoinButton showGroupName={false} marginBottom={sectionSpacing + 2} />
       :
-      <PageBreadcrumb current={`${formatUserName(m.mentee.name)} ⇋ ${formatUserName(m.mentor.name)}`} />
+      <PageBreadcrumb current={`学生：${formatUserName(m.mentee.name)}，导师： ${formatUserName(m.mentor.name)}`} />
     }
 
     <Grid gap={10} templateColumns={{ 
@@ -64,7 +64,7 @@ function MentorPrivateNotes({ mentorshipId, notes, readonly }: {
 }) {
 
   const save = async (editedMemo: string) => {
-    await trpc.partnerships.updatePrivateMentorNotes.mutate({ 
+    await trpc.mentorships.updatePrivateMentorNotes.mutate({ 
       id: mentorshipId, 
       privateMentorNotes: { memo: editedMemo },
     });
@@ -114,7 +114,7 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
         <MenteeApplicant userId={menteeId} readonly />
       </TabPanel>
       <TabPanel>
-        <Text color="grey">此功能正在开发中。</Text>
+        <ChatRoom mentorshipId={mentorshipId} />
       </TabPanel>
       <TabPanel>
         <AssessmentsTable mentorshipId={mentorshipId} />
@@ -123,14 +123,14 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
   </TabsWithUrlParam>;
 }
 
-function AssessmentsTable({ mentorshipId } : {
+function AssessmentsTable({ mentorshipId }: {
   mentorshipId: string,
 }) {
   const router = useRouter();
   const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
 
   const createAndGo = async () => {
-    const id = await trpc.assessments.create.mutate({ partnershipId: mentorshipId });
+    const id = await trpc.assessments.create.mutate({ mentorshipId: mentorshipId });
     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
   };
 

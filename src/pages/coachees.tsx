@@ -20,7 +20,7 @@ import { ExternalLinkIcon } from '@chakra-ui/icons';
 export default function Page() {
   const [user] = useUserContext();
 
-  const { data: mentorships } = trpcNext.partnerships.listMineAsCoach.useQuery();
+  const { data: mentorships } = trpcNext.mentorships.listMineAsCoach.useQuery();
 
   return <Flex direction='column' gap={sectionSpacing}>
     <Box>
