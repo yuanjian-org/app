@@ -1,16 +1,14 @@
-import SharedEnv from "../shared/SharedEnv";
 import { loadEnvConfig } from '@next/env';
 import { IsNotEmpty, validateOrReject } from "class-validator";
 
-// See .env.template to see what are these env variables and how to configure them.
-class ApiEnv extends SharedEnv {
+/**
+ * Env vars that should NOT be exposed to the client side.
+ * 
+ * See .env.template to see what are these env variables and how to configure them.
+ */
+class ApiEnv {
   @IsNotEmpty()
   DATABASE_URI: string = process.env.DATABASE_URI ?? '';
-
-  @IsNotEmpty()
-  AUTHING_USER_POOL_ID: string = process.env.AUTHING_USER_POOL_ID ?? '';
-  @IsNotEmpty()
-  AUTHING_USER_POOL_SECRET: string = process.env.AUTHING_USER_POOL_SECRET ?? '';
 
   INTEGRATION_AUTH_TOKEN: string | undefined = process.env.INTEGRATION_AUTH_TOKEN;
 
