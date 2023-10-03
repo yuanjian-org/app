@@ -7,6 +7,7 @@ import { notFoundError } from "api/errors";
 import { groupAttributes, groupInclude, transcriptAttributes } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
+import sequelize from "api/database/sequelize";
 
 const get = procedure
   .use(authUser())
@@ -98,17 +99,22 @@ const updateNameMap = procedure
   .use(authUser())
   .input(z.object({}).catchall(z.string()))
   .mutation(async ({ input: nameMap }) => {
-    // Construct an array of objects to upsert
-    const upsertArray = Object.entries(nameMap).map(([handlebarName, userId]) => ({
-      handlebarName,
-      userId,
-    }));
+    return sequelize.transaction(async (transaction) => {
+      // Construct an array of objects to upsert rows which userIds are not empty
+      const upsertArray = Object.entries(nameMap)
+        .filter(([handlebarName, userId]) => userId !== '')
+        .map(([handlebarName, userId]) => ({
+          handlebarName,
+          userId,
+        }));
 
-    if (upsertArray.length > 0) {
-      await db.SummaryNameMapping.bulkCreate(upsertArray, {
-        updateOnDuplicate: ['userId'], // specify the field(s) that should be updated on duplicate
-      });
-    }
+      if (upsertArray.length > 0) {
+        await db.SummaryNameMapping.bulkCreate(upsertArray, {
+          updateOnDuplicate: ['userId'], // specify the field(s) that should be updated on duplicate
+          transaction: transaction, // Use the transaction in bulkCreate
+        });
+      }
+    });
   });
 
 export default router({
