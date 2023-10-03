@@ -18,7 +18,6 @@ export const zUser = zMinUser.merge(z.object({
 }));
 type User = z.TypeOf<typeof zUser>;
 
-// TODO: export as non-default
 export default User;
 
 export const zUserFilter = z.object({
