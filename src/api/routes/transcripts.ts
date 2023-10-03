@@ -64,8 +64,10 @@ const getNameMap = procedure
     let handlebars: string[] = [];
     for (let s of summaries) {
       const matches = s.summary.match(/{{(.*?)}}/g);
+      // parse and find handlebar values but get rid of the repeating values
       if (matches) {
-        handlebars = [...handlebars, ...matches.map(match => match.slice(2, -2).trim())];
+        handlebars = [...handlebars, ...matches.map(match => match.slice(2, -2).trim())]
+        .reduce((acc, cur) => acc.includes(cur) ? acc : [...acc, cur], handlebars);
       }
     }
 
@@ -73,7 +75,7 @@ const getNameMap = procedure
     // create a list of namemap of itself, otherwise when handlebars compile it will return empty
     nameMap = handlebars.reduce((o, key) => ({ ...o, [key]: key }), {});
 
-    const tnm = await db.TranscriptNameMapping.findAll({
+    const snm = await db.SummaryNameMapping.findAll({
       where: { handlebarName: handlebars },
       include: [{
         model: db.User,
@@ -81,8 +83,8 @@ const getNameMap = procedure
       }],
     });
 
-    if (tnm) {
-      for (const nm of tnm) {
+    if (snm) {
+      for (const nm of snm) {
         invariant(nm.user.name);
         nameMap[nm.handlebarName] = nm.user.name;
       }
@@ -103,7 +105,7 @@ const updateNameMap = procedure
     }));
 
     if (upsertArray.length > 0) {
-      await db.TranscriptNameMapping.bulkCreate(upsertArray, {
+      await db.SummaryNameMapping.bulkCreate(upsertArray, {
         updateOnDuplicate: ['userId'], // specify the field(s) that should be updated on duplicate
       });
     }

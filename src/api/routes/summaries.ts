@@ -11,6 +11,7 @@ import { groupAttributes, groupInclude, summaryAttributes } from "api/database/m
 import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
+import Handlebars from "handlebars";
 
 const crudeSummaryKey = "原始文字";
 
@@ -77,6 +78,42 @@ const list = procedure
 
   checkPermissionForGroup(ctx.user, t.group);
 
+  // find all handlebar from summaries under one transcript
+  let handlebars: string[] = [];
+  for (let s of t.summaries) {
+    const matches = s.summary.match(/{{(.*?)}}/g);
+    // parse and find handlebar values but get rid of the repeating values
+    if (matches) {
+       handlebars = [...handlebars, ...matches.map(match => match.slice(2, -2).trim())]
+        .reduce((acc, cur) => acc.includes(cur) ? acc : [...acc, cur], handlebars);
+    }
+  };
+
+  let nameMap: Record<string, string> = {};
+  // create a list of namemap of itself, otherwise when handlebars compile it will return empty
+  nameMap = handlebars.reduce((o, key) => ({ ...o, [key]: key }), {});
+
+  const snm = await db.SummaryNameMapping.findAll({
+    where: { handlebarName: handlebars },
+    include: [{
+      model: db.User,
+      attributes: ['name']
+    }],
+  });
+
+  if (snm) {
+    for (const nm of snm) {
+      invariant(nm.user.name);
+      nameMap[nm.handlebarName] = nm.user.name;
+    }
+  }
+  
+  // using Handlebars.js to compile and return summaries with handlebar replaced
+  t.summaries = t.summaries.map(summary => {
+    summary.summary = Handlebars.compile(summary.summary)(nameMap);
+    return summary;
+  });
+  
   return t.summaries;
 });
 
