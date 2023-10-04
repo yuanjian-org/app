@@ -6,8 +6,8 @@ import { zTranscript } from "shared/Transcript";
 import { notFoundError } from "api/errors";
 import { groupAttributes, groupInclude, transcriptAttributes } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroup } from "./groups";
-import invariant from 'tiny-invariant';
 import sequelize from "api/database/sequelize";
+import { extractHandlebars, createNameMap } from "./summaries";
 
 const get = procedure
   .use(authUser())
@@ -58,62 +58,27 @@ const getNameMap = procedure
   .use(authUser())
   .input(z.string())
   .query(async ({ input: transcriptId }) => {
-
-    const summaries = await db.Summary.findAll({ where: { transcriptId } });
-
-    // find all handlebar from summaries under one transcript
-    let handlebars: string[] = [];
-    for (let s of summaries) {
-      const matches = s.summary.match(/{{(.*?)}}/g);
-      // parse and find handlebar values but get rid of the repeating values
-      if (matches) {
-        handlebars = [...handlebars, ...matches.map(match => match.slice(2, -2).trim())]
-        .reduce((acc, cur) => acc.includes(cur) ? acc : [...acc, cur], handlebars);
-      }
-    }
-
-    let nameMap: Record<string, string> = {};
-    // create a list of namemap of itself, otherwise when handlebars compile it will return empty
-    nameMap = handlebars.reduce((o, key) => ({ ...o, [key]: key }), {});
-
-    const snm = await db.SummaryNameMapping.findAll({
-      where: { handlebarName: handlebars },
-      include: [{
-        model: db.User,
-        attributes: ['name']
-      }],
-    });
-
-    if (snm) {
-      for (const nm of snm) {
-        invariant(nm.user.name);
-        nameMap[nm.handlebarName] = nm.user.name;
-      }
-    }
-
-    return nameMap;
-
+    const handlebars = await extractHandlebars(transcriptId);
+    return await createNameMap(handlebars);
   });
 
 const updateNameMap = procedure
   .use(authUser())
-  .input(z.object({}).catchall(z.string()))
+  .input(z.record(z.string()))
   .mutation(async ({ input: nameMap }) => {
-    return sequelize.transaction(async (transaction) => {
+    await sequelize.transaction(async (transaction) => {
       // Construct an array of objects to upsert rows which userIds are not empty
       const upsertArray = Object.entries(nameMap)
-        .filter(([handlebarName, userId]) => userId !== '')
         .map(([handlebarName, userId]) => ({
           handlebarName,
           userId,
         }));
 
-      if (upsertArray.length > 0) {
-        await db.SummaryNameMapping.bulkCreate(upsertArray, {
-          updateOnDuplicate: ['userId'], // specify the field(s) that should be updated on duplicate
-          transaction: transaction, // Use the transaction in bulkCreate
-        });
-      }
+      await db.SummaryNameMapping.bulkCreate(upsertArray, {
+        updateOnDuplicate: ['userId'],
+        transaction,
+      });
+
     });
   });
 

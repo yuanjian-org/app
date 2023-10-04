@@ -12,6 +12,7 @@ import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
 import Handlebars from "handlebars";
+import { Op } from "sequelize";
 
 const crudeSummaryKey = "原始文字";
 
@@ -78,42 +79,14 @@ const list = procedure
 
   checkPermissionForGroup(ctx.user, t.group);
 
-  // find all handlebar from summaries under one transcript
-  let handlebars: string[] = [];
-  for (let s of t.summaries) {
-    const matches = s.summary.match(/{{(.*?)}}/g);
-    // parse and find handlebar values but get rid of the repeating values
-    if (matches) {
-       handlebars = [...handlebars, ...matches.map(match => match.slice(2, -2).trim())]
-        .reduce((acc, cur) => acc.includes(cur) ? acc : [...acc, cur], handlebars);
-    }
-  };
-
-  let nameMap: Record<string, string> = {};
-  // create a list of namemap of itself, otherwise when handlebars compile it will return empty
-  nameMap = handlebars.reduce((o, key) => ({ ...o, [key]: key }), {});
-
-  const snm = await db.SummaryNameMapping.findAll({
-    where: { handlebarName: handlebars },
-    include: [{
-      model: db.User,
-      attributes: ['name']
-    }],
-  });
-
-  if (snm) {
-    for (const nm of snm) {
-      invariant(nm.user.name);
-      nameMap[nm.handlebarName] = nm.user.name;
-    }
-  }
+  const handlebars = await extractHandlebars(transcriptId);
+  const nameMap = await createNameMap(handlebars);
   
   // using Handlebars.js to compile and return summaries with handlebar replaced
-  t.summaries = t.summaries.map(summary => {
+  for (let summary of t.summaries) {
     summary.summary = Handlebars.compile(summary.summary)(nameMap);
-    return summary;
-  });
-  
+  }
+
   return t.summaries;
 });
 
@@ -216,4 +189,49 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
     await Promise.all(promises);
   }
   return ret;
+}
+
+export async function extractHandlebars(transcriptId: string): Promise<string[]> {
+  const summaries = await db.Summary.findAll({ where: { transcriptId } });
+
+  // find all handlebar from summaries under one transcript
+  let handlebars: string[] = [];
+  for (let s of summaries) {
+    const matches = s.summary.match(/{{(.*?)}}/g);
+    if (matches) {
+      // Extract matched handlebars and append to the existing handlebars
+      const extractedHandlebars = matches.map(match => match.slice(2, -2).trim());
+      // Remove duplicates
+      for (const extracted of extractedHandlebars) {
+        if (!handlebars.includes(extracted)) {
+          handlebars.push(extracted);
+        }
+      }
+    }
+  }
+  return handlebars;
+}
+
+export async function createNameMap(handlebars: string[]): Promise<Record<string, string>> {
+  let nameMap: Record<string, string> = {};
+  // create a list of namemap of itself, otherwise when Handlebars.js compile it will return empty
+  for (const handlebar of handlebars) {
+    nameMap[handlebar] = handlebar;
+  }
+
+  const snm = await db.SummaryNameMapping.findAll({
+    where: { handlebarName: handlebars },
+    include: [{
+      model: db.User,
+      attributes: ['name'],
+      where: { name: { [Op.ne]: null } } // Ensure user's name is not null
+    }],
+  });
+
+  for (const nm of snm) {
+    invariant(nm.user.name);
+    nameMap[nm.handlebarName] = nm.user.name;
+  }
+
+  return nameMap;
 }
