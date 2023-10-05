@@ -39,11 +39,11 @@ const listForIntegration = procedure
     excludeTranscriptsWithKey: z.string().optional(),
   }))
   .output(z.array(zSummary))
-  .query(async ({ input }) =>
+  .query(async ({ input }) => 
 {
   // TODO: Optimize and use a single query to return final results.
-  const summaries = await db.Summary.findAll({
-    where: {
+  const summaries = await db.Summary.findAll({ 
+    where: { 
       summaryKey: input.key,
     },
     attributes: summaryAttributes,
@@ -61,7 +61,7 @@ const list = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zSummary))
-  .query(async ({ ctx, input: transcriptId }) =>
+  .query(async ({ ctx, input: transcriptId }) => 
 {
   const t = await db.Transcript.findByPk(transcriptId, {
     attributes: ["transcriptId"],
@@ -94,7 +94,7 @@ const list = procedure
 const write = procedure
   .use(authIntegration())
   .input(zSummary)
-  .mutation(async ({ input }) =>
+  .mutation(async ({ input }) => 
 {
   if (input.summaryKey === crudeSummaryKey) {
     throw new TRPCError({
