@@ -12,7 +12,7 @@ import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
 import Handlebars from "handlebars";
-import { Op } from "sequelize";
+import { extractAndGetNameMap } from "./transcripts";
 
 const crudeSummaryKey = "原始文字";
 
@@ -39,56 +39,54 @@ const listForIntegration = procedure
     excludeTranscriptsWithKey: z.string().optional(),
   }))
   .output(z.array(zSummary))
-  .query(async ({ input }) => 
-{
-  // TODO: Optimize and use a single query to return final results.
-  const summaries = await db.Summary.findAll({ 
-    where: { 
-      summaryKey: input.key,
-    },
-    attributes: summaryAttributes,
+  .query(async ({ input }) =>
+  {
+    // TODO: Optimize and use a single query to return final results.
+    const summaries = await db.Summary.findAll({
+      where: {
+        summaryKey: input.key,
+      },
+      attributes: summaryAttributes,
+    });
+
+    const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] : (await db.Summary.findAll({
+      where: { summaryKey: input.excludeTranscriptsWithKey },
+      attributes: ['transcriptId'],
+    })).map(s => s.transcriptId);
+
+    return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
   });
-
-  const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] : (await db.Summary.findAll({
-    where: { summaryKey: input.excludeTranscriptsWithKey },
-    attributes: ['transcriptId'],
-  })).map(s => s.transcriptId);
-
-  return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
-});
 
 const list = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zSummary))
-  .query(async ({ ctx, input: transcriptId }) => 
-{
-  const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["transcriptId"],
-    include: [{
-      model: db.Group,
-      attributes: groupAttributes,
-      include: groupInclude,
-    }, {
-      model: db.Summary,
-      attributes: summaryAttributes,
-    }]
+  .query(async ({ ctx, input: transcriptId }) =>
+  {
+    const t = await db.Transcript.findByPk(transcriptId, {
+      attributes: ["transcriptId"],
+      include: [{
+        model: db.Group,
+        attributes: groupAttributes,
+        include: groupInclude,
+      }, {
+        model: db.Summary,
+        attributes: summaryAttributes,
+      }]
+    });
+
+    if (!t) throw notFoundError("会议转录", transcriptId);
+
+    checkPermissionForGroup(ctx.user, t.group);
+
+    const nameMap = await extractAndGetNameMap(transcriptId);
+
+    for (const summary of t.summaries) {
+      summary.summary = Handlebars.compile(summary.summary)(nameMap);
+    }
+
+    return t.summaries;
   });
-
-  if (!t) throw notFoundError("会议转录", transcriptId);
-
-  checkPermissionForGroup(ctx.user, t.group);
-
-  const handlebars = await extractHandlebars(transcriptId);
-  const nameMap = await createNameMap(handlebars);
-  
-  // using Handlebars.js to compile and return summaries with handlebar replaced
-  for (let summary of t.summaries) {
-    summary.summary = Handlebars.compile(summary.summary)(nameMap);
-  }
-
-  return t.summaries;
-});
 
 /**
 * See docs/Summarization.md for details.
@@ -96,21 +94,21 @@ const list = procedure
 const write = procedure
   .use(authIntegration())
   .input(zSummary)
-  .mutation(async ({ input }) => 
-{
-  if (input.summaryKey === crudeSummaryKey) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: `Summaries with key "${crudeSummaryKey}" are read-only`,
+  .mutation(async ({ input }) =>
+  {
+    if (input.summaryKey === crudeSummaryKey) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Summaries with key "${crudeSummaryKey}" are read-only`,
+      });
+    }
+    // By design, this statement fails if the transcript doesn't exist.
+    await db.Summary.upsert({
+      transcriptId: input.transcriptId,
+      summaryKey: input.summaryKey,
+      summary: input.summary,
     });
-  }
-  // By design, this statement fails if the transcript doesn't exist.
-  await db.Summary.upsert({
-    transcriptId: input.transcriptId,
-    summaryKey: input.summaryKey,
-    summary: input.summary,
   });
-});
 
 export default router({
   list: listForIntegration,
@@ -189,49 +187,4 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
     await Promise.all(promises);
   }
   return ret;
-}
-
-export async function extractHandlebars(transcriptId: string): Promise<string[]> {
-  const summaries = await db.Summary.findAll({ where: { transcriptId } });
-
-  // find all handlebar from summaries under one transcript
-  let handlebars: string[] = [];
-  for (let s of summaries) {
-    const matches = s.summary.match(/{{(.*?)}}/g);
-    if (matches) {
-      // Extract matched handlebars and append to the existing handlebars
-      const extractedHandlebars = matches.map(match => match.slice(2, -2).trim());
-      // Remove duplicates
-      for (const extracted of extractedHandlebars) {
-        if (!handlebars.includes(extracted)) {
-          handlebars.push(extracted);
-        }
-      }
-    }
-  }
-  return handlebars;
-}
-
-export async function createNameMap(handlebars: string[]): Promise<Record<string, string>> {
-  let nameMap: Record<string, string> = {};
-  // create a list of namemap of itself, otherwise when Handlebars.js compile it will return empty
-  for (const handlebar of handlebars) {
-    nameMap[handlebar] = handlebar;
-  }
-
-  const snm = await db.SummaryNameMapping.findAll({
-    where: { handlebarName: handlebars },
-    include: [{
-      model: db.User,
-      attributes: ['name'],
-      where: { name: { [Op.ne]: null } } // Ensure user's name is not null
-    }],
-  });
-
-  for (const nm of snm) {
-    invariant(nm.user.name);
-    nameMap[nm.handlebarName] = nm.user.name;
-  }
-
-  return nameMap;
 }
