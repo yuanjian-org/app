@@ -18,7 +18,7 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zTranscript)
-  .query(async ({ input: id, ctx }) => 
+  .query(async ({ input: id, ctx }) =>
 {
   const t = await db.Transcript.findByPk(id, {
     attributes: transcriptAttributes,
@@ -42,7 +42,7 @@ const list = procedure
     groupId: z.string(),
   }))
   .output(z.array(zTranscript))
-  .query(async ({ input: { groupId }, ctx }) => 
+  .query(async ({ input: { groupId }, ctx }) =>
 {
   const g = await db.Group.findByPk(groupId, {
     attributes: groupAttributes,

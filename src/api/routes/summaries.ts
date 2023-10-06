@@ -42,8 +42,8 @@ const listForIntegration = procedure
   .query(async ({ input }) => 
 {
   // TODO: Optimize and use a single query to return final results.
-  const summaries = await db.Summary.findAll({
-    where: {
+  const summaries = await db.Summary.findAll({ 
+    where: { 
       summaryKey: input.key,
     },
     attributes: summaryAttributes,
