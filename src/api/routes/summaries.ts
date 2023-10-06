@@ -41,21 +41,21 @@ const listForIntegration = procedure
   .output(z.array(zSummary))
   .query(async ({ input }) => 
 {
-    // TODO: Optimize and use a single query to return final results.
-    const summaries = await db.Summary.findAll({
-      where: {
-        summaryKey: input.key,
-      },
-      attributes: summaryAttributes,
-    });
-
-    const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] : (await db.Summary.findAll({
-      where: { summaryKey: input.excludeTranscriptsWithKey },
-      attributes: ['transcriptId'],
-    })).map(s => s.transcriptId);
-
-    return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+  // TODO: Optimize and use a single query to return final results.
+  const summaries = await db.Summary.findAll({
+    where: {
+      summaryKey: input.key,
+    },
+    attributes: summaryAttributes,
   });
+
+  const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] : (await db.Summary.findAll({
+    where: { summaryKey: input.excludeTranscriptsWithKey },
+    attributes: ['transcriptId'],
+  })).map(s => s.transcriptId);
+
+  return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
+});
 
 const list = procedure
   .use(authUser())
@@ -63,28 +63,28 @@ const list = procedure
   .output(z.array(zSummary))
   .query(async ({ ctx, input: transcriptId }) => 
 {
-    const t = await db.Transcript.findByPk(transcriptId, {
-      attributes: ["transcriptId"],
-      include: [{
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      }]
-    });
-
-    if (!t) throw notFoundError("会议转录", transcriptId);
-
-    checkPermissionForGroup(ctx.user, t.group);
-
-    const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
-    t.summaries = summaries;
-
-    for (const summary of t.summaries) {
-      summary.summary = Handlebars.compile(summary.summary)(nameMap);
-    }
-
-    return t.summaries;
+  const t = await db.Transcript.findByPk(transcriptId, {
+    attributes: ["transcriptId"],
+    include: [{
+      model: db.Group,
+      attributes: groupAttributes,
+      include: groupInclude,
+    }]
   });
+
+  if (!t) throw notFoundError("会议转录", transcriptId);
+
+  checkPermissionForGroup(ctx.user, t.group);
+
+  const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
+  t.summaries = summaries;
+
+  for (const summary of t.summaries) {
+    summary.summary = Handlebars.compile(summary.summary)(nameMap);
+  }
+
+  return t.summaries;
+});
 
 /**
 * See docs/Summarization.md for details.
@@ -94,19 +94,19 @@ const write = procedure
   .input(zSummary)
   .mutation(async ({ input }) => 
 {
-    if (input.summaryKey === crudeSummaryKey) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: `Summaries with key "${crudeSummaryKey}" are read-only`,
-      });
-    }
-    // By design, this statement fails if the transcript doesn't exist.
-    await db.Summary.upsert({
-      transcriptId: input.transcriptId,
-      summaryKey: input.summaryKey,
-      summary: input.summary,
+  if (input.summaryKey === crudeSummaryKey) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `Summaries with key "${crudeSummaryKey}" are read-only`,
     });
+  }
+  // By design, this statement fails if the transcript doesn't exist.
+  await db.Summary.upsert({
+    transcriptId: input.transcriptId,
+    summaryKey: input.summaryKey,
+    summary: input.summary,
   });
+});
 
 export default router({
   list: listForIntegration,

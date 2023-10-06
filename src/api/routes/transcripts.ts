@@ -20,21 +20,21 @@ const get = procedure
   .output(zTranscript)
   .query(async ({ input: id, ctx }) => 
 {
-    const t = await db.Transcript.findByPk(id, {
-      attributes: transcriptAttributes,
-      include: [{
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      }],
-    });
-
-    if (!t) throw notFoundError("会议转录", id);
-
-    checkPermissionForGroup(ctx.user, t.group);
-
-    return t;
+  const t = await db.Transcript.findByPk(id, {
+    attributes: transcriptAttributes,
+    include: [{
+      model: db.Group,
+      attributes: groupAttributes,
+      include: groupInclude,
+    }],
   });
+
+  if (!t) throw notFoundError("会议转录", id);
+
+  checkPermissionForGroup(ctx.user, t.group);
+
+  return t;
+});
 
 const list = procedure
   .use(authUser())
@@ -44,20 +44,20 @@ const list = procedure
   .output(z.array(zTranscript))
   .query(async ({ input: { groupId }, ctx }) => 
 {
-    const g = await db.Group.findByPk(groupId, {
-      attributes: groupAttributes,
-      include: [...groupInclude, {
-        model: db.Transcript,
-        attributes: transcriptAttributes,
-      }],
-    });
-
-    if (!g) throw notFoundError("分组", groupId);
-
-    checkPermissionForGroup(ctx.user, g);
-
-    return g.transcripts;
+  const g = await db.Group.findByPk(groupId, {
+    attributes: groupAttributes,
+    include: [...groupInclude, {
+      model: db.Transcript,
+      attributes: transcriptAttributes,
+    }],
   });
+
+  if (!g) throw notFoundError("分组", groupId);
+
+  checkPermissionForGroup(ctx.user, g);
+
+  return g.transcripts;
+});
 
 const getNameMap = procedure
   .use(authUser())
@@ -65,9 +65,9 @@ const getNameMap = procedure
   .output(z.record(z.string()))
   .query(async ({ input }) => 
 {
-    const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
-    return nameMap;
-  });
+  const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
+  return nameMap;
+});
 
 // expected input should an object of {[handlebarNames]: userIds]}
 const updateNameMap = procedure
@@ -75,15 +75,15 @@ const updateNameMap = procedure
   .input(z.record(z.string()))
   .mutation(async ({ input: nameMap }) => 
 {
-    // Construct an array of objects to upsert multiple rows the same time
-    const upsertArray = Object.entries(nameMap)
-      .map(([handlebarName, userId]) => ({
-        handlebarName,
-        userId,
-      }));
+  // Construct an array of objects to upsert multiple rows the same time
+  const upsertArray = Object.entries(nameMap)
+    .map(([handlebarName, userId]) => ({
+      handlebarName,
+      userId,
+    }));
 
-    await db.SummaryNameMapping.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
-  });
+  await db.SummaryNameMapping.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
+});
 
 export default router({
   get,
