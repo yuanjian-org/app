@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from "shared/strings";
 import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
-import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
 import { Heading, Text, Flex } from '@chakra-ui/react';
 
 export default function Page() { return <AssessmentEditor />; }
@@ -24,7 +23,7 @@ function AssessmentEditor() {
 
     {!assessment ? <Loader /> : <Flex direction="column" gap={6}>
       <Heading size="sm">总评</Heading>
-      <AutosavingMarkdownEditor key={assessment.id} initialValue={assessment?.summary || ''} onSave={save} />
+      <Text color="disabled">尚未开发</Text>
       <Heading size="sm">按辅助层面评估</Heading>
       <Text color="disabled">尚未开发</Text>
     </Flex>}
