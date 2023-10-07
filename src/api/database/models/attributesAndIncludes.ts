@@ -27,11 +27,6 @@ export const groupInclude = [{
   attributes: minUserAttributes,
 }];
 
-export const groupCountingTranscriptsInclude = [...groupInclude, {
-  association: "transcripts",
-  attributes: ["transcriptId", "startedAt", "endedAt"],
-}];
-
 /**
  * Transcript
  */
@@ -56,12 +51,10 @@ export const mentorshipInclude = [{
 }, {
   association: 'mentee',
   attributes: minUserAttributes,
-}];
-
-export const mentorshipWithGroupInclude = [...mentorshipInclude, {
+}, {
   association: "group",
   attributes: groupAttributes,
-  include: groupCountingTranscriptsInclude,
+  include: groupInclude,
 }];
 
 /**
@@ -86,7 +79,7 @@ export const calibrationAttributes = ["id", "type", "name", "active", "createdAt
 export const calibrationInclude = [{
   model: Group,
   attributes: groupAttributes,
-  include: groupCountingTranscriptsInclude,
+  include: groupInclude,
 }];
 
 /**

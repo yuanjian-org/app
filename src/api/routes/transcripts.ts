@@ -15,28 +15,6 @@ import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
 
-const get = procedure
-  .use(authUser())
-  .input(z.string())
-  .output(zTranscript)
-  .query(async ({ input: id, ctx }) =>
-{
-  const t = await db.Transcript.findByPk(id, {
-    attributes: transcriptAttributes,
-    include: [{
-      model: db.Group,
-      attributes: groupAttributes,
-      include: groupInclude,
-    }],
-  });
-
-  if (!t) throw notFoundError("会议转录", id);
-
-  checkPermissionForGroup(ctx.user, t.group);
-
-  return t;
-});
-
 const list = procedure
   .use(authUser())
   .input(z.object({
@@ -70,7 +48,9 @@ const getNameMap = procedure
   return nameMap;
 });
 
-// expected input should an object of {[handlebarNames]: userIds]}
+/**
+ * @param { [handlebarNames]: userIds }
+ */
 const updateNameMap = procedure
   .use(authUser())
   .input(z.record(z.string()))
@@ -87,7 +67,6 @@ const updateNameMap = procedure
 });
 
 export default router({
-  get,
   list,
   getNameMap,
   updateNameMap
