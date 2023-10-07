@@ -1,6 +1,6 @@
 import { Td } from '@chakra-ui/react';
 import React from 'react';
-import { MentorshipWithGroupAndNotes } from 'shared/Mentorship';
+import { MentorshipWithGroup } from 'shared/Mentorship';
 import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import TrLink from 'components/TrLink';
 import moment from 'moment';
@@ -9,10 +9,10 @@ import TdLink from './TdLink';
 import EditIconButton from './EditIconButton';
 
 export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit }: {
-  mentorship: MentorshipWithGroupAndNotes;
+  mentorship: MentorshipWithGroup;
   showCoach?: boolean,
   showPinyin?: boolean,
-  edit?: (m: MentorshipWithGroupAndNotes) => void,
+  edit?: (m: MentorshipWithGroup) => void,
 }) {
   // Always fetch coach data even if `!showCoach`, otherwise we have to use `useEffect`.
   // The latter wouldn't work well because mentorships.tsx has a call to `utils.users.getCoach.invalidate` which

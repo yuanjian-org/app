@@ -48,10 +48,7 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Partnership / Mentorship
  */
 
-// Don't include private notes by default.
 export const mentorshipAttributes = ['id'];
-
-export const mentorshipWithNotesAttributes = [...mentorshipAttributes, "privateMentorNotes"];
 
 export const mentorshipInclude = [{
   association: 'mentor',
