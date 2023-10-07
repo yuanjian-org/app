@@ -4,7 +4,6 @@ import db from "../database/db";
 import { 
   isValidMentorshipIds,
   zMentorship,
-  zMentorshipWithGroup
 } from "../../shared/Mentorship";
 import { z } from "zod";
 import { alreadyExistsError, generalBadRequestError, noPermissionError } from "../errors";
@@ -13,7 +12,6 @@ import { isPermitted } from "../../shared/Role";
 import { 
   mentorshipAttributes,
   mentorshipInclude,
-  mentorshipWithGroupInclude,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
@@ -62,18 +60,18 @@ const create = procedure
 
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zMentorshipWithGroup))
+  .output(z.array(zMentorship))
   .query(async () => 
 {
   return await db.Partnership.findAll({ 
     attributes: mentorshipAttributes,
-    include: mentorshipWithGroupInclude,
+    include: mentorshipInclude,
   });
 });
 
 const listMineAsCoach = procedure
   .use(authUser())
-  .output(z.array(zMentorshipWithGroup))
+  .output(z.array(zMentorship))
   .query(async ({ ctx }) =>
 {
   return (await db.User.findAll({ 
@@ -82,7 +80,7 @@ const listMineAsCoach = procedure
     include: [{
       association: "mentorshipsAsMentor",
       attributes: mentorshipAttributes,
-      include: mentorshipWithGroupInclude,
+      include: mentorshipInclude,
     }]
   })).map(u => u.mentorshipsAsMentor).flat();
 });
@@ -106,12 +104,12 @@ const listMineAsMentor = procedure
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zMentorshipWithGroup)
+  .output(zMentorship)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
     attributes: mentorshipAttributes,
-    include: mentorshipWithGroupInclude,
+    include: mentorshipInclude,
   });
   if (!res || (res.mentor.id !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
     throw noPermissionError("一对一匹配", id);

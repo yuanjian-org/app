@@ -12,7 +12,7 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { CreationOptional, JSONB, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";

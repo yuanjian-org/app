@@ -8,14 +8,9 @@ import GroupBar from 'components/GroupBar';
 import Loader from 'components/Loader';
 
 export default function Page() {
-  const { data } = trpcNext.groups.listCountingTranscripts.useQuery({ userIds: [] });
+  const { data } = trpcNext.groups.listForSummaryEngineer.useQuery();
 
-  return <>
-    {!data && <Loader />}
-    <VStack divider={<StackDivider />} align='left' spacing='3'>
-      {data && data
-        .filter(group => group.transcripts?.length)
-        .map(group => <GroupBar key={group.id} group={group} showSelf showTranscriptCount showTranscriptLink />)}
-    </VStack>
-  </>;
+  return !data ? <Loader /> : <VStack divider={<StackDivider />} align='left' spacing='3'>
+    {data.map(group => <GroupBar key={group.id} group={group} showSelf showTranscriptLink />)}
+  </VStack>;
 };

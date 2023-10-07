@@ -32,23 +32,21 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUser } from 'shared/User';
-import { Group, GroupCountingTranscripts, isOwned } from 'shared/Group';
+import { Group, isOwned } from 'shared/Group';
+import { ChevronRightIcon } from '@chakra-ui/icons';
 
 export default function GroupBar({
-  group, showSelf, showJoinButton, showTranscriptCount, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop,
-  showGroupName, ...rest
+  group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop, showGroupName, ...rest
 } : {
-  group: Group | GroupCountingTranscripts,
+  group: Group,
   showSelf?: boolean,             // default: false
   showJoinButton?: boolean,       // default: false
-  showTranscriptCount?: boolean,  // default: false
-  showTranscriptLink?: boolean,   // Effective ony if showTranscriptCount is true
+  showTranscriptLink?: boolean,   // default: false
   showGroupName?: boolean,        // default: true
   abbreviateOnMobile?: boolean,   // default: true
   abbreviateOnDesktop?: boolean,  // default: false
 } & SimpleGridProps) {
   const [user] = useUserContext();
-  const transcriptCount = ("transcripts" in group ? group.transcripts : []).length;
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
   const launchMeeting = async (groupId: string) => {
@@ -108,17 +106,13 @@ export default function GroupBar({
             abbreviateOnDesktop={abbreviateOnDesktop}
           />
 
-          {showTranscriptCount && <>
+          {showTranscriptLink && <>
             <Spacer marginLeft={4}/>
             <Center>
-              <Text color={transcriptCount ? 'default': 'gray'}>
-                {showTranscriptLink ?
-                  <LinkOverlay as={Link} href={`/groups/${group.id}`}>
-                    历史 ({transcriptCount})
-                  </LinkOverlay>
-                  :
-                  <>历史 ({transcriptCount})</>
-                }
+              <Text>
+                <LinkOverlay as={Link} href={`/groups/${group.id}`}>
+                  详情 <ChevronRightIcon />
+                </LinkOverlay>
               </Text>
             </Center>
           </>}
