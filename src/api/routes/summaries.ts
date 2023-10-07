@@ -11,6 +11,8 @@ import { groupAttributes, groupInclude, summaryAttributes } from "api/database/m
 import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
+import Handlebars from "handlebars";
+import { getSummariesAndNameMap } from "./transcripts";
 
 const crudeSummaryKey = "原始文字";
 
@@ -67,15 +69,19 @@ const list = procedure
       model: db.Group,
       attributes: groupAttributes,
       include: groupInclude,
-    }, {
-      model: db.Summary,
-      attributes: summaryAttributes,
     }]
   });
 
   if (!t) throw notFoundError("会议转录", transcriptId);
 
   checkPermissionForGroup(ctx.user, t.group);
+
+  const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
+  t.summaries = summaries;
+
+  for (const summary of t.summaries) {
+    summary.summary = Handlebars.compile(summary.summary)(nameMap);
+  }
 
   return t.summaries;
 });

@@ -14,7 +14,7 @@ import Transcript from "./Transcript";
 * This table maps user names with handlebars(Tencent Meeting User Name) in transcripts/summaries
 */
 @Table
-class TranscriptNameMapping extends Model {
+class SummaryNameMapping extends Model {
   @PrimaryKey
   @Column(STRING)
   handlebarName: string;
@@ -30,4 +30,4 @@ class TranscriptNameMapping extends Model {
   user: User;
 }
 
-export default TranscriptNameMapping;
+export default SummaryNameMapping;
