@@ -4,12 +4,10 @@ import db from "../database/db";
 import { 
   isValidMentorshipIds,
   zMentorship,
-  zMentorshipWithAssessmentsDeprecated, 
   zMentorshipWithGroup
 } from "../../shared/Mentorship";
 import { z } from "zod";
-import Assessment from "../database/models/Assessment";
-import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { alreadyExistsError, generalBadRequestError, noPermissionError } from "../errors";
 import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
 import { 
@@ -121,34 +119,9 @@ const get = procedure
   return res;
 });
 
-// TODO: remove this function. Use mentorship.get + assessments.listAllForMentorship instead.
-const getWithAssessmentsDeprecated = procedure
-  .use(authUser())
-  .input(z.string())
-  .output(zMentorshipWithAssessmentsDeprecated)
-  .query(async ({ ctx, input: id }) =>
-{
-  const res = await db.Partnership.findByPk(id, {
-    attributes: mentorshipAttributes,
-    include: [
-      ...mentorshipInclude,
-      Assessment,
-    ]
-  });
-  if (!res) throw notFoundError("一对一匹配", id);
-
-  // Only assessors and mentors can access the mentorship.
-  if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentor.id !== ctx.user.id) {
-    throw noPermissionError("一对一匹配", id);
-  }
-
-  return res;
-});
-
 export default router({
   create,
   get,
-  getWithAssessmentsDeprecated,
   list,
   listMineAsMentor,
   listMineAsCoach,

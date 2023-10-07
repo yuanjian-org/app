@@ -21,16 +21,16 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
 
   let msg;
   let color;
-  if (m.group.transcripts.length) {
-    // return the most recent transcript
-    const t = m.group.transcripts.reduce((a, b) => moment(a.startedAt).isBefore(b.startedAt) ? b : a);
-    msg = prettifyDate(t.startedAt);
-    const daysAgo = moment().diff(t.startedAt, "days");
-    color = daysAgo < 45 ? "green" : daysAgo < 60 ? "yellow.600" : "brown";
-  } else {
-    msg = "尚未通话";
-    color = "grey";
-  }
+  // if (m.group.transcripts.length) {
+  //   // return the most recent transcript
+  //   const t = m.group.transcripts.reduce((a, b) => moment(a.startedAt).isBefore(b.startedAt) ? b : a);
+  //   msg = prettifyDate(t.startedAt);
+  //   const daysAgo = moment().diff(t.startedAt, "days");
+  //   color = daysAgo < 45 ? "green" : daysAgo < 60 ? "yellow.600" : "brown";
+  // } else {
+  //   msg = "尚未通话";
+  //   color = "grey";
+  // }
 
   const href=`/mentorships/${m.id}`;
 
