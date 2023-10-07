@@ -5,20 +5,16 @@ import {
   isValidMentorshipIds,
   zMentorship,
   zMentorshipWithAssessmentsDeprecated, 
-  zMentorshipWithGroupAndNotes, 
-  zPrivateMentorNotes } from "../../shared/Mentorship";
+  zMentorshipWithGroup
+} from "../../shared/Mentorship";
 import { z } from "zod";
 import Assessment from "../database/models/Assessment";
 import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
-import Group from "api/database/models/Group";
 import { 
   mentorshipAttributes,
-  groupAttributes,
-  groupCountingTranscriptsInclude,
-  mentorshipInclude, 
-  mentorshipWithNotesAttributes,
+  mentorshipInclude,
   mentorshipWithGroupInclude,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
@@ -66,37 +62,20 @@ const create = procedure
   });
 });
 
-const updatePrivateMentorNotes = procedure
-  .use(authUser())
-  .input(z.object({
-    id: z.string(),
-    privateMentorNotes: zPrivateMentorNotes,
-  }))
-  .mutation(async ({ ctx, input }) => 
-{
-  const m = await db.Partnership.findByPk(input.id);
-  if (!m || m.mentor.id !== ctx.user.id) {
-    throw noPermissionError("一对一匹配", input.id);
-  }
-
-  m.privateMentorNotes = input.privateMentorNotes;
-  m.save();
-});
-
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zMentorshipWithGroupAndNotes))
+  .output(z.array(zMentorshipWithGroup))
   .query(async () => 
 {
   return await db.Partnership.findAll({ 
-    attributes: mentorshipWithNotesAttributes,
+    attributes: mentorshipAttributes,
     include: mentorshipWithGroupInclude,
   });
 });
 
 const listMineAsCoach = procedure
   .use(authUser())
-  .output(z.array(zMentorshipWithGroupAndNotes))
+  .output(z.array(zMentorshipWithGroup))
   .query(async ({ ctx }) =>
 {
   return (await db.User.findAll({ 
@@ -104,7 +83,7 @@ const listMineAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
-      attributes: mentorshipWithNotesAttributes,
+      attributes: mentorshipAttributes,
       include: mentorshipWithGroupInclude,
     }]
   })).map(u => u.mentorshipsAsMentor).flat();
@@ -129,16 +108,12 @@ const listMineAsMentor = procedure
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zMentorshipWithGroupAndNotes)
+  .output(zMentorshipWithGroup)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
-    attributes: mentorshipWithNotesAttributes,
-    include: [...mentorshipInclude, {
-      model: Group,
-      attributes: groupAttributes,
-      include: groupCountingTranscriptsInclude,
-    }],
+    attributes: mentorshipAttributes,
+    include: mentorshipWithGroupInclude,
   });
   if (!res || (res.mentor.id !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
     throw noPermissionError("一对一匹配", id);
@@ -177,5 +152,4 @@ export default router({
   list,
   listMineAsMentor,
   listMineAsCoach,
-  updatePrivateMentorNotes,
 });

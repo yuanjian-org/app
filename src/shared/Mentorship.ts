@@ -3,11 +3,6 @@ import { zMinUser } from "./User";
 import { zAssessment } from "./Assessment";
 import { zGroupCountingTranscripts } from "./Group";
 
-export const zPrivateMentorNotes = z.object({
-  memo: z.string().optional(),
-});
-export type PrivateMentorNotes = z.TypeOf<typeof zPrivateMentorNotes>;
-
 export const zMentorship = z.object({
   id: z.string().uuid(),
   mentor: zMinUser,
@@ -15,11 +10,10 @@ export const zMentorship = z.object({
 });
 export type Mentorship = z.TypeOf<typeof zMentorship>;
 
-export const zMentorshipWithGroupAndNotes = zMentorship.merge(z.object({
+export const zMentorshipWithGroup = zMentorship.merge(z.object({
   group: zGroupCountingTranscripts,
-  privateMentorNotes: zPrivateMentorNotes.nullable(),
 }));
-export type MentorshipWithGroupAndNotes = z.TypeOf<typeof zMentorshipWithGroupAndNotes>;
+export type MentorshipWithGroup = z.TypeOf<typeof zMentorshipWithGroup>;
 
 export const zMentorshipWithAssessmentsDeprecated = zMentorship.merge(z.object({
   assessments: z.array(zAssessment)
