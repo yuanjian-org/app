@@ -13,6 +13,7 @@ import {
 import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
+import Summary from "api/database/models/Summary";
 
 const get = procedure
   .use(authUser())
@@ -92,7 +93,10 @@ export default router({
   updateNameMap
 });
 
-export async function getSummariesAndNameMap(transcriptId: string): Promise<{ summaries: typeof summaries, nameMap: typeof nameMap }> {
+export async function getSummariesAndNameMap(transcriptId: string): Promise<{
+  summaries: Summary[],
+  nameMap: Record<string, string>,
+}> {
   const summaries = await db.Summary.findAll({
     where: { transcriptId },
     attributes: summaryAttributes,
@@ -104,13 +108,12 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{ su
   for (let s of summaries) {
     const matches = s.summary.match(/{{(.*?)}}/g);
     if (matches) {
-      // trim is to remove curly brackets wrapped around handlebars found by regex
       const extracted = matches.map(match => match.slice(2, -2));
       extracted.forEach(handlebar => handlebarsSet.add(handlebar));
     }
   }
 
-  let nameMap: Record<string, string> = {};
+  const nameMap: Record<string, string> = {};
   // create a list of namemap of itself, otherwise when Handlebars.js compile it will return empty
   for (const handlebar of [...handlebarsSet]) {
     nameMap[handlebar] = `**${handlebar}**`;

@@ -57,6 +57,9 @@ const listForIntegration = procedure
   return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
 });
 
+/**
+ * @returns a list of summaries with handlerbar names substituted with real user names using SuammaryNameMap.
+ */
 const list = procedure
   .use(authUser())
   .input(z.string())
@@ -77,13 +80,12 @@ const list = procedure
   checkPermissionForGroup(ctx.user, t.group);
 
   const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
-  t.summaries = summaries;
 
-  for (const summary of t.summaries) {
+  for (const summary of summaries) {
     summary.summary = Handlebars.compile(summary.summary)(nameMap);
   }
 
-  return t.summaries;
+  return summaries;
 });
 
 /**
