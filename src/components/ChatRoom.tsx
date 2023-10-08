@@ -28,8 +28,6 @@ export default function Room({ mentorshipId } : {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ mentorshipId });
 
   return !room ? <Loader /> : <VStack spacing={paragraphSpacing * 1.5} align="start">
-    {!room.messages.length && <Text color="grey">无讨论内容。点击按钮添加：</Text>}
-
     <MessageCreator roomId={room.id} />
 
     {room.messages.sort((a, b) => moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1)
@@ -89,7 +87,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.chat.updaateMessage.mutate({ messageId: message.id, markdown });
+        await trpc.chat.updateMessage.mutate({ messageId: message.id, markdown });
       } else {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });

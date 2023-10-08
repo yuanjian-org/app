@@ -9,7 +9,8 @@ import {
   mentorshipAttributes,
   mentorshipInclude, 
   chatRoomAttributes,
-  chatRoomInclude
+  chatRoomInclude,
+  minUserAttributes
 } from "api/database/models/attributesAndIncludes";
 import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
@@ -38,11 +39,45 @@ const getRoom = procedure
       continue;
     }
 
-    if (r.mentorship) checkChatRoomPermission(ctx.user, r.mentorship.mentor.id);
+    if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
     return r;
   }
 });
 
+/**
+ * @return null if there is no message or corresponding chat room doesn't exist.
+ */
+const getMostRecentMessageUpdatedAt = procedure
+  .use(authUser())
+  .input(z.object({
+    mentorshipId: z.string(),
+  }))
+  .output(z.date().nullable())
+  .query(async ({ ctx, input: { mentorshipId } }) =>
+{
+  const r = await db.ChatRoom.findOne({
+    where: { mentorshipId },
+    attributes: ["id"],
+    include: [{
+      association: "mentorship",
+      attributes: [],
+      include: [{
+        association: "mentor",
+        attributes: ["id"],
+      }],
+    }],
+  });
+  if (!r) return null;
+
+  if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
+
+  return await db.ChatMessage.max("updatedAt", { where: { roomId: r.id } });
+});
+
+/**
+ * Use mentorshipId etc to query instaed of using roomId, so that much logic of this function can be deduped with
+ * `getRoom` and `getMostRecentMessageUpdatedAt`
+ */
 const createMessage = procedure
   .use(authUser())
   .input(z.object({
@@ -56,13 +91,16 @@ const createMessage = procedure
       attributes: [],
       include: [{
         association: "mentorship",
-        attributes: mentorshipAttributes,
-        include: mentorshipInclude,
+        attributes: [],
+        include: [{
+          association: "mentor",
+          attributes: ["id"],
+        }],
       }],
     });
     if (!r) throw notFoundError("讨论空间", roomId);
 
-    if (r.mentorship) checkChatRoomPermission(ctx.user, r.mentorship.mentor.id);
+    if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
 
     await db.ChatMessage.create({ roomId, markdown, userId: ctx.user.id }, { transaction });
   });
@@ -71,7 +109,7 @@ const createMessage = procedure
 /**
  * Only the user who created the message can update it
  */
-const updaateMessage = procedure
+const updateMessage = procedure
   .use(authUser())
   .input(z.object({
     messageId: z.string(),
@@ -91,12 +129,13 @@ const updaateMessage = procedure
   });
 });
 
-function checkChatRoomPermission(me: User, mentorId: string) {
+function checkRoomPermission(me: User, mentorId: string) {
   if (!isPermitted(me.roles, "MentorCoach") && me.id !== mentorId) throw noPermissionError("讨论空间");
 }
 
 export default router({
   getRoom,
   createMessage,
-  updaateMessage,
+  updateMessage,
+  getMostRecentMessageUpdatedAt,
 });

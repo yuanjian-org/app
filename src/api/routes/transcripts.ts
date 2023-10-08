@@ -38,6 +38,20 @@ const list = procedure
   return g.transcripts;
 });
 
+/**
+ * @return null if there is no transcript.
+ */
+const getMostRecentStartedAt = procedure
+  .use(authUser(["MentorCoach", "PartnershipManager"]))
+  .input(z.object({
+    groupId: z.string(),
+  }))
+  .output(z.date().nullable())
+  .query(async ({ input: { groupId } }) =>
+{
+  return await db.Transcript.max("startedAt", { where: { groupId } });
+});
+
 const getNameMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
@@ -68,8 +82,9 @@ const updateNameMap = procedure
 
 export default router({
   list,
+  getMostRecentStartedAt,
   getNameMap,
-  updateNameMap
+  updateNameMap,
 });
 
 export async function getSummariesAndNameMap(transcriptId: string): Promise<{

@@ -3,10 +3,9 @@ import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  Text, TabList, TabPanels, Tab, TabPanel, Tooltip, Tbody, Td, Table,
+  Text, TabList, TabPanels, Tab, TabPanel, Tbody, Td, Table,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
-import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import MenteeApplicant from 'components/MenteeApplicant';
@@ -48,12 +47,7 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
 
   return <TabsWithUrlParam isLazy>
     <TabList>
-      <Tab>
-        内部讨论
-        <Tooltip label="仅导师本人和资深导师可见。学生无法访问。">
-          <QuestionIcon color="gray" marginStart={2} />
-        </Tooltip>
-      </Tab>
+      <Tab>内部讨论</Tab>
       <Tab>通话摘要</Tab>
       <Tab>申请材料</Tab>
       <Tab>年度反馈</Tab>
@@ -61,6 +55,9 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
 
     <TabPanels>
       <TabPanel>
+        <Text color="grey" marginBottom={paragraphSpacing}>
+          在此记录学生情况以及与资深导师交流互动。学生无法看到此页内容。
+        </Text>
         <ChatRoom mentorshipId={mentorshipId} />
       </TabPanel>
       <TabPanel>
