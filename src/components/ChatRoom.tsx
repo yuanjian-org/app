@@ -3,7 +3,6 @@ import {
   Button,
   HStack,
   Icon,
-  IconButton,
   Spacer,
   Text,
   Textarea,
@@ -17,7 +16,7 @@ import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import moment from 'moment';
 import ReactMarkdown from 'react-markdown';
-import { MdEdit } from 'react-icons/md';
+import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
@@ -45,7 +44,7 @@ function MessageCreator({ roomId }: {
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ? <Editor roomId={roomId} onClose={() => setEditing(false)} marginTop={componentSpacing} /> : 
-    <IconButton variant="outline" icon={<AddIcon />} onClick={() => setEditing(true)} aria-label="新消息" />;
+    <Button variant="outline" leftIcon={<AddIcon />} onClick={() => setEditing(true)}>新消息</Button>;
 }
 
 function Message({ message: m }: {
@@ -107,8 +106,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
       autoFocus background="white" height={200} {...rest} 
     />
     <HStack>
-      <Button onClick={save} isLoading={saving} isDisabled={!markdown} variant="brand">{roomId ? "添加" : "更新"}</Button>
-      <Button onClick={() => onClose()} variant="ghost">取消</Button>
+      <Button onClick={save} isLoading={saving} isDisabled={!markdown} variant="brand" leftIcon={<Icon as={MdSend} />}>
+        确认
+      </Button>
+      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
     </HStack>
   </>;
 }
