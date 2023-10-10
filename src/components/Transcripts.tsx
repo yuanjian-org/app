@@ -25,12 +25,13 @@ import { SummaryNameMapModal } from './SummaryNameMapModal';
 
 export default function Transcripts({ groupId, groupUsers }: {
   groupId: string
-  groupUsers: MinUser[]
+  groupUsers?: MinUser[]
 }) {
   const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
-  return !transcripts ? <Loader /> : transcripts.length ?
-    <LoadedTranscripts transcripts={transcripts} groupUsers={groupUsers} /> :
-    <Text color="gray">无通话历史。会议结束后一小时之内会显示在这里。</Text>;
+  return !transcripts ? <Loader /> :
+    (transcripts.length && groupUsers) ?
+      <LoadedTranscripts transcripts={transcripts} groupUsers={groupUsers} /> :
+      <Text color="gray">无通话历史。会议结束后一小时之内会显示在这里。</Text>;
 }
 
 /**
