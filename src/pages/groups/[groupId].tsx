@@ -18,7 +18,7 @@ export default function Page() {
     <PageBreadcrumb current='会议详情' parents={[{ name: '我的会议', link: '/' }]} />
     {!group ? <Loader /> : <Stack spacing={sectionSpacing}>
       <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} marginBottom={paragraphSpacing} />
-      <Transcripts groupId={group.id} />
+      <Transcripts groupId={group.id} groupUsers={group.users}/>
     </Stack>}
   </>;
 };

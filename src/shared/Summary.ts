@@ -7,3 +7,7 @@ export const zSummary = z.object({
   });
 
 export type Summary = z.TypeOf<typeof zSummary>;
+
+export const zNameMap = z.record(z.string());
+
+export type NameMap = z.TypeOf<typeof zNameMap>;
