@@ -11,25 +11,10 @@ import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { noPermissionError, notFoundError } from "../errors";
-import { Group, GroupCountingTranscripts, whereUnowned, zGroup, zGroupCountingTranscripts, 
+import { Group, whereUnowned, zGroup, 
 } from "../../shared/Group";
-import { groupAttributes, groupCountingTranscriptsInclude, groupInclude } from "../database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
 import User from "shared/User";
-
-async function listGroups(userIds: string[], additionalWhere?: { [k: string]: any }):
-  Promise<GroupCountingTranscripts[]> 
-{
-  if (userIds.length === 0) {
-    return await db.Group.findAll({ 
-      attributes: groupAttributes,
-      include: groupCountingTranscriptsInclude,
-      where: additionalWhere,
-    });
-  } else {
-    const gs = await findGroups(userIds, 'inclusive', groupCountingTranscriptsInclude, additionalWhere);
-    return gs as GroupCountingTranscripts[];
-  }
-}
 
 const create = procedure
   .use(authUser('GroupManager'))
@@ -126,7 +111,7 @@ const listMine = procedure
   .input(z.object({ 
     includeOwned: z.boolean(),
   }))
-  .output(z.array(zGroupCountingTranscripts))
+  .output(z.array(zGroup))
   .query(async ({ ctx, input }) => 
 {
   return (await db.GroupUser.findAll({
@@ -136,7 +121,7 @@ const listMine = procedure
     include: [{
       model: db.Group,
       attributes: groupAttributes,
-      include: groupCountingTranscriptsInclude,
+      include: groupInclude,
       where: input.includeOwned ? {} : whereUnowned,
     }]
   })).map(groupUser => groupUser.group);
@@ -153,20 +138,39 @@ const list = procedure
     includeOwned: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input }) => listGroups(input.userIds, input.includeOwned ? {} : whereUnowned));
+  .query(async ({ input: { userIds, includeOwned } }) => 
+{
+  const where = includeOwned ? {} : whereUnowned;
+
+  if (userIds.length === 0) {
+    return await db.Group.findAll({ 
+      attributes: groupAttributes,
+      include: groupInclude,
+      where,
+    });
+  } else {
+    const gs = await findGroups(userIds, 'inclusive', groupInclude, where);
+    return gs as Group[];
+  }
+});
 
 /**
- * Identical to `list`, but additionally returns empty transcripts
+ * @returns all the groups with non-zero transcripts
  */
-const listCountingTranscripts = procedure
+const listForSummaryEngineer = procedure
   .use(authUser(['SummaryEngineer']))
-  .input(z.object({ userIds: z.string().array(), }))
-  .output(z.array(zGroupCountingTranscripts))
-  .query(async ({ input }) => listGroups(input.userIds));
+  .output(z.array(zGroup))
+  .query(async () => 
+{
+  return (await db.Group.findAll({ 
+    attributes: groupAttributes,
+    include: [...groupInclude, {
+      association: "transcripts",
+      attributes: ["transcriptId"],
+    }],
+  })).filter(g => g.transcripts.length > 0);
+});
 
-/**
- * Transcripts in the return value are sorted by reverse chronological order.
- */
 const get = procedure
   // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
@@ -189,7 +193,7 @@ export default router({
   destroy,
   list,
   listMine,
-  listCountingTranscripts,
+  listForSummaryEngineer,
   get,
 });
 
@@ -209,7 +213,7 @@ export function checkPermissionForGroup(u: User, g: Group) {
  * @param includes Optional `include`s in the returned group.
  */
 export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusive', includes?: Includeable[], 
-  additionalWhere?: { [k: string]: any }): Promise<Group[] | GroupCountingTranscripts[]> 
+  additionalWhere?: { [k: string]: any }): Promise<Group[]> 
 {
   invariant(userIds.length > 0);
 

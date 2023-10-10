@@ -13,28 +13,7 @@ import {
 import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
-
-const get = procedure
-  .use(authUser())
-  .input(z.string())
-  .output(zTranscript)
-  .query(async ({ input: id, ctx }) =>
-{
-  const t = await db.Transcript.findByPk(id, {
-    attributes: transcriptAttributes,
-    include: [{
-      model: db.Group,
-      attributes: groupAttributes,
-      include: groupInclude,
-    }],
-  });
-
-  if (!t) throw notFoundError("会议转录", id);
-
-  checkPermissionForGroup(ctx.user, t.group);
-
-  return t;
-});
+import Summary from "api/database/models/Summary";
 
 const list = procedure
   .use(authUser())
@@ -59,6 +38,20 @@ const list = procedure
   return g.transcripts;
 });
 
+/**
+ * @return null if there is no transcript.
+ */
+const getMostRecentStartedAt = procedure
+  .use(authUser(["MentorCoach", "PartnershipManager"]))
+  .input(z.object({
+    groupId: z.string(),
+  }))
+  .output(z.date().nullable())
+  .query(async ({ input: { groupId } }) =>
+{
+  return await db.Transcript.max("startedAt", { where: { groupId } });
+});
+
 const getNameMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
@@ -69,7 +62,9 @@ const getNameMap = procedure
   return nameMap;
 });
 
-// expected input should an object of {[handlebarNames]: userIds]}
+/**
+ * @param { [handlebarNames]: userIds }
+ */
 const updateNameMap = procedure
   .use(authUser())
   .input(z.record(z.string()))
@@ -86,13 +81,16 @@ const updateNameMap = procedure
 });
 
 export default router({
-  get,
   list,
+  getMostRecentStartedAt,
   getNameMap,
-  updateNameMap
+  updateNameMap,
 });
 
-export async function getSummariesAndNameMap(transcriptId: string): Promise<{ summaries: typeof summaries, nameMap: typeof nameMap }> {
+export async function getSummariesAndNameMap(transcriptId: string): Promise<{
+  summaries: Summary[],
+  nameMap: Record<string, string>,
+}> {
   const summaries = await db.Summary.findAll({
     where: { transcriptId },
     attributes: summaryAttributes,
@@ -104,13 +102,12 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{ su
   for (let s of summaries) {
     const matches = s.summary.match(/{{(.*?)}}/g);
     if (matches) {
-      // trim is to remove curly brackets wrapped around handlebars found by regex
       const extracted = matches.map(match => match.slice(2, -2));
       extracted.forEach(handlebar => handlebarsSet.add(handlebar));
     }
   }
 
-  let nameMap: Record<string, string> = {};
+  const nameMap: Record<string, string> = {};
   // create a list of namemap of itself, otherwise when Handlebars.js compile it will return empty
   for (const handlebar of [...handlebarsSet]) {
     nameMap[handlebar] = `**${handlebar}**`;

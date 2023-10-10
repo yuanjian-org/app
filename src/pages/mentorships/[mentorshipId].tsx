@@ -3,13 +3,9 @@ import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  Grid, GridItem, Text, TabList, TabPanels, Tabs, Tab, TabPanel, Tooltip, Textarea, Tbody, Td, Table,
+  Text, TabList, TabPanels, Tab, TabPanel, Tbody, Td, Table,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
-import { sidebarBreakpoint } from 'components/Navbars';
-import { AutosavingMarkdownEditor } from 'components/MarkdownEditor';
-import { PrivateMentorNotes } from 'shared/Mentorship';
-import { QuestionIcon } from '@chakra-ui/icons';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import MenteeApplicant from 'components/MenteeApplicant';
@@ -39,58 +35,9 @@ export default widePage(() => {
       <PageBreadcrumb current={`学生：${formatUserName(m.mentee.name)}，导师： ${formatUserName(m.mentor.name)}`} />
     }
 
-    <Grid gap={10} templateColumns={{ 
-      base: "1fr", 
-      [sidebarBreakpoint]: "2fr 1fr", // "0.618fr 0.382fr",
-    }}>
-      <GridItem>
-        <MenteeTabs mentorshipId={mentorshipId} menteeId={m.mentee.id} groupId={m.group.id} />
-      </GridItem>
-      <GridItem>
-        <MentorPrivateNotes
-          mentorshipId={mentorshipId}
-          notes={m.privateMentorNotes}
-          readonly={!iAmTheMentor}
-        />
-      </GridItem>
-    </Grid>
+    <MenteeTabs mentorshipId={mentorshipId} menteeId={m.mentee.id} groupId={m.group.id} />
   </>;
 });
-
-function MentorPrivateNotes({ mentorshipId, notes, readonly }: { 
-  mentorshipId: string,
-  notes: PrivateMentorNotes | null,
-  readonly: boolean,
-}) {
-
-  const save = async (editedMemo: string) => {
-    await trpc.mentorships.updatePrivateMentorNotes.mutate({ 
-      id: mentorshipId, 
-      privateMentorNotes: { memo: editedMemo },
-    });
-  };
-
-  return <Tabs isFitted>
-    <TabList>
-      <Tab>
-        导师笔记
-        <Tooltip label="学生无法看到笔记内容。详见《谁能看到我的数据》页。">
-          <QuestionIcon color="gray" marginStart={2} />
-        </Tooltip>
-      </Tab>
-    </TabList>
-
-    <TabPanels>
-      <TabPanel>
-        {readonly ?
-          <Textarea isReadOnly value={notes?.memo || ""} minHeight={200} />
-          :
-          <AutosavingMarkdownEditor key={mentorshipId} initialValue={notes?.memo || ""} onSave={save} />
-        }
-      </TabPanel>
-    </TabPanels>
-  </Tabs>;
-}
 
 function MenteeTabs({ mentorshipId, menteeId, groupId }: {
   mentorshipId: string,
@@ -98,23 +45,26 @@ function MenteeTabs({ mentorshipId, menteeId, groupId }: {
   groupId: string,
 }) {
 
-  return <TabsWithUrlParam isFitted isLazy>
+  return <TabsWithUrlParam isLazy>
     <TabList>
+      <Tab>内部讨论</Tab>
       <Tab>通话摘要</Tab>
       <Tab>申请材料</Tab>
-      <Tab>内部讨论</Tab>
       <Tab>年度反馈</Tab>
     </TabList>
 
     <TabPanels>
       <TabPanel>
+        <Text color="grey" marginBottom={paragraphSpacing}>
+          在此记录学生情况以及与资深导师交流互动。学生无法看到此页内容。
+        </Text>
+        <ChatRoom mentorshipId={mentorshipId} />
+      </TabPanel>
+      <TabPanel>
         <Transcripts groupId={groupId} />
       </TabPanel>
       <TabPanel>
         <MenteeApplicant userId={menteeId} readonly />
-      </TabPanel>
-      <TabPanel>
-        <ChatRoom mentorshipId={mentorshipId} />
       </TabPanel>
       <TabPanel>
         <AssessmentsTable mentorshipId={mentorshipId} />

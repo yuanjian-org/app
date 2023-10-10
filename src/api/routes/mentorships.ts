@@ -4,22 +4,14 @@ import db from "../database/db";
 import { 
   isValidMentorshipIds,
   zMentorship,
-  zMentorshipWithAssessmentsDeprecated, 
-  zMentorshipWithGroupAndNotes, 
-  zPrivateMentorNotes } from "../../shared/Mentorship";
+} from "../../shared/Mentorship";
 import { z } from "zod";
-import Assessment from "../database/models/Assessment";
-import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { alreadyExistsError, generalBadRequestError, noPermissionError } from "../errors";
 import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
-import Group from "api/database/models/Group";
 import { 
   mentorshipAttributes,
-  groupAttributes,
-  groupCountingTranscriptsInclude,
-  mentorshipInclude, 
-  mentorshipWithNotesAttributes,
-  mentorshipWithGroupInclude,
+  mentorshipInclude,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
@@ -66,37 +58,20 @@ const create = procedure
   });
 });
 
-const updatePrivateMentorNotes = procedure
-  .use(authUser())
-  .input(z.object({
-    id: z.string(),
-    privateMentorNotes: zPrivateMentorNotes,
-  }))
-  .mutation(async ({ ctx, input }) => 
-{
-  const m = await db.Partnership.findByPk(input.id);
-  if (!m || m.mentor.id !== ctx.user.id) {
-    throw noPermissionError("一对一匹配", input.id);
-  }
-
-  m.privateMentorNotes = input.privateMentorNotes;
-  m.save();
-});
-
 const list = procedure
   .use(authUser('PartnershipManager'))
-  .output(z.array(zMentorshipWithGroupAndNotes))
+  .output(z.array(zMentorship))
   .query(async () => 
 {
   return await db.Partnership.findAll({ 
-    attributes: mentorshipWithNotesAttributes,
-    include: mentorshipWithGroupInclude,
+    attributes: mentorshipAttributes,
+    include: mentorshipInclude,
   });
 });
 
 const listMineAsCoach = procedure
   .use(authUser())
-  .output(z.array(zMentorshipWithGroupAndNotes))
+  .output(z.array(zMentorship))
   .query(async ({ ctx }) =>
 {
   return (await db.User.findAll({ 
@@ -104,8 +79,8 @@ const listMineAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
-      attributes: mentorshipWithNotesAttributes,
-      include: mentorshipWithGroupInclude,
+      attributes: mentorshipAttributes,
+      include: mentorshipInclude,
     }]
   })).map(u => u.mentorshipsAsMentor).flat();
 });
@@ -129,16 +104,12 @@ const listMineAsMentor = procedure
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(zMentorshipWithGroupAndNotes)
+  .output(zMentorship)
   .query(async ({ ctx, input: id }) => 
 {
   const res = await db.Partnership.findByPk(id, {
-    attributes: mentorshipWithNotesAttributes,
-    include: [...mentorshipInclude, {
-      model: Group,
-      attributes: groupAttributes,
-      include: groupCountingTranscriptsInclude,
-    }],
+    attributes: mentorshipAttributes,
+    include: mentorshipInclude,
   });
   if (!res || (res.mentor.id !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach"))) {
     throw noPermissionError("一对一匹配", id);
@@ -146,36 +117,10 @@ const get = procedure
   return res;
 });
 
-// TODO: remove this function. Use mentorship.get + assessments.listAllForMentorship instead.
-const getWithAssessmentsDeprecated = procedure
-  .use(authUser())
-  .input(z.string())
-  .output(zMentorshipWithAssessmentsDeprecated)
-  .query(async ({ ctx, input: id }) =>
-{
-  const res = await db.Partnership.findByPk(id, {
-    attributes: mentorshipAttributes,
-    include: [
-      ...mentorshipInclude,
-      Assessment,
-    ]
-  });
-  if (!res) throw notFoundError("一对一匹配", id);
-
-  // Only assessors and mentors can access the mentorship.
-  if (!isPermitted(ctx.user.roles, 'PartnershipAssessor') && res.mentor.id !== ctx.user.id) {
-    throw noPermissionError("一对一匹配", id);
-  }
-
-  return res;
-});
-
 export default router({
   create,
   get,
-  getWithAssessmentsDeprecated,
   list,
   listMineAsMentor,
   listMineAsCoach,
-  updatePrivateMentorNotes,
 });

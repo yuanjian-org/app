@@ -12,11 +12,9 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { CreationOptional, JSONB, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
-import ZodColumn from "../modelHelpers/ZodColumn";
-import { PrivateMentorNotes, zPrivateMentorNotes } from "../../../shared/Mentorship";
 import Group from "./Group";
 
 /**
@@ -48,9 +46,6 @@ class Partnership extends Model {
   @AllowNull(false)
   @Column(UUID)
   menteeId: string;
-
-  @ZodColumn(JSONB, zPrivateMentorNotes.nullable())
-  privateMentorNotes: PrivateMentorNotes | null;
 
   /**
    * Associations

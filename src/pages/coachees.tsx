@@ -32,7 +32,7 @@ export default function Page() {
     {!mentorships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>学生</Th><Th>导师</Th><Th>最近通话</Th>
+          <Th>学生</Th><Th>导师</Th><Th>最近师生通话</Th><Th>最近内部讨论</Th>
         </Tr>
       </Thead>
       <Tbody>

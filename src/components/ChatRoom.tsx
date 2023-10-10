@@ -3,7 +3,6 @@ import {
   Button,
   HStack,
   Icon,
-  IconButton,
   Spacer,
   Text,
   Textarea,
@@ -17,7 +16,7 @@ import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import moment from 'moment';
 import ReactMarkdown from 'react-markdown';
-import { MdEdit } from 'react-icons/md';
+import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
@@ -29,8 +28,6 @@ export default function Room({ mentorshipId } : {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ mentorshipId });
 
   return !room ? <Loader /> : <VStack spacing={paragraphSpacing * 1.5} align="start">
-    {!room.messages.length && <Text color="grey">无讨论内容。点击按钮添加：</Text>}
-
     <MessageCreator roomId={room.id} />
 
     {room.messages.sort((a, b) => moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1)
@@ -45,7 +42,7 @@ function MessageCreator({ roomId }: {
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ? <Editor roomId={roomId} onClose={() => setEditing(false)} marginTop={componentSpacing} /> : 
-    <IconButton variant="outline" icon={<AddIcon />} onClick={() => setEditing(true)} aria-label="新消息" />;
+    <Button variant="outline" leftIcon={<AddIcon />} onClick={() => setEditing(true)}>新消息</Button>;
 }
 
 function Message({ message: m }: {
@@ -90,7 +87,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.chat.updaateMessage.mutate({ messageId: message.id, markdown });
+        await trpc.chat.updateMessage.mutate({ messageId: message.id, markdown });
       } else {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });
@@ -107,8 +104,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
       autoFocus background="white" height={200} {...rest} 
     />
     <HStack>
-      <Button onClick={save} isLoading={saving} isDisabled={!markdown} variant="brand">{roomId ? "添加" : "更新"}</Button>
-      <Button onClick={() => onClose()} variant="ghost">取消</Button>
+      <Button onClick={save} isLoading={saving} isDisabled={!markdown} variant="brand" leftIcon={<Icon as={MdSend} />}>
+        确认
+      </Button>
+      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
     </HStack>
   </>;
 }
