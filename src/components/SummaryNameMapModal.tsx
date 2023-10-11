@@ -24,14 +24,14 @@ export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
     onClose: () => void,
 }) {
     // UserMap = { [handlebar] : { name: [userName], id: [userId] }}
-    // May change summaryNameMap API to output UserMap instead
+    // May update summaryNameMap API to output UserMap instead
     const [updatedUserMap, setUpdatedUserMap] = useState<{ [key: string]: SummaryNameMap }>({});
-    const [initialUserMap, setInitialUserMap] = useState(updatedUserMap);
 
     useEffect(() => {
         let userMap: { [key: string]: SummaryNameMap } = {};
         for (const key in nameMap) {
-            const matchedUser = groupUsers.find(gu => gu.name?.includes(nameMap[key]));
+            //NOTE: nameMap[key] has a format of **[name]**, thus nameMap[key] is used to call `includes`
+            const matchedUser = groupUsers.find(gu => gu.name && nameMap[key].includes(gu.name));
             if (matchedUser && hasName(matchedUser)) {
                 userMap[key] = matchedUser;
             } else {
@@ -39,7 +39,6 @@ export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
             }
         }
         setUpdatedUserMap(userMap);
-        setInitialUserMap(userMap);
     }, [nameMap, groupUsers]);
 
     const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, handlebar: string) => {
@@ -78,16 +77,14 @@ export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
         <ModalWithBackdrop isOpen onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>User Selection</ModalHeader>
+                <ModalHeader>用户匹配</ModalHeader>
                 <ModalCloseButton />
                 <FormControl>
                     <ModalBody>
                         <VStack spacing={4}>
                             {Object.entries(updatedUserMap || {}).map(([handlebar, groupUser]) => (
                                 <FormControl key={handlebar}>
-                                    <FormLabel htmlFor={handlebar}>
-                                        <ReactMarkdown>{handlebar + ' &hArr; ' + initialUserMap[handlebar].name}</ReactMarkdown>
-                                    </FormLabel>
+                                    <FormLabel htmlFor={handlebar}>{handlebar}</FormLabel>
                                     <Select
                                         id={handlebar}
                                         value={groupUser.id}
