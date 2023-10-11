@@ -77,7 +77,7 @@ const updateNameMap = procedure
       userId,
     }));
 
-  await db.SummaryNameMapping.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
+  await db.SummaryNameMap.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
 });
 
 export default router({
@@ -113,7 +113,7 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
     nameMap[handlebar] = `**${handlebar}**`;
   }
 
-  const snm = await db.SummaryNameMapping.findAll({
+  const snm = await db.SummaryNameMap.findAll({
     where: { handlebarName: [...handlebarsSet] },
     include: [{
       model: db.User,
