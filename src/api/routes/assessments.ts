@@ -12,7 +12,7 @@ import { isPermitted } from "shared/Role";
  * @returns the ID of the created assessment.
  */
 const create = procedure
-  .use(authUser('PartnershipAssessor'))
+  .use(authUser('MentorshipAssessor'))
   .input(z.object({
     mentorshipId: z.string().uuid(),
   }))
@@ -25,7 +25,7 @@ const create = procedure
 });
 
 const update = procedure
-  .use(authUser('PartnershipAssessor'))
+  .use(authUser('MentorshipAssessor'))
   .input(z.object({
     id: z.string().uuid(),
     summary: z.string(),
@@ -40,7 +40,7 @@ const update = procedure
 });
 
 const get = procedure
-  .use(authUser('PartnershipAssessor'))
+  .use(authUser('MentorshipAssessor'))
   .input(z.string())
   .output(zAssessment)
   .query(async ({ input: id }) =>

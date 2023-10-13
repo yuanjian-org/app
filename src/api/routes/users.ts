@@ -92,7 +92,7 @@ const update = procedure
 {
   checkUserFields(input.name, input.email);
 
-  const isUserOrRoleManager = isPermitted(ctx.user.roles, ['UserManager', 'PrivilegedRoleManager']);
+  const isUserOrRoleManager = isPermitted(ctx.user.roles, ['UserManager', 'RoleManager']);
   const isSelf = ctx.user.id === input.id;
   // Non-user- and non-role-managers can only update their own profile.
   if (!isUserOrRoleManager && !isSelf) {
@@ -125,7 +125,7 @@ const update = procedure
 });
 
 /**
- * Only the user themselves, MentorCoach, and PartnershipManager have access to this API.
+ * Only the user themselves, MentorCoach, and MentorshipManager have access to this API.
  */
 const getCoach = procedure
   .use(authUser())
@@ -135,7 +135,7 @@ const getCoach = procedure
   .output(zMinUser.nullable())
   .query(async ({ ctx, input: { userId } }) =>
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["MentorCoach", "PartnershipManager"])) {
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["MentorCoach", "MentorshipManager"])) {
     throw noPermissionError("资深导师匹配", userId);
   }
 
@@ -152,7 +152,7 @@ const getCoach = procedure
 });
 
 const setCoach = procedure
-  .use(authUser("PartnershipManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     coachId: z.string(),
@@ -357,7 +357,7 @@ function checkUserFields(name: string | null, email: string) {
 }
 
 function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]) {
-  if (subjectRoles.length && !isPermitted(userRoles, "PrivilegedRoleManager")) {
+  if (subjectRoles.length && !isPermitted(userRoles, "RoleManager")) {
     throw noPermissionError("用户");
   }
 }
