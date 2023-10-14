@@ -42,7 +42,7 @@ const list = procedure
  * @return null if there is no transcript.
  */
 const getMostRecentStartedAt = procedure
-  .use(authUser(["MentorCoach", "PartnershipManager"]))
+  .use(authUser(["MentorCoach", "MentorshipManager"]))
   .input(z.object({
     groupId: z.string(),
   }))

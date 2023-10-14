@@ -17,7 +17,7 @@ import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 
 const create = procedure
-  .use(authUser('PartnershipManager'))
+  .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorId: z.string(),
     menteeId: z.string(),
@@ -59,7 +59,7 @@ const create = procedure
 });
 
 const list = procedure
-  .use(authUser('PartnershipManager'))
+  .use(authUser('MentorshipManager'))
   .output(z.array(zMentorship))
   .query(async () => 
 {
