@@ -14,6 +14,7 @@ import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
+import { zSummaryNameMap } from "shared/Summary";
 
 const list = procedure
   .use(authUser())
@@ -52,26 +53,26 @@ const getMostRecentStartedAt = procedure
   return await db.Transcript.max("startedAt", { where: { groupId } });
 });
 
-const getNameMap = procedure
+const getUserMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
-  .output(z.record(z.string()))
-  .query(async ({ input }) => 
+  .output(z.array(zSummaryNameMap))
+  .query(async ({ input }) =>
 {
-  const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
-  return nameMap;
+  const { userMap } = await getSummariesAndUserMap(input.transcriptId);
+  return userMap;
 });
 
 /**
  * @param { [handlebarNames]: userIds }
  */
-const updateNameMap = procedure
+const updateUserMap = procedure
   .use(authUser())
-  .input(z.record(z.string()))
-  .mutation(async ({ input: nameMap }) => 
+  .input(z.array(zSummaryNameMap))
+  .mutation(async ({ input: userMap }) =>
 {
   // Construct an array of objects to upsert multiple rows the same time
-  const upsertArray = Object.entries(nameMap)
+  const upsertArray = Object.entries(userMap)
     .map(([handlebarName, userId]) => ({
       handlebarName,
       userId,
@@ -83,13 +84,20 @@ const updateNameMap = procedure
 export default router({
   list,
   getMostRecentStartedAt,
-  getNameMap,
-  updateNameMap,
+  getUserMap,
+  updateUserMap,
 });
 
-export async function getSummariesAndNameMap(transcriptId: string): Promise<{
+/**
+ * Retrieves summaries and generates name and ID mappings based on the handlebars within those summaries.
+ * @returns {Summary[]} result.summaries - An array of fetched summaries.
+ * @returns {Record<string, string>} result.nameMap - A mapping from handlebars to names.
+ * @returns {SummaryNameMap[]} result.userMap - A mapping from handlebars to user IDs and names.
+ */
+export async function getSummariesAndUserMap(transcriptId: string): Promise<{
   summaries: Summary[],
   nameMap: Record<string, string>,
+  userMap: typeof snm,
 }> {
   const summaries = await db.Summary.findAll({
     where: { transcriptId },
@@ -127,5 +135,5 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
     nameMap[nm.handlebarName] = `**${nm.user.name}**`;
   }
 
-  return { summaries, nameMap };
+  return { summaries, nameMap, userMap: snm };
 }

@@ -12,7 +12,7 @@ import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
 import Handlebars from "handlebars";
-import { getSummariesAndNameMap } from "./transcripts";
+import { getSummariesAndUserMap } from "./transcripts";
 
 const crudeSummaryKey = "原始文字";
 
@@ -79,7 +79,7 @@ const list = procedure
 
   checkPermissionForGroup(ctx.user, t.group);
 
-  const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
+  const { nameMap, summaries } = await getSummariesAndUserMap(transcriptId);
 
   for (const summary of summaries) {
     summary.summary = Handlebars.compile(summary.summary)(nameMap);
