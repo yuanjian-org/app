@@ -103,7 +103,7 @@
     "@types/react-calendar": "^3.5.2",
     "@types/react-table": "^7.7.12",
     "chai": "^4.3.7",
-    "cypress": "^12.17.2",
+    "cypress": "^13.3.1",
     "eslint": "^8.23.0",
     "eslint-config-next": "^12.2.5",
     "eslint-nibble": "^8.1.0",

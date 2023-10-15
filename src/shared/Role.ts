@@ -3,17 +3,22 @@ import z from "zod";
 
 export const AllRoles = [
   'SystemAlertSubscriber',
-  'PrivilegedRoleManager',  // TODO: rename to RoleManager and migrate databases
+  'RoleManager',
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
-  'PartnershipManager',
-  'PartnershipAssessor',
+  'MentorshipManager',
+  'MentorshipAssessor',
   'InterviewManager',
   'Mentor',
   'Mentee',
   'Interviewer',
   'MentorCoach',
+
+  // Deprecated
+  'PrivilegedRoleManager',
+  'PartnershipManager',
+  'PartnershipAssessor',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -34,7 +39,7 @@ export const RoleProfiles: { [key: string]: {
     actions: '接受并处理系统异常事件的报警',
     privilegedUserDataAccess: false,
   },
-  PrivilegedRoleManager: {
+  RoleManager: {
     displayName: '角色管理员',
     actions: '管理用户角色',
     privilegedUserDataAccess: false,
@@ -54,12 +59,12 @@ export const RoleProfiles: { [key: string]: {
     actions: '研发自动会议摘要功能',
     privilegedUserDataAccess: true,
   },
-  PartnershipManager: {
+  MentorshipManager: {
     displayName: '一对一导师管理员',
     actions: '管理导师匹配',
     privilegedUserDataAccess: false,
   },
-  PartnershipAssessor: {
+  MentorshipAssessor: {
     displayName: '一对一导师评估员',
     actions: '跟踪评估一对一导师辅导效果',
     privilegedUserDataAccess: true,
@@ -92,6 +97,23 @@ export const RoleProfiles: { [key: string]: {
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,
+  },
+
+  // Deprecated
+  PrivilegedRoleManager: {
+    displayName: 'Deprecated',
+    actions: '管理用户角色',
+    privilegedUserDataAccess: false,
+  },
+  PartnershipManager: {
+    displayName: 'Deprecated',
+    actions: '管理导师匹配',
+    privilegedUserDataAccess: false,
+  },
+  PartnershipAssessor: {
+    displayName: 'Deprecated',
+    actions: '跟踪评估一对一导师辅导效果',
+    privilegedUserDataAccess: false,
   },
 };
 
