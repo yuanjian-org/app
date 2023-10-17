@@ -100,8 +100,11 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
   let handlebarsSet = new Set<string>();
 
   for (let s of summaries) {
-    const matches = extractHandlebars(s.summary);
-    matches.forEach(handlebar => handlebarsSet.add(handlebar));
+    const matches = s.summary.match(/{{(.*?)}}/g);
+    if (matches) {
+      const extracted = matches.map(match => match.slice(2, -2));
+      extracted.forEach(handlebar => handlebarsSet.add(handlebar));
+    }
   }
 
   const nameMap: Record<string, string> = {};
@@ -125,33 +128,4 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
   }
 
   return { summaries, nameMap };
-}
-
-// extract the handlebars and only the outmost ones if a nested is presented
-function extractHandlebars(text: string) {
-  let stack = [];
-  let start = -1;
-  let handlebars = [];
-
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === "{" && text[i + 1] === "{") {
-      stack.push("{{");
-      if (stack.length === 1) { // outermost {{
-        start = i;
-      }
-      i++;
-    }
-    else if (text[i] === "}" && text[i + 1] === "}") {
-      if (stack.length > 0 && stack[stack.length - 1] === "{{") {
-        stack.pop();
-        if (stack.length === 0 && start !== -1) {
-          handlebars.push(text.substring(start + 2, i).trim());
-          start = -1;
-        }
-      }
-      i++;
-    }
-  }
-
-  return handlebars;
 }
