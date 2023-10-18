@@ -81,15 +81,14 @@ const list = procedure
 
   const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
 
-  try {
-    for (const summary of summaries) {
+  for (const summary of summaries) {
+    try {
       // Compile and update summary
       summary.summary = Handlebars.compile(summary.summary)(nameMap);
+    } catch (error) {
+      // If there's an error compiling, keep and return the original summaries
+      console.error("Error compiling Handlebars template for summary:", summary.transcriptId + summary.summaryKey);
     }
-  } catch (error) {
-    console.error("Error compiling Handlebars template:", error);
-    // If there's an error, just return the original summaries
-    return summaries;
   }
 
   return summaries;
