@@ -14,7 +14,7 @@ import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
-import { zTranscriptNameMap } from "shared/Summary";
+import { zTranscriptNameMap } from "shared/Transcript";
 
 const list = procedure
   .use(authUser())
@@ -60,7 +60,7 @@ const getUserMap = procedure
   .query(async ({ input }) =>
 {
   const { userMap } = await getSummariesAndUserMap(input.transcriptId);
-  return userMap;
+  return [userMap];
 });
 
 /**

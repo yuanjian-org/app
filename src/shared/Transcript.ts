@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { zMinUser } from './User';
 
 export const zTranscript = z.object({
   startedAt: z.coerce.string(),
@@ -7,3 +8,8 @@ export const zTranscript = z.object({
 });
 
 export type Transcript = z.TypeOf<typeof zTranscript>;
+
+export const zTranscriptNameMap = z.array(z.object({
+  handlebarName: z.string(),
+  user: zMinUser,
+}));
