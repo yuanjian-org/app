@@ -12,7 +12,7 @@ import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroup } from "./groups";
 import Handlebars from "handlebars";
-import { getSummariesAndUserMap } from "./transcripts";
+import { getSummariesAndNameMap } from "./transcripts";
 
 const crudeSummaryKey = "原始文字";
 
@@ -79,10 +79,19 @@ const list = procedure
 
   checkPermissionForGroup(ctx.user, t.group);
 
-  const { nameMap, summaries } = await getSummariesAndUserMap(transcriptId);
+  const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
+
+  // create a mapping object of { [handlebars]: [userNames] } for handlebar.js to compile
+  let handlebarInput : Record<string, string> = {};
+  for (const nm of nameMap) {
+    if(nm.user){
+      handlebarInput[nm.handlebarName] = `**${nm.user.name}**`;
+    }else{
+      handlebarInput[nm.handlebarName] = `**${nm.handlebarName}**`;
+  }}
 
   for (const summary of summaries) {
-    summary.summary = Handlebars.compile(summary.summary)(nameMap);
+    summary.summary = Handlebars.compile(summary.summary)(handlebarInput);
   }
 
   return summaries;

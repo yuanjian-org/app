@@ -11,7 +11,7 @@ export type Transcript = z.TypeOf<typeof zTranscript>;
 
 export const zTranscriptNameMap = z.array(z.object({
   handlebarName: z.string(),
-  user: zMinUser,
+  user: zMinUser.nullable(),
 }));
 
 export type TranscriptNameMap = z.TypeOf<typeof zTranscriptNameMap>;

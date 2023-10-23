@@ -11,7 +11,6 @@ import {
   summaryAttributes
 } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroup } from "./groups";
-import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
 import { zTranscriptNameMap, TranscriptNameMap } from "shared/Transcript";
@@ -53,29 +52,29 @@ const getMostRecentStartedAt = procedure
   return await db.Transcript.max("startedAt", { where: { groupId } });
 });
 
-const getUserMap = procedure
+const getNameMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
   .output(z.array(zTranscriptNameMap))
   .query(async ({ input }) =>
 {
-  const { userMap } = await getSummariesAndUserMap(input.transcriptId);
-  return [userMap];
+  const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
+  return [nameMap];
 });
 
 /**
  * @param { [handlebarNames]: userIds }
  */
-const updateUserMap = procedure
+const updateNameMap = procedure
   .use(authUser())
   .input(z.array(z.object({
     handlebarName: z.string(),
     userId: z.string(),
   })))
-  .mutation(async ({ input: userMap }) =>
+  .mutation(async ({ input: nameMap }) =>
 {
   // Construct an array of objects to upsert multiple rows the same time
-  const upsertArray = Object.entries(userMap)
+  const upsertArray = Object.entries(nameMap)
     .map(([handlebarName, userId]) => ({
       handlebarName,
       userId,
@@ -87,14 +86,13 @@ const updateUserMap = procedure
 export default router({
   list,
   getMostRecentStartedAt,
-  getUserMap,
-  updateUserMap,
+  getNameMap,
+  updateNameMap,
 });
 
-export async function getSummariesAndUserMap(transcriptId: string): Promise<{
+export async function getSummariesAndNameMap(transcriptId: string): Promise<{
   summaries: Summary[],
   nameMap: TranscriptNameMap,
-  userMap: typeof snm,
 }> {
   const summaries = await db.Summary.findAll({
     where: { transcriptId },
@@ -112,13 +110,7 @@ export async function getSummariesAndUserMap(transcriptId: string): Promise<{
     }
   }
 
-  const nameMap: Record<string, string> = {};
-  // create a list of namemap of itself, otherwise when Handlebars.js compile it will return empty
-  for (const handlebar of [...handlebarsSet]) {
-    nameMap[handlebar] = `**${handlebar}**`;
-  }
-
-  const snm = await db.TranscriptNameMap.findAll({
+  const tnm = await db.TranscriptNameMap.findAll({
     where: { handlebarName: [...handlebarsSet] },
     include: [{
       model: db.User,
@@ -127,10 +119,18 @@ export async function getSummariesAndUserMap(transcriptId: string): Promise<{
     }],
   });
 
-  for (const nm of snm) {
-    invariant(nm.user.name);
-    nameMap[nm.handlebarName] = `**${nm.user.name}**`;
+  let nameMap: TranscriptNameMap = tnm;
+  
+  // check if the handlebar names are presented in the returned array of transcriptNameMap
+  // if not, create an object of this handlebar with null user, 
+  // otherwise when Handlebars.js compile it will return empty
+  for (const handlebar of [...handlebarsSet]) {
+    nameMap.forEach(nm => {
+      if (nm.handlebarName !== handlebar) {
+        nameMap.push({ handlebarName: handlebar, user: null });
+      }
+    });
   }
 
-  return { summaries, nameMap, userMap: snm };
+  return { summaries, nameMap };
 }
