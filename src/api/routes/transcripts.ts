@@ -68,7 +68,10 @@ const getUserMap = procedure
  */
 const updateUserMap = procedure
   .use(authUser())
-  .input(z.array(zTranscriptNameMap))
+  .input(z.array(z.object({
+    handlebarName: z.string(),
+    userId: z.string(),
+  })))
   .mutation(async ({ input: userMap }) =>
 {
   // Construct an array of objects to upsert multiple rows the same time
