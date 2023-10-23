@@ -125,12 +125,11 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
   // if not, create an object of this handlebar with null user, 
   // otherwise when Handlebars.js compile it will return empty
   for (const handlebar of [...handlebarsSet]) {
-    nameMap.forEach(nm => {
-      if (nm.handlebarName !== handlebar) {
-        nameMap.push({ handlebarName: handlebar, user: null });
-      }
-    });
+    if (![...nameMap].some(nm => nm.handlebarName === handlebar)) {
+      nameMap.push({ handlebarName: handlebar, user: null });
+    }
   }
 
+  console.log(nameMap);
   return { summaries, nameMap };
 }
