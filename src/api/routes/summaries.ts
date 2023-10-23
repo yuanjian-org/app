@@ -87,7 +87,7 @@ const list = procedure
       summary.summary = Handlebars.compile(summary.summary)(nameMap);
     } catch (error) {
       // If there's an error compiling, keep and return the original summaries
-      console.error("Error compiling Handlebars template for summary:", summary.transcriptId + summary.summaryKey);
+      console.error("Error compiling Handlebars template for summary:", summary.transcriptId, summary.summaryKey);
     }
   }
 
