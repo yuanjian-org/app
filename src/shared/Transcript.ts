@@ -13,3 +13,5 @@ export const zTranscriptNameMap = z.array(z.object({
   handlebarName: z.string(),
   user: zMinUser,
 }));
+
+export type TranscriptNameMap = z.TypeOf<typeof zTranscriptNameMap>;

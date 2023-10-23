@@ -14,7 +14,7 @@ import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
-import { zTranscriptNameMap } from "shared/Transcript";
+import { zTranscriptNameMap, TranscriptNameMap } from "shared/Transcript";
 
 const list = procedure
   .use(authUser())
@@ -88,15 +88,9 @@ export default router({
   updateUserMap,
 });
 
-/**
- * Retrieves summaries and generates name and ID mappings based on the handlebars within those summaries.
- * @returns {Summary[]} result.summaries - An array of fetched summaries.
- * @returns {Record<string, string>} result.nameMap - A mapping from handlebars to names.
- * @returns {SummaryNameMap[]} result.userMap - A mapping from handlebars to user IDs and names.
- */
 export async function getSummariesAndUserMap(transcriptId: string): Promise<{
   summaries: Summary[],
-  nameMap: Record<string, string>,
+  nameMap: TranscriptNameMap,
   userMap: typeof snm,
 }> {
   const summaries = await db.Summary.findAll({
