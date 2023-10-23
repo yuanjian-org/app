@@ -14,7 +14,7 @@ import { checkPermissionForGroup } from "./groups";
 import invariant from 'tiny-invariant';
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
-import { zSummaryNameMap } from "shared/Summary";
+import { zTranscriptNameMap } from "shared/Summary";
 
 const list = procedure
   .use(authUser())
@@ -56,7 +56,7 @@ const getMostRecentStartedAt = procedure
 const getUserMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
-  .output(z.array(zSummaryNameMap))
+  .output(z.array(zTranscriptNameMap))
   .query(async ({ input }) =>
 {
   const { userMap } = await getSummariesAndUserMap(input.transcriptId);
@@ -68,7 +68,7 @@ const getUserMap = procedure
  */
 const updateUserMap = procedure
   .use(authUser())
-  .input(z.array(zSummaryNameMap))
+  .input(z.array(zTranscriptNameMap))
   .mutation(async ({ input: userMap }) =>
 {
   // Construct an array of objects to upsert multiple rows the same time
@@ -78,7 +78,7 @@ const updateUserMap = procedure
       userId,
     }));
 
-  await db.SummaryNameMap.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
+  await db.TranscriptNameMap.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
 });
 
 export default router({
@@ -121,7 +121,7 @@ export async function getSummariesAndUserMap(transcriptId: string): Promise<{
     nameMap[handlebar] = `**${handlebar}**`;
   }
 
-  const snm = await db.SummaryNameMap.findAll({
+  const snm = await db.TranscriptNameMap.findAll({
     where: { handlebarName: [...handlebarsSet] },
     include: [{
       model: db.User,
