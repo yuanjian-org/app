@@ -82,18 +82,15 @@ const list = procedure
   const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
 
   // create a mapping object of { [handlebars]: [userNames] } for handlebar.js to compile
-  let handlebarInput : Record<string, string> = {};
+  const handlebarInput : Record<string, string> = {};
   for (const nm of nameMap) {
-    if(nm.user){
-      handlebarInput[nm.handlebarName] = `**${nm.user.name}**`;
-    }else{
-      handlebarInput[nm.handlebarName] = `**${nm.handlebarName}**`;
-  }}
+    handlebarInput[nm.handlebarName] = `**${nm.user ? nm.user.name : nm.handlebarName}**`;
+  }
 
   for (const summary of summaries) {
     try {
       // Compile and update summary
-      summary.summary = Handlebars.compile(summary.summary)(nameMap);
+      summary.summary = Handlebars.compile(summary.summary)(handlebarInput);
     } catch (error) {
       // If there's an error compiling, keep and return the original summaries
       console.error("Error compiling Handlebars template for summary:", summary.transcriptId, summary.summaryKey);

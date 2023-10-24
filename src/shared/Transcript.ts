@@ -11,6 +11,8 @@ export type Transcript = z.TypeOf<typeof zTranscript>;
 
 export const zTranscriptNameMap = z.array(z.object({
   handlebarName: z.string(),
+   // Object user will be null if the handlebarName is not linked to any users
+   // check routes/transcripts/getSummariesAndNameMap for details
   user: zMinUser.nullable(),
 }));
 

@@ -55,11 +55,11 @@ const getMostRecentStartedAt = procedure
 const getNameMap = procedure
   .use(authUser())
   .input(z.object({ transcriptId: z.string() }))
-  .output(z.array(zTranscriptNameMap))
+  .output(zTranscriptNameMap)
   .query(async ({ input }) =>
 {
   const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
-  return [nameMap];
+  return nameMap;
 });
 
 /**
@@ -114,22 +114,27 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
     where: { handlebarName: [...handlebarsSet] },
     include: [{
       model: db.User,
-      attributes: ['name'],
+      attributes: ['name','id'],
       where: { name: { [Op.ne]: null } } // Ensure user's name is not null
     }],
   });
 
-  let nameMap: TranscriptNameMap = tnm;
-  
+  let nameMap: TranscriptNameMap = [];
   // check if the handlebar names are presented in the returned array of transcriptNameMap
   // if not, create an object of this handlebar with null user, 
   // otherwise when Handlebars.js compile it will return empty
   for (const handlebar of [...handlebarsSet]) {
-    if (![...nameMap].some(nm => nm.handlebarName === handlebar)) {
+    const entries = tnm.filter(e => e.handlebarName === handlebar);
+    if (entries.length) {
+      const mappedEntries = entries.map(e => ({
+        handlebarName: e.handlebarName,
+        user: e.user.dataValues
+      }));
+      nameMap.push(...mappedEntries);
+    } else {
       nameMap.push({ handlebarName: handlebar, user: null });
     }
   }
 
-  console.log(nameMap);
   return { summaries, nameMap };
 }
