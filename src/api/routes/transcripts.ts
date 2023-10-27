@@ -8,12 +8,14 @@ import {
   groupAttributes,
   groupInclude,
   transcriptAttributes,
-  summaryAttributes
+  summaryAttributes,
+  minUserAttributes
 } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroup } from "./groups";
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
 import { zTranscriptNameMap, TranscriptNameMap } from "shared/Transcript";
+import invariant from 'tiny-invariant';
 
 const list = procedure
   .use(authUser())
@@ -114,7 +116,7 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
     where: { handlebarName: [...handlebarsSet] },
     include: [{
       model: db.User,
-      attributes: ['name','id'],
+      attributes: minUserAttributes,
       where: { name: { [Op.ne]: null } } // Ensure user's name is not null
     }],
   });
@@ -126,11 +128,11 @@ export async function getSummariesAndNameMap(transcriptId: string): Promise<{
   for (const handlebar of [...handlebarsSet]) {
     const entries = tnm.filter(e => e.handlebarName === handlebar);
     if (entries.length) {
-      const mappedEntries = entries.map(e => ({
-        handlebarName: e.handlebarName,
-        user: e.user.dataValues
-      }));
-      nameMap.push(...mappedEntries);
+      invariant(entries.length === 1);
+      nameMap.push({
+        handlebarName: entries[0].handlebarName,
+        user: entries[0].dataValues.user.dataValues,
+      });
     } else {
       nameMap.push({ handlebarName: handlebar, user: null });
     }
