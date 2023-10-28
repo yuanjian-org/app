@@ -12,34 +12,32 @@ import {
     VStack
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
-import trpc from "../trpc";
+import trpc, { trpcNext }  from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import ReactMarkdown from 'react-markdown';
 import { MinUser } from 'shared/User';
-import { SummaryNameMap } from 'shared/Summary';
+import { TranscriptNameMap } from 'shared/Transcript';
 
-export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
-    nameMap: SummaryNameMap | undefined
+
+export function SummaryNameMapModal({ transcriptNameMap, groupUsers, onClose }: {
+    transcriptNameMap: TranscriptNameMap
     groupUsers: MinUser[]
     onClose: () => void,
 }) {
-    // UserMap = { [handlebar] : { name: [userName], id: [userId] }}
-    // May update summaryNameMap API to output UserMap instead
-    const [updatedUserMap, setUpdatedUserMap] = useState<{ [key: string]: SummaryNameMap }>({});
+    
+    const [updatedNameMap, setUpdatedNameMap] = useState<{ [key: string]: MinUser }>({});
 
     useEffect(() => {
-        let userMap: { [key: string]: SummaryNameMap } = {};
-        for (const key in nameMap) {
-            //NOTE: nameMap[key] has a format of **[name]**, thus nameMap[key] is used to call `includes`
-            const matchedUser = groupUsers.find(gu => gu.name && nameMap[key].includes(gu.name));
+        let nameMap: { [key: string]: MinUser } = {};
+        for (const e of transcriptNameMap) {
+            const matchedUser = groupUsers.find(gu => gu.name && e.user && e.user.id.includes(gu.id));
             if (matchedUser && hasName(matchedUser)) {
-                userMap[key] = matchedUser;
+                nameMap[e.handlebarName] = matchedUser;
             } else {
-                userMap[key] = { name: nameMap[key], id: '' };
+                nameMap[e.handlebarName] = e.user ? e.user : { name: e.handlebarName, id: '' };
             }
         }
-        setUpdatedUserMap(userMap);
-    }, [nameMap, groupUsers]);
+        setUpdatedNameMap(nameMap);
+    }, [transcriptNameMap, groupUsers]);
 
     const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, handlebar: string) => {
         const selectedOption = e.target.options[e.target.selectedIndex];
@@ -48,26 +46,31 @@ export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
         // if placeholder/ undefined value is selected
         if (!e.target.value) {
             // update the updatedUserMap
-            setUpdatedUserMap(prevMap => ({
+            setUpdatedNameMap(prevMap => ({
                 ...prevMap,
                 [handlebar]: { name: "", id: "" } // Reset to an empty state
             }));
         } else {
-            setUpdatedUserMap(prevMap => ({
+            setUpdatedNameMap(prevMap => ({
                 ...prevMap,
                 [handlebar]: { name: selectedUserName, id: e.target.value }
             }));
         }
     };
 
+    const utils = trpcNext.useContext();
+
     const save = async () => {
         try {
             trpc.transcripts.updateNameMap.mutate(
-                Object.entries(updatedUserMap).reduce((acc: { [key: string]: string }, [handlebar, userMap]) => {
-                    if (userMap.id) { acc[handlebar] = userMap.id; }
-                    return acc;
-                }, {})
-            );
+                Object.entries(updatedNameMap) 
+                .filter(([handlebar, user]) => user.id !== '')
+                .map(([handlebar, user]) => ({
+                  handlebarName: handlebar,
+                  userId: user.id,
+                })));
+                utils.transcripts.getNameMap.invalidate();
+                utils.summaries.invalidate();
         } finally {
             onClose();
         }
@@ -77,12 +80,11 @@ export function SummaryNameMapModal({ nameMap, groupUsers, onClose }: {
         <ModalWithBackdrop isOpen onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>用户匹配</ModalHeader>
-                <ModalCloseButton />
+                <ModalHeader>用户匹配 <ModalCloseButton /></ModalHeader>
                 <FormControl>
                     <ModalBody>
                         <VStack spacing={4}>
-                            {Object.entries(updatedUserMap || {}).map(([handlebar, groupUser]) => (
+                            {Object.entries(updatedNameMap || {}).map(([handlebar, groupUser]) => (
                                 <FormControl key={handlebar}>
                                     <FormLabel htmlFor={handlebar}>{handlebar}</FormLabel>
                                     <Select

@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertIcon,
   Card,
   CardBody,
   Select,
@@ -56,7 +58,7 @@ function LoadedTranscripts({ transcripts: unsorted, groupUsers }: {
   };
   const { t: transcript, i: transcriptIndex } = getTranscriptAndIndex();
 
-  const { data: summaries, refetch: refetchSummary } = trpcNext.summaries.listToBeRenamed.useQuery(transcript.transcriptId);
+  const { data: summaries } = trpcNext.summaries.listToBeRenamed.useQuery(transcript.transcriptId);
   let summary: { summaryKey: string; summary: string; } | null = null;
   if (summaries) {
     // Every transcript should have at least one summary which is the raw transcripts.
@@ -66,7 +68,7 @@ function LoadedTranscripts({ transcripts: unsorted, groupUsers }: {
     summary = match.length ? match[0] : summaries[0];
   }
 
-  const { data: nameMap, refetch: refetchNameMap } = trpcNext.transcripts.getNameMap.useQuery({ transcriptId: transcript.transcriptId });
+  const { data: transcriptNameMap } = trpcNext.transcripts.getNameMap.useQuery({ transcriptId: transcript.transcriptId });
 
   const [nameMapModal, setNameMapModal] = useState(false);
   const handleNameMapModal = async () => {
@@ -112,14 +114,17 @@ function LoadedTranscripts({ transcripts: unsorted, groupUsers }: {
         </Card>
       }
       {nameMapModal &&
-        <SummaryNameMapModal
-          nameMap={nameMap}
-          groupUsers={groupUsers}
-          onClose={() => {
-            handleNameMapModal();
-            refetchSummary();
-            refetchNameMap();
-          }} />}
+        (transcriptNameMap ?
+          <SummaryNameMapModal
+            transcriptNameMap={transcriptNameMap}
+            groupUsers={groupUsers}
+            onClose={() => {
+              handleNameMapModal();
+            }} /> :
+          <Alert status='warning'>
+            <AlertIcon />
+            未找到需要匹配的用户ID
+          </Alert>)}
     </Flex>
   );
 }
