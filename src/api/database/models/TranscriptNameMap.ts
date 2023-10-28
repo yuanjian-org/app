@@ -8,13 +8,12 @@ import {
 } from 'sequelize-typescript';
 import { UUID, STRING } from 'sequelize';
 import User from './User';
-import Transcript from "./Transcript";
 
 /*
 * This table maps user names with handlebars(Tencent Meeting User Name) in transcripts/summaries
 */
 @Table
-class SummaryNameMap extends Model {
+class TranscriptNameMap extends Model {
   @PrimaryKey
   @Column(STRING)
   handlebarName: string;
@@ -30,4 +29,4 @@ class SummaryNameMap extends Model {
   user: User;
 }
 
-export default SummaryNameMap;
+export default TranscriptNameMap;
