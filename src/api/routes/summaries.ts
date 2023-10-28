@@ -58,7 +58,7 @@ const listForIntegration = procedure
 });
 
 /**
- * @returns a list of summaries with handlerbar names substituted with real user names using SuammaryNameMap.
+ * @returns a list of summaries with handlerbar names substituted with real user names using TranscriptNameMap.
  */
 const list = procedure
   .use(authUser())
