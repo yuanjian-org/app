@@ -15,7 +15,7 @@ import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
 import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
-import SummaryNameMap from "./models/SummaryNameMap";
+import TranscriptNameMap from "./models/TranscriptNameMap";
 
 const db = {
   Partnership,
@@ -32,7 +32,7 @@ const db = {
   Calibration,
   ChatRoom,
   ChatMessage,
-  SummaryNameMap,
+  TranscriptNameMap,
 };
 
 export default db;

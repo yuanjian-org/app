@@ -80,16 +80,21 @@ const list = procedure
   checkPermissionForGroup(ctx.user, t.group);
 
   const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
-  
-  try {
-    for (const summary of summaries) {
+
+  // create a mapping object of { [handlebars]: [userNames] } for handlebar.js to compile
+  const handlebarInput : Record<string, string> = {};
+  for (const nm of nameMap) {
+    handlebarInput[nm.handlebarName] = `**${nm.user ? nm.user.name : nm.handlebarName}**`;
+  }
+
+  for (const summary of summaries) {
+    try {
       // Compile and update summary
-      summary.summary = Handlebars.compile(summary.summary)(nameMap);
+      summary.summary = Handlebars.compile(summary.summary)(handlebarInput);
+    } catch (error) {
+      // If there's an error compiling, keep and return the original summaries
+      console.error("Error compiling Handlebars template for summary:", summary.transcriptId, summary.summaryKey);
     }
-  } catch (error) {
-    console.error("Error compiling Handlebars template:", error);
-    // If there's an error, just return the original summaries
-    return summaries;
   }
 
   return summaries;
