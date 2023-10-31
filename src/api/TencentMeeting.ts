@@ -5,6 +5,7 @@ import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
 import { TRPCError } from '@trpc/server';
+import * as Sentry from '@sentry/node';
 
 const LOG_HEADER = "[TecentMeeting]";
 
@@ -332,13 +333,24 @@ export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
     )
   });
 
-  const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
-    meeting_record_id: meetingRecordId,
-    userid: tmUserId,
-  }));
+  try {
+    const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
+      meeting_record_id: meetingRecordId,
+      userid: tmUserId,
+    }));
 
-  if (res.total_page != 1) throw paginationNotSupported();
-  return res;
+    if (res.total_page != 1) throw paginationNotSupported();
+
+    return res;
+  } catch (error) {
+    Sentry.captureException(error);
+
+    // Handle the error by returning an empty result
+    return {
+      total_page: 0,
+      record_files: [],
+    };
+  }
 }
 
 // Uncomment and modify this line to debug TM APIs.
