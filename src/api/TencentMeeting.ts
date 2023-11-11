@@ -29,8 +29,22 @@ const requestWithBody = async (body: string, options: {
       response.on('data', function (chunk: any) {
         str += chunk;
       });
-      response.on('end', function () {
-        resolve(str);
+      response.on('end', () => {
+        if (response.statusCode && response.statusCode === 200) {
+          //Tencent Meeting APIs will still return an empty object with status 200 
+          //even using wrong or invalid inputs that has the right format such expired meeting record ids 
+          if (str !== '{}') {
+            resolve(str);
+          } else {
+            const error = invalidResponse();
+            Sentry.captureException(error);
+            reject(error);
+          }
+        } else {
+          const error = invalidRequest(response.statusCode, str);
+          Sentry.captureException(error);
+          reject(error);
+        }
       });
     };
 
@@ -204,6 +218,20 @@ const paginationNotSupported = () => new TRPCError({
   message: "Pagination isn't supported",
 });
 
+//https://cloud.tencent.com/document/product/1095/42700
+const invalidRequest = (statusCode: string, data: string) => new TRPCError({
+  code: 'BAD_REQUEST',
+  message: `Invalid request from Tencent Meeting, HTTP status Code:${statusCode}`,
+  cause: data,
+});
+
+// This error is thrown when Tencent RestAPI returns 200 but with an empty object
+const invalidResponse = () => new TRPCError({
+  code: 'NOT_FOUND',
+  message: 'Response data is undefined',
+  cause: 'check validties of Tencent Meeting API inputs'
+});
+
 /**
  * List meeting info of the input meeting and tencent user id
  * https://cloud.tencent.com/document/product/1095/93432
@@ -333,24 +361,14 @@ export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
     )
   });
 
-  try {
-    const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
-      meeting_record_id: meetingRecordId,
-      userid: tmUserId,
-    }));
+  const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
+    meeting_record_id: meetingRecordId,
+    userid: tmUserId,
+  }));
 
-    if (res.total_page != 1) throw paginationNotSupported();
+  if (res.total_page != 1) throw paginationNotSupported();
 
-    return res;
-  } catch (error) {
-    Sentry.captureException(error);
-
-    // Handle the error by returning an empty result
-    return {
-      total_page: 0,
-      record_files: [],
-    };
-  }
+  return res;
 }
 
 // Uncomment and modify this line to debug TM APIs.
