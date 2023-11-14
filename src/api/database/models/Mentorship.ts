@@ -14,13 +14,12 @@ import {
 } from "sequelize-typescript";
 import { CreationOptional, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
-import Assessment from "./Assessment";
+import MentorshipAssessment from "./MentorshipAssessment";
 import Group from "./Group";
 
 /**
  * A mentorship is a mentee-mentor pair.
  * 
- * TODO: rename to Mentorship
  */
 @Table({
   paranoid: true,
@@ -60,8 +59,8 @@ class Mentorship extends Model {
   @HasOne(() => Group, { foreignKey: "mentorshipId" })
   group: Group;
 
-  @HasMany(() => Assessment)
-  assessments: Assessment[];
+  @HasMany(() => MentorshipAssessment)
+  mentorshipAssessment: MentorshipAssessment[];
 }
 
 export default Mentorship;

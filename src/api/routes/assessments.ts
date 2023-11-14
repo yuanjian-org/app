@@ -19,7 +19,7 @@ const create = procedure
   .output(z.string())
   .mutation(async ({ input }) => 
 {
-  return (await db.Assessment.create({
+  return (await db.MentorshipAssessment.create({
     mentorshipId: input.mentorshipId,
   })).id;
 });
@@ -32,7 +32,7 @@ const update = procedure
   }))
   .mutation(async ({ input }) => 
 {
-  const a = await db.Assessment.findByPk(input.id);
+  const a = await db.MentorshipAssessment.findByPk(input.id);
   if (!a) throw notFoundError("评估", input.id);
   await a.update({
     summary: input.summary,
@@ -45,7 +45,7 @@ const get = procedure
   .output(zAssessment)
   .query(async ({ input: id }) =>
 {
-  const a = await db.Assessment.findByPk(id, {
+  const a = await db.MentorshipAssessment.findByPk(id, {
     attributes: assessmentAttributes,
   });
   if (!a) throw notFoundError("评估", id);
@@ -68,7 +68,7 @@ const listAllForMentorship = procedure
     throw noPermissionError("一对一匹配", mentorshipId);
   }
 
-  return await db.Assessment.findAll({
+  return await db.MentorshipAssessment.findAll({
     where: { mentorshipId },
     attributes: assessmentAttributes,
   });

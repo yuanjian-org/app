@@ -8,7 +8,7 @@ import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
 import OngoingMeetings from "./models/OngoingMeetings";
 import Mentorship from './models/Mentorship';
-import Assessment from "./models/Assessment";
+import MentorshipAssessment from "./models/MentorshipAssessment";
 import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";
 import Calibration from "./models/Calibration";
@@ -25,7 +25,7 @@ const db = {
   Transcript,
   Summary,
   OngoingMeetings,
-  Assessment,
+  MentorshipAssessment,
   Interview,
   InterviewFeedback,
   InterviewFeedbackUpdateAttempt,
