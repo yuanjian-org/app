@@ -1,61 +1,12 @@
 import crypto from 'crypto';
 import qs from 'qs';
 import apiEnv from "./apiEnv";
-import https from "https";
-import http from "http";
 import z, { TypeOf } from "zod";
 import { TRPCError } from '@trpc/server';
 import * as Sentry from '@sentry/node';
+import axios from 'axios';
 
 const LOG_HEADER = "[TecentMeeting]";
-
-const splitFirst = (s: string, separator: string) => {
-  const idx = s.indexOf(separator);
-  if (idx < 0) return [s];
-  return [s.slice(0, idx), s.slice(idx + separator.length)];
-};
-
-const requestWithBody = async (body: string, options: {
-  host: string,
-  port: string,
-  protocol: string,
-  path: string,
-  method: 'GET' | 'POST',
-  headers: Record<string, string>
-}) => {
-  return new Promise<string>((resolve, reject) => {
-    const callback = function (response: any) {
-      let str = '';
-      response.on('data', function (chunk: any) {
-        str += chunk;
-      });
-      response.on('end', () => {
-        if (response.statusCode && response.statusCode === 200) {
-          //Tencent Meeting APIs will still return an empty object with status 200 
-          //even using wrong or invalid inputs that has the right format such expired meeting record ids 
-          if (str !== '{}') {
-            resolve(str);
-          } else {
-            const error = invalidResponse();
-            Sentry.captureException(error);
-            reject(error);
-          }
-        } else {
-          const error = invalidRequest(response.statusCode, str);
-          Sentry.captureException(error);
-          reject(error);
-        }
-      });
-    };
-
-    const req = (options.protocol === 'https:' ? https : http).request(options, callback);
-    req.on('error', (e: Error) => {
-      reject(e);
-    });
-    req.write(body);
-    req.end();
-  });
-};
 
 const sign = (
   secretId: string, secretKey: string,
@@ -70,10 +21,6 @@ const sign = (
   return Buffer.from(signature, "utf8").toString('base64');
 };
 
-/**
- * TODO: handle error responses
- * TODO: rewrite using `axios` and remove `requestWithBody`
- */
 const tmRequest = async (
   method: 'POST' | 'GET',
   requestUri: string,
@@ -113,20 +60,33 @@ const tmRequest = async (
     "X-TC-Registered": "1"
   };
 
-  const [protocol, rest] = splitFirst(url, '//');
-  const [base, path] = splitFirst(rest, '/');
-  const [host, _port] = splitFirst(base, ':');
-
-  const port = _port ?? (protocol === 'http:' ? "80" : "443");
-
-  return JSON.parse(await requestWithBody(bodyText, {
-    host,
-    port,
-    path: "/" + path,
-    protocol,
-    method,
-    headers,
-  }));
+  try {
+    const response = await axios({
+      method,
+      url,
+      headers,
+    });
+    //Tencent Meeting APIs will still return an empty object with status 200 
+    //even using wrong or invalid inputs that has the right format such expired meeting record ids 
+    if (JSON.stringify(response.data) !== '{}') {
+      return response.data;
+    } else {
+      const error = invalidResponse();
+      Sentry.captureException(error);
+      throw error;
+    }
+  } catch (error: any) {
+    // Invalid request to Tencent RestAPI would return error with 400 or 500
+    // https://cloud.tencent.com/document/product/1095/42700
+    if (error.response) {
+      const e = invalidRequest(error.response.status, error.data);
+      Sentry.captureException(e);
+      throw e;
+    } else { // for any other unexpected errors
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
 };
 
 /**
@@ -219,7 +179,7 @@ const paginationNotSupported = () => new TRPCError({
 });
 
 //https://cloud.tencent.com/document/product/1095/42700
-const invalidRequest = (statusCode: string, data: string) => new TRPCError({
+const invalidRequest = (statusCode: number, data: string) => new TRPCError({
   code: 'BAD_REQUEST',
   message: `Invalid request from Tencent Meeting, HTTP status Code:${statusCode}`,
   cause: data,
