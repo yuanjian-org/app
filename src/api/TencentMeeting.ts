@@ -68,16 +68,16 @@ const tmRequest = async (
     });
     //Tencent Meeting APIs will still return an empty object with status 200 
     //even using wrong or invalid inputs that has the right format such expired meeting record ids 
-    if (JSON.stringify(response.data) !== '{}') {
-      return response.data;
-    } else {
+    if (JSON.stringify(response.data) === '{}') {
       const error = invalidResponse();
       Sentry.captureException(error);
       throw error;
-    }
+    };
+
+    return response.data;
+
   } catch (error: any) {
     // Invalid request to Tencent RestAPI would return error with 400 or 500
-    // https://cloud.tencent.com/document/product/1095/42700
     if (error.response) {
       const e = invalidRequest(error.response.status, error.data);
       Sentry.captureException(e);
@@ -327,7 +327,6 @@ export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
   }));
 
   if (res.total_page != 1) throw paginationNotSupported();
-
   return res;
 }
 
