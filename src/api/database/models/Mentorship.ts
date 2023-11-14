@@ -18,7 +18,7 @@ import Assessment from "./Assessment";
 import Group from "./Group";
 
 /**
- * A partnership is a mentee-mentor pair.
+ * A mentorship is a mentee-mentor pair.
  * 
  * TODO: rename to Mentorship
  */
@@ -29,7 +29,7 @@ import Group from "./Group";
     fields: ['mentorId', 'menteeId']
   }]
 })
-class Partnership extends Model {
+class Mentorship extends Model {
   @Unique
   @IsUUID(4)
   @PrimaryKey
@@ -57,11 +57,11 @@ class Partnership extends Model {
   @BelongsTo(() => User, { foreignKey: 'menteeId' })
   mentee: User;
 
-  @HasOne(() => Group, { foreignKey: "partnershipId" })
+  @HasOne(() => Group, { foreignKey: "mentorshipId" })
   group: Group;
 
   @HasMany(() => Assessment)
   assessments: Assessment[];
 }
 
-export default Partnership;
+export default Mentorship;

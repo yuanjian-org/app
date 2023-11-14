@@ -226,7 +226,7 @@ const getApplicant = procedure
   if (isPermitted(ctx.user.roles, "MentorCoach")) return ret;
 
   // Check if the user is the mentor
-  const mentorship = await db.Partnership.findOne({
+  const mentorship = await db.Mentorship.findOne({
     where: { menteeId: userId },
     attributes: ["mentorId"],
   });

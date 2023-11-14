@@ -104,7 +104,7 @@ const destroy = procedure
 
 
 /**
- * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
+ * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its mentorshipId is null.
  */
 const listMine = procedure
   .use(authUser())
@@ -129,7 +129,7 @@ const listMine = procedure
 
 /**
  * @param userIds Return all the groups if `userIds` is empty, otherwise groups that contains the given users.
- * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
+ * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its mentorshipId is null.
  */
 const list = procedure
   .use(authUser(['GroupManager']))
@@ -200,8 +200,8 @@ export default router({
 export function checkPermissionForGroup(u: User, g: Group) {
   if (isPermitted(u.roles, "SummaryEngineer")) return;
   if (isPermitted(u.roles, g.roles)) return;
-  // Allow coaches to access all partnership groups
-  if (isPermitted(u.roles, "MentorCoach") && g.partnershipId) return;
+  // Allow coaches to access all mentorship groups
+  if (isPermitted(u.roles, "MentorCoach") && g.mentorshipId) return;
   if (g.users.some(gu => gu.id === u.id)) return;
   throw noPermissionError("分组", g.id);
 }
@@ -243,15 +243,15 @@ export async function createGroup(
   name: string | null,
   userIds: string[],
   roles: Role[],
-  partnershipId: string | null, 
+  mentorshipId: string | null, 
   interviewId: string | null, 
   calibrationId: string | null,
   coacheeId: string | null,
   transaction: Transaction): Promise<Group>
 {
-  invariant(!partnershipId || !interviewId || !calibrationId || !coacheeId);
+  invariant(!mentorshipId || !interviewId || !calibrationId || !coacheeId);
 
-  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId, coacheeId },
+  const g = await db.Group.create({ name, roles, mentorshipId, interviewId, calibrationId, coacheeId },
     { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,

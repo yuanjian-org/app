@@ -10,10 +10,10 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
-import Partnership from "./Partnership";
+import Mentorship from "./Mentorship";
 
 /**
- * An assessment is an evaluation of a mentoring partnership.
+ * An assessment is an evaluation of a mentoring mentorship.
  * TODO: Rename to MentorshipAssessment.
  */
 @Table({
@@ -26,10 +26,10 @@ class Assessment extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
-  @ForeignKey(() => Partnership)
+  @ForeignKey(() => Mentorship)
   @AllowNull(false)
   @Column(UUID)
-  partnershipId: string;
+  mentorshipId: string;
 
   @Column(STRING(1 * 1024 * 1024))
   summary: string | null;

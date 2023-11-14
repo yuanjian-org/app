@@ -8,7 +8,7 @@ export const zGroup = z.object({
   roles: zRoles,
   users: z.array(zMinUser),
 
-  partnershipId: z.string().uuid().nullable(),
+  mentorshipId: z.string().uuid().nullable(),
   interviewId: z.string().uuid().nullable(),
   calibrationId: z.string().uuid().nullable(),
   coacheeId: z.string().uuid().nullable(),
@@ -16,11 +16,11 @@ export const zGroup = z.object({
 export type Group = z.TypeOf<typeof zGroup>;
 
 export function isOwned(g: Group) {
-  return g.partnershipId || g.interviewId || g.calibrationId || g.coacheeId;
+  return g.mentorshipId || g.interviewId || g.calibrationId || g.coacheeId;
 }
 
 export const whereUnowned = {
-  partnershipId: null,
+  mentorshipId: null,
   interviewId: null,
   calibrationId: null,
   coacheeId: null,

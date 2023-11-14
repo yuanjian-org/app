@@ -21,13 +21,13 @@ import { ARRAY, STRING, UUID, UUIDV4 } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
-import Partnership from "./Partnership";
+import Mentorship from "./Mentorship";
 import Interview from "./Interview";
 import Calibration from "./Calibration";
 import Role from "shared/Role";
 
 /**
- * A group is said to be "owned" if the partnership or interview field is non-null.
+ * A group is said to be "owned" if the mentorship or interview field is non-null.
  * Otherwise the group is said to be "unowned".
  */
 @Table({ paranoid: true, tableName: "groups", modelName: "group" })
@@ -50,10 +50,10 @@ class Group extends Model {
   @Column(ARRAY(STRING))
   roles: Role[];
 
-  // A group is "owned" by a partnership if this field is non-null.
-  @ForeignKey(() => Partnership)
+  // A group is "owned" by a mentorship if this field is non-null.
+  @ForeignKey(() => Mentorship)
   @Column(UUID)
-  partnershipId: string | null;
+  mentorshipId: string | null;
 
   // A group is "owned" by an interview if this field is non-null.
   @ForeignKey(() => Interview)
