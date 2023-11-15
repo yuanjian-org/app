@@ -69,7 +69,7 @@ const tmRequest = async (
     //Tencent Meeting APIs will still return an empty object with status 200 
     //even using wrong or invalid inputs that has the right format such expired meeting record ids 
     if (JSON.stringify(response.data) === '{}') {
-      const error = invalidResponse();
+      const error = undefinedResponse();
       Sentry.captureException(error);
       throw error;
     };
@@ -79,7 +79,7 @@ const tmRequest = async (
   } catch (error: any) {
     // Invalid request to Tencent RestAPI would return error with 400 or 500
     if (error.response) {
-      const e = invalidRequest(error.response.status, error.data);
+      const e = failedRequest(error.response.status, error.data);
       Sentry.captureException(e);
       throw e;
     } else { // for any other unexpected errors
@@ -179,14 +179,14 @@ const paginationNotSupported = () => new TRPCError({
 });
 
 //https://cloud.tencent.com/document/product/1095/42700
-const invalidRequest = (statusCode: number, data: string) => new TRPCError({
+const failedRequest = (statusCode: number, data: string) => new TRPCError({
   code: 'BAD_REQUEST',
-  message: `Invalid request from Tencent Meeting, HTTP status Code:${statusCode}`,
+  message: `Tencent Meeting Rest API request failed, status Code:${statusCode}`,
   cause: data,
 });
 
-// This error is thrown when Tencent RestAPI returns 200 but with an empty object
-const invalidResponse = () => new TRPCError({
+// This error is thrown when Tencent RestAPI returns status 200 and an empty object
+const undefinedResponse = () => new TRPCError({
   code: 'NOT_FOUND',
   message: 'Response data is undefined',
   cause: 'check validties of Tencent Meeting API inputs'
