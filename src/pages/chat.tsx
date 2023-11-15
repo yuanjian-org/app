@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 
 // TODO why type mismatch here???
 // @ts-ignore
-const DynamicChatRoot = dynamic(() => import('./chat/ChatRoot'), {
+const DynamicChatRoot = dynamic(() => import('./chat/SidebarChat'), {
   loading: () => <p>Loading...</p>,
 });
 
