@@ -33,7 +33,6 @@ import {
 } from "./ui-lib";
 import { Avatar, AvatarPicker } from "./emoji";
 import Locale, { AllLangs, ALL_LANG_OPTIONS, Lang } from "../locales";
-import { useNavigate } from "react-router-dom";
 
 import chatStyle from "./chat.module.scss";
 import { useEffect, useState } from "react";
@@ -377,7 +376,6 @@ export function ContextPrompts(props: {
 }
 
 export function MaskPage() {
-  const navigate = useNavigate();
 
   const maskStore = useMaskStore();
   const chatStore = useChatStore();
@@ -464,7 +462,9 @@ export function MaskPage() {
               <IconButton
                 icon={<CloseIcon />}
                 bordered
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  window.history.back();
+                }}
               />
             </div>
           </div>

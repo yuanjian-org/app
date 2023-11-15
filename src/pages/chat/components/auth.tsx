@@ -1,7 +1,6 @@
 import styles from "./auth.module.scss";
 import { IconButton } from "./button";
 
-import { useNavigate } from "react-router-dom";
 import { Path } from "../shared";
 import { useAccessStore } from "../accessStore";
 import Locale from "../locales";
@@ -9,10 +8,9 @@ import Locale from "../locales";
 import BotIcon from "../icons/bot.svg";
 
 export function AuthPage() {
-  const navigate = useNavigate();
-  const access = useAccessStore();
-
-  const goHome = () => navigate(Path.Home);
+  const goHome = () => {
+    location.href = '/chat';
+  };
 
   return (
     <div className={styles["auth-page"]}>

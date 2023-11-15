@@ -2,32 +2,23 @@ import React, {useRef, useState} from "react";
 import {Chat} from "./components/chat";
 import {useAccessStore} from "./accessStore";
 import {Box, Input} from "@chakra-ui/react";
-import AuthForm from "../login/AuthForm";
 import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
 
-const Auth = () => {
-  return <Box px={3}>
-    <AuthForm />
-  </Box>;
-}
+
 const SidebarChat = () => {
   const accessStore = useAccessStore();
   const chatStore = useChatStore();
 
   return <div className={'sidebar-chat'}>
-    {accessStore.isAuthorized()
-      ? (
-        (chatStore.currentSessionIndex !== undefined) ? <>
-          <div className={'back-line'}>
-            <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
-          </div>
-          <div className={'chat-wrapper'}>
-            <Chat />
-          </div>
-        </> : <ChatList />
-      ) : <Auth />
-    }
+    (chatStore.currentSessionIndex !== undefined) ? <>
+      <div className={'back-line'}>
+        <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
+      </div>
+      <div className={'chat-wrapper'}>
+        <Chat />
+      </div>
+    </> : <ChatList />
     <style jsx>{`
       .sidebar-chat {
         height: 100%;

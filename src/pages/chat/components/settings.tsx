@@ -43,7 +43,6 @@ import { Path, RELEASE_URL, UPDATE_URL, getClientConfig } from "../shared";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
 import { InputRange } from "./input-range";
-import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarPicker } from "./emoji";
 import { useSyncStore } from "../store/sync";
 import { nanoid } from "nanoid";
@@ -313,7 +312,6 @@ function SyncItems() {
 }
 
 export function Settings() {
-  const navigate = useNavigate();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const config = useAppConfig();
   const updateConfig = config.update;
@@ -369,7 +367,7 @@ export function Settings() {
   useEffect(() => {
     const keydownEvent = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        navigate(Path.Home);
+        location.href = '/chat';
       }
     };
     document.addEventListener("keydown", keydownEvent);

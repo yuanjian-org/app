@@ -8,7 +8,6 @@ import LeftIcon from "../icons/left.svg";
 import LightningIcon from "../icons/lightning.svg";
 import EyeIcon from "../icons/eye.svg";
 
-import { useLocation, useNavigate } from "react-router-dom";
 import { Mask, useMaskStore } from "../store/mask";
 import Locale from "../locales";
 import { useAppConfig, useChatStore } from "../store";
@@ -86,12 +85,9 @@ export function NewChat() {
   const masks = maskStore.getAll();
   const groups = useMaskGroup(masks);
 
-  const navigate = useNavigate();
   const config = useAppConfig();
 
   const maskRef = useRef<HTMLDivElement>(null);
-
-  const { state } = useLocation();
 
   const startChat = (mask?: Mask) => {
     setTimeout(() => {
@@ -100,16 +96,16 @@ export function NewChat() {
     }, 10);
   };
 
-  useCommand({
-    mask: (id) => {
-      try {
-        const mask = maskStore.get(id) ?? BUILTIN_MASK_STORE.get(id);
-        startChat(mask ?? undefined);
-      } catch {
-        console.error("[New Chat] failed to create chat from mask id=", id);
-      }
-    },
-  });
+  // useCommand({
+  //   mask: (id) => {
+  //     try {
+  //       const mask = maskStore.get(id) ?? BUILTIN_MASK_STORE.get(id);
+  //       startChat(mask ?? undefined);
+  //     } catch {
+  //       console.error("[New Chat] failed to create chat from mask id=", id);
+  //     }
+  //   },
+  // });
 
   useEffect(() => {
     if (maskRef.current) {
@@ -124,21 +120,10 @@ export function NewChat() {
         <IconButton
           icon={<LeftIcon />}
           text={Locale.NewChat.Return}
-          onClick={() => navigate(Path.Home)}
+          onClick={() => {
+            location.href = '/chat';
+          }}
         ></IconButton>
-        {!state?.fromHome && (
-          <IconButton
-            text={Locale.NewChat.NotShow}
-            onClick={async () => {
-              if (await showConfirm(Locale.NewChat.ConfirmNoShow)) {
-                startChat();
-                config.update(
-                  (config) => (config.dontShowMaskSplashScreen = true),
-                );
-              }
-            }}
-          ></IconButton>
-        )}
       </div>
       <div className={styles["mask-cards"]}>
         <div className={styles["mask-card"]}>
@@ -156,14 +141,6 @@ export function NewChat() {
       <div className={styles["sub-title"]}>{Locale.NewChat.SubTitle}</div>
 
       <div className={styles["actions"]}>
-        <IconButton
-          text={Locale.NewChat.More}
-          onClick={() => navigate(Path.Masks)}
-          icon={<EyeIcon />}
-          bordered
-          shadow
-        />
-
         <IconButton
           text={Locale.NewChat.Skip}
           onClick={() => startChat()}
