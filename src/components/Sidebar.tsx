@@ -25,14 +25,14 @@ import {
   MdPerson,
   MdGroups,
   MdScience,
-  MdChevronRight, 
-  MdFace, 
-  MdFace5, 
-  MdFaceUnlock, 
-  MdOutlineSyncAlt, 
+  MdChevronRight,
+  MdFace,
+  MdFace5,
+  MdFaceUnlock,
+  MdOutlineSyncAlt,
   MdVideocam,
   MdSupervisorAccount,
-  MdMic
+  MdMic, MdOutlineChat
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { IconType } from "react-icons";
@@ -109,6 +109,13 @@ const sidebarItems: SidebarItem[] = [
     path: '/mentorships',
     icon: MdOutlineSyncAlt,
     regex: /^\/mentorships$/,
+    role: 'MentorshipManager',
+  },
+  {
+    name: '导师小助手',
+    path: '/chat',
+    icon: MdOutlineChat,
+    regex: /^\/chat$/,
     role: 'MentorshipManager',
   },
 ];
