@@ -22,7 +22,7 @@ import {
   NARROW_SIDEBAR_WIDTH,
   Path,
   REPO_URL,
-} from "union-common-shared";
+} from "../shared";
 
 import { Link, useNavigate } from "react-router-dom";
 import { useMobileScreen } from "../utils";

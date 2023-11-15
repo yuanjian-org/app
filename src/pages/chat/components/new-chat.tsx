@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Path, SlotID } from "union-common-shared";
+import { Path, SlotID } from "../shared";
 import { IconButton } from "./button";
 import { EmojiAvatar } from "./emoji";
 import styles from "./new-chat.module.scss";

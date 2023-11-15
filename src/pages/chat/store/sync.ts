@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { StoreKey, Updater } from "union-common-shared";
+import { StoreKey, Updater } from "../shared";
 
 export interface WebDavConfig {
   server: string;

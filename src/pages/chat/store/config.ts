@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { LLMModel } from "../client/api";
-import {getClientConfig, DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey, getOS} from "union-common-shared";
+import { getClientConfig, DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey, getOS } from "../shared";
 
 export type ModelType = (typeof DEFAULT_MODELS)[number]["name"];
 

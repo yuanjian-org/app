@@ -1,5 +1,5 @@
 import en from "./en";
-import { merge } from "union-common-shared";
+import { merge } from "../shared";
 
 import type { LocaleType } from "./en";
 export type { LocaleType, PartialLocaleType } from "./en";

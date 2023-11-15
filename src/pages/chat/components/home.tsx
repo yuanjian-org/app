@@ -12,7 +12,7 @@ import LoadingIcon from "../icons/three-dots.svg";
 import { getCSSVar, useMobileScreen } from "../utils";
 
 import dynamic from "next/dynamic";
-import { Path, SlotID } from "union-common-shared";
+import { Path, SlotID } from "../shared";
 import { ErrorBoundary } from "./error";
 
 import { getLang } from "../locales";
@@ -26,7 +26,7 @@ import {
 import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
 import { AuthPage } from "./auth";
-import { getClientConfig } from "union-common-shared";
+import { getClientConfig } from "../shared";
 import { api } from "../client/api";
 
 export function Loading(props: { noLogo?: boolean }) {

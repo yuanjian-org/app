@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "../client/api";
-import { FETCH_COMMIT_URL, FETCH_TAG_URL, StoreKey, getClientConfig } from "union-common-shared";
+import { FETCH_COMMIT_URL, FETCH_TAG_URL, StoreKey, getClientConfig } from "../shared";
 
 export interface UpdateStore {
   versionType: "date" | "tag";

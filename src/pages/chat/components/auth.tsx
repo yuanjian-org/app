@@ -2,7 +2,7 @@ import styles from "./auth.module.scss";
 import { IconButton } from "./button";
 
 import { useNavigate } from "react-router-dom";
-import { Path } from "union-common-shared";
+import { Path } from "../shared";
 import { useAccessStore } from "../accessStore";
 import Locale from "../locales";
 

@@ -4,7 +4,7 @@ import {
   OpenAIListModelResponse,
   OpenaiPath,
   REQUEST_TIMEOUT_MS,
-} from "union-common-shared";
+} from "../../shared";
 import { useAccessStore } from "../../accessStore";
 import { useAppConfig, useChatStore } from "../../store";
 
@@ -14,7 +14,7 @@ import {
   EventStreamContentType,
   fetchEventSource,
 } from "@fortaine/fetch-event-source";
-import { prettyObject } from "union-common-shared";
+import { prettyObject } from "../../shared";
 
 export class ChatGPTApi implements LLMApi {
   private disableListModels = true;

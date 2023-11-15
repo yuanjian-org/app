@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Fuse from "fuse.js";
 import { getLang } from "../locales";
-import { StoreKey } from "union-common-shared";
+import { StoreKey } from "../shared";
 import { nanoid } from "nanoid";
 
 export interface Prompt {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {ChatMessage, ChatSession, useAppConfig, useChatStore} from "../store";
-import { Updater } from "union-common-shared";
+import { Updater } from "../shared";
 import { IconButton } from "./button";
 import { Avatar } from "./emoji";
 import { MaskAvatar } from "./mask";

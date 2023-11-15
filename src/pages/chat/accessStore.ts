@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getClientConfig, DEFAULT_API_HOST, DEFAULT_MODELS, StoreKey } from "union-common-shared";
+import { getClientConfig, DEFAULT_API_HOST, DEFAULT_MODELS, StoreKey } from "./shared";
 import browserEnv from "./browserEnv";
 import { v4 } from "uuid";
 

@@ -2,7 +2,7 @@ import React from "react";
 import { IconButton } from "./button";
 import GithubIcon from "../icons/github.svg";
 import ResetIcon from "../icons/reload.svg";
-import { ISSUE_URL } from "union-common-shared";
+import { ISSUE_URL } from "../shared";
 import Locale from "../locales";
 import { downloadAs } from "../utils";
 import { showConfirm } from "./ui-lib";

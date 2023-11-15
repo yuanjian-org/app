@@ -83,7 +83,7 @@ import {
   REQUEST_TIMEOUT_MS,
   prettyObject,
   getClientConfig
-} from "union-common-shared";
+} from "shared";
 import { Avatar } from "./emoji";
 import { ContextPrompts, MaskAvatar, MaskConfig } from "./mask";
 import { useMaskStore } from "../store/mask";

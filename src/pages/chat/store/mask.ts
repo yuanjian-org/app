@@ -4,7 +4,7 @@ import { BUILTIN_MASKS } from "../masks";
 import { getLang, Lang } from "../locales";
 import { DEFAULT_TOPIC, ChatMessage } from "./chat";
 import { ModelConfig, useAppConfig } from "./config";
-import { StoreKey } from "union-common-shared";
+import { StoreKey } from "../shared";
 import { nanoid } from "nanoid";
 
 export type Mask = {

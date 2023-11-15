@@ -39,7 +39,7 @@ import Locale, {
 } from "../locales";
 import { copyToClipboard } from "../utils";
 import Link from "next/link";
-import { Path, RELEASE_URL, UPDATE_URL, getClientConfig } from "union-common-shared";
+import { Path, RELEASE_URL, UPDATE_URL, getClientConfig } from "../shared";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
 import { InputRange } from "./input-range";
