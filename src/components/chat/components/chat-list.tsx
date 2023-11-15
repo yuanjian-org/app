@@ -11,6 +11,7 @@ import {
 import { useChatStore } from "../store";
 
 import Locale from "../locales";
+import { Link, useNavigate } from "react-router-dom";
 import { MaskAvatar } from "./mask";
 import { Mask } from "../store/mask";
 import { useRef, useEffect } from "react";
@@ -101,6 +102,7 @@ export function ChatList(props: { narrow?: boolean }) {
     ],
   );
   const chatStore = useChatStore();
+  const navigate = useNavigate();
 
   const onDragEnd: OnDragEndResponder = (result) => {
     const { destination, source } = result;

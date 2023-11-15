@@ -74,6 +74,7 @@ import {
   showPrompt,
   showToast,
 } from "./ui-lib";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   CHAT_PAGE_SIZE,
   LAST_INPUT_KEY,
@@ -329,6 +330,7 @@ export function ChatActions(props: {
   hitBottom: boolean;
 }) {
   const config = useAppConfig();
+  const navigate = useNavigate();
   const chatStore = useChatStore();
 
   // switch themes

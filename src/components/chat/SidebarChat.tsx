@@ -1,10 +1,8 @@
 import React, {useRef, useState} from "react";
 import {Chat} from "./components/chat";
 import {useAccessStore} from "./accessStore";
-import {Box, Input} from "@chakra-ui/react";
 import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
-
 
 const SidebarChat = () => {
   const accessStore = useAccessStore();
@@ -12,13 +10,13 @@ const SidebarChat = () => {
 
   return <div className={'sidebar-chat'}>
     {(chatStore.currentSessionIndex !== undefined) ? <>
-      <div className={'back-line'}>
-        <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
-      </div>
-      <div className={'chat-wrapper'}>
-        <Chat />
-      </div>
-    </> : <ChatList />}
+          <div className={'back-line'}>
+            <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
+          </div>
+          <div className={'chat-wrapper'}>
+            <Chat />
+          </div>
+        </> : <ChatList />}
     <style jsx>{`
       .sidebar-chat {
         height: 100%;

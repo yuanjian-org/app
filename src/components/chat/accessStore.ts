@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getClientConfig, DEFAULT_API_HOST, DEFAULT_MODELS, StoreKey } from "./shared";
+import browserEnv from "./browserEnv";
 import { v4 } from "uuid";
 
 export interface AccessControlStore {
@@ -50,7 +51,7 @@ export const useAccessStore = create<AccessControlStore>()(
           return "/api/openai/";
         }
 
-        return "/api/openai";
+        return browserEnv.LANDING_URL + "/api/openai";
       },
       updateLoggedIn(v: boolean) {
         set(() => ({ isLoggedIn: v }));

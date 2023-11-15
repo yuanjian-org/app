@@ -16,6 +16,13 @@ import { Path, SlotID } from "../shared";
 import { ErrorBoundary } from "./error";
 
 import { getLang } from "../locales";
+
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
 import { AuthPage } from "./auth";
@@ -100,6 +107,50 @@ const loadAsyncGoogleFont = () => {
   document.head.appendChild(linkEl);
 };
 
+function Screen() {
+  const config = useAppConfig();
+  const location = useLocation();
+  const isHome = location.pathname === Path.Home;
+  const isAuth = location.pathname === Path.Auth;
+  const isMobileScreen = useMobileScreen();
+
+  useEffect(() => {
+    loadAsyncGoogleFont();
+  }, []);
+
+  return (
+    <div
+      className={
+        styles.container +
+        ` ${
+          config.tightBorder && !isMobileScreen
+            ? styles["tight-container"]
+            : styles.container
+        }`
+      }
+    >
+      {isAuth ? (
+        <>
+          <AuthPage />
+        </>
+      ) : (
+        <>
+          <SideBar className={isHome ? styles["sidebar-show"] : ""} />
+
+          <div className={styles["window-content"]} id={SlotID.AppBody}>
+            <Routes>
+              <Route path={Path.Home} element={<Chat />} />
+              <Route path={Path.NewChat} element={<NewChat />} />
+              <Route path={Path.Masks} element={<MaskPage />} />
+              <Route path={Path.Chat} element={<Chat />} />
+              <Route path={Path.Settings} element={<Settings />} />
+            </Routes>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export function useLoadData() {
   const config = useAppConfig();
@@ -126,13 +177,11 @@ export function Home() {
     return <Loading />;
   }
 
-  return false;
-
-  // return (
-  //   <ErrorBoundary>
-  //     <Router>
-  //       <Screen />
-  //     </Router>
-  //   </ErrorBoundary>
-  // );
+  return (
+    <ErrorBoundary>
+      <Router>
+        <Screen />
+      </Router>
+    </ErrorBoundary>
+  );
 }

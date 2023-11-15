@@ -24,6 +24,7 @@ import {
   REPO_URL,
 } from "../shared";
 
+import { Link, useNavigate } from "react-router-dom";
 import { useMobileScreen } from "../utils";
 import dynamic from "next/dynamic";
 import { showConfirm, showToast } from "./ui-lib";
@@ -104,6 +105,7 @@ export function SideBar(props: { className?: string }) {
 
   // drag side bar
   const { onDragMouseDown, shouldNarrow } = useDragSideBar();
+  const navigate = useNavigate();
   const config = useAppConfig();
 
   useHotKey();
@@ -131,10 +133,7 @@ export function SideBar(props: { className?: string }) {
           icon={<MaskIcon />}
           text={shouldNarrow ? undefined : Locale.Mask.Name}
           className={styles["sidebar-bar-button"]}
-          onClick={() => {
-            location.href = '/chat';
-            // navigate(Path.NewChat, { state: { fromHome: true } })
-          }}
+          onClick={() => navigate(Path.NewChat, { state: { fromHome: true } })}
           shadow
         />
         <IconButton
