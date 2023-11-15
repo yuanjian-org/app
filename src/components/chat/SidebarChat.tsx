@@ -11,14 +11,14 @@ const SidebarChat = () => {
   const chatStore = useChatStore();
 
   return <div className={'sidebar-chat'}>
-    (chatStore.currentSessionIndex !== undefined) ? <>
+    {(chatStore.currentSessionIndex !== undefined) ? <>
       <div className={'back-line'}>
         <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
       </div>
       <div className={'chat-wrapper'}>
         <Chat />
       </div>
-    </> : <ChatList />
+    </> : <ChatList />}
     <style jsx>{`
       .sidebar-chat {
         height: 100%;

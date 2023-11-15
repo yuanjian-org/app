@@ -553,7 +553,6 @@ function _Chat(props: {session:ChatSession}) {
   const { scrollRef, setAutoScroll, scrollDomToBottom, scrollDomToTop } = useScrollToBottom();
   const [hitBottom, setHitBottom] = useState(true);
   const isMobileScreen = useMobileScreen();
-  const navigate = useNavigate();
 
   // prompt hints
   const promptStore = usePromptStore();

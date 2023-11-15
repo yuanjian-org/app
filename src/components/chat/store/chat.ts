@@ -13,7 +13,7 @@ import {
   StoreKey,
   prettyObject,
   estimateTokenLength
-} from "shared";
+} from "../shared";
 import { api, RequestMessage } from "../client/api";
 import { ChatControllerPool } from "../client/controller";
 import { nanoid } from "nanoid";
