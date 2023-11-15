@@ -5,7 +5,6 @@ import {Box, Input} from "@chakra-ui/react";
 import AuthForm from "../login/AuthForm";
 import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
-import {SmallButton} from "union-ui";
 
 const Auth = () => {
   return <Box px={3}>
@@ -21,7 +20,7 @@ const SidebarChat = () => {
       ? (
         (chatStore.currentSessionIndex !== undefined) ? <>
           <div className={'back-line'}>
-            <SmallButton onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</SmallButton>
+            <button onClick={() => chatStore.selectSession(undefined) }>{"<"} Back</button>
           </div>
           <div className={'chat-wrapper'}>
             <Chat />

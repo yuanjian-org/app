@@ -13,16 +13,7 @@ import LoadingIcon from "../icons/three-dots.svg";
 import React from "react";
 import { useDebouncedCallback, useThrottledCallback } from "use-debounce";
 import {showImageModal, showToast} from "./ui-lib";
-import {Copy, dialog, hoverTransition, Play, SmallButton} from "union-ui";
-import t9LayoutInstance from "../../layout/t9LayoutInstance";
-import {reduxStore} from "../../reduxSetup";
-import invariant from "tiny-invariant";
-import rickClient from "../../rickClient";
-import {getCode, getOnRun, setPendingMonacoFocus} from "union-monaco";
-import {INSERT_DATA_BLOCK_COMMAND} from "../../pageEditor/DataBlockPlugin";
-import {getInputTypeFromMarkdownCodeLanguage, monacoLanguageList, programmingLanguageList} from "union-common-shared";
-import {IconForInputType} from "union-common-browser";
-import {Box, Flex} from "@chakra-ui/react";
+import { CopyIcon } from "@chakra-ui/icons";
 
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -101,90 +92,7 @@ export function PreCode(props: { className?: string, children: any }) {
       )}
       <pre ref={ref}>
         <div className={'actions'}>
-          <SmallButton
-            onClick={() => {
-              let language = undefined;
-              const codeClassName = ref.current?.querySelector('code')?.className;
-              if (codeClassName) {
-                const match = /language-(\w+)/.exec(codeClassName);
-                language = match?.[1];
-              }
-
-              const text = ref.current?.innerText;
-              console.log({className: props.className, codeClassName, language, text});
-
-              if (text) {
-                const pageId = reduxStore.getState().page.activeId;
-                invariant(pageId, "active page id not found");
-
-                const editor = t9LayoutInstance.lexingtonEditor;
-
-                if (editor) {
-                  const type = getInputTypeFromMarkdownCodeLanguage(language ?? "");
-
-                  if (type) {
-                    return rickClient.dataBlock.create.mutate({
-                      pageId,
-                      inputMeta: {
-                        type,
-                      },
-                      inputScript: text,
-                    }).then(res => {
-                      const unionMonacoId = `data_block_input_code_editor_${res.dataBlock.id}_only`;
-                      setPendingMonacoFocus(unionMonacoId);
-                      editor.dispatchCommand(INSERT_DATA_BLOCK_COMMAND, res.dataBlock.id);
-
-                      // TODO another way to wait for data block render complete?
-                      setTimeout(() => {
-                        getOnRun(unionMonacoId)(
-                          getCode(unionMonacoId)
-                        );
-                      }, 100);
-                    });
-                  } else {
-                    // TODO "Let us know you need it!"
-                    dialog.select(`${language ? '"' + language + '" not executable right now. ' : "ChatGPT does not provide a language, "}Select one to run`, [
-                      ...programmingLanguageList,
-                      // TODO add data source and make it monaco language list later?
-                    ].map(lang => ({
-                      label: <Flex align={'center'} justify={'center'} gap={'4px'}><IconForInputType width={14} inputType={lang} /><Box>{lang}</Box></Flex>,
-                      value: lang,
-                    })), {
-
-                    }).then((selected) => {
-                      console.log({ selected });
-                      if (selected) {
-                        const type = getInputTypeFromMarkdownCodeLanguage(selected);
-                        if (type) {
-                          return rickClient.dataBlock.create.mutate({
-                            pageId,
-                            inputMeta: {
-                              type,
-                            },
-                            inputScript: text,
-                          }).then(res => {
-                            const unionMonacoId = `data_block_input_code_editor_${res.dataBlock.id}_only`;
-                            setPendingMonacoFocus(unionMonacoId);
-                            editor.dispatchCommand(INSERT_DATA_BLOCK_COMMAND, res.dataBlock.id);
-
-                            // TODO another way to wait for data block render complete?
-                            setTimeout(() => {
-                              getOnRun(unionMonacoId)(
-                                getCode(unionMonacoId)
-                              );
-                            }, 100);
-                          });
-                        }
-                      }
-                    });
-                  }
-                }
-              }
-            }}
-          >
-            <Play width={12} height={12} />
-          </SmallButton>
-          <SmallButton
+          <button
             onClick={() => {
               if (ref.current) {
                 const code = ref.current.innerText;
@@ -192,8 +100,8 @@ export function PreCode(props: { className?: string, children: any }) {
               }
             }}
           >
-            <Copy width={12} height={12} />
-          </SmallButton>
+            <CopyIcon width={12} height={12} />
+          </button>
         </div>
 
         {props.children}
@@ -206,7 +114,6 @@ export function PreCode(props: { className?: string, children: any }) {
             top: 4px;
             right: 4px;
             opacity: 0;
-            transition: ${hoverTransition('opacity')};
             
             display: flex;
             align-items: center;
