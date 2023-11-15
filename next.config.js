@@ -3,6 +3,15 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'standalone',
+  async rewrites() {
+    return [
+      // Rewrite chat/* to use `chat` because we use react-router there
+      {
+        source: '/chat/:path*',
+        destination: '/chat',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

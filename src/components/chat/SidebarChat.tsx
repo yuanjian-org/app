@@ -3,7 +3,7 @@ import {Chat} from "./components/chat";
 import {useAccessStore} from "./accessStore";
 import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
-
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
 const SidebarChat = () => {
   const accessStore = useAccessStore();
   const chatStore = useChatStore();
@@ -42,6 +42,18 @@ const SidebarChat = () => {
       }
     `}</style>
   </div>
+};
+
+
+const router = createBrowserRouter([
+  {
+    path: "/chat",
+    element: <SidebarChat />,
+  },
+]);
+
+const Root = () => {
+  return <RouterProvider router={router} />;
 };
 
 export default SidebarChat;

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 // @ts-ignore
 const DynamicChatRoot = dynamic(() => import('../components/chat/SidebarChat'), {
   loading: () => <p>Loading...</p>,
+  ssr: false,
 });
 
 const ChatPage = () => {
