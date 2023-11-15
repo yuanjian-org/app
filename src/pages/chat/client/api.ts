@@ -1,7 +1,7 @@
-import { getClientConfig } from "union-common-edge";
+import { getClientConfig } from "../edge";
 import { ChatMessage, ModelType } from "../store";
 import { ChatGPTApi } from "./platforms/openai";
-import {useAccessStore} from "../accessStore";
+import { useAccessStore } from "../accessStore";
 
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
