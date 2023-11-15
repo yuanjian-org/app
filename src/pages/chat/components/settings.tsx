@@ -47,7 +47,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarPicker } from "./emoji";
 import { useSyncStore } from "../store/sync";
 import { nanoid } from "nanoid";
-import {useAccessStore} from "../../accessStore";
+import {useAccessStore} from "../accessStore";
 
 function EditPromptModal(props: { id: string; onClose: () => void }) {
   const promptStore = usePromptStore();

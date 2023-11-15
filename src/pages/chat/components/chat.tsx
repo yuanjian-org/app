@@ -47,7 +47,7 @@ import {
   ModelType, ChatSession,
 } from "../store";
 
-import {useAccessStore} from '../../accessStore';
+import {useAccessStore} from '../accessStore';
 
 import {
   copyToClipboard,

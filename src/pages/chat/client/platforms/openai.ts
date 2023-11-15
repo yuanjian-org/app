@@ -5,7 +5,7 @@ import {
   OpenaiPath,
   REQUEST_TIMEOUT_MS,
 } from "union-common-shared";
-import { useAccessStore } from "../../../accessStore";
+import { useAccessStore } from "../../accessStore";
 import { useAppConfig, useChatStore } from "../../store";
 
 import { ChatOptions, getHeaders, LLMApi, LLMModel, LLMUsage } from "../api";

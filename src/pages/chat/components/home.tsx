@@ -28,7 +28,6 @@ import { useAppConfig } from "../store/config";
 import { AuthPage } from "./auth";
 import { getClientConfig } from "union-common-shared";
 import { api } from "../client/api";
-import { useAccessStore } from "../../accessStore";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (

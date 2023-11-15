@@ -1,6 +1,6 @@
 import React, {useRef, useState} from "react";
 import {Chat} from "./components/chat";
-import {useAccessStore} from "../accessStore";
+import {useAccessStore} from "./accessStore";
 import {Box, Input} from "@chakra-ui/react";
 import AuthForm from "../login/AuthForm";
 import {ChatList} from "./components/chat-list";

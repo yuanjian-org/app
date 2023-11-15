@@ -3,7 +3,7 @@ import { IconButton } from "./button";
 
 import { useNavigate } from "react-router-dom";
 import { Path } from "union-common-shared";
-import { useAccessStore } from "../../accessStore";
+import { useAccessStore } from "../accessStore";
 import Locale from "../locales";
 
 import BotIcon from "../icons/bot.svg";
