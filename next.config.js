@@ -3,6 +3,19 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'standalone',
+  webpack: (config) => {
+    // refer svg in javascript, load svgr if not "?url"
+    config.module.rules.push(
+      {
+        test: /\.svg$/i,
+        issuer: /\.[jt]sx?$/,
+        resourceQuery: {not: [/url/]}, // use svgr react component if NOT *.svg?url
+        use: ['@svgr/webpack'],
+      },
+    );
+
+    return config;
+  },
   async rewrites() {
     return [
       // Rewrite chat/* to use `chat` because we use react-router there
