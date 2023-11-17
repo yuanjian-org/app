@@ -113,9 +113,9 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     name: '导师小助手',
-    path: '/chat',
+    path: '/chatbot',
     icon: MdOutlineChat,
-    regex: /^\/chat$/,
+    regex: /^\/chatbot$/,
     role: 'MentorshipManager',
   },
 ];

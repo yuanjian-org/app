@@ -4,9 +4,10 @@ import {useAccessStore} from "./accessStore";
 import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
-const SidebarChat = () => {
+const ChatWrapper = () => {
   const accessStore = useAccessStore();
   const chatStore = useChatStore();
+  console.log('inside the wrapper');
 
   return <div className={'sidebar-chat'}>
     {(chatStore.currentSessionIndex !== undefined) ? <>
@@ -47,13 +48,13 @@ const SidebarChat = () => {
 
 const router = createBrowserRouter([
   {
-    path: "/chat",
-    element: <SidebarChat />,
+    path: "/chatbot",
+    element: <ChatWrapper />,
   },
 ]);
 
-const Root = () => {
+const AppRoot = () => {
   return <RouterProvider router={router} />;
 };
 
-export default SidebarChat;
+export default AppRoot;
