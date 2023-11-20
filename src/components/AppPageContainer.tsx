@@ -29,6 +29,9 @@ export default function AppPageContainer({ wide, user, children, ...rest }: {
           base: `calc(100vh - ${topbarHeight} - (140px + ${footerMarginTop}))`,
           [footerBreakpoint]: `calc(100vh - ${topbarHeight} - (95px + ${footerMarginTop}))`,
         }}
+
+        // minHeight with no height will make children with height:100% height zero
+        height={1}
       >
         {children}
       </Box>
