@@ -5,9 +5,7 @@ import {ChatList} from "./components/chat-list";
 import {useChatStore} from "./store";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 const ChatWrapper = () => {
-  const accessStore = useAccessStore();
   const chatStore = useChatStore();
-  console.log('inside the wrapper');
 
   return <div className={'sidebar-chat'}>
     {(chatStore.currentSessionIndex !== undefined) ? <>
@@ -42,7 +40,7 @@ const ChatWrapper = () => {
         justify-content: flex-start;
       }
     `}</style>
-  </div>
+  </div>;
 };
 
 

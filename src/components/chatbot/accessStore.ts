@@ -65,6 +65,7 @@ export const useAccessStore = create<AccessControlStore>()(
         set(() => ({ openaiUrl: url?.trim() }));
       },
       isAuthorized() {
+        return true;
         return (
           !!get().openAiApiKey || get().isLoggedIn
         );

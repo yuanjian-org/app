@@ -8,9 +8,16 @@
     }
   },
   "compilerOptions": {
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "target": "es2016",
-    "lib": ["dom", "dom.iterable", "esnext", "es2015.iterable"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "es2015.iterable"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -32,16 +39,24 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false /* relax on model properties */,
     "paths": {
-      "@assets/*": ["./src/assetsassets/*"]
+      "@assets/*": [
+        "./src/assetsassets/*"
+      ]
     },
-    "incremental": true
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "exclude": [
     "node_modules",
     "*/**/*.cy.ts" /* .cy.test files are covered by cypress/tsconfig */
   ],
-  "include": [ 
+  "include": [
     "**/*.ts",
     "**/*.tsx",
-  ],
+    ".next/types/**/*.ts"
+  ]
 }

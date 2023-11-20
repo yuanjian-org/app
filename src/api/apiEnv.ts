@@ -26,6 +26,8 @@ class ApiEnv {
 
   // 'DUMMY' was used in some old development environments
   hasTencentMeeting() { return this.TM_SECRET_KEY.length != 0 && this.TM_SECRET_KEY != 'DUMMY'; }
+
+  OPENAI_API_KEY: string = process.env.OPENAI_API_KEY ?? '';
 }
 
 // force load env before app.prepare()
