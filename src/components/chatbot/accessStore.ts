@@ -46,11 +46,7 @@ export const useAccessStore = create<AccessControlStore>()(
 
       openaiUrl: DEFAULT_OPENAI_URL,
       getOpenaiUrl: () => {
-        if (get().openAiApiKey) {
-          return "/api/openai/";
-        }
-
-        return "/api/openai";
+        return "/api/openai/";
       },
       updateLoggedIn(v: boolean) {
         set(() => ({ isLoggedIn: v }));
