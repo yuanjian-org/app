@@ -186,3 +186,5 @@ export function Home() {
     </ErrorBoundary>
   );
 }
+
+export default Home;
