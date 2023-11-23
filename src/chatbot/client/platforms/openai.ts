@@ -3,8 +3,8 @@ import {
   DEFAULT_MODELS,
   OpenaiPath,
   REQUEST_TIMEOUT_MS,
-} from "@/app/constant";
-import { useAccessStore, useAppConfig, useChatStore } from "@/app/store";
+} from "../../constant";
+import { useAccessStore, useAppConfig, useChatStore } from "../../store";
 
 import { ChatOptions, getHeaders, LLMApi, LLMModel, LLMUsage } from "../api";
 import Locale from "../../locales";
@@ -12,7 +12,7 @@ import {
   EventStreamContentType,
   fetchEventSource,
 } from "@fortaine/fetch-event-source";
-import { prettyObject } from "@/app/utils/format";
+import { prettyObject } from "../../utils/format";
 
 export interface OpenAIListModelResponse {
   object: string;

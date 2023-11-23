@@ -1,7 +1,7 @@
-import { type OpenAIListModelResponse } from "@/app/client/platforms/openai";
-import { getServerSideConfig } from "@/app/config/server";
-import { OpenaiPath } from "@/app/constant";
-import { prettyObject } from "@/app/utils/format";
+import { type OpenAIListModelResponse } from "../../../../chatbot/client/platforms/openai";
+import { getServerSideConfig } from "../../../../chatbot/config/server";
+import { OpenaiPath } from "../../../../chatbot/constant";
+import { prettyObject } from "../../../../chatbot/utils/format";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../auth";
 import { requestOpenai } from "../../common";
