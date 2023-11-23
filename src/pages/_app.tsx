@@ -15,6 +15,7 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage from 'AppPage';
+import { getClientConfig } from '../chatbot/config/client';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
@@ -26,6 +27,9 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
           <title>远图</title>
           <meta name='viewport' content='width=device-width, initial-scale=1' />
           <meta name='theme-color' content='#000000' />
+
+          {/*for /chatbot page*/}
+          <meta name="config" content={JSON.stringify(getClientConfig())} />
         </Head>
 
         <SwitchBoard wide={Component.wide} {...pageProps}>
