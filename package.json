@@ -60,6 +60,7 @@
     "react-icons": "^4.3.1",
     "react-is": "^18.0.0",
     "react-markdown": "^8.0.7",
+    "react-router-dom": "^6.6.1",
     "react-select": "^5.7.2",
     "react-table": "^7.8.0",
     "react-toastify": "^9.1.1",
@@ -82,8 +83,7 @@
     "uuid": "^9.0.1",
     "web-vitals": "^1.1.2",
     "zod": "^3.22.3",
-    "zustand": "^4.4.6",
-    "react-router-dom": "^6.6.1"
+    "zustand": "^4.4.6"
   },
   "scripts": {
     "sync-database": "ts-node tools/syncDatabase.ts",
@@ -113,6 +113,7 @@
   },
   "devDependencies": {
     "@babel/register": "^7.18.9",
+    "@svgr/webpack": "^6.5.1",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.7.6",
@@ -120,6 +121,7 @@
     "@types/react": "^18.0.17",
     "@types/react-calendar": "^3.5.2",
     "@types/react-table": "^7.7.12",
+    "@types/spark-md5": "^3.0.4",
     "chai": "^4.3.7",
     "cypress": "^13.3.1",
     "eslint": "^8.23.0",
@@ -130,7 +132,6 @@
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "regenerator-runtime": "^0.13.11",
-    "ts-node": "^10.9.1",
-    "@svgr/webpack": "^6.5.1"
+    "ts-node": "^10.9.1"
   }
 }
