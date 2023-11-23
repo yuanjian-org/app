@@ -1,4 +1,5 @@
-import DeleteIcon from "../icons/clear.svg";
+import DeleteIcon from "../icons/delete.svg";
+import BotIcon from "../icons/bot.svg";
 
 import styles from "./home.module.scss";
 import {
@@ -12,11 +13,11 @@ import { useChatStore } from "../store";
 
 import Locale from "../locales";
 import { Link, useNavigate } from "react-router-dom";
+import { Path } from "../constant";
 import { MaskAvatar } from "./mask";
 import { Mask } from "../store/mask";
 import { useRef, useEffect } from "react";
 import { showConfirm } from "./ui-lib";
-import { AddIcon } from "@chakra-ui/icons";
 
 export function ChatItem(props: {
   onClick?: () => void;
@@ -79,10 +80,7 @@ export function ChatItem(props: {
 
           <div
             className={styles["chat-item-delete"]}
-            onClickCapture={(e) => {
-              e.stopPropagation();
-              props.onDelete?.();
-            }}
+            onClickCapture={props.onDelete}
           >
             <DeleteIcon />
           </div>
@@ -129,21 +127,6 @@ export function ChatList(props: { narrow?: boolean }) {
             ref={provided.innerRef}
             {...provided.droppableProps}
           >
-            <div
-              className={`${styles["chat-item"]}`}
-              onClick={() => {
-                chatStore.newSession();
-              }}
-            >
-              <div className={styles["chat-item-title"]}>
-                <AddIcon style={{display: 'inline-block'}} /> <span>New conversation</span>
-              </div>
-              <div className={styles["chat-item-info"]}>
-                <div className={styles["chat-item-count"]}>
-                  Boost your productivity by asking ChatGPT
-                </div>
-              </div>
-            </div>
             {sessions.map((item, i) => (
               <ChatItem
                 title={item.topic}
@@ -154,7 +137,7 @@ export function ChatList(props: { narrow?: boolean }) {
                 index={i}
                 selected={i === selectedIndex}
                 onClick={() => {
-                  // navigate(Path.Chat);
+                  navigate(Path.Chat);
                   selectSession(i);
                 }}
                 onDelete={async () => {

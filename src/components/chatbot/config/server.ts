@@ -41,6 +41,7 @@ export const getServerSideConfig = () => {
     apiKey: process.env.OPENAI_API_KEY,
     code: process.env.CODE,
     codes: ACCESS_CODES,
+    needCode: ACCESS_CODES.size > 0,
     baseUrl: process.env.BASE_URL,
     proxyUrl: process.env.PROXY_URL,
     isVercel: !!process.env.VERCEL,

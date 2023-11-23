@@ -11,13 +11,12 @@ import {
   DEFAULT_INPUT_TEMPLATE,
   DEFAULT_SYSTEM_TEMPLATE,
   StoreKey,
-  prettyObject,
-  estimateTokenLength
-} from "../shared";
+} from "../constant";
 import { api, RequestMessage } from "../client/api";
 import { ChatControllerPool } from "../client/controller";
+import { prettyObject } from "../utils/format";
+import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
-import invariant from "tiny-invariant";
 
 export type ChatMessage = RequestMessage & {
   date: string;
@@ -83,13 +82,13 @@ function createEmptySession(): ChatSession {
 
 interface ChatStore {
   sessions: ChatSession[];
-  currentSessionIndex: number | undefined;
+  currentSessionIndex: number;
   clearSessions: () => void;
   moveSession: (from: number, to: number) => void;
-  selectSession: (index: number | undefined) => void;
+  selectSession: (index: number) => void;
   newSession: (mask?: Mask) => void;
   deleteSession: (index: number) => void;
-  currentSession: () => ChatSession | undefined;
+  currentSession: () => ChatSession;
   nextSession: (delta: number) => void;
   onNewMessage: (message: ChatMessage) => void;
   onUserInput: (content: string) => Promise<void>;
@@ -138,17 +137,17 @@ function fillTemplateWith(input: string, modelConfig: ModelConfig) {
 export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
-      sessions: [],
-      currentSessionIndex: undefined,
+      sessions: [createEmptySession()],
+      currentSessionIndex: 0,
 
       clearSessions() {
         set(() => ({
-          sessions: [],
-          currentSessionIndex: undefined,
+          sessions: [createEmptySession()],
+          currentSessionIndex: 0,
         }));
       },
 
-      selectSession(index: number | undefined) {
+      selectSession(index: number) {
         set({
           currentSessionIndex: index,
         });
@@ -157,7 +156,6 @@ export const useChatStore = create<ChatStore>()(
       moveSession(from: number, to: number) {
         set((state) => {
           const { sessions, currentSessionIndex: oldIndex } = state;
-          invariant(oldIndex !== undefined);
 
           // move the session
           const newSessions = [...sessions];
@@ -207,14 +205,28 @@ export const useChatStore = create<ChatStore>()(
         const n = get().sessions.length;
         const limit = (x: number) => (x + n) % n;
         const i = get().currentSessionIndex;
-        invariant(i !== undefined);
         get().selectSession(limit(i + delta));
       },
 
       deleteSession(index) {
+        const deletingLastSession = get().sessions.length === 1;
         const deletedSession = get().sessions.at(index);
 
         if (!deletedSession) return;
+
+        const sessions = get().sessions.slice();
+        sessions.splice(index, 1);
+
+        const currentIndex = get().currentSessionIndex;
+        let nextIndex = Math.min(
+          currentIndex - Number(index < currentIndex),
+          sessions.length - 1,
+        );
+
+        if (deletingLastSession) {
+          nextIndex = 0;
+          sessions.push(createEmptySession());
+        }
 
         // for undo delete action
         const restoreState = {
@@ -222,11 +234,8 @@ export const useChatStore = create<ChatStore>()(
           sessions: get().sessions.slice(),
         };
 
-        const sessions = get().sessions.slice();
-        sessions.splice(index, 1);
-
         set(() => ({
-          currentSessionIndex: undefined, // back to list
+          currentSessionIndex: nextIndex,
           sessions,
         }));
 
@@ -244,10 +253,6 @@ export const useChatStore = create<ChatStore>()(
 
       currentSession() {
         let index = get().currentSessionIndex;
-        if (index === undefined) {
-          return undefined;
-        }
-
         const sessions = get().sessions;
 
         if (index < 0 || index >= sessions.length) {
@@ -271,10 +276,6 @@ export const useChatStore = create<ChatStore>()(
 
       async onUserInput(content) {
         const session = get().currentSession();
-        if (!session) {
-          return;
-        }
-
         const modelConfig = session.mask.modelConfig;
 
         const userContent = fillTemplateWith(content, modelConfig);
@@ -294,7 +295,7 @@ export const useChatStore = create<ChatStore>()(
         // get recent messages
         const recentMessages = get().getMessagesWithMemory();
         const sendMessages = recentMessages.concat(userMessage);
-        const messageIndex = session.messages.length + 1;
+        const messageIndex = get().currentSession().messages.length + 1;
 
         // save user's and bot's message
         get().updateCurrentSession((session) => {
@@ -363,13 +364,6 @@ export const useChatStore = create<ChatStore>()(
 
       getMemoryPrompt() {
         const session = get().currentSession();
-        if (!session) {
-          return {
-            role: "system",
-            content: "",
-            date: "",
-          } as ChatMessage;
-        }
 
         return {
           role: "system",
@@ -383,10 +377,6 @@ export const useChatStore = create<ChatStore>()(
 
       getMessagesWithMemory() {
         const session = get().currentSession();
-        if (!session) {
-          return [];
-        }
-
         const modelConfig = session.mask.modelConfig;
         const clearContextIndex = session.clearContextIndex ?? 0;
         const messages = session.messages.slice();
@@ -490,9 +480,6 @@ export const useChatStore = create<ChatStore>()(
 
       summarizeSession() {
         const session = get().currentSession();
-        if (!session) {
-          return;
-        }
 
         // remove error messages if any
         const messages = session.messages;
@@ -591,10 +578,6 @@ export const useChatStore = create<ChatStore>()(
       updateCurrentSession(updater) {
         const sessions = get().sessions;
         const index = get().currentSessionIndex;
-        if (index === undefined) {
-          return;
-        }
-
         updater(sessions[index]);
         set(() => ({ sessions }));
       },

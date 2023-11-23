@@ -1,7 +1,7 @@
-import { getClientConfig } from "../edge";
-import { ChatMessage, ModelType } from "../store";
+import { getClientConfig } from "../config/client";
+import { ACCESS_CODE_PREFIX } from "../constant";
+import { ChatMessage, ModelType, useAccessStore } from "../store";
 import { ChatGPTApi } from "./platforms/openai";
-import { useAccessStore } from "../accessStore";
 
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
@@ -125,24 +125,26 @@ export class ClientApi {
 
 export const api = new ClientApi();
 
-export function getHeaders(isLocal?: boolean) {
+export function getHeaders() {
   const accessStore = useAccessStore.getState();
   let headers: Record<string, string> = {
     "Content-Type": "application/json",
     "x-requested-with": "XMLHttpRequest",
-    'Client-Time': "" + Date.now(),
   };
 
   const makeBearer = (token: string) => `Bearer ${token.trim()}`;
   const validString = (x: string) => x && x.length > 0;
 
   // use user's api key first
-  if (isLocal && validString(accessStore.openAiApiKey)) {
-    headers.Authorization = makeBearer(accessStore.openAiApiKey);
-  }
-
-  if (isLocal) {
-    headers['Union-Local-Proxy'] = accessStore.localProxy;
+  if (validString(accessStore.token)) {
+    headers.Authorization = makeBearer(accessStore.token);
+  } else if (
+    accessStore.enabledAccessControl() &&
+    validString(accessStore.accessCode)
+  ) {
+    headers.Authorization = makeBearer(
+      ACCESS_CODE_PREFIX + accessStore.accessCode,
+    );
   }
 
   return headers;

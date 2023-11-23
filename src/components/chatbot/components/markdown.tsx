@@ -5,15 +5,14 @@ import RemarkBreaks from "remark-breaks";
 import RehypeKatex from "rehype-katex";
 import RemarkGfm from "remark-gfm";
 import RehypeHighlight from "rehype-highlight";
-import {useRef, useState, RefObject, useEffect, useCallback} from "react";
+import { useRef, useState, RefObject, useEffect } from "react";
 import { copyToClipboard } from "../utils";
 import mermaid from "mermaid";
 
 import LoadingIcon from "../icons/three-dots.svg";
 import React from "react";
 import { useDebouncedCallback, useThrottledCallback } from "use-debounce";
-import {showImageModal, showToast} from "./ui-lib";
-import { CopyIcon } from "@chakra-ui/icons";
+import { showImageModal } from "./ui-lib";
 
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -67,7 +66,7 @@ export function Mermaid(props: { code: string }) {
   );
 }
 
-export function PreCode(props: { className?: string, children: any }) {
+export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
   const refText = ref.current?.innerText;
   const [mermaidCode, setMermaidCode] = useState("");
@@ -91,38 +90,16 @@ export function PreCode(props: { className?: string, children: any }) {
         <Mermaid code={mermaidCode} key={mermaidCode} />
       )}
       <pre ref={ref}>
-        <div className={'actions'}>
-          <button
-            onClick={() => {
-              if (ref.current) {
-                const code = ref.current.innerText;
-                copyToClipboard(code);
-              }
-            }}
-          >
-            <CopyIcon width={12} height={12} />
-          </button>
-        </div>
-
+        <span
+          className="copy-code-button"
+          onClick={() => {
+            if (ref.current) {
+              const code = ref.current.innerText;
+              copyToClipboard(code);
+            }
+          }}
+        ></span>
         {props.children}
-        <style jsx>{`
-          pre {
-            position: relative;
-          }
-          .actions {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            opacity: 0;
-            
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-          }
-          pre:hover .actions {
-            opacity: 1;
-          }
-        `}</style>
       </pre>
     </>
   );

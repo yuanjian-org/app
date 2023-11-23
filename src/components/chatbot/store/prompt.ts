@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Fuse from "fuse.js";
 import { getLang } from "../locales";
-import { StoreKey } from "../shared";
+import { StoreKey } from "../constant";
 import { nanoid } from "nanoid";
 
 export interface Prompt {
@@ -158,7 +158,10 @@ export const usePromptStore = create<PromptStore>()(
         fetch(PROMPT_URL)
           .then((res) => res.json())
           .then((res) => {
-            let fetchPrompts = [res.en];
+            let fetchPrompts = [res.en, res.cn];
+            if (getLang() === "cn") {
+              fetchPrompts = fetchPrompts.reverse();
+            }
             const builtinPrompts = fetchPrompts.map(
               (promptList: PromptList) => {
                 return promptList.map(

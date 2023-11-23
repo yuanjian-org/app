@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import {ChatMessage, ChatSession, useAppConfig, useChatStore} from "../store";
-import { Updater } from "../shared";
+import { ChatMessage, useAppConfig, useChatStore } from "../store";
+import { Updater } from "../typing";
 import { IconButton } from "./button";
 import { Avatar } from "./emoji";
 import { MaskAvatar } from "./mask";
@@ -65,14 +65,13 @@ export function useMessageSelector() {
 }
 
 export function MessageSelector(props: {
-  session: ChatSession,
   selection: Set<string>;
   updateSelection: Updater<Set<string>>;
   defaultSelectAll?: boolean;
   onSelected?: (messages: ChatMessage[]) => void;
 }) {
   const chatStore = useChatStore();
-  const {session} = props;
+  const session = chatStore.currentSession();
   const isValid = (m: ChatMessage) => m.content && !m.isError && !m.streaming;
   const messages = session.messages.filter(
     (m, i) =>

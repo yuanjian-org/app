@@ -2,8 +2,8 @@ import styles from "./auth.module.scss";
 import { IconButton } from "./button";
 
 import { useNavigate } from "react-router-dom";
-import { Path } from "../shared";
-import { useAccessStore } from "../accessStore";
+import { Path } from "../constant";
+import { useAccessStore } from "../store";
 import Locale from "../locales";
 
 import BotIcon from "../icons/bot.svg";
@@ -23,15 +23,15 @@ export function AuthPage() {
       <div className={styles["auth-title"]}>{Locale.Auth.Title}</div>
       <div className={styles["auth-tips"]}>{Locale.Auth.Tips}</div>
 
-      {/*<input*/}
-      {/*  className={styles["auth-input"]}*/}
-      {/*  type="password"*/}
-      {/*  placeholder={Locale.Auth.Input}*/}
-      {/*  value={access.sessionToken}*/}
-      {/*  onChange={(e) => {*/}
-      {/*    access.updateSessionToken(e.currentTarget.value);*/}
-      {/*  }}*/}
-      {/*/>*/}
+      <input
+        className={styles["auth-input"]}
+        type="password"
+        placeholder={Locale.Auth.Input}
+        value={access.accessCode}
+        onChange={(e) => {
+          access.updateCode(e.currentTarget.value);
+        }}
+      />
 
       <div className={styles["auth-actions"]}>
         <IconButton

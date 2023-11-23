@@ -38,8 +38,9 @@ import { useNavigate } from "react-router-dom";
 import chatStyle from "./chat.module.scss";
 import { useEffect, useState } from "react";
 import { copyToClipboard, downloadAs, readFromFile } from "../utils";
-import { Updater, FileName, Path } from "../shared";
+import { Updater } from "../typing";
 import { ModelConfigList } from "./model-config";
+import { FileName, Path } from "../constant";
 import { BUILTIN_MASK_STORE } from "../masks";
 import { nanoid } from "nanoid";
 import {

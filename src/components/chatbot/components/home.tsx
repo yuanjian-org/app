@@ -12,7 +12,7 @@ import LoadingIcon from "../icons/three-dots.svg";
 import { getCSSVar, useMobileScreen } from "../utils";
 
 import dynamic from "next/dynamic";
-import { Path, SlotID } from "../shared";
+import { Path, SlotID } from "../constant";
 import { ErrorBoundary } from "./error";
 
 import { getLang } from "../locales";
@@ -26,8 +26,9 @@ import {
 import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
 import { AuthPage } from "./auth";
-import { getClientConfig } from "../shared";
+import { getClientConfig } from "../config/client";
 import { api } from "../client/api";
+import { useAccessStore } from "../store";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -126,7 +127,7 @@ function Screen() {
           config.tightBorder && !isMobileScreen
             ? styles["tight-container"]
             : styles.container
-        }`
+        } ${getLang() === "ar" ? styles["rtl-screen"] : ""}`
       }
     >
       {isAuth ? (
@@ -169,8 +170,8 @@ export function Home() {
   useLoadData();
 
   useEffect(() => {
-    // console.log("[Config] got config from build time", getClientConfig());
-    // useAccessStore.getState().fetch();
+    console.log("[Config] got config from build time", getClientConfig());
+    useAccessStore.getState().fetch();
   }, []);
 
   if (!useHasHydrated()) {

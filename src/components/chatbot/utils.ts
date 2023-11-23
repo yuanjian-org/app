@@ -8,9 +8,7 @@ export function trimTopic(topic: string) {
 
 export async function copyToClipboard(text: string) {
   try {
-    // @ts-ignore
     if (window.__TAURI__) {
-      // @ts-ignore
       window.__TAURI__.writeText(text);
     } else {
       await navigator.clipboard.writeText(text);

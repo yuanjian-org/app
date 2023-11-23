@@ -1,6 +1,7 @@
+import { Updater } from "../typing";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { StoreKey, Updater } from "../shared";
+import { StoreKey } from "../constant";
 
 export interface WebDavConfig {
   server: string;

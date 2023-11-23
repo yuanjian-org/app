@@ -28,8 +28,8 @@ export enum FileName {
 }
 
 export enum StoreKey {
-  Chat = "union-gpt-chat",
-  Access = "union-access",
+  Chat = "chat-next-web-store",
+  Access = "access-control",
   Config = "app-config",
   Mask = "mask-store",
   Prompt = "prompt-store",

@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { LLMModel } from "../client/api";
-import { getClientConfig, DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey, getOS } from "../shared";
+import { getClientConfig } from "../config/client";
+import { DEFAULT_INPUT_TEMPLATE, DEFAULT_MODELS, StoreKey } from "../constant";
 
 export type ModelType = (typeof DEFAULT_MODELS)[number]["name"];
 
@@ -20,12 +21,12 @@ export enum Theme {
 }
 
 export const DEFAULT_CONFIG = {
-  submitKey: (getOS() === 'macos' ? SubmitKey.MetaEnter : SubmitKey.CtrlEnter) as SubmitKey,
+  submitKey: SubmitKey.CtrlEnter as SubmitKey,
   avatar: "1f603",
   fontSize: 14,
   theme: Theme.Auto as Theme,
   tightBorder: !!getClientConfig()?.isApp,
-  sendPreviewBubble: false,
+  sendPreviewBubble: true,
   sidebarWidth: 300,
 
   disablePromptHint: false,
@@ -96,21 +97,7 @@ export const ModalConfigValidator = {
   },
 };
 
-export const useAppConfig = () => {
-  return {
-    ...DEFAULT_CONFIG,
-    reset: () => {},
-    update: () => {},
-    mergeModels: () => {},
-    allModels: () => {
-      return DEFAULT_CONFIG.models;
-    },
-  } as ChatConfigStore;
-};
-useAppConfig.getState = () => DEFAULT_CONFIG;
-
-/*
-const _useAppConfig = create<ChatConfigStore>()(
+export const useAppConfig = create<ChatConfigStore>()(
   persist(
     (set, get) => ({
       ...DEFAULT_CONFIG,
@@ -188,4 +175,3 @@ const _useAppConfig = create<ChatConfigStore>()(
     },
   ),
 );
-*/

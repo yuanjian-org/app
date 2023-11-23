@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
-// import * as jwtStrategy from 'next-auth/jwt'
-// import authBaseConfig from "../../server/authBaseConfig";
-import invariant from "tiny-invariant";
+import { getServerSideConfig } from "../config/server";
+import md5 from "spark-md5";
+import { ACCESS_CODE_PREFIX } from "../constant";
+
 function getIP(req: NextRequest) {
   let ip = req.ip ?? req.headers.get("x-real-ip");
   const forwardedFor = req.headers.get("x-forwarded-for");
@@ -12,61 +13,53 @@ function getIP(req: NextRequest) {
 
   return ip;
 }
-/*
-const sessionTokenName = authBaseConfig?.cookies?.sessionToken?.name;
-const secret = process.env.NEXTAUTH_SECRET;
-invariant(sessionTokenName !== undefined);
-invariant(secret !== undefined);
-const F_SESSION_TOKEN_NAME = Object.freeze({
-  value: sessionTokenName,
-});
-const F_SECRET = Object.freeze({
-  value: secret,
-});
 
+function parseApiKey(bearToken: string) {
+  const token = bearToken.trim().replaceAll("Bearer ", "").trim();
+  const isOpenAiKey = !token.startsWith(ACCESS_CODE_PREFIX);
 
-/!*
-Ensure the same parsing strategy with next-auth
-Copied from
-https://github.com/nextauthjs/next-auth/blob/28e4328704776fcf1c88003b3eb6e5c28d15d49c/packages/core/src/lib/routes/session.ts#L37
- *!/
-export const authDecode = async (token: string) => {
-  const decodedToken = await jwtStrategy.decode({ secret: F_SECRET.value, token: token }); // might throw error in this line as well
-
-  if (!decodedToken) {
-    throw new Error("Invalid JWT");
-  }
-  return decodedToken;
-}*/
-
-export async function auth(req: NextRequest) {
   return {
-    error: false as const,
-    decodedToken: undefined
+    accessCode: isOpenAiKey ? "" : token.slice(ACCESS_CODE_PREFIX.length),
+    apiKey: isOpenAiKey ? token : "",
   };
+}
 
-  console.log("[url] ", req.method, req.url);
+export function auth(req: NextRequest) {
+  const authToken = req.headers.get("Authorization") ?? "";
+
+  // check if it is openai api key or user token
+  const { accessCode, apiKey: token } = parseApiKey(authToken);
+
+  const hashedCode = md5.hash(accessCode ?? "").trim();
+
+  const serverConfig = getServerSideConfig();
+  console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
+  console.log("[Auth] got access code:", accessCode);
+  console.log("[Auth] hashed access code:", hashedCode);
   console.log("[User IP] ", getIP(req));
   console.log("[Time] ", new Date().toLocaleString());
 
-  const sessionToken = req.cookies.get(F_SESSION_TOKEN_NAME.value);
-
-  console.log("[sessionToken] ", F_SESSION_TOKEN_NAME.value, sessionToken);
-
-  try {
-    const sessionTokenValue = sessionToken?.value;
-    invariant(sessionTokenValue, 'sessionTokenValue');
-
-    const decodedToken = await authDecode(sessionTokenValue);
-
+  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !token) {
     return {
-      error: false as const,
-      decodedToken,
-    };
-  } catch (e) {
-    console.warn(e);
-    return {
-      error: true as const,
+      error: true,
+      msg: !accessCode ? "empty access code" : "wrong access code",
     };
   }
+
+  // if user does not provide an api key, inject system api key
+  if (!token) {
+    const apiKey = serverConfig.apiKey;
+    if (apiKey) {
+      console.log("[Auth] use system api key");
+      req.headers.set("Authorization", `Bearer ${apiKey}`);
+    } else {
+      console.log("[Auth] admin did not provide an api key");
+    }
+  } else {
+    console.log("[Auth] use user api key");
+  }
+
+  return {
+    error: false,
+  };
 }

@@ -22,7 +22,7 @@ import {
   NARROW_SIDEBAR_WIDTH,
   Path,
   REPO_URL,
-} from "../shared";
+} from "../constant";
 
 import { Link, useNavigate } from "react-router-dom";
 import { useMobileScreen } from "../utils";
@@ -162,7 +162,7 @@ export function SideBar(props: { className?: string }) {
             <IconButton
               icon={<CloseIcon />}
               onClick={async () => {
-                if (await showConfirm(Locale.Home.DeleteChat) && chatStore.currentSessionIndex) {
+                if (await showConfirm(Locale.Home.DeleteChat)) {
                   chatStore.deleteSession(chatStore.currentSessionIndex);
                 }
               }}

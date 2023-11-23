@@ -1,11 +1,12 @@
-import { SubmitKey } from "../store";
+import { SubmitKey } from "../store/config";
+import { LocaleType } from "./index";
 
 // if you are adding a new translation, please use PartialLocaleType instead of LocaleType
-const en = {
+const en: LocaleType = {
   WIP: "Coming Soon...",
   Error: {
     Unauthorized:
-      "Unauthorized access",
+      "Unauthorized access, please enter access code in [auth](/#/auth) page.",
   },
   Auth: {
     Title: "Need Access Code",
@@ -50,7 +51,6 @@ const en = {
     InputActions: {
       Stop: "Stop",
       ToBottom: "To Latest",
-      ToTop: "To Oldest",
       Theme: {
         auto: "Auto",
         light: "Light Theme",
@@ -68,8 +68,7 @@ const en = {
       if (submitKey === String(SubmitKey.Enter)) {
         inputHints += ", Shift + Enter to wrap";
       }
-      return inputHints;
-      // return inputHints + ", / to search prompts, : to use commands";
+      return inputHints + ", / to search prompts, : to use commands";
     },
     Send: "Send",
     Config: {
@@ -262,7 +261,7 @@ const en = {
     },
   },
   Store: {
-    DefaultTopic: "Untitled",
+    DefaultTopic: "New Conversation",
     BotHello: "Hello! How can I assist you today?",
     Error: "Something went wrong, please try again later.",
     Prompt: {
@@ -360,13 +359,3 @@ const en = {
 };
 
 export default en;
-
-type DeepPartial<T> = T extends object
-  ? {
-    [P in keyof T]?: DeepPartial<T[P]>;
-  }
-  : T;
-
-export type LocaleType = typeof en;
-export type PartialLocaleType = DeepPartial<typeof en>;
-

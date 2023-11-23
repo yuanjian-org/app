@@ -4,14 +4,12 @@ export const OPENAI_URL = "api.openai.com";
 const DEFAULT_PROTOCOL = "https";
 const PROTOCOL = process.env.PROTOCOL || DEFAULT_PROTOCOL;
 const BASE_URL = process.env.BASE_URL || OPENAI_URL;
-const DISABLE_GPT4 = true; // gpt4 is always disabled
+const DISABLE_GPT4 = !!process.env.DISABLE_GPT4;
 
 export async function requestOpenai(req: NextRequest) {
   const controller = new AbortController();
   const authValue = req.headers.get("Authorization") ?? "";
-  // console.log('requestOpenai', { authValue });
-  // TODO ${search} here?
-  const openaiPath = `${req.nextUrl.pathname}`.replaceAll(
+  const openaiPath = `${req.nextUrl.pathname}${req.nextUrl.search}`.replaceAll(
     "/api/openai/",
     "",
   );
@@ -37,7 +35,6 @@ export async function requestOpenai(req: NextRequest) {
     controller.abort();
   }, 10 * 60 * 1000);
 
-  const clonedBody = await req.text();
   const fetchUrl = `${baseUrl}/${openaiPath}`;
   const fetchOptions: RequestInit = {
     headers: {
@@ -49,7 +46,7 @@ export async function requestOpenai(req: NextRequest) {
       }),
     },
     method: req.method,
-    body: clonedBody,
+    body: req.body,
     // to fix #2485: https://stackoverflow.com/questions/55920957/cloudflare-worker-typeerror-one-time-use-body
     redirect: "manual",
     // @ts-ignore
@@ -60,6 +57,7 @@ export async function requestOpenai(req: NextRequest) {
   // #1815 try to refuse gpt4 request
   if (DISABLE_GPT4 && req.body) {
     try {
+      const clonedBody = await req.text();
       fetchOptions.body = clonedBody;
 
       const jsonBody = JSON.parse(clonedBody);
@@ -81,11 +79,6 @@ export async function requestOpenai(req: NextRequest) {
   }
 
   try {
-    // next-edge-runtime-app-loader will bundle this file into frontend
-    // so do NOT use node-fetch or https-proxy-agent when this is runtime='edge'
-    //
-    // And edge runtime is just a subset of node, it only supports fetch
-    // https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes#runtime-differences
     const res = await fetch(fetchUrl, fetchOptions);
 
     // to prevent browser prompt for credentials
@@ -102,19 +95,4 @@ export async function requestOpenai(req: NextRequest) {
   } finally {
     clearTimeout(timeoutId);
   }
-}
-
-export function getIP(req: NextRequest) {
-  let ip = req.ip ?? req.headers.get("x-real-ip");
-  const forwardedFor = req.headers.get("x-forwarded-for");
-
-  if (!ip && forwardedFor) {
-    ip = forwardedFor.split(",").at(0) ?? "";
-  }
-
-  return ip;
-}
-
-export function getUa(req: NextRequest) {
-  return req.headers.get("user-agent") ?? "";
 }

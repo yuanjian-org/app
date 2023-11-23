@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import {ChatMessage, ChatSession, useAppConfig, useChatStore} from "../store";
+import { ChatMessage, useAppConfig, useChatStore } from "../store";
 import Locale from "../locales";
 import styles from "./exporter.module.scss";
 import {
@@ -30,7 +30,9 @@ import NextImage from "next/image";
 import { toBlob, toJpeg, toPng } from "html-to-image";
 import { DEFAULT_MASK_AVATAR } from "../store/mask";
 import { api } from "../client/api";
-import { prettyObject, getClientConfig, EXPORT_MESSAGE_CLASS_NAME } from "../shared";
+import { prettyObject } from "../utils/format";
+import { EXPORT_MESSAGE_CLASS_NAME } from "../constant";
+import { getClientConfig } from "../config/client";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -144,10 +146,6 @@ export function MessageExporter() {
   const { selection, updateSelection } = useMessageSelector();
   const selectedMessages = useMemo(() => {
     const ret: ChatMessage[] = [];
-    if  (!session) {
-      return [];
-    }
-
     if (exportConfig.includeContext) {
       ret.push(...session.mask.context);
     }
@@ -155,7 +153,8 @@ export function MessageExporter() {
     return ret;
   }, [
     exportConfig.includeContext,
-    session,
+    session.messages,
+    session.mask.context,
     selection,
   ]);
 
@@ -206,14 +205,13 @@ export function MessageExporter() {
             ></input>
           </ListItem>
         </List>
-        {session && <MessageSelector
-          session={session}
+        <MessageSelector
           selection={selection}
           updateSelection={updateSelection}
           defaultSelectAll
-        />}
+        />
       </div>
-      {currentStep.value === "preview" && !!session && (
+      {currentStep.value === "preview" && (
         <div className={styles["message-exporter-body"]}>
           {exportConfig.format === "text" ? (
             <MarkdownPreviewer
@@ -221,7 +219,7 @@ export function MessageExporter() {
               topic={session.topic}
             />
           ) : (
-            <ImagePreviewer session={session} messages={selectedMessages} topic={session.topic} />
+            <ImagePreviewer messages={selectedMessages} topic={session.topic} />
           )}
         </div>
       )}
@@ -394,11 +392,11 @@ function ExportAvatar(props: { avatar: string }) {
 }
 
 export function ImagePreviewer(props: {
-  session: ChatSession,
   messages: ChatMessage[];
   topic: string;
 }) {
-  const {session} = props;
+  const chatStore = useChatStore();
+  const session = chatStore.currentSession();
   const mask = session.mask;
   const config = useAppConfig();
 

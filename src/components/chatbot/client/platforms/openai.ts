@@ -1,12 +1,10 @@
 import {
   DEFAULT_API_HOST,
   DEFAULT_MODELS,
-  OpenAIListModelResponse,
   OpenaiPath,
   REQUEST_TIMEOUT_MS,
-} from "../../shared";
-import { useAccessStore } from "../../accessStore";
-import { useAppConfig, useChatStore } from "../../store";
+} from "@/app/constant";
+import { useAccessStore, useAppConfig, useChatStore } from "@/app/store";
 
 import { ChatOptions, getHeaders, LLMApi, LLMModel, LLMUsage } from "../api";
 import Locale from "../../locales";
@@ -14,16 +12,25 @@ import {
   EventStreamContentType,
   fetchEventSource,
 } from "@fortaine/fetch-event-source";
-import { prettyObject } from "../../shared";
+import { prettyObject } from "@/app/utils/format";
+
+export interface OpenAIListModelResponse {
+  object: string;
+  data: Array<{
+    id: string;
+    object: string;
+    root: string;
+  }>;
+}
 
 export class ChatGPTApi implements LLMApi {
   private disableListModels = true;
 
   path(path: string): string {
-    let openaiUrl = useAccessStore.getState().getOpenaiUrl();
-    // if (openaiUrl.length === 0) {
-    //   openaiUrl = DEFAULT_API_HOST;
-    // }
+    let openaiUrl = useAccessStore.getState().openaiUrl;
+    if (openaiUrl.length === 0) {
+      openaiUrl = DEFAULT_API_HOST;
+    }
     if (openaiUrl.endsWith("/")) {
       openaiUrl = openaiUrl.slice(0, openaiUrl.length - 1);
     }
@@ -45,7 +52,7 @@ export class ChatGPTApi implements LLMApi {
 
     const modelConfig = {
       ...useAppConfig.getState().modelConfig,
-      // ...useChatStore.getState().currentSession().mask.modelConfig,
+      ...useChatStore.getState().currentSession().mask.modelConfig,
       ...{
         model: options.config.model,
       },
@@ -69,15 +76,11 @@ export class ChatGPTApi implements LLMApi {
 
     try {
       const chatPath = this.path(OpenaiPath.ChatPath);
-      const isLocal = chatPath.startsWith('/');
       const chatPayload = {
         method: "POST",
         body: JSON.stringify(requestPayload),
         signal: controller.signal,
-        headers: getHeaders(isLocal),
-        credentials: "include" as const,
-        // TODO but why there's no need to specify this on trpc related apis?
-        mode: isLocal ? "same-origin" as const : "cors" as const,
+        headers: getHeaders(),
       };
 
       // make a fetch request
