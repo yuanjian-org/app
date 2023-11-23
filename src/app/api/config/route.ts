@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getServerSideConfig } from "../../config/server";
+import { getServerSideConfig } from "../../../chatbot/config/server";
 
 const serverConfig = getServerSideConfig();
 

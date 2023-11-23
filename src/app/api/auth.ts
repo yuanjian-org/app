@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { getServerSideConfig } from "../config/server";
+import { getServerSideConfig } from "../../chatbot/config/server";
 import md5 from "spark-md5";
-import { ACCESS_CODE_PREFIX } from "../constant";
+import { ACCESS_CODE_PREFIX } from "../../chatbot/constant";
 
 function getIP(req: NextRequest) {
   let ip = req.ip ?? req.headers.get("x-real-ip");
