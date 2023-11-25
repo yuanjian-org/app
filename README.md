@@ -17,6 +17,7 @@ developed by VEF volunteers.
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
 1. If you use MacOS, run `chmod ug+x .husky/*` to activate husky/git hooks.
+1. If you use Windows, see `docs/SetupTroubleshoot.md` if you encounter issues when running yarn commands above during the setup.
 
 ## Code Structure
 
