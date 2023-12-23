@@ -19,8 +19,8 @@ const create = procedure
   .output(z.string())
   .mutation(async ({ input }) => 
 {
-  return (await db.Assessment.create({
-    partnershipId: input.mentorshipId,
+  return (await db.MentorshipAssessment.create({
+    mentorshipId: input.mentorshipId,
   })).id;
 });
 
@@ -32,7 +32,7 @@ const update = procedure
   }))
   .mutation(async ({ input }) => 
 {
-  const a = await db.Assessment.findByPk(input.id);
+  const a = await db.MentorshipAssessment.findByPk(input.id);
   if (!a) throw notFoundError("评估", input.id);
   await a.update({
     summary: input.summary,
@@ -45,7 +45,7 @@ const get = procedure
   .output(zAssessment)
   .query(async ({ input: id }) =>
 {
-  const a = await db.Assessment.findByPk(id, {
+  const a = await db.MentorshipAssessment.findByPk(id, {
     attributes: assessmentAttributes,
   });
   if (!a) throw notFoundError("评估", id);
@@ -53,7 +53,7 @@ const get = procedure
 });
 
 /**
- * Only the mentor of the specified partnership and mentor coaches are allowed to use this API.
+ * Only the mentor of the specified mentorship and mentor coaches are allowed to use this API.
  */
 const listAllForMentorship = procedure
   .use(authUser())
@@ -63,13 +63,13 @@ const listAllForMentorship = procedure
   .output(z.array(zAssessment))
   .query(async ({ ctx, input: { mentorshipId } }) =>
 {
-  const p = await db.Partnership.findByPk(mentorshipId, { attributes: ["mentorId"] });
+  const p = await db.Mentorship.findByPk(mentorshipId, { attributes: ["mentorId"] });
   if (p?.mentorId !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach")) {
     throw noPermissionError("一对一匹配", mentorshipId);
   }
 
-  return await db.Assessment.findAll({
-    where: { partnershipId: mentorshipId },
+  return await db.MentorshipAssessment.findAll({
+    where: { mentorshipId },
     attributes: assessmentAttributes,
   });
 });

@@ -43,7 +43,7 @@ const create = procedure
 
     let mentorship;
     try {
-      mentorship = await db.Partnership.create({
+      mentorship = await db.Mentorship.create({
         mentorId, menteeId
       }, { transaction });
     } catch (e: any) {
@@ -63,7 +63,7 @@ const list = procedure
   .output(z.array(zMentorship))
   .query(async () => 
 {
-  return await db.Partnership.findAll({ 
+  return await db.Mentorship.findAll({ 
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
   });
@@ -90,7 +90,7 @@ const listMineAsMentor = procedure
   .output(z.array(zMentorship))
   .query(async ({ ctx }) => 
 {
-  return await db.Partnership.findAll({
+  return await db.Mentorship.findAll({
     where: { mentorId: ctx.user.id },
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
@@ -107,7 +107,7 @@ const get = procedure
   .output(zMentorship)
   .query(async ({ ctx, input: id }) => 
 {
-  const res = await db.Partnership.findByPk(id, {
+  const res = await db.Mentorship.findByPk(id, {
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
   });
