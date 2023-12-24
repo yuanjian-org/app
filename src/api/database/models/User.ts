@@ -17,7 +17,7 @@ import {
   BelongsTo
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import { DATE, JSONB, Op, STRING, UUID, UUIDV4, ARRAY} from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -55,8 +55,12 @@ class User extends Model {
   })
   @AllowNull(false)
   @Default([])
-  @ZodColumn(JSONB, zRoles)
+  // @ZodColumn(JSONB, zRoles)
+  // roles: Role[];
+
+  @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
+
 
   @Column(DATE)
   consentFormAcceptedAt: string | null;
