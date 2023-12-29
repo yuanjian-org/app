@@ -123,12 +123,7 @@ function Screen() {
     <div
       className={
         'chatbot-root ' +
-        styles.container +
-        ` ${
-          config.tightBorder && !isMobileScreen
-            ? styles["tight-container"]
-            : styles.container
-        } ${getLang() === "ar" ? styles["rtl-screen"] : ""}`
+        styles.chatbotRoot
       }
     >
       {isAuth ? (

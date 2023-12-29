@@ -62,7 +62,7 @@
   --window-width: 90vw;
   --window-height: 90vh;
   --sidebar-width: 300px;
-  --window-content-width: calc(100% - var(--sidebar-width));
+  --window-content-width: calc(100% - var(--sidebar-width) - 140px);
   --message-max-width: 80%;
   --full-height: 100%;
 }

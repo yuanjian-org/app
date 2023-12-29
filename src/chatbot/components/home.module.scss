@@ -21,6 +21,22 @@
   @include container();
 }
 
+.chatbotRoot {
+  box-shadow: var(--shadow);
+  color: var(--black);
+  background-color: var(--white);
+
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  width: var(--window-width);
+  height: var(--window-height);
+
+  margin-top: -40px;
+  margin-left: -30px;
+}
+
 @media only screen and (min-width: 600px) {
   .tight-container {
     --window-width: 100vw;
@@ -96,6 +112,7 @@
 
 .window-content {
   width: var(--window-content-width);
+  background-color: white;
   height: 100%;
   display: flex;
   flex-direction: column;
