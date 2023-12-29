@@ -86,49 +86,25 @@
     @include dark;
   }
 }
-html {
-  height: var(--full-height);
 
-  font-family: "Noto Sans", "SF Pro SC", "SF Pro Text", "SF Pro Icons",
-    "PingFang SC", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-}
-
-body {
-  background-color: var(--gray);
-  color: var(--black);
-  margin: 0;
-  padding: 0;
-  height: var(--full-height);
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
-  touch-action: pan-x pan-y;
-
-  @media only screen and (max-width: 600px) {
-    background-color: var(--second);
-  }
-}
-
-::-webkit-scrollbar {
+.chatbot-root ::-webkit-scrollbar {
   --bar-width: 5px;
   width: var(--bar-width);
   height: var(--bar-width);
 }
 
-::-webkit-scrollbar-track {
+.chatbot-root ::-webkit-scrollbar-track {
   background-color: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.chatbot-root ::-webkit-scrollbar-thumb {
   background-color: var(--bar-color);
   border-radius: 20px;
   background-clip: content-box;
   border: 1px solid transparent;
 }
 
-select {
+.chatbot-root select {
   border: var(--border-in-light);
   padding: 10px;
   border-radius: 10px;
@@ -139,16 +115,16 @@ select {
   text-align: center;
 }
 
-label {
+.chatbot-root label {
   cursor: pointer;
 }
 
-input {
+.chatbot-root input {
   text-align: center;
   font-family: inherit;
 }
 
-input[type="checkbox"] {
+.chatbot-root input[type="checkbox"] {
   cursor: pointer;
   background-color: var(--white);
   color: var(--black);
@@ -162,7 +138,7 @@ input[type="checkbox"] {
   justify-content: center;
 }
 
-input[type="checkbox"]:checked::after {
+.chatbot-root input[type="checkbox"]:checked::after {
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -171,7 +147,7 @@ input[type="checkbox"]:checked::after {
   border-radius: 2px;
 }
 
-input[type="range"] {
+.chatbot-root input[type="range"] {
   appearance: none;
   background-color: var(--white);
   color: var(--black);
@@ -189,15 +165,15 @@ input[type="range"] {
   border: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+.chatbot-root input[type="range"]::-webkit-slider-thumb {
   @include thumb();
 }
 
-input[type="range"]::-moz-range-thumb {
+.chatbot-root input[type="range"]::-moz-range-thumb {
   @include thumb();
 }
 
-input[type="range"]::-ms-thumb {
+.chatbot-root input[type="range"]::-ms-thumb {
   @include thumb();
 }
 
@@ -206,21 +182,21 @@ input[type="range"]::-ms-thumb {
   width: 24px;
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
+.chatbot-root input[type="range"]::-webkit-slider-thumb:hover {
   @include thumbHover();
 }
 
-input[type="range"]::-moz-range-thumb:hover {
+.chatbot-root input[type="range"]::-moz-range-thumb:hover {
   @include thumbHover();
 }
 
-input[type="range"]::-ms-thumb:hover {
+.chatbot-root input[type="range"]::-ms-thumb:hover {
   @include thumbHover();
 }
 
-input[type="number"],
-input[type="text"],
-input[type="password"] {
+.chatbot-root input[type="number"],
+.chatbot-root input[type="text"],
+.chatbot-root input[type="password"] {
   appearance: none;
   border-radius: 10px;
   border: var(--border-in-light);
@@ -233,11 +209,11 @@ input[type="password"] {
   font-family: inherit;
 }
 
-div.math {
+.chatbot-root div.math {
   overflow-x: auto;
 }
 
-.modal-mask {
+.chatbot-root .modal-mask {
   z-index: 9999;
   position: fixed;
   top: 0;
@@ -254,7 +230,7 @@ div.math {
   }
 }
 
-.link {
+.chatbot-root .link {
   font-size: 12px;
   color: var(--primary);
   text-decoration: none;
@@ -264,7 +240,7 @@ div.math {
   }
 }
 
-pre {
+.chatbot-root pre {
   position: relative;
 
   &:hover .copy-code-button {
@@ -298,7 +274,7 @@ pre {
   }
 }
 
-.clickable {
+.chatbot-root .clickable {
   cursor: pointer;
 
   &:hover {
@@ -309,7 +285,7 @@ pre {
   }
 }
 
-.error {
+.chatbot-root .error {
   width: 80%;
   border-radius: 20px;
   border: var(--border-in-light);
@@ -324,7 +300,7 @@ pre {
   }
 }
 
-.password-input-container {
+.chatbot-root .password-input-container {
   max-width: 50%;
   display: flex;
   justify-content: flex-end;
@@ -338,7 +314,7 @@ pre {
   }
 }
 
-.user-avatar {
+.chatbot-root .user-avatar {
   height: 30px;
   min-height: 30px;
   width: 30px;
@@ -351,7 +327,7 @@ pre {
   border-radius: 10px;
 }
 
-.one-line {
+.chatbot-root .one-line {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

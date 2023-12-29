@@ -1,4 +1,4 @@
-.window-header {
+.chatbot-root .window-header {
   padding: 14px 20px;
   border-bottom: rgba(0, 0, 0, 0.1) 1px solid;
   position: relative;
@@ -8,7 +8,7 @@
   align-items: center;
 }
 
-.window-header-title {
+.chatbot-root .window-header-title {
   max-width: calc(100% - 100px);
   overflow: hidden;
 
@@ -27,10 +27,10 @@
   }
 }
 
-.window-actions {
+.chatbot-root .window-actions {
   display: inline-flex;
 }
 
-.window-action-button:not(:first-child) {
+.chatbot-root .window-action-button:not(:first-child) {
   margin-left: 10px;
 }

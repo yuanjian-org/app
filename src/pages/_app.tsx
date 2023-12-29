@@ -1,4 +1,7 @@
 import '../app.css';
+import "../chatbot/styles/globals.scss";
+import "../chatbot/styles/markdown.scss";
+import "../chatbot/styles/highlight.scss";
 import 'react-toastify/dist/ReactToastify.min.css';
 
 import { ChakraProvider } from '@chakra-ui/react';

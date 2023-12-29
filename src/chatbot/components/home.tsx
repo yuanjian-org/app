@@ -122,6 +122,7 @@ function Screen() {
   return (
     <div
       className={
+        'chatbot-root ' +
         styles.container +
         ` ${
           config.tightBorder && !isMobileScreen
