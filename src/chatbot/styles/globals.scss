@@ -44,11 +44,11 @@
   }
 }
 
-.light {
+.light .chatbot-root {
   @include light;
 }
 
-.dark {
+.dark .chatbot-root {
   @include dark;
 }
 

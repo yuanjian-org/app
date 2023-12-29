@@ -101,11 +101,11 @@
   word-wrap: break-word;
 }
 
-.chatbot-root .light {
+.light .chatbot-root  {
   @include light;
 }
 
-.chatbot-root .dark {
+.dark .chatbot-root {
   @include dark;
 }
 
