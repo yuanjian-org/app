@@ -38,7 +38,7 @@
 }
 
 .chatContentOverride {
-  width: 100vw; // as a flex children, 100vw will be shrinked to the suitable size.
+  width: 100vw !important; // as a flex children, 100vw will be shrinked to the suitable size.
 }
 
 @media only screen and (min-width: 600px) {
