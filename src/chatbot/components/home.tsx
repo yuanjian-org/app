@@ -134,7 +134,7 @@ function Screen() {
         <>
           <SideBar className={isHome ? styles["sidebar-show"] : ""} />
 
-          <div className={styles["window-content"]} id={SlotID.AppBody}>
+          <div className={styles["window-content"] + ` ${styles.chatContentOverride}`} id={SlotID.AppBody}>
             <Routes>
               <Route path={Path.Home} element={<Chat />} />
               <Route path={Path.NewChat} element={<NewChat />} />
