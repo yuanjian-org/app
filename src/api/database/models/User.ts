@@ -17,7 +17,7 @@ import {
   BelongsTo
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { DATE, JSONB, Op, STRING, UUID, UUIDV4, ARRAY} from "sequelize";
+import { DATE, JSONB, Op, STRING, UUID, UUIDV4, ARRAY } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
