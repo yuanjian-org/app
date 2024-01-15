@@ -12,7 +12,6 @@ export interface AccessControlStore {
   needCode: boolean;
   hideUserApiKey: boolean;
   hideBalanceQuery: boolean;
-  disableGPT4: boolean;
 
   openaiUrl: string;
 
@@ -79,11 +78,9 @@ export const useAccessStore = create<AccessControlStore>()(
             console.log("[Config] got config from server", res);
             set(() => ({ ...res }));
 
-            if (res.disableGPT4) {
-              DEFAULT_MODELS.forEach(
-                (m: any) => (m.available = !m.name.startsWith("gpt-4")),
-              );
-            }
+            DEFAULT_MODELS.forEach(
+              (m: any) => (m.available = !m.name.startsWith("gpt-4")),
+            );
           })
           .catch(() => {
             console.error("[Config] failed to fetch config");
