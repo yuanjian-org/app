@@ -76,7 +76,7 @@ export async function requestOpenai(req: NextRequest) {
       );
     }
 
-    fetchOptions.body = clonedBody;
+    fetchOptions.body = JSON.stringify(jsonBody);
   } catch (e) {
     console.error("[OpenAI] gpt4 filter", e);
   }
