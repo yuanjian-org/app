@@ -463,35 +463,35 @@ export function ChatActions(props: {
         />
       )}
 
-      <ChatAction
-        onClick={nextTheme}
-        text={Locale.Chat.InputActions.Theme[theme]}
-        icon={
-          <>
-            {theme === Theme.Auto ? (
-              <AutoIcon />
-            ) : theme === Theme.Light ? (
-              <LightIcon />
-            ) : theme === Theme.Dark ? (
-              <DarkIcon />
-            ) : null}
-          </>
-        }
-      />
+      {/*<ChatAction*/}
+      {/*  onClick={nextTheme}*/}
+      {/*  text={Locale.Chat.InputActions.Theme[theme]}*/}
+      {/*  icon={*/}
+      {/*    <>*/}
+      {/*      {theme === Theme.Auto ? (*/}
+      {/*        <AutoIcon />*/}
+      {/*      ) : theme === Theme.Light ? (*/}
+      {/*        <LightIcon />*/}
+      {/*      ) : theme === Theme.Dark ? (*/}
+      {/*        <DarkIcon />*/}
+      {/*      ) : null}*/}
+      {/*    </>*/}
+      {/*  }*/}
+      {/*/>*/}
 
-      <ChatAction
-        onClick={props.showPromptHints}
-        text={Locale.Chat.InputActions.Prompt}
-        icon={<PromptIcon />}
-      />
+      {/*<ChatAction*/}
+      {/*  onClick={props.showPromptHints}*/}
+      {/*  text={Locale.Chat.InputActions.Prompt}*/}
+      {/*  icon={<PromptIcon />}*/}
+      {/*/>*/}
 
-      <ChatAction
-        onClick={() => {
-          navigate(Path.Masks);
-        }}
-        text={Locale.Chat.InputActions.Masks}
-        icon={<MaskIcon />}
-      />
+      {/*<ChatAction*/}
+      {/*  onClick={() => {*/}
+      {/*    navigate(Path.Masks);*/}
+      {/*  }}*/}
+      {/*  text={Locale.Chat.InputActions.Masks}*/}
+      {/*  icon={<MaskIcon />}*/}
+      {/*/>*/}
 
       <ChatAction
         text={Locale.Chat.InputActions.Clear}
@@ -508,30 +508,30 @@ export function ChatActions(props: {
         }}
       />
 
-      <ChatAction
-        onClick={() => setShowModelSelector(true)}
-        text={currentModel}
-        icon={<RobotIcon />}
-      />
-
-      {showModelSelector && (
-        <Selector
-          defaultSelectedValue={currentModel}
-          items={models.map((m) => ({
-            title: m,
-            value: m,
-          }))}
-          onClose={() => setShowModelSelector(false)}
-          onSelection={(s) => {
-            if (s.length === 0) return;
-            chatStore.updateCurrentSession((session) => {
-              session.mask.modelConfig.model = s[0] as ModelType;
-              session.mask.syncGlobalConfig = false;
-            });
-            showToast(s[0]);
-          }}
-        />
-      )}
+      {/*<ChatAction*/}
+      {/*  onClick={() => setShowModelSelector(true)}*/}
+      {/*  text={currentModel}*/}
+      {/*  icon={<RobotIcon />}*/}
+      {/*/>*/}
+      {/**/}
+      {/*{showModelSelector && (*/}
+      {/*  <Selector*/}
+      {/*    defaultSelectedValue={currentModel}*/}
+      {/*    items={models.map((m) => ({*/}
+      {/*      title: m,*/}
+      {/*      value: m,*/}
+      {/*    }))}*/}
+      {/*    onClose={() => setShowModelSelector(false)}*/}
+      {/*    onSelection={(s) => {*/}
+      {/*      if (s.length === 0) return;*/}
+      {/*      chatStore.updateCurrentSession((session) => {*/}
+      {/*        session.mask.modelConfig.model = s[0] as ModelType;*/}
+      {/*        session.mask.syncGlobalConfig = false;*/}
+      {/*      });*/}
+      {/*      showToast(s[0]);*/}
+      {/*    }}*/}
+      {/*  />*/}
+      {/*)}*/}
     </div>
   );
 }
@@ -1050,36 +1050,36 @@ function _Chat() {
               />
             </div>
           )}
-          <div className="window-action-button">
-            <IconButton
-              icon={<ExportIcon />}
-              bordered
-              title={Locale.Chat.Actions.Export}
-              onClick={() => {
-                setShowExport(true);
-              }}
-            />
-          </div>
-          {showMaxIcon && (
-            <div className="window-action-button">
-              <IconButton
-                icon={config.tightBorder ? <MinIcon /> : <MaxIcon />}
-                bordered
-                onClick={() => {
-                  config.update(
-                    (config) => (config.tightBorder = !config.tightBorder),
-                  );
-                }}
-              />
-            </div>
-          )}
+          {/*<div className="window-action-button">*/}
+          {/*  <IconButton*/}
+          {/*    icon={<ExportIcon />}*/}
+          {/*    bordered*/}
+          {/*    title={Locale.Chat.Actions.Export}*/}
+          {/*    onClick={() => {*/}
+          {/*      setShowExport(true);*/}
+          {/*    }}*/}
+          {/*  />*/}
+          {/*</div>*/}
+          {/*{showMaxIcon && (*/}
+          {/*  <div className="window-action-button">*/}
+          {/*    <IconButton*/}
+          {/*      icon={config.tightBorder ? <MinIcon /> : <MaxIcon />}*/}
+          {/*      bordered*/}
+          {/*      onClick={() => {*/}
+          {/*        config.update(*/}
+          {/*          (config) => (config.tightBorder = !config.tightBorder),*/}
+          {/*        );*/}
+          {/*      }}*/}
+          {/*    />*/}
+          {/*  </div>*/}
+          {/*)}*/}
         </div>
 
-        <PromptToast
-          showToast={!hitBottom}
-          showModal={showPromptModal}
-          setShowModal={setShowPromptModal}
-        />
+        {/*<PromptToast*/}
+        {/*  showToast={!hitBottom}*/}
+        {/*  showModal={showPromptModal}*/}
+        {/*  setShowModal={setShowPromptModal}*/}
+        {/*/>*/}
       </div>
 
       <div
