@@ -75,14 +75,7 @@ const updateNameMap = procedure
   })))
   .mutation(async ({ input: nameMap }) =>
 {
-  // Construct an array of objects to upsert multiple rows the same time
-  const upsertArray = Object.entries(nameMap)
-    .map(([handlebarName, userId]) => ({
-      handlebarName,
-      userId,
-    }));
-
-  await db.TranscriptNameMap.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
+  await db.TranscriptNameMap.bulkCreate(nameMap, { updateOnDuplicate: ['userId'] });
 });
 
 export default router({

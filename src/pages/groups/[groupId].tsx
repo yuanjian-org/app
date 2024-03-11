@@ -15,6 +15,6 @@ export default function Page() {
 
   return !group ? <Loader /> : <Stack spacing={sectionSpacing}>
     <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false} marginBottom={paragraphSpacing} />
-    <Transcripts groupId={group.id} />
+    <Transcripts groupId={group.id} groupUsers={group.users}/>
   </Stack>;
 };
