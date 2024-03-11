@@ -24,7 +24,7 @@ import z from "zod";
 import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
 import GroupUser from "./GroupUser";
-import Partnership from "./Partnership";
+import Mentorship from "./Mentorship";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -92,8 +92,8 @@ class User extends Model {
   @HasMany(() => Interview)
   interviews: Interview[];
 
-  @HasMany(() => Partnership, { foreignKey: 'mentorId' })
-  mentorshipsAsMentor: Partnership[];
+  @HasMany(() => Mentorship, { foreignKey: 'mentorId' })
+  mentorshipsAsMentor: Mentorship[];
   
   @BelongsTo(() => User, { foreignKey: 'coachId' })
   coach: User | null;
@@ -105,7 +105,7 @@ class User extends Model {
         where: { userId: user.id },
         ...options
       });
-      await Partnership.destroy({
+      await Mentorship.destroy({
         where: {
           [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
         },

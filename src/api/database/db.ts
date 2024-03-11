@@ -7,8 +7,8 @@ import GroupUser from "./models/GroupUser";
 import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
 import OngoingMeetings from "./models/OngoingMeetings";
-import Partnership from './models/Partnership';
-import Assessment from "./models/Assessment";
+import Mentorship from './models/Mentorship';
+import MentorshipAssessment from "./models/MentorshipAssessment";
 import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";
 import Calibration from "./models/Calibration";
@@ -18,14 +18,14 @@ import ChatMessage from "./models/ChatMessage";
 import TranscriptNameMap from "./models/TranscriptNameMap";
 
 const db = {
-  Partnership,
+  Mentorship,
   User,
   Group,
   GroupUser,
   Transcript,
   Summary,
   OngoingMeetings,
-  Assessment,
+  MentorshipAssessment,
   Interview,
   InterviewFeedback,
   InterviewFeedbackUpdateAttempt,
