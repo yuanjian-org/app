@@ -37,14 +37,18 @@ const allUsers = [...mentees, ...mentors];
 main().then();
 
 async function main() {
-  const mgrs = await getUserManagers();
-  if (mgrs.length == 0) {
-    console.error('ERROR: No uesr is found. Please follow README.md and log into your local server first.');
-    process.exit(1);
+  let users = await getUserManagers();
+  if (users.length == 0) {
+    users = await User.findAll();
+    if (users.length !== 1) {
+      console.error('ERROR: Zero or multiple users are found and none of them are UserManagers. Please follow README.md and log into your local server first.');
+      process.exit(1);
+    }
   }
-  await upgradeUsers(mgrs);
+
+  await upgradeUsers(users);
   await generateUsers();
-  await generateGroupsAndSummaries(mgrs);
+  await generateGroupsAndSummaries(users);
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
 }
