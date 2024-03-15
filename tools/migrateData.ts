@@ -6,7 +6,10 @@ import { exec } from "child_process";
 export default async function migrateData() {
   console.log("Migrating...");
 
+  // To create migration scripts, see details in the link below:
+  // https://sequelize.org/docs/v6/other-topics/migrations/#migration-skeleton
   await new Promise((resolve, reject) => {
+    // executing all scripts in /migrations/*.js
     exec('npx sequelize-cli db:migrate --config config/sequelize-cli-config.js', (error, stdout, stderr) => {
       if (error) {
         console.error(`Error: ${error.message}`);
