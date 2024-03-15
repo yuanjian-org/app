@@ -8,8 +8,8 @@ async function sync() {
   // Register the next-auth adapter so sequelize.sync() will create tables for next-auth.
   const _ = adapter;
 
+  await migrateData(); // migrate any changes before syncing so no duplicated tables would be created
   await sequelize.sync({ alter: { drop: false } });
-  await migrateData();
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
 }
