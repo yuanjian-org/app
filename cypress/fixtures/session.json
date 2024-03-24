@@ -1,0 +1,29 @@
+{
+  "user": {
+      "roles": [
+          "SystemAlertSubscriber",
+          "RoleManager",
+          "UserManager",
+          "GroupManager",
+          "SummaryEngineer",
+          "MentorshipManager",
+          "MentorshipAssessor",
+          "InterviewManager",
+          "Mentor",
+          "Mentee",
+          "Interviewer",
+          "MentorCoach",
+          "PrivilegedRoleManager",
+          "PartnershipManager",
+          "PartnershipAssessor"
+      ],
+      "id": "59855859-2aff-4bc4-bcb6-f0fa42314b35",
+      "name": "乐一帆",
+      "wechat": null,
+      "sex": null,
+      "email": "lincolnleyf@gmail.com",
+      "consentFormAcceptedAt": "2023-07-01T21:49:49.832Z",
+      "menteeInterviewerTestLastPassedAt": null
+  },
+  "expires": "2124-03-25T02:33:10.566Z"
+}

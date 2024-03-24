@@ -96,6 +96,7 @@
   },
   "devDependencies": {
     "@babel/register": "^7.18.9",
+    "@testing-library/cypress": "^10.0.1",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.7.6",
@@ -104,7 +105,7 @@
     "@types/react-calendar": "^3.5.2",
     "@types/react-table": "^7.7.12",
     "chai": "^4.3.7",
-    "cypress": "^13.3.1",
+    "cypress": "^13.6.1",
     "eslint": "^8.23.0",
     "eslint-config-next": "^12.2.5",
     "eslint-nibble": "^8.1.0",
