@@ -165,7 +165,7 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         }
 
         if (!meeting.record_files) return;
-        invariant(meeting.record_files.length == 1);
+        invariant(meeting.record_files.length == 1, `Invariant violated: meeting.record_files.length != 1: ${JSON.stringify(meeting, null, 2)}`);
         const startTime = meeting.record_files[0].record_start_time;
         const endTime = meeting.record_files[0].record_end_time;
 
