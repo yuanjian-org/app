@@ -165,9 +165,14 @@ export async function findMissingCrudeSummaries(): Promise<CrudeSummaryDescripto
         }
 
         if (!meeting.record_files) return;
-        invariant(meeting.record_files.length == 1, `Invariant violated: meeting.record_files.length != 1: ${JSON.stringify(meeting, null, 2)}`);
-        const startTime = meeting.record_files[0].record_start_time;
-        const endTime = meeting.record_files[0].record_end_time;
+
+        // Have start and end times cover all record files.
+        let startTime = Number.MAX_VALUE;
+        let endTime = Number.MIN_VALUE;
+        for (const file of meeting.record_files) {
+          startTime = Math.min(startTime, file.record_start_time);
+          endTime = Math.max(endTime, file.record_end_time);
+        }
 
         const record = await getRecordURLs(meeting.meeting_record_id, tmUserId);
         const promises = record.record_files.map(async file => {
