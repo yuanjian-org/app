@@ -1,3 +1,4 @@
+import '@testing-library/cypress/add-commands'
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -23,3 +24,14 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add("login", () => {
+    cy.session('auth', () => {
+        cy.intercept("/api/auth/session", { fixture: "session.json" }).as("session");
+
+        // Set the cookie for cypress.
+        // It has to be a valid cookie so next-auth can decrypt it and confirm its validity.
+        // It needs to be freshed periodically.
+        cy.setCookie("next-auth.session-token", Cypress.env('TEST_SESSION_COOKIE'));
+    })
+});
