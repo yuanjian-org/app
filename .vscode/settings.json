@@ -1,3 +1,7 @@
 {
-  "outline.collapseItems": "alwaysCollapse"
+  "outline.collapseItems": "alwaysCollapse",
+  "editor.wordWrap": "off",
+  "editor.rulers": [
+    80,
+  ]
 }
