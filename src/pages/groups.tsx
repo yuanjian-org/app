@@ -57,6 +57,7 @@ export default function Page() {
 
   return <>
     {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
+
     <Wrap spacing={6}>
       <WrapItem minWidth={100} alignItems="center">
         <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入两名或以上用户" onSelect={setUserIds} />
@@ -135,6 +136,10 @@ function GroupEditor(props: {
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
+            <FormControl>
+              <FormLabel>会议链接</FormLabel>
+              <code>{window.location.origin}/groups/{props.group.id}</code>
+            </FormControl>
             <FormControl>
               <FormLabel>分组名称</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)}
