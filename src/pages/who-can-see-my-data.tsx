@@ -59,12 +59,13 @@ function DataTable() {
           <Td>{dp('InterviewManager')}</Td>
         </Tr>
         <Tr>
-          <Td>会议转录文字</Td>
-          <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员（注：此类数据仅在网站内测期间搜集）</Td>
+          <Td>一对一导师与学生通话的转录和纪要文字</Td>
+          <Td>{dp('SummaryEngineer')}、{dp('MentorshipAssessor')}、
+            {dp('MentorCoach')}（注：转录文字仅在网站内测期间搜集）</Td>
         </Tr>
         <Tr>
-          <Td>根据转录文字生成的摘要</Td>
-          <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员</Td>
+          <Td>其他会议的转录和纪要文字</Td>
+          <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员（注：转录文字仅在网站内测期间搜集）</Td>
         </Tr>
       </Tbody>
     </Table>
