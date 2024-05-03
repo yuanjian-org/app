@@ -3,14 +3,13 @@ import { authIntegration, authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getRecordURLs, listRecords } from "../TencentMeeting";
-import invariant from "tiny-invariant";
 import { TRPCError } from "@trpc/server";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
-import { checkPermissionForGroup } from "./groups";
+import { checkPermissionForGroupHistory } from "./groups";
 import Handlebars from "handlebars";
 import { getSummariesAndNameMap } from "./transcripts";
 
@@ -77,7 +76,7 @@ const list = procedure
 
   if (!t) throw notFoundError("会议转录", transcriptId);
 
-  checkPermissionForGroup(ctx.user, t.group);
+  checkPermissionForGroupHistory(ctx.user, t.group);
 
   const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
 

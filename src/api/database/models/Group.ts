@@ -17,7 +17,7 @@ import {
   PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { ARRAY, STRING, UUID, UUIDV4 } from "sequelize";
+import { ARRAY, BOOLEAN, STRING, UUID, UUIDV4 } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
@@ -49,6 +49,14 @@ class Group extends Model {
   @AllowNull(true)  // TODO: remove this after all dbs are migrated to using this column.
   @Column(ARRAY(STRING))
   roles: Role[];
+
+  // A public group allows any registered user to visit the group page via the
+  // group URL and join group meeting, and limits the access to group meeting
+  // history to group users only.
+  @AllowNull(false)
+  @Default(false)
+  @Column(BOOLEAN)
+  public: boolean;
 
   // A group is "owned" by a partnership if this field is non-null.
   @ForeignKey(() => Partnership)

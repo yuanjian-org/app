@@ -21,6 +21,8 @@ import {
   ButtonProps,
   SimpleGridProps,
   Tag,
+  HStack,
+  Tooltip,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
@@ -33,7 +35,9 @@ import { sidebarBreakpoint } from './Navbars';
 import UserChip from './UserChip';
 import { MinUser } from 'shared/User';
 import { Group, isOwned } from 'shared/Group';
-import { ChevronRightIcon } from '@chakra-ui/icons';
+import { ChevronRightIcon, QuestionIcon } from '@chakra-ui/icons';
+import QuestionIconTooltip from './QuestionIconTooltip';
+import { publicGroupNote } from 'pages/groups';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop, showGroupName, ...rest
@@ -135,7 +139,17 @@ function GroupTagOrName({ group }: { group: Group }) {
       </Tag>
     </Box>
     :
-    <Text color='grey' fontSize='sm'>{formatGroupName(group.name, group.users.length)}</Text>;
+    <HStack>
+      {group.public && <Tooltip label={publicGroupNote}>
+        <Tag color="white" bgColor="green.400">
+          公开
+          <QuestionIcon color="white" marginStart={2} />
+        </Tag>
+      </Tooltip>}
+      <Text color='grey' fontSize='sm'>
+        {formatGroupName(group.name, group.users.length)}
+      </Text>
+    </HStack>;
 }
 
 export function JoinButton(props: ButtonProps) {

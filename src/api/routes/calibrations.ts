@@ -7,7 +7,7 @@ import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
-import { calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude
+import { calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude, groupAttributes
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
@@ -180,7 +180,10 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
 
 export async function syncCalibrationGroup(calibrationId: string, transaction: Transaction) {
   const c = await db.Calibration.findByPk(calibrationId, {
-    include: [db.Group, {
+    include: [{
+      model: db.Group,
+      attributes: groupAttributes,
+    }, {
       model: db.Interview,
       attributes: interviewAttributes,
       include: interviewInclude,
@@ -198,5 +201,6 @@ export async function syncCalibrationGroup(calibrationId: string, transaction: T
     }
   }
 
-  await updateGroup(c.group.id, null, userIds, transaction);
+  await updateGroup(c.group.id, c.group.name, c.group.public, userIds,
+    transaction);
 }

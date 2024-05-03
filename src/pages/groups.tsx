@@ -33,6 +33,9 @@ import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
 
+export const publicGroupNote = "公开会议允许所有用户加入，但只有以下列出的用户有权查看"
+  + "会议历史。";
+
 export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
@@ -97,6 +100,7 @@ function GroupEditor(props: {
   onClose: () => void,
 }) {
   const [name, setName] = useState<string>(props.group.name || '');
+  const [isPublic, setIsPublic] = useState(props.group.public);
   const [newUserIds, setNewUserIds] = useState<string[]>([]);
   const [users, setUsers] = useState(props.group.users);
   const [working, setWorking] = useState(false);
@@ -109,6 +113,7 @@ function GroupEditor(props: {
     try {
       const group = structuredClone(props.group);
       group.name = name;
+      group.public = isPublic;
       group.users = [
         ...newUserIds.map(n => ({ id: n, name: null })),
         ...users,
@@ -132,7 +137,7 @@ function GroupEditor(props: {
   return <>
     <ModalWithBackdrop isOpen onClose={props.onClose}>
       <ModalContent>
-        <ModalHeader>编辑分组</ModalHeader>
+        <ModalHeader>编辑会议分组</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
@@ -143,7 +148,14 @@ function GroupEditor(props: {
             <FormControl>
               <FormLabel>分组名称</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)}
-                placeholder={`若为空则显示默认名称：“${formatGroupName(null, props.group.users.length)}”`} />
+                placeholder={`若为空则显示默认名称：“
+                  ${formatGroupName(null, props.group.users.length)}”`}
+              />
+            </FormControl>
+            <FormControl>
+              <Checkbox isChecked={isPublic} 
+                onChange={(e) => setIsPublic(e.target.checked)}
+              >公开：{publicGroupNote}</Checkbox>
             </FormControl>
             <FormControl>
               <FormLabel>添加用户</FormLabel>
@@ -171,11 +183,13 @@ function GroupEditor(props: {
         <ModalFooter>
           <Button onClick={() => setConfirmingDeletion(true)}>删除分组</Button>
           <Spacer />
-          <Button variant='brand' isLoading={working} isDisabled={!isValid} onClick={save}>保存</Button>
+          <Button variant='brand' isLoading={working} isDisabled={!isValid}
+            onClick={save}>保存</Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
-    {confirmingDeletion && <ConfirmingDeletionModal onConfirm={destroy} onCancel={() => setConfirmingDeletion(false)}/>}
+    {confirmingDeletion && <ConfirmingDeletionModal onConfirm={destroy}
+      onCancel={() => setConfirmingDeletion(false)}/>}
   </>;
 }
 

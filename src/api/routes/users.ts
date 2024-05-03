@@ -180,10 +180,11 @@ const setCoach = procedure
     if (oldCoachId) {
       const gs = await db.Group.findAll({
         where: { coacheeId: userId },
-        attributes: ["id"],
+        attributes: ["id", "public"],
       });
       invariant(gs.length == 1);
-      await updateGroup(gs[0].id, null, [userId, coachId], transaction);
+      await updateGroup(gs[0].id, null, gs[0].public, [userId, coachId],
+          transaction);
     } else {
       await createGroup(null, [userId, coachId], [], null, null, null, userId, transaction);
     }

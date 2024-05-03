@@ -1,12 +1,13 @@
 import { z } from "zod";
-import { zMinUser } from "./User";
-import { zRoles } from "./Role";
+import User, { zMinUser } from "./User";
+import { isPermitted, zRoles } from "./Role";
 
 export const zGroup = z.object({
   id: z.string(),
   name: z.string().nullable(),
   roles: zRoles,
   users: z.array(zMinUser),
+  public: z.boolean(),
 
   partnershipId: z.string().uuid().nullable(),
   interviewId: z.string().uuid().nullable(),
@@ -25,3 +26,17 @@ export const whereUnowned = {
   calibrationId: null,
   coacheeId: null,
 };
+
+export function isPermittedForGroup(u: User, g: Group): boolean {
+  // Public groups allow everyone to see member list and join group meetings but
+  // not to read group history including transcripts and summaries.
+  return g.public || isPermittedForGroupHistory(u, g);
+}
+
+export function isPermittedForGroupHistory(u: User, g: Group): boolean {
+  return isPermitted(u.roles, "SummaryEngineer") ||
+    isPermitted(u.roles, g.roles) ||
+    // Allow coaches to access all partnership groups
+    (isPermitted(u.roles, "MentorCoach") && g.partnershipId !== null) ||
+    g.users.some(gu => gu.id === u.id);
+}

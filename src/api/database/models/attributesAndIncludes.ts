@@ -19,8 +19,8 @@ export const userAttributes = [...minUserAttributes, "wechat", "sex", "email", "
  * Group
  */
 
-export const groupAttributes = ["id", "name", "roles", "partnershipId", "interviewId", "calibrationId",
-  "coacheeId"];
+export const groupAttributes = ["id", "name", "public", "roles",
+  "partnershipId", "interviewId", "calibrationId", "coacheeId"];
 
 export const groupInclude = [{
   association: "users",

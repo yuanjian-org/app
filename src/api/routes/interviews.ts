@@ -232,7 +232,8 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
       u.save({ transaction });
     }
     // Update group
-    await updateGroup(i.group.id, null, [intervieweeId, ...interviewerIds], transaction);
+    await updateGroup(i.group.id, null, i.group.public, 
+      [intervieweeId, ...interviewerIds], transaction);
     // Update calibration. When the interviwer list is updated, the calibration group needs an update, too.
     if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
     if (oldCalibrationId && oldCalibrationId !== calibrationId) {

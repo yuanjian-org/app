@@ -11,7 +11,7 @@ import {
   summaryAttributes,
   minUserAttributes
 } from "api/database/models/attributesAndIncludes";
-import { checkPermissionForGroup } from "./groups";
+import { checkPermissionForGroupHistory } from "./groups";
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
 import { zTranscriptNameMap, TranscriptNameMap } from "shared/Transcript";
@@ -35,7 +35,7 @@ const list = procedure
 
   if (!g) throw notFoundError("分组", groupId);
 
-  checkPermissionForGroup(ctx.user, g);
+  checkPermissionForGroupHistory(ctx.user, g);
 
   return g.transcripts;
 });

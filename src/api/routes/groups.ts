@@ -11,7 +11,7 @@ import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { noPermissionError, notFoundError } from "../errors";
-import { Group, whereUnowned, zGroup, 
+import { Group, isPermittedForGroup, isPermittedForGroupHistory, whereUnowned, zGroup, 
 } from "../../shared/Group";
 import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
 import User from "shared/User";
@@ -35,11 +35,14 @@ const update = procedure
   .mutation(async ({ ctx, input }) =>
 {
   const newUserIds = input.users.map(u => u.id);
-  const addedUserIds = await sequelize.transaction(async t => updateGroup(input.id, input.name, newUserIds, t));
+  const addedUserIds = await sequelize.transaction(async t =>
+    updateGroup(input.id, input.name, input.public, newUserIds, t));
   await emailNewUsersOfGroupIgnoreError(ctx, input.id, addedUserIds);
 });
 
-export async function updateGroup(id: string, name: string | null, userIds: string[], transaction: Transaction) {
+export async function updateGroup(id: string, name: string | null, 
+  isPublic: boolean, userIds: string[], transaction: Transaction) 
+{
   const addUserIds: string[] = [];
   const group = await db.Group.findByPk(id, {
     // SQL complains that "FOR UPDATE cannot be applied to the nullable side of an outer join" if GroupUser is included.
@@ -68,6 +71,7 @@ export async function updateGroup(id: string, name: string | null, userIds: stri
   await group.update({
     // Set to null if the input is an empty string.
     name: name || null,
+    public: isPublic,
     // Reset the meeting link to prevent deleted users from reusing it.
     ...deleted ? {
       meetingLink: null,
@@ -198,12 +202,11 @@ export default router({
 });
 
 export function checkPermissionForGroup(u: User, g: Group) {
-  if (isPermitted(u.roles, "SummaryEngineer")) return;
-  if (isPermitted(u.roles, g.roles)) return;
-  // Allow coaches to access all partnership groups
-  if (isPermitted(u.roles, "MentorCoach") && g.partnershipId) return;
-  if (g.users.some(gu => gu.id === u.id)) return;
-  throw noPermissionError("分组", g.id);
+  if (!isPermittedForGroup(u, g)) throw noPermissionError("分组", g.id);
+}
+
+export function checkPermissionForGroupHistory(u: User, g: Group) {
+  if (!isPermittedForGroupHistory(u, g)) throw noPermissionError("分组", g.id);
 }
 
 /**
