@@ -33,8 +33,8 @@ import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
 
-export const publicGroupNote = "公开会议允许所有用户加入，但只有以下列出的用户有权查看"
-  + "会议历史。";
+export const publicGroupDescription = "公开会议允许所有用户加入。下面列出的用户可以" + 
+  "管理和查询会议历史。";
 
 export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
@@ -155,7 +155,7 @@ function GroupEditor(props: {
             <FormControl>
               <Checkbox isChecked={isPublic} 
                 onChange={(e) => setIsPublic(e.target.checked)}
-              >公开：{publicGroupNote}</Checkbox>
+              >公开：{publicGroupDescription}</Checkbox>
             </FormControl>
             <FormControl>
               <FormLabel>添加用户</FormLabel>

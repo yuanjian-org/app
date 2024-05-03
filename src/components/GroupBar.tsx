@@ -37,7 +37,7 @@ import { MinUser } from 'shared/User';
 import { Group, isOwned } from 'shared/Group';
 import { ChevronRightIcon, QuestionIcon } from '@chakra-ui/icons';
 import QuestionIconTooltip from './QuestionIconTooltip';
-import { publicGroupNote } from 'pages/groups';
+import { publicGroupDescription } from 'pages/groups';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop, showGroupName, ...rest
@@ -140,7 +140,7 @@ function GroupTagOrName({ group }: { group: Group }) {
     </Box>
     :
     <HStack>
-      {group.public && <Tooltip label={publicGroupNote}>
+      {group.public && <Tooltip label={publicGroupDescription}>
         <Tag color="white" bgColor="green.400">
           公开
           <QuestionIcon color="white" marginStart={2} />
