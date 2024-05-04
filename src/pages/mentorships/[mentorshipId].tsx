@@ -4,10 +4,10 @@ import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
   Text, TabList, TabPanels, Tab, TabPanel, Tbody, Td, Table,
+  Stack,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
-import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import Transcripts from 'components/Transcripts';
@@ -16,63 +16,61 @@ import { useUserContext } from 'UserContext';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import TrLink from 'components/TrLink';
 import ChatRoom from 'components/ChatRoom';
+import { Mentorship } from 'shared/Mentorship';
 
 export default widePage(() => {
   const mentorshipId = parseQueryStringOrUnknown(useRouter(), 'mentorshipId');
   const { data: m } = trpcNext.mentorships.get.useQuery(mentorshipId);
-  const [user] = useUserContext();
 
-  if (!m) return <Loader />;
-
-  const iAmTheMentor = m.mentor.id === user.id;
-
-  return <>
-    <MobileExperienceAlert marginBottom={paragraphSpacing} />
-
-    {iAmTheMentor ?
-      <GroupBar group={m.group} showJoinButton showGroupName={false}
-        marginBottom={sectionSpacing + 2} />
-      :
-      <PageBreadcrumb current={`学生：${formatUserName(m.mentee.name)}，` +
-        `导师： ${formatUserName(m.mentor.name)}`} />
-    }
-
-    <MenteeTabs mentorshipId={mentorshipId} menteeId={m.mentee.id}
-      groupId={m.group.id} />
+  return !m ? <Loader /> : <>
+    <PageBreadcrumb current={`${formatUserName(m.mentee.name)}`} />
+    <MenteeTabs mentorship={m} />
   </>;
 });
 
-function MenteeTabs({ mentorshipId, menteeId, groupId }: {
-  mentorshipId: string,
-  menteeId: string,
-  groupId: string,
+function MenteeTabs({ mentorship }: {
+  mentorship: Mentorship,
 }) {
   return <TabsWithUrlParam isLazy>
     <TabList>
+      <Tab>一对一导师通话</Tab>
       <Tab>内部讨论</Tab>
-      <Tab>通话摘要</Tab>
       <Tab>申请材料</Tab>
       <Tab>年度反馈</Tab>
     </TabList>
 
     <TabPanels>
       <TabPanel>
+        <MentorshipPanel mentorship={mentorship} />
+      </TabPanel>
+      <TabPanel>
         <Text color="grey" marginBottom={paragraphSpacing}>
-          在此记录学生情况以及与资深导师交流互动。学生无法看到此页内容。
+          在此记录学生情况或者与资深导师交流。学生无法看到此页。
         </Text>
-        <ChatRoom mentorshipId={mentorshipId} />
+        <ChatRoom mentorshipId={mentorship.id} />
       </TabPanel>
       <TabPanel>
-        <Transcripts groupId={groupId} />
+        <MenteeApplicant userId={mentorship.mentee.id} readonly />
       </TabPanel>
       <TabPanel>
-        <MenteeApplicant userId={menteeId} readonly />
-      </TabPanel>
-      <TabPanel>
-        <AssessmentsTable mentorshipId={mentorshipId} />
+        <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
+}
+
+function MentorshipPanel({ mentorship: m }: {
+  mentorship: Mentorship,
+}) {
+  const [me] = useUserContext();
+
+  return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
+    {m.mentor.id === me.id ?
+      <GroupBar group={m.group} showJoinButton showGroupName={false} />
+      :
+      <b>导师： {formatUserName(m.mentor.name)}</b>}
+    <Transcripts groupId={m.group.id} />
+  </Stack>;
 }
 
 function AssessmentsTable({ mentorshipId }: {
