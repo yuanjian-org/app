@@ -97,13 +97,13 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/interviews\?type=mentee/,
     role: 'InterviewManager',
   },
-  {
-    name: '管理导师面试',
-    path: '/interviews?type=mentor',
-    icon: MdFaceUnlock,
-    regex: /^\/interviews\?type=mentor/,
-    role: 'InterviewManager',
-  },
+  // {
+  //   name: '管理导师面试',
+  //   path: '/interviews?type=mentor',
+  //   icon: MdFaceUnlock,
+  //   regex: /^\/interviews\?type=mentor/,
+  //   role: 'InterviewManager',
+  // },
   {
     name: '管理一对一',
     path: '/mentorships',

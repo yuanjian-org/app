@@ -40,13 +40,12 @@ class Group extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
-  @AllowNull(true)
   @Column(STRING)
   name: string | null;
 
   // A user is a member of this group if they are associated with this group via GroupUser,
   // or isPermitted(user.roles, roles) is true.
-  @AllowNull(true)  // TODO: remove this after all dbs are migrated to using this column.
+  // TODO: add `@AllowNull(false) after all dbs are migrated to using this column.
   @Column(ARRAY(STRING))
   roles: Role[];
 

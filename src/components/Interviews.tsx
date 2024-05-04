@@ -17,7 +17,7 @@ import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import { CheckIcon, ViewIcon } from '@chakra-ui/icons';
+import { CheckIcon } from '@chakra-ui/icons';
 import TrLink from 'components/TrLink';
 import { sectionSpacing } from 'theme/metrics';
 import {

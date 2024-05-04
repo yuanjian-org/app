@@ -60,7 +60,7 @@ class User extends Model {
 
   @Column(DATE)
   consentFormAcceptedAt: string | null;
-
+ 
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
 
@@ -73,6 +73,8 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
+  // The coach of the mentor. Non-null only if the user is a mentor (ie.
+  // `mentorshipsAsMentor` is non-empty).
   @ForeignKey(() => User)
   @Column(UUID)
   coachId: string | null;

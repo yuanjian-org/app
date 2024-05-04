@@ -18,7 +18,6 @@ import {
   FormErrorMessage,
   Stack,
   Checkbox,
-  Box,
   Tag,
   Wrap,
   WrapItem,
@@ -65,7 +64,7 @@ export default function Page() {
 
       {!users ? <Loader /> :
         <TableContainer>
-          <Table>
+          <Table size="sm">
             <Thead>
               <Tr>
                 <Th>编辑</Th>
@@ -183,6 +182,9 @@ function UserEditor(props: {
             </Stack>
           </FormControl>}
 
+          <FormControl>
+            <small>* 是系统自动管理的角色。正常情况下请勿手工修改，以免引起使用问题。</small>
+          </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
