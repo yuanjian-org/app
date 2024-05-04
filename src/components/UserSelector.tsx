@@ -26,7 +26,7 @@ export default function UserSelector(props: {
     callback: (options: Option[]) => void
   ) => {
     trpc.users.list.query({
-      matchNameOrEmail: inputValue,
+      matchesNameOrEmail: inputValue,
     }).then(users => {
       callback(users.map(u => {
         return {

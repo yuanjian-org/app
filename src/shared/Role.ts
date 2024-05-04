@@ -1,4 +1,3 @@
-import { ArrayElement } from "./ArrayElement";
 import z from "zod";
 
 export const AllRoles = [
@@ -117,7 +116,7 @@ export const RoleProfiles: { [key: string]: {
   },
 };
 
-type Role = ArrayElement<typeof AllRoles>;
+type Role = typeof AllRoles[number];
 
 export default Role;
 

@@ -97,11 +97,15 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
   refetchInterviews: () => any,
 }) {
   return <TableContainer>
+    <Text marginBottom={sectionSpacing} color="grey" fontSize="sm">
+      点击候选人以编辑面试官和面试讨论组：
+    </Text>
+
     <Table size="sm">
       <Thead>
         <Tr>
           <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>生源（悬停光标看全文）</Th>
-          <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试设置</Th><Th>面试页</Th>
+          <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试页</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -111,7 +115,9 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
       </Tbody>
     </Table>
 
-    <Text marginTop={sectionSpacing} color="grey" fontSize="sm"><CheckIcon /> 表示已经填写了面试反馈的面试官。</Text>
+    <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
+      <CheckIcon /> 表示已经填写了面试反馈的面试官。
+    </Text>
   </TableContainer>;
 }
 
@@ -182,9 +188,6 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
       <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
         申请资料 <ChevronRightIcon />
       </TdLink>
-
-      {/* 面试设置 */}
-      <TdEditLink>面试设置 {interview ? <EditIcon /> : <AddIcon />}</TdEditLink>
 
       {/* 面试页 */}
       {interview && <TdLink href={`/interviews/${interview.id}`}>

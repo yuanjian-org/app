@@ -25,6 +25,7 @@ import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Partnership from "./Partnership";
+import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -78,6 +79,9 @@ class User extends Model {
   @ForeignKey(() => User)
   @Column(UUID)
   coachId: string | null;
+
+  @ZodColumn(STRING, zMenteeStatus.nullable())
+  menteeStatus: MenteeStatus | null;
 
   // Managed by next-auth
   @Column(DATE)

@@ -1,4 +1,7 @@
 import { z } from 'zod';
 
-export const zInterviewType = z.enum(["MenteeInterview", "MentorInterview"]);
-export type InterviewType = z.TypeOf<typeof zInterviewType>;
+const AllInterviewTypes = ["MenteeInterview", "MentorInterview"] as const;
+
+export type InterviewType = typeof AllInterviewTypes[number];
+
+export const zInterviewType = z.enum(AllInterviewTypes);

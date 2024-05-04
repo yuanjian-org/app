@@ -58,8 +58,8 @@ export default function Page() {
     <Flex direction='column' gap={6}>
       <Wrap spacing={4} align="center">
         <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
-        <Divider orientation="vertical" />
-        <UserFilterSelector filter={filter} onChange={f => setFilter(f)} />
+        {/* <Divider orientation="vertical" />
+        <UserFilterSelector filter={filter} onChange={f => setFilter(f)} /> */}
       </Wrap>
 
       {!users ? <Loader /> :

@@ -12,8 +12,9 @@ import User from "./User";
 
 export const minUserAttributes = ['id', 'name'];
 
-export const userAttributes = [...minUserAttributes, "wechat", "sex", "email", "roles", "consentFormAcceptedAt",
-  "menteeInterviewerTestLastPassedAt"];
+export const userAttributes = [...minUserAttributes, "wechat", "sex", "email",
+  "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
+  "menteeStatus"];
 
 /**
  * Group
