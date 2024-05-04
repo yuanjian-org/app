@@ -139,16 +139,18 @@ function GroupTagOrName({ group }: { group: Group }) {
     </Box>
     :
     <HStack>
+      {group.archived && <Tag color="white" bgColor="gray.800">已存档</Tag>}
+
       {group.public && <Tooltip label={publicGroupDescription}>
         <Tag color="white" bgColor="green.400">
           公开
           <QuestionIcon color="white" marginStart={2} />
         </Tag>
       </Tooltip>}
+
       <Text color='grey' fontSize='sm'>
         {formatGroupName(group.name, group.users.length)}
       </Text>
-      {group.archived && <Tag color="white" bgColor="gray.800">已存档</Tag>}
     </HStack>;
 }
 
