@@ -102,14 +102,14 @@ export default function Page() {
   </>;
 };
 
-function GroupEditor(props: { 
+function GroupEditor({ group, onClose }: { 
   group: Group,
   onClose: () => void,
 }) {
-  const [name, setName] = useState<string>(props.group.name || '');
-  const [isPublic, setIsPublic] = useState(props.group.public);
+  const [name, setName] = useState<string>(group.name || '');
+  const [isPublic, setIsPublic] = useState(group.public);
   const [newUserIds, setNewUserIds] = useState<string[]>([]);
-  const [users, setUsers] = useState(props.group.users);
+  const [users, setUsers] = useState(group.users);
   const [working, setWorking] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
 
@@ -118,15 +118,15 @@ function GroupEditor(props: {
   const save = async () => {
     setWorking(true);
     try {
-      const group = structuredClone(props.group);
-      group.name = name;
-      group.public = isPublic;
-      group.users = [
+      const cloned = structuredClone(group);
+      cloned.name = name;
+      cloned.public = isPublic;
+      cloned.users = [
         ...newUserIds.map(n => ({ id: n, name: null })),
         ...users,
       ];
-      await trpc.groups.update.mutate(group);
-      props.onClose();
+      await trpc.groups.update.mutate(cloned);
+      onClose();
     } finally {
       setWorking(false);
     }
@@ -134,31 +134,31 @@ function GroupEditor(props: {
 
   const archive = async () => {
     try {
-      await trpc.groups.archive.mutate({ groupId: props.group.id });
+      await trpc.groups.archive.mutate({ groupId: group.id });
     } finally {
-      props.onClose();
+      onClose();
     }
   };
 
   const unarchive = async () => {
     try {
-      await trpc.groups.unarchive.mutate({ groupId: props.group.id });
+      await trpc.groups.unarchive.mutate({ groupId: group.id });
     } finally {
-      props.onClose();
+      onClose();
     }
   };
 
   const destroy = async () => {
     setConfirmingDeletion(false);
     try {
-      await trpc.groups.destroy.mutate({ groupId: props.group.id });
+      await trpc.groups.destroy.mutate({ groupId: group.id });
     } finally {
-      props.onClose();
+      onClose();
     }
   };
 
   return <>
-    <ModalWithBackdrop isOpen onClose={props.onClose}>
+    <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>编辑会议分组</ModalHeader>
         <ModalCloseButton />
@@ -166,13 +166,13 @@ function GroupEditor(props: {
           <VStack spacing={6}>
             <FormControl>
               <FormLabel>会议链接</FormLabel>
-              <code>{window.location.origin}/groups/{props.group.id}</code>
+              <code>{window.location.origin}/groups/{group.id}</code>
             </FormControl>
             <FormControl>
               <FormLabel>分组名称</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)}
                 placeholder={"若为空则显示默认名称：" +
-                  formatGroupName(null, props.group.users.length)}
+                  formatGroupName(null, group.users.length)}
               />
             </FormControl>
             <FormControl>
@@ -204,7 +204,7 @@ function GroupEditor(props: {
           </VStack>
         </ModalBody>
         <ModalFooter>
-          {!props.group.archived ?
+          {!group.archived ?
             <Button onClick={() => archive()}>存档分组</Button>
             :
             <>
