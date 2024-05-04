@@ -193,8 +193,9 @@ const listForSummaryEngineer = procedure
   .output(z.array(zGroup))
   .query(async () => 
 {
-  return (await db.Group.findAll({ 
+  return (await db.Group.findAll({
     attributes: groupAttributes,
+    where: { archived: false },
     include: [...groupInclude, {
       association: "transcripts",
       attributes: ["transcriptId"],

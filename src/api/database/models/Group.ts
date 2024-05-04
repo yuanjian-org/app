@@ -29,8 +29,14 @@ import Role from "shared/Role";
 /**
  * A group is said to be "owned" if the partnership or interview field is non-null.
  * Otherwise the group is said to be "unowned".
+ * 
+ * TODO: Add an index on `achived`
  */
-@Table({ paranoid: true, tableName: "groups", modelName: "group" })
+@Table({
+  paranoid: true,
+  tableName: "groups",
+  modelName: "group",
+})
 @Fix
 class Group extends Model {
   @Unique
