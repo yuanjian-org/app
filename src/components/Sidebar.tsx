@@ -28,20 +28,19 @@ import {
   MdChevronRight, 
   MdFace, 
   MdFace5, 
-  MdFaceUnlock, 
   MdOutlineSyncAlt, 
   MdVideocam,
   MdSupervisorAccount,
   MdMic
 } from 'react-icons/md';
 import Role from "../shared/Role";
-import { IconType } from "react-icons";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
 import { formatUserName } from 'shared/strings';
+import { AttachmentIcon } from '@chakra-ui/icons';
 
 export interface SidebarItem {
   name: string,
-  icon: IconType,
+  icon: React.ComponentType,
   path: string,
   regex: RegExp,
   role?: Role,
@@ -61,6 +60,13 @@ const sidebarItems: SidebarItem[] = [
     icon: MdSupervisorAccount,
     regex: /^\/coachees/,
     role: 'MentorCoach',
+  },
+  {
+    name: '学生档案',
+    path: '/mentees',
+    icon: AttachmentIcon,
+    regex: /^\/mentees/,
+    role: 'UserManager',
   },
   {
     name: '我的面试',

@@ -3,29 +3,35 @@ import { UserFilter } from 'shared/User';
 import { Select, WrapItem } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import _ from "lodash";
+import { AllMenteeStatuses, MenteeStatus, zMenteeStatus } from 'shared/MenteeStatus';
+import MenteeStatusSelect, { ANY_MENTEE_STATUS, NULL_MENTEE_STATUS } from './MenteeStatusSelect';
 
 type BooleanLabelType = "是不是" | "有没有" | "已经";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
  */
-export default function UserFilterSelector({ filter, onChange }: {
+export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
   filter: UserFilter,
+  fixedFilter?: UserFilter,
   onChange: (f: UserFilter) => void,
 }) {
   const router = useRouter();
 
   // Parse query parameters
   useEffect(() => {
-    const f: UserFilter = {};
+    const f: UserFilter = fixedFilter ? structuredClone(fixedFilter) : {};
     for (const [k, v] of Object.entries(router.query)) {
       if (k == "hasMenteeApplication") f[k] = v == "true" ? true : false;
       if (k == "isMenteeInterviewee") f[k] = v == "true" ? true : false;
       // `typeof v == "string"` to ignore cases of null and string[].
-      if (k == "matchNameOrEmail" && typeof v == "string") f[k] = v;
+      if (k == "matchesNameOrEmail" && typeof v == "string") f[k] = v;
+      if (k == "menteeStatus") {
+        f[k] = v == NULL_MENTEE_STATUS ? null : zMenteeStatus.parse(v);
+      }
     }
     if (!_.isEqual(f, filter)) onChange(f);
-  }, [filter, onChange, router]);
+  }, [filter, fixedFilter, onChange, router]);
 
   // We rely on url parameter parsing (useEffect above) to invoke onChange().
   const updateUrlParams = ((f: UserFilter) => {
@@ -34,10 +40,14 @@ export default function UserFilterSelector({ filter, onChange }: {
       // @ts-expect-error
       query[key] = f[key];
     }
+    // router.replace() ignores null-valued keys
+    if (query.menteeStatus === null) query.menteeStatus = NULL_MENTEE_STATUS;
     router.replace({ pathname: router.pathname, query });
   });
 
-  const booleanSelect = (field: "hasMenteeApplication" | "isMenteeInterviewee", type: BooleanLabelType) => {
+  const booleanSelect = (field: "hasMenteeApplication" | "isMenteeInterviewee",
+    type: BooleanLabelType) =>
+  {
     return <BooleanSelect value={filter[field]} type={type} onChange={v => {
       const f = structuredClone(filter);
       if (v == undefined) delete f[field];
@@ -47,7 +57,18 @@ export default function UserFilterSelector({ filter, onChange }: {
   };
 
   return <>
-    <WrapItem><b>过滤用户：</b></WrapItem>
+    <WrapItem><b>过滤条件：</b></WrapItem>
+    <WrapItem>
+      <MenteeStatusSelect showAny value={filter.menteeStatus}
+        onChange={v => {
+          const f = structuredClone(filter);
+          if (v === undefined) delete f.menteeStatus;
+          else f.menteeStatus = v;
+          updateUrlParams(f);
+        }
+      }/>
+    </WrapItem>
+    <WrapItem>状态</WrapItem>
     <WrapItem>{booleanSelect("hasMenteeApplication", "已经")}</WrapItem>
     <WrapItem>递交学生申请</WrapItem>
     <WrapItem>{booleanSelect("isMenteeInterviewee", "已经")}</WrapItem>

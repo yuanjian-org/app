@@ -57,23 +57,33 @@ const list = procedure
     order: [['pinyin', 'ASC']],
 
     where: {
-      ...filter.hasMenteeApplication == undefined ? {} : {
+      ...filter.containsRoles === undefined ? {} : {
+        [Op.and]: filter.containsRoles.map(r => ({
+          roles: { [Op.contains]: r }
+        }))
+      },
+
+      ...filter.menteeStatus === undefined ? {} : {
+        menteeStatus: filter.menteeStatus
+      },
+
+      ...filter.hasMenteeApplication === undefined ? {} : {
         menteeApplication: { 
           ...filter.hasMenteeApplication ? { [Op.ne]: null } : { [Op.eq]: null }
         },
       },
 
-      ...filter.matchNameOrEmail == undefined ? {} : {
+      ...filter.matchesNameOrEmail === undefined ? {} : {
         [Op.or]: [
-          { pinyin: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
-          { name: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
-          { email: { [Op.iLike]: `%${filter.matchNameOrEmail}%` } },
+          { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+          { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+          { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
         ],
       },
     },
 
     include: [      
-      ...filter.isMenteeInterviewee == undefined ? [] : [{
+      ...filter.isMenteeInterviewee === undefined ? [] : [{
         model: Interview,
         attributes: ["id"],
         ...filter.isMenteeInterviewee ? { where: { type: interviewType } } : {},
@@ -81,8 +91,8 @@ const list = procedure
     ],
   });
 
-  if (filter.isMenteeInterviewee == false) return res.filter(u => u.interviews.length == 0);
-  else return res;
+  return filter.isMenteeInterviewee == false ?
+    res.filter(u => u.interviews.length == 0) : res;
 });
 
 const update = procedure
@@ -117,9 +127,12 @@ const update = procedure
     name: input.name,
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
+
+    // fields that only user or role managers can change
     ...isUserOrRoleManager ? {
       roles: input.roles,
       email: input.email,
+      menteeStatus: input.menteeStatus,
     } : {},
   });
 });
