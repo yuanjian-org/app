@@ -10,7 +10,6 @@ import {
   mentorshipInclude, 
   chatRoomAttributes,
   chatRoomInclude,
-  minUserAttributes
 } from "api/database/models/attributesAndIncludes";
 import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
