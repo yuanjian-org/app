@@ -94,18 +94,41 @@ export async function updateGroup(id: string, name: string | null,
   return addUserIds;
 }
 
+async function getGroupWithIdOnly(groupId: string) {
+  const group = await db.Group.findByPk(groupId, {
+    attributes: ["id"],
+  });
+  if (!group) throw notFoundError("分组", groupId);
+  return group;
+}
+
 const destroy = procedure
   .use(authUser('GroupManager'))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => 
 {
-  const group = await db.Group.findByPk(input.groupId);
-  if (!group) throw notFoundError("分组", input.groupId);
-
+  const g = await getGroupWithIdOnly(input.groupId);
   // Need a transaction for cascading destroys
-  await sequelize.transaction(async transaction => await group.destroy({ transaction }));
+  await sequelize.transaction(async transaction => await g.destroy({ transaction }));
 });
 
+const archive = procedure
+  .use(authUser('GroupManager'))
+  .input(z.object({ groupId: z.string().uuid() }))
+  .mutation(async ({ input }) => 
+{
+  const g = await getGroupWithIdOnly(input.groupId);
+  await g.update({ archived: true });
+});
+
+const unarchive = procedure
+  .use(authUser('GroupManager'))
+  .input(z.object({ groupId: z.string().uuid() }))
+  .mutation(async ({ input }) => 
+{
+  const g = await getGroupWithIdOnly(input.groupId);
+  await g.update({ archived: false });
+});
 
 /**
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
@@ -126,7 +149,7 @@ const listMine = procedure
       model: db.Group,
       attributes: groupAttributes,
       include: groupInclude,
-      where: input.includeOwned ? {} : whereUnowned,
+      where: { archived: false, ...input.includeOwned ? {} : whereUnowned },
     }]
   })).map(groupUser => groupUser.group);
 });
@@ -140,11 +163,15 @@ const list = procedure
   .input(z.object({ 
     userIds: z.string().array(),
     includeOwned: z.boolean(),
+    includeArchived: z.boolean(),
   }))
   .output(z.array(zGroup))
-  .query(async ({ input: { userIds, includeOwned } }) => 
+  .query(async ({ input: { userIds, includeOwned, includeArchived } }) => 
 {
-  const where = includeOwned ? {} : whereUnowned;
+  const where = { 
+    ...includeArchived ? {} : { archived: false }, 
+    ...includeOwned ? {} : whereUnowned
+  };
 
   if (userIds.length === 0) {
     return await db.Group.findAll({ 
@@ -194,6 +221,8 @@ const get = procedure
 export default router({
   create,
   update,
+  archive,
+  unarchive,
   destroy,
   list,
   listMine,

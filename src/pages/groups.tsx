@@ -40,8 +40,10 @@ export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState<Group | null>(null);
-  const [includeOwned, setIncludOwned] = useState(false);
-  const { data, refetch } = trpcNext.groups.list.useQuery({ userIds, includeOwned });
+  const [includeOwned, setIncludeOwned] = useState(false);
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const { data, refetch } = trpcNext.groups.list.useQuery(
+    { userIds, includeOwned, includeArchived });
 
   const createGroup = async () => {
     setCreating(true);
@@ -75,8 +77,13 @@ export default function Page() {
         </Button>
       </WrapItem>
       <WrapItem alignItems="center">
-        <Checkbox isChecked={includeOwned} onChange={e => setIncludOwned(e.target.checked)}>显示托管分组</Checkbox>
+        <Checkbox isChecked={includeOwned} onChange={e => setIncludeOwned(e.target.checked)}>显示托管分组</Checkbox>
         <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
+      </WrapItem>
+      <WrapItem alignItems="center">
+        <Checkbox isChecked={includeArchived} 
+          onChange={e => setIncludeArchived(e.target.checked)}
+        >显示已存档分组</Checkbox>
       </WrapItem>
     </Wrap>
     <VStack divider={<StackDivider />} align='left' marginTop={8} spacing='3'>
@@ -125,6 +132,22 @@ function GroupEditor(props: {
     }
   };
 
+  const archive = async () => {
+    try {
+      await trpc.groups.archive.mutate({ groupId: props.group.id });
+    } finally {
+      props.onClose();
+    }
+  };
+
+  const unarchive = async () => {
+    try {
+      await trpc.groups.unarchive.mutate({ groupId: props.group.id });
+    } finally {
+      props.onClose();
+    }
+  };
+
   const destroy = async () => {
     setConfirmingDeletion(false);
     try {
@@ -148,8 +171,8 @@ function GroupEditor(props: {
             <FormControl>
               <FormLabel>分组名称</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)}
-                placeholder={`若为空则显示默认名称：“
-                  ${formatGroupName(null, props.group.users.length)}”`}
+                placeholder={"若为空则显示默认名称：" +
+                  formatGroupName(null, props.group.users.length)}
               />
             </FormControl>
             <FormControl>
@@ -181,7 +204,16 @@ function GroupEditor(props: {
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={() => setConfirmingDeletion(true)}>删除分组</Button>
+          {!props.group.archived ?
+            <Button onClick={() => archive()}>存档分组</Button>
+            :
+            <>
+              <Button onClick={() => unarchive()}>取消存档</Button>
+              <Spacer />
+              <Button onClick={() => setConfirmingDeletion(true)}
+                colorScheme="red">删除分组</Button>
+            </>
+          }
           <Spacer />
           <Button variant='brand' isLoading={working} isDisabled={!isValid}
             onClick={save}>保存</Button>

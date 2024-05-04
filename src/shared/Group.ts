@@ -8,6 +8,7 @@ export const zGroup = z.object({
   roles: zRoles,
   users: z.array(zMinUser),
   public: z.boolean(),
+  archived: z.boolean(),
 
   partnershipId: z.string().uuid().nullable(),
   interviewId: z.string().uuid().nullable(),

@@ -58,6 +58,13 @@ class Group extends Model {
   @Column(BOOLEAN)
   public: boolean;
 
+  // Archived groups won't show up in the UI. Reveal them by toggling the "Show
+  // Archived Groups" option in the group management page.
+  @AllowNull(false)
+  @Default(false)
+  @Column(BOOLEAN)
+  archived: boolean;
+
   // A group is "owned" by a partnership if this field is non-null.
   @ForeignKey(() => Partnership)
   @Column(UUID)
