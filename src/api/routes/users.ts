@@ -138,9 +138,31 @@ const update = procedure
 });
 
 /**
+ * Only UserManager have access to this API
+ */
+const get = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zMinUser)
+  .query(async ({ ctx, input: userId }) =>
+{
+  if (!isPermitted(ctx.user.roles, "UserManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: minUserAttributes,
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u;
+});
+
+
+/**
  * Only the user themselves, MentorCoach, and MentorshipManager have access to this API.
  */
-const getCoach = procedure
+const getMentorCoach = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
@@ -164,7 +186,7 @@ const getCoach = procedure
   return u.coach;
 });
 
-const setCoach = procedure
+const setMentorCoach = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
@@ -349,6 +371,7 @@ const destroy = procedure
 
 export default router({
   create,
+  get,
   list,
   update,
   listPriviledgedUserDataAccess,
@@ -356,8 +379,8 @@ export default router({
   updateApplication,
   destroy,
 
-  getCoach,
-  setCoach,
+  getMentorCoach,
+  setMentorCoach,
 });
 
 function checkUserFields(name: string | null, email: string) {

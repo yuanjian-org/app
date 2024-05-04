@@ -17,7 +17,7 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
   // Always fetch coach data even if `!showCoach`, otherwise we have to use `useEffect`.
   // The latter wouldn't work well because mentorships.tsx has a call to `utils.users.getCoach.invalidate` which
   // will not trigger `useEffect` to re-run.
-  const { data: coach } = trpcNext.users.getCoach.useQuery({ userId: m.mentor.id });
+  const { data: coach } = trpcNext.users.getMentorCoach.useQuery({ userId: m.mentor.id });
 
   const { data: transcriptLatest } = trpcNext.transcripts.getMostRecentStartedAt.useQuery({ groupId: m.group.id });
   const transcriptTextAndColor = getDateTextAndColor(transcriptLatest, 45, 60, "尚未通话");
