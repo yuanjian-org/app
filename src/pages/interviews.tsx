@@ -41,7 +41,7 @@ import invariant from 'tiny-invariant';
 import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
-import { AddIcon, CheckIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon, ChevronRightIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
 import { MinUser } from 'shared/User';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
@@ -97,11 +97,11 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
   refetchInterviews: () => any,
 }) {
   return <TableContainer>
-    <Table>
+    <Table size="sm">
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音</Th><Th>生源（悬停光标看全文）</Th><Th>申请资料</Th>
-          <Th>面试官</Th><Th>面试讨论组</Th><Th>面试设置</Th><Th>面试详情</Th>
+          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>生源（悬停光标看全文）</Th>
+          <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试设置</Th><Th>面试页</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -150,29 +150,46 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
     />}
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
+      {/* 姓名 */}
       <TdEditLink>
         {formatUserName(applicant.name)}
       </TdEditLink>
+      
+      {/* 拼音 */}
       <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
-      <TdEditLink>
-        {source && <Tooltip label={source}>
-          <Text isTruncated maxWidth="130px">{source}</Text>
-        </Tooltip>}
-      </TdEditLink>
-      <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
-        <ViewIcon />
-      </TdLink>
+
+      {/* 面试官 */}
       <TdEditLink><Wrap spacing="2">
         {interview && interview.feedbacks.map(f => <WrapItem key={f.id}>
           {formatUserName(f.interviewer.name)}
           {f.feedbackUpdatedAt && <CheckIcon marginStart={1} />}
         </WrapItem>)}
       </Wrap></TdEditLink>
+
+      {/* 生源 */}
+      <TdEditLink>
+        {source && <Tooltip label={source}>
+          <Text isTruncated maxWidth="130px">{source}</Text>
+        </Tooltip>}
+      </TdEditLink>
+
+      {/* 面试讨论组 */}
       <TdEditLink>
         {interview && interview.calibration?.name}
       </TdEditLink>
-      <TdEditLink>{interview ? <EditIcon /> : <AddIcon />}</TdEditLink>
-      {interview && <TdLink href={`/interviews/${interview.id}`}><ViewIcon /></TdLink>}
+
+      {/* 申请资料 */}
+      <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
+        申请资料 <ChevronRightIcon />
+      </TdLink>
+
+      {/* 面试设置 */}
+      <TdEditLink>面试设置 {interview ? <EditIcon /> : <AddIcon />}</TdEditLink>
+
+      {/* 面试页 */}
+      {interview && <TdLink href={`/interviews/${interview.id}`}>
+        面试页 <ChevronRightIcon />
+      </TdLink>}
     </Tr>
   </>;
 }
