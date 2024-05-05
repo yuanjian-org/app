@@ -10,5 +10,5 @@ export default widePage(() => {
 
   if (type !== "MenteeInterview") alert("Mentor application page is not implemented.");
 
-  return <MenteeApplicant userId={userId} showTitle useNameAsTitle showContact readonly={false} />;
+  return <MenteeApplicant userId={userId} showTitle useNameAsTitle />;
 });

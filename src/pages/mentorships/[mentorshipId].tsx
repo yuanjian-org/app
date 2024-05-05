@@ -34,7 +34,7 @@ function MenteeTabs({ mentorship }: {
   return <TabsWithUrlParam isLazy>
     <TabList>
       <Tab>一对一导师通话</Tab>
-      <Tab>内部讨论</Tab>
+      <Tab>内部笔记</Tab>
       <Tab>申请材料</Tab>
       <Tab>年度反馈</Tab>
     </TabList>
@@ -50,7 +50,7 @@ function MenteeTabs({ mentorship }: {
         <ChatRoom mentorshipId={mentorship.id} />
       </TabPanel>
       <TabPanel>
-        <MenteeApplicant userId={mentorship.mentee.id} readonly />
+        <MenteeApplicant userId={mentorship.mentee.id} />
       </TabPanel>
       <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />

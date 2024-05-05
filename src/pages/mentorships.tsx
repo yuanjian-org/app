@@ -52,7 +52,7 @@ export default function Page() {
 
     {!mentorships ? <Loader /> : <TableContainer><Table size="sm">
       <Thead><Tr>
-        <Th></Th><Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近师生通话</Th><Th>最近内部讨论</Th><Th>拼音（便于查找）</Th>
+        <Th></Th><Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近师生通话</Th><Th>最近内部笔记</Th><Th>拼音（便于查找）</Th>
       </Tr></Thead>
       <Tbody>
       {mentorships.map(m => <MentorshipTableRow
