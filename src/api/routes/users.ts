@@ -43,7 +43,7 @@ const create = procedure
  * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(['UserManager', 'GroupManager', 'InterviewManager']))
+  .use(authUser(['UserManager', 'GroupManager', 'MenteeManager']))
   .input(zUserFilter)
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
@@ -227,11 +227,11 @@ const setMentorCoach = procedure
 });
 
 /**
- * Only InterviewManagers, MentorCoaches, mentor of the applicant, interviewers
+ * Only MenteeManagers, MentorCoaches, mentor of the applicant, interviewers
  * of the applicant, and participants of the calibration (only if the calibration
  * is active) are allowed to call this route.
  * 
- * If the user is not an InterviewManager, contact information is redacted.
+ * If the user is not an MenteeManager, contact information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -256,7 +256,7 @@ const getApplicant = procedure
     user, application: user.menteeApplication
   };
 
-  if (isPermitted(ctx.user.roles, "InterviewManager")) return ret;
+  if (isPermitted(ctx.user.roles, "MenteeManager")) return ret;
 
   // Redact
   user.email = "redacted@redacted.com";
@@ -305,7 +305,7 @@ const getApplicant = procedure
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
 const updateApplication = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     userId: z.string(),
     type: zInterviewType,

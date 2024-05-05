@@ -6,18 +6,17 @@ export const AllRoles = [
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
+  // Merge with MenteeManager
   'MentorshipManager',
   'MentorshipAssessor',
-  'InterviewManager',
+  'MenteeManager',
   'Mentor',
   'Mentee',
   'Interviewer',
   'MentorCoach',
 
   // Deprecated
-  'PrivilegedRoleManager',
-  'PartnershipManager',
-  'PartnershipAssessor',
+  'InterviewManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -68,9 +67,9 @@ export const RoleProfiles: { [key: string]: {
     actions: '跟踪评估一对一导师辅导效果',
     privilegedUserDataAccess: true,
   },
-  InterviewManager: {
-    displayName: '面试管理员',
-    actions: '管理导师与学生面试',
+  MenteeManager: {
+    displayName: '学生管理员',
+    actions: '管理学生信息、学生面试信息、一对一导师匹配信息等',
     privilegedUserDataAccess: true,
   },
   Mentor: {
@@ -99,19 +98,9 @@ export const RoleProfiles: { [key: string]: {
   },
 
   // Deprecated
-  PrivilegedRoleManager: {
+  InterviewManager: {
     displayName: 'Deprecated',
     actions: '管理用户角色',
-    privilegedUserDataAccess: false,
-  },
-  PartnershipManager: {
-    displayName: 'Deprecated',
-    actions: '管理导师匹配',
-    privilegedUserDataAccess: false,
-  },
-  PartnershipAssessor: {
-    displayName: 'Deprecated',
-    actions: '跟踪评估一对一导师辅导效果',
     privilegedUserDataAccess: false,
   },
 };
