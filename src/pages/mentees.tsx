@@ -78,7 +78,7 @@ function MenteeTable({ users, onChangeStatus }: {
           </Td>
 
           {/* 姓名 */}
-          <Td><Link as={NextLink} href={`/users/${u.id}`}>
+          <Td><Link as={NextLink} href={`/mentees/${u.id}`}>
             {u.name} <ChevronRightIcon />
           </Link></Td>
 
