@@ -112,7 +112,7 @@ export function InterviewDecisionEditor({ interviewId, decision, etag }: {
   };
 
   return <Editor defaultFeedback={decision} etag={etag} save={save} showDimensions={false}
-    readonly={!isPermitted(me.roles, "InterviewManager")}
+    readonly={!isPermitted(me.roles, "MenteeManager")}
   />;
 }
 

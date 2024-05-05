@@ -8,7 +8,7 @@
           "SummaryEngineer",
           "MentorshipManager",
           "MentorshipAssessor",
-          "InterviewManager",
+          "MenteeManager",
           "Mentor",
           "Mentee",
           "Interviewer",

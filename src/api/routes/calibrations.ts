@@ -17,7 +17,7 @@ import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
 
 const create = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     type: zInterviewType,
     name: z.string(),
@@ -35,13 +35,13 @@ export async function createCalibration(type: InterviewType, name: string): Prom
   if (!name.length) throw generalBadRequestError("名称不能为空");
   return await sequelize.transaction(async transaction => {
     const c = await db.Calibration.create({ type, name, active: false }, { transaction });
-    await createGroup(null, [], ["InterviewManager"], null, null, c.id, null, transaction);
+    await createGroup(null, [], ["MenteeManager"], null, null, c.id, null, transaction);
     return c.id;
   });
 }
 
 const update = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     id: z.string(),
     name: z.string(),
@@ -61,7 +61,7 @@ const update = procedure
 });
 
 const list = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(zInterviewType)
   .output(z.array(zCalibration))
   .query(async ({ input: type }) =>
@@ -145,7 +145,7 @@ async function getCalibrationAndCheckPermission(me: User, calibrationId: string)
 }
 
 /**
- * Only InterviewManagers and participants of the calibration are allowed. In the latter case, the calibration
+ * Only MenteeManagers and participants of the calibration are allowed. In the latter case, the calibration
  * must be active.
  * 
  * @return the calibration if access is allowed. null otherwise
@@ -161,7 +161,7 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
-  if (isPermitted(me.roles, "InterviewManager")) return c;
+  if (isPermitted(me.roles, "MenteeManager")) return c;
 
   if (!c.active) return null;
 

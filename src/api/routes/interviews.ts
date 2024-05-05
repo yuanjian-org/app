@@ -17,7 +17,7 @@ import { date2etag } from "./interviewFeedbacks";
 import { zFeedback } from "../../shared/InterviewFeedback";
 
 /**
- * Only InterviewManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
+ * Only MenteeManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
  * to call this route.
  */
 const get = procedure
@@ -44,7 +44,7 @@ const get = procedure
     etag: date2etag(i.decisionUpdatedAt),
   };
 
-  if (isPermitted(ctx.user.roles, "InterviewManager")) return ret;
+  if (isPermitted(ctx.user.roles, "MenteeManager")) return ret;
 
   if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return ret;
 
@@ -54,7 +54,7 @@ const get = procedure
 });
 
 const list = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(zInterviewType)
   .output(z.array(zInterview))
   .query(async ({ input: type }) =>
@@ -86,7 +86,7 @@ const listMine = procedure
  * @returns the interview id.
  */
 const create = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     type: zInterviewType,
     calibrationId: z.string().nullable(),
@@ -134,7 +134,7 @@ export async function createInterview(type: InterviewType, calibrationId: string
 }
 
 const update = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     id: z.string(),
     type: zInterviewType,
@@ -151,7 +151,7 @@ const update = procedure
  * @return etag
  */
 const updateDecision = procedure
-  .use(authUser("InterviewManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     interviewId: z.string(),
     decision: zFeedback,

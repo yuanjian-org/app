@@ -51,7 +51,7 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
   useNameAsTitle?: boolean,
 }) {
   const [me] = useUserContext();
-  const isMenteeManager = isPermitted(me.roles, "InterviewManager");
+  const isMenteeManager = isPermitted(me.roles, "MenteeManager");
 
   const update = async (name: string, value: string) => {
     const updated = structuredClone(application ?? {});
