@@ -63,7 +63,7 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     name: '学生档案',
-    path: '/mentees',
+    path: '/mentees?menteeStatus=现届学子',
     icon: AttachmentIcon,
     regex: /^\/mentees/,
     role: 'UserManager',

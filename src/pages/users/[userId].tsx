@@ -27,7 +27,7 @@ function UserTabs({ user }: {
   return <TabsWithUrlParam isLazy>
     <TabList>
       {/* <Tab>一对一导师通话</Tab>
-      <Tab>内部讨论</Tab> */}
+      <Tab>内部笔记</Tab> */}
       <Tab>申请材料</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
@@ -43,7 +43,7 @@ function UserTabs({ user }: {
         <ChatRoom mentorshipId={mentorship.id} />
       </TabPanel> */}
       <TabPanel>
-        <MenteeApplicant userId={user.id} readonly />
+        <MenteeApplicant userId={user.id} />
       </TabPanel>
       {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />

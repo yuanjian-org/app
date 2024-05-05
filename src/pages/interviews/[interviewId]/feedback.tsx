@@ -61,7 +61,7 @@ export default widePage(() => {
         </GridItem>
         <GridItem>
           {i.type == "MenteeInterview" ? 
-            <MenteeApplicant userId={i.interviewee.id} showTitle readonly /> 
+            <MenteeApplicant userId={i.interviewee.id} showTitle /> 
             : 
             <Text>（导师申请材料页尚未实现）</Text>
           }
