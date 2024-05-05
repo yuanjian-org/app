@@ -37,7 +37,7 @@ export function isPermittedForGroup(u: User, g: Group): boolean {
 export function isPermittedForGroupHistory(u: User, g: Group): boolean {
   return isPermitted(u.roles, "SummaryEngineer") ||
     isPermitted(u.roles, g.roles) ||
-    // Allow coaches to access all partnership groups
+    // Allow coaches to access all mentorship groups
     (isPermitted(u.roles, "MentorCoach") && g.partnershipId !== null) ||
     g.users.some(gu => gu.id === u.id);
 }

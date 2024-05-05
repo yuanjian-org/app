@@ -41,7 +41,7 @@ export const transcriptAttributes = ["transcriptId", "startedAt", "endedAt"];
 export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
 
 /**
- * Partnership / Mentorship
+ * Mentorship
  */
 
 export const mentorshipAttributes = ['id'];
