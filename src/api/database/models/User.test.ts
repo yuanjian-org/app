@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import User from './User';
 import GroupUser from './GroupUser';
-import Partnership from './Partnership';
+import Mentorship from './Mentorship';
 import Group from './Group';
 import { Op } from 'sequelize';
 
@@ -10,7 +10,7 @@ describe('User', () => {
     let user1: User;
     let user2: User;
     let group: Group;
-    let partnership: Partnership;
+    let mentorship: Mentorship;
 
     it('should finish all tests on users', async () => {
 
@@ -61,21 +61,21 @@ describe('User', () => {
       };
 
       // 建立搭档关系
-      partnership = await Partnership.create({
+      mentorship = await Mentorship.create({
         mentorId: user1.id,
         menteeId: user2.id
       });
 
-      // 查找新创建的 partnership
-      const foundPartnership = await Partnership.findOne({
+      // 查找新创建的 mentorship
+      const foundMentorship = await Mentorship.findOne({
         where: {
           mentorId: user1.id,
           menteeId: user2.id
         }
       });
 
-      // 确认找到的partnership存在
-      expect(foundPartnership).to.exist;
+      // 确认找到的 mentorship 存在
+      expect(foundMentorship).to.exist;
 
 
       //删除user1，检查相关partner是否被删除
@@ -87,17 +87,17 @@ describe('User', () => {
         throw new Error("findUser1 is null.");
       }
 
-      const findPartnership = await Partnership.findOne({
+      const findMentorship = await Mentorship.findOne({
         where: {
           mentorId: user1.id,
           menteeId: user2.id
         },
         paranoid: false
       });
-      if (findPartnership) {
-        expect(findPartnership.deletedAt).to.not.be.null;
+      if (findMentorship) {
+        expect(findMentorship.deletedAt).to.not.be.null;
       } else {
-        throw new Error("findPartnership is null.");
+        throw new Error("findMentorship is null.");
       }
 
       //删除user2，检查相关groupUser是否被删除
@@ -120,7 +120,7 @@ describe('User', () => {
 
     // 使用force彻底清理测试用例
 
-      await Partnership.destroy({
+      await Mentorship.destroy({
         where: {
           [Op.or]: [
             { mentorId: user1.id },
