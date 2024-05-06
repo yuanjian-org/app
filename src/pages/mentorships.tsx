@@ -37,22 +37,28 @@ export default function Page() {
 
   const { data: mentorships, refetch } = trpcNext.mentorships.list.useQuery();
 
-  // undefined: editor is closed. null: create a new mentorship. non-nul: edit an existing mentorship
-  const [ mentorshipInEdit, setMentorshipInEdit ] = useState<Mentorship | null | undefined>(undefined);
+  // undefined: editor is closed. null: create a new mentorship. 
+  // non-null: edit an existing mentorship
+  const [ mentorshipInEdit, setMentorshipInEdit ] = 
+    useState<Mentorship | null | undefined>(undefined);
 
   return <Flex direction='column' gap={sectionSpacing}>
     <Box>
-      <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setMentorshipInEdit(null)}>创建一对一匹配</Button>
+      <Button variant='brand' leftIcon={<AddIcon />} onClick={() =>
+        setMentorshipInEdit(null)}>创建一对一匹配</Button>
     </Box>
 
-    {mentorshipInEdit !== undefined && <Editor mentorsihp={mentorshipInEdit} onClose={() => {
-      setMentorshipInEdit(undefined);
-      refetch();
-    }} />}
+    {mentorshipInEdit !== undefined && <Editor mentorsihp={mentorshipInEdit}
+      onClose={() => {
+        setMentorshipInEdit(undefined);
+        refetch();
+      }}
+    />}
 
     {!mentorships ? <Loader /> : <TableContainer><Table size="sm">
       <Thead><Tr>
-        <Th></Th><Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近师生通话</Th><Th>最近内部笔记</Th><Th>拼音（便于查找）</Th>
+        <Th></Th><Th>学生</Th><Th>导师</Th><Th>资深导师</Th><Th>最近师生通话</Th>
+        <Th>最近内部笔记</Th><Th>拼音（便于查找）</Th>
       </Tr></Thead>
       <Tbody>
       {mentorships.map(m => <MentorshipTableRow
