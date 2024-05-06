@@ -27,7 +27,7 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
     "尚未通话");
 
   const { data: messageLatest } = trpcNext.chat.getMostRecentMessageUpdatedAt
-    .useQuery({ mentorshipId: m.id });
+    .useQuery({ menteeId: m.mentee.id });
   const messageTextAndColor = getDateTextAndColor(messageLatest, 60, 90, "无笔记");
 
   const href=`/mentorships/${m.id}`;

@@ -7,13 +7,12 @@ import {
   Default,
   HasMany,
   ForeignKey,
-  HasOne,
   Unique,
   BelongsTo,
 } from "sequelize-typescript";
 import { CreationOptional, UUID, UUIDV4 } from "sequelize";
 import ChatMessage from "./ChatMessage";
-import Mentorship from "./Mentorship";
+import User from "./User";
 
 @Table
 class ChatRoom extends Model {
@@ -23,11 +22,11 @@ class ChatRoom extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
-  // A chat room is "owned" by a mentorship if this field is non-null.
+  // A chat room is "owned" by a mentee user if this field is non-null.
   @Unique
-  @ForeignKey(() => Mentorship)
+  @ForeignKey(() => User)
   @Column(UUID)
-  mentorshipId: string | null;
+  menteeId: string | null;
 
   /**
    * Associations
@@ -36,8 +35,8 @@ class ChatRoom extends Model {
   @HasMany(() => ChatMessage)
   messages: ChatMessage[];
 
-  @BelongsTo(() => Mentorship)
-  mentorship: Mentorship | null;
+  @BelongsTo(() => User)
+  mentee: User | null;
 }
 
 export default ChatRoom;
