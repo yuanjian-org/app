@@ -10,6 +10,7 @@ import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { widePage } from 'AppPage';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { MinUser } from 'shared/User';
+import ChatRoom from 'components/ChatRoom';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
@@ -26,8 +27,8 @@ function UserTabs({ user }: {
 }) {
   return <TabsWithUrlParam isLazy>
     <TabList>
-      {/* <Tab>一对一导师通话</Tab>
-      <Tab>内部笔记</Tab> */}
+      {/* <Tab>一对一导师通话</Tab> */}
+      <Tab>内部笔记</Tab>
       <Tab>申请材料</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
@@ -35,13 +36,10 @@ function UserTabs({ user }: {
     <TabPanels>
       {/* <TabPanel>
         <MentorshipPanel mentorship={mentorship} />
-      </TabPanel>
-      <TabPanel>
-        <Text color="grey" marginBottom={paragraphSpacing}>
-          在此记录学生情况或者与资深导师交流。学生无法看到此页。
-        </Text>
-        <ChatRoom mentorshipId={mentorship.id} />
       </TabPanel> */}
+      <TabPanel>
+        <ChatRoom menteeId={user.id} />
+      </TabPanel> 
       <TabPanel>
         <MenteeApplicant userId={user.id} />
       </TabPanel>

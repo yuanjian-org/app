@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
+import User, { MinUser, zMinUser, zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -400,6 +400,13 @@ function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]
   if (subjectRoles.length && !isPermitted(userRoles, "RoleManager")) {
     throw noPermissionError("用户");
   }
+}
+
+export async function checkPermissionForMentee(me: User, menteeId: string) {
+  if (isPermitted(me.roles, ["MentorCoach", "MenteeManager"])) return;
+  if (await db.Mentorship.count(
+    { where: { mentorId: me.id, menteeId } }) > 0) return;
+  throw noPermissionError("学生", menteeId);
 }
 
 async function emailUserAboutNewManualRoles(userManagerName: string, user: User, roles: Role[], baseUrl: string) {

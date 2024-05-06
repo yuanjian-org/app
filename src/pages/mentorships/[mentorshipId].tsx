@@ -44,10 +44,10 @@ function MenteeTabs({ mentorship }: {
         <MentorshipPanel mentorship={mentorship} />
       </TabPanel>
       <TabPanel>
-        <Text color="grey" marginBottom={paragraphSpacing}>
-          在此记录学生情况或者与资深导师交流。学生无法看到此页。
+        <ChatRoom menteeId={mentorship.mentee.id} />
+        <Text color="grey" marginTop={sectionSpacing}>
+          在此页记录学生情况或者与资深导师交流。学生无法看到此页。
         </Text>
-        <ChatRoom mentorshipId={mentorship.id} />
       </TabPanel>
       <TabPanel>
         <MenteeApplicant userId={mentorship.mentee.id} />

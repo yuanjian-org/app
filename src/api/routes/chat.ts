@@ -4,41 +4,36 @@ import db from "../database/db";
 import { z } from "zod";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
-import { isPermitted } from "../../shared/Role";
 import { 
-  mentorshipAttributes,
-  mentorshipInclude, 
   chatRoomAttributes,
   chatRoomInclude,
 } from "api/database/models/attributesAndIncludes";
 import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
+import { checkPermissionForMentee } from "./users";
+import invariant from "tiny-invariant";
 
 const getRoom = procedure
   .use(authUser())
   .input(z.object({
-    mentorshipId: z.string(),
+    menteeId: z.string(),
   }))
   .output(zChatRoom)
-  .query(async ({ ctx, input: { mentorshipId } }) =>
+  .query(async ({ ctx, input: { menteeId } }) =>
 {
   while (true) {
     const r = await db.ChatRoom.findOne({
-      where: { mentorshipId },
+      where: { menteeId },
       attributes: chatRoomAttributes,
-      include: [...chatRoomInclude, {
-        association: "mentorship",
-        attributes: mentorshipAttributes,
-        include: mentorshipInclude,
-      }],
+      include: chatRoomInclude,
     });
 
     if (!r) {
-      await db.ChatRoom.create({ mentorshipId });
+      await db.ChatRoom.create({ menteeId });
       continue;
     }
 
-    if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
+    await checkRoomPermission(ctx.user, menteeId);
     return r;
   }
 });
@@ -49,26 +44,18 @@ const getRoom = procedure
 const getMostRecentMessageUpdatedAt = procedure
   .use(authUser())
   .input(z.object({
-    mentorshipId: z.string(),
+    menteeId: z.string(),
   }))
   .output(z.date().nullable())
-  .query(async ({ ctx, input: { mentorshipId } }) =>
+  .query(async ({ ctx, input: { menteeId } }) =>
 {
   const r = await db.ChatRoom.findOne({
-    where: { mentorshipId },
+    where: { menteeId },
     attributes: ["id"],
-    include: [{
-      association: "mentorship",
-      attributes: [],
-      include: [{
-        association: "mentor",
-        attributes: ["id"],
-      }],
-    }],
   });
   if (!r) return null;
 
-  if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
+  await checkRoomPermission(ctx.user, menteeId);
 
   return await db.ChatMessage.max("updatedAt", { where: { roomId: r.id } });
 });
@@ -87,21 +74,14 @@ const createMessage = procedure
 {
   await sequelize.transaction(async transaction => {
     const r = await db.ChatRoom.findByPk(roomId, {
-      attributes: [],
-      include: [{
-        association: "mentorship",
-        attributes: [],
-        include: [{
-          association: "mentor",
-          attributes: ["id"],
-        }],
-      }],
+      attributes: ["menteeId"],
     });
     if (!r) throw notFoundError("讨论空间", roomId);
 
-    if (r.mentorship) checkRoomPermission(ctx.user, r.mentorship.mentor.id);
+    await checkRoomPermission(ctx.user, r.menteeId);
 
-    await db.ChatMessage.create({ roomId, markdown, userId: ctx.user.id }, { transaction });
+    await db.ChatMessage.create({ roomId, markdown, userId: ctx.user.id },
+      { transaction });
   });
 });
 
@@ -128,8 +108,9 @@ const updateMessage = procedure
   });
 });
 
-function checkRoomPermission(me: User, mentorId: string) {
-  if (!isPermitted(me.roles, "MentorCoach") && me.id !== mentorId) throw noPermissionError("讨论空间");
+async function checkRoomPermission(me: User, menteeId: string | null) {
+  if (menteeId !== null) await checkPermissionForMentee(me, menteeId);
+  else invariant(false);
 }
 
 export default router({
