@@ -3,10 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'standalone',
+
+  // https://github.com/vercel/next.js/issues/59594
+  experimental: {
+    serverMinification: false,
+  },
 };
 
 module.exports = nextConfig;
-
 
 // Injected content via Sentry wizard below
 // for mannual setup or config, see:
