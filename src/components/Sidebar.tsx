@@ -103,13 +103,6 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/interviews\?type=mentee/,
     role: 'MenteeManager',
   },
-  // {
-  //   name: '管理导师面试',
-  //   path: '/interviews?type=mentor',
-  //   icon: MdFaceUnlock,
-  //   regex: /^\/interviews\?type=mentor/,
-  //   role: 'MenteeManager',
-  // },
   {
     name: '管理一对一',
     path: '/mentorships',
@@ -121,11 +114,11 @@ const sidebarItems: SidebarItem[] = [
 
 function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
   if (!mentorships) return [];
-  return mentorships.map(p => ({
-    name: formatUserName(p.mentee.name),
+  return mentorships.map(m => ({
+    name: formatUserName(m.mentee.name),
     icon: MdFace,
-    path: `/mentorships/${p.id}`,
-    regex: new RegExp(`^\/mentorships\/${p.id}`),
+    path: `/mentees/${m.mentee.id}`,
+    regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
   }));
 }
 
