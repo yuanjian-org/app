@@ -6,8 +6,6 @@ export const AllRoles = [
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
-  // Merge with MenteeManager
-  'MentorshipManager',
   'MentorshipAssessor',
   'MenteeManager',
   'Mentor',
@@ -17,6 +15,7 @@ export const AllRoles = [
 
   // Deprecated
   'InterviewManager',
+  'MentorshipManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -57,11 +56,6 @@ export const RoleProfiles: { [key: string]: {
     actions: '研发自动会议摘要功能',
     privilegedUserDataAccess: true,
   },
-  MentorshipManager: {
-    displayName: '一对一导师管理员',
-    actions: '管理导师匹配',
-    privilegedUserDataAccess: false,
-  },
   MentorshipAssessor: {
     displayName: '一对一导师评估员',
     actions: '跟踪评估一对一导师辅导效果',
@@ -101,6 +95,11 @@ export const RoleProfiles: { [key: string]: {
   InterviewManager: {
     displayName: 'Deprecated',
     actions: '管理用户角色',
+    privilegedUserDataAccess: false,
+  },
+  MentorshipManager: {
+    displayName: 'Deprecated',
+    actions: '管理导师匹配',
     privilegedUserDataAccess: false,
   },
 };

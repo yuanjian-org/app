@@ -115,7 +115,7 @@ const sidebarItems: SidebarItem[] = [
     path: '/mentorships',
     icon: MdOutlineSyncAlt,
     regex: /^\/mentorships$/,
-    role: 'MentorshipManager',
+    role: 'MenteeManager',
   },
 ];
 

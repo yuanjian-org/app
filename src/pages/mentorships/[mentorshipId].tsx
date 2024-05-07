@@ -7,7 +7,7 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import GroupBar from 'components/GroupBar';
-import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import { sectionSpacing } from 'theme/metrics';
 import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import Transcripts from 'components/Transcripts';

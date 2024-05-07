@@ -17,7 +17,7 @@ export default async function migrateData() {
     for (const u of users) {
       const roles: Role[] = u.roles.map(r => (
         r === "InterviewManager" ? "MenteeManager" :
-        // r === "PartnershipAssessor" ? "MentorshipAssessor" :
+        r === "MentorshipManager" ? "MenteeManager" :
         r
       ));
       await u.update({ roles }, { transaction });
