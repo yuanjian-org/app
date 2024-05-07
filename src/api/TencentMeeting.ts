@@ -363,3 +363,35 @@ export function getSummary(tmUserId: string, recordFileId: string) {
     return decodedString;
   });
 }
+
+// Smart chapters
+// https://cloud.tencent.com/document/product/1095/105661
+export function getChapters(tmUserId: string, recordFileId: string) {
+  return tmRequest('GET', '/v1/smart/chapters', {
+    record_file_id: recordFileId,
+    operator_id: tmUserId,
+    operator_id_type: 1,
+  }).then(res => {
+    console.log({res});
+    return z.object({
+      chapter_list: z.array(z.object({
+        chapter_id: z.string(),
+        chapter_name: z.string(),
+        pic_url: z.string(),
+        start_time: z.string(),
+      }))
+    }).parse(res);
+  }).then(res => {
+    return {
+      chapter_list: res.chapter_list.map(item => {
+        let bufferObj = Buffer.from(item.chapter_name, "base64");
+        let decodedString = bufferObj.toString("utf8");
+        console.log("The decoded string:", decodedString);
+        return {
+          ...item,
+          chapter_name: decodedString,
+        };
+      })
+    };
+  });
+}
