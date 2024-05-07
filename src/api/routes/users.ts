@@ -160,7 +160,7 @@ const get = procedure
 
 
 /**
- * Only the user themselves, MentorCoach, and MentorshipManager have access to this API.
+ * Only the user themselves, MentorCoach, and MenteeManager have access.
  */
 const getMentorCoach = procedure
   .use(authUser())
@@ -170,7 +170,8 @@ const getMentorCoach = procedure
   .output(zMinUser.nullable())
   .query(async ({ ctx, input: { userId } }) =>
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["MentorCoach", "MentorshipManager"])) {
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles,
+    ["MentorCoach", "MenteeManager"])) {
     throw noPermissionError("资深导师匹配", userId);
   }
 
@@ -187,7 +188,7 @@ const getMentorCoach = procedure
 });
 
 const setMentorCoach = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MenteeManager"))
   .input(z.object({
     userId: z.string(),
     coachId: z.string(),

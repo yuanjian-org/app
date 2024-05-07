@@ -6,7 +6,6 @@
           "UserManager",
           "GroupManager",
           "SummaryEngineer",
-          "MentorshipManager",
           "MentorshipAssessor",
           "MenteeManager",
           "Mentor",
