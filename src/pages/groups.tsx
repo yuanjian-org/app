@@ -33,8 +33,8 @@ import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
 
-export const publicGroupDescription = "公开会议允许所有用户加入。下面列出的用户可以" + 
-  "管理和查询会议历史。";
+export const publicGroupDescription = "公开会议允许任何有远图会议链接的用户加入会议。" + 
+  "仅下列用户有权查看会议历史。";
 
 export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
