@@ -343,3 +343,23 @@ export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
 
 // Uncomment and modify this line to debug TM APIs.
 // listRecords().then(res => console.log(JSON.stringify(res, null, 2)));
+
+// Smart summary
+// https://cloud.tencent.com/document/product/1095/105661
+export function getSummary(tmUserId: string, recordFileId: string) {
+  return tmRequest('GET', '/v1/smart/fullsummary', {
+    record_file_id: recordFileId,
+    operator_id: tmUserId,
+    operator_id_type: 1,
+  }).then(res => {
+    return z.object({
+      ai_summary: z.string()
+    }).parse(res);
+  }).then(parsed => {
+    let bufferObj = Buffer.from(parsed.ai_summary, "base64");
+    let decodedString = bufferObj.toString("utf8");
+
+    // console.log("The decoded string:", decodedString);
+    return decodedString;
+  });
+}
