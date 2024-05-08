@@ -222,7 +222,8 @@ const setMentorCoach = procedure
       await updateGroup(gs[0].id, null, gs[0].public, [userId, coachId],
           transaction);
     } else {
-      await createGroup(null, [userId, coachId], [], null, null, null, userId, transaction);
+      await createGroup(null, [userId, coachId], [], null, null, null, userId,
+        transaction);
     }
   });
 });
@@ -263,14 +264,7 @@ const getApplicant = procedure
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
 
-  if (isPermitted(ctx.user.roles, "MentorCoach")) return ret;
-
-  // Check if the user is the mentor
-  const mentorship = await db.Mentorship.findOne({
-    where: { menteeId: userId },
-    attributes: ["mentorId"],
-  });
-  if (mentorship && mentorship.mentorId == ctx.user.id) return ret;
+  if (await isPermittedForMentee(ctx.user, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -296,7 +290,8 @@ const getApplicant = procedure
     attributes: ["calibrationId"],
   });
   for (const i of allInterviews) {
-    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return ret;
+    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(
+      ctx.user, i.calibrationId)) return ret;
   }
 
   throw noPermissionError("申请资料", user.id);
@@ -355,8 +350,9 @@ const destroy = procedure
     const user = await db.User.findByPk(input.id, { transaction });
     if (!user) throw notFoundError("用户", input.id);
 
-    // Because we soft-delete a user, rename the user's email address before destroying to make sure next time the user
-    // logs in with the same email, account creation will not fail.
+    // Because we soft-delete a user, rename the user's email address before
+    // destroying to make sure next time the user logs in with the same email,
+    // account creation will not fail.
     let i = 0;
     while (true) {
       const email = `deleted-${i++}+${user.email}`;
@@ -404,14 +400,23 @@ function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]
 }
 
 export async function checkPermissionForMentee(me: User, menteeId: string) {
-  if (isPermitted(me.roles, ["MentorCoach", "MenteeManager"])) return;
-  if (await db.Mentorship.count(
-    { where: { mentorId: me.id, menteeId } }) > 0) return;
-  throw noPermissionError("学生", menteeId);
+  if (!await isPermittedForMentee(me, menteeId)) {
+    throw noPermissionError("学生", menteeId);
+  }
 }
 
-async function emailUserAboutNewManualRoles(userManagerName: string, user: User, roles: Role[], baseUrl: string) {
-  const added = roles.filter(r => !user.roles.includes(r)).filter(r => !RoleProfiles[r].automatic);
+export async function isPermittedForMentee(me: User, menteeId: string) {
+  if (isPermitted(me.roles, ["MentorCoach", "MenteeManager"])) return true;
+  if (await db.Mentorship.count(
+    { where: { mentorId: me.id, menteeId } }) > 0) return true;
+  return false;
+}
+
+async function emailUserAboutNewManualRoles(userManagerName: string, user: User,
+  roles: Role[], baseUrl: string) 
+{
+  const added = roles.filter(r => !user.roles.includes(r)).filter(
+    r => !RoleProfiles[r].automatic);
   for (const r of added) {
     const rp = RoleProfiles[r];
     await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
