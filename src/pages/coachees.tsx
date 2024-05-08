@@ -13,9 +13,9 @@ import React from 'react';
 import { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
 import { useUserContext } from 'UserContext';
-import { MentorshipTableRow } from '../components/MentorshipTableRow';
 import { sectionSpacing } from 'theme/metrics';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { MenteeCell, MentorshipCells, MostRecentChatMessageCell } from './mentees';
 
 export default function Page() {
   const [user] = useUserContext();
@@ -24,9 +24,9 @@ export default function Page() {
 
   return <Flex direction='column' gap={sectionSpacing}>
     <Box>
-      <Link target='_blank' href="https://www.notion.so/yuanjian/e140913982174da3ae8f8d37976dcd7e">
-        资深导师职责 <ExternalLinkIcon />
-      </Link>
+      <Link target='_blank'
+        href="https://www.notion.so/yuanjian/e140913982174da3ae8f8d37976dcd7e"
+      >资深导师职责 <ExternalLinkIcon /></Link>
     </Box>
 
     {!mentorships ? <Loader /> : <TableContainer><Table>
@@ -36,7 +36,12 @@ export default function Page() {
         </Tr>
       </Thead>
       <Tbody>
-      {mentorships.map(m => <MentorshipTableRow key={m.id} mentorship={m} />)}
+        {mentorships.map(m => <Tr key={m.id} _hover={{ bg: "white" }}>
+          <MenteeCell mentee={m.mentee} />
+          <MentorshipCells menteeId={m.mentee.id} readonly />
+          <MostRecentChatMessageCell menteeId={m.mentee.id} />
+        </Tr>
+      )}
       </Tbody>
     </Table></TableContainer>}
 

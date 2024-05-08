@@ -103,13 +103,6 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/interviews\?type=mentee/,
     role: 'MenteeManager',
   },
-  {
-    name: '管理一对一',
-    path: '/mentorships',
-    icon: MdOutlineSyncAlt,
-    regex: /^\/mentorships$/,
-    role: 'MenteeManager',
-  },
 ];
 
 function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
