@@ -1,5 +1,8 @@
 export type ApplicationField = {
   name: string,
+  // Always show the field on the "edit application" page even if the field is
+  // absent from application data.
+  showForEdits?: boolean,
   // field name from 金数据 applicaiton form https://jinshuju.net/f/FBTWTe
   jsjField?: string,
   // field name from 金数据 proxied applicaiton form https://jinshuju.net/f/S74k0V
@@ -12,17 +15,17 @@ export const menteeSourceField = "合作机构来源";
  * Field order dictates the order the fields are displayed.
  */
 const menteeApplicationFields: ApplicationField[] = [
-  { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, },
-  { jsjField: "field_149", jsjProxiedField: "field_149", name: "就读种类", },
-  { jsjField: "field_161", name: "本科是否是第一批次（一本）？", },
-  { jsjField: "field_107", jsjProxiedField: "field_108", name: "就读学校", },
-  { jsjField: "field_108", jsjProxiedField: "field_172", name: "就读专业", },
-  { jsjField: "field_167", jsjProxiedField: "field_167", name: "大学一年级入学年份", },
-  { jsjField: "field_169", name: "预计毕业年份", },
+  { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
+  { jsjField: "field_149", jsjProxiedField: "field_149", name: "就读种类", showForEdits: true, },
+  { jsjField: "field_161", name: "本科是否是第一批次（一本）？", showForEdits: true, },
+  { jsjField: "field_107", jsjProxiedField: "field_108", name: "就读学校", showForEdits: true, },
+  { jsjField: "field_108", jsjProxiedField: "field_172", name: "就读专业", showForEdits: true, },
+  { jsjField: "field_167", jsjProxiedField: "field_167", name: "大学一年级入学年份", showForEdits: true, },
+  { jsjField: "field_169", name: "预计毕业年份", showForEdits: true, },
   { jsjField: "field_168", name: "小学、初中、高中", },
   { jsjField: "field_156", name: "简历", },
   { jsjField: "field_162", name: "简历文件", },
-  { jsjProxiedField: "field_173", name: "合作机构推荐文字", },
+  { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
   { jsjProxiedField: "field_170", name: "申请表", },
   { jsjProxiedField: "field_171", name: "其他申请材料", },
   { jsjField: "field_155", name: "个人职业网站 URL（科研组网站、领英等）", },
