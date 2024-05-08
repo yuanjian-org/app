@@ -1,12 +1,12 @@
 import { Td } from '@chakra-ui/react';
 import React from 'react';
 import { Mentorship } from 'shared/Mentorship';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { formatUserName, toPinyin } from 'shared/strings';
 import TrLink from 'components/TrLink';
-import moment from 'moment';
 import { trpcNext } from 'trpc';
 import TdLink from './TdLink';
 import EditIconButton from './EditIconButton';
+import { getDateTextAndColor } from 'pages/mentees';
 
 export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit }: {
   mentorship: Mentorship;
@@ -56,23 +56,4 @@ export function MentorshipTableRow({ mentorship: m, showCoach, showPinyin, edit 
       {coach && "," + toPinyin(coach.name ?? "")}
     </TdLink>}
   </TrLink>;
-}
-
-/**
- * @param date undefined means it's still being fetched.
- */
-function getDateTextAndColor(date: string | null | undefined, yellowThreshold: number, redThreshold: number, 
-  nullText: string) 
-{
-  let text;
-  let color;
-  if (date) {
-    text = prettifyDate(date);
-    const daysAgo = moment().diff(date, "days");
-    color = daysAgo < 45 ? "green" : daysAgo < 60 ? "yellow.600" : "brown";
-  } else if (date === null) {
-    text = nullText;
-    color = "grey";
-  }
-  return [text, color];
 }
