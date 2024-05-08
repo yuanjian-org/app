@@ -21,6 +21,7 @@ import {
   FormControl,
   VStack,
   Spacer,
+  LinkProps,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import trpc, { trpcNext } from "../trpc";
@@ -116,11 +117,9 @@ function MenteeRow({ user: u, refetch }: {
     </WrapItem></Wrap></Td>
 
     {/* 姓名 */}
-    <Td><Link as={NextLink} href={`/mentees/${u.id}`}>
-      {u.name} <ChevronRightIcon />
-    </Link></Td>
+    <MenteeCell mentee={u} />
 
-    <MentorshipCells menteeId={u.id} addPinyin={addPinyin} />
+    <MentorshipCells menteeId={u.id} addPinyin={addPinyin} showCoach />
 
     {/* 最近内部笔记 */}
     <MostRecentChatMessageCell menteeId={u.id} />
@@ -130,9 +129,19 @@ function MenteeRow({ user: u, refetch }: {
   </Tr>;
 }
 
-function MentorshipCells({ menteeId, addPinyin } : {
+export function MenteeCell({ mentee } : {
+  mentee: MinUser,
+}) {
+  return <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
+    {mentee.name} <ChevronRightIcon />
+  </Link></Td>;
+}
+
+export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly } : {
   menteeId : string,
-  addPinyin: (names: string[]) => void,
+  addPinyin?: (names: string[]) => void,
+  showCoach?: boolean,
+  readonly?: boolean,
 }) {
   const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(menteeId);
   if (!data) return <Td><Loader /></Td>;
@@ -141,14 +150,19 @@ function MentorshipCells({ menteeId, addPinyin } : {
   data.sort((a, b) => a.id.localeCompare(b.id));
 
   return <LoadedMentorsCells menteeId={menteeId} mentorships={data}
-    addPinyin={addPinyin} refetch={refetch} />;
+    addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
+    readonly={readonly} />;
 }
 
-function LoadedMentorsCells({ menteeId, mentorships, addPinyin, refetch } : {
+function LoadedMentorsCells({
+  menteeId, mentorships, addPinyin, refetch, showCoach, readonly
+} : {
   menteeId: string,
   mentorships: Mentorship[],
-  addPinyin: (names: string[]) => void,
+  addPinyin?: (names: string[]) => void,
   refetch: () => void,
+  showCoach?: boolean,
+  readonly?: boolean,
 }) {
   const transcriptRes = trpcNext.useQueries(t => {
     return mentorships.map(m => t.transcripts.getMostRecentStartedAt({
@@ -169,7 +183,11 @@ function LoadedMentorsCells({ menteeId, mentorships, addPinyin, refetch } : {
 
   const [ editing, setEditing ] = useState<boolean>(false);
 
+  const LinkToEditor = ({ children, ...props }: LinkProps) =>
+    readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
+
   useEffect(() => {
+    if (!addPinyin) return;
     const names = [
       ...mentorships.map(m => m.mentor.name),
       ...coachRes.map(c => c.data ? c.data.name : null),
@@ -186,7 +204,7 @@ function LoadedMentorsCells({ menteeId, mentorships, addPinyin, refetch } : {
         onClose={() => setEditing(false)} refetch={refetchAll}
       />}
 
-      <Link onClick={() => setEditing(true)}>
+      <LinkToEditor onClick={() => setEditing(true)}>
         {mentorships.length ?
           <VStack align="start">
             {mentorships.map(m =>
@@ -196,16 +214,18 @@ function LoadedMentorsCells({ menteeId, mentorships, addPinyin, refetch } : {
           :
           <MdEdit />
         }
-      </Link>
+      </LinkToEditor>
     </Td>
 
     {/* 资深导师 */}
-    <Td><Link onClick={() => setEditing(true)}><VStack align="start">
-        {coachRes.map((c, idx) => c.data ? 
-          <Text key={idx}>{formatUserName(c.data.name)}</Text> :
-          <MdEdit key={idx}/>
-        )}
-    </VStack></Link></Td>
+    {showCoach &&
+      <Td><LinkToEditor onClick={() => setEditing(true)}><VStack align="start">
+          {coachRes.map((c, idx) => c.data ? 
+            <Text key={idx}>{formatUserName(c.data.name)}</Text> :
+            <MdEdit key={idx}/>
+          )}
+      </VStack></LinkToEditor></Td>
+    }
 
     {/* 最近师生通话 */}
     <Td><VStack align="start">
@@ -216,7 +236,9 @@ function LoadedMentorsCells({ menteeId, mentorships, addPinyin, refetch } : {
   </>;
 }
 
-function MostRecentChatMessageCell({ menteeId } : { menteeId : string }) {
+export function MostRecentChatMessageCell({ menteeId } : {
+  menteeId : string
+}) {
   const { data } = trpcNext.chat.getMostRecentMessageUpdatedAt
     .useQuery({ menteeId });
   const textAndColor = getDateTextAndColor(data, 60, 90, "无笔记");
