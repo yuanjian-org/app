@@ -41,9 +41,7 @@ async function main() {
   if (users.length == 0) {
     users = await User.findAll();
     if (users.length !== 1) {
-      console.error("ERROR: Zero or multiple users are found and none of them" +
-        "are UserManagers. Please follow README.md and log into your local" + 
-        "server first.");
+      console.error('ERROR: Zero or multiple users are found and none of them are UserManagers. Please follow README.md and log into your local server first.');
       process.exit(1);
     }
   }
@@ -51,6 +49,8 @@ async function main() {
   await upgradeUsers(users);
   await generateUsers();
   await generateGroupsAndSummaries(users);
+  // This make sure the process doesn't hang waiting for connection closure.
+  await sequelize.close();
 }
 
 async function upgradeUsers(users: User[]) {
