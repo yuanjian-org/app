@@ -395,3 +395,32 @@ export function getChapters(tmUserId: string, recordFileId: string) {
     };
   });
 }
+
+const FileSummary = z.object({
+  download_address: z.string().optional(),
+  file_type: z.string().optional(),
+});
+
+const zGetAddressesRes = z.object({
+  record_file_id: z.string(),
+  meeting_id: z.string(),
+  meeting_code: z.string(),
+  view_address: z.string().optional(),
+  download_address: z.string().optional(),
+  download_address_file_type: z.string().optional(),
+  audio_address: z.string().optional(),
+  audio_address_file_type: z.string().optional(),
+  meeting_summary: z.array(FileSummary).optional(),
+  ai_meeting_transcripts: z.array(FileSummary).optional(),
+  ai_minutes: z.array(FileSummary).optional(), // <---- use this for segmented summary of each chapter
+});
+// Addresses
+// https://cloud.tencent.com/document/product/1095/51180
+export function getAddresses(tmUserId: string, recordFileId: string) {
+  return tmRequest('GET', '/v1/addresses/' + recordFileId, {
+    userid: tmUserId,
+  }).then(res => {
+    // console.log(JSON.stringify(res, null, 2));
+    return zGetAddressesRes.parse(res);
+  });
+}

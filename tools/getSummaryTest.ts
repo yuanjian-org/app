@@ -1,5 +1,5 @@
 import { loadEnvConfig } from '@next/env';
-import {getChapters, getSummary, listRecords} from "../src/api/TencentMeeting";
+import {getAddresses, getChapters, getSummary, listRecords} from "../src/api/TencentMeeting";
 import apiEnv from "../src/api/apiEnv";
 loadEnvConfig('./');
 
@@ -13,5 +13,6 @@ loadEnvConfig('./');
 //   getSummary(apiEnv.TM_USER_IDS[0], record_file_id).then(console.log);
 // });
 
-getSummary(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
-getChapters(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
+// getSummary(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
+// getChapters(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
+getAddresses(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
