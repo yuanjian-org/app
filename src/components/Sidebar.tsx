@@ -27,8 +27,6 @@ import {
   MdScience,
   MdChevronRight, 
   MdFace, 
-  MdFace5, 
-  MdOutlineSyncAlt, 
   MdVideocam,
   MdSupervisorAccount,
   MdMic
@@ -96,13 +94,6 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/groups$/,
     role: 'GroupManager',
   },
-  {
-    name: '管理学生面试',
-    path: '/interviews?type=mentee',
-    icon: MdFace5,
-    regex: /^\/interviews\?type=mentee/,
-    role: 'MenteeManager',
-  },
 ];
 
 function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
@@ -150,14 +141,17 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
               src={yuanjianLogo224x97} 
               alt="远见教育基金会" 
               width={112}
-              // Without `priority` we would get a warning from Chrome that this image "was detected as the Largest 
-              // Contentful Paint (LCP). Please add the "priority" property if this image is above the fold. Read more: 
+              // Without `priority` we would get a warning from Chrome that this
+              // image "was detected as the Largest Contentful Paint (LCP).
+              // Please add the "priority" property if this image is above the
+              // fold. Read more:
               // https://nextjs.org/docs/api-reference/next/image#priority"
               priority
               />
             </NextLink>
         </Box>
-        <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} onClick={onClose} />
+        <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
+          onClick={onClose} />
       </Flex>
       <Box height={{
         base: 0,
@@ -170,7 +164,8 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       
       {mentorshipItems?.length > 0 && <Divider marginY={2} />}
 
-      {mentorshipItems.map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
+      {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
+        onClose={onClose} />)}
     </Box>
   );
 };

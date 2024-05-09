@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { UserFilter } from 'shared/User';
-import { Select, WrapItem } from '@chakra-ui/react';
+import { Link, Select, WrapItem } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import _ from "lodash";
-import { AllMenteeStatuses, MenteeStatus, zMenteeStatus } from 'shared/MenteeStatus';
-import MenteeStatusSelect, { ANY_MENTEE_STATUS, NULL_MENTEE_STATUS } from './MenteeStatusSelect';
+import { zMenteeStatus } from 'shared/MenteeStatus';
+import MenteeStatusSelect, { NULL_MENTEE_STATUS } from './MenteeStatusSelect';
+import NextLink from "next/link";
 
 type BooleanLabelType = "是不是" | "有没有" | "已经";
 
@@ -73,6 +74,9 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     <WrapItem>递交学生申请</WrapItem>
     <WrapItem>{booleanSelect("isMenteeInterviewee", "已经")}</WrapItem>
     <WrapItem>为学生拉面试群</WrapItem>
+    <WrapItem>
+      <Link as={NextLink} href="/interviews?type=mentee">（管理面试）</Link>
+    </WrapItem>
   </>;
 }
 
