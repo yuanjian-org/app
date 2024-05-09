@@ -39,6 +39,7 @@ import { Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
+import { sectionSpacing } from 'theme/metrics';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 
@@ -58,6 +59,9 @@ export default function Page() {
       {!users ? <Loader /> :
         <TableContainer>
           <MenteeTable users={users} refetch={refetch}/>
+          <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
+            共 <b>{users.length}</b> 名
+          </Text>
         </TableContainer>
       }
     </Flex>
@@ -106,7 +110,9 @@ function MenteeRow({ user: u, refetch }: {
   };
 
   const addPinyin = useCallback((names: string[]) => {
-    setPinyins(`${menteePinyin},${names.map(n => toPinyin(n)).join(',')}`);
+    if (names.length) {
+      setPinyins(`${menteePinyin},${names.map(n => toPinyin(n)).join(',')}`);
+    }
   }, [menteePinyin]);
 
   return <Tr key={u.id} _hover={{ bg: "white" }}>
