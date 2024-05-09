@@ -25,11 +25,11 @@ export default widePage(() => {
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <UserTabs user={u} mentorships={mentorships || []} />
+    <MenteeTabs user={u} mentorships={mentorships || []} />
   </>;
 });
 
-function UserTabs({ user, mentorships }: {
+function MenteeTabs({ user, mentorships }: {
   user: MinUser,
   mentorships: Mentorship[],
 }) {
@@ -39,7 +39,9 @@ function UserTabs({ user, mentorships }: {
   return <TabsWithUrlParam isLazy>
     <TabList>
       {sortedMentorships.length == 1 ?
-        <Tab>一对一导师通话</Tab>
+        <Tab>一对一导师通话{sortedMentorships[0].mentor.id !== me.id &&
+          `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
+        </Tab>
         :
         sortedMentorships.map(m =>
           <Tab key={m.id}>一对一导师通话{formatMentorshipTabSuffix(m, me.id)}</Tab>

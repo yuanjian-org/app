@@ -13,7 +13,12 @@ const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
       /ConnectionError/   // Fix pg vercel bug: https://github.com/orgs/vercel/discussions/234
     ],
     max: 3
-}
+  },
+  // Enable connection pooling using default values
+  pool: {
+    max: 5,
+    min: 0,
+  },
 });
 
 hookIsPartialAfterSequelizeInit();

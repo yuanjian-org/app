@@ -1,5 +1,6 @@
 import { loadEnvConfig } from '@next/env';
-import {getAddresses, getChapters, getSummary, listRecords} from "../src/api/TencentMeeting";
+
+import { getAddresses } from "../src/api/TencentMeeting";
 import apiEnv from "../src/api/apiEnv";
 loadEnvConfig('./');
 
@@ -13,6 +14,11 @@ loadEnvConfig('./');
 //   getSummary(apiEnv.TM_USER_IDS[0], record_file_id).then(console.log);
 // });
 
+// console.log("Decoded smart/fullsummary:");
 // getSummary(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
+
+// console.log("Decoded smart/chapters:");
 // getChapters(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);
+
+console.log("Segmented summary ( refer ai_minutes object)");
 getAddresses(apiEnv.TM_USER_IDS[0], '1786969809404370945').then(console.log);

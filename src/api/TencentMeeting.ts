@@ -358,8 +358,6 @@ export function getSummary(tmUserId: string, recordFileId: string) {
   }).then(parsed => {
     let bufferObj = Buffer.from(parsed.ai_summary, "base64");
     let decodedString = bufferObj.toString("utf8");
-
-    // console.log("The decoded string:", decodedString);
     return decodedString;
   });
 }
@@ -386,7 +384,6 @@ export function getChapters(tmUserId: string, recordFileId: string) {
       chapter_list: res.chapter_list.map(item => {
         let bufferObj = Buffer.from(item.chapter_name, "base64");
         let decodedString = bufferObj.toString("utf8");
-        console.log("The decoded string:", decodedString);
         return {
           ...item,
           chapter_name: decodedString,

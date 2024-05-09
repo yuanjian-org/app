@@ -59,18 +59,6 @@ const create = procedure
   });
 });
 
-// TODO: Deprecate this function
-const list = procedure
-  .use(authUser('MenteeManager'))
-  .output(z.array(zMentorship))
-  .query(async () => 
-{
-  return await db.Mentorship.findAll({ 
-    attributes: mentorshipAttributes,
-    include: mentorshipInclude,
-  });
-});
-
 /**
  * If the current user is a MentorCoach, return all mentorships of the mentee.
  * Otherwise, return only the mentorship of the mentee where the current user
@@ -146,7 +134,6 @@ const get = procedure
 export default router({
   create,
   get,
-  list,
   listMineAsMentor,
   listMineAsCoach,
   listForMentee,

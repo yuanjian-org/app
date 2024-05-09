@@ -69,27 +69,31 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
       `${formatUserName(user.name)}` : "申请材料"}</Heading>}
 
     {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
-    <ContactFieldRow isMenteeManager={isMenteeManager} 
+
+    <ContactFieldRow readable={isMenteeManager} 
       name="微信" value={user.wechat ?? '（未提供微信）'} />
-    <ContactFieldRow isMenteeManager={isMenteeManager}
+
+    <ContactFieldRow readable={isMenteeManager}
       name="邮箱" value={user.email} />
 
-    {!application ? <Text color="grey">无申请材料。</Text> :
-      menteeApplicationFields.map(f => {
-        invariant(application);
-        if (f.name in application) {
-          return <FieldRow readonly={!isMenteeManager} key={f.name} name={f.name}
-            value={application[f.name]}
-            update={v => update(f.name, v)}
-          />;
-        }
+    {menteeApplicationFields.map(f => {
+      if (application && f.name in application) {
+        return <FieldRow readonly={!isMenteeManager} key={f.name} name={f.name}
+          value={application[f.name]}
+          update={v => update(f.name, v)}
+        />;
+      } else if (isMenteeManager && f.showForEdits) {
+        return <FieldRow readonly={false} key={f.name} name={f.name}
+          value={''}
+          update={v => update(f.name, v)}
+        />;
       }
-    )}
+    })}
   </Flex>;
 }
 
-function ContactFieldRow({ isMenteeManager, name, value }: { 
-  isMenteeManager: boolean,
+function ContactFieldRow({ readable, name, value }: { 
+  readable: boolean,
   name: string,
   value: string 
 }) {
@@ -104,13 +108,13 @@ function ContactFieldRow({ isMenteeManager, name, value }: {
   return <Flex direction="column">
     <Flex>
       <b>{name}{' '}</b>
-      {!isMenteeManager && <Text color="grey">
+      {!readable && <Text color="grey">
         （请联系<Link as={NextLink} href="/who-can-see-my-data">学生管理员</Link>）
       </Text>}
     </Flex>
     <Box>
       ••••••••••••{' '}
-      {isMenteeManager &&
+      {readable &&
         <Tooltip label="拷贝内容到剪贴板">
           <CopyIcon onClick={onCopy} cursor="pointer" />
         </Tooltip>

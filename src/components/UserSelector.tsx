@@ -52,5 +52,11 @@ export default function UserSelector(props: {
       setValue(value);
       if (isMulti) props.onSelect((value as Option[]).map(o => o.value));
       else props.onSelect(value ? [(value as Option).value] : []);
-    }} />;
+    }}
+
+    // To prevent the dropdown menu being hidden under other elements.
+    // https://stackoverflow.com/a/63898744
+    menuPortalTarget={document.body}
+    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+  />;
 }
