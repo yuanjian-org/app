@@ -10,12 +10,24 @@ const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
   retry: {
     // Error types: https://sequelize.org/api/v6/identifiers.html#errors
     match: [
-      /ConnectionError/   // Fix pg vercel bug: https://github.com/orgs/vercel/discussions/234
+      // Fix pg vercel bug: https://github.com/orgs/vercel/discussions/234
+      /ConnectionError/
     ],
     max: 3
-}
+  }
 });
+
+export default sequelize;
 
 hookIsPartialAfterSequelizeInit();
 
-export default sequelize;
+/**
+ * Clean up db connection on exit, otherwise dangling connections after Vercel
+ * kills the Serveless Functions may overwhelm our poor little db server.
+ * 
+ * It also makes sure tooling processes like "yarn test" & "yarn sync-database"
+ * doesn't hang while waiting for connection closure.
+ */
+process.on('beforeExit', async () => {
+  await sequelize.close();
+});
