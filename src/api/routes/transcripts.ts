@@ -14,7 +14,6 @@ import {
 import { checkPermissionForGroupHistory } from "./groups";
 import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
-import { zTranscriptNameMap, TranscriptNameMap } from "shared/Transcript";
 import invariant from 'tiny-invariant';
 
 const list = procedure
@@ -54,89 +53,15 @@ const getMostRecentStartedAt = procedure
   return await db.Transcript.max("startedAt", { where: { groupId } });
 });
 
-const getNameMap = procedure
-  .use(authUser())
-  .input(z.object({ transcriptId: z.string() }))
-  .output(zTranscriptNameMap)
-  .query(async ({ input }) =>
-{
-  const { nameMap } = await getSummariesAndNameMap(input.transcriptId);
-  return nameMap;
-});
-
-/**
- * @param { [handlebarNames]: userIds }
- */
-const updateNameMap = procedure
-  .use(authUser())
-  .input(z.array(z.object({
-    handlebarName: z.string(),
-    userId: z.string(),
-  })))
-  .mutation(async ({ input: nameMap }) =>
-{
-  // Construct an array of objects to upsert multiple rows the same time
-  const upsertArray = Object.entries(nameMap)
-    .map(([handlebarName, userId]) => ({
-      handlebarName,
-      userId,
-    }));
-
-  await db.TranscriptNameMap.bulkCreate(upsertArray, { updateOnDuplicate: ['userId'] });
-});
-
 export default router({
   list,
   getMostRecentStartedAt,
-  getNameMap,
-  updateNameMap,
 });
 
-export async function getSummariesAndNameMap(transcriptId: string): Promise<{
-  summaries: Summary[],
-  nameMap: TranscriptNameMap,
-}> {
-  const summaries = await db.Summary.findAll({
+export async function getSummaries(transcriptId: string):
+  Promise<Summary[]> {
+  return await db.Summary.findAll({
     where: { transcriptId },
     attributes: summaryAttributes,
   });
-
-  // find all handlebar from summaries under one transcript
-  let handlebarsSet = new Set<string>();
-
-  for (let s of summaries) {
-    const matches = s.summary.match(/{{(.*?)}}/g);
-    if (matches) {
-      const extracted = matches.map(match => match.slice(2, -2));
-      extracted.forEach(handlebar => handlebarsSet.add(handlebar));
-    }
-  }
-
-  const tnm = await db.TranscriptNameMap.findAll({
-    where: { handlebarName: [...handlebarsSet] },
-    include: [{
-      model: db.User,
-      attributes: minUserAttributes,
-      where: { name: { [Op.ne]: null } } // Ensure user's name is not null
-    }],
-  });
-
-  let nameMap: TranscriptNameMap = [];
-  // check if the handlebar names are presented in the returned array of transcriptNameMap
-  // if not, create an object of this handlebar with null user, 
-  // otherwise when Handlebars.js compile it will return empty
-  for (const handlebar of [...handlebarsSet]) {
-    const entries = tnm.filter(e => e.handlebarName === handlebar);
-    if (entries.length) {
-      invariant(entries.length === 1);
-      nameMap.push({
-        handlebarName: entries[0].handlebarName,
-        user: entries[0].dataValues.user.dataValues,
-      });
-    } else {
-      nameMap.push({ handlebarName: handlebar, user: null });
-    }
-  }
-
-  return { summaries, nameMap };
 }

@@ -5,12 +5,10 @@ import db from "../database/db";
 import { getFileAddresses, listRecords } from "../TencentMeeting";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
-import { groupAttributes, groupInclude } from "api/database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
-import Handlebars from "handlebars";
-import { getSummariesAndNameMap } from "./transcripts";
 import axios from "axios";
 import formatMeetingMinutes from "./formatMeetingMinutes";
 
@@ -25,10 +23,6 @@ export interface SummaryDescriptor {
   url: string,
 };
 
-/**
- * @returns a list of summaries with handlerbar names substituted with real user
- * names using SuammaryNameMap.
- */
 const list = procedure
   .use(authUser())
   .input(z.string())
@@ -48,27 +42,10 @@ const list = procedure
 
   checkPermissionForGroupHistory(ctx.user, t.group);
 
-  const { nameMap, summaries } = await getSummariesAndNameMap(transcriptId);
-
-  // create a mapping object of { [handlebars]: [userNames] } for handlebar.js 
-  // to compile
-  const handlebarInput : Record<string, string> = {};
-  for (const nm of nameMap) {
-    handlebarInput[nm.handlebarName] = `**${nm.user ? nm.user.name : nm.handlebarName}**`;
-  }
-
-  for (const summary of summaries) {
-    try {
-      // Compile and update summary
-      summary.summary = Handlebars.compile(summary.summary)(handlebarInput);
-    } catch (error) {
-      // If there's an error compiling, keep and return the original summaries
-      console.error("Error compiling Handlebars template for summary:",
-        summary.transcriptId, summary.summaryKey);
-    }
-  }
-
-  return summaries;
+  return db.Summary.findAll({
+    where: { transcriptId },
+    attributes: summaryAttributes,
+  });
 });
 
 export default router({
