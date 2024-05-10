@@ -33,7 +33,8 @@ const requestWithBody = async (body: string, options: {
       });
     };
 
-    const req = (options.protocol === 'https:' ? https : http).request(options, callback);
+    const req = (options.protocol === 'https:' ? https : http)
+      .request(options, callback);
     req.on('error', (e: Error) => {
       reject(e);
     });
@@ -47,7 +48,8 @@ const sign = (
   httpMethod: string, headerNonce: number,
   headerTimestamp: number, requestUri: string, requestBody: string
 ) => {
-  const tobeSigned = `${httpMethod}\nX-TC-Key=${secretId}&X-TC-Nonce=${headerNonce}&X-TC-Timestamp=${headerTimestamp}` +
+  const tobeSigned = `${httpMethod}\nX-TC-Key=${secretId}` +
+    `&X-TC-Nonce=${headerNonce}&X-TC-Timestamp=${headerTimestamp}` +
     `\n${requestUri}\n${requestBody}`;
   const signature = crypto.createHmac('sha256', secretKey)
     .update(tobeSigned)
@@ -125,39 +127,8 @@ export async function createMeeting(
   startTimeSecond: number,
   endTimeSecond: number,
 ) {
-  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond}, ${endTimeSecond})`);
-
-  /* Sample request result:
-  {
-    "meeting_number": 1,
-    "meeting_info_list": [
-      {
-        "subject": "test meeting ts4",
-        "meeting_id": "8920608318088532478",
-        "meeting_code": "123371270",
-        "type": 1,
-        "join_url": "https://meeting.tencent.com/dm/49fYCUGV0YHe",
-        "hosts": [
-          {
-            "userid": "1764d9d81a924fdf9269b7a54e519f30"
-          }
-        ],
-        "start_time": "1683093659",
-        "end_time": "1683136859",
-        "settings": {
-          "mute_enable_join": true,
-          "allow_unmute_self": true,
-          "mute_all": true,
-          "mute_enable_type_join": 1
-        },
-        "meeting_type": 0,
-        "enable_live": false,
-        "media_set_type": 0,
-        "location": "",
-        "host_key": "123456"
-      }
-    ]
-  }*/
+  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond},` +
+    ` ${endTimeSecond})`);
 
   const zRes = z.object({
     meeting_number: z.number(),
@@ -220,17 +191,6 @@ export async function getMeeting(meetingId: string, tmUserId: string) {
       join_url: z.string(),
       start_time: z.string(),
       end_time: z.string(),
-      // "meeting_type": 6,
-      // "recurring_rule": {"recurring_type": 3, "until_type": 1, "until_count": 20},
-      // "current_sub_meeting_id": "1679763600",
-      // "has_vote": false,
-      // "current_hosts": [{"userid": "1764d9d81a924fdf9269b7a54e519f30"}],
-      // "join_meeting_role": "creator",
-      // "location": "",
-      // "enable_enroll": false,
-      // "enable_host_key": false,
-      // "time_zone": "",
-      // "disable_invitation": 0
     }))
   });
 
@@ -252,10 +212,6 @@ export async function listRecords(tmUserId: string) {
   console.log(LOG_HEADER, 'listRecords()');
   const zRecordMeetings = z.object({
     meeting_record_id: z.string(), // needed for script download
-    // meeting_id: z.string(),
-    // meeting_code: z.string(),
-    // host_user_id: z.string(),
-    // media_start_time: z.number(),
     subject: z.string(),
     state: z.number(), // 3 - ready for download
     record_files: z.array(
@@ -263,20 +219,11 @@ export async function listRecords(tmUserId: string) {
         record_file_id: z.string(),
         record_start_time: z.number(),
         record_end_time: z.number(),
-        // record_size: z.number(),
-        // sharing_state: z.number(),
-        // required_same_corp: z.boolean(),
-        // required_participant: z.boolean(),
-        // password: z.string(),
-        // sharing_expire: z.number(),
-        // allow_download: z.boolean()
       })
     ).optional()
   });
   const zRes = z.object({
     total_count: z.number(),
-    // current_size: z.number(),
-    // current_page: z.number(),
     total_page: z.number(),
     record_meetings: z.array(zRecordMeetings).optional()
   });
@@ -300,44 +247,33 @@ export async function listRecords(tmUserId: string) {
 }
 
 /**
- * Get record file download URLs given a meeting record id retrieved from listRecords().
+ * Get record file download URLs given a meeting record id retrieved from
+ * listRecords().
  * 
- * https://cloud.tencent.com/document/product/1095/51174
+ * https://cloud.tencent.com/document/product/1095/51180
  */
-export async function getRecordURLs(meetingRecordId: string, tmUserId: string) {
-  console.log(LOG_HEADER, `getRecordURLs("${meetingRecordId}")`);
-  const zRes = z.object({
-    // meeting_record_id: z.string(),
-    // meeting_id: z.string(),
-    // meeting_code: z.string(),
-    // subject: z.string(),
-    // total_count: z.number(),
-    // current_size: z.number(),
-    total_page: z.number(),
-    record_files: z.array(
-      z.object({
-        record_file_id: z.string(),
-        // view_address: z.string().url(),
-        // download_address: z.string().url(),
-        // download_address_file_type: z.string(),
-        // audio_address: z.string().url(),
-        // audio_address_file_type: z.string(),
-        meeting_summary: z.array(
-          z.object({
-            download_address: z.string().url(),
-            file_type: z.string(),
-          })
-        ).optional()
-      })
-    )
+export async function getFileAddresses(recordFileId: string, tmUserId: string) {
+  console.log(LOG_HEADER, `getFileAddresses("${recordFileId}")`);
+
+  const zURL = z.object({
+    download_address: z.string().url(),
+    file_type: z.string(),
   });
 
-  const res = zRes.parse(await tmRequest('GET', '/v1/addresses', {
-    meeting_record_id: meetingRecordId,
-    userid: tmUserId,
-  }));
+  const zRes = z.object({
+    // Raw transcript
+    // meeting_summary: z.array(zFile).optional(),
 
-  if (res.total_page != 1) throw paginationNotSupported();
+    // AI processed transcript
+    ai_meeting_transcripts: z.array(zURL).optional(),
+
+    // Meeting minutes and TODOs
+    ai_minutes: z.array(zURL).optional(),
+  });
+
+  const res = zRes.parse(await tmRequest('GET', 
+    `/v1/addresses/${recordFileId}`, { userid: tmUserId }));
+
   return res;
 }
 
