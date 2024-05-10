@@ -1,18 +1,17 @@
 import { procedure, router } from "../trpc";
-import { authIntegration, authUser } from "../auth";
+import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getFileAddresses, listRecords } from "../TencentMeeting";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
-import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
+import { groupAttributes, groupInclude } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import Handlebars from "handlebars";
 import { getSummariesAndNameMap } from "./transcripts";
 import axios from "axios";
-import sequelize from "api/database/sequelize";
 import formatMeetingMinutes from "./formatMeetingMinutes";
 
 const AI_MINUTES_SUMMARY_KEY = "智能纪要";
@@ -25,41 +24,6 @@ export interface SummaryDescriptor {
   endedAt: number,
   url: string,
 };
-
-/**
- * See docs/Summarization.md for details.
- * 
- * @param excludeTranscriptsWithKey If specified, exclude summaries for the 
- * transcripts that already have summaries identified by this key.
- * 
- * TODO: rename function to something like listRawTranscripts, hardcode key to
- * use raw transcript's summary key.
- */
-const listForIntegration = procedure
-  .use(authIntegration())
-  .input(z.object({
-    key: z.string(),
-    excludeTranscriptsWithKey: z.string().optional(),
-  }))
-  .output(z.array(zSummary))
-  .query(async ({ input }) => 
-{
-  // TODO: Optimize and use a single query to return final results.
-  const summaries = await db.Summary.findAll({ 
-    where: { 
-      summaryKey: input.key,
-    },
-    attributes: summaryAttributes,
-  });
-
-  const skippedTranscriptIds = !input.excludeTranscriptsWithKey ? [] :
-    (await db.Summary.findAll({
-      where: { summaryKey: input.excludeTranscriptsWithKey },
-      attributes: ['transcriptId'],
-    })).map(s => s.transcriptId);
-
-  return summaries.filter(s => !skippedTranscriptIds.includes(s.transcriptId));
-});
 
 /**
  * @returns a list of summaries with handlerbar names substituted with real user
@@ -107,26 +71,8 @@ const list = procedure
   return summaries;
 });
 
-/**
-* See docs/Summarization.md for details.
- */
-const write = procedure
-  .use(authIntegration())
-  .input(zSummary)
-  .mutation(async ({ input }) => 
-{
-  // By design, this statement fails if transcript id doesn't exist.
-  await db.Summary.upsert({
-    transcriptId: input.transcriptId,
-    summaryKey: input.summaryKey,
-    summary: input.summary,
-  });
-});
-
 export default router({
-  list: listForIntegration,
-  listToBeRenamed: list,  // TODO: rename to `list`
-  write,
+  list,
 });
 
 /**
