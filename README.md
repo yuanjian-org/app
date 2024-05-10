@@ -31,7 +31,6 @@ We follow [next.js convention](https://nextjs.org/docs/getting-started/project-s
 | `src/shared` | Files shared between `src/api` and the rest of `src`. |
 | `tools` | Command-line scripts. |
 | `cypress/e2e` | End-to-end tests. See [`documentation`](cypress/README.md). |
-| `llm` | Code for large language models. See [`documentation`](llm/README.md). |
 
 To prevent security and programming issues, eslint [is configured](./.eslintrc.json) to enforce the following rules:
 

@@ -51,7 +51,7 @@ function LoadedTranscripts({ transcripts: unsorted }: {
   };
   const { t: transcript, i: transcriptIndex } = getTranscriptAndIndex();
 
-  const { data: summaries } = trpcNext.summaries.listToBeRenamed.useQuery(transcript.transcriptId);
+  const { data: summaries } = trpcNext.summaries.list.useQuery(transcript.transcriptId);
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary which is the raw transcripts.
