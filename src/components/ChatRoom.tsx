@@ -15,12 +15,12 @@ import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import moment from 'moment';
-import ReactMarkdown from 'react-markdown';
 import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
 import Loader from './Loader';
+import MarkdownStyler from './MarkdownStyler';
 
 export default function Room({ menteeId } : {
   menteeId: string,
@@ -76,7 +76,7 @@ function Message({ message: m }: {
       </HStack>
 
       {editing ? <Editor message={m} onClose={() => setEditing(false)} /> :
-        <ReactMarkdown>{m.markdown}</ReactMarkdown>}
+        <MarkdownStyler content={m.markdown} />}
     </VStack>
   </HStack>;
 }
