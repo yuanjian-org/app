@@ -1,0 +1,28 @@
+.markdownStyler h1,
+.markdownStyler h2,
+.markdownStyler h3,
+.markdownStyler h4 {
+  font-weight: bold;
+  margin-top: 1.2em;
+  margin-bottom: 1em;
+}
+
+.markdownStyler h1 {
+  font-size: 1.75em;
+}
+
+.markdownStyler h2 {
+  font-size: 1.5em;
+}
+
+.markdownStyler h3 {
+  font-size: 1.25em;
+}
+
+.markdownStyler h4 {
+  font-size: 1.1em;
+}
+
+.markdownStyler p {
+  margin: 0.5em 0;
+}

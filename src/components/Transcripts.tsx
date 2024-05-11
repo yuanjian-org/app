@@ -15,11 +15,11 @@ import invariant from 'tiny-invariant';
 import { diffInMinutes, prettifyDate, prettifyDuration } from 'shared/strings';
 import { parseQueryString } from "shared/strings";
 import Loader from 'components/Loader';
-import ReactMarkdown from 'react-markdown';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import replaceUrlParam from 'shared/replaceUrlParam';
 import { sidebarBreakpoint } from 'components/Navbars';
+import MarkdownStyler from './MarkdownStyler';
 
 export default function Transcripts({ groupId }: {
   groupId: string
@@ -94,7 +94,7 @@ function LoadedTranscripts({ transcripts: unsorted }: {
       {!summary ? <Loader /> :
         <Card variant="outline" backgroundColor="backgroundLight">
           <CardBody>
-            <ReactMarkdown>{summary.summary}</ReactMarkdown>
+            <MarkdownStyler content={summary.summary} />
           </CardBody>
         </Card>
       }
