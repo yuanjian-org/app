@@ -12,10 +12,6 @@ export const AllRoles = [
   'Mentee',
   'Interviewer',
   'MentorCoach',
-
-  // Deprecated
-  'InterviewManager',
-  'MentorshipManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -89,18 +85,6 @@ export const RoleProfiles: { [key: string]: {
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,
-  },
-
-  // Deprecated
-  InterviewManager: {
-    displayName: 'Deprecated',
-    actions: '管理用户角色',
-    privilegedUserDataAccess: false,
-  },
-  MentorshipManager: {
-    displayName: 'Deprecated',
-    actions: '管理导师匹配',
-    privilegedUserDataAccess: false,
   },
 };
 

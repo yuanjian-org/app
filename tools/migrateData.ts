@@ -5,7 +5,8 @@ import sequelize from "../src/api/database/sequelize";
 export default async function migrateData() {
   console.log("Migrating...");
 
-  // await sequelize.query('drop table if exists "ChatThreads"');
+  await sequelize.query('ALTER TABLE "ChatRooms" ' + 
+  'DROP COLUMN IF EXISTS "mentorshipId"');
 
   await sequelize.transaction(async transaction => {
     console.log("Migrating role names...");
@@ -16,31 +17,10 @@ export default async function migrateData() {
 
     for (const u of users) {
       const roles: Role[] = u.roles.map(r => (
-        r === "InterviewManager" ? "MenteeManager" :
-        r === "MentorshipManager" ? "MenteeManager" :
+        // r === "MentorshipManager" ? "MenteeManager" :
         r
       ));
       await u.update({ roles }, { transaction });
-    }
-
-    console.log("Migrating chat rooms...");
-    const mentorships = await db.Mentorship.findAll({
-      attributes: ["id", "menteeId"],
-      transaction
-    });
-
-    for (const m of mentorships) {
-      // Ignore all but the first chat room if there are mulitple mentorships /
-      // chatrooms associated with one user.
-      if (await db.ChatRoom.count({ 
-        where: { menteeId: m.menteeId },
-        transaction
-      }) == 0) {
-        await sequelize.query(`
-          update "ChatRooms" set "mentorshipId"=null, "menteeId"='${m.menteeId}'
-          where "mentorshipId"='${m.id}'
-        `, { transaction });
-      }
     }
   });
 }
