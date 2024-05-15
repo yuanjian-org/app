@@ -16,10 +16,8 @@ export default async function migrateData() {
     });
 
     for (const u of users) {
-      const roles: Role[] = u.roles.map(r => (
-        // r === "MentorshipManager" ? "MenteeManager" :
-        r
-      ));
+      if (!u.roles.includes("RoleManager")) continue;
+      const roles: Role[] = u.roles.filter(r => r !== "RoleManager");
       await u.update({ roles }, { transaction });
     }
   });

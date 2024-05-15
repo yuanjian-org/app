@@ -2,7 +2,6 @@ import z from "zod";
 
 export const AllRoles = [
   'SystemAlertSubscriber',
-  'RoleManager',
   'UserManager',
   'GroupManager',
   'SummaryEngineer',
@@ -12,6 +11,9 @@ export const AllRoles = [
   'Mentee',
   'Interviewer',
   'MentorCoach',
+
+  // Deprecated
+  'RoleManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -30,11 +32,6 @@ export const RoleProfiles: { [key: string]: {
   SystemAlertSubscriber: {
     displayName: '系统报警监听员',
     actions: '接受并处理系统异常事件的报警',
-    privilegedUserDataAccess: false,
-  },
-  RoleManager: {
-    displayName: '角色管理员',
-    actions: '管理用户角色',
     privilegedUserDataAccess: false,
   },
   UserManager: {
@@ -85,6 +82,13 @@ export const RoleProfiles: { [key: string]: {
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,
+  },
+
+  // Deprecated
+  RoleManager: {
+    displayName: 'Deprecated',
+    actions: '管理用户角色',
+    privilegedUserDataAccess: false,
   },
 };
 

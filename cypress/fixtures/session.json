@@ -2,7 +2,6 @@
   "user": {
       "roles": [
           "SystemAlertSubscriber",
-          "RoleManager",
           "UserManager",
           "GroupManager",
           "SummaryEngineer",
@@ -11,10 +10,7 @@
           "Mentor",
           "Mentee",
           "Interviewer",
-          "MentorCoach",
-          "PrivilegedRoleManager",
-          "PartnershipManager",
-          "PartnershipAssessor"
+          "MentorCoach"
       ],
       "id": "59855859-2aff-4bc4-bcb6-f0fa42314b35",
       "name": "乐一帆",

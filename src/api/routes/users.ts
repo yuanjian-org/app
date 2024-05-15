@@ -102,10 +102,11 @@ const update = procedure
 {
   checkUserFields(input.name, input.email);
 
-  const isUserOrRoleManager = isPermitted(ctx.user.roles, ['UserManager', 'RoleManager']);
+  const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
   const isSelf = ctx.user.id === input.id;
-  // Non-user- and non-role-managers can only update their own profile.
-  if (!isUserOrRoleManager && !isSelf) {
+
+  // Non-user-managers can only update their own profile.
+  if (!isUserManager && !isSelf) {
     throw noPermissionError("用户", input.id);
   }
 
@@ -116,10 +117,12 @@ const update = procedure
 
   const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
   const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
-  checkPermissionForManagingRoles(ctx.user.roles, [...rolesToAdd, ...rolesToRemove]);
+  checkPermissionForManagingRoles(ctx.user.roles,
+    [...rolesToAdd, ...rolesToRemove]);
 
   if (!isSelf) {
-    await emailUserAboutNewManualRoles(ctx.user.name ?? "", user, input.roles, ctx.baseUrl);
+    await emailUserAboutNewManualRoles(ctx.user.name ?? "", user, input.roles,
+      ctx.baseUrl);
   }
 
   invariant(input.name);
@@ -129,7 +132,7 @@ const update = procedure
     consentFormAcceptedAt: input.consentFormAcceptedAt,
 
     // fields that only user or role managers can change
-    ...isUserOrRoleManager ? {
+    ...isUserManager ? {
       roles: input.roles,
       email: input.email,
       menteeStatus: input.menteeStatus,
@@ -394,7 +397,7 @@ function checkUserFields(name: string | null, email: string) {
 }
 
 function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]) {
-  if (subjectRoles.length && !isPermitted(userRoles, "RoleManager")) {
+  if (subjectRoles.length && !isPermitted(userRoles, "UserManager")) {
     throw noPermissionError("用户");
   }
 }

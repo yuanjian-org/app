@@ -168,7 +168,7 @@ function UserEditor(props: {
             <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
           </FormControl>
 
-          {isPermitted(me.roles, "RoleManager") && <FormControl>
+          {isPermitted(me.roles, "UserManager") && <FormControl>
             <FormLabel>角色</FormLabel>
             <Stack>
               {AllRoles.map(r => {
