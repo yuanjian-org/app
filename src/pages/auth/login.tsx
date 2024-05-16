@@ -52,6 +52,10 @@ export default function Login() {
         localStorage.setItem(localStorageKeyForLoginEmail, email);
         router.push(`/auth/verify`);
       }
+    } catch (err) {
+      const msg = `糟糕，系统错误，请联系管理员：${err}`;
+      console.error(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
