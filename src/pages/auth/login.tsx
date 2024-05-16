@@ -53,8 +53,9 @@ export default function Login() {
         router.push(`/auth/verify`);
       }
     } catch (err) {
-      console.error(`Unkonwn error on sign-in: ${err}`);
-      toast.error(`糟糕，系统错误，请联系管理员：${err}`);
+      const msg = `糟糕，系统错误，请联系管理员：${err}`;
+      console.error(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
