@@ -52,6 +52,9 @@ export default function Login() {
         localStorage.setItem(localStorageKeyForLoginEmail, email);
         router.push(`/auth/verify`);
       }
+    } catch (err) {
+      console.error(`Unkonwn error on sign-in: ${err}`);
+      toast.error(`糟糕，系统错误，请联系管理员：${err}`);
     } finally {
       setIsLoading(false);
     }
