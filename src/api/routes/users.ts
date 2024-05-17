@@ -147,7 +147,7 @@ const get = procedure
   .query(async ({ ctx, input: userId }) =>
 {
   if (!isPermitted(ctx.user.roles, "UserManager") &&
-    !isPermittedForMentee(ctx.user, userId)) {
+    !await isPermittedForMentee(ctx.user, userId)) {
     throw noPermissionError("用户", userId);
   }
 
