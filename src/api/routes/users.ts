@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { MinUser, zMinUser, zUser, zUserFilter } from "../../shared/User";
+import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -140,16 +140,14 @@ const update = procedure
   });
 });
 
-/**
- * Only UserManager have access to this API
- */
 const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMinUser)
   .query(async ({ ctx, input: userId }) =>
 {
-  if (!isPermitted(ctx.user.roles, "UserManager")) {
+  if (!isPermitted(ctx.user.roles, "UserManager") &&
+    !isPermittedForMentee(ctx.user, userId)) {
     throw noPermissionError("用户", userId);
   }
 
