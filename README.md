@@ -11,6 +11,7 @@ developed by VEF volunteers.
    - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
    - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
 1. Run `yarn` to install dependency packages.
+   - If you run into error `"$VERCEL_ENV" was unexpected`, see this [`doc`](./docs/package.json.md).
 1. Run `yarn sync-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
 1. Visit the local server from broswer. Sign up with your personal email address.
@@ -49,6 +50,7 @@ graph TD;
 ## Testing
 
 1. Run `yarn test` to run all unit tests.
+   - If you run into error `TS_NODE_PROJECT' is not recognized as an internal or external command`, see this [`doc`](./docs/package.json.md).
 1. See [this doc](./cypress/README.md) for end-to-end testing.
 
 ## More Documentation
