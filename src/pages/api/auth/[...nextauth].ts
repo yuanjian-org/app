@@ -58,10 +58,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   events: {
-    createUser: async (message) => {
-      await emailRoleIgnoreError("UserManager", "新用户注册", `${message.user.email} 注册新用户 。`, "");
-    },
-  }
+    createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
+        `${message.user.email} 注册新用户 。`, ""),
+  },
 };
 
 export default NextAuth(authOptions);

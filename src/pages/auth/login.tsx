@@ -50,7 +50,7 @@ export default function Login() {
       } else {
         localStorage.setItem(localStorageKeyForLoginCallbackUrl, callbackUrl);
         localStorage.setItem(localStorageKeyForLoginEmail, email);
-        router.push(`/auth/verify`);
+        await router.push(`/auth/verify`);
       }
     } catch (err) {
       const msg = `糟糕，系统错误，请联系管理员：${err}`;
@@ -74,7 +74,9 @@ export default function Login() {
       {/* `name="email"` to hint password management tools about the nature of this input */}
       <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱" autoFocus 
         value={email} onChange={(ev) => setEmail(ev.target.value)}
-        onKeyDown={ev => { if (ev.key == "Enter" && isValidEmail()) submit(); }}
+        onKeyDown={async ev => {
+          if (ev.key == "Enter" && isValidEmail()) await submit(); 
+        }}
       />
     </InputGroup>
 

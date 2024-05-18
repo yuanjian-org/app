@@ -43,7 +43,7 @@ class Transcript extends Model {
       where: { transcriptId: tr.transcriptId }
     })).map(async s => { await s.destroy(options); });
 
-    Promise.all(promises);
+    await Promise.all(promises);
   }
 }
 

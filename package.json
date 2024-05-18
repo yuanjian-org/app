@@ -113,6 +113,7 @@
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "regenerator-runtime": "^0.13.11",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "typescript-eslint": "^7.9.0"
   }
 }

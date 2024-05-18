@@ -50,7 +50,7 @@ export default function Page() {
     setCreating(true);
     try {
       await trpc.groups.create.mutate({ userIds });
-      refetch();
+      void refetch();
     } finally {
       setCreating(false);
     }
@@ -58,7 +58,7 @@ export default function Page() {
 
   const closeGroupEditor = () => {
     setGroupBeingEdited(null);
-    refetch();
+    void refetch();
   };
 
   return <>

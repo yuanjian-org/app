@@ -180,7 +180,7 @@ function LoadedMentorsCells({
 
   const refetchAll = () => {
     refetch();
-    coachRes.map(c => c.refetch());
+    coachRes.map(c => void c.refetch());
   };
 
   const [ editing, setEditing ] = useState<boolean>(false);

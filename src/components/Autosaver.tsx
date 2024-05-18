@@ -80,6 +80,8 @@ function debounce(memo: any, func: Function, delayInMs: number): Function {
   return (...args: any[]) => {
     clearTimeout(memo.timeout);
     memo.timeout = setTimeout(() => {
+      // TODO: FIXME
+      // eslint-disable-next-line prefer-spread
       func.apply(null, args);
     }, delayInMs);
   };
