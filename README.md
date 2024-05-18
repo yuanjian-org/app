@@ -49,6 +49,7 @@ graph TD;
 ## Testing
 
 1. Run `yarn test` to run all unit tests.
+   - see [`doc`](./docs/package.json.md), if `TS_NODE_PROJECT' is not recognized as an internal or external command` was encountered
 1. See [this doc](./cypress/README.md) for end-to-end testing.
 
 ## More Documentation
