@@ -99,13 +99,9 @@ function MenteeRow({ user: u, refetch }: {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
 
-  const onChangeStatus = async (user: User, status: MenteeStatus | null |
-    undefined) => 
-  {
-    invariant(status !== undefined);
-    const u = structuredClone(user);
-    u.menteeStatus = status;
-    await trpc.users.update.mutate(u);
+  const setStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
+    invariant(menteeStatus !== undefined);
+    await trpc.users.updateMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
 
@@ -119,7 +115,7 @@ function MenteeRow({ user: u, refetch }: {
     {/* 状态 */}
     <Td><Wrap minWidth="110px"><WrapItem>
       <MenteeStatusSelect value={u.menteeStatus}
-        size="sm" onChange={status => onChangeStatus(u, status)} />
+        size="sm" onChange={status => setStatus(status)} />
     </WrapItem></Wrap></Td>
 
     {/* 姓名 */}

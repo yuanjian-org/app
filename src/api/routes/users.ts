@@ -19,6 +19,7 @@ import {
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "api/database/sequelize";
 import { createGroup, updateGroup } from "./groups";
+import { zMenteeStatus } from "shared/MenteeStatus";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -102,6 +103,11 @@ const update = procedure
 {
   checkUserFields(input.name, input.email);
 
+  // To update menteeStatus, use `updateMenteeStatus` instead
+  if (input.menteeStatus !== undefined) {
+    throw noPermissionError("学生状态", input.id);
+  }
+
   const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
   const isSelf = ctx.user.id === input.id;
 
@@ -138,6 +144,19 @@ const update = procedure
       menteeStatus: input.menteeStatus,
     } : {},
   });
+});
+
+const updateMenteeStatus = procedure
+  .use(authUser("MenteeManager"))
+  .input(z.object({
+    userId: z.string(),
+    menteeStatus: zMenteeStatus.nullable()
+  }))
+  .mutation(async ({ input: { userId, menteeStatus } }) => 
+{
+  const user = await db.User.findByPk(userId);
+  if (!user) throw notFoundError("用户", userId);
+  await user.update({ menteeStatus });
 });
 
 const get = procedure
@@ -374,9 +393,11 @@ export default router({
   create,
   get,
   list,
-  update,
   listPriviledgedUserDataAccess,
   getApplicant,
+
+  update,
+  updateMenteeStatus,
   updateApplication,
   destroy,
 
