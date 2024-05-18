@@ -11,5 +11,5 @@
 ## Troubleshooting for Windows users
 
 - If you run into error `'TS_NODE_PROJECT' is not recognized as an internal or external command`, add `cross-env` in front of the `TS_NODE_PROJECT=...`.
-- If you run into error `"$VERCEL_ENV" was unexpected` remove `&& if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi`, then re-run the command.
+- If you run into error `"$VERCEL_ENV" was unexpected`, remove `&& if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi`, then re-run the command.
 - 
