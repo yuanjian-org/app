@@ -5,7 +5,7 @@ import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import Role, { isPermitted } from "../../shared/Role";
+import Role from "../../shared/Role";
 import sequelize from "../database/sequelize";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
@@ -36,7 +36,7 @@ const update = procedure
 {
   const newUserIds = input.users.map(u => u.id);
   const addedUserIds = await sequelize.transaction(async t =>
-    updateGroup(input.id, input.name, input.public, newUserIds, t));
+    await updateGroup(input.id, input.name, input.public, newUserIds, t));
   await emailNewUsersOfGroupIgnoreError(ctx, input.id, addedUserIds);
 });
 

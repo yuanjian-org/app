@@ -4,7 +4,7 @@ import { inferAsyncReturnType } from '@trpc/server';
 import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import absoluteUrl from "next-absolute-url";
 
-export async function createContext({ req, res }: CreateNextContextOptions) {
+export function createContext({ req, res }: CreateNextContextOptions) {
   // TODO: Remove baseUrl from return value. Parse req on deman.
   const absolute = absoluteUrl(req);
   return {

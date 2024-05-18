@@ -8,7 +8,7 @@ import db from "../database/db";
  */
 export default procedure
   .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input }) => submit(input));
+  .mutation(async ({ input }) => await submit(input));
 
 export async function submit({ form, entry }: Record<string, any>) {
   if (form !== "w02l95") {

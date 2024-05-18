@@ -24,6 +24,7 @@
         "message": "Files outside of `src/api` must not refer to files in `src/api`. See README.md"
       }]
     }],
-    "import/no-absolute-path":"error"
+    "import/no-absolute-path": "error",
+    "require-await": "error"
   }
 }

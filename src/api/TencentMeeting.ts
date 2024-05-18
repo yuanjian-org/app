@@ -14,7 +14,7 @@ const splitFirst = (s: string, separator: string) => {
   return [s.slice(0, idx), s.slice(idx + separator.length)];
 };
 
-const requestWithBody = async (body: string, options: {
+const requestWithBody = (body: string, options: {
   host: string,
   port: string,
   protocol: string,
