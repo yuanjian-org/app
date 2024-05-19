@@ -4,7 +4,6 @@ import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem, Heading, Text, Link, Box } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
-import _ from "lodash";
 import MenteeApplicant from 'components/MenteeApplicant';
 import { sectionSpacing } from 'theme/metrics';
 import { InterviewDecisionEditor, InterviewFeedbackEditor } from 'components/InterviewEditor';

@@ -12,14 +12,11 @@ import {
 import React from 'react';
 import { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
-import { useUserContext } from 'UserContext';
 import { sectionSpacing } from 'theme/metrics';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { MenteeCell, MentorshipCells, MostRecentChatMessageCell } from './mentees';
 
 export default function Page() {
-  const [user] = useUserContext();
-
   const { data: mentorships } = trpcNext.mentorships.listMineAsCoach.useQuery();
 
   return <Flex direction='column' gap={sectionSpacing}>

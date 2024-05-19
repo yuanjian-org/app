@@ -8,13 +8,10 @@ import {
   groupAttributes,
   groupInclude,
   transcriptAttributes,
-  summaryAttributes,
-  minUserAttributes
+  summaryAttributes
 } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroupHistory } from "./groups";
-import { Op } from "sequelize";
 import Summary from "api/database/models/Summary";
-import invariant from 'tiny-invariant';
 
 const list = procedure
   .use(authUser())

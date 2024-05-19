@@ -4,7 +4,6 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
 import invariant from "tiny-invariant";
-import _ from "lodash";
 import sequelize from "../database/sequelize";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';

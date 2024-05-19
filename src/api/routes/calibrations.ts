@@ -123,7 +123,7 @@ const getInterviews = procedure
   .output(z.array(zInterview))
   .query(async ({ ctx, input: calibrationId }) =>
 {
-  const _ = await getCalibrationAndCheckPermission(ctx.user, calibrationId);
+  await getCalibrationAndCheckPermission(ctx.user, calibrationId);
 
   return await db.Interview.findAll({
     where: { calibrationId },

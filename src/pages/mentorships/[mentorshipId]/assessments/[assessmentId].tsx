@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import trpc, { trpcNext } from "../../../../trpc";
+import React from 'react';
+import { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from "shared/strings";
@@ -14,9 +14,9 @@ function AssessmentEditor() {
   const id = parseQueryStringOrUnknown(router, "assessmentId");
   const { data: assessment } = trpcNext.assessments.get.useQuery<Assessment>(id);
 
-  const save = useCallback(async (summary: string) => {
-    await trpc.assessments.update.mutate({ id, summary });
-  }, [id]);
+  // const save = useCallback(async (summary: string) => {
+  //   await trpc.assessments.update.mutate({ id, summary });
+  // }, [id]);
 
   return (<>
     <PageBreadcrumb current="反馈与评估" />

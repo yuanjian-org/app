@@ -1,6 +1,5 @@
 import React from 'react';
 import { Select } from '@chakra-ui/react';
-import _ from "lodash";
 import { AllMenteeStatuses, MenteeStatus, zMenteeStatus } from 'shared/MenteeStatus';
 
 export const NULL_MENTEE_STATUS = "待审";

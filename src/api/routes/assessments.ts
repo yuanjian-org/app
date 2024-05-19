@@ -1,6 +1,5 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
-import _ from "lodash";
 import db from "../database/db";
 import { z } from "zod";
 import { zAssessment } from "../../shared/Assessment";

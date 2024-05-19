@@ -24,7 +24,6 @@ import Transcript from "./Transcript";
 import Mentorship from "./Mentorship";
 import Interview from "./Interview";
 import Calibration from "./Calibration";
-import Role from "shared/Role";
 
 /**
  * A group is said to be "owned" if the mentorship or interview field is non-null.

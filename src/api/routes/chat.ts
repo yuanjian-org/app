@@ -98,13 +98,14 @@ const updateMessage = procedure
 {
   if (!markdown) throw generalBadRequestError("消息内容不能为空");
 
-  await sequelize.transaction(async transaction => {
+  await sequelize.transaction(async (transaction) => {
     const m = await db.ChatMessage.findByPk(messageId, {
       attributes: ["id", "userId"],
+      transaction,
     });
     if (!m) throw notFoundError("讨论消息", messageId);
     if (m.userId !== ctx.user.id) throw noPermissionError("讨论消息", messageId);
-    await m.update({ markdown });
+    await m.update({ markdown }, { transaction });
   });
 });
 

@@ -23,7 +23,6 @@ import {
   WrapItem,
   Flex,
   TableContainer,
-  Divider,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
@@ -36,10 +35,9 @@ import { useUserContext } from 'UserContext';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
-import UserFilterSelector from 'components/UserFilterSelector';
 
 export default function Page() {
-  const [filter, setFilter] = useState<UserFilter>({});
+  const [filter ] = useState<UserFilter>({});
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[] | null>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);

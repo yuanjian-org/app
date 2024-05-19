@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tabs, TabsProps } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import _ from "lodash";
 import replaceUrlParam from 'shared/replaceUrlParam';
 
 /**

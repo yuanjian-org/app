@@ -41,7 +41,7 @@ import invariant from 'tiny-invariant';
 import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
-import { AddIcon, CheckIcon, ChevronRightIcon, EditIcon, ViewIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon, ChevronRightIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
 import { MinUser } from 'shared/User';
 import { menteeSourceField } from 'shared/menteeApplicationFields';

@@ -1,6 +1,6 @@
 import { procedure } from "../trpc";
 import z from "zod";
-import { generalBadRequestError, notFoundError } from "../errors";
+import { generalBadRequestError } from "../errors";
 import db from "../database/db";
 
 /**

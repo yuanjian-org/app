@@ -14,7 +14,6 @@ import {
 import invariant from "tiny-invariant";
 import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
-import _ from "lodash";
 import { TRPCClientError } from '@trpc/client';
 import { Feedback } from "shared/InterviewFeedback";
 import { useUserContext } from 'UserContext';

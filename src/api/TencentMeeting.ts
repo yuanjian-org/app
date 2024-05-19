@@ -4,7 +4,6 @@ import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
-import { TRPCError } from '@trpc/server';
 
 const LOG_HEADER = "[TecentMeeting]";
 
@@ -168,11 +167,6 @@ export async function createMeeting(
 
   return zRes.parse(res);
 }
-
-const paginationNotSupported = () => new TRPCError({
-  code: 'METHOD_NOT_SUPPORTED',
-  message: "Pagination isn't supported",
-});
 
 /**
  * List meeting info of the input meeting and tencent user id

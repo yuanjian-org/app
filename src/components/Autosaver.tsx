@@ -1,5 +1,5 @@
 import { useAutosaveContext } from 'AutosaveContext';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import sleep from 'shared/sleep';
 import _ from "lodash";
 

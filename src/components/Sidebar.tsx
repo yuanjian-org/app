@@ -24,7 +24,6 @@ import { Mentorship } from 'shared/Mentorship';
 import {
   MdPerson,
   MdGroups,
-  MdScience,
   MdChevronRight, 
   MdFace, 
   MdVideocam,

@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { parseQueryStringOrUnknown } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import _ from "lodash";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import Calibration from 'components/Calibration';
 

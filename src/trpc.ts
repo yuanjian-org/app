@@ -62,7 +62,7 @@ const trpc = createTRPCProxyClient<ApiRouter>({ links });
 export default trpc;
 
 export const trpcNext = createTRPCNext<ApiRouter>({
-  config({ ctx }) {
+  config(/*{ ctx }*/) {
     return {
       links,
       // https://tanstack.com/query/v4/docs/reference/QueryClient

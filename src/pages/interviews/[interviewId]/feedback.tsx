@@ -14,7 +14,6 @@ import { useUserContext } from 'UserContext';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
-import _ from "lodash";
 import MenteeApplicant from 'components/MenteeApplicant';
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from 'shared/User';
@@ -91,7 +90,6 @@ function Instructions({ interviewers }: {
     first = other.id > me.id;
   }
 
-  const marginEnd = 1.5;
   return <Flex direction="column" gap={sectionSpacing}>
     {/* <b>面试官必读</b> */}
     <UnorderedList>

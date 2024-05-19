@@ -2,7 +2,6 @@ import {
   Column,
   ForeignKey,
   Table,
-  BelongsTo,
   Model,
   PrimaryKey,
   IsUUID,

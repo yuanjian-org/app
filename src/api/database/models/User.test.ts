@@ -10,7 +10,6 @@ describe('User', () => {
     let user1: User;
     let user2: User;
     let group: Group;
-    let mentorship: Mentorship;
 
     it('should finish all tests on users', async () => {
 
@@ -61,7 +60,7 @@ describe('User', () => {
       };
 
       // 建立搭档关系
-      mentorship = await Mentorship.create({
+      await Mentorship.create({
         mentorId: user1.id,
         menteeId: user2.id
       });

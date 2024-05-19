@@ -212,7 +212,7 @@ export function UserChips(props: {
       base: abbreviateOnMobile ? "none" : "flex",
       [sidebarBreakpoint]: props.abbreviateOnDesktop ? "none" : "flex",
     }}>
-      {displayUsers.map((user: any, idx: number) =>
+      {displayUsers.map(user =>
         <WrapItem key={user.id}>
           <UserChip user={user} />
         </WrapItem >
