@@ -222,8 +222,8 @@ export async function listRecords(tmUserId: string) {
     record_meetings: z.array(zRecordMeetings).optional()
   });
 
-  var ret: TypeOf<typeof zRecordMeetings>[] = [];
-  var page = 1;
+  let ret: TypeOf<typeof zRecordMeetings>[] = [];
+  let page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
       userid: tmUserId,

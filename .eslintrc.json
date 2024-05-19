@@ -36,8 +36,7 @@
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/await-thenable": "error",
 
-    // Other @typescript-eslint rules to be enabled in the future
-    "@typescript-eslint/adjacent-overload-signatures": "off",
+    // TODO: Other @typescript-eslint rules to be enabled in the future
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/ban-types": "off",
@@ -54,15 +53,6 @@
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-this-alias": "off",
-    "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/prefer-as-const": "off",
-    "@typescript-eslint/prefer-namespace-keyword": "off",
-    "@typescript-eslint/triple-slash-reference": "off",
-    "@typescript-eslint/type-annotation-spacing": "off",
-    "@typescript-eslint/unbound-method": "off",
-    "@typescript-eslint/no-unused-expressions":"off",
-    "no-unused-expressions":"off",
-    "no-var":"off"
+    "@typescript-eslint/no-use-before-define": "off"
   }
 }

@@ -57,7 +57,7 @@ export async function updateGroup(id: string, name: string | null,
   });
 
   // Delete old users
-  var deleted = false;
+  let deleted = false;
   for (const oldGU of groupUsers) {
     if (!userIds.includes(oldGU.userId)) {
       await oldGU.destroy({ transaction });
