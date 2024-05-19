@@ -126,32 +126,30 @@ export default function GroupBar({
 }
 
 function GroupTagOrName({ group }: { group: Group }) {
-  return isOwned(group) ?
-    // Without this Box the tag will fill the whole grid row
-    <Box justifyItems="left">
-      <Tag color="white" bgColor="gray">
-        {group.partnershipId ? "一对一导师" :
-          group.calibrationId ? "面试讨论" :
-            group.coacheeId ? "资深导师" :
-              group.interviewId ? "面试" :
-                "FIXME" }
+  return <HStack>
+    {group.archived && <Tag color="white" bgColor="gray.800">已存档</Tag>}
+
+    {group.public && <Tooltip label={publicGroupDescription}>
+      <Tag color="white" bgColor="green.400">
+        公开
+        <QuestionIcon color="white" marginStart={2} />
       </Tag>
-    </Box>
-    :
-    <HStack>
-      {group.archived && <Tag color="white" bgColor="gray.800">已存档</Tag>}
+    </Tooltip>}
 
-      {group.public && <Tooltip label={publicGroupDescription}>
-        <Tag color="white" bgColor="green.400">
-          公开
-          <QuestionIcon color="white" marginStart={2} />
-        </Tag>
-      </Tooltip>}
-
+    {isOwned(group) ?
+      <Tag color="white" bgColor="gray">
+      {group.partnershipId ? "一对一导师" :
+        group.calibrationId ? "面试讨论" :
+          group.coacheeId ? "资深导师" :
+            group.interviewId ? "面试" :
+              "FIXME" }
+      </Tag>
+      :      
       <Text color='grey' fontSize='sm'>
         {formatGroupName(group.name, group.users.length)}
       </Text>
-    </HStack>;
+    }
+  </HStack>;
 }
 
 export function JoinButton(props: ButtonProps) {

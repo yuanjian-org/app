@@ -20,7 +20,7 @@ export const userAttributes = [...minUserAttributes, "wechat", "sex", "email",
  * Group
  */
 
-export const groupAttributes = ["id", "name", "public", "archived", "roles",
+export const groupAttributes = ["id", "name", "public", "archived",
   "partnershipId", "interviewId", "calibrationId", "coacheeId"];
 
 export const groupInclude = [{

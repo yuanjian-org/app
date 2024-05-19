@@ -17,7 +17,7 @@ import {
   PrimaryKey
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { ARRAY, BOOLEAN, STRING, UUID, UUIDV4 } from "sequelize";
+import { BOOLEAN, STRING, UUID, UUIDV4 } from "sequelize";
 import GroupUser from "./GroupUser";
 import User from "./User";
 import Transcript from "./Transcript";
@@ -48,12 +48,6 @@ class Group extends Model {
 
   @Column(STRING)
   name: string | null;
-
-  // A user is a member of this group if they are associated with this group via GroupUser,
-  // or isPermitted(user.roles, roles) is true.
-  // TODO: add `@AllowNull(false) after all dbs are migrated to using this column.
-  @Column(ARRAY(STRING))
-  roles: Role[];
 
   // A public group allows any registered user to visit the group page via the
   // group URL and join group meeting, and limits the access to group meeting

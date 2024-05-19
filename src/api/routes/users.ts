@@ -236,7 +236,7 @@ const setMentorCoach = procedure
       await updateGroup(gs[0].id, null, gs[0].public, [userId, coachId],
           transaction);
     } else {
-      await createGroup(null, [userId, coachId], [], null, null, null, userId,
+      await createGroup(null, [userId, coachId], null, null, null, userId,
         transaction);
     }
   });

@@ -30,12 +30,17 @@ const create = procedure
 /**
  * @returns the calibration id.
  */
-export async function createCalibration(type: InterviewType, name: string): Promise<string> 
+export async function createCalibration(type: InterviewType, name: string):
+  Promise<string> 
 {
   if (!name.length) throw generalBadRequestError("名称不能为空");
   return await sequelize.transaction(async transaction => {
     const c = await db.Calibration.create({ type, name, active: false }, { transaction });
-    await createGroup(null, [], ["MenteeManager"], null, null, c.id, null, transaction);
+    const g = await createGroup(null, [], null, null, c.id, null, transaction);
+    const dbGroup = await db.Group.findByPk(g.id, { transaction });
+    invariant(dbGroup);
+    console.log("gid", g.id, ">>>", dbGroup.id);
+    await dbGroup.update({ public: true }, { transaction });
     return c.id;
   });
 }

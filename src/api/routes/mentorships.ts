@@ -54,7 +54,7 @@ const create = procedure
 
     // Create groups
     invariant(mentorship);
-    await createGroup(null, [mentorId, menteeId], [], mentorship.id, null, null,
+    await createGroup(null, [mentorId, menteeId], mentorship.id, null, null,
       null, transaction);
   });
 });

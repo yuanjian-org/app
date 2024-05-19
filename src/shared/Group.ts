@@ -1,11 +1,10 @@
 import { z } from "zod";
 import User, { zMinUser } from "./User";
-import { isPermitted, zRoles } from "./Role";
+import { isPermitted } from "./Role";
 
 export const zGroup = z.object({
   id: z.string(),
   name: z.string().nullable(),
-  roles: zRoles,
   users: z.array(zMinUser),
   public: z.boolean(),
   archived: z.boolean(),
@@ -36,7 +35,6 @@ export function isPermittedForGroup(u: User, g: Group): boolean {
 
 export function isPermittedForGroupHistory(u: User, g: Group): boolean {
   return isPermitted(u.roles, "SummaryEngineer") ||
-    isPermitted(u.roles, g.roles) ||
     // Allow coaches to access all mentorship groups
     (isPermitted(u.roles, "MentorCoach") && g.partnershipId !== null) ||
     g.users.some(gu => gu.id === u.id);

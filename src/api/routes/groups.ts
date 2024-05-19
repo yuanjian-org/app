@@ -5,7 +5,6 @@ import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import _ from "lodash";
-import Role from "../../shared/Role";
 import sequelize from "../database/sequelize";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
@@ -24,7 +23,7 @@ const create = procedure
   .mutation(async ({ ctx, input }) =>
 {
   await sequelize.transaction(async t => {
-    const g = await createGroup(null, input.userIds, [], null, null, null, null, t);
+    const g = await createGroup(null, input.userIds, null, null, null, null, t);
     await emailNewUsersOfGroupIgnoreError(ctx, g.id, input.userIds);
   });
 });
@@ -275,7 +274,6 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
 export async function createGroup(
   name: string | null,
   userIds: string[],
-  roles: Role[],
   partnershipId: string | null, 
   interviewId: string | null, 
   calibrationId: string | null,
@@ -284,7 +282,7 @@ export async function createGroup(
 {
   invariant(!partnershipId || !interviewId || !calibrationId || !coacheeId);
 
-  const g = await db.Group.create({ name, roles, partnershipId, interviewId, calibrationId, coacheeId },
+  const g = await db.Group.create({ name, partnershipId, interviewId, calibrationId, coacheeId },
     { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
