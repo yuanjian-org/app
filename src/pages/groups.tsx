@@ -17,7 +17,8 @@ import {
   FormErrorMessage,
   Flex,
   Spacer,
-  Checkbox
+  Checkbox,
+  Link
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import trpc from "../trpc";
@@ -28,7 +29,7 @@ import { Group, isOwned } from '../shared/Group';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { MdPersonRemove } from 'react-icons/md';
 import { formatGroupName } from 'shared/strings';
-import { EditIcon } from '@chakra-ui/icons';
+import { EditIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
@@ -165,7 +166,12 @@ function GroupEditor({ group, onClose }: {
         <ModalBody>
           <VStack spacing={6}>
             <FormControl>
-              <FormLabel>会议链接</FormLabel>
+              <FormLabel>会议链接 {' '}
+                <Link href={`${window.location.origin}/groups/${group.id}`}
+                  target='_blank'>
+                  <ExternalLinkIcon />
+                </Link>
+              </FormLabel>
               <code>{window.location.origin}/groups/{group.id}</code>
             </FormControl>
             <FormControl>
