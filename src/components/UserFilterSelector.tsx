@@ -35,7 +35,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
   }, [filter, fixedFilter, onChange, router]);
 
   // We rely on url parameter parsing (useEffect above) to invoke onChange().
-  const updateUrlParams = ((f: UserFilter) => {
+  const updateUrlParams = (async (f: UserFilter) => {
     const query: Record<string, any> = {};
     for (const key of Object.keys(f))  {
       // @ts-expect-error
@@ -43,17 +43,17 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     }
     // router.replace() ignores null-valued keys
     if (query.menteeStatus === null) query.menteeStatus = NULL_MENTEE_STATUS;
-    router.replace({ pathname: router.pathname, query });
+    await router.replace({ pathname: router.pathname, query });
   });
 
   const booleanSelect = (field: "hasMenteeApplication" | "isMenteeInterviewee",
     type: BooleanLabelType) =>
   {
-    return <BooleanSelect value={filter[field]} type={type} onChange={v => {
+    return <BooleanSelect value={filter[field]} type={type} onChange={async v => {
       const f = structuredClone(filter);
       if (v == undefined) delete f[field];
       else f[field] = v;
-      updateUrlParams(f);
+      await updateUrlParams(f);
     }} />;
   };
 
@@ -61,11 +61,11 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     <WrapItem><b>过滤条件：</b></WrapItem>
     <WrapItem>
       <MenteeStatusSelect showAny value={filter.menteeStatus}
-        onChange={v => {
+        onChange={async v => {
           const f = structuredClone(filter);
           if (v === undefined) delete f.menteeStatus;
           else f.menteeStatus = v;
-          updateUrlParams(f);
+          await updateUrlParams(f);
         }
       }/>
     </WrapItem>

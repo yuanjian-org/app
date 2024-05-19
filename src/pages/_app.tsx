@@ -62,13 +62,13 @@ function SwitchBoard({ children, wide, ...rest }: PropsWithChildren & { wide: bo
     if (isAuthPage) {
       return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
     } else {
-      router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
+      void router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
       return null;
     }
   } else {
     invariant(status == "authenticated");
     if (isAuthPage) {
-      router.replace("/");
+      void router.replace("/");
       return null;
     } else {
       return <AppPageContainer wide={wide} user={session.user} {...rest}>{children}</AppPageContainer>;

@@ -21,11 +21,11 @@ export default function UserSelector(props: {
     value: u.id,
   })));
 
-  const LoadOptions = (
+  const loadOptions = (
     inputValue: string,
     callback: (options: Option[]) => void
   ) => {
-    trpc.users.list.query({
+    void trpc.users.list.query({
       matchesNameOrEmail: inputValue,
     }).then(users => {
       callback(users.map(u => {
@@ -41,7 +41,7 @@ export default function UserSelector(props: {
   return <AsyncSelect
     isDisabled={props.isDisabled}
     cacheOptions
-    loadOptions={LoadOptions}
+    loadOptions={loadOptions}
     isMulti={isMulti}
     value={value}
     noOptionsMessage={() => "可以用姓名拼音、中文或email搜索"}

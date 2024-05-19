@@ -40,7 +40,7 @@ const join = procedure
     return "/fake-meeting";
   }
 
-  updateOngoingMeetings();
+  await updateOngoingMeetings();
 
   // lock option is applied to transactions in order to prevent conflicts 
   // when multiple transactions are trying to access or modify the same data simultaneously
@@ -60,7 +60,7 @@ const join = procedure
     // generate a meeting link using this user id.
     const meetings = await db.OngoingMeetings.findAll({ attributes: ["tmUserId"], lock: true, transaction });
     if (meetings.length >= apiEnv.TM_USER_IDS.length) {
-      await emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
+      emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
         `上限：${apiEnv.TM_USER_IDS.length}。发起会议的分组：${ctx.baseUrl}/groups/${input.groupId}`, ctx.baseUrl);
       return null;
     }

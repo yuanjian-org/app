@@ -101,7 +101,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });
       }
-      utils.chat.getRoom.invalidate();
+      await utils.chat.getRoom.invalidate();
       onClose();
     } finally {
       setSaving(false);

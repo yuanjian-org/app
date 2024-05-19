@@ -79,9 +79,9 @@ export default widePage(() => {
         <TabPanel>
           {!calibrations ? <Loader /> : 
             <Calibrations type={type} calibrations={calibrations} refetch={() => {
-              refetchCalibrations();
+              void refetchCalibrations();
               // When calibration name changes, interviews may need a refetch as well.
-              refetchInterview();
+              void refetchInterview();
             }} />
           }
         </TabPanel>

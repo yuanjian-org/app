@@ -48,7 +48,7 @@ export default function Page() {
   const closeUserEditor = () => {
     setUserBeingEdited(null);
     setCreatingNewUser(false);
-    refetch();
+    void refetch();
   };
 
   return <>

@@ -1,5 +1,12 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended"
+],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": ["./tsconfig.json"]
+  },
   "rules": {
     "object-curly-spacing": ["error", "always"],
     "semi":["error", "always"],
@@ -24,7 +31,40 @@
         "message": "Files outside of `src/api` must not refer to files in `src/api`. See README.md"
       }]
     }],
-    "import/no-absolute-path": "error",
-    "require-await": "error"
+    "import/no-absolute-path":"error",
+    "require-await": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+
+    // Other @typescript-eslint rules to be enabled in the future
+    "@typescript-eslint/adjacent-overload-signatures": "off",
+    "@typescript-eslint/array-type": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/consistent-type-assertions": "off",
+    "@typescript-eslint/consistent-type-imports": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-extra-non-null-assertion": "off",
+    "@typescript-eslint/no-extra-semi": "off",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-misused-new": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-this-alias": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/prefer-as-const": "off",
+    "@typescript-eslint/prefer-namespace-keyword": "off",
+    "@typescript-eslint/triple-slash-reference": "off",
+    "@typescript-eslint/type-annotation-spacing": "off",
+    "@typescript-eslint/unbound-method": "off",
+    "@typescript-eslint/no-unused-expressions":"off",
+    "no-unused-expressions":"off",
+    "no-var":"off"
   }
 }

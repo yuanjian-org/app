@@ -229,7 +229,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
       invariant(u);
       if (u.roles.some(r => r == "Interviewer")) continue;
       u.roles = [...u.roles, "Interviewer"];
-      u.save({ transaction });
+      await u.save({ transaction });
     }
     // Update group
     await updateGroup(i.group.id, null, i.group.public, 
