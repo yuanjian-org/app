@@ -184,24 +184,6 @@ const list = procedure
   }
 });
 
-/**
- * @returns all the groups with non-zero transcripts
- */
-const listForSummaryEngineer = procedure
-  .use(authUser(['SummaryEngineer']))
-  .output(z.array(zGroup))
-  .query(async () => 
-{
-  return (await db.Group.findAll({
-    attributes: groupAttributes,
-    where: { archived: false },
-    include: [...groupInclude, {
-      association: "transcripts",
-      attributes: ["transcriptId"],
-    }],
-  })).filter(g => g.transcripts.length > 0);
-});
-
 const get = procedure
   // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
@@ -226,7 +208,6 @@ export default router({
   destroy,
   list,
   listMine,
-  listForSummaryEngineer,
   get,
 });
 

@@ -4,7 +4,6 @@ export const AllRoles = [
   'SystemAlertSubscriber',
   'UserManager',
   'GroupManager',
-  'SummaryEngineer',
   'MentorshipAssessor',
   'MenteeManager',
   'Mentor',
@@ -13,6 +12,7 @@ export const AllRoles = [
   'MentorCoach',
 
   // Deprecated
+  'SummaryEngineer',
   'RoleManager',
 ] as const;
 
@@ -40,13 +40,8 @@ export const RoleProfiles: { [key: string]: {
     privilegedUserDataAccess: true,
   },
   GroupManager: {
-    displayName: '分组管理员',
-    actions: '管理会议分组',
-    privilegedUserDataAccess: true,
-  },
-  SummaryEngineer: {
-    displayName: '摘要工程师',
-    actions: '研发自动会议摘要功能',
+    displayName: '会议管理员',
+    actions: '管理会议分组和会议纪要',
     privilegedUserDataAccess: true,
   },
   MentorshipAssessor: {
@@ -85,6 +80,11 @@ export const RoleProfiles: { [key: string]: {
   },
 
   // Deprecated
+  SummaryEngineer: {
+    displayName: 'Deprecated',
+    actions: '研发自动会议摘要功能',
+    privilegedUserDataAccess: false,
+  },
   RoleManager: {
     displayName: 'Deprecated',
     actions: '管理用户角色',

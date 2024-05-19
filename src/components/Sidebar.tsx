@@ -82,13 +82,6 @@ const sidebarItems: SidebarItem[] = [
     roles: ['Mentor', 'Mentee', 'MentorCoach'],
   },
   {
-    name: '摘要研发',
-    path: '/groups/lab',
-    icon: MdScience,
-    regex: /^\/groups\/lab/,
-    roles: 'SummaryEngineer',
-  },
-  {
     name: '管理用户',
     path: '/users',
     icon: MdPerson,
@@ -96,7 +89,7 @@ const sidebarItems: SidebarItem[] = [
     roles: 'UserManager',
   },
   {
-    name: '管理会议分组',
+    name: '管理会议',
     path: '/groups',
     icon: MdGroups,
     regex: /^\/groups$/,

@@ -46,7 +46,7 @@ function DataTable() {
       <Tbody>
         <Tr>
           <Td>姓名</Td>
-          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('SummaryEngineer')}、{dp('MenteeManager')}
+          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('MenteeManager')}
             、同一会议分组的其他成员
           </Td>
         </Tr>
@@ -59,13 +59,13 @@ function DataTable() {
           <Td>{dp('MenteeManager')}</Td>
         </Tr>
         <Tr>
-          <Td>一对一导师与学生通话的转录和纪要文字</Td>
-          <Td>{dp('SummaryEngineer')}、{dp('MentorshipAssessor')}、
-            {dp('MentorCoach')}（注：转录文字仅在网站内测期间搜集）</Td>
+          <Td>一对一导师与学生通话的纪要文字</Td>
+          <Td>{dp('GroupManager')}、{dp('MentorshipAssessor')}、
+            {dp('MentorCoach')}</Td>
         </Tr>
         <Tr>
-          <Td>其他会议的转录和纪要文字</Td>
-          <Td>{dp('SummaryEngineer')}、同一会议分组的其他成员（注：转录文字仅在网站内测期间搜集）</Td>
+          <Td>其他会议的纪要文字</Td>
+          <Td>{dp('GroupManager')}、同一会议分组的其他成员</Td>
         </Tr>
       </Tbody>
     </Table>

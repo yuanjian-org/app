@@ -4,7 +4,6 @@
           "SystemAlertSubscriber",
           "UserManager",
           "GroupManager",
-          "SummaryEngineer",
           "MentorshipAssessor",
           "MenteeManager",
           "Mentor",
