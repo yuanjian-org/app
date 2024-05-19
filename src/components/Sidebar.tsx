@@ -29,7 +29,8 @@ import {
   MdFace, 
   MdVideocam,
   MdSupervisorAccount,
-  MdMic
+  MdMic,
+  MdLocalLibrary
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
@@ -41,7 +42,7 @@ export interface SidebarItem {
   icon: React.ComponentType,
   path: string,
   regex: RegExp,
-  role?: Role,
+  roles?: Role | Role[],
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -57,42 +58,49 @@ const sidebarItems: SidebarItem[] = [
     path: '/coachees',
     icon: MdSupervisorAccount,
     regex: /^\/coachees/,
-    role: 'MentorCoach',
+    roles: 'MentorCoach',
   },
   {
     name: '学生档案',
     path: '/mentees?menteeStatus=现届学子',
     icon: AttachmentIcon,
     regex: /^\/mentees/,
-    role: 'MenteeManager',
+    roles: 'MenteeManager',
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdMic,
     regex: /^\/interviews\/mine/,
-    role: 'Interviewer',
+    roles: 'Interviewer',
+  },
+  {
+    name: '资源库',
+    path: '/resources',
+    icon: MdLocalLibrary,
+    regex: /^\/resources$/,
+    roles: ['Mentor', 'Mentee', 'MentorCoach'],
   },
   {
     name: '摘要研发',
     path: '/groups/lab',
     icon: MdScience,
     regex: /^\/groups\/lab/,
-    role: 'SummaryEngineer',
+    roles: 'SummaryEngineer',
   },
   {
     name: '管理用户',
     path: '/users',
     icon: MdPerson,
     regex: /^\/users/,
-    role: 'UserManager',
+    roles: 'UserManager',
   },
   {
     name: '管理会议分组',
     path: '/groups',
     icon: MdGroups,
     regex: /^\/groups$/,
-    role: 'GroupManager',
+    roles: 'GroupManager',
   },
 ];
 
@@ -159,7 +167,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       }}/>
 
       {sidebarItems
-        .filter(item => isPermitted(me.roles, item.role))
+        .filter(item => isPermitted(me.roles, item.roles))
         .map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
       
       {mentorshipItems?.length > 0 && <Divider marginY={2} />}

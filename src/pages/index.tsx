@@ -30,7 +30,7 @@ export default function Page() {
   return <>
     {!userHasName && <SetNameModal />}
     {userHasName && !consentFormAccepted(user) && <ConsentModal />}
-    <Meetings />
+    <Groups />
   </>;
 };
 
@@ -76,7 +76,7 @@ function SetNameModal() {
   );
 }
 
-function Meetings() {
+function Groups() {
   const [me] = useUserContext();
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
     // TODO: This is a hack. Do it properly.

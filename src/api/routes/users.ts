@@ -103,11 +103,6 @@ const update = procedure
 {
   checkUserFields(input.name, input.email);
 
-  // To update menteeStatus, use `updateMenteeStatus` instead
-  if (input.menteeStatus !== undefined) {
-    throw noPermissionError("学生状态", input.id);
-  }
-
   const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
   const isSelf = ctx.user.id === input.id;
 
@@ -141,7 +136,6 @@ const update = procedure
     ...isUserManager ? {
       roles: input.roles,
       email: input.email,
-      menteeStatus: input.menteeStatus,
     } : {},
   });
 });
