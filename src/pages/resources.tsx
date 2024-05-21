@@ -12,5 +12,6 @@ export default fullPage(() => {
     return <Text>无权查看本页。</Text>;
   }
 
-  return <iframe src="https://ziyuan.super.site" width="100%" height="700px" />;
+  return <iframe src="https://f179b1fd0cd3453e9f34d95e95dc5f.super.site"
+    width="100%" height="700px" />;
 });
