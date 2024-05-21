@@ -4,9 +4,9 @@ import {
 import React from 'react';
 import { useUserContext } from "../UserContext";
 import { isPermitted } from 'shared/Role';
-import { widePage } from 'AppPage';
+import { fullPage } from 'AppPage';
 
-export default widePage(() => {
+export default fullPage(() => {
   const [user] = useUserContext();
   if (!isPermitted(user.roles, ["Mentee", "Mentor", "MentorCoach"])) {
     return <Text>无权查看本页。</Text>;
