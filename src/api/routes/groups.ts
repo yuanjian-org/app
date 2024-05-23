@@ -17,7 +17,7 @@ import User from "shared/User";
 const create = procedure
   .use(authUser('GroupManager'))
   .input(z.object({
-    userIds: z.array(z.string()).min(2),
+    userIds: z.array(z.string()).min(1),
   }))
   .mutation(async ({ ctx, input }) =>
 {

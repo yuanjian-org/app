@@ -66,12 +66,12 @@ export default function Page() {
 
     <Wrap spacing={6}>
       <WrapItem minWidth={100} alignItems="center">
-        <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入两名或以上用户" onSelect={setUserIds} />
+        <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入一名或以上用户" onSelect={setUserIds} />
       </WrapItem>
       <WrapItem alignItems="center">
         <Button
           isLoading={creating}
-          isDisabled={userIds.length < 2}
+          isDisabled={userIds.length < 1}
           loadingText='创建分组中...'
           variant='brand' onClick={createGroup}>
           创建自由分组
@@ -114,7 +114,7 @@ function GroupEditor({ group, onClose }: {
   const [working, setWorking] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
 
-  const isValid = users.length + newUserIds.length > 1;
+  const isValid = users.length + newUserIds.length > 0;
 
   const save = async () => {
     setWorking(true);
@@ -205,7 +205,7 @@ function GroupEditor({ group, onClose }: {
               </FormControl>
             )}
             <FormControl isInvalid={!isValid}>
-              <FormErrorMessage>需要至少两名用户。</FormErrorMessage>
+              <FormErrorMessage>需要至少一名用户。</FormErrorMessage>
             </FormControl>
           </VStack>
         </ModalBody>
