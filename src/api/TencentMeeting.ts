@@ -271,5 +271,41 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
   return res;
 }
 
+// https://cloud.tencent.com/document/product/1095/105659
+async function getSmartSpeakers(recordFileId: string, tmUserId: string) {
+  console.log( `getSmartSpeakers("${recordFileId}")`);
+
+  const zRes = z.object({
+    speaker_list: z.array(z.object({
+    speaker_name: z.string(),
+    total_time: z.number(),
+    }))
+  });
+
+  const res = zRes.parse(await tmRequest('GET', 
+  `/v1/smart/speakers`, {
+    'record_file_id': recordFileId,
+    'operator_id_type': 1,
+    'operator_id': tmUserId,
+    'page_size':50,
+    'page':1
+  }));
+
+  for(const speaker of res.speaker_list){
+    speaker.speaker_name = decodeBase64(speaker.speaker_name);
+    speaker.total_time = millisecondsToMinutes(speaker.total_time);
+  }
+
+  return res;
+}; 
+
+function decodeBase64(base64: string): string {
+  return Buffer.from(base64, 'base64').toString('utf-8');
+}
+
+function millisecondsToMinutes(milliseconds: number): number {
+  return Math.round(milliseconds / 60000);
+}
+
 // Uncomment and modify this line to debug TM APIs.
 // listRecords().then(res => console.log(JSON.stringify(res, null, 2)));
