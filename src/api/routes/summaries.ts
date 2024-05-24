@@ -150,7 +150,7 @@ async function findMissingCrudeSummariesforTmUser(tmUserId: string,
           addrs.ai_minutes) {
           const spkrList = await getSmartSpeakers(file.record_file_id, tmUserId);
           spkrList.sort((a, b) => b.total_time - a.total_time);
-          let spkrInfo = "发言时长统计（分钟): ";
+          let spkrInfo = "*发言时长统计（分钟)*: ";
           spkrList.forEach((spkr, index) => {
             spkrInfo += `${spkr.speaker_name}:${spkr.total_time}`;
             if (index < spkrList.length - 1) {
