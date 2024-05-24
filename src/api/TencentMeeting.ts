@@ -272,7 +272,7 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
 }
 
 // https://cloud.tencent.com/document/product/1095/105659
-async function getSmartSpeakers(recordFileId: string, tmUserId: string) {
+export async function getSmartSpeakers(recordFileId: string, tmUserId: string) {
   console.log( `getSmartSpeakers("${recordFileId}")`);
 
   const zRes = z.object({
@@ -296,7 +296,7 @@ async function getSmartSpeakers(recordFileId: string, tmUserId: string) {
     speaker.total_time = millisecondsToMinutes(speaker.total_time);
   }
 
-  return res;
+  return res.speaker_list;
 }; 
 
 function decodeBase64(base64: string): string {

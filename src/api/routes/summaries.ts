@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { getFileAddresses, listRecords } from "../TencentMeeting";
+import { getFileAddresses, listRecords, getSmartSpeakers } from "../TencentMeeting";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
@@ -17,7 +17,10 @@ const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 export interface SummaryDescriptor {
   groupId: string,
   transcriptId: string,
-  summaryKey: string,
+  summaryDetails: {
+    summaryKey: string;
+    speakerInfo: string;
+  },
   startedAt: number,
   endedAt: number,
   url: string,
@@ -79,8 +82,12 @@ export const syncSummaries = procedure
 
 async function saveSummary(desc: SummaryDescriptor, summary: string) 
 {
-  const formatted = desc.summaryKey == AI_MINUTES_SUMMARY_KEY ?
-    formatMeetingMinutes(summary) : summary;
+  let formatted: string;
+  if (desc.summaryDetails.summaryKey == AI_MINUTES_SUMMARY_KEY) {
+    formatted = `${desc.summaryDetails.speakerInfo}\n${formatMeetingMinutes(summary)}`;
+  } else {
+    formatted = summary;
+  }
 
   await db.Transcript.upsert({
     transcriptId: desc.transcriptId,
@@ -90,7 +97,7 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
   });
   await db.Summary.create({
     transcriptId: desc.transcriptId,
-    summaryKey: desc.summaryKey,
+    summaryKey: desc.summaryDetails.summaryKey,
     summary: formatted,
   });  
 }
@@ -138,15 +145,27 @@ async function findMissingCrudeSummariesforTmUser(tmUserId: string,
       await Promise.all(meeting.record_files.map(async file => {
         const transcriptId = file.record_file_id;
         const addrs = await getFileAddresses(file.record_file_id, tmUserId);
-
+        
         if (!await hasSummary(transcriptId, AI_MINUTES_SUMMARY_KEY) && 
           addrs.ai_minutes) {
+          const spkrList = await getSmartSpeakers(file.record_file_id, tmUserId);
+          spkrList.sort((a, b) => b.total_time - a.total_time);
+          let spkrInfo = "发言时长统计（分钟): ";
+          spkrList.forEach((spkr, index) => {
+            spkrInfo += `${spkr.speaker_name}:${spkr.total_time}`;
+            if (index < spkrList.length - 1) {
+              spkrInfo += ", ";
+            }});
+
           addrs.ai_minutes
           .filter(addr => addr.file_type == "txt")
           .map(addr => descs.push({
             groupId,
             transcriptId,
-            summaryKey: AI_MINUTES_SUMMARY_KEY,
+            summaryDetails: {
+              summaryKey: AI_MINUTES_SUMMARY_KEY, 
+              speakerInfo: spkrInfo,
+            },
             url: addr.download_address,
             startedAt,
             endedAt,
