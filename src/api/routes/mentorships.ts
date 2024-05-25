@@ -1,5 +1,5 @@
 import { procedure, router } from "../trpc";
-import { authUser } from "../auth";
+import { authIntegration, authUser } from "../auth";
 import db from "../database/db";
 import { 
   isValidMentorshipIds,
@@ -12,10 +12,12 @@ import { isPermitted } from "../../shared/Role";
 import { 
   mentorshipAttributes,
   mentorshipInclude,
+  minUserAttributes,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
+import { formatUserName } from "shared/strings";
 
 const create = procedure
   .use(authUser('MenteeManager'))
@@ -116,6 +118,34 @@ const listMineAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
+/**
+ * Usage:
+ *
+ * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" "${BASE_URL}/api/v1/mentorships.countMentorships"
+ *
+ */
+const countMentorships = procedure
+  .use(authIntegration())
+  .output(z.array(z.object({
+    mentor: z.string(),
+    count: z.number(),
+  })))
+  .query(async () => 
+{
+  return (await db.User.findAll({ 
+    attributes: minUserAttributes,
+    include: [{
+      association: "mentorshipsAsMentor",
+      where: { endedAt: { [Op.eq]: null } },
+      attributes: mentorshipAttributes,
+      include: mentorshipInclude,
+    }]
+  })).map(u => ({
+    mentor: formatUserName(u.name),
+    count: u.mentorshipsAsMentor.length,
+  }));
+});
+
 const listMineAsMentor = procedure
   .use(authUser())
   .output(z.array(zMentorship))
@@ -156,4 +186,5 @@ export default router({
   listMineAsMentor,
   listMineAsCoach,
   listForMentee,
+  countMentorships,
 });
