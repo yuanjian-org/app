@@ -26,3 +26,10 @@
 .markdownStyler p {
   margin: 0.75em 0;
 }
+
+.markdownStyler a {
+  color: blue;
+}
+.markdownStyler a:hover {
+  text-decoration: underline;
+}
