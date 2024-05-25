@@ -30,6 +30,7 @@
 .markdownStyler a {
   color: blue;
 }
+
 .markdownStyler a:hover {
   text-decoration: underline;
 }
