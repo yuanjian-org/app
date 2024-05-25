@@ -2,11 +2,11 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { getFileAddresses, listRecords, getSmartSpeakers } from "../TencentMeeting";
+import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
-import { zSummary } from "shared/Summary";
+import { zSummary, SpeakerStats } from "shared/Summary";
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
@@ -17,13 +17,11 @@ const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 export interface SummaryDescriptor {
   groupId: string,
   transcriptId: string,
-  summaryDetails: {
-    summaryKey: string;
-    speakerInfo: string;
-  },
+  summaryKey: string,
   startedAt: number,
   endedAt: number,
   url: string,
+  speakerStats: SpeakerStats,
 };
 
 const list = procedure
@@ -83,8 +81,8 @@ export const syncSummaries = procedure
 async function saveSummary(desc: SummaryDescriptor, summary: string) 
 {
   let formatted: string;
-  if (desc.summaryDetails.summaryKey == AI_MINUTES_SUMMARY_KEY) {
-    formatted = `${desc.summaryDetails.speakerInfo}\n${formatMeetingMinutes(summary)}`;
+  if (desc.summaryKey == AI_MINUTES_SUMMARY_KEY) {
+    formatted = `${formatSpeakerStats(desc.speakerStats)}\n${formatMeetingMinutes(summary)}`;
   } else {
     formatted = summary;
   }
@@ -97,7 +95,7 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
   });
   await db.Summary.create({
     transcriptId: desc.transcriptId,
-    summaryKey: desc.summaryDetails.summaryKey,
+    summaryKey: desc.summaryKey,
     summary: formatted,
   });  
 }
@@ -148,24 +146,15 @@ async function findMissingCrudeSummariesforTmUser(tmUserId: string,
         
         if (!await hasSummary(transcriptId, AI_MINUTES_SUMMARY_KEY) && 
           addrs.ai_minutes) {
-          const spkrList = await getSmartSpeakers(file.record_file_id, tmUserId);
-          spkrList.sort((a, b) => b.total_time - a.total_time);
-          let spkrInfo = "*发言时长统计（分钟)*: ";
-          spkrList.forEach((spkr, index) => {
-            spkrInfo += `${spkr.speaker_name}:${spkr.total_time}`;
-            if (index < spkrList.length - 1) {
-              spkrInfo += ", ";
-            }});
+          const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
 
           addrs.ai_minutes
           .filter(addr => addr.file_type == "txt")
           .map(addr => descs.push({
             groupId,
             transcriptId,
-            summaryDetails: {
-              summaryKey: AI_MINUTES_SUMMARY_KEY, 
-              speakerInfo: spkrInfo,
-            },
+            summaryKey: AI_MINUTES_SUMMARY_KEY, 
+            speakerStats,
             url: addr.download_address,
             startedAt,
             endedAt,
@@ -184,4 +173,15 @@ async function hasSummary(transcriptId: string, summaryKey: string) {
       ` "${transcriptId}"`);
   }
   return ret;
+}
+
+function formatSpeakerStats(speakerStats : SpeakerStats) : string {
+  speakerStats.sort((a, b) => b.total_time - a.total_time);
+  let speakerInfo = "*发言时长统计（分钟)* : ";
+  speakerStats.forEach((spkr, index) => {
+    speakerInfo += `${spkr.speaker_name}:${spkr.total_time}`;
+    if (index < speakerStats.length - 1) {
+      speakerInfo += ", ";
+    }});
+  return speakerInfo;
 }
