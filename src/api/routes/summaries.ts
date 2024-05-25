@@ -82,7 +82,8 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
 {
   let formatted: string;
   if (desc.summaryKey == AI_MINUTES_SUMMARY_KEY) {
-    formatted = `${formatSpeakerStats(desc.speakerStats)}\n${formatMeetingMinutes(summary)}`;
+    formatted = formatSpeakerStats(desc.speakerStats) + '\n' +
+      formatMeetingMinutes(summary);
   } else {
     formatted = summary;
   }
@@ -110,12 +111,12 @@ async function findMissingSummaries(): Promise<SummaryDescriptor[]>
 {
   const descs: SummaryDescriptor[] = [];
   for (const tmUserId of apiEnv.TM_USER_IDS) {
-    await findMissingCrudeSummariesforTmUser(tmUserId, descs);
+    await findMissingSummariesforTmUser(tmUserId, descs);
   }
   return descs;
 }
 
-async function findMissingCrudeSummariesforTmUser(tmUserId: string,
+async function findMissingSummariesforTmUser(tmUserId: string,
   descs: SummaryDescriptor[]) 
 {
   await Promise.all((await listRecords(tmUserId))
@@ -143,7 +144,7 @@ async function findMissingCrudeSummariesforTmUser(tmUserId: string,
       await Promise.all(meeting.record_files.map(async file => {
         const transcriptId = file.record_file_id;
         const addrs = await getFileAddresses(file.record_file_id, tmUserId);
-        
+
         if (!await hasSummary(transcriptId, AI_MINUTES_SUMMARY_KEY) && 
           addrs.ai_minutes) {
           const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
@@ -176,12 +177,7 @@ async function hasSummary(transcriptId: string, summaryKey: string) {
 }
 
 function formatSpeakerStats(speakerStats : SpeakerStats) : string {
-  speakerStats.sort((a, b) => b.total_time - a.total_time);
-  let speakerInfo = "*发言时长统计（分钟)* : ";
-  speakerStats.forEach((spkr, index) => {
-    speakerInfo += `${spkr.speaker_name}:${spkr.total_time}`;
-    if (index < speakerStats.length - 1) {
-      speakerInfo += ", ";
-    }});
-  return speakerInfo;
+  speakerStats.sort((a, b) => b.totalTime - a.totalTime);
+  return "*发言时长统计（分钟)* : " + speakerStats.map(s =>
+    `${s.speakerName}：${s.totalTime}`).join('，');
 }

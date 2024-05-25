@@ -273,7 +273,9 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
 }
 
 // https://cloud.tencent.com/document/product/1095/105659
-export async function getSpeakerStats(recordFileId: string, tmUserId: string) {
+export async function getSpeakerStats(recordFileId: string, tmUserId: string):
+  Promise<SpeakerStats>
+{
   console.log(LOG_HEADER, `getSpeakerStats("${recordFileId}")`);
 
   const zRes = z.object({
@@ -292,8 +294,8 @@ export async function getSpeakerStats(recordFileId: string, tmUserId: string) {
   const speakerList : SpeakerStats = [];
   for (const speaker of res.speaker_list) {
     speakerList.push({
-      speaker_name: decodeBase64(speaker.speaker_name),
-      total_time: millisecondsToMinutes(speaker.total_time),
+      speakerName: decodeBase64(speaker.speakerName),
+      totalTime: millisecondsToMinutes(speaker.totalTime),
     });
   }
 
