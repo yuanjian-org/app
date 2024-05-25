@@ -15,6 +15,7 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
+import { Op } from "sequelize";
 
 const create = procedure
   .use(authUser('MenteeManager'))
@@ -95,6 +96,9 @@ const listForMentee = procedure
   });
 });
 
+/**
+ * Omit mentorships that are already ended.
+ */
 const listMineAsCoach = procedure
   .use(authUser())
   .output(z.array(zMentorship))
@@ -105,6 +109,7 @@ const listMineAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
+      where: { endedAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]
