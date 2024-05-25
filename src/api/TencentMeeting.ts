@@ -4,6 +4,7 @@ import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
+import { zSpeakerStats, SpeakerStats } from "shared/Summary";
 
 const LOG_HEADER = "[TecentMeeting]";
 
@@ -269,6 +270,44 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
     `/v1/addresses/${recordFileId}`, { userid: tmUserId }));
 
   return res;
+}
+
+// https://cloud.tencent.com/document/product/1095/105659
+export async function getSpeakerStats(recordFileId: string, tmUserId: string):
+  Promise<SpeakerStats>
+{
+  console.log(LOG_HEADER, `getSpeakerStats("${recordFileId}")`);
+
+  const zRes = z.object({
+    speaker_list: zSpeakerStats,
+  });
+
+  const res = zRes.parse(await tmRequest('GET', 
+  `/v1/smart/speakers`, {
+    'record_file_id': recordFileId,
+    'operator_id_type': 1,
+    'operator_id': tmUserId,
+    'page_size':50,
+    'page':1
+  }));
+
+  const speakerList : SpeakerStats = [];
+  for (const speaker of res.speaker_list) {
+    speakerList.push({
+      speakerName: decodeBase64(speaker.speakerName),
+      totalTime: millisecondsToMinutes(speaker.totalTime),
+    });
+  }
+
+  return speakerList;
+}; 
+
+function decodeBase64(base64: string): string {
+  return Buffer.from(base64, 'base64').toString('utf-8');
+}
+
+function millisecondsToMinutes(milliseconds: number): number {
+  return Math.round(milliseconds / 60000);
 }
 
 // Uncomment and modify this line to debug TM APIs.
