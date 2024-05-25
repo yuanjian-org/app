@@ -35,6 +35,7 @@ import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth, topbarHeight } from './Navbars';
 import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
+import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export interface SidebarItem {
   name: string,
@@ -98,9 +99,19 @@ const sidebarItems: SidebarItem[] = [
 
 function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
   if (!mentorships) return [];
+  
+  mentorships.sort((a, b) => {
+    if ((a.endedAt === null) == (b.endedAt === null)) {
+      return formatUserName(a.mentee.name).localeCompare(
+        formatUserName(b.mentee.name));
+    } else {
+      return a.endedAt === null ? -1 : 1;
+    }
+  });
+
   return mentorships.map(m => ({
     name: formatUserName(m.mentee.name),
-    icon: MdFace,
+    icon: m.endedAt === null ? MdFace : PiFlagCheckeredFill,
     path: `/mentees/${m.mentee.id}`,
     regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
   }));
