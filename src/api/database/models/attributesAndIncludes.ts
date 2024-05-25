@@ -44,7 +44,7 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Mentorship
  */
 
-export const mentorshipAttributes = ['id'];
+export const mentorshipAttributes = ['id', 'endedAt'];
 
 export const mentorshipInclude = [{
   association: 'mentor',

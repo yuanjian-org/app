@@ -12,7 +12,7 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { CreationOptional, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
@@ -47,6 +47,9 @@ class Mentorship extends Model {
   @AllowNull(false)
   @Column(UUID)
   menteeId: string;
+
+  @Column(DATE)
+  endedAt: string | null;
 
   /**
    * Associations
