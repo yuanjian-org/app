@@ -39,12 +39,12 @@ function MenteeTabs({ user, mentorships }: {
   return <TabsWithUrlParam isLazy>
     <TabList>
       {sortedMentorships.length == 1 ?
-        <Tab>一对一导师通话{sortedMentorships[0].mentor.id !== me.id &&
+        <Tab>一对一通话{sortedMentorships[0].mentor.id !== me.id &&
           `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
         </Tab>
         :
         sortedMentorships.map(m =>
-          <Tab key={m.id}>一对一导师通话{formatMentorshipTabSuffix(m, me.id)}</Tab>
+          <Tab key={m.id}>一对一通话{formatMentorshipTabSuffix(m, me.id)}</Tab>
         )
       }
       <Tab>内部笔记</Tab>
