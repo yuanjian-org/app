@@ -6,7 +6,8 @@ import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeetin
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
-import { zSummary, SpeakerStats } from "shared/Summary";
+import { zSummary } from "shared/Summary";
+import { SpeakerStats } from 'api/TencentMeeting';
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
@@ -82,7 +83,7 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
 {
   let formatted: string;
   if (desc.summaryKey == AI_MINUTES_SUMMARY_KEY) {
-    formatted = formatSpeakerStats(desc.speakerStats) + '\n' +
+    formatted = formatSpeakerStats(desc.speakerStats) +
       formatMeetingMinutes(summary);
   } else {
     formatted = summary;
@@ -176,8 +177,9 @@ async function hasSummary(transcriptId: string, summaryKey: string) {
   return ret;
 }
 
-function formatSpeakerStats(speakerStats : SpeakerStats) : string {
-  speakerStats.sort((a, b) => b.totalTime - a.totalTime);
-  return "*发言时长统计（分钟)* : " + speakerStats.map(s =>
-    `${s.speakerName}：${s.totalTime}`).join('，');
+function formatSpeakerStats(stats: SpeakerStats) : string {
+  if (stats.length == 0) return "";
+  stats.sort((a, b) => b.totalTime - a.totalTime);
+  return "*发言时长统计（分钟)* : " +
+    stats.map(s => `${s.speakerName}：${s.totalTime}`).join('，') + "\n";
 }

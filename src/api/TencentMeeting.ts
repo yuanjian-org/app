@@ -4,7 +4,6 @@ import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
-import { zSpeakerStats, SpeakerStats } from "shared/Summary";
 
 const LOG_HEADER = "[TecentMeeting]";
 
@@ -272,6 +271,11 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
   return res;
 }
 
+export type SpeakerStats = {
+  speakerName: string;
+  totalTime: number;
+}[];
+
 // https://cloud.tencent.com/document/product/1095/105659
 export async function getSpeakerStats(recordFileId: string, tmUserId: string):
   Promise<SpeakerStats>
@@ -279,7 +283,10 @@ export async function getSpeakerStats(recordFileId: string, tmUserId: string):
   console.log(LOG_HEADER, `getSpeakerStats("${recordFileId}")`);
 
   const zRes = z.object({
-    speaker_list: zSpeakerStats,
+    speaker_list: z.array(z.object({
+      speaker_name: z.string(),
+      total_time: z.number(),
+    })).optional(),
   });
 
   const res = zRes.parse(await tmRequest('GET', 
@@ -291,15 +298,15 @@ export async function getSpeakerStats(recordFileId: string, tmUserId: string):
     'page':1
   }));
 
-  const speakerList : SpeakerStats = [];
-  for (const speaker of res.speaker_list) {
-    speakerList.push({
-      speakerName: decodeBase64(speaker.speakerName),
-      totalTime: millisecondsToMinutes(speaker.totalTime),
+  const stats: SpeakerStats = [];
+  for (const speaker of res.speaker_list || []) {
+    stats.push({
+      speakerName: decodeBase64(speaker.speaker_name),
+      totalTime: millisecondsToMinutes(speaker.total_time),
     });
   }
 
-  return speakerList;
+  return stats;
 }; 
 
 function decodeBase64(base64: string): string {
