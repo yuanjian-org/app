@@ -180,6 +180,6 @@ async function hasSummary(transcriptId: string, summaryKey: string) {
 function formatSpeakerStats(stats: SpeakerStats) : string {
   if (stats.length == 0) return "";
   stats.sort((a, b) => b.totalTime - a.totalTime);
-  return "*发言时长统计（分钟)* : " +
+  return "发言时长统计（分钟)：" +
     stats.map(s => `${s.speakerName}：${s.totalTime}`).join('，') + "\n";
 }
