@@ -14,7 +14,7 @@ import { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
 import { sectionSpacing } from 'theme/metrics';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { MenteeCell, MentorshipCells, MostRecentChatMessageCell } from './mentees';
+import { MenteeCells, MentorshipCells, MostRecentChatMessageCell } from './mentees';
 
 export default function Page() {
   const { data: mentorships } = trpcNext.mentorships.listMineAsCoach.useQuery();
@@ -29,12 +29,13 @@ export default function Page() {
     {!mentorships ? <Loader /> : <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>学生</Th><Th>导师</Th><Th>最近师生通话</Th><Th>最近内部笔记</Th>
+          <Th>录取届</Th><Th>学生</Th><Th>导师</Th><Th>最近师生通话</Th>
+          <Th>最近内部笔记</Th>
         </Tr>
       </Thead>
       <Tbody>
         {mentorships.map(m => <Tr key={m.id} _hover={{ bg: "white" }}>
-          <MenteeCell mentee={m.mentee} />
+          <MenteeCells mentee={m.mentee} />
           <MentorshipCells menteeId={m.mentee.id} readonly />
           <MostRecentChatMessageCell menteeId={m.mentee.id} />
         </Tr>
