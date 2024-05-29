@@ -27,6 +27,7 @@
   margin: 0.75em 0;
 }
 
+/* This color mirrors brand.c color in theme/colors.ts */
 .markdownStyler a {
-  color: #319795;
+  color: #0047BB; 
 }
