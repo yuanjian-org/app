@@ -271,5 +271,51 @@ export async function getFileAddresses(recordFileId: string, tmUserId: string) {
   return res;
 }
 
+export type SpeakerStats = {
+  speakerName: string;
+  totalTime: number;
+}[];
+
+// https://cloud.tencent.com/document/product/1095/105659
+export async function getSpeakerStats(recordFileId: string, tmUserId: string):
+  Promise<SpeakerStats>
+{
+  console.log(LOG_HEADER, `getSpeakerStats("${recordFileId}")`);
+
+  const zRes = z.object({
+    speaker_list: z.array(z.object({
+      speaker_name: z.string(),
+      total_time: z.number(),
+    })).optional(),
+  });
+
+  const res = zRes.parse(await tmRequest('GET', 
+  `/v1/smart/speakers`, {
+    'record_file_id': recordFileId,
+    'operator_id_type': 1,
+    'operator_id': tmUserId,
+    'page_size':50,
+    'page':1
+  }));
+
+  const stats: SpeakerStats = [];
+  for (const speaker of res.speaker_list || []) {
+    stats.push({
+      speakerName: decodeBase64(speaker.speaker_name),
+      totalTime: millisecondsToMinutes(speaker.total_time),
+    });
+  }
+
+  return stats;
+}; 
+
+function decodeBase64(base64: string): string {
+  return Buffer.from(base64, 'base64').toString('utf-8');
+}
+
+function millisecondsToMinutes(milliseconds: number): number {
+  return Math.round(milliseconds / 60000);
+}
+
 // Uncomment and modify this line to debug TM APIs.
 // listRecords().then(res => console.log(JSON.stringify(res, null, 2)));

@@ -4,6 +4,8 @@ import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
   TabList, TabPanels, Tab, TabPanel, Stack,
+  Text,
+  HStack,
 } from '@chakra-ui/react';
 import MenteeApplicant from 'components/MenteeApplicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -16,6 +18,7 @@ import { useUserContext } from 'UserContext';
 import GroupBar from 'components/GroupBar';
 import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
+import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
@@ -40,14 +43,12 @@ function MenteeTabs({ user, mentorships }: {
     <TabList>
       {sortedMentorships.length == 1 ?
         <Tab>
-          {sortedMentorships[0].endedAt !== null && "🏁 "}
           一对一通话{sortedMentorships[0].mentor.id !== me.id &&
             `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
         </Tab>
         :
         sortedMentorships.map(m =>
           <Tab key={m.id}>
-            {m.endedAt !== null && "🏁 "}
             一对一通话{formatMentorshipTabSuffix(m, me.id)}
           </Tab>
         )
@@ -96,7 +97,10 @@ function MentorshipPanel({ mentorship: m }: {
   const [me] = useUserContext();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-    {m.endedAt && <>🏁  {formatMentorshipEndedAtText(m.endedAt)}。</>}
+    {m.endedAt && <HStack >
+      <PiFlagCheckeredFill />
+      <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
+    </HStack>}
 
     {m.mentor.id === me.id &&
       <GroupBar group={m.group} showJoinButton showGroupName={false} />}
