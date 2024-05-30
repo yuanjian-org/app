@@ -4,7 +4,7 @@ const links = {
   components: {
     Link: {
       baseStyle: {
-        // If the link color(currently brand.c) is changed, search for all the occurances of the color used and update all instances
+        // If changing this line, also update link color in MarkdownStyler.module.css
         color: colors.brand.c,
         _hover: {
           textDecoration: 'none',
