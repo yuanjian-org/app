@@ -2,11 +2,12 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { getFileAddresses, listRecords } from "../TencentMeeting";
+import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
 import { safeDecodeMeetingSubject } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
+import { SpeakerStats } from 'api/TencentMeeting';
 import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
@@ -21,6 +22,7 @@ export interface SummaryDescriptor {
   startedAt: number,
   endedAt: number,
   url: string,
+  speakerStats: SpeakerStats,
 };
 
 const list = procedure
@@ -79,8 +81,13 @@ export const syncSummaries = procedure
 
 async function saveSummary(desc: SummaryDescriptor, summary: string) 
 {
-  const formatted = desc.summaryKey == AI_MINUTES_SUMMARY_KEY ?
-    formatMeetingMinutes(summary) : summary;
+  let formatted: string;
+  if (desc.summaryKey == AI_MINUTES_SUMMARY_KEY) {
+    formatted = formatSpeakerStats(desc.speakerStats) +
+      formatMeetingMinutes(summary);
+  } else {
+    formatted = summary;
+  }
 
   await db.Transcript.upsert({
     transcriptId: desc.transcriptId,
@@ -105,12 +112,12 @@ async function findMissingSummaries(): Promise<SummaryDescriptor[]>
 {
   const descs: SummaryDescriptor[] = [];
   for (const tmUserId of apiEnv.TM_USER_IDS) {
-    await findMissingCrudeSummariesforTmUser(tmUserId, descs);
+    await findMissingSummariesforTmUser(tmUserId, descs);
   }
   return descs;
 }
 
-async function findMissingCrudeSummariesforTmUser(tmUserId: string,
+async function findMissingSummariesforTmUser(tmUserId: string,
   descs: SummaryDescriptor[]) 
 {
   await Promise.all((await listRecords(tmUserId))
@@ -141,12 +148,15 @@ async function findMissingCrudeSummariesforTmUser(tmUserId: string,
 
         if (!await hasSummary(transcriptId, AI_MINUTES_SUMMARY_KEY) && 
           addrs.ai_minutes) {
+          const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
+
           addrs.ai_minutes
           .filter(addr => addr.file_type == "txt")
           .map(addr => descs.push({
             groupId,
             transcriptId,
-            summaryKey: AI_MINUTES_SUMMARY_KEY,
+            summaryKey: AI_MINUTES_SUMMARY_KEY, 
+            speakerStats,
             url: addr.download_address,
             startedAt,
             endedAt,
@@ -165,4 +175,11 @@ async function hasSummary(transcriptId: string, summaryKey: string) {
       ` "${transcriptId}"`);
   }
   return ret;
+}
+
+function formatSpeakerStats(stats: SpeakerStats) : string {
+  if (stats.length == 0) return "";
+  stats.sort((a, b) => b.totalTime - a.totalTime);
+  return "发言时长统计（分钟)：" +
+    stats.map(s => `${s.speakerName}：${s.totalTime}`).join('，') + "\n";
 }

@@ -1,20 +1,23 @@
 import { procedure, router } from "../trpc";
-import { authUser } from "../auth";
+import { authIntegration, authUser } from "../auth";
 import db from "../database/db";
 import { 
   isValidMentorshipIds,
   zMentorship,
 } from "../../shared/Mentorship";
 import { z } from "zod";
-import { alreadyExistsError, generalBadRequestError, noPermissionError } from "../errors";
+import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
 import { 
   mentorshipAttributes,
   mentorshipInclude,
+  minUserAttributes,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
+import { Op } from "sequelize";
+import { formatUserName } from "shared/strings";
 
 const create = procedure
   .use(authUser('MenteeManager'))
@@ -59,6 +62,19 @@ const create = procedure
   });
 });
 
+const update = procedure
+  .use(authUser('MenteeManager'))
+  .input(z.object({
+    mentorshipId: z.string(),
+    endedAt: z.string().nullable(),
+  }))
+  .mutation(async ({ input: { mentorshipId, endedAt } }) => 
+{
+  const m = await db.Mentorship.findByPk(mentorshipId);
+  if (!m) throw notFoundError("一对一匹配", mentorshipId);
+  await m.update({ endedAt });
+});
+
 /**
  * If the current user is a MentorCoach, return all mentorships of the mentee.
  * Otherwise, return only the mentorship of the mentee where the current user
@@ -82,6 +98,9 @@ const listForMentee = procedure
   });
 });
 
+/**
+ * Omit mentorships that are already ended.
+ */
 const listMineAsCoach = procedure
   .use(authUser())
   .output(z.array(zMentorship))
@@ -92,10 +111,39 @@ const listMineAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
+      where: { endedAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]
   })).map(u => u.mentorshipsAsMentor).flat();
+});
+
+/**
+ * Usage:
+ *
+ * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" "${BASE_URL}/api/v1/mentorships.countMentorships"
+ *
+ */
+const countMentorships = procedure
+  .use(authIntegration())
+  .output(z.array(z.object({
+    mentor: z.string(),
+    count: z.number(),
+  })))
+  .query(async () => 
+{
+  return (await db.User.findAll({ 
+    attributes: minUserAttributes,
+    include: [{
+      association: "mentorshipsAsMentor",
+      where: { endedAt: { [Op.eq]: null } },
+      attributes: mentorshipAttributes,
+      include: mentorshipInclude,
+    }]
+  })).map(u => ({
+    mentor: formatUserName(u.name),
+    count: u.mentorshipsAsMentor.length,
+  }));
 });
 
 const listMineAsMentor = procedure
@@ -134,7 +182,9 @@ const get = procedure
 export default router({
   create,
   get,
+  update,
   listMineAsMentor,
   listMineAsCoach,
   listForMentee,
+  countMentorships,
 });

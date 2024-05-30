@@ -22,6 +22,8 @@ import {
   VStack,
   Spacer,
   LinkProps,
+  Checkbox,
+  Tooltip,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import trpc, { trpcNext } from "../trpc";
@@ -34,12 +36,15 @@ import invariant from 'tiny-invariant';
 import { MenteeStatus } from 'shared/MenteeStatus';
 import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { PiFlagCheckeredFill } from "react-icons/pi";
 import moment from "moment";
 import { Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
+import { formatMentorshipEndedAtText } from './mentees/[userId]';
+import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 
@@ -76,6 +81,7 @@ function MenteeTable({ users, refetch }: {
     <Thead>
       <Tr>
         <Th>状态</Th>
+        <Th>录取届</Th>
         <Th>姓名</Th>
         <Th>导师</Th>
         <Th>资深导师</Th>
@@ -118,8 +124,7 @@ function MenteeRow({ user: u, refetch }: {
         size="sm" onChange={status => setStatus(status)} />
     </WrapItem></Wrap></Td>
 
-    {/* 姓名 */}
-    <MenteeCell mentee={u} />
+    <MenteeCells mentee={u} />
 
     <MentorshipCells menteeId={u.id} addPinyin={addPinyin} showCoach />
 
@@ -131,12 +136,21 @@ function MenteeRow({ user: u, refetch }: {
   </Tr>;
 }
 
-export function MenteeCell({ mentee } : {
+export function MenteeCells({ mentee } : {
   mentee: MinUser,
 }) {
-  return <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
-    {mentee.name} <ChevronRightIcon />
-  </Link></Td>;
+  const { data } = trpcNext.users.getApplicant.useQuery({
+    type: "MenteeInterview",
+    userId: mentee.id,
+  });
+  const year = (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
+
+  return <>
+    <Td>{year && year}</Td>
+    <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
+      {mentee.name} <ChevronRightIcon />
+    </Link></Td>
+  </>;
 }
 
 export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly } : {
@@ -210,7 +224,15 @@ function LoadedMentorsCells({
         {mentorships.length ?
           <VStack align="start">
             {mentorships.map(m =>
-              <Text key={m.id}>{formatUserName(m.mentor.name)}</Text>)
+              <Flex key={m.id} gap={1}>
+                {m.endedAt !== null && 
+                  <Tooltip label={formatMentorshipEndedAtText(m.endedAt)}>
+                    <PiFlagCheckeredFill />
+                  </Tooltip>
+                }
+
+                {formatUserName(m.mentor.name)}
+              </Flex>)
             }
           </VStack>
           :
@@ -286,6 +308,14 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
     refetch();
   };
 
+  const updateMentorship = async (mentorshipId: string, ended: boolean) => {
+    await trpc.mentorships.update.mutate({
+      mentorshipId,
+      endedAt: ended ? new Date().toISOString() : null,
+    });
+    refetch();
+  };
+
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>一对一匹配</ModalHeader>
@@ -295,6 +325,7 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
           <Table>
             <Thead>
               <Tr>
+                <Th>已结束</Th>
                 <Th>导师</Th>
                 <Th>资深导师</Th>
               </Tr>
@@ -303,6 +334,11 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
               {mentorships.map((m: Mentorship, idx) => {
                 const coach: MinUser | null = coaches[idx];
                 return <Tr key={m.id}>
+                  <Td>
+                    <Checkbox isChecked={m.endedAt !== null}
+                      onChange={ev => updateMentorship(m.id, ev.target.checked)}
+                    />
+                  </Td>
                   <Td>{formatUserName(m.mentor.name)}</Td>
                   <Td>
                     <UserSelector initialValue={coach ? [coach] : []}

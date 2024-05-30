@@ -4,6 +4,7 @@ import { zGroup } from "./Group";
 
 export const zMentorship = z.object({
   id: z.string(),
+  endedAt: z.coerce.string().nullable(),
   mentor: zMinUser,
   mentee: zMinUser,
   group: zGroup,
