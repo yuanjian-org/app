@@ -14,7 +14,8 @@ import {
   IsUUID,
   PrimaryKey,
   ForeignKey,
-  BelongsTo
+  BelongsTo,
+  DataType
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
@@ -50,13 +51,16 @@ class User extends Model {
   @Column(STRING)
   email: string;
 
-  // TODO use array type
   @Index({
     using: 'gin'
   })
   @AllowNull(false)
   @Default([])
-  @ZodColumn(JSONB, zRoles)
+  @Column({
+    type: DataType.ARRAY(DataType.STRING),
+    allowNull: false,
+    defaultValue: []
+  })
   roles: Role[];
 
   @Column(DATE)
