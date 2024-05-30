@@ -29,5 +29,5 @@
 
 /* This color mirrors brand.c color in theme/colors.ts */
 .markdownStyler a {
-  color: #0047BB; 
+  color: var(--chakra-colors-brand-c); 
 }

@@ -4,7 +4,7 @@ const links = {
   components: {
     Link: {
       baseStyle: {
-        // If the link color is updated, search for the hex value in the repository and update all instances manually
+        // If the link color(currently brand.c) is changed, search for all the occurances of the color used and update all instances
         color: colors.brand.c,
         _hover: {
           textDecoration: 'none',
