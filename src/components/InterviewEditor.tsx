@@ -15,16 +15,12 @@ import invariant from "tiny-invariant";
 import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
 import { TRPCClientError } from '@trpc/client';
-import { Feedback } from "shared/InterviewFeedback";
+import { FeedbackDeprecated } from "shared/InterviewFeedback";
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 
-/**
- * This data type is only used by the frontend. The backend / database is unaware of it and instead uses
- * shared/InterviewFeedbak:Feedback. Therefore, type conversion is necesary.
- * 
- * TODO: use EditorFeedback as a shared type?
- */
+// TODO: Replace EditorFeedback and EditorFeedbackDimension with Feedback and
+// FeedbackDimension
 export type EditorFeedback = {
   dimensions: EditorFeedbackDimension[],
 };
@@ -97,7 +93,7 @@ export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: {
 
 export function InterviewDecisionEditor({ interviewId, decision, etag }: { 
   interviewId: string,
-  decision: Feedback | null,
+  decision: FeedbackDeprecated | null,
   etag: number,
 }) {
   const [me] = useUserContext();
@@ -122,7 +118,7 @@ export function InterviewDecisionEditor({ interviewId, decision, etag }: {
  * See https://tanstack.com/query/v4/docs/react/guides/caching
  */
 function Editor({ defaultFeedback, etag, save, showDimensions, readonly }: {
-  defaultFeedback: Feedback | null,
+  defaultFeedback: FeedbackDeprecated | null,
   etag: number,
   save: (f: EditorFeedback, etag: number) => Promise<number>,
   showDimensions: boolean,

@@ -10,7 +10,7 @@ import { InterviewDecisionEditor, InterviewFeedbackEditor } from 'components/Int
 import { formatUserName, compareUUID } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { Feedback } from 'shared/InterviewFeedback';
+import { FeedbackDeprecated } from 'shared/InterviewFeedback';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 import { widePage } from 'AppPage';
 
@@ -64,7 +64,7 @@ export default widePage(() => {
 
 function DecisionEditor({ interviewId, decision, etag }: {
   interviewId: string,
-  decision: Feedback | null,
+  decision: FeedbackDeprecated | null,
   etag: number,
 }) {
   return <>
