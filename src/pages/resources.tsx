@@ -6,6 +6,7 @@ import React from 'react';
 import { useUserContext } from "../UserContext";
 import { isPermitted } from 'shared/Role';
 import { fullPage } from 'AppPage';
+import { topbarHeight } from "../components/Navbars";
 
 export default fullPage(() => {
   const [user] = useUserContext();
@@ -14,7 +15,7 @@ export default fullPage(() => {
   }
 
   return (
-      <Box h="calc(100vh - 60px)">
+      <Box h={`calc(100vh - ${topbarHeight})`}>
         <iframe src="https://f179b1fd0cd3453e9f34d95e95dc5f.super.site"
                 width="100%" height="100%"/>
       </Box>
