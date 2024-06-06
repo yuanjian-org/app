@@ -4,8 +4,7 @@
 import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
-import {FiChevronDown} from 'react-icons/fi';
-
+import { FiChevronDown } from 'react-icons/fi';
 import {
   Avatar,
   HStack,

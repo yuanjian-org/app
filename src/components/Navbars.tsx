@@ -17,7 +17,6 @@ import {
   FiMenu,
 } from 'react-icons/fi';
 import NextLink from 'next/link';
-import { useUserContext } from 'UserContext';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import colors from 'theme/colors';
@@ -30,7 +29,6 @@ import AutosaveIndicator, {
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
-import { formatUserName } from 'shared/strings';
 
 export const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -104,8 +102,6 @@ interface TopbarProps extends FlexProps {
 }
 
 const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
-	const [user] = useUserContext();
-
   return (
     <Flex
       // Fix it to screen top: https://www.w3schools.com/howto/howto_css_sticky_element.asp
@@ -127,7 +123,7 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
           variant="outline"
           aria-label="open menu"
           icon={<FiMenu />}
-          bg={useColorModeValue('white', 'gray.900')}
+          bg="white"
         />
         <AutosaveIndicator
           // TODO: Implement on mobile UI
