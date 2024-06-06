@@ -4,27 +4,18 @@
 import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   IconButton,
-  Avatar,
   Box,
   Flex,
   HStack,
   useColorModeValue,
   Drawer,
   DrawerContent,
-  Text,
   useDisclosure,
-  FlexProps,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
+  FlexProps
 } from '@chakra-ui/react';
 import {
   FiMenu,
-  FiChevronDown,
 } from 'react-icons/fi';
-import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
@@ -40,7 +31,6 @@ import AutosaveIndicator, {
 import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 import { formatUserName } from 'shared/strings';
-import { signOut } from "next-auth/react";
 
 export const sidebarWidth = 60;
 export const topbarHeight = "60px";
@@ -127,9 +117,6 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
       paddingX={4}
       height={topbarHeight}
       alignItems="center"
-      bg={useColorModeValue('white', 'gray.900')}
-      borderBottomWidth="1px"
-      borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
       justifyContent={{ base: 'space-between' }}
       {...rest}
     >
@@ -140,6 +127,7 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
           variant="outline"
           aria-label="open menu"
           icon={<FiMenu />}
+          bg={useColorModeValue('white', 'gray.900')}
         />
         <AutosaveIndicator
           // TODO: Implement on mobile UI
@@ -153,55 +141,6 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
           <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />
         </NextLink>
       </Box>
-
-      <HStack spacing={{ base: '0', [sidebarBreakpoint]: '6' }}>
-        {/* <IconButton
-          size="lg"
-          variant="ghost"
-          aria-label="open menu"
-          icon={<FiBell />}
-        /> */}
-        <Flex alignItems={'center'}>
-          <Menu>
-            <MenuButton
-              py={2}
-              transition="all 0.3s"
-              _focus={{ boxShadow: 'none' }}>
-              <HStack>
-                <Avatar
-                  size={'sm'}
-                  bg="brand.a"
-                  color="white"
-                  name={formatUserName(user.name)}
-                />
-                <Text 
-                  display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
-                  marginLeft="2"
-                  fontSize="sm"
-                >
-                  {formatUserName(user.name)}
-                </Text>
-                <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-                  <FiChevronDown />
-                </Box>
-              </HStack>
-            </MenuButton>
-            <MenuList
-              bg={useColorModeValue('white', 'gray.900')}
-              borderColor={useColorModeValue('gray.200', 'gray.700')}>
-              <MenuItem as={NextLink} href='/profile'>
-                个人信息
-              </MenuItem>
-              <MenuDivider />
-              <MenuItem as={NextLink} href='/who-can-see-my-data'>
-                <LockIcon marginRight={1} />谁能看到我的数据
-              </MenuItem>
-              <MenuDivider />
-              <MenuItem onClick={() => signOut()}>退出登录</MenuItem>
-            </MenuList>
-          </Menu>
-        </Flex>
-      </HStack>
     </Flex>
   );
 };

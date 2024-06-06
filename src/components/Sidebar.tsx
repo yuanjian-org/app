@@ -2,7 +2,18 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import React from 'react';
+import { signOut } from "next-auth/react";
+import { LockIcon } from '@chakra-ui/icons';
+import {FiChevronDown} from 'react-icons/fi';
+
 import {
+  Avatar,
+  HStack,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuItem,
+  MenuList,
   Box,
   CloseButton,
   Flex,
@@ -132,18 +143,20 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
   return (
     <Box
+      overflowY="auto"
       transition="3s ease"
       bg={useColorModeValue('white', 'gray.900')}
       borderRight="1px"
       borderRightColor={useColorModeValue('gray.200', 'gray.700')}
       w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
       pos="fixed"
-      h="full"
+      h="full"     
       {...rest}>
       <Flex 
         height={topbarHeight}
         alignItems="center"
         marginX="8" 
+        marginY="4"
         justifyContent="space-between"
       >
         <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
@@ -177,6 +190,63 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
       {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
         onClose={onClose} />)}
+  
+ 
+    <Box
+    marginTop="20vh"
+    display="flex"
+    justifyContent="center"
+    >
+    <HStack  spacing={{ base: '0', [sidebarBreakpoint]: '6' }}>
+        {/* <IconButton
+          size="lg"
+          variant="ghost"
+          aria-label="open menu"
+          icon={<FiBell />}
+        /> */}
+        <Flex>
+          <Menu>
+            <MenuButton
+              py={2}
+              transition="all 0.3s"
+              _focus={{ boxShadow: 'none' }}>
+              <HStack>
+                <Avatar
+                  size={'sm'}
+                  bg="brand.a"
+                  color="white"
+                  name={formatUserName(me.name)}
+                />
+                <Text 
+                  display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
+                  marginLeft="2"
+                  fontSize="sm"
+                >
+                  {formatUserName(me.name)}
+                </Text>
+                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
+                  <FiChevronDown />
+                </Box>
+              </HStack>
+            </MenuButton>
+            <MenuList          
+              marginRight={2}
+              bg={useColorModeValue('white', 'gray.900')}
+              borderColor={useColorModeValue('gray.200', 'gray.700')}>
+              <MenuItem as={NextLink} href='/profile'>
+                个人信息
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem as={NextLink} href='/who-can-see-my-data'>
+                <LockIcon marginRight={1} />谁能看到我的数据
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem onClick={() => signOut()}>退出登录</MenuItem>
+            </MenuList>
+          </Menu>
+        </Flex>
+      </HStack>
+      </Box>
     </Box>
   );
 };
