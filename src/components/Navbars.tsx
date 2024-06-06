@@ -111,13 +111,14 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
 
       marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}
       paddingX={4}
-      height={topbarHeight}
+    
       alignItems="center"
       justifyContent={{ base: 'space-between' }}
       {...rest}
     >
       <HStack spacing={6}>
         <IconButton
+        marginY={4}
           display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
