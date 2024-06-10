@@ -14,7 +14,7 @@ import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./ca
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
-import { zFeedback } from "../../shared/InterviewFeedback";
+import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 
 /**
  * Only MenteeManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
@@ -154,7 +154,7 @@ const updateDecision = procedure
   .use(authUser("MenteeManager"))
   .input(z.object({
     interviewId: z.string(),
-    decision: zFeedback,
+    decision: zFeedbackDeprecated,
     etag: z.number(),
   }))
   .output(z.number())

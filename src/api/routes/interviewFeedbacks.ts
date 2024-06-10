@@ -4,7 +4,7 @@ import { z } from "zod";
 import db from "../database/db";
 import { interviewFeedbackInclude, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
 import { conflictError, noPermissionError, notFoundError } from "../errors";
-import { zFeedback, zInterviewFeedback } from "../../shared/InterviewFeedback";
+import { zFeedbackDeprecated, zInterviewFeedback } from "../../shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
@@ -65,7 +65,7 @@ const update = procedure
   .use(authUser())
   .input(z.object({
     id: z.string(),
-    feedback: zFeedback,
+    feedback: zFeedbackDeprecated,
     etag: z.number(),
   }))
   .output(z.number())
@@ -95,7 +95,7 @@ const logUpdateAttempt = procedure
   .use(authUser())
   .input(z.object({
     id: z.string(),
-    feedback: zFeedback,
+    feedback: zFeedbackDeprecated,
     etag: z.number(),
   }))
   .mutation(async ({ ctx, input }) =>

@@ -8,10 +8,24 @@ export const zMinInterviewFeedback = z.object({
   feedbackUpdatedAt: z.coerce.string().nullable(),
 });
 
-export const zFeedback = z.record(z.string(), z.any());
-export type Feedback = object; // z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets typescript.
+// TODO: Remove it completely
+export const zFeedbackDeprecated = z.record(z.string(), z.any());
+// z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets typescript.
+export type FeedbackDeprecated = object;
+
+export const zFeedbackDimension = z.object({
+  name: z.string(),
+  score: z.number().optional(),
+  comment: z.string().optional(),
+});
+export type FeedbackDimension = z.TypeOf<typeof zFeedbackDimension>;
+
+export const zFeedback = z.object({
+  dimensions: z.array(zFeedbackDimension).optional(),
+});
+export type Feedback = z.TypeOf<typeof zFeedback>;
 
 export const zInterviewFeedback = zMinInterviewFeedback.merge(z.object({
-  feedback: zFeedback.nullable(),
+  feedback: zFeedbackDeprecated.nullable(),
 }));
-export type InterviewFeedback = z.ZodType<typeof zInterviewFeedback>;
+export type InterviewFeedback = z.TypeOf<typeof zInterviewFeedback>;
