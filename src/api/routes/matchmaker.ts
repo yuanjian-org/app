@@ -11,6 +11,7 @@ import { formatUserName } from "shared/strings";
 import { MenteeStatus } from "shared/MenteeStatus";
 import Interview from "api/database/models/Interview";
 import { Feedback } from "shared/InterviewFeedback";
+import { menteeAcceptanceYearField, menteeCollegeField, menteeDegreeField, menteeFirstYearInCollegeField, menteeMajorField } from "shared/menteeApplicationFields";
 
 /**
  * Return interview data for the mentees who are 1) in the "现届学子" status and 
@@ -23,15 +24,16 @@ import { Feedback } from "shared/InterviewFeedback";
 const listPendingMentees = procedure
   .use(authIntegration())
   .output(z.array(z.object({
-    menteeName: z.string(),
+    name: z.string(),
+    profile: z.record(z.string(), z.any()),
     averageDimensionalScores: z.record(z.string(), z.number()),
   })))
-  .query(async () => 
+  .query(async ({ ctx }) => 
 {
   // Declare a variable to force type checking
   const menteeStatus: MenteeStatus = "现届学子";
   const mentees = await db.User.findAll({ 
-    attributes: minUserAttributes,
+    attributes: [...minUserAttributes, "sex", "menteeApplication"],
     where: { menteeStatus },
     include: [{
       association: "mentorshipsAsMentee",
@@ -52,10 +54,26 @@ const listPendingMentees = procedure
   });
 
   return pendingMentees.map(m => ({
-    menteeName: formatUserName(m.name),
+    name: formatUserName(m.name),
+    profile: getMenteeProfile(`${ctx.baseUrl}/mentees/${m.id}`,
+      m.sex, m.menteeApplication),
     averageDimensionalScores: getAverageDimensionalScores(m.interviews),
   }));
 });
+
+function getMenteeProfile(url: string, sex: string | null,
+  application: Record<string, any> | null)
+{
+  return {
+    url,
+    sex: sex || undefined,
+    acceptanceYear: application?.[menteeAcceptanceYearField],
+    firstYearInCollege: application?.[menteeFirstYearInCollegeField],
+    college: application?.[menteeCollegeField],
+    degree: application?.[menteeDegreeField],
+    major: application?.[menteeMajorField],
+  };
+}
 
 function getAverageDimensionalScores(interviews: Interview[]):
   Record<string, number>
