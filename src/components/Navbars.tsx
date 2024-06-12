@@ -17,8 +17,6 @@ import {
   FiMenu,
 } from 'react-icons/fi';
 import NextLink from 'next/link';
-import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
-import Image from "next/image";
 import colors from 'theme/colors';
 import AutosaveIndicator, {
   AutosaveState,
@@ -101,7 +99,7 @@ interface TopbarProps extends FlexProps {
   autosaveState: AutosaveState,
 }
 
-const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
+const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
     <Flex
       justifyContent="flex-end">
