@@ -179,7 +179,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           </Flex>
           <Box height={{
             base: 0,
-            [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
+            [sidebarBreakpoint]: 10 - sidebarItemPaddingY,
           }} />
 
           {sidebarItems

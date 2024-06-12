@@ -31,7 +31,7 @@ import Sidebar from './Sidebar';
 export const sidebarWidth = 60;
 export const topbarHeight = "0px";
 export const sidebarBreakpoint = "lg";
-export const sidebarContentMarginTop = 10;
+export const sidebarContentMarginTop = 0;
 
 /**
  * The container for navbar, sidebar and page content that is passed in as `children`.
@@ -103,10 +103,10 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
     <Flex
       justifyContent="flex-end">
-      <HStack spacing={6}>
+      <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
         <IconButton
           marginX={4}
-          marginTop={4}
+          marginY={4}
           display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
