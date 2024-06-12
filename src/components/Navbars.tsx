@@ -20,7 +20,7 @@ import NextLink from 'next/link';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import colors from 'theme/colors';
-import AutosaveIndicator, { 
+import AutosaveIndicator, {
   AutosaveState,
   addPendingSaver,
   initialState,
@@ -31,7 +31,7 @@ import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 
 export const sidebarWidth = 60;
-export const topbarHeight = "60px";
+export const topbarHeight = "0px";
 export const sidebarBreakpoint = "lg";
 export const sidebarContentMarginTop = 10;
 
@@ -44,7 +44,7 @@ export default function Navbars({
   children: ReactNode;
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [ autosaveState, setAutosateState] = useState<AutosaveState>(initialState);
+  const [autosaveState, setAutosateState] = useState<AutosaveState>(initialState);
 
   /**
    * Use a reference holder to keep the values of addPS and removePS independent of autosaveState, and thus avoid
@@ -63,7 +63,7 @@ export default function Navbars({
     stateRef.current = setPendingSaverError(stateRef.current, id, e);
     setAutosateState(stateRef.current);
   }, [stateRef]);
-  
+
   return (
     <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
       <Sidebar
@@ -104,21 +104,11 @@ interface TopbarProps extends FlexProps {
 const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
   return (
     <Flex
-      // Fix it to screen top: https://www.w3schools.com/howto/howto_css_sticky_element.asp
-      position="sticky"
-      top={0}
-      zIndex={200}
-
-      marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}
-      paddingX={4}
-    
-      alignItems="center"
-      justifyContent={{ base: 'space-between' }}
-      {...rest}
-    >
+      justifyContent="flex-end">
       <HStack spacing={6}>
         <IconButton
-        marginY={4}
+          marginX={4}
+          marginTop={4}
           display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
@@ -129,13 +119,12 @@ const Topbar = ({ onOpen, autosaveState, ...rest }: TopbarProps) => {
         <AutosaveIndicator
           // TODO: Implement on mobile UI
           display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
-          state={autosaveState} 
+          state={autosaveState}
         />
       </HStack>
 
       <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
         <NextLink href="http://yuanjian.org" target="_blank">
-          <Image src={yuanjianLogo80x80} alt="远见教育基金会" width={40} />
         </NextLink>
       </Box>
     </Flex>
