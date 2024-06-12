@@ -42,7 +42,7 @@ import {
   MdLocalLibrary
 } from 'react-icons/md';
 import Role from "../shared/Role";
-import { sidebarBreakpoint, sidebarContentMarginTop, sidebarWidth } from './Navbars';
+import { sidebarBreakpoint, sidebarWidth } from './Navbars';
 import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
