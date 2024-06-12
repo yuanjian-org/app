@@ -107,6 +107,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
         <IconButton
           marginX={4}
           marginTop={4}
+          marginBottom={-8}
           display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
