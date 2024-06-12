@@ -106,7 +106,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
       <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
         <IconButton
           marginX={4}
-          marginY={4}
+          marginTop={4}
           display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
