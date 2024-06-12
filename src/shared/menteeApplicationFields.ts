@@ -11,6 +11,10 @@ export type ApplicationField = {
 
 export const menteeSourceField = "合作机构来源";
 export const menteeAcceptanceYearField = "录取届";
+export const menteeCollegeField = "就读学校";
+export const menteeMajorField = "就读专业";
+export const menteeDegreeField = "就读种类";
+export const menteeFirstYearInCollegeField = "大学一年级入学年份";
 
 /**
  * Field order dictates the order the fields are displayed.
@@ -18,11 +22,11 @@ export const menteeAcceptanceYearField = "录取届";
 const menteeApplicationFields: ApplicationField[] = [
   { name: menteeAcceptanceYearField, showForEdits: true, },
   { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
-  { jsjField: "field_149", jsjProxiedField: "field_149", name: "就读种类", showForEdits: true, },
+  { jsjField: "field_149", jsjProxiedField: "field_149", name: menteeDegreeField, showForEdits: true, },
   { jsjField: "field_161", name: "本科是否是第一批次（一本）？", showForEdits: true, },
-  { jsjField: "field_107", jsjProxiedField: "field_108", name: "就读学校", showForEdits: true, },
-  { jsjField: "field_108", jsjProxiedField: "field_172", name: "就读专业", showForEdits: true, },
-  { jsjField: "field_167", jsjProxiedField: "field_167", name: "大学一年级入学年份", showForEdits: true, },
+  { jsjField: "field_107", jsjProxiedField: "field_108", name: menteeCollegeField, showForEdits: true, },
+  { jsjField: "field_108", jsjProxiedField: "field_172", name: menteeMajorField, showForEdits: true, },
+  { jsjField: "field_167", jsjProxiedField: "field_167", name: menteeFirstYearInCollegeField, showForEdits: true, },
   { jsjField: "field_169", name: "预计毕业年份", showForEdits: true, },
   { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
 
