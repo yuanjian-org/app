@@ -1,11 +1,10 @@
-import {
-  Text,
-} from '@chakra-ui/react';
+import { Text, Box } from '@chakra-ui/react';
 import React from 'react';
 import { useUserContext } from "../UserContext";
 import { isPermitted } from 'shared/Role';
 import { fullPage } from 'AppPage';
-import { Box } from '@chakra-ui/react';
+import { sidebarBreakpoint } from 'components/Navbars';
+import { sidebarContentMarginTop } from 'components/Sidebar';
 
 
 export default fullPage(() => {
@@ -18,7 +17,7 @@ export default fullPage(() => {
     <Box
       width="100%"
       height="100vh"
-      marginTop={{ base: 10, lg: -10 }}
+      marginTop={{ base: sidebarContentMarginTop, [sidebarBreakpoint]: -sidebarContentMarginTop }}
     >
       <iframe
         src="https://f179b1fd0cd3453e9f34d95e95dc5f.super.site"

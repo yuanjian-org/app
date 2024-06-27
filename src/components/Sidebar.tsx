@@ -4,7 +4,8 @@
 import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronLeft } from 'react-icons/fi';
+
 import {
   Avatar,
   HStack,
@@ -46,6 +47,8 @@ import { sidebarBreakpoint, sidebarWidth } from './Navbars';
 import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
+
+export const sidebarContentMarginTop = 10;
 
 export interface SidebarItem {
   name: string,
@@ -179,7 +182,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           </Flex>
           <Box height={{
             base: 0,
-            [sidebarBreakpoint]: 10 - sidebarItemPaddingY,
+            [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
           }} />
 
           {sidebarItems
@@ -216,7 +219,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
                   display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
                   fontSize="sm">
                   {formatUserName(me.name)} </Text>
-                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}><FiChevronDown /></Box>
+                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}><FiChevronLeft /></Box>
               </HStack>
             </MenuButton>
             <MenuList

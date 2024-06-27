@@ -29,9 +29,7 @@ import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 
 export const sidebarWidth = 60;
-export const topbarHeight = "0px";
 export const sidebarBreakpoint = "lg";
-export const sidebarContentMarginTop = 0;
 
 /**
  * The container for navbar, sidebar and page content that is passed in as `children`.
