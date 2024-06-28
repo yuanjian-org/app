@@ -6,7 +6,6 @@ import { fullPage } from 'AppPage';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { sidebarContentMarginTop } from 'components/Sidebar';
 
-
 export default fullPage(() => {
   const [user] = useUserContext();
   if (!isPermitted(user.roles, ["Mentee", "Mentor", "MentorCoach"])) {
