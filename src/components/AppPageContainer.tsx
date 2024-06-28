@@ -28,7 +28,7 @@ export default function AppPageContainer({ pageType, user, children, ...rest }: 
           // TODO: these hard-coded numbers are empirically measured footer heights. Replace them with constants.
           minHeight={{
             base: `calc(100vh  - (140px + ${footerMarginTop}))`,
-            [footerBreakpoint]: `calc(100vh -  - (95px + ${footerMarginTop}))`,
+            [footerBreakpoint]: `calc(100vh - (95px + ${footerMarginTop}))`,
           }}
         >
           {children}

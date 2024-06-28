@@ -4,7 +4,7 @@
 import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
-import { FiChevronLeft } from 'react-icons/fi';
+import { FiChevronRight } from 'react-icons/fi';
 
 import {
   Avatar,
@@ -219,7 +219,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
                   display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
                   fontSize="sm">
                   {formatUserName(me.name)} </Text>
-                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}><FiChevronLeft /></Box>
+                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}><FiChevronRight /></Box>
               </HStack>
             </MenuButton>
             <MenuList
