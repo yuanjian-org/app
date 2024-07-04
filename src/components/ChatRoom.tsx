@@ -22,7 +22,7 @@ import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 
-export default function Room({ menteeId } : {
+export default function Room({ menteeId }: {
   menteeId: string,
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
@@ -36,7 +36,7 @@ export default function Room({ menteeId } : {
         .map(m => <Message key={m.id} message={m} />)
       }
     </VStack>
-  ;
+    ;
 }
 
 function MessageCreator({ roomId }: {
@@ -47,7 +47,7 @@ function MessageCreator({ roomId }: {
   return editing ?
     <Editor roomId={roomId} onClose={() => setEditing(false)}
       marginTop={componentSpacing} />
-    : 
+    :
     <Button variant="outline" leftIcon={<AddIcon />}
       onClick={() => setEditing(true)}>新消息</Button>;
 }
@@ -65,8 +65,8 @@ function Message({ message: m }: {
       <HStack minWidth="210px" spacing={componentSpacing}>
         <Text>{name}</Text>
         <Text color="grey">
-          {m.updatedAt && prettifyDate(m.updatedAt)}
-          {m.updatedAt !== m.createdAt && "更新"}
+          {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
+          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
         </Text>
 
         {!editing && user.id == m.user.id && <>
@@ -110,7 +110,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
 
   return <>
     <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} {...rest} 
+      autoFocus background="white" height={200} {...rest}
     />
     <HStack>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
