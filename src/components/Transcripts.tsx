@@ -41,7 +41,7 @@ function LoadedTranscripts({ transcripts: unsorted }: {
   // Sort by reverse chronological order
   sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
   // Only show transcripts that are more than 1 min
-  const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt)>=1);
+  const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
 
   const router = useRouter();
   const getTranscriptAndIndex = () => {
