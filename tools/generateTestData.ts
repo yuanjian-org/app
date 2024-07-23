@@ -9,6 +9,9 @@ import Role, { AllRoles } from "../src/shared/Role";
 import { toPinyin } from "../src/shared/strings";
 import Transcript from "../src/api/database/models/Transcript";
 import Summary from "../src/api/database/models/Summary";
+import { createInterview } from "../src/api/routes/interviews";
+import Interview from "../src/api/database/models/Interview";
+import Calibration from "../src/api/database/models/Calibration";
 
 type TestUser = {
   name: string | null,
@@ -48,7 +51,11 @@ async function main() {
 
   await upgradeUsers(users);
   await generateUsers();
+  console.log(allUsers);
   await generateGroupsAndSummaries(users);
+  const calibrationID = await findOrCreateCalibration();
+  //await upsertInterview(users, calibrationID);
+  
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
 }
@@ -141,3 +148,57 @@ async function upsertSummary(groupId: string, transcriptId: string, startedAt: n
     summary
   });
 }
+
+async function findOrCreateCalibration() {
+  console.log("Creating Test MenteeIntervew Calibration");
+  const [menteeCalibration,] = await Calibration.findOrCreate({
+    where: {
+      type: 'MenteeInterview',
+      name: '学生测试面试组',
+    },
+    defaults: { active: true, }
+  });
+
+  console.log("Creating Test MentorIntervew Calibration");
+  const [mentorCalibration,] = await Calibration.findOrCreate({
+    where: {
+      type: 'MentorInterview',
+      name: '导师测试面试组',
+    },
+    defaults: { active: true, }
+  });
+
+  await sequelize.transaction(async t => {
+    await createGroup(null, [], null, null, menteeCalibration.id, null, t);
+    await createGroup(null, [], null, null, mentorCalibration.id, null, t);
+  });
+
+  return { menteeCalibration, mentorCalibration };
+}
+
+// async function upsertInterview(users: User[], calibration: { menteeCalibration: { id: string; }, mentorCalibration: { id: string; } }) {
+//   for (const u of allUsers) {
+//     console.log(u);
+//     if (u.email.includes('mentee')) {
+//       console.log(`Creating MenteeInterview for [${users.map(u => u.name)}, ${u.name}]`);
+//       await Interview.findOrCreate({
+//         where: {
+//           type: 'MenteeInterview',
+//           intervieweeId: u.id,
+//           calibrationId: calibration.menteeCalibration.id
+//         },
+//       });
+//     };
+
+//     if (u.email.includes('mentor')) {
+//       console.log(`Creating MentorInterview for [${users.map(u => u.name)}, ${u.name}]`);
+//       await Interview.findOrCreate({
+//         where: {
+//           type: 'MentorInterview',
+//           intervieweeId: u.id,
+//           calibrationId: calibration.mentorCalibration.id
+//         },
+//       });
+//     };
+//   }
+// }
