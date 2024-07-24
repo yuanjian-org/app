@@ -126,7 +126,7 @@ function Message({
   );
 }
 
-function Editor({ roomId, message, onClose, savedChanged, ...rest}: {
+function Editor({ roomId, message, onClose, savedChanged, ...rest }: {
   roomId?: string; // create a new message when specified
   message?: ChatMessage; // must be specified iff. roomId is undefined
   onClose: Function;
