@@ -40,14 +40,16 @@ function LoadedTranscripts({ transcripts: unsorted }: {
   const sorted = [...unsorted];
   // Sort by reverse chronological order
   sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
+  // Only show transcripts that are more than 1 min
+  const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
 
   const router = useRouter();
   const getTranscriptAndIndex = () => {
     const id = parseQueryString(router, "transcriptId");
-    for (let i = 0; i < sorted.length; i++) {
-      if (sorted[i].transcriptId == id) return { t: sorted[i], i };
+    for (let i = 0; i < filtered.length; i++) {
+      if (filtered[i].transcriptId == id) return { t: filtered[i], i };
     }
-    return { t: sorted[0], i: 0 };
+    return { t: filtered[0], i: 0 };
   };
   const { t: transcript, i: transcriptIndex } = getTranscriptAndIndex();
 
@@ -65,15 +67,15 @@ function LoadedTranscripts({ transcripts: unsorted }: {
     <Flex direction="column" gap={sectionSpacing}>
       <Flex>
         <Button variant="ghost" leftIcon={<ChevronLeftIcon />}
-          isDisabled={transcriptIndex == sorted.length - 1}
-          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex + 1].transcriptId)}
+          isDisabled={transcriptIndex == filtered.length - 1}
+          onClick={() => replaceUrlParam(router, "transcriptId", filtered[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
         <Spacer />
         <Flex direction={{ base: "column", [sidebarBreakpoint]: "row" }} gap={componentSpacing}>
           <Select value={transcript.transcriptId} 
             onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
           >
-            {sorted.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
+            {filtered.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
               {`${prettifyDate(t.startedAt)}，${prettifyDuration(t.startedAt, t.endedAt)}${!idx ? "（最近通话）" : ""}`}
             </option>)}
           </Select>

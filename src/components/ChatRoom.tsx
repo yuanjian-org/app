@@ -86,16 +86,16 @@ function Message({
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
-  return (
-    <HStack align="top" spacing={componentSpacing} width="100%">
-      <Avatar name={name} boxSize={10} />
-      <VStack align="start" width="100%">
-        <HStack minWidth="210px" spacing={componentSpacing}>
-          <Text>{name}</Text>
-          <Text color="grey">
-            {m.updatedAt && prettifyDate(m.updatedAt)}
-            {m.updatedAt !== m.createdAt && "更新"}
-          </Text>
+  return <HStack align="top" spacing={componentSpacing} width="100%">
+    <Avatar name={name} boxSize={10} />
+    <VStack align="start" width="100%">
+      <HStack minWidth="210px" spacing={componentSpacing}>
+        <Text>{name}</Text>
+        <Text color="grey">
+          {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
+          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+        </Text>
+
 
           {!editing && user.id == m.user.id && (
             <>
@@ -155,27 +155,17 @@ function Editor({ roomId, message, onClose, savedChanged, ...rest }: {
     }
   };
 
-  return (
-    <>
-      <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-        autoFocus background="white" height={200} {...rest}
-      />
-      <HStack>
-        <Button onClick={save} isLoading={saving} isDisabled={!markdown}
-          variant="brand" leftIcon={<Icon as={MdSend} />}
-        >
-          确认
-        </Button>
-        <Button onClick={() => {
-            savedChanged(false);
-            onClose();
-          }}
-          variant="ghost"
-          color="grey"
-        >
-          取消
-        </Button>
-      </HStack>
-    </>
-  );
+  return <>
+    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
+      autoFocus background="white" height={200} {...rest}
+    />
+    <HStack>
+      <Button onClick={save} isLoading={saving} isDisabled={!markdown}
+        variant="brand" leftIcon={<Icon as={MdSend} />}
+      >
+        确认
+      </Button>
+      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+    </HStack>
+  </>;
 }

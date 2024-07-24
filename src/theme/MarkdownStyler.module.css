@@ -26,3 +26,8 @@
 .markdownStyler p {
   margin: 0.75em 0;
 }
+
+/* This color mirrors brand.c color in theme/colors.ts */
+.markdownStyler a {
+  color: var(--chakra-colors-brand-c); 
+}
