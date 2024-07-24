@@ -122,8 +122,7 @@ function Message({
           <MarkdownStyler content={m.markdown} />
         )}
       </VStack>
-    </HStack>
-  );
+    </HStack>;
 }
 
 function Editor({ roomId, message, onClose, savedChanged, ...rest }: {

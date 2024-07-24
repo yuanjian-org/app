@@ -104,7 +104,6 @@ function MenteeTabs({ user, mentorships }: {
             <ChatRoom
               menteeId={user.id}
               savedChanged={(type) => {
-                console.log(type, 33333);
                 setSaved(type);
               }}
             />
