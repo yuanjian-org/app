@@ -40,17 +40,11 @@ export default function Room({
         savedChanged={(status) => savedChanged(status)}
       />
 
-      {room.messages
-        .sort((a, b) =>
-          moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1
-        )
-        .map((m) => (
-          <Message
-            key={m.id}
-            message={m}
-            savedChanged={(status: boolean) => savedChanged(status)}
-          />
-        ))}
+      {room.messages.sort((a, b) => moment(a.updatedAt)
+        .isAfter(moment(b.updatedAt)) ? -1 : 1)
+        .map(m => <Message key={m.id} message={m}
+                           savedChanged={(status: boolean) => savedChanged(status)}/>)
+      }
     </VStack>
   );
 }
@@ -65,16 +59,12 @@ function MessageCreator({
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ? (
-    <Editor
-      roomId={roomId}
-      onClose={() => setEditing(false)}
+    <Editor roomId={roomId} onClose={() => setEditing(false)}
       savedChanged={(status: boolean) => savedChanged(status)}
       marginTop={componentSpacing}
     />
   ) : (
-    <Button
-      variant="outline"
-      leftIcon={<AddIcon />}
+    <Button variant="outline" leftIcon={<AddIcon />}
       onClick={() => {
         savedChanged(true);
         setEditing(true);
@@ -136,21 +126,14 @@ function Message({
   );
 }
 
-function Editor({
-  roomId,
-  message,
-  onClose,
-  savedChanged,
-  ...rest
-}: {
+function Editor({ roomId, message, onClose, savedChanged, ...rest}: {
   roomId?: string; // create a new message when specified
   message?: ChatMessage; // must be specified iff. roomId is undefined
   onClose: Function;
   savedChanged: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
-    message ? message.markdown : ""
-  );
+    message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
@@ -159,10 +142,7 @@ function Editor({
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.chat.updateMessage.mutate({
-          messageId: message.id,
-          markdown,
-        });
+        await trpc.chat.updateMessage.mutate({ messageId: message.id, markdown });
       } else {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });
@@ -177,28 +157,16 @@ function Editor({
 
   return (
     <>
-      <Textarea
-        value={markdown}
-        onChange={(e) => {
-          setMarkdown(e.target.value);
-        }}
-        autoFocus
-        background="white"
-        height={200}
-        {...rest}
+      <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
+        autoFocus background="white" height={200} {...rest}
       />
       <HStack>
-        <Button
-          onClick={save}
-          isLoading={saving}
-          isDisabled={!markdown}
-          variant="brand"
-          leftIcon={<Icon as={MdSend} />}
+        <Button onClick={save} isLoading={saving} isDisabled={!markdown}
+          variant="brand" leftIcon={<Icon as={MdSend} />}
         >
           确认
         </Button>
-        <Button
-          onClick={() => {
+        <Button onClick={() => {
             savedChanged(false);
             onClose();
           }}

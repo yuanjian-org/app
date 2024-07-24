@@ -7,7 +7,7 @@ import {
   Heading,
   Text,
   useClipboard,
-  Tooltip
+  Tooltip,
 } from '@chakra-ui/react';
 import React, { useEffect } from 'react';
 import { CopyIcon, DownloadIcon } from '@chakra-ui/icons';

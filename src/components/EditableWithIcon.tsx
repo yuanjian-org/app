@@ -21,15 +21,15 @@ export default function EditableWithIcon({ mode, ...rest }: {
     const { isEditing, getEditButtonProps, getSubmitButtonProps,
       getCancelButtonProps } = useEditableControls();
     return isEditing ?
-        <ButtonGroup size='sm'>
-          <IconButton aria-label='Confirm' icon={<CheckIcon />}
-                      {...getSubmitButtonProps()} />
-          <IconButton aria-label='Cancel' icon={<CloseIcon />}
-                      {...getCancelButtonProps()} />
-        </ButtonGroup>
-        :
-        <IconButton aria-label='Edit' icon={<MdEdit />}
-                    {...getEditButtonProps()} />;
+      <ButtonGroup size='sm'>
+        <IconButton aria-label='Confirm' icon={<CheckIcon />}
+          {...getSubmitButtonProps()} />
+        <IconButton aria-label='Cancel' icon={<CloseIcon />}
+          {...getCancelButtonProps()} />
+      </ButtonGroup>
+      :
+      <IconButton aria-label='Edit' icon={<MdEdit />}
+          {...getEditButtonProps()} />;
   };
 
   return <Editable {...rest}>

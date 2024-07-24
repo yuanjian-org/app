@@ -1,18 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import {
-  formatUserName,
-  parseQueryStringOrUnknown,
-  prettifyDate,
-} from 'shared/strings';
+import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from 'shared/strings';
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import {
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Stack,
+import { TabList, TabPanels, Tab, TabPanel, Stack,
   Text,
   HStack,
   Tabs,
@@ -30,25 +21,18 @@ import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export default widePage(() => {
-  const userId = parseQueryStringOrUnknown(useRouter(), "userId");
+  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
   const { data: u } = trpcNext.users.get.useQuery(userId);
   const { data: mentorships } =
     trpcNext.mentorships.listForMentee.useQuery(userId);
 
-  return !u ? (
-    <Loader />
-  ) : (
-    <>
+  return !u ? <Loader /> : <>
       <PageBreadcrumb current={`${formatUserName(u.name)}`} />
       <MenteeTabs user={u} mentorships={mentorships || []} />
-    </>
-  );
+    </>;
 });
 
-function MenteeTabs({
-  user,
-  mentorships,
-}: {
+function MenteeTabs({ user, mentorships }: {
   user: MinUser;
   mentorships: Mentorship[];
 }) {
@@ -140,7 +124,7 @@ function MenteeTabs({
 function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {
   return [
     // Always put my mentorship as the first tab
-    ...ms.filter((m) => m.mentor.id == myUserId),
+    ...ms.filter(m => m.mentor.id == myUserId),
     // Then sort by ids
     ...ms
       .filter((m) => m.mentor.id != myUserId)
@@ -149,30 +133,24 @@ function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {
 }
 
 function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
-  return `【${
-    m.mentor.id == myUserId ? "我" : formatUserName(m.mentor.name)
-  }】`;
+  return `【${m.mentor.id == myUserId ? "我" : formatUserName(m.mentor.name)}】`;
 }
 
 function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
   const [me] = useUserContext();
 
-  return (
-    <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-      {m.endedAt && (
-        <HStack>
+  return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
+      {m.endedAt && <HStack>
           <PiFlagCheckeredFill />
           <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
-        </HStack>
-      )}
+        </HStack>}
 
       {m.mentor.id === me.id && (
         <GroupBar group={m.group} showJoinButton showGroupName={false} />
       )}
 
       <Transcripts groupId={m.group.id} />
-    </Stack>
-  );
+    </Stack>;
 }
 
 export function formatMentorshipEndedAtText(endedAt: string): string {
