@@ -21,7 +21,6 @@ import { AddIcon } from '@chakra-ui/icons';
 import invariant from 'tiny-invariant';
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
-import { useRouter } from 'next/router';
 
 export default function Room({
   menteeId,

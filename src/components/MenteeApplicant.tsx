@@ -7,8 +7,7 @@ import {
   Heading,
   Text,
   useClipboard,
-  Tooltip,
-  useEditableControls,
+  Tooltip
 } from '@chakra-ui/react';
 import React, { useEffect } from 'react';
 import { CopyIcon, DownloadIcon } from '@chakra-ui/icons';
@@ -25,7 +24,6 @@ import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from "next/link";
 import { toast } from 'react-toastify';
-import { useRouter } from 'next/router';
 
 export default function MenteeApplicant({ userId, showTitle, useNameAsTitle } :
 {

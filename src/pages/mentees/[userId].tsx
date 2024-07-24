@@ -18,7 +18,6 @@ import {
   Tabs,
 } from '@chakra-ui/react';
 import MenteeApplicant from 'components/MenteeApplicant';
-import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { widePage } from 'AppPage';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { MinUser } from 'shared/User';
@@ -29,7 +28,6 @@ import GroupBar from 'components/GroupBar';
 import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
-import replaceUrlParam from 'shared/replaceUrlParam';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), "userId");
