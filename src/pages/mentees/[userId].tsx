@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import {
   formatUserName,
   parseQueryStringOrUnknown,
   prettifyDate,
-} from "shared/strings";
-import { trpcNext } from "trpc";
-import Loader from "components/Loader";
+} from 'shared/strings';
+import { trpcNext } from 'trpc';
+import Loader from 'components/Loader';
 import {
   TabList,
   TabPanels,
@@ -16,20 +16,20 @@ import {
   Text,
   HStack,
   Tabs,
-} from "@chakra-ui/react";
-import MenteeApplicant from "components/MenteeApplicant";
-import TabsWithUrlParam from "components/TabsWithUrlParam";
-import { widePage } from "AppPage";
-import PageBreadcrumb from "components/PageBreadcrumb";
-import { MinUser } from "shared/User";
-import ChatRoom from "components/ChatRoom";
-import { Mentorship } from "shared/Mentorship";
-import { useUserContext } from "UserContext";
-import GroupBar from "components/GroupBar";
-import { sectionSpacing } from "theme/metrics";
-import Transcripts from "components/Transcripts";
-import { PiFlagCheckeredFill } from "react-icons/pi";
-import replaceUrlParam from "shared/replaceUrlParam";
+} from '@chakra-ui/react';
+import MenteeApplicant from 'components/MenteeApplicant';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
+import { widePage } from 'AppPage';
+import PageBreadcrumb from 'components/PageBreadcrumb';
+import { MinUser } from 'shared/User';
+import ChatRoom from 'components/ChatRoom';
+import { Mentorship } from 'shared/Mentorship';
+import { useUserContext } from 'UserContext';
+import GroupBar from 'components/GroupBar';
+import { sectionSpacing } from 'theme/metrics';
+import Transcripts from 'components/Transcripts';
+import { PiFlagCheckeredFill } from 'react-icons/pi';
+import replaceUrlParam from 'shared/replaceUrlParam';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), "userId");

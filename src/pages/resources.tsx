@@ -3,10 +3,10 @@ import {
   Box
 } from '@chakra-ui/react';
 import React from 'react';
-import { useUserContext } from "../UserContext";
+import { useUserContext } from '../UserContext';
 import { isPermitted } from 'shared/Role';
 import { fullPage } from 'AppPage';
-import { topbarHeight } from "../components/Navbars";
+import { topbarHeight } from '../components/Navbars';
 
 export default fullPage(() => {
   const [user] = useUserContext();

@@ -8,20 +8,20 @@ import {
   Textarea,
   TextareaProps,
   VStack,
-} from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
-import { ChatMessage } from "shared/ChatMessage";
-import { componentSpacing, paragraphSpacing } from "theme/metrics";
-import trpc, { trpcNext } from "trpc";
-import { formatUserName, prettifyDate } from "shared/strings";
-import moment from "moment";
-import { MdEdit, MdSend } from "react-icons/md";
-import { useUserContext } from "UserContext";
-import { AddIcon } from "@chakra-ui/icons";
-import invariant from "tiny-invariant";
-import Loader from "./Loader";
-import MarkdownStyler from "./MarkdownStyler";
-import { useRouter } from "next/router";
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { ChatMessage } from 'shared/ChatMessage';
+import { componentSpacing, paragraphSpacing } from 'theme/metrics';
+import trpc, { trpcNext } from 'trpc';
+import { formatUserName, prettifyDate } from 'shared/strings';
+import moment from 'moment';
+import { MdEdit, MdSend } from 'react-icons/md';
+import { useUserContext } from 'UserContext';
+import { AddIcon } from '@chakra-ui/icons';
+import invariant from 'tiny-invariant';
+import Loader from './Loader';
+import MarkdownStyler from './MarkdownStyler';
+import { useRouter } from 'next/router';
 
 export default function Room({
   menteeId,
@@ -178,7 +178,6 @@ function Editor({
 
   return (
     <>
-      {/* {saved && <LeavePagePrompt />} */}
       <Textarea
         value={markdown}
         onChange={(e) => {
