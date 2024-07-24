@@ -10,7 +10,7 @@ import {
   Tooltip,
   useEditableControls,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { CopyIcon, DownloadIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import trpc, { trpcNext } from 'trpc';
@@ -27,16 +27,15 @@ import NextLink from "next/link";
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 
-export default function MenteeApplicant({ userId, showTitle, useNameAsTitle }:
-  {
-    userId: string,
-    showTitle?: boolean,
-    useNameAsTitle?: boolean, // Valid only if showTitle is true
-  }) {
+export default function MenteeApplicant({ userId, showTitle, useNameAsTitle } :
+{
+  userId: string,
+  showTitle?: boolean,
+  useNameAsTitle?: boolean, // Valid only if showTitle is true
+}) {
   const { data, refetch } = trpcNext.users.getApplicant.useQuery({
     userId, type: "MenteeInterview"
   });
-
 
   return !data ? <Loader /> :
     <LoadedApplicant user={data.user} application={data.application}
@@ -46,7 +45,7 @@ export default function MenteeApplicant({ userId, showTitle, useNameAsTitle }:
 
 function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
   refetch
-}: {
+} : {
   user: User,
   application: Record<string, any> | null,
   refetch: () => void,
@@ -55,7 +54,6 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
 }) {
   const [me] = useUserContext();
   const isMenteeManager = isPermitted(me.roles, "MenteeManager");
-  // const [saved, setSaved] = useState<boolean>(false)
 
   const update = async (name: string, value: string) => {
     const updated = structuredClone(application ?? {});
@@ -69,8 +67,6 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
   };
 
   return <Flex direction="column" gap={sectionSpacing}>
-    {/* {saved && <LeavePagePrompt />} */}
-
     {showTitle && <Heading size="md">{useNameAsTitle ?
       `${formatUserName(user.name)}` : "申请材料"}</Heading>}
 
@@ -133,7 +129,7 @@ function FieldRow({ name, value, readonly, update }: {
   name: string,
   value: any,
   readonly: boolean,
-  update?: (value: string) => Promise<any>,  // required only if !readonly
+  update?: (value: string) => Promise<void>,  // required only if !readonly
 }) {
   return <Flex direction="column">
     <Box><b>{name}</b></Box>
@@ -150,8 +146,6 @@ function FieldValueCell({ value, readonly, update }: {
 }) {
   invariant(readonly || update);
 
-
-
   // Array. Recurse.
   if (Array.isArray(value)) {
     return <UnorderedList>
@@ -161,26 +155,25 @@ function FieldValueCell({ value, readonly, update }: {
       </ListItem>)}
     </UnorderedList>;
 
-    // URL
+  // URL
   } else if (z.string().url().safeParse(value).success) {
     return <Link href={value}>
       下载链接 <DownloadIcon />
     </Link>;
 
-    // An arbitrary object
+  // An arbitrary object
   } else if (typeof value === "object") {
     return JSON.stringify(value, null, 2);
 
-    // String
+  // String
   } else if (typeof value === "string") {
     const v = value.split("\n").join("\r\n");
     return readonly ?
       value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
       :
-      <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update
-      } />
+      <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update} />;
 
-    // Other types. Display as is.
+  // Other types. Display as is.
   } else {
     return value;
   }
