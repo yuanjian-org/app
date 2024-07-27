@@ -51,8 +51,8 @@ async function main() {
   await upgradeUsers(users);
   await generateUsers();
   await generateGroupsAndSummaries(users);
-  const calibrationID = await findOrCreateCalibration();
-  await generateInterview(users, calibrationID);
+  const calibration = await findOrCreateCalibration();
+  await generateInterview(users, calibration);
   
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
@@ -101,14 +101,14 @@ async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
   const userIds = users.map(u => u.id as string);
-  if ((await findGroupsByType("Group", userIds)).length != 0) return;
+  if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
   await sequelize.transaction(async t =>
     await createGroup(null, userIds, null, null, null, null, t));
 }
 
 async function generateSummaries(users: TestUser[]) {
   console.log('Creating summaries for', users.map(u => u.name));
-  const groups = await findGroupsByType("Group", users.map(u => u.id as string));
+  const groups = await findGroupsByType("Unowned", users.map(u => u.id as string));
   invariant(groups.length == 1);
   const gid = groups[0].id;
 
@@ -152,16 +152,7 @@ async function findOrCreateCalibration() {
   const [menteeCalibration, menteeCalibrationCreated] = await Calibration.findOrCreate({
     where: {
       type: 'MenteeInterview',
-      name: '学生测试面试组',
-    },
-    defaults: { active: true, }
-  });
-
-  console.log("Creating Test MentorIntervew Calibration");
-  const [mentorCalibration, mentorCalibrationCreated] = await Calibration.findOrCreate({
-    where: {
-      type: 'MentorInterview',
-      name: '导师测试面试组',
+      name: '面试组A',
     },
     defaults: { active: true, }
   });
@@ -170,15 +161,12 @@ async function findOrCreateCalibration() {
     if (menteeCalibrationCreated) {
       await createGroup(null, [], null, null, menteeCalibration.id, null, t);
     }
-    if (mentorCalibrationCreated) {
-      await createGroup(null, [], null, null, mentorCalibration.id, null, t);
-    }
   });
 
-  return { menteeCalibration, mentorCalibration };
+  return { menteeCalibration };
 }
 
-async function generateInterview(users: User[], calibrations: { menteeCalibration: { id: string; }, mentorCalibration: { id: string; } }) {
+async function generateInterview(users: User[], calibrations: { menteeCalibration: { id: string; } }) {
   const userIds = users.map(u => u.id as string);
   for (const tu of allUsers) {
     invariant(tu.id);
@@ -187,18 +175,12 @@ async function generateInterview(users: User[], calibrations: { menteeCalibratio
       if ((await findGroupsByType("Interview", [tu.id, ...userIds])).length != 0) continue;
       await createInterview("MenteeInterview", calibrations.menteeCalibration.id, tu.id, [...userIds]);
     };
-
-    if (tu.email.includes('mentor')) {
-      console.log(`Creating MentorInterview for [${users.map(u => u.name)}, ${tu.name}]`);
-      if ((await findGroupsByType("Interview", [tu.id, ...userIds])).length != 0) continue;
-      await createInterview("MentorInterview", calibrations.mentorCalibration.id, tu.id, [...userIds]);
-    };
   }
 }
 
 // Checking fields of IDs to return matching exclusive groups
 // Calibration Groups are excluded since they do not have userIds
-async function findGroupsByType(groupType: "Group" | "Interview" | "Partnership" | "Coachee", userIds: string[]) {
+async function findGroupsByType(groupType: "Unowned" | "Interview" | "Partnership" | "Coachee", userIds: string[]) {
 
   if (groupType == "Interview") {
     return await findGroups(userIds, 'exclusive', undefined, {
@@ -227,7 +209,7 @@ async function findGroupsByType(groupType: "Group" | "Interview" | "Partnership"
     });
   }
 
-  // Default Group
+  // Default Unowned Group
   return await findGroups(userIds, 'exclusive', undefined, {
     interviewId: { [Op.is]: null },
     partnershipId: { [Op.is]: null },
