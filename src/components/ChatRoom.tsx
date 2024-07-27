@@ -8,19 +8,19 @@ import {
   Textarea,
   TextareaProps,
   VStack,
-} from '@chakra-ui/react';
-import React, { useState } from 'react';
-import { ChatMessage } from 'shared/ChatMessage';
-import { componentSpacing, paragraphSpacing } from 'theme/metrics';
-import trpc, { trpcNext } from 'trpc';
-import { formatUserName, prettifyDate } from 'shared/strings';
-import moment from 'moment';
-import { MdEdit, MdSend } from 'react-icons/md';
-import { useUserContext } from 'UserContext';
-import { AddIcon } from '@chakra-ui/icons';
-import invariant from 'tiny-invariant';
-import Loader from './Loader';
-import MarkdownStyler from './MarkdownStyler';
+} from "@chakra-ui/react";
+import React, { useState } from "react";
+import { ChatMessage } from "shared/ChatMessage";
+import { componentSpacing, paragraphSpacing } from "theme/metrics";
+import trpc, { trpcNext } from "trpc";
+import { formatUserName, prettifyDate } from "shared/strings";
+import moment from "moment";
+import { MdEdit, MdSend } from "react-icons/md";
+import { useUserContext } from "UserContext";
+import { AddIcon } from "@chakra-ui/icons";
+import invariant from "tiny-invariant";
+import Loader from "./Loader";
+import MarkdownStyler from "./MarkdownStyler";
 
 export default function Room({
   menteeId,
@@ -40,11 +40,17 @@ export default function Room({
         savedChanged={(status) => savedChanged(status)}
       />
 
-      {room.messages.sort((a, b) => moment(a.updatedAt)
-        .isAfter(moment(b.updatedAt)) ? -1 : 1)
-        .map(m => <Message key={m.id} message={m}
-                           savedChanged={(status: boolean) => savedChanged(status)}/>)
-      }
+      {room.messages
+        .sort((a, b) =>
+          moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1
+        )
+        .map((m) => (
+          <Message
+            key={m.id}
+            message={m}
+            savedChanged={(status: boolean) => savedChanged(status)}
+          />
+        ))}
     </VStack>
   );
 }
@@ -59,14 +65,18 @@ function MessageCreator({
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ? (
-    <Editor roomId={roomId} onClose={() => setEditing(false)}
+    <Editor
+      roomId={roomId}
+      onClose={() => setEditing(false)}
       savedChanged={(status: boolean) => savedChanged(status)}
       marginTop={componentSpacing}
     />
   ) : (
-    <Button variant="outline" leftIcon={<AddIcon />}
+    <Button
+      variant="outline"
+      leftIcon={<AddIcon />}
       onClick={() => {
-        savedChanged(true);
+        // savedChanged(true);
         setEditing(true);
       }}
     >
@@ -86,16 +96,18 @@ function Message({
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
-  return <HStack align="top" spacing={componentSpacing} width="100%">
-    <Avatar name={name} boxSize={10} />
-    <VStack align="start" width="100%">
-      <HStack minWidth="210px" spacing={componentSpacing}>
-        <Text>{name}</Text>
-        <Text color="grey">
-          {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
-          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
-        </Text>
-
+  return (
+    <HStack align="top" spacing={componentSpacing} width="100%">
+      <Avatar name={name} boxSize={10} />
+      <VStack align="start" width="100%">
+        <HStack minWidth="210px" spacing={componentSpacing}>
+          <Text>{name}</Text>
+          <Text color="grey">
+            {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
+            {m.updatedAt &&
+              m.updatedAt !== m.createdAt &&
+              ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+          </Text>
 
           {!editing && user.id == m.user.id && (
             <>
@@ -104,7 +116,7 @@ function Message({
                 as={MdEdit}
                 cursor="pointer"
                 onClick={() => {
-                  savedChanged(true);
+                  // savedChanged(true);
                   setEditing(true);
                 }}
               />
@@ -122,17 +134,25 @@ function Message({
           <MarkdownStyler content={m.markdown} />
         )}
       </VStack>
-    </HStack>;
+    </HStack>
+  );
 }
 
-function Editor({ roomId, message, onClose, savedChanged, ...rest }: {
+function Editor({
+  roomId,
+  message,
+  onClose,
+  savedChanged,
+  ...rest
+}: {
   roomId?: string; // create a new message when specified
   message?: ChatMessage; // must be specified iff. roomId is undefined
   onClose: Function;
   savedChanged: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
-    message ? message.markdown : "");
+    message ? message.markdown : ""
+  );
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
@@ -141,7 +161,10 @@ function Editor({ roomId, message, onClose, savedChanged, ...rest }: {
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.chat.updateMessage.mutate({ messageId: message.id, markdown });
+        await trpc.chat.updateMessage.mutate({
+          messageId: message.id,
+          markdown,
+        });
       } else {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });
@@ -154,17 +177,40 @@ function Editor({ roomId, message, onClose, savedChanged, ...rest }: {
     }
   };
 
-  return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} {...rest}
-    />
-    <HStack>
-      <Button onClick={save} isLoading={saving} isDisabled={!markdown}
-        variant="brand" leftIcon={<Icon as={MdSend} />}
-      >
-        确认
-      </Button>
-      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
-    </HStack>
-  </>;
+  return (
+    <>
+      <Textarea
+        value={markdown}
+        onChange={(e) => {
+          savedChanged(true);
+          setMarkdown(e.target.value);
+        }}
+        autoFocus
+        background="white"
+        height={200}
+        {...rest}
+      />
+      <HStack>
+        <Button
+          onClick={save}
+          isLoading={saving}
+          isDisabled={!markdown}
+          variant="brand"
+          leftIcon={<Icon as={MdSend} />}
+        >
+          确认
+        </Button>
+        <Button
+          onClick={() => {
+            savedChanged(false);
+            onClose();
+          }}
+          variant="ghost"
+          color="grey"
+        >
+          取消
+        </Button>
+      </HStack>
+    </>
+  );
 }
