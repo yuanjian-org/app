@@ -18,7 +18,7 @@ import moment from 'moment';
 import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
-import invariant from 'tiny-invariant';
+import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 
@@ -26,34 +26,23 @@ export default function Room({
   menteeId,
   hasSavedChange,
 }: {
-  menteeId: string;
-  hasSavedChange: (status: boolean) => void;
+  menteeId: string,
+  hasSavedChange: (status: boolean) => void
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
-  return !room ? (
-    <Loader />
-  ) : (
-    <VStack
-      spacing={paragraphSpacing * 1.5}
-      align="start"
-    >
-      <MessageCreator
-        roomId={room.id}
+  return !room ? <Loader /> :
+    <VStack spacing={paragraphSpacing * 1.5} align="start">
+      <MessageCreator roomId={room.id}
         hasSavedChange={(status) => hasSavedChange(status)}
       />
 
-      {room.messages
-        .sort((a, b) => (moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1))
-        .map((m) => (
-          <Message
-            key={m.id}
-            message={m}
-            hasSavedChange={(status: boolean) => hasSavedChange(status)}
-          />
-        ))}
-    </VStack>
-  );
+      {room.messages.sort((a, b) => moment(a.updatedAt)
+        .isAfter(moment(b.updatedAt)) ? -1 : 1)
+        .map((m) => <Message key={m.id} message={m}
+            hasSavedChange={(status: boolean) => hasSavedChange(status)} />)
+      }
+    </VStack>;
 }
 
 function MessageCreator({
@@ -65,19 +54,13 @@ function MessageCreator({
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
-  return editing ? (
+  return editing ?
     <Editor roomId={roomId} onClose={() => setEditing(false)}
       hasSavedChange={(status: boolean) => hasSavedChange(status)} marginTop={componentSpacing}
     />
-  ) : (
-    <Button
-      variant="outline"
-      leftIcon={<AddIcon />}
-      onClick={() => {
-        setEditing(true);
-      }}
-    >新消息</Button>
-  );
+    :
+    <Button variant="outline" leftIcon={<AddIcon />}
+      onClick={() => setEditing(true)}>新消息</Button>;
 
 }
 
