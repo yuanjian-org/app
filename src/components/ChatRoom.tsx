@@ -8,47 +8,48 @@ import {
   Textarea,
   TextareaProps,
   VStack,
-} from "@chakra-ui/react";
-import React, { useState } from "react";
-import { ChatMessage } from "shared/ChatMessage";
-import { componentSpacing, paragraphSpacing } from "theme/metrics";
-import trpc, { trpcNext } from "trpc";
-import { formatUserName, prettifyDate } from "shared/strings";
-import moment from "moment";
-import { MdEdit, MdSend } from "react-icons/md";
-import { useUserContext } from "UserContext";
-import { AddIcon } from "@chakra-ui/icons";
-import invariant from "tiny-invariant";
-import Loader from "./Loader";
-import MarkdownStyler from "./MarkdownStyler";
+} from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { ChatMessage } from 'shared/ChatMessage';
+import { componentSpacing, paragraphSpacing } from 'theme/metrics';
+import trpc, { trpcNext } from 'trpc';
+import { formatUserName, prettifyDate } from 'shared/strings';
+import moment from 'moment';
+import { MdEdit, MdSend } from 'react-icons/md';
+import { useUserContext } from 'UserContext';
+import { AddIcon } from '@chakra-ui/icons';
+import invariant from 'tiny-invariant';
+import Loader from './Loader';
+import MarkdownStyler from './MarkdownStyler';
 
 export default function Room({
   menteeId,
-  savedChanged,
+  hasSavedChange,
 }: {
   menteeId: string;
-  savedChanged: (status: boolean) => void;
+  hasSavedChange: (status: boolean) => void;
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? (
     <Loader />
   ) : (
-    <VStack spacing={paragraphSpacing * 1.5} align="start">
+    <VStack
+      spacing={paragraphSpacing * 1.5}
+      align="start"
+    >
       <MessageCreator
         roomId={room.id}
-        savedChanged={(status) => savedChanged(status)}
+        hasSavedChange={(status) => hasSavedChange(status)}
       />
 
       {room.messages
-        .sort((a, b) =>
-          moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1
-        )
+        .sort((a, b) => (moment(a.updatedAt).isAfter(moment(b.updatedAt)) ? -1 : 1))
         .map((m) => (
           <Message
             key={m.id}
             message={m}
-            savedChanged={(status: boolean) => savedChanged(status)}
+            hasSavedChange={(status: boolean) => hasSavedChange(status)}
           />
         ))}
     </VStack>
@@ -57,10 +58,10 @@ export default function Room({
 
 function MessageCreator({
   roomId,
-  savedChanged,
+  hasSavedChange,
 }: {
   roomId: string;
-  savedChanged: (status: boolean) => void;
+  hasSavedChange: (status: boolean) => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
@@ -68,7 +69,7 @@ function MessageCreator({
     <Editor
       roomId={roomId}
       onClose={() => setEditing(false)}
-      savedChanged={(status: boolean) => savedChanged(status)}
+      hasSavedChange={(status: boolean) => hasSavedChange(status)}
       marginTop={componentSpacing}
     />
   ) : (
@@ -76,37 +77,48 @@ function MessageCreator({
       variant="outline"
       leftIcon={<AddIcon />}
       onClick={() => {
-        // savedChanged(true);
         setEditing(true);
       }}
     >
       新消息
     </Button>
   );
+
 }
 
 function Message({
   message: m,
-  savedChanged,
+  hasSavedChange,
 }: {
   message: ChatMessage;
-  savedChanged: (status: boolean) => void;
+  hasSavedChange: (status: boolean) => void;
 }) {
   const [user] = useUserContext();
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
   return (
-    <HStack align="top" spacing={componentSpacing} width="100%">
-      <Avatar name={name} boxSize={10} />
-      <VStack align="start" width="100%">
-        <HStack minWidth="210px" spacing={componentSpacing}>
+    <HStack
+      align="top"
+      spacing={componentSpacing}
+      width="100%"
+    >
+      <Avatar
+        name={name}
+        boxSize={10}
+      />
+      <VStack
+        align="start"
+        width="100%"
+      >
+        <HStack
+          minWidth="210px"
+          spacing={componentSpacing}
+        >
           <Text>{name}</Text>
           <Text color="grey">
             {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
-            {m.updatedAt &&
-              m.updatedAt !== m.createdAt &&
-              ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+            {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
           </Text>
 
           {!editing && user.id == m.user.id && (
@@ -116,7 +128,6 @@ function Message({
                 as={MdEdit}
                 cursor="pointer"
                 onClick={() => {
-                  // savedChanged(true);
                   setEditing(true);
                 }}
               />
@@ -128,7 +139,7 @@ function Message({
           <Editor
             message={m}
             onClose={() => setEditing(false)}
-            savedChanged={(status: boolean) => savedChanged(status)}
+            hasSavedChange={(status: boolean) => hasSavedChange(status)}
           />
         ) : (
           <MarkdownStyler content={m.markdown} />
@@ -142,17 +153,15 @@ function Editor({
   roomId,
   message,
   onClose,
-  savedChanged,
+  hasSavedChange,
   ...rest
 }: {
   roomId?: string; // create a new message when specified
   message?: ChatMessage; // must be specified iff. roomId is undefined
   onClose: Function;
-  savedChanged: Function;
+  hasSavedChange: Function;
 } & TextareaProps) {
-  const [markdown, setMarkdown] = useState<string>(
-    message ? message.markdown : ""
-  );
+  const [markdown, setMarkdown] = useState<string>(message ? message.markdown : '');
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
@@ -173,7 +182,7 @@ function Editor({
       onClose();
     } finally {
       setSaving(false);
-      savedChanged(false);
+      hasSavedChange(false);
     }
   };
 
@@ -182,7 +191,7 @@ function Editor({
       <Textarea
         value={markdown}
         onChange={(e) => {
-          savedChanged(true);
+          hasSavedChange(true);
           setMarkdown(e.target.value);
         }}
         autoFocus
@@ -202,7 +211,7 @@ function Editor({
         </Button>
         <Button
           onClick={() => {
-            savedChanged(false);
+            hasSavedChange(false);
             onClose();
           }}
           variant="ghost"

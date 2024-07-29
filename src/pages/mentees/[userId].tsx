@@ -67,13 +67,15 @@ function MenteeTabs({
   };
 
   const handleTabsChange = (idx: number) => {
+    const firstIdx = sortedMentorships.length === 1 ? 1 : 0;
+
     if (saved) {
-      if (idx !== 0) {
+      if (idx !== firstIdx) {
         if (tabsChangeConfirm()) {
           setTabIndex(idx);
           setSaved(false);
         } else {
-          setTabIndex(0);
+          setTabIndex(firstIdx);
         }
       }
     } else {
@@ -92,8 +94,6 @@ function MenteeTabs({
         onChange={handleTabsChange}
       >
         <TabList>
-          <Tab>内部笔记</Tab>
-
           {sortedMentorships.length == 1 ? (
             <Tab>
               一对一通话
@@ -107,25 +107,25 @@ function MenteeTabs({
               </Tab>
             ))
           )}
+          <Tab>内部笔记</Tab>
           <Tab>申请材料</Tab>
           {/* <Tab>年度反馈</Tab> */}
         </TabList>
 
         <TabPanels>
-          <TabPanel>
-            <ChatRoom
-              menteeId={user.id}
-              savedChanged={(type) => {
-                setSaved(type);
-              }}
-            />
-          </TabPanel>
           {sortedMentorships.map((m) => (
             <TabPanel key={m.id}>
               <MentorshipPanel mentorship={m} />
             </TabPanel>
           ))}
-
+          <TabPanel>
+            <ChatRoom
+              menteeId={user.id}
+              hasSavedChange={(type) => {
+                setSaved(type);
+              }}
+            />
+          </TabPanel>
           <TabPanel>
             <MenteeApplicant userId={user.id} />
           </TabPanel>
