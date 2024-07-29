@@ -29,7 +29,7 @@ export default function EditableWithIcon({ mode, ...rest }: {
       </ButtonGroup>
       :
       <IconButton aria-label='Edit' icon={<MdEdit />}
-          {...getEditButtonProps()} />;
+        {...getEditButtonProps()} />;
   };
 
   return <Editable {...rest}>

@@ -1,6 +1,6 @@
 import { Text, Box } from '@chakra-ui/react';
 import React from 'react';
-import { useUserContext } from '../UserContext';
+import { useUserContext } from "../UserContext";
 import { isPermitted } from 'shared/Role';
 import { fullPage } from 'AppPage';
 import { sidebarBreakpoint } from 'components/Navbars';

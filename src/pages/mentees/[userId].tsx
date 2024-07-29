@@ -1,33 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from 'next/router';
+import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/strings";
+import { trpcNext } from 'trpc';
+import Loader from 'components/Loader';
+import React, { useEffect, useState } from 'react';
 import {
-  formatUserName,
-  parseQueryStringOrUnknown,
-  prettifyDate,
-} from "shared/strings";
-import { trpcNext } from "trpc";
-import Loader from "components/Loader";
-import {
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Stack,
+  TabList, TabPanels, Tab, TabPanel, Stack,
   Text,
   HStack,
-  Tabs,
-} from "@chakra-ui/react";
-import MenteeApplicant from "components/MenteeApplicant";
-import { widePage } from "AppPage";
-import PageBreadcrumb from "components/PageBreadcrumb";
-import { MinUser } from "shared/User";
-import ChatRoom from "components/ChatRoom";
-import { Mentorship } from "shared/Mentorship";
-import { useUserContext } from "UserContext";
-import GroupBar from "components/GroupBar";
-import { sectionSpacing } from "theme/metrics";
-import Transcripts from "components/Transcripts";
-import { PiFlagCheckeredFill } from "react-icons/pi";
+  Tabs
+} from '@chakra-ui/react';
+import MenteeApplicant from 'components/MenteeApplicant';
+import { widePage } from 'AppPage';
+import PageBreadcrumb from 'components/PageBreadcrumb';
+import { MinUser } from 'shared/User';
+import ChatRoom from 'components/ChatRoom';
+import { Mentorship } from 'shared/Mentorship';
+import { useUserContext } from 'UserContext';
+import GroupBar from 'components/GroupBar';
+import { sectionSpacing } from 'theme/metrics';
+import Transcripts from 'components/Transcripts';
+import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), "userId");
@@ -35,20 +27,13 @@ export default widePage(() => {
   const { data: mentorships } =
     trpcNext.mentorships.listForMentee.useQuery(userId);
 
-  return !u ? (
-    <Loader />
-  ) : (
-    <>
-      <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-      <MenteeTabs user={u} mentorships={mentorships || []} />
-    </>
-  );
+  return !u ? <Loader /> : <>
+    <PageBreadcrumb current={`${formatUserName(u.name)}`} />
+    <MenteeTabs user={u} mentorships={mentorships || []} />
+  </>;
 });
 
-function MenteeTabs({
-  user,
-  mentorships,
-}: {
+function MenteeTabs({ user, mentorships }: {
   user: MinUser;
   mentorships: Mentorship[];
 }) {
@@ -94,19 +79,18 @@ function MenteeTabs({
         onChange={handleTabsChange}
       >
         <TabList>
-          {sortedMentorships.length == 1 ? (
+          {sortedMentorships.length == 1 ?
             <Tab>
-              一对一通话
-              {sortedMentorships[0].mentor.id !== me.id &&
+              一对一通话{sortedMentorships[0].mentor.id !== me.id &&
                 `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
             </Tab>
-          ) : (
-            sortedMentorships.map((m) => (
-              <Tab key={m.id}>
-                一对一通话{formatMentorshipTabSuffix(m, me.id)}
-              </Tab>
-            ))
-          )}
+           :
+           sortedMentorships.map((m) =>
+            <Tab key={m.id}>
+              一对一通话{formatMentorshipTabSuffix(m, me.id)}
+            </Tab>
+           )
+          }
           <Tab>内部笔记</Tab>
           <Tab>申请材料</Tab>
           {/* <Tab>年度反馈</Tab> */}
@@ -119,9 +103,7 @@ function MenteeTabs({
             </TabPanel>
           ))}
           <TabPanel>
-            <ChatRoom
-              menteeId={user.id}
-              hasSavedChange={(type) => {
+            <ChatRoom menteeId={user.id} hasSavedChange={(type) => {
                 setSaved(type);
               }}
             />
@@ -141,39 +123,34 @@ function MenteeTabs({
 function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {
   return [
     // Always put my mentorship as the first tab
-    ...ms.filter((m) => m.mentor.id == myUserId),
+    ...ms.filter(m => m.mentor.id == myUserId),
     // Then sort by ids
     ...ms
-      .filter((m) => m.mentor.id != myUserId)
-      .sort((a, b) => a.id.localeCompare(b.id)),
+      .filter(m => m.mentor.id != myUserId).sort(
+          (a, b) => a.id.localeCompare(b.id)),
   ];
 }
 
 function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
-  return `【${
-    m.mentor.id == myUserId ? "我" : formatUserName(m.mentor.name)
-  }】`;
+  return `【${m.mentor.id == myUserId ? "我" : formatUserName(m.mentor.name)}】`;
 }
 
 function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
   const [me] = useUserContext();
 
-  return (
-    <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-      {m.endedAt && (
-        <HStack>
-          <PiFlagCheckeredFill />
-          <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
-        </HStack>
-      )}
+  return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
+    {m.endedAt && (
+      <HStack>
+        <PiFlagCheckeredFill />
+        <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
+      </HStack>
+    )}
 
-      {m.mentor.id === me.id && (
-        <GroupBar group={m.group} showJoinButton showGroupName={false} />
-      )}
+    {m.mentor.id === me.id &&
+      <GroupBar group={m.group} showJoinButton showGroupName={false} />}
 
-      <Transcripts groupId={m.group.id} />
-    </Stack>
-  );
+    <Transcripts groupId={m.group.id} />
+  </Stack>;
 }
 
 export function formatMentorshipEndedAtText(endedAt: string): string {

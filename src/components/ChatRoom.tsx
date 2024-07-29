@@ -66,11 +66,8 @@ function MessageCreator({
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ? (
-    <Editor
-      roomId={roomId}
-      onClose={() => setEditing(false)}
-      hasSavedChange={(status: boolean) => hasSavedChange(status)}
-      marginTop={componentSpacing}
+    <Editor roomId={roomId} onClose={() => setEditing(false)}
+      hasSavedChange={(status: boolean) => hasSavedChange(status)} marginTop={componentSpacing}
     />
   ) : (
     <Button
@@ -79,9 +76,7 @@ function MessageCreator({
       onClick={() => {
         setEditing(true);
       }}
-    >
-      新消息
-    </Button>
+    >新消息</Button>
   );
 
 }
@@ -97,56 +92,29 @@ function Message({
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
-  return (
-    <HStack
-      align="top"
-      spacing={componentSpacing}
-      width="100%"
-    >
-      <Avatar
-        name={name}
-        boxSize={10}
-      />
-      <VStack
-        align="start"
-        width="100%"
-      >
-        <HStack
-          minWidth="210px"
-          spacing={componentSpacing}
-        >
-          <Text>{name}</Text>
-          <Text color="grey">
-            {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
-            {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
-          </Text>
+  return <HStack align="top" spacing={componentSpacing} width="100%">
+    <Avatar name={name} boxSize={10} />
+    <VStack align="start" width="100%">
+      <HStack minWidth="210px" spacing={componentSpacing}>
+        <Text>{name}</Text>
+        <Text color="grey">
+          {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
+          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+        </Text>
 
-          {!editing && user.id == m.user.id && (
-            <>
-              <Spacer />
-              <Icon
-                as={MdEdit}
-                cursor="pointer"
-                onClick={() => {
-                  setEditing(true);
-                }}
-              />
-            </>
-          )}
-        </HStack>
+        {!editing && user.id == m.user.id && <>
+          <Spacer />
+          <Icon as={MdEdit} cursor="pointer" onClick={() => setEditing(true)} />
+        </>}
+      </HStack>
 
-        {editing ? (
-          <Editor
-            message={m}
-            onClose={() => setEditing(false)}
-            hasSavedChange={(status: boolean) => hasSavedChange(status)}
-          />
-        ) : (
-          <MarkdownStyler content={m.markdown} />
-        )}
+      {editing ? <Editor message={m} onClose={() => setEditing(false)}
+          hasSavedChange={(status: boolean) => hasSavedChange(status)}
+        /> :
+        <MarkdownStyler content={m.markdown} />
+      }
       </VStack>
-    </HStack>
-  );
+    </HStack>;
 }
 
 function Editor({
@@ -161,7 +129,8 @@ function Editor({
   onClose: Function;
   hasSavedChange: Function;
 } & TextareaProps) {
-  const [markdown, setMarkdown] = useState<string>(message ? message.markdown : '');
+  const [markdown, setMarkdown] = useState<string>(
+      message ? message.markdown : '');
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
@@ -170,10 +139,7 @@ function Editor({
     try {
       if (message) {
         invariant(!roomId);
-        await trpc.chat.updateMessage.mutate({
-          messageId: message.id,
-          markdown,
-        });
+        await trpc.chat.updateMessage.mutate({ messageId: message.id, markdown });
       } else {
         invariant(roomId);
         await trpc.chat.createMessage.mutate({ roomId, markdown });
@@ -186,40 +152,25 @@ function Editor({
     }
   };
 
-  return (
-    <>
-      <Textarea
-        value={markdown}
-        onChange={(e) => {
-          hasSavedChange(true);
-          setMarkdown(e.target.value);
-        }}
-        autoFocus
-        background="white"
-        height={200}
-        {...rest}
-      />
-      <HStack>
-        <Button
-          onClick={save}
-          isLoading={saving}
-          isDisabled={!markdown}
-          variant="brand"
-          leftIcon={<Icon as={MdSend} />}
-        >
-          确认
-        </Button>
-        <Button
-          onClick={() => {
-            hasSavedChange(false);
-            onClose();
-          }}
-          variant="ghost"
-          color="grey"
-        >
-          取消
-        </Button>
-      </HStack>
-    </>
-  );
+  return <>
+    <Textarea value={markdown} onChange={(e) => {
+      hasSavedChange(true);
+      setMarkdown(e.target.value);}
+    }
+        autoFocus background="white" height={200} {...rest}
+    />
+    <HStack>
+      <Button onClick={save} isLoading={saving} isDisabled={!markdown}
+              variant="brand" leftIcon={<Icon as={MdSend} />}
+      >
+        确认
+      </Button>
+      <Button onClick={() => {
+        hasSavedChange(false);
+        onClose();
+      }}
+          variant="ghost" color="grey"
+      >取消</Button>
+    </HStack>
+  </>;
 }
