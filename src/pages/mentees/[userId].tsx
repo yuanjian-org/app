@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   TabList, TabPanels, Tab, TabPanel, Stack,
   Text,
@@ -20,6 +20,7 @@ import GroupBar from 'components/GroupBar';
 import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
+import { LeavePagePrompt } from '../../components/AutosaveIndicator';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), "userId");
@@ -155,30 +156,6 @@ function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
 
 export function formatMentorshipEndedAtText(endedAt: string): string {
   return `一对一师生关系已结束（${prettifyDate(endedAt)}）`;
-}
-
-export function LeavePagePrompt() {
-  const router = useRouter();
-  useEffect(() => {
-    const warningText = "数据未保存。确定离开当前页面？";
-    const handleWindowClose = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      return (e.returnValue = warningText);
-    };
-    const handleBrowseAway = () => {
-      if (window.confirm(warningText)) return;
-      router.events.emit("routeChangeError");
-      throw "routeChange aborted.";
-    };
-    window.addEventListener("beforeunload", handleWindowClose);
-    router.events.on("routeChangeStart", handleBrowseAway);
-    return () => {
-      window.removeEventListener("beforeunload", handleWindowClose);
-      router.events.off("routeChangeStart", handleBrowseAway);
-    };
-  }, [router]);
-
-  return null;
 }
 
 // function AssessmentsTable({ mentorshipId }: {
