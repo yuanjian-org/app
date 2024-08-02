@@ -1,28 +1,20 @@
 {
-    "definition": "在多人协作中承担应负责任并求同存异以实现共同目标的能力。",
-    "longitude": "实践",
-    "latitude": "事业",
-    "levels": [
+    "定义": "在多人协作中承担应负责任并求同存异以实现共同目标的能力。",
+    "经度": "实践",
+    "纬度": "事业",
+    "层级": [
       "了解团队目标，被分配任务后，能够按时完成任务，达成目标。",
       "了解团队目标，主动承担任务并高质量完成。对团队成员有了解，能够适应团队氛围，和其他成员良好的沟通、配合。",
       "了解团队目标，有大局意识，能根据自身特长与团队情况找准定位。主动承担任务，积极参与讨论，分享信息并提出在团队中提出建设性意见。能够在团队中起到关键性作用，凝聚团队完成任务。",
       "了解团队目标，有大局意识，能根据团队进度调整自身行为， 必要时主动补位，以团队利益为重。能理解和照顾每位成员的立场，激励团队追求卓越。能共同搭建团队内认可的合作机制，推动成员间协作。"
     ],
-    "relatedLandmarks": [
+    "相关地标": [
       "沟通能力",
       "影响力",
       "执行能力",
-      "公共表达"
+      "公共表达",
+      "人生规划"
     ],
-    "supportingDocuments": [
-        {
-          "title": "Document 1",
-          "content": "This is the first supporting document. It can contain **bold text**, *italic text*, and [links](https://example.com)."
-        },
-        {
-          "title": "Document 2",
-          "content": "This is the second supporting document. Here is a list:\n\n- Item 1\n- Item 2\n- Item 3"
-        }
-      ]
+    "工具箱": "This is the first supporting document. It can contain **bold text**, *italic text*, and [links](https://example.com). "
   }
   
