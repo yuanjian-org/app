@@ -1,5 +1,5 @@
 import { CheckIcon, RepeatIcon, WarningIcon } from '@chakra-ui/icons';
-import { Center, CenterProps, Text } from '@chakra-ui/react';
+import { Center, CenterProps, Text, Box } from '@chakra-ui/react';
 import React, { useEffect } from 'react';
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
@@ -10,23 +10,30 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
 }) {
   const errors = [...state.id2state.values()].filter(v => v !== null);
   const iconProps = { boxSize: 3.5, marginRight: 2, };
-  return hasPendingSavers(state) ? <>
-    <LeavePagePrompt />
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Center {...rest}>
-        {errors.length > 0 ?
-          <><WarningIcon {...iconProps} color="red"/><Text fontSize="sm" color="red">{errors[0].toString()}</Text></>
-          :
-          <><RepeatIcon {...iconProps} color="disabled"/><Text fontSize="sm" color="disabled">保存中...</Text></>
-        }
-      </Center>
-    </motion.div>
-  </> : state.virgin ? null : 
-    <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3 }}>
-      <Center {...rest}>
-        <CheckIcon {...iconProps} color="green" /><Text fontSize="sm" color="green">已保存</Text>
-      </Center>
-    </motion.div>;
+  return (
+    <Box position="fixed" top="10px" left="10px" right="0" zIndex="sticky">
+      {hasPendingSavers(state) ? (
+        <>
+          <LeavePagePrompt />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <Center {...rest}>
+              {errors.length > 0 ? (
+                <><WarningIcon {...iconProps} color="red" /><Text fontSize="sm" color="red">{errors[0].toString()}</Text></>
+              ) : (
+                <><RepeatIcon {...iconProps} color="disabled" /><Text fontSize="sm" color="disabled">保存中...</Text></>
+              )}
+            </Center>
+          </motion.div>
+        </>
+      ) : state.virgin ? null :
+        <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3 }}>
+          <Center {...rest}>
+            <CheckIcon {...iconProps} color="green" /><Text fontSize="sm" color="green">已保存</Text>
+          </Center>
+        </motion.div>
+      }
+    </Box>
+  );
 }
 
 /**
