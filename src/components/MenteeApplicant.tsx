@@ -70,7 +70,7 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
 
     {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
 
-    <ContactFieldRow readable={isMenteeManager} 
+    <ContactFieldRow readable={isMenteeManager}
       name="微信" value={user.wechat ?? '（未提供微信）'} />
 
     <ContactFieldRow readable={isMenteeManager}
@@ -92,10 +92,10 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
   </Flex>;
 }
 
-function ContactFieldRow({ readable, name, value }: { 
+function ContactFieldRow({ readable, name, value }: {
   readable: boolean,
   name: string,
-  value: string 
+  value: string
 }) {
   // clipboard doesn't support copying of empty strings
   invariant(value !== "");
@@ -162,7 +162,7 @@ function FieldValueCell({ value, readonly, update }: {
   // An arbitrary object
   } else if (typeof value === "object") {
     return JSON.stringify(value, null, 2);
-  
+
   // String
   } else if (typeof value === "string") {
     const v = value.split("\n").join("\r\n");
@@ -170,7 +170,7 @@ function FieldValueCell({ value, readonly, update }: {
       value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
       :
       <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update} />;
-  
+
   // Other types. Display as is.
   } else {
     return value;

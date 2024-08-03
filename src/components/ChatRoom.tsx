@@ -22,38 +22,54 @@ import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 
-export default function Room({ menteeId }: {
+export default function Room({
+  menteeId,
+  hasSavedChange,
+}: {
   menteeId: string,
+  hasSavedChange: (status: boolean) => void
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start">
-      <MessageCreator roomId={room.id} />
+      <MessageCreator roomId={room.id}
+        hasSavedChange={(status) => hasSavedChange(status)}
+      />
 
       {room.messages.sort((a, b) => moment(a.updatedAt)
         .isAfter(moment(b.updatedAt)) ? -1 : 1)
-        .map(m => <Message key={m.id} message={m} />)
+        .map((m) => <Message key={m.id} message={m}
+            hasSavedChange={(status: boolean) => hasSavedChange(status)} />)
       }
-    </VStack>
-    ;
+    </VStack>;
 }
 
-function MessageCreator({ roomId }: {
-  roomId: string,
+function MessageCreator({
+  roomId,
+  hasSavedChange,
+}: {
+  roomId: string;
+  hasSavedChange: (status: boolean) => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ?
     <Editor roomId={roomId} onClose={() => setEditing(false)}
-      marginTop={componentSpacing} />
+      hasSavedChange={(status: boolean) => hasSavedChange(status)} marginTop={componentSpacing}
+    />
     :
     <Button variant="outline" leftIcon={<AddIcon />}
       onClick={() => setEditing(true)}>新消息</Button>;
+
 }
 
-function Message({ message: m }: {
-  message: ChatMessage,
+function Message({
+  message: m,
+  hasSavedChange,
+}: {
+  message: ChatMessage;
+  hasSavedChange: (status: boolean) => void;
 }) {
   const [user] = useUserContext();
   const name = formatUserName(m.user.name);
@@ -75,19 +91,29 @@ function Message({ message: m }: {
         </>}
       </HStack>
 
-      {editing ? <Editor message={m} onClose={() => setEditing(false)} /> :
-        <MarkdownStyler content={m.markdown} />}
-    </VStack>
-  </HStack>;
+      {editing ? <Editor message={m} onClose={() => setEditing(false)}
+          hasSavedChange={(status: boolean) => hasSavedChange(status)}
+        /> :
+        <MarkdownStyler content={m.markdown} />
+      }
+      </VStack>
+    </HStack>;
 }
 
-function Editor({ roomId, message, onClose, ...rest }: {
-  roomId?: string,        // create a new message when specified
-  message?: ChatMessage,  // must be specified iff. roomId is undefined
-  onClose: Function,
+function Editor({
+  roomId,
+  message,
+  onClose,
+  hasSavedChange,
+  ...rest
+}: {
+  roomId?: string; // create a new message when specified
+  message?: ChatMessage; // must be specified iff. roomId is undefined
+  onClose: Function;
+  hasSavedChange: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
-    message ? message.markdown : "");
+      message ? message.markdown : '');
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
@@ -105,20 +131,29 @@ function Editor({ roomId, message, onClose, ...rest }: {
       onClose();
     } finally {
       setSaving(false);
+      hasSavedChange(false);
     }
   };
 
   return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} {...rest}
+    <Textarea value={markdown} onChange={(e) => {
+      hasSavedChange(true);
+      setMarkdown(e.target.value);}
+    }
+        autoFocus background="white" height={200} {...rest}
     />
     <HStack>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
-        variant="brand" leftIcon={<Icon as={MdSend} />}
+              variant="brand" leftIcon={<Icon as={MdSend} />}
       >
         确认
       </Button>
-      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+      <Button onClick={() => {
+        hasSavedChange(false);
+        onClose();
+      }}
+          variant="ghost" color="grey"
+      >取消</Button>
     </HStack>
   </>;
 }
