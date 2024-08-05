@@ -103,6 +103,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
       justifyContent="flex-end">
       <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
         <IconButton
+          zIndex={2}
           marginX={4}
           marginTop={4}
           marginBottom={-8}
@@ -114,8 +115,8 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
           bg="white"
         />
         <AutosaveIndicator
-          // TODO: Implement on mobile UI
-          display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}
+          display={{ base: 'block', [sidebarBreakpoint]: 'flex' }}
+          mt={{ base: "50px", [sidebarBreakpoint]: 0 }}
           state={autosaveState}
         />
       </HStack>
