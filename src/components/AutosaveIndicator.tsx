@@ -11,7 +11,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
   const errors = [...state.id2state.values()].filter(v => v !== null);
   const iconProps = { boxSize: 3.5, marginRight: 2, };
   return (
-    <Box position="fixed" top="10px" left="10px" right="0" zIndex="sticky">
+    <Box position="fixed" top="10px" right="2%" zIndex="2">
       {hasPendingSavers(state) ? (
         <>
           <LeavePagePrompt />
