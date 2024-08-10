@@ -1,11 +1,20 @@
 export type ApplicationField = {
   name: string,
+
   // Always show the field on the "edit application" page even if the field is
   // absent from application data.
   showForEdits?: boolean,
-  // field name from 金数据 applicaiton form https://jinshuju.net/f/FBTWTe
+
+  // field name from Yuanjian application form https://jsj.top/f/FBTWTe or
+  // Sizhu application form https://jsj.top/f/Z82u8w. 
+  //
+  // N.B.: We must maintain the invariant that for a given field name, either it
+  //    is present only in one of the two forms, or it refers to identical 
+  //    fields from both forms.
+  //
   jsjField?: string,
-  // field name from 金数据 proxied applicaiton form https://jinshuju.net/f/S74k0V
+
+  // field name from Proxied application form https://jsj.top/f/S74k0V
   jsjProxiedField?: string,
 };
 
@@ -29,6 +38,8 @@ const menteeApplicationFields: ApplicationField[] = [
   { jsjField: "field_167", jsjProxiedField: "field_167", name: menteeFirstYearInCollegeField, showForEdits: true, },
   { jsjField: "field_169", name: "预计毕业年份", showForEdits: true, },
   { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
+
+  { jsjField: "field_170", name: "国籍", }, // Only in Sizhu application form
 
   { jsjField: "field_168", name: "小学、初中、高中", },
   { jsjField: "field_156", name: "简历", },
