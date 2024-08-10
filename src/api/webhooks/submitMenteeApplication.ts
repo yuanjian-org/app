@@ -3,31 +3,39 @@ import z from "zod";
 import { generalBadRequestError } from "../errors";
 import { createUser } from "../database/models/User";
 import { emailRoleIgnoreError } from "../sendgrid";
-import menteeApplicationFields from "../../shared/menteeApplicationFields";
+import menteeApplicationFields, { menteeSourceField }
+  from "../../shared/menteeApplicationFields";
 
 /**
- * The Webhook for 金数据 forms https://jinshuju.net/f/FBTWTe (mentee application) and https://jinshuju.net/f/S74k0V
- * (proxied mentee application).
+ * The Webhook for three 金数据 forms:
+ *    * Mentee application: https://jsj.top/f/FBTWTe
+ *    * Proxied mentee application: https://jsj.top/f/S74k0V
+ *    * Sizhu mentee application: https://jsj.top/f/Z82u8w
  */
 export default procedure
   .input(z.record(z.string(), z.any()))
   .mutation(async ({ ctx, input }) => await submit(input, ctx.baseUrl));
 
 export async function submit({ form, entry }: Record<string, any>, baseUrl: string) {
-  if (form !== "FBTWTe" && form !== "S74k0V") {
+  if (form !== "FBTWTe" && form !== "S74k0V" && form !== "Z82u8w") {
     throw generalBadRequestError(`金数据 form id ${form} is not suppoted.`);
   }
 
   const application: Record<string, any> = {};
   for (const field of menteeApplicationFields) {
-    const jn = form == "FBTWTe" ? field.jsjField : field.jsjProxiedField;
+    const jn = form == "S74k0V" ? field.jsjProxiedField: field.jsjField;
     if (jn && jn in entry) {
       application[field.name] = entry[jn];
     }
   }
 
+  if (form == "Z82u8w") {
+    application[menteeSourceField] = "思烛";
+  }
+
   /**
-   * Both forms happen to share the same field names for the following fields. Update code if/when they diverge.
+   * All three forms share the same field names for the following fields.
+   * Update code if/when they diverge.
    */
   const name = entry.field_104;
   await createUser({
