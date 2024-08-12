@@ -9,6 +9,8 @@ import Role, { AllRoles } from "../src/shared/Role";
 import { toPinyin } from "../src/shared/strings";
 import Transcript from "../src/api/database/models/Transcript";
 import Summary from "../src/api/database/models/Summary";
+import { createInterview } from "../src/api/routes/interviews";
+import Calibration from "../src/api/database/models/Calibration";
 
 type TestUser = {
   name: string | null,
@@ -49,6 +51,9 @@ async function main() {
   await upgradeUsers(users);
   await generateUsers();
   await generateGroupsAndSummaries(users);
+  const calibration = await findOrCreateCalibration();
+  await generateInterview(users, calibration);
+  
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
 }
@@ -96,14 +101,14 @@ async function generateGroup(users: TestUser[]) {
   invariant(users.length > 1);
   console.log('Creating group', users.map(u => u.name));
   const userIds = users.map(u => u.id as string);
-  if ((await findGroups(userIds, 'exclusive')).length != 0) return;
+  if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
   await sequelize.transaction(async t =>
-    await createGroup(null, userIds, null,null, null, null, t));
+    await createGroup(null, userIds, null, null, null, null, t));
 }
 
 async function generateSummaries(users: TestUser[]) {
   console.log('Creating summaries for', users.map(u => u.name));
-  const groups = await findGroups(users.map(u => u.id as string), 'exclusive');
+  const groups = await findGroupsByType("Unowned", users.map(u => u.id as string));
   invariant(groups.length == 1);
   const gid = groups[0].id;
 
@@ -139,5 +144,76 @@ async function upsertSummary(groupId: string, transcriptId: string, startedAt: n
     transcriptId,
     summaryKey,
     summary
+  });
+}
+
+async function findOrCreateCalibration() {
+  console.log("Creating Test MenteeIntervew Calibration");
+  const [menteeCalibration, menteeCalibrationCreated] = await Calibration.findOrCreate({
+    where: {
+      type: 'MenteeInterview',
+      name: '面试组A',
+    },
+    defaults: { active: true, }
+  });
+
+  await sequelize.transaction(async t => {
+    if (menteeCalibrationCreated) {
+      await createGroup(null, [], null, null, menteeCalibration.id, null, t);
+    }
+  });
+
+  return { menteeCalibration };
+}
+
+async function generateInterview(users: User[], calibrations: { menteeCalibration: { id: string; } }) {
+  const userIds = users.map(u => u.id as string);
+  for (const tu of allUsers) {
+    invariant(tu.id);
+    if (tu.email.includes('mentee')) {
+      console.log(`Creating MenteeInterview for [${users.map(u => u.name)}, ${tu.name}]`);
+      if ((await findGroupsByType("Interview", [tu.id, ...userIds])).length != 0) continue;
+      await createInterview("MenteeInterview", calibrations.menteeCalibration.id, tu.id, [...userIds]);
+    };
+  }
+}
+
+// Checking fields of IDs to return matching exclusive groups
+// Calibration Groups are excluded since they do not have userIds
+async function findGroupsByType(groupType: "Unowned" | "Interview" | "Partnership" | "Coachee", userIds: string[]) {
+
+  if (groupType == "Interview") {
+    return await findGroups(userIds, 'exclusive', undefined, {
+      interviewId: { [Op.ne]: null },
+      partnershipId: { [Op.is]: null },
+      coacheeId: { [Op.is]: null },
+      calibrationId: { [Op.is]: null }
+    });
+  }
+
+  if (groupType == "Partnership") {
+    return await findGroups(userIds, 'exclusive', undefined, {
+      interviewId: { [Op.is]: null },
+      partnershipId: { [Op.ne]: null },
+      coacheeId: { [Op.is]: null },
+      calibrationId: { [Op.is]: null }
+    });
+  }
+
+  if (groupType == "Coachee") {
+    return await findGroups(userIds, 'exclusive', undefined, {
+      interviewId: { [Op.is]: null },
+      partnershipId: { [Op.is]: null },
+      coacheeId: { [Op.ne]: null },
+      calibrationId: { [Op.is]: null }
+    });
+  }
+
+  // Default Unowned Group
+  return await findGroups(userIds, 'exclusive', undefined, {
+    interviewId: { [Op.is]: null },
+    partnershipId: { [Op.is]: null },
+    coacheeId: { [Op.is]: null },
+    calibrationId: { [Op.is]: null }
   });
 }
