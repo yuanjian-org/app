@@ -27,7 +27,7 @@
     "@types/random-number-csprng": "^1.0.0",
     "@types/react-dom": "^18.0.6",
     "apexcharts": "^3.35.2",
-    "axios": "^1.7.3",
+    "axios": "^1.7.4",
     "class-validator": "^0.14.0",
     "cross-env": "^7.0.3",
     "easymde": "^2.18.0",
