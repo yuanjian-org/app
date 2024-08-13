@@ -115,8 +115,8 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
           bg="white"
         />
         <AutosaveIndicator
-          display={{ base: 'block', [sidebarBreakpoint]: 'flex' }}
-          mt={{ base: "50px", [sidebarBreakpoint]: 0 }}
+          display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
+          mt={{ base: "80px", [sidebarBreakpoint]: 0 }}
           state={autosaveState}
         />
       </HStack>
