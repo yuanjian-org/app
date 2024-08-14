@@ -25,7 +25,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
                     textShadow: `
                     1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white,
                     1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white,
-                    1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white`}}>保存中...</Text>
+                    1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white` }}>保存中...</Text>
                 </>
               )}
             </Center>
@@ -38,7 +38,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
               textShadow: `
               1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white,
               1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white,
-              1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white`}}>已保存</Text>
+              1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white` }}>已保存</Text>
           </Center>
         </motion.div>
       }
