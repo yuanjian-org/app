@@ -20,7 +20,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
               {errors.length > 0 ? (
                 <><WarningIcon {...iconProps} color="red" /><Text fontSize="sm" color="red">{errors[0].toString()}</Text></>
               ) : (
-                <><RepeatIcon {...iconProps} color="disabled" stroke="white" strokeWidth="1px" />
+                <><RepeatIcon {...iconProps} color="disabled" />
                   <Text fontSize="sm" color="disabled" style={{
                     textShadow: `
                     1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white,
@@ -34,7 +34,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
       ) : state.virgin ? null :
         <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3 }}>
           <Center {...rest}>
-            <CheckIcon {...iconProps} color="green" stroke="white" strokeWidth="1px" /><Text fontSize="sm" color="green" style={{
+            <CheckIcon {...iconProps} color="green" /><Text fontSize="sm" color="green" style={{
               textShadow: `
               1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white,
               1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white,
