@@ -24,7 +24,7 @@ export default widePage(() => {
   const i = data.interviewWithGroup;
 
   return <Flex direction="column" gap={sectionSpacing}>
-    <MobileExperienceAlert top="-12px" />
+    <MobileExperienceAlert />
 
     <Heading size="md">候选人：{formatUserName(i.interviewee.name)}</Heading>
 

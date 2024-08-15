@@ -121,7 +121,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
         />
       </HStack>
 
-      <Box display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}>
+      <Box display="flex">
         <NextLink href="http://yuanjian.org" target="_blank">
         </NextLink>
       </Box>
