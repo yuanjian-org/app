@@ -1,34 +1,16 @@
 import { procedure, router } from "../../trpc";
 import { authUser } from "../../auth";
-
-const get = procedure
-  .use(authUser("Mentee"||"Mentor"))
-  .query(async () =>
-{
-});
-
+import { z } from "zod";
 
 const list = procedure
-  .use(authUser("Mentee"||"Mentor"))
-  .query(async () =>
+  .use(authUser())
+  .input(z.string())
+  .output(z.array(z.object({})))
+  .query(async ({ input: id }) =>
 {
-});
-
-const save = procedure
-.use(authUser("Mentee"||"Mentor"))
-.query(async () =>
-{
-});
-
-const update = procedure
-.use(authUser("Mentee"||"Mentor"))
-.query(async () =>
-{
+  return [];
 });
 
 export default router({
-    get,
     list,
-    save,
-    update
 });
