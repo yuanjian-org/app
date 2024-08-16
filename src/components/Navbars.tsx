@@ -115,7 +115,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
           bg="white"
         />
         <AutosaveIndicator
-          display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
+          display="flex"
           mt={{ base: "80px", [sidebarBreakpoint]: 0 }}
           state={autosaveState}
         />
