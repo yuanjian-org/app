@@ -3,11 +3,11 @@
 import { procedure, router } from "../../trpc";
 import { authUser } from "../../auth";
 import { z } from "zod";
-import { zLatitude, zLandmark } from "shared/Map";
+import { zLatitudes, zLandmark } from "shared/Map";
 
 const list = procedure
   .use(authUser())
-  .input(zLatitude)
+  .input(zLatitudes)
   .output(z.array(zLandmark))
   .query(async ({ input }) =>
 {
