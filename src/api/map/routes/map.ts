@@ -1,14 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable require-await */
 import { procedure, router } from "../../trpc";
 import { authUser } from "../../auth";
 import { z } from "zod";
-import { zLatitudes, zLandmark } from "shared/Map";
+import { zLatitude, zLandmark } from "shared/Map";
 
 const list = procedure
   .use(authUser())
-  .input(zLatitudes)
+  .input(zLatitude)
   .output(z.array(zLandmark))
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line require-await
   .query(async ({ input }) =>
 {
   return [];
