@@ -7,9 +7,8 @@ const list = procedure
   .use(authUser())
   .input(zLatitude)
   .output(z.array(zLandmark))
-  // eslint-disable-next-line no-unused-vars
   // eslint-disable-next-line require-await
-  .query(async ({ input }) =>
+  .query(async () =>
 {
   return [];
 });
