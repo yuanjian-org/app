@@ -13,6 +13,7 @@ import interviewFeedbacks from './routes/interviewFeedbacks';
 import calibrations from './routes/calibrations';
 import chat from './routes/chat';
 import matchmaker from './routes/matchmaker';
+import map from './map/routes/map';
 
 export const apiRouter = router({
   users,
@@ -29,6 +30,7 @@ export const apiRouter = router({
   calibrations,
   chat,
   matchmaker,
+  map,
 });
 
 export type ApiRouter = typeof apiRouter;
