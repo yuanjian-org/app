@@ -40,7 +40,8 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary
+  MdLocalLibrary,
+  MdMap,
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarWidth } from './Navbars';
@@ -108,6 +109,12 @@ const sidebarItems: SidebarItem[] = [
     regex: /^\/groups$/,
     roles: 'GroupManager',
   },
+  {
+    name: '人才地图',
+    path: '/map',
+    icon: MdMap,
+    regex: /^\/map/,
+  }
 ];
 
 function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
