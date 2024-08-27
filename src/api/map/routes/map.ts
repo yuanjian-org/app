@@ -19,32 +19,17 @@ export default router({
     list,
 });
 
-// Combined all landmarks under a specific latitude into an array of objects
 async function combineLandmarkJSONs(latitude: string): Promise<Landmark[]> {
   const landmarkDataPath = path.join(__dirname, '..', 'data', latitude);
-  const landmarkArray: Landmark[] = [];
+  const files = await fs.promises.readdir(landmarkDataPath);
 
-  try {
-    // Use promise to ensure the code executes only after the file reading is completed.
-    const files = await fs.promises.readdir(landmarkDataPath);
+  const landmarkPromises = files
+    .filter(file => path.extname(file) === '.json')
+    .map(async file => {
+      const filePath = path.join(landmarkDataPath, file);
+      const fileContent = await fs.promises.readFile(filePath, 'utf8');
+      return JSON.parse(fileContent) as Landmark;
+    });
 
-    for (const file of files) {
-      if (path.extname(file) === '.json') {
-        const filePath = path.join(landmarkDataPath, file);
-        const fileContent = await fs.promises.readFile(filePath, 'utf8');
-
-        try {
-          const landmark: Landmark = JSON.parse(fileContent);
-          landmarkArray.push(landmark);
-        } catch (parseErr) {
-          console.error(`Error parsing JSON from file ${file}: ${parseErr}`);
-        }
-      }
-    }
-  } catch (err) {
-    console.error('Unable to scan directory:', err);
-  }
-
-  console.log(`Read and Parsed ${landmarkArray.length} landmarks from ${latitude}`);
-  return landmarkArray;
-};
+  return Promise.all(landmarkPromises);
+}
