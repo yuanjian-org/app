@@ -172,6 +172,23 @@ export function MenteeCells({ mentee, year }: {
   </>;
 }
 
+export function MenteeCellsSelfQuery({ mentee }: {
+  mentee: MinUser,
+}) {
+  const { data } = trpcNext.users.getApplicant.useQuery({
+    type: "MenteeInterview",
+    userId: mentee.id,
+  });
+  const year = (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
+
+  return <>
+    <Td>{year && year}</Td>
+    <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
+      {mentee.name} <ChevronRightIcon />
+    </Link></Td>
+  </>;
+}
+
 export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly }: {
   menteeId: string,
   addPinyin?: (names: string[]) => void,
