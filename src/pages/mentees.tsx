@@ -55,15 +55,15 @@ export default function Page() {
   return <>
     <Flex direction='column' gap={6}>
       <Wrap spacing={4} align="center">
-        <UserFilterSelector filter={filter} fixedFilter={fixedFilter} 
+        <UserFilterSelector filter={filter} fixedFilter={fixedFilter}
           onChange={f => setFilter(f)} />
       </Wrap>
-      
+
       <Divider />
 
       {!users ? <Loader /> :
         <TableContainer>
-          <MenteeTable users={users} refetch={refetch}/>
+          <MenteeTable users={users} refetch={refetch} />
           <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
             共 <b>{users.length}</b> 名
           </Text>
@@ -77,6 +77,28 @@ function MenteeTable({ users, refetch }: {
   users: User[],
   refetch: () => void
 }) {
+  const applications = trpcNext.useQueries(t => {
+    return users.map(user => t.users.getApplicant({ userId: user.id, type: 'MenteeInterview' }));
+  });
+
+  const rows = users.map((user, idx) => {
+    const application = applications[idx]?.data?.application;
+    const year = (application as Record<string, any>)?.[menteeAcceptanceYearField];
+    return application ? {
+      year,
+      user,
+    } : null;
+  }).sort((a, b) => {
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+    if (a.year != b.year) return b.year - a.year;
+
+    if (!a.user.name) return 1;
+    if (!b.user.name) return -1;
+    return a.user.name.localeCompare(b.user.name);
+  });
+
   return <Table size="sm">
     <Thead>
       <Tr>
@@ -91,15 +113,17 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {users.map((u: any) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} />)
+      {rows.map((row) => row ?
+        <MenteeRow key={row.user.id} user={row.user} year={row.year} refetch={refetch} />
+        : null)
       }
     </Tbody>
   </Table>;
 }
 
-function MenteeRow({ user: u, refetch }: {
+function MenteeRow({ user: u, year, refetch }: {
   user: User,
+  year: any,
   refetch: () => void
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
@@ -124,7 +148,7 @@ function MenteeRow({ user: u, refetch }: {
         size="sm" onChange={status => setStatus(status)} />
     </WrapItem></Wrap></Td>
 
-    <MenteeCells mentee={u} />
+    <MenteeCells mentee={u} year={year} />
 
     <MentorshipCells menteeId={u.id} addPinyin={addPinyin} showCoach />
 
@@ -136,15 +160,10 @@ function MenteeRow({ user: u, refetch }: {
   </Tr>;
 }
 
-export function MenteeCells({ mentee } : {
+export function MenteeCells({ mentee, year }: {
   mentee: MinUser,
+  year: any
 }) {
-  const { data } = trpcNext.users.getApplicant.useQuery({
-    type: "MenteeInterview",
-    userId: mentee.id,
-  });
-  const year = (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
-
   return <>
     <Td>{year && year}</Td>
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
@@ -153,8 +172,8 @@ export function MenteeCells({ mentee } : {
   </>;
 }
 
-export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly } : {
-  menteeId : string,
+export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly }: {
+  menteeId: string,
   addPinyin?: (names: string[]) => void,
   showCoach?: boolean,
   readonly?: boolean,
@@ -166,13 +185,13 @@ export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly } : {
   data.sort((a, b) => a.id.localeCompare(b.id));
 
   return <LoadedMentorsCells menteeId={menteeId} mentorships={data}
-    addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
+    addPinyin={addPinyin} refetch={refetch} showCoach={showCoach}
     readonly={readonly} />;
 }
 
 function LoadedMentorsCells({
   menteeId, mentorships, addPinyin, refetch, showCoach, readonly
-} : {
+}: {
   menteeId: string,
   mentorships: Mentorship[],
   addPinyin?: (names: string[]) => void,
@@ -185,7 +204,7 @@ function LoadedMentorsCells({
       groupId: m.group.id
     }));
   });
-  const transcriptTextAndColors = transcriptRes.map(t => 
+  const transcriptTextAndColors = transcriptRes.map(t =>
     getDateTextAndColor(t.data, 45, 60, "尚未通话"));
 
   const coachRes = trpcNext.useQueries(t => {
@@ -197,7 +216,7 @@ function LoadedMentorsCells({
     coachRes.map(c => void c.refetch());
   };
 
-  const [ editing, setEditing ] = useState<boolean>(false);
+  const [editing, setEditing] = useState<boolean>(false);
 
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
@@ -225,7 +244,7 @@ function LoadedMentorsCells({
           <VStack align="start">
             {mentorships.map(m =>
               <Flex key={m.id} gap={1}>
-                {m.endedAt !== null && 
+                {m.endedAt !== null &&
                   <Tooltip label={formatMentorshipEndedAtText(m.endedAt)}>
                     <PiFlagCheckeredFill />
                   </Tooltip>
@@ -244,10 +263,10 @@ function LoadedMentorsCells({
     {/* 资深导师 */}
     {showCoach &&
       <Td><LinkToEditor onClick={() => setEditing(true)}><VStack align="start">
-          {coachRes.map((c, idx) => c.data ? 
-            <Text key={idx}>{formatUserName(c.data.name)}</Text> :
-            <MdEdit key={idx}/>
-          )}
+        {coachRes.map((c, idx) => c.data ?
+          <Text key={idx}>{formatUserName(c.data.name)}</Text> :
+          <MdEdit key={idx} />
+        )}
       </VStack></LinkToEditor></Td>
     }
 
@@ -260,8 +279,8 @@ function LoadedMentorsCells({
   </>;
 }
 
-export function MostRecentChatMessageCell({ menteeId } : {
-  menteeId : string
+export function MostRecentChatMessageCell({ menteeId }: {
+  menteeId: string
 }) {
   const { data } = trpcNext.chat.getMostRecentMessageUpdatedAt
     .useQuery({ menteeId });
@@ -353,8 +372,8 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
       </ModalBody>
       <ModalFooter>
         {creating && <MentorshipCreator menteeId={menteeId} refetch={refetch}
-          onClose={() => setCreating(false)}/>}
-        <Button variant="brand" onClick={() => setCreating(true)} 
+          onClose={() => setCreating(false)} />}
+        <Button variant="brand" onClick={() => setCreating(true)}
           leftIcon={<AddIcon />}>增加导师</Button>
         <Spacer />
         <Button onClick={onClose}>关闭</Button>
@@ -363,7 +382,7 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
   </ModalWithBackdrop>;
 }
 
-function MentorshipCreator({ menteeId, refetch, onClose }: { 
+function MentorshipCreator({ menteeId, refetch, onClose }: {
   menteeId: string,
   refetch: () => void,
   onClose: () => void,
