@@ -12,24 +12,19 @@ const list = procedure
   // eslint-disable-next-line require-await
   .query(async ({ input : latitude }) =>
 {
-  return await combineLandmarkJSONs(latitude);
-});
-
-export default router({
-    list,
-});
-
-async function combineLandmarkJSONs(latitude: string): Promise<Landmark[]> {
-  const landmarkDataPath = path.join(__dirname, '..', 'data', latitude);
+  const landmarkDataPath = path.join('src','api', 'map', 'data', latitude);
   const files = await fs.promises.readdir(landmarkDataPath);
 
-  const landmarkPromises = files
+  return Promise.all(
+    files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
       const filePath = path.join(landmarkDataPath, file);
       const fileContent = await fs.promises.readFile(filePath, 'utf8');
       return JSON.parse(fileContent) as Landmark;
-    });
+    }));
+});
 
-  return Promise.all(landmarkPromises);
-}
+export default router({
+  list,
+});
