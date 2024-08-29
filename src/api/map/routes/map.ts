@@ -9,7 +9,6 @@ const list = procedure
   .use(authUser())
   .input(zLatitude)
   .output(z.array(zLandmark))
-  // eslint-disable-next-line require-await
   .query(async ({ input : latitude }) =>
 {
   const landmarkDataPath = path.join('src','api', 'map', 'data', latitude);
