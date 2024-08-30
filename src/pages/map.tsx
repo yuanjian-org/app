@@ -6,15 +6,13 @@ import {
   TabPanels,
   Flex,
   Heading,
-  useStyleConfig,
 } from '@chakra-ui/react';
 import React from 'react';
 import { sectionSpacing } from 'theme/metrics';
 
 export default function Page() {
-  const selectedTabStyle = useStyleConfig('Tab', { variant: 'solid' });
 
-  return (
+    return (
     <Flex direction="column" gap={sectionSpacing}>
       <Tabs size = 'md'>
          <TabList>
