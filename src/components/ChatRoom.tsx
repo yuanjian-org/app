@@ -24,39 +24,39 @@ import MarkdownStyler from './MarkdownStyler';
 
 export default function Room({
   menteeId,
-  hasSavedChange,
+  hasTextChange,
 }: {
   menteeId: string,
-  hasSavedChange: (status: boolean) => void
+  hasTextChange: (status: boolean) => void
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start">
       <MessageCreator roomId={room.id}
-        hasSavedChange={(status) => hasSavedChange(status)}
+        hasTextChange={(status) => hasTextChange(status)}
       />
 
       {room.messages.sort((a, b) => moment(a.updatedAt)
         .isAfter(moment(b.updatedAt)) ? -1 : 1)
         .map((m) => <Message key={m.id} message={m}
-            hasSavedChange={(status: boolean) => hasSavedChange(status)} />)
+          hasTextChange={(status: boolean) => hasTextChange(status)} />)
       }
     </VStack>;
 }
 
 function MessageCreator({
   roomId,
-  hasSavedChange,
+  hasTextChange,
 }: {
   roomId: string;
-  hasSavedChange: (status: boolean) => void;
+  hasTextChange: (status: boolean) => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ?
     <Editor roomId={roomId} onClose={() => setEditing(false)}
-      hasSavedChange={(status: boolean) => hasSavedChange(status)} marginTop={componentSpacing}
+        hasTextChange={(status: boolean) => hasTextChange(status)} marginTop={componentSpacing}
     />
     :
     <Button variant="outline" leftIcon={<AddIcon />}
@@ -66,10 +66,10 @@ function MessageCreator({
 
 function Message({
   message: m,
-  hasSavedChange,
+  hasTextChange,
 }: {
   message: ChatMessage;
-  hasSavedChange: (status: boolean) => void;
+  hasTextChange: (status: boolean) => void;
 }) {
   const [user] = useUserContext();
   const name = formatUserName(m.user.name);
@@ -92,7 +92,7 @@ function Message({
       </HStack>
 
       {editing ? <Editor message={m} onClose={() => setEditing(false)}
-          hasSavedChange={(status: boolean) => hasSavedChange(status)}
+          hasTextChange={(status: boolean) => hasTextChange(status)}
         /> :
         <MarkdownStyler content={m.markdown} />
       }
@@ -104,13 +104,13 @@ function Editor({
   roomId,
   message,
   onClose,
-  hasSavedChange,
+  hasTextChange,
   ...rest
 }: {
   roomId?: string; // create a new message when specified
   message?: ChatMessage; // must be specified iff. roomId is undefined
   onClose: Function;
-  hasSavedChange: Function;
+  hasTextChange: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
       message ? message.markdown : '');
@@ -131,13 +131,13 @@ function Editor({
       onClose();
     } finally {
       setSaving(false);
-      hasSavedChange(false);
+      hasTextChange(false);
     }
   };
 
   return <>
     <Textarea value={markdown} onChange={(e) => {
-      hasSavedChange(true);
+      hasTextChange(true);
       setMarkdown(e.target.value);}
     }
         autoFocus background="white" height={200} {...rest}
@@ -149,7 +149,7 @@ function Editor({
         确认
       </Button>
       <Button onClick={() => {
-        hasSavedChange(false);
+        hasTextChange(false);
         onClose();
       }}
           variant="ghost" color="grey"

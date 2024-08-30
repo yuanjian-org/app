@@ -40,7 +40,7 @@ function MenteeTabs({ user, mentorships }: {
 }) {
   const [me] = useUserContext();
   const sortedMentorships = sortMentorship(mentorships, me.id);
-  const [saved, setSaved] = useState<boolean>(false);
+  const [textChange, setTextChange] = useState<boolean>(false);
   const router = useRouter();
   const index = parseInt(
     typeof router.query.tab == "string" ? router.query.tab : "0"
@@ -52,14 +52,15 @@ function MenteeTabs({ user, mentorships }: {
     return window.confirm(warningText);
   };
 
+  // function will be triggered if switch tab
   const handleTabsChange = (idx: number) => {
     const firstIdx = sortedMentorships.length === 1 ? 1 : 0;
 
-    if (saved) {
+    if (textChange) {
       if (idx !== firstIdx) {
         if (tabsChangeConfirm()) {
           setTabIndex(idx);
-          setSaved(false);
+          setTextChange(false);
         } else {
           setTabIndex(firstIdx);
         }
@@ -71,7 +72,7 @@ function MenteeTabs({ user, mentorships }: {
 
   return (
     <>
-      {saved && <LeavePagePrompt />}
+      {textChange && <LeavePagePrompt />}
       <Tabs
         isLazy
         lazyBehavior="unmount"
@@ -104,8 +105,8 @@ function MenteeTabs({ user, mentorships }: {
             </TabPanel>
           ))}
           <TabPanel>
-            <ChatRoom menteeId={user.id} hasSavedChange={(type) => {
-                setSaved(type);
+            <ChatRoom menteeId={user.id} hasTextChange={(type) => {
+                setTextChange(type);
               }}
             />
           </TabPanel>
