@@ -118,7 +118,8 @@ function MenteeTable({ users, refetch }: {
 
         return idB - idA;
       }).map((u: any) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} updateMenteeYear={(id: string, year: string) => updateMenteeYear(id, year)} />)
+        <MenteeRow key={u.id} user={u} refetch={refetch} 
+          updateMenteeYear={(id: string, year: string) => updateMenteeYear(id, year)} />)
       }
     </Tbody>
   </Table>;
