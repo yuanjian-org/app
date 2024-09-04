@@ -47,7 +47,7 @@ import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
-type UpdateMenteeYear = (id: string, year: string) => void
+type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void
 
 export default function Page() {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -78,14 +78,15 @@ function MenteeTable({ users, refetch }: {
   users: User[],
   refetch: () => void
 }) {
-  const [menteeToYear, setMenteeToYear] = useState<Record<string, string>>({}); 
-  const updateMenteeYear = useCallback((id: string, year: string) => {
-    setMenteeToYear((currentMenteeToYear) => ({
-      ...currentMenteeToYear,
-      [id]: year,
-    }));
-  }, []);
-
+  const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
+  const updateMenteeYear = (userId: string, acceptanceYear: string) => {
+    setMenteeToYear((current) => {
+      const newMap = new Map(current);
+      newMap.set(userId, acceptanceYear);
+      return newMap;
+    });
+  };
+ 
   return <Table size="sm">
     <Thead>
       <Tr>
@@ -101,25 +102,16 @@ function MenteeTable({ users, refetch }: {
     </Thead>
     <Tbody>
       {users.sort((a: User, b: User) => {
-        const idA = Number(menteeToYear[a.id]);
-        const idB = Number(menteeToYear[b.id]);
+        const yearA = menteeToYear.get(a.id) || "";
+        const yearB = menteeToYear.get(b.id) || "";
 
-        if (isNaN(idA) && isNaN(idB)) {
+        if (yearA === yearB) {
           return (a.name || '').localeCompare(b.name || '');
         }
 
-        if (isNaN(idA)) {
-          return 1;
-        }
-
-        if (isNaN(idB)) {
-          return -1;
-        }
-
-        return idB - idA;
-      }).map((u: any) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} 
-          updateMenteeYear={(id: string, year: string) => updateMenteeYear(id, year)} />)
+        return yearB.localeCompare(yearA);
+      }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
+          updateMenteeYear={updateMenteeYear} />)
       }
     </Tbody>
   </Table>;
