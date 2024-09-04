@@ -24,9 +24,10 @@ export default widePage(() => {
   const i = data.interviewWithGroup;
 
   return <Flex direction="column" gap={sectionSpacing}>
-    <MobileExperienceAlert />
 
     <Heading size="md">候选人：{formatUserName(i.interviewee.name)}</Heading>
+
+    <MobileExperienceAlert />
 
     <Box>
       <Link isExternal href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064">
