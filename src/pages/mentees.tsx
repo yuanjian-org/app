@@ -80,7 +80,7 @@ function MenteeTable({ users, refetch }: {
 }) {
   const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
   const updateMenteeYear = (userId: string, acceptanceYear: string) => {
-    setMenteeToYear((current) => {
+    setMenteeToYear(current => {
       const newMap = new Map(current);
       newMap.set(userId, acceptanceYear);
       return newMap;
@@ -106,7 +106,9 @@ function MenteeTable({ users, refetch }: {
         const yearB = menteeToYear.get(b.id) || "";
 
         if (yearA === yearB) {
-          return (a.name || '').localeCompare(b.name || '');
+          const nameA = formatUserName(a.name, 'formal') || '';
+          const nameB = formatUserName(b.name, 'formal') || '';
+          return nameA.localeCompare(nameB);
         }
 
         return yearB.localeCompare(yearA);
