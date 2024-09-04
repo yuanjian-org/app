@@ -25,7 +25,7 @@ import { widePage } from 'AppPage';
 
 export default widePage(() => {
   const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
-  const { data } = trpcNext.interviews.get.useQuery(interviewId);
+  const { data } = trpcNext.interviews.get.useQuery({ interviewId });
   const [me] = useUserContext();
 
   const interviewerTestPassed = () => {

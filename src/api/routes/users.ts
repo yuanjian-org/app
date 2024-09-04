@@ -10,16 +10,16 @@ import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
-import Interview from "api/database/models/Interview";
-import { InterviewType, zInterviewType } from "shared/InterviewType";
+import Interview from "../database/models/Interview";
+import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { 
   minUserAttributes, 
   userAttributes, 
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
-import sequelize from "api/database/sequelize";
+import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
-import { zMenteeStatus } from "shared/MenteeStatus";
+import { zMenteeStatus } from "../../shared/MenteeStatus";
 
 const create = procedure
   .use(authUser('UserManager'))

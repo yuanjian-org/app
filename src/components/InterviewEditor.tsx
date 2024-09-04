@@ -91,10 +91,13 @@ export function InterviewFeedbackEditor({ interviewFeedbackId, readonly }: {
   return <Editor defaultFeedback={f.feedback} etag={data.etag} save={save} showDimensions readonly={readonly} />;
 }
 
-export function InterviewDecisionEditor({ interviewId, decision, etag }: { 
+export function InterviewDecisionEditor({ interviewId, decision, etag, 
+  readonly
+}: { 
   interviewId: string,
   decision: FeedbackDeprecated | null,
   etag: number,
+  readonly?: boolean
 }) {
   const [me] = useUserContext();
 
@@ -106,8 +109,9 @@ export function InterviewDecisionEditor({ interviewId, decision, etag }: {
     });    
   };
 
-  return <Editor defaultFeedback={decision} etag={etag} save={save} showDimensions={false}
-    readonly={!isPermitted(me.roles, "MenteeManager")}
+  return <Editor defaultFeedback={decision} etag={etag} save={save}
+    readonly={readonly || !isPermitted(me.roles, "MenteeManager")}
+    showDimensions={false}
   />;
 }
 
