@@ -47,6 +47,7 @@ import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
+type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
 
 export default function Page() {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -77,6 +78,15 @@ function MenteeTable({ users, refetch }: {
   users: User[],
   refetch: () => void
 }) {
+  const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
+  const updateMenteeYear = (userId: string, acceptanceYear: string) => {
+    setMenteeToYear(current => {
+      const newMap = new Map(current);
+      newMap.set(userId, acceptanceYear);
+      return newMap;
+    });
+  };
+ 
   return <Table size="sm">
     <Thead>
       <Tr>
@@ -91,16 +101,28 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {users.map((u: any) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} />)
+      {users.sort((a: User, b: User) => {
+        const yearA = menteeToYear.get(a.id) || "";
+        const yearB = menteeToYear.get(b.id) || "";
+
+        if (yearA === yearB) {
+          const nameA = formatUserName(a.name, 'formal');
+          const nameB = formatUserName(b.name, 'formal');
+          return nameA.localeCompare(nameB);
+        }
+
+        return yearB.localeCompare(yearA);
+      }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
+          updateMenteeYear={updateMenteeYear} />)
       }
     </Tbody>
   </Table>;
 }
 
-function MenteeRow({ user: u, refetch }: {
+function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   user: User,
   refetch: () => void
+  updateMenteeYear?: UpdateMenteeYear
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -124,7 +146,7 @@ function MenteeRow({ user: u, refetch }: {
         size="sm" onChange={status => setStatus(status)} />
     </WrapItem></Wrap></Td>
 
-    <MenteeCells mentee={u} />
+    <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
 
     <MentorshipCells menteeId={u.id} addPinyin={addPinyin} showCoach />
 
@@ -136,15 +158,24 @@ function MenteeRow({ user: u, refetch }: {
   </Tr>;
 }
 
-export function MenteeCells({ mentee } : {
+export function MenteeCells({ mentee, updateMenteeYear } : {
   mentee: MinUser,
+  updateMenteeYear?: UpdateMenteeYear
 }) {
   const { data } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
     userId: mentee.id,
   });
-  const year = (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
-
+  
+  const getYear = () => (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
+  const year = getYear();
+  
+  useEffect(() => {
+    if (updateMenteeYear) {
+      updateMenteeYear(mentee.id, getYear());
+    }
+  }, [data]);  
+  
   return <>
     <Td>{year && year}</Td>
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>

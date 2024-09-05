@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
   adapter,
 
   session: {
-    maxAge: 90 * 24 * 60 * 60, // 90 days
+    maxAge: 365 * 24 * 60 * 60, // 365 days
   },
 
   providers: [

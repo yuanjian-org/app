@@ -9,9 +9,7 @@ function getBaseUrl() {
   if (typeof window !== 'undefined') return '';
   // vercel.com
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  // render.com
-  if (process.env.RENDER_INTERNAL_HOSTNAME) return `http://${process.env.RENDER_INTERNAL_HOSTNAME}:${process.env.PORT}`;
-  // fall back to localhost    
+  // fall back to localhost
   return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
@@ -28,9 +26,26 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
         },
         error(err: TRPCClientError<ApiRouter>) {
           console.log('TRPC got an error:', err);
+
           // Assume UI will manually handle this error.
           if (err.data?.code !== "CONFLICT") {
-            toast.error(`糟糕！${err.message}`);
+
+            // When Vercel's gateway times oute (504), it inserts the following
+            // text in the response body which TRPC simply can't parse. When
+            // this happens, TRPC also doesn't give us the HTTP status code.
+            // https://vercel.com/docs/functions/runtimes#max-duration
+            //
+            //    An error occurred with your deployment
+            //
+            //    FUNCTION_INVOCATION_TIMEOUT
+            // 
+            if (err.message == `Unexpected token 'A', "An error o"... is not` +
+                ` valid JSON`) {
+              toast.error("服务器端超时，请稍后重试。");
+
+            } else {
+              toast.error(`糟糕！${err.message}`);
+            }
           }
           observer.error(err);
         },
