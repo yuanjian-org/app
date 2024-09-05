@@ -8,6 +8,7 @@ import {
   Textarea,
   TextareaProps,
   VStack,
+  Select,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -81,6 +82,20 @@ function Message({ message: m }: {
   </HStack>;
 }
 
+const snippets = [
+  {
+    title: "辅导难题解决策略",
+    text: '在本次辅导中，【学生姓名】提到了在【课程或技能】上遇到的难题，尤其是【具体问题】。' +
+    '我给出了一些解决策略，包括【策略1】和【策略2】，希望能帮助他/她在下次作业中表现更好。' +
+    '为了进一步提升他/她的理解和技能，我推荐他/她阅读【推荐资料或活动】。'
+  },
+  {
+    title: "专注技能提升",
+    text: '今天我们重点关注了【学生姓名】的【具体技能或课程内容】。' +
+    '他/她对于【具体问题或挑战】的处理方式是【描述】，我建议他/她在未来可以尝试【具体建议】。'
+  }
+];
+
 function Editor({ roomId, message, onClose, ...rest }: {
   roomId?: string,        // create a new message when specified
   message?: ChatMessage,  // must be specified iff. roomId is undefined
@@ -90,6 +105,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
     message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
+  
+  const insertSnippet = (snippet: string) => {
+    setMarkdown(prev => prev + snippet + '\n');
+  };
 
   const save = async () => {
     setSaving(true);
@@ -112,7 +131,17 @@ function Editor({ roomId, message, onClose, ...rest }: {
     <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
       autoFocus background="white" height={200} {...rest}
     />
+
     <HStack>
+      <Select placeholder="选择模版" 
+        onChange={(e) => insertSnippet(snippets.find(snippet => 
+          snippet.title === e.target.value)?.text || "")} 
+        width="180px" marginRight={10} variant="brand">
+        {snippets.map((snippet, index) => (
+          <option key={index} value={snippet.title}>{snippet.title}</option>
+        ))}
+      </Select>
+
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
         variant="brand" leftIcon={<Icon as={MdSend} />}
       >
