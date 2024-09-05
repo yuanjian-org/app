@@ -60,16 +60,12 @@ export default function GroupBar({
         setShowMeetingQuotaWarning(true);
         setJoining(false);
       } else {
-        window.location.href = link;
+        window.open(link, '_blank');
       }
-    } catch (e) {
-      // See comments in the `finally` block below.
-      setJoining(false);
-      throw e;
     } finally {
       // More time is needed to redirect to the meeting page. Keep it spinning.
       // We should uncomment this line and remove this above catch block if we pop the page in a new window.
-      // setJoining(false);
+      setJoining(false);
     }
   };
 
