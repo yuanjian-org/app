@@ -47,7 +47,7 @@ import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
-type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void
+type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
 
 export default function Page() {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -106,8 +106,8 @@ function MenteeTable({ users, refetch }: {
         const yearB = menteeToYear.get(b.id) || "";
 
         if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal') || '';
-          const nameB = formatUserName(b.name, 'formal') || '';
+          const nameA = formatUserName(a.name, 'formal');
+          const nameB = formatUserName(b.name, 'formal');
           return nameA.localeCompare(nameB);
         }
 
@@ -166,13 +166,16 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
     type: "MenteeInterview",
     userId: mentee.id,
   });
-  const year = (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
+  
+  const getYear = () => (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
+  const year = getYear();
+  
   useEffect(() => {
     if (updateMenteeYear) {
-      updateMenteeYear(mentee.id, year);
+      updateMenteeYear(mentee.id, getYear());
     }
   }, [data]);  
-
+  
   return <>
     <Td>{year && year}</Td>
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
