@@ -162,7 +162,6 @@ function FieldValueCell({ value, readonly, update }: {
   // An arbitrary object
   } else if (typeof value === "object") {
     return JSON.stringify(value, null, 2);
-
   // String
   } else if (typeof value === "string") {
     const v = value.split("\n").join("\r\n");
@@ -170,7 +169,6 @@ function FieldValueCell({ value, readonly, update }: {
       value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
       :
       <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update} />;
-
   // Other types. Display as is.
   } else {
     return value;

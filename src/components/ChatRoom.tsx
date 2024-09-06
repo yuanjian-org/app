@@ -110,7 +110,7 @@ function Editor({
   setTextChange: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
-      message ? message.markdown : "");
+    message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 

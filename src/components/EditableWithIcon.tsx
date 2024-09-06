@@ -18,7 +18,7 @@ export default function EditableWithIcon({ mode, ...rest }: {
   // Show the edit icon when not in editing mode. See
   // https://chakra-ui.com/docs/components/editable#with-custom-input-and-controls
   const EditableControls = () => {
-    const { isEditing, getEditButtonProps, getSubmitButtonProps,
+    const { isEditing, getEditButtonProps, getSubmitButtonProps ,
       getCancelButtonProps } = useEditableControls();
     return isEditing ?
       <ButtonGroup size='sm'>
