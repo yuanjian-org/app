@@ -58,13 +58,10 @@ export default function GroupBar({
       const link = await trpc.meetings.join.mutate({ groupId: groupId });
       if (!link) {
         setShowMeetingQuotaWarning(true);
-        setJoining(false);
       } else {
         window.open(link, '_blank');
       }
     } finally {
-      // More time is needed to redirect to the meeting page. Keep it spinning.
-      // We should uncomment this line and remove this above catch block if we pop the page in a new window.
       setJoining(false);
     }
   };
