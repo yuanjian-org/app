@@ -18,13 +18,13 @@ const list = procedure
     files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
-        const filePath = path.join(landmarkDataPath, file);
-        const fileContent = await fs.promises.readFile(filePath, 'utf8');
-        const landmark = JSON.parse(fileContent);
-        return {
-            ...landmark,
-            名称: path.basename(file, '.json'),
-        } as Landmark;
+      const filePath = path.join(landmarkDataPath, file);
+      const fileContent = await fs.promises.readFile(filePath, 'utf8');
+      const landmark = JSON.parse(fileContent);
+      return {
+          ...landmark,
+          名称: path.basename(file, '.json'),
+      } as Landmark;
     }));
 });
 
