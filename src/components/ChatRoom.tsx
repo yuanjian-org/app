@@ -22,38 +22,51 @@ import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 
-export default function Room({ menteeId }: {
+export default function Room({
+  menteeId,
+  setTextChange,
+}: {
   menteeId: string,
+  setTextChange: (status: boolean) => void
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start">
-      <MessageCreator roomId={room.id} />
+      <MessageCreator roomId={room.id} setTextChange={setTextChange} />
 
       {room.messages.sort((a, b) => moment(a.updatedAt)
         .isAfter(moment(b.updatedAt)) ? -1 : 1)
-        .map(m => <Message key={m.id} message={m} />)
+        .map((m) => <Message key={m.id} message={m} setTextChange={setTextChange} />)
       }
-    </VStack>
-    ;
+    </VStack>;
 }
 
-function MessageCreator({ roomId }: {
-  roomId: string,
+function MessageCreator({
+  roomId,
+  setTextChange,
+}: {
+  roomId: string;
+  setTextChange: (status: boolean) => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
   return editing ?
     <Editor roomId={roomId} onClose={() => setEditing(false)}
-      marginTop={componentSpacing} />
+            setTextChange={setTextChange} marginTop={componentSpacing}
+    />
     :
     <Button variant="outline" leftIcon={<AddIcon />}
       onClick={() => setEditing(true)}>新消息</Button>;
+
 }
 
-function Message({ message: m }: {
-  message: ChatMessage,
+function Message({
+  message: m,
+  setTextChange,
+}: {
+  message: ChatMessage;
+  setTextChange: (status: boolean) => void;
 }) {
   const [user] = useUserContext();
   const name = formatUserName(m.user.name);
@@ -75,16 +88,26 @@ function Message({ message: m }: {
         </>}
       </HStack>
 
-      {editing ? <Editor message={m} onClose={() => setEditing(false)} /> :
-        <MarkdownStyler content={m.markdown} />}
-    </VStack>
-  </HStack>;
+      {editing ? <Editor message={m} onClose={() => setEditing(false)}
+                         setTextChange={setTextChange}
+        /> :
+        <MarkdownStyler content={m.markdown} />
+      }
+      </VStack>
+    </HStack>;
 }
 
-function Editor({ roomId, message, onClose, ...rest }: {
-  roomId?: string,        // create a new message when specified
-  message?: ChatMessage,  // must be specified iff. roomId is undefined
-  onClose: Function,
+function Editor({
+  roomId,
+  message,
+  onClose,
+  setTextChange,
+  ...rest
+}: {
+  roomId?: string; // create a new message when specified
+  message?: ChatMessage; // must be specified iff. roomId is undefined
+  onClose: Function;
+  setTextChange: Function;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
     message ? message.markdown : "");
@@ -104,13 +127,18 @@ function Editor({ roomId, message, onClose, ...rest }: {
       await utils.chat.getRoom.invalidate();
       onClose();
     } finally {
+      // need to anyway set it to false, even if save failed
       setSaving(false);
+      setTextChange(false);
     }
   };
 
   return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} {...rest}
+    <Textarea value={markdown} onChange={(e) => {
+      setTextChange(true);
+      setMarkdown(e.target.value);}
+    }
+        autoFocus background="white" height={200} {...rest}
     />
     <HStack>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
@@ -118,7 +146,12 @@ function Editor({ roomId, message, onClose, ...rest }: {
       >
         确认
       </Button>
-      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+      <Button onClick={() => {
+        setTextChange(false);
+        onClose();
+      }}
+          variant="ghost" color="grey"
+      >取消</Button>
     </HStack>
   </>;
 }

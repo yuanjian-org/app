@@ -49,7 +49,7 @@ export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
 /**
  * Reference: https://stackoverflow.com/a/70841409
  */
-function LeavePagePrompt() {
+export function LeavePagePrompt() {
   const router = useRouter();
   useEffect(() => {
     const warningText = "正在保存中。确定离开当前页面？";
