@@ -136,8 +136,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
         确认
       </Button>
       <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
-
-      <Select placeholder="选择标题"
+      <Spacer />
+      <Select placeholder="模版文字"
         onChange={e => insertSnippet(snippets.find(snippet => 
           snippet.title === e.target.value)?.text || "")} 
       >
