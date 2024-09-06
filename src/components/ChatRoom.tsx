@@ -84,15 +84,12 @@ function Message({ message: m }: {
 
 const snippets = [
   {
-    title: "辅导难题解决策略",
-    text: '在本次辅导中，【学生姓名】提到了在【课程或技能】上遇到的难题，尤其是【具体问题】。' +
-    '我给出了一些解决策略，包括【策略1】和【策略2】，希望能帮助他/她在下次作业中表现更好。' +
-    '为了进一步提升他/她的理解和技能，我推荐他/她阅读【推荐资料或活动】。'
+    title: "【一对一】",
+    text: "【一对一】"
   },
   {
-    title: "专注技能提升",
-    text: '今天我们重点关注了【学生姓名】的【具体技能或课程内容】。' +
-    '他/她对于【具体问题或挑战】的处理方式是【描述】，我建议他/她在未来可以尝试【具体建议】。'
+    title: "【导师组内部讨论】",
+    text: "【导师组内部讨论】"
   }
 ];
 
@@ -107,7 +104,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
   const utils = trpcNext.useContext();
   
   const insertSnippet = (snippet: string) => {
-    setMarkdown(prev => prev + snippet + '\n');
+    setMarkdown(prev => prev + snippet);
   };
 
   const save = async () => {
@@ -133,21 +130,21 @@ function Editor({ roomId, message, onClose, ...rest }: {
     />
 
     <HStack>
-      <Select placeholder="选择模版" 
-        onChange={(e) => insertSnippet(snippets.find(snippet => 
-          snippet.title === e.target.value)?.text || "")} 
-        width="180px" marginRight={10} variant="brand">
-        {snippets.map((snippet, index) => (
-          <option key={index} value={snippet.title}>{snippet.title}</option>
-        ))}
-      </Select>
-
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
         variant="brand" leftIcon={<Icon as={MdSend} />}
       >
         确认
       </Button>
       <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+
+      <Select placeholder="选择标题"
+        onChange={e => insertSnippet(snippets.find(snippet => 
+          snippet.title === e.target.value)?.text || "")} 
+      >
+        {snippets.map((snippet, index) => (
+          <option key={index} value={snippet.title}>{snippet.title}</option>
+        ))}
+      </Select>
     </HStack>
   </>;
 }
