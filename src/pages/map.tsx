@@ -1,6 +1,5 @@
 import {
   Tab,
-  Tabs,
   TabList,
   TabPanel,
   TabPanels,
@@ -10,16 +9,15 @@ import {
   Text,
   Spinner,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { trpcNext } from "../trpc";
 import { Landmark } from 'shared/Map';
+import TabsWithUrlParam from 'components/TabsWithUrlParam';
 
 export default function Page() {
-  const [tabIndex, setTabIndex] = useState(0);
-
-  const personalGrowth = trpcNext.map.list.useQuery('个人成长', { enabled: tabIndex === 0 });
-  const careerDevelopment = trpcNext.map.list.useQuery('事业发展', { enabled: tabIndex === 1 });
-  const socialResponsibility = trpcNext.map.list.useQuery('社会责任', { enabled: tabIndex === 2 });
+  const personalGrowth = trpcNext.map.list.useQuery('个人成长');
+  const careerDevelopment = trpcNext.map.list.useQuery('事业发展');
+  const socialResponsibility = trpcNext.map.list.useQuery('社会责任');
 
   const ChakraCards = ({ data }: { data: Landmark[] | undefined }) => {
     return (
@@ -35,7 +33,7 @@ export default function Page() {
   };
 
   return (
-    <Tabs size="md" onChange={(index) => setTabIndex(index)}>
+    <TabsWithUrlParam isLazy>
       <TabList>
         <Tab>个人成长</Tab>
         <Tab>事业发展</Tab>
@@ -67,6 +65,6 @@ export default function Page() {
           )}
         </TabPanel>
       </TabPanels>
-    </Tabs>
+    </TabsWithUrlParam>
   );
 }
