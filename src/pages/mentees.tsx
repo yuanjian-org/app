@@ -24,6 +24,7 @@ import {
   LinkProps,
   Checkbox,
   Tooltip,
+  Tag,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import trpc, { trpcNext } from "../trpc";
@@ -79,13 +80,17 @@ function MenteeTable({ users, refetch }: {
   refetch: () => void
 }) {
   const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
-  const updateMenteeYear = (userId: string, acceptanceYear: string) => {
-    setMenteeToYear(current => {
-      const newMap = new Map(current);
-      newMap.set(userId, acceptanceYear);
-      return newMap;
-    });
-  };
+
+  // Use a callback to avoid infinite re-rendering when menteeToYear is changed.
+  const updateMenteeYear = useCallback(
+    (userId: string, acceptanceYear: string) => {
+      setMenteeToYear(current => {
+        const newMap = new Map(current);
+        newMap.set(userId, acceptanceYear);
+        return newMap;
+      });
+    }
+  , []);
  
   return <Table size="sm">
     <Thead>
@@ -158,6 +163,19 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   </Tr>;
 }
 
+function getColorFromText(text: string): string {
+  const colors = ["red", "orange", "yellow", "green", "teal", "blue", "cyan",
+    "purple"];
+
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = text.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+}
+
 export function MenteeCells({ mentee, updateMenteeYear } : {
   mentee: MinUser,
   updateMenteeYear?: UpdateMenteeYear
@@ -166,18 +184,18 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
     type: "MenteeInterview",
     userId: mentee.id,
   });
-  
-  const getYear = () => (data?.application as Record<string, any>)?.[menteeAcceptanceYearField];
-  const year = getYear();
-  
+
+  const year = (data?.application as Record<string, any>)
+    ?.[menteeAcceptanceYearField];
+
   useEffect(() => {
     if (updateMenteeYear) {
-      updateMenteeYear(mentee.id, getYear());
+      updateMenteeYear(mentee.id, year);
     }
-  }, [data]);  
-  
+  }, [mentee.id, year, updateMenteeYear]);
+
   return <>
-    <Td>{year && year}</Td>
+    <Td>{year && <Tag colorScheme={getColorFromText(year)}>{year}</Tag>}</Td>
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
       {mentee.name} <ChevronRightIcon />
     </Link></Td>
