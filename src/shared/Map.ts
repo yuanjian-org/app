@@ -17,6 +17,7 @@ export const Latitudes = [
 export const zLatitude = z.enum(Latitudes);
 
 export const zLandmark = z.object({
+    名称: z.string(),
     定义: z.string(),
     经度: zLongtitude,
     纬度: zLatitude,

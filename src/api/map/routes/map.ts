@@ -8,7 +8,7 @@ import * as path from 'path';
 const list = procedure
   .use(authUser())
   .input(zLatitude)
-  .output(z.array(zLandmark.extend({ fileName: z.string() })))
+  .output(z.array(zLandmark))
   .query(async ({ input : latitude }) =>
 {
   const landmarkDataPath = path.join('src','api', 'map', 'data', latitude);
@@ -18,13 +18,13 @@ const list = procedure
     files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
-      const filePath = path.join(landmarkDataPath, file);
-      const fileContent = await fs.promises.readFile(filePath, 'utf8');
-      const landmark = JSON.parse(fileContent) as Landmark;
-      return {
-        ...landmark,
-        fileName: file,
-      };
+        const filePath = path.join(landmarkDataPath, file);
+        const fileContent = await fs.promises.readFile(filePath, 'utf8');
+        const landmark = JSON.parse(fileContent);
+        return {
+            ...landmark,
+            名称: path.basename(file, '.json'),
+        } as Landmark;
     }));
 });
 
