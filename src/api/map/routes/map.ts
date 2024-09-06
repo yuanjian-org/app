@@ -20,7 +20,11 @@ const list = procedure
     .map(async file => {
       const filePath = path.join(landmarkDataPath, file);
       const fileContent = await fs.promises.readFile(filePath, 'utf8');
-      return JSON.parse(fileContent) as Landmark;
+      const landmark = JSON.parse(fileContent);
+      return {
+          ...landmark,
+          名称: path.basename(file, '.json'),
+      } as Landmark;
     }));
 });
 
