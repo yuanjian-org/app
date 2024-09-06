@@ -40,6 +40,7 @@ function MenteeTabs({ user, mentorships }: {
 }) {
   const [me] = useUserContext();
   const sortedMentorships = sortMentorship(mentorships, me.id);
+  // if text in chat has changed
   const [textChange, setTextChange] = useState<boolean>(false);
   const router = useRouter();
   const index = parseInt(
@@ -54,15 +55,16 @@ function MenteeTabs({ user, mentorships }: {
 
   // function will be triggered if switch tab
   const handleTabsChange = (idx: number) => {
-    const firstIdx = sortedMentorships.length === 1 ? 1 : 0;
-
+    const chatRoomIdx = sortedMentorships.length === 1 ? 1 : 0;
+    // if text has changed
     if (textChange) {
-      if (idx !== firstIdx) {
+      if (idx !== chatRoomIdx) {
+        // if not the message tab
         if (tabsChangeConfirm()) {
           setTabIndex(idx);
           setTextChange(false);
         } else {
-          setTabIndex(firstIdx);
+          setTabIndex(chatRoomIdx);
         }
       }
     } else {
@@ -105,9 +107,7 @@ function MenteeTabs({ user, mentorships }: {
             </TabPanel>
           ))}
           <TabPanel>
-            <ChatRoom menteeId={user.id} hasTextChange={(type) => {
-                setTextChange(type);
-              }}
+            <ChatRoom menteeId={user.id} setTextChange={setTextChange}
             />
           </TabPanel>
           <TabPanel>
