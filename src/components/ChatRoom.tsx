@@ -8,6 +8,7 @@ import {
   Textarea,
   TextareaProps,
   VStack,
+  Select,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -81,6 +82,17 @@ function Message({ message: m }: {
   </HStack>;
 }
 
+const snippets = [
+  {
+    title: "【一对一】",
+    text: "【一对一】"
+  },
+  {
+    title: "【导师组内部讨论】",
+    text: "【导师组内部讨论】"
+  }
+];
+
 function Editor({ roomId, message, onClose, ...rest }: {
   roomId?: string,        // create a new message when specified
   message?: ChatMessage,  // must be specified iff. roomId is undefined
@@ -90,6 +102,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
     message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
+  
+  const insertSnippet = (snippet: string) => {
+    setMarkdown(prev => prev + snippet);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -112,6 +128,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
     <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
       autoFocus background="white" height={200} {...rest}
     />
+
     <HStack>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
         variant="brand" leftIcon={<Icon as={MdSend} />}
@@ -119,6 +136,15 @@ function Editor({ roomId, message, onClose, ...rest }: {
         确认
       </Button>
       <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+      <Spacer />
+      <Select placeholder="模版文字"
+        onChange={e => insertSnippet(snippets.find(snippet => 
+          snippet.title === e.target.value)?.text || "")} 
+      >
+        {snippets.map((snippet, index) => (
+          <option key={index} value={snippet.title}>{snippet.title}</option>
+        ))}
+      </Select>
     </HStack>
   </>;
 }
