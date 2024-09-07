@@ -29,7 +29,7 @@ export default function Room({ menteeId }: {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
-    <VStack spacing={paragraphSpacing * 1.5} align="start">
+    <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
       <MessageCreator roomId={room.id} />
 
       {room.messages.sort((a, b) => moment(a.updatedAt)
