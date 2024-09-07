@@ -129,7 +129,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
       autoFocus background="white" height={200} {...rest}
     />
 
-    <HStack>
+    <HStack width="100%">
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
         variant="brand" leftIcon={<Icon as={MdSend} />}
       >
@@ -140,6 +140,9 @@ function Editor({ roomId, message, onClose, ...rest }: {
       <Select placeholder="模版文字"
         onChange={e => insertSnippet(snippets.find(snippet => 
           snippet.title === e.target.value)?.text || "")} 
+          // if maxWidth is not specified, it will take up all the remaining width.
+          // this must work with Spacer to create a gap.
+          maxWidth="180px" 
       >
         {snippets.map((snippet, index) => (
           <option key={index} value={snippet.title}>{snippet.title}</option>
