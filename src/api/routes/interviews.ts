@@ -3,33 +3,43 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
-import { groupAttributes, groupInclude, interviewInclude, interviewAttributes } from "../database/models/attributesAndIncludes";
+import {
+  groupAttributes, groupInclude, interviewInclude, interviewAttributes
+} from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
-import { conflictError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import {
+  conflictError, generalBadRequestError, noPermissionError, notFoundError 
+} from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
-import { getCalibrationAndCheckPermissionSafe, syncCalibrationGroup } from "./calibrations";
+import {
+  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup 
+} from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
+import { isPermittedForMentee } from "./users";
 
 /**
- * Only MenteeManagers, interviewers of the interview, and users allowed by `checkCalibrationPermission` are allowed
+ * Only MenteeManagers, interviewers of the interview, users allowed by 
+ * `getCalibrationAndCheckPermissionSafe` and `isPermittedForMentee` are allowed
  * to call this route.
  */
 const get = procedure
   .use(authUser())
-  .input(z.string())
+  .input(z.object({
+    interviewId: z.string()
+  }))
   .output(z.object({
     interviewWithGroup: zInterviewWithGroup,
     etag: z.number(),
   }))
-  .query(async ({ ctx, input: id }) =>
+  .query(async ({ ctx, input: { interviewId } }) =>
 {
-  const i = await db.Interview.findByPk(id, {
+  const i = await db.Interview.findByPk(interviewId, {
     attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
     include: [...interviewInclude, {
       model: Group,
@@ -37,20 +47,44 @@ const get = procedure
       include: groupInclude,
     }],
   });
-  if (!i) throw notFoundError("面试", id);
+  if (!i) throw notFoundError("面试", interviewId);
 
   const ret = {
     interviewWithGroup: i,
     etag: date2etag(i.decisionUpdatedAt),
   };
 
-  if (isPermitted(ctx.user.roles, "MenteeManager")) return ret;
+  const me = ctx.user;
+  if (isPermitted(me.roles, "MenteeManager")) return ret;
 
-  if (i.feedbacks.some(f => f.interviewer.id === ctx.user.id)) return ret;
+  if (i.feedbacks.some(f => f.interviewer.id === me.id)) return ret;
 
-  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(ctx.user, i.calibrationId)) return ret;
+  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
+    i.calibrationId)) return ret;
 
-  throw noPermissionError("面试", id);
+  if (!await isPermittedForMentee(me, i.interviewee.id)) return ret;
+
+  throw noPermissionError("面试", interviewId);
+});
+
+const getIdForMentee = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string()
+  }))
+  .output(z.string().nullable())
+  .query(async ({ input: { menteeId } }) =>
+{
+  // Define a variable to enforce type safety
+  const type: InterviewType = "MenteeInterview";
+  const i = await db.Interview.findOne({
+    where: {
+      intervieweeId: menteeId,
+      type,
+    },
+    attributes: ["id"],
+  });
+  return i ? i.id : null;
 });
 
 const list = procedure
@@ -250,6 +284,7 @@ function validate(intervieweeId: string, interviewerIds: string[]) {
 
 export default router({
   get,
+  getIdForMentee,
   list,
   listMine,
   create,
