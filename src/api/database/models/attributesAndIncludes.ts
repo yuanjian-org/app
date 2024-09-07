@@ -91,7 +91,9 @@ export const interviewAttributes = ["id", "type", "decision"];
 
 export const interviewInclude = [{
   model: User,
-  attributes: minUserAttributes,
+  // menteeStatus is used to filter out mentees whose status is not 待审.
+  // See routes/interviews.ts where this field is referenced.
+  attributes: [...minUserAttributes, "menteeStatus"],
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,

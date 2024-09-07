@@ -93,11 +93,15 @@ const list = procedure
   .output(z.array(zInterview))
   .query(async ({ input: type }) =>
 {
-  return await db.Interview.findAll({
+  return (await db.Interview.findAll({
     where: { type },
     attributes: interviewAttributes,
     include: interviewInclude,
-  });
+  }))
+  // Only return mentees whose status is 待审.
+  // TOOD: optimize query to filter interviews at the DB level.
+  .filter(i => i.type == "MentorInterview" ||
+    i.interviewee.menteeStatus === null);
 });
 
 const listMine = procedure
@@ -113,7 +117,11 @@ const listMine = procedure
       attributes: interviewAttributes,
       include: interviewInclude
     }]
-  })).map(feedback => feedback.interview);
+  })).map(feedback => feedback.interview)
+  // Only return mentees whose status is 待审.
+  // TOOD: optimize query to filter interviews at the DB level.
+  .filter(i => i.type == "MentorInterview" ||
+    i.interviewee.menteeStatus === null);
 });
 
 /**
