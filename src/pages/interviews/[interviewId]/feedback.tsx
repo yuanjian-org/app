@@ -29,6 +29,7 @@ export default widePage(() => {
   const [me] = useUserContext();
 
   const interviewerTestPassed = () => {
+    if (process.env.NODE_ENV !== 'production') return true;
     const passed = me.menteeInterviewerTestLastPassedAt;
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
   };

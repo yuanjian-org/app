@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { UserFilter } from 'shared/User';
-import { Link, Select, WrapItem } from '@chakra-ui/react';
+import { HStack, Link, Select, Spacer, WrapItem, Text } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import _ from "lodash";
 import { zMenteeStatus } from 'shared/MenteeStatus';
 import MenteeStatusSelect, { NULL_MENTEE_STATUS } from './MenteeStatusSelect';
 import NextLink from "next/link";
+import { MdComputer } from 'react-icons/md';
 
 type BooleanLabelType = "是不是" | "有没有" | "已经";
 
@@ -74,8 +75,11 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     <WrapItem>递交学生申请</WrapItem>
     <WrapItem>{booleanSelect("isMenteeInterviewee", "已经")}</WrapItem>
     <WrapItem>为学生拉面试群</WrapItem>
+    <Spacer />
     <WrapItem>
-      <Link as={NextLink} href="/interviews?type=mentee">（管理面试）</Link>
+      <Link as={NextLink} href="/interviews?type=mentee">
+        <HStack><MdComputer /><Text>管理面试</Text></HStack>
+      </Link>
     </WrapItem>
   </>;
 }
