@@ -10,8 +10,10 @@ import {
   VStack,
   Select,
   Link,
+  useBreakpointValue,
+  Flex,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
@@ -103,9 +105,33 @@ function Editor({ roomId, message, onClose, ...rest }: {
     message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
-  
-  const insertSnippet = (snippet: string) => {
-    setMarkdown(prev => prev + snippet);
+  const direction: "row" | "column" | undefined = useBreakpointValue({
+    base: 'column' as const,
+    md: 'row' as const,
+  });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const insertSnippet = (markdown: string, cursorPos: number, snippet: string) => 
+  {
+    const before = markdown.substring(0, cursorPos);
+    const after = markdown.substring(cursorPos);
+    return before + snippet + after;
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const cursorPos = textarea.selectionStart; 
+      const snippet = snippets.find(snippet => 
+        snippet.text === e.target.value)?.text ?? '';
+      const updatedMarkdown = insertSnippet(markdown, cursorPos, snippet);
+      setMarkdown(updatedMarkdown); 
+
+      setTimeout(() => {
+        const newCursorPos = updatedMarkdown.length;
+        textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+        textarea.focus(); 
+      }, 0);
+    }
   };
 
   const save = async () => {
@@ -126,39 +152,38 @@ function Editor({ roomId, message, onClose, ...rest }: {
   };
 
   return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
+    <Textarea ref={textareaRef} value={markdown} 
+      onChange={e => setMarkdown(e.target.value)}
       autoFocus background="white" height={200} {...rest}
     />
 
-    <HStack width="100%" spacing={componentSpacing}>
-      <Button onClick={save} isLoading={saving} isDisabled={!markdown}
-        variant="brand" leftIcon={<Icon as={MdSend} />}
-      >
-        确认
-      </Button>
-      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+    <Flex direction={direction} width="100%" gap={2}>
+      <Flex align="center" gap={componentSpacing} justifyContent="left">
+        <Button onClick={save} isLoading={saving} isDisabled={!markdown}
+          variant="brand" leftIcon={<Icon as={MdSend} />}>确认</Button>
+        <Button onClick={() => onClose()} variant="ghost" color="grey">
+          取消</Button>
+      </Flex>
       <Spacer />
-
-      <Link target="_blank" 
-        href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" 
-      >
-        <HStack>
-          <Text>支持 Markdown 格式</Text>
-          <Icon as={ExternalLinkIcon} />
-        </HStack>
-      </Link>
-
-      <Select placeholder="模版文字"
-        onChange={e => insertSnippet(snippets.find(snippet => 
-          snippet.title === e.target.value)?.text || "")} 
+      <Flex align="center" gap={componentSpacing} justifyContent="right">
+        <Link target="_blank" 
+          href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" 
+        >
+          <HStack>
+            <Text>支持 Markdown 格式</Text>
+            <Icon as={ExternalLinkIcon} />
+          </HStack>
+        </Link>
+        <Select value="" placeholder="模版文字" onChange={handleSelectChange} 
           // if maxWidth is not specified, it will take up all the remaining width.
           // this must work with Spacer to create a gap.
           maxWidth="180px" 
-      >
-        {snippets.map((snippet, index) => (
-          <option key={index} value={snippet.title}>{snippet.title}</option>
-        ))}
-      </Select>
-    </HStack>
+        >
+          {snippets.map((snippet, index) => (
+            <option key={index} value={snippet.title}>{snippet.title}</option>
+          ))}
+        </Select>
+      </Flex>
+    </Flex>
   </>;
 }
