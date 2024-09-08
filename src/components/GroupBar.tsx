@@ -52,7 +52,8 @@ export default function GroupBar({
   const [user] = useUserContext();
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
-  const launchMeeting = async (groupId: string) => {
+
+  const launchMeetingInNewWindow = async (groupId: string) => {
     setJoining(true);
     try {
       const link = await trpc.meetings.join.mutate({ groupId: groupId });
@@ -63,6 +64,24 @@ export default function GroupBar({
       }
     } finally {
       setJoining(false);
+    }
+  };
+
+  const launchMeetingInSameWindow = async (groupId: string) => {
+    setJoining(true);
+    try {
+      const link = await trpc.meetings.join.mutate({ groupId: groupId });
+      if (!link) {
+        setShowMeetingQuotaWarning(true);
+        setJoining(false);
+      } else {
+        window.location.href = link;
+        // Time is needed for the meeting page to load.
+        setTimeout(() => setJoining(false), 5000);
+      }
+    } catch (e) {
+      setJoining(false);
+      throw e;
     }
   };
 
@@ -85,9 +104,19 @@ export default function GroupBar({
       {/* row 2 col 1 */}
       {showJoinButton &&
         <Box>
+          {/* Open meeting link in the same window on mobile becuase mobile
+            devices may disable pop-up windows by default. */}
           <JoinButton
+            display={{ [sidebarBreakpoint]: 'none' }}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={() => launchMeeting(group.id)}
+            onClick={() => launchMeetingInSameWindow(group.id)}
+          >加入</JoinButton>
+
+          {/* Non-mobile devices open meeting link in the same window. */}
+          <JoinButton
+            display={{ base: 'none', [sidebarBreakpoint]: 'unset' }}
+            isLoading={isJoiningMeeting} loadingText={'加入中...'}
+            onClick={() => launchMeetingInNewWindow(group.id)}
           >加入</JoinButton>
         </Box>
       }
