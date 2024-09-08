@@ -10,10 +10,10 @@ import {
   VStack,
   Select,
   Link,
-  useBreakpointValue,
   Flex,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
+import { sidebarBreakpoint } from 'components/Navbars';
 import { ChatMessage } from 'shared/ChatMessage';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
@@ -105,11 +105,12 @@ function Editor({ roomId, message, onClose, ...rest }: {
     message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
-  const direction: "row" | "column" | undefined = useBreakpointValue({
-    base: 'column' as const,
-    md: 'row' as const,
-  });
+  // To resolve TS type issues with the direction prop in Chakra UI, 
+  // explicitly declare each value using as const to ensure correct typing.
+  const direction = { base: "column" as const, [sidebarBreakpoint]: "row" as const };
+  const mobileGap = 2;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const insertSnippet = (markdown: string, cursorPos: number, snippet: string) => 
   {
     const before = markdown.substring(0, cursorPos);
@@ -119,19 +120,19 @@ function Editor({ roomId, message, onClose, ...rest }: {
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const textarea = textareaRef.current;
-    if (textarea) {
-      const cursorPos = textarea.selectionStart; 
-      const snippet = snippets.find(snippet => 
-        snippet.text === e.target.value)?.text ?? '';
-      const updatedMarkdown = insertSnippet(markdown, cursorPos, snippet);
+    if (!textarea) return;
+   
+    const cursorPos = textarea.selectionStart; 
+    const snippet = snippets.find(snippet => 
+      snippet.text === e.target.value)?.text ?? '';
+    const updatedMarkdown = insertSnippet(markdown, cursorPos, snippet);
       setMarkdown(updatedMarkdown); 
-
-      setTimeout(() => {
-        const newCursorPos = updatedMarkdown.length;
-        textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-        textarea.focus(); 
-      }, 0);
-    }
+    // Set timeout to ensure the textarea updates before moving the cursor
+    setTimeout(() => {
+      const newCursorPos = updatedMarkdown.length;
+      textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+      textarea.focus(); 
+    }, 0);
   };
 
   const save = async () => {
@@ -157,7 +158,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
       autoFocus background="white" height={200} {...rest}
     />
 
-    <Flex direction={direction} width="100%" gap={2}>
+    <Flex direction={direction} width="100%" gap={mobileGap}>
       <Flex align="center" gap={componentSpacing} justifyContent="left">
         <Button onClick={save} isLoading={saving} isDisabled={!markdown}
           variant="brand" leftIcon={<Icon as={MdSend} />}>确认</Button>
