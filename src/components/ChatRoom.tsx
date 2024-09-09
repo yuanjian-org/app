@@ -129,7 +129,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
       setMarkdown(updatedMarkdown); 
     // Set timeout to ensure the textarea updates before moving the cursor
     setTimeout(() => {
-      const newCursorPos = updatedMarkdown.length;
+      const newCursorPos = cursorPos + snippet.length;
       textarea.selectionStart = textarea.selectionEnd = newCursorPos;
       textarea.focus(); 
     }, 0);
