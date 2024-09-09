@@ -1,12 +1,22 @@
-import { Box, Heading, Text } from '@chakra-ui/react';
+import {
+  Heading, 
+  Text,
+  Card,
+  CardHeader,
+  CardBody,
+} from '@chakra-ui/react';
 import { Landmark } from 'shared/Map';
 
 const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
   return (
-    <Box>
-      <Heading size="md">{landmark.名称}</Heading>
-      <Text>{landmark.定义}</Text>
-    </Box>
+    <Card>
+      <CardHeader>
+        <Heading size="md">{landmark.名称}</Heading>
+      </CardHeader>
+      <CardBody>
+        <Text>{landmark.定义}</Text>
+      </CardBody>
+    </Card>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Spinner, Stack } from '@chakra-ui/react';
+import { Spinner, SimpleGrid } from '@chakra-ui/react';
 import { trpcNext } from '../../trpc';
 import LandmarkCard from './LandmarkCard';
 import { componentSpacing } from 'theme/metrics';
@@ -12,11 +12,11 @@ const LandmarkTabPanel = ({ lat }: { lat: Latitude }) => {
       {isLoading ? (
         <Spinner />
       ) : (
-        <Stack spacing={componentSpacing}>
+        <SimpleGrid spacing={componentSpacing} templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
           {data?.map((landmark, index) => (
             <LandmarkCard key={index} landmark={landmark} />
           ))}
-        </Stack>
+        </SimpleGrid>
       )}
     </>
   );
