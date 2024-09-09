@@ -40,7 +40,7 @@ async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: 
   if (f.interviewer.id == me.id) return f;
 
   if (!allowOnlyInterviewer) {
-    if (isPermitted(me.roles, "MenteeManager")) return f;
+    if (isPermitted(me.roles, "MentorshipManager")) return f;
 
     // Check if the user is a participant of the interview's calibration and the calibration is active.
     const i = await db.Interview.findByPk(f.interviewId, {

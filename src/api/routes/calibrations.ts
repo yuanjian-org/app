@@ -17,7 +17,7 @@ import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
 
 const create = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     type: zInterviewType,
     name: z.string(),
@@ -46,7 +46,7 @@ export async function createCalibration(type: InterviewType, name: string):
 }
 
 const update = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     id: z.string(),
     name: z.string(),
@@ -66,7 +66,7 @@ const update = procedure
 });
 
 const list = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(zInterviewType)
   .output(z.array(zCalibration))
   .query(async ({ input: type }) =>
@@ -166,7 +166,7 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
-  if (isPermitted(me.roles, "MenteeManager")) return c;
+  if (isPermitted(me.roles, "MentorshipManager")) return c;
 
   if (!c.active) return null;
 

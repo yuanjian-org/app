@@ -55,7 +55,7 @@ const get = procedure
   };
 
   const me = ctx.user;
-  if (isPermitted(me.roles, "MenteeManager")) return ret;
+  if (isPermitted(me.roles, "MentorshipManager")) return ret;
 
   if (i.feedbacks.some(f => f.interviewer.id === me.id)) return ret;
 
@@ -88,7 +88,7 @@ const getIdForMentee = procedure
 });
 
 const list = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(zInterviewType)
   .output(z.array(zInterview))
   .query(async ({ input: type }) =>
@@ -128,7 +128,7 @@ const listMine = procedure
  * @returns the interview id.
  */
 const create = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     type: zInterviewType,
     calibrationId: z.string().nullable(),
@@ -176,7 +176,7 @@ export async function createInterview(type: InterviewType, calibrationId: string
 }
 
 const update = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     id: z.string(),
     type: zInterviewType,
@@ -193,7 +193,7 @@ const update = procedure
  * @return etag
  */
 const updateDecision = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     interviewId: z.string(),
     decision: zFeedbackDeprecated,
