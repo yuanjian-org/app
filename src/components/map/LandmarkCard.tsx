@@ -1,11 +1,7 @@
 import { Box, Heading, Text } from '@chakra-ui/react';
-import { Landmark } from 'shared/Map'; // Import your Landmark type
+import { Landmark } from 'shared/Map';
 
-interface LandmarkCardProps {
-  landmark: Landmark;
-}
-
-const LandmarkCard: React.FC<LandmarkCardProps> = ({ landmark }) => {
+const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
   return (
     <Box>
       <Heading size="md">{landmark.名称}</Heading>
