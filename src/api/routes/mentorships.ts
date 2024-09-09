@@ -18,9 +18,10 @@ import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
 import { formatUserName } from "shared/strings";
+import { isPermittedForMentee } from "./users";
 
 const create = procedure
-  .use(authUser('MenteeManager'))
+  .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorId: z.string(),
     menteeId: z.string(),
@@ -63,7 +64,7 @@ const create = procedure
 });
 
 const update = procedure
-  .use(authUser('MenteeManager'))
+  .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorshipId: z.string(),
     endedAt: z.string().nullable(),
@@ -172,8 +173,7 @@ const get = procedure
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
   });
-  if (!res || (res.mentor.id !== ctx.user.id &&
-    !isPermitted(ctx.user.roles, "MentorCoach"))) {
+  if (!res || !await isPermittedForMentee(ctx.user, res.mentee.id)) {
     throw noPermissionError("一对一匹配", id);
   }
   return res;

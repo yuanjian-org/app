@@ -80,6 +80,7 @@ class User extends Model {
   @Column(UUID)
   coachId: string | null;
 
+  // `null` represents "待审"
   @ZodColumn(STRING, zMenteeStatus.nullable())
   menteeStatus: MenteeStatus | null;
 

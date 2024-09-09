@@ -19,6 +19,7 @@ import GroupBar from 'components/GroupBar';
 import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
+import Interview from 'components/Interview';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
@@ -28,12 +29,12 @@ export default widePage(() => {
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs user={u} mentorships={mentorships || []} />
+    <MenteeTabs mentee={u} mentorships={mentorships || []} />
   </>;
 });
 
-function MenteeTabs({ user, mentorships }: {
-  user: MinUser,
+function MenteeTabs({ mentee, mentorships }: {
+  mentee: MinUser,
   mentorships: Mentorship[],
 }) {
   const [me] = useUserContext();
@@ -54,7 +55,8 @@ function MenteeTabs({ user, mentorships }: {
         )
       }
       <Tab>内部笔记</Tab>
-      <Tab>申请材料</Tab>
+      <Tab>基本信息</Tab>
+      <Tab>面试资料</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
 
@@ -65,16 +67,30 @@ function MenteeTabs({ user, mentorships }: {
         </TabPanel>
       )}
       <TabPanel>
-        <ChatRoom menteeId={user.id} />
+        <ChatRoom menteeId={mentee.id} />
       </TabPanel> 
       <TabPanel>
-        <MenteeApplicant userId={user.id} />
+        <MenteeApplicant userId={mentee.id} />
       </TabPanel>
+      <InterviewTabPanel menteeId={mentee.id} />
       {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
     </TabPanels>
   </TabsWithUrlParam>;
+}
+
+function InterviewTabPanel({ menteeId }: {
+  menteeId: string
+}) {
+  const { data : interviewId, isLoading } = trpcNext.interviews.getIdForMentee
+    .useQuery({ menteeId });
+  return <TabPanel>
+    {isLoading ? <Loader /> : 
+      interviewId ? <Interview interviewId={interviewId} readonly /> :
+        <Text color="grey">没有面试资料。</Text>
+    }
+  </TabPanel>;
 }
 
 function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {

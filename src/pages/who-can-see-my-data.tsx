@@ -46,17 +46,17 @@ function DataTable() {
       <Tbody>
         <Tr>
           <Td>姓名</Td>
-          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('MenteeManager')}
+          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('MentorshipManager')}
             、同一会议分组的其他成员
           </Td>
         </Tr>
         <Tr>
           <Td>电子邮箱</Td>
-          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('MenteeManager')}</Td>
+          <Td>{dp('UserManager')}、{dp('GroupManager')}、{dp('MentorshipManager')}</Td>
         </Tr>
         <Tr>
           <Td>微信号</Td>
-          <Td>{dp('MenteeManager')}</Td>
+          <Td>{dp('MentorshipManager')}</Td>
         </Tr>
         <Tr>
           <Td>一对一导师与学生通话的纪要文字</Td>

@@ -14,12 +14,13 @@ import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
 
-export default function Interview({ interviewId, hasTitle }: {
+export default function Interview({ interviewId, hasTitle, readonly }: {
   interviewId: string, 
   hasTitle?: boolean,
+  readonly?: boolean,
 }) {
   // See Editor()'s comment on the reason for `catchTime: 0`
-  const { data } = trpcNext.interviews.get.useQuery(interviewId,
+  const { data } = trpcNext.interviews.get.useQuery({ interviewId },
     { cacheTime: 0 });
   const [me] = useUserContext();
 
@@ -56,7 +57,7 @@ export default function Interview({ interviewId, hasTitle }: {
           <Flex direction="column" gap={sectionSpacing}>
             <Heading size="md">{formatUserName(f.interviewer.name)}</Heading>
             <InterviewFeedbackEditor interviewFeedbackId={f.id} 
-              readonly={me.id !== f.interviewer.id} />
+              readonly={readonly || me.id !== f.interviewer.id} />
           </Flex>
         </GridItem>
       )}
@@ -66,7 +67,7 @@ export default function Interview({ interviewId, hasTitle }: {
 
           <Heading size="md">面试讨论</Heading>
           <InterviewDecisionEditor interviewId={interviewId} 
-            decision={i.decision} etag={data.etag} />
+            decision={i.decision} etag={data.etag} readonly={readonly} />
 
           {i.type == "MenteeInterview" ?
             <MenteeApplicant userId={i.interviewee.id} showTitle />

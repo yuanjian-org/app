@@ -54,12 +54,23 @@ import EditableWithIcon from 'components/EditableWithIcon';
 import { widePage } from 'AppPage';
 
 export default widePage(() => {
-  const type: InterviewType = useRouter().query.type === "mentee" ? "MenteeInterview" : "MentorInterview";
+  const type: InterviewType = useRouter().query.type === "mentee" ?
+    "MenteeInterview" : "MentorInterview";
 
-  const { data: applicants } = trpcNext.users.list.useQuery(type == "MenteeInterview" ?
-    { hasMenteeApplication: true } : { hasMentorApplication: true });
-  const { data: interviews, refetch: refetchInterview } = trpcNext.interviews.list.useQuery(type);
-  const { data: calibrations, refetch: refetchCalibrations } = trpcNext.calibrations.list.useQuery(type);
+  const { data: applicants } = trpcNext.users.list.useQuery(
+    type == "MenteeInterview" ? { 
+      // Only list mentees without status (ie. 待审)
+      menteeStatus: null,
+      hasMenteeApplication: true,
+    } : { 
+      hasMentorApplication: true
+    }
+  );
+
+  const { data: interviews, refetch: refetchInterview } =
+    trpcNext.interviews.list.useQuery(type);
+  const { data: calibrations, refetch: refetchCalibrations } =
+    trpcNext.calibrations.list.useQuery(type);
 
   return <Flex direction='column' gap={6}>
     <TabsWithUrlParam isLazy>
