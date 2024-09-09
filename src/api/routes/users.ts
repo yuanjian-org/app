@@ -44,7 +44,7 @@ const create = procedure
  * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(['UserManager', 'GroupManager', 'MenteeManager']))
+  .use(authUser(['UserManager', 'GroupManager', 'MentorshipManager']))
   .input(zUserFilter)
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
@@ -141,7 +141,7 @@ const update = procedure
 });
 
 const updateMenteeStatus = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     menteeStatus: zMenteeStatus.nullable()
@@ -174,7 +174,7 @@ const get = procedure
 
 
 /**
- * Only the user themselves, MentorCoach, and MenteeManager have access.
+ * Only the user themselves, MentorCoach, and MentorshipManager have access.
  */
 const getMentorCoach = procedure
   .use(authUser())
@@ -185,7 +185,7 @@ const getMentorCoach = procedure
   .query(async ({ ctx, input: { userId } }) =>
 {
   if (ctx.user.id !== userId && !isPermitted(ctx.user.roles,
-    ["MentorCoach", "MenteeManager"])) {
+    ["MentorCoach", "MentorshipManager"])) {
     throw noPermissionError("资深导师匹配", userId);
   }
 
@@ -202,7 +202,7 @@ const getMentorCoach = procedure
 });
 
 const setMentorCoach = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     coachId: z.string(),
@@ -247,7 +247,7 @@ const setMentorCoach = procedure
  * of the applicant, and participants of the calibration (only if the calibration
  * is active) are allowed to call this route.
  * 
- * If the user is not an MenteeManager, contact information is redacted.
+ * If the user is not an MentorshipManager, contact information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -272,7 +272,7 @@ const getApplicant = procedure
     user, application: user.menteeApplication
   };
 
-  if (isPermitted(ctx.user.roles, "MenteeManager")) return ret;
+  if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
 
   // Redact
   user.email = "redacted@redacted.com";
@@ -315,7 +315,7 @@ const getApplicant = procedure
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
 const updateApplication = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     type: zInterviewType,
@@ -422,7 +422,7 @@ export async function checkPermissionForMentee(me: User, menteeId: string) {
 }
 
 export async function isPermittedForMentee(me: User, menteeId: string) {
-  if (isPermitted(me.roles, ["MentorCoach", "MenteeManager"])) return true;
+  if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
   if (await db.Mentorship.count(
     { where: { mentorId: me.id, menteeId } }) > 0) return true;
   return false;

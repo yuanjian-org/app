@@ -110,7 +110,7 @@ export function InterviewDecisionEditor({ interviewId, decision, etag,
   };
 
   return <Editor defaultFeedback={decision} etag={etag} save={save}
-    readonly={readonly || !isPermitted(me.roles, "MenteeManager")}
+    readonly={readonly || !isPermitted(me.roles, "MentorshipManager")}
     showDimensions={false}
   />;
 }

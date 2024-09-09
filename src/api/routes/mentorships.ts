@@ -21,7 +21,7 @@ import { formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
 
 const create = procedure
-  .use(authUser('MenteeManager'))
+  .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorId: z.string(),
     menteeId: z.string(),
@@ -64,7 +64,7 @@ const create = procedure
 });
 
 const update = procedure
-  .use(authUser('MenteeManager'))
+  .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorshipId: z.string(),
     endedAt: z.string().nullable(),
