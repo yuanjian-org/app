@@ -12,8 +12,14 @@ import {
   Link,
   Flex,
   useBreakpointValue,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  useDisclosure,
 } from '@chakra-ui/react';
-import React, { useState }from 'react';
+import React from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude  } from 'shared/Map';
 import { trpcNext } from '../../trpc';
@@ -21,8 +27,8 @@ import { componentSpacing } from 'theme/metrics';
 import Loader from 'components/Loader';
 import { sidebarBreakpoint } from 'components/Navbars';
 
-const desktopTextLimit = 120;
-const mobileTextLimit = 60;
+const desktopTextLimit = 80;
+const mobileTextLimit = 30;
 
 export default function Page() {
 
@@ -72,27 +78,36 @@ const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
   // Ensure maxChar is never undefined by giving a default in useBreakpointValue
   const maxChar = useBreakpointValue({ base: mobileTextLimit, 
     [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
-  const [isExpanded, setIsExpanded] = useState(false);
-  const handleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-  const displayText = isExpanded || landmark.定义.length <= maxChar
-    ? landmark.定义
-    : `${landmark.定义.substring(0, maxChar)}...`;
-
+  const isTruncated = landmark.定义.length > maxChar;
+  const cardText = isTruncated? `${landmark.定义.substring(0, maxChar)}...`: landmark.定义;
+  const { isOpen, onOpen, onClose } = useDisclosure();
+    
   return (
-    <Card>
-      <CardHeader>
-        <Heading size="md">{landmark.名称}</Heading>
-      </CardHeader>
-      <CardBody>
-        <Flex direction="column">
-          <Text>{displayText}</Text>
-          {landmark.定义.length > maxChar && 
-          <Link alignSelf="end" onClick={handleExpand}> 
-          {isExpanded ? '收起' : '更多'}</Link>}
-        </Flex>
-      </CardBody>
-    </Card> 
+    <>
+      <Card>
+        <CardHeader>
+          <Heading size="md">{landmark.名称}</Heading>
+        </CardHeader>
+        <CardBody>
+          <Flex direction="column">
+            <Text>{cardText}</Text>
+            {isTruncated && <Link onClick={onOpen} textAlign="end">更多</Link>}
+          </Flex>
+        </CardBody>
+      </Card> 
+
+      <Drawer isOpen={isOpen} onClose={onClose} size="sm">
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerHeader>{landmark.名称}</DrawerHeader>
+          <DrawerBody>
+            <Flex direction="column">
+              <Text>{landmark.定义}</Text> 
+              <Link onClick={onClose} textAlign="end">收起</Link>
+            </Flex>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
