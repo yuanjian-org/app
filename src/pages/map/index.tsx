@@ -10,14 +10,7 @@ import {
   CardHeader,
   CardBody,
   Link,
-  Flex,
   useBreakpointValue,
-  Drawer,
-  DrawerBody,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  useDisclosure,
 } from '@chakra-ui/react';
 import React from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -75,45 +68,23 @@ const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
 };
 
 const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
-  // Ensure maxChar is never undefined by giving a default in useBreakpointValue
-  const maxChar = useBreakpointValue({ base: mobileTextLimit, 
+  const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
     [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
   const isTruncated = landmark.定义.length > maxChar;
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cardText = isTruncated? <>
+  <span>{landmark.定义.substring(0, maxChar)}...</span>
+  <Link>更多</Link>
+  </>  
+  : landmark.定义;
   
-  const cardText = isTruncated 
-    ? (
-        <>
-          <span>{landmark.定义.substring(0, maxChar)}...</span>
-          <Link onClick={onOpen}>更多</Link>
-        </>
-      )
-    : landmark.定义;
-  
-    
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <Heading size="md">{landmark.名称}</Heading>
-        </CardHeader>
-        <CardBody>
-          <Text>{cardText}</Text>
-        </CardBody>
-      </Card> 
-
-      <Drawer isOpen={isOpen} onClose={onClose} size="md">
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerHeader>{landmark.名称}</DrawerHeader>
-          <DrawerBody>
-            <Flex direction="column">
-              <Text>{landmark.定义}</Text> 
-              <Link onClick={onClose} textAlign="end">收起</Link>
-            </Flex>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-    </>
-  );
+  return <>
+  <Card>
+    <CardHeader>
+      <Heading size="md">{landmark.名称}</Heading>
+      </CardHeader>
+      <CardBody>
+        <Text>{cardText}</Text>
+      </CardBody>
+  </Card> 
+  </>;
 };
