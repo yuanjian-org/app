@@ -79,8 +79,17 @@ const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
   const maxChar = useBreakpointValue({ base: mobileTextLimit, 
     [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
   const isTruncated = landmark.定义.length > maxChar;
-  const cardText = isTruncated? `${landmark.定义.substring(0, maxChar)}...`: landmark.定义;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  const cardText = isTruncated 
+    ? (
+        <>
+          <span>{landmark.定义.substring(0, maxChar)}...</span>
+          <Link onClick={onOpen}>更多</Link>
+        </>
+      )
+    : landmark.定义;
+  
     
   return (
     <>
@@ -89,14 +98,11 @@ const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
           <Heading size="md">{landmark.名称}</Heading>
         </CardHeader>
         <CardBody>
-          <Flex direction="column">
-            <Text>{cardText}</Text>
-            {isTruncated && <Link onClick={onOpen} textAlign="end">更多</Link>}
-          </Flex>
+          <Text>{cardText}</Text>
         </CardBody>
       </Card> 
 
-      <Drawer isOpen={isOpen} onClose={onClose} size="sm">
+      <Drawer isOpen={isOpen} onClose={onClose} size="md">
         <DrawerOverlay />
         <DrawerContent>
           <DrawerHeader>{landmark.名称}</DrawerHeader>
