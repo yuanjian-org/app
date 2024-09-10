@@ -16,6 +16,8 @@ export const Latitudes = [
 
 export const zLatitude = z.enum(Latitudes);
 
+export type Latitude = z.TypeOf<typeof zLatitude>;
+
 export const zLandmark = z.object({
     名称: z.string(),
     定义: z.string(),
