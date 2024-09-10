@@ -53,7 +53,6 @@ export default function Page() {
 
 const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
   const { data, isLoading } = trpcNext.map.list.useQuery(latitude);
-  
   return (
     <>
       {isLoading ? 
