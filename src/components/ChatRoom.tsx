@@ -11,6 +11,7 @@ import {
   Select,
   Link,
   Flex,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
 import { sidebarBreakpoint } from 'components/Navbars';
@@ -25,6 +26,8 @@ import { AddIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
+
+type FlexDirection = "row" | "column";
 
 export default function Room({ menteeId }: {
   menteeId: string,
@@ -107,7 +110,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
   const utils = trpcNext.useContext();
   // To resolve TS type issues with the direction prop in Chakra UI, 
   // explicitly declare each value using as const to ensure correct typing.
-  const direction = { base: "column" as const, [sidebarBreakpoint]: "row" as const };
+  const direction: FlexDirection = useBreakpointValue({ 
+    base: "column", [sidebarBreakpoint]: "row" }) || "row";
   const mobileGap = 2;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
