@@ -3,10 +3,19 @@ import {
   TabList,
   TabPanel,
   TabPanels,
+  SimpleGrid,
+  Heading, 
+  Text,
+  Card,
+  CardHeader,
+  CardBody,
 } from '@chakra-ui/react';
 import React from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import LandmarkTabPanel from 'components/map/LandmarkTabPanel';
+import { Landmark, Latitude  } from 'shared/Map';
+import { trpcNext } from '../../trpc';
+import { componentSpacing } from 'theme/metrics';
+import Loader from 'components/Loader';
 
 export default function Page() {
 
@@ -20,17 +29,48 @@ export default function Page() {
 
       <TabPanels>
         <TabPanel>
-          <LandmarkTabPanel lat="个人成长" />
+          <LandmarkTabPanel latitude="个人成长" />
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel lat="事业发展" />
+          <LandmarkTabPanel latitude="事业发展" />
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel lat="社会责任" />
+          <LandmarkTabPanel latitude="社会责任" />
         </TabPanel>
       </TabPanels>
     </TabsWithUrlParam>
   );
 }
+
+const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
+  const { data, isLoading } = trpcNext.map.list.useQuery(latitude);
+
+  return (
+    <>
+      {isLoading ? 
+        <Loader/> : 
+        <SimpleGrid spacing={componentSpacing} 
+        templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
+          {data?.map((landmark, index) => (
+            <LandmarkCard key={index} landmark={landmark} />
+          ))}
+        </SimpleGrid>
+      }
+    </>
+  );
+};
+
+const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
+  return (
+    <Card>
+      <CardHeader>
+        <Heading size="md">{landmark.名称}</Heading>
+      </CardHeader>
+      <CardBody>
+        <Text>{landmark.定义}</Text>
+      </CardBody>
+    </Card>
+  );
+};

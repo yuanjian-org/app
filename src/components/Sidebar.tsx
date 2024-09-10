@@ -40,7 +40,7 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary,
+  MdLocalLibrary
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarWidth } from './Navbars';
