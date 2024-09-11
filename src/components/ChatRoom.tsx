@@ -11,7 +11,6 @@ import {
   Select,
   Link,
   Flex,
-  useBreakpointValue,
 } from '@chakra-ui/react';
 import React, { useState, useRef } from 'react';
 import { sidebarBreakpoint } from 'components/Navbars';
@@ -26,8 +25,6 @@ import { AddIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
-
-type FlexDirection = "row" | "column";
 
 export default function Room({ menteeId }: {
   menteeId: string,
@@ -108,11 +105,6 @@ function Editor({ roomId, message, onClose, ...rest }: {
     message ? message.markdown : "");
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
-  // To resolve TS type issues with the direction prop in Chakra UI, 
-  // explicitly declare each value using as const to ensure correct typing.
-  const direction: FlexDirection = useBreakpointValue({ 
-    base: "column", [sidebarBreakpoint]: "row" }) || "row";
-  const mobileGap = 2;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const insertSnippet = (markdown: string, cursorPos: number, snippet: string) => 
@@ -161,8 +153,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
       onChange={e => setMarkdown(e.target.value)}
       autoFocus background="white" height={200} {...rest}
     />
-
-    <Flex direction={direction} width="100%" gap={mobileGap}>
+    <Flex direction={{ base: "column", [sidebarBreakpoint]: "row" }} width="100%" gap={componentSpacing}>
       <Flex align="center" gap={componentSpacing} justifyContent="left">
         <Button onClick={save} isLoading={saving} isDisabled={!markdown}
           variant="brand" leftIcon={<Icon as={MdSend} />}>确认</Button>
