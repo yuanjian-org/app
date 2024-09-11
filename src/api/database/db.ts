@@ -15,6 +15,7 @@ import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
 import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
+import Landmark from "./models/map/Landmark";
 
 const db = {
   Mentorship,
@@ -31,6 +32,7 @@ const db = {
   Calibration,
   ChatRoom,
   ChatMessage,
+  Landmark,
 };
 
 export default db;
