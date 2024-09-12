@@ -82,5 +82,5 @@ const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
       <CardBody>
         <Text>{cardText}</Text>
       </CardBody>
-  </Card> 
+  </Card>; 
 };
