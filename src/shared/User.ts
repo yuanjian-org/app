@@ -25,8 +25,6 @@ export default User;
 export const zUserFilter = z.object({
   hasMenteeApplication: z.boolean().optional(),
   hasMentorApplication: z.boolean().optional(),
-  // TODO: remove this field
-  isMenteeInterviewee: z.boolean().optional(),
   matchesNameOrEmail: z.string().optional(),
   containsRoles: zRoles.optional(),
   menteeStatus: zMenteeStatus.nullable().optional(),
