@@ -10,8 +10,7 @@ import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
-import Interview from "../database/models/Interview";
-import { InterviewType, zInterviewType } from "../../shared/InterviewType";
+import { zInterviewType } from "../../shared/InterviewType";
 import { 
   minUserAttributes, 
   userAttributes, 
@@ -53,10 +52,7 @@ const list = procedure
     throw generalBadRequestError("不能同时选择导师和学生申请人");
   }
 
-  // Force typescript checking
-  const interviewType: InterviewType = "MenteeInterview";
-
-  const res = await db.User.findAll({ 
+  return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
 
     where: {
@@ -90,18 +86,7 @@ const list = procedure
         ],
       },
     },
-
-    include: [      
-      ...filter.isMenteeInterviewee === undefined ? [] : [{
-        model: Interview,
-        attributes: ["id"],
-        ...filter.isMenteeInterviewee ? { where: { type: interviewType } } : {},
-      }],
-    ],
   });
-
-  return filter.isMenteeInterviewee == false ?
-    res.filter(u => u.interviews.length == 0) : res;
 });
 
 const update = procedure
