@@ -86,13 +86,10 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       </MenuButton>
       <MenuList>
         <MenuItem as={NextLink} href="/interviews?type=mentee">
-          管理学生面试
+          学生面试
         </MenuItem>
-        <MenuItem>
-          管理导师面试（赶工中）
-        </MenuItem>
-        <MenuItem>
-          导师档案（赶工中）
+        <MenuItem as={NextLink} href="/interviews?type=mentor">
+          导师面试
         </MenuItem>
       </MenuList>
     </Menu>

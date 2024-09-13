@@ -74,6 +74,9 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  mentorApplication: Record<string, any> | null;
+
   // The coach of the mentor. Non-null only if the user is a mentor (ie.
   // `mentorshipsAsMentor` is non-empty).
   @ForeignKey(() => User)
