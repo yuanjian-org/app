@@ -49,7 +49,9 @@ const list = procedure
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
 {
-  if (filter.hasMentorApplication) throw notImplemnetedError();
+  if (filter.hasMentorApplication && filter.hasMenteeApplication) {
+    throw generalBadRequestError("不能同时选择导师和学生申请人");
+  }
 
   // Force typescript checking
   const interviewType: InterviewType = "MenteeInterview";
@@ -71,6 +73,12 @@ const list = procedure
       ...filter.hasMenteeApplication === undefined ? {} : {
         menteeApplication: { 
           ...filter.hasMenteeApplication ? { [Op.ne]: null } : { [Op.eq]: null }
+        },
+      },
+
+      ...filter.hasMentorApplication === undefined ? {} : {
+        mentorApplication: {
+          ...filter.hasMentorApplication ? { [Op.ne]: null } : { [Op.eq]: null }
         },
       },
 
