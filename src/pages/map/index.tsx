@@ -70,17 +70,16 @@ const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
 const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
   const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
     [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
-  const cardText = landmark.定义.length <= maxChar? landmark.定义 : <>
-    <span>{landmark.定义.substring(0, maxChar)}...{' '}</span>
-    <Link>更多</Link>
-  </>;  
+  const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
+    {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
+  </Text>;  
   
   return <Card>
     <CardHeader>
       <Heading size="md">{landmark.名称}</Heading>
       </CardHeader>
       <CardBody>
-        <Text>{cardText}</Text>
+        {cardText}
       </CardBody>
   </Card>; 
 };
