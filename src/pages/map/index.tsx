@@ -9,6 +9,8 @@ import {
   Card,
   CardHeader,
   CardBody,
+  Link,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import React from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -16,6 +18,10 @@ import { Landmark, Latitude  } from 'shared/Map';
 import { trpcNext } from '../../trpc';
 import { componentSpacing } from 'theme/metrics';
 import Loader from 'components/Loader';
+import { sidebarBreakpoint } from 'components/Navbars';
+
+const desktopTextLimit = 80;
+const mobileTextLimit = 30;
 
 export default function Page() {
 
@@ -46,7 +52,6 @@ export default function Page() {
 
 const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
   const { data, isLoading } = trpcNext.map.list.useQuery(latitude);
-
   return (
     <>
       {isLoading ? 
@@ -63,14 +68,18 @@ const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
 };
 
 const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
-  return (
-    <Card>
-      <CardHeader>
-        <Heading size="md">{landmark.名称}</Heading>
+  const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
+    [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
+  const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
+    {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
+  </Text>;  
+  
+  return <Card>
+    <CardHeader>
+      <Heading size="md">{landmark.名称}</Heading>
       </CardHeader>
       <CardBody>
-        <Text>{landmark.定义}</Text>
+        {cardText}
       </CardBody>
-    </Card>
-  );
+  </Card>; 
 };
