@@ -1,10 +1,10 @@
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  Flex, Grid, GridItem, Heading, Text, Link, Box
+  Flex, Grid, GridItem, Heading, Link, Box
 } from '@chakra-ui/react';
 import { sidebarBreakpoint } from 'components/Navbars';
-import MenteeApplicant from 'components/MenteeApplicant';
+import Applicant from 'components/Applicant';
 import { sectionSpacing } from 'theme/metrics';
 import {
   InterviewDecisionEditor, InterviewFeedbackEditor 
@@ -69,11 +69,7 @@ export default function Interview({ interviewId, hasTitle, readonly }: {
           <InterviewDecisionEditor interviewId={interviewId} 
             decision={i.decision} etag={data.etag} readonly={readonly} />
 
-          {i.type == "MenteeInterview" ?
-            <MenteeApplicant userId={i.interviewee.id} showTitle />
-            :
-            <Text>（导师申请材料页尚未实现）</Text>
-          }
+          <Applicant userId={i.interviewee.id} type={i.type} showTitle />
         </Flex>
       </GridItem>
     </Grid>

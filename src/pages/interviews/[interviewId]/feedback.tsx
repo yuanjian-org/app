@@ -3,7 +3,6 @@ import { parseQueryStringOrUnknown } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem,
-  Text,
   Icon,
   Link,
   UnorderedList,
@@ -14,7 +13,7 @@ import { useUserContext } from 'UserContext';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
-import MenteeApplicant from 'components/MenteeApplicant';
+import Applicant from 'components/Applicant';
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from 'shared/User';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -60,11 +59,7 @@ export default widePage(() => {
           </Flex>
         </GridItem>
         <GridItem>
-          {i.type == "MenteeInterview" ? 
-            <MenteeApplicant userId={i.interviewee.id} showTitle /> 
-            : 
-            <Text>（导师申请材料页尚未实现）</Text>
-          }
+          <Applicant userId={i.interviewee.id} type={i.type} showTitle /> 
         </GridItem>
       </Grid>
     }
