@@ -22,13 +22,28 @@ export default async function migrateData() {
   await sequelize.query(`
     DO $$
     BEGIN
-      IF NOT EXISTS (
+      IF EXISTS (
         SELECT 1 
         FROM pg_constraint 
         WHERE conname = 'Calibrations_id_type'
       ) THEN
         ALTER TABLE "Calibrations"
-        ADD CONSTRAINT "Calibrations_id_type" UNIQUE (id, type);
+        DROP CONSTRAINT "Calibrations_id_type";
+      END IF;
+    END $$;    
+  `);
+
+
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'Calibrations_name_type'
+      ) THEN
+        ALTER TABLE "Calibrations"
+        ADD CONSTRAINT "Calibrations_name_type" UNIQUE (name, type);
       END IF;
     END $$;
   `);
@@ -47,4 +62,13 @@ export default async function migrateData() {
       await u.update({ roles }, { transaction });
     }
   });
+
+  await cleanupFeedbackAttempLog();
+}
+
+async function cleanupFeedbackAttempLog() {
+  await sequelize.query(`
+    DELETE FROM "InterviewFeedbackUpdateAttempts"
+    WHERE "createdAt" < NOW() - INTERVAL '30 days';
+  `);
 }
