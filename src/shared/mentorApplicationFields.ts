@@ -1,4 +1,4 @@
-export type MenteeApplicationField = {
+export type MentorApplicationField = {
   name: string,
 
   // Always show the field on the "edit application" page even if the field is
@@ -12,8 +12,8 @@ export type MenteeApplicationField = {
 /**
  * Field order dictates the order the fields are displayed.
  */
-const mentorApplicationFields: MenteeApplicationField[] = [
-  { name: "尚未实现其他申请信息的显示", showForEdits: true },
+const mentorApplicationFields: MentorApplicationField[] = [
+  { name: "其他申请信息尚未实现", showForEdits: true },
 ];
 
 export default mentorApplicationFields;
