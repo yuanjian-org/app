@@ -18,15 +18,17 @@ import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 
 @Table({
   paranoid: true,
+
 })
 class Calibration extends Model {
-  @Unique
+  @Unique('id_type_unique')
   @IsUUID(4)
   @PrimaryKey
   @Default(UUIDV4)
   @Column(UUID)
   id: CreationOptional<string>;
 
+  @Unique('id_type_unique')
   @AllowNull(false)
   @ZodColumn(STRING, zInterviewType)
   type: InterviewType;
