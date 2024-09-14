@@ -9,7 +9,7 @@ import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
-import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
+import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zInterviewType } from "../../shared/InterviewType";
 import { 
   minUserAttributes, 
@@ -48,10 +48,6 @@ const list = procedure
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
 {
-  if (filter.hasMentorApplication && filter.hasMenteeApplication) {
-    throw generalBadRequestError("不能同时选择导师和学生申请人");
-  }
-
   return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
 
@@ -236,7 +232,7 @@ const setMentorCoach = procedure
 });
 
 /**
- * Only MenteeManagers, MentorCoaches, mentor of the applicant, interviewers
+ * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
  * of the applicant, and participants of the calibration (only if the calibration
  * is active) are allowed to call this route.
  * 
@@ -254,15 +250,19 @@ const getApplicant = procedure
   }))
   .query(async ({ ctx, input: { userId, type } }) =>
 {
-  if (type !== "MenteeInterview") throw notImplemnetedError();
+  const isMentee = type == "MenteeInterview";
 
   const user = await db.User.findByPk(userId, {
-    attributes: [...userAttributes, "menteeApplication"],
+    attributes: [
+      ...userAttributes, 
+      isMentee ? "menteeApplication" : "mentorApplication"
+    ],
   });
   if (!user) throw notFoundError("用户", userId);
 
-  const ret: { user: User, application: Record<string, any> | null } = { 
-    user, application: user.menteeApplication
+  const application = isMentee ? user.menteeApplication : user.mentorApplication;
+  const ret: { user: User, application: Record<string, any> | null } = {
+    user, application
   };
 
   if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
@@ -271,7 +271,8 @@ const getApplicant = procedure
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
 
-  if (await isPermittedForMentee(ctx.user, userId)) return ret;
+  // Check if the user is a mentorcoach or mentor of the mentee
+  if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
