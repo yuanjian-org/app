@@ -15,7 +15,7 @@ import Calibration from "./models/Calibration";
 import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAttempt";
 import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
-import LandmarkScore from "./models/map/Landmark";
+import LandmarkScore from "./models/map/LandmarkScore";
 
 const db = {
   Mentorship,
