@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const MAX_LANDMARK_SCORE = 4;
+
 export const Longtitudes = [
     "情感",
     "智慧",
@@ -23,7 +25,7 @@ export const zLandmark = z.object({
     定义: z.string(),
     经度: zLongtitude,
     纬度: zLatitude,
-    层级: z.array(z.string()).length(4),
+    层级: z.array(z.string()).length(MAX_LANDMARK_SCORE),
     相关地标: z.array(z.string()).optional(),
     工具箱: z.string().optional(),
   });

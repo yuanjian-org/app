@@ -4,34 +4,37 @@ import {
   Model,
   PrimaryKey,
   ForeignKey,
-  Unique,
-  BelongsTo,
 } from "sequelize-typescript";
-import { UUID, STRING, JSONB, DATE } from "sequelize";
+import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
 import ZodColumn from "../../modelHelpers/ZodColumn";
 import z from "zod";
+import { MAX_LANDMARK_SCORE } from "shared/Map";
 
-@Table
-class Landmark extends Model {
-  @PrimaryKey
-  @Column(STRING)
-  landmark: string;
-
-  @Unique
+@Table({
+  indexes: [
+    {
+      unique: true,
+      // Composite key on userId, landmark, createdAt
+      fields: ['userId', 'landmark', 'createdAt'],
+    },
+  ],
+})
+class LandmarkScore extends Model {
   @PrimaryKey
   @ForeignKey(() => User)
   @Column(UUID)
   userId: string;
 
-  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
-  evalutaion: Record<string, any> | null;
+  @PrimaryKey
+  @Column(STRING)
+  landmark: string;
 
-  @Column(DATE)
-  history: string;
+  @ZodColumn(INTEGER, z.number().int().min(1).max(MAX_LANDMARK_SCORE))
+  score: number;
 
-  @BelongsTo(() => User)
-  user: User;
+  @Column(STRING)
+  markdown: string | null;
 }
 
-export default Landmark;
+export default LandmarkScore;
