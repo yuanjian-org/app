@@ -11,7 +11,7 @@ const list = procedure
   .output(z.array(zLandmark))
   .query(async ({ input : latitude }) =>
 {
-  const landmarkDataPath = path.join('src','api', 'map', 'data', latitude);
+  const landmarkDataPath = path.join(process.cwd(), 'public', 'map', latitude);
   const files = await fs.promises.readdir(landmarkDataPath);
 
   return Promise.all(
