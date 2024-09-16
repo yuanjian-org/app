@@ -33,7 +33,7 @@ export default function EditableWithIcon({ mode, ...rest }: {
   };
 
   return <Editable {...rest}>
-    <EditablePreview />
+    <EditablePreview style={{ whiteSpace: 'pre-wrap' }}/>
     {mode == "input" ? <EditableInput /> : <EditableTextarea />}
     <EditableControls />
   </Editable>;
