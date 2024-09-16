@@ -9,7 +9,7 @@ import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
 import ZodColumn from "../../modelHelpers/ZodColumn";
 import z from "zod";
-import { MAX_LANDMARK_SCORE } from "shared/Map";
+import { MAX_LANDMARK_SCORE } from "../../../../shared/Map";
 
 @Table({
   indexes: [
