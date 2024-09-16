@@ -9,6 +9,8 @@ export const zMinUser = z.object({
 export type MinUser = z.TypeOf<typeof zMinUser>;
 
 export const zUser = zMinUser.merge(z.object({
+  // TODO: Consider moving role to MinUser to avoid retrieving the whole User
+  // object just for permission checking.
   roles: zRoles,
   email: z.string().email(),
   wechat: z.string().nullable(),
@@ -17,6 +19,8 @@ export const zUser = zMinUser.merge(z.object({
   consentFormAcceptedAt: z.coerce.string().nullable(),
   menteeInterviewerTestLastPassedAt: z.coerce.string().nullable(),
   menteeStatus: zMenteeStatus.nullable(),
+  pointOfContact: zMinUser.nullable(),
+  pointOfContactNote: z.string().nullable(),
 }));
 type User = z.TypeOf<typeof zUser>;
 
@@ -25,8 +29,6 @@ export default User;
 export const zUserFilter = z.object({
   hasMenteeApplication: z.boolean().optional(),
   hasMentorApplication: z.boolean().optional(),
-  // TODO: remove this field
-  isMenteeInterviewee: z.boolean().optional(),
   matchesNameOrEmail: z.string().optional(),
   containsRoles: zRoles.optional(),
   menteeStatus: zMenteeStatus.nullable().optional(),

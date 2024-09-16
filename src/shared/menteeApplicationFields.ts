@@ -1,4 +1,4 @@
-export type ApplicationField = {
+export type MenteeApplicationField = {
   name: string,
 
   // Always show the field on the "edit application" page even if the field is
@@ -28,7 +28,7 @@ export const menteeFirstYearInCollegeField = "大学一年级入学年份";
 /**
  * Field order dictates the order the fields are displayed.
  */
-const menteeApplicationFields: ApplicationField[] = [
+const menteeApplicationFields: MenteeApplicationField[] = [
   { name: menteeAcceptanceYearField, showForEdits: true, },
   { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
   { jsjField: "field_149", jsjProxiedField: "field_149", name: menteeDegreeField, showForEdits: true, },

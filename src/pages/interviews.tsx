@@ -115,7 +115,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>生源（悬停光标看全文）</Th>
+          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>来源（悬停光标看全文）</Th>
           <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试页</Th>
         </Tr>
       </Thead>

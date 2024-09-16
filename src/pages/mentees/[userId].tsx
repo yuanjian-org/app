@@ -7,7 +7,7 @@ import {
   Text,
   HStack,
 } from '@chakra-ui/react';
-import MenteeApplicant from 'components/MenteeApplicant';
+import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { widePage } from 'AppPage';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -70,7 +70,7 @@ function MenteeTabs({ mentee, mentorships }: {
         <ChatRoom menteeId={mentee.id} />
       </TabPanel> 
       <TabPanel>
-        <MenteeApplicant userId={mentee.id} />
+        <Applicant type="MenteeInterview" userId={mentee.id} />
       </TabPanel>
       <InterviewTabPanel menteeId={mentee.id} />
       {/* <TabPanel>

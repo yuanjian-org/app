@@ -5,11 +5,48 @@ import sequelize from "../src/api/database/sequelize";
 export default async function migrateData() {
   console.log("Migrating...");
 
-  await sequelize.query('ALTER TABLE "ChatRooms" ' + 
-  'DROP COLUMN IF EXISTS "mentorshipId"');
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'Calibrations_name_key'
+      ) THEN
+        ALTER TABLE "Calibrations"
+        DROP CONSTRAINT "Calibrations_name_key";
+      END IF;
+    END $$;    
+  `);
 
-  await sequelize.query('ALTER TABLE "groups" ' + 
-  'DROP COLUMN IF EXISTS "roles"');
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'Calibrations_id_type'
+      ) THEN
+        ALTER TABLE "Calibrations"
+        DROP CONSTRAINT "Calibrations_id_type";
+      END IF;
+    END $$;    
+  `);
+
+
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'Calibrations_name_type'
+      ) THEN
+        ALTER TABLE "Calibrations"
+        ADD CONSTRAINT "Calibrations_name_type" UNIQUE (name, type);
+      END IF;
+    END $$;
+  `);
 
   await sequelize.transaction(async transaction => {
     console.log("Migrating role names...");
@@ -25,4 +62,13 @@ export default async function migrateData() {
       await u.update({ roles }, { transaction });
     }
   });
+
+  await cleanupFeedbackAttempLog();
+}
+
+async function cleanupFeedbackAttempLog() {
+  await sequelize.query(`
+    DELETE FROM "InterviewFeedbackUpdateAttempts"
+    WHERE "createdAt" < NOW() - INTERVAL '30 days';
+  `);
 }

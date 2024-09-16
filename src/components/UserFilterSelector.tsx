@@ -27,7 +27,6 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     const f: UserFilter = fixedFilter ? structuredClone(fixedFilter) : {};
     for (const [k, v] of Object.entries(router.query)) {
       if (k == "hasMenteeApplication") f[k] = v == "true" ? true : false;
-      if (k == "isMenteeInterviewee") f[k] = v == "true" ? true : false;
       // `typeof v == "string"` to ignore cases of null and string[].
       if (k == "matchesNameOrEmail" && typeof v == "string") f[k] = v;
       if (k == "menteeStatus") {
@@ -49,15 +48,17 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     await router.replace({ pathname: router.pathname, query });
   });
 
-  const booleanSelect = (field: "hasMenteeApplication" | "isMenteeInterviewee",
+  const booleanSelect = (field: "hasMenteeApplication",
     type: BooleanLabelType) =>
   {
-    return <BooleanSelect value={filter[field]} type={type} onChange={async v => {
-      const f = structuredClone(filter);
-      if (v == undefined) delete f[field];
-      else f[field] = v;
-      await updateUrlParams(f);
-    }} />;
+    return <BooleanSelect value={filter[field]} type={type} onChange={
+      async v => {
+        const f = structuredClone(filter);
+        if (v == undefined) delete f[field];
+        else f[field] = v;
+        await updateUrlParams(f);
+      }
+    } />;
   };
 
   return <>
@@ -75,8 +76,6 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     <WrapItem>状态</WrapItem>
     <WrapItem>{booleanSelect("hasMenteeApplication", "已经")}</WrapItem>
     <WrapItem>递交学生申请</WrapItem>
-    <WrapItem>{booleanSelect("isMenteeInterviewee", "已经")}</WrapItem>
-    <WrapItem>为学生拉面试群</WrapItem>
 
     <Spacer />
 
@@ -86,13 +85,10 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       </MenuButton>
       <MenuList>
         <MenuItem as={NextLink} href="/interviews?type=mentee">
-          管理学生面试
+          学生面试
         </MenuItem>
-        <MenuItem>
-          管理导师面试（赶工中）
-        </MenuItem>
-        <MenuItem>
-          导师档案（赶工中）
+        <MenuItem as={NextLink} href="/interviews?type=mentor">
+          导师面试
         </MenuItem>
       </MenuList>
     </Menu>
@@ -104,12 +100,20 @@ function BooleanSelect({ value, type, onChange }: {
   type: BooleanLabelType,
   onChange: (v: boolean | undefined) => void
 }) {
-  const value2str = (v: boolean | undefined) => v == undefined ? "none" : v ? "yes" : "no";
-  const change = (s: string) => onChange(s === "none" ? undefined : s === "yes" ? true : false);
+  const value2str = (v: boolean | undefined) =>
+    v == undefined ? "none" : v ? "yes" : "no";
+  const change = (s: string) =>
+    onChange(s === "none" ? undefined : s === "yes" ? true : false);
 
   return <Select value={value2str(value)} onChange={e => change(e.target.value)}>
-    <option value='none'>{type == "是不是" ? "是或不是" : type == "已经" ? "已经或尚未" : "有或无"}</option>
-    <option value='yes'>{type == "是不是" ? "是" : type == "已经" ? "已经" : "有"}</option>
-    <option value='no'>{type == "是不是" ? "不是" : type == "已经" ? "尚未" : "没有"}</option>
+    <option value='none'>
+      {type == "是不是" ? "是或不是" : type == "已经" ? "已经或尚未" : "有或无"}
+    </option>
+    <option value='yes'>
+      {type == "是不是" ? "是" : type == "已经" ? "已经" : "有"}
+    </option>
+    <option value='no'>
+      {type == "是不是" ? "不是" : type == "已经" ? "尚未" : "没有"}
+    </option>
   </Select>;
 }

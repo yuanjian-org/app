@@ -24,7 +24,7 @@ import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
 
 /**
- * Only MenteeManagers, interviewers of the interview, users allowed by 
+ * Only MentorshipManager, interviewers of the interview, users allowed by 
  * `getCalibrationAndCheckPermissionSafe` and `isPermittedForMentee` are allowed
  * to call this route.
  */

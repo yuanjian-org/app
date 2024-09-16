@@ -16,6 +16,7 @@ type TestUser = {
   name: string | null,
   email: string,
   id?: string,
+  mentorApplication?: Record<string, any> | null,
 };
 
 const mentees: TestUser[] = [{
@@ -29,13 +30,16 @@ const mentees: TestUser[] = [{
 const mentors: TestUser[] = [{
   name: '丙导师',
   email: 'mentor-a@test.foo',
+  mentorApplication: {},
 }, {
   name: '丁导师',
   email: 'mentor-b@test.foo',
+  mentorApplication: {},
 }];
 
 const allUsers = [...mentees, ...mentors];
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 main().then();
 
 async function main() {
@@ -75,6 +79,7 @@ async function generateUsers() {
       pinyin: toPinyin(u.name ?? ""),
       email: u.email,
       roles: [],
+      mentorApplication: u.mentorApplication || null,
     }))[0].id;
   }
 }

@@ -46,6 +46,7 @@ import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
 import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
+import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
@@ -96,11 +97,9 @@ function MenteeTable({ users, refetch }: {
     <Thead>
       <Tr>
         <Th>状态</Th>
-        <Th>录取届</Th>
-        <Th>姓名</Th>
-        <Th>导师</Th>
-        <Th>资深导师</Th>
-        <Th>最近师生通话</Th>
+        <PointOfContactHeaderCells />
+        <MenteeHeaderCells />
+        <MentorshipHeaderCells />
         <Th>最近内部笔记</Th>
         <Th>拼音（便于查找）</Th>
       </Tr>
@@ -151,11 +150,9 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
         size="sm" onChange={status => setStatus(status)} />
     </WrapItem></Wrap></Td>
 
+    <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
-
-    <MentorshipCells menteeId={u.id} addPinyin={addPinyin} showCoach />
-
-    {/* 最近内部笔记 */}
+    <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
 
     {/* 拼音 */}
@@ -174,6 +171,13 @@ function getColorFromText(text: string): string {
 
   const index = Math.abs(hash) % colors.length;
   return colors[index];
+}
+
+function MenteeHeaderCells() {
+  return <>
+    <Th>录取届</Th>
+    <Th>姓名</Th>
+  </>;
 }
 
 export function MenteeCells({ mentee, updateMenteeYear } : {
@@ -195,34 +199,45 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
   }, [mentee.id, year, updateMenteeYear]);
 
   return <>
+    {/* Acceptance Year */}
     <Td>{year && <Tag colorScheme={getColorFromText(year)}>{year}</Tag>}</Td>
+
+    {/* Name */}
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
       {mentee.name} <ChevronRightIcon />
     </Link></Td>
   </>;
 }
 
-export function MentorshipCells({ menteeId, addPinyin, showCoach, readonly } : {
-  menteeId : string,
+function MentorshipHeaderCells() {
+  return <>
+    <Th>导师</Th>
+    <Th>资深导师</Th>
+    <Th>最近师生通话</Th>
+  </>;
+}
+
+export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
+  mentee: MinUser,
   addPinyin?: (names: string[]) => void,
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(menteeId);
+  const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(mentee.id);
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order
   data.sort((a, b) => a.id.localeCompare(b.id));
 
-  return <LoadedMentorsCells menteeId={menteeId} mentorships={data}
+  return <LoadedMentorsCells mentee={mentee} mentorships={data}
     addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
     readonly={readonly} />;
 }
 
 function LoadedMentorsCells({
-  menteeId, mentorships, addPinyin, refetch, showCoach, readonly
+  mentee, mentorships, addPinyin, refetch, showCoach, readonly
 } : {
-  menteeId: string,
+  mentee: MinUser,
   mentorships: Mentorship[],
   addPinyin?: (names: string[]) => void,
   refetch: () => void,
@@ -264,7 +279,7 @@ function LoadedMentorsCells({
     {/* 导师 */}
     <Td>
       {editing && <MentorshipsEditor
-        menteeId={menteeId} mentorships={mentorships}
+        mentee={mentee} mentorships={mentorships}
         coaches={coachRes.map(c => c.data === undefined ? null : c.data)}
         onClose={() => setEditing(false)} refetch={refetchAll}
       />}
@@ -337,8 +352,8 @@ export function getDateTextAndColor(date: string | null | undefined,
   return [text, color];
 }
 
-function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }: {
-  menteeId: string,
+function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
+  mentee: MinUser,
   mentorships: Mentorship[],
   coaches: (MinUser | null)[],
   refetch: () => void,
@@ -367,7 +382,7 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>一对一匹配</ModalHeader>
+      <ModalHeader>{formatUserName(mentee.name)}的一对一导师匹配</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <TableContainer>
@@ -401,7 +416,7 @@ function MentorshipsEditor({ menteeId, mentorships, coaches, refetch, onClose }:
         </TableContainer>
       </ModalBody>
       <ModalFooter>
-        {creating && <MentorshipCreator menteeId={menteeId} refetch={refetch}
+        {creating && <MentorshipCreator menteeId={mentee.id} refetch={refetch}
           onClose={() => setCreating(false)}/>}
         <Button variant="brand" onClick={() => setCreating(true)} 
           leftIcon={<AddIcon />}>增加导师</Button>

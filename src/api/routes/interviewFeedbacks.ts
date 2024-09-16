@@ -11,8 +11,9 @@ import moment from "moment";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 
 /**
- * Only MenteeManagers, the interviewer of the feedback, and participant's of the interview's calibration (only if
- * the calibration is active) are allowed to call this route.
+ * Only MentorshipManager, the interviewer of the feedback, and participant's of
+ * the interview's calibration (only if the calibration is active) are allowed
+ * to call this route.
  */
 const get = procedure
   .use(authUser())
