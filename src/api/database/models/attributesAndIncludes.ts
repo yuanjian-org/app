@@ -14,7 +14,12 @@ export const minUserAttributes = ['id', 'name'];
 
 export const userAttributes = [...minUserAttributes, "wechat", "sex", "email",
   "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
-  "menteeStatus"];
+  "menteeStatus", "pointOfContactNote"];
+
+export const userInclude = [{
+  association: "pointOfContact",
+  attributes: minUserAttributes,
+}];
 
 /**
  * Group

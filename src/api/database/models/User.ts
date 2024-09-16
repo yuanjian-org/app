@@ -87,6 +87,13 @@ class User extends Model {
   @ZodColumn(STRING, zMenteeStatus.nullable())
   menteeStatus: MenteeStatus | null;
 
+  @ForeignKey(() => User)
+  @Column(UUID)
+  pointOfContactId: string | null;
+
+  @ZodColumn(STRING, z.string().nullable())
+  pointOfContactNote: string | null;
+
   // Managed by next-auth
   @Column(DATE)
   emailVerified: Date | null;
@@ -110,6 +117,9 @@ class User extends Model {
 
   @BelongsTo(() => User, { foreignKey: 'coachId' })
   coach: User | null;
+
+  @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
+  pointOfContact: User | null;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
