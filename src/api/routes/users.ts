@@ -13,7 +13,8 @@ import { generalBadRequestError, noPermissionError, notFoundError } from "../err
 import { zInterviewType } from "../../shared/InterviewType";
 import { 
   minUserAttributes, 
-  userAttributes, 
+  userAttributes,
+  userInclude, 
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
@@ -50,6 +51,8 @@ const list = procedure
 {
   return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
+    attributes: userAttributes,
+    include: userInclude,
 
     where: {
       ...filter.containsRoles === undefined ? {} : {
@@ -121,7 +124,7 @@ const update = procedure
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
 
-    // fields that only user or role managers can change
+    // fields that only user managers can change
     ...isUserManager ? {
       roles: input.roles,
       email: input.email,
@@ -231,6 +234,21 @@ const setMentorCoach = procedure
   });
 });
 
+const setPointOfContact = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    userId: z.string(),
+    pocId: z.string(),
+  }))
+  .mutation(async ({ input: { userId, pocId } }) =>
+{
+  const ret = await db.User.update({
+    pointOfContactId: pocId
+  }, { where: { id: userId } });
+  invariant(ret[0] <= 1);
+  if (ret[0] == 0) throw notFoundError("用户", userId);
+});
+
 /**
  * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
  * of the applicant, and participants of the calibration (only if the calibration
@@ -257,6 +275,7 @@ const getApplicant = procedure
       ...userAttributes, 
       isMentee ? "menteeApplication" : "mentorApplication"
     ],
+    include: userInclude,
   });
   if (!user) throw notFoundError("用户", userId);
 
@@ -391,6 +410,8 @@ export default router({
 
   getMentorCoach,
   setMentorCoach,
+
+  setPointOfContact,
 });
 
 function checkUserFields(name: string | null, email: string) {
