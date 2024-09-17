@@ -1,11 +1,13 @@
 import colors from "./colors";
 
+// If changing this line, also update link color in  MarkdownStyler.module.css.
+export const linkBaseColor = colors.brand.c;
+
 const links = {
   components: {
     Link: {
       baseStyle: {
-        // If changing this line, also update link color in MarkdownStyler.module.css
-        color: colors.brand.c,
+        color: linkBaseColor,
         _hover: {
           textDecoration: 'none',
         },
