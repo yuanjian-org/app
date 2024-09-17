@@ -124,7 +124,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
         <Tr>
           <PointOfContactHeaderCells />
           <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
-          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请资料</Th>
+          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请表</Th>
           <Th>面试页</Th>
         </Tr>
       </Thead>
@@ -214,9 +214,9 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
         {interview && interview.calibration?.name}
       </TdEditLink>
 
-      {/* 申请资料 */}
+      {/* 申请表 */}
       <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
-        申请资料 <ChevronRightIcon />
+        申请表 <ChevronRightIcon />
       </TdLink>
 
       {/* 面试页 */}
@@ -328,7 +328,7 @@ function Calibrations({ type, calibrations, refetch }: {
       <UnorderedList>
         <ListItem>通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。</ListItem>
         <ListItem>如果候选人A属于面试讨论组C，那么A的所有面试官都是C的参与者。</ListItem>
-        <ListItem>C的参与者能够访问属于C的所有候选人的申请材料和面试反馈记录。</ListItem>
+        <ListItem>C的参与者能够访问属于C的所有候选人的申请表和面试页。</ListItem>
         <ListItem>当C的状态是”开启“时，C的参与者可以在”我的面试“页看到并进入C。</ListItem>
       </UnorderedList>
     </Box>

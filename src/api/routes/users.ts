@@ -327,7 +327,7 @@ const getApplicant = procedure
       ctx.user, i.calibrationId)) return ret;
   }
 
-  throw noPermissionError("申请资料", user.id);
+  throw noPermissionError("申请表", user.id);
 });
 
 /**
