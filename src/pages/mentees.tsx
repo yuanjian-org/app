@@ -204,7 +204,7 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
 
     {/* Name */}
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
-      {mentee.name} <ChevronRightIcon />
+      <b>{mentee.name}</b> <ChevronRightIcon />
     </Link></Td>
   </>;
 }
