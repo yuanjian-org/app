@@ -27,14 +27,6 @@ const mobileTextLimit = 30;
 export default function Page() {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
 
-  const selectLandmark = (landmark: Landmark) => {
-    setSelectedLandmark(landmark);
-  };
-
-  const closeDrawer = () => {
-    setSelectedLandmark(null);
-  };
-
   return <>
     <TabsWithUrlParam isLazy>
       <TabList>
@@ -45,20 +37,23 @@ export default function Page() {
 
       <TabPanels>
         <TabPanel>
-          <LandmarkTabPanel latitude="个人成长" selectLandmark={selectLandmark}/>
+          <LandmarkTabPanel latitude="个人成长" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel latitude="事业发展" selectLandmark={selectLandmark}/>
+          <LandmarkTabPanel latitude="事业发展" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel latitude="社会责任" selectLandmark={selectLandmark}/>
+          <LandmarkTabPanel latitude="社会责任" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
       </TabPanels>
     </TabsWithUrlParam>
     
-    {<LandmarkDrawer onClose={closeDrawer} landmark={selectedLandmark} />}
+    {selectedLandmark && 
+      <LandmarkDrawer 
+        onClose={() => setSelectedLandmark(null)} 
+        landmark={selectedLandmark} />}
   </>;
 }
 
