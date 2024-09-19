@@ -31,3 +31,5 @@ export const zLandmark = z.object({
   });
 
 export type Landmark = z.TypeOf<typeof zLandmark>;
+
+export const zLandmarkScore = z.number().int().min(1).max(MAX_LANDMARK_SCORE);

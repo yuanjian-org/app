@@ -8,8 +8,7 @@ import {
 import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
 import ZodColumn from "../../modelHelpers/ZodColumn";
-import z from "zod";
-import { MAX_LANDMARK_SCORE } from "../../../../shared/Map";
+import { zLandmarkScore } from "../../../../shared/Map";
 
 @Table({
   indexes: [
@@ -30,7 +29,7 @@ class LandmarkScore extends Model {
   @Column(STRING)
   landmark: string;
 
-  @ZodColumn(INTEGER, z.number().int().min(1).max(MAX_LANDMARK_SCORE))
+  @ZodColumn(INTEGER, zLandmarkScore)
   score: number;
 
   @Column(STRING)
