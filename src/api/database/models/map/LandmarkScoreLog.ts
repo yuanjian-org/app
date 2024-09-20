@@ -8,7 +8,7 @@ import {
 import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
 import ZodColumn from "../../modelHelpers/ZodColumn";
-import { zLandmarkScore, LandmarkScore as Score } from "../../../../shared/Map";
+import { zLandmarkScore, LandmarkScore} from "../../../../shared/Map";
 
 @Table({
   indexes: [
@@ -19,7 +19,7 @@ import { zLandmarkScore, LandmarkScore as Score } from "../../../../shared/Map";
     },
   ],
 })
-class LandmarkScore extends Model {
+class LandmarkScoreLog extends Model {
   @PrimaryKey
   @ForeignKey(() => User)
   @Column(UUID)
@@ -30,10 +30,10 @@ class LandmarkScore extends Model {
   landmark: string;
 
   @ZodColumn(INTEGER, zLandmarkScore)
-  score: Score;
+  score: LandmarkScore;
 
   @Column(STRING)
   markdown: string | null;
 }
 
-export default LandmarkScore;
+export default LandmarkScoreLog;
