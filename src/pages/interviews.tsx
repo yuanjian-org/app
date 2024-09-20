@@ -43,22 +43,25 @@ import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon, ChevronRightIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
-import { MinUser } from 'shared/User';
+import User, { MinUser } from 'shared/User';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import TdLink from 'components/TdLink';
 import moment from 'moment';
 import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import EditableWithIcon from 'components/EditableWithIcon';
+import EditableWithIconOrLink from 'components/EditableWithIconOrLink';
 import { widePage } from 'AppPage';
+import {
+  PointOfContactCells, PointOfContactHeaderCells
+} from 'components/pointOfContactCells';
 
 export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
     "MenteeInterview" : "MentorInterview";
 
-  const { data: applicants } = trpcNext.users.list.useQuery(
-    type == "MenteeInterview" ? { 
+  const { data: applicants, refetch: refetchApplicants } =
+    trpcNext.users.list.useQuery(type == "MenteeInterview" ? { 
       // Only list mentees without status (ie. 待审)
       menteeStatus: null,
       hasMenteeApplication: true,
@@ -82,8 +85,9 @@ export default widePage(() => {
       <TabPanels>
         <TabPanel>
           {!interviews || !applicants ? <Loader /> : 
-            <Applicants type={type} applicants={applicants} interviews={interviews} 
-              refetchInterviews={refetchInterview} 
+            <Applicants type={type} applicants={applicants}
+              interviews={interviews} refetchInterviews={refetchInterview} 
+              refetchApplicants={refetchApplicants}
             />
           }
         </TabPanel>
@@ -101,11 +105,14 @@ export default widePage(() => {
   </Flex>;
 });
 
-function Applicants({ type, applicants, interviews, refetchInterviews }: {
+function Applicants({ type, applicants, interviews, refetchInterviews,
+  refetchApplicants
+ }: {
   type: InterviewType,
-  applicants: MinUser[],
+  applicants: User[],
   interviews: Interview[], 
-  refetchInterviews: () => any,
+  refetchInterviews: () => void,
+  refetchApplicants: () => void,
 }) {
   return <TableContainer>
     <Text marginBottom={sectionSpacing} color="grey" fontSize="sm">
@@ -115,13 +122,18 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>来源（悬停光标看全文）</Th>
-          <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试页</Th>
+          <PointOfContactHeaderCells />
+          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
+          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请表</Th>
+          <Th>面试页</Th>
         </Tr>
       </Thead>
       <Tbody>
         {applicants.map(a => 
-          <Applicant key={a.id} type={type} applicant={a} interviews={interviews} refetchInterviews={refetchInterviews} />)
+          <Applicant key={a.id} type={type} applicant={a}
+            interviews={interviews} refetchInterviews={refetchInterviews}
+            refetchApplicants={refetchApplicants}
+          />)
         }
       </Tbody>
     </Table>
@@ -132,11 +144,14 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
   </TableContainer>;
 }
 
-function Applicant({ type, applicant, interviews, refetchInterviews } : {
+function Applicant({ type, applicant, interviews, refetchInterviews,
+  refetchApplicants
+ } : {
   type: InterviewType,
-  applicant: MinUser,
+  applicant: User,
   interviews: Interview[],
-  refetchInterviews: () => any,
+  refetchInterviews: () => void,
+  refetchApplicants: () => void,
 }) {
   // TODO: it's duplicative to fetch the applicant again
   const { data } = trpcNext.users.getApplicant.useQuery({ userId: applicant.id, type });
@@ -151,11 +166,13 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
    * null: create a new interview
    * otherwise: edit the existing interview
    */
-  const [interviewInEditor, setInterviewInEditor] = useState<Interview | null | undefined>(undefined);
+  const [interviewInEditor, setInterviewInEditor] =
+    useState<Interview | null | undefined>(undefined);
 
-  const TdEditLink = ({ children }: TableCellProps) => <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
-    {children}
-  </TdLink>;
+  const TdEditLink = ({ children }: TableCellProps) =>
+    <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
+      {children}
+    </TdLink>;
 
   return <>
     {interviewInEditor !== undefined && <InterviewEditor type={type}
@@ -167,9 +184,11 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
     />}
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
-      {/* 姓名 */}
+      <PointOfContactCells user={applicant} refetch={refetchApplicants} />
+
+      {/* 候选人 */}
       <TdEditLink>
-        {formatUserName(applicant.name)}
+        <b>{formatUserName(applicant.name)}</b>
       </TdEditLink>
       
       {/* 拼音 */}
@@ -195,9 +214,9 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
         {interview && interview.calibration?.name}
       </TdEditLink>
 
-      {/* 申请资料 */}
+      {/* 申请表 */}
       <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
-        申请资料 <ChevronRightIcon />
+        申请表 <ChevronRightIcon />
       </TdLink>
 
       {/* 面试页 */}
@@ -309,7 +328,7 @@ function Calibrations({ type, calibrations, refetch }: {
       <UnorderedList>
         <ListItem>通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。</ListItem>
         <ListItem>如果候选人A属于面试讨论组C，那么A的所有面试官都是C的参与者。</ListItem>
-        <ListItem>C的参与者能够访问属于C的所有候选人的申请材料和面试反馈记录。</ListItem>
+        <ListItem>C的参与者能够访问属于C的所有候选人的申请表和面试页。</ListItem>
         <ListItem>当C的状态是”开启“时，C的参与者可以在”我的面试“页看到并进入C。</ListItem>
       </UnorderedList>
     </Box>
@@ -329,7 +348,8 @@ function Calibrations({ type, calibrations, refetch }: {
           .map(c => {
             return <Tr key={c.id}>
               <Td>
-                <EditableWithIcon mode="input" defaultValue={c.name} maxWidth={60} 
+                <EditableWithIconOrLink editor="input" decorator="icon"
+                  defaultValue={c.name} maxWidth={60} 
                   onSubmit={v => update(c, v, c.active)} 
                 />
               </Td>

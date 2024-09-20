@@ -234,16 +234,22 @@ const setMentorCoach = procedure
   });
 });
 
-const setPointOfContact = procedure
+const setPointOfContactAndNote = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
-    pocId: z.string(),
+    pocId: z.string().optional(),
+    pocNote: z.string().optional(),
   }))
-  .mutation(async ({ input: { userId, pocId } }) =>
+  .mutation(async ({ input: { userId, pocId, pocNote } }) =>
 {
+  if (pocId === undefined && pocNote === undefined) {
+    throw generalBadRequestError("One of pocId and pocNote must be set");
+  }
+
   const ret = await db.User.update({
-    pointOfContactId: pocId
+    ...pocId !== undefined ? { pointOfContactId: pocId } : {},
+    ...pocNote !== undefined ? { pointOfContactNote: pocNote } : {},
   }, { where: { id: userId } });
   invariant(ret[0] <= 1);
   if (ret[0] == 0) throw notFoundError("用户", userId);
@@ -321,7 +327,7 @@ const getApplicant = procedure
       ctx.user, i.calibrationId)) return ret;
   }
 
-  throw noPermissionError("申请资料", user.id);
+  throw noPermissionError("申请表", user.id);
 });
 
 /**
@@ -411,7 +417,7 @@ export default router({
   getMentorCoach,
   setMentorCoach,
 
-  setPointOfContact,
+  setPointOfContactAndNote,
 });
 
 function checkUserFields(name: string | null, email: string) {

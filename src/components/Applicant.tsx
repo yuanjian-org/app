@@ -18,7 +18,7 @@ import z from "zod";
 import { sectionSpacing } from 'theme/metrics';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
-import EditableWithIcon from "components/EditableWithIcon";
+import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from 'shared/User';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
@@ -72,7 +72,7 @@ function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
 
   return <Flex direction="column" gap={sectionSpacing}>
     {showTitle && <Heading size="md">{useNameAsTitle ?
-      `${formatUserName(user.name)}` : "申请材料"}</Heading>}
+      `${formatUserName(user.name)}` : "申请表"}</Heading>}
 
     {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
 
@@ -178,7 +178,9 @@ function FieldValueCell({ value, readonly, update }: {
     return readonly ?
       value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
       :
-      <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update} />;
+      <EditableWithIconOrLink editor="textarea" decorator="icon"
+        defaultValue={v} onSubmit={update}
+      />;
   
   // Other types. Display as is.
   } else {

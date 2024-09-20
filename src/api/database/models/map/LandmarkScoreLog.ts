@@ -8,7 +8,7 @@ import {
 import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
 import ZodColumn from "../../modelHelpers/ZodColumn";
-import { zLandmarkScore, LandmarkScore} from "../../../../shared/Map";
+import { zLandmarkScore, LandmarkScore } from "../../../../shared/Map";
 
 @Table({
   indexes: [
