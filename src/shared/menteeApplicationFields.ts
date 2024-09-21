@@ -57,7 +57,7 @@ const menteeApplicationFields: MenteeApplicationField[] = [
   { jsjField: "field_140", name: "请例举一到三个最让你为自己感到骄傲的经历或成果。", },
   { jsjField: "field_157", name: "请例举并概述你组织或参加社团工作、社会活动、社区服务等的经历和体会。", },
   { jsjField: "field_144", name: "你的理想是什么？为什么？如何实现？有可能遇到什么样的困难？如何降低这些困难带来的风险？建议五百字以上：", },
-  { jsjField: "field_145", name: "你希望远见导师和社区对你的学业、生活、或未来产生什么样的影响？请例举一个希望导师帮助或指导的具体问题或领域。", },
+  { jsjField: "field_145", name: "你希望导师和社区对你的学业、生活、或未来产生什么样的影响？请例举一个希望导师帮助或指导的具体问题或领域。", },
   { jsjField: "field_121", name: "户口所在地", },
   { jsjField: "field_119", name: "户口类型", },
   { jsjField: "field_112", name: "家庭成员", },
