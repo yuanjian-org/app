@@ -1,9 +1,10 @@
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 ARG env
 
 # 1. Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine
+# to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
@@ -21,7 +22,8 @@ COPY --from=deps /app/node_modules ./node_modules
 RUN yarn build
 
 # 3. Run tests.
-RUN yarn test
+# It needs database connection which isn't available at build time.
+# RUN yarn test
 
 # 4. Create the production image, copy all the files and run the app.
 FROM base AS runner
