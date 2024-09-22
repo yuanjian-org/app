@@ -5,10 +5,11 @@
 # container to miss the "next" binary. Debugging is needed. 
 #
 
-FROM node:22-alpine
-## stage ## FROM node:22-alpine AS base
+# Use a mirror as directly pulling Docker Hub from within China using
+# `FROM node:22-alpine` is no longer possible: 
+FROM m.daocloud.io/docker.io/library/node:22-alpine
 
-ARG env
+## stage ## FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 ## stage ## FROM base AS deps
