@@ -6,7 +6,7 @@ import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
 import { toChinese } from "../../../shared/strings";
-import { userAttributes } from "../../../api/database/models/attributesAndIncludes";
+import { userAttributes, userInclude } from "../../../api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
@@ -91,6 +91,7 @@ const userCache = new LRUCache<string, User>({
     const user = await db.User.findOne({
       where: { email },
       attributes: userAttributes,
+      include: userInclude,
     });
     // next-auth must have already created the user.
     invariant(user);
