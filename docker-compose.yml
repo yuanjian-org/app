@@ -2,7 +2,7 @@ services:
   yuanjian-app-dev:
     build:
       context: ./
-      target: runner
+      ## stage ## target: runner
       args:
         - env=dev
     volumes:

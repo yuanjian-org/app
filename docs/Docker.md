@@ -1,4 +1,4 @@
-## Getting Started Using Docker (Work In Progress)
+## Getting Started Using Docker
 
 1. Install [Docker](https://www.docker.com/).
 1. [TODO] Postgresql instructions TBD. Currently you must use Neon for database
@@ -8,7 +8,8 @@ if using Docker.
     [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
     - Otherwise, copy content from [`.env.template`](.env.template) and
       configure required fields.
-1. Run `yarn docker-dev`.
+1. Run `yarn docker-dev` to run locally. Alternatively, `yarn docker-build` to
+    only build docker images.
     - [Optional] Run `docker exec -it yuanjian-app-dev sh` to start a new shell
     session in the container, then run `yarn sync-database` and/or
     `yarn gen-test-data` if needed. `Ctrl + d` to exit.
