@@ -19,7 +19,9 @@ export const zUser = zMinUser.merge(z.object({
   consentFormAcceptedAt: z.coerce.string().nullable(),
   menteeInterviewerTestLastPassedAt: z.coerce.string().nullable(),
   menteeStatus: zMenteeStatus.nullable(),
-  pointOfContact: zMinUser.nullable(),
+  // optional() so that client side doesn't have to provide this field when
+  // passing a User object to the backend (e.g. in users.update API)
+  pointOfContact: zMinUser.nullable().optional(),
   pointOfContactNote: z.string().nullable(),
 }));
 type User = z.TypeOf<typeof zUser>;
