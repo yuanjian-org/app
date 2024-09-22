@@ -10,6 +10,7 @@ import { userAttributes, userInclude } from "../../../api/database/models/attrib
 import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
+import getBaseUrl from '../../../shared/getBaseUrl';
 
 // The default session user would cause type error when using session user data
 declare module "next-auth" {
@@ -75,7 +76,7 @@ async function sendVerificationRequest({ identifier: email, url, token }: SendVe
     dynamicTemplateData: { url, token, tokenMaxAgeInMins: toChinese(tokenMaxAgeInMins) },
   }];
 
-  await sendEmail("d-4f7625f48f1c494a9e2e708b89880c7a", personalizations, new URL(url).origin);
+  await sendEmail("d-4f7625f48f1c494a9e2e708b89880c7a", personalizations, getBaseUrl());
 }
 
 const userCache = new LRUCache<string, User>({
