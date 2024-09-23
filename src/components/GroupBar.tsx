@@ -63,7 +63,7 @@ export default function GroupBar({
         const newWindow = window.open(link, '_blank');
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
           // popup blocked
-          void launchMeetingInSameWindow(groupId);
+          await launchMeetingInSameWindow(groupId);
         } else {
           setJoining(false);
         }
