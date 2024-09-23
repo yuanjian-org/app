@@ -5,8 +5,8 @@ import { defineConfig } from 'cypress'
  */
 export default defineConfig({
   env: {
-    // LOGIN_SESSION_COOKIE: "8741b1d9-bc1d-4bba-9e0b-6cb8d551978c",
-    LOGIN_SECURE_COOKIE: "8741b1d9-bc1d-4bba-9e0b-6cb8d551978c",
+    SECURE_LOGIN_SESSION_COOKIE: "[Add your prod login session cookie]",
+    // LOGIN_SESSION_COOKIE: [Add your local login session cookie],
   },
 
   e2e: {

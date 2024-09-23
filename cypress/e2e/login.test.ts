@@ -11,13 +11,16 @@ describe("Homepage test", () => {
 	})
 
 	it("can join meeting", () => {
-		cy.get('.css-1r08f2c').each(($ele) => {
-			cy.wrap($ele).find('button').contains("加入").click();
+		cy.get('div[id="__next"]').each(($ele) => {
+			cy.wrap($ele).find('.chakra-button').contains("加入").click({force: true});
+			cy.origin('https://meeting.tencent.com/', () => {
+				// Add more cross-origin tests.
+			  });
 		})
 	})
 
 	it("can expand meeting details", () => {
-		cy.get('.css-1r08f2c').each(($ele) => {
+		cy.get('div[id="__next"]').each(($ele) => {
 			cy.wrap($ele).get(".chakra-linkbox").click();
 		})
 	})

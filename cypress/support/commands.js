@@ -25,8 +25,8 @@ import '@testing-library/cypress/add-commands'
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-const loginSecureCookie = Cypress.env('LOGIN_SECURE_COOKIE')
-const loginSessionCookie = Cypress.env('LOGIN_SESSION_COOKIE')
+const secureLoginSessionCookie = Cypress.env('SECURE_LOGIN_SESSION_COOKIE');
+const loginSessionCookie = Cypress.env('LOGIN_SESSION_COOKIE');
 
 Cypress.Commands.add("login", () => {
     cy.session('auth', () => {
@@ -35,13 +35,15 @@ Cypress.Commands.add("login", () => {
         // Set the cookie for cypress.
         // It has to be a valid cookie so next-auth can decrypt it and confirm its validity.
         // It needs to be freshed periodically.
-        if (loginSecureCookie) {
-            cy.setCookie("__Secure-next-auth.session-token", Cypress.env('LOGIN_SECURE_COOKIE'), {
+        if (secureLoginSessionCookie) {
+            cy.setCookie("__Secure-next-auth.session-token", 
+                secureLoginSessionCookie, 
+                {
                 secure: true,
             });
         }
         if (loginSessionCookie) {
-            cy.setCookie("next-auth.session-token", Cypress.env('LOGIN_SESSION_COOKIE'));
+            cy.setCookie("next-auth.session-token", loginSessionCookie);
         }
     })
 });
