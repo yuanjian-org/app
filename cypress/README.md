@@ -26,13 +26,13 @@ For more usage, refer to [Cypress Commands](https://docs.cypress.io/guides/guide
     - copy that value and paste it in the `LOGIN_SESSION_COOKIE` variable in your `cypress.config.ts`
     - this value will need to be updated whenever the cookie expires
 
-  - (prod) LOGIN_SECURE_COOKIE=
+  - (prod) SECURE_LOGIN_SESSION_COOKIE=
     - to get the value for this variable, open your browser to your running app at `https://www.yuantuapp.com/`.
     - inspect the page
     - click the "Application" tab
     - click "Cookies"
     - find the value for `__Secure-next-auth.session-token`
-    - copy that value and paste it in the `LOGIN_SECURE_COOKIE` variable in your `cypress.config.ts`
+    - copy that value and paste it in the `SECURE_LOGIN_SESSION_COOKIE` variable in your `cypress.config.ts`
     - this value will need to be updated whenever the cookie expires
 
 ### Setup test user
