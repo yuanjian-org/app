@@ -1,15 +1,14 @@
 services:
   app:
-    image: ${APP_DOCKER_IMAGE:?}
-    environment:
-      NODE_ENV: production
+    image: ${APP_DOCKER_IMAGE:?}:latest
+    env_file: .env
     build:
       context: .
       platforms:
         - linux/amd64
       ## stage ## target: runner
   nginx:
-    image: ${NGINX_DOCKER_IMAGE:-nginx}
+    image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./.cert.key:/cert.key

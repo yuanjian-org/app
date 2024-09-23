@@ -66,7 +66,7 @@ export default function Login() {
 
   return <>
     <Heading size="md" marginBottom={10}>
-      {branding() == "sizhu" ? "思烛导师服务与协作平台" : "欢迎来到远图"}
+      {branding() == "sizhu" ? "思烛导师服务平台" : "欢迎来到远图"}
     </Heading>
 
     <InputGroup>

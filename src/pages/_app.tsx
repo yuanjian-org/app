@@ -24,7 +24,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
     <SessionProvider session={session}>
       <ChakraProvider theme={theme}>
         <Head>
-          <title>{branding() == "sizhu" ? "思烛" : "远图"}</title>
+          <title>{branding() == "sizhu" ? "思烛导师服务平台" : "远图"}</title>
           <meta name='viewport' content='width=device-width, initial-scale=1' />
           <meta name='theme-color' content='#000000' />
         </Head>
