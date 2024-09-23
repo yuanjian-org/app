@@ -2,7 +2,6 @@ import {
   Column,
   Table,
   Model,
-  PrimaryKey,
   ForeignKey,
 } from "sequelize-typescript";
 import { UUID, STRING, INTEGER } from "sequelize";
