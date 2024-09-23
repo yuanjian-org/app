@@ -20,12 +20,10 @@ import { zLandmarkScore, LandmarkScore } from "../../../../shared/Map";
   ],
 })
 class LandmarkScoreLog extends Model {
-  @PrimaryKey
   @ForeignKey(() => User)
   @Column(UUID)
   userId: string;
 
-  @PrimaryKey
   @Column(STRING)
   landmark: string;
 
