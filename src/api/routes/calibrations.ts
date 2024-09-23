@@ -17,7 +17,7 @@ import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
 
 const create = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     type: zInterviewType,
     name: z.string(),
@@ -35,18 +35,18 @@ export async function createCalibration(type: InterviewType, name: string):
 {
   if (!name.length) throw generalBadRequestError("名称不能为空");
   return await sequelize.transaction(async transaction => {
-    const c = await db.Calibration.create({ type, name, active: false }, { transaction });
+    const c = await db.Calibration.create({ type, name, active: false },
+      { transaction });
     const g = await createGroup(null, [], null, null, c.id, null, transaction);
     const dbGroup = await db.Group.findByPk(g.id, { transaction });
     invariant(dbGroup);
-    console.log("gid", g.id, ">>>", dbGroup.id);
     await dbGroup.update({ public: true }, { transaction });
     return c.id;
   });
 }
 
 const update = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     id: z.string(),
     name: z.string(),
@@ -66,7 +66,7 @@ const update = procedure
 });
 
 const list = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(zInterviewType)
   .output(z.array(zCalibration))
   .query(async ({ input: type }) =>
@@ -150,8 +150,8 @@ async function getCalibrationAndCheckPermission(me: User, calibrationId: string)
 }
 
 /**
- * Only MenteeManagers and participants of the calibration are allowed. In the latter case, the calibration
- * must be active.
+ * Only MentorshipManager and participants of the calibration are allowed.
+ * In the latter case, the calibration must be active.
  * 
  * @return the calibration if access is allowed. null otherwise
  * 
@@ -166,7 +166,7 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
-  if (isPermitted(me.roles, "MenteeManager")) return c;
+  if (isPermitted(me.roles, "MentorshipManager")) return c;
 
   if (!c.active) return null;
 

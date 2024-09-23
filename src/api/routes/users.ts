@@ -9,17 +9,17 @@ import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
 import { formatUserName } from '../../shared/strings';
-import { generalBadRequestError, noPermissionError, notFoundError, notImplemnetedError } from "../errors";
-import Interview from "api/database/models/Interview";
-import { InterviewType, zInterviewType } from "shared/InterviewType";
+import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { zInterviewType } from "../../shared/InterviewType";
 import { 
   minUserAttributes, 
-  userAttributes, 
+  userAttributes,
+  userInclude, 
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
-import sequelize from "api/database/sequelize";
+import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
-import { zMenteeStatus } from "shared/MenteeStatus";
+import { zMenteeStatus } from "../../shared/MenteeStatus";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -44,18 +44,15 @@ const create = procedure
  * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(['UserManager', 'GroupManager', 'MenteeManager']))
+  .use(authUser(['UserManager', 'GroupManager', 'MentorshipManager']))
   .input(zUserFilter)
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
 {
-  if (filter.hasMentorApplication) throw notImplemnetedError();
-
-  // Force typescript checking
-  const interviewType: InterviewType = "MenteeInterview";
-
-  const res = await db.User.findAll({ 
+  return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
+    attributes: userAttributes,
+    include: userInclude,
 
     where: {
       ...filter.containsRoles === undefined ? {} : {
@@ -74,6 +71,12 @@ const list = procedure
         },
       },
 
+      ...filter.hasMentorApplication === undefined ? {} : {
+        mentorApplication: {
+          ...filter.hasMentorApplication ? { [Op.ne]: null } : { [Op.eq]: null }
+        },
+      },
+
       ...filter.matchesNameOrEmail === undefined ? {} : {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
@@ -82,18 +85,7 @@ const list = procedure
         ],
       },
     },
-
-    include: [      
-      ...filter.isMenteeInterviewee === undefined ? [] : [{
-        model: Interview,
-        attributes: ["id"],
-        ...filter.isMenteeInterviewee ? { where: { type: interviewType } } : {},
-      }],
-    ],
   });
-
-  return filter.isMenteeInterviewee == false ?
-    res.filter(u => u.interviews.length == 0) : res;
 });
 
 const update = procedure
@@ -132,7 +124,7 @@ const update = procedure
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
 
-    // fields that only user or role managers can change
+    // fields that only user managers can change
     ...isUserManager ? {
       roles: input.roles,
       email: input.email,
@@ -141,7 +133,7 @@ const update = procedure
 });
 
 const updateMenteeStatus = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     menteeStatus: zMenteeStatus.nullable()
@@ -174,7 +166,7 @@ const get = procedure
 
 
 /**
- * Only the user themselves, MentorCoach, and MenteeManager have access.
+ * Only the user themselves, MentorCoach, and MentorshipManager have access.
  */
 const getMentorCoach = procedure
   .use(authUser())
@@ -185,7 +177,7 @@ const getMentorCoach = procedure
   .query(async ({ ctx, input: { userId } }) =>
 {
   if (ctx.user.id !== userId && !isPermitted(ctx.user.roles,
-    ["MentorCoach", "MenteeManager"])) {
+    ["MentorCoach", "MentorshipManager"])) {
     throw noPermissionError("资深导师匹配", userId);
   }
 
@@ -202,7 +194,7 @@ const getMentorCoach = procedure
 });
 
 const setMentorCoach = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     coachId: z.string(),
@@ -242,12 +234,33 @@ const setMentorCoach = procedure
   });
 });
 
+const setPointOfContactAndNote = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    userId: z.string(),
+    pocId: z.string().optional(),
+    pocNote: z.string().optional(),
+  }))
+  .mutation(async ({ input: { userId, pocId, pocNote } }) =>
+{
+  if (pocId === undefined && pocNote === undefined) {
+    throw generalBadRequestError("One of pocId and pocNote must be set");
+  }
+
+  const ret = await db.User.update({
+    ...pocId !== undefined ? { pointOfContactId: pocId } : {},
+    ...pocNote !== undefined ? { pointOfContactNote: pocNote } : {},
+  }, { where: { id: userId } });
+  invariant(ret[0] <= 1);
+  if (ret[0] == 0) throw notFoundError("用户", userId);
+});
+
 /**
- * Only MenteeManagers, MentorCoaches, mentor of the applicant, interviewers
+ * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
  * of the applicant, and participants of the calibration (only if the calibration
  * is active) are allowed to call this route.
  * 
- * If the user is not an MenteeManager, contact information is redacted.
+ * If the user is not an MentorshipManager, contact information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -261,24 +274,30 @@ const getApplicant = procedure
   }))
   .query(async ({ ctx, input: { userId, type } }) =>
 {
-  if (type !== "MenteeInterview") throw notImplemnetedError();
+  const isMentee = type == "MenteeInterview";
 
   const user = await db.User.findByPk(userId, {
-    attributes: [...userAttributes, "menteeApplication"],
+    attributes: [
+      ...userAttributes, 
+      isMentee ? "menteeApplication" : "mentorApplication"
+    ],
+    include: userInclude,
   });
   if (!user) throw notFoundError("用户", userId);
 
-  const ret: { user: User, application: Record<string, any> | null } = { 
-    user, application: user.menteeApplication
+  const application = isMentee ? user.menteeApplication : user.mentorApplication;
+  const ret: { user: User, application: Record<string, any> | null } = {
+    user, application
   };
 
-  if (isPermitted(ctx.user.roles, "MenteeManager")) return ret;
+  if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
 
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
 
-  if (await isPermittedForMentee(ctx.user, userId)) return ret;
+  // Check if the user is a mentorcoach or mentor of the mentee
+  if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -308,14 +327,14 @@ const getApplicant = procedure
       ctx.user, i.calibrationId)) return ret;
   }
 
-  throw noPermissionError("申请资料", user.id);
+  throw noPermissionError("申请表", user.id);
 });
 
 /**
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
 const updateApplication = procedure
-  .use(authUser("MenteeManager"))
+  .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
     type: zInterviewType,
@@ -397,6 +416,8 @@ export default router({
 
   getMentorCoach,
   setMentorCoach,
+
+  setPointOfContactAndNote,
 });
 
 function checkUserFields(name: string | null, email: string) {
@@ -422,7 +443,7 @@ export async function checkPermissionForMentee(me: User, menteeId: string) {
 }
 
 export async function isPermittedForMentee(me: User, menteeId: string) {
-  if (isPermitted(me.roles, ["MentorCoach", "MenteeManager"])) return true;
+  if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
   if (await db.Mentorship.count(
     { where: { mentorId: me.id, menteeId } }) > 0) return true;
   return false;

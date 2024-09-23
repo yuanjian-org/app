@@ -6,6 +6,7 @@ import z from "zod";
 import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
+import branding from 'shared/branding';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -64,24 +65,26 @@ export default function Login() {
   const isValidEmail = () => z.string().email().safeParse(email).success;
 
   return <>
-    <Heading size="md" marginBottom={10}>欢迎来到远图</Heading>
+    <Heading size="md" marginBottom={10}>
+      {branding() == "sizhu" ? "思烛导师服务与协作平台" : "欢迎来到远图"}
+    </Heading>
 
     <InputGroup>
       <InputLeftElement pointerEvents='none'>
         <EmailIcon color='gray.400' />
       </InputLeftElement>
 
-      {/* `name="email"` to hint password management tools about the nature of this input */}
-      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱" autoFocus 
-        value={email} onChange={(ev) => setEmail(ev.target.value)}
+      {/* `name="email"` to express intent for password management tools */}
+      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱"
+        autoFocus value={email} onChange={(ev) => setEmail(ev.target.value)}
         onKeyDown={async ev => {
           if (ev.key == "Enter" && isValidEmail()) await submit(); 
         }}
       />
     </InputGroup>
 
-    <Button variant="brand" width="full" onClick={submit} isDisabled={!isValidEmail()}
-      isLoading={isLoading}
+    <Button variant="brand" width="full" isDisabled={!isValidEmail()}
+      isLoading={isLoading} onClick={submit}
     >登录 / 注册</Button>
   </>;
 }

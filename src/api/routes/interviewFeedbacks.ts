@@ -11,8 +11,9 @@ import moment from "moment";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 
 /**
- * Only MenteeManagers, the interviewer of the feedback, and participant's of the interview's calibration (only if
- * the calibration is active) are allowed to call this route.
+ * Only MentorshipManager, the interviewer of the feedback, and participant's of
+ * the interview's calibration (only if the calibration is active) are allowed
+ * to call this route.
  */
 const get = procedure
   .use(authUser())
@@ -40,7 +41,7 @@ async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: 
   if (f.interviewer.id == me.id) return f;
 
   if (!allowOnlyInterviewer) {
-    if (isPermitted(me.roles, "MenteeManager")) return f;
+    if (isPermitted(me.roles, "MentorshipManager")) return f;
 
     // Check if the user is a participant of the interview's calibration and the calibration is active.
     const i = await db.Interview.findByPk(f.interviewId, {

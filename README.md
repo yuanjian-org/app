@@ -7,7 +7,7 @@ developed by VEF volunteers.
 
 1. Install `node.js` and `yarn`.
 1. Install `postgresql`, start it locally, and create a database called `yuanjian`. Aternatively, use a hosted Postgres solution such as [Neon](http://neon.tech).
-1. Create file `.env.local` in the repository root, and:
+1. Create file `.env` in the repository root, and:
    - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
    - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
 1. Run `yarn` to install dependency packages.

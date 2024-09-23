@@ -18,46 +18,52 @@ import z from "zod";
 import { sectionSpacing } from 'theme/metrics';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
-import EditableWithIcon from "components/EditableWithIcon";
+import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from 'shared/User';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from "next/link";
 import { toast } from 'react-toastify';
+import { InterviewType } from 'shared/InterviewType';
+import mentorApplicationFields from 'shared/mentorApplicationFields';
 
-export default function MenteeApplicant({ userId, showTitle, useNameAsTitle } :
-{
+export default function Applicant({
+  userId, type, showTitle, useNameAsTitle
+} : {
   userId: string,
+  type: InterviewType,
   showTitle?: boolean,
   useNameAsTitle?: boolean, // Valid only if showTitle is true
 }) {
   const { data, refetch } = trpcNext.users.getApplicant.useQuery({
-    userId, type: "MenteeInterview"
+    userId, type
   });
 
   return !data ? <Loader /> :
-    <LoadedApplicant user={data.user} application={data.application}
+    <LoadedApplicant user={data.user} type={type} application={data.application}
       showTitle={showTitle} useNameAsTitle={useNameAsTitle} refetch={refetch}
     />;
 }
 
-function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
+function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
   refetch
 } : {
   user: User,
+  type: InterviewType,
   application: Record<string, any> | null,
   refetch: () => void,
   showTitle?: boolean,
   useNameAsTitle?: boolean,
 }) {
   const [me] = useUserContext();
-  const isMenteeManager = isPermitted(me.roles, "MenteeManager");
+  const isMentee = type == "MenteeInterview";
+  const imManager = isPermitted(me.roles, "MentorshipManager");
 
   const update = async (name: string, value: string) => {
     const updated = structuredClone(application ?? {});
     updated[name] = value;
     await trpc.users.updateApplication.mutate({
-      type: "MenteeInterview",
+      type,
       userId: user.id,
       application: updated,
     });
@@ -66,23 +72,24 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
 
   return <Flex direction="column" gap={sectionSpacing}>
     {showTitle && <Heading size="md">{useNameAsTitle ?
-      `${formatUserName(user.name)}` : "申请材料"}</Heading>}
+      `${formatUserName(user.name)}` : "申请表"}</Heading>}
 
     {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
 
-    <ContactFieldRow readable={isMenteeManager} 
+    {/* It's okay to have mentors' contact information visible to peers */}
+    <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
       name="微信" value={user.wechat ?? '（未提供微信）'} />
 
-    <ContactFieldRow readable={isMenteeManager}
+    <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
       name="邮箱" value={user.email} />
 
-    {menteeApplicationFields.map(f => {
+    {(isMentee ? menteeApplicationFields : mentorApplicationFields).map(f => {
       if (application && f.name in application) {
-        return <FieldRow readonly={!isMenteeManager} key={f.name} name={f.name}
+        return <FieldRow readonly={!imManager} key={f.name} name={f.name}
           value={application[f.name]}
           update={v => update(f.name, v)}
         />;
-      } else if (isMenteeManager && f.showForEdits) {
+      } else if (imManager && f.showForEdits) {
         return <FieldRow readonly={false} key={f.name} name={f.name}
           value={''}
           update={v => update(f.name, v)}
@@ -92,8 +99,9 @@ function LoadedApplicant({ user, application, showTitle, useNameAsTitle,
   </Flex>;
 }
 
-function ContactFieldRow({ readable, name, value }: { 
-  readable: boolean,
+function ContactFieldRow({ redacted, copyable, name, value }: { 
+  redacted: boolean,
+  copyable: boolean,
   name: string,
   value: string 
 }) {
@@ -108,13 +116,14 @@ function ContactFieldRow({ readable, name, value }: {
   return <Flex direction="column">
     <Flex>
       <b>{name}{' '}</b>
-      {!readable && <Text color="grey">
+      {!copyable && <Text color="grey">
         （请联系<Link as={NextLink} href="/who-can-see-my-data">学生管理员</Link>）
       </Text>}
     </Flex>
     <Box>
-      ••••••••••••{' '}
-      {readable &&
+      {redacted ? '••••••••••••' : value}
+      {' '}
+      {copyable &&
         <Tooltip label="拷贝内容到剪贴板">
           <CopyIcon onClick={onCopy} cursor="pointer" />
         </Tooltip>
@@ -169,7 +178,9 @@ function FieldValueCell({ value, readonly, update }: {
     return readonly ?
       value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
       :
-      <EditableWithIcon mode="textarea" defaultValue={v} onSubmit={update} />;
+      <EditableWithIconOrLink editor="textarea" decorator="icon"
+        defaultValue={v} onSubmit={update}
+      />;
   
   // Other types. Display as is.
   } else {

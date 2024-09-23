@@ -74,14 +74,25 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  mentorApplication: Record<string, any> | null;
+
   // The coach of the mentor. Non-null only if the user is a mentor (ie.
   // `mentorshipsAsMentor` is non-empty).
   @ForeignKey(() => User)
   @Column(UUID)
   coachId: string | null;
 
+  // `null` represents "待审"
   @ZodColumn(STRING, zMenteeStatus.nullable())
   menteeStatus: MenteeStatus | null;
+
+  @ForeignKey(() => User)
+  @Column(UUID)
+  pointOfContactId: string | null;
+
+  @ZodColumn(STRING, z.string().nullable())
+  pointOfContactNote: string | null;
 
   // Managed by next-auth
   @Column(DATE)
@@ -106,6 +117,9 @@ class User extends Model {
 
   @BelongsTo(() => User, { foreignKey: 'coachId' })
   coach: User | null;
+
+  @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
+  pointOfContact: User | null;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {

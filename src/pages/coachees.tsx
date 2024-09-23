@@ -36,7 +36,7 @@ export default function Page() {
       <Tbody>
         {mentorships.map(m => <Tr key={m.id} _hover={{ bg: "white" }}>
           <MenteeCells mentee={m.mentee} />
-          <MentorshipCells menteeId={m.mentee.id} readonly />
+          <MentorshipCells mentee={m.mentee} readonly />
           <MostRecentChatMessageCell menteeId={m.mentee.id} />
         </Tr>
       )}

@@ -1,17 +1,21 @@
-version: '3'
-
 services:
-  yuanjian-app-dev:
-    build:
-      context: ./
-      target: runner
-      args:
-        - env=dev
-    volumes:
-      - .:/app
-    command: yarn dev
-    container_name: yuanjian-app-dev
-    ports:
-      - '3000:3000'
+  app:
+    image: ${APP_DOCKER_IMAGE:?}
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
+    build:
+      context: .
+      platforms:
+        - linux/amd64
+      ## stage ## target: runner
+  nginx:
+    image: ${NGINX_DOCKER_IMAGE:-nginx}
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./.cert.key:/cert.key
+      - ./.cert.pem:/cert.pem
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - app

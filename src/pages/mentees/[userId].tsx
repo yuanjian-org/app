@@ -7,7 +7,7 @@ import {
   Text,
   HStack,
 } from '@chakra-ui/react';
-import MenteeApplicant from 'components/MenteeApplicant';
+import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { widePage } from 'AppPage';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -19,6 +19,7 @@ import GroupBar from 'components/GroupBar';
 import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
+import Interview from 'components/Interview';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
@@ -28,12 +29,12 @@ export default widePage(() => {
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs user={u} mentorships={mentorships || []} />
+    <MenteeTabs mentee={u} mentorships={mentorships || []} />
   </>;
 });
 
-function MenteeTabs({ user, mentorships }: {
-  user: MinUser,
+function MenteeTabs({ mentee, mentorships }: {
+  mentee: MinUser,
   mentorships: Mentorship[],
 }) {
   const [me] = useUserContext();
@@ -54,7 +55,8 @@ function MenteeTabs({ user, mentorships }: {
         )
       }
       <Tab>内部笔记</Tab>
-      <Tab>申请材料</Tab>
+      <Tab>申请表</Tab>
+      <Tab>面试页</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
 
@@ -65,16 +67,30 @@ function MenteeTabs({ user, mentorships }: {
         </TabPanel>
       )}
       <TabPanel>
-        <ChatRoom menteeId={user.id} />
+        <ChatRoom menteeId={mentee.id} />
       </TabPanel> 
       <TabPanel>
-        <MenteeApplicant userId={user.id} />
+        <Applicant type="MenteeInterview" userId={mentee.id} />
       </TabPanel>
+      <InterviewTabPanel menteeId={mentee.id} />
       {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
     </TabPanels>
   </TabsWithUrlParam>;
+}
+
+function InterviewTabPanel({ menteeId }: {
+  menteeId: string
+}) {
+  const { data : interviewId, isLoading } = trpcNext.interviews.getIdForMentee
+    .useQuery({ menteeId });
+  return <TabPanel>
+    {isLoading ? <Loader /> : 
+      interviewId ? <Interview interviewId={interviewId} readonly /> :
+        <Text color="grey">没有面试记录。</Text>
+    }
+  </TabPanel>;
 }
 
 function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {

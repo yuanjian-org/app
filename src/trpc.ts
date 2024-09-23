@@ -3,15 +3,7 @@ import type { ApiRouter } from './api/apiRouter';
 import { observable } from '@trpc/server/observable';
 import { toast } from "react-toastify";
 import { createTRPCNext } from "@trpc/next";
-
-function getBaseUrl() {
-  // browser should use relative path
-  if (typeof window !== 'undefined') return '';
-  // vercel.com
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  // fall back to localhost
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-}
+import getBaseUrl from 'shared/getBaseUrl';
 
 /**
  * Show toasts on all TRPC errors.

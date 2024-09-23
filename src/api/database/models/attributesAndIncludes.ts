@@ -14,7 +14,12 @@ export const minUserAttributes = ['id', 'name'];
 
 export const userAttributes = [...minUserAttributes, "wechat", "sex", "email",
   "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
-  "menteeStatus"];
+  "menteeStatus", "pointOfContactNote"];
+
+export const userInclude = [{
+  association: "pointOfContact",
+  attributes: minUserAttributes,
+}];
 
 /**
  * Group
@@ -91,7 +96,9 @@ export const interviewAttributes = ["id", "type", "decision"];
 
 export const interviewInclude = [{
   model: User,
-  attributes: minUserAttributes,
+  // menteeStatus is used to filter out mentees whose status is not 待审.
+  // See routes/interviews.ts where this field is referenced.
+  attributes: [...minUserAttributes, "menteeStatus"],
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
