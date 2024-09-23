@@ -29,6 +29,11 @@ import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 
 export const sidebarWidth = 60;
+
+/**
+ * The breakpoint at which the sidebar becomes visible (desktop) or insivible
+ * (mobile). Commonly used as mobile-vs-desktop breakpoint.
+ */
 export const sidebarBreakpoint = "lg";
 
 /**

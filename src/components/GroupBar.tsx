@@ -94,7 +94,9 @@ export default function GroupBar({
       spacing={4}
       {...rest}
     >
-      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={() => setShowMeetingQuotaWarning(false)}/>}
+      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={
+        () => setShowMeetingQuotaWarning(false)} />}
+
       {/* row 1 col 1 */}
       {showGroupName && showJoinButton && <Box />}
 
@@ -104,17 +106,19 @@ export default function GroupBar({
       {/* row 2 col 1 */}
       {showJoinButton &&
         <Box>
-          {/* Open meeting link in the same window on mobile becuase mobile
-            devices may disable pop-up windows by default. */}
+          {/* Open meeting link in the same window on mobile because mobile
+            devices may disable pop-up windows by default. Use '2xl' instead
+            of sidebarBreakpiont because screen size can be fairly large on
+            tablets. TODO: https://github.com/yuanjian-org/app/issues/369 */}
           <JoinButton
-            display={{ [sidebarBreakpoint]: 'none' }}
+            display={{ '2xl': 'none' }}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
             onClick={() => launchMeetingInSameWindow(group.id)}
           >加入</JoinButton>
 
           {/* Non-mobile devices open meeting link in the same window. */}
           <JoinButton
-            display={{ base: 'none', [sidebarBreakpoint]: 'unset' }}
+            display={{ base: 'none', '2xl': 'unset' }}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
             onClick={() => launchMeetingInNewWindow(group.id)}
           >加入</JoinButton>
