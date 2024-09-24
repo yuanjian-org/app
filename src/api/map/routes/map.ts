@@ -7,11 +7,13 @@ import {
   Landmark, 
   zLandmarkScoreLog,
   LandmarkScoreLog,
-  landmarkScoreLogAttributes
  } from "shared/Map";
 import * as fs from 'fs';
 import * as path from 'path';
 import db from "../../database/db";
+import { 
+  landmarkScoreLogAttributes 
+} from "../../database/models/attributesAndIncludes";
 
 const list = procedure
   .use(authUser())
@@ -38,7 +40,10 @@ const list = procedure
 
 const listLandmarkScoreLog = procedure
   .use(authUser())
-  .input(z.object({ userId: z.string(), landmark: z.string() }))
+  .input(z.object({ 
+    userId: z.string(), 
+    landmark: z.string() 
+  }))
   .output(z.array(zLandmarkScoreLog))
   .query(async ({ input }) =>
 {
