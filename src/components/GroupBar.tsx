@@ -53,28 +53,7 @@ export default function GroupBar({
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
 
-  const launchMeetingInNewWindow = async (groupId: string) => {
-    setJoining(true);
-    try {
-      const link = await trpc.meetings.join.mutate({ groupId: groupId });
-      if (!link) {
-        setShowMeetingQuotaWarning(true);
-      } else {
-        const newWindow = window.open(link, '_blank');
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          // popup blocked
-          await launchMeetingInSameWindow(groupId);
-        } else {
-          setJoining(false);
-        }
-      }
-    } catch (e) {
-      setJoining(false);
-      throw e;
-    }
-  };
-
-  const launchMeetingInSameWindow = async (groupId: string) => {
+  const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
       const link = await trpc.meetings.join.mutate({ groupId: groupId });
@@ -82,9 +61,13 @@ export default function GroupBar({
         setShowMeetingQuotaWarning(true);
         setJoining(false);
       } else {
-        window.location.href = link;
-        // Time is needed for the meeting page to load.
-        setTimeout(() => setJoining(false), 5000);
+        const newWindow = window.open(link, '_blank');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          window.location.href = link;
+          setTimeout(() => setJoining(false), 5000);
+        } else {
+          setJoining(false);
+        }
       }
     } catch (e) {
       setJoining(false);
@@ -115,7 +98,7 @@ export default function GroupBar({
         <Box>
           <JoinButton
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={() => launchMeetingInNewWindow(group.id)}
+            onClick={() => launchMeeting(group.id)}
           >加入</JoinButton>
         </Box>
       }
