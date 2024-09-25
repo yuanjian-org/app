@@ -142,7 +142,7 @@ export const chatRoomInclude = [{
  * Map
  */
 
-export const landmarkScoreLogAttributes = [
+export const landmarkAssessmentAttributes = [
     "score", 
     "markdown", 
     "createdAt"

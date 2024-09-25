@@ -5,14 +5,14 @@ import {
   zLatitude,
   zLandmark, 
   Landmark, 
-  zLandmarkScoreLog,
-  LandmarkScoreLog,
+  zLandmarkAssessment,
+  LandmarkAssessment,
  } from "shared/Map";
 import * as fs from 'fs';
 import * as path from 'path';
 import db from "../../database/db";
 import { 
-  landmarkScoreLogAttributes 
+  landmarkAssessmentAttributes 
 } from "../../database/models/attributesAndIncludes";
 
 const list = procedure
@@ -38,22 +38,22 @@ const list = procedure
     }));
 });
 
-const listLandmarkScoreLog = procedure
+const listLandmarkAssessment = procedure
   .use(authUser())
   .input(z.object({ 
     userId: z.string(), 
     landmark: z.string() 
   }))
-  .output(z.array(zLandmarkScoreLog))
+  .output(z.array(zLandmarkAssessment))
   .query(async ({ input }) =>
 {
-  return await db.LandmarkScoreLog.findAll({
+  return await db.LandmarkAssessment.findAll({
     where: { userId: input.userId, landmark: input.landmark },
-    attributes: landmarkScoreLogAttributes,
-  }) as LandmarkScoreLog[];
+    attributes: landmarkAssessmentAttributes,
+  }) as LandmarkAssessment[];
 });
 
 export default router({
   list,
-  listLandmarkScoreLog
+  listLandmarkAssessment
 });
