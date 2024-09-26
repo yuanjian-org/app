@@ -6,7 +6,10 @@ services:
       context: .
       platforms:
         - linux/amd64
-      ## stage ## target: runner
+      ## stage ##
+      target: runner
+    ports:
+      - "3000:3000"
   nginx:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
