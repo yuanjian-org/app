@@ -9,7 +9,6 @@ import {
   TextareaProps,
   VStack,
   Select,
-  Link,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -19,10 +18,11 @@ import { formatUserName, prettifyDate } from 'shared/strings';
 import moment from 'moment';
 import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
-import { AddIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
+import { MarkdownSupport } from './MarkdownSupport';
 
 export default function Room({ menteeId }: {
   menteeId: string,
@@ -139,14 +139,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
       <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
       <Spacer />
 
-      <Link target="_blank" 
-        href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" 
-      >
-        <HStack>
-          <Text>支持 Markdown 格式</Text>
-          <Icon as={ExternalLinkIcon} />
-        </HStack>
-      </Link>
+      <MarkdownSupport />
 
       <Select placeholder="模版文字"
         onChange={e => insertSnippet(snippets.find(snippet => 

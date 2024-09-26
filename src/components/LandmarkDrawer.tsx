@@ -19,20 +19,16 @@ import {
     Thead,
     Link,
     Textarea,
-    HStack,
-    Icon,
   } from '@chakra-ui/react';
 import { Landmark, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
 import { componentSpacing } from 'theme/metrics';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { MarkdownSupport } from './MarkdownSupport';
 
 export default function LandmarkDrawer ({ onClose, landmark }: { 
     onClose: () => void; 
     landmark: Landmark
-  }) {      
-    const [value, setValue] = useState<LandmarkScore | undefined>();
-    
+  }) {          
     return <Drawer size="lg" isOpen onClose={onClose}>
       <DrawerOverlay />
       <DrawerContent>
@@ -41,12 +37,8 @@ export default function LandmarkDrawer ({ onClose, landmark }: {
         <DrawerBody>
           <Flex flexDirection="column" gap={componentSpacing}>
             <LandmarkDefinition definition={landmark.定义} />
-            <LanmarkAssessment 
-              landmark={landmark} 
-              value={value} 
-              setValue={setValue}
-            />
-            <LandmarkHistoryTable />
+            <LanmarkAssessment landmark={landmark} />
+            <LandmarkAssessmentHistory />
           </Flex>
         </DrawerBody> 
       </DrawerContent>
@@ -57,14 +49,14 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
   return <Text>{definition}</Text>;
 }
 
-function LanmarkAssessment ({ landmark, value, setValue }: {
+function LanmarkAssessment ({ landmark }: {
   landmark: Landmark;
-  value: LandmarkScore | undefined;
-  setValue: (value: LandmarkScore) => void;
 }) {
+  const [score, setScore] = useState<LandmarkScore | undefined>();
+
   return <>
     <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
-    <RadioGroup onChange={value => setValue(Number(value))} value={String(value)}>
+    <RadioGroup onChange={value => setScore(Number(value))} value={String(score)}>
       <Stack direction="column">
         {landmark.层级.map((level, index) => 
           <Radio key={index} value={String(index)}>{level}</Radio>
@@ -79,26 +71,15 @@ function LanmarkAssessment ({ landmark, value, setValue }: {
 function Editor() {
   const [markdown, setMarkdown] = useState<string>("");
   return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} 
-    />
+    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)} 
+    autoFocus />
     <Flex justifyContent="flex-end">
       <MarkdownSupport />
     </Flex>
   </>;
 }
 
-function MarkdownSupport() {
-  return <Link target="_blank" 
-    href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" 
-    >
-    <HStack>
-      <Text>支持 Markdown 格式</Text><Icon as={ExternalLinkIcon} />
-    </HStack>
-  </Link>;
-}
-
-function LandmarkHistoryTable() {
+function LandmarkAssessmentHistory() {
   return <Table>
     <Thead>历史评估结果</Thead>
     <Tr>
