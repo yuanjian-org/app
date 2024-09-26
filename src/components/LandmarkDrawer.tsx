@@ -23,7 +23,7 @@ import {
 import { Landmark, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
 import { componentSpacing } from 'theme/metrics';
-import { MarkdownSupport } from './MarkdownSupport';
+import MarkdownSupport from './MarkdownSupport';
 
 export default function LandmarkDrawer ({ onClose, landmark }: { 
     onClose: () => void; 

@@ -6,8 +6,7 @@ import {
 } from '@chakra-ui/react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
-
-export function MarkdownSupport() {
+export default function MarkdownSupport() {
     return <Link target="_blank" 
       href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" 
       >
