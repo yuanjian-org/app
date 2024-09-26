@@ -137,13 +137,3 @@ export const chatRoomInclude = [{
   attributes: chatMessageAttributes,
   include: chatMessageInclude,
 }];
-
-/**
- * Map
- */
-
-export const landmarkAssessmentAttributes = [
-    "score", 
-    "markdown", 
-    "createdAt"
-  ];

@@ -13,7 +13,7 @@ import * as path from 'path';
 import db from "../../database/db";
 import { 
   landmarkAssessmentAttributes 
-} from "../../database/models/attributesAndIncludes";
+} from "../../database/models/map/attributesAndIncludes";
 
 const list = procedure
   .use(authUser())
@@ -45,10 +45,10 @@ const listLandmarkAssessment = procedure
     landmark: z.string() 
   }))
   .output(z.array(zLandmarkAssessment))
-  .query(async ({ input }) =>
+  .query(async ({ input : { userId, landmark }}) =>
 {
   return await db.LandmarkAssessment.findAll({
-    where: { userId: input.userId, landmark: input.landmark },
+    where: { userId, landmark },
     attributes: landmarkAssessmentAttributes,
   }) as LandmarkAssessment[];
 });
