@@ -45,7 +45,7 @@ const listLandmarkAssessment = procedure
     landmark: z.string() 
   }))
   .output(z.array(zLandmarkAssessment))
-  .query(async ({ input : { userId, landmark }}) =>
+  .query(async ({ input : { userId, landmark } }) =>
 {
   return await db.LandmarkAssessment.findAll({
     where: { userId, landmark },
