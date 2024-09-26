@@ -61,9 +61,13 @@ export default function GroupBar({
         setShowMeetingQuotaWarning(true);
         setJoining(false);
       } else {
-        const newWindow = window.open(link, '_blank');
+        // Attempts to open the link in a new browser tab.
+        // If blocked or unsuccessful, it opens the link in the current tab.
+        // Ref: https://stackoverflow.com/a/2917 
+        const newWindow = window.open(link, '_blank');  
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
           window.location.href = link;
+          // Time is needed for the meeting page to load.
           setTimeout(() => setJoining(false), 5000);
         } else {
           setJoining(false);
