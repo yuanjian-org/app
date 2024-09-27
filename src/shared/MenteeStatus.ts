@@ -4,8 +4,8 @@ import z from "zod";
  * null status means pending screening
  */
 export const AllMenteeStatuses = [
-  "初据",
-  "面据",
+  "初拒",
+  "面拒",
 
   "现届学子",
   "仅奖学金",
