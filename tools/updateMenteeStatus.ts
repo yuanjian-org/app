@@ -1,6 +1,8 @@
 import sequelize from "../src/api/database/sequelize";
 
-export default async function updateMenteeStatus() {
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+main().then();
+async function main() {
   console.log("Updating mentee status...");
 
   await sequelize.transaction(async (transaction) => {
@@ -14,4 +16,7 @@ export default async function updateMenteeStatus() {
         { transaction }
     );
   });
+
+  // This make sure the process doesn't hang waiting for connection closure.
+  await sequelize.close();
 }
