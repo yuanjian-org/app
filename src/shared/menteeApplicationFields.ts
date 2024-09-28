@@ -29,6 +29,7 @@ export const menteeFirstYearInCollegeField = "大学一年级入学年份";
  * Field order dictates the order the fields are displayed.
  */
 const menteeApplicationFields: MenteeApplicationField[] = [
+  { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
   { name: menteeAcceptanceYearField, showForEdits: true, },
   { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
   { jsjField: "field_149", jsjProxiedField: "field_149", name: menteeDegreeField, showForEdits: true, },
@@ -37,7 +38,6 @@ const menteeApplicationFields: MenteeApplicationField[] = [
   { jsjField: "field_108", jsjProxiedField: "field_172", name: menteeMajorField, showForEdits: true, },
   { jsjField: "field_167", jsjProxiedField: "field_167", name: menteeFirstYearInCollegeField, showForEdits: true, },
   { jsjField: "field_169", name: "预计毕业年份", showForEdits: true, },
-  { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
 
   { jsjField: "field_170", name: "国籍", }, // Only in Sizhu application form
 
