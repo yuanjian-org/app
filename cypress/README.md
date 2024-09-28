@@ -16,21 +16,29 @@ yarn cypress-run
 For more usage, refer to [Cypress Commands](https://docs.cypress.io/guides/guides/command-line).
 
 ### Setup your Cypress env variables
-- the Cypress suite requires an environment variable that should be stored in your `.env` and not committed to git.
-  - TEST_SESSION_COOKIE=
+- the Cypress suite requires a valid cookie to login. See `cypress.config.ts` for example.
+  - (local) LOGIN_SESSION_COOKIE=
     - to get the value for this variable, open your browser to your running app at `localhost:3000`.
     - inspect the page
     - click the "Application" tab
     - click "Cookies"
     - find the value for `next-auth.session-token`
-    - copy that value and paste it in the `TEST_SESSION_COOKIE` variable in your `.env`
-    - do not ever commit this value
+    - copy that value and paste it in the `LOGIN_SESSION_COOKIE` variable in your `cypress.config.ts`
+    - this value will need to be updated whenever the cookie expires
+
+  - (prod) SECURE_LOGIN_SESSION_COOKIE=
+    - to get the value for this variable, open your browser to your running app at `https://www.yuantuapp.com/`.
+    - inspect the page
+    - click the "Application" tab
+    - click "Cookies"
+    - find the value for `__Secure-next-auth.session-token`
+    - copy that value and paste it in the `SECURE_LOGIN_SESSION_COOKIE` variable in your `cypress.config.ts`
     - this value will need to be updated whenever the cookie expires
 
 ### Setup test user
 - the Cypress suite requires a user to run tests against.
  - The user may be stored at `.../cypress/fixtures/session.json`
-    - to get the value for this variable, open your browser to your running app at `localhost:3000`.
+    - to get the value for this variable, open your browser to your running app at `localhost:3000` or `https://www.yuantuapp.com/` if you want to test against prod.
     - inspect the page
     - click the "Network" tab
     - find a row named with "session"
