@@ -6,7 +6,6 @@ services:
       context: .
       platforms:
         - linux/amd64
-      ## stage ##
       target: runner
   nginx:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
