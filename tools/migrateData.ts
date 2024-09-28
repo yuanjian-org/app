@@ -64,6 +64,8 @@ export default async function migrateData() {
   });
 
   await cleanupFeedbackAttempLog();
+
+  await updateMenteeStatus();
 }
 
 async function cleanupFeedbackAttempLog() {
@@ -71,4 +73,21 @@ async function cleanupFeedbackAttempLog() {
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
   `);
+}
+
+// update mentee status
+async function updateMenteeStatus() {
+  console.log("Updating mentee status...");
+
+  await sequelize.transaction(async (transaction) => {
+    await sequelize.query(
+        `UPDATE Users SET "menteeStatus" = '面拒' WHERE "menteeStatus" = '面据'`,
+        { transaction }
+    );
+
+    await sequelize.query(
+        `UPDATE Users SET "menteeStatus" = '初拒' WHERE "menteeStatus" = '初据'`,
+        { transaction }
+    );
+  });
 }
