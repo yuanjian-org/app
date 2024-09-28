@@ -18,7 +18,7 @@ import { zLandmarkScore, LandmarkScore } from "../../../../shared/Map";
     },
   ],
 })
-class LandmarkScoreLog extends Model {
+class LandmarkAssessment extends Model {
   @ForeignKey(() => User)
   @Column(UUID)
   userId: string;
@@ -33,4 +33,4 @@ class LandmarkScoreLog extends Model {
   markdown: string | null;
 }
 
-export default LandmarkScoreLog;
+export default LandmarkAssessment;

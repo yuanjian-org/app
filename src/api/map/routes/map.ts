@@ -1,9 +1,19 @@
 import { procedure, router } from "../../trpc";
 import { authUser } from "../../auth";
 import { z } from "zod";
-import { zLatitude, zLandmark, Landmark } from "shared/Map";
+import { 
+  zLatitude,
+  zLandmark, 
+  Landmark, 
+  zLandmarkAssessment,
+  LandmarkAssessment,
+ } from "shared/Map";
 import * as fs from 'fs';
 import * as path from 'path';
+import db from "../../database/db";
+import { 
+  landmarkAssessmentAttributes 
+} from "../../database/models/map/attributesAndIncludes";
 
 const list = procedure
   .use(authUser())
@@ -28,6 +38,24 @@ const list = procedure
     }));
 });
 
+const listLandmarkAssessment = procedure
+  .use(authUser())
+  .input(z.object({ 
+    userId: z.string(), 
+    landmark: z.string() 
+  }))
+  .output(z.array(zLandmarkAssessment))
+  .query(async ({ input : { userId, landmark } }) =>
+{
+  // Missing 'as' type casting will cause an error due to
+  // 'createdAt' is optional in 'LandmarkAssessment' but required in return type
+  return await db.LandmarkAssessment.findAll({
+    where: { userId, landmark },
+    attributes: landmarkAssessmentAttributes,
+  }) as LandmarkAssessment[]; 
+});
+
 export default router({
   list,
+  listLandmarkAssessment
 });
