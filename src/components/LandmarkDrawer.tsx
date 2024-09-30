@@ -35,8 +35,8 @@ import { prettifyDate } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { sidebarBreakpoint } from './Navbars';
 
-const desktopTextLimit = 30;
-const mobileTextLimit = 8;
+const desktopTextLimit = 14;
+const mobileTextLimit = 7;
 
 export default function LandmarkDrawer ({ onClose, landmark }: { 
     onClose: () => void; 
