@@ -23,6 +23,10 @@ class LandmarkAssessment extends Model {
   @Column(UUID)
   userId: string;
 
+  @ForeignKey(() => User)
+  @Column(UUID)
+  assessorId: string | null;
+
   @Column(STRING)
   landmark: string;
 
