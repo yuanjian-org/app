@@ -46,6 +46,7 @@ import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
 import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
+import { menteeSourceField } from 'shared/menteeApplicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
@@ -176,6 +177,7 @@ function getColorFromText(text: string): string {
 function MenteeHeaderCells() {
   return <>
     <Th>录取届</Th>
+    <Th>来源</Th>
     <Th>姓名</Th>
   </>;
 }
@@ -191,6 +193,9 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
 
   const year = (data?.application as Record<string, any>)
     ?.[menteeAcceptanceYearField];
+  
+    const source = (data?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   useEffect(() => {
     if (updateMenteeYear) {
@@ -201,6 +206,9 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
   return <>
     {/* Acceptance Year */}
     <Td>{year && <Tag colorScheme={getColorFromText(year)}>{year}</Tag>}</Td>
+
+    {/* Source */}
+    <Td>{source}</Td>
 
     {/* Name */}
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
