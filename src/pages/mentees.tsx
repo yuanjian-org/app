@@ -177,7 +177,7 @@ function getColorFromText(text: string): string {
 function MenteeHeaderCells() {
   return <>
     <Th>录取届</Th>
-    <Th>合作机构来源</Th>
+    <Th>来源</Th>
     <Th>姓名</Th>
   </>;
 }
