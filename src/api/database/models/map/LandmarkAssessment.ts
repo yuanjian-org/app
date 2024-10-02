@@ -3,6 +3,7 @@ import {
   Table,
   Model,
   ForeignKey,
+  HasOne,
 } from "sequelize-typescript";
 import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
@@ -26,6 +27,9 @@ class LandmarkAssessment extends Model {
   @ForeignKey(() => User)
   @Column(UUID)
   assessorId: string | null;
+
+  @HasOne(() => User)
+  assessor: User | null;
 
   @Column(STRING)
   landmark: string;
