@@ -18,13 +18,11 @@ import {
     Td,
     Thead,
     Textarea,
-    Modal,
     ModalBody,
     ModalHeader,
     ModalCloseButton,
     ModalContent,
-    ModalOverlay,
-    useBreakpointValue,
+    VStack,
   } from '@chakra-ui/react';
 import { Landmark, LandmarkAssessment, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
@@ -34,9 +32,10 @@ import { trpcNext } from 'trpc';
 import { prettifyDate } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { sidebarBreakpoint } from './Navbars';
+import ModalWithBackdrop from './ModalWithBackdrop';
 
-const desktopTextLimit = 14;
-const mobileTextLimit = 7;
+const desktopTextLimit = 60;
+const mobileTextLimit = 20;
 
 export default function LandmarkDrawer ({ onClose, landmark }: { 
     onClose: () => void; 
@@ -102,20 +101,6 @@ function LandmarkAssessmentHistory({ landmark } : {
   });
 
   const [selectedAssessment, setSelectedAssessment] = useState<LandmarkAssessment>();
-  const handleSelectAssessment = (assessment: {
-    createdAt: string;
-    score: number;
-    markdown: string | null;
-  }) => {
-    const newAssessment: LandmarkAssessment = {
-      ...assessment,
-      createdAt: new Date(assessment.createdAt) 
-    };
-    setSelectedAssessment(newAssessment);
-  };
-
-  const maxChar = useBreakpointValue({ base: mobileTextLimit, 
-    [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
 
   return <>
   <Table whiteSpace="nowrap">
@@ -128,15 +113,14 @@ function LandmarkAssessmentHistory({ landmark } : {
     </Tr>
     <Tbody>
       {assessments?.map((assessment, index) => (
-        <Tr key={index} onClick={() => handleSelectAssessment(assessment)} cursor="pointer">
-          <Td>{prettifyDate(assessment.createdAt)}</Td>
+        <Tr key={index} onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
+          <Td>{assessment.createdAt && prettifyDate(assessment.createdAt)}</Td>
           <Td>{assessment.score}</Td>
           <Td>假评估人</Td>
           <Td>
-            <Text>
-              {assessment.markdown && assessment?.markdown.length > maxChar 
-              ? `${assessment.markdown.substring(0, maxChar)}...`
-              : assessment.markdown}
+            <Text isTruncated 
+              maxWidth={{ base: mobileTextLimit, [sidebarBreakpoint]: desktopTextLimit }}>
+              {assessment.markdown}
             </Text>      
           </Td>
         </Tr>
@@ -154,31 +138,18 @@ function AssessmentModal ({ onClose, assessment }: {
   onClose: () => void; 
   assessment: LandmarkAssessment
 }) {          
-  return <Modal isCentered isOpen onClose={onClose}>
-  <ModalOverlay />
+  return <ModalWithBackdrop isCentered isOpen onClose={onClose}>
   <ModalContent>
     <ModalCloseButton /> 
     <ModalHeader>历史评估结果</ModalHeader>
     <ModalBody>
-      <Flex direction="column" gap={componentSpacing} padding={componentSpacing}>
-        <Text fontWeight="bold">日期：
-          <span style={{ fontWeight: "normal" }}>
-            {prettifyDate(assessment.createdAt)}
-          </span>
-        </Text>
-        <Text fontWeight="bold">结果：
-          <span style={{ fontWeight: "normal" }}>{assessment.score}</span>
-        </Text>
-        <Text fontWeight="bold">评估人：
-          <span style={{ fontWeight: "normal" }}>假评估人</span>
-        </Text>
-        <Text fontWeight="bold">详情：
-          <span style={{ fontWeight: "normal" }}>
-            {assessment.markdown || "无"}
-          </span>
-        </Text>
-      </Flex>
+      <VStack gap={componentSpacing} align="left">
+        <p><b>日期：</b>{assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
+        <p><b>结果：</b>{assessment.score}</p>
+        <p><b>评估人：</b>假评估人</p>
+        <p><b>详情：</b>{assessment.markdown || "无"}</p>
+      </VStack>
     </ModalBody> 
   </ModalContent>
-</Modal>;
+</ModalWithBackdrop>;
 }
