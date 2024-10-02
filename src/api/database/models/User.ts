@@ -26,6 +26,7 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
+import LandmarkAssessment from "./map/LandmarkAssessment";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -120,6 +121,9 @@ class User extends Model {
 
   @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
   pointOfContact: User | null;
+
+  @HasMany(() => LandmarkAssessment)
+  landmarkAssessments: LandmarkAssessment[];
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
