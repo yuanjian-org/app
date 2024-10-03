@@ -68,7 +68,8 @@ function LandmarkAssessment ({ landmark }: {
 
   return <>
     <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
-    <RadioGroup onChange={value => setScore(Number(value))} value={String(score)}>
+    <RadioGroup onChange={value => setScore(Number(value))} 
+      value={String(score)}>
       <Stack direction="column">
         {landmark.层级.map((level, index) => 
           <Radio key={index} value={String(index)}>{level}</Radio>
@@ -100,7 +101,8 @@ function LandmarkAssessmentHistory({ landmark } : {
     landmark: landmark.名称,
   });
 
-  const [selectedAssessment, setSelectedAssessment] = useState<LandmarkAssessment>();
+  const [selectedAssessment, setSelectedAssessment] 
+    = useState<LandmarkAssessment>();
 
   return <>
   <Table whiteSpace="nowrap">
@@ -113,13 +115,17 @@ function LandmarkAssessmentHistory({ landmark } : {
     </Tr>
     <Tbody>
       {assessments?.map((assessment, index) => (
-        <Tr key={index} onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
+        <Tr key={index} 
+          onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
           <Td>{assessment.createdAt && prettifyDate(assessment.createdAt)}</Td>
           <Td>{assessment.score}</Td>
           <Td>假评估人</Td>
           <Td>
             <Text isTruncated 
-              maxWidth={{ base: mobileTextLimit, [sidebarBreakpoint]: desktopTextLimit }}>
+              maxWidth={{ 
+                base: mobileTextLimit, 
+                [sidebarBreakpoint]: desktopTextLimit 
+              }}>
               {assessment.markdown}
             </Text>      
           </Td>
@@ -143,7 +149,8 @@ function AssessmentModal ({ onClose, assessment }: {
     <ModalHeader>历史评估结果</ModalHeader>
     <ModalBody>
       <VStack gap={componentSpacing} align="left">
-        <p><b>日期：</b>{assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
+        <p><b>日期：</b>
+          {assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
         <p><b>结果：</b>{assessment.score}</p>
         <p><b>评估人：</b>假评估人</p>
         <p><b>详情：</b>{assessment.markdown || "无"}</p>
