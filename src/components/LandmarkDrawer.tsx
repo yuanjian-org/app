@@ -150,7 +150,7 @@ function AssessmentModal ({ onClose, assessment }: {
       </VStack>
     </ModalBody>
     <ModalFooter>
-      <Button onClick={onClose}>取消</Button>
+      <Button onClick={onClose}>关闭</Button>
     </ModalFooter>
   </ModalContent>
 </ModalWithBackdrop>;
