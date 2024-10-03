@@ -26,7 +26,6 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
-import LandmarkAssessment from "./map/LandmarkAssessment";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
