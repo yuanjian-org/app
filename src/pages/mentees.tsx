@@ -111,8 +111,8 @@ function MenteeTable({ users, refetch }: {
         const yearB = menteeToYear.get(b.id) || "";
 
         if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal');
-          const nameB = formatUserName(b.name, 'formal');
+          const nameA = toPinyin(formatUserName(a.name, 'formal'));
+          const nameB = toPinyin(formatUserName(b.name, 'formal'));
           return nameA.localeCompare(nameB);
         }
 

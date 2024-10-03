@@ -31,7 +31,7 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
@@ -114,6 +114,10 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
   refetchInterviews: () => void,
   refetchApplicants: () => void,
 }) {
+  const [sources, setSources] = useState<{ [id: string]: string }>({});
+  const updateSource = (id: string, source: string) => {
+    setSources(prev => ({ ...prev, [id]: source }));
+  };
   return <TableContainer>
     <Text marginBottom={sectionSpacing} color="grey" fontSize="sm">
       点击候选人以编辑面试官和面试讨论组：
@@ -129,10 +133,24 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
         </Tr>
       </Thead>
       <Tbody>
-        {applicants.map(a => 
+        {applicants
+          .sort((a1, a2) => {
+            const source1 = toPinyin(sources[a1.id] || '');
+            const source2 = toPinyin(sources[a2.id] || '');
+
+            if (!source1 && source2) return 1;  
+            if (source1 && !source2) return -1;
+            if (source1 === source2) {
+              const name1 = toPinyin(formatUserName(a1.name, 'formal'));
+              const name2 = toPinyin(formatUserName(a2.name, 'formal'));
+              return name1.localeCompare(name2);
+            }  
+            return source1.localeCompare(source2);
+          })
+          .map(a => 
           <Applicant key={a.id} type={type} applicant={a}
             interviews={interviews} refetchInterviews={refetchInterviews}
-            refetchApplicants={refetchApplicants}
+            refetchApplicants={refetchApplicants} updateSource={updateSource}
           />)
         }
       </Tbody>
@@ -145,17 +163,22 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
 }
 
 function Applicant({ type, applicant, interviews, refetchInterviews,
-  refetchApplicants
+  refetchApplicants, updateSource
  } : {
   type: InterviewType,
   applicant: User,
   interviews: Interview[],
   refetchInterviews: () => void,
   refetchApplicants: () => void,
+  updateSource:(id: string, source: string) => void,
 }) {
   // TODO: it's duplicative to fetch the applicant again
   const { data } = trpcNext.users.getApplicant.useQuery({ userId: applicant.id, type });
   const source = (data?.application as Record<string, any> | null)?.[menteeSourceField];
+
+  useEffect(() => {
+    updateSource(applicant.id, source);
+  }, [applicant.id, source]);
 
   const matches = interviews.filter(i => i.interviewee.id == applicant.id);
   invariant(matches.length <= 1);
