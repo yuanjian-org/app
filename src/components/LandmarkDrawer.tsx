@@ -20,9 +20,9 @@ import {
     Textarea,
     ModalBody,
     ModalHeader,
-    ModalCloseButton,
     ModalContent,
     VStack,
+    ModalFooter,
   } from '@chakra-ui/react';
 import { Landmark, LandmarkAssessment, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
@@ -140,7 +140,6 @@ function AssessmentModal ({ onClose, assessment }: {
 }) {          
   return <ModalWithBackdrop isCentered isOpen onClose={onClose}>
   <ModalContent>
-    <ModalCloseButton /> 
     <ModalHeader>历史评估结果</ModalHeader>
     <ModalBody>
       <VStack gap={componentSpacing} align="left">
@@ -149,7 +148,10 @@ function AssessmentModal ({ onClose, assessment }: {
         <p><b>评估人：</b>假评估人</p>
         <p><b>详情：</b>{assessment.markdown || "无"}</p>
       </VStack>
-    </ModalBody> 
+    </ModalBody>
+    <ModalFooter>
+      <Button onClick={onClose}>取消</Button>
+    </ModalFooter>
   </ModalContent>
 </ModalWithBackdrop>;
 }
