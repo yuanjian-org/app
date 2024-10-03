@@ -90,7 +90,7 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
     {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
   </Text>;  
   
-  return <Card onClick={() => selectLandmark(landmark)}>
+  return <Card onClick={() => selectLandmark(landmark)} cursor='pointer'>
     <CardHeader>
       <Heading size="md">{landmark.名称}</Heading>
     </CardHeader>

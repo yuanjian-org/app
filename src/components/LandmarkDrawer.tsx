@@ -17,13 +17,25 @@ import {
     Th,
     Td,
     Thead,
-    Link,
     Textarea,
+    ModalBody,
+    ModalHeader,
+    ModalContent,
+    VStack,
+    ModalFooter,
   } from '@chakra-ui/react';
-import { Landmark, LandmarkScore } from 'shared/Map';
+import { Landmark, LandmarkAssessment, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
 import { componentSpacing } from 'theme/metrics';
 import MarkdownSupport from './MarkdownSupport';
+import { trpcNext } from 'trpc';
+import { prettifyDate } from 'shared/strings';
+import { useUserContext } from 'UserContext';
+import { sidebarBreakpoint } from './Navbars';
+import ModalWithBackdrop from './ModalWithBackdrop';
+
+const desktopTextLimit = 60;
+const mobileTextLimit = 20;
 
 export default function LandmarkDrawer ({ onClose, landmark }: { 
     onClose: () => void; 
@@ -37,8 +49,8 @@ export default function LandmarkDrawer ({ onClose, landmark }: {
         <DrawerBody>
           <Flex flexDirection="column" gap={componentSpacing}>
             <LandmarkDefinition definition={landmark.定义} />
-            <LanmarkAssessment landmark={landmark} />
-            <LandmarkAssessmentHistory />
+            <LandmarkAssessment landmark={landmark} />
+            <LandmarkAssessmentHistory landmark={landmark}/>
           </Flex>
         </DrawerBody> 
       </DrawerContent>
@@ -49,14 +61,15 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
   return <Text>{definition}</Text>;
 }
 
-function LanmarkAssessment ({ landmark }: {
+function LandmarkAssessment ({ landmark }: {
   landmark: Landmark;
 }) {
   const [score, setScore] = useState<LandmarkScore | undefined>();
 
   return <>
     <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
-    <RadioGroup onChange={value => setScore(Number(value))} value={String(score)}>
+    <RadioGroup onChange={value => setScore(Number(value))} 
+      value={String(score)}>
       <Stack direction="column">
         {landmark.层级.map((level, index) => 
           <Radio key={index} value={String(index)}>{level}</Radio>
@@ -79,8 +92,20 @@ function Editor() {
   </>;
 }
 
-function LandmarkAssessmentHistory() {
-  return <Table>
+function LandmarkAssessmentHistory({ landmark } : {
+  landmark: Landmark;
+}) {  
+  const [user] = useUserContext();
+  const { data: assessments } = trpcNext.map.listLandmarkAssessment.useQuery({
+    userId: user.id,
+    landmark: landmark.名称,
+  });
+
+  const [selectedAssessment, setSelectedAssessment] 
+    = useState<LandmarkAssessment>();
+
+  return <>
+  <Table whiteSpace="nowrap">
     <Thead>历史评估结果</Thead>
     <Tr>
       <Th>日期</Th>
@@ -88,13 +113,52 @@ function LandmarkAssessmentHistory() {
       <Th>评估人</Th>
       <Th>详情</Th>
     </Tr>
-    <Tbody> 
-    <Tr>
-      <Td>fake date</Td>
-      <Td>fake score</Td>  
-      <Td>fake accessor</Td>        
-      <Td><Link href="#">fake url</Link></Td>      
-    </Tr>   
+    <Tbody>
+      {assessments?.map((assessment, index) => (
+        <Tr key={index} 
+          onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
+          <Td>{assessment.createdAt && prettifyDate(assessment.createdAt)}</Td>
+          <Td>{assessment.score}</Td>
+          <Td>假评估人</Td>
+          <Td>
+            <Text isTruncated 
+              maxWidth={{ 
+                base: mobileTextLimit, 
+                [sidebarBreakpoint]: desktopTextLimit 
+              }}>
+              {assessment.markdown}
+            </Text>      
+          </Td>
+        </Tr>
+      ))}
     </Tbody>
-  </Table>;
+  </Table>
+  {selectedAssessment && 
+      <AssessmentModal 
+        onClose={() => setSelectedAssessment(undefined)} 
+        assessment={selectedAssessment} />}
+  </>;
+}
+
+function AssessmentModal ({ onClose, assessment }: { 
+  onClose: () => void; 
+  assessment: LandmarkAssessment
+}) {          
+  return <ModalWithBackdrop isCentered isOpen onClose={onClose}>
+  <ModalContent>
+    <ModalHeader>历史评估结果</ModalHeader>
+    <ModalBody>
+      <VStack gap={componentSpacing} align="left">
+        <p><b>日期：</b>
+          {assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
+        <p><b>结果：</b>{assessment.score}</p>
+        <p><b>评估人：</b>假评估人</p>
+        <p><b>详情：</b>{assessment.markdown || "无"}</p>
+      </VStack>
+    </ModalBody>
+    <ModalFooter>
+      <Button onClick={onClose}>关闭</Button>
+    </ModalFooter>
+  </ModalContent>
+</ModalWithBackdrop>;
 }
