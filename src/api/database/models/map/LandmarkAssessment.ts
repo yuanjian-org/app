@@ -3,6 +3,7 @@ import {
   Table,
   Model,
   ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
 import { UUID, STRING, INTEGER } from "sequelize";
 import User from "../User";
@@ -22,6 +23,15 @@ class LandmarkAssessment extends Model {
   @ForeignKey(() => User)
   @Column(UUID)
   userId: string;
+
+  // If assessorId (assessor) is null, the landmark assessment is self-evaluated
+  // otherwise, it is evaluated by others.
+  @ForeignKey(() => User)
+  @Column(UUID)
+  assessorId: string | null;
+
+  @BelongsTo(() => User, { foreignKey: 'assessorId' })
+  assessor: User | null;
 
   @Column(STRING)
   landmark: string;
