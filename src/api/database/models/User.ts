@@ -122,9 +122,6 @@ class User extends Model {
   @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
   pointOfContact: User | null;
 
-  @HasMany(() => LandmarkAssessment)
-  landmarkAssessments: LandmarkAssessment[];
-
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
 

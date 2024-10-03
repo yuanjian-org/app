@@ -24,6 +24,8 @@ class LandmarkAssessment extends Model {
   @Column(UUID)
   userId: string;
 
+  // If assessorId (assessor) is null, the landmark assessment is self-evaluated by the user; 
+  // otherwise, it is evaluated by others.
   @ForeignKey(() => User)
   @Column(UUID)
   assessorId: string | null;
