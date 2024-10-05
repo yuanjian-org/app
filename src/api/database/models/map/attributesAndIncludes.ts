@@ -1,5 +1,6 @@
 export const landmarkAssessmentAttributes = [
     "score", 
     "markdown", 
-    "createdAt"
+    "createdAt",
+    "assessorId",
   ];

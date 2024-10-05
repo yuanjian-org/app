@@ -33,6 +33,7 @@ import { prettifyDate } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { sidebarBreakpoint } from './Navbars';
 import ModalWithBackdrop from './ModalWithBackdrop';
+import { formatUserName } from 'shared/strings';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -100,7 +101,7 @@ function LandmarkAssessmentHistory({ landmark } : {
     userId: user.id,
     landmark: landmark.名称,
   });
-
+  
   const [selectedAssessment, setSelectedAssessment] 
     = useState<LandmarkAssessment>();
 
@@ -119,7 +120,12 @@ function LandmarkAssessmentHistory({ landmark } : {
           onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
           <Td>{assessment.createdAt && prettifyDate(assessment.createdAt)}</Td>
           <Td>{assessment.score}</Td>
-          <Td>假评估人</Td>
+          <Td>
+            <text>
+              {assessment.assessor ?  
+              formatUserName(assessment.assessor.name) : "自评" }
+            </text>
+          </Td>
           <Td>
             <Text isTruncated 
               maxWidth={{ 

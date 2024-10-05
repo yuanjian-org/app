@@ -21,6 +21,11 @@ export const userInclude = [{
   attributes: minUserAttributes,
 }];
 
+export const landmarkAssessmentInclude = [{
+  association: 'assessor',
+  attributes: minUserAttributes,
+}];
+
 /**
  * Group
  */

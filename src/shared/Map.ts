@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const zMinUser = z.object({
+    id: z.string().uuid(),
+    name: z.string().nullable(),
+});
+
 export const MAX_LANDMARK_SCORE = 4;
 
 export const Longtitudes = [
@@ -40,6 +45,8 @@ export const zLandmarkAssessment = z.object({
     createdAt: z.coerce.string().optional(),
     score: zLandmarkScore,
     markdown: z.string().nullable(),
+    assessorId: z.string().nullable(),
+    assessor: zMinUser.nullable(),
 });
 
 export type LandmarkAssessment = z.TypeOf<typeof zLandmarkAssessment>;

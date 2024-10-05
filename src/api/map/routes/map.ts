@@ -14,6 +14,7 @@ import db from "../../database/db";
 import { 
   landmarkAssessmentAttributes 
 } from "../../database/models/map/attributesAndIncludes";
+import { landmarkAssessmentInclude } from "api/database/models/attributesAndIncludes";
 
 const list = procedure
   .use(authUser())
@@ -52,6 +53,7 @@ const listLandmarkAssessment = procedure
   return await db.LandmarkAssessment.findAll({
     where: { userId, landmark },
     attributes: landmarkAssessmentAttributes,
+    include: landmarkAssessmentInclude,
   }) as LandmarkAssessment[]; 
 });
 
