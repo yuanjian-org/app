@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-export const zMinUser = z.object({
-    id: z.string().uuid(),
-    name: z.string().nullable(),
-});
+import { zMinUser } from "./User";
 
 export const MAX_LANDMARK_SCORE = 4;
 
