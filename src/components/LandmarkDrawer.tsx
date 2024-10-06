@@ -123,7 +123,7 @@ function LandmarkAssessmentHistory({ landmark } : {
           <Td>
             <text>
               {assessment.assessor ?  
-              formatUserName(assessment.assessor.name) : "自评" }
+              formatUserName(assessment.assessor.name) : "我" }
             </text>
           </Td>
           <Td>
@@ -158,7 +158,8 @@ function AssessmentModal ({ onClose, assessment }: {
         <p><b>日期：</b>
           {assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
         <p><b>结果：</b>{assessment.score}</p>
-        <p><b>评估人：</b>假评估人</p>
+        <p><b>评估人：</b>{assessment.assessor ?  
+              formatUserName(assessment.assessor.name) : "我" }</p>
         <p><b>详情：</b>{assessment.markdown || "无"}</p>
       </VStack>
     </ModalBody>

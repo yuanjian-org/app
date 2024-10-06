@@ -41,7 +41,6 @@ export const zLandmarkAssessment = z.object({
     createdAt: z.coerce.string().optional(),
     score: zLandmarkScore,
     markdown: z.string().nullable(),
-    assessorId: z.string().nullable(),
     assessor: zMinUser.nullable(),
 });
 

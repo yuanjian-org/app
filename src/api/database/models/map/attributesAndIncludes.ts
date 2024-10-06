@@ -1,6 +1,12 @@
+import { minUserAttributes } from "../attributesAndIncludes";
+
 export const landmarkAssessmentAttributes = [
     "score", 
     "markdown", 
     "createdAt",
-    "assessorId",
-  ];
+];
+
+export const landmarkAssessmentInclude = [{
+    association: 'assessor',
+    attributes: minUserAttributes,
+}];

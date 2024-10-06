@@ -14,7 +14,7 @@ import db from "../../database/db";
 import { 
   landmarkAssessmentAttributes 
 } from "../../database/models/map/attributesAndIncludes";
-import { landmarkAssessmentInclude } from "api/database/models/attributesAndIncludes";
+import { landmarkAssessmentInclude } from "../../database/models/map/attributesAndIncludes";
 
 const list = procedure
   .use(authUser())
