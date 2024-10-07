@@ -93,6 +93,38 @@ function Editor() {
   </>;
 }
 
+function AssessmentDetails({ assessment, displayType } : {
+  assessment: LandmarkAssessment;
+  displayType: "table" | "modal";
+}) {
+  const date = assessment.createdAt && prettifyDate(assessment.createdAt);
+  const score = assessment.score;
+  const assessor = assessment.assessor ? 
+    formatUserName(assessment.assessor.name) : "我";
+  const markdown = assessment.markdown;
+
+  if (displayType === "table") {
+    return <>
+      <Td>{date}</Td>
+      <Td>{score}</Td>
+      <Td>{assessor}</Td>
+      <Td>
+        <Text isTruncated maxWidth={{ base: mobileTextLimit, 
+          [sidebarBreakpoint]: desktopTextLimit }}>
+          {markdown}
+        </Text>      
+      </Td>
+    </>;
+  } else {
+    return <>
+      <p><b>日期：</b>{date}</p>
+      <p><b>结果：</b>{score}</p>
+      <p><b>评估人：</b>{assessor}</p>
+      <p><b>详情：</b>{markdown || "无"}</p>
+    </>;
+  }
+}
+
 function LandmarkAssessmentHistory({ landmark } : {
   landmark: Landmark;
 }) {  
@@ -118,23 +150,7 @@ function LandmarkAssessmentHistory({ landmark } : {
       {assessments?.map((assessment, index) => (
         <Tr key={index} 
           onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
-          <Td>{assessment.createdAt && prettifyDate(assessment.createdAt)}</Td>
-          <Td>{assessment.score}</Td>
-          <Td>
-            <text>
-              {assessment.assessor ?  
-              formatUserName(assessment.assessor.name) : "我" }
-            </text>
-          </Td>
-          <Td>
-            <Text isTruncated 
-              maxWidth={{ 
-                base: mobileTextLimit, 
-                [sidebarBreakpoint]: desktopTextLimit 
-              }}>
-              {assessment.markdown}
-            </Text>      
-          </Td>
+          <AssessmentDetails assessment={assessment} displayType="table"/>
         </Tr>
       ))}
     </Tbody>
@@ -155,12 +171,7 @@ function AssessmentModal ({ onClose, assessment }: {
     <ModalHeader>历史评估结果</ModalHeader>
     <ModalBody>
       <VStack gap={componentSpacing} align="left">
-        <p><b>日期：</b>
-          {assessment.createdAt && prettifyDate(assessment.createdAt)}</p>
-        <p><b>结果：</b>{assessment.score}</p>
-        <p><b>评估人：</b>{assessment.assessor ?  
-              formatUserName(assessment.assessor.name) : "我" }</p>
-        <p><b>详情：</b>{assessment.markdown || "无"}</p>
+        <AssessmentDetails assessment={assessment} displayType="modal" />
       </VStack>
     </ModalBody>
     <ModalFooter>
