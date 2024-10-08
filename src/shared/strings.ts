@@ -1,5 +1,6 @@
 import pinyin from 'tiny-pinyin';
 import nzh from 'nzh';
+import moment from 'moment';
 
 import { NextRouter } from 'next/router';
 
@@ -48,6 +49,14 @@ export function prettifyDate(str: Date | string) {
 // TODO: Sort out this Date-is-not-actually-string nonsense
 export function diffInMinutes(from: Date | string, to: Date | string): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
+}
+
+export function sortByDateDesc(contents: any[]) : void{
+  contents.sort((a, b) => {
+    const aProp = a.updatedAt? 'updatedAt' : 'createdAt';
+    const bProp = b.updatedAt? 'updatedAt' : 'createdAt';
+    return moment(a[aProp]).isAfter(moment(b[bProp])) ? -1 : 1;
+  });
 }
 
 export function compareUUID(id1: string, id2: string): number {

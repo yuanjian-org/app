@@ -34,7 +34,8 @@ import { useUserContext } from 'UserContext';
 import { sidebarBreakpoint } from './Navbars';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
-import User from 'shared/User';
+import invariant from "tiny-invariant";
+import { sortByDateDesc } from 'shared/strings';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -42,8 +43,7 @@ const mobileTextLimit = 20;
 export default function LandmarkDrawer ({ onClose, landmark }: { 
   onClose: () => void; 
   landmark: Landmark
-}) {   
-  const [user] = useUserContext();       
+}) {    
   return <Drawer size="lg" isOpen onClose={onClose}>
     <DrawerOverlay />
     <DrawerContent>
@@ -52,8 +52,8 @@ export default function LandmarkDrawer ({ onClose, landmark }: {
       <DrawerBody>
         <Flex flexDirection="column" gap={componentSpacing}>
           <LandmarkDefinition definition={landmark.定义} />
-          <LandmarkAssessment landmark={landmark} user={user} />
-          <LandmarkAssessmentHistory landmark={landmark} user={user} />
+          <LandmarkAssessment landmark={landmark} />
+          <LandmarkAssessmentHistory landmark={landmark} />
         </Flex>
       </DrawerBody> 
     </DrawerContent>
@@ -64,30 +64,20 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
   return <Text>{definition}</Text>;
 }
 
-function LandmarkAssessment ({ landmark, user }: {
+function LandmarkAssessment ({ landmark }: {
   landmark: Landmark;
-  user: User;
 }) {
+  const [user] = useUserContext();      
   const [score, setScore] = useState<LandmarkScore | undefined>();
   const [markdown, setMarkdown] = useState<string>("");
-  const { refetch } = trpcNext.map.listLandmarkAssessment.useQuery({
-    userId: user.id,
-    landmark: landmark.名称,
-  });
   const createLandmarkAssessment = async() => {
-    try {
-      if (score !== undefined) {
-        await trpc.map.createLandmarkAssessment.mutate({
-          landmark: landmark.名称,
-          score: score + 1,
-          markdown: markdown,
-        });
-        void refetch();
-      }
-    } finally {
-      setScore(undefined);
-      setMarkdown("");
-    } 
+    invariant(score !== undefined);
+    await trpc.map.createLandmarkAssessment.mutate({
+      userId: user.id,
+      landmark: landmark.名称,
+      score: score + 1,
+      markdown,
+    });   
   };
   return <>
     <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
@@ -127,14 +117,15 @@ function getAssessmentDate(assessment: LandmarkAssessment) {
   return assessment.createdAt && prettifyDate(assessment.createdAt);
 }
 
-function LandmarkAssessmentHistory({ landmark, user } : {
+function LandmarkAssessmentHistory({ landmark } : {
   landmark: Landmark;
-  user: User;
 }) {  
+  const [user] = useUserContext();      
   const { data: assessments } = trpcNext.map.listLandmarkAssessment.useQuery({
     userId: user.id,
     landmark: landmark.名称,
   });
+  if (assessments) sortByDateDesc(assessments);
   const [selectedAssessment, setSelectedAssessment] = 
     useState<LandmarkAssessment>();
   return <>
@@ -147,12 +138,7 @@ function LandmarkAssessmentHistory({ landmark, user } : {
         <Th>详情</Th>
       </Tr>
       <Tbody>
-        {assessments?.sort((a1, a2) => {
-          const date1 = new Date(a1.createdAt ?? "");
-          const date2 = new Date(a2.createdAt ?? "");
-          return date2.getTime() - date1.getTime();  
-        })
-        .map((assessment, index) => (
+        {assessments?.map((assessment, index) => (
           <Tr 
             key={index} 
             onClick={() => setSelectedAssessment(assessment)} cursor="pointer">

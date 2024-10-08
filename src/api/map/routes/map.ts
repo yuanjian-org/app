@@ -12,15 +12,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import db from "../../database/db";
 import { 
-  landmarkAssessmentAttributes 
-} from "../../database/models/map/attributesAndIncludes";
-import { 
-  landmarkAssessmentInclude 
+  landmarkAssessmentAttributes,
+  landmarkAssessmentInclude,
 } from "../../database/models/map/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
-import { generalBadRequestError } from "api/errors";
 
-const list = procedure
+const listLandmarks = procedure
   .use(authUser())
   .input(zLatitude)
   .output(z.array(zLandmark))
@@ -46,26 +43,21 @@ const list = procedure
 const createLandmarkAssessment = procedure
   .use(authUser())
   .input(z.object({
+    userId: z.string(),
     landmark: z.string(),
     score: z.number(),
     markdown: z.string().nullable(),
   }))
-  .mutation(async ({ ctx, input }) => {
-    if (input.score === undefined) {
-      throw generalBadRequestError("选项不能为空");
-    }
-    
+  .mutation(async ({ input }) => {
     return await sequelize.transaction(async transaction => {
-      const { landmark, score, markdown } = input;
+      const { userId, landmark, score, markdown } = input;
       
-      const la = await db.LandmarkAssessment.create({
-        userId: ctx.user.id,
-        landmark: landmark,
-        score: score,
-        markdown: markdown,
+      await db.LandmarkAssessment.create({
+        userId,
+        landmark,
+        score,
+        markdown,
       }, { transaction });
-
-      return la;
     });
   });
 
@@ -88,7 +80,7 @@ const listLandmarkAssessment = procedure
 });
 
 export default router({
-  list,
+  listLandmarks,
   createLandmarkAssessment,
   listLandmarkAssessment,
 });

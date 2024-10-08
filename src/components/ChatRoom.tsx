@@ -15,7 +15,6 @@ import { ChatMessage } from 'shared/ChatMessage';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
-import moment from 'moment';
 import { MdEdit, MdSend } from 'react-icons/md';
 import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
@@ -23,20 +22,18 @@ import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
+import { sortByDateDesc } from 'shared/strings';
 
 export default function Room({ menteeId }: {
   menteeId: string,
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
+  if (room) sortByDateDesc(room.messages);
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
       <MessageCreator roomId={room.id} />
-
-      {room.messages.sort((a, b) => moment(a.updatedAt)
-        .isAfter(moment(b.updatedAt)) ? -1 : 1)
-        .map(m => <Message key={m.id} message={m} />)
-      }
+      {room.messages.map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;
 }
