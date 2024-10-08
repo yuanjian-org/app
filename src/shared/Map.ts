@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zMinUser } from "./User";
 
 export const MAX_LANDMARK_SCORE = 4;
 
@@ -40,6 +41,7 @@ export const zLandmarkAssessment = z.object({
     createdAt: z.coerce.string().optional(),
     score: zLandmarkScore,
     markdown: z.string().nullable(),
+    assessor: zMinUser.nullable(),
 });
 
 export type LandmarkAssessment = z.TypeOf<typeof zLandmarkAssessment>;
