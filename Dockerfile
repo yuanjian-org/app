@@ -67,6 +67,7 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT=3000
+ENV NEXT_PUBLIC_BRANDING=sizhu
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
@@ -76,6 +77,3 @@ CMD ["node", "server.js"]
 #####
 # END OF BIOLTERPLATE
 #####
-
-RUN rm /app/.env*
-ENV NEXT_PUBLIC_BRANDING=sizhu
