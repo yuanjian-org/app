@@ -35,7 +35,7 @@ import { sidebarBreakpoint } from './Navbars';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
-import { sortByDateDesc } from 'shared/strings';
+import { compareDate } from 'shared/strings';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -125,7 +125,7 @@ function LandmarkAssessmentHistory({ landmark } : {
     userId: user.id,
     landmark: landmark.名称,
   });
-  if (assessments) sortByDateDesc(assessments);
+  
   const [selectedAssessment, setSelectedAssessment] = 
     useState<LandmarkAssessment>();
   return <>
@@ -138,7 +138,8 @@ function LandmarkAssessmentHistory({ landmark } : {
         <Th>详情</Th>
       </Tr>
       <Tbody>
-        {assessments?.map((assessment, index) => (
+        {assessments?.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+        .map((assessment, index) => (
           <Tr 
             key={index} 
             onClick={() => setSelectedAssessment(assessment)} cursor="pointer">

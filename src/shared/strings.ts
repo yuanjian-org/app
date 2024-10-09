@@ -51,12 +51,8 @@ export function diffInMinutes(from: Date | string, to: Date | string): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
 }
 
-export function sortByDateDesc(contents: any[]) : void{
-  contents.sort((a, b) => {
-    const aProp = a.updatedAt? 'updatedAt' : 'createdAt';
-    const bProp = b.updatedAt? 'updatedAt' : 'createdAt';
-    return moment(a[aProp]).isAfter(moment(b[bProp])) ? -1 : 1;
-  });
+export function compareDate(d1: string | undefined, d2: string | undefined) {
+  return moment(d1 || "").isAfter(moment(d2 || "")) ? -1 : 1;
 }
 
 export function compareUUID(id1: string, id2: string): number {

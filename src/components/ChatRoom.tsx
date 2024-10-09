@@ -22,18 +22,18 @@ import invariant from "tiny-invariant";
 import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
-import { sortByDateDesc } from 'shared/strings';
+import { compareDate } from 'shared/strings';
 
 export default function Room({ menteeId }: {
   menteeId: string,
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
-  if (room) sortByDateDesc(room.messages);
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
       <MessageCreator roomId={room.id} />
-      {room.messages.map(m => <Message key={m.id} message={m} />)}
+      {room.messages.sort((a, b) => compareDate(a.updatedAt, b.updatedAt))
+      .map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;
 }
