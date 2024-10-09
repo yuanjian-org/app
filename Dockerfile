@@ -77,5 +77,4 @@ CMD ["node", "server.js"]
 # END OF BIOLTERPLATE
 #####
 
-RUN rm /app/.env*
 ENV NEXT_PUBLIC_BRANDING=sizhu
