@@ -2,9 +2,9 @@ import { Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
 
 export const footerMarginTop = "80px";
 export const footerBreakpoint = "lg";
+const color = 'gray.400';
 
 export default function Footer() {
-  const color = 'gray.400';
   const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
 
   return (
@@ -52,5 +52,19 @@ export default function Footer() {
         </FooterItem>
       </List>
     </Flex>
+  );
+}
+
+export function LoginFooter() {
+  return (
+    <Link
+      fontWeight='500'
+      color={color}
+      isExternal
+      href='http://beian.miit.gov.cn/'
+      paddingBottom="20px"
+    >
+      浙ICP备2024117465号-2
+    </Link>
   );
 }
