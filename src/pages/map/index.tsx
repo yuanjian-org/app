@@ -61,7 +61,7 @@ const LandmarkTabPanel = ({ latitude, selectLandmark }: {
   latitude: Latitude; 
   selectLandmark: (landmark: Landmark) => void 
 }) => {
-  const { data, isLoading } = trpcNext.map.list.useQuery(latitude);
+  const { data, isLoading } = trpcNext.map.listLandmarks.useQuery(latitude);
   return (
     <>
       {isLoading ? 

@@ -1,5 +1,6 @@
 import pinyin from 'tiny-pinyin';
 import nzh from 'nzh';
+import moment from 'moment';
 
 import { NextRouter } from 'next/router';
 
@@ -48,6 +49,11 @@ export function prettifyDate(str: Date | string) {
 // TODO: Sort out this Date-is-not-actually-string nonsense
 export function diffInMinutes(from: Date | string, to: Date | string): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
+}
+
+export function compareDate(d1: string | undefined, d2: string | undefined) {
+  if (d1 === d2) return 0;
+  return moment(d2).isAfter(moment(d1)) ? 1 : -1;
 }
 
 export function compareUUID(id1: string, id2: string): number {

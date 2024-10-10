@@ -12,11 +12,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import db from "../../database/db";
 import { 
-  landmarkAssessmentAttributes 
+  landmarkAssessmentAttributes,
+  landmarkAssessmentInclude,
 } from "../../database/models/map/attributesAndIncludes";
-import { landmarkAssessmentInclude } from "../../database/models/map/attributesAndIncludes";
+import sequelize from "api/database/sequelize";
 
-const list = procedure
+const listLandmarks = procedure
   .use(authUser())
   .input(zLatitude)
   .output(z.array(zLandmark))
@@ -39,7 +40,28 @@ const list = procedure
     }));
 });
 
-const listLandmarkAssessment = procedure
+const createLandmarkAssessment = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    landmark: z.string(),
+    score: z.number(),
+    markdown: z.string().nullable(),
+  }))
+  .mutation(async ({ input }) => {
+    return await sequelize.transaction(async transaction => {
+      const { userId, landmark, score, markdown } = input;
+      
+      await db.LandmarkAssessment.create({
+        userId,
+        landmark,
+        score,
+        markdown,
+      }, { transaction });
+    });
+  });
+
+const listLandmarkAssessments = procedure
   .use(authUser())
   .input(z.object({ 
     userId: z.string(), 
@@ -58,6 +80,7 @@ const listLandmarkAssessment = procedure
 });
 
 export default router({
-  list,
-  listLandmarkAssessment
+  listLandmarks,
+  createLandmarkAssessment,
+  listLandmarkAssessments,
 });
