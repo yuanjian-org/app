@@ -75,7 +75,7 @@ function LandmarkAssessment ({ landmark }: {
     await trpc.map.createLandmarkAssessment.mutate({
       userId: user.id,
       landmark: landmark.名称,
-      score: score + 1,
+      score: score,
       markdown,
     });   
   };
@@ -85,7 +85,7 @@ function LandmarkAssessment ({ landmark }: {
       value={String(score)}>
       <Stack direction="column">
         {landmark.层级.map((level, index) => 
-          <Radio key={index} value={String(index)}>{level}</Radio>
+          <Radio key={index} value={String(index + 1)}>{level}</Radio>
         )}
       </Stack>
     </RadioGroup>
@@ -119,9 +119,9 @@ function getAssessmentDate(assessment: LandmarkAssessment) {
 
 function LandmarkAssessmentHistory({ landmark } : {
   landmark: Landmark;
-}) {  
-  const [user] = useUserContext();      
-  const { data: assessments } = trpcNext.map.listLandmarkAssessment.useQuery({
+}) {
+  const [user] = useUserContext();
+  const { data: assessments } = trpcNext.map.listLandmarkAssessments.useQuery({
     userId: user.id,
     landmark: landmark.名称,
   });
@@ -164,7 +164,7 @@ function LandmarkAssessmentHistory({ landmark } : {
 
     {selectedAssessment && 
       <AssessmentModal 
-        onClose={() => setSelectedAssessment(undefined)} 
+        onClose={() => setSelectedAssessment(undefined)}
         assessment={selectedAssessment} />}
   </>;
 }

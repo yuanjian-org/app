@@ -61,7 +61,7 @@ const createLandmarkAssessment = procedure
     });
   });
 
-const listLandmarkAssessment = procedure
+const listLandmarkAssessments = procedure
   .use(authUser())
   .input(z.object({ 
     userId: z.string(), 
@@ -82,5 +82,5 @@ const listLandmarkAssessment = procedure
 export default router({
   listLandmarks,
   createLandmarkAssessment,
-  listLandmarkAssessment,
+  listLandmarkAssessments,
 });

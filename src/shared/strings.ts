@@ -52,7 +52,8 @@ export function diffInMinutes(from: Date | string, to: Date | string): number {
 }
 
 export function compareDate(d1: string | undefined, d2: string | undefined) {
-  return moment(d1 || "").isAfter(moment(d2 || "")) ? -1 : 1;
+  if (d1 === d2) return 0;
+  return moment(d2).isAfter(moment(d1)) ? 1 : -1;
 }
 
 export function compareUUID(id1: string, id2: string): number {

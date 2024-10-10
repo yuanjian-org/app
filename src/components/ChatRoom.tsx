@@ -32,7 +32,7 @@ export default function Room({ menteeId }: {
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
       <MessageCreator roomId={room.id} />
-      {room.messages.sort((a, b) => compareDate(a.updatedAt, b.updatedAt))
+      {room.messages.sort((a, b) => compareDate(a.createdAt, b.createdAt))
       .map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;
