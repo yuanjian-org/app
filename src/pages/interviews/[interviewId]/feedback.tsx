@@ -106,7 +106,7 @@ function Instructions({ type, interviewers }: {
       <ListItem>用<Icon as={BsWechat} marginX={1.5} />微信发起视频群聊。</ListItem>
       {first !== null && <>
         <ListItem>
-          你负责<mark>提问维度 {first ? firstHalf : secondHalf} </mark>；
+          <mark>你负责提问维度 {first ? firstHalf : secondHalf} </mark>；
           {otherName}负责维度 {first ? secondHalf : firstHalf} 。
         </ListItem>
         <ListItem><mark>填写所有{isMentee ? '八' : '十'}个维度</mark>的评价和总评。</ListItem>
