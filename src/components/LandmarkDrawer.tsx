@@ -28,12 +28,14 @@ import { Landmark, LandmarkAssessment, LandmarkScore } from 'shared/Map';
 import React, { useState } from 'react';
 import { componentSpacing } from 'theme/metrics';
 import MarkdownSupport from './MarkdownSupport';
-import { trpcNext } from 'trpc';
+import trpc, { trpcNext } from 'trpc';
 import { prettifyDate } from 'shared/strings';
 import { useUserContext } from 'UserContext';
 import { sidebarBreakpoint } from './Navbars';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
+import invariant from "tiny-invariant";
+import { compareDate } from 'shared/strings';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -41,7 +43,7 @@ const mobileTextLimit = 20;
 export default function LandmarkDrawer ({ onClose, landmark }: { 
   onClose: () => void; 
   landmark: Landmark
-}) {          
+}) {    
   return <Drawer size="lg" isOpen onClose={onClose}>
     <DrawerOverlay />
     <DrawerContent>
@@ -51,7 +53,7 @@ export default function LandmarkDrawer ({ onClose, landmark }: {
         <Flex flexDirection="column" gap={componentSpacing}>
           <LandmarkDefinition definition={landmark.定义} />
           <LandmarkAssessment landmark={landmark} />
-          <LandmarkAssessmentHistory landmark={landmark}/>
+          <LandmarkAssessmentHistory landmark={landmark} />
         </Flex>
       </DrawerBody> 
     </DrawerContent>
@@ -65,24 +67,41 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
 function LandmarkAssessment ({ landmark }: {
   landmark: Landmark;
 }) {
+  const [user] = useUserContext();      
   const [score, setScore] = useState<LandmarkScore | undefined>();
+  const [markdown, setMarkdown] = useState<string>("");
+  const createLandmarkAssessment = async() => {
+    invariant(score !== undefined);
+    await trpc.map.createLandmarkAssessment.mutate({
+      userId: user.id,
+      landmark: landmark.名称,
+      score: score,
+      markdown,
+    });   
+  };
   return <>
     <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
     <RadioGroup onChange={value => setScore(Number(value))} 
       value={String(score)}>
       <Stack direction="column">
         {landmark.层级.map((level, index) => 
-          <Radio key={index} value={String(index)}>{level}</Radio>
+          <Radio key={index} value={String(index + 1)}>{level}</Radio>
         )}
       </Stack>
     </RadioGroup>
-    <Editor />
-    <Button variant="brand" alignSelf="center">提交</Button> 
+    <Editor markdown={markdown} setMarkdown={setMarkdown} />
+    <Button 
+      onClick={createLandmarkAssessment} 
+      variant="brand" 
+      alignSelf="center">提交
+    </Button> 
   </>;
 }
 
-function Editor() {
-  const [markdown, setMarkdown] = useState<string>("");
+function Editor({ markdown, setMarkdown } : {
+  markdown: string;
+  setMarkdown: (value: string) => void;
+}) {
   return <>
     <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)} 
       autoFocus />
@@ -100,12 +119,13 @@ function getAssessmentDate(assessment: LandmarkAssessment) {
 
 function LandmarkAssessmentHistory({ landmark } : {
   landmark: Landmark;
-}) {  
+}) {
   const [user] = useUserContext();
-  const { data: assessments } = trpcNext.map.listLandmarkAssessment.useQuery({
+  const { data: assessments } = trpcNext.map.listLandmarkAssessments.useQuery({
     userId: user.id,
     landmark: landmark.名称,
   });
+  
   const [selectedAssessment, setSelectedAssessment] = 
     useState<LandmarkAssessment>();
   return <>
@@ -118,7 +138,8 @@ function LandmarkAssessmentHistory({ landmark } : {
         <Th>详情</Th>
       </Tr>
       <Tbody>
-        {assessments?.map((assessment, index) => (
+        {assessments?.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+        .map((assessment, index) => (
           <Tr 
             key={index} 
             onClick={() => setSelectedAssessment(assessment)} cursor="pointer">
@@ -143,7 +164,7 @@ function LandmarkAssessmentHistory({ landmark } : {
 
     {selectedAssessment && 
       <AssessmentModal 
-        onClose={() => setSelectedAssessment(undefined)} 
+        onClose={() => setSelectedAssessment(undefined)}
         assessment={selectedAssessment} />}
   </>;
 }
