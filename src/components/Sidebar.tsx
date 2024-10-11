@@ -156,6 +156,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       <Flex
         direction="column"
         justifyContent="space-between"
+        overflowY="auto"
         h="full">
         <Box>
           <Flex
