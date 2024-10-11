@@ -75,7 +75,7 @@ function LandmarkAssessment ({ landmark }: {
     await trpc.map.createLandmarkAssessment.mutate({
       userId: user.id,
       landmark: landmark.名称,
-      score: score,
+      score,
       markdown,
     });   
   };
