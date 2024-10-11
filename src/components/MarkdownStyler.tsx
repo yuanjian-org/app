@@ -9,7 +9,12 @@ import styles from '../theme/MarkdownStyler.module.css';
  * https://stackoverflow.com/a/64317290
  */
 const MarkdownStyler = ({ content }: { content: string }) => (
-  <div className={styles.markdownStyler}>
+  <div className={styles.markdownStyler}
+    style={{
+      wordBreak: 'break-word',
+      overflow: 'hidden'
+    }}
+  >
     {/* remarkGfm is to enable rendering URL strings as HTML links.
       * See https://github.com/remarkjs/react-markdown?tab=readme-ov-file#use
       */}
