@@ -62,7 +62,7 @@ export function LoginFooter() {
       color={color}
       isExternal
       href='http://beian.miit.gov.cn/'
-      paddingBottom="20px"
+      paddingBottom="30px"
     >
       浙ICP备2024117465号-2
     </Link>

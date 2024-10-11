@@ -13,7 +13,7 @@ export default function AuthPageContainer({ children, ...rest }:
   return <Flex direction="column" justifyContent="space-between" alignItems="center"
     minHeight="100vh" {...rest}
   > 
-    <Box height="40" />
+    <Box height={40} />
     <VStack align="left" spacing={componentSpacing} width={350}>
 
       <Image alt="图标" width={60}
