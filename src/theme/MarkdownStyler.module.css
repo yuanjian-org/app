@@ -25,6 +25,8 @@
 
 .markdownStyler p {
   margin: 0.75em 0;
+  word-break: break-word;
+  text-overflow: hidden;
 }
 
 /* This color mirrors brand.c color in theme/colors.ts */
