@@ -156,6 +156,8 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       <Flex
         direction="column"
         justifyContent="space-between"
+        // If there are many items in the sidebar or in a smaller screen size, 
+        // we need to enable scrolling to access the items and user menu.
         overflowY="auto"
         h="full">
         <Box>
