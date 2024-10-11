@@ -5,13 +5,15 @@ import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import sizhuLogo80x80 from '../../public/img/sizhu-logo-80x80.png';
 import { PropsWithChildren } from "react";
 import branding from 'shared/branding';
+import { LoginFooter } from './Footer';
 
 export default function AuthPageContainer({ children, ...rest }: 
   PropsWithChildren
 ) {
-  return <Flex direction="column" justifyContent="center" alignItems="center"
+  return <Flex direction="column" justifyContent="space-between" alignItems="center"
     minHeight="100vh" {...rest}
-  >
+  > 
+    <Box height={40} />
     <VStack align="left" spacing={componentSpacing} width={350}>
 
       <Image alt="图标" width={60}
@@ -27,5 +29,6 @@ export default function AuthPageContainer({ children, ...rest }:
       {children}
     </VStack>
     <Box height={40} />
+    <LoginFooter />
   </Flex>;
 }
