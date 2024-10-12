@@ -27,7 +27,7 @@ import {
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
-import yuanjianLogo224x97 from '../../public/img/yuanjian-logo-224x97.png';
+import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
@@ -167,11 +167,11 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
             marginTop="8"
             justifyContent="space-between">
             <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-              <NextLink href="http://yuanjian.org" target="_blank">
+              <NextLink href="http://mentors.org.cn/static" target="_blank">
                 <Image
-                  src={yuanjianLogo224x97}
-                  alt="远见教育基金会"
-                  width={112}
+                  src={yuanjianLogo80x80}
+                  alt="图标"
+                  width={30}
                   // Without `priority` we would get a warning from Chrome that this
                   // image "was detected as the Largest Contentful Paint (LCP).
                   // Please add the "priority" property if this image is above the

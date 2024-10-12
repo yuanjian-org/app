@@ -58,12 +58,12 @@ export async function email(templateId: string,
     personalizations: ps,
     templateId,
     from: {
-      email: 'yuantu@yuanjian.org',
-      name: '远图',
+      email: 'hi@mentors.org.cn',
+      name: '社会导师服务平台',
     },
     replyTo: {
-      email: 'hi@yuanjian.org',
-      name: '远见团队',
+      email: 'hi@mentors.org.cn',
+      name: '社会导师服务平台',
     },
     trackingSettings: {
       openTracking: {
