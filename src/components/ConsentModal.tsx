@@ -6,7 +6,6 @@ import {
   Text,
   VStack,
   ModalFooter,
-  Link,
   Spacer,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
@@ -41,13 +40,11 @@ export default function ConsentModal() {
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
         <ModalBody>
           <VStack spacing={6} marginBottom={10} align='left'>
-            <Text>本网站是<Link isExternal href="http://yuanjian.org">远见教育基金会</Link>（远见）下属的“远图”教育平台内部测试版。
-              为了测试自动会议摘要的质量，<b>在内测期间，网站会自动将会议全程转录成文字、生成会议摘要、并保存这些文字和摘要</b>。</Text>
+            <Text>为确保个人隐私，社会导师服务平台严格限制转录文字和摘要的访问权限。只有用户
+              本人和少量已签署保密协议的平台工作人员能够访问这些数据。在【谁能看到我的数据】
+              页，您可以查看所有授权人员的名单。</Text>
 
-            <Text>为确保个人隐私，远见严格限制转录文字和摘要的访问权限。只有用户本人和少量已签署保密协议的远见工作人员能够访问这些数据。
-              在【谁能看到我的数据】页，您可以查看所有授权人员的名单。</Text>
-
-            <Text>远见绝对不会把上述数据提供给任何第三方。</Text>
+            <Text>平台绝对不会把上述数据提供给任何第三方。</Text>
           </VStack>
         </ModalBody>
         <ModalFooter>

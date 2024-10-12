@@ -1,11 +1,11 @@
-import { Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
+import { Flex, Link, Text } from '@chakra-ui/react';
 
 export const footerMarginTop = "80px";
 export const footerBreakpoint = "lg";
 const color = 'gray.400';
 
 export default function Footer() {
-  const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
+  // const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
 
   return (
     <Flex
@@ -25,16 +25,16 @@ export default function Footer() {
     >
       <Text
         color={color}
-        fontWeight='500'
+        fontSize="sm"
         textAlign={{
           base: 'center',
           [footerBreakpoint]: 'start'
         }}
         paddingBottom={{ base: '20px', [footerBreakpoint]: '0px' }}
       >
-        &copy; {new Date().getFullYear()} 远见教育基金会
+        &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
       </Text>
-      <List display='flex'>
+      {/* <List display='flex'>
         <FooterItem>
           <Link fontWeight='500' color={color} isExternal href='http://yuanjian.org/blog'>
             博客
@@ -50,7 +50,7 @@ export default function Footer() {
             报告问题
           </Link>
         </FooterItem>
-      </List>
+      </List> */}
     </Flex>
   );
 }
@@ -58,8 +58,8 @@ export default function Footer() {
 export function LoginFooter() {
   return (
     <Link
-      fontWeight='500'
       color={color}
+      fontSize="sm"
       isExternal
       href='http://beian.miit.gov.cn/'
       paddingBottom="30px"

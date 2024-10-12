@@ -48,11 +48,12 @@ import { formatMentorshipEndedAtText } from './mentees/[userId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
+import { widePage } from 'AppPage';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
 
-export default function Page() {
+export default widePage(() => {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
@@ -75,7 +76,7 @@ export default function Page() {
       }
     </Flex>
   </>;
-};
+});
 
 function MenteeTable({ users, refetch }: {
   users: User[],
