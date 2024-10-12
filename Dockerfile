@@ -1,8 +1,9 @@
-#####
-# START OF BOILTERPLATE directly copied from https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile.
-# 
-# DO NOT EDIT BIOLTERPLATE. Add customization after "END OF BIOLTERPLATE"
-#####
+################################################################################
+# START BOILTERPLATE. Directly copied from                                     #
+# https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile#
+#                                                                              #
+# DO NOT EDIT BELOW CONTENT. Add customization only after END BIOLTERPLATE     #
+################################################################################
 
 FROM node:22-alpine AS base
 
@@ -73,8 +74,6 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
 
-#####
-# END OF BIOLTERPLATE
-#####
-
-ENV NEXT_PUBLIC_BRANDING=sizhu
+#############################
+# END BIOLTERPLATE          #
+#############################
