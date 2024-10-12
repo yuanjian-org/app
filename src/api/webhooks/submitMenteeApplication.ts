@@ -10,7 +10,7 @@ import menteeApplicationFields, { menteeSourceField }
  * The Webhook for three 金数据 forms:
  *    * Mentee application: https://jsj.top/f/FBTWTe
  *    * Proxied mentee application: https://jsj.top/f/S74k0V
- *    * Sizhu mentee application: https://jsj.top/f/Z82u8w
+ *    * 馒头工坊 mentee application: https://jsj.top/f/Z82u8w
  */
 export default procedure
   .input(z.record(z.string(), z.any()))

@@ -6,7 +6,7 @@ export type MenteeApplicationField = {
   showForEdits?: boolean,
 
   // field name from Yuanjian application form https://jsj.top/f/FBTWTe or
-  // Sizhu application form https://jsj.top/f/Z82u8w. 
+  // 馒头工坊 application form https://jsj.top/f/Z82u8w. 
   //
   // N.B.: We must maintain the invariant that for a given field name, either it
   //    is present only in one of the two forms, or it refers to identical 
@@ -39,7 +39,7 @@ const menteeApplicationFields: MenteeApplicationField[] = [
   { jsjField: "field_167", jsjProxiedField: "field_167", name: menteeFirstYearInCollegeField, showForEdits: true, },
   { jsjField: "field_169", name: "预计毕业年份", showForEdits: true, },
 
-  { jsjField: "field_170", name: "国籍", }, // Only in Sizhu application form
+  { jsjField: "field_170", name: "国籍", }, // Only in 馒头工坊 application form
 
   { jsjField: "field_168", name: "小学、初中、高中", },
   { jsjField: "field_156", name: "简历", },

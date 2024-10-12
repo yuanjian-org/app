@@ -11,7 +11,6 @@ import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
-import branding from "../../../shared/branding";
 
 // The default session user would cause type error when using session user data
 declare module "next-auth" {
@@ -74,9 +73,6 @@ async function generateVerificationToken() {
 async function sendVerificationRequest({ identifier: email, url, token }:
   SendVerificationRequestParams
 ) {
-  // Temporarily disable email sending for non-Yuanjian branding.
-  if (branding() !== "yuanjian") return;
-
   const personalizations = [{
     to: { email },
     dynamicTemplateData: {

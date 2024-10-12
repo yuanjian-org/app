@@ -2,9 +2,7 @@ import { Box, Flex, VStack } from '@chakra-ui/react';
 import Image from "next/image";
 import { componentSpacing } from 'theme/metrics';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
-import sizhuLogo80x80 from '../../public/img/sizhu-logo-80x80.png';
 import { PropsWithChildren } from "react";
-import branding from 'shared/branding';
 import { LoginFooter } from './Footer';
 
 export default function AuthPageContainer({ children, ...rest }: 
@@ -16,8 +14,7 @@ export default function AuthPageContainer({ children, ...rest }:
     <Box height={40} />
     <VStack align="left" spacing={componentSpacing} width={350}>
 
-      <Image alt="图标" width={60}
-        src={branding() == "sizhu" ? sizhuLogo80x80 : yuanjianLogo80x80}
+      <Image alt="图标" width={60} src={yuanjianLogo80x80}
 
         // Without `priority` we would get a warning from Chrome that this image
         // "was detected as the Largest Contentful Paint (LCP). Please add the

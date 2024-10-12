@@ -15,7 +15,6 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage, { AppPageType } from 'AppPage';
-import branding from 'shared/branding';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
@@ -24,7 +23,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
     <SessionProvider session={session}>
       <ChakraProvider theme={theme}>
         <Head>
-          <title>{branding() == "sizhu" ? "思烛导师服务平台" : "远图"}</title>
+          <title>社会导师服务平台</title>
           <meta name='viewport' content='width=device-width, initial-scale=1' />
           <meta name='theme-color' content='#000000' />
         </Head>

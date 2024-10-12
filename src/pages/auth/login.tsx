@@ -6,7 +6,6 @@ import z from "zod";
 import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
-import branding from 'shared/branding';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -65,9 +64,7 @@ export default function Login() {
   const isValidEmail = () => z.string().email().safeParse(email).success;
 
   return <>
-    <Heading size="md" marginBottom={10}>
-      {branding() == "sizhu" ? "思烛导师服务平台" : "欢迎来到远图"}
-    </Heading>
+    <Heading size="md" marginBottom={10}>社会导师服务平台</Heading>
 
     <InputGroup>
       <InputLeftElement pointerEvents='none'>
