@@ -162,7 +162,13 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
   const source = (data?.application as Record<string, any> | null)?.[menteeSourceField];
 
   const matches = interviews.filter(i => i.interviewee.id == applicant.id);
-  invariant(matches.length <= 1);
+  if (matches.length > 1) {
+    console.error(`Applicant id ${applicant.id} has multiple matching ` +
+      `interviews ids:`);
+    matches.map(i => console.error(`  ${i.id}`));
+    console.error("We must let the frontend die");
+    invariant(false);
+  }
   const interview = matches.length ? matches[0] : null;
 
   /**
