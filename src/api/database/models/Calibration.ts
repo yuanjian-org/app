@@ -9,11 +9,14 @@ import {
   AllowNull,
   Unique,
   HasOne,
+  ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
 import { BOOLEAN, CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
 import Group from "./Group";
+import User from "./User";
 import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 
 @Table({
@@ -41,6 +44,13 @@ class Calibration extends Model {
   @AllowNull(false)
   @Column(BOOLEAN)
   active: boolean;
+
+  @ForeignKey(() => User)
+  @Column(UUID)
+  managerId: string | null;
+
+  @BelongsTo(() => User, { foreignKey: 'managerId' })
+  manager: User | null;
 
   /**
    * Associations

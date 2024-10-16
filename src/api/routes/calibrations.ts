@@ -65,6 +65,24 @@ const update = procedure
   if (!affected) throw notFoundError("面试讨论", input.id);
 });
 
+const setManager = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    id: z.string(),
+    managerId: z.string().optional(),
+  }))
+  .mutation(async ({ input }) => 
+{
+  const [affected] = await db.Calibration.update({
+    ...input.managerId !== undefined ? { managerId: input.managerId } : {},
+  }, {
+    where: { id: input.id },
+  });
+
+  invariant(affected <= 1);
+  if (!affected) throw notFoundError("面试讨论", input.id);
+});
+
 const list = procedure
   .use(authUser("MentorshipManager"))
   .input(zInterviewType)
@@ -74,7 +92,7 @@ const list = procedure
   return await db.Calibration.findAll({
     where: { type },
     attributes: calibrationAttributes,
-    include: calibrationInclude,
+    include: calibrationInclude, 
   });
 });
 
@@ -139,6 +157,7 @@ export default router({
   listMine,
   get,
   getInterviews,
+  setManager,
 });
 
 async function getCalibrationAndCheckPermission(me: User, calibrationId: string):

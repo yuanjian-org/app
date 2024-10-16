@@ -55,6 +55,10 @@ import { widePage } from 'AppPage';
 import {
   PointOfContactCells, PointOfContactHeaderCells
 } from 'components/pointOfContactCells';
+import { 
+  CalibrationManagerCells, 
+  CalibrationManagerHeaderCells 
+} from 'components/CalibrationManagerCells';
 
 export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
@@ -348,11 +352,13 @@ function Calibrations({ type, calibrations, refetch }: {
     <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
+          <Th>名称</Th>
+          <CalibrationManagerHeaderCells />
+          <Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
         </Tr>
       </Thead>
       <Tbody>
-        {calibrations
+        {calibrations 
           // Sort by creation time desending
           .sort((c1, c2) => moment(c2.createdAt).diff(moment(c1.createdAt), "seconds"))
           .map(c => {
@@ -363,6 +369,7 @@ function Calibrations({ type, calibrations, refetch }: {
                   onSubmit={v => update(c, v, c.active)} 
                 />
               </Td>
+              <CalibrationManagerCells calibration={c} refetch={refetch} />
               <Td>
                 <Switch isChecked={c.active} onChange={e => update(c, c.name, e.target.checked)} />
                 {" "} {c.active ? "开启" : "关闭"}

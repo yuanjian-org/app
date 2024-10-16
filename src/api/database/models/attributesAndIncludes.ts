@@ -86,6 +86,9 @@ export const calibrationInclude = [{
   model: Group,
   attributes: groupAttributes,
   include: groupInclude,
+}, {
+  association: "manager",
+  attributes: minUserAttributes,
 }];
 
 /**
