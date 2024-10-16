@@ -36,6 +36,7 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
 import { compareDate } from 'shared/strings';
+import Loader from './Loader';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -138,7 +139,8 @@ function LandmarkAssessmentHistory({ landmark } : {
         <Th>详情</Th>
       </Tr>
       <Tbody>
-        {assessments?.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+        {!assessments ?  <Loader /> :
+        assessments.sort((a, b) => compareDate(a.createdAt, b.createdAt))
         .map((assessment, index) => (
           <Tr 
             key={index} 
