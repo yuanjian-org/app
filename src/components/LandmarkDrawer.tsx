@@ -129,7 +129,7 @@ function LandmarkAssessmentHistory({ landmark } : {
   
   const [selectedAssessment, setSelectedAssessment] = 
     useState<LandmarkAssessment>();
-  return <> 
+  return <>
     <Table whiteSpace="nowrap">
       <Thead>历史评估结果</Thead>
       <Tr>
