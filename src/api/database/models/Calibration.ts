@@ -49,9 +49,6 @@ class Calibration extends Model {
   @Column(UUID)
   managerId: string | null;
 
-  @BelongsTo(() => User, { foreignKey: 'managerId' })
-  manager: User | null;
-
   /**
    * Associations
    */
@@ -61,6 +58,9 @@ class Calibration extends Model {
 
   @HasOne(() => Group)
   group: Group;
+
+  @BelongsTo(() => User, { foreignKey: 'managerId' })
+  manager: User | null;
 }
 
 export default Calibration;
