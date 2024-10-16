@@ -92,7 +92,7 @@ const list = procedure
   return await db.Calibration.findAll({
     where: { type },
     attributes: calibrationAttributes,
-    include: calibrationInclude, 
+    include: calibrationInclude,
   });
 });
 

@@ -358,7 +358,7 @@ function Calibrations({ type, calibrations, refetch }: {
         </Tr>
       </Thead>
       <Tbody>
-        {calibrations 
+        {calibrations
           // Sort by creation time desending
           .sort((c1, c2) => moment(c2.createdAt).diff(moment(c1.createdAt), "seconds"))
           .map(c => {
