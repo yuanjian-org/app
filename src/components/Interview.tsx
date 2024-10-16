@@ -44,7 +44,7 @@ export default function Interview({ interviewId, hasTitle, readonly }: {
         :
         <Link isExternal 
           href="https://www.notion.so/yuanjian/7ded3b1de3ef4c35a2a669a4c6bc7ac1">
-          导师招聘标准和须知 <ExternalLinkIcon />
+          导师面试流程和标准 <ExternalLinkIcon />
         </Link>
       }
     </Box>
