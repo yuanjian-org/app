@@ -237,7 +237,8 @@ export default Sidebar;
 export function ManageMenu({ user } : {
   user: User,
 }) {
-  if (!isPermitted(user.roles, 
+  const roles = user.roles;
+  if (!isPermitted(roles, 
     ["UserManager", "GroupManager", "MentorshipManager"])) {
       return <></>;
   }
@@ -248,18 +249,22 @@ export function ManageMenu({ user } : {
         管理功能
       </MenuButton>
       <MenuList>
-        <MenuItem as={NextLink} href="/users">
-          管理用户
-        </MenuItem>
-        <MenuItem as={NextLink} href="/groups">
-          管理会议
-        </MenuItem>
-        <MenuItem as={NextLink} href="/interviews?type=mentee">
-          学生面试
-        </MenuItem>
-        <MenuItem as={NextLink} href="/interviews?type=mentor">
-          导师面试
-        </MenuItem>
+        {isPermitted(roles, "UserManager") && 
+          <MenuItem as={NextLink} href="/users">
+            管理用户
+          </MenuItem>}
+        {isPermitted(roles, "GroupManager") && 
+          <MenuItem as={NextLink} href="/groups">
+            管理会议
+          </MenuItem>}
+        {isPermitted(roles, "MentorshipManager") &&
+          <MenuItem as={NextLink} href="/interviews?type=mentee">
+            学生面试
+          </MenuItem>}
+        {isPermitted(roles, "MentorshipManager") && 
+          <MenuItem as={NextLink} href="/interviews?type=mentor">
+            导师面试
+          </MenuItem>}
       </MenuList>
     </Menu>
   </Wrap>;
