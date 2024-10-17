@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { signOut } from "next-auth/react";
-import { LockIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
 
 import {
@@ -11,10 +11,12 @@ import {
   HStack,
   Menu,
   MenuButton,
+  Button,
   MenuDivider,
   MenuItem,
   MenuList,
   Box,
+  Wrap,
   CloseButton,
   Flex,
   Icon,
@@ -27,14 +29,13 @@ import {
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
+import User from 'shared/User';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
 import { Mentorship } from 'shared/Mentorship';
 import {
-  MdPerson,
-  MdGroups,
   MdChevronRight,
   MdFace,
   MdVideocam,
@@ -49,6 +50,7 @@ import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export const sidebarContentMarginTop = 10;
+export const manageMenuPaddingLeft = 10;
 
 export interface SidebarItem {
   name: string,
@@ -93,20 +95,6 @@ const sidebarItems: SidebarItem[] = [
     icon: MdLocalLibrary,
     regex: /^\/resources$/,
     roles: ['Mentor', 'Mentee', 'MentorCoach'],
-  },
-  {
-    name: '管理用户',
-    path: '/users',
-    icon: MdPerson,
-    regex: /^\/users/,
-    roles: 'UserManager',
-  },
-  {
-    name: '管理会议',
-    path: '/groups',
-    icon: MdGroups,
-    regex: /^\/groups$/,
-    roles: 'GroupManager',
   },
 ];
 
@@ -192,6 +180,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
             .filter(item => isPermitted(me.roles, item.roles))
             .map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
 
+          <ManageMenu user={me} />
           {mentorshipItems?.length > 0 && <Divider marginY={2} />}
 
           {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
@@ -244,6 +233,37 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 };
 
 export default Sidebar;
+
+export function ManageMenu({ user } : {
+  user: User,
+}) {
+  if (!isPermitted(user.roles, 
+    ["UserManager", "GroupManager", "MentorshipManager"])) {
+      return <></>;
+  }
+  return <Wrap paddingLeft={manageMenuPaddingLeft} 
+    paddingY={sidebarItemPaddingY}>
+    <Menu>
+      <MenuButton as={Button} variant="link" leftIcon={<ChevronDownIcon />}>
+        管理功能
+      </MenuButton>
+      <MenuList>
+        <MenuItem as={NextLink} href="/users">
+          管理用户
+        </MenuItem>
+        <MenuItem as={NextLink} href="/groups">
+          管理会议
+        </MenuItem>
+        <MenuItem as={NextLink} href="/interviews?type=mentee">
+          学生面试
+        </MenuItem>
+        <MenuItem as={NextLink} href="/interviews?type=mentor">
+          导师面试
+        </MenuItem>
+      </MenuList>
+    </Menu>
+  </Wrap>;
+}
 
 const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
