@@ -57,7 +57,7 @@ const list = procedure
     where: {
       ...filter.containsRoles === undefined ? {} : {
         [Op.and]: filter.containsRoles.map(r => ({
-          roles: { [Op.contains]: r }
+          roles: { [Op.contains]: [r] }
         }))
       },
 
