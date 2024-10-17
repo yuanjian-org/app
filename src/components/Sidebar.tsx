@@ -60,6 +60,35 @@ export interface SidebarItem {
   roles?: Role | Role[],
 }
 
+export interface ManageMenuItem {
+  name: string, 
+  path: string,
+  roles?: Role | Role[],
+}
+
+const manageMenuItems: ManageMenuItem[] = [
+  {
+    name: '管理用户',
+    path: '/users',
+    roles: 'UserManager',
+  },
+  {
+    name: '管理会议',
+    path: '/groups',
+    roles: 'GroupManager',
+  },
+  {
+    name: '学生面试',
+    path: '/interviews?type=mentee',
+    roles: 'MentorshipManager',
+  },
+  {
+    name: '导师面试',
+    path: '/interviews?type=mentor',
+    roles: 'MentorshipManager',
+  }
+];
+
 const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
@@ -249,22 +278,11 @@ export function ManageMenu({ user } : {
         管理功能
       </MenuButton>
       <MenuList>
-        {isPermitted(roles, "UserManager") && 
-          <MenuItem as={NextLink} href="/users">
-            管理用户
-          </MenuItem>}
-        {isPermitted(roles, "GroupManager") && 
-          <MenuItem as={NextLink} href="/groups">
-            管理会议
-          </MenuItem>}
-        {isPermitted(roles, "MentorshipManager") &&
-          <MenuItem as={NextLink} href="/interviews?type=mentee">
-            学生面试
-          </MenuItem>}
-        {isPermitted(roles, "MentorshipManager") && 
-          <MenuItem as={NextLink} href="/interviews?type=mentor">
-            导师面试
-          </MenuItem>}
+        {manageMenuItems
+          .filter(item => isPermitted(roles, item.roles))
+          .map(item =>
+            <MenuItem key={item.path} as={NextLink} href={item.path}>{item.name}
+            </MenuItem>)}
       </MenuList>
     </Menu>
   </Wrap>;
