@@ -18,9 +18,7 @@ import { MdEdit } from 'react-icons/md';
 import { Calibration as SharedCalibration } from 'shared/Calibration';
 
 export function CalibrationManagerHeaderCells() {
-  return <>
-    <Th>面试主管</Th>
-  </>;
+  return <Th>面试主管</Th>;
 }
 
 export function CalibrationManagerCells({ calibration, refetch }: {
@@ -48,7 +46,7 @@ function ManagerEditor({ calibration, refetch, onClose } : {
   onClose: () => void,
  }) {
   const saveManager = async (managerIds: string[]) => {
-    if (managerIds.length == 0) return;
+    if (managerIds.length == 0) return null;
     await trpc.calibrations.setManager.mutate({
       calibrationId: calibration.id,
       managerId: managerIds[0],
