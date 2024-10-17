@@ -5,6 +5,7 @@ import beian from '../../public/img/beian.png';
 export const footerMarginTop = "80px";
 export const footerBreakpoint = "lg";
 const color = 'gray.400';
+const paddingX = '30px';
 
 export default function Footer() {
   // const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
@@ -21,7 +22,7 @@ export default function Footer() {
         [footerBreakpoint]: 'start'
       }}
       justifyContent='space-between'
-      paddingX="30px"
+      paddingX={paddingX}
       paddingBottom='30px'
       paddingTop={footerMarginTop}
     >
@@ -58,7 +59,8 @@ export default function Footer() {
 }
 
 export function LoginFooter() {
-  return <Wrap justify='center' fontSize="sm" paddingBottom="30px">
+  return <Wrap justify='center' fontSize="sm" paddingBottom="30px"
+    paddingX={paddingX}>
     <WrapItem>
       <HStack>
         <Image alt="备案" width={15} src={beian} />
