@@ -46,10 +46,10 @@ function ManagerEditor({ calibration, refetch, onClose } : {
   onClose: () => void,
  }) {
   const saveManager = async (managerIds: string[]) => {
-    if (managerIds.length == 0) return null;
+    const managerId = managerIds.length > 0 ? managerIds[0] : null;
     await trpc.calibrations.setManager.mutate({
       calibrationId: calibration.id,
-      managerId: managerIds[0],
+      managerId,
     });
     refetch();
   };

@@ -69,13 +69,11 @@ const setManager = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     calibrationId: z.string(),
-    managerId: z.string().optional(),
+    managerId: z.string().nullable(),
   }))
   .mutation(async ({ input: { calibrationId, managerId } }) => 
 {
-  const [affected] = await db.Calibration.update({
-    ...managerId !== undefined ? { managerId } : {},
-  }, {
+  const [affected] = await db.Calibration.update({ managerId }, {
     where: { id: calibrationId },
   });
 
