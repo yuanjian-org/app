@@ -1,4 +1,4 @@
-import { Flex, Link, Text, HStack } from '@chakra-ui/react';
+import { Flex, HStack, Link, Text, Wrap, WrapItem } from '@chakra-ui/react';
 import Image from "next/image";
 import beian from '../../public/img/beian.png';
 
@@ -58,25 +58,28 @@ export default function Footer() {
 }
 
 export function LoginFooter() {
-  return <HStack color={color} fontSize="sm" paddingBottom="30px">
-    <Image alt="备案" width={15} src={beian} />
-    <Link
-      color={color}
-      isExternal
-      href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
-      rel="noreferrer"
-    >
-      浙公网安备33010802013665
-    </Link>
-
-    <Text>&nbsp;&nbsp;|&nbsp;&nbsp;</Text>
-
-    <Link
-      color={color}
-      isExternal
-      href='http://beian.miit.gov.cn/'
-    >
-      浙ICP备2024117465号-2
-    </Link>
-  </HStack>;
+  return <Wrap justify='center' fontSize="sm" paddingBottom="30px">
+    <WrapItem>
+      <HStack>
+        <Image alt="备案" width={15} src={beian} />
+        <Link
+          color={color}
+          isExternal
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
+          rel="noreferrer"
+        >
+          浙公网安备33010802013665
+        </Link>
+      </HStack>
+    </WrapItem>
+    <WrapItem>
+      <Link
+        color={color}
+        isExternal
+        href='http://beian.miit.gov.cn/'
+      >
+        浙ICP备2024117465号-2
+      </Link>
+    </WrapItem>
+  </Wrap>;
 }
