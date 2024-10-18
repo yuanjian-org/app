@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { signOut } from "next-auth/react";
-import { ChevronDownIcon, LockIcon } from '@chakra-ui/icons';
+import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
 
 import {
@@ -11,12 +11,10 @@ import {
   HStack,
   Menu,
   MenuButton,
-  Button,
   MenuDivider,
   MenuItem,
   MenuList,
   Box,
-  Wrap,
   CloseButton,
   Flex,
   Icon,
@@ -29,7 +27,6 @@ import {
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
-import User from 'shared/User';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
@@ -50,9 +47,8 @@ import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 
 export const sidebarContentMarginTop = 10;
-export const manageMenuPaddingLeft = 10;
 
-export interface SidebarItem {
+interface SidebarItem {
   name: string,
   icon: React.ComponentType,
   path: string,
@@ -60,13 +56,15 @@ export interface SidebarItem {
   roles?: Role | Role[],
 }
 
-export interface ManageMenuItem {
+interface DropdownMenuItem {
   name: string, 
-  path: string,
+  path?: string,
   roles?: Role | Role[],
+  icon?: React.ReactNode,
+  action?: () => void;
 }
 
-const manageMenuItems: ManageMenuItem[] = [
+const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '管理用户',
     path: '/users',
@@ -89,6 +87,22 @@ const manageMenuItems: ManageMenuItem[] = [
   }
 ];
 
+const userDropdownMenuItems: DropdownMenuItem[] = [
+  {
+    name: '个人信息',
+    path: '/profile',
+  },
+  {
+    name: '谁能看到我的数据',
+    path: '/who-can-see-my-data',
+    icon: <LockIcon />
+  },
+  {
+    name: '退出登录',
+    action:() => signOut(),
+  },
+];
+
 const sidebarItems: SidebarItem[] = [
   {
     name: '我的会议',
@@ -105,13 +119,6 @@ const sidebarItems: SidebarItem[] = [
     roles: 'MentorCoach',
   },
   {
-    name: '学生档案',
-    path: '/mentees?menteeStatus=现届学子',
-    icon: AttachmentIcon,
-    regex: /^\/mentees/,
-    roles: 'MentorshipManager',
-  },
-  {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdMic,
@@ -124,6 +131,13 @@ const sidebarItems: SidebarItem[] = [
     icon: MdLocalLibrary,
     regex: /^\/resources$/,
     roles: ['Mentor', 'Mentee', 'MentorCoach'],
+  },
+  {
+    name: '学生档案',
+    path: '/mentees?menteeStatus=现届学子',
+    icon: AttachmentIcon,
+    regex: /^\/mentees/,
+    roles: 'MentorshipManager',
   },
 ];
 
@@ -198,7 +212,8 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
                 />
               </NextLink>
             </Box>
-            <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} onClick={onClose} />
+            <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} 
+              onClick={onClose} />
           </Flex>
           <Box height={{
             base: 0,
@@ -207,55 +222,14 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
           {sidebarItems
             .filter(item => isPermitted(me.roles, item.roles))
-            .map(item => <SidebarRow key={item.path} item={item} onClose={onClose} />)}
-
-          <ManageMenu user={me} />
+            .map(item => <SidebarRow key={item.path} item={item} 
+                          onClose={onClose} />)}
+          <ManagerDropdownMenu />
           {mentorshipItems?.length > 0 && <Divider marginY={2} />}
-
           {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
             onClose={onClose} />)}
         </Box>
-        <HStack spacing={{ base: '0', [sidebarBreakpoint]: '6' }} >
-          {/* <IconButton
-            size="lg"
-            variant="ghost"
-            aria-label="open menu"
-            icon={<FiBell />}
-            /> */}
-          <Menu>
-            <MenuButton
-              marginX={4}
-              marginBottom={4}
-              paddingLeft={4}
-              py={2}
-              transition="all 0.3s"
-              _focus={{ boxShadow: 'none' }}>
-              <HStack>
-                <Avatar
-                  size={'sm'}
-                  bg="brand.a"
-                  color="white"
-                  name={formatUserName(me.name)} />
-                <Text
-                  display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
-                  fontSize="sm">
-                  {formatUserName(me.name)} </Text>
-                <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}><FiChevronRight /></Box>
-              </HStack>
-            </MenuButton>
-            <MenuList
-              bg={useColorModeValue('white', 'gray.900')}
-              borderColor={useColorModeValue('gray.200', 'gray.700')}>
-              <MenuItem as={NextLink} href='/profile'>个人信息</MenuItem>
-              <MenuDivider />
-              <MenuItem as={NextLink} href='/who-can-see-my-data'>
-                <LockIcon marginRight={1} />谁能看到我的数据
-              </MenuItem>
-              <MenuDivider />
-              <MenuItem onClick={() => signOut()}>退出登录</MenuItem>
-            </MenuList>
-          </Menu>
-        </HStack>
+        <UserDropdownMenu />
       </Flex>
     </Box >
   );
@@ -263,30 +237,68 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
 export default Sidebar;
 
-export function ManageMenu({ user } : {
-  user: User,
-}) {
+function UserDropdownMenu() {
+  const [user] = useUserContext();
+  const name = formatUserName(user.name);
+  const backgroundColor = useColorModeValue('white', 'gray.900');
+  const boderColor = useColorModeValue('gray.200', 'gray.700'); 
+
+  return <Menu placement='right-start'>
+    <DropdownMenuButton title={name} avatarName={name} />
+    <MenuList bg={backgroundColor} borderColor={boderColor} zIndex="1000">
+      {userDropdownMenuItems.map((item, index) =>
+        <>
+          <MenuItem key={item.path} as={item.path ? NextLink : undefined} 
+            href={item.path} onClick={item.action}>{item.icon}{item.name}
+          </MenuItem>
+          {index < userDropdownMenuItems.length - 1 && <MenuDivider />}
+        </>)}
+    </MenuList>
+  </Menu>;
+}
+
+function ManagerDropdownMenu() {
+  const [user] = useUserContext();
   const roles = user.roles;
+  const backgroundColor = useColorModeValue('white', 'gray.900');
+  const boderColor = useColorModeValue('gray.200', 'gray.700'); 
+  
   if (!isPermitted(roles, 
     ["UserManager", "GroupManager", "MentorshipManager"])) {
       return <></>;
   }
-  return <Wrap paddingLeft={manageMenuPaddingLeft} 
-    paddingY={sidebarItemPaddingY}>
-    <Menu>
-      <MenuButton as={Button} variant="link" leftIcon={<ChevronDownIcon />}>
-        管理功能
-      </MenuButton>
-      <MenuList>
-        {manageMenuItems
-          .filter(item => isPermitted(roles, item.roles))
-          .map(item =>
-            <MenuItem key={item.path} as={NextLink} href={item.path}>{item.name}
-            </MenuItem>)}
-      </MenuList>
-    </Menu>
-  </Wrap>;
+
+  const filteredItems = managerDropdownMenuItems
+    .filter(item => isPermitted(roles, item.roles));
+  return <Menu placement='right-start'> 
+    <DropdownMenuButton title={"管理功能"} avatarName={""} />
+    <MenuList bg={backgroundColor} borderColor={boderColor} zIndex="1000">
+      {filteredItems.map((item, index) =>
+        <>
+          <MenuItem key={item.path} as={NextLink} href={item.path}>{item.name}
+          </MenuItem>
+          {index < filteredItems.length - 1 && <MenuDivider />}
+        </>)}
+    </MenuList>
+  </Menu>;
 }
+
+const DropdownMenuButton = ({ title, avatarName 
+} : { 
+  title: string,
+  avatarName: string,
+}) => {
+  return <MenuButton marginX={4} marginBottom={4} paddingLeft={4} py={2}
+    transition="all 0.3s"  _focus={{ boxShadow: 'none' }}>
+    <HStack>
+      <Avatar size={'sm'} bg="brand.a" color="white" name={avatarName} />
+        <Text display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
+          fontSize="sm">{title}</Text>
+        <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
+          <FiChevronRight /></Box>
+    </HStack>
+  </MenuButton>;
+};
 
 const SidebarRow = ({ item, onClose, ...rest }: {
   item: SidebarItem,
