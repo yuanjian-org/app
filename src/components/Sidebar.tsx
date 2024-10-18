@@ -45,8 +45,15 @@ import { sidebarBreakpoint, sidebarWidth } from './Navbars';
 import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
+import { componentSpacing } from 'theme/metrics';
 
 export const sidebarContentMarginTop = 10;
+const sidebarPaddingTop = 8;
+const sidebarItemPaddingY = 4;
+const sidebarItemPaddingLeft = 8;
+const bgColorModeValues = ['white', 'gray.900'];
+const bdColorModeValues = ['gray.200', 'gray.700'];
+const siderbarTextColor = "gray.500";
 
 interface SidebarItem {
   name: string,
@@ -65,16 +72,6 @@ interface DropdownMenuItem {
 
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '管理用户',
-    action: '/users',
-    roles: 'UserManager',
-  },
-  {
-    name: '管理会议',
-    action: '/groups',
-    roles: 'GroupManager',
-  },
-  {
     name: '学生面试',
     action: '/interviews?type=mentee',
     roles: 'MentorshipManager',
@@ -83,7 +80,17 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     name: '导师面试',
     action: '/interviews?type=mentor',
     roles: 'MentorshipManager',
-  }
+  },
+  {
+    name: '管理会议',
+    action: '/groups',
+    roles: 'GroupManager',
+  },
+  {
+    name: '管理用户',
+    action: '/users',
+    roles: 'UserManager',
+  },
 ];
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
@@ -160,28 +167,34 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[]
   }));
 }
 
-const sidebarItemPaddingY = 4;
-
 interface SidebarProps extends BoxProps {
   onClose: () => void;
 }
 
 const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const [me] = useUserContext();
+  const userName = formatUserName(me.name);
   // Save an API call if the user is not a mentor.
   const { data: mentorships } = isPermitted(me.roles, "Mentor") ?
     trpcNext.mentorships.listMineAsMentor.useQuery() : { data: undefined };
   const mentorshipItems = mentorships2Items(mentorships);
+  const backgroundColor = useColorModeValue(bgColorModeValues[0], 
+    bgColorModeValues[1]);
+  const boderColor = useColorModeValue(bdColorModeValues[0], 
+    bdColorModeValues[1]); 
 
   return (
     <Box
       transition="3s ease"
-      bg={useColorModeValue('white', 'gray.900')}
+      bg={backgroundColor}
       borderRight="1px"
-      borderRightColor={useColorModeValue('gray.200', 'gray.700')}
+      borderRightColor={boderColor}
       w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
       pos="fixed"
       h="full"
+      // set pos to fixed creates a new stacking context,
+      // which might cause the element to render beneath others (dropdown) menu.
+      // Solved it by setting a lower ZIndex to it.
       zIndex="1"
       {...rest}>
       <Flex
@@ -194,8 +207,8 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
         <Box>
           <Flex
             alignItems="center"
-            marginX="8"
-            marginTop="8"
+            marginX={sidebarItemPaddingLeft}
+            marginTop={sidebarPaddingTop}
             justifyContent="space-between">
             <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
               <NextLink href="http://mentors.org.cn/static" target="_blank">
@@ -224,13 +237,23 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
             .filter(item => isPermitted(me.roles, item.roles))
             .map(item => <SidebarRow key={item.path} item={item} 
                           onClose={onClose} />)}
-          <ManagerDropdownMenu />
+         <DropdownMenu
+           title="管理功能"
+           icon={<Icon as={MdPerson2} marginRight="2" />}
+           menuItems={managerDropdownMenuItems}
+           rolesRequired={["UserManager", "GroupManager", "MentorshipManager"]}
+         />
           {mentorshipItems?.length > 0 && <Divider marginY={2} />}
           {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
             onClose={onClose} />)}
         </Box>
         <Box>
-          <UserDropdownMenu />
+          <DropdownMenu 
+            title={userName} 
+            icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
+              />}
+            menuItems={userDropdownMenuItems}
+          />
         </Box>
       </Flex>
     </Box >
@@ -239,74 +262,53 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
 export default Sidebar;
 
-function UserDropdownMenu() {
+function DropdownMenu({ title, icon, menuItems, rolesRequired } : {
+  title: string,
+  icon: React.ReactNode,
+  menuItems: DropdownMenuItem[],
+  rolesRequired?: Role | Role[],
+}) {
   const [user] = useUserContext();
-  const name = formatUserName(user.name);
-  const backgroundColor = useColorModeValue('white', 'gray.900');
-  const boderColor = useColorModeValue('gray.200', 'gray.700'); 
+  const backgroundColor = useColorModeValue(bgColorModeValues[0], 
+    bgColorModeValues[1]);
+  const borderColor = useColorModeValue(bdColorModeValues[0], 
+    bdColorModeValues[1]);
+  const filteredItems = rolesRequired ? 
+    managerDropdownMenuItems.filter(item => isPermitted(user.roles, item.roles))
+    :
+    menuItems;
 
-  return <Menu placement='right-start'>
-    <DropdownMenuButton title={name} 
-      component={<Avatar size={'sm'} bg="brand.a" color="white" name={name} />} />
-    <MenuList bg={backgroundColor} borderColor={boderColor}>
-      {userDropdownMenuItems.map(item =>
-        <>
-          <MenuItem 
-            as={typeof item.action === 'string' ? NextLink : undefined}
-            href={typeof item.action === 'string' ? item.action : undefined}
-            onClick={typeof item.action === 'function' ? item.action : undefined}
-            >
-              {item.icon}{item.name}
-          </MenuItem>
-        </>)}
-    </MenuList>
-  </Menu>;
-}
-
-function ManagerDropdownMenu() {
-  const [user] = useUserContext();
-  const roles = user.roles;
-  const backgroundColor = useColorModeValue('white', 'gray.900');
-  const boderColor = useColorModeValue('gray.200', 'gray.700'); 
-  
-  if (!isPermitted(roles, 
-    ["UserManager", "GroupManager", "MentorshipManager"])) {
-      return <></>;
+  if (filteredItems.length === 0) {
+    return <></>;
   }
-
-  const filteredItems = managerDropdownMenuItems
-    .filter(item => isPermitted(roles, item.roles));
-  return <Menu placement='right-start'> 
-    <DropdownMenuButton title={"管理功能"} 
-      component={<Icon as={MdPerson2} marginRight="2" />} />
-    <MenuList bg={backgroundColor} borderColor={boderColor}>
-      {filteredItems.map(item =>
-        <>
-          <MenuItem 
-            as={NextLink} 
-            href={typeof item.action === 'string' ? item.action : undefined}
-            >
-            {item.name}
-          </MenuItem>
-        </>)}
+  return <Flex paddingY={sidebarItemPaddingY}>
+    <Menu placement='right-start'>
+    <DropdownMenuButton title={title} icon={icon}/>
+    <MenuList bg={backgroundColor} borderColor={borderColor}>
+      {filteredItems.map((item, index) =>
+        <MenuItem 
+          key={index}
+          as={typeof item.action === 'string' ? NextLink : undefined}
+          href={typeof item.action === 'string' ? item.action : undefined}
+          onClick={typeof item.action === 'function' ? item.action : undefined} >
+          {item.icon}{item.name}
+        </MenuItem>)}
     </MenuList>
-  </Menu>;
+  </Menu>
+  </Flex>;
 }
 
-const DropdownMenuButton = ({ title, component
+const DropdownMenuButton = ({ title, icon
 } : { 
   title: string,
-  component: React.ReactNode | string,
+  icon: React.ReactNode,
 }) => {
-  return <MenuButton marginX={4} marginBottom={4} paddingLeft={4} py={2} 
-    color={"gray.500"} fontWeight="bold" transition="all 0.3s" 
+  return <MenuButton marginX={componentSpacing}  paddingLeft={componentSpacing}
+    color={siderbarTextColor} fontWeight="bold" transition="all 0.3s" 
     _focus={{ boxShadow: 'none' }}>
     <HStack>
-      {component}
-      <Text display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
-        {title}</Text>
-      <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
-        <FiChevronRight /></Box>
+      {icon}<Text>{title}</Text>
+      <Box><FiChevronRight /></Box>
     </HStack>
   </MenuButton>;
 };
@@ -320,21 +322,20 @@ const SidebarRow = ({ item, onClose, ...rest }: {
     <Link
       as={NextLink}
       href={item.path}
-      color={active ? "brand.c" : "gray.500"}
+      color={active ? "brand.c" : siderbarTextColor}
       fontWeight="bold"
       onClick={onClose}
     >
       <Flex
         align="center"
-        marginX={4}
-        paddingLeft={4}
+        paddingLeft={sidebarItemPaddingLeft}
         paddingY={sidebarItemPaddingY}
         role="group"
         cursor={active ? "default" : "pointer"}
         {...rest}
       >
         <Icon as={item.icon} />
-        <Text marginX={4}>{item.name}</Text>
+        <Text marginX={componentSpacing}>{item.name}</Text>
         <Icon
           as={MdChevronRight}
           opacity={0}
