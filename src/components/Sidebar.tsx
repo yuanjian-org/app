@@ -11,7 +11,6 @@ import {
   HStack,
   Menu,
   MenuButton,
-  MenuDivider,
   MenuItem,
   MenuList,
   Box,
@@ -38,7 +37,8 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary
+  MdLocalLibrary,
+  MdPerson2,
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarWidth } from './Navbars';
@@ -58,31 +58,30 @@ interface SidebarItem {
 
 interface DropdownMenuItem {
   name: string, 
-  path?: string,
+  action: (() => void) | string,
   roles?: Role | Role[],
   icon?: React.ReactNode,
-  action?: () => void;
 }
 
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '管理用户',
-    path: '/users',
+    action: '/users',
     roles: 'UserManager',
   },
   {
     name: '管理会议',
-    path: '/groups',
+    action: '/groups',
     roles: 'GroupManager',
   },
   {
     name: '学生面试',
-    path: '/interviews?type=mentee',
+    action: '/interviews?type=mentee',
     roles: 'MentorshipManager',
   },
   {
     name: '导师面试',
-    path: '/interviews?type=mentor',
+    action: '/interviews?type=mentor',
     roles: 'MentorshipManager',
   }
 ];
@@ -90,11 +89,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '个人信息',
-    path: '/profile',
+    action: '/profile',
   },
   {
     name: '谁能看到我的数据',
-    path: '/who-can-see-my-data',
+    action: '/who-can-see-my-data',
     icon: <LockIcon />
   },
   {
@@ -183,6 +182,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
       pos="fixed"
       h="full"
+      zIndex="1"
       {...rest}>
       <Flex
         direction="column"
@@ -229,7 +229,9 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
             onClose={onClose} />)}
         </Box>
-        <UserDropdownMenu />
+        <Box>
+          <UserDropdownMenu />
+        </Box>
       </Flex>
     </Box >
   );
@@ -244,14 +246,18 @@ function UserDropdownMenu() {
   const boderColor = useColorModeValue('gray.200', 'gray.700'); 
 
   return <Menu placement='right-start'>
-    <DropdownMenuButton title={name} avatarName={name} />
-    <MenuList bg={backgroundColor} borderColor={boderColor} zIndex="1000">
-      {userDropdownMenuItems.map((item, index) =>
+    <DropdownMenuButton title={name} 
+      component={<Avatar size={'sm'} bg="brand.a" color="white" name={name} />} />
+    <MenuList bg={backgroundColor} borderColor={boderColor}>
+      {userDropdownMenuItems.map(item =>
         <>
-          <MenuItem key={item.path} as={item.path ? NextLink : undefined} 
-            href={item.path} onClick={item.action}>{item.icon}{item.name}
+          <MenuItem 
+            as={typeof item.action === 'string' ? NextLink : undefined}
+            href={typeof item.action === 'string' ? item.action : undefined}
+            onClick={typeof item.action === 'function' ? item.action : undefined}
+            >
+              {item.icon}{item.name}
           </MenuItem>
-          {index < userDropdownMenuItems.length - 1 && <MenuDivider />}
         </>)}
     </MenuList>
   </Menu>;
@@ -271,31 +277,36 @@ function ManagerDropdownMenu() {
   const filteredItems = managerDropdownMenuItems
     .filter(item => isPermitted(roles, item.roles));
   return <Menu placement='right-start'> 
-    <DropdownMenuButton title={"管理功能"} avatarName={""} />
-    <MenuList bg={backgroundColor} borderColor={boderColor} zIndex="1000">
-      {filteredItems.map((item, index) =>
+    <DropdownMenuButton title={"管理功能"} 
+      component={<Icon as={MdPerson2} marginRight="2" />} />
+    <MenuList bg={backgroundColor} borderColor={boderColor}>
+      {filteredItems.map(item =>
         <>
-          <MenuItem key={item.path} as={NextLink} href={item.path}>{item.name}
+          <MenuItem 
+            as={NextLink} 
+            href={typeof item.action === 'string' ? item.action : undefined}
+            >
+            {item.name}
           </MenuItem>
-          {index < filteredItems.length - 1 && <MenuDivider />}
         </>)}
     </MenuList>
   </Menu>;
 }
 
-const DropdownMenuButton = ({ title, avatarName 
+const DropdownMenuButton = ({ title, component
 } : { 
   title: string,
-  avatarName: string,
+  component: React.ReactNode | string,
 }) => {
-  return <MenuButton marginX={4} marginBottom={4} paddingLeft={4} py={2}
-    transition="all 0.3s"  _focus={{ boxShadow: 'none' }}>
+  return <MenuButton marginX={4} marginBottom={4} paddingLeft={4} py={2} 
+    color={"gray.500"} fontWeight="bold" transition="all 0.3s" 
+    _focus={{ boxShadow: 'none' }}>
     <HStack>
-      <Avatar size={'sm'} bg="brand.a" color="white" name={avatarName} />
-        <Text display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}
-          fontSize="sm">{title}</Text>
-        <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
-          <FiChevronRight /></Box>
+      {component}
+      <Text display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
+        {title}</Text>
+      <Box display={{ base: 'flex', [sidebarBreakpoint]: 'flex' }}>
+        <FiChevronRight /></Box>
     </HStack>
   </MenuButton>;
 };
