@@ -17,7 +17,7 @@ import {
   BelongsTo
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -56,7 +56,7 @@ class User extends Model {
   })
   @AllowNull(false)
   @Default([])
-  @ZodColumn(JSONB, zRoles)
+  @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
 
   @Column(DATE)
