@@ -52,7 +52,7 @@ const sidebarPaddingTop = 8;
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
 const bgColorModeValues = ['white', 'gray.900'];
-const bdColorModeValues = ['gray.200', 'gray.700'];
+const borderColorModeValues = ['gray.200', 'gray.700'];
 const siderbarTextColor = "gray.500";
 
 interface SidebarItem {
@@ -65,6 +65,7 @@ interface SidebarItem {
 
 interface DropdownMenuItem {
   name: string, 
+  // string url as the href attribute and function as the onClick handler.
   action: (() => void) | string,
   roles?: Role | Role[],
   icon?: React.ReactNode,
@@ -180,19 +181,19 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const mentorshipItems = mentorships2Items(mentorships);
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
-  const boderColor = useColorModeValue(bdColorModeValues[0], 
-    bdColorModeValues[1]); 
+  const borderColor = useColorModeValue(borderColorModeValues[0], 
+    borderColorModeValues[1]); 
 
   return (
     <Box
       transition="3s ease"
       bg={backgroundColor}
       borderRight="1px"
-      borderRightColor={boderColor}
+      borderRightColor={borderColor}
       w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
       pos="fixed"
       h="full"
-      // set pos to fixed creates a new stacking context,
+      // Setting pos to fixed creates a new stacking context,
       // which might cause the element to render beneath others (dropdown) menu.
       // Solved it by setting a lower ZIndex to it.
       zIndex="1"
@@ -241,7 +242,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
            title="管理功能"
            icon={<Icon as={MdPerson2} marginRight="2" />}
            menuItems={managerDropdownMenuItems}
-           rolesRequired={["UserManager", "GroupManager", "MentorshipManager"]}
+           onClose={onClose}
          />
           {mentorshipItems?.length > 0 && <Divider marginY={2} />}
           {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
@@ -253,6 +254,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
             icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
               />}
             menuItems={userDropdownMenuItems}
+            onClose={onClose}
           />
         </Box>
       </Flex>
@@ -262,22 +264,19 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
 export default Sidebar;
 
-function DropdownMenu({ title, icon, menuItems, rolesRequired } : {
+function DropdownMenu({ title, icon, menuItems, onClose } : {
   title: string,
   icon: React.ReactNode,
   menuItems: DropdownMenuItem[],
-  rolesRequired?: Role | Role[],
-}) {
+} & SidebarProps) {
   const [user] = useUserContext();
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
-  const borderColor = useColorModeValue(bdColorModeValues[0], 
-    bdColorModeValues[1]);
-  const filteredItems = rolesRequired ? 
-    managerDropdownMenuItems.filter(item => isPermitted(user.roles, item.roles))
-    :
-    menuItems;
-
+  const borderColor = useColorModeValue(borderColorModeValues[0], 
+    borderColorModeValues[1]);
+  const filteredItems = menuItems.filter(item => 
+    isPermitted(user.roles, item.roles));
+  
   if (filteredItems.length === 0) {
     return <></>;
   }
@@ -285,31 +284,34 @@ function DropdownMenu({ title, icon, menuItems, rolesRequired } : {
     <Menu placement='right-start'>
     <DropdownMenuButton title={title} icon={icon}/>
     <MenuList bg={backgroundColor} borderColor={borderColor}>
-      {filteredItems.map((item, index) =>
-        <MenuItem 
-          key={index}
-          as={typeof item.action === 'string' ? NextLink : undefined}
-          href={typeof item.action === 'string' ? item.action : undefined}
-          onClick={typeof item.action === 'function' ? item.action : undefined} >
-          {item.icon}{item.name}
-        </MenuItem>)}
+      {filteredItems.map((item, index) => {
+        const isUrl = typeof item.action === 'string';
+        return (
+          <MenuItem 
+            key={index} 
+            // Only sets the link it is a url 
+            {...(isUrl && { as: NextLink })}
+            {...(isUrl && { href: item.action })}
+            onClick={() => {
+              if (typeof item.action === 'function') item.action();
+              onClose();
+            }}>
+            {item.icon}{item.name}
+          </MenuItem>); 
+      })}
     </MenuList>
   </Menu>
   </Flex>;
 }
 
-const DropdownMenuButton = ({ title, icon
-} : { 
+const DropdownMenuButton = ({ title, icon } : { 
   title: string,
   icon: React.ReactNode,
 }) => {
   return <MenuButton marginX={componentSpacing}  paddingLeft={componentSpacing}
     color={siderbarTextColor} fontWeight="bold" transition="all 0.3s" 
     _focus={{ boxShadow: 'none' }}>
-    <HStack>
-      {icon}<Text>{title}</Text>
-      <Box><FiChevronRight /></Box>
-    </HStack>
+    <HStack>{icon}<Text>{title}</Text><FiChevronRight /></HStack>
   </MenuButton>;
 };
 
