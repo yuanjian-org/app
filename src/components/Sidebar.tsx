@@ -292,9 +292,9 @@ function DropdownMenu({ title, icon, menuItems, onClose } : {
             // Only sets the link it is a url 
             {...isUrl && { as: NextLink,  href: item.action } }
             onClick={() => {
-              // (item as { action: Function }).action() 
-              // the above code will cause run time error if action is a URL.
-              if (typeof item.action === 'function') item.action();
+              // Ensure type checking before calling the function.
+              // Otherwise it will cause run time error if action is a URL.
+              if (!isUrl) (item as { action: Function }).action();
               onClose();
             }}>
             {item.icon}{item.name}
