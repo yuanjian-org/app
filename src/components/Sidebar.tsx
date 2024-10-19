@@ -294,7 +294,7 @@ function DropdownMenu({ title, icon, menuItems, onClose } : {
             onClick={() => {
               // Ensure type checking before calling the function.
               // Otherwise it will cause run time error if action is a URL.
-              if (!isUrl) (item as { action: Function }).action();
+              if (!isUrl) (item.action as Function)();
               onClose();
             }}>
             {item.icon}{item.name}
