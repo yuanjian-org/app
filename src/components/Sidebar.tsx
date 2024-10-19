@@ -290,10 +290,9 @@ function DropdownMenu({ title, icon, menuItems, onClose } : {
           <MenuItem 
             key={index} 
             // Only sets the link it is a url 
-            {...(isUrl && { as: NextLink })}
-            {...(isUrl && { href: item.action })}
+            {...isUrl && { as: NextLink,  href: item.action } }
             onClick={() => {
-              if (typeof item.action === 'function') item.action();
+              (item as { action: Function }).action();
               onClose();
             }}>
             {item.icon}{item.name}
