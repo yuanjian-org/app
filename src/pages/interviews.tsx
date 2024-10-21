@@ -135,22 +135,19 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
       <Tbody>
         {applicants
           .sort((a1, a2) => {
-            const source1 = toPinyin(sources[a1.id] || '');
-            const source2 = toPinyin(sources[a2.id] || '');
-
-            if (!source1 && source2) return 1;  
-            if (source1 && !source2) return -1;
-            if (source1 === source2) {
-              const name1 = toPinyin(formatUserName(a1.name, 'formal'));
-              const name2 = toPinyin(formatUserName(a2.name, 'formal'));
-              return name1.localeCompare(name2);
-            }  
-            return source1.localeCompare(source2);
+            const comp = (!sources[a1.id] && sources[a2.id]) ? 1 :
+              (sources[a1.id] && !sources[a2.id]) ? -1 :
+              toPinyin(sources[a1.id] || '')
+                .localeCompare(toPinyin(sources[a2.id] || ''));
+            return comp !== 0 ? comp : 
+              toPinyin(formatUserName(a1.name, 'formal'))
+                .localeCompare(toPinyin(formatUserName(a2.name, 'formal')));
           })
           .map(a => 
           <Applicant key={a.id} type={type} applicant={a}
             interviews={interviews} refetchInterviews={refetchInterviews}
-            refetchApplicants={refetchApplicants} updateSource={updateSource}
+            refetchApplicants={refetchApplicants} 
+            updateSource={source => updateSource(a.id, source)}
           />)
         }
       </Tbody>
@@ -170,15 +167,15 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
   interviews: Interview[],
   refetchInterviews: () => void,
   refetchApplicants: () => void,
-  updateSource:(id: string, source: string) => void,
+  updateSource:(source: string) => void,
 }) {
   // TODO: it's duplicative to fetch the applicant again
   const { data } = trpcNext.users.getApplicant.useQuery({ userId: applicant.id, type });
   const source = (data?.application as Record<string, any> | null)?.[menteeSourceField];
 
   useEffect(() => {
-    updateSource(applicant.id, source);
-  }, [applicant.id, source]);
+    updateSource(source);
+  }, [source, updateSource]);
 
   const matches = interviews.filter(i => i.interviewee.id == applicant.id);
   invariant(matches.length <= 1);
