@@ -114,6 +114,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
   refetchInterviews: () => void,
   refetchApplicants: () => void,
 }) {
+  // A map from applicants' user ids to sources.
   const [sources, setSources] = useState<{ [id: string]: string }>({});
   const updateSource = (id: string, source: string) => {
     setSources(prev => ({ ...prev, [id]: source }));
@@ -135,9 +136,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
       <Tbody>
         {applicants
           .sort((a1, a2) => {
-            const comp = (!sources[a1.id] && sources[a2.id]) ? 1 :
-              (sources[a1.id] && !sources[a2.id]) ? -1 :
-              toPinyin(sources[a1.id] || '')
+            const comp = toPinyin(sources[a1.id] || '')
                 .localeCompare(toPinyin(sources[a2.id] || ''));
             return comp !== 0 ? comp : 
               toPinyin(formatUserName(a1.name, 'formal'))

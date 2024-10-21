@@ -106,14 +106,14 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {/* Need to convert it to pinyin, otherwise the result 
-      will not be correct if compare Chinese directly. Ref:
-      https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html */}
       {users.sort((a: User, b: User) => {
         const comp = (menteeToYear.get(b.id) || "")
           .localeCompare(menteeToYear.get(a.id) || "");
         return comp !== 0 ? comp 
           : 
+          // Need to convert it to pinyin, otherwise the result 
+          // will not be correct if compare Chinese directly. Ref:
+          // https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
           (toPinyin(formatUserName(a.name, 'formal')))
             .localeCompare(toPinyin(formatUserName(b.name, 'formal')));
       }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
