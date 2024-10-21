@@ -108,16 +108,15 @@ function MenteeTable({ users, refetch }: {
     </Thead>
     <Tbody>
       {users.sort((a: User, b: User) => {
-        const yearA = menteeToYear.get(a.id) || "";
-        const yearB = menteeToYear.get(b.id) || "";
-
-        if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal');
-          const nameB = formatUserName(b.name, 'formal');
-          return nameA.localeCompare(nameB);
-        }
-
-        return yearB.localeCompare(yearA);
+        const comp = (menteeToYear.get(b.id) || "")
+          .localeCompare(menteeToYear.get(a.id) || "");
+        return comp !== 0 ? comp 
+          : 
+          // Need to convert it to pinyin, otherwise the result 
+          // will not be correct if compare Chinese directly. Ref:
+          // https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
+          (toPinyin(formatUserName(a.name, 'formal')))
+            .localeCompare(toPinyin(formatUserName(b.name, 'formal')));
       }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
           updateMenteeYear={updateMenteeYear} />)
       }
