@@ -33,6 +33,23 @@ export default async function migrateData() {
     END $$;    
   `);
 
+  await sequelize.query(`
+    UPDATE "InterviewFeedbacks"
+    SET feedback = jsonb_set(
+      feedback,
+      '{dimensions}',
+      (
+        SELECT jsonb_agg(
+          CASE
+            WHEN value ->> 'name' = '远见价值' THEN jsonb_set(value, '{name}', '"导师价值"')
+            ELSE value
+          END
+        )
+        FROM jsonb_array_elements(feedback -> 'dimensions') AS value
+      )
+    )
+    WHERE feedback -> 'dimensions' @> '[{"name":"远见价值"}]';
+  `);
 
   await sequelize.query(`
     DO $$
