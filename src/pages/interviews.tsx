@@ -78,6 +78,8 @@ export default widePage(() => {
     trpcNext.interviews.list.useQuery(type);
   const { data: calibrations, refetch: refetchCalibrations } =
     trpcNext.calibrations.list.useQuery(type);
+  const { data: stats } = 
+    trpcNext.interviews.getInterviewerStats.useQuery();
 
   return <Flex direction='column' gap={6}>
     <TabsWithUrlParam isLazy>
@@ -106,6 +108,16 @@ export default widePage(() => {
         </TabPanel>
       </TabPanels>
     </TabsWithUrlParam>
+    
+    <ul>
+      {/* testing getInterviewerStats */}
+      {stats?.map((stat, index) => (
+        <li key={index}>
+          <p>Interviewer: {stat.user.name}</p>
+          <p>Interviews: {stat.interviews}</p>
+        </li>
+      ))}
+    </ul>
   </Flex>;
 });
 
