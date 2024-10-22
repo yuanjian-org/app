@@ -28,7 +28,6 @@ import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
 import { zUser } from "../../shared/User";
-import { Op } from "sequelize";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -193,20 +192,29 @@ const getInterviewerStats = procedure
   const mentors = await db.User.findAll({
     attributes: userAttributes,
     include: userInclude,
-    where: { roles: { [Op.contains]: ["Mentor"] }, }
   });
 
-  const stats = await Promise.all(mentors.map(async mentor => {
-    const interviewCount = await db.InterviewFeedback.count({
-      where: { interviewerId: mentor.id }
-    });
+  const interviewCounts = await db.InterviewFeedback.findAll({
+    attributes: [
+      'interviewerId',
+      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'interviewCount']
+    ],
+    group: ['interviewerId']
+  });
 
-    return {
+  const interviewCountMap = interviewCounts
+    .reduce<{ [key: string]: number }>((acc, curr) => {
+      acc[curr.interviewerId] = parseInt(curr.getDataValue('interviewCount'), 10);
+      return acc;
+    }, {});
+
+  const stats = mentors
+    .filter(mentor => interviewCountMap[mentor.id])
+    .map(mentor => ({
       user: mentor,
-      interviews: interviewCount,
-    };
-  }));
-
+      interviews: interviewCountMap[mentor.id]
+    }))
+    .sort((i1, i2) => i1.interviews - i2.interviews);
   return stats;
 });
 
