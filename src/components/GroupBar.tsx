@@ -53,21 +53,7 @@ export default function GroupBar({
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
 
-  const launchMeetingInNewWindow = async (groupId: string) => {
-    setJoining(true);
-    try {
-      const link = await trpc.meetings.join.mutate({ groupId: groupId });
-      if (!link) {
-        setShowMeetingQuotaWarning(true);
-      } else {
-        window.open(link, '_blank');
-      }
-    } finally {
-      setJoining(false);
-    }
-  };
-
-  const launchMeetingInSameWindow = async (groupId: string) => {
+  const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
       const link = await trpc.meetings.join.mutate({ groupId: groupId });
@@ -75,9 +61,17 @@ export default function GroupBar({
         setShowMeetingQuotaWarning(true);
         setJoining(false);
       } else {
-        window.location.href = link;
-        // Time is needed for the meeting page to load.
-        setTimeout(() => setJoining(false), 5000);
+        // Attempts to open the link in a new browser tab.
+        // If blocked or unsuccessful, it opens the link in the current tab.
+        // Ref: https://stackoverflow.com/a/2917 
+        const newWindow = window.open(link, '_blank');  
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          window.location.href = link;
+          // Time is needed for the meeting page to load.
+          setTimeout(() => setJoining(false), 5000);
+        } else {
+          setJoining(false);
+        }
       }
     } catch (e) {
       setJoining(false);
@@ -106,21 +100,9 @@ export default function GroupBar({
       {/* row 2 col 1 */}
       {showJoinButton &&
         <Box>
-          {/* Open meeting link in the same window on mobile because mobile
-            devices may disable pop-up windows by default. Use '2xl' instead
-            of sidebarBreakpiont because screen size can be fairly large on
-            tablets. TODO: https://github.com/yuanjian-org/app/issues/369 */}
           <JoinButton
-            display={{ '2xl': 'none' }}
             isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={() => launchMeetingInSameWindow(group.id)}
-          >加入</JoinButton>
-
-          {/* Non-mobile devices open meeting link in the same window. */}
-          <JoinButton
-            display={{ base: 'none', '2xl': 'unset' }}
-            isLoading={isJoiningMeeting} loadingText={'加入中...'}
-            onClick={() => launchMeetingInNewWindow(group.id)}
+            onClick={() => launchMeeting(group.id)}
           >加入</JoinButton>
         </Box>
       }
