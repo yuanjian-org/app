@@ -6,8 +6,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 
 /**
- * Authenticate for APIs used by applications as opposed to end users. These applications should use
- * "Bearer ${INTEGRATION_AUTH_TOKEN}" as their authentican token.
+ * Authenticate for APIs used by applications as opposed to end users. Usage:
+ *
+ * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+ *  "${BASE_URL}/api/v1/foo.bar"
  */
 export const authIntegration = () => middleware(async ({ ctx, next }) => {
   const token: string | undefined = ctx.req.headers['authorization']?.split(' ')[1];

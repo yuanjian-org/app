@@ -1,9 +1,22 @@
-import Role from "../src/shared/Role";
-import db from "../src/api/database/db";
-import sequelize from "../src/api/database/sequelize";
+import Role from "../../shared/Role";
+import db from "../database/db";
+import sequelize from "../database/sequelize";
+import { procedure, router } from "../trpc";
+import { authIntegration } from "../auth";
 
-export default async function migrateData() {
-  console.log("Migrating...");
+export default router({
+  // TODO: Should we require an Admin auth token separate from integration
+  // token?
+  migrateDatabase: procedure
+    .use(authIntegration())
+    .query(async () => await migrateDatabase())
+});
+
+export async function migrateDatabase() {
+  console.log("Migrating DB schema...");
+  await sequelize.sync({ alter: { drop: false } });
+
+  console.log("Migrating DB data...");
 
   await sequelize.query(`
     DO $$

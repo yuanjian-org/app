@@ -68,7 +68,8 @@
     "zod": "^3.22.3"
   },
   "scripts": {
-    "sync-database": "ts-node tools/syncDatabase.ts",
+    "sync-database": "ts-node tools/migrateDatabase.ts",
+    "migrate-database": "ts-node tools/migrateDatabase.ts",
     "gen-test-data": "ts-node tools/generateTestData.ts",
     "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register 'src/**/*.test.ts' --recursive",
     "dev": "next dev",
