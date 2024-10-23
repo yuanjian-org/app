@@ -1,5 +1,5 @@
-import { procedure, router } from "../../trpc";
-import { authUser } from "../../auth";
+import { procedure, router } from "../trpc";
+import { authUser } from "../auth";
 import { z } from "zod";
 import { 
   zLatitude,
@@ -10,12 +10,12 @@ import {
  } from "shared/Map";
 import * as fs from 'fs';
 import * as path from 'path';
-import db from "../../database/db";
+import db from "../database/db";
 import { 
   landmarkAssessmentAttributes,
   landmarkAssessmentInclude,
-} from "../../database/models/map/attributesAndIncludes";
-import sequelize from "api/database/sequelize";
+} from "../database/models/map/attributesAndIncludes";
+import sequelize from "../database/sequelize";
 
 const listLandmarks = procedure
   .use(authUser())

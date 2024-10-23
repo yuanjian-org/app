@@ -14,7 +14,7 @@ import calibrations from './routes/calibrations';
 import chat from './routes/chat';
 import matchmaker from './routes/matchmaker';
 import migration from './routes/migration';
-import map from './map/routes/map';
+import map from './routes/map';
 
 export const apiRouter = router({
   users,
