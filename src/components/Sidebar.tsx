@@ -83,6 +83,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
+    name: '面试统计',
+    action: '/interviewerStats',
+    roles: 'MentorshipManager',
+  },
+  {
     name: '管理会议',
     action: '/groups',
     roles: 'GroupManager',
