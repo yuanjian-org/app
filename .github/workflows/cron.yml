@@ -1,10 +1,10 @@
 # See deploy-docker.yml for setup instructions
 #
-name: Scheduled Task
+name: Cron jobs
 
 on:
   schedule:
-    - cron: "15 * * * *"  # Runs at the 53th minute of every hour
+    - cron: "53 * * * *"  # Runs at the 53th minute of every hour
 
 jobs:
   run_scheduled_task:
@@ -21,7 +21,7 @@ jobs:
             User ${{ secrets.SERVER_SSH_USERNAME }}
             StrictHostKeyChecking no
 
-    - name: Run Cron URLs
+    - name: Run cron jobs
       run: |
         ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
           cd ~/app
