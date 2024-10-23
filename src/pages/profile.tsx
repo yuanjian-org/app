@@ -73,6 +73,10 @@ export default function Page() {
           <GridItem>
             {user.email}
           </GridItem>
+          <GridItem />
+          <GridItem fontSize="sm" color="grey">
+            如需更改邮箱，请联系系统管理员
+          </GridItem>
         </Grid>
       </FormControl>
     );
