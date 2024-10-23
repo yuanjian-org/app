@@ -4,7 +4,12 @@ import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
 import {
-  groupAttributes, groupInclude, interviewInclude, interviewAttributes
+  groupAttributes,
+  groupInclude,
+  interviewInclude,
+  interviewAttributes,
+  userAttributes,
+  userInclude
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
@@ -22,6 +27,7 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
+import { zUser } from "../../shared/User";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -175,6 +181,43 @@ export async function createInterview(type: InterviewType, calibrationId: string
   });
 }
 
+const getInterviewerStats = procedure
+.use(authUser("MentorshipManager"))
+.output(z.array(z.object({
+  user: zUser,
+  interviews: z.number(),
+})))
+.query(async () =>
+{
+  const mentors = await db.User.findAll({
+    attributes: userAttributes,
+    include: userInclude,
+  });
+
+  const interviewCounts = await db.InterviewFeedback.findAll({
+    attributes: [
+      'interviewerId',
+      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'interviewCount']
+    ],
+    group: ['interviewerId']
+  });
+
+  const interviewCountMap = interviewCounts
+    .reduce<{ [key: string]: number }>((acc, curr) => {
+      acc[curr.interviewerId] = parseInt(curr.getDataValue('interviewCount'), 10);
+      return acc;
+    }, {});
+
+  const stats = mentors
+    .filter(mentor => interviewCountMap[mentor.id])
+    .map(mentor => ({
+      user: mentor,
+      interviews: interviewCountMap[mentor.id]
+    }))
+    .sort((i1, i2) => i1.interviews - i2.interviews);
+  return stats;
+});
+
 const update = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
@@ -296,6 +339,7 @@ export default router({
   list,
   listMine,
   create,
+  getInterviewerStats,
   update,
   updateDecision,
 });
