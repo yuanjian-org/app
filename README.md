@@ -12,7 +12,7 @@ developed by VEF volunteers.
    - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
 1. Run `yarn` to install dependency packages.
    - If you run into error `"$VERCEL_ENV" was unexpected`, see this [`doc`](./docs/package.json.md).
-1. Run `yarn sync-database` to initialize the database.
+1. Run `yarn migrate-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
 1. Visit the local server from broswer. Sign up with your personal email address.
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.

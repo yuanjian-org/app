@@ -79,7 +79,7 @@
     "nibble": "eslint-nibble --ext .jsx,.js,.tsx,.ts src",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/syncDatabase.ts; fi"
+    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/migrateDatabase.ts; fi"
   },
   "browserslist": {
     "production": [
