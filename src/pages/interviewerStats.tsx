@@ -22,7 +22,7 @@ export default function Page() {
       <Thead>
         <Tr>
           <Th>面试官</Th>
-          <Th>面试数量</Th>
+          <Th>总面试量</Th>
           <Th>性别</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     

@@ -83,7 +83,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
-    name: '面试统计',
+    name: '面试官统计',
     action: '/interviewerStats',
     roles: 'MentorshipManager',
   },
