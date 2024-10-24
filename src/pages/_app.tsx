@@ -15,19 +15,27 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage, { AppPageType } from 'AppPage';
+import { isStaticPage } from '../static';
+import StaticPageContainer from 'components/StaticPageContainer';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
 } & AppProps) {
-  return (
-    <SessionProvider session={session}>
-      <ChakraProvider theme={theme}>
-        <Head>
-          <title>社会导师服务平台</title>
-          <meta name='viewport' content='width=device-width, initial-scale=1' />
-          <meta name='theme-color' content='#000000' />
-        </Head>
+  const router = useRouter();
 
+  return <ChakraProvider theme={theme}>
+    <Head>
+      <title>社会导师服务平台</title>
+      <meta name='viewport' content='width=device-width, initial-scale=1' />
+      <meta name='theme-color' content='#000000' />
+    </Head>
+
+    {isStaticPage(router.route) ?
+      <StaticPageContainer>
+        <Component />
+      </StaticPageContainer>
+      :
+      <SessionProvider session={session}>
         <SwitchBoard pageType={Component.type} {...pageProps}>
           <Component />
           <ToastContainer
@@ -43,15 +51,12 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
             theme="light"
           />
         </SwitchBoard>
-      </ChakraProvider>
-    </SessionProvider>
-  );
+      </SessionProvider>
+    }
+    </ChakraProvider>;
 }
 
 export default trpcNext.withTRPC(App);
-
-// Reference Style Template: 
-// https://ecosystem.hubspot.com/marketplace/website/quest-theme-by-juice-tactics-snacks
 
 function SwitchBoard({ children, pageType, ...rest }:
   PropsWithChildren & { pageType: AppPageType }) 
