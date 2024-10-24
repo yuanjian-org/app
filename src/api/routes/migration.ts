@@ -96,6 +96,8 @@ export async function migrateDatabase() {
   await cleanupFeedbackAttempLog();
 
   await updateMenteeStatus();
+
+  await updateRolesColumnType();
 }
 
 async function cleanupFeedbackAttempLog() {
@@ -117,6 +119,55 @@ async function updateMenteeStatus() {
 
     await sequelize.query(
         `UPDATE Users SET "menteeStatus" = '初拒' WHERE "menteeStatus" = '初据'`,
+        { transaction }
+    );
+  });
+}
+
+// update roles column data type to array
+async function updateRolesColumnType() {
+  console.log("Updating User Table Roles column type...");
+
+  const [results] = await sequelize.query(`
+      SELECT pg_typeof(roles) AS role_type
+      FROM users limit 1
+  `);
+
+  // If the column type is already varchar[], exit the function
+  // @ts-ignore
+  if (results.length > 0 && results[0].role_type === 'character varying[]') {
+    console.log("The roles column is already of type varchar[]. No changes needed.");
+    return; // Exit if no changes are needed
+  }
+
+  await sequelize.transaction(async (transaction) => {
+    await sequelize.query(
+        `ALTER TABLE users
+            ADD COLUMN temp_roles varchar[] DEFAULT '{}';`,
+        { transaction }
+    );
+
+    await sequelize.query(
+        `UPDATE users
+         SET temp_roles = (
+             CASE
+                 WHEN roles = '[]'::jsonb THEN '{}'::varchar[]
+                 ELSE (
+                     SELECT array_agg(elem)
+                     FROM jsonb_array_elements_text(roles) AS elem
+                 )
+                 END
+             );`,
+        { transaction }
+    );
+
+    await sequelize.query(
+        `ALTER TABLE users DROP COLUMN roles;`,
+        { transaction }
+    );
+
+    await sequelize.query(
+        `ALTER TABLE users RENAME COLUMN temp_roles TO roles;`,
         { transaction }
     );
   });
