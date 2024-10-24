@@ -119,6 +119,9 @@ const update = procedure
   }
 
   invariant(input.name);
+  invariant(input.city);
+  invariant(input.wechat);
+  invariant(input.sex);
   await user.update({
     name: input.name,
     city: input.city,
