@@ -3,12 +3,12 @@ import {
   FormLabel,
   VStack,
   Input,
-  Select,
-  Flex,
   FormHelperText,
   FormErrorMessage,
   Button,
-  Container,
+  RadioGroup,
+  Radio,
+  Stack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import trpc from "../trpc";
@@ -39,52 +39,44 @@ export default function Page() {
       setIsLoading(false);
     }
   };
-
-  const handleCancel = () => {
-    setNewName(user.name || '');
-    setNewSex(user.sex || '');
-    setNewCity(user.city || '');
-    setNewWechat(user.wechat || '');
-  };
   
-  return <Container maxWidth="sm" marginTop={sectionSpacing}>
-    <VStack spacing={componentSpacing}>
-      <FormControl>
-        <FormLabel>邮箱</FormLabel>
-        {user.email} 
-        <FormHelperText>如需更改邮箱，请联系系统管理员</FormHelperText>
-      </FormControl>
+  return <VStack spacing={componentSpacing} maxWidth="sm" 
+    margin={sectionSpacing}>
+    <FormControl>
+      <FormLabel>邮箱</FormLabel>
+      <Input value={user.email} readOnly />
+      <FormHelperText>如需更改邮箱，请联系系统管理员</FormHelperText>
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>微信</FormLabel>
+      <Input background="white" 
+        value={newWechat} onChange={e => setNewWechat(e.target.value)} />
+    </FormControl>    
     
-      <FormControl isInvalid={!newName}>
-        <FormLabel>中文全名</FormLabel>
-        <Input value={newName} onChange={e => setNewName(e.target.value)}/>
-        {!newName && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
-      </FormControl>
+    <FormControl isInvalid={!newName}>
+      <FormLabel>中文全名</FormLabel>
+      <Input background="white"
+        value={newName} onChange={e => setNewName(e.target.value)}/>
+      {!newName && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
+    </FormControl>
 
-      <FormControl>
-        <FormLabel>性别</FormLabel>
-        <Select value={newSex} onChange={e => setNewSex(e.target.value)}>
-          <option value="" disabled>选择性别</option>
-          <option value="male">男</option>
-          <option value="female">女</option>
-        </Select>
-      </FormControl>
+    <FormControl display="flex" gap={componentSpacing}>
+      <FormLabel>性别</FormLabel>
+      <RadioGroup value={newSex} onChange={setNewSex}>
+        <Stack direction="row">
+          <Radio background="white" value="male">男</Radio>
+          <Radio background="white" value="female">女</Radio>
+        </Stack>
+      </RadioGroup>
+    </FormControl>
 
-      <FormControl>
-        <FormLabel>居住的中国城市或者国家+城市</FormLabel>
-        <Input value={newCity} onChange={e => setNewCity(e.target.value)} />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>微信</FormLabel>
-        <Input value={newWechat} onChange={e => setNewWechat(e.target.value)} />
-      </FormControl>               
-    
-      <Flex gap={componentSpacing}>
-        <Button onClick={handleCancel}>取消</Button>
-        <Button onClick={handleSubmit} colorScheme="green">保存</Button>
-      </Flex>
-      {isLoading && <Loader loadingText='保存中...'/>}
-    </VStack>
-  </Container>;
+    <FormControl>
+      <FormLabel>居住的中国城市或者国家+城市</FormLabel>
+      <Input background="white" 
+        value={newCity} onChange={e => setNewCity(e.target.value)} />
+    </FormControl>           
+    <Button onClick={handleSubmit} variant="brand">保存</Button>
+    {isLoading && <Loader loadingText='保存中...'/>}
+  </VStack>;
 }
