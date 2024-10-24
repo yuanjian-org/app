@@ -1,5 +1,5 @@
 import { procedure, router } from "../trpc";
-import { authUser } from "../auth";
+import { authIntegration, authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
@@ -60,6 +60,7 @@ export default router({
  * @returns the transcriptIds of synced transcripts.
  */
 export const syncSummaries = procedure
+  .use(authIntegration())
   .output(z.object({
     syncedSummaries: z.array(z.string()),
   }))
