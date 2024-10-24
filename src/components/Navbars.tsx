@@ -66,11 +66,16 @@ export default function Navbars({
   }, [stateRef]);
 
   return (
-    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
+    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight,
+      colors.backgroundDark)}
+    >
+      {/* The sidebar on desktop */}
       <Sidebar
         onClose={() => onClose}
         display={{ base: 'none', [sidebarBreakpoint]: 'block' }}
       />
+
+      {/* The sidebar on mobile */}
       <Drawer
         autoFocus={false}
         isOpen={isOpen}
@@ -83,7 +88,9 @@ export default function Navbars({
           <Sidebar onClose={onClose} />
         </DrawerContent>
       </Drawer>
+
       <Topbar onOpen={onOpen} autosaveState={autosaveState} />
+
       <Box marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}>
         <AutosaveContext.Provider value={{
           addPendingSaver: addPS,

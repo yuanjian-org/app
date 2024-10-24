@@ -1,18 +1,17 @@
-import { Box, Flex, VStack } from '@chakra-ui/react';
+import { Flex, VStack } from '@chakra-ui/react';
 import Image from "next/image";
 import { componentSpacing } from 'theme/metrics';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import { PropsWithChildren } from "react";
-import { LoginFooter } from './Footer';
+import Footer from './Footer';
 
 export default function AuthPageContainer({ children, ...rest }: 
   PropsWithChildren
 ) {
-  return <Flex direction="column" justifyContent="space-between" alignItems="center"
-    minHeight="100vh" {...rest}
+  return <Flex direction="column" justifyContent="space-between"
+    alignItems="center" minHeight="100vh" {...rest}
   > 
-    <Box height={40} />
-    <VStack align="left" spacing={componentSpacing} width={350}>
+    <VStack align="left" spacing={componentSpacing} width={350} marginTop={40}>
 
       <Image alt="图标" width={60} src={yuanjianLogo80x80}
 
@@ -25,7 +24,6 @@ export default function AuthPageContainer({ children, ...rest }:
 
       {children}
     </VStack>
-    <Box height={40} />
-    <LoginFooter />
+    <Footer />
   </Flex>;
 }
