@@ -12,7 +12,7 @@ import User from "./User";
 
 export const minUserAttributes = ['id', 'name'];
 
-export const userAttributes = [...minUserAttributes, "wechat", "sex", "email",
+export const userAttributes = [...minUserAttributes, "wechat", "city", "sex", "email",
   "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
   "menteeStatus", "pointOfContactNote"];
 

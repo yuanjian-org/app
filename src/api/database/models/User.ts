@@ -71,6 +71,9 @@ class User extends Model {
   @Column(STRING)
   wechat: string | null;
 
+  @Column(STRING)
+  city: string | null;
+
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
