@@ -11,8 +11,9 @@ services:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./.cert.key:/cert.key
-      - ./.cert.pem:/cert.pem
+      # TDOO: Remove hardcoded URL
+      - /etc/letsencrypt/live/mentors.org.cn/fullchain.pem:/cert.pub
+      - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/cert.key
     ports:
       - "443:443"
       - "80:80"
