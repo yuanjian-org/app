@@ -50,6 +50,9 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
 export default trpcNext.withTRPC(App);
 
+// Reference Style Template: 
+// https://ecosystem.hubspot.com/marketplace/website/quest-theme-by-juice-tactics-snacks
+
 function SwitchBoard({ children, pageType, ...rest }:
   PropsWithChildren & { pageType: AppPageType }) 
   {
@@ -60,6 +63,7 @@ function SwitchBoard({ children, pageType, ...rest }:
 
   if (status == "loading") {
     return <PageLoader />;
+
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
       return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
@@ -67,6 +71,7 @@ function SwitchBoard({ children, pageType, ...rest }:
       void router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
       return null;
     }
+
   } else {
     invariant(status == "authenticated");
     if (isAuthPage) {
