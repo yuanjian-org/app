@@ -16,6 +16,7 @@ import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
+import { toast } from "react-toastify";
 
 export default function Page() {
   const [user, setUser] = useUserContext();
@@ -35,6 +36,7 @@ export default function Page() {
       updatedUser.wechat = newWechat;
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
+      toast.success("保存成功！");
     } finally {
       setIsLoading(false);
     }

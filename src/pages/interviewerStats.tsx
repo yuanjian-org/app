@@ -24,6 +24,7 @@ export default function Page() {
           <Th>面试官</Th>
           <Th>总面试量</Th>
           <Th>性别</Th>
+          <Th>居住的中国城市或者国家+城市</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>
@@ -38,6 +39,7 @@ export default function Page() {
               <Td>{user.name}</Td>
               <Td>{interviewStat.interviews}</Td>
               <Td>{user.sex}</Td>
+              <Td>{user.city}</Td>
               <Td>{user.email}</Td>
               <Td>{user.wechat}</Td>
               <Td>{toPinyin(user.name ?? "")}</Td>
