@@ -18,7 +18,7 @@ describe('User', () => {
         pinyin: 'ceshiyonghuyi',
         email: 'testuser1@example.foo',
         roles: ['Mentor'],
-        sex: 'male',
+        sex: '男',
         wechat: 'testWechat1',
         city: 'city1',
       });
@@ -34,7 +34,7 @@ describe('User', () => {
         pinyin: 'ceshiyonghuer',
         email: 'testuser2@example.foo',
         roles: ['Mentee'],
-        sex: 'male',
+        sex: '男',
         wechat: 'testWechat2',
         city: 'city2',
       });

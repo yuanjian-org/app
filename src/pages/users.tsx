@@ -185,8 +185,8 @@ function UserEditor(props: {
             <FormLabel>性别</FormLabel>
             <RadioGroup value={sex} onChange={setSex}>
               <Stack direction="row">
-               <Radio background="white" value="male">男</Radio>
-               <Radio background="white" value="female">女</Radio>
+               <Radio background="white" value="男">男</Radio>
+               <Radio background="white" value="女">女</Radio>
               </Stack>
             </RadioGroup>
           </FormControl>
