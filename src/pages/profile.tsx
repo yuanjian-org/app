@@ -36,7 +36,7 @@ export default function Page() {
       updatedUser.wechat = newWechat;
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
-      toast.success("保存成功！");
+      toast.success("保存成功。");
     } finally {
       setIsLoading(false);
     }

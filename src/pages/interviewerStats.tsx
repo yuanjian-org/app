@@ -24,7 +24,7 @@ export default function Page() {
           <Th>面试官</Th>
           <Th>总面试量</Th>
           <Th>性别</Th>
-          <Th>居住的中国城市或者国家+城市</Th>
+          <Th>坐标</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>
