@@ -375,7 +375,7 @@ const listPriviledgedUserDataAccess = procedure
     // TODO: Optimize with postgres `?|` operator
     where: {
       [Op.or]: AllRoles.filter(r => RoleProfiles[r].privilegedUserDataAccess).map(r => ({
-        roles: { [Op.contains]: r }
+        roles: { [Op.contains]: [r] }
       })),
     },
     attributes: ['name', 'roles'],
