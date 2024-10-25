@@ -49,8 +49,6 @@ export default widePage(() => {
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 
-    {/* <GroupBar group={interview.group} showGroupName={false} showJoinButton marginBottom={8} /> */}
-
     {!interviewerTestPassed() ? <PassTestFirst type={i.type} /> :
       <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
@@ -75,9 +73,10 @@ function PassTestFirst({ type } : { type : InterviewType}) {
     <b>请首先完成面试官测试</b>
     <p>通过<Link isExternal href="https://jsj.top/f/w02l95">
       《面试流程和标准测试》</Link>后，刷新此页，即可看到面试信息。</p>
-      {type == "MentorInterview" &&
-        <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
-      <p>为了避免遗忘，我们要求300天以后重新测试，感谢你的理解！</p>
+    <p>请注意：测试的通过分数是 <b>120</b> 分。</p>
+    {type == "MentorInterview" &&
+      <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
+    <p>为了避免遗忘，我们要求300天以后重新测试，感谢理解！</p>
   </Flex>;
 }
 
