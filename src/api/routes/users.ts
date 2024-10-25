@@ -26,6 +26,9 @@ const create = procedure
   .input(z.object({
     name: z.string(),
     email: z.string(),
+    city: z.string().nullable(),
+    wechat: z.string().nullable(),
+    sex: z.string().nullable(),
     roles: zRoles,
   }))
   .mutation(async ({ ctx, input }) => 
@@ -37,6 +40,9 @@ const create = procedure
     pinyin: toPinyin(input.name),
     email: input.email,
     roles: input.roles,
+    city: input.city,
+    wechat: input.wechat,
+    sex: input.sex,
   });
 });
 
