@@ -37,7 +37,7 @@ export default function Page() {
             <Tr key={user.id} _hover={{ bg: "white" }}> 
               <Td>{user.name}</Td>
               <Td>{interviewStat.interviews}</Td>
-              <Td>{user.sex}</Td>
+              <Td>{user.sex ? (user.sex === 'male' ? '男' : '女') : ''}</Td>
               <Td>{user.email}</Td>
               <Td>{user.wechat}</Td>
               <Td>{toPinyin(user.name ?? "")}</Td>
