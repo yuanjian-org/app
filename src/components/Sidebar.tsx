@@ -26,8 +26,6 @@ import {
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
-import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
-import Image from "next/image";
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
 import { Mentorship } from 'shared/Mentorship';
@@ -39,6 +37,7 @@ import {
   MdMic,
   MdLocalLibrary,
   MdPerson2,
+  MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarBreakpoint, sidebarWidth } from './Navbars';
@@ -46,21 +45,22 @@ import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
-import { staticUrlPrefix } from '../static';
+import colors from 'theme/colors';
+import { staticUrlPrefix } from 'static';
 
 export const sidebarContentMarginTop = 10;
-const sidebarPaddingTop = 8;
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
 const bgColorModeValues = ['white', 'gray.900'];
 const borderColorModeValues = ['gray.200', 'gray.700'];
 const siderbarTextColor = "gray.500";
 
-interface SidebarItem {
+interface MainMenuItem {
   name: string,
   icon: React.ComponentType,
+  iconColor?: string,
   path: string,
-  regex: RegExp,
+  regex?: RegExp,
   roles?: Role | Role[],
 }
 
@@ -112,11 +112,17 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
   },
   {
     name: '退出登录',
-    action:() => signOut(),
+    action: signOut,
   },
 ];
 
-const sidebarItems: SidebarItem[] = [
+const mainMenuItems: MainMenuItem[] = [
+  {
+    name: '平台首页',
+    path: staticUrlPrefix,
+    icon: MdHome,
+    iconColor: colors.brand.c,
+  },
   {
     name: '我的会议',
     path: '/',
@@ -154,7 +160,7 @@ const sidebarItems: SidebarItem[] = [
   },
 ];
 
-function mentorships2Items(mentorships: Mentorship[] | undefined): SidebarItem[] {
+function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[] {
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
@@ -190,82 +196,64 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const borderColor = useColorModeValue(borderColorModeValues[0], 
     borderColorModeValues[1]); 
 
-  return (
-    <Box
-      transition="3s ease"
-      bg={backgroundColor}
-      borderRight="1px"
-      borderRightColor={borderColor}
-      w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
-      pos="fixed"
-      h="full"
-      // Setting pos to fixed creates a new stacking context,
-      // which might cause the element to render beneath others (dropdown) menu.
-      // Solved it by setting a lower ZIndex to it.
-      zIndex="1"
-      {...rest}>
-      <Flex
-        direction="column"
-        justifyContent="space-between"
-        // If there are many items in the sidebar or in a smaller screen size, 
-        // we need to enable scrolling to access the items and user menu.
-        overflowY="auto"
-        h="full">
-        <Box>
-          <Flex
-            alignItems="center"
-            marginX={sidebarItemPaddingLeft}
-            marginTop={sidebarPaddingTop}
-            justifyContent="space-between">
-            <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-              <NextLink href={staticUrlPrefix} target="_blank">
-                <Image
-                  src={yuanjianLogo80x80}
-                  alt="图标"
-                  width={30}
-                  // Without `priority` we would get a warning from Chrome that this
-                  // image "was detected as the Largest Contentful Paint (LCP).
-                  // Please add the "priority" property if this image is above the
-                  // fold. Read more:
-                  // https://nextjs.org/docs/api-reference/next/image#priority"
-                  priority
-                />
-              </NextLink>
-            </Box>
-            <CloseButton display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} 
-              onClick={onClose} />
-          </Flex>
-          <Box height={{
-            base: 0,
-            [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
-          }} />
+  return <Box
+    transition="3s ease"
+    bg={backgroundColor}
+    borderRight="1px"
+    borderRightColor={borderColor}
+    w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
+    pos="fixed"
+    h="full"
+    // Setting pos to fixed creates a new stacking context,
+    // which might cause the element to render beneath others (dropdown) menu.
+    // Solved it by setting a lower ZIndex to it.
+    zIndex="1"
+    {...rest}
+  >
+    <Flex
+      direction="column"
+      justifyContent="space-between"
+      // If there are many items in the sidebar or in a smaller screen size, 
+      // we need to enable scrolling to access the items and user menu.
+      overflowY="auto"
+      h="full">
+      <Box>
+        <CloseButton
+          display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} 
+          onClick={onClose} 
+          marginLeft={sidebarItemPaddingLeft - 2}
+          marginY={sidebarItemPaddingY}  
+        />
+        <Box height={{
+          base: 0,
+          [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
+        }} />
 
-          {sidebarItems
-            .filter(item => isPermitted(me.roles, item.roles))
-            .map(item => <SidebarRow key={item.path} item={item} 
-                          onClose={onClose} />)}
-         <DropdownMenu
-           title="管理功能"
-           icon={<Icon as={MdPerson2} marginRight="2" />}
-           menuItems={managerDropdownMenuItems}
-           onClose={onClose}
-         />
-          {mentorshipItems?.length > 0 && <Divider marginY={2} />}
-          {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
-            onClose={onClose} />)}
-        </Box>
-        <Box>
-          <DropdownMenu 
-            title={userName} 
-            icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
-              />}
-            menuItems={userDropdownMenuItems}
-            onClose={onClose}
-          />
-        </Box>
-      </Flex>
-    </Box >
-  );
+        {mainMenuItems
+          .filter(item => isPermitted(me.roles, item.roles))
+          .map(item => <SidebarRow key={item.path} item={item} 
+                        onClose={onClose} />)}
+        <DropdownMenu
+          title="管理功能"
+          icon={<Icon as={MdPerson2} marginRight="2" />}
+          menuItems={managerDropdownMenuItems}
+          onClose={onClose}
+        />
+        {mentorshipItems?.length > 0 && <Divider marginY={2} />}
+        {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
+          onClose={onClose} />)}
+      </Box>
+      <Box>
+        <DropdownMenu 
+          title={userName} 
+          icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
+            />}
+          menuItems={userDropdownMenuItems}
+          onClose={onClose}
+        />
+      </Box>
+    </Flex>
+  </Box>;
 };
 
 export default Sidebar;
@@ -288,24 +276,24 @@ function DropdownMenu({ title, icon, menuItems, onClose } : {
   }
   return <Flex paddingY={sidebarItemPaddingY}>
     <Menu placement='right-start'>
-    <DropdownMenuButton title={title} icon={icon}/>
-    <MenuList bg={backgroundColor} borderColor={borderColor}>
-      {filteredItems.map((item, index) => {
-        const isUrl = typeof item.action === 'string';
-        return (
-          <MenuItem 
-            key={index} 
-            // Only sets the link it is a url 
-            {...isUrl && { as: NextLink,  href: item.action } }
-            onClick={() => {
-              if (!isUrl) (item.action as Function)();
-              onClose();
-            }}>
-            {item.icon}{item.name}
-          </MenuItem>); 
-      })}
-    </MenuList>
-  </Menu>
+      <DropdownMenuButton title={title} icon={icon}/>
+        <MenuList bg={backgroundColor} borderColor={borderColor}>
+          {filteredItems.map((item, index) => {
+            const isUrl = typeof item.action === 'string';
+            return (
+              <MenuItem 
+                key={index} 
+                // Only sets the link it is a url 
+                {...isUrl && { as: NextLink,  href: item.action } }
+                onClick={() => {
+                  if (!isUrl) (item.action as Function)();
+                  onClose();
+                }}>
+                {item.icon}{item.name}
+              </MenuItem>); 
+          })}
+        </MenuList>
+    </Menu>
   </Flex>;
 }
 
@@ -321,34 +309,34 @@ const DropdownMenuButton = ({ title, icon } : {
 };
 
 const SidebarRow = ({ item, onClose, ...rest }: {
-  item: SidebarItem,
+  item: MainMenuItem,
 } & SidebarProps) => {
   const router = useRouter();
-  const active = item.regex.test(router.pathname) || item.regex.test(router.asPath);
-  return (
-    <Link
-      as={NextLink}
-      href={item.path}
-      color={active ? "brand.c" : siderbarTextColor}
-      fontWeight="bold"
-      onClick={onClose}
+  const active = item.regex && (
+    item.regex.test(router.pathname) || item.regex.test(router.asPath));
+
+  return <Link
+    as={NextLink}
+    href={item.path}
+    color={active ? "brand.c" : siderbarTextColor}
+    fontWeight="bold"
+    onClick={onClose}
+  >
+    <Flex
+      align="center"
+      paddingLeft={sidebarItemPaddingLeft}
+      paddingY={sidebarItemPaddingY}
+      role="group"
+      cursor={active ? "default" : "pointer"}
+      {...rest}
     >
-      <Flex
-        align="center"
-        paddingLeft={sidebarItemPaddingLeft}
-        paddingY={sidebarItemPaddingY}
-        role="group"
-        cursor={active ? "default" : "pointer"}
-        {...rest}
-      >
-        <Icon as={item.icon} />
-        <Text marginX={componentSpacing}>{item.name}</Text>
-        <Icon
-          as={MdChevronRight}
-          opacity={0}
-          _groupHover={active ? {} : { opacity: 100 }}
-        />
-      </Flex>
-    </Link>
-  );
+      <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
+      <Text marginX={componentSpacing}>{item.name}</Text>
+      <Icon
+        as={MdChevronRight}
+        opacity={0}
+        _groupHover={active ? {} : { opacity: 100 }}
+      />
+    </Flex>
+  </Link>;
 };
