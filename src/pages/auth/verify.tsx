@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { localStorageKeyForLoginCallbackUrl, localStorageKeyForLoginEmail } from './login';
 
-export default function VerifyRequest() {
+export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 

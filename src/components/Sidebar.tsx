@@ -46,6 +46,7 @@ import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
+import { staticUrlPrefix } from '../static';
 
 export const sidebarContentMarginTop = 10;
 const sidebarPaddingTop = 8;
@@ -217,7 +218,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
             marginTop={sidebarPaddingTop}
             justifyContent="space-between">
             <Box display={{ base: 'none', [sidebarBreakpoint]: 'flex' }}>
-              <NextLink href="http://mentors.org.cn/static" target="_blank">
+              <NextLink href={staticUrlPrefix} target="_blank">
                 <Image
                   src={yuanjianLogo80x80}
                   alt="图标"

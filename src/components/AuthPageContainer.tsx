@@ -1,29 +1,29 @@
-import { Flex, VStack } from '@chakra-ui/react';
+import { Flex, Spacer, VStack } from '@chakra-ui/react';
 import Image from "next/image";
 import { componentSpacing } from 'theme/metrics';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import { PropsWithChildren } from "react";
 import Footer from './Footer';
+import NextLink from "next/link";
+import { staticUrlPrefix } from 'static';
 
 export default function AuthPageContainer({ children, ...rest }: 
   PropsWithChildren
 ) {
-  return <Flex direction="column" justifyContent="space-between"
-    alignItems="center" minHeight="100vh" {...rest}
+  return <Flex
+    direction="column"
+    alignItems="center"
+    minHeight="100vh" {...rest}
   > 
     <VStack align="left" spacing={componentSpacing} width={350} marginTop={40}>
 
-      <Image alt="图标" width={60} src={yuanjianLogo80x80}
-
-        // Without `priority` we would get a warning from Chrome that this image
-        // "was detected as the Largest Contentful Paint (LCP). Please add the
-        // "priority" property if this image is above the fold. Read more: 
-        // https://nextjs.org/docs/api-reference/next/image#priority"
-        priority
-      />
+      <NextLink href={staticUrlPrefix}>
+        <Image alt="图标" width={60} src={yuanjianLogo80x80} />
+      </NextLink>
 
       {children}
     </VStack>
+    <Spacer />
     <Footer />
   </Flex>;
 }

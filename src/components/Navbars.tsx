@@ -83,7 +83,8 @@ export default function Navbars({
         onClose={onClose}
         returnFocusOnClose={false}
         onOverlayClick={onClose}
-        size="xs">
+        size="xs"
+      >
         <DrawerContent>
           <Sidebar onClose={onClose} />
         </DrawerContent>
@@ -111,8 +112,7 @@ interface TopbarProps extends FlexProps {
 
 const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
-    <Flex
-      justifyContent="flex-end">
+    <Flex justifyContent="flex-end">
       <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
         <IconButton
           zIndex={2}

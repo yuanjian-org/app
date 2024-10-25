@@ -13,7 +13,7 @@ export const localStorageKeyForLoginEmail = "loginEmail";
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after logging in.
  */
-export default function Login() {
+export default function Page() {
   const router = useRouter();
 
   // Use the last login email
