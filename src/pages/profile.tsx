@@ -1,123 +1,82 @@
 import {
-  Box,
   FormControl,
   FormLabel,
-  FormErrorMessage,
-  Editable,
-  EditablePreview,
-  EditableInput,
-  useEditableControls,
-  ButtonGroup,
-  IconButton,
-  HStack,
-  GridItem,
-  Grid,
   VStack,
+  Input,
+  FormHelperText,
+  FormErrorMessage,
+  Button,
+  RadioGroup,
+  Radio,
+  Stack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import trpc from "../trpc";
-import { CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
+import { componentSpacing } from 'theme/metrics';
+import { sectionSpacing } from 'theme/metrics';
 
-// Dedupe code with index.tsx:SetNameModal
 export default function Page() {
   const [user, setUser] = useUserContext();
   const [isLoading, setIsLoading] = useState(false);
+  const [newName, setNewName] = useState(user.name || '');
+  const [newSex, setNewSex] = useState(user.sex|| '');
+  const [newCity, setNewCity] = useState(user.city || '');
+  const [newWechat, setNewWechat] = useState(user.wechat || '');
 
-  const name = user.name || '';
-
-  const handleSubmit = async (newName: string) => {
-    if (!newName) return;
-
+  const handleSubmit = async () => {
     setIsLoading(true);
     try {
       const updatedUser = structuredClone(user);
       updatedUser.name = newName;
+      updatedUser.sex = newSex;
+      updatedUser.city = newCity;
+      updatedUser.wechat = newWechat;
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
     } finally {
       setIsLoading(false);
     }
   };
+  
+  return <VStack spacing={componentSpacing} maxWidth="sm" 
+    margin={sectionSpacing}>
+    <FormControl>
+      <FormLabel>邮箱</FormLabel>
+      <Input value={user.email} readOnly />
+      <FormHelperText>如需更改邮箱，请联系系统管理员</FormHelperText>
+    </FormControl>
 
-  // TODO: Use EditableWithIcon
-  const EditableControls = () => {
-    const {
-      isEditing,
-      getSubmitButtonProps,
-      getCancelButtonProps,
-      getEditButtonProps,
-    } = useEditableControls();
+    <FormControl>
+      <FormLabel>微信</FormLabel>
+      <Input background="white" 
+        value={newWechat} onChange={e => setNewWechat(e.target.value)} />
+    </FormControl>    
+    
+    <FormControl isInvalid={!newName}>
+      <FormLabel>中文全名</FormLabel>
+      <Input background="white"
+        value={newName} onChange={e => setNewName(e.target.value)}/>
+      {!newName && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
+    </FormControl>
 
-    return isEditing ? (
-      <ButtonGroup justifyContent='center' size='sm'>
-        <IconButton aria-label='confirm name change button' icon={<CheckIcon />} {...getSubmitButtonProps()} />
-        <IconButton aria-label='cancel name change button' icon={<CloseIcon />} {...getCancelButtonProps()} />
-      </ButtonGroup>
-    ) : (
-      <ButtonGroup justifyContent='center' size='sm'>
-        <IconButton aria-label='edit name button' size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
-      </ButtonGroup>
-    );
-  };
+    <FormControl display="flex" gap={componentSpacing}>
+      <FormLabel>性别</FormLabel>
+      <RadioGroup value={newSex} onChange={setNewSex}>
+        <Stack direction="row">
+          <Radio background="white" value="male">男</Radio>
+          <Radio background="white" value="female">女</Radio>
+        </Stack>
+      </RadioGroup>
+    </FormControl>
 
-  // TODO: Use one grid for the whole page
-  const EmailField = () => {
-    return (
-      <FormControl>
-        <Grid templateColumns="100px 1fr">
-          <GridItem>
-            <FormLabel>邮箱</FormLabel>
-          </GridItem>
-          <GridItem>
-            {user.email}
-          </GridItem>
-          <GridItem />
-          <GridItem fontSize="sm" color="grey">
-            如需更改邮箱，请联系系统管理员
-          </GridItem>
-        </Grid>
-      </FormControl>
-    );
-  };
-
-  const NameField = () => {
-    return (
-      <FormControl isInvalid={!name}>
-        <Grid templateColumns="100px 1fr">
-          <GridItem>
-            <FormLabel marginTop='5px'>中文全名</FormLabel>
-          </GridItem>
-          <GridItem>
-              <Editable 
-                defaultValue={name}
-                onSubmit={(newName) => handleSubmit(newName)}
-              >
-                <HStack>
-                  <Box>
-                    <EditablePreview />
-                    <EditableInput 
-                      backgroundColor={isLoading ? 'brandscheme' : 'white'}
-                    />
-                  </Box>
-                  <Box>
-                    <EditableControls />
-                  </Box>
-                </HStack>
-              </Editable>
-          </GridItem>
-        </Grid>
-        <FormErrorMessage>用户姓名不能为空</FormErrorMessage>
-      </FormControl>
-    );
-  };
-
-  return (
-    <VStack spacing={4}>
-      <EmailField />
-      <NameField />
-      {isLoading && <Loader loadingText='保存中...'/>}
-    </VStack>
-  );
-};
+    <FormControl>
+      <FormLabel>居住的中国城市或者国家+城市</FormLabel>
+      <Input background="white" 
+        value={newCity} onChange={e => setNewCity(e.target.value)} />
+    </FormControl>           
+    <Button onClick={handleSubmit} variant="brand">保存</Button>
+    {isLoading && <Loader loadingText='保存中...'/>}
+  </VStack>;
+}
