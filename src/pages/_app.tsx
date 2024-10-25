@@ -15,8 +15,9 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage, { AppPageType } from 'AppPage';
-import { isStaticPage } from '../static';
+import { isStaticPage, staticUrlPrefix } from '../static';
 import StaticPageContainer from 'components/StaticPageContainer';
+import { callbackUrlKey } from './auth/login';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
@@ -58,13 +59,16 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
 export default trpcNext.withTRPC(App);
 
+
 function SwitchBoard({ children, pageType, ...rest }:
   PropsWithChildren & { pageType: AppPageType }) 
   {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const isAuthPage = router.asPath.startsWith("/auth/");
+  // Invariant guaranteed by the caller
+  invariant(!isStaticPage(router.route));
+  const isAuthPage = router.route.startsWith("/auth/");
 
   if (status == "loading") {
     return <PageLoader />;
@@ -73,7 +77,10 @@ function SwitchBoard({ children, pageType, ...rest }:
     if (isAuthPage) {
       return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
     } else {
-      void router.push(`/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`);
+      const encoded = encodeURIComponent(router.asPath);
+      // StaticNavBar in the static page is supposed to pick up the callback URL
+      // and then pass it to the login page.
+      void router.push(`${staticUrlPrefix}?${callbackUrlKey}=${encoded}`);
       return null;
     }
 

@@ -10,8 +10,11 @@ import { toast } from 'react-toastify';
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
 
+export const callbackUrlKey = "callbackUrl";
+
 /**
- * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after logging in.
+ * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
+ * logging in.
  */
 export default function Page() {
   const router = useRouter();
@@ -20,8 +23,9 @@ export default function Page() {
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Protect local storage reads from being called without a browser window, which may occur during server-side
-  // rendering and prerendering (by Vercel at build time).
+  // Protect local storage reads from being called without a browser window,
+  // which may occur during server-side rendering and prerendering (by Vercel at
+  // build time).
   useEffect(() => {
     setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
   }, []);
@@ -33,13 +37,13 @@ export default function Page() {
       toast.error("验证码无效，可能已经过期或者被使用。请重新登录。");
     } else if (err) {
       // See https://next-auth.js.org/configuration/pages#error-page
-      console.error(`Unkonwn error on /auht/verify: ${err}`);
+      console.error(`Unkonwn error on /auth/verify: ${err}`);
       toast.error(`糟糕，系统错误，请联系管理员：${err}`);
     }  
   }, [router]);
 
   const submit = async () => {
-    const callbackUrl = parseQueryString(router, "callbackUrl") ?? "/";
+    const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
       const res = await signIn('sendgrid', { email, callbackUrl, redirect: false });
