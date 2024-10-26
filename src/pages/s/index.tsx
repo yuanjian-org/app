@@ -19,7 +19,7 @@ export default function Page() {
 function Section({ header, children, ...rest } : {
   header: string
 } & GridProps) {
-  return <Grid
+  return <Grid {...rest}
     gap={componentSpacing}
     templateColumns={{
       base: 'repeat(2, 1fr)',
