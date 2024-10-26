@@ -2,13 +2,32 @@ import { Grid, GridItem, GridProps, Heading, Text, VStack } from '@chakra-ui/rea
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import Image from "next/image";
 import wechatAppQrcode from '../../../public/img/wechat-app-qrcode.jpg';
+import partner_1 from '../../../public/img/partner_1.png';
+import partner_2 from '../../../public/img/partner_2.png';
+import partner_3 from '../../../public/img/partner_3.jpeg';
+import partner_4 from '../../../public/img/partner_4.png';
+import partner_5 from '../../../public/img/partner_5.png';
 import { sidebarBreakpoint } from 'components/Navbars';
+import { StaticImageData } from "next/image"
+import { Flex } from "@chakra-ui/react"
+
+const partnersData = [{
+  name: "中美爱心教育发展促进会", image: partner_1
+}, {
+  name: "叔蘋奖学金", image: partner_2
+}, {
+  name: "树华教育基金会", image: partner_3
+}, {
+  name: "中国科学技术大学", image: partner_4
+}, {
+  name: "好奇学习社区", image: partner_5
+}];
 
 export default function Page() {
   return <VStack mt={50} spacing={50} align="start">
     <IntroSection />
     <ArticlesSection />
-    <PartnersSection />
+    <PartnersSection partners={partnersData} />
   </VStack>;
 }
 
@@ -16,7 +35,7 @@ export default function Page() {
  * A Section is a Grid with 5 columns on desktop and 2 columns on mobile.
  * It's children must only be a list of GridItems.
  */
-function Section({ header, children, ...rest } : {
+function Section({ header, children, ...rest }: {
   header: string
 } & GridProps) {
   return <Grid {...rest}
@@ -70,6 +89,30 @@ function ArticlesSection() {
   return <></>;
 }
 
-function PartnersSection() {
-  return <></>;
+interface Partner {
+  name: string;
+  image: StaticImageData;
+}
+
+interface PartnersSectionProps {
+  partners: Array<Partner>
+}
+
+function PartnersSection({ partners }: PartnersSectionProps) {
+  return <Flex gap={28} justify="flex-start" wrap="wrap">
+    {partners.map(partner => Partner(partner))}
+  </Flex>;
+}
+
+function Partner({ name, image }: Partner) {
+  return (
+    <Flex
+      style={{ minHeight: 150 }}
+      direction="column"
+      gap="30px"
+      alignItems="center">
+      <Image src={image} alt={name} height={150} />
+      <span>{name}</span>
+    </Flex>
+  );
 }
