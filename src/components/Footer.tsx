@@ -9,7 +9,7 @@ export default function Footer({ ...rest } : WrapProps) {
 
   return <Wrap
     justify='center'
-    fontSize="sm"
+    fontSize="xs"
     color={color}
     spacingX={componentSpacing * 2}
     mt="80px"
