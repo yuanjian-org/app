@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Box, Button, Flex, HStack
+  Box, Button, Flex, HStack,
  } from '@chakra-ui/react';
 import { pageMarginX, staticPageMaxWidth } from 'theme/metrics';
 import { staticUrlPrefix } from '../static';
@@ -45,8 +45,9 @@ export default function StaticNavBar() {
           />
         </NextLink>
 
-        <HStack as="nav" spacing={4}>
-          {/* <Link href="/">Home</Link> */}
+        <HStack as="nav" spacing={7} fontWeight="bold">
+          <NextLink href="/s">首页</NextLink>
+          {/* <NextLink href="/s/articles">文章</NextLink> */}
           <Button variant="brand" as={NextLink} href={loginUrl}>
             登录 / 注册
           </Button>

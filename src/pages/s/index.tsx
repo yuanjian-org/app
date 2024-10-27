@@ -5,7 +5,7 @@ import wechatAppQrcode from '../../../public/img/wechat-app-qrcode.jpg';
 import { sidebarBreakpoint } from 'components/Navbars';
 
 export default function Page() {
-  return <VStack mt={50} spacing={50} align="start">
+  return <VStack spacing={50} align="start">
     <IntroSection />
     <ArticlesSection />
     <PartnersSection />

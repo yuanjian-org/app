@@ -13,7 +13,7 @@ export default function StaticPageContainer({ children }: {
       maxWidth={staticPageMaxWidth}
       paddingX={pageMarginX}
       w="100%"
-      mt="20px"
+      mt="70px"
     >
       {children}
     </Box>
