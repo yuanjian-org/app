@@ -51,8 +51,7 @@ export default function Page() {
               <Td>{user.wechat}</Td>
               <Td>{toPinyin(user.name ?? "")}</Td>
               <Td>
-                {role && <Tag bgColor={RoleProfiles[role].automatic 
-                  ? "brand.c" : "orange"} color="white">
+                {role && <Tag bgColor="brand.c" color="white">
                   {RoleProfiles[role].displayName}
                 </Tag>}
               </Td>
