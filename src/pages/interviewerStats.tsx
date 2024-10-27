@@ -38,9 +38,9 @@ export default function Page() {
         {interviewStats.map(interviewStat => {
           const { user } = interviewStat;
           const role = user.roles.includes('MentorCoach') 
-            ? 'MentorCoach'
+            ? RoleProfiles['MentorCoach'].displayName
             : user.roles.includes('Mentor') 
-            ? 'Mentor' : null;
+            ? RoleProfiles['Mentor'].displayName : null;
           return (
             <Tr key={user.id} _hover={{ bg: "white" }}> 
               <Td>{user.name}</Td>
@@ -51,9 +51,7 @@ export default function Page() {
               <Td>{user.wechat}</Td>
               <Td>{toPinyin(user.name ?? "")}</Td>
               <Td>
-                {role && <Tag bgColor="brand.c" color="white">
-                  {RoleProfiles[role].displayName}
-                </Tag>}
+                {role && <Tag bgColor="brand.c" color="white">{role}</Tag>}
               </Td>
             </Tr>
           );
