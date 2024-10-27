@@ -28,7 +28,6 @@ import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
 import { zUser } from "../../shared/User";
-import { Op } from "sequelize";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -190,7 +189,7 @@ const getInterviewerStats = procedure
 })))
 .query(async () =>
 {
-  const interviewers = await db.User.findAll({
+  const users = await db.User.findAll({
     attributes: userAttributes,
     include: userInclude,
   });
@@ -203,33 +202,20 @@ const getInterviewerStats = procedure
     group: ['interviewerId']
   });
 
+  // A map of user and the total number of interviews conducted by the user.
   const interviewCountMap = interviewCounts
     .reduce<{ [key: string]: number }>((acc, curr) => {
       acc[curr.interviewerId] = parseInt(curr.getDataValue('interviewCount'), 10);
       return acc;
     }, {});
 
-  const stats = interviewers
-    .filter(interviewer => interviewCountMap[interviewer.id])
-    .map(interviewer => ({
-      user: interviewer,
-      interviews: interviewCountMap[interviewer.id]
+  const stats = users
+    .filter(user => interviewCountMap[user.id] 
+      || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
+    .map(user => ({
+      user,
+      interviews: interviewCountMap[user.id] || 0,
     }));
-  
-  const mentors = await db.User.findAll({
-    attributes: userAttributes,
-    include: userInclude,
-    where: { roles: { [Op.overlap]: ["Mentor", "MentorCoach"] }, }
-  });
-
-  mentors.forEach(mentor => {
-    if (!stats.some(stat => stat.user.id === mentor.id)) {
-      stats.push({
-        user: mentor,
-        interviews: 0,
-      });
-    }
-  });
 
   stats.sort((a, b) => b.interviews - a.interviews);
   return stats;
