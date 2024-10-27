@@ -8,14 +8,14 @@ import NavBars, { sidebarBreakpoint } from 'components/Navbars';
 import { AppPageType } from 'AppPage';
 import { pageMarginX } from 'theme/metrics';
 
-export default function AppPageContainer({ pageType, user, children, ...rest }: {
-  pageType: AppPageType,
+export default function AppPageContainer({ pageType, user, children }: {
+  pageType?: AppPageType,
   user: User,
 } & PropsWithChildren) {
   const [u, setUser] = useState<User>(user);
 
   return <UserContext.Provider value={[u, setUser]}>
-    <NavBars {...rest}>
+    <NavBars>
       {pageType === "full" ?
         children
         :

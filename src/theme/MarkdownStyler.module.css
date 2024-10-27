@@ -34,3 +34,13 @@
 .markdownStyler a {
   color: var(--chakra-colors-brand-c); 
 }
+
+.markdownStyler ul,
+.markdownStyler ol {
+  padding-inline-start: 1.5em;
+}
+
+.markdownStyler li {
+  display: list-item;
+  text-align: -webkit-match-parent;
+}
