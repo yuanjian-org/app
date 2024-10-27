@@ -33,11 +33,11 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
     {isStaticPage(router.route) ?
       <StaticPageContainer>
-        <Component />
+        <Component {...pageProps} />
       </StaticPageContainer>
       :
       <SessionProvider session={session}>
-        <SwitchBoard pageType={Component.type} {...pageProps}>
+        <SwitchBoard pageType={Component.type}>
           <Component />
           <ToastContainer
             position="bottom-center"
@@ -60,9 +60,10 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 export default trpcNext.withTRPC(App);
 
 
-function SwitchBoard({ children, pageType, ...rest }:
-  PropsWithChildren & { pageType: AppPageType }) 
-  {
+function SwitchBoard({ children, pageType }: {
+  pageType?: AppPageType
+} & PropsWithChildren)
+{
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -75,7 +76,7 @@ function SwitchBoard({ children, pageType, ...rest }:
 
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
-      return <AuthPageContainer {...rest}>{children}</AuthPageContainer>;
+      return <AuthPageContainer>{children}</AuthPageContainer>;
     } else {
       const encoded = encodeURIComponent(router.asPath);
       // StaticNavBar in the static page is supposed to pick up the callback URL
@@ -90,7 +91,7 @@ function SwitchBoard({ children, pageType, ...rest }:
       void router.replace("/");
       return null;
     } else {
-      return <AppPageContainer pageType={pageType} user={session.user} {...rest}>
+      return <AppPageContainer pageType={pageType} user={session.user}>
         {children}
       </AppPageContainer>;
     }

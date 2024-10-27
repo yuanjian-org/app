@@ -7,13 +7,13 @@ import Footer from './Footer';
 import NextLink from "next/link";
 import { staticUrlPrefix } from 'static';
 
-export default function AuthPageContainer({ children, ...rest }: 
+export default function AuthPageContainer({ children }: 
   PropsWithChildren
 ) {
   return <Flex
     direction="column"
     alignItems="center"
-    minHeight="100vh" {...rest}
+    minHeight="100vh"
   > 
     <VStack align="left" spacing={componentSpacing} width={350} marginTop={40}>
 
