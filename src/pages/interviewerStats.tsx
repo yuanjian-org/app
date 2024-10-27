@@ -24,13 +24,13 @@ export default function Page() {
       <Thead>
         <Tr>
           <Th>面试官</Th>
+          <Th>角色</Th>
           <Th>总面试量</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>
-          <Th>角色</Th>
         </Tr>
       </Thead>
 
@@ -44,15 +44,15 @@ export default function Page() {
           return (
             <Tr key={user.id} _hover={{ bg: "white" }}> 
               <Td>{user.name}</Td>
+              <Td>
+                {role && <Tag bgColor="brand.c" color="white">{role}</Tag>}
+              </Td>
               <Td>{interviewStat.interviews}</Td>
               <Td>{user.sex}</Td>
               <Td>{user.city}</Td>
               <Td>{user.email}</Td>
               <Td>{user.wechat}</Td>
               <Td>{toPinyin(user.name ?? "")}</Td>
-              <Td>
-                {role && <Tag bgColor="brand.c" color="white">{role}</Tag>}
-              </Td>
             </Tr>
           );
         })}

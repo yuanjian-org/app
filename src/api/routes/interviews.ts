@@ -28,6 +28,7 @@ import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
 import { zUser } from "../../shared/User";
+import { Op } from "sequelize";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -189,7 +190,7 @@ const getInterviewerStats = procedure
 })))
 .query(async () =>
 {
-  const mentors = await db.User.findAll({
+  const interviewers = await db.User.findAll({
     attributes: userAttributes,
     include: userInclude,
   });
@@ -208,13 +209,29 @@ const getInterviewerStats = procedure
       return acc;
     }, {});
 
-  const stats = mentors
-    .filter(mentor => interviewCountMap[mentor.id])
-    .map(mentor => ({
-      user: mentor,
-      interviews: interviewCountMap[mentor.id]
-    }))
-    .sort((i1, i2) => i1.interviews - i2.interviews);
+  const stats = interviewers
+    .filter(interviewer => interviewCountMap[interviewer.id])
+    .map(interviewer => ({
+      user: interviewer,
+      interviews: interviewCountMap[interviewer.id]
+    }));
+  
+  const mentors = await db.User.findAll({
+    attributes: userAttributes,
+    include: userInclude,
+    where: { roles: { [Op.overlap]: ["Mentor", "MentorCoach"] }, }
+  });
+
+  mentors.forEach(mentor => {
+    if (!stats.some(stat => stat.user.id === mentor.id)) {
+      stats.push({
+        user: mentor,
+        interviews: 0,
+      });
+    }
+  });
+
+  stats.sort((a, b) => b.interviews - a.interviews);
   return stats;
 });
 
