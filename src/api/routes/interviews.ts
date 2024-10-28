@@ -189,7 +189,7 @@ const getInterviewerStats = procedure
 })))
 .query(async () =>
 {
-  const mentors = await db.User.findAll({
+  const users = await db.User.findAll({
     attributes: userAttributes,
     include: userInclude,
   });
@@ -202,19 +202,22 @@ const getInterviewerStats = procedure
     group: ['interviewerId']
   });
 
+  // A map of user and the total number of interviews conducted by the user.
   const interviewCountMap = interviewCounts
     .reduce<{ [key: string]: number }>((acc, curr) => {
       acc[curr.interviewerId] = parseInt(curr.getDataValue('interviewCount'), 10);
       return acc;
     }, {});
 
-  const stats = mentors
-    .filter(mentor => interviewCountMap[mentor.id])
-    .map(mentor => ({
-      user: mentor,
-      interviews: interviewCountMap[mentor.id]
-    }))
-    .sort((i1, i2) => i1.interviews - i2.interviews);
+  const stats = users
+    .filter(user => interviewCountMap[user.id] 
+      || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
+    .map(user => ({
+      user,
+      interviews: interviewCountMap[user.id] || 0,
+    }));
+
+  stats.sort((a, b) => b.interviews - a.interviews);
   return stats;
 });
 

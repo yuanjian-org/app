@@ -7,11 +7,13 @@ import {
   Thead,
   Tbody,
   Text,
+  Tag,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
+import { RoleProfiles } from 'shared/Role';
 
 export default function Page() {
   const { data: interviewStats } = 
@@ -22,6 +24,7 @@ export default function Page() {
       <Thead>
         <Tr>
           <Th>面试官</Th>
+          <Th>角色</Th>
           <Th>总面试量</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
@@ -34,9 +37,16 @@ export default function Page() {
       <Tbody>
         {interviewStats.map(interviewStat => {
           const { user } = interviewStat;
+          const role = user.roles.includes('MentorCoach') 
+            ? RoleProfiles['MentorCoach'].displayName
+            : user.roles.includes('Mentor') 
+            ? RoleProfiles['Mentor'].displayName : null;
           return (
             <Tr key={user.id} _hover={{ bg: "white" }}> 
               <Td>{user.name}</Td>
+              <Td>
+                {role && <Tag bgColor="brand.c" color="white">{role}</Tag>}
+              </Td>
               <Td>{interviewStat.interviews}</Td>
               <Td>{user.sex}</Td>
               <Td>{user.city}</Td>
