@@ -217,7 +217,7 @@ const getInterviewerStats = procedure
       interviews: interviewCountMap[user.id] || 0,
     }));
 
-  stats.sort((a, b) => b.interviews - a.interviews);
+  stats.sort((a, b) => a.interviews - b.interviews);
   return stats;
 });
 
