@@ -13,7 +13,7 @@ import Loader from 'components/Loader';
 import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
-import { RoleProfiles } from 'shared/Role';
+import { isPermitted, RoleProfiles } from 'shared/Role';
 
 export default function Page() {
   const { data: interviewStats } = 
@@ -37,15 +37,18 @@ export default function Page() {
       <Tbody>
         {interviewStats.map(interviewStat => {
           const { user } = interviewStat;
-          const role = user.roles.includes('MentorCoach') 
+          const role = isPermitted(user.roles, 'MentorCoach')
             ? RoleProfiles['MentorCoach'].displayName
-            : user.roles.includes('Mentor') 
+            : isPermitted(user.roles, 'Mentor')
             ? RoleProfiles['Mentor'].displayName : null;
+          const colorScheme = isPermitted(user.roles, 'MentorCoach') ?
+            "yellow" : "teal";
+
           return (
             <Tr key={user.id} _hover={{ bg: "white" }}> 
               <Td>{user.name}</Td>
               <Td>
-                {role && <Tag bgColor="brand.c" color="white">{role}</Tag>}
+                {role && <Tag colorScheme={colorScheme}>{role}</Tag>}
               </Td>
               <Td>{interviewStat.interviews}</Td>
               <Td>{user.sex}</Td>
