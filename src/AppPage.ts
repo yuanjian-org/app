@@ -4,6 +4,10 @@ export type AppPageType = "wide" | "full";
 
 type AppPage<P = {}, IP = P> = NextPage<P, IP> & {
   type?: AppPageType,
+
+  // Page title used for <html><head><title>. pageProps is the properties passed
+  // into statically generated pages from getStaticProperties.
+  title?: string | ((pageProps: any) => string),
 }
 export default AppPage;
 

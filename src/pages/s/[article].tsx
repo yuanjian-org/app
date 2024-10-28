@@ -44,6 +44,8 @@ export default function Page({ title, authors, date, markdown }: ArticleProps) {
   </VStack>;
 }
 
+Page.title = (papgeProps: ArticleProps) => papgeProps.title;
+
 /**
  * @returns all the markdown files under `articlesFolder`
  */
