@@ -304,7 +304,6 @@ const getApplicant = procedure
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
-  user.city = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
   if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
