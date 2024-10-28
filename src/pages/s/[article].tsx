@@ -30,8 +30,9 @@ export default function Page({ title, authors, date, markdown }: ArticleProps) {
 
   return <VStack align={{ base: "start", [sidebarBreakpoint]: "center" }}>
     <Heading size="lg">{title}</Heading>
+
     <Stack
-      mt={4}
+      my={4}
       direction={{ base: "column", [sidebarBreakpoint]: "row" }}
     >
       <Link as={NextLink} href="/s/articles">社会导师系列文章</Link>
@@ -40,6 +41,7 @@ export default function Page({ title, authors, date, markdown }: ArticleProps) {
       <Separator />
       <Text>{date}</Text>
     </Stack>
+
     <Box><MarkdownStyler content={markdown} allowHtml /></Box>
   </VStack>;
 }
