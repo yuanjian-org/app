@@ -47,7 +47,7 @@ export default function StaticNavBar() {
 
         <HStack as="nav" spacing={7} fontWeight="bold">
           <NextLink href="/s">首页</NextLink>
-          {/* <NextLink href="/s/articles">文章</NextLink> */}
+          <NextLink href="/s/articles">文章</NextLink>
           <Button variant="brand" as={NextLink} href={loginUrl}>
             登录 / 注册
           </Button>
