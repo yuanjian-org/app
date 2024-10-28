@@ -128,7 +128,7 @@ const update = procedure
   await user.update({
     name: input.name,
     city: input.city,
-    wechat: input.wechat,
+    wechat: input.wechat || '（未提供微信）',
     sex: input.sex,
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
@@ -304,7 +304,6 @@ const getApplicant = procedure
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
-  user.city = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
   if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
