@@ -128,7 +128,7 @@ const update = procedure
   await user.update({
     name: input.name,
     city: input.city,
-    wechat: input.wechat || '（未提供微信）',
+    wechat: input.wechat,
     sex: input.sex,
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,

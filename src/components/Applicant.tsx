@@ -78,7 +78,7 @@ function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
 
     {/* It's okay to have mentors' contact information visible to peers */}
     <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
-      name="微信" value={user.wechat ?? '（未提供微信）'} />
+      name="微信" value={user.wechat || '（未提供微信）'} />
 
     <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
       name="邮箱" value={user.email} />
