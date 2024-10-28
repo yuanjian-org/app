@@ -24,9 +24,13 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 } & AppProps) {
   const router = useRouter();
 
+  const subtitle = typeof Component.title === 'function' ?
+    Component.title(pageProps) : typeof Component.title === 'string' ?
+    Component.title : null;
+
   return <ChakraProvider theme={theme}>
     <Head>
-      <title>社会导师服务平台</title>
+      <title>{(subtitle ? subtitle + " | " : "") + "社会导师服务平台"}</title>
       <meta name='viewport' content='width=device-width, initial-scale=1' />
       <meta name='theme-color' content='#000000' />
     </Head>

@@ -34,6 +34,8 @@ export default function Page() {
   </>;
 };
 
+Page.title = "我的会议";
+
 function SetNameModal() {
   const [user, setUser] = useUserContext();
   const [name, setName] = useState(user.name || '');
