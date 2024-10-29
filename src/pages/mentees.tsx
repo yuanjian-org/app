@@ -99,9 +99,7 @@ function MenteeTable({ users, refetch }: {
     return users.sort((a, b) => {
       const comp = (menteeToYear.get(b.id) || "")
         .localeCompare(menteeToYear.get(a.id) || "");
-      return comp !== 0 ? comp 
-        : compareChinese(formatUserName(a.name, 'formal'), 
-            formatUserName(b.name, 'formal'));
+      return comp !== 0 ? comp : compareChinese(a.name, b.name);
     });
   }, [users, menteeToYear]); 
  

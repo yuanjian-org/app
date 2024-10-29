@@ -129,9 +129,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
   const sortedApplicants = useMemo(() => {
     return applicants.sort((a1, a2) => {
       const comp = compareChinese(sources[a1.id], sources[a2.id]);
-      return comp !== 0 ? comp :
-        compareChinese(formatUserName(a1.name, 'formal'), 
-          toPinyin(formatUserName(a2.name, 'formal')));
+      return comp !== 0 ? comp : compareChinese(a1.name, a2.name);
     });
   }, [applicants, sources]);
 
