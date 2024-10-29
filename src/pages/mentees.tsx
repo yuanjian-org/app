@@ -26,10 +26,10 @@ import {
   Tooltip,
   Tag,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import MenteeStatusSelect from 'components/MenteeStatusSelect';
@@ -94,6 +94,14 @@ function MenteeTable({ users, refetch }: {
       });
     }
   , []);
+
+  const sortedUsers = useMemo(() => {
+    return users.sort((a, b) => {
+      const comp = (menteeToYear.get(b.id) || "")
+        .localeCompare(menteeToYear.get(a.id) || "");
+      return comp !== 0 ? comp : compareChinese(a.name, b.name);
+    });
+  }, [users, menteeToYear]); 
  
   return <Table size="sm">
     <Thead>
@@ -107,19 +115,9 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {users.sort((a: User, b: User) => {
-        const yearA = menteeToYear.get(a.id) || "";
-        const yearB = menteeToYear.get(b.id) || "";
-
-        if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal');
-          const nameB = formatUserName(b.name, 'formal');
-          return nameA.localeCompare(nameB);
-        }
-
-        return yearB.localeCompare(yearA);
-      }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
-          updateMenteeYear={updateMenteeYear} />)
+      {sortedUsers.map((u: User) =>
+        <MenteeRow key={u.id} user={u} refetch={refetch} 
+        updateMenteeYear={updateMenteeYear} />)
       }
     </Tbody>
   </Table>;
