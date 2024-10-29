@@ -8,18 +8,28 @@ import partner_3 from '../../../public/img/partner_3.jpeg';
 import partner_4 from '../../../public/img/partner_4.png';
 import partner_5 from '../../../public/img/partner_5.png';
 import { sidebarBreakpoint } from 'components/Navbars';
-import { StaticImageData } from "next/image"
+import { StaticImageData } from "next/image";
 
 const partnersData = [{
-  name: "中美爱心教育发展促进会", image: partner_1, link: "https://www.yjjxj.cn/blog/1d24bf123bb?categoryId=67479",
+  name: "中美爱心教育发展促进会",
+  image: partner_1,
+  link: "https://www.yjjxj.cn/blog/1d24bf123bb?categoryId=67479",
 }, {
-  name: "叔蘋奖学金", image: partner_2, link: "https://www.yjjxj.cn/blog/e846bd1c84c"
+  name: "叔蘋奖学金",
+  image: partner_2,
+  link: "https://www.yjjxj.cn/blog/e846bd1c84c",
 }, {
-  name: "树华教育基金会", image: partner_3, link: "https://www.yjjxj.cn/blog/b036c1401ed"
+  name: "树华教育基金会",
+  image: partner_3,
+  link: "https://www.yjjxj.cn/blog/b036c1401ed",
 }, {
-  name: "中国科学技术大学", image: partner_4, link: "https://www.yjjxj.cn/blog/32ff33465d3"
+  name: "中国科学技术大学",
+  image: partner_4,
+  link: "https://www.yjjxj.cn/blog/32ff33465d3",
 }, {
-  name: "好奇学习社区", image: partner_5, link: "https://www.yjjxj.cn/blog/x"
+  name: "好奇学习社区",
+  image: partner_5,
+  link: "https://www.yjjxj.cn/blog/x",
 }];
 
 export default function Page() {
@@ -106,7 +116,11 @@ function Partner({ name, image, link }: Partner) {
       gap="30px"
       alignItems="center">
       <a href={link}>
-        <VStack spacing={paragraphSpacing} align="center" height={"100%"} justifyContent={'flex-end'}>
+        <VStack
+          spacing={paragraphSpacing}
+          align="center"
+          height={"100%"}
+          justifyContent={'flex-end'}>
           <Image src={image} alt={name} />
           <span>{name}</span>
         </VStack>
