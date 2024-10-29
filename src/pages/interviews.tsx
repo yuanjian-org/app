@@ -38,7 +38,7 @@ import trpc from 'trpc';
 import Loader from 'components/Loader';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon, ChevronRightIcon, ViewIcon } from '@chakra-ui/icons';
@@ -128,11 +128,10 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
   };
   const sortedApplicants = useMemo(() => {
     return applicants.sort((a1, a2) => {
-      const comp = toPinyin(sources[a1.id] || '')
-        .localeCompare(toPinyin(sources[a2.id] || ''));
+      const comp = compareChinese(sources[a1.id], sources[a2.id]);
       return comp !== 0 ? comp :
-        toPinyin(formatUserName(a1.name, 'formal'))
-          .localeCompare(toPinyin(formatUserName(a2.name, 'formal')));
+        compareChinese(formatUserName(a1.name, 'formal'), 
+          toPinyin(formatUserName(a2.name, 'formal')));
     });
   }, [applicants, sources]);
 

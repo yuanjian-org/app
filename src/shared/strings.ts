@@ -56,6 +56,13 @@ export function compareDate(d1: string | undefined, d2: string | undefined) {
   return moment(d2).isAfter(moment(d1)) ? 1 : -1;
 }
 
+// Need to convert it to pinyin, otherwise the result 
+// will not be correct if compare Chinese directly. Ref:
+// https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
+export function compareChinese(s1: string, s2: string) {
+  return toPinyin(s1 || '').localeCompare(toPinyin(s2 || ''));
+}
+
 export function compareUUID(id1: string, id2: string): number {
   return id1.localeCompare(id2);
 }

@@ -29,7 +29,7 @@ import {
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import MenteeStatusSelect from 'components/MenteeStatusSelect';
@@ -100,11 +100,8 @@ function MenteeTable({ users, refetch }: {
       const comp = (menteeToYear.get(b.id) || "")
         .localeCompare(menteeToYear.get(a.id) || "");
       return comp !== 0 ? comp 
-        // Need to convert it to pinyin, otherwise the result 
-        // will not be correct if compare Chinese directly. Ref:
-        // https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
-        : (toPinyin(formatUserName(a.name, 'formal')))
-          .localeCompare(toPinyin(formatUserName(b.name, 'formal')));
+        : compareChinese(formatUserName(a.name, 'formal'), 
+            formatUserName(b.name, 'formal'));
     });
   }, [users, menteeToYear]); 
  
