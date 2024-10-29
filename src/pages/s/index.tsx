@@ -1,5 +1,5 @@
 import { Grid, GridItem, GridProps, Heading, Text, VStack } from '@chakra-ui/react';
-import { componentSpacing, paragraphSpacing } from 'theme/metrics';
+import { componentSpacing, paragraphSpacing, partnerSpacing } from 'theme/metrics';
 import Image from "next/image";
 import wechatAppQrcode from '../../../public/img/wechat-app-qrcode.jpg';
 import partner_1 from '../../../public/img/partner_1.png';
@@ -9,25 +9,24 @@ import partner_4 from '../../../public/img/partner_4.png';
 import partner_5 from '../../../public/img/partner_5.png';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { StaticImageData } from "next/image"
-import { Flex } from "@chakra-ui/react"
 
 const partnersData = [{
-  name: "中美爱心教育发展促进会", image: partner_1
+  name: "中美爱心教育发展促进会", image: partner_1, link: "https://www.yjjxj.cn/blog/1d24bf123bb?categoryId=67479",
 }, {
-  name: "叔蘋奖学金", image: partner_2
+  name: "叔蘋奖学金", image: partner_2, link: "https://www.yjjxj.cn/blog/e846bd1c84c"
 }, {
-  name: "树华教育基金会", image: partner_3
+  name: "树华教育基金会", image: partner_3, link: "https://www.yjjxj.cn/blog/b036c1401ed"
 }, {
-  name: "中国科学技术大学", image: partner_4
+  name: "中国科学技术大学", image: partner_4, link: "https://www.yjjxj.cn/blog/32ff33465d3"
 }, {
-  name: "好奇学习社区", image: partner_5
+  name: "好奇学习社区", image: partner_5, link: "https://www.yjjxj.cn/blog/x"
 }];
 
 export default function Page() {
   return <VStack mt={50} spacing={50} align="start">
     <IntroSection />
     <ArticlesSection />
-    <PartnersSection partners={partnersData} />
+    <PartnersSection />
   </VStack>;
 }
 
@@ -38,12 +37,12 @@ export default function Page() {
 function Section({ header, children, ...rest }: {
   header: string
 } & GridProps) {
-  return <Grid {...rest}
-    gap={componentSpacing}
+  return <Grid gap={componentSpacing}
     templateColumns={{
       base: 'repeat(2, 1fr)',
       [sidebarBreakpoint]: 'repeat(5, 1fr)',
     }}
+    {...rest}
   >
     <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 5 }}>
       <Heading mb={5} size="md" color="gray.600">{header}</Heading>
@@ -92,27 +91,26 @@ function ArticlesSection() {
 interface Partner {
   name: string;
   image: StaticImageData;
+  link: string;
 }
 
-interface PartnersSectionProps {
-  partners: Array<Partner>
+function PartnersSection() {
+  return <Section header="参与机构" gap={partnerSpacing}>
+    {partnersData.map(partner => Partner(partner))}
+  </Section>;
 }
 
-function PartnersSection({ partners }: PartnersSectionProps) {
-  return <Flex gap={28} justify="flex-start" wrap="wrap">
-    {partners.map(partner => Partner(partner))}
-  </Flex>;
-}
-
-function Partner({ name, image }: Partner) {
+function Partner({ name, image, link }: Partner) {
   return (
-    <Flex
-      style={{ minHeight: 150 }}
-      direction="column"
+    <GridItem
       gap="30px"
       alignItems="center">
-      <Image src={image} alt={name} height={150} />
-      <span>{name}</span>
-    </Flex>
+      <a href={link}>
+        <VStack spacing={paragraphSpacing} align="center" height={"100%"} justifyContent={'flex-end'}>
+          <Image src={image} alt={name} />
+          <span>{name}</span>
+        </VStack>
+      </a>
+    </GridItem>
   );
 }
