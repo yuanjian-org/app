@@ -38,3 +38,5 @@ export default function Page() {
     </TabsWithUrlParam>
   </Flex>;
 };
+
+Page.title = "我的面试";

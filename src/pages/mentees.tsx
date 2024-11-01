@@ -76,7 +76,7 @@ export default widePage(() => {
       }
     </Flex>
   </>;
-});
+}, "学生档案");
 
 function MenteeTable({ users, refetch }: {
   users: User[],

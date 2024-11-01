@@ -45,3 +45,5 @@ export default function Page() {
 
   </Flex>;
 };
+
+Page.title = "资深导师页";
