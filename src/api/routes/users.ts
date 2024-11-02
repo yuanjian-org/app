@@ -186,6 +186,25 @@ const get = procedure
   return u;
 });
 
+const getUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zUserPreference.nullable())
+  .query(async ({ ctx, input: { userId } }) => 
+{
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ['preference'] 
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return user.preference;
+});
 
 /**
  * Only the user themselves, MentorCoach, and MentorshipManager have access.
@@ -440,6 +459,7 @@ export default router({
   setMentorCoach,
 
   updateUserPreference,
+  getUserPreference,
 
   setPointOfContactAndNote,
 });
