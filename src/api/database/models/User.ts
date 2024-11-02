@@ -26,6 +26,7 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
+import { UserPreference, zUserPreference } from "../../../shared/User";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -96,6 +97,9 @@ class User extends Model {
 
   @ZodColumn(STRING, z.string().nullable())
   pointOfContactNote: string | null;
+
+  @ZodColumn(JSONB, zUserPreference.nullable())
+  preference: UserPreference | null;
 
   // Managed by next-auth
   @Column(DATE)
