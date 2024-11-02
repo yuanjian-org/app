@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
+import User, { zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -140,6 +140,19 @@ const update = procedure
     } : {},
   });
 });
+
+const updateUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    userPreference: zUserPreference.nullable()
+  }))
+  .mutation(async ({ input: { userId, userPreference } }) => 
+  {
+    const user = await db.User.findByPk(userId);
+    if (!user) throw notFoundError("用户", userId);
+    await user.update({ userPreference });
+  });
 
 const updateMenteeStatus = procedure
   .use(authUser("MentorshipManager"))
@@ -425,6 +438,8 @@ export default router({
 
   getMentorCoach,
   setMentorCoach,
+
+  updateUserPreference,
 
   setPointOfContactAndNote,
 });
