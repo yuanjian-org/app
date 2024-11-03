@@ -35,3 +35,14 @@ export const zUserFilter = z.object({
   menteeStatus: zMenteeStatus.nullable().optional(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
+
+export const zUserPreference = z.object({
+  interviews: z.object({
+    optIn: z.boolean().optional(),
+    limit: z.object({
+      noMoreThan: z.number(),
+      until: z.coerce.string(),
+    }).optional(),
+  }).optional()
+});
+export type UserPreference = z.TypeOf<typeof zUserPreference>;
