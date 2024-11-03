@@ -94,6 +94,31 @@ const list = procedure
   });
 });
 
+const listRedactedEmailsWithSameName = procedure
+  .use(authUser())
+  .output(z.array(z.string()))
+  .query(async ({ ctx }) =>
+{
+  return (await db.User.findAll({
+    where: {
+      name: ctx.user.name,
+      id: { [Op.ne]: ctx.user.id },
+    },
+    attributes: ["email"],
+  })).map(u => redactEmail(u.email));
+});
+
+/**
+ * Given foo.bar@gmail.com, return f******@gmail.com
+ */
+export function redactEmail(email: string): string {
+  return email.replace(/^(.)(.+)(@.*)$/,
+    (match, first, rest, domain) => {
+      return `${first}${'*'.repeat(rest.length)}${domain}`;
+    }
+  );
+}
+
 const update = procedure
   .use(authUser())
   .input(zUser)
@@ -452,6 +477,7 @@ export default router({
   get,
   list,
   listPriviledgedUserDataAccess,
+  listRedactedEmailsWithSameName,
   getApplicant,
 
   update,
