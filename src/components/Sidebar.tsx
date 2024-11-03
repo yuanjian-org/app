@@ -85,17 +85,17 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
-    name: '面试官统计',
+    name: '面试官',
     action: '/interviewerStats',
     roles: 'MentorshipManager',
   },
   {
-    name: '管理会议',
+    name: '会议',
     action: '/groups',
     roles: 'GroupManager',
   },
   {
-    name: '管理用户',
+    name: '用户',
     action: '/users',
     roles: 'UserManager',
   },
@@ -105,6 +105,11 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '个人信息',
     action: '/profile',
+  },
+  {
+    name: '导师信息',
+    action: '/mentorProfile',
+    roles: 'Mentor',
   },
   {
     name: '谁能看到我的数据',
