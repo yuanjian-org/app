@@ -145,14 +145,18 @@ const updateUserPreference = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
-    userPreference: zUserPreference.nullable()
+    userPreference: zUserPreference,
   }))
-  .mutation(async ({ input: { userId, userPreference } }) => 
-  {
-    const user = await db.User.findByPk(userId);
-    if (!user) throw notFoundError("用户", userId);
-    await user.update({ userPreference });
-  });
+  .mutation(async ({ ctx, input: { userId, userPreference } }) => 
+{
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId);
+  if (!user) throw notFoundError("用户", userId);
+  await user.update({ userPreference });
+});
 
 const updateMenteeStatus = procedure
   .use(authUser("MentorshipManager"))
@@ -191,7 +195,7 @@ const getUserPreference = procedure
   .input(z.object({
     userId: z.string(),
   }))
-  .output(zUserPreference.nullable())
+  .output(zUserPreference)
   .query(async ({ ctx, input: { userId } }) => 
 {
   if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
@@ -203,7 +207,7 @@ const getUserPreference = procedure
   });
 
   if (!user) throw notFoundError("用户", userId);
-  return user.preference;
+  return user.preference || {};
 });
 
 /**
