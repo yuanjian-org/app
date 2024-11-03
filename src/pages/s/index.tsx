@@ -1,5 +1,5 @@
 import { Grid, GridItem, GridProps, Heading, Text, VStack } from '@chakra-ui/react';
-import { componentSpacing, paragraphSpacing, partnerSpacing } from 'theme/metrics';
+import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import Image from "next/image";
 import wechatAppQrcode from '../../../public/img/wechat-app-qrcode.jpg';
 import partner_1 from '../../../public/img/partner_1.png';
@@ -9,28 +9,6 @@ import partner_4 from '../../../public/img/partner_4.png';
 import partner_5 from '../../../public/img/partner_5.png';
 import { sidebarBreakpoint } from 'components/Navbars';
 import { StaticImageData } from "next/image";
-
-const partnersData = [{
-  name: "中美爱心教育发展促进会",
-  image: partner_1,
-  link: "https://www.yjjxj.cn/blog/1d24bf123bb?categoryId=67479",
-}, {
-  name: "叔蘋奖学金",
-  image: partner_2,
-  link: "https://www.yjjxj.cn/blog/e846bd1c84c",
-}, {
-  name: "树华教育基金会",
-  image: partner_3,
-  link: "https://www.yjjxj.cn/blog/b036c1401ed",
-}, {
-  name: "中国科学技术大学",
-  image: partner_4,
-  link: "https://www.yjjxj.cn/blog/32ff33465d3",
-}, {
-  name: "好奇学习社区",
-  image: partner_5,
-  link: "https://www.yjjxj.cn/blog/x",
-}];
 
 export default function Page() {
   return <VStack mt={50} spacing={50} align="start">
@@ -98,33 +76,42 @@ function ArticlesSection() {
   return <></>;
 }
 
-interface Partner {
-  name: string;
-  image: StaticImageData;
-  link: string;
-}
-
 function PartnersSection() {
-  return <Section header="参与机构" gap={partnerSpacing}>
-    {partnersData.map(partner => Partner(partner))}
+  const partners = [{
+    name: "中美爱心教育发展促进会",
+    image: partner_1,
+  }, {
+    name: "叔蘋奖学金",
+    image: partner_2,
+  }, {
+    name: "树华教育基金会",
+    image: partner_3,
+  }, {
+    name: "中国科学技术大学",
+    image: partner_4,
+    }, {
+    name: "好奇学习社区",
+    image: partner_5,
+  }];
+
+  return <Section header="参与机构" gap={10}>
+    {partners.map(partner => Partner(partner.name, partner.image))}
   </Section>;
 }
 
-function Partner({ name, image, link }: Partner) {
+function Partner(name: string, image: StaticImageData) {
   return (
     <GridItem
       gap="30px"
       alignItems="center">
-      <a href={link}>
-        <VStack
-          spacing={paragraphSpacing}
-          align="center"
-          height={"100%"}
-          justifyContent={'flex-end'}>
-          <Image src={image} alt={name} />
-          <span>{name}</span>
-        </VStack>
-      </a>
+      <VStack
+        spacing={paragraphSpacing}
+        align="center"
+        height={"100%"}
+        justifyContent={'space-around'}>
+        <Image height={200} width={200} src={image} alt={name} />
+        <span>{name}</span>
+      </VStack>
     </GridItem>
   );
 }

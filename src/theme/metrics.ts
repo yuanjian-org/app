@@ -6,8 +6,6 @@ export const paragraphSpacing = 4;
 
 export const componentSpacing = 4;
 
-export const partnerSpacing = 10;
-
 // Actual content width = staticPageMaxWidth - pageMarginX
 export const staticPageMaxWidth = 850;
 
