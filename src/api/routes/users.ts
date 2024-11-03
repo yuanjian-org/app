@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
+import User, { zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -141,6 +141,23 @@ const update = procedure
   });
 });
 
+const updateUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    userPreference: zUserPreference,
+  }))
+  .mutation(async ({ ctx, input: { userId, userPreference } }) => 
+{
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId);
+  if (!user) throw notFoundError("用户", userId);
+  await user.update({ userPreference });
+});
+
 const updateMenteeStatus = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
@@ -173,6 +190,25 @@ const get = procedure
   return u;
 });
 
+const getUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zUserPreference)
+  .query(async ({ ctx, input: { userId } }) => 
+{
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ['preference'] 
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return user.preference || {};
+});
 
 /**
  * Only the user themselves, MentorCoach, and MentorshipManager have access.
@@ -425,6 +461,9 @@ export default router({
 
   getMentorCoach,
   setMentorCoach,
+
+  updateUserPreference,
+  getUserPreference,
 
   setPointOfContactAndNote,
 });

@@ -19,11 +19,20 @@ import AppPage, { AppPageType } from 'AppPage';
 import { isStaticPage, staticUrlPrefix } from '../static';
 import StaticPageContainer from 'components/StaticPageContainer';
 import { callbackUrlKey } from './auth/login';
+import getBaseUrl from 'shared/getBaseUrl';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
 } & AppProps) {
   const router = useRouter();
+
+  // Redirect all non-canonical ULRs
+  if (typeof window !== 'undefined' && process.env.NODE_ENV == "production") {
+    const base = getBaseUrl();
+    if (base !== "https://mentors.org.cn" &&  !base.endsWith(".vercel.app")) {
+      void router.replace(`https://mentors.org.cn/${router.asPath}`);
+    }
+  }
 
   const subtitle = typeof Component.title === 'function' ?
     Component.title(pageProps) : typeof Component.title === 'string' ?

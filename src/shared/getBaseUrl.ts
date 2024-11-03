@@ -1,7 +1,6 @@
 
 export default function getBaseUrl() {
-  // browser should use relative path
-  if (typeof window !== 'undefined') return '';
+  if (typeof window !== 'undefined') return window.location.origin;
   // vercel.com
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   // non-vercel.com production environemnt (e.g. Docker). We piggyback on
