@@ -20,6 +20,7 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
+import { zMentorProfile } from "../../shared/MentorProfile";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -166,7 +167,7 @@ const update = procedure
   });
 });
 
-const updateUserPreference = procedure
+const setUserPreference = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
@@ -174,16 +175,17 @@ const updateUserPreference = procedure
   }))
   .mutation(async ({ ctx, input: { userId, userPreference } }) => 
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
-  const user = await db.User.findByPk(userId);
-  if (!user) throw notFoundError("用户", userId);
-  await user.update({ userPreference });
+  const [cnt] = await db.User.update({ userPreference }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
-const updateMenteeStatus = procedure
+const setMenteeStatus = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
@@ -223,7 +225,7 @@ const getUserPreference = procedure
   .output(zUserPreference)
   .query(async ({ ctx, input: { userId } }) => 
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, ["UserManager"])) {
+  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
@@ -233,6 +235,44 @@ const getUserPreference = procedure
 
   if (!user) throw notFoundError("用户", userId);
   return user.preference || {};
+});
+
+const getMentorProfile = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zMentorProfile)
+  .query(async ({ ctx: { user }, input: { userId } }) => 
+{
+  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: ['mentorProfile'] 
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u.mentorProfile || {};
+});
+
+const setMentorProfile = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    mentorProfile: zMentorProfile,
+  }))
+  .mutation(async ({ ctx: { user }, input: { userId, mentorProfile } }) => 
+{
+  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const [cnt] = await db.User.update({ mentorProfile }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 /**
@@ -317,12 +357,11 @@ const setPointOfContactAndNote = procedure
     throw generalBadRequestError("One of pocId and pocNote must be set");
   }
 
-  const ret = await db.User.update({
+  const [cnt] = await db.User.update({
     ...pocId !== undefined ? { pointOfContactId: pocId } : {},
     ...pocNote !== undefined ? { pointOfContactNote: pocNote } : {},
   }, { where: { id: userId } });
-  invariant(ret[0] <= 1);
-  if (ret[0] == 0) throw notFoundError("用户", userId);
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 /**
@@ -403,7 +442,7 @@ const getApplicant = procedure
 /**
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
-const updateApplication = procedure
+const setApplication = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
@@ -415,7 +454,6 @@ const updateApplication = procedure
   const [cnt] = await db.User.update({
     [input.type == "MenteeInterview" ? "menteeApplication" : "mentorApplication"]: input.application,
   }, { where: { id: input.userId } });
-  invariant(cnt <= 1);
   if (!cnt) throw notFoundError("用户", input.userId);
 });
 
@@ -478,17 +516,21 @@ export default router({
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
-  getApplicant,
 
   update,
-  updateMenteeStatus,
-  updateApplication,
+  setMenteeStatus,
   destroy,
+
+  getApplicant,
+  setApplication,
+
+  getMentorProfile,
+  setMentorProfile,
 
   getMentorCoach,
   setMentorCoach,
 
-  updateUserPreference,
+  setUserPreference,
   getUserPreference,
 
   setPointOfContactAndNote,
