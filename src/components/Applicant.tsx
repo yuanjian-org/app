@@ -62,7 +62,7 @@ function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
   const update = async (name: string, value: string) => {
     const updated = structuredClone(application ?? {});
     updated[name] = value;
-    await trpc.users.updateApplication.mutate({
+    await trpc.users.setApplication.mutate({
       type,
       userId: user.id,
       application: updated,

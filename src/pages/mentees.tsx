@@ -133,7 +133,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
 
   const setStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
-    await trpc.users.updateMenteeStatus.mutate({ userId: u.id, menteeStatus });
+    await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
 
