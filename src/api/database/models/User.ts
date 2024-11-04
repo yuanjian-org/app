@@ -27,6 +27,7 @@ import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 import { UserPreference, zUserPreference } from "../../../shared/User";
+import { MentorProfile, zMentorProfile } from "../../../shared/MentorProfile";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -80,6 +81,9 @@ class User extends Model {
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   mentorApplication: Record<string, any> | null;
+
+  @ZodColumn(JSONB, zMentorProfile.nullable())
+  mentorProfile: MentorProfile | null;
 
   // The coach of the mentor. Non-null only if the user is a mentor (ie.
   // `mentorshipsAsMentor` is non-empty).
