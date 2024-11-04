@@ -13,7 +13,11 @@ export const zMentorProfile = z.object({
   '职业经历': zStr,
   '个性特点': zStr,
   '爱好与特长': zStr,
+  '喜爱读物': zStr,
   '生活日常': zStr,
   '擅长辅导领域': zStr,
+
+  '照片链接': zStr,
+  '简历链接': zStr,
 });
 export type MentorProfile = z.TypeOf<typeof zMentorProfile>;
