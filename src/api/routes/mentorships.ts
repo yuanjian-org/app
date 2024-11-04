@@ -6,19 +6,25 @@ import {
   zMentorship,
 } from "../../shared/Mentorship";
 import { z } from "zod";
-import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { 
+  alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError
+} from "../errors";
 import sequelize from "../database/sequelize";
-import { isPermitted } from "../../shared/Role";
+import Role, { isPermitted } from "../../shared/Role";
 import { 
   mentorshipAttributes,
   mentorshipInclude,
   minUserAttributes,
+  userAttributes,
+  userInclude,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
-import { formatUserName } from "shared/strings";
+import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
+import { zUser } from "shared/User";
+import { zMentorProfile } from "shared/MentorProfile";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
@@ -119,10 +125,51 @@ const listMineAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
+const listMentorStats = procedure
+.use(authUser("MentorshipManager"))
+.output(z.array(z.object({
+  user: zUser,
+  mentorProfile: zMentorProfile.nullable(),
+  mentorships: z.number(),
+})))
+.query(async () =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...userAttributes, "mentorProfile"],
+    include: userInclude,
+  });
+
+  // A map from user to the number of mentorships of this user as a mentor
+  const user2mentorships = (await db.Mentorship.findAll({
+    where: { endedAt: null },
+    attributes: [
+      'mentorId',
+      [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
+    ],
+    group: ['mentorId']
+  })).reduce<{ [key: string]: number }>((acc, cur) => {
+      acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
+      return acc;
+    }, {});
+
+  const ret = users.map(user => ({
+      user,
+      mentorProfile: user.mentorProfile,
+      mentorships: user2mentorships[user.id] || 0,
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
+});
+
 /**
  * Usage:
  *
- * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" "${BASE_URL}/api/v1/mentorships.countMentorships"
+ * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+ *  "${BASE_URL}/api/v1/mentorships.countMentorships"
  *
  */
 const countMentorships = procedure
@@ -186,5 +233,6 @@ export default router({
   listMineAsMentor,
   listMineAsCoach,
   listForMentee,
+  listMentorStats,
   countMentorships,
 });
