@@ -94,7 +94,7 @@ function PartnersSection() {
     image: partner_5,
   }];
 
-  return <Section header="参与机构" gap={10}>
+  return <Section header="参与机构" alignItems={"baseline"} gap={10}>
     {partners.map(partner => Partner(partner.name, partner.image))}
   </Section>;
 }
@@ -107,10 +107,11 @@ function Partner(name: string, image: StaticImageData) {
       <VStack
         spacing={paragraphSpacing}
         align="center"
-        height={"100%"}
+        // height={"100%"}
+        maxWidth={150}
         justifyContent={'space-around'}>
         <Image height={200} width={200} src={image} alt={name} />
-        <span>{name}</span>
+        <span style={{ display: "inline", whiteSpace: "nowrap" }}>{name}</span>
       </VStack>
     </GridItem>
   );
