@@ -17,8 +17,8 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import trpc from "../trpc";
+import { useState, useEffect } from 'react';
+import trpc, { trpcNext } from "../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
@@ -26,13 +26,13 @@ import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { Divider } from '@chakra-ui/react';
 import DatePicker from "react-datepicker";
+import { UserPreference, zUserPreference } from 'shared/User';
+import { z } from 'zod';
+import datePicker from 'theme/datePicker';
 
 const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
 const threeMonthsDate = new Date(new Date().setMonth(new Date().getMonth() + 3));
-type Limit = {
-  noMoreThan: number;
-  until: string;
-};
+type InterviewPref = z.TypeOf<typeof zUserPreference.shape.interviews>;
 
 export default function Page() {
   const [user, setUser] = useUserContext();
@@ -41,6 +41,21 @@ export default function Page() {
   const [newSex, setNewSex] = useState(user.sex|| '');
   const [newCity, setNewCity] = useState(user.city || '');
   const [newWechat, setNewWechat] = useState(user.wechat || '');
+
+  const { data: userPref } = trpcNext.users.getUserPreference.useQuery({ userId: user.id });
+  const [pref, setPref] = useState<UserPreference>({}); 
+
+  useEffect(() => {
+    if (userPref) { 
+      setPref(userPref);
+    }
+  }, [userPref]); 
+
+  const updateInterviewPref = (data: InterviewPref) => {
+    const newPref = structuredClone(pref);
+    newPref.interviews = data;
+    setPref(newPref);
+  };
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -52,13 +67,17 @@ export default function Page() {
       updatedUser.wechat = newWechat;
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
+      
+      updateInterviewPref;
+      await trpc.users.setUserPreference.mutate({ 
+        userId: user.id, userPreference: pref });
       toast.success("保存成功。");
     } finally {
       setIsLoading(false);
     }
   };
   
-  return <VStack spacing={componentSpacing} maxWidth="sm" 
+  return <VStack spacing={componentSpacing} maxWidth="lg" 
     margin={sectionSpacing}>
     <FormControl>
       <FormLabel>邮箱</FormLabel>
@@ -97,72 +116,83 @@ export default function Page() {
 
     <Divider margin={componentSpacing} />
 
-    <InterviewPreference />
+    <InterviewPreference data={pref.interviews} 
+      updateData={updateInterviewPref} /> 
 
     <Button onClick={handleSubmit} variant="brand">保存</Button>
     {isLoading && <Loader loadingText='保存中...'/>}
   </VStack>;
 }
 
-function InterviewPreference({
-
-} : {
-  
+function InterviewPreference({ data, updateData } : {
+  data: InterviewPref;
+  updateData: (data: InterviewPref) => void;
 }) {
-  const [date, setDate] = useState(oneMonthDate);
-  const [limit, setLimit] = useState<Limit | undefined>(undefined);
+  const [noMoreThan, setNoMoreThan] = useState(data?.limit?.noMoreThan || 0);
+  const [until, setUntil] = useState(data?.limit?.until ? 
+    new Date(data.limit.until) : oneMonthDate);
+  const [optIn, setOptIn] = useState(data?.optIn ?? undefined);
+
+  useEffect(() => {
+    setNoMoreThan(data?.limit?.noMoreThan ?? 0);
+    setUntil(new Date(data?.limit?.until ?? oneMonthDate));
+    setOptIn(data?.optIn ?? undefined);
+  }, [data]);
+ 
+  const setLimit = (noMoreThan: number, until: Date) => {
+    const newData = structuredClone(data || {});
+    newData.limit = { noMoreThan, until: until.toISOString() };
+    updateData(newData);
+  };
+
+  const removeLimit = () => {
+    const newData = structuredClone(data);
+    delete newData?.limit;
+    updateData(newData);
+  };
+
+  const toggleOptIn = (optIn: boolean) => {
+    updateData({
+      ...data,
+      optIn: optIn ? true : undefined,
+    });
+  };
 
   return <>
     <FormControl>
       <FormLabel>面试官偏好</FormLabel>
-      <Checkbox sx={{ '.chakra-checkbox__control': { bg: 'white' } }}>
+      <Checkbox isChecked={optIn} onChange={e => toggleOptIn(e.target.checked)}>
         我不是导师，但可以帮助面试学生。
       </Checkbox>
     </FormControl>
 
     <FormControl>
       <Flex wrap="wrap" alignItems="center">
-        <Checkbox 
-          isChecked={limit !== undefined}
-          onChange={() => setLimit(limit !== undefined ? 
-            undefined : 
-            { noMoreThan: 0,
-              until: date.toDateString()
-            }
-          )}
-          sx={{ '.chakra-checkbox__control': { bg: 'white' } }}>
+        <Checkbox isChecked={!!data?.limit}
+          onChange={e => e.target.checked ? setLimit(noMoreThan, until) : 
+            removeLimit()}>
           面试限制：
-        </Checkbox>
-        在
+        </Checkbox>在
         <DatePicker 
-          selected={date}
-          onChange={date => setDate(date || oneMonthDate)}
-          minDate={new Date()}
-          maxDate={threeMonthsDate}
-          disabled={limit === undefined}
-          customInput={
-            <Input 
-              size="xs"
-              maxW="90px" 
-              marginLeft="2px"
-              marginRight="2px"
-              bgColor="white" 
-              borderRadius="5px"
-              textAlign="center" />}   
+          selected={until}
+          onChange={date => {
+            const newDate = date || oneMonthDate;
+            setUntil(newDate);
+            setLimit(noMoreThan, newDate);
+          }}
+          minDate={new Date()} maxDate={threeMonthsDate} disabled={!data?.limit}
+          customInput={<Input {...datePicker} textAlign="center" />}
         />
         之前，我还可以参与
         <NumberInput 
-          defaultValue={0} 
-          min={0} 
-          max={10} 
-          isDisabled={limit === undefined}
-          marginLeft="2px"
-          marginRight="2px"
-          size="xs"
-          borderRadius="5px"
-          maxW="55px" 
-          bgColor="white">
-          <NumberInputField />
+          value={noMoreThan} 
+          onChange={(_, value) => {
+            setNoMoreThan(value);
+            setLimit(value, until);
+          }}
+          min={0} max={10} isDisabled={!data?.limit}
+         >
+          <NumberInputField bgColor="white" />
           <NumberInputStepper>
             <NumberIncrementStepper /><NumberDecrementStepper />
           </NumberInputStepper>

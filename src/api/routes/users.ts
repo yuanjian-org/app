@@ -179,7 +179,7 @@ const setUserPreference = procedure
     throw noPermissionError("用户", userId);
   }
 
-  const [cnt] = await db.User.update({ userPreference }, {
+  const [cnt] = await db.User.update({ preference: userPreference }, {
     where: { id: userId }
   });
   if (cnt == 0) throw notFoundError("用户", userId);
