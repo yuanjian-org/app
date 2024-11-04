@@ -42,19 +42,16 @@ export default function Page() {
   const [newCity, setNewCity] = useState(user.city || '');
   const [newWechat, setNewWechat] = useState(user.wechat || '');
 
-  const { data: userPref } = trpcNext.users.getUserPreference.useQuery({ userId: user.id });
-  const [pref, setPref] = useState<UserPreference>({}); 
-
-  useEffect(() => {
-    if (userPref) { 
-      setPref(userPref);
-    }
-  }, [userPref]); 
+  const { data: pref } = trpcNext.users.getUserPreference.useQuery({ userId: user.id });
+  const [unsaved, setUnsaved] = useState<UserPreference>();
+  useEffect(() => setUnsaved(pref), [pref]);
 
   const updateInterviewPref = (data: InterviewPref) => {
-    const newPref = structuredClone(pref);
-    newPref.interviews = data;
-    setPref(newPref);
+    if (data !== undefined) {
+      const newPref = structuredClone(pref) || {};
+      newPref.interviews = data;
+      setUnsaved(newPref);
+    }
   };
 
   const handleSubmit = async () => {
@@ -67,10 +64,8 @@ export default function Page() {
       updatedUser.wechat = newWechat;
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
-      
-      updateInterviewPref;
       await trpc.users.setUserPreference.mutate({ 
-        userId: user.id, userPreference: pref });
+        userId: user.id, userPreference: unsaved || {} });
       toast.success("保存成功。");
     } finally {
       setIsLoading(false);
@@ -116,7 +111,7 @@ export default function Page() {
 
     <Divider margin={componentSpacing} />
 
-    <InterviewPreference data={pref.interviews} 
+    <InterviewPreference data={unsaved?.interviews} 
       updateData={updateInterviewPref} /> 
 
     <Button onClick={handleSubmit} variant="brand">保存</Button>
@@ -128,27 +123,23 @@ function InterviewPreference({ data, updateData } : {
   data: InterviewPref;
   updateData: (data: InterviewPref) => void;
 }) {
-  const [noMoreThan, setNoMoreThan] = useState(data?.limit?.noMoreThan || 0);
-  const [until, setUntil] = useState(data?.limit?.until ? 
-    new Date(data.limit.until) : oneMonthDate);
-  const [optIn, setOptIn] = useState(data?.optIn ?? undefined);
+  const until = data?.limit?.until ? new Date(data.limit.until) : oneMonthDate;
+  const noMoreThan = data?.limit?.noMoreThan || 0;
 
-  useEffect(() => {
-    setNoMoreThan(data?.limit?.noMoreThan ?? 0);
-    setUntil(new Date(data?.limit?.until ?? oneMonthDate));
-    setOptIn(data?.optIn ?? undefined);
-  }, [data]);
- 
   const setLimit = (noMoreThan: number, until: Date) => {
-    const newData = structuredClone(data || {});
-    newData.limit = { noMoreThan, until: until.toISOString() };
-    updateData(newData);
+    if (noMoreThan !== undefined && until !== undefined) {
+      const newData = structuredClone(data || {});
+      newData.limit = { noMoreThan, until: until.toISOString() };
+      updateData(newData);
+    }
   };
 
   const removeLimit = () => {
-    const newData = structuredClone(data);
-    delete newData?.limit;
-    updateData(newData);
+    if (data !== undefined) {
+      const newData = structuredClone(data);
+      delete newData.limit;
+      updateData(newData);
+    }
   };
 
   const toggleOptIn = (optIn: boolean) => {
@@ -161,7 +152,8 @@ function InterviewPreference({ data, updateData } : {
   return <>
     <FormControl>
       <FormLabel>面试官偏好</FormLabel>
-      <Checkbox isChecked={optIn} onChange={e => toggleOptIn(e.target.checked)}>
+      <Checkbox isChecked={data?.optIn} 
+        onChange={e => toggleOptIn(e.target.checked)}>
         我不是导师，但可以帮助面试学生。
       </Checkbox>
     </FormControl>
@@ -177,7 +169,6 @@ function InterviewPreference({ data, updateData } : {
           selected={until}
           onChange={date => {
             const newDate = date || oneMonthDate;
-            setUntil(newDate);
             setLimit(noMoreThan, newDate);
           }}
           minDate={new Date()} maxDate={threeMonthsDate} disabled={!data?.limit}
@@ -186,11 +177,8 @@ function InterviewPreference({ data, updateData } : {
         之前，我还可以参与
         <NumberInput 
           value={noMoreThan} 
-          onChange={(_, value) => {
-            setNoMoreThan(value);
-            setLimit(value, until);
-          }}
-          min={0} max={10} isDisabled={!data?.limit}
+          onChange={v => setLimit(Number.parseInt(v), until)}
+          min={0} max={10} isDisabled={!data?.limit} maxW="60px" marginX={1}
          >
           <NumberInputField bgColor="white" />
           <NumberInputStepper>
