@@ -86,7 +86,12 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   },
   {
     name: '面试官',
-    action: '/interviewerStats',
+    action: '/interviewers',
+    roles: 'MentorshipManager',
+  },
+  {
+    name: '导师',
+    action: '/mentors/manage',
     roles: 'MentorshipManager',
   },
   {
@@ -103,12 +108,12 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '个人信息',
+    name: '账号信息',
     action: '/profile',
   },
   {
     name: '导师信息',
-    action: '/mentorProfile',
+    action: '/mentors/manage/me',
     roles: 'Mentor',
   },
   {

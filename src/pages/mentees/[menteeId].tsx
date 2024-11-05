@@ -22,7 +22,7 @@ import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
 
 export default widePage(() => {
-  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
   const { data: u } = trpcNext.users.get.useQuery(userId);
   const { data: mentorships } = trpcNext.mentorships.listForMentee
     .useQuery(userId);

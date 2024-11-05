@@ -44,7 +44,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
-import { formatMentorshipEndedAtText } from './mentees/[userId]';
+import { formatMentorshipEndedAtText } from './mentees/[menteeId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';

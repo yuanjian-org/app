@@ -19,7 +19,7 @@ import {
   Checkbox,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import trpc, { trpcNext } from "../trpc";
+import trpc, { trpcNext } from "../../../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
@@ -27,18 +27,29 @@ import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { MentorProfile } from 'shared/MentorProfile';
 import invariant from "tiny-invariant";
+import { formatUserName, parseQueryStringOrUnknown } from 'shared/strings';
+import { useRouter } from 'next/router';
 
+export const defaultMentorCapacity = 3;
+
+/**
+ * The mentorId query parameter can be a user id or "me". The latter is to
+ * allow a convenient URL to manage users' own mentor profiles.
+ */
 export default function Page() {
-  const [user] = useUserContext();
+  const queryUserId = parseQueryStringOrUnknown(useRouter(), 'mentorId');
+  const [me] = useUserContext();
+  const userId = queryUserId === "me" ? me.id : queryUserId;
+
   const [isSaving, setIsSaving] = useState(false);
   const { data, isLoading } = trpcNext.users.getMentorProfile.useQuery({
-    userId: user.id
+    userId
   }, {
     // Avoid accidental override when switching between windows
     refetchOnWindowFocus: false
   });
   const [unsaved, setUnsaved] = useState<MentorProfile>();
-  useEffect(() => setUnsaved(data), [data]);
+  useEffect(() => setUnsaved(data?.profile), [data]);
 
   const updateUnsaved = (k: keyof MentorProfile, v: any) => {
     invariant(unsaved);
@@ -54,7 +65,7 @@ export default function Page() {
     setIsSaving(true);
     try {
       await trpc.users.setMentorProfile.mutate({
-        userId: user.id,
+        userId,
         mentorProfile: unsaved,
       });
       toast.success("保存成功。");
@@ -69,13 +80,16 @@ export default function Page() {
     spacing={componentSpacing} 
     margin={sectionSpacing}
   >
-    <Heading size="md">导师偏好</Heading>
+    <Heading size="md">
+      {userId === me.id ? "导师偏好" :
+        formatUserName(data?.user.name || "", "formal")}
+    </Heading>
 
     <FormControl>
       <Flex align="center">
         我可以同时带
         <NumberInput background="white" size="sm" maxW={20} mx={1} min={0}
-          value={unsaved.最多匹配学生 ?? 4} 
+          value={unsaved.最多匹配学生 ?? defaultMentorCapacity} 
           onChange={v => updateUnsaved('最多匹配学生', Number.parseInt(v))}
         >
           <NumberInputField />
@@ -86,7 +100,7 @@ export default function Page() {
         名学生。
       </Flex>
       <FormHelperText>
-        强烈建议选择两名或以上。不同学生间的对比对导师理解学生非常有帮助。
+        强烈建议两名或以上。不同学生的对比对导师工作非常有帮助。
         若希望避免匹配学生，请选择0。
       </FormHelperText>
     </FormControl>
@@ -116,8 +130,36 @@ export default function Page() {
     </Text>
 
     <FormControl>
-      <FormLabel>生活照链接</FormLabel>
+      <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
+      <Input bg="white" value={unsaved.身份头衔 || ""} 
+        onChange={ev => updateUnsaved('身份头衔', ev.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormLabel>职业经历（或在下方提供简历链接）</FormLabel>
+      <Textarea bg="white" height={140} value={unsaved.职业经历 || ""} 
+        onChange={ev => updateUnsaved('职业经历', ev.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历；或在下方提供简历链接）</FormLabel>
+      <Textarea bg="white" height={140} value={unsaved.教育经历 || ""} 
+        onChange={ev => updateUnsaved('教育经历', ev.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormLabel>简历链接</FormLabel>
       <UploadInstructions />
+      <Input bg="white" value={unsaved.简历链接 || ""} 
+        onChange={ev => updateUnsaved('简历链接', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>生活照链接</FormLabel>
+      <FormHelperText mb={2}>
+        上传文件方法见“简历链接”的文字说明。
+      </FormHelperText>
       <Input bg="white" value={unsaved.照片链接 || ""} 
         onChange={ev => updateUnsaved('照片链接', ev.target.value)}
       />
@@ -132,25 +174,6 @@ export default function Page() {
       <FormLabel>成年之前曾经居住过的地域</FormLabel>
       <Textarea bg="white" height={140} value={unsaved.曾居住地 || ""} 
         onChange={ev => updateUnsaved('曾居住地', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历；或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.教育经历 || ""} 
-        onChange={ev => updateUnsaved('教育经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>职业经历（或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.职业经历 || ""} 
-        onChange={ev => updateUnsaved('职业经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>简历链接</FormLabel>
-      <UploadInstructions />
-      <Input bg="white" value={unsaved.简历链接 || ""} 
-        onChange={ev => updateUnsaved('简历链接', ev.target.value)}
       />
     </FormControl>
     <FormControl>
