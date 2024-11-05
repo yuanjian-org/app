@@ -179,9 +179,9 @@ function InterviewPreference({ data, updateData } : {
         <NumberInput 
           value={noMoreThan} 
           onChange={v => setLimit(Number.parseInt(v), until)}
-          min={0} max={10} isDisabled={!data?.limit} maxW="60px"
+          min={0} max={10} isDisabled={!data?.limit} maxW="60px" margin={1}
         >
-          <NumberInputField />
+          <NumberInputField bgColor="white" />
           <NumberInputStepper>
             <NumberIncrementStepper /><NumberDecrementStepper />
           </NumberInputStepper>

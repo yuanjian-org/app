@@ -3,14 +3,8 @@ const numberInput = {
     NumberInput: {
       defaultProps: {
         size: "sm",
-        marginX: 1,
       },
     },
-    NumberInputField: {
-      baseStyle: {
-        bg: "white"
-      }
-    }
   },
 };
 
