@@ -242,7 +242,10 @@ const getMentorProfile = procedure
   .input(z.object({
     userId: z.string(),
   }))
-  .output(zMentorProfile)
+  .output(z.object({
+    user: zMinUser,
+    profile: zMentorProfile
+  }))
   .query(async ({ ctx: { user }, input: { userId } }) => 
 {
   if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
@@ -250,11 +253,14 @@ const getMentorProfile = procedure
   }
 
   const u = await db.User.findByPk(userId, {
-    attributes: ['mentorProfile'] 
+    attributes: [...minUserAttributes, 'mentorProfile'] 
   });
 
   if (!u) throw notFoundError("用户", userId);
-  return u.mentorProfile || {};
+  return {
+    user: u,
+    profile: u.mentorProfile || {}
+  };
 });
 
 const setMentorProfile = procedure
