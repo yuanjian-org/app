@@ -108,7 +108,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '账号信息',
+    name: '账号设置',
     action: '/profile',
   },
   {
@@ -200,7 +200,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const userName = formatUserName(me.name);
   // Save an API call if the user is not a mentor.
   const { data: mentorships } = isPermitted(me.roles, "Mentor") ?
-    trpcNext.mentorships.listMineAsMentor.useQuery() : { data: undefined };
+    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() : { data: undefined };
   const mentorshipItems = mentorships2Items(mentorships);
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);

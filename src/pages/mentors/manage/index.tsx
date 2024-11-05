@@ -17,8 +17,7 @@ import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import { defaultMentorCapacity } from './[mentorId]';
 import NextLink from 'next/link';
-import User from 'shared/User';
-import { MentorProfile } from 'shared/MentorProfile';
+import User, { MentorPreference } from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
 /**
@@ -48,8 +47,8 @@ export default function Page() {
       <Tbody>
         {stats.map(s => <Row 
           key={s.user.id}
-          user={s.user} 
-          profile={s.mentorProfile} 
+          user={s.user}
+          preference={s.mentorPreference}
           mentorships={s.mentorships} 
         />)}
       </Tbody>
@@ -61,18 +60,18 @@ export default function Page() {
   </TableContainer>;
 }
 
-function Row({ user, profile, mentorships }: {
+function Row({ user, preference, mentorships }: {
   user: User,
-  profile: MentorProfile | null,
+  preference: MentorPreference | null,
   mentorships: number,
 }) {
   const role = isPermitted(user.roles, 'MentorCoach') ? 'MentorCoach' :
     'Mentor';
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
 
-  const capacity = profile?.最多匹配学生 ||
+  const capacity = preference?.最多匹配学生 ||
     defaultMentorCapacity;
-  const isDefaultCapacity = profile?.最多匹配学生 === undefined;
+  const isDefaultCapacity = preference?.最多匹配学生 === undefined;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>

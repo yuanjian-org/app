@@ -23,7 +23,7 @@ import invariant from "tiny-invariant";
 import { Op } from "sequelize";
 import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
-import { zUser } from "shared/User";
+import { zMentorPreference, zUser } from "shared/User";
 import { zMentorProfile } from "shared/MentorProfile";
 
 const create = procedure
@@ -87,7 +87,7 @@ const update = procedure
  * Otherwise, return only the mentorship of the mentee where the current user
  * is the mentor.
  */
-const listForMentee = procedure
+const listMentorshipsForMentee = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zMentorship))
@@ -108,7 +108,7 @@ const listForMentee = procedure
 /**
  * Omit mentorships that are already ended.
  */
-const listMineAsCoach = procedure
+const listMyMentorshipsAsCoach = procedure
   .use(authUser())
   .output(z.array(zMentorship))
   .query(async ({ ctx }) =>
@@ -125,12 +125,11 @@ const listMineAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
-const listMentorStats = procedure
-.use(authUser("MentorshipManager"))
+const listMentors = procedure
+.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
 .output(z.array(z.object({
   user: zUser,
   mentorProfile: zMentorProfile.nullable(),
-  mentorships: z.number(),
 })))
 .query(async () =>
 {
@@ -165,14 +164,53 @@ const listMentorStats = procedure
   return ret;
 });
 
+const listMentorStats = procedure
+.use(authUser("MentorshipManager"))
+.output(z.array(z.object({
+  user: zUser,
+  mentorPreference: zMentorPreference.nullable(),
+  mentorships: z.number(),
+})))
+.query(async () =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...userAttributes, "preference"],
+    include: userInclude,
+  });
+
+  // A map from user to the number of mentorships of this user as a mentor
+  const user2mentorships = (await db.Mentorship.findAll({
+    where: { endedAt: null },
+    attributes: [
+      'mentorId',
+      [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
+    ],
+    group: ['mentorId']
+  })).reduce<{ [key: string]: number }>((acc, cur) => {
+      acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
+      return acc;
+    }, {});
+
+  const ret = users.map(user => ({
+      user,
+      mentorPreference: user.preference?.mentor ?? null,
+      mentorships: user2mentorships[user.id] || 0,
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
+});
+
 /**
  * Usage:
  *
  * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
  *  "${BASE_URL}/api/v1/mentorships.countMentorships"
- *
  */
-const countMentorships = procedure
+const deprecatedCountMentorships = procedure
   .use(authIntegration())
   .output(z.array(z.object({
     mentor: z.string(),
@@ -194,7 +232,7 @@ const countMentorships = procedure
   }));
 });
 
-const listMineAsMentor = procedure
+const listMyMentorshipsAsMentor = procedure
   .use(authUser())
   .output(z.array(zMentorship))
   .query(async ({ ctx }) => 
@@ -230,9 +268,10 @@ export default router({
   create,
   get,
   update,
-  listMineAsMentor,
-  listMineAsCoach,
-  listForMentee,
+  listMyMentorshipsAsMentor,
+  listMyMentorshipsAsCoach,
+  listMentorshipsForMentee,
   listMentorStats,
-  countMentorships,
+  listMentors,
+  countMentorships: deprecatedCountMentorships,
 });

@@ -230,7 +230,7 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(mentee.id);
+  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee.useQuery(mentee.id);
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order

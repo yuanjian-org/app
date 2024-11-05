@@ -36,13 +36,21 @@ export const zUserFilter = z.object({
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
 
+export const zMentorPreference = z.object({
+  '最多匹配学生': z.number().optional(),
+  '不参加就业辅导': z.boolean().optional(),
+});
+export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
+
 export const zUserPreference = z.object({
+  // TODO: rename to `interviewer` and create zInterviewerProfile
   interviews: z.object({
     optIn: z.boolean().optional(),
     limit: z.object({
       noMoreThan: z.number(),
       until: z.coerce.string(),
     }).optional(),
-  }).optional()
+  }).optional(),
+  mentor: zMentorPreference.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
