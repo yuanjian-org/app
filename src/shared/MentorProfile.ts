@@ -3,9 +3,6 @@ import { z } from "zod";
 const zStr = z.string().optional();
 
 export const zMentorProfile = z.object({
-  '最多匹配学生': z.number().optional(),
-  '不参加就业辅导': z.boolean().optional(),
-
   '身份头衔': zStr,
   '现居住地': zStr,
   '曾居住地': zStr,

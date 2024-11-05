@@ -171,15 +171,15 @@ const setUserPreference = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
-    userPreference: zUserPreference,
+    preference: zUserPreference,
   }))
-  .mutation(async ({ ctx, input: { userId, userPreference } }) => 
+  .mutation(async ({ ctx: { user }, input: { userId, preference } }) => 
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "UserManager")) {
+  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
     throw noPermissionError("用户", userId);
   }
 
-  const [cnt] = await db.User.update({ userPreference }, {
+  const [cnt] = await db.User.update({ preference }, {
     where: { id: userId }
   });
   if (cnt == 0) throw notFoundError("用户", userId);
@@ -225,7 +225,8 @@ const getUserPreference = procedure
   .output(zUserPreference)
   .query(async ({ ctx, input: { userId } }) => 
 {
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "UserManager")) {
+  if (ctx.user.id !== userId && 
+    !isPermitted(ctx.user.roles, "MentorshipManager")) {
     throw noPermissionError("用户", userId);
   }
 
@@ -242,10 +243,7 @@ const getMentorProfile = procedure
   .input(z.object({
     userId: z.string(),
   }))
-  .output(z.object({
-    user: zMinUser,
-    profile: zMentorProfile
-  }))
+  .output(zMentorProfile)
   .query(async ({ ctx: { user }, input: { userId } }) => 
 {
   if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
@@ -253,29 +251,26 @@ const getMentorProfile = procedure
   }
 
   const u = await db.User.findByPk(userId, {
-    attributes: [...minUserAttributes, 'mentorProfile'] 
+    attributes: ['mentorProfile'] 
   });
 
   if (!u) throw notFoundError("用户", userId);
-  return {
-    user: u,
-    profile: u.mentorProfile || {}
-  };
+  return u.mentorProfile || {};
 });
 
 const setMentorProfile = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
-    mentorProfile: zMentorProfile,
+    profile: zMentorProfile,
   }))
-  .mutation(async ({ ctx: { user }, input: { userId, mentorProfile } }) => 
+  .mutation(async ({ ctx: { user }, input: { userId, profile } }) => 
 {
   if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
     throw noPermissionError("用户", userId);
   }
 
-  const [cnt] = await db.User.update({ mentorProfile }, {
+  const [cnt] = await db.User.update({ mentorProfile: profile }, {
     where: { id: userId }
   });
   if (cnt == 0) throw notFoundError("用户", userId);
