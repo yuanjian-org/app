@@ -29,9 +29,8 @@ import DatePicker from "react-datepicker";
 import { UserPreference, zUserPreference } from 'shared/User';
 import { z } from 'zod';
 import datePicker from 'theme/datePicker';
+import invariant from "tiny-invariant";
 
-const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
-const threeMonthsDate = new Date(new Date().setMonth(new Date().getMonth() + 3));
 type InterviewPref = z.TypeOf<typeof zUserPreference.shape.interviews>;
 
 export default function Page() {
@@ -47,11 +46,10 @@ export default function Page() {
   useEffect(() => setUnsaved(pref), [pref]);
 
   const updateInterviewPref = (data: InterviewPref) => {
-    if (data !== undefined) {
-      const newPref = structuredClone(pref) || {};
-      newPref.interviews = data;
-      setUnsaved(newPref);
-    }
+    invariant(data !== undefined);
+    const newPref = structuredClone(pref) || {};
+    newPref.interviews = data;
+    setUnsaved(newPref);
   };
 
   const handleSubmit = async () => {
@@ -65,7 +63,7 @@ export default function Page() {
       await trpc.users.update.mutate(updatedUser);
       setUser(updatedUser);
       await trpc.users.setUserPreference.mutate({ 
-        userId: user.id, userPreference: unsaved || {} });
+        userId: user.id, preference: unsaved || {} });
       toast.success("保存成功。");
     } finally {
       setIsLoading(false);
@@ -123,23 +121,26 @@ function InterviewPreference({ data, updateData } : {
   data: InterviewPref;
   updateData: (data: InterviewPref) => void;
 }) {
+  const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
+  const threeMonthsDate = new Date(new Date().setMonth(new Date().getMonth() + 3));
   const until = data?.limit?.until ? new Date(data.limit.until) : oneMonthDate;
   const noMoreThan = data?.limit?.noMoreThan || 0;
 
   const setLimit = (noMoreThan: number, until: Date) => {
-    if (noMoreThan !== undefined && until !== undefined) {
-      const newData = structuredClone(data || {});
-      newData.limit = { noMoreThan, until: until.toISOString() };
-      updateData(newData);
-    }
+    updateData({
+      ...data,
+      limit: {
+        noMoreThan,
+        until: until.toISOString(),
+      }
+    });
   };
 
   const removeLimit = () => {
-    if (data !== undefined) {
-      const newData = structuredClone(data);
-      delete newData.limit;
-      updateData(newData);
-    }
+    updateData({
+      ...data,
+      limit: undefined,
+    });
   };
 
   const toggleOptIn = (optIn: boolean) => {
@@ -178,9 +179,9 @@ function InterviewPreference({ data, updateData } : {
         <NumberInput 
           value={noMoreThan} 
           onChange={v => setLimit(Number.parseInt(v), until)}
-          min={0} max={10} isDisabled={!data?.limit} maxW="60px" marginX={1}
-         >
-          <NumberInputField bgColor="white" />
+          min={0} max={10} isDisabled={!data?.limit} maxW="60px"
+        >
+          <NumberInputField />
           <NumberInputStepper>
             <NumberIncrementStepper /><NumberDecrementStepper />
           </NumberInputStepper>

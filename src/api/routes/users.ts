@@ -171,15 +171,15 @@ const setUserPreference = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
-    userPreference: zUserPreference,
+    preference: zUserPreference,
   }))
-  .mutation(async ({ ctx, input: { userId, userPreference } }) => 
+  .mutation(async ({ ctx, input: { userId, preference } }) => 
 {
   if (ctx.user.id !== userId && !isPermitted(ctx.user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
-  const [cnt] = await db.User.update({ preference: userPreference }, {
+  const [cnt] = await db.User.update({ preference }, {
     where: { id: userId }
   });
   if (cnt == 0) throw notFoundError("用户", userId);
