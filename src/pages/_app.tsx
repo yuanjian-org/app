@@ -1,5 +1,6 @@
 import '../app.css';
 import 'react-toastify/dist/ReactToastify.min.css';
+import "react-datepicker/dist/react-datepicker.css";
 
 import { ChakraProvider } from '@chakra-ui/react';
 import { AppProps } from 'next/app';

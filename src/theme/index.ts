@@ -4,6 +4,9 @@ import colors from "./colors";
 import links from './links';
 import buttons from './buttons';
 import avatars from './avatars';
+import checkboxes from './checkboxes';
+import radio from './radio';
+import numberInput from './numberInput';
 
 const global = {
   colors,
@@ -20,6 +23,9 @@ export default extendTheme(
 	{ breakpoints },
   global,
   links,
+  checkboxes,
+  radio,
+  numberInput,
   buttons,
   avatars,
 );
