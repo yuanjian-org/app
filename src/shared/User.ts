@@ -44,15 +44,17 @@ export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
 
 export const defaultMentorCapacity = 3;
 
-export const zUserPreference = z.object({
-  // TODO: rename to `interviewer` and create zInterviewerProfile
-  interviews: z.object({
-    optIn: z.boolean().optional(),
-    limit: z.object({
-      noMoreThan: z.number(),
-      until: z.coerce.string(),
-    }).optional(),
+export const zInterviewerPreference = z.object({
+  optIn: z.boolean().optional(),
+  limit: z.object({
+    noMoreThan: z.number(),
+    until: z.coerce.string(),
   }).optional(),
+});
+export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
+
+export const zUserPreference = z.object({
+  interviewer: zInterviewerPreference.optional(),
   mentor: zMentorPreference.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;

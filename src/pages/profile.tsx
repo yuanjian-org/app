@@ -16,22 +16,19 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Heading,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import { useUserContext } from 'UserContext';
-import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { Divider } from '@chakra-ui/react';
 import DatePicker from "react-datepicker";
-import { UserPreference, zUserPreference } from 'shared/User';
-import { z } from 'zod';
+import { InterviewerPreference, UserPreference } from 'shared/User';
 import datePicker from 'theme/datePicker';
-import invariant from "tiny-invariant";
-
-type InterviewPref = z.TypeOf<typeof zUserPreference.shape.interviews>;
+import { isPermitted } from 'shared/Role';
 
 export default function Page() {
   const [user, setUser] = useUserContext();
@@ -41,14 +38,14 @@ export default function Page() {
   const [newCity, setNewCity] = useState(user.city || '');
   const [newWechat, setNewWechat] = useState(user.wechat || '');
 
-  const { data: pref } = trpcNext.users.getUserPreference.useQuery({ userId: user.id });
+  const { data: pref } = trpcNext.users.getUserPreference.useQuery(
+    { userId: user.id });
   const [unsaved, setUnsaved] = useState<UserPreference>();
   useEffect(() => setUnsaved(pref), [pref]);
 
-  const updateInterviewPref = (data: InterviewPref) => {
-    invariant(data !== undefined);
+  const updateInterviewPref = (data: InterviewerPreference) => {
     const newPref = structuredClone(pref) || {};
-    newPref.interviews = data;
+    newPref.interviewer = data;
     setUnsaved(newPref);
   };
 
@@ -71,7 +68,9 @@ export default function Page() {
   };
   
   return <VStack spacing={componentSpacing} maxWidth="lg" 
-    margin={sectionSpacing}>
+    margin={sectionSpacing} align="start"
+  >
+    <Heading size="md">基本信息</Heading>
     <FormControl>
       <FormLabel>邮箱</FormLabel>
       <Input value={user.email} readOnly />
@@ -107,19 +106,25 @@ export default function Page() {
         value={newCity} onChange={e => setNewCity(e.target.value)} />
     </FormControl>           
 
-    <Divider margin={componentSpacing} />
+    {/* Do not show interview options to mentees */}
+    {!isPermitted(user.roles, "Mentee") && <>
+      <Divider margin={componentSpacing} />
+      
+      <Heading size="md">面试官偏好</Heading>
 
-    <InterviewPreference data={unsaved?.interviews} 
-      updateData={updateInterviewPref} /> 
+      <InterviewPreferencePanel data={unsaved?.interviewer} 
+        updateData={updateInterviewPref} /> 
+    </>}
 
-    <Button onClick={handleSubmit} variant="brand">保存</Button>
-    {isLoading && <Loader loadingText='保存中...'/>}
+    <Button isLoading={isLoading} onClick={handleSubmit} variant="brand">
+      保存
+    </Button>
   </VStack>;
 }
 
-function InterviewPreference({ data, updateData } : {
-  data: InterviewPref;
-  updateData: (data: InterviewPref) => void;
+function InterviewPreferencePanel({ data, updateData } : {
+  data?: InterviewerPreference,
+  updateData: (data: InterviewerPreference) => void,
 }) {
   const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
   const threeMonthsDate = new Date(new Date().setMonth(new Date().getMonth() + 3));
@@ -152,7 +157,6 @@ function InterviewPreference({ data, updateData } : {
 
   return <>
     <FormControl>
-      <FormLabel>面试官偏好</FormLabel>
       <Checkbox isChecked={data?.optIn} 
         onChange={e => toggleOptIn(e.target.checked)}>
         我不是导师，但可以帮助面试学生。

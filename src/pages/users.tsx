@@ -104,6 +104,8 @@ export default function Page() {
   </>;
 };
 
+Page.title = "管理用户";
+
 function UserEditor(props: {
   user?: User, // When absent, create a new user.
   onClose: () => void,
