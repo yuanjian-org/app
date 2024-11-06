@@ -93,3 +93,5 @@ function Row({ user, preference, mentorships }: {
     <Td>{toPinyin(user.name ?? "")}</Td>
   </Tr>;
 }
+
+Page.title = "管理导师";
