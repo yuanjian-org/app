@@ -29,6 +29,7 @@ import { MentorProfile } from 'shared/MentorProfile';
 import invariant from "tiny-invariant";
 import { formatUserName, parseQueryStringOrUnknown } from 'shared/strings';
 import { useRouter } from 'next/router';
+import { MentorPreference, UserPreference } from 'shared/User';
 
 export const defaultMentorCapacity = 3;
 
@@ -41,40 +42,67 @@ export default function Page() {
   const [me] = useUserContext();
   const userId = queryUserId === "me" ? me.id : queryUserId;
 
-  const [isSaving, setIsSaving] = useState(false);
-  const { data, isLoading } = trpcNext.users.getMentorProfile.useQuery({
-    userId
-  }, {
+  const { data: user } = trpcNext.users.get.useQuery(userId);
+
+  /**
+   * Code block that updates UserPreference
+   */
+
+  const { data: oldPref } = 
+    trpcNext.users.getUserPreference.useQuery({ userId }, {
     // Avoid accidental override when switching between windows
     refetchOnWindowFocus: false
   });
-  const [unsaved, setUnsaved] = useState<MentorProfile>();
-  useEffect(() => setUnsaved(data?.profile), [data]);
+  const [pref, setPref] = useState<UserPreference>();
+  useEffect(() => setPref(oldPref), [oldPref]);
 
-  const updateUnsaved = (k: keyof MentorProfile, v: any) => {
-    invariant(unsaved);
-    const updated = structuredClone(unsaved);
-    // @ts-ignore
-    if (v !== undefined) updated[k] = v;
-    else delete updated[k];
-    setUnsaved(updated);
+  const updatePref = (k: keyof MentorPreference, v: any) => {
+    invariant(pref);
+    const updated = structuredClone(pref);
+    if (!updated.mentor) updated.mentor = {};
+    updated.mentor[k] = v;
+    setPref(updated);
   };
 
+  /**
+   * Code block that updates MentorProfile
+   */
+
+  const { data: oldProfile } = 
+    trpcNext.users.getMentorProfile.useQuery({ userId }, {
+    // Avoid accidental override when switching between windows
+    refetchOnWindowFocus: false
+  });
+  const [profile, setProfile] = useState<MentorProfile>();
+  useEffect(() => setProfile(oldProfile), [oldProfile]);
+
+  const updateProfile = (k: keyof MentorProfile, v: string) => {
+    invariant(profile);
+    const updated = structuredClone(profile);
+    if (v) updated[k] = v;
+    else delete updated[k];
+    setProfile(updated);
+  };
+
+  /**
+   * Code block that saves data to db
+   */
+
+  const [isSaving, setIsSaving] = useState(false);
+
   const save = async () => {
-    invariant(unsaved);
+    invariant(profile && pref);
     setIsSaving(true);
     try {
-      await trpc.users.setMentorProfile.mutate({
-        userId,
-        mentorProfile: unsaved,
-      });
+      await trpc.users.setUserPreference.mutate({ userId, preference: pref });
+      await trpc.users.setMentorProfile.mutate({ userId, profile });
       toast.success("保存成功。");
     } finally {
       setIsSaving(false);
     }
   };
 
-  return isLoading || !unsaved ? <Loader /> : <VStack
+  return !(pref && profile) ? <Loader /> : <VStack
     maxWidth="xl"
     align="start"
     spacing={componentSpacing} 
@@ -82,15 +110,15 @@ export default function Page() {
   >
     <Heading size="md">
       {userId === me.id ? "导师偏好" :
-        formatUserName(data?.user.name || "", "formal")}
+        formatUserName(user?.name || "", "formal")}
     </Heading>
 
     <FormControl>
       <Flex align="center">
         我可以同时带
         <NumberInput background="white" size="sm" maxW={20} mx={1} min={0}
-          value={unsaved.最多匹配学生 ?? defaultMentorCapacity} 
-          onChange={v => updateUnsaved('最多匹配学生', Number.parseInt(v))}
+          value={pref.mentor?.最多匹配学生 ?? defaultMentorCapacity} 
+          onChange={v => updatePref('最多匹配学生', Number.parseInt(v))}
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -108,8 +136,8 @@ export default function Page() {
     <FormControl>
       {/* TODO: remove this and use global styling */}
       <Checkbox sx={{ '.chakra-checkbox__control': { bg: 'white' } }}
-        isChecked={unsaved.不参加就业辅导 ?? false}
-        onChange={e => updateUnsaved('不参加就业辅导', e.target.checked)}
+        isChecked={pref.mentor?.不参加就业辅导 ?? false}
+        onChange={e => updatePref('不参加就业辅导', e.target.checked)}
       >
         我暂不参与简历诊断、模拟面试等就业辅导类服务。
       </Checkbox>
@@ -131,27 +159,27 @@ export default function Page() {
 
     <FormControl>
       <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
-      <Input bg="white" value={unsaved.身份头衔 || ""} 
-        onChange={ev => updateUnsaved('身份头衔', ev.target.value)}
+      <Input bg="white" value={profile.身份头衔 || ""} 
+        onChange={ev => updateProfile('身份头衔', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>职业经历（或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.职业经历 || ""} 
-        onChange={ev => updateUnsaved('职业经历', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
+        onChange={ev => updateProfile('职业经历', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历；或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.教育经历 || ""} 
-        onChange={ev => updateUnsaved('教育经历', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
+        onChange={ev => updateProfile('教育经历', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>简历链接</FormLabel>
       <UploadInstructions />
-      <Input bg="white" value={unsaved.简历链接 || ""} 
-        onChange={ev => updateUnsaved('简历链接', ev.target.value)}
+      <Input bg="white" value={profile.简历链接 || ""} 
+        onChange={ev => updateProfile('简历链接', ev.target.value)}
       />
     </FormControl>
 
@@ -160,56 +188,56 @@ export default function Page() {
       <FormHelperText mb={2}>
         上传文件方法见“简历链接”的文字说明。
       </FormHelperText>
-      <Input bg="white" value={unsaved.照片链接 || ""} 
-        onChange={ev => updateUnsaved('照片链接', ev.target.value)}
+      <Input bg="white" value={profile.照片链接 || ""} 
+        onChange={ev => updateProfile('照片链接', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>现居住地</FormLabel>
-      <Input bg="white" value={unsaved.现居住地 || ""} 
-        onChange={ev => updateUnsaved('现居住地', ev.target.value)}
+      <Input bg="white" value={profile.现居住地 || ""} 
+        onChange={ev => updateProfile('现居住地', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>成年之前曾经居住过的地域</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.曾居住地 || ""} 
-        onChange={ev => updateUnsaved('曾居住地', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
+        onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>个性特点</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.个性特点 || ""} 
-        onChange={ev => updateUnsaved('个性特点', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.个性特点 || ""} 
+        onChange={ev => updateProfile('个性特点', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>业余爱好和特长</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.爱好与特长 || ""} 
-        onChange={ev => updateUnsaved('爱好与特长', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
+        onChange={ev => updateProfile('爱好与特长', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>喜爱的图书、影视作品、网站、自媒体账号等</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.喜爱读物 || ""} 
-        onChange={ev => updateUnsaved('喜爱读物', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.喜爱读物 || ""} 
+        onChange={ev => updateProfile('喜爱读物', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>目前生活的日常（比如生活趣事、平常的业余活动、婚姻及子女情况等）</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.生活日常 || ""} 
-        onChange={ev => updateUnsaved('生活日常', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.生活日常 || ""} 
+        onChange={ev => updateProfile('生活日常', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.成长亮点 || ""} 
-        onChange={ev => updateUnsaved('成长亮点', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.成长亮点 || ""} 
+        onChange={ev => updateProfile('成长亮点', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>擅长辅导领域</FormLabel>
-      <Textarea bg="white" height={140} value={unsaved.擅长辅导领域 || ""} 
-        onChange={ev => updateUnsaved('擅长辅导领域', ev.target.value)}
+      <Textarea bg="white" height={140} value={profile.擅长辅导领域 || ""} 
+        onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
     </FormControl>
 
