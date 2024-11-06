@@ -73,6 +73,19 @@ interface DropdownMenuItem {
   icon?: React.ReactNode,
 }
 
+const mentorsDropdownMenuItems: DropdownMenuItem[] = [
+  {
+    name: '不定期导师',
+    action: '/mentors',
+    roles: ['MentorshipManager'],
+  },
+  {
+    name: '一对一导师',
+    action: '/mentors/matchable',
+    roles: ['MentorshipManager'],
+  },
+];
+
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
@@ -244,18 +257,28 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           .filter(item => isPermitted(me.roles, item.roles))
           .map(item => <SidebarRow key={item.path} item={item} 
                         onClose={onClose} />)}
-        <DropdownMenu
+
+        <DropdownMenuIfPermitted
+          title="导师列表"
+          icon={<Icon as={MdSupervisorAccount} marginRight="2" />}
+          menuItems={mentorsDropdownMenuItems}
+          onClose={onClose}
+        />
+
+        <DropdownMenuIfPermitted
           title="管理功能"
           icon={<Icon as={MdPerson2} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
+
         {mentorshipItems?.length > 0 && <Divider marginY={2} />}
         {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
           onClose={onClose} />)}
       </Box>
+
       <Box>
-        <DropdownMenu 
+        <DropdownMenuIfPermitted 
           title={userName} 
           icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
             />}
@@ -269,7 +292,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
 export default Sidebar;
 
-function DropdownMenu({ title, icon, menuItems, onClose } : {
+function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   title: string,
   icon: React.ReactNode,
   menuItems: DropdownMenuItem[],

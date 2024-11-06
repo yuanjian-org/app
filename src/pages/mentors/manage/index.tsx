@@ -15,9 +15,8 @@ import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import { defaultMentorCapacity } from './[mentorId]';
 import NextLink from 'next/link';
-import User, { MentorPreference } from 'shared/User';
+import User, { defaultMentorCapacity, MentorPreference } from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
 /**
@@ -69,8 +68,7 @@ function Row({ user, preference, mentorships }: {
     'Mentor';
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
 
-  const capacity = preference?.最多匹配学生 ||
-    defaultMentorCapacity;
+  const capacity = preference?.最多匹配学生 || defaultMentorCapacity;
   const isDefaultCapacity = preference?.最多匹配学生 === undefined;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 

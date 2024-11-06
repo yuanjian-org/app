@@ -17,6 +17,7 @@ import {
   NumberInputField,
   NumberDecrementStepper,
   Checkbox,
+  HStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import trpc, { trpcNext } from "../../../trpc";
@@ -29,9 +30,9 @@ import { MentorProfile } from 'shared/MentorProfile';
 import invariant from "tiny-invariant";
 import { formatUserName, parseQueryStringOrUnknown } from 'shared/strings';
 import { useRouter } from 'next/router';
-import { MentorPreference, UserPreference } from 'shared/User';
-
-export const defaultMentorCapacity = 3;
+import { defaultMentorCapacity, MentorPreference, UserPreference } from 'shared/User';
+import MarkdownSupport from 'components/MarkdownSupport';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -151,13 +152,17 @@ export default function Page() {
 
     <Heading size="md">展示信息</Heading>
 
-    <Text mb={sectionSpacing}>
+    <Text>
       以下信息是学生了解导师的重要渠道，也是他们
       <Link href="/s/matchmaking" target="_blank">填写初次匹配意向</Link>
       时的唯一参考。请详尽填写，并展现出最真实的你。
     </Text>
 
-    <FormControl>
+    <Text color="red.700">【注意】请务必手工保存更新，本页不会自动保存。</Text>
+
+    <MarkdownSupport prefix="【提示】所有文字均" />
+
+    <FormControl mt={sectionSpacing}>
       <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
@@ -244,6 +249,12 @@ export default function Page() {
     <Button onClick={save} variant="brand" isLoading={isSaving}>
       保存
     </Button>
+
+    <Text><Link href={`/mentors/${userId}`} target='_blank'>
+      <HStack>
+        <Text>查看网页效果</Text> <ExternalLinkIcon />
+      </HStack>
+    </Link></Text>
   </VStack>;
 }
 
@@ -256,3 +267,5 @@ function UploadInstructions() {
     拷贝文件链接，并复制到下面的输入框：
   </FormHelperText>;
 }
+
+Page.title = "导师信息";

@@ -42,6 +42,8 @@ export const zMentorPreference = z.object({
 });
 export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
 
+export const defaultMentorCapacity = 3;
+
 export const zUserPreference = z.object({
   // TODO: rename to `interviewer` and create zInterviewerProfile
   interviews: z.object({

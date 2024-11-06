@@ -23,7 +23,7 @@ import invariant from "tiny-invariant";
 import { Op } from "sequelize";
 import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
-import { zMentorPreference, zUser } from "shared/User";
+import { defaultMentorCapacity, zMentorPreference, zMinUser, zUser } from "shared/User";
 import { zMentorProfile } from "shared/MentorProfile";
 
 const create = procedure
@@ -128,8 +128,9 @@ const listMyMentorshipsAsCoach = procedure
 const listMentors = procedure
 .use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
 .output(z.array(z.object({
-  user: zUser,
-  mentorProfile: zMentorProfile.nullable(),
+  user: zMinUser,
+  matchable: z.boolean(),
+  profile: zMentorProfile.nullable(),
 })))
 .query(async () =>
 {
@@ -137,12 +138,54 @@ const listMentors = procedure
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...userAttributes, "mentorProfile"],
-    include: userInclude,
+    attributes: [...minUserAttributes, "preference", "mentorProfile"],
   });
 
-  // A map from user to the number of mentorships of this user as a mentor
-  const user2mentorships = (await db.Mentorship.findAll({
+  const user2mentorships = await getUser2MentorshipCount();
+  const ret = users.map(u => ({
+      user: u,
+      profile: u.mentorProfile,
+      matchable: (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
+        - (user2mentorships[u.id] || 0) > 0,
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
+});
+
+const getMentor = procedure
+.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
+.input(z.object({
+  userId: z.string()
+})).output(z.object({
+  user: zMinUser,
+  profile: zMentorProfile.nullable(),
+}))
+.query(async ({ input: { userId } }) =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: {
+      id: userId,
+      roles: { [Op.contains]: [mentorRole] },
+    },
+    attributes: [...minUserAttributes, "mentorProfile"],
+  });
+  invariant(users.length <= 1);
+  if (!users.length) throw notFoundError("导师", userId);
+
+  return {
+    user: users[0],
+    profile: users[0].mentorProfile,
+  };
+});
+
+/**
+ * Return a map from user to the number of mentorships of this user as a mentor
+ */
+async function getUser2MentorshipCount() {
+  return (await db.Mentorship.findAll({
     where: { endedAt: null },
     attributes: [
       'mentorId',
@@ -150,19 +193,10 @@ const listMentors = procedure
     ],
     group: ['mentorId']
   })).reduce<{ [key: string]: number }>((acc, cur) => {
-      acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
-      return acc;
-    }, {});
-
-  const ret = users.map(user => ({
-      user,
-      mentorProfile: user.mentorProfile,
-      mentorships: user2mentorships[user.id] || 0,
-    }));
-
-  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
-  return ret;
-});
+    acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
+    return acc;
+  }, {});
+}
 
 const listMentorStats = procedure
 .use(authUser("MentorshipManager"))
@@ -181,23 +215,11 @@ const listMentorStats = procedure
     include: userInclude,
   });
 
-  // A map from user to the number of mentorships of this user as a mentor
-  const user2mentorships = (await db.Mentorship.findAll({
-    where: { endedAt: null },
-    attributes: [
-      'mentorId',
-      [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
-    ],
-    group: ['mentorId']
-  })).reduce<{ [key: string]: number }>((acc, cur) => {
-      acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
-      return acc;
-    }, {});
-
-  const ret = users.map(user => ({
-      user,
-      mentorPreference: user.preference?.mentor ?? null,
-      mentorships: user2mentorships[user.id] || 0,
+  const user2mentorships = await getUser2MentorshipCount();
+  const ret = users.map(u => ({
+      user: u,
+      mentorPreference: u.preference?.mentor ?? null,
+      mentorships: user2mentorships[u.id] || 0,
     }));
 
   ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
@@ -267,6 +289,7 @@ const get = procedure
 export default router({
   create,
   get,
+  getMentor,
   update,
   listMyMentorshipsAsMentor,
   listMyMentorshipsAsCoach,
