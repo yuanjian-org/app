@@ -64,8 +64,7 @@ function Row({ user, interviews, preference }: {
     ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
     ? 'Mentor' : null;
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
-  const until = preference?.interviewer?.limit?.until;
-  const noMoreThan = preference?.interviewer?.limit?.noMoreThan;
+  const limit = preference?.interviewer?.limit;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>{user.name}</Td>
@@ -76,8 +75,8 @@ function Row({ user, interviews, preference }: {
     </Td>
     <Td>{interviews}</Td>
     <Td>
-      {noMoreThan !== undefined && until !== undefined 
-        && `${noMoreThan} 直到 ${until.slice(0, 10)}`}
+      {/* slice() to trim a full date-time string to just the date string */}
+      {limit && `${limit.noMoreThan} 直到 ${limit.until.slice(0, 10)}`}
     </Td>
     <Td>{user.sex}</Td>
     <Td>{user.city}</Td>
