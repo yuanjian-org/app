@@ -68,7 +68,7 @@ function Row({ user, preference, mentorships }: {
     'Mentor';
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
 
-  const capacity = preference?.最多匹配学生 || defaultMentorCapacity;
+  const capacity = preference?.最多匹配学生 ?? defaultMentorCapacity;
   const isDefaultCapacity = preference?.最多匹配学生 === undefined;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
