@@ -27,7 +27,7 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
-import { zUser } from "../../shared/User";
+import { zInterviewerPreference, zUser } from "../../shared/User";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -186,11 +186,12 @@ const listInterviewerStats = procedure
 .output(z.array(z.object({
   user: zUser,
   interviews: z.number(),
+  limit: zInterviewerPreference.shape.limit,
 })))
 .query(async () =>
 {
   const users = await db.User.findAll({
-    attributes: userAttributes,
+    attributes: [...userAttributes, 'preference'],
     include: userInclude,
   });
 
@@ -208,10 +209,12 @@ const listInterviewerStats = procedure
 
   const stats = users
     .filter(user => user2interviews[user.id] 
+      || user.preference?.interviewer?.optIn === true
       || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
     .map(user => ({
       user,
       interviews: user2interviews[user.id] || 0,
+      limit: user.preference?.interviewer?.limit, 
     }));
 
   stats.sort((a, b) => a.interviews - b.interviews);

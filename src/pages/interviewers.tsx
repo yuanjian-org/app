@@ -30,6 +30,7 @@ export default function Page() {
           <Th>面试官</Th>
           <Th>角色</Th>
           <Th>总面试量</Th>
+          <Th>面试限制</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
           <Th>邮箱</Th>
@@ -43,6 +44,8 @@ export default function Page() {
           key={s.user.id}
           user={s.user}
           interviews={s.interviews}
+          until={s.limit?.until}
+          noMoreThan={s.limit?.noMoreThan}
         />)}
       </Tbody>
     </Table>
@@ -53,14 +56,19 @@ export default function Page() {
   </TableContainer>;
 }
 
-function Row({ user, interviews }: {
+function Row({ user, interviews, until, noMoreThan }: {
   user: User,
   interviews: number,
+  noMoreThan: number | undefined,
+  until: string | undefined,
 }) {
   const role = isPermitted(user.roles, 'MentorCoach')
     ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
-    ? 'Mentor' : null;
-  const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
+    ? 'Mentor' : isPermitted(user.roles, 'Interviewer')
+    ? 'Interviewer' : null;
+  const roleColorScheme = role == 'MentorCoach' 
+    ? "yellow" : role == 'Mentor'
+    ? "teal" : "brand";
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>{user.name}</Td>
@@ -70,6 +78,10 @@ function Row({ user, interviews }: {
       </Tag>}
     </Td>
     <Td>{interviews}</Td>
+    <Td>
+      {noMoreThan !== undefined && until !== undefined 
+        ? `${noMoreThan} 直到 ${until.slice(0, 10)}` : ''}
+    </Td>
     <Td>{user.sex}</Td>
     <Td>{user.city}</Td>
     <Td>{user.email}</Td>
