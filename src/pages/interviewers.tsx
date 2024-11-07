@@ -14,7 +14,7 @@ import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import User from 'shared/User';
+import User, { UserPreference } from 'shared/User';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -44,8 +44,7 @@ export default function Page() {
           key={s.user.id}
           user={s.user}
           interviews={s.interviews}
-          until={s.limit?.until}
-          noMoreThan={s.limit?.noMoreThan}
+          preference={s.preference}
         />)}
       </Tbody>
     </Table>
@@ -56,19 +55,17 @@ export default function Page() {
   </TableContainer>;
 }
 
-function Row({ user, interviews, until, noMoreThan }: {
+function Row({ user, interviews, preference }: {
   user: User,
   interviews: number,
-  noMoreThan: number | undefined,
-  until: string | undefined,
+  preference: UserPreference | null,
 }) {
   const role = isPermitted(user.roles, 'MentorCoach')
     ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
-    ? 'Mentor' : isPermitted(user.roles, 'Interviewer')
-    ? 'Interviewer' : null;
-  const roleColorScheme = role == 'MentorCoach' 
-    ? "yellow" : role == 'Mentor'
-    ? "teal" : "brand";
+    ? 'Mentor' : null;
+  const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
+  const until = preference?.interviewer?.limit?.until;
+  const noMoreThan = preference?.interviewer?.limit?.noMoreThan;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>{user.name}</Td>
@@ -80,7 +77,7 @@ function Row({ user, interviews, until, noMoreThan }: {
     <Td>{interviews}</Td>
     <Td>
       {noMoreThan !== undefined && until !== undefined 
-        ? `${noMoreThan} 直到 ${until.slice(0, 10)}` : ''}
+        && `${noMoreThan} 直到 ${until.slice(0, 10)}`}
     </Td>
     <Td>{user.sex}</Td>
     <Td>{user.city}</Td>

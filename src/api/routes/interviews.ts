@@ -27,7 +27,7 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
-import { zInterviewerPreference, zUser } from "../../shared/User";
+import { zUser, zUserPreference } from "../../shared/User";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -186,7 +186,7 @@ const listInterviewerStats = procedure
 .output(z.array(z.object({
   user: zUser,
   interviews: z.number(),
-  limit: zInterviewerPreference.shape.limit,
+  preference: zUserPreference.nullable(),
 })))
 .query(async () =>
 {
@@ -214,7 +214,7 @@ const listInterviewerStats = procedure
     .map(user => ({
       user,
       interviews: user2interviews[user.id] || 0,
-      limit: user.preference?.interviewer?.limit, 
+      preference: user.preference,
     }));
 
   stats.sort((a, b) => a.interviews - b.interviews);
