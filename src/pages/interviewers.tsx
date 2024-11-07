@@ -14,7 +14,7 @@ import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import User from 'shared/User';
+import User, { UserPreference } from 'shared/User';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -30,6 +30,7 @@ export default function Page() {
           <Th>面试官</Th>
           <Th>角色</Th>
           <Th>总面试量</Th>
+          <Th>面试限制</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
           <Th>邮箱</Th>
@@ -43,6 +44,7 @@ export default function Page() {
           key={s.user.id}
           user={s.user}
           interviews={s.interviews}
+          preference={s.preference}
         />)}
       </Tbody>
     </Table>
@@ -53,14 +55,16 @@ export default function Page() {
   </TableContainer>;
 }
 
-function Row({ user, interviews }: {
+function Row({ user, interviews, preference }: {
   user: User,
   interviews: number,
+  preference: UserPreference | null,
 }) {
   const role = isPermitted(user.roles, 'MentorCoach')
     ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
     ? 'Mentor' : null;
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
+  const limit = preference?.interviewer?.limit;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>{user.name}</Td>
@@ -70,6 +74,10 @@ function Row({ user, interviews }: {
       </Tag>}
     </Td>
     <Td>{interviews}</Td>
+    <Td>
+      {/* slice() to trim a full date-time string to just the date string */}
+      {limit && `${limit.noMoreThan} 直到 ${limit.until.slice(0, 10)}`}
+    </Td>
     <Td>{user.sex}</Td>
     <Td>{user.city}</Td>
     <Td>{user.email}</Td>
