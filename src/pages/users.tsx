@@ -23,6 +23,8 @@ import {
   WrapItem,
   Flex,
   TableContainer,
+  RadioGroup,
+  Radio,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
@@ -35,6 +37,7 @@ import { useUserContext } from 'UserContext';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
+import { componentSpacing } from 'theme/metrics';
 
 export default function Page() {
   const [filter ] = useState<UserFilter>({});
@@ -101,6 +104,8 @@ export default function Page() {
   </>;
 };
 
+Page.title = "管理用户";
+
 function UserEditor(props: {
   user?: User, // When absent, create a new user.
   onClose: () => void,
@@ -108,12 +113,18 @@ function UserEditor(props: {
   const u = props.user ?? {
     email: '',
     name: '',
+    wechat: '',
+    city: '',
+    sex: '',
     roles: [],
   };
 
   const [me] = useUserContext();
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
+  const [wechat, setWechat] = useState(u.wechat || '');
+  const [city, setCity] = useState(u.city|| '');
+  const [sex, setSex] = useState(u.sex || '');
   const [roles, setRoles] = useState(u.roles);
   const [saving, setSaving] = useState(false);
   const validName = isValidChineseName(name);
@@ -131,10 +142,13 @@ function UserEditor(props: {
         const u = structuredClone(props.user);
         u.email = email;
         u.name = name;
+        u.wechat = wechat;
+        u.city = city;
+        u.sex = sex;
         u.roles = roles;
         await trpc.users.update.mutate(u);
       } else {
-        await trpc.users.create.mutate({ name, email, roles });
+        await trpc.users.create.mutate({ name, wechat,city, sex, email, roles });
       }
       props.onClose();
     } finally {
@@ -160,10 +174,27 @@ function UserEditor(props: {
             <Input type='email' value={email} onChange={e => setEmail(e.target.value)} />
             <FormErrorMessage>需要填写有效Email地址。</FormErrorMessage>
           </FormControl>
+          <FormControl>
+            <FormLabel>微信</FormLabel>
+            <Input value={wechat} onChange={e => setWechat(e.target.value)} />
+          </FormControl>
           <FormControl isRequired isInvalid={!validName}>
             <FormLabel>姓名</FormLabel>
             <Input value={name} onChange={e => setName(e.target.value)} />
             <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
+          </FormControl>
+          <FormControl display="flex" gap={componentSpacing}>
+            <FormLabel>性别</FormLabel>
+            <RadioGroup value={sex} onChange={setSex}>
+              <Stack direction="row">
+               <Radio background="white" value="男">男</Radio>
+               <Radio background="white" value="女">女</Radio>
+              </Stack>
+            </RadioGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel>居住的中国城市或者国家+城市</FormLabel>
+            <Input value={city} onChange={e => setCity(e.target.value)} />
           </FormControl>
 
           {isPermitted(me.roles, "UserManager") && <FormControl>

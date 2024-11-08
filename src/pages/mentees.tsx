@@ -26,10 +26,10 @@ import {
   Tooltip,
   Tag,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import MenteeStatusSelect from 'components/MenteeStatusSelect';
@@ -44,14 +44,16 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
-import { formatMentorshipEndedAtText } from './mentees/[userId]';
+import { formatMentorshipEndedAtText } from './mentees/[menteeId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
+import { menteeSourceField } from 'shared/menteeApplicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
+import { widePage } from 'AppPage';
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
 
-export default function Page() {
+export default widePage(() => {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
@@ -74,7 +76,7 @@ export default function Page() {
       }
     </Flex>
   </>;
-};
+}, "学生档案");
 
 function MenteeTable({ users, refetch }: {
   users: User[],
@@ -92,6 +94,14 @@ function MenteeTable({ users, refetch }: {
       });
     }
   , []);
+
+  const sortedUsers = useMemo(() => {
+    return users.sort((a, b) => {
+      const comp = (menteeToYear.get(b.id) || "")
+        .localeCompare(menteeToYear.get(a.id) || "");
+      return comp !== 0 ? comp : compareChinese(a.name, b.name);
+    });
+  }, [users, menteeToYear]); 
  
   return <Table size="sm">
     <Thead>
@@ -105,19 +115,9 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {users.sort((a: User, b: User) => {
-        const yearA = menteeToYear.get(a.id) || "";
-        const yearB = menteeToYear.get(b.id) || "";
-
-        if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal');
-          const nameB = formatUserName(b.name, 'formal');
-          return nameA.localeCompare(nameB);
-        }
-
-        return yearB.localeCompare(yearA);
-      }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
-          updateMenteeYear={updateMenteeYear} />)
+      {sortedUsers.map((u: User) =>
+        <MenteeRow key={u.id} user={u} refetch={refetch} 
+        updateMenteeYear={updateMenteeYear} />)
       }
     </Tbody>
   </Table>;
@@ -133,7 +133,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
 
   const setStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
-    await trpc.users.updateMenteeStatus.mutate({ userId: u.id, menteeStatus });
+    await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
 
@@ -176,6 +176,7 @@ function getColorFromText(text: string): string {
 function MenteeHeaderCells() {
   return <>
     <Th>录取届</Th>
+    <Th>来源</Th>
     <Th>姓名</Th>
   </>;
 }
@@ -191,6 +192,9 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
 
   const year = (data?.application as Record<string, any>)
     ?.[menteeAcceptanceYearField];
+  
+    const source = (data?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   useEffect(() => {
     if (updateMenteeYear) {
@@ -202,9 +206,12 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
     {/* Acceptance Year */}
     <Td>{year && <Tag colorScheme={getColorFromText(year)}>{year}</Tag>}</Td>
 
+    {/* Source */}
+    <Td>{source}</Td>
+
     {/* Name */}
     <Td><Link as={NextLink} href={`/mentees/${mentee.id}`}>
-      {mentee.name} <ChevronRightIcon />
+      <b>{mentee.name}</b> <ChevronRightIcon />
     </Link></Td>
   </>;
 }
@@ -223,7 +230,7 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(mentee.id);
+  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee.useQuery(mentee.id);
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order

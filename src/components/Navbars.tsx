@@ -29,6 +29,11 @@ import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 
 export const sidebarWidth = 60;
+
+/**
+ * The breakpoint at which the sidebar becomes visible (desktop) or insivible
+ * (mobile). Commonly used as mobile-vs-desktop breakpoint.
+ */
 export const sidebarBreakpoint = "lg";
 
 /**
@@ -61,11 +66,16 @@ export default function Navbars({
   }, [stateRef]);
 
   return (
-    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight, colors.backgroundDark)}>
+    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight,
+      colors.backgroundDark)}
+    >
+      {/* The sidebar on desktop */}
       <Sidebar
         onClose={() => onClose}
         display={{ base: 'none', [sidebarBreakpoint]: 'block' }}
       />
+
+      {/* The sidebar on mobile */}
       <Drawer
         autoFocus={false}
         isOpen={isOpen}
@@ -73,12 +83,15 @@ export default function Navbars({
         onClose={onClose}
         returnFocusOnClose={false}
         onOverlayClick={onClose}
-        size="xs">
+        size="xs"
+      >
         <DrawerContent>
           <Sidebar onClose={onClose} />
         </DrawerContent>
       </Drawer>
+
       <Topbar onOpen={onOpen} autosaveState={autosaveState} />
+
       <Box marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}>
         <AutosaveContext.Provider value={{
           addPendingSaver: addPS,
@@ -99,8 +112,7 @@ interface TopbarProps extends FlexProps {
 
 const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
-    <Flex
-      justifyContent="flex-end">
+    <Flex justifyContent="flex-end">
       <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
         <IconButton
           zIndex={2}

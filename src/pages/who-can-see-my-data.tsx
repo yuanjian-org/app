@@ -22,9 +22,11 @@ export default function Page() {
     <PageBreadcrumb current='谁能看到我的数据' />
     <Flex direction='column' gap={10}>
       <Text>
-        <Link isExternal href='http://yuanjian.org'>远见教育基金会</Link>（远见）致力保护个人隐私，仅收集供服务所需的最少信息。
-        同时，我们严格控制数据的访问权限，仅授权提供服务所必需的、已经签署保密协议的远见工作人员。以下列出本网站所搜集的个人数据，
-        以及已授权数据访问的人员名单。这些信息会随时间变化而调整，恕不另行通知。欢迎您随时访问本网页，查阅最新信息。如有任何问题，请随时
+        <Link isExternal href='http://mentors.org.cn/static'>社会导师服务平台</Link>
+        （简称平台）致力保护个人隐私，仅收集供服务所需的最少信息。同时，我们严格控制数据的访问
+        权限，仅授权提供服务所必需的、已经签署保密协议的平台工作人员。以下列出本网站所搜集的
+        个人数据，以及已授权数据访问的人员名单。这些信息会随时间变化而调整，恕不另行通知。
+        欢迎您随时访问本网页，查阅最新信息。如有任何问题，请随时
         <Link isExternal href="mailto:hi@yuanjian.org">联系我们</Link>。
       </Text>
       <Heading size="md">角色和人员名单</Heading>

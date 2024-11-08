@@ -1,12 +1,23 @@
-import { Link, Text, HStack, PinInput, PinInputField, Heading } from '@chakra-ui/react';
+import {
+  Link, 
+  Text, 
+  HStack, 
+  PinInput, 
+  PinInputField,
+  Heading 
+} from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import NextLink from "next/link";
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { localStorageKeyForLoginCallbackUrl, localStorageKeyForLoginEmail } from './login';
+import {
+  callbackUrlKey,
+  localStorageKeyForLoginCallbackUrl,
+  localStorageKeyForLoginEmail
+} from './login';
 
-export default function VerifyRequest() {
+export default function Page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -23,7 +34,8 @@ export default function VerifyRequest() {
         // next-auth automatically convert all email addresses to lower case.
         const lower = email.toLowerCase();
         await router.push(`/api/auth/callback/sendgrid?` +
-          `callbackUrl=${encodeURIComponent(callbackUrl)}&token=${token}&email=${encodeURIComponent(lower)}`);
+          `${callbackUrlKey}=${encodeURIComponent(callbackUrl)}` +
+          `&token=${token}&email=${encodeURIComponent(lower)}`);
       }
     } finally {
       setIsLoading(false);
@@ -45,7 +57,8 @@ export default function VerifyRequest() {
     </HStack>
 
     <Text>{' '}</Text>
-    <Text>验证码已发至 <b>{email}</b>。若未收到邮件，请核对邮箱地址、检查垃圾收件箱，或者返回上一页重试。</Text>
+    <Text>验证码已发至 <b>{email}</b>。若未收到邮件，请核对邮箱地址、检查垃圾收件箱，{
+      }或者返回上一页重试。</Text>
     <Text><Link as={NextLink} href="/">返回重试</Link></Text>
 
     {/* For some reason `opacity=0` doesn't work */}

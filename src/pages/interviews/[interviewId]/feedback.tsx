@@ -49,8 +49,6 @@ export default widePage(() => {
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 
-    {/* <GroupBar group={interview.group} showGroupName={false} showJoinButton marginBottom={8} /> */}
-
     {!interviewerTestPassed() ? <PassTestFirst type={i.type} /> :
       <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
@@ -75,9 +73,10 @@ function PassTestFirst({ type } : { type : InterviewType}) {
     <b>请首先完成面试官测试</b>
     <p>通过<Link isExternal href="https://jsj.top/f/w02l95">
       《面试流程和标准测试》</Link>后，刷新此页，即可看到面试信息。</p>
-      {type == "MentorInterview" &&
-        <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
-      <p>为了避免遗忘，我们要求300天以后重新测试，感谢你的理解！</p>
+    <p>请注意：测试的通过分数是 <b>120</b> 分。</p>
+    {type == "MentorInterview" &&
+      <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
+    <p>为了避免遗忘，我们要求300天以后重新测试，感谢理解！</p>
   </Flex>;
 }
 
@@ -106,7 +105,7 @@ function Instructions({ type, interviewers }: {
       <ListItem>用<Icon as={BsWechat} marginX={1.5} />微信发起视频群聊。</ListItem>
       {first !== null && <>
         <ListItem>
-          你负责<mark>提问维度 {first ? firstHalf : secondHalf} </mark>；
+          <mark>你负责提问维度 {first ? firstHalf : secondHalf} </mark>；
           {otherName}负责维度 {first ? secondHalf : firstHalf} 。
         </ListItem>
         <ListItem><mark>填写所有{isMentee ? '八' : '十'}个维度</mark>的评价和总评。</ListItem>
@@ -126,7 +125,7 @@ function Instructions({ type, interviewers }: {
       </> : <>
         <ListItem>
           <Link isExternal href="https://www.notion.so/yuanjian/7ded3b1de3ef4c35a2a669a4c6bc7ac1">
-            导师招聘标准和须知 <ExternalLinkIcon />
+            导师面试流程和标准 <ExternalLinkIcon />
           </Link>
         </ListItem>        
       </>}

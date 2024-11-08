@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { zMinUser } from "./User";
+
+export const MAX_LANDMARK_SCORE = 4;
 
 export const Longtitudes = [
     "情感",
@@ -23,9 +26,22 @@ export const zLandmark = z.object({
     定义: z.string(),
     经度: zLongtitude,
     纬度: zLatitude,
-    层级: z.array(z.string()).length(4),
+    层级: z.array(z.string()).length(MAX_LANDMARK_SCORE),
     相关地标: z.array(z.string()).optional(),
     工具箱: z.string().optional(),
   });
 
 export type Landmark = z.TypeOf<typeof zLandmark>;
+
+export const zLandmarkScore = z.number().int().min(1).max(MAX_LANDMARK_SCORE);
+
+export type LandmarkScore = z.TypeOf<typeof zLandmarkScore>;
+
+export const zLandmarkAssessment = z.object({
+    createdAt: z.coerce.string().optional(),
+    score: zLandmarkScore,
+    markdown: z.string().nullable(),
+    assessor: zMinUser.nullable(),
+});
+
+export type LandmarkAssessment = z.TypeOf<typeof zLandmarkAssessment>;

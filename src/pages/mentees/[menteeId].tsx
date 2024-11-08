@@ -22,9 +22,9 @@ import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
 
 export default widePage(() => {
-  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
   const { data: u } = trpcNext.users.get.useQuery(userId);
-  const { data: mentorships } = trpcNext.mentorships.listForMentee
+  const { data: mentorships } = trpcNext.mentorships.listMentorshipsForMentee
     .useQuery(userId);
 
   return !u ? <Loader /> : <>
@@ -55,8 +55,8 @@ function MenteeTabs({ mentee, mentorships }: {
         )
       }
       <Tab>内部笔记</Tab>
-      <Tab>基本信息</Tab>
-      <Tab>面试资料</Tab>
+      <Tab>申请表</Tab>
+      <Tab>面试页</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
 
@@ -88,7 +88,7 @@ function InterviewTabPanel({ menteeId }: {
   return <TabPanel>
     {isLoading ? <Loader /> : 
       interviewId ? <Interview interviewId={interviewId} readonly /> :
-        <Text color="grey">没有面试资料。</Text>
+        <Text color="grey">没有面试记录。</Text>
     }
   </TabPanel>;
 }

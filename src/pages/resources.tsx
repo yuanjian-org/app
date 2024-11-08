@@ -16,7 +16,10 @@ export default fullPage(() => {
     <Box
       width="100%"
       height="100vh"
-      marginTop={{ base: sidebarContentMarginTop, [sidebarBreakpoint]: -sidebarContentMarginTop }}
+      marginTop={{
+        base: sidebarContentMarginTop,
+        [sidebarBreakpoint]: -sidebarContentMarginTop
+      }}
     >
       <iframe
         src="https://f179b1fd0cd3453e9f34d95e95dc5f.super.site"
@@ -25,4 +28,4 @@ export default fullPage(() => {
       />
     </Box>
   );
-});
+}, "资源库");

@@ -10,18 +10,22 @@ import { toast } from 'react-toastify';
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
 
+export const callbackUrlKey = "callbackUrl";
+
 /**
- * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after logging in.
+ * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
+ * logging in.
  */
-export default function Login() {
+export default function Page() {
   const router = useRouter();
 
   // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Protect local storage reads from being called without a browser window, which may occur during server-side
-  // rendering and prerendering (by Vercel at build time).
+  // Protect local storage reads from being called without a browser window,
+  // which may occur during server-side rendering and prerendering (by Vercel at
+  // build time).
   useEffect(() => {
     setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
   }, []);
@@ -33,13 +37,13 @@ export default function Login() {
       toast.error("验证码无效，可能已经过期或者被使用。请重新登录。");
     } else if (err) {
       // See https://next-auth.js.org/configuration/pages#error-page
-      console.error(`Unkonwn error on /auht/verify: ${err}`);
+      console.error(`Unkonwn error on /auth/verify: ${err}`);
       toast.error(`糟糕，系统错误，请联系管理员：${err}`);
     }  
   }, [router]);
 
   const submit = async () => {
-    const callbackUrl = parseQueryString(router, "callbackUrl") ?? "/";
+    const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
       const res = await signIn('sendgrid', { email, callbackUrl, redirect: false });
@@ -64,24 +68,24 @@ export default function Login() {
   const isValidEmail = () => z.string().email().safeParse(email).success;
 
   return <>
-    <Heading size="md" marginBottom={10}>欢迎来到远图</Heading>
+    <Heading size="md" marginBottom={10}>社会导师服务平台</Heading>
 
     <InputGroup>
       <InputLeftElement pointerEvents='none'>
         <EmailIcon color='gray.400' />
       </InputLeftElement>
 
-      {/* `name="email"` to hint password management tools about the nature of this input */}
-      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱" autoFocus 
-        value={email} onChange={(ev) => setEmail(ev.target.value)}
+      {/* `name="email"` to express intent for password management tools */}
+      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱"
+        autoFocus value={email} onChange={(ev) => setEmail(ev.target.value)}
         onKeyDown={async ev => {
           if (ev.key == "Enter" && isValidEmail()) await submit(); 
         }}
       />
     </InputGroup>
 
-    <Button variant="brand" width="full" onClick={submit} isDisabled={!isValidEmail()}
-      isLoading={isLoading}
+    <Button variant="brand" width="full" isDisabled={!isValidEmail()}
+      isLoading={isLoading} onClick={submit}
     >登录 / 注册</Button>
   </>;
 }

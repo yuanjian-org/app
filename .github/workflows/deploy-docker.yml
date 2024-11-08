@@ -1,0 +1,95 @@
+# Setup Instructions
+# =====
+#
+# Prepare the server host machine:
+#
+# 1. Add SSH public key
+# 2. Install Docker
+# 3. Clone this git repository to ~/app
+# 4. Create ~/app/.env according to the instructions in .env.template
+# 5. Issue certificate by running `certbot certonly -d ${SERVER_HOSTNAME}` and
+#    following instructions. This command will also set up automatic renewal.
+#
+# Configure Github Actions seretes and variables at
+#   Settings > Secrets and Variables > Actions:
+#
+#   DOCKER_REPO_URL
+#   DOCKER_REPO_USERNAME
+#   DOCKER_REPO_PASSWORD: The repository information for the Docker container to
+#     be pushed.
+#
+#   SERVER_HOSTNAME
+#   SERVER_SSH_USERNAME
+#   SERVER_SSH_PRIVATE_KEY: Infromation to SSH into the server.
+#
+# Finally, push to main to trigger this Github Action.
+#
+name: Deploy Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker
+      run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
+
+    - name: Create .env file
+      run: echo "APP_DOCKER_IMAGE=${{ vars.APP_DOCKER_IMAGE }}" > .env
+
+    - name: Build Docker image
+      run: docker compose build
+
+    - name: Push Docker image
+      run: docker compose push
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client
+
+    - name: Add SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ vars.SERVER_HOSTNAME }}
+        config: |
+          Host ${{ vars.SERVER_HOSTNAME }}
+            User ${{ secrets.SERVER_SSH_USERNAME }}
+            StrictHostKeyChecking no
+
+    - name: Deploy to server
+      run: |
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          cd ~/app
+
+          echo ">>> Pulling origin/main to get latest docker-compose.yml"
+          git checkout main
+          git pull
+
+          echo ">>> Restarting Docker containers"
+          docker compose pull
+          docker compose down
+          docker compose up -d
+
+          echo ">>> Waiting for containers to boot up"
+          sleep 5
+
+          echo ">>> Migrating database"
+          source .env
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/migration.migrateDatabase
+        EOF

@@ -4,7 +4,7 @@ import User, { createUser } from '../database/models/User';
 
 const input = {
   "form": "w02l95",
-  "form_name": "远见招生面试流程及标准测试",
+  "form_name": "Foo",
   "entry": {
     "field_1": "测试员",
     "exam_score": 120,

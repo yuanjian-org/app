@@ -1,56 +1,46 @@
-import { Flex, Link, List, ListItem, Text } from '@chakra-ui/react';
+import { HStack, Link, Wrap, WrapItem, WrapProps } from '@chakra-ui/react';
+import Image from "next/image";
+import beian from '../../public/img/beian.png';
+import { componentSpacing } from 'theme/metrics';
+import { pageMarginX } from 'theme/metrics';
 
-export const footerMarginTop = "80px";
-export const footerBreakpoint = "lg";
-
-export default function Footer() {
+export default function Footer({ ...rest } : WrapProps) {
   const color = 'gray.400';
-  const FooterItem = (props: any) => <ListItem marginX={4}>{props.children}</ListItem>;
 
-  return (
-    <Flex
-      zIndex='3'
-      flexDirection={{
-        base: 'column',
-        [footerBreakpoint]: 'row'
-      }}
-      alignItems={{
-        base: 'center',
-        [footerBreakpoint]: 'start'
-      }}
-      justifyContent='space-between'
-      paddingX="30px"
-      paddingBottom='30px'
-      paddingTop={footerMarginTop}
-    >
-      <Text
+  return <Wrap
+    justify='center'
+    fontSize="xs"
+    color={color}
+    spacingX={componentSpacing * 2}
+    mt="80px"
+    mb="30px"
+    mx={pageMarginX}
+    {...rest}
+  >
+    <WrapItem>
+      &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
+    </WrapItem>
+    <WrapItem>
+      <HStack>
+        <Image alt="备案" width={13} src={beian} />
+        <Link
+          color={color}
+          isExternal
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
+          rel="noreferrer"
+        >
+          浙公网安备33010802013665
+        </Link>
+      </HStack>
+    </WrapItem>
+    <WrapItem>
+      <Link
         color={color}
-        fontWeight='500'
-        textAlign={{
-          base: 'center',
-          [footerBreakpoint]: 'start'
-        }}
-        paddingBottom={{ base: '20px', [footerBreakpoint]: '0px' }}
+        isExternal
+        href='http://beian.miit.gov.cn/'
       >
-        &copy; {new Date().getFullYear()} 远见教育基金会
-      </Text>
-      <List display='flex'>
-        <FooterItem>
-          <Link fontWeight='500' color={color} isExternal href='http://yuanjian.org/blog'>
-            博客
-          </Link>
-        </FooterItem>
-        <FooterItem>
-          <Link fontWeight='500' color={color} isExternal href='http://app.yuanjian.org'>
-            资源库
-          </Link>
-        </FooterItem>
-        <FooterItem>
-          <Link fontWeight='500' color={color} isExternal href='https://github.com/yuanjian-org/app/issues/new'>
-            报告问题
-          </Link>
-        </FooterItem>
-      </List>
-    </Flex>
-  );
+        浙ICP备2024117465号-2
+      </Link>
+    </WrapItem>
+  </Wrap>;
 }

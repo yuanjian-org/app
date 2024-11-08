@@ -4,7 +4,12 @@ import { z } from "zod";
 import db from "../database/db";
 import { zInterview, zInterviewWithGroup } from "../../shared/Interview";
 import {
-  groupAttributes, groupInclude, interviewInclude, interviewAttributes
+  groupAttributes,
+  groupInclude,
+  interviewInclude,
+  interviewAttributes,
+  userAttributes,
+  userInclude
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
@@ -22,6 +27,7 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
+import { zUser, zUserPreference } from "../../shared/User";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -175,6 +181,46 @@ export async function createInterview(type: InterviewType, calibrationId: string
   });
 }
 
+const listInterviewerStats = procedure
+.use(authUser("MentorshipManager"))
+.output(z.array(z.object({
+  user: zUser,
+  interviews: z.number(),
+  preference: zUserPreference.nullable(),
+})))
+.query(async () =>
+{
+  const users = await db.User.findAll({
+    attributes: [...userAttributes, 'preference'],
+    include: userInclude,
+  });
+
+  // A map from user to the total number of interviews conducted by the user.
+  const user2interviews = (await db.InterviewFeedback.findAll({
+    attributes: [
+      'interviewerId',
+      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'count']
+    ],
+    group: ['interviewerId']
+  })).reduce<{ [key: string]: number }>((acc, curr) => {
+      acc[curr.interviewerId] = Number.parseInt(curr.getDataValue('count'));
+      return acc;
+    }, {});
+
+  const stats = users
+    .filter(user => user2interviews[user.id] 
+      || user.preference?.interviewer?.optIn === true
+      || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
+    .map(user => ({
+      user,
+      interviews: user2interviews[user.id] || 0,
+      preference: user.preference,
+    }));
+
+  stats.sort((a, b) => a.interviews - b.interviews);
+  return stats;
+});
+
 const update = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
@@ -296,6 +342,7 @@ export default router({
   list,
   listMine,
   create,
+  listInterviewerStats,
   update,
   updateDecision,
 });

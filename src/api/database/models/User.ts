@@ -17,7 +17,7 @@ import {
   BelongsTo
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -26,6 +26,8 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
+import { UserPreference, zUserPreference } from "../../../shared/User";
+import { MentorProfile, zMentorProfile } from "../../../shared/MentorProfile";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -56,7 +58,7 @@ class User extends Model {
   })
   @AllowNull(false)
   @Default([])
-  @ZodColumn(JSONB, zRoles)
+  @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
 
   @Column(DATE)
@@ -71,11 +73,17 @@ class User extends Model {
   @Column(STRING)
   wechat: string | null;
 
+  @Column(STRING)
+  city: string | null;
+
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   mentorApplication: Record<string, any> | null;
+
+  @ZodColumn(JSONB, zMentorProfile.nullable())
+  mentorProfile: MentorProfile | null;
 
   // The coach of the mentor. Non-null only if the user is a mentor (ie.
   // `mentorshipsAsMentor` is non-empty).
@@ -93,6 +101,9 @@ class User extends Model {
 
   @ZodColumn(STRING, z.string().nullable())
   pointOfContactNote: string | null;
+
+  @ZodColumn(JSONB, zUserPreference.nullable())
+  preference: UserPreference | null;
 
   // Managed by next-auth
   @Column(DATE)

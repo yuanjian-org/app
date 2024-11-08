@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { zInterviewType } from './InterviewType';
 import { zGroup } from './Group';
+import { zMinUser } from './User';
 
 export const zCalibration = z.object({
     id: z.string(),
@@ -12,5 +13,6 @@ export const zCalibration = z.object({
     // zCalibration and Calibration works.
     createdAt: z.coerce.string().optional(),
     group: zGroup,
+    manager: zMinUser.nullable(),
   });
 export type Calibration = z.TypeOf<typeof zCalibration>;

@@ -3,7 +3,7 @@ To work around the following error when importing @auth/sequelize-adapter, this 
 extracted from https://registry.yarnpkg.com/@auth/sequelize-adapter/-/sequelize-adapter-1.0.2.tgz.
 
 ```
-$ yarn sync-database
+$ yarn migrate-database
 ...
 Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: No "exports" main defined in node_modules/@auth/sequelize-adapter/package.json
 ...

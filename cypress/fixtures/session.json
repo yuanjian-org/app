@@ -1,23 +1,15 @@
 {
   "user": {
-      "roles": [
-          "SystemAlertSubscriber",
-          "UserManager",
-          "GroupManager",
-          "MentorshipAssessor",
-          "MenteeManager",
-          "Mentor",
-          "Mentee",
-          "Interviewer",
-          "MentorCoach"
-      ],
-      "id": "59855859-2aff-4bc4-bcb6-f0fa42314b35",
+      "id": "5e096fa5-d349-441d-9e30-676785506854",
       "name": "乐一帆",
       "wechat": null,
       "sex": null,
+      "city": null,
       "email": "lincolnleyf@gmail.com",
-      "consentFormAcceptedAt": "2023-07-01T21:49:49.832Z",
-      "menteeInterviewerTestLastPassedAt": null
+      "roles": [],
+      "consentFormAcceptedAt": "2024-09-06T23:09:20.886Z",
+      "menteeInterviewerTestLastPassedAt": null,
+      "menteeStatus": null
   },
-  "expires": "2124-03-25T02:33:10.566Z"
+  "expires": "2025-09-06T23:09:09.305Z"
 }

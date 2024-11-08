@@ -12,20 +12,22 @@ import {
   Link,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude  } from 'shared/Map';
 import { trpcNext } from '../../trpc';
 import { componentSpacing } from 'theme/metrics';
 import Loader from 'components/Loader';
 import { sidebarBreakpoint } from 'components/Navbars';
+import LandmarkDrawer from 'components/LandmarkDrawer';
 
 const desktopTextLimit = 80;
 const mobileTextLimit = 30;
 
 export default function Page() {
+  const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
 
-  return (
+  return <>
     <TabsWithUrlParam isLazy>
       <TabList>
         <Tab>个人成长</Tab>
@@ -35,23 +37,31 @@ export default function Page() {
 
       <TabPanels>
         <TabPanel>
-          <LandmarkTabPanel latitude="个人成长" />
+          <LandmarkTabPanel latitude="个人成长" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel latitude="事业发展" />
+          <LandmarkTabPanel latitude="事业发展" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
 
         <TabPanel>
-          <LandmarkTabPanel latitude="社会责任" />
+          <LandmarkTabPanel latitude="社会责任" selectLandmark={setSelectedLandmark}/>
         </TabPanel>
       </TabPanels>
     </TabsWithUrlParam>
-  );
+    
+    {selectedLandmark && 
+      <LandmarkDrawer 
+        onClose={() => setSelectedLandmark(null)} 
+        landmark={selectedLandmark} />}
+  </>;
 }
 
-const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
-  const { data, isLoading } = trpcNext.map.list.useQuery(latitude);
+const LandmarkTabPanel = ({ latitude, selectLandmark }: { 
+  latitude: Latitude; 
+  selectLandmark: (landmark: Landmark) => void 
+}) => {
+  const { data, isLoading } = trpcNext.map.listLandmarks.useQuery(latitude);
   return (
     <>
       {isLoading ? 
@@ -59,7 +69,10 @@ const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
         <SimpleGrid spacing={componentSpacing} 
         templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
           {data?.map((landmark, index) => (
-            <LandmarkCard key={index} landmark={landmark} />
+            <LandmarkCard 
+              key={index} 
+              landmark={landmark} 
+              selectLandmark={selectLandmark}/>
           ))}
         </SimpleGrid>
       }
@@ -67,19 +80,20 @@ const LandmarkTabPanel = ({ latitude }: { latitude: Latitude }) => {
   );
 };
 
-const LandmarkCard = ({ landmark }: { landmark: Landmark })  => {
+const LandmarkCard = ({ landmark, selectLandmark }: { 
+  landmark: Landmark; 
+  selectLandmark: (landmark: Landmark) => void  
+}) => {
   const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
     [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
   const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
     {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
   </Text>;  
   
-  return <Card>
+  return <Card onClick={() => selectLandmark(landmark)} cursor='pointer'>
     <CardHeader>
       <Heading size="md">{landmark.名称}</Heading>
-      </CardHeader>
-      <CardBody>
-        {cardText}
-      </CardBody>
+    </CardHeader>
+    <CardBody>{cardText}</CardBody>
   </Card>; 
 };

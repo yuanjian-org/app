@@ -1,0 +1,33 @@
+# See deploy-docker.yml for setup instructions
+#
+name: Cron jobs
+
+on:
+  schedule:
+    - cron: "53 * * * *"  # Runs at the 53th minute of every hour
+
+jobs:
+  run_scheduled_task:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Add SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ vars.SERVER_HOSTNAME }}
+        config: |
+          Host ${{ vars.SERVER_HOSTNAME }}
+            User ${{ secrets.SERVER_SSH_USERNAME }}
+            StrictHostKeyChecking no
+
+    - name: Run cron jobs
+      run: |
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          cd ~/app
+          source .env
+          echo ">>> Updating ongoing meetings"
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.updateOngoingMeetings
+          echo ">>> Syncing meeting summaries"
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncSummaries
+        EOF

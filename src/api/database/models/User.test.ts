@@ -18,8 +18,9 @@ describe('User', () => {
         pinyin: 'ceshiyonghuyi',
         email: 'testuser1@example.foo',
         roles: ['Mentor'],
-        sex: 'male',
-        wechat: 'testWechat1'
+        sex: '男',
+        wechat: 'testWechat1',
+        city: 'city1',
       });
 
       // 查找 name 为 '测试用户一' 的用户
@@ -33,8 +34,9 @@ describe('User', () => {
         pinyin: 'ceshiyonghuer',
         email: 'testuser2@example.foo',
         roles: ['Mentee'],
-        sex: 'male',
-        wechat: 'testWechat2'
+        sex: '男',
+        wechat: 'testWechat2',
+        city: 'city2',
       });
       // 查找 name 为 '测试用户二' 的用户
       const foundUser2 = await User.findOne({ where: { name: '测试用户二' } });

@@ -31,34 +31,41 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
 import Loader from 'components/Loader';
 import UserSelector from 'components/UserSelector';
 import invariant from 'tiny-invariant';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon, ChevronRightIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
-import { MinUser } from 'shared/User';
+import User, { MinUser } from 'shared/User';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import TdLink from 'components/TdLink';
 import moment from 'moment';
 import { Calibration } from 'shared/Calibration';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import EditableWithIcon from 'components/EditableWithIcon';
+import EditableWithIconOrLink from 'components/EditableWithIconOrLink';
 import { widePage } from 'AppPage';
+import {
+  PointOfContactCells, PointOfContactHeaderCells
+} from 'components/pointOfContactCells';
+import { 
+  CalibrationManagerCells, 
+  CalibrationManagerHeaderCells 
+} from 'components/CalibrationManagerCells';
 
 export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
     "MenteeInterview" : "MentorInterview";
 
-  const { data: applicants } = trpcNext.users.list.useQuery(
-    type == "MenteeInterview" ? { 
+  const { data: applicants, refetch: refetchApplicants } =
+    trpcNext.users.list.useQuery(type == "MenteeInterview" ? { 
       // Only list mentees without status (ie. 待审)
       menteeStatus: null,
       hasMenteeApplication: true,
@@ -82,8 +89,9 @@ export default widePage(() => {
       <TabPanels>
         <TabPanel>
           {!interviews || !applicants ? <Loader /> : 
-            <Applicants type={type} applicants={applicants} interviews={interviews} 
-              refetchInterviews={refetchInterview} 
+            <Applicants type={type} applicants={applicants}
+              interviews={interviews} refetchInterviews={refetchInterview} 
+              refetchApplicants={refetchApplicants}
             />
           }
         </TabPanel>
@@ -101,12 +109,30 @@ export default widePage(() => {
   </Flex>;
 });
 
-function Applicants({ type, applicants, interviews, refetchInterviews }: {
+function Applicants({ type, applicants, interviews, refetchInterviews,
+  refetchApplicants
+ }: {
   type: InterviewType,
-  applicants: MinUser[],
+  applicants: User[],
   interviews: Interview[], 
-  refetchInterviews: () => any,
+  refetchInterviews: () => void,
+  refetchApplicants: () => void,
 }) {
+  // A map from applicants' user ids to sources.
+  const [sources, setSources] = useState<{ [id: string]: string }>({});
+  const updateSource = (id: string) => (source: string) => {
+    setSources(prev => {
+      if (prev[id] === source) return prev; 
+      return { ...prev, [id]: source };
+    });
+  };
+  const sortedApplicants = useMemo(() => {
+    return applicants.sort((a1, a2) => {
+      const comp = compareChinese(sources[a1.id], sources[a2.id]);
+      return comp !== 0 ? comp : compareChinese(a1.name, a2.name);
+    });
+  }, [applicants, sources]);
+
   return <TableContainer>
     <Text marginBottom={sectionSpacing} color="grey" fontSize="sm">
       点击候选人以编辑面试官和面试讨论组：
@@ -115,16 +141,26 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th><Th>来源（悬停光标看全文）</Th>
-          <Th>面试讨论组</Th><Th>申请资料</Th><Th>面试页</Th>
+          <PointOfContactHeaderCells />
+          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
+          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请表</Th>
+          <Th>面试页</Th>
         </Tr>
       </Thead>
       <Tbody>
-        {applicants.map(a => 
-          <Applicant key={a.id} type={type} applicant={a} interviews={interviews} refetchInterviews={refetchInterviews} />)
+        {sortedApplicants.map(a => 
+          <Applicant key={a.id} type={type} applicant={a}
+            interviews={interviews} refetchInterviews={refetchInterviews}
+            refetchApplicants={refetchApplicants} 
+            updateSource={updateSource(a.id)}
+          />)
         }
       </Tbody>
     </Table>
+
+    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
+      共 <b>{applicants.length}</b> 名
+    </Text>
 
     <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
       <CheckIcon /> 表示已经填写了面试反馈的面试官。
@@ -132,18 +168,32 @@ function Applicants({ type, applicants, interviews, refetchInterviews }: {
   </TableContainer>;
 }
 
-function Applicant({ type, applicant, interviews, refetchInterviews } : {
+function Applicant({ type, applicant, interviews, refetchInterviews,
+  refetchApplicants, updateSource
+ } : {
   type: InterviewType,
-  applicant: MinUser,
+  applicant: User,
   interviews: Interview[],
-  refetchInterviews: () => any,
+  refetchInterviews: () => void,
+  refetchApplicants: () => void,
+  updateSource: (source: string) => void,
 }) {
   // TODO: it's duplicative to fetch the applicant again
   const { data } = trpcNext.users.getApplicant.useQuery({ userId: applicant.id, type });
   const source = (data?.application as Record<string, any> | null)?.[menteeSourceField];
 
+  useEffect(() => {
+    updateSource(source);
+  }, [source, updateSource]);
+
   const matches = interviews.filter(i => i.interviewee.id == applicant.id);
-  invariant(matches.length <= 1);
+  if (matches.length > 1) {
+    console.error(`Applicant id ${applicant.id} has multiple matching ` +
+      `interviews ids:`);
+    matches.map(i => console.error(`  ${i.id}`));
+    console.error("We must let the frontend die");
+    invariant(false);
+  }
   const interview = matches.length ? matches[0] : null;
 
   /**
@@ -151,11 +201,13 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
    * null: create a new interview
    * otherwise: edit the existing interview
    */
-  const [interviewInEditor, setInterviewInEditor] = useState<Interview | null | undefined>(undefined);
+  const [interviewInEditor, setInterviewInEditor] =
+    useState<Interview | null | undefined>(undefined);
 
-  const TdEditLink = ({ children }: TableCellProps) => <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
-    {children}
-  </TdLink>;
+  const TdEditLink = ({ children }: TableCellProps) =>
+    <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
+      {children}
+    </TdLink>;
 
   return <>
     {interviewInEditor !== undefined && <InterviewEditor type={type}
@@ -167,9 +219,11 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
     />}
 
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
-      {/* 姓名 */}
+      <PointOfContactCells user={applicant} refetch={refetchApplicants} />
+
+      {/* 候选人 */}
       <TdEditLink>
-        {formatUserName(applicant.name)}
+        <b>{formatUserName(applicant.name)}</b>
       </TdEditLink>
       
       {/* 拼音 */}
@@ -195,9 +249,9 @@ function Applicant({ type, applicant, interviews, refetchInterviews } : {
         {interview && interview.calibration?.name}
       </TdEditLink>
 
-      {/* 申请资料 */}
+      {/* 申请表 */}
       <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
-        申请资料 <ChevronRightIcon />
+        申请表 <ChevronRightIcon />
       </TdLink>
 
       {/* 面试页 */}
@@ -309,7 +363,7 @@ function Calibrations({ type, calibrations, refetch }: {
       <UnorderedList>
         <ListItem>通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。</ListItem>
         <ListItem>如果候选人A属于面试讨论组C，那么A的所有面试官都是C的参与者。</ListItem>
-        <ListItem>C的参与者能够访问属于C的所有候选人的申请材料和面试反馈记录。</ListItem>
+        <ListItem>C的参与者能够访问属于C的所有候选人的申请表和面试页。</ListItem>
         <ListItem>当C的状态是”开启“时，C的参与者可以在”我的面试“页看到并进入C。</ListItem>
       </UnorderedList>
     </Box>
@@ -319,7 +373,9 @@ function Calibrations({ type, calibrations, refetch }: {
     <TableContainer><Table>
       <Thead>
         <Tr>
-          <Th>名称</Th><Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
+          <Th>名称</Th>
+          <CalibrationManagerHeaderCells />
+          <Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -329,10 +385,12 @@ function Calibrations({ type, calibrations, refetch }: {
           .map(c => {
             return <Tr key={c.id}>
               <Td>
-                <EditableWithIcon mode="input" defaultValue={c.name} maxWidth={60} 
+                <EditableWithIconOrLink editor="input" decorator="icon"
+                  defaultValue={c.name} maxWidth={60} 
                   onSubmit={v => update(c, v, c.active)} 
                 />
               </Td>
+              <CalibrationManagerCells calibration={c} refetch={refetch} />
               <Td>
                 <Switch isChecked={c.active} onChange={e => update(c, c.name, e.target.checked)} />
                 {" "} {c.active ? "开启" : "关闭"}

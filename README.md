@@ -7,12 +7,12 @@ developed by VEF volunteers.
 
 1. Install `node.js` and `yarn`.
 1. Install `postgresql`, start it locally, and create a database called `yuanjian`. Aternatively, use a hosted Postgres solution such as [Neon](http://neon.tech).
-1. Create file `.env.local` in the repository root, and:
+1. Create file `.env` in the repository root, and:
    - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
    - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
 1. Run `yarn` to install dependency packages.
    - If you run into error `"$VERCEL_ENV" was unexpected`, see this [`doc`](./docs/package.json.md).
-1. Run `yarn sync-database` to initialize the database.
+1. Run `yarn migrate-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
 1. Visit the local server from broswer. Sign up with your personal email address.
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.
