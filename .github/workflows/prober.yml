@@ -33,7 +33,6 @@ jobs:
               with:
                 build: yarn cypress info
                 browser: chrome
-                record: true
                 spec: cypress/e2e/*
                 config-file: cypress.config.ts
               env:
