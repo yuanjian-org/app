@@ -141,7 +141,7 @@ export default function Page() {
         isChecked={pref.mentor?.不参加就业辅导 ?? false}
         onChange={e => updatePref('不参加就业辅导', e.target.checked)}
       >
-        我暂不参与简历诊断、模拟面试等就业辅导类服务。
+        我暂不参与简历诊断、模拟面试等就业类服务，仅参加长期一对一服务。
       </Checkbox>
     </FormControl>
 
