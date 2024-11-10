@@ -38,3 +38,9 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DEBUG: "cypress:server:args"
+            - name: Upload screenshots on failure
+              uses: actions/upload-artifact@v3
+              if: failure()
+              with:
+                name: cypress-screenshots
+                path: cypress/ghaction/screenshots
