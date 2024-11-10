@@ -2,6 +2,10 @@ name: Cypress Prober Tests
 on: 
     schedule:
         - cron: "45 22 * * *"
+    # used to test the action only
+    push:
+        branches:
+            - yifanle_cypress_ghaction
 
 jobs:
     install:
