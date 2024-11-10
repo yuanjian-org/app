@@ -33,11 +33,10 @@ import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 
 export default function Page() {
   const [user] = useUserContext();
-  const userHasName = !!user.name;
+  const hasName = !!user.name;
   return <>
-    {!userHasName && <SetNameModal />}
-    {userHasName && !consentFormAccepted(user) && <ConsentModal />}
-    <Groups />
+    {hasName ? <Groups /> : <SetNameModal />}
+    {hasName && !consentFormAccepted(user) && <ConsentModal />}
   </>;
 };
 
@@ -125,8 +124,8 @@ function NoGroup() {
         <HStack>
           <AlertIcon />
           <AlertDescription>
-            系统发现有与您同名但使用不同电子邮箱的账户。如果您在当前账号下找不到所需功能，
-            请尝试用以下可能属于您本人的邮箱登录：
+            系统发现有与您同名但使用不同电子邮箱的账户。如果您在当前账号下未找到所需功能，{
+            }请尝试使用以下可能属于您的邮箱重新登录：
             <UnorderedList mt={paragraphSpacing}>
               {data.map((d, idx) => <ListItem key={idx}><b>{d}</b></ListItem>)}
             </UnorderedList>
@@ -135,12 +134,18 @@ function NoGroup() {
       </Alert>
     }
 
-    <Text>会议将在管理员设置后可见。在继续使用前：</Text>
+    <Text>
+      平台提供的功能会根据您的角色的不同而有所差异。如果您未找到所需功能，请与管理员联系。{
+      }在继续使用前请确保：</Text>
     <Text>🇨🇳 国内用户请安装腾讯会议（
-      <Link isExternal href="https://meeting.tencent.com/download/">下载</Link>）
+      <Link isExternal href="https://meeting.tencent.com/download/">
+        下载
+      </Link>）
     </Text>
     <Text>🌎 海外用户请安装海外版腾讯会议（
-      <Link isExternal href="https://voovmeeting.com/download-center.html">下载</Link>）
+      <Link isExternal href="https://voovmeeting.com/download-center.html">
+        下载
+      </Link>）
     </Text>
   </VStack>;
 }
