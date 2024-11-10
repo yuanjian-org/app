@@ -1,7 +1,7 @@
 name: Cypress Prober Tests
 on: 
     schedule:
-        - cron: "5 7 * * *"
+        - cron: "45 22 * * *"
 
 jobs:
     install:
@@ -13,6 +13,25 @@ jobs:
             - name: Cypress run
               uses: cypress-io/github-action@v6
               with:
-                install: false
-                command: yarn cypress-run
+                runTests: false
+
+    chrome-prober-tests:
+        runs-on: ubuntu-latest
+        needs: install
+        strategy:
+            fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            
+            - name: "Chrome Prober Tests"
+              uses: cypress-io/github-action@v6
+              with:
+                build: yarn cypress info
                 browser: chrome
+                record: true
+                spec: cypress/e2e/*
+                config-file: cypress.config.ts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  DEBUG: "cypress:server:args"
