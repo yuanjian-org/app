@@ -49,19 +49,29 @@ function IntroSection() {
           }，尽早为步入职场和社会做好准备，助力年轻人实现人生理想与社会责任。
         </Text>
         <Text>
-          <b>哪些机构提供社会导师服务？</b>目前，提供社会导师服务的机构包括远见教育基金会和{
-          }馒头工坊｜Mentor Workshop 服务平台。它们都为符合条件的大学生提供无{
-          }偿服务。您可以扫描页面上的二维码，通过 ”馒头工坊“ 微信小程序申请其免费{
-          }服务。
+          <b>哪些机构提供社会导师服务？</b>目前，提供社会导师服务的机构包括
+          <Link href="http://yuanjian.org" target="_blank">远见教育基金会</Link>
+          和
+          <Link href="/img/wechat-app-qrcode.jpg" target="_blank">
+            馒头工坊｜Mentor Workshop
+          </Link>
+          。它们都为符合条件的大学生提供无{
+          }偿服务。您可以扫描二维码，通过 ”馒头工坊“ 微信小程序申请其免费服务。
         </Text>
         <Text>
           <b>如何了解更多信息？</b>社会导师服务的背后是一套完整的方法体系和运营平台。{
           }随着这一系统的日益完善，我们将逐步向公众分享方法与经验总结。欢迎您浏览{' '}
-          <Link as={NextLink} href="/s/articles">📄 已发布的文章</Link>。{
+          <Link as={NextLink} href="/s/articles">📄 社会导师文章</Link>。{
           }同时也欢迎您在教育机构、公益组织或商业公司中尝试类似服务。我们真诚期待您的反馈{
-          }与交流。您可以通过{' '}
-          <Link href="mailto:sizhujiaoyu@163.com">sizhujiaoyu@163.com</Link>
-          {' '}联系我们。
+          }与交流。
+        </Text>
+        <Text>
+          <b>如何成为社会导师？</b>您可以直接填写
+          <Link href="https://jsj.top/f/OzuvWD" target="_blank">申请表</Link>
+          ，或者联系我们了解更多：
+          <Link href="mailto:sizhujiaoyu@163.com" target="_blank">
+            sizhujiaoyu@163.com
+          </Link>。
         </Text>
       </VStack>
     </GridItem>
