@@ -31,7 +31,7 @@ export function MentorPage({ matchableOnly, title }: {
   return <>
     <PageBreadcrumb current={title} />
 
-    <Text color="red">此页仍在开发中。仅学生导师管理员能够访问。</Text>
+    <Text color="red">此页仍在开发中。仅管理员能够访问。</Text>
 
     {isLoading ? <Loader /> : <SimpleGrid
       spacing={componentSpacing}

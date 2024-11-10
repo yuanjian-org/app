@@ -16,6 +16,5 @@ export const zMentorProfile = z.object({
   '擅长辅导领域': zStr,
 
   '照片链接': zStr,
-  '简历链接': zStr,
 });
 export type MentorProfile = z.TypeOf<typeof zMentorProfile>;

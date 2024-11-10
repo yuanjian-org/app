@@ -33,6 +33,7 @@ import { useRouter } from 'next/router';
 import { defaultMentorCapacity, MentorPreference, UserPreference } from 'shared/User';
 import MarkdownSupport from 'components/MarkdownSupport';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { isPermitted } from 'shared/Role';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -163,38 +164,30 @@ export default function Page() {
     <MarkdownSupport prefix="【提示】所有文字均" />
 
     <FormControl mt={sectionSpacing}>
+      <FormLabel>生活照链接</FormLabel>
+      <UploadInstructions />
+      {isPermitted(me.roles, 'MentorshipManager') &&
+        <Input bg="white" value={profile.照片链接 || ""} 
+          onChange={ev => updateProfile('照片链接', ev.target.value)}
+        />
+      }
+    </FormControl>
+    <FormControl>
       <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
       />
     </FormControl>
     <FormControl>
-      <FormLabel>职业经历（或在下方提供简历链接）</FormLabel>
+      <FormLabel>职业经历</FormLabel>
       <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
         onChange={ev => updateProfile('职业经历', ev.target.value)}
       />
     </FormControl>
     <FormControl>
-      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历；或在下方提供简历链接）</FormLabel>
+      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历）</FormLabel>
       <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
         onChange={ev => updateProfile('教育经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>简历链接</FormLabel>
-      <UploadInstructions />
-      <Input bg="white" value={profile.简历链接 || ""} 
-        onChange={ev => updateProfile('简历链接', ev.target.value)}
-      />
-    </FormControl>
-
-    <FormControl>
-      <FormLabel>生活照链接</FormLabel>
-      <FormHelperText mb={2}>
-        上传文件方法见“简历链接”的文字说明。
-      </FormHelperText>
-      <Input bg="white" value={profile.照片链接 || ""} 
-        onChange={ev => updateProfile('照片链接', ev.target.value)}
       />
     </FormControl>
     <FormControl>
@@ -252,7 +245,7 @@ export default function Page() {
 
     <Text><Link href={`/mentors/${userId}`} target='_blank'>
       <HStack>
-        <Text>查看网页效果</Text> <ExternalLinkIcon />
+        <Text>查看展示效果</Text> <ExternalLinkIcon />
       </HStack>
     </Link></Text>
   </VStack>;
@@ -260,11 +253,12 @@ export default function Page() {
 
 function UploadInstructions() {
   return <FormHelperText mb={2}>
-    上传文件至
-    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>此表格</Link>
-    ，提交后访问<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
-    此网页</Link>，点击第一行数据，在弹出的对话框中的文件上点击鼠标右键，
-    拷贝文件链接，并复制到下面的输入框：
+    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>请在此提交照片。</Link>
+    {/* 首先
+    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>在此提交照片</Link>
+    ，然后<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
+    访问此网页</Link>，点击第一行数据，在弹出的对话框中的文件上点击鼠标右键，
+    拷贝文件链接，并复制到下面的输入框： */}
   </FormHelperText>;
 }
 
