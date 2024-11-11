@@ -129,4 +129,4 @@ function Row({ user, preference, mentorships }: {
   </Tr>;
 }
 
-Page.title = "管理导师";
+Page.title = "导师";

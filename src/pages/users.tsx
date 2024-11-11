@@ -74,7 +74,7 @@ export default function Page() {
   </>;
 };
 
-Page.title = "管理用户";
+Page.title = "用户";
 
 function UserTable({ users, setUserBeingEdited }: {
   users: User[],

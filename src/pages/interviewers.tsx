@@ -55,6 +55,8 @@ export default function Page() {
   </TableContainer>;
 }
 
+Page.title = "面试官";
+
 function Row({ user, interviews, preference }: {
   user: User,
   interviews: number,
