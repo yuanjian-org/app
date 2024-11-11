@@ -14,12 +14,8 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Intall locale
-              uses: actions/checkout@v4
-              with:
-                run: |
-                    sudo apt-get install language-pack-zh*
-                    sudo apt-get install chinese*
+            - run: sudo apt-get install language-pack-zh*
+            - run: sudo apt-get install chinese*
 
             - name: Cypress run
               uses: cypress-io/github-action@v6
