@@ -13,7 +13,7 @@ import {
 import Loader from 'components/Loader';
 import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
-import { sectionSpacing } from 'theme/metrics';
+import { componentSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
 import User, { defaultMentorCapacity, MentorPreference } from 'shared/User';
@@ -50,13 +50,49 @@ export default function Page() {
           preference={s.mentorPreference}
           mentorships={s.mentorships} 
         />)}
+        <SumsRow stats={stats} />
       </Tbody>
     </Table>
-
-    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
-      共 <b>{stats.length}</b> 名
-    </Text>
   </TableContainer>;
+}
+
+function SumsRow({ stats } : {
+  stats: {
+    mentorPreference: MentorPreference | null,
+    mentorships: number,
+  }[]
+}) {
+  const totalCap = stats.reduce((acc, cur) => acc + cap(cur.mentorPreference), 0);
+  const totalMentorships = stats.reduce((acc, cur) => acc + cur.mentorships, 0);
+  return <Tr>
+    {/* 导师 */}
+    <Td>
+      <SumCell n={stats.length} />
+    </Td>
+    <Td></Td>
+    {/* 学生容量 */}
+    <Td>
+      <SumCell n={totalCap} />
+    </Td>
+    {/* 学生数量 */}
+    <Td>
+      <SumCell n={totalMentorships} />
+    </Td>
+    {/* 剩余容量 */}
+    <Td>
+      <SumCell n={totalCap - totalMentorships} />
+    </Td>    
+  </Tr>;
+}
+
+function SumCell({ n }: { n: number }) {
+  return <Text fontSize="sm" color="grey" marginTop={componentSpacing}>
+    <b>共 {n}</b>
+  </Text>;
+}
+
+function cap(pref: MentorPreference | null): number {
+  return pref?.最多匹配学生 ?? defaultMentorCapacity;
 }
 
 function Row({ user, preference, mentorships }: {
@@ -68,7 +104,7 @@ function Row({ user, preference, mentorships }: {
     'Mentor';
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
 
-  const capacity = preference?.最多匹配学生 ?? defaultMentorCapacity;
+  const capacity = cap(preference);
   const isDefaultCapacity = preference?.最多匹配学生 === undefined;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
@@ -82,8 +118,7 @@ function Row({ user, preference, mentorships }: {
         {RoleProfiles[role].displayName}
       </Tag>
     </Td>
-    <Td>{isDefaultCapacity ? `${defaultMentorCapacity}（默认）` : 
-      capacity}</Td>
+    <Td>{capacity}{isDefaultCapacity && `（默认）`}</Td>
     <Td>{mentorships}</Td>
     <Td>{capacity - mentorships}</Td>
     <Td>{user.sex}</Td>

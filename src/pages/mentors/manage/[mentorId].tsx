@@ -130,7 +130,7 @@ export default function Page() {
         名学生。
       </Flex>
       <FormHelperText>
-        强烈建议两名或以上。不同学生的对比对导师工作非常有帮助。
+        强烈建议两名学生或以上。不同学生的对比对导师工作非常有帮助。
         若希望避免匹配学生，请选择0。
       </FormHelperText>
     </FormControl>
@@ -159,7 +159,9 @@ export default function Page() {
       时的唯一参考。请详尽填写，并展现出最真实的你。
     </Text>
 
-    <Text color="red.700">【注意】请务必手工保存更新，本页不会自动保存。</Text>
+    <Text color="red.700">
+      【注意】更新内容后务必点击“保存”。本页尚未实现自动保存功能。
+    </Text>
 
     <MarkdownSupport prefix="【提示】所有文字均" />
 
@@ -173,9 +175,21 @@ export default function Page() {
       }
     </FormControl>
     <FormControl>
-      <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
+      <FormLabel>职业头衔或身份（如“A公司人事处长”、“创业者”、“自由职业者”等）</FormLabel>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormLabel>现居住城市或地区</FormLabel>
+      <Input bg="white" value={profile.现居住地 || ""} 
+        onChange={ev => updateProfile('现居住地', ev.target.value)}
+      />
+    </FormControl>
+    <FormControl>
+      <FormLabel>成长过程中曾经居住过的城市或地区</FormLabel>
+      <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
+        onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
     <FormControl>
@@ -188,18 +202,6 @@ export default function Page() {
       <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历）</FormLabel>
       <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
         onChange={ev => updateProfile('教育经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>现居住地</FormLabel>
-      <Input bg="white" value={profile.现居住地 || ""} 
-        onChange={ev => updateProfile('现居住地', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>成年之前曾经居住过的地域</FormLabel>
-      <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
-        onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
     <FormControl>
@@ -253,7 +255,8 @@ export default function Page() {
 
 function UploadInstructions() {
   return <FormHelperText mb={2}>
-    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>请在此提交照片。</Link>
+    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>请在此处提交照片。</Link>
+    管理员会在后台进一步处理。
     {/* 首先
     <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>在此提交照片</Link>
     ，然后<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
