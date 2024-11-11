@@ -122,7 +122,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '个人信息',
-    action: '/profile',
+    action: '/profiles/me',
   },
   {
     name: '导师信息',

@@ -36,7 +36,7 @@ export default function Page() {
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
           <Th>性别</Th>
-          <Th>坐标</Th>
+          <Th>居住地</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>

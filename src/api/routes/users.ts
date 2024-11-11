@@ -27,9 +27,6 @@ const create = procedure
   .input(z.object({
     name: z.string(),
     email: z.string(),
-    city: z.string().nullable(),
-    wechat: z.string().nullable(),
-    sex: z.string().nullable(),
     roles: zRoles,
   }))
   .mutation(async ({ ctx, input }) => 
@@ -41,9 +38,6 @@ const create = procedure
     pinyin: toPinyin(input.name),
     email: input.email,
     roles: input.roles,
-    city: input.city,
-    wechat: input.wechat,
-    sex: input.sex,
   });
 });
 
@@ -175,7 +169,8 @@ const setUserPreference = procedure
   }))
   .mutation(async ({ ctx: { user }, input: { userId, preference } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+  if (user.id !== userId && !isPermitted(user.roles,
+    ["UserManager", "MentorshipManager"])) {
     throw noPermissionError("用户", userId);
   }
 
@@ -217,16 +212,35 @@ const get = procedure
   return u;
 });
 
+const getFull = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zUser)
+  .query(async ({ ctx: { user: me }, input: userId }) =>
+{
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: userAttributes,
+    include: userInclude,
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u;
+});
+
 const getUserPreference = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
   }))
   .output(zUserPreference)
-  .query(async ({ ctx, input: { userId } }) => 
+  .query(async ({ ctx: { user: me }, input: { userId } }) => 
 {
-  if (ctx.user.id !== userId && 
-    !isPermitted(ctx.user.roles, "MentorshipManager")) {
+  if (me.id !== userId && !isPermitted(me.roles,
+    ["UserManager", "MentorshipManager"])) {
     throw noPermissionError("用户", userId);
   }
 
@@ -514,6 +528,7 @@ const destroy = procedure
 export default router({
   create,
   get,
+  getFull,
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,

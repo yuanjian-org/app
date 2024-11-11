@@ -19,80 +19,100 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import trpc, { trpcNext } from "../trpc";
+import trpc, { trpcNext } from "../../trpc";
 import { useUserContext } from 'UserContext';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { Divider } from '@chakra-ui/react';
 import DatePicker from "react-datepicker";
-import { InterviewerPreference, UserPreference } from 'shared/User';
+import User, { InterviewerPreference, UserPreference } from 'shared/User';
 import datePicker from 'theme/datePicker';
 import { isPermitted } from 'shared/Role';
+import { parseQueryStringOrUnknown } from 'shared/strings';
+import { useRouter } from 'next/router';
+import invariant from 'tiny-invariant';
+import Loader from 'components/Loader';
 
 export default function Page() {
-  const [user, setUser] = useUserContext();
-  const [isLoading, setIsLoading] = useState(false);
-  const [newName, setNewName] = useState(user.name || '');
-  const [newSex, setNewSex] = useState(user.sex|| '');
-  const [newCity, setNewCity] = useState(user.city || '');
-  const [newWechat, setNewWechat] = useState(user.wechat || '');
+  const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const [me] = useUserContext();
+  const userId = queryUserId === "me" ? me.id : queryUserId;
+
+  const { data: user } = trpcNext.users.getFull.useQuery(userId);
+  const [unsavedUser, setUnsavedUser] = useState<User>();
+  useEffect(() => setUnsavedUser(user), [user]);
 
   const { data: pref } = trpcNext.users.getUserPreference.useQuery(
-    { userId: user.id });
-  const [unsaved, setUnsaved] = useState<UserPreference>();
-  useEffect(() => setUnsaved(pref), [pref]);
+    { userId });
+  const [unsavedPref, setUnsavedPref] = useState<UserPreference>();
+  useEffect(() => setUnsavedPref(pref), [pref]);
 
   const updateInterviewPref = (data: InterviewerPreference) => {
     const newPref = structuredClone(pref) || {};
     newPref.interviewer = data;
-    setUnsaved(newPref);
+    setUnsavedPref(newPref);
   };
 
+  const [isSaving, setIsSaving] = useState(false);
   const handleSubmit = async () => {
-    setIsLoading(true);
+    invariant(unsavedUser);
+    setIsSaving(true);
     try {
-      const updatedUser = structuredClone(user);
-      updatedUser.name = newName;
-      updatedUser.sex = newSex;
-      updatedUser.city = newCity;
-      updatedUser.wechat = newWechat;
-      await trpc.users.update.mutate(updatedUser);
-      setUser(updatedUser);
+      await trpc.users.update.mutate(unsavedUser);
       await trpc.users.setUserPreference.mutate({ 
-        userId: user.id, preference: unsaved || {} });
+        userId,
+        preference: unsavedPref || {}
+      });
       toast.success("保存成功。");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
-  
-  return <VStack spacing={componentSpacing} maxWidth="lg" 
+
+  return !unsavedUser || !unsavedPref ? <Loader /> : <VStack
+    spacing={componentSpacing} maxWidth="lg" 
     margin={sectionSpacing} align="start"
   >
     <Heading size="md">基本信息</Heading>
     <FormControl>
       <FormLabel>邮箱</FormLabel>
-      <Input value={user.email} readOnly />
-      <FormHelperText>如需更改邮箱，请联系系统管理员</FormHelperText>
+      <Input value={unsavedUser.email} readOnly />
+      <FormHelperText>如需更改邮箱，请联系管理员。</FormHelperText>
     </FormControl>
 
     <FormControl>
       <FormLabel>微信</FormLabel>
       <Input background="white" 
-        value={newWechat} onChange={e => setNewWechat(e.target.value)} />
+        value={unsavedUser.wechat ?? ""}
+        onChange={e => setUnsavedUser({
+          ...unsavedUser,
+          wechat: e.target.value
+        })}
+      />
     </FormControl>    
     
-    <FormControl isInvalid={!newName}>
+    <FormControl isInvalid={!unsavedUser.name}>
       <FormLabel>中文全名</FormLabel>
       <Input background="white"
-        value={newName} onChange={e => setNewName(e.target.value)}/>
-      {!newName && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
+        value={unsavedUser.name ?? ""}
+        onChange={e => setUnsavedUser({
+          ...unsavedUser,
+          name: e.target.value
+        })}
+      />
+      {!unsavedUser.name && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
     </FormControl>
 
     <FormControl display="flex" gap={componentSpacing}>
       <FormLabel>性别</FormLabel>
-      <RadioGroup value={newSex} onChange={setNewSex}>
+      <RadioGroup
+        value={unsavedUser.sex ?? ""}
+        onChange={v => setUnsavedUser({
+          ...unsavedUser,
+          sex: v
+        })}
+      >
         <Stack direction="row">
           <Radio background="white" value="男">男</Radio>
           <Radio background="white" value="女">女</Radio>
@@ -101,24 +121,35 @@ export default function Page() {
     </FormControl>
 
     <FormControl>
-      <FormLabel>居住的中国城市或者国家+城市</FormLabel>
+      <FormLabel>居住城市或者地区</FormLabel>
       <Input background="white" 
-        value={newCity} onChange={e => setNewCity(e.target.value)} />
-    </FormControl>           
+        value={unsavedUser.city ?? ""}
+        onChange={e => setUnsavedUser({
+          ...unsavedUser,
+          city: e.target.value
+        })}
+      />
+    </FormControl>
 
-    {/* Do not show interview options to mentees */}
-    {!isPermitted(user.roles, "Mentee") && <>
+    <Button isLoading={isSaving} onClick={handleSubmit} variant="brand">
+      保存
+    </Button>
+
+    {/* Do not show interview options to non-mentor mentees */}
+    {(isPermitted(unsavedUser.roles, "Mentor") ||
+      !isPermitted(unsavedUser.roles, "Mentee")) && <>
+
       <Divider margin={componentSpacing} />
       
       <Heading size="md">面试官偏好</Heading>
 
-      <InterviewPreferencePanel data={unsaved?.interviewer} 
+      <InterviewPreferencePanel data={unsavedPref.interviewer} 
         updateData={updateInterviewPref} /> 
-    </>}
 
-    <Button isLoading={isLoading} onClick={handleSubmit} variant="brand">
-      保存
-    </Button>
+      <Button isLoading={isSaving} onClick={handleSubmit} variant="brand">
+        保存
+      </Button>
+    </>}
   </VStack>;
 }
 
