@@ -107,7 +107,7 @@ export default widePage(() => {
       </TabPanels>
     </TabsWithUrlParam>
   </Flex>;
-});
+}, "面试");
 
 function Applicants({ type, applicants, interviews, refetchInterviews,
   refetchApplicants

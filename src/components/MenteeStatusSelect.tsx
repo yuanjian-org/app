@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from '@chakra-ui/react';
+import { Select, Td, Wrap, WrapItem } from '@chakra-ui/react';
 import { AllMenteeStatuses, MenteeStatus, zMenteeStatus } from 'shared/MenteeStatus';
 
 export const NULL_MENTEE_STATUS = "待审";
@@ -31,4 +31,17 @@ export default function MenteeStatusSelect({
       <option key={status} value={status}>{status}</option>
     )}
   </Select>;
+}
+
+export function MenteeStatusSelectCell({ status, onChange }: {
+  status: MenteeStatus | null,
+  onChange: (v: MenteeStatus | null | undefined) => void
+}) {
+  return <Td><Wrap minWidth="110px"><WrapItem>
+    <MenteeStatusSelect
+      value={status}
+      size="sm"
+      onChange={status => onChange(status)}
+    />
+  </WrapItem></Wrap></Td>;
 }

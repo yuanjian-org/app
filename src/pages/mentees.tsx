@@ -8,7 +8,6 @@ import {
   Wrap,
   Flex,
   TableContainer,
-  WrapItem,
   Link,
   Text,
   Divider,
@@ -32,7 +31,7 @@ import User, { MinUser, UserFilter } from 'shared/User';
 import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
-import MenteeStatusSelect from 'components/MenteeStatusSelect';
+import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
 import invariant from 'tiny-invariant';
 import { MenteeStatus } from 'shared/MenteeStatus';
 import NextLink from "next/link";
@@ -131,7 +130,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
 
-  const setStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
+  const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
     await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
@@ -144,18 +143,11 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   }, [menteePinyin]);
 
   return <Tr key={u.id} _hover={{ bg: "white" }}>
-    {/* 状态 */}
-    <Td><Wrap minWidth="110px"><WrapItem>
-      <MenteeStatusSelect value={u.menteeStatus}
-        size="sm" onChange={status => setStatus(status)} />
-    </WrapItem></Wrap></Td>
-
+    <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
-
-    {/* 拼音 */}
     <Td>{pinyin}</Td>
   </Tr>;
 }
