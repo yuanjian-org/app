@@ -14,3 +14,5 @@ export default function Page() {
     <Calibration calibration={calibration} />
   </>;
 };
+
+Page.title = "面试讨论组";
