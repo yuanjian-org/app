@@ -19,7 +19,7 @@ import {
   Checkbox,
   HStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import trpc, { trpcNext } from "../../../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
@@ -160,7 +160,7 @@ export default function Page() {
     </Text>
 
     <Text color="red.700">
-      【注意】更新内容后务必点击“保存”。本页尚未实现自动保存功能。
+      【注意】更新内容后务必点击“保存”。本页不支持自动保存。
     </Text>
 
     <MarkdownSupport prefix="【提示】所有文字均" />
@@ -175,7 +175,9 @@ export default function Page() {
       }
     </FormControl>
     <FormControl>
-      <FormLabel>职业头衔或身份（如“A公司人事处长”、“创业者”、“自由职业者”等）</FormLabel>
+      <FormLabel>
+        雇主与职位（注明专业领域，如“甲公司人事处处长”、“餐饮业创业者”等）
+      </FormLabel>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
       />
@@ -194,12 +196,20 @@ export default function Page() {
     </FormControl>
     <FormControl>
       <FormLabel>职业经历</FormLabel>
+      <FormHelperTextWithMargin>
+        <ListAndMarkdownSupport />，比如：<br /><br />
+         * 经历1<br />
+         * 经历2
+      </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
         onChange={ev => updateProfile('职业经历', ev.target.value)}
       />
     </FormControl>
     <FormControl>
       <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历）</FormLabel>
+      <FormHelperTextWithMargin>
+        <ListAndMarkdownSupport />。
+      </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
         onChange={ev => updateProfile('教育经历', ev.target.value)}
       />
@@ -253,8 +263,25 @@ export default function Page() {
   </VStack>;
 }
 
+function ListAndMarkdownSupport() {
+  return <>
+    可使用列表格式或其他
+    <Link
+      target="_blank"
+      href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+    > Markdown 支持的格式</Link>
+  </>;
+}
+
+/**
+ * TODO: Use theme css instead
+ */
+function FormHelperTextWithMargin({ children } : PropsWithChildren) {
+  return <FormHelperText mb={2}>{children}</FormHelperText>;
+}
+
 function UploadInstructions() {
-  return <FormHelperText mb={2}>
+  return <FormHelperTextWithMargin>
     <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>请在此处提交照片。</Link>
     管理员会在后台进一步处理。
     {/* 首先
@@ -262,7 +289,7 @@ function UploadInstructions() {
     ，然后<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
     访问此网页</Link>，点击第一行数据，在弹出的对话框中的文件上点击鼠标右键，
     拷贝文件链接，并复制到下面的输入框： */}
-  </FormHelperText>;
+  </FormHelperTextWithMargin>;
 }
 
 Page.title = "导师信息";
