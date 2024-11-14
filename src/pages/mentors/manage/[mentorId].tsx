@@ -17,9 +17,10 @@ import {
   NumberInputField,
   NumberDecrementStepper,
   Checkbox,
+  Image,
   HStack,
 } from '@chakra-ui/react';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
@@ -28,12 +29,14 @@ import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { MentorProfile } from 'shared/MentorProfile';
 import invariant from "tiny-invariant";
-import { formatUserName, parseQueryStringOrUnknown } from 'shared/strings';
+import { formatUserName, parseQueryStringOrUnknown, shaChecksum } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { defaultMentorCapacity, MentorPreference, UserPreference } from 'shared/User';
 import MarkdownSupport from 'components/MarkdownSupport';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { isPermitted } from 'shared/Role';
+import { encodeUploadTokenUrlSafe } from 'shared/upload';
+import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -47,7 +50,8 @@ export default function Page() {
   const { data: user } = trpcNext.users.get.useQuery(userId);
 
   /**
-   * Code block that updates UserPreference
+   * Code block that updates UserPreference.
+   * TODO: Break it out into smaller functions.
    */
 
   const { data: oldPref } = 
@@ -78,6 +82,16 @@ export default function Page() {
   const [profile, setProfile] = useState<MentorProfile>();
   useEffect(() => setProfile(oldProfile), [oldProfile]);
 
+  // We use the checksum not only as a security measure but also an e-tag to
+  // prevent concurrent writes.
+  // TODO: It's a weak security measure because anyone who has access to the
+  // mentor's profile can compute the hash. Use a stronger method.
+  const uploadToken = useMemo(() =>
+    profile ? encodeUploadTokenUrlSafe("MentorProfilePicture", userId,
+      shaChecksum(profile)) : null, 
+    [userId, profile]
+  );
+
   const updateProfile = (k: keyof MentorProfile, v: string) => {
     invariant(profile);
     const updated = structuredClone(profile);
@@ -104,15 +118,14 @@ export default function Page() {
     }
   };
 
-  return !(pref && profile) ? <Loader /> : <VStack
+  return !(user && pref && profile) ? <Loader /> : <VStack
     maxWidth="xl"
     align="start"
     spacing={componentSpacing} 
     margin={sectionSpacing}
   >
     <Heading size="md">
-      {userId === me.id ? "导师偏好" :
-        formatUserName(user?.name || "", "formal")}
+      {userId === me.id ? "导师偏好" : formatUserName(user.name, "formal")}
     </Heading>
 
     <FormControl>
@@ -166,13 +179,33 @@ export default function Page() {
     <MarkdownSupport prefix="【提示】所有文字均" />
 
     <FormControl mt={sectionSpacing}>
-      <FormLabel>生活照链接</FormLabel>
-      <UploadInstructions />
-      {isPermitted(me.roles, 'MentorshipManager') &&
+      <FormLabel>生活照</FormLabel>
+      
+      {profile.照片链接 && <Link href={profile.照片链接} target='_blank'><Image
+        src={profile.照片链接}
+        alt="照片"
+        maxW='300px'
+        my={componentSpacing}
+      /></Link>}
+
+      {uploadToken && <>
+        <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
+          {profile.照片链接 ? 
+            <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
+          : 
+            <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
+          }
+        </Link>
+      </>}
+
+      {isPermitted(me.roles, 'MentorshipManager') && <>
+        <FormHelperTextWithMargin>
+          以下链接地址链接仅管理员可见：
+        </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} 
           onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
-      }
+      </>}
     </FormControl>
     <FormControl>
       <FormLabel>
@@ -278,18 +311,6 @@ function ListAndMarkdownSupport() {
  */
 function FormHelperTextWithMargin({ children } : PropsWithChildren) {
   return <FormHelperText mb={2}>{children}</FormHelperText>;
-}
-
-function UploadInstructions() {
-  return <FormHelperTextWithMargin>
-    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>请在此处提交照片。</Link>
-    管理员会在后台进一步处理。
-    {/* 首先
-    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>在此提交照片</Link>
-    ，然后<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
-    访问此网页</Link>，点击第一行数据，在弹出的对话框中的文件上点击鼠标右键，
-    拷贝文件链接，并复制到下面的输入框： */}
-  </FormHelperTextWithMargin>;
 }
 
 Page.title = "导师信息";

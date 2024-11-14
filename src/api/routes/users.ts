@@ -188,9 +188,10 @@ const setMenteeStatus = procedure
   }))
   .mutation(async ({ input: { userId, menteeStatus } }) => 
 {
-  const user = await db.User.findByPk(userId);
-  if (!user) throw notFoundError("用户", userId);
-  await user.update({ menteeStatus });
+  const [cnt] = await db.User.update({ menteeStatus }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 const get = procedure
