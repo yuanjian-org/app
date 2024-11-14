@@ -33,7 +33,7 @@ import invariant from "tiny-invariant";
 import { formatUserName, parseQueryStringOrUnknown, shaChecksum } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { defaultMentorCapacity, MentorPreference, UserPreference } from 'shared/User';
-import MarkdownSupport from 'components/MarkdownSupport';
+import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { isPermitted } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
@@ -119,6 +119,12 @@ export default function Page() {
     }
   };
 
+  const SaveButton = () => (
+    <Button onClick={save} variant="brand" isLoading={isSaving}>
+      保存
+    </Button>
+  );
+
   return !(user && pref && profile) ? <Loader /> : <VStack
     maxWidth="xl"
     align="start"
@@ -150,8 +156,7 @@ export default function Page() {
     </FormControl>
 
     <FormControl>
-      {/* TODO: remove this and use global styling */}
-      <Checkbox sx={{ '.chakra-checkbox__control': { bg: 'white' } }}
+      <Checkbox
         isChecked={pref.mentor?.不参加就业辅导 ?? false}
         onChange={e => updatePref('不参加就业辅导', e.target.checked)}
       >
@@ -159,9 +164,7 @@ export default function Page() {
       </Checkbox>
     </FormControl>
 
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
-      保存
-    </Button>
+    <SaveButton />
 
     <Divider my={componentSpacing} />
 
@@ -185,13 +188,18 @@ export default function Page() {
         </Link>
       </>}
 
+      <FormHelperTextWithMargin>
+        建议选择面部清晰、不戴墨镜的近照
+      </FormHelperTextWithMargin>
+
       {isPermitted(me.roles, 'MentorshipManager') && <>
         <FormHelperTextWithMargin>
           以下链接仅管理员可见：
         </FormHelperTextWithMargin>
-        <Input bg="white" value={profile.照片链接 || ""} 
+        <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
           onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
+        <SaveButton />
       </>}
     </FormControl>
 
@@ -201,15 +209,16 @@ export default function Page() {
 
     <Text>
       这些信息是学生了解导师的重要渠道，是他们
-      <Link href="/s/matchmaking" target="_blank">初次匹配</Link>
-      时的唯一参考。请详尽填写，并展现出最真实的你。
+      <Link target='_blank' href="/s/matchmaking">初次匹配</Link>
+      时的唯一参考。请详尽填写，并展现出最真实的你。所有文字均支持
+      <Link target='_blank' href={markdownSyntaxUrl}>
+        {' '}Markdown 格式
+      </Link>。
     </Text>
 
     <Text color="red.700">
-      注意：更新内容后务必点击“保存”。本页不支持自动保存。
+      更新内容后务必点击“保存”。本页不支持自动保存。
     </Text>
-
-    <MarkdownSupport prefix="提示：所有内容均" />
 
     <FormControl mt={sectionSpacing}>
       <FormLabel>雇主与职位 <Highlight /></FormLabel>
@@ -307,9 +316,7 @@ export default function Page() {
       />
     </FormControl>
 
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
-      保存
-    </Button>
+    <SaveButton />
 
     <Text><Link href={`/mentors/${userId}`} target='_blank'>
       <HStack>
@@ -326,10 +333,7 @@ function Highlight() {
 function ListAndMarkdownSupport() {
   return <>
     可用以星号开头的列表格式或
-    <Link
-      target="_blank"
-      href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
-    >其他 Markdown 格式</Link>
+    <Link target="_blank" href={markdownSyntaxUrl}>其他 Markdown 格式</Link>
   </>;
 }
 
