@@ -20,41 +20,35 @@ import Loader from 'components/Loader';
 import { sidebarBreakpoint } from 'components/Navbars';
 import LandmarkDrawer from 'components/LandmarkDrawer';
 import path from 'path';
-import fs from 'fs';
-import { InferGetStaticPropsType } from "next";
+import { promises as fs } from 'fs';
 
 const desktopTextLimit = 80;
 const mobileTextLimit = 30;
 
-type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+type PageProps = {
+  data: Record<string, Landmark[]>;
+};
+
+const latitudes = ['个人成长', '事业发展', '社会责任'];
 
 export default function Page({ data }: PageProps) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
 
-  if (!data) {
-    return <>data is undefined</>;
-  }
-
   return <>
     <TabsWithUrlParam isLazy>
       <TabList>
-        <Tab>个人成长</Tab>
-        <Tab>事业发展</Tab>
-        <Tab>社会责任</Tab>
+        {latitudes.map(latitude => 
+          <Tab key={latitude}>{latitude}</Tab>
+        )}
       </TabList>
 
       <TabPanels>
-        <TabPanel>
-          <LandmarkTabPanel landmarks={data[0]} selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
-
-        <TabPanel>
-          <LandmarkTabPanel landmarks={data[1]} selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
-
-        <TabPanel>
-          <LandmarkTabPanel landmarks={data[2]} selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
+        {latitudes.map(latitude => 
+          <TabPanel key={latitude}>
+            <LandmarkTabPanel landmarks={data[latitude]} 
+              selectLandmark={setSelectedLandmark}/>
+          </TabPanel>
+        )}
       </TabPanels>
     </TabsWithUrlParam>
     
@@ -71,7 +65,7 @@ const LandmarkTabPanel = ({ landmarks, selectLandmark }: {
 }) => {
   return (
     <>
-      {landmarks.length === 0? 
+      {!landmarks ? 
         <Loader/> : 
         <SimpleGrid spacing={componentSpacing} 
         templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
@@ -106,19 +100,18 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
 };
 
 export async function getStaticProps(){
-  const latitudes = ['个人成长', '事业发展', '社会责任'];
-
   const data = await Promise.all(
     latitudes.map(async (latitude) => {
-      const landmarkDataPath = path.join(process.cwd(), 'public', 'map', latitude);
-      const files = await fs.promises.readdir(landmarkDataPath);
+      const landmarkDataPath = path.join(process.cwd(), 'public', 'map', 
+        latitude);
+      const files = await fs.readdir(landmarkDataPath);
 
-      return Promise.all(
+      const landmarks = await Promise.all(
         files
           .filter(file => path.extname(file) === '.json')
           .map(async file => {
             const filePath = path.join(landmarkDataPath, file);
-            const fileContent = await fs.promises.readFile(filePath, 'utf8');
+            const fileContent = await fs.readFile(filePath, 'utf8');
             const landmark = JSON.parse(fileContent);
             return {
               ...landmark,
@@ -126,9 +119,10 @@ export async function getStaticProps(){
             };
           })
       );
+      return { [latitude]: landmarks };
     })
   );
 
-  console.log(data.length, typeof data, Array.isArray(data), data[2], typeof data[2], data[2][1]["定义"]);
-  return { props: { data } };
+  const res = data.reduce((acc, item) => ({ ...acc, ...item }), {});
+  return { props: { data: res } };
 }
