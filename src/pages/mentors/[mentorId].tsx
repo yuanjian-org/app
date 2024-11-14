@@ -11,6 +11,7 @@ import {
   Tr,
   Td,
   TableContainer,
+  Link,
 } from '@chakra-ui/react';
 import { MentorProfile } from "shared/MentorProfile";
 import { sectionSpacing } from "theme/metrics";
@@ -29,13 +30,14 @@ export default function Page() {
 
     <Wrap>
       <WrapItem>
-        {data?.profile?.照片链接 && <Image
-          maxW='300px'
-          src={data.profile.照片链接}
-          alt="照片"
-          mb={sectionSpacing}
-          me={sectionSpacing}
-        />}
+        {data?.profile?.照片链接 && 
+          <Link href={data.profile.照片链接} target='_blank'><Image
+            maxW='300px'
+            src={data.profile.照片链接}
+            alt="照片"
+            mb={sectionSpacing}
+            me={sectionSpacing}
+          /></Link>}
       </WrapItem>
       <WrapItem>
           {data?.profile && <ProfileTable profile={data.profile} />}

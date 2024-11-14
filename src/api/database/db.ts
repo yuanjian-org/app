@@ -16,7 +16,6 @@ import InterviewFeedbackUpdateAttempt from "./models/InterviewFeedbackUpdateAtte
 import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
 import LandmarkAssessment from "./models/map/LandmarkAssessment";
-import Upload from "./models/Upload";
 
 const db = {
   Mentorship,
@@ -34,7 +33,6 @@ const db = {
   ChatRoom,
   ChatMessage,
   LandmarkAssessment,
-  Upload,
 };
 
 export default db;
