@@ -7,7 +7,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName } from 'shared/strings';
+import { formatUserName, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
@@ -54,6 +54,8 @@ function MentorCard({ user, profile: p }: {
 }) {
   const router = useRouter();
 
+
+
   return <Card
     overflow="hidden"
     cursor="pointer"
@@ -75,7 +77,9 @@ function MentorCard({ user, profile: p }: {
     <CardBody pt={1}>
       <VStack align="start">
         {p?.身份头衔 && <Text>{p.身份头衔}</Text>}
-        {p?.擅长辅导领域 && <Text><b>擅长辅导</b>：{p.擅长辅导领域}</Text>}
+        {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
+        {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
+        {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, 40)}</Text>}
       </VStack>
     </CardBody>
     <CardFooter>
