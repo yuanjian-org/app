@@ -19,6 +19,7 @@ import {
   Checkbox,
   Image,
   HStack,
+  Tag,
 } from '@chakra-ui/react';
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../../trpc";
@@ -143,7 +144,7 @@ export default function Page() {
         名学生。
       </Flex>
       <FormHelperText>
-        强烈建议两名学生或以上。不同学生的对比对导师工作非常有帮助。
+        强烈建议两名学生或以上，因为学生的横向对比对导师工作非常有帮助。
         若希望避免匹配学生，请选择0。
       </FormHelperText>
     </FormControl>
@@ -161,26 +162,12 @@ export default function Page() {
     <Button onClick={save} variant="brand" isLoading={isSaving}>
       保存
     </Button>
+
+    <Divider my={componentSpacing} />
+
+    <Heading size="md">生活照</Heading>
     
-    <Divider my={sectionSpacing} />
-
-    <Heading size="md">展示信息</Heading>
-
-    <Text>
-      以下信息是学生了解导师的重要渠道，也是他们
-      <Link href="/s/matchmaking" target="_blank">填写初次匹配意向</Link>
-      时的唯一参考。请详尽填写，并展现出最真实的你。
-    </Text>
-
-    <Text color="red.700">
-      【注意】更新内容后务必点击“保存”。本页不支持自动保存。
-    </Text>
-
-    <MarkdownSupport prefix="【提示】所有文字均" />
-
-    <FormControl mt={sectionSpacing}>
-      <FormLabel>生活照</FormLabel>
-      
+    <FormControl>
       {profile.照片链接 && <Link href={profile.照片链接} target='_blank'><Image
         src={profile.照片链接}
         alt="照片"
@@ -200,33 +187,73 @@ export default function Page() {
 
       {isPermitted(me.roles, 'MentorshipManager') && <>
         <FormHelperTextWithMargin>
-          以下链接地址链接仅管理员可见：
+          以下链接仅管理员可见：
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} 
           onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
       </>}
     </FormControl>
-    <FormControl>
-      <FormLabel>
-        雇主与职位（注明专业领域，如“甲公司人事处处长”、“餐饮业创业者”等）
-      </FormLabel>
+
+    <Divider my={componentSpacing} />
+
+    <Heading size="md">展示信息</Heading>
+
+    <Text>
+      这些信息是学生了解导师的重要渠道，是他们
+      <Link href="/s/matchmaking" target="_blank">初次匹配</Link>
+      时的唯一参考。请详尽填写，并展现出最真实的你。
+    </Text>
+
+    <Text color="red.700">
+      注意：更新内容后务必点击“保存”。本页不支持自动保存。
+    </Text>
+
+    <MarkdownSupport prefix="提示：所有内容均" />
+
+    <FormControl mt={sectionSpacing}>
+      <FormLabel>雇主与职位 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        注明专业领域，比如甲公司人事处处长、餐饮业创业者等
+      </FormHelperTextWithMargin>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>现居住城市或地区</FormLabel>
+      <FormLabel>现居住城市或地区 <Highlight /></FormLabel>
       <Input bg="white" value={profile.现居住地 || ""} 
         onChange={ev => updateProfile('现居住地', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>成长过程中曾经居住过的城市或地区</FormLabel>
+      <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        擅长或喜欢“八卦”的事情，比如事实新闻、中国历史、哲学思辨、网游桌游……
+      </FormHelperTextWithMargin>
+      <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
+        onChange={ev => updateProfile('擅长话题', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>
+        成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人 <Highlight />
+      </FormLabel>
+      <Textarea bg="white" height={140} value={profile.成长亮点 || ""} 
+        onChange={ev => updateProfile('成长亮点', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>成长过程中曾经居住的城市或地区</FormLabel>
       <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
         onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>职业经历</FormLabel>
       <FormHelperTextWithMargin>
@@ -238,49 +265,45 @@ export default function Page() {
         onChange={ev => updateProfile('职业经历', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历）</FormLabel>
+      <FormLabel>教育经历</FormLabel>
       <FormHelperTextWithMargin>
-        <ListAndMarkdownSupport />。
+        大学及以上，也鼓励填写更早的经历。<ListAndMarkdownSupport />。
       </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
         onChange={ev => updateProfile('教育经历', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>个性特点</FormLabel>
       <Textarea bg="white" height={140} value={profile.个性特点 || ""} 
         onChange={ev => updateProfile('个性特点', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>业余爱好和特长</FormLabel>
       <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
         onChange={ev => updateProfile('爱好与特长', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>喜爱的图书、影视作品、网站、自媒体账号等</FormLabel>
       <Textarea bg="white" height={140} value={profile.喜爱读物 || ""} 
         onChange={ev => updateProfile('喜爱读物', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>目前生活的日常（比如生活趣事、平常的业余活动、婚姻及子女情况等）</FormLabel>
+      <FormLabel>目前的生活日常</FormLabel>
+      <FormHelperTextWithMargin>
+        比如生活趣事、平常的业余活动、子女情况等
+      </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.生活日常 || ""} 
         onChange={ev => updateProfile('生活日常', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人</FormLabel>
-      <Textarea bg="white" height={140} value={profile.成长亮点 || ""} 
-        onChange={ev => updateProfile('成长亮点', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>擅长辅导领域</FormLabel>
-      <Textarea bg="white" height={140} value={profile.擅长辅导领域 || ""} 
-        onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
     </FormControl>
 
@@ -296,13 +319,17 @@ export default function Page() {
   </VStack>;
 }
 
+function Highlight() {
+  return <Tag ms={2} size="sm" colorScheme="green">首页亮点</Tag>;
+}
+
 function ListAndMarkdownSupport() {
   return <>
-    可使用列表格式或其他
+    可用以星号开头的列表格式或
     <Link
       target="_blank"
       href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
-    > Markdown 支持的格式</Link>
+    >其他 Markdown 格式</Link>
   </>;
 }
 
