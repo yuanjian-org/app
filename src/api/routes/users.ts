@@ -198,10 +198,10 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMinUser)
-  .query(async ({ ctx, input: userId }) =>
+  .query(async ({ ctx: { user: me }, input: userId }) =>
 {
-  if (!isPermitted(ctx.user.roles, "UserManager") &&
-    !await isPermittedForMentee(ctx.user, userId)) {
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager") &&
+    !await isPermittedForMentee(me, userId)) {
     throw noPermissionError("用户", userId);
   }
 
