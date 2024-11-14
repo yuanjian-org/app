@@ -52,7 +52,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
       :
       <SessionProvider session={session}>
         <SwitchBoard pageType={Component.type}>
-          <Component />
+          <Component {...pageProps} />
           <ToastContainer
             position="bottom-center"
             autoClose={5000}
