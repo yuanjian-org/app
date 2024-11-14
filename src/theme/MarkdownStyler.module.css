@@ -34,3 +34,24 @@
 .markdownStyler a {
   color: var(--chakra-colors-brand-c); 
 }
+
+.markdownStyler ul,
+.markdownStyler ol {
+  padding-inline-start: 1.5em;
+}
+
+.markdownStyler li {
+  display: list-item;
+  text-align: -webkit-match-parent;
+}
+
+.markdownStyler blockquote {
+  display: block;
+  padding: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  background: #eee;
+  border-radius: 8px;
+}

@@ -23,28 +23,26 @@ import {
   WrapItem,
   Flex,
   TableContainer,
-  RadioGroup,
-  Radio,
+  Link,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
 import User, { UserFilter } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName, toPinyin } from 'shared/strings';
+import { formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import { useUserContext } from 'UserContext';
-import { AddIcon, EditIcon } from '@chakra-ui/icons';
+import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
-import { componentSpacing } from 'theme/metrics';
+import NextLink from 'next/link';
 
 export default function Page() {
   const [filter ] = useState<UserFilter>({});
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[] | null>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
-  const [me] = useUserContext();
 
   const closeUserEditor = () => {
     setUserBeingEdited(null);
@@ -58,51 +56,81 @@ export default function Page() {
 
     <Flex direction='column' gap={6}>
       <Wrap spacing={4} align="center">
-        <Button variant='brand' leftIcon={<AddIcon />} onClick={() => setCreatingNewUser(true)}>新建用户</Button>
+        <Button
+          variant='brand'
+          leftIcon={<AddIcon />}
+          onClick={() => setCreatingNewUser(true)}
+        >新建用户</Button>
+
         {/* <Divider orientation="vertical" />
         <UserFilterSelector filter={filter} onChange={f => setFilter(f)} /> */}
+
       </Wrap>
 
-      {!users ? <Loader /> :
-        <TableContainer>
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>编辑</Th>
-                <Th>电子邮箱</Th>
-                <Th>姓名</Th>
-                <Th>拼音</Th>
-                <Th>角色</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {users.map((u: any) => (
-                <Tr key={u.id} onClick={() => setUserBeingEdited(u)} cursor='pointer' _hover={{ bg: "white" }}>
-                  <Td><EditIcon /></Td>
-                  <Td>{u.email}</Td>
-                  <Td>{u.name} {me.id === u.id ? "（我）" : ""}</Td>
-                  <Td>{toPinyin(u.name ?? '')}</Td>
-                  <Td>
-                    <Wrap>
-                      {u.roles.map((r: Role) => {
-                        const rp = RoleProfiles[r];
-                        return <WrapItem key={r}>
-                          <Tag bgColor={rp.automatic ? "brand.c" : "orange"} color="white">
-                            {rp.displayName}
-                          </Tag>
-                        </WrapItem>;
-                      })}
-                    </Wrap>
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      }
+      {!users ? <Loader /> : <TableContainer>
+        <UserTable users={users} setUserBeingEdited={setUserBeingEdited} />
+      </TableContainer>}
     </Flex>
   </>;
 };
+
+Page.title = "用户";
+
+function UserTable({ users, setUserBeingEdited }: {
+  users: User[],
+  setUserBeingEdited: (u: User | null) => void,
+}) {
+  const [me] = useUserContext();
+
+  return <Table size="sm">
+    <Thead>
+      <Tr>
+        <Th>电子邮箱</Th>
+        <Th>姓名</Th>
+        <Th>拼音</Th>
+        <Th>角色</Th>
+      </Tr>
+    </Thead>
+    <Tbody>
+      {users.map(u => (
+        <Tr
+          key={u.id}
+          cursor='pointer'
+          _hover={{ bg: "white" }}
+        >
+          <Td onClick={() => setUserBeingEdited(u)}>{u.email}</Td>
+          
+          <Td>
+            <Link as={NextLink} href={`/profiles/${u.id}`}>
+              <b>
+                {formatUserName(u.name, "formal")}
+                {me.id === u.id ? "（我）" : ""}
+              </b>{' '}<ChevronRightIcon />
+            </Link>
+          </Td>
+
+          <Td onClick={() => setUserBeingEdited(u)}>
+            {toPinyin(u.name ?? '')}
+          </Td>
+
+          {/* Roles */}
+          <Td onClick={() => setUserBeingEdited(u)}>
+            <Wrap>
+              {u.roles.map((r: Role) => {
+                const rp = RoleProfiles[r];
+                return <WrapItem key={r}>
+                  <Tag bgColor={rp.automatic ? "brand.c" : "orange"} color="white">
+                    {rp.displayName}
+                  </Tag>
+                </WrapItem>;
+              })}
+            </Wrap>
+          </Td>
+        </Tr>
+      ))}
+    </Tbody>
+  </Table>;
+}
 
 function UserEditor(props: {
   user?: User, // When absent, create a new user.
@@ -111,20 +139,14 @@ function UserEditor(props: {
   const u = props.user ?? {
     email: '',
     name: '',
-    wechat: '',
-    city: '',
-    sex: '',
     roles: [],
   };
 
   const [me] = useUserContext();
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
-  const [wechat, setWechat] = useState(u.wechat || '');
-  const [city, setCity] = useState(u.city|| '');
-  const [sex, setSex] = useState(u.sex || '');
   const [roles, setRoles] = useState(u.roles);
-  const [saving, setSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const validName = isValidChineseName(name);
   const validEmail = z.string().email().safeParse(email).success;
 
@@ -134,23 +156,20 @@ function UserEditor(props: {
   };
 
   const save = async () => {
-    setSaving(true);
+    setIsSaving(true);
     try {
       if (props.user) {
         const u = structuredClone(props.user);
         u.email = email;
         u.name = name;
-        u.wechat = wechat;
-        u.city = city;
-        u.sex = sex;
         u.roles = roles;
         await trpc.users.update.mutate(u);
       } else {
-        await trpc.users.create.mutate({ name, wechat,city, sex, email, roles });
+        await trpc.users.create.mutate({ name, email, roles });
       }
       props.onClose();
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
@@ -169,30 +188,17 @@ function UserEditor(props: {
         <VStack spacing={6}>
           <FormControl isRequired isInvalid={!validEmail}>
             <FormLabel>Email</FormLabel>
-            <Input type='email' value={email} onChange={e => setEmail(e.target.value)} />
+            <Input
+              type='email'
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
             <FormErrorMessage>需要填写有效Email地址。</FormErrorMessage>
-          </FormControl>
-          <FormControl>
-            <FormLabel>微信</FormLabel>
-            <Input value={wechat} onChange={e => setWechat(e.target.value)} />
           </FormControl>
           <FormControl isRequired isInvalid={!validName}>
             <FormLabel>姓名</FormLabel>
             <Input value={name} onChange={e => setName(e.target.value)} />
             <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
-          </FormControl>
-          <FormControl display="flex" gap={componentSpacing}>
-            <FormLabel>性别</FormLabel>
-            <RadioGroup value={sex} onChange={setSex}>
-              <Stack direction="row">
-               <Radio background="white" value="男">男</Radio>
-               <Radio background="white" value="女">女</Radio>
-              </Stack>
-            </RadioGroup>
-          </FormControl>
-          <FormControl>
-            <FormLabel>居住的中国城市或者国家+城市</FormLabel>
-            <Input value={city} onChange={e => setCity(e.target.value)} />
           </FormControl>
 
           {isPermitted(me.roles, "UserManager") && <FormControl>
@@ -201,7 +207,12 @@ function UserEditor(props: {
               {AllRoles.map(r => {
                 const rp = RoleProfiles[r];
                 return (
-                  <Checkbox key={r} value={r} isChecked={isPermitted(roles, r)} onChange={setRole}>
+                  <Checkbox
+                    key={r}
+                    value={r}
+                    isChecked={isPermitted(roles, r)}
+                    onChange={setRole}
+                  >
                     {rp.automatic ? "*" : ""} {rp.displayName}（{r}）
                   </Checkbox>
                 );
@@ -210,14 +221,22 @@ function UserEditor(props: {
           </FormControl>}
 
           <FormControl>
-            <small>* 是系统自动管理的角色。正常情况下请勿手工修改，以免引起使用问题。</small>
+            <small>
+              * 是系统自动管理的角色。一般情况下请勿手工修改，以免引起使用问题。
+            </small>
           </FormControl>
         </VStack>
       </ModalBody>
       <ModalFooter>
         <Flex justifyContent="space-between" width="100%">
-          <Button variant='outline' colorScheme='red' onClick={deleteUser}>删除</Button>
-          <Button variant='brand' isLoading={saving} onClick={save} isDisabled={!validEmail || !validName}>保存</Button>
+          <Button variant='outline' colorScheme='red' onClick={deleteUser}>
+            删除
+          </Button>
+          <Button variant='brand' isLoading={isSaving} onClick={save}
+            isDisabled={!validEmail || !validName}
+          >
+            保存
+          </Button>
         </Flex>
       </ModalFooter>
     </ModalContent>

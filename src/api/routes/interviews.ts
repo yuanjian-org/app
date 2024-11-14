@@ -27,7 +27,7 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
-import { zUser } from "../../shared/User";
+import { zUser, zUserPreference } from "../../shared/User";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -181,40 +181,43 @@ export async function createInterview(type: InterviewType, calibrationId: string
   });
 }
 
-const getInterviewerStats = procedure
+const listInterviewerStats = procedure
 .use(authUser("MentorshipManager"))
 .output(z.array(z.object({
   user: zUser,
   interviews: z.number(),
+  preference: zUserPreference.nullable(),
 })))
 .query(async () =>
 {
-  const mentors = await db.User.findAll({
-    attributes: userAttributes,
+  const users = await db.User.findAll({
+    attributes: [...userAttributes, 'preference'],
     include: userInclude,
   });
 
-  const interviewCounts = await db.InterviewFeedback.findAll({
+  // A map from user to the total number of interviews conducted by the user.
+  const user2interviews = (await db.InterviewFeedback.findAll({
     attributes: [
       'interviewerId',
-      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'interviewCount']
+      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'count']
     ],
     group: ['interviewerId']
-  });
-
-  const interviewCountMap = interviewCounts
-    .reduce<{ [key: string]: number }>((acc, curr) => {
-      acc[curr.interviewerId] = parseInt(curr.getDataValue('interviewCount'), 10);
+  })).reduce<{ [key: string]: number }>((acc, curr) => {
+      acc[curr.interviewerId] = Number.parseInt(curr.getDataValue('count'));
       return acc;
     }, {});
 
-  const stats = mentors
-    .filter(mentor => interviewCountMap[mentor.id])
-    .map(mentor => ({
-      user: mentor,
-      interviews: interviewCountMap[mentor.id]
-    }))
-    .sort((i1, i2) => i1.interviews - i2.interviews);
+  const stats = users
+    .filter(user => user2interviews[user.id] 
+      || user.preference?.interviewer?.optIn === true
+      || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
+    .map(user => ({
+      user,
+      interviews: user2interviews[user.id] || 0,
+      preference: user.preference,
+    }));
+
+  stats.sort((a, b) => a.interviews - b.interviews);
   return stats;
 });
 
@@ -339,7 +342,7 @@ export default router({
   list,
   listMine,
   create,
-  getInterviewerStats,
+  listInterviewerStats,
   update,
   updateDecision,
 });

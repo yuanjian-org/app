@@ -28,4 +28,4 @@ export default fullPage(() => {
       />
     </Box>
   );
-});
+}, "资源库");

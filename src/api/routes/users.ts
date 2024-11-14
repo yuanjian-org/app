@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zMinUser, zUser, zUserFilter } from "../../shared/User";
+import User, { zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { email } from "../sendgrid";
@@ -20,15 +20,13 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
+import { zMentorProfile } from "../../shared/MentorProfile";
 
 const create = procedure
   .use(authUser('UserManager'))
   .input(z.object({
     name: z.string(),
     email: z.string(),
-    city: z.string().nullable(),
-    wechat: z.string().nullable(),
-    sex: z.string().nullable(),
     roles: zRoles,
   }))
   .mutation(async ({ ctx, input }) => 
@@ -40,9 +38,6 @@ const create = procedure
     pinyin: toPinyin(input.name),
     email: input.email,
     roles: input.roles,
-    city: input.city,
-    wechat: input.wechat,
-    sex: input.sex,
   });
 });
 
@@ -94,6 +89,31 @@ const list = procedure
   });
 });
 
+const listRedactedEmailsWithSameName = procedure
+  .use(authUser())
+  .output(z.array(z.string()))
+  .query(async ({ ctx }) =>
+{
+  return (await db.User.findAll({
+    where: {
+      name: ctx.user.name,
+      id: { [Op.ne]: ctx.user.id },
+    },
+    attributes: ["email"],
+  })).map(u => redactEmail(u.email));
+});
+
+/**
+ * Given foo.bar@gmail.com, return f******@gmail.com
+ */
+export function redactEmail(email: string): string {
+  return email.replace(/^(.)(.+)(@.*)$/,
+    (match, first, rest, domain) => {
+      return `${first}${'*'.repeat(rest.length)}${domain}`;
+    }
+  );
+}
+
 const update = procedure
   .use(authUser())
   .input(zUser)
@@ -141,7 +161,26 @@ const update = procedure
   });
 });
 
-const updateMenteeStatus = procedure
+const setUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    preference: zUserPreference,
+  }))
+  .mutation(async ({ ctx: { user }, input: { userId, preference } }) => 
+{
+  if (user.id !== userId && !isPermitted(user.roles,
+    ["UserManager", "MentorshipManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const [cnt] = await db.User.update({ preference }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
+});
+
+const setMenteeStatus = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
@@ -149,19 +188,20 @@ const updateMenteeStatus = procedure
   }))
   .mutation(async ({ input: { userId, menteeStatus } }) => 
 {
-  const user = await db.User.findByPk(userId);
-  if (!user) throw notFoundError("用户", userId);
-  await user.update({ menteeStatus });
+  const [cnt] = await db.User.update({ menteeStatus }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMinUser)
-  .query(async ({ ctx, input: userId }) =>
+  .query(async ({ ctx: { user: me }, input: userId }) =>
 {
-  if (!isPermitted(ctx.user.roles, "UserManager") &&
-    !await isPermittedForMentee(ctx.user, userId)) {
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager") &&
+    !await isPermittedForMentee(me, userId)) {
     throw noPermissionError("用户", userId);
   }
 
@@ -173,6 +213,83 @@ const get = procedure
   return u;
 });
 
+const getFull = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zUser)
+  .query(async ({ ctx: { user: me }, input: userId }) =>
+{
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: userAttributes,
+    include: userInclude,
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u;
+});
+
+const getUserPreference = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zUserPreference)
+  .query(async ({ ctx: { user: me }, input: { userId } }) => 
+{
+  if (me.id !== userId && !isPermitted(me.roles,
+    ["UserManager", "MentorshipManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ['preference'] 
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return user.preference || {};
+});
+
+const getMentorProfile = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zMentorProfile)
+  .query(async ({ ctx: { user }, input: { userId } }) => 
+{
+  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: ['mentorProfile'] 
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u.mentorProfile || {};
+});
+
+const setMentorProfile = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+    profile: zMentorProfile,
+  }))
+  .mutation(async ({ ctx: { user }, input: { userId, profile } }) => 
+{
+  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const [cnt] = await db.User.update({ mentorProfile: profile }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
+});
 
 /**
  * Only the user themselves, MentorCoach, and MentorshipManager have access.
@@ -256,12 +373,11 @@ const setPointOfContactAndNote = procedure
     throw generalBadRequestError("One of pocId and pocNote must be set");
   }
 
-  const ret = await db.User.update({
+  const [cnt] = await db.User.update({
     ...pocId !== undefined ? { pointOfContactId: pocId } : {},
     ...pocNote !== undefined ? { pointOfContactNote: pocNote } : {},
   }, { where: { id: userId } });
-  invariant(ret[0] <= 1);
-  if (ret[0] == 0) throw notFoundError("用户", userId);
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 /**
@@ -304,7 +420,6 @@ const getApplicant = procedure
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
-  user.city = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
   if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
@@ -343,7 +458,7 @@ const getApplicant = procedure
 /**
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
-const updateApplication = procedure
+const setApplication = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
@@ -355,7 +470,6 @@ const updateApplication = procedure
   const [cnt] = await db.User.update({
     [input.type == "MenteeInterview" ? "menteeApplication" : "mentorApplication"]: input.application,
   }, { where: { id: input.userId } });
-  invariant(cnt <= 1);
   if (!cnt) throw notFoundError("用户", input.userId);
 });
 
@@ -415,17 +529,26 @@ const destroy = procedure
 export default router({
   create,
   get,
+  getFull,
   list,
   listPriviledgedUserDataAccess,
-  getApplicant,
+  listRedactedEmailsWithSameName,
 
   update,
-  updateMenteeStatus,
-  updateApplication,
+  setMenteeStatus,
   destroy,
+
+  getApplicant,
+  setApplication,
+
+  getMentorProfile,
+  setMentorProfile,
 
   getMentorCoach,
   setMentorCoach,
+
+  setUserPreference,
+  getUserPreference,
 
   setPointOfContactAndNote,
 });

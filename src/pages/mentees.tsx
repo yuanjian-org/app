@@ -8,7 +8,6 @@ import {
   Wrap,
   Flex,
   TableContainer,
-  WrapItem,
   Link,
   Text,
   Divider,
@@ -26,13 +25,13 @@ import {
   Tooltip,
   Tag,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
-import MenteeStatusSelect from 'components/MenteeStatusSelect';
+import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
 import invariant from 'tiny-invariant';
 import { MenteeStatus } from 'shared/MenteeStatus';
 import NextLink from "next/link";
@@ -44,7 +43,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
-import { formatMentorshipEndedAtText } from './mentees/[userId]';
+import { formatMentorshipEndedAtText } from './mentees/[menteeId]';
 import { menteeAcceptanceYearField } from 'shared/menteeApplicationFields';
 import { menteeSourceField } from 'shared/menteeApplicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
@@ -76,7 +75,7 @@ export default widePage(() => {
       }
     </Flex>
   </>;
-});
+}, "学生档案");
 
 function MenteeTable({ users, refetch }: {
   users: User[],
@@ -94,6 +93,14 @@ function MenteeTable({ users, refetch }: {
       });
     }
   , []);
+
+  const sortedUsers = useMemo(() => {
+    return users.sort((a, b) => {
+      const comp = (menteeToYear.get(b.id) || "")
+        .localeCompare(menteeToYear.get(a.id) || "");
+      return comp !== 0 ? comp : compareChinese(a.name, b.name);
+    });
+  }, [users, menteeToYear]); 
  
   return <Table size="sm">
     <Thead>
@@ -107,19 +114,9 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {users.sort((a: User, b: User) => {
-        const yearA = menteeToYear.get(a.id) || "";
-        const yearB = menteeToYear.get(b.id) || "";
-
-        if (yearA === yearB) {
-          const nameA = formatUserName(a.name, 'formal');
-          const nameB = formatUserName(b.name, 'formal');
-          return nameA.localeCompare(nameB);
-        }
-
-        return yearB.localeCompare(yearA);
-      }).map((u: User) => <MenteeRow key={u.id} user={u} refetch={refetch} 
-          updateMenteeYear={updateMenteeYear} />)
+      {sortedUsers.map((u: User) =>
+        <MenteeRow key={u.id} user={u} refetch={refetch} 
+        updateMenteeYear={updateMenteeYear} />)
       }
     </Tbody>
   </Table>;
@@ -133,9 +130,9 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
 
-  const setStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
+  const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
-    await trpc.users.updateMenteeStatus.mutate({ userId: u.id, menteeStatus });
+    await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
 
@@ -146,18 +143,11 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   }, [menteePinyin]);
 
   return <Tr key={u.id} _hover={{ bg: "white" }}>
-    {/* 状态 */}
-    <Td><Wrap minWidth="110px"><WrapItem>
-      <MenteeStatusSelect value={u.menteeStatus}
-        size="sm" onChange={status => setStatus(status)} />
-    </WrapItem></Wrap></Td>
-
+    <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
-
-    {/* 拼音 */}
     <Td>{pinyin}</Td>
   </Tr>;
 }
@@ -232,7 +222,7 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listForMentee.useQuery(mentee.id);
+  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee.useQuery(mentee.id);
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order

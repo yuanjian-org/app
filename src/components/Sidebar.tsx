@@ -72,6 +72,19 @@ interface DropdownMenuItem {
   icon?: React.ReactNode,
 }
 
+const mentorsDropdownMenuItems: DropdownMenuItem[] = [
+  {
+    name: '不定期导师',
+    action: '/mentors',
+    roles: ['MentorshipManager'],
+  },
+  {
+    name: '一对一导师',
+    action: '/mentors/matchable',
+    roles: ['MentorshipManager'],
+  },
+];
+
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
@@ -84,17 +97,22 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
-    name: '面试官统计',
-    action: '/interviewerStats',
+    name: '面试官',
+    action: '/interviewers',
     roles: 'MentorshipManager',
   },
   {
-    name: '管理会议',
+    name: '导师',
+    action: '/mentors/manage',
+    roles: 'MentorshipManager',
+  },
+  {
+    name: '会议',
     action: '/groups',
     roles: 'GroupManager',
   },
   {
-    name: '管理用户',
+    name: '用户',
     action: '/users',
     roles: 'UserManager',
   },
@@ -103,7 +121,12 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '个人信息',
-    action: '/profile',
+    action: '/profiles/me',
+  },
+  {
+    name: '导师信息',
+    action: '/mentors/manage/me',
+    roles: 'Mentor',
   },
   {
     name: '谁能看到我的数据',
@@ -118,10 +141,10 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
 
 const mainMenuItems: MainMenuItem[] = [
   {
-    name: '平台首页',
+    name: '首页',
     path: staticUrlPrefix,
     icon: MdHome,
-    iconColor: colors.brand.c,
+    iconColor: colors.brand.b,
   },
   {
     name: '我的会议',
@@ -189,7 +212,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const userName = formatUserName(me.name);
   // Save an API call if the user is not a mentor.
   const { data: mentorships } = isPermitted(me.roles, "Mentor") ?
-    trpcNext.mentorships.listMineAsMentor.useQuery() : { data: undefined };
+    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() : { data: undefined };
   const mentorshipItems = mentorships2Items(mentorships);
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
@@ -233,18 +256,28 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           .filter(item => isPermitted(me.roles, item.roles))
           .map(item => <SidebarRow key={item.path} item={item} 
                         onClose={onClose} />)}
-        <DropdownMenu
+
+        <DropdownMenuIfPermitted
+          title="导师列表"
+          icon={<Icon as={MdSupervisorAccount} marginRight="2" />}
+          menuItems={mentorsDropdownMenuItems}
+          onClose={onClose}
+        />
+
+        <DropdownMenuIfPermitted
           title="管理功能"
           icon={<Icon as={MdPerson2} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
+
         {mentorshipItems?.length > 0 && <Divider marginY={2} />}
         {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
           onClose={onClose} />)}
       </Box>
+
       <Box>
-        <DropdownMenu 
+        <DropdownMenuIfPermitted 
           title={userName} 
           icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
             />}
@@ -258,7 +291,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
 export default Sidebar;
 
-function DropdownMenu({ title, icon, menuItems, onClose } : {
+function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   title: string,
   icon: React.ReactNode,
   menuItems: DropdownMenuItem[],

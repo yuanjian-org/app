@@ -103,6 +103,8 @@ export default function Page() {
   </>;
 };
 
+Page.title = "会议";
+
 function GroupEditor({ group, onClose }: { 
   group: Group,
   onClose: () => void,

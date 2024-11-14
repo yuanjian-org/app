@@ -6,19 +6,25 @@ import {
   zMentorship,
 } from "../../shared/Mentorship";
 import { z } from "zod";
-import { alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import { 
+  alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError
+} from "../errors";
 import sequelize from "../database/sequelize";
-import { isPermitted } from "../../shared/Role";
+import Role, { isPermitted } from "../../shared/Role";
 import { 
   mentorshipAttributes,
   mentorshipInclude,
   minUserAttributes,
+  userAttributes,
+  userInclude,
 } from "api/database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
-import { formatUserName } from "shared/strings";
+import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
+import { defaultMentorCapacity, zMentorPreference, zMinUser, zUser } from "shared/User";
+import { zMentorProfile } from "shared/MentorProfile";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
@@ -81,7 +87,7 @@ const update = procedure
  * Otherwise, return only the mentorship of the mentee where the current user
  * is the mentor.
  */
-const listForMentee = procedure
+const listMentorshipsForMentee = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zMentorship))
@@ -102,7 +108,7 @@ const listForMentee = procedure
 /**
  * Omit mentorships that are already ended.
  */
-const listMineAsCoach = procedure
+const listMyMentorshipsAsCoach = procedure
   .use(authUser())
   .output(z.array(zMentorship))
   .query(async ({ ctx }) =>
@@ -119,13 +125,114 @@ const listMineAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
+const listMentors = procedure
+.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
+.output(z.array(z.object({
+  user: zMinUser,
+  matchable: z.boolean(),
+  profile: zMentorProfile.nullable(),
+})))
+.query(async () =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...minUserAttributes, "preference", "mentorProfile"],
+  });
+
+  const user2mentorships = await getUser2MentorshipCount();
+  const ret = users.map(u => ({
+      user: u,
+      profile: u.mentorProfile,
+      matchable: (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
+        - (user2mentorships[u.id] || 0) > 0,
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
+});
+
+const getMentor = procedure
+.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
+.input(z.object({
+  userId: z.string()
+})).output(z.object({
+  user: zMinUser,
+  profile: zMentorProfile.nullable(),
+}))
+.query(async ({ input: { userId } }) =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: {
+      id: userId,
+      roles: { [Op.contains]: [mentorRole] },
+    },
+    attributes: [...minUserAttributes, "mentorProfile"],
+  });
+  invariant(users.length <= 1);
+  if (!users.length) throw notFoundError("导师", userId);
+
+  return {
+    user: users[0],
+    profile: users[0].mentorProfile,
+  };
+});
+
+/**
+ * Return a map from user to the number of mentorships of this user as a mentor
+ */
+async function getUser2MentorshipCount() {
+  return (await db.Mentorship.findAll({
+    where: { endedAt: null },
+    attributes: [
+      'mentorId',
+      [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
+    ],
+    group: ['mentorId']
+  })).reduce<{ [key: string]: number }>((acc, cur) => {
+    acc[cur.mentorId] = Number.parseInt(cur.getDataValue('count'));
+    return acc;
+  }, {});
+}
+
+const listMentorStats = procedure
+.use(authUser("MentorshipManager"))
+.output(z.array(z.object({
+  user: zUser,
+  mentorPreference: zMentorPreference.nullable(),
+  mentorships: z.number(),
+})))
+.query(async () =>
+{
+  // Declare a variable to enforce type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...userAttributes, "preference"],
+    include: userInclude,
+  });
+
+  const user2mentorships = await getUser2MentorshipCount();
+  const ret = users.map(u => ({
+      user: u,
+      mentorPreference: u.preference?.mentor ?? null,
+      mentorships: user2mentorships[u.id] || 0,
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
+});
+
 /**
  * Usage:
  *
- * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" "${BASE_URL}/api/v1/mentorships.countMentorships"
- *
+ * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
+ *  "${BASE_URL}/api/v1/mentorships.countMentorships"
  */
-const countMentorships = procedure
+const deprecatedCountMentorships = procedure
   .use(authIntegration())
   .output(z.array(z.object({
     mentor: z.string(),
@@ -147,7 +254,7 @@ const countMentorships = procedure
   }));
 });
 
-const listMineAsMentor = procedure
+const listMyMentorshipsAsMentor = procedure
   .use(authUser())
   .output(z.array(zMentorship))
   .query(async ({ ctx }) => 
@@ -182,9 +289,12 @@ const get = procedure
 export default router({
   create,
   get,
+  getMentor,
   update,
-  listMineAsMentor,
-  listMineAsCoach,
-  listForMentee,
-  countMentorships,
+  listMyMentorshipsAsMentor,
+  listMyMentorshipsAsCoach,
+  listMentorshipsForMentee,
+  listMentorStats,
+  listMentors,
+  countMentorships: deprecatedCountMentorships,
 });

@@ -1,6 +1,8 @@
 import pinyin from 'tiny-pinyin';
 import nzh from 'nzh';
 import moment from 'moment';
+import crypto from 'crypto';
+import stringifyStable from 'json-stable-stringify';
 
 import { NextRouter } from 'next/router';
 
@@ -56,6 +58,13 @@ export function compareDate(d1: string | undefined, d2: string | undefined) {
   return moment(d2).isAfter(moment(d1)) ? 1 : -1;
 }
 
+// Need to convert it to pinyin, otherwise the result 
+// will not be correct if compare Chinese directly. Ref:
+// https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
+export function compareChinese(s1: string | null, s2: string | null) {
+  return toPinyin(s1 || '').localeCompare(toPinyin(s2 || ''));
+}
+
 export function compareUUID(id1: string, id2: string): number {
   return id1.localeCompare(id2);
 }
@@ -66,4 +75,27 @@ export function parseQueryStringOrUnknown(router: NextRouter, slug: string): str
 
 export function parseQueryString(router: NextRouter, slug: string): string | null {
   return typeof router.query[slug] === 'string' ? router.query[slug] as string : null;
+}
+
+export function toBase64UrlSafe(str: string): string {
+  return Buffer.from(str).toString('base64')
+    .replace(/\+/g, '-')  // Replace + with -
+    .replace(/\//g, '_')  // Replace / with _
+    .replace(/=+$/, '');  // Remove padding
+}
+
+export function fromBase64UrlSafe(base64: string): string {
+  base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4 !== 0) {
+    base64 += '=';
+  }
+  return Buffer.from(base64, 'base64').toString();
+}
+
+export function shaChecksum(obj: Record<string, any>): string {
+  return crypto.createHash('sha256').update(stringifyStable(obj)).digest('hex');
+}
+
+export function truncate(str: string, maxLen: number): string {
+  return str.length <= maxLen ? str : str.substring(0, maxLen) + "……";
 }

@@ -17,7 +17,7 @@ import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { MenteeCells, MentorshipCells, MostRecentChatMessageCell } from './mentees';
 
 export default function Page() {
-  const { data: mentorships } = trpcNext.mentorships.listMineAsCoach.useQuery();
+  const { data: mentorships } = trpcNext.mentorships.listMyMentorshipsAsCoach.useQuery();
 
   return <Flex direction='column' gap={sectionSpacing}>
     <Box>
@@ -45,3 +45,5 @@ export default function Page() {
 
   </Flex>;
 };
+
+Page.title = "资深导师页";

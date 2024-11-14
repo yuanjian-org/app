@@ -35,3 +35,26 @@ export const zUserFilter = z.object({
   menteeStatus: zMenteeStatus.nullable().optional(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
+
+export const zMentorPreference = z.object({
+  '最多匹配学生': z.number().optional(),
+  '不参加就业辅导': z.boolean().optional(),
+});
+export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
+
+export const defaultMentorCapacity = 2;
+
+export const zInterviewerPreference = z.object({
+  optIn: z.boolean().optional(),
+  limit: z.object({
+    noMoreThan: z.number(),
+    until: z.coerce.string(),
+  }).optional(),
+});
+export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
+
+export const zUserPreference = z.object({
+  interviewer: zInterviewerPreference.optional(),
+  mentor: zMentorPreference.optional(),
+});
+export type UserPreference = z.TypeOf<typeof zUserPreference>;

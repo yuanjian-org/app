@@ -30,7 +30,7 @@ export async function submit({ form, entry }: Record<string, any>, baseUrl: stri
   }
 
   if (form == "Z82u8w") {
-    application[menteeSourceField] = "思烛";
+    application[menteeSourceField] = "馒头工坊";
   }
 
   /**
