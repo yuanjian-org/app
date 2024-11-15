@@ -87,9 +87,8 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
 };
 
 export async function getStaticProps() {
-  const latitudes = Latitudes;
   const data = await Promise.all(
-    latitudes.map(async (latitude) => {
+    Latitudes.map(async (latitude) => {
       const landmarkDataPath = path.join(process.cwd(), 'public', 'map', 
         latitude);
       const files = await fs.readdir(landmarkDataPath);
