@@ -18,6 +18,7 @@ const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
 
   pool: {
     max: parseInt(process.env.DATABASE_MAX_POOL_SIZE ?? '5'),
+    min: parseInt(process.env.DATABASE_MIN_POOL_SIZE ?? '0'),
   },
 });
 
