@@ -2,11 +2,11 @@ import { loadEnvConfig } from '@next/env';
 import { IsNotEmpty, validateOrReject } from "class-validator";
 
 /**
- * Env vars that should NOT be exposed to the client side.
+ * New env variables should be referred to directly at where they are used.
  * 
- * See .env.template to see what are these env variables and how to configure them.
+ * TODO: Remove this class entirely.
  */
-class ApiEnv {
+class ApiEnvDeprecated {
   @IsNotEmpty()
   DATABASE_URI: string = process.env.DATABASE_URI ?? '';
 
@@ -31,7 +31,7 @@ class ApiEnv {
 // force load env before app.prepare()
 loadEnvConfig(process.cwd());
 
-const apiEnv = new ApiEnv();
+const apiEnv = new ApiEnvDeprecated();
 
 validateOrReject(apiEnv).catch(errors => {
   console.error('Invalid env variables: ', errors);
