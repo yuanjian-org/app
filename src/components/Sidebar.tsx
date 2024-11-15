@@ -22,7 +22,6 @@ import {
   Text,
   BoxProps,
   Divider,
-  Tag,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useUserContext } from 'UserContext';
@@ -122,7 +121,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '个人信息',
-    action: '/profile',
+    action: '/profiles/me',
   },
   {
     name: '导师信息',
@@ -366,7 +365,6 @@ const SidebarRow = ({ item, onClose, ...rest }: {
     >
       <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
       <Text marginX={componentSpacing}>{item.name}</Text>
-      {item.path == staticUrlPrefix && <Tag colorScheme="orange">新</Tag>}
       <Icon
         as={MdChevronRight}
         opacity={0}

@@ -17,9 +17,11 @@ import {
   NumberInputField,
   NumberDecrementStepper,
   Checkbox,
+  Image,
   HStack,
+  Tag,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
@@ -28,11 +30,14 @@ import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import { MentorProfile } from 'shared/MentorProfile';
 import invariant from "tiny-invariant";
-import { formatUserName, parseQueryStringOrUnknown } from 'shared/strings';
+import { formatUserName, parseQueryStringOrUnknown, shaChecksum } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { defaultMentorCapacity, MentorPreference, UserPreference } from 'shared/User';
-import MarkdownSupport from 'components/MarkdownSupport';
+import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { isPermitted } from 'shared/Role';
+import { encodeUploadTokenUrlSafe } from 'shared/upload';
+import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -46,7 +51,8 @@ export default function Page() {
   const { data: user } = trpcNext.users.get.useQuery(userId);
 
   /**
-   * Code block that updates UserPreference
+   * Code block that updates UserPreference.
+   * TODO: Break it out into smaller functions.
    */
 
   const { data: oldPref } = 
@@ -77,6 +83,16 @@ export default function Page() {
   const [profile, setProfile] = useState<MentorProfile>();
   useEffect(() => setProfile(oldProfile), [oldProfile]);
 
+  // We use the checksum not only as a security measure but also an e-tag to
+  // prevent concurrent writes.
+  // TODO: It's a weak security measure because anyone who has access to the
+  // mentor's profile can compute the hash. Use a stronger method.
+  const uploadToken = useMemo(() =>
+    profile ? encodeUploadTokenUrlSafe("MentorProfilePicture", userId,
+      shaChecksum(profile)) : null, 
+    [userId, profile]
+  );
+
   const updateProfile = (k: keyof MentorProfile, v: string) => {
     invariant(profile);
     const updated = structuredClone(profile);
@@ -103,15 +119,20 @@ export default function Page() {
     }
   };
 
-  return !(pref && profile) ? <Loader /> : <VStack
+  const SaveButton = () => (
+    <Button onClick={save} variant="brand" isLoading={isSaving}>
+      保存
+    </Button>
+  );
+
+  return !(user && pref && profile) ? <Loader /> : <VStack
     maxWidth="xl"
     align="start"
     spacing={componentSpacing} 
     margin={sectionSpacing}
   >
     <Heading size="md">
-      {userId === me.id ? "导师偏好" :
-        formatUserName(user?.name || "", "formal")}
+      {userId === me.id ? "导师偏好" : formatUserName(user.name, "formal")}
     </Heading>
 
     <FormControl>
@@ -129,143 +150,198 @@ export default function Page() {
         名学生。
       </Flex>
       <FormHelperText>
-        强烈建议两名或以上。不同学生的对比对导师工作非常有帮助。
+        强烈建议两名学生或以上，因为学生的横向对比对导师工作非常有帮助。
         若希望避免匹配学生，请选择0。
       </FormHelperText>
     </FormControl>
 
     <FormControl>
-      {/* TODO: remove this and use global styling */}
-      <Checkbox sx={{ '.chakra-checkbox__control': { bg: 'white' } }}
+      <Checkbox
         isChecked={pref.mentor?.不参加就业辅导 ?? false}
         onChange={e => updatePref('不参加就业辅导', e.target.checked)}
       >
-        我暂不参与简历诊断、模拟面试等就业辅导类服务。
+        我暂不参与简历诊断、模拟面试等就业类服务，仅参加长期一对一服务。
       </Checkbox>
     </FormControl>
 
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
-      保存
-    </Button>
+    <SaveButton />
+
+    <Divider my={componentSpacing} />
+
+    <Heading size="md">生活照</Heading>
     
-    <Divider my={sectionSpacing} />
+    <FormControl>
+      {profile.照片链接 && <Link href={profile.照片链接} target='_blank'><Image
+        src={profile.照片链接}
+        alt="照片"
+        maxW='300px'
+        my={componentSpacing}
+      /></Link>}
+
+      {uploadToken && <>
+        <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
+          {profile.照片链接 ? 
+            <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
+          : 
+            <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
+          }
+        </Link>
+      </>}
+
+      <FormHelperTextWithMargin>
+        建议选择面部清晰、不戴墨镜的近照
+      </FormHelperTextWithMargin>
+
+      {isPermitted(me.roles, 'MentorshipManager') && <>
+        <FormHelperTextWithMargin>
+          以下链接仅管理员可见：
+        </FormHelperTextWithMargin>
+        <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
+          onChange={ev => updateProfile('照片链接', ev.target.value)}
+        />
+        <SaveButton />
+      </>}
+    </FormControl>
+
+    <Divider my={componentSpacing} />
 
     <Heading size="md">展示信息</Heading>
 
     <Text>
-      以下信息是学生了解导师的重要渠道，也是他们
-      <Link href="/s/matchmaking" target="_blank">填写初次匹配意向</Link>
-      时的唯一参考。请详尽填写，并展现出最真实的你。
+      这些信息是学生了解导师的重要渠道，是他们
+      <Link target='_blank' href="/s/matchmaking">初次匹配</Link>
+      时的唯一参考。请详尽填写，并展现出最真实的你。所有文字均支持
+      <Link target='_blank' href={markdownSyntaxUrl}>
+        {' '}Markdown 格式
+      </Link>。
     </Text>
 
-    <Text color="red.700">【注意】请务必手工保存更新，本页不会自动保存。</Text>
-
-    <MarkdownSupport prefix="【提示】所有文字均" />
+    <Text color="red.700">
+      更新内容后务必点击“保存”。本页不支持自动保存。
+    </Text>
 
     <FormControl mt={sectionSpacing}>
-      <FormLabel>职业身份或头衔（如“X公司Y职位”、“创业者”、“自由职业者”等）</FormLabel>
+      <FormLabel>雇主与职位 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        注明专业领域，比如甲公司人事处处长、餐饮业创业者等
+      </FormHelperTextWithMargin>
       <Input bg="white" value={profile.身份头衔 || ""} 
         onChange={ev => updateProfile('身份头衔', ev.target.value)}
       />
     </FormControl>
-    <FormControl>
-      <FormLabel>职业经历（或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
-        onChange={ev => updateProfile('职业经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>受教育经历（大学及以上，也鼓励填写大学以前的经历；或在下方提供简历链接）</FormLabel>
-      <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
-        onChange={ev => updateProfile('教育经历', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>简历链接</FormLabel>
-      <UploadInstructions />
-      <Input bg="white" value={profile.简历链接 || ""} 
-        onChange={ev => updateProfile('简历链接', ev.target.value)}
-      />
-    </FormControl>
 
     <FormControl>
-      <FormLabel>生活照链接</FormLabel>
-      <FormHelperText mb={2}>
-        上传文件方法见“简历链接”的文字说明。
-      </FormHelperText>
-      <Input bg="white" value={profile.照片链接 || ""} 
-        onChange={ev => updateProfile('照片链接', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>现居住地</FormLabel>
+      <FormLabel>现居住城市或地区 <Highlight /></FormLabel>
       <Input bg="white" value={profile.现居住地 || ""} 
         onChange={ev => updateProfile('现居住地', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>成年之前曾经居住过的地域</FormLabel>
+      <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        擅长或喜欢“八卦”的事情，比如事实新闻、中国历史、哲学思辨、网游桌游……
+      </FormHelperTextWithMargin>
+      <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
+        onChange={ev => updateProfile('擅长话题', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>
+        成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人 <Highlight />
+      </FormLabel>
+      <Textarea bg="white" height={140} value={profile.成长亮点 || ""} 
+        onChange={ev => updateProfile('成长亮点', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>成长过程中曾经居住的城市或地区</FormLabel>
       <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
         onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
+
+    <FormControl>
+      <FormLabel>职业经历</FormLabel>
+      <FormHelperTextWithMargin>
+        <ListAndMarkdownSupport />，比如：<br /><br />
+         * 经历1<br />
+         * 经历2
+      </FormHelperTextWithMargin>
+      <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
+        onChange={ev => updateProfile('职业经历', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>教育经历</FormLabel>
+      <FormHelperTextWithMargin>
+        大学及以上，也鼓励填写更早的经历。<ListAndMarkdownSupport />。
+      </FormHelperTextWithMargin>
+      <Textarea bg="white" height={140} value={profile.教育经历 || ""} 
+        onChange={ev => updateProfile('教育经历', ev.target.value)}
+      />
+    </FormControl>
+
     <FormControl>
       <FormLabel>个性特点</FormLabel>
       <Textarea bg="white" height={140} value={profile.个性特点 || ""} 
         onChange={ev => updateProfile('个性特点', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>业余爱好和特长</FormLabel>
       <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
         onChange={ev => updateProfile('爱好与特长', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
       <FormLabel>喜爱的图书、影视作品、网站、自媒体账号等</FormLabel>
       <Textarea bg="white" height={140} value={profile.喜爱读物 || ""} 
         onChange={ev => updateProfile('喜爱读物', ev.target.value)}
       />
     </FormControl>
+
     <FormControl>
-      <FormLabel>目前生活的日常（比如生活趣事、平常的业余活动、婚姻及子女情况等）</FormLabel>
+      <FormLabel>目前的生活日常</FormLabel>
+      <FormHelperTextWithMargin>
+        比如生活趣事、平常的业余活动、子女情况等
+      </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.生活日常 || ""} 
         onChange={ev => updateProfile('生活日常', ev.target.value)}
       />
     </FormControl>
-    <FormControl>
-      <FormLabel>成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人</FormLabel>
-      <Textarea bg="white" height={140} value={profile.成长亮点 || ""} 
-        onChange={ev => updateProfile('成长亮点', ev.target.value)}
-      />
-    </FormControl>
-    <FormControl>
-      <FormLabel>擅长辅导领域</FormLabel>
-      <Textarea bg="white" height={140} value={profile.擅长辅导领域 || ""} 
-        onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
-      />
-    </FormControl>
 
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
-      保存
-    </Button>
+    <SaveButton />
 
     <Text><Link href={`/mentors/${userId}`} target='_blank'>
       <HStack>
-        <Text>查看网页效果</Text> <ExternalLinkIcon />
+        <Text>查看展示效果</Text> <ExternalLinkIcon />
       </HStack>
     </Link></Text>
   </VStack>;
 }
 
-function UploadInstructions() {
-  return <FormHelperText mb={2}>
-    上传文件至
-    <Link href="https://jsj.ink/f/Bz3uSO" target='_blank'>此表格</Link>
-    ，提交后访问<Link href="https://jsj.top/f/Bz3uSO/r/8AogTN" target='_blank'>
-    此网页</Link>，点击第一行数据，在弹出的对话框中的文件上点击鼠标右键，
-    拷贝文件链接，并复制到下面的输入框：
-  </FormHelperText>;
+function Highlight() {
+  return <Tag ms={2} size="sm" colorScheme="green">首页亮点</Tag>;
+}
+
+function ListAndMarkdownSupport() {
+  return <>
+    可用以星号开头的列表格式或
+    <Link target="_blank" href={markdownSyntaxUrl}>其他 Markdown 格式</Link>
+  </>;
+}
+
+/**
+ * TODO: Use theme css instead
+ */
+function FormHelperTextWithMargin({ children } : PropsWithChildren) {
+  return <FormHelperText mb={2}>{children}</FormHelperText>;
 }
 
 Page.title = "导师信息";

@@ -52,7 +52,6 @@ class User extends Model {
   @Column(STRING)
   email: string;
 
-  // TODO use array type
   @Index({
     using: 'gin'
   })

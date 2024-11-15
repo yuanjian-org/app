@@ -11,6 +11,7 @@ import {
   Tr,
   Td,
   TableContainer,
+  Link,
 } from '@chakra-ui/react';
 import { MentorProfile } from "shared/MentorProfile";
 import { sectionSpacing } from "theme/metrics";
@@ -29,13 +30,14 @@ export default function Page() {
 
     <Wrap>
       <WrapItem>
-        {data?.profile?.照片链接 && <Image
-          maxW='300px'
-          src={data.profile.照片链接}
-          alt="照片"
-          mb={sectionSpacing}
-          me={sectionSpacing}
-        />}
+        {data?.profile?.照片链接 && 
+          <Link href={data.profile.照片链接} target='_blank'><Image
+            maxW='300px'
+            src={data.profile.照片链接}
+            alt="照片"
+            mb={sectionSpacing}
+            me={sectionSpacing}
+          /></Link>}
       </WrapItem>
       <WrapItem>
           {data?.profile && <ProfileTable profile={data.profile} />}
@@ -55,18 +57,19 @@ function ProfileTable({ profile: p }: {
   };
 
   const kls: KeyLabel[] = [
+    // 置顶亮点
     { k: "身份头衔", l: "职位" },
-    { k: "擅长辅导领域", l: "擅长辅导" },
+    { k: "现居住地" },
+    { k: "擅长话题", l: "擅长聊天话题" },
+    { k: "成长亮点" },
+
     { k: "个性特点" },
     { k: "爱好与特长" },
     { k: "喜爱读物", l: "喜爱的书和媒体" },
-
     { k: "职业经历" },
     { k: "教育经历" },
-    { k: "现居住地" },
     { k: "曾居住地" },
     { k: "生活日常" },
-    { k: "成长亮点" },
   ];
 
   return <TableContainer maxW="700px"><Table>

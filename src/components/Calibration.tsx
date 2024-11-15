@@ -9,12 +9,12 @@ import GroupBar from './GroupBar';
 export default function Calibration({ calibration: c, ...rest } : {
   calibration: SharedCalibration,
 } & FlexProps) {
-  const { data: interviews } = trpcNext.calibrations.getInterviews.useQuery(c.id);
+  const { data: interviews } = trpcNext.calibrations.getInterviews
+    .useQuery(c.id);
   
   return <Flex direction="column" gap={sectionSpacing} {...rest}>
-    <GroupBar group={c.group} showSelf showJoinButton showGroupName={false} showTranscriptLink
-      abbreviateOnDesktop
-    />
+    <GroupBar group={c.group} showSelf showJoinButton showGroupName={false}
+      showTranscriptLink abbreviateOnDesktop />
     <Interviews interviews={interviews} forCalibration />
   </Flex>;
 }

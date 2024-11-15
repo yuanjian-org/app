@@ -1,17 +1,24 @@
 import { 
-  Link, Grid, GridItem, GridProps, Text, VStack
+  Link, Grid, GridItem, GridProps, Text, VStack,
 } from '@chakra-ui/react';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import Image from "next/image";
-import wechatAppQrcode from '../../../public/img/wechat-app-qrcode.jpg';
+import partner_mantou from '../../../public/img/partner_mantou.png';
+import partner_yuanjian from '../../../public/img/partner_yuanjian.png';
+import partner_1 from '../../../public/img/partner_1.png';
+import partner_2 from '../../../public/img/partner_2.png';
+import partner_3 from '../../../public/img/partner_3.png';
+import partner_4 from '../../../public/img/partner_4.png';
+import partner_5 from '../../../public/img/partner_5.png';
+import partner_6 from '../../../public/img/partner_6.png';
 import { sidebarBreakpoint } from 'components/Navbars';
+import { StaticImageData } from "next/image";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import NextLink from 'next/link';
 
 export default function Page() {
   return <VStack spacing={50} align="start">
     <IntroSection />
-    <ArticlesSection />
     <PartnersSection />
   </VStack>;
 }
@@ -22,15 +29,15 @@ Page.title = "首页";
  * A Section is a Grid with 5 columns on desktop and 2 columns on mobile.
  * It's children must only be a list of GridItems.
  */
-function Section({ header, children, ...rest } : {
+function Section({ header, children, ...rest }: {
   header: string
 } & GridProps) {
-  return <Grid {...rest}
-    gap={componentSpacing}
+  return <Grid gap={componentSpacing}
     templateColumns={{
       base: 'repeat(2, 1fr)',
       [sidebarBreakpoint]: 'repeat(5, 1fr)',
     }}
+    {...rest}
   >
     <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 5 }}>
       <PageBreadcrumb current={header} />
@@ -41,7 +48,7 @@ function Section({ header, children, ...rest } : {
 
 function IntroSection() {
   return <Section header="欢迎来到社会导师服务平台">
-    <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 4 }}>
+    <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 5 }}>
       <VStack spacing={paragraphSpacing} align="start">
         <Text>
           <b>什么是社会导师？</b>社会导师是拥有丰富职业经验和社会阅历的 “过来人”，他们为年{
@@ -49,43 +56,65 @@ function IntroSection() {
           }，尽早为步入职场和社会做好准备，助力年轻人实现人生理想与社会责任。
         </Text>
         <Text>
-          <b>哪些机构提供社会导师服务？</b>目前，提供社会导师服务的机构包括远见教育基金会和{
-          }馒头工坊｜Mentor Workshop 服务平台。它们都为符合条件的大学生提供无{
-          }偿服务。您可以扫描页面上的二维码，通过 ”馒头工坊“ 微信小程序申请其免费{
-          }服务。
+          <b>任何人都可以接受社会导师服务么？</b>是的。馒头工坊｜Mentor Workshop
+          向公众提供社会导师服务，并为符合条件的大学生提供无偿服务。您可以
+          <Link href="/img/wechat-app-qrcode.jpg" target="_blank">
+            通过”馒头工坊”微信小程序
+          </Link>
+          进行申请。
         </Text>
         <Text>
-          <b>如何了解更多信息？</b>社会导师服务的背后是一套完整的方法体系和运营平台。{
-          }随着这一系统的日益完善，我们将逐步向公众分享方法与经验总结。欢迎您浏览{' '}
-          <Link as={NextLink} href="/s/articles">📄 已发布的文章</Link>。{
-          }同时也欢迎您在教育机构、公益组织或商业公司中尝试类似服务。我们真诚期待您的反馈{
-          }与交流。您可以通过{' '}
-          <Link href="mailto:sizhujiaoyu@163.com">sizhujiaoyu@163.com</Link>
-          {' '}联系我们。
+          <b>如何了解更多？</b>社会导师服务的背后是一套完整的方法体系和运营平台。{
+          }随着这一系统的日益完善，我们将逐步向公众分享实践与经验。欢迎浏览{' '}
+          <Link as={NextLink} href="/s/articles">📄 已经发表的文章</Link>。{
+          }也欢迎您在自己的组织或机构中尝试类似形式的服务。我们真诚期待您的反馈与交流。
         </Text>
       </VStack>
-    </GridItem>
-
-    <GridItem
-      // The three properties together make the image centrally aligned in
-      // both dimensions
-      display="flex"
-      alignItems="center"
-      // justifyContent="center"
-    >
-      <Image
-        src={wechatAppQrcode}
-        alt="二维码"
-        width={120}
-      />
     </GridItem>
   </Section>;
 }
 
-function ArticlesSection() {
-  return <></>;
+function PartnersSection() {
+  const partners = [{
+    name: "馒头工坊 | Mentor Workshop",
+    image: partner_mantou,
+  }, {
+    name: "远见教育基金会",
+    image: partner_yuanjian,
+  }, {
+    name: "中美爱心教育发展促进会",
+    image: partner_1,
+  }, {
+    name: "叔蘋奖学金",
+    image: partner_2,
+  }, {
+    name: "树华教育基金会",
+    image: partner_3,
+  }, {
+    name: "中国科学技术大学",
+    image: partner_4,
+  }, {
+    name: "新华教育基金会",
+    image: partner_6,
+  }, {
+    name: "好奇学习社区",
+    image: partner_5,
+  }];
+
+  return <Section header="参与机构" gap={10}>
+    {partners.map(partner => Partner(partner.name, partner.image))}
+  </Section>;
 }
 
-function PartnersSection() {
-  return <></>;
+function Partner(name: string, image: StaticImageData) {
+  return (
+    <GridItem>
+      <VStack>
+        <Image width={80} src={image} alt={name}
+          // style={{ filter: "grayscale(100%)" }}
+        />
+        <Text align="center" fontSize="sm">{name}</Text>
+      </VStack>
+    </GridItem>
+  );
 }

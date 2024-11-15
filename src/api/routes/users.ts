@@ -27,9 +27,6 @@ const create = procedure
   .input(z.object({
     name: z.string(),
     email: z.string(),
-    city: z.string().nullable(),
-    wechat: z.string().nullable(),
-    sex: z.string().nullable(),
     roles: zRoles,
   }))
   .mutation(async ({ ctx, input }) => 
@@ -41,9 +38,6 @@ const create = procedure
     pinyin: toPinyin(input.name),
     email: input.email,
     roles: input.roles,
-    city: input.city,
-    wechat: input.wechat,
-    sex: input.sex,
   });
 });
 
@@ -175,7 +169,8 @@ const setUserPreference = procedure
   }))
   .mutation(async ({ ctx: { user }, input: { userId, preference } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+  if (user.id !== userId && !isPermitted(user.roles,
+    ["UserManager", "MentorshipManager"])) {
     throw noPermissionError("用户", userId);
   }
 
@@ -193,24 +188,44 @@ const setMenteeStatus = procedure
   }))
   .mutation(async ({ input: { userId, menteeStatus } }) => 
 {
-  const user = await db.User.findByPk(userId);
-  if (!user) throw notFoundError("用户", userId);
-  await user.update({ menteeStatus });
+  const [cnt] = await db.User.update({ menteeStatus }, {
+    where: { id: userId }
+  });
+  if (cnt == 0) throw notFoundError("用户", userId);
 });
 
 const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMinUser)
-  .query(async ({ ctx, input: userId }) =>
+  .query(async ({ ctx: { user: me }, input: userId }) =>
 {
-  if (!isPermitted(ctx.user.roles, "UserManager") &&
-    !await isPermittedForMentee(ctx.user, userId)) {
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager") &&
+    !await isPermittedForMentee(me, userId)) {
     throw noPermissionError("用户", userId);
   }
 
   const u = await db.User.findByPk(userId, {
     attributes: minUserAttributes,
+  });
+
+  if (!u) throw notFoundError("用户", userId);
+  return u;
+});
+
+const getFull = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(zUser)
+  .query(async ({ ctx: { user: me }, input: userId }) =>
+{
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
+    attributes: userAttributes,
+    include: userInclude,
   });
 
   if (!u) throw notFoundError("用户", userId);
@@ -223,10 +238,10 @@ const getUserPreference = procedure
     userId: z.string(),
   }))
   .output(zUserPreference)
-  .query(async ({ ctx, input: { userId } }) => 
+  .query(async ({ ctx: { user: me }, input: { userId } }) => 
 {
-  if (ctx.user.id !== userId && 
-    !isPermitted(ctx.user.roles, "MentorshipManager")) {
+  if (me.id !== userId && !isPermitted(me.roles,
+    ["UserManager", "MentorshipManager"])) {
     throw noPermissionError("用户", userId);
   }
 
@@ -514,6 +529,7 @@ const destroy = procedure
 export default router({
   create,
   get,
+  getFull,
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,

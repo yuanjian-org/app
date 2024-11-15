@@ -32,7 +32,7 @@ export default function Page() {
           <Th>总面试量</Th>
           <Th>面试限制</Th>
           <Th>性别</Th>
-          <Th>坐标</Th>
+          <Th>居住地</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>
@@ -54,6 +54,8 @@ export default function Page() {
     </Text>
   </TableContainer>;
 }
+
+Page.title = "面试官";
 
 function Row({ user, interviews, preference }: {
   user: User,

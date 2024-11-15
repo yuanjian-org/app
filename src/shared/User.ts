@@ -42,7 +42,7 @@ export const zMentorPreference = z.object({
 });
 export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
 
-export const defaultMentorCapacity = 3;
+export const defaultMentorCapacity = 2;
 
 export const zInterviewerPreference = z.object({
   optIn: z.boolean().optional(),
