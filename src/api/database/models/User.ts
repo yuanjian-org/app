@@ -27,7 +27,7 @@ import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 import { UserPreference, zUserPreference } from "../../../shared/User";
-import { MentorProfile, zMentorProfile } from "../../../shared/MentorProfile";
+import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 
 
 @Table({ paranoid: true, tableName: "users", modelName: "user" })
@@ -66,12 +66,14 @@ class User extends Model {
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
 
-  @Column(STRING)
-  sex: string | null;
-
+  // Leave it here as opposed to inside the profile column because in some cases
+  // we need to redact this field (and email field).
   @Column(STRING)
   wechat: string | null;
 
+  // Deprecated TODO: Remove after migration code is removed
+  @Column(STRING)
+  sex: string | null;
   @Column(STRING)
   city: string | null;
 
@@ -81,8 +83,8 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   mentorApplication: Record<string, any> | null;
 
-  @ZodColumn(JSONB, zMentorProfile.nullable())
-  mentorProfile: MentorProfile | null;
+  @ZodColumn(JSONB, zUserProfile.nullable())
+  profile: UserProfile | null;
 
   // The coach of the mentor. Non-null only if the user is a mentor (ie.
   // `mentorshipsAsMentor` is non-empty).
@@ -149,7 +151,10 @@ class User extends Model {
 
 export default User;
 
-export async function createUser(fields: any, mode: "create" | "upsert" = "create"): Promise<User> {
+export async function createUser(
+  fields: any,
+  mode: "create" | "upsert" = "create"
+): Promise<User> {
   const f = structuredClone(fields);
   if (!("name" in f)) f.name = "";
   f.pinyin = toPinyin(f.name);

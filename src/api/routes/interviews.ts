@@ -27,7 +27,8 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
-import { zUser, zUserPreference } from "../../shared/User";
+import { zInterviewerPreference, zUser } from "../../shared/User";
+import { zUserProfile } from "../../shared/UserProfile";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -186,12 +187,13 @@ const listInterviewerStats = procedure
 .output(z.array(z.object({
   user: zUser,
   interviews: z.number(),
-  preference: zUserPreference.nullable(),
+  preference: zInterviewerPreference,
+  profile: zUserProfile,
 })))
 .query(async () =>
 {
   const users = await db.User.findAll({
-    attributes: [...userAttributes, 'preference'],
+    attributes: [...userAttributes, 'profile', 'preference'],
     include: userInclude,
   });
 
@@ -210,11 +212,13 @@ const listInterviewerStats = procedure
   const stats = users
     .filter(user => user2interviews[user.id] 
       || user.preference?.interviewer?.optIn === true
-      || user.roles.includes("Mentor") || user.roles.includes("MentorCoach"))
-    .map(user => ({
+      || user.roles.includes("MentorCoach")
+      || user.roles.includes("Mentor")
+    ).map(user => ({
       user,
-      interviews: user2interviews[user.id] || 0,
-      preference: user.preference,
+      interviews: user2interviews[user.id] ?? 0,
+      preference: user.preference?.interviewer ?? {},
+      profile: user.profile ?? {},
     }));
 
   stats.sort((a, b) => a.interviews - b.interviews);

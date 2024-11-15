@@ -40,15 +40,22 @@ export default function Applicant({
   });
 
   return !data ? <Loader /> :
-    <LoadedApplicant user={data.user} type={type} application={data.application}
-      showTitle={showTitle} useNameAsTitle={useNameAsTitle} refetch={refetch}
+    <LoadedApplicant
+      user={data.user}
+      sex={data.sex}
+      type={type}
+      application={data.application}
+      showTitle={showTitle} 
+      useNameAsTitle={useNameAsTitle}
+      refetch={refetch}
     />;
 }
 
-function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
-  refetch
+function LoadedApplicant({ user, sex, type, application, showTitle,
+  useNameAsTitle, refetch
 } : {
   user: User,
+  sex: string | null,
   type: InterviewType,
   application: Record<string, any> | null,
   refetch: () => void,
@@ -74,7 +81,7 @@ function LoadedApplicant({ user, type, application, showTitle, useNameAsTitle,
     {showTitle && <Heading size="md">{useNameAsTitle ?
       `${formatUserName(user.name)}` : "申请表"}</Heading>}
 
-    {user.sex && <FieldRow name="性别" readonly value={user.sex} />}
+    {sex && <FieldRow name="性别" readonly value={sex} />}
 
     {/* It's okay to have mentors' contact information visible to peers */}
     <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
