@@ -14,9 +14,8 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import { Landmark } from 'shared/Map';
+import { Landmark, Latitude, Latitudes } from 'shared/Map';
 import { componentSpacing } from 'theme/metrics';
-import Loader from 'components/Loader';
 import { sidebarBreakpoint } from 'components/Navbars';
 import LandmarkDrawer from 'components/LandmarkDrawer';
 import path from 'path';
@@ -26,10 +25,8 @@ const desktopTextLimit = 80;
 const mobileTextLimit = 30;
 
 type PageProps = {
-  data: Record<string, Landmark[]>;
+  data: Record<Latitude, Landmark[]>;
 };
-
-const latitudes = ['个人成长', '事业发展', '社会责任'];
 
 export default function Page({ data }: PageProps) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
@@ -37,16 +34,16 @@ export default function Page({ data }: PageProps) {
   return <>
     <TabsWithUrlParam isLazy>
       <TabList>
-        {latitudes.map(latitude => 
+        {Object.keys(data).map(latitude => 
           <Tab key={latitude}>{latitude}</Tab>
         )}
       </TabList>
 
       <TabPanels>
-        {latitudes.map(latitude => 
+        {Object.keys(data).map(latitude => 
           <TabPanel key={latitude}>
-            <LandmarkTabPanel landmarks={data[latitude]} 
-              selectLandmark={setSelectedLandmark}/>
+            <LandmarkTabPanel landmarks={data[latitude as Latitude]} 
+              selectLandmark={setSelectedLandmark} />
           </TabPanel>
         )}
       </TabPanels>
@@ -63,22 +60,12 @@ const LandmarkTabPanel = ({ landmarks, selectLandmark }: {
   landmarks: Landmark[];
   selectLandmark: (landmark: Landmark) => void 
 }) => {
-  return (
-    <>
-      {!landmarks ? 
-        <Loader/> : 
-        <SimpleGrid spacing={componentSpacing} 
-        templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
-          {landmarks.map((landmark, index) => (
-            <LandmarkCard 
-              key={index} 
-              landmark={landmark} 
-              selectLandmark={selectLandmark}/>
-          ))}
-        </SimpleGrid>
-      }
-    </>
-  );
+  return <SimpleGrid spacing={componentSpacing} 
+    templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
+      {landmarks.map((landmark, index) => 
+        <LandmarkCard key={index} landmark={landmark} 
+          selectLandmark={selectLandmark} />)}
+  </SimpleGrid>;
 };
 
 const LandmarkCard = ({ landmark, selectLandmark }: { 
@@ -99,7 +86,8 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
   </Card>; 
 };
 
-export async function getStaticProps(){
+export async function getStaticProps() {
+  const latitudes = Latitudes;
   const data = await Promise.all(
     latitudes.map(async (latitude) => {
       const landmarkDataPath = path.join(process.cwd(), 'public', 'map', 
