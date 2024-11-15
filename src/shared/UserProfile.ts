@@ -2,7 +2,8 @@ import { z } from "zod";
 
 const zStr = z.string().optional();
 
-export const zMentorProfile = z.object({
+export const zUserProfile = z.object({
+  '性别': zStr,
   '身份头衔': zStr,
   '现居住地': zStr,
   '曾居住地': zStr,
@@ -20,4 +21,4 @@ export const zMentorProfile = z.object({
   // Unused / deprecated
   '擅长辅导领域': zStr,
 });
-export type MentorProfile = z.TypeOf<typeof zMentorProfile>;
+export type UserProfile = z.TypeOf<typeof zUserProfile>;

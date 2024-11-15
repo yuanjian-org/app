@@ -11,7 +11,7 @@ import { formatUserName, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
-import { MentorProfile } from 'shared/MentorProfile';
+import { UserProfile } from 'shared/UserProfile';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
@@ -50,7 +50,7 @@ export function MentorPage({ matchableOnly, title }: {
 
 function MentorCard({ user, profile: p }: {
   user: MinUser,
-  profile: MentorProfile | null
+  profile: UserProfile | null
 }) {
   const router = useRouter();
 

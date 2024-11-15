@@ -36,25 +36,25 @@ export default procedure
     throw generalBadRequestError(`Invalid target, id, or sha`);
   }
 
-  if (target === "MentorProfilePicture") {
-    await uploadMentorProfilePicture(id, opaque, urls[0]);
+  if (target === "UserProfilePicture") {
+    await uploadUserProfilePicture(id, opaque, urls[0]);
   } else {
     throw generalBadRequestError(`Unknown upload target: ${target}`);
   }
 });
 
-async function uploadMentorProfilePicture(userId: string, sha: string,
+async function uploadUserProfilePicture(userId: string, sha: string,
   url: string) 
 {
   await sequelize.transaction(async transaction => {
     const user = await db.User.findByPk(userId, {
-      attributes: ["id", "mentorProfile"],
+      attributes: ["id", "profile"],
       transaction,
     });
     if (!user) throw notFoundError("用户", userId);
 
-    // The `|| {}` is to be consistent with the logic in getMentorProfile route
-    const profile = user.mentorProfile || {};
+    // The `|| {}` is to be consistent with the logic in getUserProfile route
+    const profile = user.profile || {};
     const localSha = shaChecksum(profile);
 
     if (sha !== localSha) {
@@ -64,8 +64,8 @@ async function uploadMentorProfilePicture(userId: string, sha: string,
     }
 
     await user.update({
-      mentorProfile: {
-        ...profile, 
+      profile: {
+        ...profile,
         '照片链接': url,
       },
     }, { transaction });
