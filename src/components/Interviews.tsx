@@ -58,8 +58,8 @@ export default function Interviews({ interviews, forCalibration }: {
     <Table>
       <Thead><Tr>
         {showStatus && <Th>状态</Th>}
-        <Th>候选人</Th>
         <PointOfContactHeaderCells />
+        <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
           <Th>讨论结果</Th>
