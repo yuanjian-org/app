@@ -122,8 +122,12 @@ function InterviewRow({ i, forCalibration, showStatus }: {
       />
     )}
 
-    <TdLink href={url}>{formatUserName(i.interviewee.name)}</TdLink>
-    {app && app.user && <PointOfContactCells user={app.user} refetch={refetch} />}
+    {app && app.user &&
+      <PointOfContactCells user={app.user} refetch={refetch} />
+    }
+
+    <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
+
     <TdLink href={url}><Wrap spacing="2">
       {i.feedbacks
         .filter(f => forCalibration || f.interviewer.id !== me.id)
