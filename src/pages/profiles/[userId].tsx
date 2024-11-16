@@ -18,7 +18,7 @@ import {
   Radio,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
 import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
@@ -39,6 +39,7 @@ import { isPermitted } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
+import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -138,13 +139,6 @@ export default function Page() {
 }
 
 Page.title = "个人信息";
-
-/**
- * TODO: Use theme css instead
- */
-function FormHelperTextWithMargin({ children } : PropsWithChildren) {
-  return <FormHelperText mb={2}>{children}</FormHelperText>;
-}
 
 function Basic({ user, profile, setUser, setProfile }: {
   user: User,

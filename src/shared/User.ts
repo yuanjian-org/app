@@ -35,6 +35,7 @@ export const zUserFilter = z.object({
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
 
 export const zMentorPreference = z.object({
+  '学生偏好': z.string().optional(),
   '最多匹配学生': z.number().optional(),
   '不参加就业辅导': z.boolean().optional(),
 });
