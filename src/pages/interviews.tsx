@@ -44,7 +44,7 @@ import { Interview } from 'shared/Interview';
 import { AddIcon, CheckIcon, ChevronRightIcon, ViewIcon } from '@chakra-ui/icons';
 import { InterviewType } from 'shared/InterviewType';
 import User, { MinUser } from 'shared/User';
-import { menteeSourceField } from 'shared/menteeApplicationFields';
+import { menteeSourceField } from 'shared/applicationFields';
 import TdLink from 'components/TdLink';
 import moment from 'moment';
 import { Calibration } from 'shared/Calibration';

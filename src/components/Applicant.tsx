@@ -13,7 +13,8 @@ import React, { useEffect } from 'react';
 import { CopyIcon, DownloadIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import trpc, { trpcNext } from 'trpc';
-import menteeApplicationFields from 'shared/menteeApplicationFields';
+import { menteeApplicationFields, volunteerApplicationFields }
+from 'shared/applicationFields';
 import z from "zod";
 import { sectionSpacing } from 'theme/metrics';
 import { formatUserName } from 'shared/strings';
@@ -25,7 +26,6 @@ import { isPermitted } from 'shared/Role';
 import NextLink from "next/link";
 import { toast } from 'react-toastify';
 import { InterviewType } from 'shared/InterviewType';
-import mentorApplicationFields from 'shared/mentorApplicationFields';
 
 export default function Applicant({
   userId, type, showTitle, useNameAsTitle
@@ -90,7 +90,7 @@ function LoadedApplicant({ user, sex, type, application, showTitle,
     <ContactFieldRow redacted={isMentee} copyable={!isMentee || imManager}
       name="邮箱" value={user.email} />
 
-    {(isMentee ? menteeApplicationFields : mentorApplicationFields).map(f => {
+    {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(f => {
       if (application && f.name in application) {
         return <FieldRow readonly={!imManager} key={f.name} name={f.name}
           value={application[f.name]}

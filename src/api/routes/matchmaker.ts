@@ -11,7 +11,13 @@ import { formatUserName } from "shared/strings";
 import { MenteeStatus } from "shared/MenteeStatus";
 import Interview from "api/database/models/Interview";
 import { Feedback } from "shared/InterviewFeedback";
-import { menteeAcceptanceYearField, menteeCollegeField, menteeDegreeField, menteeFirstYearInCollegeField, menteeMajorField } from "shared/menteeApplicationFields";
+import {
+  menteeAcceptanceYearField,
+  menteeCollegeField,
+  menteeDegreeField,
+  menteeFirstYearInCollegeField,
+  menteeMajorField
+} from "shared/applicationFields";
 
 /**
  * Return interview data for the mentees who are 1) in the "现届学子" status and 
