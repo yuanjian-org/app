@@ -95,13 +95,13 @@ export const calibrationInclude = [{
  * Interview
  */
 
-export const interviewAttributes = ["id", "type", "decision"];
+export const interviewAttributes = ["id", "type", "decision", "createdAt"];
 
 export const interviewInclude = [{
   model: User,
-  // menteeStatus is used to filter out mentees whose status is not 待审.
-  // See routes/interviews.ts where this field is referenced.
-  attributes: [...minUserAttributes, "menteeStatus"],
+  // menteeStatus and roles are used to determine if the person's pending
+  // interviews. See isCandidatePending().
+  attributes: [...minUserAttributes, "roles", "menteeStatus"],
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
