@@ -369,7 +369,7 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
     <FormControl>
       <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
       <FormHelperTextWithMargin>
-        擅长或喜欢“八卦”的事情，比如事实新闻、中国历史、哲学思辨、网游桌游……
+        擅长或喜欢“八卦”的事情，比如时事新闻、中国历史、哲学思辨、网游桌游……
       </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
         onChange={ev => updateProfile('擅长话题', ev.target.value)}
