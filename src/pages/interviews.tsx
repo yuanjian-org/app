@@ -64,16 +64,9 @@ export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
     "MenteeInterview" : "MentorInterview";
 
+  // TODO: Optimize and merge the first two queries.
   const { data: applicants, refetch: refetchApplicants } =
-    trpcNext.users.list.useQuery(type == "MenteeInterview" ? { 
-      // Only list mentees without status (ie. 待审)
-      menteeStatus: null,
-      hasMenteeApplication: true,
-    } : { 
-      hasMentorApplication: true
-    }
-  );
-
+    trpcNext.interviews.listPendingCandidates.useQuery(type);
   const { data: interviews, refetch: refetchInterview } =
     trpcNext.interviews.list.useQuery(type);
   const { data: calibrations, refetch: refetchCalibrations } =
@@ -276,7 +269,8 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
 
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
   // When selecting "-“ <Select> emits "".
-  const [calibrationId, setCalibrationId] = useState<string>(interview?.calibration?.id || "");
+  const [calibrationId, setCalibrationId] =
+    useState<string>(interview?.calibration?.id || "");
 
   const save = async () => {
     setSaving(true);
@@ -284,11 +278,19 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
       const cid = calibrationId.length ? calibrationId : null;
       if (interview) {
         await trpc.interviews.update.mutate({
-          id: interview.id, type, calibrationId: cid, intervieweeId: applicant.id, interviewerIds,
+          type,
+          id: interview.id, 
+          calibrationId: cid,
+          intervieweeId: applicant.id,
+          interviewerIds,
         });
       } else {
         await trpc.interviews.create.mutate({
-          type, calibrationId: cid, intervieweeId: applicant.id, interviewerIds,
+          type,
+          calibrationId: cid,
+          intervieweeId:
+          applicant.id,
+          interviewerIds,
         });
       }
 
@@ -300,7 +302,9 @@ function InterviewEditor({ type, applicant, interview, onClose }: {
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>{interview ? "修改" : "创建"}{type == "MenteeInterview" ? "学生": "导师"}面试</ModalHeader>
+      <ModalHeader>
+        {interview ? "修改" : "创建"}{type == "MenteeInterview" ? "学生": "导师"}面试
+      </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>

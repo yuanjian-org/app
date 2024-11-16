@@ -19,7 +19,9 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
 import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
-import { FeedbackDeprecated, zFeedbackDeprecated } from "../../../shared/InterviewFeedback";
+import {
+  FeedbackDeprecated, zFeedbackDeprecated
+} from "../../../shared/InterviewFeedback";
 import Calibration from "./Calibration";
 
 @Table({

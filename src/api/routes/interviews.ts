@@ -17,7 +17,7 @@ import {
 } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
-import { formatUserName } from "../../shared/strings";
+import { diffInMinutes, formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import {
   getCalibrationAndCheckPermissionSafe, syncCalibrationGroup 
@@ -27,8 +27,9 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedForMentee } from "./users";
-import { zInterviewerPreference, zUser } from "../../shared/User";
+import User, { zInterviewerPreference, zUser } from "../../shared/User";
 import { zUserProfile } from "../../shared/UserProfile";
+import { Op } from "sequelize";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -105,10 +106,8 @@ const list = procedure
     attributes: interviewAttributes,
     include: interviewInclude,
   }))
-  // Only return mentees whose status is 待审.
   // TOOD: optimize query to filter interviews at the DB level.
-  .filter(i => i.type == "MentorInterview" ||
-    i.interviewee.menteeStatus === null);
+  .filter(i => isCandidatePending(i.type, i.interviewee, [i.createdAt]));
 });
 
 const listMine = procedure
@@ -125,11 +124,58 @@ const listMine = procedure
       include: interviewInclude
     }]
   })).map(feedback => feedback.interview)
-  // Only return mentees whose status is 待审.
   // TOOD: optimize query to filter interviews at the DB level.
-  .filter(i => i.type == "MentorInterview" ||
-    i.interviewee.menteeStatus === null);
+  .filter(i => isCandidatePending(i.type, i.interviewee, [i.createdAt]));
 });
+
+/**
+ * List all the users who have applications and their interviews are pending if
+ * any. 
+ */
+const listPendingCandidates = procedure
+  .use(authUser("MentorshipManager"))
+  .input(zInterviewType)
+  .output(z.array(zUser))
+  .query(async ({ input: type }) =>
+{
+  return (await db.User.findAll({
+    where: {
+      ...type == "MenteeInterview" ?
+        { menteeApplication: { [Op.ne]: null } } :
+        { mentorApplication: { [Op.ne]: null } },
+    },
+    attributes: userAttributes,
+    include: [...userInclude, {
+      association: "interviews",
+      attributes: ["type", "createdAt"],
+    }],
+  }))
+  // TOOD: optimize query to filter interviews at the DB level.
+  .filter(u => {
+    const dates = u.interviews
+      .filter(i => i.type == type)
+      .map(i => i.createdAt);
+    return isCandidatePending(type, u, dates);
+  });
+});
+
+function isCandidatePending(type: InterviewType, interviewee: User,
+  createdAt: Date[]
+) {
+  if (type == "MenteeInterview") {
+    // A interview decision as made
+    return interviewee.menteeStatus === null;
+  } else if (isPermitted(interviewee.roles, "Mentor")) {
+    // A user has been accepted as a mentor
+    return false;
+  } else if (createdAt.length == 0) {
+    // The mentor candidate is pending if there isn't any interview
+    return true;
+  } else {
+    // Treat a mentor interview as done after 60 days of creation
+    return createdAt.some(d => diffInMinutes(d, new Date()) < 60 * 24 * 60);
+  }
+}
 
 /**
  * @returns the interview id.
@@ -145,14 +191,18 @@ const create = procedure
   .output(z.string())
   .mutation(async ({ input }) =>
 {
-  return await createInterview(input.type, input.calibrationId, input.intervieweeId, input.interviewerIds);
+  return await createInterview(input.type, input.calibrationId,
+    input.intervieweeId, input.interviewerIds);
 });
 
 /**
  * @returns the interview id.
  */
-export async function createInterview(type: InterviewType, calibrationId: string | null, 
-  intervieweeId: string, interviewerIds: string[]
+export async function createInterview(
+  type: InterviewType,
+  calibrationId: string | null, 
+  intervieweeId: string,
+  interviewerIds: string[]
 ): Promise<string> {
   validate(intervieweeId, interviewerIds);
 
@@ -345,8 +395,9 @@ export default router({
   getIdForMentee,
   list,
   listMine,
-  create,
+  listPendingCandidates,
   listInterviewerStats,
+  create,
   update,
   updateDecision,
 });
