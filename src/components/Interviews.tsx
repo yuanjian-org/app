@@ -33,6 +33,10 @@ import trpc, { trpcNext } from 'trpc';
 import { MenteeStatus } from 'shared/MenteeStatus';
 import invariant from 'tiny-invariant';
 import TdLink from './TdLink';
+import { 
+  PointOfContactHeaderCells, 
+  PointOfContactCells 
+} from './pointOfContactCells';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -55,6 +59,7 @@ export default function Interviews({ interviews, forCalibration }: {
       <Thead><Tr>
         {showStatus && <Th>状态</Th>}
         <Th>候选人</Th>
+        <PointOfContactHeaderCells />
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
           <Th>讨论结果</Th>
@@ -118,7 +123,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     )}
 
     <TdLink href={url}>{formatUserName(i.interviewee.name)}</TdLink>
-
+    {app && app.user && <PointOfContactCells user={app.user} refetch={refetch} />}
     <TdLink href={url}><Wrap spacing="2">
       {i.feedbacks
         .filter(f => forCalibration || f.interviewer.id !== me.id)
