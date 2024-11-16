@@ -14,7 +14,8 @@ import { toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import User, { UserPreference } from 'shared/User';
+import User, { InterviewerPreference } from 'shared/User';
+import { UserProfile } from 'shared/UserProfile';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -32,7 +33,7 @@ export default function Page() {
           <Th>总面试量</Th>
           <Th>面试限制</Th>
           <Th>性别</Th>
-          <Th>居住地</Th>
+          <Th>坐标</Th>
           <Th>邮箱</Th>
           <Th>微信</Th>     
           <Th>拼音（便于查找）</Th>
@@ -45,6 +46,7 @@ export default function Page() {
           user={s.user}
           interviews={s.interviews}
           preference={s.preference}
+          profile={s.profile}
         />)}
       </Tbody>
     </Table>
@@ -57,16 +59,17 @@ export default function Page() {
 
 Page.title = "面试官";
 
-function Row({ user, interviews, preference }: {
+function Row({ user, interviews, preference, profile }: {
   user: User,
   interviews: number,
-  preference: UserPreference | null,
+  preference: InterviewerPreference,
+  profile: UserProfile,
 }) {
   const role = isPermitted(user.roles, 'MentorCoach')
     ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
     ? 'Mentor' : null;
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
-  const limit = preference?.interviewer?.limit;
+  const limit = preference.limit;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>{user.name}</Td>
@@ -80,8 +83,8 @@ function Row({ user, interviews, preference }: {
       {/* slice() to trim a full date-time string to just the date string */}
       {limit && `${limit.noMoreThan} 直到 ${limit.until.slice(0, 10)}`}
     </Td>
-    <Td>{user.sex}</Td>
-    <Td>{user.city}</Td>
+    <Td>{profile.性别}</Td>
+    <Td>{profile.现居住地}</Td>
     <Td>{user.email}</Td>
     <Td>{user.wechat}</Td>
     <Td>{toPinyin(user.name ?? "")}</Td>

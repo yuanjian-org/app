@@ -1,8 +1,8 @@
-import Role from "../../shared/Role";
-import db from "../database/db";
 import sequelize from "../database/sequelize";
+import db from "../database/db";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
+import { Op } from 'sequelize';
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -14,161 +14,69 @@ export default router({
 
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
+
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+          AND column_name = 'mentorProfile'
+      ) THEN
+        ALTER TABLE users RENAME COLUMN "mentorProfile" TO "profile";
+      END IF;
+    END;
+    $$;
+  `);
+
   await sequelize.sync({ alter: { drop: false } });
 
   console.log("Migrating DB data...");
 
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1 
-        FROM pg_constraint 
-        WHERE conname = 'Calibrations_name_key'
-      ) THEN
-        ALTER TABLE "Calibrations"
-        DROP CONSTRAINT "Calibrations_name_key";
-      END IF;
-    END $$;    
-  `);
+  await migrateSexAndCity();
 
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1 
-        FROM pg_constraint 
-        WHERE conname = 'Calibrations_id_type'
-      ) THEN
-        ALTER TABLE "Calibrations"
-        DROP CONSTRAINT "Calibrations_id_type";
-      END IF;
-    END $$;    
-  `);
-
-  await sequelize.query(`
-    UPDATE "InterviewFeedbacks"
-    SET feedback = jsonb_set(
-      feedback,
-      '{dimensions}',
-      (
-        SELECT jsonb_agg(
-          CASE
-            WHEN value ->> 'name' = '远见价值' THEN jsonb_set(value, '{name}', '"导师价值"')
-            ELSE value
-          END
-        )
-        FROM jsonb_array_elements(feedback -> 'dimensions') AS value
-      )
-    )
-    WHERE feedback -> 'dimensions' @> '[{"name":"远见价值"}]';
-  `);
-
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 
-        FROM pg_constraint 
-        WHERE conname = 'Calibrations_name_type'
-      ) THEN
-        ALTER TABLE "Calibrations"
-        ADD CONSTRAINT "Calibrations_name_type" UNIQUE (name, type);
-      END IF;
-    END $$;
-  `);
-
-  await sequelize.transaction(async transaction => {
-    console.log("Migrating role names...");
-    const users = await db.User.findAll({
-      attributes: ["id", "roles"],
-      transaction
-    });
-
-    for (const u of users) {
-      if (!u.roles.includes("MenteeManager")) continue;
-      const roles: Role[] = [...u.roles.filter(r => r !== "MenteeManager"),
-        "MentorshipManager"];
-      await u.update({ roles }, { transaction });
-    }
-  });
-
-  await cleanupFeedbackAttempLog();
-
-  await updateMenteeStatus();
-
-  await updateRolesColumnType();
+  console.log("Clean up old DB data...");
+  await cleanupFeedbackAttemptLogs();
 }
 
-async function cleanupFeedbackAttempLog() {
+async function cleanupFeedbackAttemptLogs() {
+  console.log("Deleting old feedback attempt logs...");
   await sequelize.query(`
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
   `);
 }
 
-// update mentee status
-async function updateMenteeStatus() {
-  console.log("Updating mentee status...");
+/**
+ * TODO: when removing this code, also delete sex and city columns from db.
+ */
+async function migrateSexAndCity() {
+  console.log("Migrating sex and city...");
+  await sequelize.transaction(async transaction => {
+    const users = await db.User.findAll({
+      where: {
+        [Op.or]: [
+          { sex: { [Op.ne]: null } },
+          { city: { [Op.ne]: null } },
+        ]
+      },
+      attributes: ["id", "sex", "city", "profile"],
+      transaction
+    });
 
-  await sequelize.transaction(async (transaction) => {
-    await sequelize.query(
-        `UPDATE Users SET "menteeStatus" = '面拒' WHERE "menteeStatus" = '面据'`,
-        { transaction }
-    );
+    await Promise.all(users.map(async u => {
+      await u.update({
+        sex: null,
+        city: null,
+        profile: {
+          ...u.profile,
+          ...u.sex ? { '性别': u.sex } : {},
+          ...u.city ? { '现居住地': u.city } : {},
+        }
+      });
+    }, { transaction }));
 
-    await sequelize.query(
-        `UPDATE Users SET "menteeStatus" = '初拒' WHERE "menteeStatus" = '初据'`,
-        { transaction }
-    );
-  });
-}
-
-// update roles column data type to array
-async function updateRolesColumnType() {
-  console.log("Updating User Table Roles column type...");
-
-  const [results] = await sequelize.query(`
-      SELECT pg_typeof(roles) AS role_type
-      FROM users limit 1
-  `);
-
-  // If the column type is already varchar[], exit the function
-  // @ts-ignore
-  if (results.length > 0 && results[0].role_type === 'character varying[]') {
-    console.log("The roles column is already of type varchar[]. No changes needed.");
-    return; // Exit if no changes are needed
-  }
-
-  await sequelize.transaction(async (transaction) => {
-    await sequelize.query(
-        `ALTER TABLE users
-            ADD COLUMN temp_roles varchar[] DEFAULT '{}';`,
-        { transaction }
-    );
-
-    await sequelize.query(
-        `UPDATE users
-         SET temp_roles = (
-             CASE
-                 WHEN roles = '[]'::jsonb THEN '{}'::varchar[]
-                 ELSE (
-                     SELECT array_agg(elem)
-                     FROM jsonb_array_elements_text(roles) AS elem
-                 )
-                 END
-             );`,
-        { transaction }
-    );
-
-    await sequelize.query(
-        `ALTER TABLE users DROP COLUMN roles;`,
-        { transaction }
-    );
-
-    await sequelize.query(
-        `ALTER TABLE users RENAME COLUMN temp_roles TO roles;`,
-        { transaction }
-    );
+    console.log(`${users.length} users are migrated.`);
   });
 }

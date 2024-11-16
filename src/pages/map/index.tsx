@@ -14,39 +14,38 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import { Landmark, Latitude  } from 'shared/Map';
-import { trpcNext } from '../../trpc';
+import { Landmark, Latitude, Latitudes } from 'shared/Map';
 import { componentSpacing } from 'theme/metrics';
-import Loader from 'components/Loader';
 import { sidebarBreakpoint } from 'components/Navbars';
 import LandmarkDrawer from 'components/LandmarkDrawer';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 const desktopTextLimit = 80;
 const mobileTextLimit = 30;
 
-export default function Page() {
+type PageProps = {
+  data: Record<Latitude, Landmark[]>;
+};
+
+export default function Page({ data }: PageProps) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
 
   return <>
     <TabsWithUrlParam isLazy>
       <TabList>
-        <Tab>个人成长</Tab>
-        <Tab>事业发展</Tab>
-        <Tab>社会责任</Tab>
+        {Object.keys(data).map(latitude => 
+          <Tab key={latitude}>{latitude}</Tab>
+        )}
       </TabList>
 
       <TabPanels>
-        <TabPanel>
-          <LandmarkTabPanel latitude="个人成长" selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
-
-        <TabPanel>
-          <LandmarkTabPanel latitude="事业发展" selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
-
-        <TabPanel>
-          <LandmarkTabPanel latitude="社会责任" selectLandmark={setSelectedLandmark}/>
-        </TabPanel>
+        {Object.keys(data).map(latitude => 
+          <TabPanel key={latitude}>
+            <LandmarkTabPanel landmarks={data[latitude as Latitude]} 
+              selectLandmark={setSelectedLandmark} />
+          </TabPanel>
+        )}
       </TabPanels>
     </TabsWithUrlParam>
     
@@ -57,27 +56,16 @@ export default function Page() {
   </>;
 }
 
-const LandmarkTabPanel = ({ latitude, selectLandmark }: { 
-  latitude: Latitude; 
+const LandmarkTabPanel = ({ landmarks, selectLandmark }: { 
+  landmarks: Landmark[];
   selectLandmark: (landmark: Landmark) => void 
 }) => {
-  const { data, isLoading } = trpcNext.map.listLandmarks.useQuery(latitude);
-  return (
-    <>
-      {isLoading ? 
-        <Loader/> : 
-        <SimpleGrid spacing={componentSpacing} 
-        templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
-          {data?.map((landmark, index) => (
-            <LandmarkCard 
-              key={index} 
-              landmark={landmark} 
-              selectLandmark={selectLandmark}/>
-          ))}
-        </SimpleGrid>
-      }
-    </>
-  );
+  return <SimpleGrid spacing={componentSpacing} 
+    templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
+      {landmarks.map((landmark, index) => 
+        <LandmarkCard key={index} landmark={landmark} 
+          selectLandmark={selectLandmark} />)}
+  </SimpleGrid>;
 };
 
 const LandmarkCard = ({ landmark, selectLandmark }: { 
@@ -97,3 +85,31 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
     <CardBody>{cardText}</CardBody>
   </Card>; 
 };
+
+export async function getStaticProps() {
+  const data = await Promise.all(
+    Latitudes.map(async (latitude) => {
+      const landmarkDataPath = path.join(process.cwd(), 'public', 'map', 
+        latitude);
+      const files = await fs.readdir(landmarkDataPath);
+
+      const landmarks = await Promise.all(
+        files
+          .filter(file => path.extname(file) === '.json')
+          .map(async file => {
+            const filePath = path.join(landmarkDataPath, file);
+            const fileContent = await fs.readFile(filePath, 'utf8');
+            const landmark = JSON.parse(fileContent);
+            return {
+              ...landmark,
+              名称: path.basename(file, '.json'),
+            };
+          })
+      );
+      return { [latitude]: landmarks };
+    })
+  );
+
+  const res = data.reduce((acc, item) => ({ ...acc, ...item }), {});
+  return { props: { data: res } };
+}

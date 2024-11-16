@@ -1,6 +1,6 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 
-export type UploadTarget = "MentorProfilePicture";
+export type UploadTarget = "UserProfilePicture";
 
 /**
  * @param id uniquely identifies the upload

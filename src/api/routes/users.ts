@@ -20,7 +20,7 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
-import { zMentorProfile } from "../../shared/MentorProfile";
+import { zUserProfile } from "../../shared/UserProfile";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -147,9 +147,7 @@ const update = procedure
   invariant(input.name);
   await user.update({
     name: input.name,
-    city: input.city,
     wechat: input.wechat,
-    sex: input.sex,
     pinyin: toPinyin(input.name),
     consentFormAcceptedAt: input.consentFormAcceptedAt,
 
@@ -253,12 +251,12 @@ const getUserPreference = procedure
   return user.preference || {};
 });
 
-const getMentorProfile = procedure
+const getUserProfile = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
   }))
-  .output(zMentorProfile)
+  .output(zUserProfile)
   .query(async ({ ctx: { user }, input: { userId } }) => 
 {
   if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
@@ -266,18 +264,18 @@ const getMentorProfile = procedure
   }
 
   const u = await db.User.findByPk(userId, {
-    attributes: ['mentorProfile'] 
+    attributes: ['profile'] 
   });
 
   if (!u) throw notFoundError("用户", userId);
-  return u.mentorProfile || {};
+  return u.profile || {};
 });
 
-const setMentorProfile = procedure
+const setUserProfile = procedure
   .use(authUser())
   .input(z.object({
     userId: z.string(),
-    profile: zMentorProfile,
+    profile: zUserProfile,
   }))
   .mutation(async ({ ctx: { user }, input: { userId, profile } }) => 
 {
@@ -285,9 +283,7 @@ const setMentorProfile = procedure
     throw noPermissionError("用户", userId);
   }
 
-  const [cnt] = await db.User.update({ mentorProfile: profile }, {
-    where: { id: userId }
-  });
+  const [cnt] = await db.User.update({ profile }, { where: { id: userId } });
   if (cnt == 0) throw notFoundError("用户", userId);
 });
 
@@ -395,6 +391,7 @@ const getApplicant = procedure
   }))
   .output(z.object({
     user: zUser,
+    sex: z.string().nullable(),
     application: z.record(z.string(), z.any()).nullable(),
   }))
   .query(async ({ ctx, input: { userId, type } }) =>
@@ -404,15 +401,20 @@ const getApplicant = procedure
   const user = await db.User.findByPk(userId, {
     attributes: [
       ...userAttributes, 
-      isMentee ? "menteeApplication" : "mentorApplication"
+      isMentee ? "menteeApplication" : "mentorApplication",
+      "profile"
     ],
     include: userInclude,
   });
   if (!user) throw notFoundError("用户", userId);
 
   const application = isMentee ? user.menteeApplication : user.mentorApplication;
-  const ret: { user: User, application: Record<string, any> | null } = {
-    user, application
+  const sex = user.profile?.性别 ?? null;
+
+  const ret = {
+    user,
+    application,
+    sex,
   };
 
   if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
@@ -541,8 +543,8 @@ export default router({
   getApplicant,
   setApplication,
 
-  getMentorProfile,
-  setMentorProfile,
+  getUserProfile,
+  setUserProfile,
 
   getMentorCoach,
   setMentorCoach,

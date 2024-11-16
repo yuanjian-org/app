@@ -24,7 +24,7 @@ import { Op } from "sequelize";
 import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
 import { defaultMentorCapacity, zMentorPreference, zMinUser, zUser } from "shared/User";
-import { zMentorProfile } from "shared/MentorProfile";
+import { zUserProfile } from "shared/UserProfile";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
@@ -130,7 +130,7 @@ const listMentors = procedure
 .output(z.array(z.object({
   user: zMinUser,
   matchable: z.boolean(),
-  profile: zMentorProfile.nullable(),
+  profile: zUserProfile.nullable(),
 })))
 .query(async () =>
 {
@@ -138,13 +138,13 @@ const listMentors = procedure
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...minUserAttributes, "preference", "mentorProfile"],
+    attributes: [...minUserAttributes, "preference", "profile"],
   });
 
   const user2mentorships = await getUser2MentorshipCount();
   const ret = users.map(u => ({
       user: u,
-      profile: u.mentorProfile,
+      profile: u.profile,
       matchable: (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
         - (user2mentorships[u.id] || 0) > 0,
     }));
@@ -159,7 +159,7 @@ const getMentor = procedure
   userId: z.string()
 })).output(z.object({
   user: zMinUser,
-  profile: zMentorProfile.nullable(),
+  profile: zUserProfile.nullable(),
 }))
 .query(async ({ input: { userId } }) =>
 {
@@ -170,14 +170,14 @@ const getMentor = procedure
       id: userId,
       roles: { [Op.contains]: [mentorRole] },
     },
-    attributes: [...minUserAttributes, "mentorProfile"],
+    attributes: [...minUserAttributes, "profile"],
   });
   invariant(users.length <= 1);
-  if (!users.length) throw notFoundError("导师", userId);
+  if (!users.length) throw notFoundError("用户", userId);
 
   return {
     user: users[0],
-    profile: users[0].mentorProfile,
+    profile: users[0].profile,
   };
 });
 
@@ -202,8 +202,9 @@ const listMentorStats = procedure
 .use(authUser("MentorshipManager"))
 .output(z.array(z.object({
   user: zUser,
-  mentorPreference: zMentorPreference.nullable(),
   mentorships: z.number(),
+  preference: zMentorPreference,
+  profile: zUserProfile,
 })))
 .query(async () =>
 {
@@ -211,15 +212,16 @@ const listMentorStats = procedure
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...userAttributes, "preference"],
+    attributes: [...userAttributes, "profile", "preference"],
     include: userInclude,
   });
 
   const user2mentorships = await getUser2MentorshipCount();
   const ret = users.map(u => ({
       user: u,
-      mentorPreference: u.preference?.mentor ?? null,
-      mentorships: user2mentorships[u.id] || 0,
+      mentorships: user2mentorships[u.id] ?? 0,
+      preference: u.preference?.mentor ?? {},
+      profile: u.profile ?? {},
     }));
 
   ret.sort((a, b) => compareChinese(a.user.name, b.user.name));

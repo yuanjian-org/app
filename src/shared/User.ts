@@ -14,8 +14,6 @@ export const zUser = zMinUser.merge(z.object({
   roles: zRoles,
   email: z.string().email(),
   wechat: z.string().nullable(),
-  city: z.string().nullable(),
-  sex: z.string().nullable(),
   // For some reason coerce is needed to avoid zod input validation error.
   consentFormAcceptedAt: z.coerce.string().nullable(),
   menteeInterviewerTestLastPassedAt: z.coerce.string().nullable(),

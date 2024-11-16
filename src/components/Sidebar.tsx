@@ -124,9 +124,8 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
     action: '/profiles/me',
   },
   {
-    name: '导师信息',
-    action: '/mentors/manage/me',
-    roles: 'Mentor',
+    name: '偏好设置',
+    action: '/preferences/me',
   },
   {
     name: '谁能看到我的数据',

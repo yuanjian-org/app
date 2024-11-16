@@ -5,6 +5,7 @@ import { createUser } from "../database/models/User";
 import { emailRoleIgnoreError } from "../sendgrid";
 import menteeApplicationFields, { menteeSourceField }
   from "../../shared/menteeApplicationFields";
+import { UserProfile } from "shared/UserProfile";
 
 /**
  * The Webhook for three 金数据 forms:
@@ -38,14 +39,20 @@ export async function submit({ form, entry }: Record<string, any>, baseUrl: stri
    * Update code if/when they diverge.
    */
   const name = entry.field_104;
+
+  // force type check
+  const sexKey: keyof UserProfile = "性别";
+
+  // Do not allow upsert to prevent accidental or malicious overwriting of
+  // existing user data.
   await createUser({
     name,
-    sex: entry.field_57,
     email: entry.field_113,
     wechat: entry.field_106,
     menteeApplication: application,
-    roles: ["Mentee"]
-  }, "upsert");
+    roles: ["Mentee"],
+    profile: { [sexKey]: entry.field_57 },
+  });
 
   emailRoleIgnoreError("UserManager", "新学生申请", `姓名：${name}`, baseUrl);
 }

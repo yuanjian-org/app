@@ -13,7 +13,7 @@ import {
   TableContainer,
   Link,
 } from '@chakra-ui/react';
-import { MentorProfile } from "shared/MentorProfile";
+import { UserProfile } from "shared/UserProfile";
 import { sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 
@@ -49,10 +49,10 @@ export default function Page() {
 Page.title = "导师";
 
 function ProfileTable({ profile: p }: {
-  profile: MentorProfile
+  profile: UserProfile
 }) {
   type KeyLabel = {
-    k: keyof MentorProfile,
+    k: keyof UserProfile,
     l?: string,
   };
 
@@ -80,8 +80,8 @@ function ProfileTable({ profile: p }: {
 }
 
 function ProfileRow({ profile: p, k, label }: {
-  profile: MentorProfile,
-  k: keyof MentorProfile,
+  profile: UserProfile,
+  k: keyof UserProfile,
   label?: string,
 }) {
   return !p[k] ? <></> : <Tr>

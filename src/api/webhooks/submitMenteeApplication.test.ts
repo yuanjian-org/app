@@ -273,7 +273,7 @@ describe('submitMenteeApplication', () => {
     const u = await User.findOne({ where: { email: "test1@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("dingyi");
-    expect(u?.sex).is.equal("女");
+    expect(u?.profile?.性别).is.equal("女");
     expect(u?.wechat).is.equal("微信号");
     expect(u?.menteeApplication).is.deep.equal(outputApplication);
   });
@@ -283,7 +283,7 @@ describe('submitMenteeApplication', () => {
     const u = await User.findOne({ where: { email: "test2@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("wangxiaohan");
-    expect(u?.sex).is.equal("男");
+    expect(u?.profile?.性别).is.equal("男");
     expect(u?.wechat).is.equal("微信号2");
     expect(u?.menteeApplication).is.deep.equal(outputProxiedApplication);
   });
