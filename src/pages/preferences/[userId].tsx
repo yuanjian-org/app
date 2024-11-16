@@ -13,6 +13,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   Heading,
+  FormLabel,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -30,6 +31,7 @@ import { parseQueryStringOrUnknown } from 'shared/strings';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
+import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 
 export default function Page() {
   const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
@@ -197,6 +199,16 @@ function MentorPreferences({ data, updateData } : {
 
   return <>
     <Heading size="md">导师偏好</Heading>
+
+    <FormControl>
+      <FormLabel>学生匹配偏好</FormLabel>
+      <FormHelperTextWithMargin>
+        比如希望匹配农村学生等，或具体学生的姓名。
+      </FormHelperTextWithMargin>
+      <Input bg="white" value={data?.学生偏好 || ""} 
+        onChange={ev => updateData('学生偏好', ev.target.value)}
+      />
+    </FormControl>
 
     <FormControl>
       <Flex align="center">
