@@ -1,20 +1,20 @@
-export type MenteeApplicationField = {
+export type ApplicationField = {
   name: string,
 
   // Always show the field on the "edit application" page even if the field is
   // absent from application data.
   showForEdits?: boolean,
 
-  // field name from Yuanjian application form https://jsj.top/f/FBTWTe or
-  // 馒头工坊 application form https://jsj.top/f/Z82u8w. 
+  // Field name from jinshuju forms.
   //
-  // N.B.: We must maintain the invariant that for a given field name, either it
-  //    is present only in one of the two forms, or it refers to identical 
-  //    fields from both forms.
+  // N.B.: For the two mentee application forms https://jsj.top/f/FBTWTe and
+  // https://jsj.top/f/Z82u8w, we must maintain the invariant that for a given
+  // field name, either it is present only in one of the two forms, or it refers
+  // to identical fields from both forms.
   //
   jsjField?: string,
 
-  // field name from Proxied application form https://jsj.top/f/S74k0V
+  // Field name from Proxied mentee application form https://jsj.top/f/S74k0V.
   jsjProxiedField?: string,
 };
 
@@ -28,7 +28,7 @@ export const menteeFirstYearInCollegeField = "大学一年级入学年份";
 /**
  * Field order dictates the order the fields are displayed.
  */
-const menteeApplicationFields: MenteeApplicationField[] = [
+export const menteeApplicationFields: ApplicationField[] = [
   { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
   { name: menteeAcceptanceYearField, showForEdits: true, },
   { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
@@ -69,4 +69,21 @@ const menteeApplicationFields: MenteeApplicationField[] = [
   { jsjField: "field_132", name: "目前已有的经济支持", },
 ];
 
-export default menteeApplicationFields;
+export const volunteerApplyingforMentorField = "申请导师";
+export const volutneerNationalityField = "国籍";
+
+/**
+ * Field order dictates the order the fields are displayed.
+ */
+export const volunteerApplicationFields: ApplicationField[] = [
+  { jsjField: "field_24", name: "英文别名", showForEdits: true },
+  { name: volunteerApplyingforMentorField, showForEdits: true },
+  { jsjField: "field_10", name: "申请其他岗位" },
+  { jsjField: "field_18", name: "每周贡献时数" },
+  { jsjField: "field_14", name: "相关经历" },
+  { jsjField: "field_12", name: "简历" },
+  { jsjField: "field_16", name: "推荐人或了解渠道" },
+  { jsjField: "field_15", name: "希望收获" },
+  { jsjField: "field_17", name: "反馈或问题" },
+  { name: volutneerNationalityField, showForEdits: true },
+];

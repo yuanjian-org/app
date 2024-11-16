@@ -1,5 +1,6 @@
 import type {
   CreationOptional,
+  Transaction,
 } from "sequelize";
 import {
   AllowNull,
@@ -80,6 +81,7 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   menteeApplication: Record<string, any> | null;
 
+  // TODO: rename to volunteer application
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
   mentorApplication: Record<string, any> | null;
 
@@ -153,10 +155,13 @@ export default User;
 
 export async function createUser(
   fields: any,
-  mode: "create" | "upsert" = "create"
+  transaction?: Transaction,
+  mode: "create" | "upsert" = "create",
 ): Promise<User> {
   const f = structuredClone(fields);
   if (!("name" in f)) f.name = "";
   f.pinyin = toPinyin(f.name);
-  return mode == "create" ? await User.create(f) : (await User.upsert(f))[0];
+  return mode == "create" ? 
+    await User.create(f, transaction ? { transaction } : {}) :
+    (await User.upsert(f, transaction ? { transaction } : {}))[0];
 }

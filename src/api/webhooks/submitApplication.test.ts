@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { submit } from './submitMenteeApplication';
+import { submitMenteeApp } from './submitApplication';
 import User from '../database/models/User';
 
-const inputApplication = {
+const inputMenteeApp = {
   "form": "FBTWTe",
   "form_name": "奖学金申请表",
   "entry": {
@@ -129,7 +129,7 @@ const inputApplication = {
   }
 };
 
-const outputApplication = {
+const outputMenteeApp = {
   "合作机构来源": "某基金会: 某ID",
   "就读种类": "全日制大学专科生",
   "本科是否是第一批次（一本）？": "是",
@@ -216,7 +216,7 @@ const outputApplication = {
   ]
 };
 
-const inputProxiedApplication = {
+const inputProxiedMenteeApp = {
   "form": "S74k0V",
   "form_name": "代理申请表",
   "entry": {
@@ -243,7 +243,7 @@ const inputProxiedApplication = {
   }
 };
 
-const outputProxiedApplication = {
+const outputProxiedMenteeApp = {
   "其他申请材料": [
     "baz",
     "qux",
@@ -260,7 +260,7 @@ const outputProxiedApplication = {
   ],
 };
 
-describe('submitMenteeApplication', () => {
+describe('submitApplication', () => {
   after(async () => {
     const u1 = await User.findOne({ where: { email: "test1@email.com" } });
     if (u1) await u1.destroy({ force: true });
@@ -268,23 +268,23 @@ describe('submitMenteeApplication', () => {
     if (u2) await u2.destroy({ force: true });
   });
 
-  it('should submit application', async () => {
-    await submit(inputApplication, "baseurl");
+  it('should submit mentee application', async () => {
+    await submitMenteeApp(inputMenteeApp);
     const u = await User.findOne({ where: { email: "test1@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("dingyi");
     expect(u?.profile?.性别).is.equal("女");
     expect(u?.wechat).is.equal("微信号");
-    expect(u?.menteeApplication).is.deep.equal(outputApplication);
+    expect(u?.menteeApplication).is.deep.equal(outputMenteeApp);
   });
 
-  it('should submit proxied application', async () => {
-    await submit(inputProxiedApplication, "baseurl");
+  it('should submit proxied mentee application', async () => {
+    await submitMenteeApp(inputProxiedMenteeApp);
     const u = await User.findOne({ where: { email: "test2@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("wangxiaohan");
     expect(u?.profile?.性别).is.equal("男");
     expect(u?.wechat).is.equal("微信号2");
-    expect(u?.menteeApplication).is.deep.equal(outputProxiedApplication);
+    expect(u?.menteeApplication).is.deep.equal(outputProxiedMenteeApp);
   });
 });
