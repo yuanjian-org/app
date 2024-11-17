@@ -102,7 +102,8 @@ async function save(
   location: string | undefined,
   application: Record<string, any>
 ) {
-  const column = type == "Mentee" ? "menteeApplication" : "mentorApplication";
+  const column = type == "Mentee" ?
+    "menteeApplication" : "volunteerApplication";
 
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findOne({

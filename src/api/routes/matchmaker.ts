@@ -39,7 +39,7 @@ const listPendingMentees = procedure
   // Declare a variable to force type checking
   const menteeStatus: MenteeStatus = "现届学子";
   const mentees = await db.User.findAll({ 
-    attributes: [...minUserAttributes, "sex", "menteeApplication"],
+    attributes: [...minUserAttributes, "profile", "menteeApplication"],
     where: { menteeStatus },
     include: [{
       association: "mentorshipsAsMentee",
@@ -62,17 +62,17 @@ const listPendingMentees = procedure
   return pendingMentees.map(m => ({
     name: formatUserName(m.name),
     profile: getMenteeProfile(`${ctx.baseUrl}/mentees/${m.id}`,
-      m.sex, m.menteeApplication),
+      m.profile?.性别, m.menteeApplication),
     averageDimensionalScores: getAverageDimensionalScores(m.interviews),
   }));
 });
 
-function getMenteeProfile(url: string, sex: string | null,
+function getMenteeProfile(url: string, sex: string | undefined,
   application: Record<string, any> | null)
 {
   return {
     url,
-    sex: sex || undefined,
+    sex,
     acceptanceYear: application?.[menteeAcceptanceYearField],
     firstYearInCollege: application?.[menteeFirstYearInCollegeField],
     college: application?.[menteeCollegeField],
