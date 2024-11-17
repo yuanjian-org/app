@@ -60,8 +60,6 @@ function MentorCard({ user, profile: p }: {
 }) {
   const router = useRouter();
 
-
-
   return <Card
     overflow="hidden"
     cursor="pointer"
@@ -70,7 +68,7 @@ function MentorCard({ user, profile: p }: {
 
     {p?.照片链接 && <Image
       objectFit='cover'
-      maxW={{ base: '100%' }}
+      maxW='100%'
       src={p.照片链接}
       alt="照片"
     />}

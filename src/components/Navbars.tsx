@@ -27,14 +27,9 @@ import AutosaveIndicator, {
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
+import { breakpoint } from 'theme/metrics';
 
 export const sidebarWidth = 60;
-
-/**
- * The breakpoint at which the sidebar becomes visible (desktop) or insivible
- * (mobile). Commonly used as mobile-vs-desktop breakpoint.
- */
-export const sidebarBreakpoint = "lg";
 
 /**
  * The container for navbar, sidebar and page content that is passed in as `children`.
@@ -72,7 +67,7 @@ export default function Navbars({
       {/* The sidebar on desktop */}
       <Sidebar
         onClose={() => onClose}
-        display={{ base: 'none', [sidebarBreakpoint]: 'block' }}
+        display={{ base: 'none', [breakpoint]: 'block' }}
       />
 
       {/* The sidebar on mobile */}
@@ -92,7 +87,7 @@ export default function Navbars({
 
       <Topbar onOpen={onOpen} autosaveState={autosaveState} />
 
-      <Box marginLeft={{ base: 0, [sidebarBreakpoint]: sidebarWidth }}>
+      <Box marginLeft={{ base: 0, [breakpoint]: sidebarWidth }}>
         <AutosaveContext.Provider value={{
           addPendingSaver: addPS,
           removePendingSaver: removePS,
@@ -113,13 +108,13 @@ interface TopbarProps extends FlexProps {
 const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
     <Flex justifyContent="flex-end">
-      <HStack spacing={6} marginTop={{ base: 0, [sidebarBreakpoint]: 10 }} >
+      <HStack spacing={6} marginTop={{ base: 0, [breakpoint]: 10 }} >
         <IconButton
           zIndex={2}
           marginX={4}
           marginTop={4}
           marginBottom={-8}
-          display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
+          display={{ base: 'flex', [breakpoint]: 'none' }}
           onClick={onOpen}
           variant="outline"
           aria-label="open menu"
@@ -128,7 +123,7 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
         />
         <AutosaveIndicator
           display="flex"
-          mt={{ base: "80px", [sidebarBreakpoint]: 0 }}
+          mt={{ base: "80px", [breakpoint]: 0 }}
           state={autosaveState}
         />
       </HStack>

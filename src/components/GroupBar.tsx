@@ -31,7 +31,7 @@ import Link from 'next/link';
 import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
-import { sidebarBreakpoint } from './Navbars';
+import { breakpoint } from 'theme/metrics';
 import UserChip from './UserChip';
 import { MinUser } from 'shared/User';
 import { Group, isOwned } from 'shared/Group';
@@ -209,7 +209,7 @@ export function UserChips(props: {
       max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
       display={{
         base: abbreviateOnMobile ? "flex" : "none",
-        [sidebarBreakpoint]: props.abbreviateOnDesktop ? "flex" : "none",
+        [breakpoint]: props.abbreviateOnDesktop ? "flex" : "none",
       }}
     >
       {displayUsers.map(user => <Avatar key={user.id} name={user.name || undefined} />)}
@@ -218,7 +218,7 @@ export function UserChips(props: {
     {/* Unabridged mode */}
     <Wrap spacing='1.5em' display={{
       base: abbreviateOnMobile ? "none" : "flex",
-      [sidebarBreakpoint]: props.abbreviateOnDesktop ? "none" : "flex",
+      [breakpoint]: props.abbreviateOnDesktop ? "none" : "flex",
     }}>
       {displayUsers.map(user =>
         <WrapItem key={user.id}>

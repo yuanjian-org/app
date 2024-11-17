@@ -3,7 +3,7 @@ import React from 'react';
 import { useUserContext } from "../UserContext";
 import { isPermitted } from 'shared/Role';
 import { fullPage } from 'AppPage';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import { sidebarContentMarginTop } from 'components/Sidebar';
 
 export default fullPage(() => {
@@ -18,7 +18,7 @@ export default fullPage(() => {
       height="100vh"
       marginTop={{
         base: sidebarContentMarginTop,
-        [sidebarBreakpoint]: -sidebarContentMarginTop
+        [breakpoint]: -sidebarContentMarginTop
       }}
     >
       <iframe

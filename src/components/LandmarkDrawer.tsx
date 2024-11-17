@@ -31,7 +31,7 @@ import MarkdownSupport from './MarkdownSupport';
 import trpc, { trpcNext } from 'trpc';
 import { prettifyDate } from 'shared/strings';
 import { useUserContext } from 'UserContext';
-import { sidebarBreakpoint } from './Navbars';
+import { breakpoint } from 'theme/metrics';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
@@ -153,7 +153,7 @@ function LandmarkAssessmentHistory({ landmark } : {
                   isTruncated 
                   maxWidth={{ 
                     base: mobileTextLimit, 
-                    [sidebarBreakpoint]: desktopTextLimit 
+                    [breakpoint]: desktopTextLimit 
                   }}
                 >
                   {assessment.markdown}

@@ -4,7 +4,8 @@ import { PropsWithChildren, useState } from 'react';
 
 import UserContext from "../UserContext";
 import User from '../shared/User';
-import NavBars, { sidebarBreakpoint } from 'components/Navbars';
+import NavBars from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import { AppPageType } from 'AppPage';
 import { pageMarginX } from 'theme/metrics';
 
@@ -31,7 +32,7 @@ export default function AppPageContainer({ pageType, user, children }: {
         >
           {children}
         <Spacer />
-        <Footer alignItems={{ base: 'center', [sidebarBreakpoint]: 'start' }} />
+        <Footer alignItems={{ base: 'center', [breakpoint]: 'start' }} />
       </VStack>
       }
     </NavBars>

@@ -1,9 +1,9 @@
 import { Alert, AlertIcon, AlertDescription, HStack, AlertProps } from '@chakra-ui/react';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 
 
 export default function MobileExperienceAlert(props: AlertProps) {
-  return <Alert display={{ base: 'flex', [sidebarBreakpoint]: 'none' }}
+  return <Alert display={{ base: 'flex', [breakpoint]: 'none' }}
       status="warning" {...props}>
     <HStack>
       <AlertIcon />

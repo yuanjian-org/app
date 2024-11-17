@@ -3,7 +3,7 @@ import Loader from 'components/Loader';
 import {
   Flex, Grid, GridItem, Heading, Link, Box
 } from '@chakra-ui/react';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import Applicant from 'components/Applicant';
 import { sectionSpacing } from 'theme/metrics';
 import {
@@ -53,7 +53,7 @@ export default function Interview({ interviewId, hasTitle, readonly }: {
       gap={sectionSpacing}
       templateColumns={{ 
         base: "100%", 
-        [sidebarBreakpoint]: `repeat(${i.feedbacks.length + 1}, 1fr)`,
+        [breakpoint]: `repeat(${i.feedbacks.length + 1}, 1fr)`,
       }}
     >
       {i.feedbacks

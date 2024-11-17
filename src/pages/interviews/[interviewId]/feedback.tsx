@@ -8,7 +8,7 @@ import { Flex, Grid, GridItem,
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import { useUserContext } from 'UserContext';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -50,7 +50,7 @@ export default widePage(() => {
     }]}/>
 
     {!interviewerTestPassed() ? <PassTestFirst type={i.type} /> :
-      <Grid templateColumns={{ base: "100%", [sidebarBreakpoint]: "1fr 1fr" }}
+      <Grid templateColumns={{ base: "100%", [breakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
         <GridItem>
           <Flex direction="column" gap={sectionSpacing}>

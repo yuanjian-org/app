@@ -40,7 +40,8 @@ import {
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
-import { sidebarBreakpoint, sidebarWidth } from './Navbars';
+import { sidebarWidth } from './Navbars';
+import { breakpoint } from 'theme/metrics';
 import { formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
@@ -223,7 +224,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
     bg={backgroundColor}
     borderRight="1px"
     borderRightColor={borderColor}
-    w={{ base: "full", [sidebarBreakpoint]: sidebarWidth }}
+    w={{ base: "full", [breakpoint]: sidebarWidth }}
     pos="fixed"
     h="full"
     // Setting pos to fixed creates a new stacking context,
@@ -241,14 +242,14 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       h="full">
       <Box>
         <CloseButton
-          display={{ base: 'flex', [sidebarBreakpoint]: 'none' }} 
+          display={{ base: 'flex', [breakpoint]: 'none' }} 
           onClick={onClose} 
           marginLeft={sidebarItemPaddingLeft - 2}
           marginY={sidebarItemPaddingY}  
         />
         <Box height={{
           base: 0,
-          [sidebarBreakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
+          [breakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
         }} />
 
         {mainMenuItems

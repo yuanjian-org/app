@@ -11,7 +11,7 @@ import partner_3 from '../../../public/img/partner_3.png';
 import partner_4 from '../../../public/img/partner_4.png';
 import partner_5 from '../../../public/img/partner_5.png';
 import partner_6 from '../../../public/img/partner_6.png';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import NextLink from 'next/link';
@@ -35,11 +35,11 @@ function Section({ header, children, ...rest }: {
   return <Grid gap={componentSpacing}
     templateColumns={{
       base: 'repeat(2, 1fr)',
-      [sidebarBreakpoint]: 'repeat(5, 1fr)',
+      [breakpoint]: 'repeat(5, 1fr)',
     }}
     {...rest}
   >
-    <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 5 }}>
+    <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
       <PageBreadcrumb current={header} />
     </GridItem>
     {children}
@@ -48,7 +48,7 @@ function Section({ header, children, ...rest }: {
 
 function IntroSection() {
   return <Section header="欢迎来到社会导师服务平台">
-    <GridItem colSpan={{ base: 2, [sidebarBreakpoint]: 5 }}>
+    <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
       <VStack spacing={paragraphSpacing} align="start">
         <Text>
           <b>什么是社会导师？</b>社会导师是拥有丰富职业经验和社会阅历的 “过来人”，他们为年{

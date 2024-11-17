@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude, Latitudes } from 'shared/Map';
 import { componentSpacing } from 'theme/metrics';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import LandmarkDrawer from 'components/LandmarkDrawer';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -73,7 +73,7 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
   selectLandmark: (landmark: Landmark) => void  
 }) => {
   const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
-    [sidebarBreakpoint]: desktopTextLimit }) || desktopTextLimit;
+    [breakpoint]: desktopTextLimit }) || desktopTextLimit;
   const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
     {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
   </Text>;  

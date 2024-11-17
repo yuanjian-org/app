@@ -18,7 +18,7 @@ import Loader from 'components/Loader';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import replaceUrlParam from 'shared/replaceUrlParam';
-import { sidebarBreakpoint } from 'components/Navbars';
+import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
 
 export default function Transcripts({ groupId }: {
@@ -71,7 +71,7 @@ function LoadedTranscripts({ transcripts: unsorted }: {
           onClick={() => replaceUrlParam(router, "transcriptId", filtered[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
         <Spacer />
-        <Flex direction={{ base: "column", [sidebarBreakpoint]: "row" }} gap={componentSpacing}>
+        <Flex direction={{ base: "column", [breakpoint]: "row" }} gap={componentSpacing}>
           <Select value={transcript.transcriptId} 
             onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
           >

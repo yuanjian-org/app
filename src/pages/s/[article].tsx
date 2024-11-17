@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import MarkdownStyler from "components/MarkdownStyler";
 import { Box, Heading, Stack, VStack, Text, Link } from "@chakra-ui/react";
-import { sidebarBreakpoint } from "components/Navbars";
+import { breakpoint } from 'theme/metrics';
 import NextLink from "next/link";
 
 const articlesFolder = path.join(process.cwd(), '/public/articles');
@@ -25,15 +25,15 @@ export default function Page({ title, authors, date, markdown }: ArticleProps) {
   const Separator = () => <Text
     mx={3}
     color="#b0b0b0"
-    display={{ base: "none", [sidebarBreakpoint]: "block" }}
+    display={{ base: "none", [breakpoint]: "block" }}
   >|</Text>;
 
-  return <VStack align={{ base: "start", [sidebarBreakpoint]: "center" }}>
+  return <VStack align={{ base: "start", [breakpoint]: "center" }}>
     <Heading size="lg">{title}</Heading>
 
     <Stack
       my={4}
-      direction={{ base: "column", [sidebarBreakpoint]: "row" }}
+      direction={{ base: "column", [breakpoint]: "row" }}
     >
       <Link as={NextLink} href="/s/articles">社会导师系列文章</Link>
       <Separator />
