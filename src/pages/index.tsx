@@ -124,7 +124,7 @@ function NoGroup() {
         <HStack>
           <AlertIcon />
           <AlertDescription>
-            系统发现有与您同名但使用不同电子邮箱的账户。如果您在当前账号下未找到所需功能，{
+            系统发现有与您同名但使用不同电子邮箱的账号。如果您在当前账号下未找到所需功能，{
             }请尝试使用以下可能属于您的邮箱重新登录：
             <UnorderedList mt={paragraphSpacing}>
               {data.map((d, idx) => <ListItem key={idx}><b>{d}</b></ListItem>)}
