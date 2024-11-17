@@ -23,7 +23,9 @@ import invariant from "tiny-invariant";
 import { Op } from "sequelize";
 import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedForMentee } from "./users";
-import { defaultMentorCapacity, zMentorPreference, zMinUser, zUser } from "shared/User";
+import {
+  defaultMentorCapacity, zMentorPreference, zMinUser, zUser
+} from "shared/User";
 import { zUserProfile } from "shared/UserProfile";
 
 const create = procedure
@@ -214,10 +216,16 @@ const listMentorStats = procedure
 })))
 .query(async () =>
 {
-  // Declare a variable to enforce type check
-  const mentorRole: Role = "Mentor";
+  // Force type check
+  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "AdhocMentor"];
   const users = await db.User.findAll({
-    where: { roles: { [Op.contains]: [mentorRole] } },
+    where: {
+      [Op.and]: [{
+        roles: { [Op.contains]: [mentorRole] },
+      }, {
+        [Op.not]: { roles: { [Op.contains]: [adhocMentorRole] }, }
+      }]
+    },
     attributes: [...userAttributes, "profile", "preference"],
     include: userInclude,
   });
