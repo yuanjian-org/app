@@ -6,6 +6,7 @@ export const AllRoles = [
   'GroupManager',
   'MentorshipAssessor',
   'MentorshipManager',
+  'AdhocMentor',
   'Mentor',
   'Mentee',
   'Interviewer',
@@ -61,6 +62,10 @@ export const RoleProfiles: { [key: string]: {
     displayName: '导师',
     actions: '帮助年轻学子成长',
     automatic: true,
+  },
+  AdhocMentor: {
+    displayName: '仅不定期导师',
+    actions: '仅做不定期服务，不参与学生匹配',
   },
   Mentee: {
     displayName: '学生',

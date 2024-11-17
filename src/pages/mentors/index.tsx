@@ -20,7 +20,13 @@ import { useRouter } from 'next/router';
 export default widePage(() => <MentorPage title="不定期导师" />, "不定期导师");
 
 /**
- * TODO: this file closely resembles interviewers.tsx. Dedupe?
+ * There are two types of mentors:
+ * 
+ * *matchable* mentors can match mentees for long-term mentorship and also have
+ * one-off sessions with any mentee on demand.
+ * 
+ * *adhoc* mentors cannot match for long-term mentorship and only perform
+ * one-off session.
  */
 export function MentorPage({ matchableOnly, title }: {
   matchableOnly?: boolean,

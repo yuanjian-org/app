@@ -138,19 +138,25 @@ const listMentors = procedure
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...minUserAttributes, "preference", "profile"],
+    attributes: [...minUserAttributes, "roles", "preference", "profile"],
   });
 
   const user2mentorships = await getUser2MentorshipCount();
-  const ret = users.map(u => ({
+
+  return users.map(u => {
+    // Enforce type check
+    const adhocRole: Role = "AdhocMentor";
+    const adhoc = u.roles.includes(adhocRole);
+    const cap = adhoc ? 0 :
+      (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
+      - (user2mentorships[u.id] ?? 0);
+
+    return {
       user: u,
       profile: u.profile,
-      matchable: (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
-        - (user2mentorships[u.id] || 0) > 0,
-    }));
-
-  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
-  return ret;
+      matchable: cap > 0,
+    };
+  });
 });
 
 const getMentor = procedure
