@@ -87,6 +87,7 @@ function UserTable({ users, setUserBeingEdited }: {
       <Tr>
         <Th>电子邮箱</Th>
         <Th>姓名</Th>
+        <Th>偏好</Th>
         <Th>拼音</Th>
         <Th>角色</Th>
       </Tr>
@@ -106,6 +107,12 @@ function UserTable({ users, setUserBeingEdited }: {
                 {formatUserName(u.name, "formal")}
                 {me.id === u.id ? "（我）" : ""}
               </b>{' '}<ChevronRightIcon />
+            </Link>
+          </Td>
+
+          <Td>
+            <Link as={NextLink} href={`/preferences/${u.id}`}>
+              偏好
             </Link>
           </Td>
 

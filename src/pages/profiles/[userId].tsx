@@ -35,7 +35,7 @@ import User, {
   } from 'shared/User';
 import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { isPermitted } from 'shared/Role';
+import { isPermitted, RoleProfiles } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
@@ -151,7 +151,9 @@ function Basic({ user, profile, setUser, setProfile }: {
     <FormControl>
       <FormLabel>邮箱</FormLabel>
       <Input value={user.email} readOnly />
-      <FormHelperText>如需更改邮箱，请联系管理员。</FormHelperText>
+      <FormHelperText>如需更改邮箱，请联系
+        {RoleProfiles.UserManager.displayName}。
+      </FormHelperText>
     </FormControl>
     
     <FormControl isInvalid={!user.name}>
@@ -237,9 +239,11 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
         建议选择面部清晰、不戴墨镜的近照
       </FormHelperTextWithMargin>
 
-      {isPermitted(me.roles, ['UserManager', 'MentorshipManager']) && <>
+      {isPermitted(me.roles, 'UserManager') && <>
         <FormHelperTextWithMargin>
-          以下链接仅管理员可见：
+          以下链接仅
+          {RoleProfiles.UserManager.displayName}
+          可见：
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
           onChange={ev => updateProfile('照片链接', ev.target.value)}

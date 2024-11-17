@@ -8,14 +8,17 @@ import {
   Tbody,
   Text,
   Tag,
+  Link,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { toPinyin } from 'shared/strings';
+import { formatUserName, toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import User, { InterviewerPreference } from 'shared/User';
 import { UserProfile } from 'shared/UserProfile';
+import NextLink from 'next/link';
+import { ChevronRightIcon } from '@chakra-ui/icons';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -72,7 +75,11 @@ function Row({ user, interviews, preference, profile }: {
   const limit = preference.limit;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
-    <Td>{user.name}</Td>
+    <Td>
+      <Link as={NextLink} href={`/mentors/${user.id}`}>
+        <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
+      </Link>
+    </Td>
     <Td>
       {role && <Tag colorScheme={roleColorScheme}>
         {RoleProfiles[role].displayName}
