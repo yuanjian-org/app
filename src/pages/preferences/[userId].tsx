@@ -110,6 +110,8 @@ export default function Page() {
   </VStack>;
 }
 
+Page.title = "偏好设置";
+
 function InterviewerPreferences({ data, updateData, isMentor } : {
   data?: InterviewerPreference,
   updateData: (data: InterviewerPreference) => void,
@@ -205,8 +207,11 @@ function MentorPreferences({ data, updateData } : {
       <FormHelperTextWithMargin>
         比如希望匹配农村学生等，或具体学生的姓名。
       </FormHelperTextWithMargin>
-      <Input bg="white" value={data?.学生偏好 || ""} 
+      <Input
+        bg="white"
+        value={data?.学生偏好 || ""} 
         onChange={ev => updateData('学生偏好', ev.target.value)}
+        placeholder='无'
       />
     </FormControl>
 

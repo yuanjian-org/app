@@ -11,7 +11,7 @@ import {
   Tag,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { toPinyin } from 'shared/strings';
+import { formatUserName, toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
@@ -68,29 +68,21 @@ function SumsRow({ stats } : {
   const totalMentorships = stats.reduce((acc, cur) => acc + cur.mentorships, 0);
   return <Tr>
     {/* 导师 */}
-    <Td>
-      <SumCell n={stats.length} />
-    </Td>
+    <SumCell n={stats.length} />
     <Td></Td>
     {/* 学生容量 */}
-    <Td>
-      <SumCell n={totalCap} />
-    </Td>
+    <SumCell n={totalCap} />
     {/* 学生数量 */}
-    <Td>
-      <SumCell n={totalMentorships} />
-    </Td>
+    <SumCell n={totalMentorships} />
     {/* 剩余容量 */}
-    <Td>
-      <SumCell n={totalCap - totalMentorships} />
-    </Td>    
+    <SumCell n={totalCap - totalMentorships} />
   </Tr>;
 }
 
 function SumCell({ n }: { n: number }) {
-  return <Text fontSize="sm" color="grey" marginTop={componentSpacing}>
+  return <Td><Text fontSize="sm" color="grey" marginTop={componentSpacing}>
     <b>共 {n}</b>
-  </Text>;
+  </Text></Td>;
 }
 
 function cap(pref: MentorPreference): number {
@@ -112,8 +104,8 @@ function Row({ user, profile, preference, mentorships }: {
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>
-      <Link as={NextLink} href={`/profiles/${user.id}`}>
-        <b>{user.name}</b> <ChevronRightIcon />
+      <Link as={NextLink} href={`/mentors/${user.id}`}>
+        <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
       </Link>
     </Td>
     <Td>

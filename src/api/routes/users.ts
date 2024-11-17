@@ -167,8 +167,7 @@ const setUserPreference = procedure
   }))
   .mutation(async ({ ctx: { user }, input: { userId, preference } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles,
-    ["UserManager", "MentorshipManager"])) {
+  if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
@@ -238,8 +237,7 @@ const getUserPreference = procedure
   .output(zUserPreference)
   .query(async ({ ctx: { user: me }, input: { userId } }) => 
 {
-  if (me.id !== userId && !isPermitted(me.roles,
-    ["UserManager", "MentorshipManager"])) {
+  if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
@@ -259,7 +257,7 @@ const getUserProfile = procedure
   .output(zUserProfile)
   .query(async ({ ctx: { user }, input: { userId } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+  if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
@@ -279,7 +277,7 @@ const setUserProfile = procedure
   }))
   .mutation(async ({ ctx: { user }, input: { userId, profile } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles, "MentorshipManager")) {
+  if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
     throw noPermissionError("用户", userId);
   }
 
