@@ -72,19 +72,13 @@ class User extends Model {
   @Column(STRING)
   wechat: string | null;
 
-  // Deprecated TODO: Remove after migration code is removed
-  @Column(STRING)
-  sex: string | null;
-  @Column(STRING)
-  city: string | null;
-
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;
 
   // TODO: rename to volunteer application
   // TODO: Should we change all `nullable()` in models to `nullish`?
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
-  mentorApplication: Record<string, any> | null;
+  volunteerApplication: Record<string, any> | null;
 
   @ZodColumn(JSONB, zUserProfile.nullable())
   profile: UserProfile | null;

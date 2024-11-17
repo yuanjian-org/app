@@ -72,12 +72,6 @@ const list = procedure
         },
       },
 
-      ...filter.hasMentorApplication === undefined ? {} : {
-        mentorApplication: {
-          ...filter.hasMentorApplication ? { [Op.ne]: null } : { [Op.eq]: null }
-        },
-      },
-
       ...filter.matchesNameOrEmail === undefined ? {} : {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
@@ -399,14 +393,14 @@ const getApplicant = procedure
   const user = await db.User.findByPk(userId, {
     attributes: [
       ...userAttributes, 
-      isMentee ? "menteeApplication" : "mentorApplication",
+      isMentee ? "menteeApplication" : "volunteerApplication",
       "profile"
     ],
     include: userInclude,
   });
   if (!user) throw notFoundError("用户", userId);
 
-  const application = isMentee ? user.menteeApplication : user.mentorApplication;
+  const application = isMentee ? user.menteeApplication : user.volunteerApplication;
   const sex = user.profile?.性别 ?? null;
 
   const ret = {
@@ -468,7 +462,8 @@ const setApplication = procedure
   .mutation(async ({ input }) =>
 {
   const [cnt] = await db.User.update({
-    [input.type == "MenteeInterview" ? "menteeApplication" : "mentorApplication"]: input.application,
+    [input.type == "MenteeInterview" ?
+      "menteeApplication" : "volunteerApplication"]: input.application,
   }, { where: { id: input.userId } });
   if (!cnt) throw notFoundError("用户", input.userId);
 });

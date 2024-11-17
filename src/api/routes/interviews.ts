@@ -146,9 +146,9 @@ const listPendingCandidates = procedure
     where: {
       ...type == "MenteeInterview" ?
         { menteeApplication: { [Op.ne]: null } } :
-        { mentorApplication: { [Op.ne]: null } },
+        { volunteerApplication: { [Op.ne]: null } },
     },
-    attributes: [...userAttributes, "mentorApplication"],
+    attributes: [...userAttributes, "volunteerApplication"],
     include: [...userInclude, {
       association: "interviews",
       attributes: ["type", "createdAt"],
@@ -165,13 +165,13 @@ const listPendingCandidates = procedure
 
 function isCandidatePending(
   type: InterviewType,
-  candidate: User & { mentorApplication: Record<string, any> | null },
+  candidate: User & { volunteerApplication: Record<string, any> | null },
   createdAt: Date[]
 ) {
   if (type == "MenteeInterview") {
     // A interview decision as made
     return candidate.menteeStatus === null;
-  } else if (candidate.mentorApplication?.[volunteerApplyingforMentorField]
+  } else if (candidate.volunteerApplication?.[volunteerApplyingforMentorField]
     !== volunteerApplyingforMentorFieldYes) {
     // The user didn't apply as a mentor
     return false;
