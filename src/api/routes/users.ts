@@ -7,8 +7,6 @@ import { authUser } from "../auth";
 import User, { zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
-import { email } from "../sendgrid";
-import { formatUserName } from '../../shared/strings';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zInterviewType } from "../../shared/InterviewType";
 import { 
@@ -138,11 +136,6 @@ const update = procedure
   const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
   checkPermissionForManagingRoles(ctx.user.roles,
     [...rolesToAdd, ...rolesToRemove]);
-
-  if (!isSelf) {
-    await emailUserAboutNewManualRoles(ctx.user.name ?? "", user, input.roles,
-      ctx.baseUrl);
-  }
 
   invariant(input.name);
   await user.update({
@@ -603,26 +596,4 @@ export async function isPermittedForMentee(me: User, menteeId: string) {
   if (await db.Mentorship.count(
     { where: { mentorId: me.id, menteeId } }) > 0) return true;
   return false;
-}
-
-async function emailUserAboutNewManualRoles(userManagerName: string, user: User,
-  roles: Role[], baseUrl: string) 
-{
-  const added = roles.filter(r => !user.roles.includes(r)).filter(
-    r => !RoleProfiles[r].automatic);
-  for (const r of added) {
-    const rp = RoleProfiles[r];
-    await email('d-7b16e981f1df4e53802a88e59b4d8049', [{
-      to: [{ 
-        name: formatUserName(user.name, 'formal'), 
-        email: user.email 
-      }],
-      dynamicTemplateData: {
-        'roleDisplayName': rp.displayName,
-        'roleActions': rp.actions,
-        'name': formatUserName(user.name, 'friendly'),
-        'manager': userManagerName,
-      }
-    }], baseUrl);
-  }
 }
