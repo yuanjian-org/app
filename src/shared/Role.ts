@@ -11,13 +11,17 @@ export const AllRoles = [
   'Interviewer',
   'MentorCoach',
 
+  // Banned users can't sign in. Mostly to prevent users from repeatedly using
+  // different email addresses than their main sign-in address.
+  'Banned',
+
   // Deprecated
-  'MenteeManager',
+  // 'MenteeManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
-  // You may ask, why not simply use displayName as the role key?
-  // Well, we're just too lazy to type Chinese characters everywhere.
+  // Why not simply use displayName as the role key? We're too lazy to type
+  // Chinese characters everywhere.
   displayName: string,
 
   actions: string,
@@ -25,13 +29,13 @@ export const RoleProfiles: { [key: string]: {
   // If the role can be automatically added to or removed from users.
   automatic?: boolean,
 
-  // If the role can access user data without explicit relations with the user (e.g. mentor-mentee relation)
-  privilegedUserDataAccess: boolean,
+  // If the role can access user data without explicit relations with the user
+  // (e.g. mentor-mentee relation)
+  privilegedUserDataAccess?: boolean,
 }} = {
   SystemAlertSubscriber: {
     displayName: '系统报警监听员',
     actions: '接受并处理系统异常事件的报警',
-    privilegedUserDataAccess: false,
   },
   UserManager: {
     displayName: '用户管理员',
@@ -56,19 +60,16 @@ export const RoleProfiles: { [key: string]: {
   Mentor: {
     displayName: '导师',
     actions: '帮助年轻学子成长',
-    privilegedUserDataAccess: false,
     automatic: true,
   },
   Mentee: {
     displayName: '学生',
     actions: '接受导师辅助',
-    privilegedUserDataAccess: false,
     automatic: true,
   },
   Interviewer: {
     displayName: '面试官',
     actions: '面试导师或学生候选人',
-    privilegedUserDataAccess: false,
     automatic: true,
   },
   MentorCoach: {
@@ -78,12 +79,16 @@ export const RoleProfiles: { [key: string]: {
     automatic: true,
   },
 
-  // Deprecated
-  MenteeManager: {
-    displayName: 'Deprecated',
-    actions: '管理学生',
-    privilegedUserDataAccess: false,
+  Banned: {
+    displayName: '停用账户',
+    actions: '停用账户无法登录系统。主要为防止用户使用非主登录邮箱。',
   },
+
+  // // Deprecated
+  // MenteeManager: {
+  //   displayName: 'Deprecated',
+  //   actions: '管理学生',
+  // },
 };
 
 type Role = typeof AllRoles[number];

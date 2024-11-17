@@ -39,8 +39,8 @@ import z from "zod";
 import NextLink from 'next/link';
 
 export default function Page() {
-  const [filter ] = useState<UserFilter>({});
-  const { data: users, refetch } = trpcNext.users.list.useQuery<User[] | null>(filter);
+  const [filter] = useState<UserFilter>({ includeBanned: true });
+  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
 
@@ -126,7 +126,13 @@ function UserTable({ users, setUserBeingEdited }: {
               {u.roles.map((r: Role) => {
                 const rp = RoleProfiles[r];
                 return <WrapItem key={r}>
-                  <Tag bgColor={rp.automatic ? "brand.c" : "orange"} color="white">
+                  <Tag
+                    color="white"
+                    bgColor={
+                      r == 'Banned' ? "grey" :
+                      rp.privilegedUserDataAccess ? "orange" : "brand.c"
+                    } 
+                  >
                     {rp.displayName}
                   </Tag>
                 </WrapItem>;
@@ -220,7 +226,7 @@ function UserEditor(props: {
                     isChecked={isPermitted(roles, r)}
                     onChange={setRole}
                   >
-                    {rp.automatic ? "*" : ""} {rp.displayName}（{r}）
+                    {rp.automatic ? "*" : ""} {rp.displayName}
                   </Checkbox>
                 );
               })}
@@ -229,7 +235,7 @@ function UserEditor(props: {
 
           <FormControl>
             <small>
-              * 是系统自动管理的角色。一般情况下请勿手工修改，以免引起使用问题。
+              * 是系统自动添加的角色。一般情况下请勿手工移除。
             </small>
           </FormControl>
         </VStack>

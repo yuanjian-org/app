@@ -6,6 +6,8 @@ import z from "zod";
 import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
+import trpc from 'trpc';
+import { RoleProfiles } from 'shared/Role';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -46,11 +48,22 @@ export default function Page() {
     const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
-      const res = await signIn('sendgrid', { email, callbackUrl, redirect: false });
+      if (await trpc.users.isBanned.query({ email })) {
+        toast.error("此邮箱已被停用，请使用其他邮箱登录。有问题请联系" +
+          `${RoleProfiles.UserManager.displayName}。`);
+        return;
+      }
+
+      const res = await signIn('sendgrid', {
+        email,
+        callbackUrl,
+        redirect: false
+      });
+
       if (!res || res.error) {
         const err = res?.error ?? "Null response from `signIn()`.";
         console.error(err);
-        toast.error(`糟糕，遇到错误：${err}`);
+        toast.error(`糟糕：${err}`);
       } else {
         localStorage.setItem(localStorageKeyForLoginCallbackUrl, callbackUrl);
         localStorage.setItem(localStorageKeyForLoginEmail, email);

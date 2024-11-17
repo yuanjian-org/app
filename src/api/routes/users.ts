@@ -50,12 +50,18 @@ const list = procedure
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
 {
+  // Declare a variable to force type checking.
+  const banned: Role = "Banned";
   return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
     attributes: userAttributes,
     include: userInclude,
 
     where: {
+      ...filter.includeBanned === true ? {} : {
+        [Op.not]: { roles: { [Op.contains]: [banned] } }
+      },
+
       ...filter.containsRoles === undefined ? {} : {
         [Op.and]: filter.containsRoles.map(r => ({
           roles: { [Op.contains]: [r] }
@@ -183,6 +189,24 @@ const setMenteeStatus = procedure
     where: { id: userId }
   });
   if (cnt == 0) throw notFoundError("用户", userId);
+});
+
+const isBanned = procedure
+  .input(z.object({
+    email: z.string()
+  })).output(z.boolean())
+  .query(async ({ input: { email } }) =>
+{
+  // Declare a variable to force type checking
+  const banned: Role = "Banned";
+  const count = await db.User.count({
+    where: {
+      email,
+      roles: { [Op.contains]: [banned] },
+    }
+  });
+  invariant(count <= 1);
+  return count != 0;
 });
 
 const get = procedure
@@ -469,8 +493,8 @@ const setApplication = procedure
 });
 
 /**
- * List all users and their roles who have privileged user data access. See RoleProfile.privilegeUserDataAccess for an
- * explanation.
+ * List all users and their roles who have privileged user data access.
+ * See RoleProfile.privilegeUserDataAccess for an explanation.
  */
 const listPriviledgedUserDataAccess = procedure
   .use(authUser())
@@ -483,7 +507,9 @@ const listPriviledgedUserDataAccess = procedure
   return await db.User.findAll({ 
     // TODO: Optimize with postgres `?|` operator
     where: {
-      [Op.or]: AllRoles.filter(r => RoleProfiles[r].privilegedUserDataAccess).map(r => ({
+      [Op.or]: AllRoles.filter(
+        r => RoleProfiles[r].privilegedUserDataAccess
+      ).map(r => ({
         roles: { [Op.contains]: [r] }
       })),
     },
@@ -522,6 +548,7 @@ const destroy = procedure
 });
 
 export default router({
+  isBanned,
   create,
   get,
   getFull,
@@ -546,6 +573,7 @@ export default router({
   getUserPreference,
 
   setPointOfContactAndNote,
+  
 });
 
 function checkUserFields(name: string | null, email: string) {
