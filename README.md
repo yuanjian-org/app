@@ -1,21 +1,24 @@
-# 远图教育平台
+# 社会导师服务平台
 
-远图 is a web app that supports mentorship programs at [Visionary Education Foundation (远见教育基金会)](http://yuanjian.org),
-developed by VEF volunteers.
+This is a web app that supports mentorship programs at [Visionary Education
+Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunteers.
 
 ## Getting Started
 
 1. Install `node.js` and `yarn`.
 1. Install `postgresql`, start it locally, and create a database called `yuanjian`. Aternatively, use a hosted Postgres solution such as [Neon](http://neon.tech).
-1. Create file `.env` in the repository root, and:
-   - If you are an active Yuanjian volunteer, copy content from [this Notion page](https://www.notion.so/yuanjian/env-local-fde6a9fbc7854a5da2a08425b6562724).
-   - Otherwise, copy content from [`.env.template`](.env.template) and configure required fields.
+1. Create file `.env` in the repository root with the following content:
+   ```
+   DATABASE_URI=postgres://localhost/yuanjian
+   ```
+   Optinoally, see [`.env.template`](.env.template) for more environment
+   variables you can set in `.env`.
 1. Run `yarn` to install dependency packages.
    - If you run into error `"$VERCEL_ENV" was unexpected`, see this [`doc`](./docs/package.json.md).
 1. Run `yarn migrate-database` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
 1. Visit the local server from broswer. Sign up with your personal email address.
-   - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the token as the code.
+   - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the six-digit token.
 1. Run `yarn gen-test-data` to finish setup and populate test data.
 1. If you use MacOS, run `chmod ug+x .husky/*` to activate husky/git hooks.
 
