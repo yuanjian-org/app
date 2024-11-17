@@ -9,6 +9,7 @@ import {
   Td,
   Thead,
   Tbody,
+  TableContainer,
 } from '@chakra-ui/react';
 import { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
@@ -40,7 +41,7 @@ export default function Page() {
 const dp = (r: Role) => <>{RoleProfiles[r].displayName}</>;
 
 function DataTable() {
-  return (
+  return <TableContainer>
     <Table>
       <Thead>
         <Tr><Th>数据</Th><Th>可以访问该数据的角色</Th></Tr>
@@ -71,11 +72,11 @@ function DataTable() {
         </Tr>
       </Tbody>
     </Table>
-  );
+  </TableContainer>;
 }
 
 function Privileged(props: any) {
-  return (
+  return <TableContainer>
     <Table>
       <Thead>
         <Tr><Th>角色</Th><Th>职责</Th><Th>人员名单</Th></Tr>
@@ -92,5 +93,5 @@ function Privileged(props: any) {
         </Tr>)
       }</Tbody>
     </Table>
-  );
+  </TableContainer>;
 }
