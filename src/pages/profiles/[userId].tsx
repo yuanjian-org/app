@@ -115,6 +115,8 @@ export default function Page() {
     <Picture
       userId={userId}
       profile={profile}
+      updateProfile={updateProfile}
+      SaveButton={SaveButton}
     />
 
     <Divider my={componentSpacing} />
@@ -195,10 +197,13 @@ function Basic({ user, profile, setUser, setProfile }: {
   </>;
 }
 
-function Picture({ userId, profile }: {
+function Picture({ userId, profile, updateProfile, SaveButton }: {
   userId: string,
   profile: UserProfile,
+  updateProfile: (k: keyof UserProfile, v: string) => void,
+  SaveButton: React.ComponentType,
 }) {
+  const [me] = useUserContext();
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -234,17 +239,17 @@ function Picture({ userId, profile }: {
         建议选择面部清晰、不戴墨镜的近照
       </FormHelperTextWithMargin>
 
-      {/* {isPermitted(me.roles, 'UserManager') && <>
+      {isPermitted(me.roles, 'UserManager') && <>
         <FormHelperTextWithMargin>
-          以下链接仅
+          <Text color="red.700">以下链接仅
           {RoleProfiles.UserManager.displayName}
-          可见：
+          可见，用于在个别情况下直接引用其他网站的图像：</Text>
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
           onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
         <SaveButton />
-      </>} */}
+      </>}
     </FormControl>
   </>;
 }

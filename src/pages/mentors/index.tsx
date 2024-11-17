@@ -5,6 +5,7 @@ import {
   Button,
   Image,
   VStack,
+  Box,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, truncate } from 'shared/strings';
@@ -66,12 +67,28 @@ function MentorCard({ user, profile: p }: {
     onClick={() => router.push(`/mentors/${user.id}`)}
   >
 
-    {p?.照片链接 && <Image
-      objectFit='cover'
-      maxW='100%'
-      src={p.照片链接}
-      alt="照片"
-    />}
+    {p?.照片链接 && 
+      // Ensure the image fits the card's width and is cropped into a square.
+      <Box
+        position="relative"
+        width="100%"
+        // This hack enforces a square aspect ratio for the container. The
+        // percentage is based on the width, so paddingBottom="100%" ensures the
+        // height equals the width.
+        paddingBottom="100%"
+      >
+        <Image
+          position="absolute"
+          top="0"
+          left="0"
+          width="100%"
+          height="100%"
+          objectFit='cover'
+          src={p.照片链接}
+          alt="照片"
+        />
+      </Box>
+    }
 
     <CardHeader>
       <Heading size='md' color="gray.600">
