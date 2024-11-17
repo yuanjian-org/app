@@ -115,8 +115,6 @@ export default function Page() {
     <Picture
       userId={userId}
       profile={profile}
-      updateProfile={updateProfile}
-      SaveButton={SaveButton}
     />
 
     <Divider my={componentSpacing} />
@@ -197,13 +195,10 @@ function Basic({ user, profile, setUser, setProfile }: {
   </>;
 }
 
-function Picture({ userId, profile, updateProfile, SaveButton }: {
+function Picture({ userId, profile }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
-  SaveButton: React.ComponentType,
 }) {
-  const [me] = useUserContext();
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -218,12 +213,12 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      {profile.照片链接 && <Link href={profile.照片链接} target='_blank'><Image
+      {profile.照片链接 && <Image
         src={profile.照片链接}
         alt="照片"
         maxW='300px'
         my={componentSpacing}
-      /></Link>}
+      />}
 
       {uploadToken && <>
         <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
@@ -239,7 +234,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
         建议选择面部清晰、不戴墨镜的近照
       </FormHelperTextWithMargin>
 
-      {isPermitted(me.roles, 'UserManager') && <>
+      {/* {isPermitted(me.roles, 'UserManager') && <>
         <FormHelperTextWithMargin>
           以下链接仅
           {RoleProfiles.UserManager.displayName}
@@ -249,7 +244,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
         <SaveButton />
-      </>}
+      </>} */}
     </FormControl>
   </>;
 }
