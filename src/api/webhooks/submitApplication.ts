@@ -8,6 +8,7 @@ import {
   volunteerApplicationFields,
   volutneerNationalityField,
   volunteerApplyingforMentorField,
+  volunteerApplyingforMentorFieldYes,
 } from "../../shared/applicationFields";
 import { UserProfile } from "shared/UserProfile";
 import sequelize from "../database/sequelize";
@@ -75,7 +76,8 @@ export const submitVolunteerApplication = procedure
 
   // This is a dropdown field asking if to apply as mentor.
   if (entry.field_25.length >= 1) {
-    application[volunteerApplyingforMentorField] = "是";
+    application[volunteerApplyingforMentorField] =
+      volunteerApplyingforMentorFieldYes;
   }
 
   // For Chinese citizens, the field contains national ID number which we should

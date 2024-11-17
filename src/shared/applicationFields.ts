@@ -70,6 +70,7 @@ export const menteeApplicationFields: ApplicationField[] = [
 ];
 
 export const volunteerApplyingforMentorField = "申请导师";
+export const volunteerApplyingforMentorFieldYes = "是";
 export const volutneerNationalityField = "国籍";
 
 /**

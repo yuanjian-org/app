@@ -78,11 +78,12 @@ class User extends Model {
   @Column(STRING)
   city: string | null;
 
-  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;
 
   // TODO: rename to volunteer application
-  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullable())
+  // TODO: Should we change all `nullable()` in models to `nullish`?
+  @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   mentorApplication: Record<string, any> | null;
 
   @ZodColumn(JSONB, zUserProfile.nullable())

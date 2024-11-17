@@ -30,6 +30,10 @@ import { isPermittedForMentee } from "./users";
 import User, { zInterviewerPreference, zUser } from "../../shared/User";
 import { zUserProfile } from "../../shared/UserProfile";
 import { Op } from "sequelize";
+import {
+  volunteerApplyingforMentorField,
+  volunteerApplyingforMentorFieldYes
+} from "../../shared/applicationFields";
 
 /**
  * Only MentorshipManager, interviewers of the interview, users allowed by 
@@ -144,7 +148,7 @@ const listPendingCandidates = procedure
         { menteeApplication: { [Op.ne]: null } } :
         { mentorApplication: { [Op.ne]: null } },
     },
-    attributes: userAttributes,
+    attributes: [...userAttributes, "mentorApplication"],
     include: [...userInclude, {
       association: "interviews",
       attributes: ["type", "createdAt"],
@@ -159,14 +163,20 @@ const listPendingCandidates = procedure
   });
 });
 
-function isCandidatePending(type: InterviewType, interviewee: User,
+function isCandidatePending(
+  type: InterviewType,
+  candidate: User & { mentorApplication: Record<string, any> | null },
   createdAt: Date[]
 ) {
   if (type == "MenteeInterview") {
     // A interview decision as made
-    return interviewee.menteeStatus === null;
-  } else if (isPermitted(interviewee.roles, "Mentor")) {
-    // A user has been accepted as a mentor
+    return candidate.menteeStatus === null;
+  } else if (candidate.mentorApplication?.[volunteerApplyingforMentorField]
+    !== volunteerApplyingforMentorFieldYes) {
+    // The user didn't apply as a mentor
+    return false;
+  } else if (isPermitted(candidate.roles, "Mentor")) {
+    // The user has been accepted as a mentor
     return false;
   } else if (createdAt.length == 0) {
     // The mentor candidate is pending if there isn't any interview
