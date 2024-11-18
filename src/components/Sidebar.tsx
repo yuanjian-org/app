@@ -258,7 +258,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
                         onClose={onClose} />)}
 
         <DropdownMenuIfPermitted
-          title="导师列表"
+          title="导师档案"
           icon={<Icon as={MdSupervisorAccount} marginRight="2" />}
           menuItems={mentorsDropdownMenuItems}
           onClose={onClose}

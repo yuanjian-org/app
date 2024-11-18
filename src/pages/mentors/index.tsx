@@ -113,13 +113,12 @@ function MentorCardForDesktop({ user, profile: p, matchable }: {
     </CardHeader>
     <CardBody pt={1}>
       <VStack align="start">
+        {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {matchable ? <>
-          {p?.身份头衔 && <Text>{p.身份头衔}</Text>}
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
           {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
           {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, 80)}</Text>}
         </> : <>
-          {p?.身份头衔 && <Text>{p.身份头衔}</Text>}
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
           {p?.职业经历 && <Text>{truncate(p.职业经历, 80)}</Text>}
         </>}
