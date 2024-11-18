@@ -294,7 +294,7 @@ function PositionFormControl({ profile, updateProfile, highlight }: {
   return <FormControl>
     <FormLabel>雇主与职位 {highlight && <Highlight />}</FormLabel>
     <FormHelperTextWithMargin>
-      注明专业领域，比如甲公司人事处处长、餐饮业创业者等
+      比如甲公司人事处处长、餐饮业创业者等
     </FormHelperTextWithMargin>
     <Input bg="white" value={profile.身份头衔 || ""} 
       onChange={ev => updateProfile('身份头衔', ev.target.value)}
@@ -361,6 +361,16 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
     <PositionFormControl profile={profile} updateProfile={updateProfile}
       highlight />
 
+    <FormControl>
+      <FormLabel>专业领域 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        比如金融、电子工程、教育学专业等
+      </FormHelperTextWithMargin>
+      <Input bg="white" value={profile.专业领域 || ""} 
+        onChange={ev => updateProfile('专业领域', ev.target.value)}
+      />
+    </FormControl>
+
     <CityFormControl profile={profile} updateProfile={updateProfile}
       highlight />
 
@@ -371,6 +381,13 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
       </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
         onChange={ev => updateProfile('擅长话题', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>擅长辅导领域</FormLabel>
+      <Input bg="white" value={profile.擅长辅导领域 || ""} 
+        onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
     </FormControl>
 
