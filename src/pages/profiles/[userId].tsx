@@ -375,12 +375,9 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
       highlight />
 
     <FormControl>
-      <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
-      <FormHelperTextWithMargin>
-        擅长或喜欢“八卦”的事情，比如时事新闻、中国历史、哲学思辨、网游桌游……
-      </FormHelperTextWithMargin>
-      <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
-        onChange={ev => updateProfile('擅长话题', ev.target.value)}
+      <FormLabel>成长过程中曾经居住的城市或地区</FormLabel>
+      <Input bg="white" value={profile.曾居住地 || ""} 
+        onChange={ev => updateProfile('曾居住地', ev.target.value)}
       />
     </FormControl>
 
@@ -388,6 +385,16 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
       <FormLabel>擅长辅导领域</FormLabel>
       <Input bg="white" value={profile.擅长辅导领域 || ""} 
         onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
+      />
+    </FormControl>
+
+    <FormControl>
+      <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
+      <FormHelperTextWithMargin>
+        擅长或喜欢“八卦”的事情，比如时事新闻、中国历史、哲学思辨、网游桌游……
+      </FormHelperTextWithMargin>
+      <Textarea bg="white" height={140} value={profile.擅长话题 || ""} 
+        onChange={ev => updateProfile('擅长话题', ev.target.value)}
       />
     </FormControl>
 
@@ -401,14 +408,7 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
     </FormControl>
 
     <FormControl>
-      <FormLabel>成长过程中曾经居住的城市或地区</FormLabel>
-      <Textarea bg="white" height={140} value={profile.曾居住地 || ""} 
-        onChange={ev => updateProfile('曾居住地', ev.target.value)}
-      />
-    </FormControl>
-
-    <FormControl>
-      <FormLabel>职业经历</FormLabel>
+      <FormLabel>职业经历 <Highlight /></FormLabel>
       <FormHelperTextWithMargin>
         <ListAndMarkdownSupport />，比如：<br /><br />
         * 经历1<br />
