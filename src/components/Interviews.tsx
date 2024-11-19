@@ -127,7 +127,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     {app && app.user &&
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
-    <SourceCell application={app?.application} />
+    <Td><SourceCell application={app?.application} /></Td>
     <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
 
     <TdLink href={url}><Wrap spacing="2">

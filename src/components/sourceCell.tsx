@@ -1,8 +1,8 @@
-import { Th, Td } from '@chakra-ui/react';
+import { Th, Tooltip, Text, } from '@chakra-ui/react';
 import { menteeSourceField } from 'shared/applicationFields';
 
 export function SourceHeaderCell() {
-  return <Th>来源</Th>;
+  return <Th>来源（悬停光标看全文）</Th>;
 }
 
 export function SourceCell({ application } : {
@@ -11,5 +11,7 @@ export function SourceCell({ application } : {
   const source = (application as Record<string, any> | null)
     ?.[menteeSourceField];
 
-  return <Td>{source}</Td>;
+  return <Tooltip label={source}>
+    <Text isTruncated maxWidth="130px">{source}</Text>
+  </Tooltip>;
 }

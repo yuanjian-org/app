@@ -20,7 +20,6 @@ import {
   WrapItem,
   Wrap,
   Select,
-  Tooltip,
   TableCellProps,
   TabList,
   Tab,
@@ -59,6 +58,7 @@ import {
   CalibrationManagerCells, 
   CalibrationManagerHeaderCells 
 } from 'components/CalibrationManagerCells';
+import { SourceCell, SourceHeaderCell } from 'components/sourceCell';
 
 export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
@@ -136,7 +136,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
         <Tr>
           <PointOfContactHeaderCells />
           <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
-          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请表</Th>
+          <SourceHeaderCell /><Th>面试讨论组</Th><Th>申请表</Th>
           <Th>面试页</Th>
         </Tr>
       </Thead>
@@ -232,9 +232,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
 
       {/* 生源 */}
       <TdEditLink>
-        {source && <Tooltip label={source}>
-          <Text isTruncated maxWidth="130px">{source}</Text>
-        </Tooltip>}
+        {source && <SourceCell application={data?.application} />}
       </TdEditLink>
 
       {/* 面试讨论组 */}
