@@ -13,7 +13,7 @@ import { createInterview } from "../src/api/routes/interviews";
 import Calibration from "../src/api/database/models/Calibration";
 import {
   volunteerApplyingforMentorField, volunteerApplyingforMentorFieldYes
-} from "shared/applicationFields";
+} from "../src/shared/applicationFields";
 
 type TestUser = {
   name: string | null,
