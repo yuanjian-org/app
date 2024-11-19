@@ -37,6 +37,7 @@ import {
   PointOfContactHeaderCells, 
   PointOfContactCells 
 } from './pointOfContactCells';
+import { SourceHeaderCell, SourceCell } from './sourceCell';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -59,6 +60,7 @@ export default function Interviews({ interviews, forCalibration }: {
       <Thead><Tr>
         {showStatus && <Th>状态</Th>}
         <PointOfContactHeaderCells />
+        <SourceHeaderCell />
         <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
@@ -125,7 +127,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     {app && app.user &&
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
-
+    <SourceCell application={app?.application}/>
     <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
 
     <TdLink href={url}><Wrap spacing="2">
