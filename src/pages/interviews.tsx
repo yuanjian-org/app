@@ -58,7 +58,10 @@ import {
   CalibrationManagerCells, 
   CalibrationManagerHeaderCells 
 } from 'components/CalibrationManagerCells';
-import { SourceCell, SourceHeaderCell } from 'components/sourceCell';
+import { 
+  MenteeSourceCell, 
+  MenteeSourceHeaderCell 
+} from 'components/MenteeSourceCell';
 
 export default widePage(() => {
   const type: InterviewType = useRouter().query.type === "mentee" ?
@@ -136,7 +139,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
         <Tr>
           <PointOfContactHeaderCells />
           <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
-          <SourceHeaderCell /><Th>面试讨论组</Th><Th>申请表</Th>
+          <MenteeSourceHeaderCell /><Th>面试讨论组</Th><Th>申请表</Th>
           <Th>面试页</Th>
         </Tr>
       </Thead>
@@ -231,9 +234,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
       </Wrap></TdEditLink>
 
       {/* 生源 */}
-      <TdEditLink>
-        {source && <SourceCell application={data?.application} />}
-      </TdEditLink>
+      {source && <MenteeSourceCell application={data?.application} />}
 
       {/* 面试讨论组 */}
       <TdEditLink>
