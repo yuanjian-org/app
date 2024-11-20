@@ -234,7 +234,7 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
       </Wrap></TdEditLink>
 
       {/* 生源 */}
-      {source && <MenteeSourceCell application={data?.application} />}
+      <MenteeSourceCell application={data?.application} />
 
       {/* 面试讨论组 */}
       <TdEditLink>

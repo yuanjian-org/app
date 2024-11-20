@@ -12,8 +12,8 @@ export function MenteeSourceCell({ application } : {
     ?.[menteeSourceField];
 
   return <Td>
-    <Tooltip label={source}>
+    {source && <Tooltip label={source}>
       <Text isTruncated maxWidth="130px">{source}</Text>
-    </Tooltip>
+    </Tooltip>}
   </Td>;
 }
