@@ -40,6 +40,7 @@ import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
+import { CropImageModal } from 'components/CropImageModal';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -204,6 +205,9 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
+  const [isModalOpen, setModalOpen] = useState(false);
+  const toggleModal = () => setModalOpen(!isModalOpen);
+  const [imageUrl, setImageUrl] = useState(profile.照片链接); 
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -233,6 +237,12 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
             <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
           }
         </Link>
+        {profile.照片链接 && 
+          <HStack onClick={toggleModal}>
+            <MdChangeCircle /><Text>修改图像</Text>
+          </HStack>
+        }
+        {isModalOpen && <CropImageModal onClose={toggleModal} imageUrl={imageUrl} />}
       </>}
 
       <FormHelperTextWithMargin>
@@ -246,7 +256,10 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           可见，用于在个别情况下直接引用其他网站的图像：</Text>
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
-          onChange={ev => updateProfile('照片链接', ev.target.value)}
+          onChange={ev => 
+            {updateProfile('照片链接', ev.target.value); 
+            setImageUrl(ev.target.value);
+          }}
         />
         <SaveButton />
       </>}
