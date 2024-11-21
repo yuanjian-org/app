@@ -30,7 +30,7 @@ const create = procedure
   .mutation(async ({ ctx, input }) => 
 {
   checkUserFields(input.name, input.email);
-  checkPermissionForManagingRoles(ctx.user.roles, input.roles);
+  checkPermissionToManageRoles(ctx.user.roles, input.roles);
   await db.User.create({
     name: input.name,
     pinyin: toPinyin(input.name),
@@ -134,7 +134,7 @@ const update = procedure
 
   const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
   const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
-  checkPermissionForManagingRoles(ctx.user.roles,
+  checkPermissionToManageRoles(ctx.user.roles,
     [...rolesToAdd, ...rolesToRemove]);
 
   invariant(input.name);
@@ -209,7 +209,7 @@ const get = procedure
   .query(async ({ ctx: { user: me }, input: userId }) =>
 {
   if (me.id !== userId && !isPermitted(me.roles, "UserManager") &&
-    !await isPermittedForMentee(me, userId)) {
+    !await isPermittedtoAccessMentee(me, userId)) {
     throw noPermissionError("用户", userId);
   }
 
@@ -433,7 +433,7 @@ const getApplicant = procedure
   user.wechat = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
-  if (isMentee && await isPermittedForMentee(ctx.user, userId)) return ret;
+  if (isMentee && await isPermittedtoAccessMentee(ctx.user, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -579,19 +579,19 @@ function checkUserFields(name: string | null, email: string) {
   }
 }
 
-function checkPermissionForManagingRoles(userRoles: Role[], subjectRoles: Role[]) {
-  if (subjectRoles.length && !isPermitted(userRoles, "UserManager")) {
+function checkPermissionToManageRoles(myRoles: Role[], subjectRoles: Role[]) {
+  if (subjectRoles.length && !isPermitted(myRoles, "UserManager")) {
     throw noPermissionError("用户");
   }
 }
 
-export async function checkPermissionForMentee(me: User, menteeId: string) {
-  if (!await isPermittedForMentee(me, menteeId)) {
+export async function checkPermissionToAccessMentee(me: User, menteeId: string) {
+  if (!await isPermittedtoAccessMentee(me, menteeId)) {
     throw noPermissionError("学生", menteeId);
   }
 }
 
-export async function isPermittedForMentee(me: User, menteeId: string) {
+export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
   if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
   if (await db.Mentorship.count(
     { where: { mentorId: me.id, menteeId } }) > 0) return true;
