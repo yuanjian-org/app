@@ -22,8 +22,9 @@ import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 
-export default widePage(() => <MentorPage matchable={false} title="不定期导师" />,
-  "不定期导师");
+export default widePage(() =>
+  <MentorPage matchable={false} title="预约不定期导师" />,
+  "预约不定期导师");
 
 /**
  * There are two types of mentors:

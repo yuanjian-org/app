@@ -74,19 +74,6 @@ interface DropdownMenuItem {
   icon?: React.ReactNode,
 }
 
-const mentorsDropdownMenuItems: DropdownMenuItem[] = [
-  {
-    name: '不定期导师',
-    action: '/mentors',
-    roles: ['MentorshipManager'],
-  },
-  {
-    name: '一对一导师',
-    action: '/mentors/matchable',
-    roles: ['MentorshipManager'],
-  },
-];
-
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
@@ -167,6 +154,21 @@ const mainMenuItems: MainMenuItem[] = [
     icon: MdMic,
     regex: /^\/interviews\/mine/,
     permission: 'Interviewer',
+  },
+
+  {
+    name: '预约不定期导师',
+    path: '/mentors',
+    icon: MdSupervisorAccount,
+    regex: /^\/mentors$/,
+    permission: ['MentorshipManager'],
+  },
+  {
+    name: '选择一对一导师',
+    path: '/mentors/matchable',
+    icon: MdSupervisorAccount,
+    regex: /^\/mentors\/matchable$/,
+    permission: ['MentorshipManager'],
   },
   {
     name: '资源库',
@@ -262,13 +264,6 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           ).map(item => <SidebarRow
             key={item.path} item={item} onClose={onClose} 
           />)}
-
-        <DropdownMenuIfPermitted
-          title="导师档案"
-          icon={<Icon as={MdSupervisorAccount} marginRight="2" />}
-          menuItems={mentorsDropdownMenuItems}
-          onClose={onClose}
-        />
 
         <DropdownMenuIfPermitted
           title="管理功能"
