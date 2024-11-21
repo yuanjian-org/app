@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { zRoles } from "./Role";
-import { zMenteeStatus } from "./MenteeStatus";
+import { isPermitted, zRoles } from "./Role";
+import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
 
 export const zMinUser = z.object({
   id: z.string().uuid(),
@@ -57,3 +57,13 @@ export const zUserPreference = z.object({
   mentor: zMentorPreference.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
+
+/**
+ * Common functions for permission checking
+ */
+
+export function isAcceptedMentee(user: User) {
+  const s: MenteeStatus[] = ["现届学子", "仅不定期", "活跃校友", "学友"];
+  return isPermitted(user.roles, 'Mentee')
+    && user.menteeStatus && s.includes(user.menteeStatus);
+}
