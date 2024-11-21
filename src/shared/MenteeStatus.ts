@@ -9,6 +9,7 @@ export const AllMenteeStatuses = [
 
   "现届学子",
   "仅奖学金",
+  "仅不定期",
 
   "活跃校友",
   "退出校友",

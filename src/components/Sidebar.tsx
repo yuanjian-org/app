@@ -48,6 +48,7 @@ import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
 import colors from 'theme/colors';
 import { staticUrlPrefix } from 'static';
+import User, { isAcceptedMentee } from 'shared/User';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -62,7 +63,7 @@ interface MainMenuItem {
   iconColor?: string,
   path: string,
   regex?: RegExp,
-  roles?: Role | Role[],
+  permission?: Role | Role[] | ((u: User) => boolean),
 }
 
 interface DropdownMenuItem {
@@ -158,28 +159,29 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/coachees',
     icon: MdSupervisorAccount,
     regex: /^\/coachees/,
-    roles: 'MentorCoach',
+    permission: 'MentorCoach',
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdMic,
     regex: /^\/interviews\/mine/,
-    roles: 'Interviewer',
+    permission: 'Interviewer',
   },
   {
     name: '资源库',
     path: '/resources',
     icon: MdLocalLibrary,
     regex: /^\/resources$/,
-    roles: ['Mentor', 'Mentee', 'MentorCoach'],
+    permission: (me: User) => isAcceptedMentee(me)
+      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
     name: '学生档案',
     path: '/mentees?menteeStatus=现届学子',
     icon: AttachmentIcon,
     regex: /^\/mentees/,
-    roles: 'MentorshipManager',
+    permission: 'MentorshipManager',
   },
 ];
 
@@ -253,9 +255,13 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
         }} />
 
         {mainMenuItems
-          .filter(item => isPermitted(me.roles, item.roles))
-          .map(item => <SidebarRow key={item.path} item={item} 
-                        onClose={onClose} />)}
+          .filter(item => typeof item.permission === "function" ?
+            item.permission(me)
+            :
+            isPermitted(me.roles, item.permission)
+          ).map(item => <SidebarRow
+            key={item.path} item={item} onClose={onClose} 
+          />)}
 
         <DropdownMenuIfPermitted
           title="导师档案"
