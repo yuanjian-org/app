@@ -206,7 +206,6 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
 }) {
   const [me] = useUserContext();
   const [isModalOpen, setModalOpen] = useState(false);
-  const toggleModal = () => setModalOpen(!isModalOpen);
   const [imageUrl, setImageUrl] = useState(profile.照片链接); 
 
   // We use the checksum not only as a security measure but also an e-tag to
@@ -238,11 +237,12 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           }
         </Link>
         {profile.照片链接 && 
-          <HStack onClick={toggleModal}>
+          <HStack onClick={()=>setModalOpen(!isModalOpen)}>
             <MdChangeCircle /><Text>修改图像</Text>
           </HStack>
         }
-        {isModalOpen && <CropImageModal onClose={toggleModal} imageUrl={imageUrl} />}
+        {isModalOpen && <CropImageModal onClose={() => setModalOpen(false)} 
+          imageUrl={imageUrl} />}
       </>}
 
       <FormHelperTextWithMargin>
