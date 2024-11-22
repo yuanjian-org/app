@@ -20,6 +20,7 @@ import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
+import Map from 'components/Map';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
@@ -57,6 +58,7 @@ function MenteeTabs({ mentee, mentorships }: {
       <Tab>内部笔记</Tab>
       <Tab>申请表</Tab>
       <Tab>面试页</Tab>
+      <Tab>人才地图</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
 
@@ -76,6 +78,9 @@ function MenteeTabs({ mentee, mentorships }: {
       {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
+      <TabPanel>
+        <Map />
+      </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
 }
