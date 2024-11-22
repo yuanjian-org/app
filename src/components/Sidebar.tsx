@@ -161,14 +161,18 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/mentors',
     icon: MdSupervisorAccount,
     regex: /^\/mentors$/,
-    permission: ['MentorshipManager'],
+    permission: 'MentorshipManager',
+    // permission: (me: User) => isAcceptedMentee(me, true)
+    //   || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '选择一对一导师',
+    name: '浏览一对一导师',
     path: '/mentors/matchable',
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/matchable$/,
-    permission: ['MentorshipManager'],
+    permission: 'MentorshipManager',
+    // permission: (me: User) => isAcceptedMentee(me)
+    //   || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
     name: '资源库',
