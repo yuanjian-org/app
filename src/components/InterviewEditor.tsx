@@ -210,6 +210,11 @@ function DimensionEditor({
     comment: d.comment,
   });
 
+  const resetScore = () => onChange({
+    ...d,
+    score: null,
+  });
+
   return <>
     <Flex direction="row" gap={3}>
       <Box minWidth={140}><b>{dimensionLabel}</b></Box>
@@ -238,7 +243,8 @@ function DimensionEditor({
           isOpen={showTooltip}
           label={`${score}: ${scoreLabels[score - 1]}`}
         >
-          <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} />
+          <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} 
+            onClick={resetScore} />
         </Tooltip>
       </Slider>
     </Flex>
