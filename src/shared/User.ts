@@ -62,8 +62,13 @@ export type UserPreference = z.TypeOf<typeof zUserPreference>;
  * Common functions for permission checking
  */
 
-export function isAcceptedMentee(user: User) {
-  const s: MenteeStatus[] = ["现届学子", "仅不定期", "活跃校友", "学友"];
+export function isAcceptedMentee(
+  user: User,
+  includeAdhocMentorshipOnlyAcceptance?: boolean
+) {
+  const s: MenteeStatus[] = ["现届学子", "活跃校友", "学友",
+    ...includeAdhocMentorshipOnlyAcceptance ? ["仅不定期" as MenteeStatus] : [],
+  ];
   return isPermitted(user.roles, 'Mentee')
     && user.menteeStatus && s.includes(user.menteeStatus);
 }
