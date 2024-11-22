@@ -14,6 +14,7 @@ import {
   Spacer,
   Wrap,
   WrapItem,
+  Divider,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, truncate } from 'shared/strings';
@@ -58,7 +59,6 @@ export function MentorPage({ matchable, title }: {
 
     <VStack
       spacing={componentSpacing}
-      mb={sectionSpacing}
       align="start"
       maxW="800px"
     >
@@ -113,6 +113,8 @@ export function MentorPage({ matchable, title }: {
         </Wrap>
       </>}
     </VStack>
+
+    <Divider my={sectionSpacing} />
 
     {isLoading ? <Loader /> : <>
       {/* Desktop version */}

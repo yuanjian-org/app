@@ -10,6 +10,7 @@ export const staticPageMaxWidth = 850;
 
 /**
  * The mobile-vs-desktop breakpoint.
+ * TODO: refactor it into theme/breakpoints.ts
  */
 export const breakpoint = "lg";
 

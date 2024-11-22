@@ -1,6 +1,8 @@
 import { trpcNext } from "../../trpc";
 import Loader from 'components/Loader';
-import { formatUserName, parseQueryString, parseQueryStringOrUnknown } from 'shared/strings';
+import {
+  formatUserName, parseQueryString, parseQueryStringOrUnknown
+} from 'shared/strings';
 import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
@@ -11,7 +13,6 @@ import {
   Tr,
   Td,
   TableContainer,
-  VStack,
   Button,
 } from '@chakra-ui/react';
 import { UserProfile } from "shared/UserProfile";
@@ -19,6 +20,7 @@ import { sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useState } from "react";
+import { MinUser } from "shared/User";
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -30,47 +32,40 @@ export default function Page() {
   const showBookingButton = !parseQueryString(router, 'nobooking');
   
   const { data } = trpcNext.mentorships.getMentor.useQuery({ userId });
-  const [booking, setBooking] = useState<boolean>();
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />
 
-    <Wrap>
-      <WrapItem>
-        <VStack spacing={sectionSpacing} align="start">
-          {data?.profile?.照片链接 && 
-            <Image
-              maxW='300px'
-              src={data.profile.照片链接}
-              alt="照片"
-              mb={sectionSpacing}
-              me={sectionSpacing}
-            />
-          }
-
-          {showBookingButton &&  <Button
-            variant="brand"
-            onClick={() => setBooking(true)}
-          >预约交流</Button>}
-        </VStack>
+    <Wrap spacing={sectionSpacing}>
+      <WrapItem alignContent="center">
+        {data?.profile?.照片链接 && 
+          <Image
+            maxW='300px'
+            src={data.profile.照片链接}
+            alt="照片"
+          />
+        }
       </WrapItem>
       <WrapItem>
-          {data?.profile && <ProfileTable profile={data.profile} />}
+          {data?.profile && <ProfileTable
+            user={data.user}
+            profile={data.profile}
+            showBookingButton={showBookingButton}
+          />}
       </WrapItem>
     </Wrap>
-
-    {booking && <MentorBookingModal 
-        mentor={data.user}
-        onClose={() => setBooking(false)}
-      />}
   </>;
 }
 
 Page.title = "导师";
 
-function ProfileTable({ profile: p }: {
-  profile: UserProfile
+function ProfileTable({ user, profile: p, showBookingButton }: {
+  user: MinUser,
+  profile: UserProfile,
+  showBookingButton: boolean,
 }) {
+  const [booking, setBooking] = useState<boolean>();
+
   type KeyLabel = {
     k: keyof UserProfile,
     l?: string,
@@ -96,6 +91,17 @@ function ProfileTable({ profile: p }: {
     {kls.map((kl, idx) => 
       <ProfileRow key={idx} profile={p} k={kl.k} label={kl.l} />)
     }
+
+    {showBookingButton && <Tr><Td></Td><Td><Button
+      variant="brand"
+      onClick={() => setBooking(true)}
+    >预约交流</Button></Td></Tr>}
+
+    {booking && <MentorBookingModal 
+      mentor={user}
+      onClose={() => setBooking(false)}
+    />}
+
   </Table></TableContainer>;
 }
 

@@ -35,14 +35,14 @@ export default function MentorBookingModal({ mentor, onClose }: {
   return !submitted ? <ModalWithBackdrop isCentered isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>
-        预约{mentor ? `：${formatUserName(mentor.name, "formal")}` : "不定期导师"}
+        预约{mentor ? `导师：${formatUserName(mentor.name, "formal")}` : "不定期导师"}
       </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack spacing={6}>
           <FormControl>
             <FormLabel>
-              希望
+              你希望
               {mentor && `与${formatUserName(mentor.name, "friendly")}`}
               交流的话题：
             </FormLabel>
