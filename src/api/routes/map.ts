@@ -42,9 +42,7 @@ const listLandmarks = procedure
         );
         return { [latitude]: landmarks };
       }));
-      const res = data.reduce((acc, item) => ({ ...acc, ...item }), {});
-      console.log(res);
-      return res;
+      return data.reduce((acc, item) => ({ ...acc, ...item }), {});
 });
 
 const createLandmarkAssessment = procedure
