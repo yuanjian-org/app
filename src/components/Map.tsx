@@ -14,18 +14,16 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
-import { Landmark, Latitude, Latitudes } from 'shared/Map';
+import { Landmark, Latitude } from 'shared/Map';
 import { breakpoint, componentSpacing } from 'theme/metrics';
 import LandmarkDrawer from 'components/LandmarkDrawer';
-import { trpcNext } from '../trpc';
 
 
 const desktopTextLimit = 80;
 const mobileTextLimit = 30;
 
-export default function Map() {
+export default function Map( { data } : {data: Record<string, Landmark[]>}) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
-  const { data = {} } = trpcNext.map.listLandmarks.useQuery([...Latitudes]);
 
   return <>
     <TabsWithUrlParam isLazy>

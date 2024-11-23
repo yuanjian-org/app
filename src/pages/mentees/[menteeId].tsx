@@ -21,22 +21,25 @@ import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
 import Map from 'components/Map';
+import { Landmark, Latitude, Latitudes } from '../../shared/Map';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
   const { data: u } = trpcNext.users.get.useQuery(userId);
   const { data: mentorships } = trpcNext.mentorships.listMentorshipsForMentee
     .useQuery(userId);
+  const { data:mapData } = trpcNext.map.listLandmarks.useQuery([...Latitudes]);
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs mentee={u} mentorships={mentorships || []} />
+    <MenteeTabs mentee={u} mentorships={mentorships || []} mapData={mapData || {}} />
   </>;
 });
 
-function MenteeTabs({ mentee, mentorships }: {
+function MenteeTabs({ mentee, mentorships, mapData }: {
   mentee: MinUser,
   mentorships: Mentorship[],
+  mapData: Record<string, Landmark[]>
 }) {
   const [me] = useUserContext();
   const sortedMentorships = sortMentorship(mentorships, me.id);
@@ -79,7 +82,7 @@ function MenteeTabs({ mentee, mentorships }: {
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
       <TabPanel>
-        <Map />
+        <Map data={mapData}/>
       </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
