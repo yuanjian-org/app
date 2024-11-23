@@ -33,6 +33,11 @@ export default widePage(() =>
   <MentorPage matchable={false} title="预约不定期导师" />,
   "预约不定期导师");
 
+type UserAndProfile = {
+  user: MinUser,
+  profile: UserProfile | null,
+};
+
 /**
  * There are two types of mentors:
  * 
@@ -46,10 +51,11 @@ export function MentorPage({ matchable, title }: {
   matchable: boolean,
   title: string,
 }) {
-  const { data, isLoading } = trpcNext.mentorships.listMentors.useQuery();
-  const filtered = useMemo(() => data?.filter(
-    m => matchable ? m.matchable : true
-  ), [data, matchable]);
+  const { data } = trpcNext.mentorships.listMentors.useQuery();
+  const shufflted = useMemo(() => {
+    const filtered = data?.filter(m => matchable ? m.matchable : true);
+    return filtered ? dailyShuffle(filtered) : undefined;
+  }, [data, matchable]);
 
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
@@ -116,14 +122,14 @@ export function MentorPage({ matchable, title }: {
 
     <Divider my={sectionSpacing} />
 
-    {isLoading ? <Loader /> : <>
+    {!shufflted ? <Loader /> : <>
       {/* Desktop version */}
       <SimpleGrid
         display={{ base: "none", [breakpoint]: "grid" }}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
-        {filtered?.map(m => <MentorCardForDesktop
+        {shufflted.map(m => <MentorCardForDesktop
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -138,7 +144,7 @@ export function MentorPage({ matchable, title }: {
         spacing={componentSpacing}
         templateColumns='1fr'
       >
-        {filtered?.map(m => <MentorCardForMobile
+        {shufflted.map(m => <MentorCardForMobile
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -155,6 +161,39 @@ export function MentorPage({ matchable, title }: {
       }
     </>}
   </>;
+}
+
+/**
+ * Returns an array sorted in a deterministic "random" order.
+ * The order is consistent from 4am of the current day to 4am of the next day.
+ */
+function dailyShuffle(mentors : UserAndProfile[]) {
+  const now = new Date();
+  const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+    4, 0, 0);
+
+  // If current time is before 4am, consider it the previous day.
+  if (now < local4am) {
+      local4am.setDate(local4am.getDate() - 1);
+  }
+
+  // Generate a seeded random number generator
+  function seededRandom(seed: number): () => number {
+      // Linear congruential generator (provided by ChatGPT)
+      return function () {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+      };
+  }
+
+  // Seed based on the day
+  const rng = seededRandom(local4am.getTime());
+
+  // First sort the array in a deterministic order
+  mentors.sort((a, b) => a.user.id.localeCompare(b.user.id));
+
+  // Then shuffle the array deterministically based on the seed
+  return mentors.sort(() => rng() - 0.5);
 }
 
 function MentorCard({ userId, matchable, children, ...rest }: {
