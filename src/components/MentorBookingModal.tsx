@@ -14,18 +14,25 @@ import { formatUserName } from 'shared/strings';
 import { MinUser } from 'shared/User';
 import { useState } from 'react';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import trpc from 'trpc';
+import invariant from "tiny-invariant";
 
 export default function MentorBookingModal({ mentor, onClose }: {
   mentor: MinUser | null,
   onClose: () => void,
 }) {
-  const [comment, setComment] = useState<string>();
+  const [topic, setTopic] = useState<string>();
   const [submitting, setSubmitting] = useState<boolean>();
   const [submitted, setSubmitted] = useState<boolean>();
 
-  const submit =() => {
+  const submit = async () => {
     setSubmitting(true);
     try {
+      invariant(topic);
+      await trpc.mentorBookings.create.mutate({
+        requestedMentorId: mentor?.id ?? null,
+        topic
+      });
       setSubmitted(true);
     } finally {
       setSubmitting(false);
@@ -48,8 +55,8 @@ export default function MentorBookingModal({ mentor, onClose }: {
             </FormLabel>
             <Textarea
               autoFocus
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
               placeholder={mentor === null ?
                 "请尽可能详细填写，让我们帮助你找到最适合的导师。" :
                 "比如：职业规划、简历诊断、感情话题。"}
@@ -58,7 +65,7 @@ export default function MentorBookingModal({ mentor, onClose }: {
         </VStack>
       </ModalBody>
       <ModalFooter>
-        <Button variant="brand" isLoading={submitting} isDisabled={!comment}
+        <Button variant="brand" isLoading={submitting} isDisabled={!topic}
           onClick={submit}>预约</Button>
       </ModalFooter>
     </ModalContent>
@@ -79,5 +86,5 @@ export default function MentorBookingModal({ mentor, onClose }: {
         <Button variant="brand" onClick={onClose}>好的</Button>
       </ModalFooter>
     </ModalContent>
-  </ModalWithBackdrop>;
+–  </ModalWithBackdrop>;
 }
