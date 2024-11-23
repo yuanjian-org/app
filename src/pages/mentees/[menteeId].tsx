@@ -21,7 +21,7 @@ import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
 import Map from 'components/Map';
-import { Landmark, Latitude, Latitudes } from '../../shared/Map';
+import { Landmark, Latitudes } from '../../shared/Map';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
