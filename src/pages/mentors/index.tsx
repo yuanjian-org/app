@@ -14,10 +14,12 @@ import {
   Spacer,
   Wrap,
   WrapItem,
-  Divider,
+  Input,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName, hash, truncate } from 'shared/strings';
+import { formatUserName, hash, toPinyin, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
@@ -29,6 +31,8 @@ import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { useUserContext } from 'UserContext';
+import { SearchIcon } from '@chakra-ui/icons';
+import { visibleUserProfileFields } from './[mentorId]';
 
 export default widePage(() =>
   <MentorPage matchable={false} title="预约不定期导师" />,
@@ -53,14 +57,20 @@ export function MentorPage({ matchable, title }: {
   title: string,
 }) {
   const [me] = useUserContext();
+  const [searchTerm, setSearchTerm] = useState<string>();
+  // Set to null to book with any mentor
+  const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+
   const { data } = trpcNext.mentorships.listMentors.useQuery();
-  const shufflted = useMemo(() => {
+
+  const shuffled = useMemo(() => {
     const filtered = data?.filter(m => matchable ? m.matchable : true);
     return filtered ? dailyShuffle(filtered, me.id) : undefined;
   }, [data, matchable, me]);
 
-  // Set to null to book with any mentor
-  const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+  const searchResult = useMemo(() => {
+    return shuffled && searchTerm ? search(shuffled, searchTerm) : shuffled;
+  }, [searchTerm, shuffled]); 
 
   return <>
     <PageBreadcrumb current={title} />
@@ -116,22 +126,33 @@ export function MentorPage({ matchable, title }: {
             </Button>
           </WrapItem>
           <WrapItem>
-            或者，直接预约你选中的导师：
+            或者，预约你选中的导师：
           </WrapItem>
         </Wrap>
       </>}
     </VStack>
 
-    <Divider my={sectionSpacing} />
+    {!searchResult ? <Loader /> : <>
 
-    {!shufflted ? <Loader /> : <>
+      {/* Search box */}
+      <InputGroup my={sectionSpacing}>
+        <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+        <Input
+          autoFocus
+          type="search"
+          placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
+          value={searchTerm}
+          onChange={ev => setSearchTerm(ev.target.value)}
+        />
+      </InputGroup>
+
       {/* Desktop version */}
       <SimpleGrid
         display={{ base: "none", [breakpoint]: "grid" }}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
-        {shufflted.map(m => <MentorCardForDesktop
+        {searchResult.map(m => <MentorCardForDesktop
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -146,7 +167,7 @@ export function MentorPage({ matchable, title }: {
         spacing={componentSpacing}
         templateColumns='1fr'
       >
-        {shufflted.map(m => <MentorCardForMobile
+        {searchResult.map(m => <MentorCardForMobile
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -198,6 +219,18 @@ function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
 
   // Then shuffle the array deterministically based on the seed
   return mentors.sort(() => rng() - 0.5);
+}
+
+function search(mentors: UserAndProfile[], searchTerm: string) {
+  const pinyinTerm = toPinyin(searchTerm);
+
+  const match = (v: string | null | undefined) => {
+    return v && (v.includes(searchTerm) || toPinyin(v).includes(pinyinTerm));
+  };
+
+  return mentors.filter(m => match(m.user.name) || (m.profile && (
+    match(m.profile.性别) ||
+    visibleUserProfileFields.some(fl => match(m.profile?.[fl.field])))));
 }
 
 function MentorCard({ userId, matchable, children, ...rest }: {
