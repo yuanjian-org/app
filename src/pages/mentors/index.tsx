@@ -14,9 +14,12 @@ import {
   Spacer,
   Wrap,
   WrapItem,
+  Input,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName, truncate } from 'shared/strings';
+import { formatUserName, hash, toPinyin, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
@@ -27,10 +30,18 @@ import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
+import { useUserContext } from 'UserContext';
+import { SearchIcon } from '@chakra-ui/icons';
+import { visibleUserProfileFields } from './[mentorId]';
 
 export default widePage(() =>
   <MentorPage matchable={false} title="预约不定期导师" />,
   "预约不定期导师");
+
+type UserAndProfile = {
+  user: MinUser,
+  profile: UserProfile | null,
+};
 
 /**
  * There are two types of mentors:
@@ -45,20 +56,27 @@ export function MentorPage({ matchable, title }: {
   matchable: boolean,
   title: string,
 }) {
-  const { data, isLoading } = trpcNext.mentorships.listMentors.useQuery();
-  const filtered = useMemo(() => data?.filter(
-    m => matchable ? m.matchable : true
-  ), [data, matchable]);
-
+  const [me] = useUserContext();
+  const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+
+  const { data } = trpcNext.mentorships.listMentors.useQuery();
+
+  const shuffled = useMemo(() => {
+    const filtered = data?.filter(m => matchable ? m.matchable : true);
+    return filtered ? dailyShuffle(filtered, me.id) : undefined;
+  }, [data, matchable, me]);
+
+  const searchResult = useMemo(() => {
+    return shuffled && searchTerm ? search(shuffled, searchTerm) : shuffled;
+  }, [searchTerm, shuffled]); 
 
   return <>
     <PageBreadcrumb current={title} />
 
     <VStack
       spacing={componentSpacing}
-      mb={sectionSpacing}
       align="start"
       maxW="800px"
     >
@@ -108,20 +126,33 @@ export function MentorPage({ matchable, title }: {
             </Button>
           </WrapItem>
           <WrapItem>
-            或者，直接预约你选中的导师：
+            或者，预约你选中的导师：
           </WrapItem>
         </Wrap>
       </>}
     </VStack>
 
-    {isLoading ? <Loader /> : <>
+    {!searchResult ? <Loader /> : <>
+
+      {/* Search box */}
+      <InputGroup my={sectionSpacing}>
+        <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+        <Input
+          autoFocus
+          type="search"
+          placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
+          value={searchTerm}
+          onChange={ev => setSearchTerm(ev.target.value)}
+        />
+      </InputGroup>
+
       {/* Desktop version */}
       <SimpleGrid
         display={{ base: "none", [breakpoint]: "grid" }}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
-        {filtered?.map(m => <MentorCardForDesktop
+        {searchResult.map(m => <MentorCardForDesktop
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -136,7 +167,7 @@ export function MentorPage({ matchable, title }: {
         spacing={componentSpacing}
         templateColumns='1fr'
       >
-        {filtered?.map(m => <MentorCardForMobile
+        {searchResult.map(m => <MentorCardForMobile
           key={m.user.id}
           user={m.user}
           profile={m.profile}
@@ -153,6 +184,53 @@ export function MentorPage({ matchable, title }: {
       }
     </>}
   </>;
+}
+
+/**
+ * Returns an array sorted in a deterministic "random" order.
+ * The order is consistent from 4am of the current day to 4am of the next day,
+ * and is influenced by the length of the array and a specified UUID
+ * (which should be the current user id).
+ */
+function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
+  const now = new Date();
+  const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+    4, 0, 0);
+
+  // If current time is before 4am, consider it the previous day.
+  if (now < local4am) {
+      local4am.setDate(local4am.getDate() - 1);
+  }
+
+  // Generate a seeded random number generator
+  function seededRandom(seed: number): () => number {
+      // Linear congruential generator, by ChatGPT
+      return function () {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+      };
+  }
+
+  const seed = hash(`${local4am.getTime()}-${mentors.length}-${uuid}`);
+  const rng = seededRandom(seed);
+
+  // First sort the array in a deterministic order
+  mentors.sort((a, b) => a.user.id.localeCompare(b.user.id));
+
+  // Then shuffle the array deterministically based on the seed
+  return mentors.sort(() => rng() - 0.5);
+}
+
+function search(mentors: UserAndProfile[], searchTerm: string) {
+  const pinyinTerm = toPinyin(searchTerm);
+
+  const match = (v: string | null | undefined) => {
+    return v && (v.includes(searchTerm) || toPinyin(v).includes(pinyinTerm));
+  };
+
+  return mentors.filter(m => match(m.user.name) || (m.profile && (
+    match(m.profile.性别) ||
+    visibleUserProfileFields.some(fl => match(m.profile?.[fl.field])))));
 }
 
 function MentorCard({ userId, matchable, children, ...rest }: {

@@ -83,32 +83,41 @@ export function emailIgnoreError(templateId: string,
   }
 }
 
-export function emailRoleIgnoreError(role: Role, subject: string,
-  content: string, baseUrl: string)
-{
-  const impl = async () => {
-    const zTo = z.array(z.object({
-      name: z.string(),
-      email: z.string(),
-    }));
+export async function emailRole(
+  role: Role,
+  subject: string,
+  content: string,
+  baseUrl: string
+) {
+  const zTo = z.array(z.object({
+    name: z.string(),
+    email: z.string(),
+  }));
 
-    const managers = zTo.parse(await User.findAll({
-      where: {
-        // For some reason the compiler prefers `[role]` far more than `role`.
-        roles: { [Op.contains]: [role] },
-      },
-      attributes: ['name', 'email'],
-    }));
+  const managers = zTo.parse(await User.findAll({
+    where: { roles: { [Op.contains]: [role] } },
+    attributes: ['name', 'email'],
+  }));
 
-    emailIgnoreError('d-99d2ae84fe654400b448f8028238d461', [{
-      to: managers,
-      dynamicTemplateData: { 
-        subject, 
-        content,
-        roleDisplayName: RoleProfiles[role].displayName,
-      },
-    }], baseUrl);
-  };
+  await email('d-99d2ae84fe654400b448f8028238d461', [{
+    to: managers,
+    dynamicTemplateData: { 
+      subject, 
+      content,
+      roleDisplayName: RoleProfiles[role].displayName,
+    },
+  }], baseUrl);
+}
 
-  void impl();
+export function emailRoleIgnoreError(
+  role: Role,
+  subject: string,
+  content: string,
+  baseUrl: string
+) {
+  try {
+    void emailRole(role, subject, content, baseUrl);
+  } catch (e) {
+    console.log(`emailRoleIgnoreError() ignored error:`, e);
+  }
 }

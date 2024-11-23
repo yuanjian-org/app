@@ -140,3 +140,23 @@ export const chatRoomInclude = [{
   attributes: chatMessageAttributes,
   include: chatMessageInclude,
 }];
+
+/**
+ * MentorBooking
+ */
+
+export const mentorBookingAttributes = ["id", "topic", "notes", "createdAt"];
+
+export const mentorBookingInclude = [{
+  association: 'requester',
+  attributes: minUserAttributes,
+}, {
+  association: 'requestedMentor',
+  attributes: minUserAttributes,
+}, {
+  association: 'assignedMentor',
+  attributes: minUserAttributes,
+}, {
+  association: 'updater',
+  attributes: minUserAttributes,
+}];

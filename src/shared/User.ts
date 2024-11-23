@@ -3,7 +3,7 @@ import { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
 
 export const zMinUser = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string().nullable(),
 });
 export type MinUser = z.TypeOf<typeof zMinUser>;

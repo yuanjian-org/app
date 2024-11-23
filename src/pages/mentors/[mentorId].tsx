@@ -1,6 +1,8 @@
 import { trpcNext } from "../../trpc";
 import Loader from 'components/Loader';
-import { formatUserName, parseQueryString, parseQueryStringOrUnknown } from 'shared/strings';
+import {
+  formatUserName, parseQueryString, parseQueryStringOrUnknown
+} from 'shared/strings';
 import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
@@ -11,14 +13,36 @@ import {
   Tr,
   Td,
   TableContainer,
-  VStack,
   Button,
+  Tbody,
 } from '@chakra-ui/react';
 import { UserProfile } from "shared/UserProfile";
 import { sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useState } from "react";
+import { MinUser } from "shared/User";
+
+export type FieldAndLabel = {
+  field: keyof UserProfile,
+  label?: string,
+};
+
+export const visibleUserProfileFields: FieldAndLabel[] = [
+  // 置顶亮点
+  { field: "身份头衔", label: "职位" },
+  { field: "现居住地" },
+  { field: "擅长话题", label: "擅长聊天话题" },
+  { field: "成长亮点" },
+
+  { field: "个性特点" },
+  { field: "爱好与特长" },
+  { field: "喜爱读物", label: "喜爱的书和媒体" },
+  { field: "职业经历" },
+  { field: "教育经历" },
+  { field: "曾居住地" },
+  { field: "生活日常" },
+];
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -30,72 +54,57 @@ export default function Page() {
   const showBookingButton = !parseQueryString(router, 'nobooking');
   
   const { data } = trpcNext.mentorships.getMentor.useQuery({ userId });
-  const [booking, setBooking] = useState<boolean>();
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />
 
-    <Wrap>
-      <WrapItem>
-        <VStack spacing={sectionSpacing} align="start">
-          {data?.profile?.照片链接 && 
-            <Image
-              maxW='300px'
-              src={data.profile.照片链接}
-              alt="照片"
-              mb={sectionSpacing}
-              me={sectionSpacing}
-            />
-          }
-
-          {showBookingButton &&  <Button
-            variant="brand"
-            onClick={() => setBooking(true)}
-          >预约交流</Button>}
-        </VStack>
+    <Wrap spacing={sectionSpacing}>
+      <WrapItem alignContent="center">
+        {data?.profile?.照片链接 && 
+          <Image
+            maxW='300px'
+            src={data.profile.照片链接}
+            alt="照片"
+          />
+        }
       </WrapItem>
       <WrapItem>
-          {data?.profile && <ProfileTable profile={data.profile} />}
+          {data?.profile && <ProfileTable
+            user={data.user}
+            profile={data.profile}
+            showBookingButton={showBookingButton}
+          />}
       </WrapItem>
     </Wrap>
-
-    {booking && <MentorBookingModal 
-        mentor={data.user}
-        onClose={() => setBooking(false)}
-      />}
   </>;
 }
 
 Page.title = "导师";
 
-function ProfileTable({ profile: p }: {
-  profile: UserProfile
+function ProfileTable({ user, profile: p, showBookingButton }: {
+  user: MinUser,
+  profile: UserProfile,
+  showBookingButton: boolean,
 }) {
-  type KeyLabel = {
-    k: keyof UserProfile,
-    l?: string,
-  };
-
-  const kls: KeyLabel[] = [
-    // 置顶亮点
-    { k: "身份头衔", l: "职位" },
-    { k: "现居住地" },
-    { k: "擅长话题", l: "擅长聊天话题" },
-    { k: "成长亮点" },
-
-    { k: "个性特点" },
-    { k: "爱好与特长" },
-    { k: "喜爱读物", l: "喜爱的书和媒体" },
-    { k: "职业经历" },
-    { k: "教育经历" },
-    { k: "曾居住地" },
-    { k: "生活日常" },
-  ];
+  const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table>
-    {kls.map((kl, idx) => 
-      <ProfileRow key={idx} profile={p} k={kl.k} label={kl.l} />)
-    }
+    <Tbody>
+      {visibleUserProfileFields.map((fl, idx) => 
+        <ProfileRow key={idx} profile={p} k={fl.field} label={fl.label} />)
+      }
+
+      {showBookingButton && <Tr><Td></Td><Td><Button
+        variant="brand"
+        onClick={() => setBooking(true)}
+      >预约交流</Button></Td></Tr>}
+    </Tbody>
+
+    {booking && <MentorBookingModal 
+      mentor={user}
+      onClose={() => setBooking(false)}
+    />}
+
   </Table></TableContainer>;
 }
 

@@ -28,7 +28,7 @@ import {
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, hash, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
@@ -155,13 +155,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
 function getColorFromText(text: string): string {
   const colors = ["red", "orange", "yellow", "green", "teal", "blue", "cyan",
     "purple"];
-
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const index = Math.abs(hash) % colors.length;
+  const index = Math.abs(hash(text)) % colors.length;
   return colors[index];
 }
 
