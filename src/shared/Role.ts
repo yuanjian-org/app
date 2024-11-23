@@ -11,6 +11,7 @@ export const AllRoles = [
   'Mentee',
   'Interviewer',
   'MentorCoach',
+  'Volunteer',
 
   // Banned users can't sign in. Mostly to prevent users from repeatedly using
   // different email addresses than their main sign-in address.
@@ -82,6 +83,10 @@ export const RoleProfiles: { [key: string]: {
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,
+  },
+  Volunteer: {
+    displayName: '志愿者',
+    actions: '可以浏览其他志愿者信息',
   },
 
   Banned: {

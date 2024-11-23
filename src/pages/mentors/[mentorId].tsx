@@ -53,7 +53,7 @@ export default function Page() {
   const userId = parseQueryStringOrUnknown(router, 'mentorId');
   const showBookingButton = !parseQueryString(router, 'nobooking');
   
-  const { data } = trpcNext.mentorships.getMentor.useQuery({ userId });
+  const { data } = trpcNext.mentorships.getMentorProfile.useQuery({ userId });
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />

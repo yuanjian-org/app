@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
+import { zNullableDateColumn, zDateColumn } from "./DateColumn";
 
 export const zMinUser = z.object({
   id: z.string(),
@@ -14,9 +15,8 @@ export const zUser = zMinUser.merge(z.object({
   roles: zRoles,
   email: z.string().email(),
   wechat: z.string().nullable(),
-  // For some reason coerce is needed to avoid zod input validation error.
-  consentFormAcceptedAt: z.coerce.string().nullable(),
-  menteeInterviewerTestLastPassedAt: z.coerce.string().nullable(),
+  consentFormAcceptedAt: zNullableDateColumn,
+  menteeInterviewerTestLastPassedAt: zNullableDateColumn,
   menteeStatus: zMenteeStatus.nullable(),
   pointOfContact: zMinUser.nullable(),
   pointOfContactNote: z.string().nullable(),
@@ -47,7 +47,7 @@ export const zInterviewerPreference = z.object({
   optIn: z.boolean().optional(),
   limit: z.object({
     noMoreThan: z.number(),
-    until: z.coerce.string(),
+    until: zDateColumn,
   }).optional(),
 });
 export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;

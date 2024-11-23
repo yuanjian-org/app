@@ -24,9 +24,9 @@ import { Op } from "sequelize";
 import { compareChinese, formatUserName } from "shared/strings";
 import { isPermittedtoAccessMentee } from "./users";
 import {
-  defaultMentorCapacity, zMentorPreference, zMinUser, zUser
+  defaultMentorCapacity, zMentorPreference, zUser
 } from "shared/User";
-import { zUserProfile } from "shared/UserProfile";
+import { zMinUserAndProfile, zUserProfile } from "shared/UserProfile";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
@@ -127,16 +127,14 @@ const listMyMentorshipsAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
-const listMentors = procedure
-.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
-.output(z.array(z.object({
-  user: zMinUser,
-  matchable: z.boolean(),
-  profile: zUserProfile.nullable(),
-})))
-.query(async () =>
+const listMentorProfiles = procedure
+  .use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
+  .output(z.array(zMinUserAndProfile.merge(z.object({
+    matchable: z.boolean(),
+  }))))
+  .query(async () =>
 {
-  // Declare a variable to enforce type check
+  // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
@@ -159,15 +157,12 @@ const listMentors = procedure
   });
 });
 
-const getMentor = procedure
-.use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
-.input(z.object({
-  userId: z.string()
-})).output(z.object({
-  user: zMinUser,
-  profile: zUserProfile.nullable(),
-}))
-.query(async ({ input: { userId } }) =>
+const getMentorProfile = procedure
+  .use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
+  .input(z.object({
+    userId: z.string()
+  })).output(zMinUserAndProfile)
+  .query(async ({ input: { userId } }) =>
 {
   // Declare a variable to enforce type check
   const mentorRole: Role = "Mentor";
@@ -303,12 +298,12 @@ const get = procedure
 export default router({
   create,
   get,
-  getMentor,
+  getMentorProfile,
   update,
   listMyMentorshipsAsMentor,
   listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
   listMentorStats,
-  listMentors,
+  listMentorProfiles,
   countMentorships: deprecatedCountMentorships,
 });

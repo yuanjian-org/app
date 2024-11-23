@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zMinUser } from "./User";
 
 const zStr = z.string().optional();
 
@@ -23,3 +24,9 @@ export const zUserProfile = z.object({
   '擅长辅导领域': zStr,
 });
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
+
+export const zMinUserAndProfile = z.object({
+  user: zMinUser,
+  profile: zUserProfile.nullable(),
+});
+export type MinUserAndProfile = z.TypeOf<typeof zMinUserAndProfile>;

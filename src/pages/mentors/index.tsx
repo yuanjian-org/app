@@ -23,7 +23,7 @@ import { formatUserName, hash, toPinyin, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
-import { UserProfile } from 'shared/UserProfile';
+import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
@@ -37,11 +37,6 @@ import { visibleUserProfileFields } from './[mentorId]';
 export default widePage(() =>
   <MentorPage matchable={false} title="预约不定期导师" />,
   "预约不定期导师");
-
-type UserAndProfile = {
-  user: MinUser,
-  profile: UserProfile | null,
-};
 
 /**
  * There are two types of mentors:
@@ -61,7 +56,7 @@ export function MentorPage({ matchable, title }: {
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
 
-  const { data } = trpcNext.mentorships.listMentors.useQuery();
+  const { data } = trpcNext.mentorships.listMentorProfiles.useQuery();
 
   const shuffled = useMemo(() => {
     const filtered = data?.filter(m => matchable ? m.matchable : true);
@@ -192,7 +187,7 @@ export function MentorPage({ matchable, title }: {
  * and is influenced by the length of the array and a specified UUID
  * (which should be the current user id).
  */
-function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
+function dailyShuffle(mentors : MinUserAndProfile[], uuid: string) {
   const now = new Date();
   const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
     4, 0, 0);
@@ -221,7 +216,7 @@ function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
   return mentors.sort(() => rng() - 0.5);
 }
 
-function search(mentors: UserAndProfile[], searchTerm: string) {
+function search(mentors: MinUserAndProfile[], searchTerm: string) {
   const pinyinTerm = toPinyin(searchTerm);
 
   const match = (v: string | null | undefined) => {
