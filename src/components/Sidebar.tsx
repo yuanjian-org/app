@@ -5,6 +5,9 @@ import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
+import { IoIosCog, IoMdCalendar } from "react-icons/io";
+import { FaRegFaceGrinTongueSquint } from "react-icons/fa6";
+import { MdOutlineFace } from "react-icons/md";
 
 import {
   Avatar,
@@ -35,7 +38,6 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdPerson2,
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
@@ -143,7 +145,7 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '资深导师页',
     path: '/coachees',
-    icon: MdSupervisorAccount,
+    icon: MdOutlineFace,
     regex: /^\/coachees/,
     permission: 'MentorCoach',
   },
@@ -158,9 +160,9 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '预约不定期导师',
     path: '/mentors',
-    icon: MdSupervisorAccount,
+    icon: IoMdCalendar,
     regex: /^\/mentors$/,
-    permission: (me: User) => isAcceptedMentee(me, true)
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus, true)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
@@ -168,7 +170,7 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/mentors/matchable',
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/matchable$/,
-    permission: (me: User) => isAcceptedMentee(me)
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
@@ -177,6 +179,13 @@ const mainMenuItems: MainMenuItem[] = [
     icon: AttachmentIcon,
     regex: /^\/mentees/,
     permission: 'MentorshipManager',
+  },
+  {
+    name: '志愿者档案',
+    path: '/volunteers',
+    icon: FaRegFaceGrinTongueSquint,
+    regex: /^\/volunteers/,
+    permission: 'Volunteer',
   },
 ];
 
@@ -260,7 +269,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
         <DropdownMenuIfPermitted
           title="管理功能"
-          icon={<Icon as={MdPerson2} marginRight="2" />}
+          icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />

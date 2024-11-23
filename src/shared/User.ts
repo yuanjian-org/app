@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isPermitted, zRoles } from "./Role";
+import Role, { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
 import { zNullableDateColumn, zDateColumn } from "./DateColumn";
 
@@ -63,12 +63,13 @@ export type UserPreference = z.TypeOf<typeof zUserPreference>;
  */
 
 export function isAcceptedMentee(
-  user: User,
+  roles: Role[],
+  menteeStatus: MenteeStatus | null,
   includeAdhocMentorshipOnlyAcceptance?: boolean
 ) {
   const s: MenteeStatus[] = ["现届学子", "活跃校友", "学友",
     ...includeAdhocMentorshipOnlyAcceptance ? ["仅不定期" as MenteeStatus] : [],
   ];
-  return isPermitted(user.roles, 'Mentee')
-    && user.menteeStatus && s.includes(user.menteeStatus);
+  return isPermitted(roles, 'Mentee')
+    && menteeStatus && s.includes(menteeStatus);
 }

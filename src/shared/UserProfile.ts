@@ -27,6 +27,6 @@ export type UserProfile = z.TypeOf<typeof zUserProfile>;
 
 export const zMinUserAndProfile = z.object({
   user: zMinUser,
-  profile: zUserProfile.nullable(),
+  profile: zUserProfile,
 });
 export type MinUserAndProfile = z.TypeOf<typeof zMinUserAndProfile>;

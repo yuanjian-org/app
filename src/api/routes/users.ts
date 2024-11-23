@@ -4,7 +4,7 @@ import Role, { AllRoles, RoleProfiles, isPermitted, zRoles } from "../../shared/
 import db from "../database/db";
 import { Op } from "sequelize";
 import { authUser } from "../auth";
-import User, { zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
+import User, { defaultMentorCapacity, isAcceptedMentee, zMinUser, zUser, zUserFilter, zUserPreference } from "../../shared/User";
 import { isValidChineseName, toPinyin } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
@@ -18,7 +18,9 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
-import { zUserProfile } from "../../shared/UserProfile";
+import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
+import { zDateColumn } from "../../shared/DateColumn";
+import { getUser2MentorshipCount } from "./mentorships";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -85,6 +87,60 @@ const list = procedure
       },
     },
   });
+});
+
+const listMentorProfiles = procedure
+  .use(authUser())
+  .output(z.array(zMinUserAndProfile.merge(z.object({
+    matchable: z.boolean(),
+  }))))
+  .query(async ({ ctx: { user: me } }) =>
+{
+  if (!isPermitted(me.roles, ["Mentor", "MentorshipManager"]) &&
+    !isAcceptedMentee(me.roles, me.menteeStatus, true)) {
+    throw noPermissionError("导师");
+  }
+
+  // Force type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...minUserAttributes, "roles", "preference", "profile"],
+  });
+
+  const user2mentorships = await getUser2MentorshipCount();
+
+  return users.map(u => {
+    const adhoc = u.roles.includes("AdhocMentor");
+    const cap = adhoc ? 0 :
+      (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
+      - (user2mentorships[u.id] ?? 0);
+
+    return {
+      user: u,
+      profile: u.profile ?? {},
+      matchable: cap > 0,
+    };
+  });
+});
+
+const listVolunteerProfiles = procedure
+  .use(authUser(["Volunteer"]))
+  .output(z.array(zMinUserAndProfile.merge(z.object({
+    updatedAt: zDateColumn
+  }))))
+  .query(async () =>
+{
+  // Force type check
+  const volunteerRole: Role = "Volunteer";
+  return (await db.User.findAll({
+    where: { roles: { [Op.contains]: [volunteerRole] } },
+    attributes: [...minUserAttributes, "roles", "profile", "updatedAt"],
+  })).map(u => ({
+    user: u,
+    profile: u.profile ?? {},
+    updatedAt: u.updatedAt,
+  }));
 });
 
 const listRedactedEmailsWithSameName = procedure
@@ -265,19 +321,34 @@ const getUserProfile = procedure
   .input(z.object({
     userId: z.string(),
   }))
-  .output(zUserProfile)
-  .query(async ({ ctx: { user }, input: { userId } }) => 
+  .output(zMinUserAndProfile)
+  .query(async ({ ctx: { user: me }, input: { userId } }) => 
 {
-  if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
+  const u = await db.User.findByPk(userId, {
+    attributes: [...minUserAttributes, 'menteeStatus', 'roles', 'profile'] 
+  });
+  if (!u) throw notFoundError("用户", userId);
+
+  if (me.id !== userId &&
+
+    // These roles can access profiles of all the users
+    !isPermitted(me.roles, ["Mentor", "MentorshipManager", "UserManager"]) &&
+
+    // Volunteers who are not in the roles above can only access other
+    // volunteers profiles
+    !(isPermitted(me.roles, "Volunteer") && isPermitted(u.roles, "Volunteer")) &&
+
+    // Accepted mentoees can only access mentor profiles
+    !(isAcceptedMentee(me.roles, me.menteeStatus, true) &&
+      isPermitted(u.roles, "Mentor"))
+  ) {
     throw noPermissionError("用户", userId);
   }
 
-  const u = await db.User.findByPk(userId, {
-    attributes: ['profile'] 
-  });
-
-  if (!u) throw notFoundError("用户", userId);
-  return u.profile || {};
+  return {
+    user: u,
+    profile: u.profile ?? {},
+  };
 });
 
 const setUserProfile = procedure
@@ -548,6 +619,8 @@ export default router({
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
+  listVolunteerProfiles,
+  listMentorProfiles,
 
   update,
   setMenteeStatus,
