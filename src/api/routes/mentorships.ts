@@ -17,16 +17,16 @@ import {
   minUserAttributes,
   userAttributes,
   userInclude,
-} from "api/database/models/attributesAndIncludes";
+} from "../database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
-import { compareChinese, formatUserName } from "shared/strings";
+import { compareChinese, formatUserName } from "../../shared/strings";
 import { isPermittedtoAccessMentee } from "./users";
 import {
-  defaultMentorCapacity, zMentorPreference, zUser
-} from "shared/User";
-import { zMinUserAndProfile, zUserProfile } from "shared/UserProfile";
+  zMentorPreference, zUser
+} from "../../shared/User";
+import { zUserProfile } from "../../shared/UserProfile";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
@@ -127,65 +127,10 @@ const listMyMentorshipsAsCoach = procedure
   })).map(u => u.mentorshipsAsMentor).flat();
 });
 
-const listMentorProfiles = procedure
-  .use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
-  .output(z.array(zMinUserAndProfile.merge(z.object({
-    matchable: z.boolean(),
-  }))))
-  .query(async () =>
-{
-  // Force type check
-  const mentorRole: Role = "Mentor";
-  const users = await db.User.findAll({
-    where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...minUserAttributes, "roles", "preference", "profile"],
-  });
-
-  const user2mentorships = await getUser2MentorshipCount();
-
-  return users.map(u => {
-    const adhoc = u.roles.includes("AdhocMentor");
-    const cap = adhoc ? 0 :
-      (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
-      - (user2mentorships[u.id] ?? 0);
-
-    return {
-      user: u,
-      profile: u.profile,
-      matchable: cap > 0,
-    };
-  });
-});
-
-const getMentorProfile = procedure
-  .use(authUser(["Mentor", "Mentee", "MentorshipManager"]))
-  .input(z.object({
-    userId: z.string()
-  })).output(zMinUserAndProfile)
-  .query(async ({ input: { userId } }) =>
-{
-  // Declare a variable to enforce type check
-  const mentorRole: Role = "Mentor";
-  const users = await db.User.findAll({
-    where: {
-      id: userId,
-      roles: { [Op.contains]: [mentorRole] },
-    },
-    attributes: [...minUserAttributes, "profile"],
-  });
-  invariant(users.length <= 1);
-  if (!users.length) throw notFoundError("用户", userId);
-
-  return {
-    user: users[0],
-    profile: users[0].profile,
-  };
-});
-
 /**
  * Return a map from user to the number of mentorships of this user as a mentor
  */
-async function getUser2MentorshipCount() {
+export async function getUser2MentorshipCount() {
   return (await db.Mentorship.findAll({
     where: { endedAt: null },
     attributes: [
@@ -298,12 +243,10 @@ const get = procedure
 export default router({
   create,
   get,
-  getMentorProfile,
   update,
   listMyMentorshipsAsMentor,
   listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
   listMentorStats,
-  listMentorProfiles,
   countMentorships: deprecatedCountMentorships,
 });

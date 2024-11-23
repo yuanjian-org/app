@@ -22,27 +22,7 @@ import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useState } from "react";
 import { MinUser } from "shared/User";
-
-export type FieldAndLabel = {
-  field: keyof UserProfile,
-  label?: string,
-};
-
-export const visibleUserProfileFields: FieldAndLabel[] = [
-  // 置顶亮点
-  { field: "身份头衔", label: "职位" },
-  { field: "现居住地" },
-  { field: "擅长话题", label: "擅长聊天话题" },
-  { field: "成长亮点" },
-
-  { field: "个性特点" },
-  { field: "爱好与特长" },
-  { field: "喜爱读物", label: "喜爱的书和媒体" },
-  { field: "职业经历" },
-  { field: "教育经历" },
-  { field: "曾居住地" },
-  { field: "生活日常" },
-];
+import { visibleUserProfileFields } from "components/UserCards";
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -50,10 +30,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
  */
 export default function Page() {
   const router = useRouter();
-  const userId = parseQueryStringOrUnknown(router, 'mentorId');
-  const showBookingButton = !parseQueryString(router, 'nobooking');
+  const userId = parseQueryStringOrUnknown(router, 'userId');
+  const showBookingButton = !!parseQueryString(router, 'booking');
   
-  const { data } = trpcNext.mentorships.getMentorProfile.useQuery({ userId });
+  const { data } = trpcNext.users.getUserProfile.useQuery({ userId });
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />

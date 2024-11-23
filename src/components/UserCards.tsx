@@ -1,0 +1,326 @@
+import {
+  Text,
+  SimpleGrid,
+  Heading,
+  Button,
+  Image,
+  VStack,
+  Box,
+  HStack,
+  CardProps,
+  Link,
+  Spacer,
+  Input,
+  InputGroup,
+  InputLeftElement,
+} from '@chakra-ui/react';
+import Loader from 'components/Loader';
+import { formatUserName, toPinyin, truncate } from 'shared/strings';
+import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
+import { MinUser } from 'shared/User';
+import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
+import { useMemo, useState } from 'react';
+import MentorBookingModal from 'components/MentorBookingModal';
+import { SearchIcon } from '@chakra-ui/icons';
+
+export type FieldAndLabel = {
+  field: keyof UserProfile;
+  label?: string;
+};
+
+export const visibleUserProfileFields: FieldAndLabel[] = [
+  // 置顶亮点
+  { field: "身份头衔", label: "职位" },
+  { field: "现居住地" },
+  { field: "擅长话题", label: "擅长聊天话题" },
+  { field: "成长亮点" },
+
+  { field: "个性特点" },
+  { field: "爱好与特长" },
+  { field: "喜爱读物", label: "喜爱的书和媒体" },
+  { field: "职业经历" },
+  { field: "教育经历" },
+  { field: "曾居住地" },
+  { field: "生活日常" },
+];
+
+/**
+ * There are two types of mentors:
+ * 
+ * *matchable* mentors can match mentees for long-term mentorship and also have
+ * one-off sessions with any mentee on demand.
+ * 
+ * *adhoc* mentors cannot match for long-term mentorship and only perform
+ * one-off session.
+ */
+export type MentorCardType = "AdhocMentor" | "MachableMentor";
+export type UserCardType = MentorCardType | "Voltuneer";
+
+export default function UserCards({ type, users }: {
+  type: UserCardType,
+  users: MinUserAndProfile[] | undefined,
+}) {
+  const [searchTerm, setSearchTerm] = useState<string>();
+  // Set to null to book with any mentor
+  const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+
+  const searchResult = useMemo(() => {
+    return users && searchTerm ? search(users, searchTerm) : users;
+  }, [searchTerm, users]); 
+
+  return <>
+    {!searchResult ? <Loader /> : <>
+
+      {/* Search box */}
+      <InputGroup mb={sectionSpacing}>
+        <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+        <Input
+          autoFocus
+          type="search"
+          placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
+          value={searchTerm}
+          onChange={ev => setSearchTerm(ev.target.value)}
+        />
+      </InputGroup>
+
+      {/* Desktop version */}
+      <SimpleGrid
+        display={{ base: "none", [breakpoint]: "grid" }}
+        spacing={componentSpacing}
+        templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
+      >
+        {searchResult.map(m => <UserCardForDesktop
+          key={m.user.id}
+          user={m.user}
+          profile={m.profile}
+          type={type}
+          openModal={() => setBookingMentor(m.user)}
+        />)}
+      </SimpleGrid>
+
+      {/* Mobile version */}
+      <SimpleGrid
+        display={{ base: "grid", [breakpoint]: "none" }}
+        spacing={componentSpacing}
+        templateColumns='1fr'
+      >
+        {searchResult.map(m => <UserCardForMobile
+          key={m.user.id}
+          user={m.user}
+          profile={m.profile}
+          type={type}
+          openModal={() => setBookingMentor(m.user)}
+        />)}
+      </SimpleGrid>
+          
+      {bookingMentor !== undefined && 
+        <MentorBookingModal
+          mentor={bookingMentor} 
+          onClose={() => setBookingMentor(undefined)}
+        />
+      }
+    </>}
+  </>;
+}
+
+function search(users: MinUserAndProfile[], searchTerm: string) {
+  const pinyinTerm = toPinyin(searchTerm);
+
+  const match = (v: string | null | undefined) => {
+    return v && (v.includes(searchTerm) || toPinyin(v).includes(pinyinTerm));
+  };
+
+  return users.filter(u => match(u.user.name) || (u.profile && (
+    match(u.profile.性别) ||
+    visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
+}
+
+function UserCard({ userId, type, children, ...rest }: {
+  userId: string,
+  type: UserCardType,
+} & CardProps) {
+  const router = useRouter();
+  const url = `/users/${userId}${type == "AdhocMentor" ? "?booking=1" : ""}`;
+
+  return <Card
+    overflow="hidden"
+    cursor="pointer"
+    onClick={() => router.push(url)}
+    {...rest}
+  >
+    {children}
+  </Card>;
+}
+
+function UserCardForDesktop({ user, profile: p, type, openModal }: {
+  user: MinUser,
+  profile: UserProfile | null,
+  type: UserCardType,
+  openModal: () => void,
+}) {
+
+  return <UserCard userId={user.id} type={type}>
+
+    <FullWidthImageSquare profile={p} />
+
+    <CardHeader>
+      <Heading size='md' color="gray.600">
+        {formatUserName(user.name, "formal")}
+      </Heading>
+    </CardHeader>
+    <CardBody pt={1}>
+      <VStack align="start">
+        {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
+        {type == "AdhocMentor" ? <>
+          {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
+          {p?.职业经历 && <Text>{truncate(p.职业经历, 80)}</Text>}
+        </> : type == "MachableMentor" ? <>
+          {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
+          {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
+          {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, 80)}</Text>}
+        </> : <>
+          {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
+          {p?.爱好与特长 && <Text><b>爱好</b>：{p.爱好与特长}</Text>}
+          {p?.生活日常 && <Text>{p.生活日常}</Text>}
+        </>}
+      </VStack>
+    </CardBody>
+    <CardFooter>
+      <Button>更多信息</Button>
+
+      {type == "AdhocMentor" && <>
+        <Spacer />
+        <Button variant="brand" onClick={ev => {
+          ev.stopPropagation();
+          openModal();
+        }}>预约</Button>
+      </>}
+    </CardFooter>
+  </UserCard>;
+}
+
+/**
+ * This component ensures the image fill the container's width and is cropped
+ * into a square.
+ */
+function FullWidthImageSquare({ profile }: {
+  profile: UserProfile | null
+}) {
+  return <Box
+    position="relative"
+    width="100%"
+    // This hack enforces a square aspect ratio for the container. The
+    // percentage is based on the width, so paddingBottom="100%" ensures the
+    // height equals the width.
+    paddingBottom="100%"
+  >
+    <Image
+      position="absolute"
+      top="0"
+      left="0"
+      width="100%"
+      height="100%"
+      objectFit='cover'
+      src={
+        profile?.照片链接 ? profile.照片链接 :
+        profile?.性别 == "男" ? "/img/placeholder-male.png" :
+        "/img/placeholder-female.png"
+      }
+      alt="照片"
+    />
+  </Box>;
+}
+
+function UserCardForMobile({ user, profile: p, type, openModal }: {
+  user: MinUser,
+  profile: UserProfile | null,
+  type: UserCardType,
+  openModal: () => void,
+}) {
+  // Roughly five lines of text on iPhone 12 Pro.
+  const maxLen = 75;
+
+  return <UserCard
+    userId={user.id}
+    size="sm"
+    variant="unstyled"
+    boxShadow="sm"
+    type={type}
+  >
+    <HStack
+      spacing={componentSpacing}
+      fontSize="sm"
+      // Align content to the top
+      align="start"
+      // To anchor the <Link> below
+      position="relative"
+    >
+      <VStack
+        spacing={componentSpacing}
+        mb={componentSpacing}
+        // Align content to the left
+        align="start"
+      >
+        <Box width="100px">
+          <FullWidthImageSquare profile={p} />
+        </Box>
+
+        <VStack
+          ml={componentSpacing}
+          // Align content to the left
+          align="start"
+        >
+          <Heading size='sm' color="gray.600">
+            {formatUserName(user.name, "formal")}
+          </Heading>
+
+          {type == "AdhocMentor" ? 
+            p?.专业领域 && <Text>{p.专业领域}</Text>
+            :
+            p?.现居住地 && <Text>{p.现居住地}</Text>
+          }
+        </VStack>
+      </VStack>
+
+      <VStack
+        my={componentSpacing}
+        me={componentSpacing}
+        // Align content to the left
+        align="start"
+        // Preserve space for the <Link> below
+        pb={3 + componentSpacing}
+      >
+        {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
+
+        {type == "AdhocMentor" ? <>
+          {p?.职业经历 && <Text>{truncate(p.职业经历, maxLen)}</Text>}
+        </> : type == "MachableMentor" ? <>
+          {p?.擅长话题 && <Text>擅长聊：{truncate(p.擅长话题, maxLen)}</Text>}
+        </> : <>
+          {p?.爱好与特长 && <Text><b>爱好</b>：{p.爱好与特长}</Text>}
+          {p?.生活日常 && <Text>{truncate(p.生活日常, maxLen)}</Text>}
+        </>}
+      </VStack>
+
+      {/* Position it to the bottom right corner of the card */}
+      <HStack
+        spacing={2}
+        position="absolute"
+        bottom={componentSpacing}
+        right={componentSpacing}
+      >
+        <Link>更多信息</Link>
+
+        {type == "AdhocMentor" && <>
+          <Text color="gray.400">|</Text>
+          <Link onClick={ev => {
+            ev.stopPropagation();
+            openModal();
+          }}>预约</Link>
+        </>}
+      </HStack>
+    </HStack>
+  </UserCard>;
+}

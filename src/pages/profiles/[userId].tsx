@@ -59,10 +59,10 @@ export default function Page() {
   const [user, setUser] = useState<User>();
   useEffect(() => setUser(oldUser), [oldUser]);
 
-  const { data: oldProfile } = 
+  const { data: old } = 
     trpcNext.users.getUserProfile.useQuery({ userId }, queryOpts);
   const [profile, setProfile] = useState<UserProfile>();
-  useEffect(() => setProfile(oldProfile), [oldProfile]);
+  useEffect(() => setProfile(old?.profile), [old]);
 
   const updateProfile = (k: keyof UserProfile, v: string) => {
     invariant(profile);
@@ -81,7 +81,7 @@ export default function Page() {
       if (!_.isEqual(oldUser, user)) {
         await trpc.users.update.mutate(user);
       }
-      if (!_.isEqual(oldProfile, profile)) {
+      if (!_.isEqual(old?.profile, profile)) {
         await trpc.users.setUserProfile.mutate({ userId, profile });
       }
       toast.success("保存成功。");
