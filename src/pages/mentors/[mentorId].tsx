@@ -14,6 +14,7 @@ import {
   Td,
   TableContainer,
   Button,
+  Tbody,
 } from '@chakra-ui/react';
 import { UserProfile } from "shared/UserProfile";
 import { sectionSpacing } from "theme/metrics";
@@ -88,14 +89,16 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
   ];
 
   return <TableContainer maxW="700px"><Table>
-    {kls.map((kl, idx) => 
-      <ProfileRow key={idx} profile={p} k={kl.k} label={kl.l} />)
-    }
+    <Tbody>
+      {kls.map((kl, idx) => 
+        <ProfileRow key={idx} profile={p} k={kl.k} label={kl.l} />)
+      }
 
-    {showBookingButton && <Tr><Td></Td><Td><Button
-      variant="brand"
-      onClick={() => setBooking(true)}
-    >预约交流</Button></Td></Tr>}
+      {showBookingButton && <Tr><Td></Td><Td><Button
+        variant="brand"
+        onClick={() => setBooking(true)}
+      >预约交流</Button></Td></Tr>}
+    </Tbody>
 
     {booking && <MentorBookingModal 
       mentor={user}

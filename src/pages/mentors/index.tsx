@@ -17,7 +17,7 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName, truncate } from 'shared/strings';
+import { formatUserName, hash, truncate } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
@@ -28,6 +28,7 @@ import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
+import { useUserContext } from 'UserContext';
 
 export default widePage(() =>
   <MentorPage matchable={false} title="预约不定期导师" />,
@@ -51,11 +52,12 @@ export function MentorPage({ matchable, title }: {
   matchable: boolean,
   title: string,
 }) {
+  const [me] = useUserContext();
   const { data } = trpcNext.mentorships.listMentors.useQuery();
   const shufflted = useMemo(() => {
     const filtered = data?.filter(m => matchable ? m.matchable : true);
-    return filtered ? dailyShuffle(filtered) : undefined;
-  }, [data, matchable]);
+    return filtered ? dailyShuffle(filtered, me.id) : undefined;
+  }, [data, matchable, me]);
 
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
@@ -165,9 +167,11 @@ export function MentorPage({ matchable, title }: {
 
 /**
  * Returns an array sorted in a deterministic "random" order.
- * The order is consistent from 4am of the current day to 4am of the next day.
+ * The order is consistent from 4am of the current day to 4am of the next day,
+ * and is influenced by the length of the array and a specified UUID
+ * (which should be the current user id).
  */
-function dailyShuffle(mentors : UserAndProfile[]) {
+function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
   const now = new Date();
   const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
     4, 0, 0);
@@ -179,15 +183,15 @@ function dailyShuffle(mentors : UserAndProfile[]) {
 
   // Generate a seeded random number generator
   function seededRandom(seed: number): () => number {
-      // Linear congruential generator (provided by ChatGPT)
+      // Linear congruential generator, by ChatGPT
       return function () {
           seed = (seed * 9301 + 49297) % 233280;
           return seed / 233280;
       };
   }
 
-  // Seed based on the day
-  const rng = seededRandom(local4am.getTime());
+  const seed = hash(`${local4am.getTime()}-${mentors.length}-${uuid}`);
+  const rng = seededRandom(seed);
 
   // First sort the array in a deterministic order
   mentors.sort((a, b) => a.user.id.localeCompare(b.user.id));
