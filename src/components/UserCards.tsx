@@ -78,6 +78,7 @@ export default function UserCards({ type, users }: {
         <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
         <Input
           autoFocus
+          bg="white"
           type="search"
           placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
           value={searchTerm}
@@ -126,10 +127,14 @@ export default function UserCards({ type, users }: {
 }
 
 function search(users: MinUserAndProfile[], searchTerm: string) {
-  const pinyinTerm = toPinyin(searchTerm);
+  // Note that `toPinyin('Abc') returns 'Abc' without case change.
+  const lower = searchTerm.trim().toLowerCase();
+  const pinyin = toPinyin(lower);
 
   const match = (v: string | null | undefined) => {
-    return v && (v.includes(searchTerm) || toPinyin(v).includes(pinyinTerm));
+    if (!v) return false;
+    const lowerV = v.toLowerCase();
+    return lowerV.includes(lower) || toPinyin(lowerV).includes(pinyin);
   };
 
   return users.filter(u => match(u.user.name) || (u.profile && (
@@ -160,6 +165,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
   type: UserCardType,
   openModal: () => void,
 }) {
+  const maxLen = 80;
 
   return <UserCard userId={user.id} type={type}>
 
@@ -179,11 +185,11 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
         </> : type == "MachableMentor" ? <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
           {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
-          {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, 80)}</Text>}
+          {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, maxLen)}</Text>}
         </> : <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
-          {p?.爱好与特长 && <Text><b>爱好</b>：{p.爱好与特长}</Text>}
-          {p?.生活日常 && <Text>{p.生活日常}</Text>}
+          {p?.爱好与特长 && <Text><b>爱好</b>：{truncate(p.爱好与特长, maxLen)}</Text>}
+          {p?.生活日常 && <Text><b>日常</b>：{truncate(p.生活日常, maxLen)}</Text>}
         </>}
       </VStack>
     </CardBody>
@@ -299,8 +305,8 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
         </> : type == "MachableMentor" ? <>
           {p?.擅长话题 && <Text>擅长聊：{truncate(p.擅长话题, maxLen)}</Text>}
         </> : <>
-          {p?.爱好与特长 && <Text><b>爱好</b>：{p.爱好与特长}</Text>}
-          {p?.生活日常 && <Text>{truncate(p.生活日常, maxLen)}</Text>}
+          {p?.爱好与特长 && <Text><b>爱好</b>：{truncate(p.爱好与特长, maxLen)}</Text>}
+          {p?.生活日常 && <Text><b>日常</b>：{truncate(p.生活日常, maxLen)}</Text>}
         </>}
       </VStack>
 

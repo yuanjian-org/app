@@ -6,8 +6,8 @@ import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
-import { FaRegFaceGrinTongueSquint } from "react-icons/fa6";
 import { MdOutlineFace } from "react-icons/md";
+import { IoStarOutline } from "react-icons/io5";
 
 import {
   Avatar,
@@ -183,7 +183,7 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '志愿者档案',
     path: '/volunteers',
-    icon: FaRegFaceGrinTongueSquint,
+    icon: IoStarOutline,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
   },
