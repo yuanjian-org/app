@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
 import { zGroup } from "./Group";
+import { zNullableDateColumn } from "./DateColumn";
 
 export const zMentorship = z.object({
   id: z.string(),
-  endedAt: z.coerce.string().nullable(),
+  endedAt: zNullableDateColumn,
   mentor: zMinUser,
   mentee: zMinUser,
   group: zGroup,

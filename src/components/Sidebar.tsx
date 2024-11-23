@@ -35,7 +35,6 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary,
   MdPerson2,
   MdHome,
 } from 'react-icons/md';
@@ -169,14 +168,6 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/mentors/matchable',
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/matchable$/,
-    permission: (me: User) => isAcceptedMentee(me)
-      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
-  },
-  {
-    name: '资源库',
-    path: '/resources',
-    icon: MdLocalLibrary,
-    regex: /^\/resources$/,
     permission: (me: User) => isAcceptedMentee(me)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
