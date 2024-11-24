@@ -1,6 +1,6 @@
 import React from 'react';
 import { Landmark, Latitude, Latitudes } from 'shared/Map';
-import { readMapJsonFiles } from 'shared/MapJson'
+import { readMapJsonFiles } from 'shared/MapJson';
 import Map from 'components/Map';
 
 type PageProps = {
