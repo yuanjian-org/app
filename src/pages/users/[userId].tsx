@@ -15,6 +15,7 @@ import {
   TableContainer,
   Button,
   Tbody,
+  Link,
 } from '@chakra-ui/react';
 import { UserProfile } from "shared/UserProfile";
 import { sectionSpacing } from "theme/metrics";
@@ -23,6 +24,10 @@ import MentorBookingModal from "components/MentorBookingModal";
 import { useState } from "react";
 import { MinUser } from "shared/User";
 import { visibleUserProfileFields } from "components/UserCards";
+import { useUserContext } from "UserContext";
+import { isPermitted } from "shared/Role";
+import NextLink from "next/link";
+import { EditIcon } from "@chakra-ui/icons";
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -66,6 +71,7 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
   profile: UserProfile,
   showBookingButton: boolean,
 }) {
+  const [me] = useUserContext();
   const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table>
@@ -78,6 +84,13 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
         variant="brand"
         onClick={() => setBooking(true)}
       >预约交流</Button></Td></Tr>}
+
+      {(me.id == user.id || isPermitted(me.roles, "UserManager")) &&
+        <Tr><Td></Td><Td><Link
+          as={NextLink}
+          href={`/profiles/${user.id}`}
+        ><EditIcon /> 修改信息</Link></Td></Tr>
+      }
     </Tbody>
 
     {booking && <MentorBookingModal 
