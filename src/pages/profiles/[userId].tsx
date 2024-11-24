@@ -138,7 +138,7 @@ export default function Page() {
   </VStack>;
 }
 
-Page.title = "个人信息";
+Page.title = "个人资料";
 
 function Basic({ user, profile, setUser, setProfile }: {
   user: User,
@@ -260,7 +260,7 @@ function NonMentor({ profile, updateProfile, SaveButton }: {
   SaveButton: React.ComponentType,
 }) {
   return <>
-    <Heading size="md">个人信息</Heading>
+    <Heading size="md">个人资料</Heading>
     <Text><MarkdownSupported /></Text>
     <NoAutoSave />
     <PositionFormControl profile={profile} updateProfile={updateProfile} />

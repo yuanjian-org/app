@@ -148,10 +148,13 @@ const listRedactedEmailsWithSameName = procedure
   .output(z.array(z.string()))
   .query(async ({ ctx }) =>
 {
+  // Force type check
+  const banned: Role = "Banned";
   return (await db.User.findAll({
     where: {
       name: ctx.user.name,
       id: { [Op.ne]: ctx.user.id },
+      [Op.not]: { roles: { [Op.contains]: [banned] }, },
     },
     attributes: ["email"],
   })).map(u => redactEmail(u.email));

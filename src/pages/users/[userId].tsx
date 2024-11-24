@@ -89,7 +89,7 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
         <Tr><Td></Td><Td><Link
           as={NextLink}
           href={`/profiles/${user.id}`}
-        ><EditIcon /> 修改信息</Link></Td></Tr>
+        ><EditIcon /> 修改资料</Link></Td></Tr>
       }
     </Tbody>
 
