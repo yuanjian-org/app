@@ -332,6 +332,10 @@ const getUserProfile = procedure
   });
   if (!u) throw notFoundError("用户", userId);
 
+  /**
+   * N.B. Update /who-can-see-my-data when changing permission here.
+   */
+
   if (me.id !== userId &&
 
     // These roles can access profiles of all the users

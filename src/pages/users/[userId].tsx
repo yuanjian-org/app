@@ -64,7 +64,7 @@ export default function Page() {
   </>;
 }
 
-Page.title = "导师";
+Page.title = "用户资料";
 
 function ProfileTable({ user, profile: p, showBookingButton }: {
   user: MinUser,

@@ -31,10 +31,9 @@ import {
   parseQueryStringOrUnknown, shaChecksum 
 } from 'shared/strings';
 import { useRouter } from 'next/router';
-import User, {
-  } from 'shared/User';
+import User, { getUserUrl } from 'shared/User';
 import { markdownSyntaxUrl } from 'components/MarkdownSupport';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
@@ -123,18 +122,30 @@ export default function Page() {
 
     {isPermitted(user.roles, 'Mentor') ?
       <Mentor
-        userId={userId}
         profile={profile}
         updateProfile={updateProfile}
-        SaveButton={SaveButton}
       />
       :
       <NonMentor
         profile={profile}
         updateProfile={updateProfile}
-        SaveButton={SaveButton}
       />
     }
+
+    <SaveButton />
+
+    <Link href={getUserUrl(user)} target='_blank'>
+      <HStack>
+        <Text>查看展示效果</Text> <ExternalLinkIcon />
+      </HStack>
+    </Link>
+
+    <Link href={`/who-can-see-my-data`} target='_blank'>
+      <HStack>
+        <LockIcon /> <Text>谁能看到我的资料</Text>
+      </HStack>
+    </Link>
+
   </VStack>;
 }
 
@@ -254,10 +265,9 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   </>;
 }
 
-function NonMentor({ profile, updateProfile, SaveButton }: {
+function NonMentor({ profile, updateProfile }: {
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
-  SaveButton: React.ComponentType,
 }) {
   return <>
     <Heading size="md">个人资料</Heading>
@@ -267,7 +277,6 @@ function NonMentor({ profile, updateProfile, SaveButton }: {
     <CityFormControl profile={profile} updateProfile={updateProfile} />
     <HobbyFormControl profile={profile} updateProfile={updateProfile} />
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
-    <SaveButton />
   </>;
 }
 
@@ -342,11 +351,9 @@ function DailyLifeFormControl({ profile, updateProfile }: {
   </FormControl>;
 }
 
-function Mentor({ userId, profile, updateProfile, SaveButton }: {
-  userId: string,
+function Mentor({ profile, updateProfile }: {
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
-  SaveButton: React.ComponentType,
 }) {
   return <>
     <Heading size="md">导师信息</Heading>
@@ -446,14 +453,6 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
     </FormControl>
 
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
-
-    <SaveButton />
-
-    <Text><Link href={`/mentors/${userId}`} target='_blank'>
-      <HStack>
-        <Text>查看展示效果</Text> <ExternalLinkIcon />
-      </HStack>
-    </Link></Text>
   </>;
 }
 

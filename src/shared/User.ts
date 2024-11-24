@@ -58,9 +58,6 @@ export const zUserPreference = z.object({
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
 
-/**
- * Common functions for permission checking
- */
 
 export function isAcceptedMentee(
   roles: Role[],
@@ -72,4 +69,8 @@ export function isAcceptedMentee(
   ];
   return isPermitted(roles, 'Mentee')
     && menteeStatus && s.includes(menteeStatus);
+}
+
+export function getUserUrl(u: MinUser) {
+  return `/users/${u.id}`;
 }
