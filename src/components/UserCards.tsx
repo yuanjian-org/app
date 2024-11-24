@@ -77,7 +77,6 @@ export default function UserCards({ type, users }: {
       <InputGroup mb={sectionSpacing}>
         <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
         <Input
-          autoFocus
           bg="white"
           type="search"
           placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
