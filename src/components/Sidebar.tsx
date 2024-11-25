@@ -174,18 +174,18 @@ const mainMenuItems: MainMenuItem[] = [
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '学生档案',
-    path: '/mentees?menteeStatus=现届学子',
-    icon: AttachmentIcon,
-    regex: /^\/mentees/,
-    permission: 'MentorshipManager',
-  },
-  {
     name: '志愿者档案',
     path: '/volunteers',
     icon: IoStarOutline,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
+  },
+  {
+    name: '学生档案',
+    path: '/mentees?menteeStatus=现届学子',
+    icon: AttachmentIcon,
+    regex: /^\/mentees/,
+    permission: 'MentorshipManager',
   },
 ];
 
