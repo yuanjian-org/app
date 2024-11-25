@@ -6,11 +6,12 @@ import { zNullableDateColumn, zDateColumn } from "./DateColumn";
 export const zMinUser = z.object({
   id: z.string(),
   name: z.string().nullable(),
+  url: z.string().nullable(),
 });
 export type MinUser = z.TypeOf<typeof zMinUser>;
 
 export const zUser = zMinUser.merge(z.object({
-  // TODO: Consider moving role to MinUser to avoid retrieving the whole User
+  // TODO: Consider moving roles to MinUser to avoid retrieving the whole User
   // object just for permission checking.
   roles: zRoles,
   email: z.string().email(),
@@ -72,5 +73,5 @@ export function isAcceptedMentee(
 }
 
 export function getUserUrl(u: MinUser) {
-  return `/users/${u.id}`;
+  return u.url ? `/${u.url}` : `/users/${u.id}`;
 }

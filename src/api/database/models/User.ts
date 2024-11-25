@@ -1,6 +1,5 @@
 import type {
   CreationOptional,
-  Transaction,
 } from "sequelize";
 import {
   AllowNull,
@@ -22,7 +21,6 @@ import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
-import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
@@ -44,6 +42,12 @@ class User extends Model {
   // Always use `formatUserName` to display user names.
   @Column(STRING)
   name: string | null;
+
+  // Only uesrs with the Volutneer role can set up urls. A user doesn't lose
+  // the url after they are no longer a volunteer.
+  @Unique
+  @Column(STRING)
+  url: string | null;
 
   @Column(STRING)
   pinyin: string | null;
@@ -147,16 +151,3 @@ class User extends Model {
 }
 
 export default User;
-
-export async function createUser(
-  fields: any,
-  transaction?: Transaction,
-  mode: "create" | "upsert" = "create",
-): Promise<User> {
-  const f = structuredClone(fields);
-  if (!("name" in f)) f.name = "";
-  f.pinyin = toPinyin(f.name);
-  return mode == "create" ? 
-    await User.create(f, transaction ? { transaction } : {}) :
-    (await User.upsert(f, transaction ? { transaction } : {}))[0];
-}

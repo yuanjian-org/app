@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { submit } from './submitMenteeInterviewerTestResult';
-import User, { createUser } from '../database/models/User';
+import User from '../database/models/User';
+import { createUser } from "../routes/users";
+import sequelize from '../database/sequelize';
 
 const input = {
   "form": "w02l95",
@@ -13,15 +15,17 @@ const input = {
 
 describe('submitMenteeInterviewerTestResult', () => {
   before(async () => {
-    await createUser({
-      name: "测试员",
-      email: "test@email.com",
-      roles: [],
-    });
-    await createUser({
-      name: "测试员",
-      email: "test2@email.com",
-      roles: [],
+    await sequelize.transaction(async transaction => {
+      await createUser({
+        name: "测试员",
+        email: "test@email.com",
+        roles: [],
+      }, transaction);
+      await createUser({
+        name: "测试员",
+        email: "test2@email.com",
+        roles: [],
+      }, transaction);
     });
   });
 

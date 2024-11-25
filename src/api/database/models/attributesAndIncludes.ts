@@ -10,7 +10,7 @@ import User from "./User";
  * User
  */
 
-export const minUserAttributes = ['id', 'name'];
+export const minUserAttributes = ['id', 'name', 'url'];
 
 export const userAttributes = [...minUserAttributes, "wechat", "email",
   "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",

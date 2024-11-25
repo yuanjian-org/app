@@ -17,7 +17,7 @@ import {
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin, truncate } from 'shared/strings';
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
-import { MinUser } from 'shared/User';
+import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
@@ -141,12 +141,12 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function UserCard({ userId, type, children, ...rest }: {
-  userId: string,
+function UserCard({ user, type, children, ...rest }: {
+  user: MinUser,
   type: UserCardType,
 } & CardProps) {
   const router = useRouter();
-  const url = `/users/${userId}${type == "AdhocMentor" ? "?booking=1" : ""}`;
+  const url = `${getUserUrl(user)}${type == "AdhocMentor" ? "?booking=1" : ""}`;
 
   return <Card
     overflow="hidden"
@@ -166,7 +166,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
 }) {
   const maxLen = 80;
 
-  return <UserCard userId={user.id} type={type}>
+  return <UserCard user={user} type={type}>
 
     <FullWidthImageSquare profile={p} />
 
@@ -248,7 +248,7 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
   const maxLen = 75;
 
   return <UserCard
-    userId={user.id}
+    user={user}
     size="sm"
     variant="unstyled"
     boxShadow="sm"
