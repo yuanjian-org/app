@@ -224,7 +224,7 @@ function dailyShuffle(mentors : UserAndProfile[], uuid: string) {
 function search(mentors: UserAndProfile[], searchTerm: string) {
   const pinyinTerm = toPinyin(searchTerm);
 
-  const match = (v: string | null | undefined) => {
+  const match = (v: string | null | undefined | any) => {
     return v && (v.includes(searchTerm) || toPinyin(v).includes(pinyinTerm));
   };
 

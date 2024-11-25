@@ -65,7 +65,7 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(oldProfile), [oldProfile]);
 
-  const updateProfile = (k: keyof UserProfile, v: string) => {
+  const updateProfile = (k: keyof UserProfile, v: any) => {
     invariant(profile);
     const updated = structuredClone(profile);
     if (v) updated[k] = v;
@@ -201,12 +201,11 @@ function Basic({ user, profile, setUser, setProfile }: {
 function Picture({ userId, profile, updateProfile, SaveButton }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
+  updateProfile: (k: keyof UserProfile, v: any) => void,
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
   const [isModalOpen, setModalOpen] = useState(false);
-  const [imageUrl, setImageUrl] = useState(profile.照片链接); 
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -217,6 +216,10 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
       shaChecksum(profile)) : null, 
     [userId, profile]
   );
+
+  const handleUpdateProfileImage = (x: number, y: number, zoom: number) => {
+    updateProfile('照片参数', { x, y, zoom }); 
+  };
 
   return <>
     <Heading size="md">生活照</Heading>
@@ -242,7 +245,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           </HStack>
         }
         {isModalOpen && <CropImageModal onClose={() => setModalOpen(false)} 
-          imageUrl={imageUrl} />}
+          imageUrl={profile.照片链接} onSave={handleUpdateProfileImage} />}
       </>}
 
       <FormHelperTextWithMargin>
@@ -256,10 +259,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           可见，用于在个别情况下直接引用其他网站的图像：</Text>
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
-          onChange={ev => 
-            {updateProfile('照片链接', ev.target.value); 
-            setImageUrl(ev.target.value);
-          }}
+          onChange={ev => {updateProfile('照片链接', ev.target.value);}}
         />
         <SaveButton />
       </>}

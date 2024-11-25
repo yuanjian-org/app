@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 const zStr = z.string().optional();
+export const zPicParams = z.object({
+  x: z.number(),
+  y: z.number(),
+  zoom: z.number(),
+}).optional();
 
 export const zUserProfile = z.object({
   '性别': zStr,
@@ -18,6 +23,7 @@ export const zUserProfile = z.object({
   '擅长话题': zStr,
 
   '照片链接': zStr,
+  '照片参数': zPicParams,
 
   // Unused / deprecated
   '擅长辅导领域': zStr,

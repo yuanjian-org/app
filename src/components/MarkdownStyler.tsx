@@ -15,7 +15,7 @@ import rehypeRaw from 'rehype-raw';
  * @params allowHtml Whether to parse raw html tags in content. DANGEROUS!
  */
 export default function MarkdownStyler({ content, allowHtml }: {
-  content: string,
+  content: any,
   allowHtml?: boolean,
 }) {
   return <div className={styles.markdownStyler}>
