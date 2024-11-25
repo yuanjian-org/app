@@ -42,6 +42,7 @@ import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import { CropImageModal } from 'components/CropImageModal';
 import getBaseUrl from 'shared/getBaseUrl';
+import { ImageParams } from 'shared/UserProfile';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -257,7 +258,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isCropImageModalOpen, setCropImageModalOpen] = useState(false);
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -269,7 +270,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
     [userId, profile]
   );
 
-  const handleUpdateProfileImage = (x: number, y: number, zoom: number) => {
+  const updateProfileImageParams = (x: number, y: number, zoom: number) => {
     updateProfile('照片参数', { x, y, zoom }); 
   };
 
@@ -292,12 +293,13 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           }
         </Link>
         {profile.照片链接 && 
-          <HStack onClick={()=>setModalOpen(!isModalOpen)}>
+          <HStack onClick={()=>setCropImageModalOpen(!isCropImageModalOpen)}>
             <MdChangeCircle /><Text>修改图像</Text>
           </HStack>
         }
-        {isModalOpen && <CropImageModal onClose={() => setModalOpen(false)} 
-          imageUrl={profile.照片链接} onSave={handleUpdateProfileImage} />}
+        {isCropImageModalOpen && <CropImageModal 
+          onClose={() => setCropImageModalOpen(false)} 
+          imageUrl={profile.照片链接} onSave={updateProfileImageParams} />}
       </>}
 
       <FormHelperTextWithMargin>
@@ -311,7 +313,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
           可见，用于在个别情况下直接引用其他网站的图像：</Text>
         </FormHelperTextWithMargin>
         <Input bg="white" value={profile.照片链接 || ""} mb={componentSpacing}
-          onChange={ev => {updateProfile('照片链接', ev.target.value);}}
+          onChange={ev => updateProfile('照片链接', ev.target.value)}
         />
         <SaveButton />
       </>}

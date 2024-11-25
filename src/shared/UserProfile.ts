@@ -2,11 +2,15 @@ import { z } from "zod";
 import { zMinUser } from "./User";
 
 const zStr = z.string().optional();
-export const zPicParams = z.object({
+const zImageParams = z.object({
+  // x represents the horizontal position of the image
   x: z.number(),
+  // y represents the vertical position of the image
   y: z.number(),
+  // zoom represents the zoom level of the image
   zoom: z.number(),
-}).optional();
+});
+export type ImageParams = z.infer<typeof zImageParams>;
 
 export const zUserProfile = z.object({
   '性别': zStr,
@@ -23,9 +27,8 @@ export const zUserProfile = z.object({
   '喜爱读物': zStr,
   '生活日常': zStr,
   '擅长话题': zStr,
-
+  '照片参数': zImageParams.optional(),
   '照片链接': zStr,
-  '照片参数': zPicParams,
 
   // Unused / deprecated
   '擅长辅导领域': zStr,
