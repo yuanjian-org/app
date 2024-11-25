@@ -208,6 +208,18 @@ function Basic({ user, profile, setUser, setProfile }: {
     </FormControl>
 
     <FormControl>
+      <FormLabel>英文别名</FormLabel>
+      <Input
+        bg="white"
+        value={profile.英文别名 ?? ""}
+        onChange={e => setProfile({
+          ...profile,
+          英文别名: e.target.value
+        })}
+      />
+    </FormControl>
+
+    <FormControl>
       <FormLabel>微信</FormLabel>
       <Input
         bg="white" 

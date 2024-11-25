@@ -5,6 +5,7 @@ const zStr = z.string().optional();
 
 export const zUserProfile = z.object({
   '性别': zStr,
+  '英文别名': zStr,
   '身份头衔': zStr,
   '现居住地': zStr,
   '曾居住地': zStr,
