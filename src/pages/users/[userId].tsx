@@ -7,85 +7,104 @@ import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
   Image,
-  Wrap,
-  WrapItem,
+  Text,
   Table,
   Tr,
   Td,
   TableContainer,
   Button,
   Tbody,
+  Link,
+  Stack,
+  VStack,
+  HStack,
+  useClipboard,
 } from '@chakra-ui/react';
-import { UserProfile } from "shared/UserProfile";
-import { sectionSpacing } from "theme/metrics";
+import { MinUserAndProfile, UserProfile } from "shared/UserProfile";
+import { breakpoint, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useState } from "react";
-import { MinUser } from "shared/User";
-
-export type FieldAndLabel = {
-  field: keyof UserProfile,
-  label?: string,
-};
-
-export const visibleUserProfileFields: FieldAndLabel[] = [
-  // 置顶亮点
-  { field: "身份头衔", label: "职位" },
-  { field: "现居住地" },
-  { field: "擅长话题", label: "擅长聊天话题" },
-  { field: "成长亮点" },
-
-  { field: "个性特点" },
-  { field: "爱好与特长" },
-  { field: "喜爱读物", label: "喜爱的书和媒体" },
-  { field: "职业经历" },
-  { field: "教育经历" },
-  { field: "曾居住地" },
-  { field: "生活日常" },
-];
+import { useEffect, useState } from "react";
+import { getUserUrl, MinUser } from "shared/User";
+import { visibleUserProfileFields } from "components/UserCards";
+import { useUserContext } from "UserContext";
+import { isPermitted } from "shared/Role";
+import NextLink from "next/link";
+import { CopyIcon, EditIcon } from "@chakra-ui/icons";
+import getBaseUrl from "shared/getBaseUrl";
+import { toast } from "react-toastify";
 
 /**
- * The mentorId query parameter can be a user id or "me". The latter is to
+ * The userId query parameter can be a user id or "me". The latter is to
  * allow a convenient URL to manage users' own mentor profiles.
  */
 export default function Page() {
-  const router = useRouter();
-  const userId = parseQueryStringOrUnknown(router, 'mentorId');
-  const showBookingButton = !parseQueryString(router, 'nobooking');
-  
-  const { data } = trpcNext.mentorships.getMentor.useQuery({ userId });
+  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const { data } = trpcNext.users.getUserProfile.useQuery({ userId });
+  return <UserPage data={data} />;
+}
+Page.title = "用户资料";
+
+export function UserPage({ data }: {
+  data: MinUserAndProfile | undefined
+}) {
+  const showBookingButton = !!parseQueryString(useRouter(), 'booking');
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />
 
-    <Wrap spacing={sectionSpacing}>
-      <WrapItem alignContent="center">
-        {data?.profile?.照片链接 && 
+    <Stack
+      spacing={sectionSpacing}
+      direction={{ base: "column", [breakpoint]: "row" }}
+    >
+      <VStack>
+        {data.profile?.照片链接 && 
           <Image
             maxW='300px'
             src={data.profile.照片链接}
             alt="照片"
           />
         }
-      </WrapItem>
-      <WrapItem>
-          {data?.profile && <ProfileTable
-            user={data.user}
-            profile={data.profile}
-            showBookingButton={showBookingButton}
-          />}
-      </WrapItem>
-    </Wrap>
+        <UserUrl u={data.user} />
+      </VStack>
+      {data.profile && <ProfileTable
+        user={data.user}
+        profile={data.profile}
+        showBookingButton={showBookingButton}
+      />}
+    </Stack>
   </>;
 }
 
-Page.title = "导师";
+function UserUrl({ u }: {
+  u: MinUser
+}) {
+  const url = getBaseUrl() + getUserUrl(u);
+  const { onCopy, hasCopied } = useClipboard(url);
+
+  useEffect(() => {
+    if (hasCopied) toast.success("链接已经拷贝到剪贴板。");
+  }, [hasCopied]);
+
+  return u.url ? <HStack
+    onClick={onCopy}
+    cursor="pointer"
+    textColor="gray"
+    fontSize="sm"
+  >
+    <Text>{url}</Text>
+    <CopyIcon />
+  </HStack>
+  :
+  <></>;
+}
 
 function ProfileTable({ user, profile: p, showBookingButton }: {
   user: MinUser,
   profile: UserProfile,
   showBookingButton: boolean,
 }) {
+  const [me] = useUserContext();
   const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table>
@@ -98,6 +117,13 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
         variant="brand"
         onClick={() => setBooking(true)}
       >预约交流</Button></Td></Tr>}
+
+      {(me.id == user.id || isPermitted(me.roles, "UserManager")) &&
+        <Tr><Td></Td><Td><Link
+          as={NextLink}
+          href={`/profiles/${user.id}`}
+        ><EditIcon /> 修改资料</Link></Td></Tr>
+      }
     </Tbody>
 
     {booking && <MentorBookingModal 

@@ -1,7 +1,7 @@
 import { widePage } from "AppPage";
-import { MentorPage } from ".";
+import { MentorPage } from "../mentors";
 
 export default widePage(
-  () => <MentorPage matchable title="浏览一对一导师" />,
+  () => <MentorPage type="MachableMentor" title="浏览一对一导师" />,
   "浏览一对一导师"
 );

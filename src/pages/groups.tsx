@@ -125,7 +125,7 @@ function GroupEditor({ group, onClose }: {
       cloned.name = name;
       cloned.public = isPublic;
       cloned.users = [
-        ...newUserIds.map(n => ({ id: n, name: null })),
+        ...newUserIds.map(n => ({ id: n, name: null, url: null })),
         ...users,
       ];
       await trpc.groups.update.mutate(cloned);

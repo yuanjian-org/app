@@ -5,6 +5,9 @@ import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
+import { IoIosCog, IoMdCalendar } from "react-icons/io";
+import { MdOutlineFace } from "react-icons/md";
+import { IoStarOutline } from "react-icons/io5";
 
 import {
   Avatar,
@@ -35,8 +38,6 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary,
-  MdPerson2,
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
@@ -109,7 +110,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '个人信息',
+    name: '个人资料',
     action: '/profiles/me',
   },
   {
@@ -144,7 +145,7 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '资深导师页',
     path: '/coachees',
-    icon: MdSupervisorAccount,
+    icon: MdOutlineFace,
     regex: /^\/coachees/,
     permission: 'MentorCoach',
   },
@@ -159,9 +160,9 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '预约不定期导师',
     path: '/mentors',
-    icon: MdSupervisorAccount,
+    icon: IoMdCalendar,
     regex: /^\/mentors$/,
-    permission: (me: User) => isAcceptedMentee(me, true)
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus, true)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
@@ -169,16 +170,15 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/mentors/matchable',
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/matchable$/,
-    permission: (me: User) => isAcceptedMentee(me)
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '资源库',
-    path: '/resources',
-    icon: MdLocalLibrary,
-    regex: /^\/resources$/,
-    permission: (me: User) => isAcceptedMentee(me)
-      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+    name: '志愿者档案',
+    path: '/volunteers',
+    icon: IoStarOutline,
+    regex: /^\/volunteers/,
+    permission: 'Volunteer',
   },
   {
     name: '学生档案',
@@ -269,7 +269,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
         <DropdownMenuIfPermitted
           title="管理功能"
-          icon={<Icon as={MdPerson2} marginRight="2" />}
+          icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />

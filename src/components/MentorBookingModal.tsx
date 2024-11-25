@@ -17,6 +17,9 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import trpc from 'trpc';
 import invariant from "tiny-invariant";
 
+/**
+ * @param mentor Set to null to book with any mentor
+ */
 export default function MentorBookingModal({ mentor, onClose }: {
   mentor: MinUser | null,
   onClose: () => void,

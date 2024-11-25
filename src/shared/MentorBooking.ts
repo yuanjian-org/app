@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
+import { zOptionalDateColumn } from "./DateColumn";
 
 export const zMentorBooking = z.object({
   id: z.string(),
@@ -9,6 +10,6 @@ export const zMentorBooking = z.object({
   topic: z.string(),
   notes: z.string().nullable(),
   updater: zMinUser.nullable(),
-  createdAt: z.coerce.string().optional(),
+  createdAt: zOptionalDateColumn,
 });
 export type MentorBooking = z.TypeOf<typeof zMentorBooking>;

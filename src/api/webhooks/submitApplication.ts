@@ -1,7 +1,7 @@
 import { procedure } from "../trpc";
 import z from "zod";
 import { generalBadRequestError } from "../errors";
-import { createUser } from "../database/models/User";
+import { createUser } from "../routes/users";
 import {
   menteeApplicationFields,
   menteeSourceField,
