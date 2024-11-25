@@ -7,8 +7,7 @@ import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
   Image,
-  Wrap,
-  WrapItem,
+  Text,
   Table,
   Tr,
   Td,
@@ -16,55 +15,89 @@ import {
   Button,
   Tbody,
   Link,
+  Stack,
+  VStack,
+  HStack,
+  useClipboard,
 } from '@chakra-ui/react';
-import { UserProfile } from "shared/UserProfile";
-import { sectionSpacing } from "theme/metrics";
+import { MinUserAndProfile, UserProfile } from "shared/UserProfile";
+import { breakpoint, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useState } from "react";
-import { MinUser } from "shared/User";
+import { useEffect, useState } from "react";
+import { getUserUrl, MinUser } from "shared/User";
 import { visibleUserProfileFields } from "components/UserCards";
 import { useUserContext } from "UserContext";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
-import { EditIcon } from "@chakra-ui/icons";
+import { CopyIcon, EditIcon } from "@chakra-ui/icons";
+import getBaseUrl from "shared/getBaseUrl";
+import { toast } from "react-toastify";
 
 /**
- * The mentorId query parameter can be a user id or "me". The latter is to
+ * The userId query parameter can be a user id or "me". The latter is to
  * allow a convenient URL to manage users' own mentor profiles.
  */
 export default function Page() {
-  const router = useRouter();
-  const userId = parseQueryStringOrUnknown(router, 'userId');
-  const showBookingButton = !!parseQueryString(router, 'booking');
-  
+  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
   const { data } = trpcNext.users.getUserProfile.useQuery({ userId });
+  return <UserPage data={data} />;
+}
+Page.title = "用户资料";
+
+export function UserPage({ data }: {
+  data: MinUserAndProfile | undefined
+}) {
+  const showBookingButton = !!parseQueryString(useRouter(), 'booking');
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />
 
-    <Wrap spacing={sectionSpacing}>
-      <WrapItem alignContent="center">
-        {data?.profile?.照片链接 && 
+    <Stack
+      spacing={sectionSpacing}
+      direction={{ base: "column", [breakpoint]: "row" }}
+    >
+      <VStack>
+        {data.profile?.照片链接 && 
           <Image
             maxW='300px'
             src={data.profile.照片链接}
             alt="照片"
           />
         }
-      </WrapItem>
-      <WrapItem>
-          {data?.profile && <ProfileTable
-            user={data.user}
-            profile={data.profile}
-            showBookingButton={showBookingButton}
-          />}
-      </WrapItem>
-    </Wrap>
+        <UserUrl u={data.user} />
+      </VStack>
+      {data.profile && <ProfileTable
+        user={data.user}
+        profile={data.profile}
+        showBookingButton={showBookingButton}
+      />}
+    </Stack>
   </>;
 }
 
-Page.title = "用户资料";
+function UserUrl({ u }: {
+  u: MinUser
+}) {
+  const url = getBaseUrl() + getUserUrl(u);
+  const { onCopy, hasCopied } = useClipboard(url);
+
+  useEffect(() => {
+    if (hasCopied) toast.success("链接已经拷贝到剪贴板。");
+  }, [hasCopied]);
+
+  return u.url ? <HStack
+    onClick={onCopy}
+    cursor="pointer"
+    textColor="gray"
+    fontSize="sm"
+  >
+    <Text>{url}</Text>
+    <CopyIcon />
+  </HStack>
+  :
+  <></>;
+}
 
 function ProfileTable({ user, profile: p, showBookingButton }: {
   user: MinUser,

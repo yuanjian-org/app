@@ -7,7 +7,6 @@ import {
   Textarea,
   Text,
   Link,
-  FormHelperText,
   Divider,
   Heading,
   Image,
@@ -17,6 +16,8 @@ import {
   RadioGroup,
   Radio,
   FormErrorMessage,
+  InputGroup,
+  InputLeftAddon,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -39,6 +40,7 @@ import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
+import getBaseUrl from 'shared/getBaseUrl';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -161,15 +163,41 @@ function Basic({ user, profile, setUser, setProfile }: {
     <Heading size="md">基本信息</Heading>
     <FormControl>
       <FormLabel>邮箱</FormLabel>
-      <Input value={user.email} readOnly />
-      <FormHelperText>如需更改邮箱，请联系
+      <FormHelperTextWithMargin>如需更改，请联系
         {RoleProfiles.UserManager.displayName}。
-      </FormHelperText>
+      </FormHelperTextWithMargin>
+      <Input value={user.email} readOnly />
     </FormControl>
-    
+
+    {isPermitted(user.roles, "Volunteer") && <FormControl>
+      <FormLabel>自定义URL</FormLabel>
+      <FormHelperTextWithMargin>
+        {RoleProfiles.Volunteer.displayName}
+        可以自定义
+        <Link href={getUserUrl(user)} target='_blank'>
+          个人资料展示页
+        </Link>
+        的URL。URL只支持小写英文字母和数字。为了便于其他小伙伴记忆，建议使用中文真名的拼音{
+        }或者英文昵称。
+      </FormHelperTextWithMargin>
+      <InputGroup>
+        <InputLeftAddon bg="white">{getBaseUrl() + '/'}</InputLeftAddon>
+        <Input
+          bg="white"
+          fontWeight="bold"
+          value={user.url ?? ""}
+          onChange={e => setUser({
+            ...user,
+            url: e.target.value ? e.target.value : null,
+          })}
+        />
+      </InputGroup>
+    </FormControl>}
+
     <FormControl isInvalid={!user.name}>
       <FormLabel>中文全名</FormLabel>
-      <Input background="white"
+      <Input
+        bg="white"
         value={user.name ?? ""}
         onChange={e => setUser({
           ...user,
@@ -181,7 +209,8 @@ function Basic({ user, profile, setUser, setProfile }: {
 
     <FormControl>
       <FormLabel>微信</FormLabel>
-      <Input background="white" 
+      <Input
+        bg="white" 
         value={user.wechat ?? ""}
         onChange={e => setUser({
           ...user,
@@ -200,8 +229,8 @@ function Basic({ user, profile, setUser, setProfile }: {
         })}
       >
         <Stack direction="row">
-          <Radio background="white" value="男">男</Radio>
-          <Radio background="white" value="女">女</Radio>
+          <Radio bg="white" value="男">男</Radio>
+          <Radio bg="white" value="女">女</Radio>
         </Stack>
       </RadioGroup>
     </FormControl>

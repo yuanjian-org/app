@@ -16,11 +16,14 @@ export const alreadyExistsErrorMessage = (kind: Kind) => `${kind}已经存在。
 export const alreadyExistsError = (kind: Kind) =>
   new TRPCError({ code: 'BAD_REQUEST', message: alreadyExistsErrorMessage(kind) });
 
+/**
+ * Add a period "。" at the end of the message
+ */
 export const generalBadRequestError = (message: string) =>
   new TRPCError({ code: 'BAD_REQUEST', message });
 
 export const conflictError = () =>
-  new TRPCError({ code: "CONFLICT", message: "版本冲突" });
+  new TRPCError({ code: "CONFLICT", message: "版本冲突。" });
 
   export const notImplemnetedError = () =>
-  new TRPCError({ code: "METHOD_NOT_SUPPORTED", message: "功能尚未实现" });
+  new TRPCError({ code: "METHOD_NOT_SUPPORTED", message: "功能尚未实现。" });
