@@ -6,6 +6,8 @@ import {
   TabList, TabPanels, Tab, TabPanel, Stack,
   Text,
   HStack,
+  Flex,
+  Box,
 } from '@chakra-ui/react';
 import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -20,6 +22,7 @@ import { sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
+import { breakpoint } from 'theme/metrics';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
@@ -67,7 +70,16 @@ function MenteeTabs({ mentee, mentorships }: {
         </TabPanel>
       )}
       <TabPanel>
-        <ChatRoom menteeId={mentee.id} />
+        <Flex direction={{ base: 'column', [breakpoint]: 'row' }}>
+          <Box order={{ base: 0, [breakpoint]: 2 }}>
+            <ChatRoom menteeId={mentee.id} />
+          </Box>
+          {sortedMentorships.map(m =>
+            <TabPanel key={m.id}>
+              <MentorshipPanel mentorship={m} />
+            </TabPanel>
+          )}
+        </Flex>
       </TabPanel> 
       <TabPanel>
         <Applicant type="MenteeInterview" userId={mentee.id} />
