@@ -429,12 +429,12 @@ function Mentor({ profile, updateProfile }: {
       />
     </FormControl>
 
-    <FormControl>
+    {/* <FormControl>
       <FormLabel>擅长辅导领域</FormLabel>
       <Input bg="white" value={profile.擅长辅导领域 || ""} 
         onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
-    </FormControl>
+    </FormControl> */}
 
     <FormControl>
       <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
