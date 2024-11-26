@@ -18,7 +18,7 @@ import Loader from 'components/Loader';
 import { formatUserName, toPinyin, truncate } from 'shared/strings';
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { ImageParams, MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
@@ -133,8 +133,8 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
   const lower = searchTerm.trim().toLowerCase();
   const pinyin = toPinyin(lower);
 
-  const match = (v: string | null | undefined) => {
-    if (!v) return false;
+  const match = (v: string | null | undefined | ImageParams) => {
+    if (typeof v !== 'string' || !v) return false;
     const lowerV = v.toLowerCase();
     return lowerV.includes(lower) || toPinyin(lowerV).includes(pinyin);
   };

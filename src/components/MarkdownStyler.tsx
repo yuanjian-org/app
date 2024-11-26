@@ -6,6 +6,7 @@ import styles from '../theme/MarkdownStyler.module.css';
 // Note that this library increases bundle size significantly:
 // https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-a-html-in-markdown
 import rehypeRaw from 'rehype-raw';
+import { ImageParams } from 'shared/UserProfile';
 
 /**
  * This component is to correctly render markdowns with Chakra UI.
@@ -15,7 +16,7 @@ import rehypeRaw from 'rehype-raw';
  * @params allowHtml Whether to parse raw html tags in content. DANGEROUS!
  */
 export default function MarkdownStyler({ content, allowHtml }: {
-  content: any,
+  content: string | ImageParams,
   allowHtml?: boolean,
 }) {
   return <div className={styles.markdownStyler}>
@@ -27,9 +28,9 @@ export default function MarkdownStyler({ content, allowHtml }: {
       * https://github.com/remarkjs/remark-gfm/issues/57
       */}
     {/* @ts-ignore for "Types of property 'rehypePlugins' are incompatible" */}
-    <ReactMarkdown
+    {typeof content === 'string' && <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       {...allowHtml ? { rehypePlugins: [rehypeRaw] } : {}}
-    >{content}</ReactMarkdown>
+    >{content}</ReactMarkdown>}
   </div>;
 }

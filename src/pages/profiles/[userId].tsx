@@ -67,11 +67,18 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
-  const updateProfile = (k: keyof UserProfile, v: any) => {
+  const updateProfile = (k: keyof UserProfile, v: string | ImageParams) => {
     invariant(profile);
     const updated = structuredClone(profile);
-    if (v) updated[k] = v;
-    else delete updated[k];
+    if (!v) {
+      delete updated[k];
+    } else {
+      if (typeof v === 'string' && k !== '照片参数') {
+        updated[k] = v;
+      } else if (typeof v === 'object' && k === '照片参数') {
+        updated[k] = v;
+      }
+    }
     setProfile(updated);
   };
 
