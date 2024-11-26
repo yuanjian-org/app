@@ -1,6 +1,6 @@
 import { Button, InputGroup, InputLeftElement, Input, Heading } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
 import { useRouter } from 'next/router';
@@ -8,20 +8,33 @@ import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
+import type { GetServerSideProps } from "next";
+import Image from 'next/image';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
 
 export const callbackUrlKey = "callbackUrl";
 
+type Provider = {
+  id: string
+  name: string
+  type: string
+  signinUrl: string
+  callbackUrl: string
+}
+
+type PageProps = {
+  providers: Record<string, Provider>
+}
+
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
  * logging in.
  */
-export default function Page() {
+export default function Page({ providers }: PageProps) {
   const router = useRouter();
-
-  // Use the last login email
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -44,7 +57,8 @@ export default function Page() {
     }  
   }, [router]);
 
-  const submit = async () => {
+  // 邮件登录的提交逻辑
+  const submitEmail = async () => {
     const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
@@ -83,22 +97,79 @@ export default function Page() {
   return <>
     <Heading size="md" marginBottom={10}>社会导师服务平台</Heading>
 
-    <InputGroup>
-      <InputLeftElement pointerEvents='none'>
-        <EmailIcon color='gray.400' />
-      </InputLeftElement>
-
-      {/* `name="email"` to express intent for password management tools */}
-      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱"
-        autoFocus value={email} onChange={(ev) => setEmail(ev.target.value)}
-        onKeyDown={async ev => {
-          if (ev.key == "Enter" && isValidEmail()) await submit(); 
+    {/* 显示所有登录选项 */}
+    {!selectedProvider && providers && Object.values(providers).map((provider) => (
+      <Button
+        key={provider.id}
+        width="full"
+        mt={4}
+        leftIcon={provider.name === 'WeChat' ? 
+          <Image src="/login/wechat.svg" alt="" width={24} height={24} /> : 
+          provider.id === 'sendgrid' ? <EmailIcon /> : undefined
+        }
+        onClick={() => {
+          if (provider.id === 'sendgrid') {
+            setSelectedProvider('sendgrid');
+          } else {
+            void signIn(provider.id);
+          }
         }}
-      />
-    </InputGroup>
+      >
+        使用{provider.id === 'sendgrid' ? '邮箱' : provider.name}登录
+      </Button>
+    ))}
 
-    <Button variant="brand" width="full" isDisabled={!isValidEmail()}
-      isLoading={isLoading} onClick={submit}
-    >登录 / 注册</Button>
+    {/* 邮件登录表单 */}
+    {selectedProvider === 'sendgrid' && (
+      <>
+        <InputGroup mt={4}>
+          <InputLeftElement pointerEvents='none'>
+            <EmailIcon color='gray.400' />
+          </InputLeftElement>
+          <Input 
+            type="email" 
+            name="email" 
+            minWidth={80} 
+            placeholder="请输入邮箱"
+            autoFocus 
+            value={email} 
+            onChange={(ev) => setEmail(ev.target.value)}
+            onKeyDown={async ev => {
+              if (ev.key == "Enter" && isValidEmail()) await submitEmail(); 
+            }}
+          />
+        </InputGroup>
+
+        <Button 
+          variant="brand" 
+          width="full" 
+          mt={4}
+          isDisabled={!isValidEmail()}
+          isLoading={isLoading} 
+          onClick={submitEmail}
+        >
+          发送验证码
+        </Button>
+
+        <Button
+          width="full"
+          mt={4}
+          variant="ghost"
+          onClick={() => setSelectedProvider(null)}
+        >
+          返回
+        </Button>
+      </>
+    )}
   </>;
 }
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const providers = await getProviders();
+  
+  return {
+    props: {
+      providers: providers ?? {},
+    },
+  };
+};

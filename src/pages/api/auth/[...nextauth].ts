@@ -11,6 +11,7 @@ import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
+import WeChat from "./wechat";
 
 // The default session user would cause type error when using session user data
 declare module "next-auth" {
@@ -40,7 +41,12 @@ export const authOptions: NextAuthOptions = {
       maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
       sendVerificationRequest,
       generateVerificationToken,
-    }
+    },
+    WeChat({
+      clientId: process.env.AUTH_WECHAT_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+      platformType: "OfficialAccount",
+    }),
   ],
 
   pages: {
@@ -60,7 +66,7 @@ export const authOptions: NextAuthOptions = {
 
   events: {
     createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
-        `${message.user.email} 注册新用户 。`, ""),
+      `${message.user.email} 注册新用户 。`, ""),
   },
 };
 
