@@ -382,9 +382,9 @@ function DailyLifeFormControl({ profile, updateProfile }: {
   updateProfile: (k: keyof UserProfile, v: string) => void,
 }) {
   return <FormControl>
-    <FormLabel>目前的生活日常</FormLabel>
+    <FormLabel>目前的日常和生活趣事</FormLabel>
     <FormHelperTextWithMargin>
-      比如生活趣事、平常的业余活动、子女情况等
+      比如业余活动、好玩儿或独特的经历、家中宠物等
     </FormHelperTextWithMargin>
     <Textarea bg="white" height={140} value={profile.生活日常 || ""} 
       onChange={ev => updateProfile('生活日常', ev.target.value)}
