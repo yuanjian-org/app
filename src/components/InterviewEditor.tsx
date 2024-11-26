@@ -243,8 +243,11 @@ function DimensionEditor({
           isOpen={showTooltip}
           label={`${score}: ${scoreLabels[score - 1]}`}
         >
-          <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} 
-            onClick={resetScore} />
+          {readonly ? 
+            <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} /> 
+            :
+            <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} 
+              onClick={resetScore} />}
         </Tooltip>
       </Slider>
     </Flex>
