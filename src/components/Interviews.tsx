@@ -38,6 +38,7 @@ import {
   PointOfContactCells 
 } from './pointOfContactCells';
 import { MenteeSourceHeaderCell, MenteeSourceCell } from './MenteeSourceCell';
+import { menteeSourceField } from 'shared/applicationFields';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -102,6 +103,8 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     userId: i.interviewee.id,
     type: i.type,
   });
+  const source = (app?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
     invariant(status !== undefined);
@@ -127,7 +130,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     {app && app.user &&
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
-    <MenteeSourceCell application={app?.application} />
+    <MenteeSourceCell source={source} />
     <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
 
     <TdLink href={url}><Wrap spacing="2">
