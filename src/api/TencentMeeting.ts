@@ -35,7 +35,8 @@ const requestWithBody = (body: string, options: {
     const req = (options.protocol === 'https:' ? https : http)
       .request(options, callback);
     req.on('error', (e: Error) => {
-      reject(e);
+      console.error('Request error:', e);
+      reject(new Error('腾讯会议错误'));
     });
     req.write(body);
     req.end();
