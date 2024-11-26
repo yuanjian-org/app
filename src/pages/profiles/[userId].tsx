@@ -261,7 +261,7 @@ function Basic({ user, profile, setUser, setProfile }: {
 function Picture({ userId, profile, updateProfile, SaveButton }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: any) => void,
+  updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
