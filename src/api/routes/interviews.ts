@@ -9,7 +9,8 @@ import {
   interviewInclude,
   interviewAttributes,
   userAttributes,
-  userInclude
+  userInclude,
+  extraUserAttributesForInterviews
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
@@ -148,7 +149,7 @@ const listPendingCandidates = procedure
         { menteeApplication: { [Op.ne]: null } } :
         { volunteerApplication: { [Op.ne]: null } },
     },
-    attributes: [...userAttributes, "volunteerApplication"],
+    attributes: [...userAttributes, ...extraUserAttributesForInterviews],
     include: [...userInclude, {
       association: "interviews",
       attributes: ["type", "createdAt"],
