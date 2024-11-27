@@ -38,6 +38,8 @@ import {
   PointOfContactHeaderCells, 
   PointOfContactCells 
 } from './pointOfContactCells';
+import { MenteeSourceHeaderCell, MenteeSourceCell } from './MenteeSourceCell';
+import { menteeSourceField } from 'shared/applicationFields';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -60,6 +62,7 @@ export default function Interviews({ interviews, forCalibration }: {
       <Thead><Tr>
         {showStatus && <Th>状态</Th>}
         <PointOfContactHeaderCells />
+        <MenteeSourceHeaderCell />
         <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
@@ -101,6 +104,8 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     userId: i.interviewee.id,
     type: i.type,
   });
+  const source = (app?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
     invariant(status !== undefined);
@@ -126,6 +131,8 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     {app && app.user &&
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
+
+    <MenteeSourceCell source={source} />
 
     <TdLink href={url}><Link>
       <b>{formatUserName(i.interviewee.name)}</b>
