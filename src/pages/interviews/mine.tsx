@@ -11,8 +11,9 @@ import Calibration from 'components/Calibration';
 import Interviews from 'components/Interviews';
 import { sectionSpacing } from 'theme/metrics';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
+import { widePage } from 'AppPage';
 
-export default function Page() {
+export default widePage(() => {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
   const { data: calibrations } = trpcNext.calibrations.listMine.useQuery();
 
@@ -37,6 +38,4 @@ export default function Page() {
       </TabPanels>
     </TabsWithUrlParam>
   </Flex>;
-};
-
-Page.title = "我的面试";
+}, "我的面试");

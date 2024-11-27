@@ -4,8 +4,9 @@ import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import Calibration from 'components/Calibration';
+import { widePage } from 'AppPage';
 
-export default function Page() {
+export default widePage(() => {
   const calibrationId = parseQueryStringOrUnknown(useRouter(), 'calibrationId');
   const { data: calibration } = trpcNext.calibrations.get.useQuery(calibrationId);
 
@@ -13,6 +14,4 @@ export default function Page() {
     <PageBreadcrumb current={`面试讨论：${calibration.name}`} />
     <Calibration calibration={calibration} />
   </>;
-};
-
-Page.title = "面试讨论组";
+}, "面试讨论组");

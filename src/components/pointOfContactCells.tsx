@@ -92,7 +92,7 @@ function PoCEditor({ user, poc, refetch, onClose } : {
     refetch();
   };
 
-  return <ModalWithBackdrop isOpen onClose={onClose}>
+  return <ModalWithBackdrop isCentered isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>{formatUserName(user.name)}的联络人</ModalHeader>
       <ModalCloseButton />
