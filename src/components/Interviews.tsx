@@ -11,13 +11,14 @@ import {
   Tooltip,
   HStack,
   Td,
+  Link,
 } from '@chakra-ui/react';
 import React from 'react';
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import { CheckIcon } from '@chakra-ui/icons';
+import { CheckIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { sectionSpacing } from 'theme/metrics';
 import {
   EditorFeedback,
@@ -126,7 +127,10 @@ function InterviewRow({ i, forCalibration, showStatus }: {
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
 
-    <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
+    <TdLink href={url}><Link>
+      <b>{formatUserName(i.interviewee.name)}</b>
+      <ChevronRightIcon />
+    </Link></TdLink>
 
     <TdLink href={url}><Wrap spacing="2">
       {i.feedbacks
