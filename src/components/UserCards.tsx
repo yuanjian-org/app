@@ -21,7 +21,7 @@ import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 
@@ -68,6 +68,21 @@ export default function UserCards({ type, users }: {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const searchResult = useMemo(() => {
     return users && searchTerm ? search(users, searchTerm) : users;
@@ -80,6 +95,7 @@ export default function UserCards({ type, users }: {
       <InputGroup mb={sectionSpacing}>
         <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
         <Input
+          ref={searchInputRef}
           bg="white"
           type="search"
           placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
