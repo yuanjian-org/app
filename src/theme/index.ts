@@ -7,6 +7,7 @@ import avatars from './avatars';
 import checkboxes from './checkboxes';
 import radio from './radio';
 import numberInput from './numberInput';
+import dividers from './dividers';
 
 const global = {
   colors,
@@ -28,4 +29,5 @@ export default extendTheme(
   numberInput,
   buttons,
   avatars,
+  dividers,
 );

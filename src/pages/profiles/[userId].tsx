@@ -7,7 +7,6 @@ import {
   Textarea,
   Text,
   Link,
-  FormHelperText,
   Divider,
   Heading,
   Image,
@@ -17,6 +16,8 @@ import {
   RadioGroup,
   Radio,
   FormErrorMessage,
+  InputGroup,
+  InputLeftAddon,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -31,15 +32,15 @@ import {
   parseQueryStringOrUnknown, shaChecksum 
 } from 'shared/strings';
 import { useRouter } from 'next/router';
-import User, {
-  } from 'shared/User';
+import User, { getUserUrl } from 'shared/User';
 import { markdownSyntaxUrl } from 'components/MarkdownSupport';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
+import getBaseUrl from 'shared/getBaseUrl';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -59,10 +60,10 @@ export default function Page() {
   const [user, setUser] = useState<User>();
   useEffect(() => setUser(oldUser), [oldUser]);
 
-  const { data: oldProfile } = 
+  const { data: old } = 
     trpcNext.users.getUserProfile.useQuery({ userId }, queryOpts);
   const [profile, setProfile] = useState<UserProfile>();
-  useEffect(() => setProfile(oldProfile), [oldProfile]);
+  useEffect(() => setProfile(old?.profile), [old]);
 
   const updateProfile = (k: keyof UserProfile, v: string) => {
     invariant(profile);
@@ -81,7 +82,7 @@ export default function Page() {
       if (!_.isEqual(oldUser, user)) {
         await trpc.users.update.mutate(user);
       }
-      if (!_.isEqual(oldProfile, profile)) {
+      if (!_.isEqual(old?.profile, profile)) {
         await trpc.users.setUserProfile.mutate({ userId, profile });
       }
       toast.success("保存成功。");
@@ -123,22 +124,34 @@ export default function Page() {
 
     {isPermitted(user.roles, 'Mentor') ?
       <Mentor
-        userId={userId}
         profile={profile}
         updateProfile={updateProfile}
-        SaveButton={SaveButton}
       />
       :
       <NonMentor
         profile={profile}
         updateProfile={updateProfile}
-        SaveButton={SaveButton}
       />
     }
+
+    <SaveButton />
+
+    <Link href={getUserUrl(user)} target='_blank'>
+      <HStack>
+        <Text>查看展示效果</Text> <ExternalLinkIcon />
+      </HStack>
+    </Link>
+
+    <Link href={`/who-can-see-my-data`} target='_blank'>
+      <HStack>
+        <LockIcon /> <Text>谁能看到我的资料</Text>
+      </HStack>
+    </Link>
+
   </VStack>;
 }
 
-Page.title = "个人信息";
+Page.title = "个人资料";
 
 function Basic({ user, profile, setUser, setProfile }: {
   user: User,
@@ -150,15 +163,41 @@ function Basic({ user, profile, setUser, setProfile }: {
     <Heading size="md">基本信息</Heading>
     <FormControl>
       <FormLabel>邮箱</FormLabel>
-      <Input value={user.email} readOnly />
-      <FormHelperText>如需更改邮箱，请联系
+      <FormHelperTextWithMargin>如需更改，请联系
         {RoleProfiles.UserManager.displayName}。
-      </FormHelperText>
+      </FormHelperTextWithMargin>
+      <Input value={user.email} readOnly />
     </FormControl>
-    
+
+    {isPermitted(user.roles, "Volunteer") && <FormControl>
+      <FormLabel>自定义URL</FormLabel>
+      <FormHelperTextWithMargin>
+        {RoleProfiles.Volunteer.displayName}
+        可以自定义
+        <Link href={getUserUrl(user)} target='_blank'>
+          个人资料展示页
+        </Link>
+        的URL。URL只支持小写英文字母和数字。为了便于其他小伙伴记忆，建议使用中文真名的拼音{
+        }或者英文昵称。
+      </FormHelperTextWithMargin>
+      <InputGroup>
+        <InputLeftAddon bg="white">{getBaseUrl() + '/'}</InputLeftAddon>
+        <Input
+          bg="white"
+          fontWeight="bold"
+          value={user.url ?? ""}
+          onChange={e => setUser({
+            ...user,
+            url: e.target.value ? e.target.value : null,
+          })}
+        />
+      </InputGroup>
+    </FormControl>}
+
     <FormControl isInvalid={!user.name}>
       <FormLabel>中文全名</FormLabel>
-      <Input background="white"
+      <Input
+        bg="white"
         value={user.name ?? ""}
         onChange={e => setUser({
           ...user,
@@ -169,8 +208,21 @@ function Basic({ user, profile, setUser, setProfile }: {
     </FormControl>
 
     <FormControl>
+      <FormLabel>英文别名</FormLabel>
+      <Input
+        bg="white"
+        value={profile.英文别名 ?? ""}
+        onChange={e => setProfile({
+          ...profile,
+          英文别名: e.target.value
+        })}
+      />
+    </FormControl>
+
+    <FormControl>
       <FormLabel>微信</FormLabel>
-      <Input background="white" 
+      <Input
+        bg="white" 
         value={user.wechat ?? ""}
         onChange={e => setUser({
           ...user,
@@ -189,8 +241,8 @@ function Basic({ user, profile, setUser, setProfile }: {
         })}
       >
         <Stack direction="row">
-          <Radio background="white" value="男">男</Radio>
-          <Radio background="white" value="女">女</Radio>
+          <Radio bg="white" value="男">男</Radio>
+          <Radio bg="white" value="女">女</Radio>
         </Stack>
       </RadioGroup>
     </FormControl>
@@ -254,20 +306,18 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   </>;
 }
 
-function NonMentor({ profile, updateProfile, SaveButton }: {
+function NonMentor({ profile, updateProfile }: {
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
-  SaveButton: React.ComponentType,
 }) {
   return <>
-    <Heading size="md">个人信息</Heading>
+    <Heading size="md">个人资料</Heading>
     <Text><MarkdownSupported /></Text>
     <NoAutoSave />
     <PositionFormControl profile={profile} updateProfile={updateProfile} />
     <CityFormControl profile={profile} updateProfile={updateProfile} />
     <HobbyFormControl profile={profile} updateProfile={updateProfile} />
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
-    <SaveButton />
   </>;
 }
 
@@ -332,9 +382,9 @@ function DailyLifeFormControl({ profile, updateProfile }: {
   updateProfile: (k: keyof UserProfile, v: string) => void,
 }) {
   return <FormControl>
-    <FormLabel>目前的生活日常</FormLabel>
+    <FormLabel>目前的日常和生活趣事</FormLabel>
     <FormHelperTextWithMargin>
-      比如生活趣事、平常的业余活动、子女情况等
+      比如业余活动、好玩儿或独特的经历、家中宠物等
     </FormHelperTextWithMargin>
     <Textarea bg="white" height={140} value={profile.生活日常 || ""} 
       onChange={ev => updateProfile('生活日常', ev.target.value)}
@@ -342,11 +392,9 @@ function DailyLifeFormControl({ profile, updateProfile }: {
   </FormControl>;
 }
 
-function Mentor({ userId, profile, updateProfile, SaveButton }: {
-  userId: string,
+function Mentor({ profile, updateProfile }: {
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
-  SaveButton: React.ComponentType,
 }) {
   return <>
     <Heading size="md">导师信息</Heading>
@@ -381,12 +429,12 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
       />
     </FormControl>
 
-    <FormControl>
+    {/* <FormControl>
       <FormLabel>擅长辅导领域</FormLabel>
       <Input bg="white" value={profile.擅长辅导领域 || ""} 
         onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
-    </FormControl>
+    </FormControl> */}
 
     <FormControl>
       <FormLabel>擅长聊天话题 <Highlight /></FormLabel>
@@ -446,14 +494,6 @@ function Mentor({ userId, profile, updateProfile, SaveButton }: {
     </FormControl>
 
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
-
-    <SaveButton />
-
-    <Text><Link href={`/mentors/${userId}`} target='_blank'>
-      <HStack>
-        <Text>查看展示效果</Text> <ExternalLinkIcon />
-      </HStack>
-    </Link></Text>
   </>;
 }
 

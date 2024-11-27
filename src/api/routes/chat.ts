@@ -10,7 +10,7 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
-import { checkPermissionForMentee } from "./users";
+import { checkPermissionToAccessMentee } from "./users";
 import invariant from "tiny-invariant";
 
 const getRoom = procedure
@@ -110,7 +110,7 @@ const updateMessage = procedure
 });
 
 async function checkRoomPermission(me: User, menteeId: string | null) {
-  if (menteeId !== null) await checkPermissionForMentee(me, menteeId);
+  if (menteeId !== null) await checkPermissionToAccessMentee(me, menteeId);
   else invariant(false);
 }
 

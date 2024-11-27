@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { zDateColumn } from './DateColumn';
 
 export const zTranscript = z.object({
-  startedAt: z.coerce.string(),
-  endedAt: z.coerce.string(),
+  startedAt: zDateColumn,
+  endedAt: zDateColumn,
   transcriptId: z.string(),
 });
 

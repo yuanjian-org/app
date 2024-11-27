@@ -9,7 +9,8 @@ import {
   interviewInclude,
   interviewAttributes,
   userAttributes,
-  userInclude
+  userInclude,
+  extraUserAttributesForInterviews
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
@@ -26,7 +27,7 @@ import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
-import { isPermittedForMentee } from "./users";
+import { isPermittedtoAccessMentee } from "./users";
 import User, { zInterviewerPreference, zUser } from "../../shared/User";
 import { zUserProfile } from "../../shared/UserProfile";
 import { Op } from "sequelize";
@@ -74,7 +75,7 @@ const get = procedure
   if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
     i.calibrationId)) return ret;
 
-  if (!await isPermittedForMentee(me, i.interviewee.id)) return ret;
+  if (!await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
 
   throw noPermissionError("面试", interviewId);
 });
@@ -148,7 +149,7 @@ const listPendingCandidates = procedure
         { menteeApplication: { [Op.ne]: null } } :
         { volunteerApplication: { [Op.ne]: null } },
     },
-    attributes: [...userAttributes, "volunteerApplication"],
+    attributes: [...userAttributes, ...extraUserAttributesForInterviews],
     include: [...userInclude, {
       association: "interviews",
       attributes: ["type", "createdAt"],

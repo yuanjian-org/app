@@ -13,67 +13,6 @@ export default router({
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
 
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'mentorProfile'
-      ) THEN
-        ALTER TABLE users RENAME COLUMN "mentorProfile" TO "profile";
-      END IF;
-    END;
-    $$;
-  `);
-
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'mentorApplication'
-      ) THEN
-        ALTER TABLE users RENAME COLUMN "mentorApplication"
-        TO "volunteerApplication";
-      END IF;
-    END;
-    $$;
-  `);
-
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'sex'
-      ) THEN
-        ALTER TABLE users DROP COLUMN "sex";
-      END IF;
-    END;
-    $$;
-  `);
-
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'city'
-      ) THEN
-        ALTER TABLE users DROP COLUMN "city";
-      END IF;
-    END;
-    $$;
-  `);
-
   await sequelize.sync({ alter: { drop: false } });
 
   console.log("Migrating DB data...");

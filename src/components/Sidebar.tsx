@@ -5,6 +5,9 @@ import React from 'react';
 import { signOut } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
+import { IoIosCog, IoMdCalendar } from "react-icons/io";
+import { MdOutlineFace } from "react-icons/md";
+import { IoStarOutline } from "react-icons/io5";
 
 import {
   Avatar,
@@ -35,8 +38,6 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary,
-  MdPerson2,
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
@@ -48,6 +49,7 @@ import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
 import colors from 'theme/colors';
 import { staticUrlPrefix } from 'static';
+import User, { isAcceptedMentee } from 'shared/User';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -62,7 +64,7 @@ interface MainMenuItem {
   iconColor?: string,
   path: string,
   regex?: RegExp,
-  roles?: Role | Role[],
+  permission?: Role | Role[] | ((u: User) => boolean),
 }
 
 interface DropdownMenuItem {
@@ -72,19 +74,6 @@ interface DropdownMenuItem {
   roles?: Role | Role[],
   icon?: React.ReactNode,
 }
-
-const mentorsDropdownMenuItems: DropdownMenuItem[] = [
-  {
-    name: '不定期导师',
-    action: '/mentors',
-    roles: ['MentorshipManager'],
-  },
-  {
-    name: '一对一导师',
-    action: '/mentors/matchable',
-    roles: ['MentorshipManager'],
-  },
-];
 
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
@@ -121,7 +110,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '个人信息',
+    name: '个人资料',
     action: '/profiles/me',
   },
   {
@@ -156,30 +145,47 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '资深导师页',
     path: '/coachees',
-    icon: MdSupervisorAccount,
+    icon: MdOutlineFace,
     regex: /^\/coachees/,
-    roles: 'MentorCoach',
+    permission: 'MentorCoach',
   },
   {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdMic,
     regex: /^\/interviews\/mine/,
-    roles: 'Interviewer',
+    permission: 'Interviewer',
+  },
+
+  {
+    name: '预约不定期导师',
+    path: '/mentors',
+    icon: IoMdCalendar,
+    regex: /^\/mentors$/,
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus, true)
+      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '资源库',
-    path: '/resources',
-    icon: MdLocalLibrary,
-    regex: /^\/resources$/,
-    roles: ['Mentor', 'Mentee', 'MentorCoach'],
+    name: '浏览一对一导师',
+    path: '/mentors/matchable',
+    icon: MdSupervisorAccount,
+    regex: /^\/mentors\/matchable$/,
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
+      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+  },
+  {
+    name: '志愿者档案',
+    path: '/volunteers',
+    icon: IoStarOutline,
+    regex: /^\/volunteers/,
+    permission: 'Volunteer',
   },
   {
     name: '学生档案',
     path: '/mentees?menteeStatus=现届学子',
     icon: AttachmentIcon,
     regex: /^\/mentees/,
-    roles: 'MentorshipManager',
+    permission: 'MentorshipManager',
   },
 ];
 
@@ -253,20 +259,17 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
         }} />
 
         {mainMenuItems
-          .filter(item => isPermitted(me.roles, item.roles))
-          .map(item => <SidebarRow key={item.path} item={item} 
-                        onClose={onClose} />)}
-
-        <DropdownMenuIfPermitted
-          title="导师档案"
-          icon={<Icon as={MdSupervisorAccount} marginRight="2" />}
-          menuItems={mentorsDropdownMenuItems}
-          onClose={onClose}
-        />
+          .filter(item => typeof item.permission === "function" ?
+            item.permission(me)
+            :
+            isPermitted(me.roles, item.permission)
+          ).map(item => <SidebarRow
+            key={item.path} item={item} onClose={onClose} 
+          />)}
 
         <DropdownMenuIfPermitted
           title="管理功能"
-          icon={<Icon as={MdPerson2} marginRight="2" />}
+          icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
