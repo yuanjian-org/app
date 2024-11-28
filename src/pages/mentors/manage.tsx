@@ -16,7 +16,7 @@ import { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
-import User, { defaultMentorCapacity, MentorPreference } from 'shared/User';
+import User, { defaultMentorCapacity, getUserUrl, MentorPreference } from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import { UserProfile } from 'shared/UserProfile';
 
@@ -104,7 +104,7 @@ function Row({ user, profile, preference, mentorships }: {
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>
-      <Link as={NextLink} href={`/mentors/${user.id}`}>
+      <Link as={NextLink} href={getUserUrl(user)}>
         <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
       </Link>
     </Td>

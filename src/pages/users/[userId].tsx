@@ -79,7 +79,7 @@ export function UserPage({ data }: {
 function UserUrl({ u }: {
   u: MinUser
 }) {
-  const url = getBaseUrl() + getUserUrl(u);
+  const url = window.location.host + getUserUrl(u);
   const { onCopy, hasCopied } = useClipboard(url);
 
   useEffect(() => {
