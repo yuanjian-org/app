@@ -32,7 +32,6 @@ import Calibration from "./Calibration";
  * TODO: Add an index on `achived`
  */
 @Table({
-  paranoid: true,
   tableName: "groups",
   modelName: "group",
 })
