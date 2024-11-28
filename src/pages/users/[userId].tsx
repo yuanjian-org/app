@@ -31,7 +31,6 @@ import { useUserContext } from "UserContext";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
-import getBaseUrl from "shared/getBaseUrl";
 import { toast } from "react-toastify";
 
 /**
