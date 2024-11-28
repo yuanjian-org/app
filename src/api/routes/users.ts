@@ -375,7 +375,9 @@ const getUserProfile = procedure
     userId: z.string().optional(),
     userUrl: z.string().optional(),
   }))
-  .output(zMinUserAndProfile)
+  .output(zMinUserAndProfile.merge(z.object({
+    isMentor: z.boolean(),
+  })))
   .query(async ({ ctx: { user: me }, input: { userId, userUrl } }) => 
 {
   if (!!userId === !!userUrl) {
@@ -387,7 +389,7 @@ const getUserProfile = procedure
   const u = userId ?
     await db.User.findByPk(userId, { attributes })
     :
-    await db.User.findOne({ where: { url: userUrl } });
+    await db.User.findOne({ where: { url: userUrl }, attributes });
 
   if (!u) throw notFoundError("用户", userId || userUrl || "");
 
@@ -414,6 +416,7 @@ const getUserProfile = procedure
   return {
     user: u,
     profile: u.profile ?? {},
+    isMentor: isPermitted(u.roles, "Mentor"),
   };
 });
 

@@ -149,7 +149,7 @@ function UserCard({ user, type, children, ...rest }: {
   type: UserCardType,
 } & CardProps) {
   const router = useRouter();
-  const url = `${getUserUrl(user)}${type == "AdhocMentor" ? "?booking=1" : ""}`;
+  const url = `${getUserUrl(user)}${type == "MachableMentor" ? "?booking=0" : ""}`;
 
   return <Card
     overflow="hidden"
