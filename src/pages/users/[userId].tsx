@@ -52,7 +52,8 @@ export function UserPage({ data }: {
 
   return !data ? <Loader /> : <>
     <PageBreadcrumb current={
-      (data.isMentor && "导师：") + formatUserName(data.user.name, "formal")} />
+      (data.isMentor ? "导师：" : "") + formatUserName(data.user.name, "formal")}
+    />
 
     <Stack
       spacing={sectionSpacing}
