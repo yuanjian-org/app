@@ -78,12 +78,12 @@ interface DropdownMenuItem {
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
-    action: '/interviews?type=mentee',
+    action: '/interviews?type=MenteeInterview',
     roles: 'MentorshipManager',
   },
   {
     name: '导师面试',
-    action: '/interviews?type=mentor',
+    action: '/interviews?type=MentorInterview',
     roles: 'MentorshipManager',
   },
   {

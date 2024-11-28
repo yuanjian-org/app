@@ -6,7 +6,7 @@ import { widePage } from 'AppPage';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'applicantId');
-  const type: InterviewType = useRouter().query.type === "mentee" ?
+  const type: InterviewType = useRouter().query.type === "MenteeInterview" ?
     "MenteeInterview" : "MentorInterview";
 
   return <Applicant userId={userId} type={type} showTitle useNameAsTitle />;
