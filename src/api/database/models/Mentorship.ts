@@ -12,7 +12,7 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
+import { BOOLEAN, CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
@@ -44,23 +44,14 @@ class Mentorship extends Model {
   @Column(UUID)
   menteeId: string;
 
-  /**
-   * See Glossary.md for the definition of relational and transactional
-   * mentorship. Possible combinations of the two end dates:
-   * 
-   * | relationalEndedAt | transactionalEndsAt | Meaning |
-   * |-------------------|--------------------:|:--------|
-   * | null              | null                | relational ongoing |
-   * | null              | {date}              | relational ended |
-   * | {date}            | null                | transactional only (ongoing or ended depending on the date) |
-   * | {date}            | {date}              | invalid mode. assume transactional only |
-   * 
-   */
-  @Column(DATE)
-  relationalEndedAt: string | null;
+  // Whether this mentorship is transactional or relational. See
+  // docs/Glossary.md for their definitions.
+  @AllowNull(false)
+  @Column(BOOLEAN)
+  transactional: boolean;
 
   @Column(DATE)
-  transactionalEndsAt: string | null;
+  endsAt: string | null;
 
   /**
    * Associations

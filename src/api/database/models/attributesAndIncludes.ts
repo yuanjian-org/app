@@ -54,7 +54,7 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Mentorship
  */
 
-export const mentorshipAttributes = ['id', 'relationalEndedAt'];
+export const mentorshipAttributes = ['id', 'transactional', 'endsAt'];
 
 export const mentorshipInclude = [{
   association: 'mentor',
@@ -74,7 +74,8 @@ export const mentorshipInclude = [{
 
 export const minInterviewFeedbackAttributes = ["id", "feedbackUpdatedAt"];
 
-export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
+export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes,
+  "feedback"];
 
 export const interviewFeedbackInclude = [{
   model: User,

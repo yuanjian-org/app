@@ -56,7 +56,7 @@ const listPendingMentees = procedure
 
   const pendingMentees = mentees.filter(mentee => {
     return mentee.mentorshipsAsMentee.filter(
-      mentorship => mentorship.relationalEndedAt === null).length == 0;
+      mentorship => mentorship.endsAt === null).length == 0;
   });
 
   return pendingMentees.map(m => ({
