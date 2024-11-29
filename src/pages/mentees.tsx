@@ -43,7 +43,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
-import { formatMentorshipEndedAtText } from './mentees/[menteeId]';
+import { formatRelationalMentorshipEndsAtText } from './mentees/[menteeId]';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
@@ -282,8 +282,10 @@ function LoadedMentorsCells({
           <VStack align="start">
             {mentorships.map(m =>
               <Flex key={m.id} gap={1}>
-                {m.endedAt !== null && 
-                  <Tooltip label={formatMentorshipEndedAtText(m.endedAt)}>
+                {m.relationalEndedAt !== null && 
+                  <Tooltip label={
+                    formatRelationalMentorshipEndsAtText(m.relationalEndedAt)
+                  }>
                     <PiFlagCheckeredFill />
                   </Tooltip>
                 }
@@ -368,7 +370,7 @@ function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
   const updateMentorship = async (mentorshipId: string, ended: boolean) => {
     await trpc.mentorships.update.mutate({
       mentorshipId,
-      endedAt: ended ? new Date().toISOString() : null,
+      relationalEndedAt: ended ? new Date().toISOString() : null,
     });
     refetch();
   };
@@ -392,7 +394,7 @@ function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
                 const coach: MinUser | null = coaches[idx];
                 return <Tr key={m.id}>
                   <Td>
-                    <Checkbox isChecked={m.endedAt !== null}
+                    <Checkbox isChecked={m.relationalEndedAt !== null}
                       onChange={ev => updateMentorship(m.id, ev.target.checked)}
                     />
                   </Td>

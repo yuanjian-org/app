@@ -78,12 +78,12 @@ interface DropdownMenuItem {
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
-    action: '/interviews?type=mentee',
+    action: '/interviews?type=MenteeInterview',
     roles: 'MentorshipManager',
   },
   {
     name: '导师面试',
-    action: '/interviews?type=mentor',
+    action: '/interviews?type=MentorInterview',
     roles: 'MentorshipManager',
   },
   {
@@ -167,9 +167,9 @@ const mainMenuItems: MainMenuItem[] = [
   },
   {
     name: '浏览一对一导师',
-    path: '/mentors/matchable',
+    path: '/mentors/relational',
     icon: MdSupervisorAccount,
-    regex: /^\/mentors\/matchable$/,
+    regex: /^\/mentors\/relational$/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
@@ -193,17 +193,17 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    if ((a.endedAt === null) == (b.endedAt === null)) {
+    if ((a.relationalEndedAt === null) == (b.relationalEndedAt === null)) {
       return formatUserName(a.mentee.name).localeCompare(
         formatUserName(b.mentee.name));
     } else {
-      return a.endedAt === null ? -1 : 1;
+      return a.relationalEndedAt === null ? -1 : 1;
     }
   });
 
   return mentorships.map(m => ({
     name: formatUserName(m.mentee.name),
-    icon: m.endedAt === null ? MdFace : PiFlagCheckeredFill,
+    icon: m.relationalEndedAt === null ? MdFace : PiFlagCheckeredFill,
     path: `/mentees/${m.mentee.id}`,
     regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
   }));

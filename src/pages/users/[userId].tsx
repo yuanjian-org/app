@@ -31,7 +31,6 @@ import { useUserContext } from "UserContext";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
-import getBaseUrl from "shared/getBaseUrl";
 import { toast } from "react-toastify";
 
 /**
@@ -46,19 +45,22 @@ export default function Page() {
 Page.title = "用户资料";
 
 export function UserPage({ data }: {
-  data: MinUserAndProfile | undefined
+  data: MinUserAndProfile & { isMentor: boolean } | undefined
 }) {
-  const showBookingButton = !!parseQueryString(useRouter(), 'booking');
+  const showBookingButton = parseQueryString(useRouter(), 'booking') !== "0" &&
+    !!data?.isMentor;
 
   return !data ? <Loader /> : <>
-    <PageBreadcrumb current={formatUserName(data.user.name, "formal")} />
+    <PageBreadcrumb current={
+      (data.isMentor ? "导师：" : "") + formatUserName(data.user.name, "formal")}
+    />
 
     <Stack
       spacing={sectionSpacing}
       direction={{ base: "column", [breakpoint]: "row" }}
     >
       <VStack>
-        {data.profile?.照片链接 && 
+        {data.profile?.照片链接 &&
           <Image
             maxW='300px'
             src={data.profile.照片链接}
@@ -79,7 +81,7 @@ export function UserPage({ data }: {
 function UserUrl({ u }: {
   u: MinUser
 }) {
-  const url = getBaseUrl() + getUserUrl(u);
+  const url = window.location.host + getUserUrl(u);
   const { onCopy, hasCopied } = useClipboard(url);
 
   useEffect(() => {

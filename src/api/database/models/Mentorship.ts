@@ -19,12 +19,8 @@ import Group from "./Group";
 
 /**
  * A mentorship is a mentee-mentor pair.
- * 
- * TODO: rename to Mentorship
  */
 @Table({
-  tableName: "Partnerships", // TODO: migrate table
-  paranoid: true,
   indexes: [{
     unique: true,
     fields: ['mentorId', 'menteeId']
@@ -48,8 +44,23 @@ class Mentorship extends Model {
   @Column(UUID)
   menteeId: string;
 
+  /**
+   * See Glossary.md for the definition of relational and transactional
+   * mentorship. Possible combinations of the two end dates:
+   * 
+   * | relationalEndedAt | transactionalEndsAt | Meaning |
+   * |-------------------|--------------------:|:--------|
+   * | null              | null                | relational ongoing |
+   * | null              | {date}              | relational ended |
+   * | {date}            | null                | transactional only (ongoing or ended depending on the date) |
+   * | {date}            | {date}              | invalid mode. assume transactional only |
+   * 
+   */
   @Column(DATE)
-  endedAt: string | null;
+  relationalEndedAt: string | null;
+
+  @Column(DATE)
+  transactionalEndsAt: string | null;
 
   /**
    * Associations

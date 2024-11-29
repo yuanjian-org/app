@@ -29,7 +29,10 @@ import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 
 
-@Table({ paranoid: true, tableName: "users", modelName: "user" })
+@Table({
+  tableName: "users",
+  modelName: "user"
+})
 @Fix
 class User extends Model {
   @Unique

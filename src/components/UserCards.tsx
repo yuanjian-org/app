@@ -50,16 +50,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 ];
 
 /**
- * There are two types of mentors:
- * 
- * *matchable* mentors can match mentees for long-term mentorship and also have
- * one-off sessions with any mentee on demand.
- * 
- * *adhoc* mentors cannot match for long-term mentorship and only perform
- * one-off session.
+ * See `docs/Glossary.md` for the definitions of these types.
  */
-export type MentorCardType = "AdhocMentor" | "MachableMentor";
-export type UserCardType = MentorCardType | "Voltuneer";
+export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
+export type UserCardType = MentorCardType | "Volunteer";
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
@@ -147,12 +141,11 @@ export default function UserCards({ type, users }: {
 function search(users: MinUserAndProfile[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
-  const pinyin = toPinyin(lower);
 
   const match = (v: string | null | undefined) => {
     if (!v) return false;
     const lowerV = v.toLowerCase();
-    return lowerV.includes(lower) || toPinyin(lowerV).includes(pinyin);
+    return [lowerV, toPinyin(lowerV)].some(s => s.includes(lower));
   };
 
   return users.filter(u => match(u.user.name) || (u.profile && (
@@ -165,7 +158,7 @@ function UserCard({ user, type, children, ...rest }: {
   type: UserCardType,
 } & CardProps) {
   const router = useRouter();
-  const url = `${getUserUrl(user)}${type == "AdhocMentor" ? "?booking=1" : ""}`;
+  const url = `${getUserUrl(user)}${type == "RelationalMentor" ? "?booking=0" : ""}`;
 
   return <Card
     overflow="hidden"
@@ -197,10 +190,10 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
     <CardBody pt={1}>
       <VStack align="start">
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
-        {type == "AdhocMentor" ? <>
+        {type == "TransactionalMentor" ? <>
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
           {p?.职业经历 && <Text>{truncate(p.职业经历, 80)}</Text>}
-        </> : type == "MachableMentor" ? <>
+        </> : type == "RelationalMentor" ? <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
           {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
           {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, maxLen)}</Text>}
@@ -214,7 +207,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
     <CardFooter>
       <Button>更多信息</Button>
 
-      {type == "AdhocMentor" && <>
+      {type == "TransactionalMentor" && <>
         <Spacer />
         <Button variant="brand" onClick={ev => {
           ev.stopPropagation();
@@ -300,7 +293,7 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
             {formatUserName(user.name, "formal")}
           </Heading>
 
-          {type == "AdhocMentor" ? 
+          {type == "TransactionalMentor" ? 
             p?.专业领域 && <Text>{p.专业领域}</Text>
             :
             p?.现居住地 && <Text>{p.现居住地}</Text>
@@ -318,9 +311,9 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
       >
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
 
-        {type == "AdhocMentor" ? <>
+        {type == "TransactionalMentor" ? <>
           {p?.职业经历 && <Text>{truncate(p.职业经历, maxLen)}</Text>}
-        </> : type == "MachableMentor" ? <>
+        </> : type == "RelationalMentor" ? <>
           {p?.擅长话题 && <Text>擅长聊：{truncate(p.擅长话题, maxLen)}</Text>}
         </> : <>
           {p?.爱好与特长 && <Text><b>爱好</b>：{truncate(p.爱好与特长, maxLen)}</Text>}
@@ -337,7 +330,7 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
       >
         <Link>更多信息</Link>
 
-        {type == "AdhocMentor" && <>
+        {type == "TransactionalMentor" && <>
           <Text color="gray.400">|</Text>
           <Link onClick={ev => {
             ev.stopPropagation();

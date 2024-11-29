@@ -15,7 +15,7 @@ import { formatUserName, toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import User, { InterviewerPreference } from 'shared/User';
+import User, { getUserUrl, InterviewerPreference } from 'shared/User';
 import { UserProfile } from 'shared/UserProfile';
 import NextLink from 'next/link';
 import { ChevronRightIcon } from '@chakra-ui/icons';
@@ -76,7 +76,7 @@ function Row({ user, interviews, preference, profile }: {
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
     <Td>
-      <Link as={NextLink} href={`/mentors/${user.id}`}>
+      <Link as={NextLink} href={getUserUrl(user)}>
         <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
       </Link>
     </Td>

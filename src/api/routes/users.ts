@@ -130,7 +130,7 @@ const list = procedure
 const listMentorProfiles = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
-    matchable: z.boolean(),
+    relational: z.boolean(),
   }))))
   .query(async ({ ctx: { user: me } }) =>
 {
@@ -149,7 +149,7 @@ const listMentorProfiles = procedure
   const user2mentorships = await getUser2MentorshipCount();
 
   return users.map(u => {
-    const adhoc = u.roles.includes("AdhocMentor");
+    const adhoc = u.roles.includes("TransactionalMentor");
     const cap = adhoc ? 0 :
       (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
       - (user2mentorships[u.id] ?? 0);
@@ -157,7 +157,7 @@ const listMentorProfiles = procedure
     return {
       user: u,
       profile: u.profile ?? {},
-      matchable: cap > 0,
+      relational: cap > 0,
     };
   });
 });
@@ -375,7 +375,9 @@ const getUserProfile = procedure
     userId: z.string().optional(),
     userUrl: z.string().optional(),
   }))
-  .output(zMinUserAndProfile)
+  .output(zMinUserAndProfile.merge(z.object({
+    isMentor: z.boolean(),
+  })))
   .query(async ({ ctx: { user: me }, input: { userId, userUrl } }) => 
 {
   if (!!userId === !!userUrl) {
@@ -387,7 +389,7 @@ const getUserProfile = procedure
   const u = userId ?
     await db.User.findByPk(userId, { attributes })
     :
-    await db.User.findOne({ where: { url: userUrl } });
+    await db.User.findOne({ where: { url: userUrl }, attributes });
 
   if (!u) throw notFoundError("用户", userId || userUrl || "");
 
@@ -414,6 +416,7 @@ const getUserProfile = procedure
   return {
     user: u,
     profile: u.profile ?? {},
+    isMentor: isPermitted(u.roles, "Mentor"),
   };
 });
 
@@ -657,23 +660,7 @@ const destroy = procedure
   await sequelize.transaction(async transaction => {
     const user = await db.User.findByPk(input.id, { transaction });
     if (!user) throw notFoundError("用户", input.id);
-
-    // Because we soft-delete a user, rename the user's email address before
-    // destroying to make sure next time the user logs in with the same email,
-    // account creation will not fail.
-    let i = 0;
-    while (true) {
-      const email = `deleted-${i++}+${user.email}`;
-      if (!await db.User.findOne({
-        where: { email }, 
-        paranoid: false,
-        transaction,
-      })) {
-        await user.update({ email }, { transaction });
-        await user.destroy({ transaction });
-        break;
-      }
-    }
+    await user.destroy({ transaction });
   });
 });
 

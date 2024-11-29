@@ -6,6 +6,9 @@ import {
   TabList, TabPanels, Tab, TabPanel, Stack,
   Text,
   HStack,
+  Flex,
+  SimpleGrid,
+  GridItem,
 } from '@chakra-ui/react';
 import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -16,7 +19,7 @@ import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
 import { useUserContext } from 'UserContext';
 import GroupBar from 'components/GroupBar';
-import { sectionSpacing } from 'theme/metrics';
+import { breakpoint, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
@@ -54,7 +57,6 @@ function MenteeTabs({ mentee, mentorships }: {
           </Tab>
         )
       }
-      <Tab>内部笔记</Tab>
       <Tab>申请表</Tab>
       <Tab>面试页</Tab>
       {/* <Tab>年度反馈</Tab> */}
@@ -66,9 +68,6 @@ function MenteeTabs({ mentee, mentorships }: {
           <MentorshipPanel mentorship={m} />
         </TabPanel>
       )}
-      <TabPanel>
-        <ChatRoom menteeId={mentee.id} />
-      </TabPanel> 
       <TabPanel>
         <Applicant type="MenteeInterview" userId={mentee.id} />
       </TabPanel>
@@ -113,20 +112,43 @@ function MentorshipPanel({ mentorship: m }: {
   const [me] = useUserContext();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-    {m.endedAt && <HStack >
+    {m.relationalEndedAt && <HStack >
       <PiFlagCheckeredFill />
-      <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
+      <Text>{formatRelationalMentorshipEndsAtText(m.relationalEndedAt)}。</Text>
     </HStack>}
 
-    {m.mentor.id === me.id &&
-      <GroupBar group={m.group} showJoinButton showGroupName={false} />}
+    <SimpleGrid
+      templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
+      spacing={sectionSpacing}
+    >
+      <GridItem>
+        <Flex direction="column" gap={sectionSpacing}>
+          {m.mentor.id === me.id &&
+            <GroupBar
+              group={m.group}
+              showJoinButton
+              showGroupName={false}
+              mb={sectionSpacing}
+            />}
 
-    <Transcripts groupId={m.group.id} />
+          <ChatRoom
+            menteeId={m.mentee.id}
+            newMessageButtonLabel="新内部笔记"
+            paddingRight={{ base: 0, [breakpoint]: sectionSpacing }}
+          />
+          <Text size="sm" color="gray">内部笔记仅对导师可见。</Text>
+        </Flex>
+      </GridItem>
+      <GridItem>
+        <Transcripts groupId={m.group.id} />
+      </GridItem>
+    </SimpleGrid>
+
   </Stack>;
 }
 
-export function formatMentorshipEndedAtText(endedAt: string): string {
-  return `一对一师生关系已结束（${prettifyDate(endedAt)}）`;
+export function formatRelationalMentorshipEndsAtText(relationalEndedAt: string) {
+  return `一对一师生关系已于${prettifyDate(relationalEndedAt)}结束`;
 }
 
 // function AssessmentsTable({ mentorshipId }: {

@@ -75,13 +75,13 @@ const update = procedure
   .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorshipId: z.string(),
-    endedAt: z.string().nullable(),
+    relationalEndedAt: z.string().nullable(),
   }))
-  .mutation(async ({ input: { mentorshipId, endedAt } }) => 
+  .mutation(async ({ input: { mentorshipId, relationalEndedAt } }) => 
 {
   const m = await db.Mentorship.findByPk(mentorshipId);
   if (!m) throw notFoundError("一对一匹配", mentorshipId);
-  await m.update({ endedAt });
+  await m.update({ relationalEndedAt });
 });
 
 /**
@@ -120,7 +120,7 @@ const listMyMentorshipsAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
-      where: { endedAt: { [Op.eq]: null } },
+      where: { relationalEndedAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]
@@ -132,7 +132,7 @@ const listMyMentorshipsAsCoach = procedure
  */
 export async function getUser2MentorshipCount() {
   return (await db.Mentorship.findAll({
-    where: { endedAt: null },
+    where: { relationalEndedAt: null },
     attributes: [
       'mentorId',
       [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
@@ -155,7 +155,7 @@ const listMentorStats = procedure
 .query(async () =>
 {
   // Force type check
-  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "AdhocMentor"];
+  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "TransactionalMentor"];
   const users = await db.User.findAll({
     where: {
       [Op.and]: [{
@@ -198,7 +198,7 @@ const deprecatedCountMentorships = procedure
     attributes: minUserAttributes,
     include: [{
       association: "mentorshipsAsMentor",
-      where: { endedAt: { [Op.eq]: null } },
+      where: { relationalEndedAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]

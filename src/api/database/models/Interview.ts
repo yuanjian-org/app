@@ -24,9 +24,7 @@ import {
 } from "../../../shared/InterviewFeedback";
 import Calibration from "./Calibration";
 
-@Table({
-  paranoid: true,
-})
+@Table
 class Interview extends Model {
   @Unique
   @IsUUID(4)
