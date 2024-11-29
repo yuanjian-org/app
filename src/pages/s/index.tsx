@@ -102,11 +102,15 @@ function PartnersSection() {
   }];
 
   return <Section header="参与机构" gap={10}>
-    {partners.map(partner => Partner(partner.name, partner.image))}
+    {partners.map((partner, idx) =>
+      <Partner key={idx} name={partner.name} image={partner.image} />)}
   </Section>;
 }
 
-function Partner(name: string, image: StaticImageData) {
+function Partner({ name, image }: {
+  name: string,
+  image: StaticImageData
+}) {
   return (
     <GridItem>
       <VStack>

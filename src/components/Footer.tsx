@@ -22,7 +22,13 @@ export default function Footer({ ...rest } : WrapProps) {
     </WrapItem>
     <WrapItem>
       <HStack>
-        <Image alt="备案" width={13} src={beian} />
+        <Image
+          alt="备案"
+          width={13}
+          // Fix browser warning
+          style={{ height: "auto" }}
+          src={beian}
+        />
         <Link
           color={color}
           isExternal
