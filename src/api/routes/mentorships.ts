@@ -155,7 +155,7 @@ const listMentorStats = procedure
 .query(async () =>
 {
   // Force type check
-  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "AdhocMentor"];
+  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "TransactionalMentor"];
   const users = await db.User.findAll({
     where: {
       [Op.and]: [{

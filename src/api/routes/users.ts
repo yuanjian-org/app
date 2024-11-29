@@ -130,7 +130,7 @@ const list = procedure
 const listMentorProfiles = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
-    matchable: z.boolean(),
+    relational: z.boolean(),
   }))))
   .query(async ({ ctx: { user: me } }) =>
 {
@@ -149,7 +149,7 @@ const listMentorProfiles = procedure
   const user2mentorships = await getUser2MentorshipCount();
 
   return users.map(u => {
-    const adhoc = u.roles.includes("AdhocMentor");
+    const adhoc = u.roles.includes("TransactionalMentor");
     const cap = adhoc ? 0 :
       (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
       - (user2mentorships[u.id] ?? 0);
@@ -157,7 +157,7 @@ const listMentorProfiles = procedure
     return {
       user: u,
       profile: u.profile ?? {},
-      matchable: cap > 0,
+      relational: cap > 0,
     };
   });
 });

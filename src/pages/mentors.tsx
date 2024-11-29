@@ -19,7 +19,7 @@ import { useUserContext } from 'UserContext';
 import UserCards, { MentorCardType } from "components/UserCards";
 
 export default widePage(() =>
-  <MentorPage type="AdhocMentor" title="预约不定期导师" />,
+  <MentorPage type="TransactionalMentor" title="预约不定期导师" />,
   "预约不定期导师");
 
 export function MentorPage({ type, title }: {
@@ -32,7 +32,7 @@ export function MentorPage({ type, title }: {
   const { data } = trpcNext.users.listMentorProfiles.useQuery();
   const shuffled = useMemo(() => {
     const filtered = data?.filter(m =>
-      type == "MachableMentor" ? m.matchable : true);
+      type == "RelationalMentor" ? m.relational : true);
     return filtered ? dailyShuffle(filtered, me.id) : undefined;
   }, [data, type, me]);
 
@@ -45,7 +45,7 @@ export function MentorPage({ type, title }: {
       align="start"
       maxW="800px"
     >
-      {type == "MachableMentor" ? <>
+      {type == "RelationalMentor" ? <>
         {/* 一对一导师说明文字 */}
         <Text><b>如何选择导师？</b>在你开始选择一对一导师之前，我们想讲一下一对一导师的{
         }意义和我们的期望，希望能帮你更好地做选择：</Text>

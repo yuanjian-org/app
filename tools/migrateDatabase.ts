@@ -5,6 +5,7 @@ import { migrateDatabase } from "../src/api/routes/migration";
 async function sync() {
   console.log("Syncing database... It may take a while. Grab a coffee.");
 
+  // Rename the old Partnerships table to Mentorships
   await sequelize.query(`
     DO $$ 
     BEGIN
@@ -17,6 +18,13 @@ async function sync() {
     END $$;
   `);
 
+  // Replace AdhocMentor with TransactionalMentor in users.roles array
+  await sequelize.query(`
+    UPDATE "users" 
+    SET roles = array_replace(roles, 'AdhocMentor', 'TransactionalMentor')
+    WHERE 'AdhocMentor' = ANY (roles);
+  `);
+  
   await dropParanoid();
 
   // Register the next-auth adapter so sequelize.sync() will create tables for
