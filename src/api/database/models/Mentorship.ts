@@ -19,11 +19,8 @@ import Group from "./Group";
 
 /**
  * A mentorship is a mentee-mentor pair.
- * 
- * TODO: rename to Mentorship
  */
 @Table({
-  tableName: "Partnerships", // TODO: migrate table
   indexes: [{
     unique: true,
     fields: ['mentorId', 'menteeId']

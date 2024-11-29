@@ -5,6 +5,18 @@ import { migrateDatabase } from "../src/api/routes/migration";
 async function sync() {
   console.log("Syncing database... It may take a while. Grab a coffee.");
 
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'Partnerships'
+      ) THEN
+        ALTER TABLE "Partnerships" RENAME TO "Mentorships";
+      END IF;
+    END $$;
+  `);
+
   await dropParanoid();
 
   // Register the next-auth adapter so sequelize.sync() will create tables for
