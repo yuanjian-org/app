@@ -24,22 +24,27 @@ import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
 import { compareDate } from 'shared/strings';
 
-export default function Room({ menteeId }: {
+export default function Room({ menteeId, newMessageButtonLabel = "新消息" }: {
   menteeId: string,
+  newMessageButtonLabel?: string,
 }) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
     <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
-      <MessageCreator roomId={room.id} />
+      <MessageCreator
+        roomId={room.id}
+        newMessageButtonLabel={newMessageButtonLabel}
+      />
       {room.messages.sort((a, b) => compareDate(a.createdAt, b.createdAt))
       .map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;
 }
 
-function MessageCreator({ roomId }: {
+function MessageCreator({ roomId, newMessageButtonLabel }: {
   roomId: string,
+  newMessageButtonLabel: string,
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
@@ -48,7 +53,7 @@ function MessageCreator({ roomId }: {
       marginTop={componentSpacing} />
     :
     <Button variant="outline" leftIcon={<AddIcon />}
-      onClick={() => setEditing(true)}>新消息</Button>;
+      onClick={() => setEditing(true)}>{newMessageButtonLabel}</Button>;
 }
 
 function Message({ message: m }: {
@@ -65,7 +70,8 @@ function Message({ message: m }: {
         <Text>{name}</Text>
         <Text color="grey">
           {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
-          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+          {m.updatedAt && m.updatedAt !== m.createdAt &&
+            ` ｜ ${prettifyDate(m.updatedAt)}更新`}
         </Text>
 
         {!editing && user.id == m.user.id && <>

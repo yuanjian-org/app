@@ -39,7 +39,8 @@ import { ChevronRightIcon, QuestionIcon } from '@chakra-ui/icons';
 import { publicGroupDescription } from 'pages/groups';
 
 export default function GroupBar({
-  group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile, abbreviateOnDesktop, showGroupName, ...rest
+  group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile,
+  abbreviateOnDesktop, showGroupName, ...rest
 } : {
   group: Group,
   showSelf?: boolean,             // default: false
