@@ -660,23 +660,7 @@ const destroy = procedure
   await sequelize.transaction(async transaction => {
     const user = await db.User.findByPk(input.id, { transaction });
     if (!user) throw notFoundError("用户", input.id);
-
-    // Because we soft-delete a user, rename the user's email address before
-    // destroying to make sure next time the user logs in with the same email,
-    // account creation will not fail.
-    let i = 0;
-    while (true) {
-      const email = `deleted-${i++}+${user.email}`;
-      if (!await db.User.findOne({
-        where: { email }, 
-        paranoid: false,
-        transaction,
-      })) {
-        await user.update({ email }, { transaction });
-        await user.destroy({ transaction });
-        break;
-      }
-    }
+    await user.destroy({ transaction });
   });
 });
 
