@@ -27,6 +27,10 @@ export default function Page() {
         </HStack>
         <HStack>
           <MdOutlineDescription />
+          <Link as={NextLink} href="/s/meritocracy">成功背后的逻辑</Link>
+        </HStack>
+        <HStack>
+          <MdOutlineDescription />
           <Link as={NextLink} href="/s/armor-heart">铠甲与火苗</Link>
         </HStack>
       </ListItem>
