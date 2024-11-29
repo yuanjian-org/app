@@ -114,7 +114,7 @@ function MentorshipPanel({ mentorship: m }: {
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
     {m.relationalEndedAt && <HStack >
       <PiFlagCheckeredFill />
-      <Text>{formatRelationalMentorshipEndsAtText(m.relationalEndedAt)}。</Text>
+      <Text>一对一师生关系已于{prettifyDate(m.relationalEndedAt)}结束。</Text>
     </HStack>}
 
     <SimpleGrid
@@ -145,10 +145,6 @@ function MentorshipPanel({ mentorship: m }: {
     </SimpleGrid>
 
   </Stack>;
-}
-
-export function formatRelationalMentorshipEndsAtText(relationalEndedAt: string) {
-  return `一对一师生关系已于${prettifyDate(relationalEndedAt)}结束`;
 }
 
 // function AssessmentsTable({ mentorshipId }: {
