@@ -7,15 +7,15 @@ export default function formatMeetingMinutes(minutes: string): string {
     const summarySection = sections.slice(1, todoIndex);
     const todoSection = sections.slice(todoIndex + 1);
     sections = [
-      "## 会议待办",
+      "### 会议待办",
       ...todoSection.map(s => formatTodoSection(s)),
-      "## 会议摘要",
+      "### 会议摘要",
       ...summarySection.map(s => formatSummarySection(s)),
     ];
   } else {
     // There is no TODOs
     sections = [
-      "## 会议摘要",
+      "### 会议摘要",
       ...sections.slice(1).map(s => formatSummarySection(s)),
     ];
   }

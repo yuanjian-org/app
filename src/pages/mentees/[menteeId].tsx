@@ -112,9 +112,9 @@ function MentorshipPanel({ mentorship: m }: {
   const [me] = useUserContext();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-    {m.endedAt && <HStack >
+    {m.relationalEndedAt && <HStack >
       <PiFlagCheckeredFill />
-      <Text>{formatMentorshipEndedAtText(m.endedAt)}。</Text>
+      <Text>{formatRelationalMentorshipEndsAtText(m.relationalEndedAt)}。</Text>
     </HStack>}
 
     <SimpleGrid
@@ -131,7 +131,11 @@ function MentorshipPanel({ mentorship: m }: {
               mb={sectionSpacing}
             />}
 
-          <ChatRoom menteeId={m.mentee.id} newMessageButtonLabel="新内部笔记" />
+          <ChatRoom
+            menteeId={m.mentee.id}
+            newMessageButtonLabel="新内部笔记"
+            paddingRight={{ base: 0, [breakpoint]: sectionSpacing }}
+          />
           <Text size="sm" color="gray">内部笔记仅对导师可见。</Text>
         </Flex>
       </GridItem>
@@ -143,8 +147,8 @@ function MentorshipPanel({ mentorship: m }: {
   </Stack>;
 }
 
-export function formatMentorshipEndedAtText(endedAt: string): string {
-  return `一对一师生关系已于${prettifyDate(endedAt)}结束`;
+export function formatRelationalMentorshipEndsAtText(relationalEndedAt: string) {
+  return `一对一师生关系已于${prettifyDate(relationalEndedAt)}结束`;
 }
 
 // function AssessmentsTable({ mentorshipId }: {

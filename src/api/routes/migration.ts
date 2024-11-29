@@ -33,6 +33,19 @@ export async function migrateDatabase() {
     WHERE 'AdhocMentor' = ANY (roles);
   `);
 
+  // Rename endedAt to relationalEndedAt in Mentorships table
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'endedAt'
+      ) THEN
+        ALTER TABLE "Mentorships" RENAME COLUMN "endedAt" TO "relationalEndedAt";
+      END IF;
+    END $$;
+  `);
+
   await dropParanoid();
 
   await sequelize.sync({ alter: { drop: false } });
