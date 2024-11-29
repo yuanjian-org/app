@@ -126,7 +126,7 @@ function MentorshipPanel({ mentorship: m }: {
 }
 
 export function formatMentorshipEndedAtText(endedAt: string): string {
-  return `一对一师生关系已结束（${prettifyDate(endedAt)}）`;
+  return `一对一师生关系已于${prettifyDate(endedAt)}结束`;
 }
 
 // function AssessmentsTable({ mentorshipId }: {
