@@ -12,6 +12,6 @@ export default widePage(() => {
 
   return <>
     <PageBreadcrumb current="志愿者档案" />
-    <UserCards type="Voltuneer" users={sorted} />
+    <UserCards type="Volunteer" users={sorted} />
   </>;
 }, "志愿者档案");

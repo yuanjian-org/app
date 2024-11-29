@@ -6,7 +6,9 @@ export const AllRoles = [
   'GroupManager',
   'MentorshipAssessor',
   'MentorshipManager',
-  'AdhocMentor',
+  // See `docs/Glossary.md` for the definitions of this type.
+  'TransactionalMentor',
+  // Mentor role is either a transactional or relational mentor.
   'Mentor',
   'Mentee',
   'Interviewer',
@@ -64,7 +66,7 @@ export const RoleProfiles: { [key: string]: {
     actions: '帮助年轻学子成长',
     automatic: true,
   },
-  AdhocMentor: {
+  TransactionalMentor: {
     displayName: '仅不定期导师',
     actions: '仅做不定期服务，不参与学生匹配',
   },

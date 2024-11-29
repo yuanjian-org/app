@@ -167,9 +167,9 @@ const mainMenuItems: MainMenuItem[] = [
   },
   {
     name: '浏览一对一导师',
-    path: '/mentors/matchable',
+    path: '/mentors/relational',
     icon: MdSupervisorAccount,
-    regex: /^\/mentors\/matchable$/,
+    regex: /^\/mentors\/relational$/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
