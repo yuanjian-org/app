@@ -131,12 +131,11 @@ export default function UserCards({ type, users }: {
 function search(users: MinUserAndProfile[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
-  const pinyin = toPinyin(lower);
 
   const match = (v: string | null | undefined) => {
     if (!v) return false;
     const lowerV = v.toLowerCase();
-    return lowerV.includes(lower) || toPinyin(lowerV).includes(pinyin);
+    return [lowerV, toPinyin(lowerV)].some(s => s.includes(lower));
   };
 
   return users.filter(u => match(u.user.name) || (u.profile && (
