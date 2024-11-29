@@ -13,7 +13,7 @@ import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
 import Summary from "./Summary";
 
-@Table({ paranoid: true })
+@Table
 class Transcript extends Model {
   @Unique
   @PrimaryKey

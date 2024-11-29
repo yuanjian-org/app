@@ -21,7 +21,10 @@ async function sync() {
 void sync().then();
 
 async function dropParanoid() {
-  for (const table of ["users", "groups"]) {
+  for (const table of ["users", "groups", "group_users", "Transcripts",
+    "Summaries", "Interviews", "InterviewFeedbacks", "Assessments",
+    "Calibrations"]) 
+  {
     await sequelize.query(`
       DO $$ 
     BEGIN
