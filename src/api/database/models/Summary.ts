@@ -10,7 +10,6 @@ import { STRING } from "sequelize";
 import Transcript from "./Transcript";
 
 @Table({
-  paranoid: true,
   indexes: [{
     unique: true,
     fields: ['transcriptId', 'summaryKey']

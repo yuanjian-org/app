@@ -15,9 +15,7 @@ import Mentorship from "./Mentorship";
  * An assessment is an evaluation of a mentorship.
  * TODO: Rename to MentorshipAssessment.
  */
-@Table({
-  paranoid: true,
-})
+@Table
 class Assessment extends Model {
   @IsUUID(4)
   @PrimaryKey

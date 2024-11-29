@@ -19,10 +19,7 @@ import Group from "./Group";
 import User from "./User";
 import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 
-@Table({
-  paranoid: true,
-
-})
+@Table
 class Calibration extends Model {
   @Unique('id_type_unique')
   @IsUUID(4)

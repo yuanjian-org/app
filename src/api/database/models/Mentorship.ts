@@ -24,7 +24,6 @@ import Group from "./Group";
  */
 @Table({
   tableName: "Partnerships", // TODO: migrate table
-  paranoid: true,
   indexes: [{
     unique: true,
     fields: ['mentorId', 'menteeId']
