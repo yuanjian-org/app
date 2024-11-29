@@ -26,7 +26,7 @@ async function createUserIfNotFound(email: string) {
   const id = await findUserId(email);
   if (!id) {
     await sequelize.transaction(async transaction => {
-      await createUser({ email: email, roles: [] }, transaction );
+      await createUser({ email: email, name: "测试", roles: [] }, transaction );
     });
   }
 }
