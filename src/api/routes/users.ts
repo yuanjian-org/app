@@ -468,7 +468,7 @@ const setMentorCoach = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     userId: z.string(),
-    coachId: z.string(),
+    coachId: z.string().nullable(),
   }))
   .mutation(async ({ input: { userId, coachId } }) =>
 {
@@ -483,11 +483,13 @@ const setMentorCoach = procedure
     await u.update({ coachId }, { transaction });
 
     // Update role
-    // TODO: Remove role from previous coach?
-    const coach = await db.User.findByPk(coachId, { lock: true, transaction });
-    if (!coach) throw notFoundError("用户", coachId);
-    coach.roles = [...coach.roles.filter(r => r != "MentorCoach"), "MentorCoach"];
-    await coach.save({ transaction });
+    if (coachId) {
+      const coach = await db.User.findByPk(coachId, { lock: true, transaction });
+      if (!coach) throw notFoundError("用户", coachId);
+      coach.roles = [...coach.roles.filter(r => r != "MentorCoach"),
+        "MentorCoach"];
+      await coach.save({ transaction });
+    }
 
     // create or update group
     if (oldCoachId) {
@@ -496,9 +498,12 @@ const setMentorCoach = procedure
         attributes: ["id", "public"],
       });
       invariant(gs.length == 1);
-      await updateGroup(gs[0].id, null, gs[0].public, [userId, coachId],
-          transaction);
-    } else {
+
+      await updateGroup(gs[0].id, null, gs[0].public,
+        [userId, ...coachId ? [coachId] : []],
+        transaction);
+
+    } else if (coachId) {
       await createGroup(null, [userId, coachId], null, null, null, userId,
         transaction);
     }

@@ -22,7 +22,6 @@ import {
   Spacer,
   LinkProps,
   Checkbox,
-  Tooltip,
   Tag,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
@@ -43,7 +42,6 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
 import { sectionSpacing } from 'theme/metrics';
-import { formatRelationalMentorshipEndsAtText } from './mentees/[menteeId]';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
@@ -216,7 +214,8 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee.useQuery(mentee.id);
+  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee
+    .useQuery(mentee.id);
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order
@@ -245,16 +244,16 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = transcriptRes.map(t => 
     getDateTextAndColor(t.data, 45, 60, "尚未通话"));
 
-  const coachRes = trpcNext.useQueries(t => {
+  const coachesRes = trpcNext.useQueries(t => {
     return mentorships.map(m => t.users.getMentorCoach({ userId: m.mentor.id }));
   });
 
   const refetchAll = () => {
     refetch();
-    coachRes.map(c => void c.refetch());
+    coachesRes.map(c => void c.refetch());
   };
 
-  const [ editing, setEditing ] = useState<boolean>(false);
+  const [editing, setEditing] = useState<boolean>(false);
 
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
@@ -263,17 +262,16 @@ function LoadedMentorsCells({
     if (!addPinyin) return;
     const names = [
       ...mentorships.map(m => m.mentor.name),
-      ...coachRes.map(c => c.data ? c.data.name : null),
+      ...coachesRes.map(c => c.data ? c.data.name : null),
     ].filter(n => n !== null);
     addPinyin(names as string[]);
-  }, [mentorships, coachRes, addPinyin]);
+  }, [mentorships, coachesRes, addPinyin]);
 
   return <>
     {/* 导师 */}
     <Td>
       {editing && <MentorshipsEditor
         mentee={mentee} mentorships={mentorships}
-        coaches={coachRes.map(c => c.data === undefined ? null : c.data)}
         onClose={() => setEditing(false)} refetch={refetchAll}
       />}
 
@@ -282,14 +280,7 @@ function LoadedMentorsCells({
           <VStack align="start">
             {mentorships.map(m =>
               <Flex key={m.id} gap={1}>
-                {m.relationalEndedAt !== null && 
-                  <Tooltip label={
-                    formatRelationalMentorshipEndsAtText(m.relationalEndedAt)
-                  }>
-                    <PiFlagCheckeredFill />
-                  </Tooltip>
-                }
-
+                {m.relationalEndedAt !== null && <PiFlagCheckeredFill />}
                 {formatUserName(m.mentor.name)}
               </Flex>)
             }
@@ -301,14 +292,11 @@ function LoadedMentorsCells({
     </Td>
 
     {/* 资深导师 */}
-    {showCoach &&
-      <Td><LinkToEditor onClick={() => setEditing(true)}><VStack align="start">
-          {coachRes.map((c, idx) => c.data ? 
-            <Text key={idx}>{formatUserName(c.data.name)}</Text> :
-            <MdEdit key={idx}/>
-          )}
-      </VStack></LinkToEditor></Td>
-    }
+    {showCoach && <Td><VStack align="start">
+      {coachesRes.map((c, idx) => <Text key={idx}>
+        {c.data ? formatUserName(c.data.name) : "-"}
+      </Text>)}
+    </VStack></Td>}
 
     {/* 最近师生通话 */}
     <Td><VStack align="start">
@@ -347,25 +335,13 @@ export function getDateTextAndColor(date: string | null | undefined,
   return [text, color];
 }
 
-function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
+function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
   mentee: MinUser,
   mentorships: Mentorship[],
-  coaches: (MinUser | null)[],
   refetch: () => void,
   onClose: () => void,
 }) {
-  invariant(mentorships.length == coaches.length);
   const [creating, setCreating] = useState<boolean>(false);
-
-  const saveCoach = async (mentorId: string, coachIds: string[]) => {
-    // TODO: allow removing coaches
-    if (coachIds.length == 0) return;
-    await trpc.users.setMentorCoach.mutate({
-      userId: mentorId,
-      coachId: coachIds[0],
-    });
-    refetch();
-  };
 
   const updateMentorship = async (mentorshipId: string, ended: boolean) => {
     await trpc.mentorships.update.mutate({
@@ -377,31 +353,27 @@ function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>{formatUserName(mentee.name)}的一对一导师匹配</ModalHeader>
+      <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <TableContainer>
           <Table>
             <Thead>
               <Tr>
-                <Th>已结束</Th>
                 <Th>导师</Th>
-                <Th>资深导师</Th>
+                <Th>已结束</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {mentorships.map((m: Mentorship, idx) => {
-                const coach: MinUser | null = coaches[idx];
-                return <Tr key={m.id}>
+              {mentorships.map(m => {
+                return <Tr key={m.id}>                  
+                  {/* 导师 */}
+                  <Td>{formatUserName(m.mentor.name)}</Td>
+
+                  {/* 已结束 */}
                   <Td>
                     <Checkbox isChecked={m.relationalEndedAt !== null}
                       onChange={ev => updateMentorship(m.id, ev.target.checked)}
-                    />
-                  </Td>
-                  <Td>{formatUserName(m.mentor.name)}</Td>
-                  <Td>
-                    <UserSelector initialValue={coach ? [coach] : []}
-                      onSelect={userIds => saveCoach(m.mentor.id, userIds)}
                     />
                   </Td>
                 </Tr>;
@@ -427,36 +399,27 @@ function MentorshipCreator({ menteeId, refetch, onClose }: {
   refetch: () => void,
   onClose: () => void,
 }) {
-  const [mentorId, setMentorId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      invariant(menteeId);
-      invariant(mentorId);
-      await trpc.mentorships.create.mutate({ mentorId, menteeId });
-      refetch();
-      onClose();
-    } finally {
-      setSaving(false);
-    }
+  const save = async (mentorId: string) => {
+    invariant(menteeId);
+    invariant(mentorId);
+    await trpc.mentorships.create.mutate({ mentorId, menteeId });
+    onClose();
+    refetch();
   };
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>增加一对一导师</ModalHeader>
+      <ModalHeader>增加导师</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <FormControl>
           <UserSelector onSelect={
-            userIds => setMentorId(userIds.length ? userIds[0] : null)} />
+            userIds => userIds.length && save(userIds[0])
+          } />
         </FormControl>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand'
-          isDisabled={!mentorId}
-          isLoading={saving} onClick={save}>增加</Button>
+        <Button onClick={onClose}>取消</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

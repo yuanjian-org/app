@@ -19,11 +19,12 @@ import User, { getUserUrl, InterviewerPreference } from 'shared/User';
 import { UserProfile } from 'shared/UserProfile';
 import NextLink from 'next/link';
 import { ChevronRightIcon } from '@chakra-ui/icons';
+import { widePage } from 'AppPage';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
  */
-export default function Page() {
+export default widePage(() => {
   const { data: stats } = 
     trpcNext.interviews.listInterviewerStats.useQuery();
 
@@ -58,9 +59,7 @@ export default function Page() {
       共 <b>{stats.length}</b> 名
     </Text>
   </TableContainer>;
-}
-
-Page.title = "面试官";
+}, "面试官");
 
 function Row({ user, interviews, preference, profile }: {
   user: User,
