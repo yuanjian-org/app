@@ -47,9 +47,12 @@ import { menteeSourceField } from 'shared/applicationFields';
  * 
  * TODO: Refactor to remove the `forCalibration` flag.
  */
-export default function Interviews({ interviews, forCalibration }: {
+export default function Interviews({ interviews, forCalibration,
+  hideTotalCount = false
+}: {
   interviews: Interview[] | undefined
   forCalibration: boolean
+  hideTotalCount?: boolean
 }) {
   const [me] = useUserContext();
 
@@ -85,9 +88,11 @@ export default function Interviews({ interviews, forCalibration }: {
       </Tbody>
     </Table>
 
-    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
-      共 <b>{interviews.length}</b> 名
-    </Text>
+    {!hideTotalCount && <Text
+      fontSize="sm" color="grey" marginTop={sectionSpacing}
+    >共 <b>{interviews.length}</b> 名
+    </Text>}
+
     <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
       <CheckIcon /> 表示已经填写了面试反馈的面试官。
     </Text>
