@@ -9,21 +9,37 @@ import {
   Tbody,
   Text,
   Tag,
+  Spacer,
+  ModalContent,
+  Button,
+  FormControl,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
-import { trpcNext } from "trpc";
+import trpc, { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
-import User, { defaultMentorCapacity, getUserUrl, MentorPreference } from 'shared/User';
+import User, {
+  defaultMentorCapacity, getUserUrl, MentorPreference,
+  MinUser
+} from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import { UserProfile } from 'shared/UserProfile';
+import { widePage } from 'AppPage';
+import { MdEdit } from 'react-icons/md';
+import { useState } from 'react';
+import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import UserSelector from 'components/UserSelector';
 
 /**
  * TODO: this file closely resembles interviewers.tsx. Dedupe?
  */
-export default function Page() {
+export default widePage(() => {
   const { data: stats } = 
     trpcNext.mentorships.listMentorStats.useQuery();
 
@@ -33,6 +49,7 @@ export default function Page() {
         <Tr>
           <Th>导师</Th>
           <Th>角色</Th>
+          <Th>资深导师</Th>
           <Th>学生容量</Th>
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
@@ -56,7 +73,7 @@ export default function Page() {
       </Tbody>
     </Table>
   </TableContainer>;
-}
+}, "导师");
 
 function SumsRow({ stats } : {
   stats: {
@@ -69,6 +86,7 @@ function SumsRow({ stats } : {
   return <Tr>
     {/* 导师 */}
     <SumCell n={stats.length} />
+    <Td></Td>
     <Td></Td>
     {/* 学生容量 */}
     <SumCell n={totalCap} />
@@ -95,6 +113,11 @@ function Row({ user, profile, preference, mentorships }: {
   preference: MentorPreference,
   profile: UserProfile,
 }) {
+  const { data: coach, refetch } = trpcNext.users.getMentorCoach.useQuery({
+    userId: user.id,
+  });
+  const [editingCoach, setEditingCoach] = useState<boolean>(false);
+
   const role = isPermitted(user.roles, 'MentorCoach') ? 'MentorCoach' :
     'Mentor';
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
@@ -103,25 +126,84 @@ function Row({ user, profile, preference, mentorships }: {
   const isDefaultCapacity = preference.最多匹配学生 === undefined;
 
   return <Tr key={user.id} _hover={{ bg: "white" }}> 
+    {/* 导师 */}
     <Td>
       <Link as={NextLink} href={getUserUrl(user)}>
         <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
       </Link>
     </Td>
+
+    {/* 角色 */}
     <Td>
       <Tag colorScheme={roleColorScheme}>
         {RoleProfiles[role].displayName}
       </Tag>
     </Td>
+
+    {/* 资深导师 */}
+    <Td>
+      <Link onClick={() => setEditingCoach(true)}>
+        {coach ? formatUserName(coach.name) : <MdEdit />}
+      </Link>
+    </Td>
+
+    {coach !== undefined && editingCoach && <CoachEditor
+      mentor={user}
+      coach={coach}
+      refetch={refetch}
+      onClose={() => setEditingCoach(false)}
+    />}
+
+    {/* 学生容量 */}
     <Td>{capacity}{isDefaultCapacity && `（默认）`}</Td>
+    {/* 学生数量 */}
     <Td>{mentorships}</Td>
+    {/* 剩余容量 */}
     <Td>{capacity - mentorships}</Td>
+    {/* 性别 */}
     <Td>{profile.性别}</Td>
+    {/* 坐标 */}
     <Td>{profile.现居住地}</Td>
+    {/* 邮箱 */}
     <Td>{user.email}</Td>
+    {/* 微信 */}
     <Td>{user.wechat}</Td>
+    {/* 拼音 */}
     <Td>{toPinyin(user.name ?? "")}</Td>
   </Tr>;
 }
 
-Page.title = "导师";
+function CoachEditor({ mentor, coach, refetch, onClose }: {
+  mentor: MinUser,
+  coach: MinUser | null,
+  refetch: () => void,
+  onClose: () => void,
+}) {
+  const saveCoach = async (coachId: string | null) => {
+    await trpc.users.setMentorCoach.mutate({
+      userId: mentor.id,
+      coachId,
+    });
+    onClose();
+    refetch();
+  };
+
+  return <ModalWithBackdrop isOpen onClose={onClose}>
+    <ModalContent>
+      <ModalHeader>{formatUserName(mentor.name)}的资深导师</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        <FormControl>
+          <UserSelector
+            initialValue={coach ? [coach] : []}
+            onSelect={userIds => saveCoach(userIds.length ? userIds[0] : null)}
+          />
+        </FormControl>
+      </ModalBody>
+      <ModalFooter>
+        <Spacer />
+        <Button onClick={onClose}>取消</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}

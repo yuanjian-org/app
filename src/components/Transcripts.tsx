@@ -21,15 +21,13 @@ import replaceUrlParam from 'shared/replaceUrlParam';
 import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
 
-export default function Transcripts({ groupId, hideNoHistoryNote = false }: {
+export default function Transcripts({ groupId }: {
   groupId: string,
-  hideNoHistoryNote?: boolean,
 }) {
   const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
   return !transcripts ? <Loader /> 
     : transcripts.length ? <LoadedTranscripts transcripts={transcripts} />
-    : hideNoHistoryNote ? <></>
-    : <Text color="gray">无历史记录。会议结束后一小时之内会显示在这里。</Text>;
+    : <Text color="gray">无通话记录。会议结束后一小时之内会显示在这里。</Text>;
 }
 
 /**
