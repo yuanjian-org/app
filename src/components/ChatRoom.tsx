@@ -9,6 +9,7 @@ import {
   TextareaProps,
   VStack,
   Select,
+  StackProps,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -24,14 +25,23 @@ import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
 import { compareDate } from 'shared/strings';
 
-export default function Room({ menteeId, newMessageButtonLabel = "新消息" }: {
+export default function Room({
+  menteeId,
+  newMessageButtonLabel = "新消息",
+  ...rest
+}: {
   menteeId: string,
   newMessageButtonLabel?: string,
-}) {
+} & StackProps) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
-    <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
+    <VStack
+      spacing={paragraphSpacing * 1.5}
+      align="start"
+      maxWidth="800px"
+      {...rest}
+    >
       <MessageCreator
         roomId={room.id}
         newMessageButtonLabel={newMessageButtonLabel}

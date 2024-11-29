@@ -193,17 +193,17 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    if ((a.endedAt === null) == (b.endedAt === null)) {
+    if ((a.relationalEndedAt === null) == (b.relationalEndedAt === null)) {
       return formatUserName(a.mentee.name).localeCompare(
         formatUserName(b.mentee.name));
     } else {
-      return a.endedAt === null ? -1 : 1;
+      return a.relationalEndedAt === null ? -1 : 1;
     }
   });
 
   return mentorships.map(m => ({
     name: formatUserName(m.mentee.name),
-    icon: m.endedAt === null ? MdFace : PiFlagCheckeredFill,
+    icon: m.relationalEndedAt === null ? MdFace : PiFlagCheckeredFill,
     path: `/mentees/${m.mentee.id}`,
     regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
   }));
