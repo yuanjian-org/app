@@ -55,6 +55,9 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
+const isMobile = /iPhone|iPad|Android/.test(navigator.userAgent);
+const isMac = /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
+
 export default function UserCards({ type, users }: {
   type: UserCardType,
   users: MinUserAndProfile[] | undefined,
@@ -66,7 +69,6 @@ export default function UserCards({ type, users }: {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
     
       if ((isMac ? event.metaKey : event.ctrlKey) && event.key === 'f') {
         event.preventDefault();
@@ -94,7 +96,10 @@ export default function UserCards({ type, users }: {
           ref={searchInputRef}
           bg="white"
           type="search"
-          placeholder='搜索关键字，比如“金融“、“女”、“成都”，支持拼音'
+          placeholder={
+            (isMobile ? "" : ((isMac ? "⌘" : "Ctrl") + "+F ")) +
+            `搜索关键字，比如“金融“、“女”、“成都”，支持拼音`
+          }
           value={searchTerm}
           onChange={ev => setSearchTerm(ev.target.value)}
         />
