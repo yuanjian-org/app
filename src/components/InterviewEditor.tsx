@@ -244,7 +244,7 @@ function DimensionEditor({
           label={`${score}: ${scoreLabels[score - 1]}`}
         >
           <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} 
-            onClick={readonly ?  undefined : resetScore} />
+            onClick={readonly ? undefined : resetScore} />
         </Tooltip>
       </Slider>
     </Flex>
