@@ -14,13 +14,23 @@ import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
+import { isPermitted } from "../../../shared/Role";
+import { noPermissionError } from "../../../api/errors";
 
 declare module "next-auth" {
   interface Session {
     // TODO: Remove `user` and use `me` instead.
     user: User;
+    impersonated: true | undefined;
   }
 }
+
+export type ImpersonationRequest = {
+  // The ID of the user to impersonate, or `null` to stop impersonation.
+  impersonate: string | null;
+};
+
+const impersonateTokenKey = "imp";
 
 const tokenMaxAgeInMins = 5;
 
@@ -53,11 +63,32 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async jwt({ token, trigger, session }) {
+      // https://next-auth.js.org/getting-started/client#updating-the-session
+      if (trigger == "update") {
+        const req = session as ImpersonationRequest;
+        if (req.impersonate === null) {
+          delete token[impersonateTokenKey];
+        } else {
+          const me = await db.User.findByPk(token.sub);
+          invariant(me);
+          if (!isPermitted(me.roles, "UserManager")) {
+            throw noPermissionError("用户", req.impersonate);
+          }
+          token[impersonateTokenKey] = req.impersonate;
+        }
+      }
+      return token;
+    },
+
     async session({ token, session }) {
-      invariant(token.sub);
-      const user = await userCache.fetch(token.sub);
-      invariant(user);
-      session.user = user;
+      const impersonate = token[impersonateTokenKey];
+      const id = (impersonate as string | undefined) ?? token.sub;
+      invariant(id);
+      const me = await userCache.fetch(id);
+      invariant(me);
+      session.user = me;
+      if (impersonate) session.impersonated = true;
       return session;
     }
   },

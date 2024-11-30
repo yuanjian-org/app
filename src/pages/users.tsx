@@ -37,6 +37,11 @@ import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
 import NextLink from 'next/link';
+import { TbSpy } from "react-icons/tb";
+import { useSession } from 'next-auth/react';
+import { ImpersonationRequest } from './api/auth/[...nextauth]';
+import invariant from 'tiny-invariant';
+import { useRouter } from 'next/router';
 
 export default function Page() {
   const [filter] = useState<UserFilter>({ includeBanned: true });
@@ -81,6 +86,21 @@ function UserTable({ users, setUserBeingEdited }: {
   setUserBeingEdited: (u: User | null) => void,
 }) {
   const [me] = useUserContext();
+  const { data: session, update } = useSession();
+  const [, setUser] = useUserContext();
+  const router = useRouter();
+
+  const startImpersonation = async (userId: string) => {
+    // If staying on the current page, permission denied error will pop up
+    // as soon as the session is updated to a user without access to this page.
+    await router.push("/");
+
+    // https://next-auth.js.org/getting-started/client#updating-the-session
+    const req: ImpersonationRequest = { impersonate: userId };
+    await update(req);
+    invariant(session);
+    setUser(session.user);
+  };
 
   return <Table size="sm">
     <Thead>
@@ -90,6 +110,7 @@ function UserTable({ users, setUserBeingEdited }: {
         <Th>偏好</Th>
         <Th>拼音</Th>
         <Th>角色</Th>
+        <Th>假扮</Th>
       </Tr>
     </Thead>
     <Tbody>
@@ -138,6 +159,12 @@ function UserTable({ users, setUserBeingEdited }: {
                 </WrapItem>;
               })}
             </Wrap>
+          </Td>
+
+          <Td>
+            {me.id !== u.id && <Link onClick={() => startImpersonation(u.id)}>
+              <TbSpy />
+            </Link>}
           </Td>
         </Tr>
       ))}

@@ -20,7 +20,7 @@ export default function Page () {
     <Interviews interviews={interviews} forCalibration={false}
       hideTotalCount />
 
-    {calibrations && calibrations.length && <>
+    {calibrations && calibrations.length > 0 && <>
       <PageBreadcrumb current='面试讨论组' mt={sectionSpacing * 2} />
       {calibrations.map(c => <Link
         key={c.id} 
