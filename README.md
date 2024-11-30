@@ -10,6 +10,7 @@ Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunt
 1. Create file `.env` in the repository root with the following content:
    ```
    DATABASE_URI=postgres://localhost/yuanjian
+   NEXTAUTH_SECRET=123
    ```
    Optinoally, see [`.env.template`](.env.template) for more environment
    variables you can set in `.env`.
