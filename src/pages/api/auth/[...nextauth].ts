@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
   adapter,
 
   session: {
-    maxAge: 365 * 24 * 60 * 60, // 365 days
+    strategy: "jwt",
   },
 
   providers: [
@@ -53,8 +53,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async session({ session }) {
-      const user = await userCache.fetch(session.user.email);
+    async session({ token, session }) {
+      invariant(token.sub);
+      const user = await userCache.fetch(token.sub);
       invariant(user);
       session.user = user;
       return session;
@@ -99,9 +100,8 @@ const userCache = new LRUCache<string, User>({
   // the data is guaranteed to be fresh after TTL passes.
   // updateAgeOnGet: true,
 
-  fetchMethod: async (email: string) => {
-    const user = await db.User.findOne({
-      where: { email },
+  fetchMethod: async (id: string) => {
+    const user = await db.User.findByPk(id, {
       attributes: userAttributes,
       include: userInclude,
     });
