@@ -5,8 +5,7 @@ import { adapter } from "../src/pages/api/auth/[...nextauth]";
 async function sync() {
   // Register the next-auth adapter so sequelize.sync() will create tables for
   // next-auth.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ = adapter;
+  void adapter;
 
   await migrateDatabase();
 
