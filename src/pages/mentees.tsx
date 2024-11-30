@@ -58,8 +58,6 @@ import {
 import { widePage } from 'AppPage';
 import { TbClockOff, TbClock } from "react-icons/tb";
 
-const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
-
 type Metadata = {
   // The year the mentee was accepted
   year: string,
@@ -69,6 +67,8 @@ type Metadata = {
 type SetMetadata = (menteeId: string, metadata: Metadata) => void;
 
 export default widePage(() => {
+  const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
+
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 

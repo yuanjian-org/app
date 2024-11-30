@@ -110,12 +110,6 @@ const list = procedure
         menteeStatus: filter.menteeStatus
       },
 
-      ...filter.hasMenteeApplication === undefined ? {} : {
-        menteeApplication: { 
-          ...filter.hasMenteeApplication ? { [Op.ne]: null } : { [Op.eq]: null }
-        },
-      },
-
       ...filter.matchesNameOrEmail === undefined ? {} : {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
