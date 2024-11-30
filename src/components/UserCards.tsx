@@ -66,7 +66,9 @@ export default function UserCards({ type, users }: {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+    
+      if ((isMac ? event.metaKey : event.ctrlKey) && event.key === 'f') {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -76,7 +78,7 @@ export default function UserCards({ type, users }: {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [searchInputRef]);
 
   const searchResult = useMemo(() => {
     return users && searchTerm ? search(users, searchTerm) : users;
