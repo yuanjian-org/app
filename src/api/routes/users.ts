@@ -110,6 +110,10 @@ const list = procedure
         menteeStatus: filter.menteeStatus
       },
 
+      ...filter.pointOfContactId === undefined ? {} : {
+        pointOfContactId: filter.pointOfContactId
+      },
+
       ...filter.matchesNameOrEmail === undefined ? {} : {
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },

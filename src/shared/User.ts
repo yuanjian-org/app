@@ -31,6 +31,7 @@ export const zUserFilter = z.object({
   containsRoles: zRoles.optional(),
   menteeStatus: zMenteeStatus.nullable().optional(),
   includeBanned: z.boolean().optional(),
+  pointOfContactId: z.string().optional(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
 

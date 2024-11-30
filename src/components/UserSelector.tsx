@@ -39,6 +39,7 @@ export default function UserSelector(props: {
 
   // https://react-select.com/props
   return <AsyncSelect
+    isClearable
     isDisabled={props.isDisabled}
     cacheOptions
     loadOptions={loadOptions}
