@@ -43,13 +43,13 @@ import {
 import Role from "../shared/Role";
 import { sidebarWidth } from './Navbars';
 import { breakpoint } from 'theme/metrics';
-import { formatUserName } from 'shared/strings';
+import { compareChinese, compareDate, formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
-import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
 import colors from 'theme/colors';
 import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
+import { mentorshipStatusIconType } from 'pages/mentees';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -193,20 +193,28 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    if ((a.relationalEndedAt === null) == (b.relationalEndedAt === null)) {
-      return formatUserName(a.mentee.name).localeCompare(
-        formatUserName(b.mentee.name));
+    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) > 0;
+    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) > 0;
+    if (aEnded !== bEnded) {
+      // ended ones should be sorted after ongoing ones.
+      return aEnded ? 1 : -1;
+    } else if (a.transactional !== b.transactional) {
+      // transactional should be sorted after relational.
+      return a.transactional ? 1 : -1;
     } else {
-      return a.relationalEndedAt === null ? -1 : 1;
+      return compareChinese(a.mentee.name, b.mentee.name);
     }
   });
 
-  return mentorships.map(m => ({
-    name: formatUserName(m.mentee.name),
-    icon: m.relationalEndedAt === null ? MdFace : PiFlagCheckeredFill,
-    path: `/mentees/${m.mentee.id}`,
-    regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
-  }));
+  return mentorships.map(m => {
+    const icon = mentorshipStatusIconType(m);
+    return {
+      name: formatUserName(m.mentee.name),
+      icon: icon ?? MdFace,
+      path: `/mentees/${m.mentee.id}`,
+      regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
+    };
+  });
 }
 
 interface SidebarProps extends BoxProps {

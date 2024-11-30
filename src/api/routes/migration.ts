@@ -46,6 +46,35 @@ export async function migrateDatabase() {
     END $$;
   `);
 
+  // Rename relationalEndedAt to endsAt in Mentorships table
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'relationalEndedAt'
+      ) THEN
+        ALTER TABLE "Mentorships" RENAME COLUMN "relationalEndedAt" TO "endsAt";
+      END IF;
+    END $$;
+  `);
+  
+  // Add transactional column to Mentorships table and fill in data
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'transactional'
+      ) THEN
+        ALTER TABLE "Mentorships" ADD COLUMN "transactional" BOOLEAN DEFAULT false;
+        UPDATE "Mentorships" SET "transactional" = false WHERE "transactional" IS NULL;
+        ALTER TABLE "Mentorships" ALTER COLUMN "transactional" SET NOT NULL;
+        ALTER TABLE "Mentorships" ALTER COLUMN "transactional" DROP DEFAULT;
+      END IF;
+    END $$;
+  `);
+
   await dropParanoid();
 
   await sequelize.sync({ alter: { drop: false } });

@@ -2,6 +2,7 @@ import { procedure, router } from "../trpc";
 import { authIntegration, authUser } from "../auth";
 import db from "../database/db";
 import { 
+  isEndedTransactionalMentorship,
   isValidMentorshipIds,
   zMentorship,
 } from "../../shared/Mentorship";
@@ -27,14 +28,17 @@ import {
   zMentorPreference, zUser
 } from "../../shared/User";
 import { zUserProfile } from "../../shared/UserProfile";
+import { zNullableDateColumn } from "../../shared/DateColumn";
 
 const create = procedure
   .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorId: z.string(),
     menteeId: z.string(),
+    transactional: z.boolean(),
+    endsAt: zNullableDateColumn,
   }))
-  .mutation(async ({ input: { mentorId, menteeId } }) => 
+  .mutation(async ({ input: { mentorId, menteeId, transactional, endsAt } }) => 
 {
   if (!isValidMentorshipIds(menteeId, mentorId)) {
     throw generalBadRequestError('无效用户ID');
@@ -56,7 +60,7 @@ const create = procedure
     let mentorship;
     try {
       mentorship = await db.Mentorship.create({
-        mentorId, menteeId
+        mentorId, menteeId, transactional, endsAt
       }, { transaction });
     } catch (e: any) {
       if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
@@ -75,13 +79,16 @@ const update = procedure
   .use(authUser('MentorshipManager'))
   .input(z.object({
     mentorshipId: z.string(),
-    relationalEndedAt: z.string().nullable(),
+    transactional: z.boolean(),
+    endsAt: zNullableDateColumn,
   }))
-  .mutation(async ({ input: { mentorshipId, relationalEndedAt } }) => 
+  .mutation(async ({ input: { mentorshipId, transactional, endsAt } }) => 
 {
-  const m = await db.Mentorship.findByPk(mentorshipId);
-  if (!m) throw notFoundError("一对一匹配", mentorshipId);
-  await m.update({ relationalEndedAt });
+  await sequelize.transaction(async transaction => {
+    const m = await db.Mentorship.findByPk(mentorshipId, { transaction });
+    if (!m) throw notFoundError("一对一匹配", mentorshipId);
+    await m.update({ transactional, endsAt }, { transaction });
+  });
 });
 
 /**
@@ -91,11 +98,14 @@ const update = procedure
  */
 const listMentorshipsForMentee = procedure
   .use(authUser())
-  .input(z.string())
+  .input(z.object({
+    menteeId: z.string(),
+    includeEndedTransactional: z.boolean(),
+  }))
   .output(z.array(zMentorship))
-  .query(async ({ ctx, input: menteeId }) => 
+  .query(async ({ ctx, input: { menteeId, includeEndedTransactional } }) => 
 {
-  return await db.Mentorship.findAll({
+  return (await db.Mentorship.findAll({
     where: {
       menteeId,
       ...isPermitted(ctx.user.roles, "MentorCoach") ? {} : {
@@ -104,7 +114,8 @@ const listMentorshipsForMentee = procedure
     },
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
-  });
+  })).filter(m =>
+    includeEndedTransactional || !isEndedTransactionalMentorship(m));
 });
 
 /**
@@ -120,7 +131,7 @@ const listMyMentorshipsAsCoach = procedure
     attributes: [],
     include: [{
       association: "mentorshipsAsMentor",
-      where: { relationalEndedAt: { [Op.eq]: null } },
+      where: { endsAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]
@@ -132,7 +143,7 @@ const listMyMentorshipsAsCoach = procedure
  */
 export async function getUser2MentorshipCount() {
   return (await db.Mentorship.findAll({
-    where: { relationalEndedAt: null },
+    where: { endsAt: null },
     attributes: [
       'mentorId',
       [sequelize.fn('COUNT', sequelize.col('mentorId')), 'count']
@@ -198,7 +209,7 @@ const deprecatedCountMentorships = procedure
     attributes: minUserAttributes,
     include: [{
       association: "mentorshipsAsMentor",
-      where: { relationalEndedAt: { [Op.eq]: null } },
+      where: { endsAt: { [Op.eq]: null } },
       attributes: mentorshipAttributes,
       include: mentorshipInclude,
     }]
@@ -213,11 +224,11 @@ const listMyMentorshipsAsMentor = procedure
   .output(z.array(zMentorship))
   .query(async ({ ctx }) => 
 {
-  return await db.Mentorship.findAll({
+  return (await db.Mentorship.findAll({
     where: { mentorId: ctx.user.id },
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
-  });
+  })).filter(m => !isEndedTransactionalMentorship(m));
 });
 
 /**

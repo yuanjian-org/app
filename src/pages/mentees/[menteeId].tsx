@@ -21,14 +21,18 @@ import { useUserContext } from 'UserContext';
 import GroupBar from 'components/GroupBar';
 import { breakpoint, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
-import { PiFlagCheckeredFill } from 'react-icons/pi';
 import Interview from 'components/Interview';
+import { MentorshipStatusIcon } from 'pages/mentees';
+import { RoleProfiles } from 'shared/Role';
 
 export default widePage(() => {
   const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
   const { data: u } = trpcNext.users.get.useQuery(userId);
   const { data: mentorships } = trpcNext.mentorships.listMentorshipsForMentee
-    .useQuery(userId);
+    .useQuery({
+      menteeId: userId,
+      includeEndedTransactional: false,
+    });
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
@@ -112,9 +116,17 @@ function MentorshipPanel({ mentorship: m }: {
   const [me] = useUserContext();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-    {m.relationalEndedAt && <HStack >
-      <PiFlagCheckeredFill />
-      <Text>一对一师生关系已于{prettifyDate(m.relationalEndedAt)}结束。</Text>
+    {m.transactional && m.endsAt && <HStack >
+      <MentorshipStatusIcon m={m} />
+      {/* After endsAt expires, listMentorshipsForMentee should not return
+       this mentorship anymore, so we don't need to handle this case. */}
+      <Text>此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
+        {RoleProfiles.MentorshipManager.displayName}。</Text>
+    </HStack>}
+
+    {!m.transactional && m.endsAt && <HStack >
+      <MentorshipStatusIcon m={m} />
+      <Text>一对一师生关系已于{prettifyDate(m.endsAt)}结束。</Text>
     </HStack>}
 
     <SimpleGrid

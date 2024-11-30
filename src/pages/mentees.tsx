@@ -21,13 +21,14 @@ import {
   VStack,
   Spacer,
   LinkProps,
-  Checkbox,
   Tag,
+  HStack,
+  Icon,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { compareChinese, formatUserName, hash, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese, compareDate, formatUserName, hash, prettifyDate, toPinyin } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
@@ -37,15 +38,16 @@ import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import moment from "moment";
-import { Mentorship } from 'shared/Mentorship';
+import { isEndedTransactionalMentorship, Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
-import { sectionSpacing } from 'theme/metrics';
+import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
 import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
 import { widePage } from 'AppPage';
+import { TbClockOff, TbClock } from "react-icons/tb";
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
 type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
@@ -215,7 +217,10 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   readonly?: boolean,
 }) {
   const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee
-    .useQuery(mentee.id);
+    .useQuery({
+      menteeId: mentee.id,
+      includeEndedTransactional: true,
+    });
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order
@@ -244,8 +249,12 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = transcriptRes.map(t => 
     getDateTextAndColor(t.data, 45, 60, "尚未通话"));
 
+  const displayedMentorships = mentorships
+    .filter(m => !isEndedTransactionalMentorship(m));
+
   const coachesRes = trpcNext.useQueries(t => {
-    return mentorships.map(m => t.users.getMentorCoach({ userId: m.mentor.id }));
+    return displayedMentorships.map(
+      m => t.users.getMentorCoach({ userId: m.mentor.id }));
   });
 
   const refetchAll = () => {
@@ -276,11 +285,11 @@ function LoadedMentorsCells({
       />}
 
       <LinkToEditor onClick={() => setEditing(true)}>
-        {mentorships.length ?
+        {displayedMentorships.length ?
           <VStack align="start">
-            {mentorships.map(m =>
+            {displayedMentorships.map(m =>
               <Flex key={m.id} gap={1}>
-                {m.relationalEndedAt !== null && <PiFlagCheckeredFill />}
+                <MentorshipStatusIcon m={m} />
                 {formatUserName(m.mentor.name)}
               </Flex>)
             }
@@ -335,6 +344,28 @@ export function getDateTextAndColor(date: string | null | undefined,
   return [text, color];
 }
 
+function newTransactionalMentorshipEndsAt(): Date {
+  return moment().add(2, 'weeks').toDate();
+}
+
+export function mentorshipStatusIconType(m: Mentorship) {
+  return !m.endsAt ? undefined :
+    compareDate(m.endsAt, new Date()) > 0 ?
+      m.transactional ? TbClockOff : PiFlagCheckeredFill
+    :
+    m.transactional ? TbClock : undefined;
+}
+
+export function MentorshipStatusIcon({ m }: { m: Mentorship }) {
+  const type = mentorshipStatusIconType(m);
+  return type ? <Icon as={type} /> : <></>;
+}
+
+type ConfirmingData = {
+  message: string,
+  confirm: () => void,
+};
+
 function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
   mentee: MinUser,
   mentorships: Mentorship[],
@@ -342,46 +373,125 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
   onClose: () => void,
 }) {
   const [creating, setCreating] = useState<boolean>(false);
+  const [confirmingData, setConfirmingData] = useState<ConfirmingData>();
 
-  const updateMentorship = async (mentorshipId: string, ended: boolean) => {
+  const updateMentorship = async (
+    mentorshipId: string,
+    transactional: boolean,
+    endsAt: Date | null
+  ) => {
     await trpc.mentorships.update.mutate({
       mentorshipId,
-      relationalEndedAt: ended ? new Date().toISOString() : null,
+      transactional,
+      endsAt: endsAt?.toISOString() ?? null,
     });
     refetch();
   };
 
-  return <ModalWithBackdrop isOpen onClose={onClose}>
+  /*
+   * Display format:
+  *
+   * 类型    状态              操作
+   * ----------------------------------------------------------
+   * 不定期  将于<结束日期>结束  [立即结束] [延期结束] [转成一对一]
+   * 不定期  已于<结束日期>结束  [重新开始] [转成一对一]
+   * 一对一  已于<结束日期>结束  [重新开始]
+   * 一对一  进行中             [立即结束]
+   */
+  return <ModalWithBackdrop isOpen size="4xl" onClose={onClose}>
     <ModalContent>
       <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
       <ModalCloseButton />
-      <ModalBody>
-        <TableContainer>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>导师</Th>
-                <Th>已结束</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {mentorships.map(m => {
-                return <Tr key={m.id}>                  
-                  {/* 导师 */}
-                  <Td>{formatUserName(m.mentor.name)}</Td>
+      <ModalBody><TableContainer><Table>
+        <Thead>
+          <Tr>
+            <Th>导师</Th>
+            <Th>类型</Th>
+            <Th>状态</Th>
+            <Th>操作</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {mentorships.map(m => {
+            return <Tr key={m.id}>                  
+              {/* 导师 */}
+              <Td>{formatUserName(m.mentor.name)}</Td>
 
-                  {/* 已结束 */}
-                  <Td>
-                    <Checkbox isChecked={m.relationalEndedAt !== null}
-                      onChange={ev => updateMentorship(m.id, ev.target.checked)}
-                    />
-                  </Td>
-                </Tr>;
-              })}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </ModalBody>
+              {/* 类型 */}
+              <Td>{m.transactional ? "不定期" : "一对一"}</Td>
+
+              {/* 状态 */}
+              <Td>
+                {!m.endsAt ? "进行中" :
+                  compareDate(m.endsAt, new Date()) > 0 ?
+                  <HStack>
+                    <MentorshipStatusIcon m={m} />
+                    <Text>已于{prettifyDate(m.endsAt)}结束</Text>
+                  </HStack>
+                  :
+                  <HStack>
+                    <MentorshipStatusIcon m={m} />
+                    <Text>将于{prettifyDate(m.endsAt)}结束</Text>
+                  </HStack>
+                }
+              </Td>
+
+              {/* 操作 */}
+              <Td><HStack spacing={6}>
+                {m.transactional ? <>
+                  {/* 不定期 */}
+                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定重新开始吗？",
+                      confirm: () => updateMentorship(m.id, true, 
+                        newTransactionalMentorshipEndsAt())
+                    })}>重新开始</Link>
+                    :
+                    <>
+                      <Link onClick={() => setConfirmingData({
+                        message: "确定立即结束吗？",
+                        confirm: () => updateMentorship(m.id, true,
+                          moment().subtract(1, 'minutes').toDate())
+                      })}>立即结束</Link>
+
+                      <Link onClick={() => setConfirmingData({
+                        message: "确定延期结束吗？",
+                        confirm: () => updateMentorship(m.id, true,
+                          newTransactionalMentorshipEndsAt())
+                      })}>延期结束</Link>
+                    </>
+                  }
+
+                  <Link onClick={() => setConfirmingData({
+                    message: "确定转成一对一吗？【注意】导师无法从一对一转回不定期。",
+                    confirm: () => updateMentorship(m.id, false, null)
+                  })}>转成一对一</Link>
+                </>
+                : 
+                <>
+                  {/* 一对一 */}
+                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定重新开始吗？",
+                      confirm: () => updateMentorship(m.id, false, null)
+                    })}>重新开始</Link>
+                    :
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定立即结束吗？",
+                      confirm: () => updateMentorship(m.id, false,
+                        moment().subtract(1, 'minutes').toDate())
+                    })}>立即结束</Link>
+                  }
+                </>}
+              </HStack></Td>
+            </Tr>;
+          })}
+        </Tbody>
+      </Table></TableContainer></ModalBody>
+
+      {confirmingData && <Confirmation
+        {...confirmingData} onClose={() => setConfirmingData(undefined)} />}
+
       <ModalFooter>
         {creating && <MentorshipCreator menteeId={mentee.id} refetch={refetch}
           onClose={() => setCreating(false)}/>}
@@ -402,7 +512,13 @@ function MentorshipCreator({ menteeId, refetch, onClose }: {
   const save = async (mentorId: string) => {
     invariant(menteeId);
     invariant(mentorId);
-    await trpc.mentorships.create.mutate({ mentorId, menteeId });
+    await trpc.mentorships.create.mutate({
+      mentorId,
+      menteeId,
+      // Always start from transactional mentorships.
+      transactional: true,
+      endsAt: newTransactionalMentorshipEndsAt().toISOString(),
+    });
     onClose();
     refetch();
   };
@@ -420,6 +536,30 @@ function MentorshipCreator({ menteeId, refetch, onClose }: {
       </ModalBody>
       <ModalFooter>
         <Button onClick={onClose}>取消</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}
+
+function Confirmation({ message, confirm, onClose }: { 
+  message: string,
+  confirm: () => void,
+  onClose: () => void,
+}) {
+  return <ModalWithBackdrop isOpen onClose={onClose}>
+    <ModalContent>
+      <ModalHeader>确认</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        {message}
+      </ModalBody>
+      <ModalFooter>
+        <HStack spacing={componentSpacing}>
+          <Button variant="brand" onClick={() => { confirm(); onClose(); }}>
+            确认
+          </Button>
+          <Button onClick={onClose}>取消</Button>
+        </HStack>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

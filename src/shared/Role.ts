@@ -57,7 +57,7 @@ export const RoleProfiles: { [key: string]: {
     privilegedUserDataAccess: true,
   },
   MentorshipManager: {
-    displayName: '学生导师管理员',
+    displayName: '师生管理员',
     actions: '管理学生信息、导师信息、面试信息、一对一学生导师匹配信息等',
     privilegedUserDataAccess: true,
   },
