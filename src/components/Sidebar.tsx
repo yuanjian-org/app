@@ -2,13 +2,13 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import React from 'react';
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
 import { MdOutlineFace } from "react-icons/md";
 import { IoStarOutline } from "react-icons/io5";
-
+import invariant from 'tiny-invariant';
 import {
   Avatar,
   HStack,
@@ -50,6 +50,7 @@ import colors from 'theme/colors';
 import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
 import { mentorshipStatusIconType } from 'pages/mentees';
+import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -261,6 +262,10 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           marginLeft={sidebarItemPaddingLeft - 2}
           marginY={sidebarItemPaddingY}  
         />
+
+        <ImpersonationBanner />
+
+        {/* White spacing */}
         <Box height={{
           base: 0,
           [breakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
@@ -301,6 +306,41 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 };
 
 export default Sidebar;
+
+function ImpersonationBanner() {
+  const { data: session, update } = useSession();
+  const [, setUser] = useUserContext();
+  const router = useRouter();
+
+  const stopImpersonation = async () => {
+    const req: ImpersonationRequest = { impersonate: null };
+    await update(req);
+    invariant(session);
+    setUser(session.user);
+    await router.push("/users");
+  };
+
+  return !session?.impersonated ? <></> : <Box
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+    bg="orange.100"
+    color="orange.800"
+    py={2}
+    px={4}
+    fontSize="sm"
+  >
+    <Text>假扮模式</Text>
+    <Link
+      ml={2}
+      color="orange.600"
+      textDecoration="underline"
+      onClick={stopImpersonation}
+    >
+      退出
+    </Link>
+  </Box>;
+}
 
 function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   title: string,
