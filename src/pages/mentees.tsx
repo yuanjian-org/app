@@ -28,7 +28,13 @@ import {
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { compareChinese, compareDate, formatUserName, hash, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese,
+  compareDate, 
+  formatUserName, 
+  hash,
+  prettifyDate, 
+  toPinyin 
+} from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
@@ -45,12 +51,22 @@ import { MdEdit } from 'react-icons/md';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
-import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
+import {
+  PointOfContactCells, 
+  PointOfContactHeaderCells
+} from 'components/pointOfContactCells';
 import { widePage } from 'AppPage';
 import { TbClockOff, TbClock } from "react-icons/tb";
 
 const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
-type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
+
+type Metadata = {
+  // The year the mentee was accepted
+  year: string,
+  source: string,
+};
+
+type SetMetadata = (menteeId: string, metadata: Metadata) => void;
 
 export default widePage(() => {
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -81,14 +97,14 @@ function MenteeTable({ users, refetch }: {
   users: User[],
   refetch: () => void
 }) {
-  const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
+  const [mentee2meta, setMentee2meta] = useState(new Map<string, Metadata>()); 
 
-  // Use a callback to avoid infinite re-rendering when menteeToYear is changed.
-  const updateMenteeYear = useCallback(
-    (userId: string, acceptanceYear: string) => {
-      setMenteeToYear(current => {
+  // Use a callback to avoid infinite re-rendering when mentee2meta is changed.
+  const setMetadata = useCallback(
+    (userId: string, metadata: Metadata) => {
+      setMentee2meta(current => {
         const newMap = new Map(current);
-        newMap.set(userId, acceptanceYear);
+        newMap.set(userId, metadata);
         return newMap;
       });
     }
@@ -96,11 +112,21 @@ function MenteeTable({ users, refetch }: {
 
   const sortedUsers = useMemo(() => {
     return users.sort((a, b) => {
-      const comp = (menteeToYear.get(b.id) || "")
-        .localeCompare(menteeToYear.get(a.id) || "");
-      return comp !== 0 ? comp : compareChinese(a.name, b.name);
+      // Sort by acceptance year
+      let comp = (mentee2meta.get(b.id)?.year || "")
+        .localeCompare(mentee2meta.get(a.id)?.year || "");
+      if (comp !== 0) return comp;
+
+      // Then sort by source
+      comp = compareChinese(
+        mentee2meta.get(a.id)?.source || "",
+        mentee2meta.get(b.id)?.source || "");
+      if (comp !== 0) return comp;
+
+      // Then sort by name
+      return compareChinese(a.name, b.name);
     });
-  }, [users, menteeToYear]); 
+  }, [users, mentee2meta]); 
  
   return <Table size="sm">
     <Thead>
@@ -114,18 +140,20 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {sortedUsers.map((u: User) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} 
-        updateMenteeYear={updateMenteeYear} />)
-      }
+      {sortedUsers.map((u: User) => <MenteeRow
+        key={u.id} 
+        user={u} 
+        refetch={refetch} 
+        setMetadata={setMetadata} 
+      />)}
     </Tbody>
   </Table>;
 }
 
-function MenteeRow({ user: u, refetch, updateMenteeYear }: {
+function MenteeRow({ user: u, refetch, setMetadata }: {
   user: User,
-  refetch: () => void
-  updateMenteeYear?: UpdateMenteeYear
+  refetch: () => void,
+  setMetadata: SetMetadata
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -145,7 +173,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   return <Tr key={u.id} _hover={{ bg: "white" }}>
     <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
-    <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
+    <MenteeCells mentee={u} setMetadata={setMetadata}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
     <Td>{pinyin}</Td>
@@ -167,9 +195,9 @@ function MenteeHeaderCells() {
   </>;
 }
 
-export function MenteeCells({ mentee, updateMenteeYear } : {
+export function MenteeCells({ mentee, setMetadata } : {
   mentee: MinUser,
-  updateMenteeYear?: UpdateMenteeYear
+  setMetadata?: SetMetadata
 }) {
   const { data } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
@@ -179,14 +207,11 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
   const year = (data?.application as Record<string, any>)
     ?.[menteeAcceptanceYearField];
   
-    const source = (data?.application as Record<string, any> | null)
+  const source = (data?.application as Record<string, any> | null)
     ?.[menteeSourceField];
 
-  useEffect(() => {
-    if (updateMenteeYear) {
-      updateMenteeYear(mentee.id, year);
-    }
-  }, [mentee.id, year, updateMenteeYear]);
+  useEffect(() => setMetadata?.(mentee.id, { year, source }),
+    [mentee.id, year, source, setMetadata]);
 
   return <>
     {/* Acceptance Year */}
