@@ -6,15 +6,18 @@ import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
 import { toChinese } from "../../../shared/strings";
-import { userAttributes, userInclude } from "../../../api/database/models/attributesAndIncludes";
+import {
+  userAttributes,
+  userInclude,
+} from "../../../api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
 
-// The default session user would cause type error when using session user data
 declare module "next-auth" {
   interface Session {
+    // TODO: Remove `user` and use `me` instead.
     user: User;
   }
 }
@@ -88,11 +91,12 @@ async function sendVerificationRequest({ identifier: email, url, token }:
 
 const userCache = new LRUCache<string, User>({
   max: 1000,
-  // The TTL should not too short so most consecutive requests from a page load should get a hit.
-  // It should not be too long to keep stalenss in reasonable control.
+  // The TTL should not too short so most consecutive requests from a page load
+  // should get a hit. It should not be too long to keep staleness in reasonable
+  // control.
   ttl: 5 * 1000,  // 5 sec
-  // Do not update age so that no matter how eagerly users refreshes the page the data is guaranteed to be fresh after
-  // TTL passes.
+  // Do not update age so that no matter how eagerly users refreshes the page
+  // the data is guaranteed to be fresh after TTL passes.
   // updateAgeOnGet: true,
 
   fetchMethod: async (email: string) => {

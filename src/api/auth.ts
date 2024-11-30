@@ -12,7 +12,8 @@ import { authOptions } from "../pages/api/auth/[...nextauth]";
  *  "${BASE_URL}/api/v1/foo.bar"
  */
 export const authIntegration = () => middleware(async ({ ctx, next }) => {
-  const token: string | undefined = ctx.req.headers['authorization']?.split(' ')[1];
+  const token: string | undefined = ctx.req.headers['authorization']
+    ?.split(' ')[1];
 
   if (!token) throw unauthorizedError();
   if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
@@ -20,11 +21,13 @@ export const authIntegration = () => middleware(async ({ ctx, next }) => {
 });
 
 /**
- * Authenticate for APIs used by end users as opposed to integration applications.
+ * Authenticate for APIs used by end users as opposed to integration
+ * applications.
  */
-export const authUser = (permitted?: Role | Role[]) => middleware(async ({ ctx, next }) => {
-  const session = await getServerSession(ctx.req, ctx.res, authOptions);
-  if (!session) throw unauthorizedError();
+export const authUser = (permitted?: Role | Role[]) =>middleware(
+  async ({ ctx, next }) => {
+    const session = await getServerSession(ctx.req, ctx.res, authOptions);
+    if (!session) throw unauthorizedError();
 
   if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
 

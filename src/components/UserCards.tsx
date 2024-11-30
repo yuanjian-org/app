@@ -55,8 +55,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-const isMobile = /iPhone|iPad|Android/.test(navigator.userAgent);
-const isMac = /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
+const isMobile = typeof navigator !== 'undefined' &&
+  /iPhone|iPad|Android/.test(navigator.userAgent);
+const isMac = typeof navigator !== 'undefined' &&
+  /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
