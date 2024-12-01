@@ -73,9 +73,9 @@ function Message({ message: m }: {
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
-  const createdAt = m.createdAt ? `${prettifyDate(m.createdAt)}创建` : "";
+  const createdAt = m.createdAt ? `${prettifyDate(m.createdAt)}` : "";
   const updatedAt = m.updatedAt && m.updatedAt !== m.createdAt ?
-    `${prettifyDate(m.updatedAt)}更新` : "";
+    `${prettifyDate(m.updatedAt)}` : "";
 
   return <HStack align="top" spacing={componentSpacing} width="100%">
     <Avatar name={name} boxSize={10} />
@@ -90,8 +90,8 @@ function Message({ message: m }: {
           fontSize="sm"
           color="grey"
         >
-          {createdAt}
-          {updatedAt && ` ｜ ${updatedAt}`}
+          {createdAt}创建
+          {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
         </Text>
 
         {/* This is for mobile */}
@@ -100,8 +100,8 @@ function Message({ message: m }: {
           fontSize="sm"
           color="grey"
         >
-          {createdAt}
-          {updatedAt && <><br />{updatedAt}</>}
+          {createdAt}创建
+          {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
         </Text>
 
         {!editing && user.id == m.user.id && <>
