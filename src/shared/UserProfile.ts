@@ -3,7 +3,7 @@ import { zMinUser } from "./User";
 
 const zStr = z.string().optional();
 
-export const zUserProfile = z.object({
+export const zStringUserProfile = z.object({
   '性别': zStr,
   '英文别名': zStr,
   '身份头衔': zStr,
@@ -24,6 +24,13 @@ export const zUserProfile = z.object({
   // Unused / deprecated
   '擅长辅导领域': zStr,
 });
+
+export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
+
+export const zUserProfile = zStringUserProfile.merge(z.object({ 
+  '点赞': z.number().optional(), 
+}));
+
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
 
 export const zMinUserAndProfile = z.object({

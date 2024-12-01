@@ -19,7 +19,7 @@ import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
@@ -27,7 +27,7 @@ import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 
 export type FieldAndLabel = {
-  field: keyof UserProfile;
+  field: keyof StringUserProfile;
   label?: string;
 };
 
@@ -214,7 +214,10 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
       </Flex>
     </CardBody>
     <CardFooter>
-      <Button>更多信息</Button>
+      <Flex alignItems="center" justifyContent="space-between" width="100%"> 
+        <Button>更多信息</Button>
+        <Text>👍{p?.点赞}</Text>
+      </Flex>
 
       {type == "TransactionalMentor" && <>
         <Spacer />

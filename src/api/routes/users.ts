@@ -219,6 +219,40 @@ const listVolunteerProfiles = procedure
   }));
 });
 
+const getLikeCount = procedure
+  .use(authUser()) 
+  .output(z.object({ likeCount: z.number() }))
+  .query(async ({ ctx }) => 
+{
+  const userId = ctx.user.id;
+  const user = await db.User.findByPk(userId);
+  if (!user) throw new Error("用户不存在");
+  return { likeCount: user.profile?.点赞 || 0 };
+});
+
+const incrementLikeCount = procedure
+  .use(authUser())
+  .mutation(async ({ ctx }) => 
+{
+  const userId = ctx.user.id;
+  const result = await sequelize.transaction(async (transaction) => {
+    const user = await db.User.findByPk(userId, { transaction });
+    if (!user) throw new Error("用户不存在");
+    
+    const newLikeCount = (user.profile?.点赞 || 0) + 1;
+    await db.User.update({
+      profile: { ...user.profile, 点赞: newLikeCount }
+    }, {
+      where: { id: userId },
+      transaction,
+    });
+
+    return newLikeCount;
+  });
+
+  return { likeCount: result };
+});
+     
 const listRedactedEmailsWithSameName = procedure
   .use(authUser())
   .output(z.array(z.string()))
@@ -751,6 +785,9 @@ export default router({
 
   getUserProfile,
   setUserProfile,
+
+  getLikeCount,
+  incrementLikeCount,
 
   getUserState,
   setUserState,
