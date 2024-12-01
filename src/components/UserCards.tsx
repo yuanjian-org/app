@@ -18,7 +18,7 @@ import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { ImageParams, MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
@@ -151,8 +151,8 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
 
-  const match = (v: string | null | undefined) => {
-    if (!v) return false;
+  const match = (v: string | null | undefined | ImageParams) => {
+    if (typeof v !== 'string' || !v) return false;
     const lowerV = v.toLowerCase();
     return [lowerV, toPinyin(lowerV)].some(s => s.includes(lower));
   };

@@ -40,7 +40,9 @@ import { encodeUploadTokenUrlSafe } from 'shared/upload';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
+import { CropImageModal } from 'components/CropImageModal';
 import getBaseUrl from 'shared/getBaseUrl';
+import { ImageParams } from 'shared/UserProfile';
 
 /**
  * The mentorId query parameter can be a user id or "me". The latter is to
@@ -65,11 +67,18 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
-  const updateProfile = (k: keyof UserProfile, v: string) => {
+  const updateProfile = (k: keyof UserProfile, v: string | ImageParams) => {
     invariant(profile);
     const updated = structuredClone(profile);
-    if (v) updated[k] = v;
-    else delete updated[k];
+    if (!v) {
+      delete updated[k];
+    } else {
+      if (typeof v === 'string' && k !== '照片参数') {
+        updated[k] = v;
+      } else if (typeof v === 'object' && k === '照片参数') {
+        updated[k] = v;
+      }
+    }
     setProfile(updated);
   };
 
@@ -252,10 +261,11 @@ function Basic({ user, profile, setUser, setProfile }: {
 function Picture({ userId, profile, updateProfile, SaveButton }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
+  updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
+  const [isCropImageModalOpen, setCropImageModalOpen] = useState(false);
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -266,6 +276,10 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
       shaChecksum(profile)) : null, 
     [userId, profile]
   );
+
+  const updateProfileImageParams = (x: number, y: number, zoom: number) => {
+    updateProfile('照片参数', { x, y, zoom }); 
+  };
 
   return <>
     <Heading size="md">生活照</Heading>
@@ -285,6 +299,14 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
             <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
           }
         </Link>
+        {profile.照片链接 && 
+          <HStack onClick={()=>setCropImageModalOpen(!isCropImageModalOpen)}>
+            <MdChangeCircle /><Text>修改图像</Text>
+          </HStack>
+        }
+        {isCropImageModalOpen && <CropImageModal 
+          onClose={() => setCropImageModalOpen(false)} 
+          imageUrl={profile.照片链接} onSave={updateProfileImageParams} />}
       </>}
 
       <FormHelperTextWithMargin>
