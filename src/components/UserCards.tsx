@@ -15,13 +15,13 @@ import {
   InputLeftElement,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName, toPinyin, truncate } from 'shared/strings';
+import { formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 
@@ -185,8 +185,6 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
   type: UserCardType,
   openModal: () => void,
 }) {
-  const maxLen = 80;
-
   return <UserCard user={user} type={type}>
 
     <FullWidthImageSquare profile={p} />
@@ -201,15 +199,15 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {type == "TransactionalMentor" ? <>
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
-          {p?.职业经历 && <Text>{truncate(p.职业经历, 80)}</Text>}
+          {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
         </> : type == "RelationalMentor" ? <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
-          {p?.擅长话题 && <Text><b>擅长聊</b>：{p.擅长话题}</Text>}
-          {p?.成长亮点 && <Text><b>成长亮点</b>：{truncate(p.成长亮点, maxLen)}</Text>}
+          {p?.擅长话题 && <TruncatedText><b>擅长聊</b>：{p.擅长话题}</TruncatedText>}
+          {p?.成长亮点 && <TruncatedText>{p.成长亮点}</TruncatedText>}
         </> : <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
-          {p?.爱好与特长 && <Text><b>爱好</b>：{truncate(p.爱好与特长, maxLen)}</Text>}
-          {p?.生活日常 && <Text><b>日常</b>：{truncate(p.生活日常, maxLen)}</Text>}
+          {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
+          {p?.生活日常 && <TruncatedText>{p.生活日常}</TruncatedText>}
         </>}
       </VStack>
     </CardBody>
@@ -225,6 +223,10 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
       </>}
     </CardFooter>
   </UserCard>;
+}
+
+function TruncatedText({ children }: PropsWithChildren) {
+  return <Text noOfLines={5}>{children}</Text>;
 }
 
 /**
@@ -265,9 +267,6 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
   type: UserCardType,
   openModal: () => void,
 }) {
-  // Roughly five lines of text on iPhone 12 Pro.
-  const maxLen = 75;
-
   return <UserCard
     user={user}
     size="sm"
@@ -321,12 +320,12 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
 
         {type == "TransactionalMentor" ? <>
-          {p?.职业经历 && <Text>{truncate(p.职业经历, maxLen)}</Text>}
+          {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
         </> : type == "RelationalMentor" ? <>
-          {p?.擅长话题 && <Text>擅长聊：{truncate(p.擅长话题, maxLen)}</Text>}
+          {p?.擅长话题 && <TruncatedText>擅长聊：{p.擅长话题}</TruncatedText>}
         </> : <>
-          {p?.爱好与特长 && <Text><b>爱好</b>：{truncate(p.爱好与特长, maxLen)}</Text>}
-          {p?.生活日常 && <Text><b>日常</b>：{truncate(p.生活日常, maxLen)}</Text>}
+          {p?.爱好与特长 && <TruncatedText>爱好：{p.爱好与特长}</TruncatedText>}
+          {p?.生活日常 && <TruncatedText>日常：{p.生活日常}</TruncatedText>}
         </>}
       </VStack>
 
