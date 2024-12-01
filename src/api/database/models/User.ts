@@ -74,10 +74,17 @@ class User extends Model {
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
 
-  // Leave it here as opposed to inside the profile column because in some cases
+  // User defined WeChat ID, which is different from WeChat OpenID and UnionID
+  // and is not provided by WeChat auth API.
+  // Store it here as opposed to inside the profile column because in some cases
   // we need to redact this field (and email field).
   @Column(STRING)
   wechat: string | null;
+
+  // Used by WeChat auth. See WeChatProvider.ts
+  @Unique
+  @Column(STRING)
+  wechatUnionId: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;

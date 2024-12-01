@@ -1,9 +1,9 @@
 /**
  * See docs/WeChat.md for details.
  */
+import db from "../../../api/database/db";
 import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
-
-export const WECHAT_EMAIL_DOMAIN = "@linkemail.wechat";
+import { newUnboundEmail } from "./binding";
 
 export interface WeChatProfile {
   openid: string
@@ -18,12 +18,12 @@ export interface WeChatProfile {
   [claim: string]: unknown
 }
 
-export default function WeChat(
+export default function WeChatProvider(
   options: OAuthUserConfig<WeChatProfile> & {
-    platformType?: "OfficialAccount" | "WebsiteApp"
+    platformType: "OfficialAccount" | "WebsiteApp"
   }
 ): OAuthConfig<WeChatProfile> {
-  const { clientId, clientSecret, platformType = "OfficialAccount" } = options;
+  const { clientId, clientSecret, platformType } = options;
 
   return {
     id: "wechat",
@@ -31,7 +31,9 @@ export default function WeChat(
     type: "oauth",
     style: { logo: "/img/wechat.svg", bg: "#fff", text: "#000" },
     checks: ["state"],
-    // https://next-auth.js.org/configuration/providers/oauth#allowdangerousemailaccountlinking-option
+
+    // We need this option to allow next-auth to link 微信开放平台 & 微信公众平台
+    // accounts that share the same UnionID. See docs/WeChat.md.
     allowDangerousEmailAccountLinking: true,
 
     authorization: {
@@ -81,16 +83,33 @@ export default function WeChat(
       },
     },
 
-    profile(profile) {
+    async profile(profile) {
+      // Create an unbound email if the user doesn't exist.
+      const user = await db.User.findOne({
+        where: { wechatUnionId: profile.unionid },
+        attributes: ["email"],
+      });
+      const email = user?.email ?? newUnboundEmail();
+
       return {
-        id: profile.unionid,
-        wechat: profile.unionid,
+        // next-auth requires it to identify the account when adding to the db.
+        // however, the users table uses generated UUID when creating rows so
+        // this field is always ignored. 
+        id: "unused",
+
+        // see docs/WeChat.md for unionid vs openid
+        wechatUnionId: profile.unionid,
+
         name: profile.nickname,
-        // email should not be null
-        email: profile.unionid + WECHAT_EMAIL_DOMAIN,
-        image: profile.headimgurl,
+
+        // next-auth uses email to identify the account.
+        email,
+
+        // We don't need the image for now
+        // image: profile.headimgurl,
       };
     },
+
     options,
   };
 }

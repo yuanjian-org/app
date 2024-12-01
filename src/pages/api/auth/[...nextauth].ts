@@ -16,6 +16,7 @@ import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
+import WeChatProvider from "./WeChatProvider";
 
 declare module "next-auth" {
   interface Session {
@@ -53,7 +54,22 @@ export const authOptions: NextAuthOptions = {
       maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
       sendVerificationRequest,
       generateVerificationToken,
-    }
+    },
+    WeChatProvider({
+      id: "wechat-qr",
+      name: "微信扫码登陆",
+      checks: ["none"],
+      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+      platformType: "WebsiteApp",
+    }),
+    WeChatProvider({
+      id: "wechat",
+      name: "微信内登陆",
+      clientId: process.env.AUTH_WECHAT_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+      platformType: "OfficialAccount",
+    })
   ],
 
   pages: {

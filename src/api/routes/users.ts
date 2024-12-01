@@ -19,7 +19,6 @@ import User, {
 } from "../../shared/User";
 import { 
   formatUserName,
-  isValidChineseName, 
   toPinyin 
 } from "../../shared/strings";
 import invariant from 'tiny-invariant';
@@ -703,9 +702,9 @@ function validateUserInput(
   email: string,
   url: string | null | undefined,
 ) {
-  if (!isValidChineseName(name)) {
-    throw generalBadRequestError("中文姓名无效。");
-  }
+  // if (!isValidChineseName(name)) {
+  //   throw generalBadRequestError("中文姓名无效。");
+  // }
 
   if (!z.string().email().safeParse(email).success) {
     throw generalBadRequestError("Email地址无效。");
