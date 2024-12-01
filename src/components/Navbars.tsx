@@ -43,8 +43,9 @@ export default function Navbars({
   const [autosaveState, setAutosateState] = useState<AutosaveState>(initialState);
 
   /**
-   * Use a reference holder to keep the values of addPS and removePS independent of autosaveState, and thus avoid
-   * re-rendering the whole page every time autosaveState changes.
+   * Use a reference holder to keep the values of addPS and removePS independent
+   * of autosaveState, and thus avoid re-rendering the whole page every time
+   * autosaveState changes.
    */
   const stateRef = useRef(initialState);
   const addPS = useCallback((id: string) => {

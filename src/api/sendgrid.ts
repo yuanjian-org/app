@@ -5,6 +5,7 @@ import User from './database/models/User';
 import { Op } from 'sequelize';
 import Role, { RoleProfiles } from '../shared/Role';
 import z from 'zod';
+import _ from 'lodash';
 
 if (apiEnv.hasSendGrid()) mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
@@ -38,7 +39,7 @@ export async function email(templateId: string,
   if (typeof global.it === 'function') return;
 
   // Always attach `baseUrl` as dynamic template data
-  const ps: any[] = structuredClone(personalization);
+  const ps: any[] = _.cloneDeep(personalization);
   for (const p of ps) {
     if ('dynamicTemplateData' in p) {
       p.dynamicTemplateData.baseUrl = baseUrl;

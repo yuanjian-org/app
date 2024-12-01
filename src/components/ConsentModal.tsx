@@ -17,9 +17,9 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 const consentContentLastUpdatedAt = new Date("2023-06-01");
 
 export function consentFormAccepted(user: User) {
-  return user.consentFormAcceptedAt && (
-    new Date(user.consentFormAcceptedAt).getTime() >= consentContentLastUpdatedAt.getTime()
-  );
+  return user.consentFormAcceptedAt &&
+    new Date(user.consentFormAcceptedAt).getTime() >=
+      consentContentLastUpdatedAt.getTime();
 }
 
 export default function ConsentModal() {
@@ -27,14 +27,17 @@ export default function ConsentModal() {
   const [declined, setDeclined] = useState<boolean>(false);
 
   const handleSubmit = async () => {
-    const updated = structuredClone(user);
-    updated.consentFormAcceptedAt = new Date().toISOString();
+    const updated = {
+      ...user,
+      consentFormAcceptedAt: new Date().toISOString(),
+    };
     await trpc.users.update.mutate(updated);
     setUser(updated);
   };
 
   return <>
-    {/* onClose returns undefined to prevent user from closing the modal without entering name. */}
+    {/* onClose returns undefined to prevent user from closing the modal without
+        entering name. */}
     <ModalWithBackdrop isOpen={!declined} onClose={() => undefined}>
       <ModalContent>
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>

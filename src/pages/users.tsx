@@ -172,11 +172,11 @@ function UserTable({ users, setUserBeingEdited }: {
   </Table>;
 }
 
-function UserEditor(props: {
+function UserEditor({ user, onClose }: {
   user?: User, // When absent, create a new user.
   onClose: () => void,
 }) {
-  const u = props.user ?? {
+  const u = user ?? {
     email: '',
     name: '',
     roles: [],
@@ -198,29 +198,30 @@ function UserEditor(props: {
   const save = async () => {
     setIsSaving(true);
     try {
-      if (props.user) {
-        const u = structuredClone(props.user);
-        u.email = email;
-        u.name = name;
-        u.roles = roles;
-        await trpc.users.update.mutate(u);
+      if (user) {
+        await trpc.users.update.mutate({
+          ...user,
+          email,
+          name,
+          roles,
+        });
       } else {
         await trpc.users.create.mutate({ name, email, roles });
       }
-      props.onClose();
+      onClose();
     } finally {
       setIsSaving(false);
     }
   };
 
   const deleteUser = async () => {
-    if (props.user && window.confirm("确定要删除这个用户吗？")) {
-      await trpc.users.destroy.mutate({ id: props.user.id });
-      props.onClose();
+    if (user && window.confirm("确定要删除这个用户吗？")) {
+      await trpc.users.destroy.mutate({ id: user.id });
+      onClose();
     }
   };
 
-  return <ModalWithBackdrop isOpen onClose={props.onClose}>
+  return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>{u.name}</ModalHeader>
       <ModalCloseButton />

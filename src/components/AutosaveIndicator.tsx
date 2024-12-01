@@ -4,13 +4,14 @@ import React, { useEffect } from 'react';
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
 import { useRouter } from 'next/router';
-
+import _ from 'lodash';
 export default function AutosaveIndicator({ state, ...rest }: CenterProps & {
   state: AutosaveState,
 }) {
   const errors = [...state.id2state.values()].filter(v => v !== null);
   const iconProps = { boxSize: 3.5, marginRight: 2, };
   return (
+    // TODO: Styling is too messy. Clean it up.
     <Box position="fixed" top="60px" right="5%" zIndex="2">
       {hasPendingSavers(state) ? (
         <>
@@ -73,11 +74,14 @@ function LeavePagePrompt() {
   return null;
 }
 
+/**
+ * @property id2state A map from pending saver ids to either null or an object.
+ * The former means the saver is ongoing without errors. The latter means the
+ * saver experienced an error.
+ * @property virgin true if and only if any saves happened in the past.
+ */
 export type AutosaveState = {
-  // A map from pending saver ids to either null or an object. The former means the saver is ongoing without errors.
-  // The latter means the saver experienced an error.
   id2state: Map<string, null | any>,
-  // true if.f. any saves happened in the past.
   virgin: boolean,
 }
 
@@ -98,9 +102,11 @@ function hasPendingSavers(s: AutosaveState): boolean {
 /**
  * @param id identifies an Autosaver component
  */
-export function addPendingSaver(s: AutosaveState, id: string): AutosaveState {
+export function addPendingSaver(s: AutosaveState, id: string):
+  AutosaveState 
+{
   if (hasPendingSaver(s, id)) return s;
-  const ret = structuredClone(s);
+  const ret = _.cloneDeep(s);
   ret.id2state.set(id, null);
   ret.virgin = false;
   return ret;
@@ -109,9 +115,11 @@ export function addPendingSaver(s: AutosaveState, id: string): AutosaveState {
 /**
  * @param id identifies an Autosaver component
  */
-export function removePendingSaver(s: AutosaveState, id: string): AutosaveState {
+export function removePendingSaver(s: AutosaveState, id: string):
+  AutosaveState 
+{
   invariant(hasPendingSaver(s, id));
-  const ret = structuredClone(s);
+  const ret = _.cloneDeep(s);
   ret.id2state.delete(id);
   return ret;
 }
@@ -119,9 +127,11 @@ export function removePendingSaver(s: AutosaveState, id: string): AutosaveState 
 /**
  * @param id identifies an Autosaver component
  */
-export function setPendingSaverError(s: AutosaveState, id: string, error?: any): AutosaveState {
+export function setPendingSaverError(s: AutosaveState, id: string, error?: any): 
+  AutosaveState 
+{
   invariant(hasPendingSaver(s, id));
-  const ret = structuredClone(s);
+  const ret = _.cloneDeep(s);
   ret.id2state.set(id, error ?? null);
   return ret;
 }
