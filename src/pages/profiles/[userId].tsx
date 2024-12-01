@@ -66,10 +66,11 @@ export default function Page() {
   useEffect(() => setProfile(old?.profile), [old]);
 
   const updateProfile = (k: keyof UserProfile, v: string) => {
-    invariant(profile);
-    const updated = structuredClone(profile);
-    if (v) updated[k] = v;
-    else delete updated[k];
+    const updated = {
+      ...profile,
+      [k]: v,
+    };
+    if (!v) delete updated[k];
     setProfile(updated);
   };
 

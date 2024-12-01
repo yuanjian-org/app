@@ -67,12 +67,13 @@ function LoadedApplicant({ user, sex, type, application, showTitle,
   const imManager = isPermitted(me.roles, "MentorshipManager");
 
   const update = async (name: string, value: string) => {
-    const updated = structuredClone(application ?? {});
-    updated[name] = value;
     await trpc.users.setApplication.mutate({
       type,
       userId: user.id,
-      application: updated,
+      application: {
+        ...application,
+        [name]: value,
+      },
     });
     refetch();
   };

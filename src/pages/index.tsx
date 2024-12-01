@@ -47,10 +47,12 @@ function SetNameModal() {
   const [name, setName] = useState(user.name || '');
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser = structuredClone(user);
-      updatedUser.name = name;
-      await trpc.users.update.mutate(updatedUser);
-      setUser(updatedUser);
+      const updated = {
+        ...user,
+        name,
+      };
+      await trpc.users.update.mutate(updated);
+      setUser(updated);
     };
   };
 

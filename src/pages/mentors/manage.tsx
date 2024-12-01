@@ -53,6 +53,7 @@ export default widePage(() => {
           <Th>学生容量</Th>
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
+          <Th>匹配偏好</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
           <Th>邮箱</Th>
@@ -160,6 +161,8 @@ function Row({ user, profile, preference, mentorships }: {
     <Td>{mentorships}</Td>
     {/* 剩余容量 */}
     <Td>{capacity - mentorships}</Td>
+    {/* 匹配偏好 */}
+    <Td>{preference.学生偏好}</Td>
     {/* 性别 */}
     <Td>{profile.性别}</Td>
     {/* 坐标 */}

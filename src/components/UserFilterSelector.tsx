@@ -21,7 +21,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
 
   // Parse query parameters
   useEffect(() => {
-    const f: UserFilter = fixedFilter ? structuredClone(fixedFilter) : {};
+    const f: UserFilter = { ...fixedFilter };
     for (const [k, v] of Object.entries(router.query)) {
       // `typeof v == "string"` to ignore cases of null and string[].
       if (k == "pointOfContactId" && typeof v == "string") f[k] = v;

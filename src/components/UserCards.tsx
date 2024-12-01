@@ -34,8 +34,9 @@ export type FieldAndLabel = {
  * UI displays these fields in the order of this array.
  */
 export const visibleUserProfileFields: FieldAndLabel[] = [
-  { field: "身份头衔", label: "职位" },
   { field: "英文别名", label: "英文名" },
+  { field: "身份头衔", label: "职位" },
+  { field: "专业领域" },
   { field: "现居住地" },
   { field: "擅长话题", label: "擅长聊天话题" },
   { field: "成长亮点" },

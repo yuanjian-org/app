@@ -121,14 +121,15 @@ function GroupEditor({ group, onClose }: {
   const save = async () => {
     setWorking(true);
     try {
-      const cloned = structuredClone(group);
-      cloned.name = name;
-      cloned.public = isPublic;
-      cloned.users = [
-        ...newUserIds.map(n => ({ id: n, name: null, url: null })),
-        ...users,
-      ];
-      await trpc.groups.update.mutate(cloned);
+      await trpc.groups.update.mutate({
+        ...group,
+        name,
+        public: isPublic,
+        users: [
+          ...newUserIds.map(n => ({ id: n, name: null, url: null })),
+          ...users,
+        ],
+      });
       onClose();
     } finally {
       setWorking(false);
