@@ -61,7 +61,7 @@ function MenteeTabs({ mentee, mentorships }: {
           </Tab>
         )
       }
-      <Tab>申请表</Tab>
+      <Tab>基本信息</Tab>
       <Tab>面试页</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
