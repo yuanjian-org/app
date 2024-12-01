@@ -9,20 +9,14 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Link,
-  useBreakpointValue,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude, Latitudes } from 'shared/Map';
 import { componentSpacing } from 'theme/metrics';
-import { breakpoint } from 'theme/metrics';
 import LandmarkDrawer from 'components/LandmarkDrawer';
 import path from 'path';
 import { promises as fs } from 'fs';
-
-const desktopTextLimit = 80;
-const mobileTextLimit = 30;
 
 type PageProps = {
   data: Record<Latitude, Landmark[]>;
@@ -71,18 +65,14 @@ const LandmarkTabPanel = ({ landmarks, selectLandmark }: {
 const LandmarkCard = ({ landmark, selectLandmark }: { 
   landmark: Landmark; 
   selectLandmark: (landmark: Landmark) => void  
-}) => {
-  const maxChar: number = useBreakpointValue({ base: mobileTextLimit, 
-    [breakpoint]: desktopTextLimit }) || desktopTextLimit;
-  const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
-    {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
-  </Text>;  
-  
+}) => {  
   return <Card onClick={() => selectLandmark(landmark)} cursor='pointer'>
     <CardHeader>
       <Heading size="md">{landmark.名称}</Heading>
     </CardHeader>
-    <CardBody>{cardText}</CardBody>
+    <CardBody>
+      <Text noOfLines={4}>{landmark.定义}</Text>
+    </CardBody>
   </Card>; 
 };
 

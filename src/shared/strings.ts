@@ -108,10 +108,6 @@ export function shaChecksum(obj: Record<string, any>): string {
   return crypto.createHash('sha256').update(stringifyStable(obj)).digest('hex');
 }
 
-export function truncate(str: string, maxLen: number): string {
-  return str.length <= maxLen ? str : str.substring(0, maxLen) + "……";
-}
-
 // Simple hash function to generate a number from a string
 export function hash(str: string): number {
   let hash = 0;
