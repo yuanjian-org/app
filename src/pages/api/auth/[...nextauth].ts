@@ -16,6 +16,7 @@ import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
+import WeChat, { WECHAT_EMAIL_DOMAIN } from "./wechat";
 
 declare module "next-auth" {
   interface Session {
@@ -53,7 +54,22 @@ export const authOptions: NextAuthOptions = {
       maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
       sendVerificationRequest,
       generateVerificationToken,
-    }
+    },
+    WeChat({
+      id: "wechat-qr",
+      name: "微信扫码登陆",
+      checks: ["none"],
+      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+      platformType: "WebsiteApp",
+    }),
+    WeChat({
+      id: "wechat",
+      name: "微信内登陆",
+      clientId: process.env.AUTH_WECHAT_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+      platformType: "OfficialAccount",
+    })
   ],
 
   pages: {
@@ -66,6 +82,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, trigger, session }) {
       // https://next-auth.js.org/getting-started/client#updating-the-session
       if (trigger == "update") {
+        console.log("NextAuth jwt trigger update", token, session);
         const req = session as ImpersonationRequest;
         if (req.impersonate === null) {
           delete token[impersonateTokenKey];
@@ -77,6 +94,12 @@ export const authOptions: NextAuthOptions = {
           }
           token[impersonateTokenKey] = req.impersonate;
         }
+      }
+      if (trigger == "signIn") {
+        console.log("NextAuth jwt trigger signIn", token, session);
+      }
+      if (trigger == "update") {
+        console.log("NextAuth jwt trigger update", token, session);
       }
       return token;
     },
@@ -94,8 +117,25 @@ export const authOptions: NextAuthOptions = {
   },
 
   events: {
-    createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
-        `${message.user.email} 注册新用户 。`, ""),
+    // TODO: createUser event is may triggered by WeChat provider.
+    createUser: message => {
+      console.log("NextAuth createUser", message);
+      emailRoleIgnoreError("UserManager", "新用户注册",
+        `${message.user.email} 注册新用户 。`, "");
+    },
+    linkAccount: async message => {
+      console.log("NextAuth linkAccount", message);
+      const user_email = message.user.email;
+      if (user_email && user_email.endsWith(WECHAT_EMAIL_DOMAIN)) {
+        // TODO: Verify email.... May use middleware to do this.
+        console.log("You need to link your WeChat account to your email.");
+        await db.User.update({
+          email: user_email.replace(WECHAT_EMAIL_DOMAIN, "@mentors.com"),
+        }, {
+          where: { email: user_email },
+        });
+      }
+    },
   },
 };
 

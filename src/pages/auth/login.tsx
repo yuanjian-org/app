@@ -1,4 +1,4 @@
-import { Button, InputGroup, InputLeftElement, Input, Heading } from '@chakra-ui/react';
+import { Button, InputGroup, InputLeftElement, Input, Heading, Text, Box } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -8,6 +8,8 @@ import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
+import Image from 'next/image';
+import WeChatQRLogin from 'components/WeChatQRLogin';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -20,8 +22,6 @@ export const callbackUrlKey = "callbackUrl";
  */
 export default function Page() {
   const router = useRouter();
-
-  // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -41,10 +41,11 @@ export default function Page() {
       // See https://next-auth.js.org/configuration/pages#error-page
       console.error(`Unkonwn error on /auth/verify: ${err}`);
       toast.error(`糟糕，系统错误，请联系管理员：${err}`);
-    }  
+    }
   }, [router]);
 
-  const submit = async () => {
+  // 邮件登录的提交逻辑
+  const submitEmail = async () => {
     const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
@@ -83,22 +84,66 @@ export default function Page() {
   return <>
     <Heading size="md" marginBottom={10}>社会导师服务平台</Heading>
 
-    <InputGroup>
+    {/* 微信扫码登录 - 始终显示 */}
+    <Box mb={3}>
+      <Text mb={2} fontSize="sm" color="gray.600">微信扫码登录</Text>
+      <WeChatQRLogin />
+    </Box>
+
+    <Text textAlign="center" color="gray.500" my={2}>或</Text>
+
+    {/* 微信服务号登录按钮 */}
+    <Button
+      width="full"
+      leftIcon={<Image src="/login/wechat.svg" alt="WeChat" width={24} height={24} />}
+      onClick={() => signIn('wechat')}
+      bg="#07C160"
+      color="white"
+      _hover={{ bg: "#06AE56" }}
+    >
+      微信服务号登录
+    </Button>
+
+    {/* 微信扫码登陆(点击版) */}
+    <Button
+      width="full"
+      mt={2}
+      leftIcon={<Image src="/login/wechat.svg" alt="WeChat" width={24} height={24} />}
+      onClick={() => signIn('wechat-qr')}
+      bg="#07C160"
+      color="white"
+      _hover={{ bg: "#06AE56" }}
+    >
+      微信扫码登陆(点击版)
+    </Button>
+
+    {/* 直接显示邮箱登录表单 */}
+    <InputGroup mt={4}>
       <InputLeftElement pointerEvents='none'>
         <EmailIcon color='gray.400' />
       </InputLeftElement>
-
-      {/* `name="email"` to express intent for password management tools */}
-      <Input type="email" name="email" minWidth={80} placeholder="请输入邮箱"
-        autoFocus value={email} onChange={(ev) => setEmail(ev.target.value)}
+      <Input
+        type="email"
+        name="email"
+        minWidth={80}
+        placeholder="请输入邮箱"
+        value={email}
+        onChange={(ev) => setEmail(ev.target.value)}
         onKeyDown={async ev => {
-          if (ev.key == "Enter" && isValidEmail()) await submit(); 
+          if (ev.key == "Enter" && isValidEmail()) await submitEmail();
         }}
       />
     </InputGroup>
 
-    <Button variant="brand" width="full" isDisabled={!isValidEmail()}
-      isLoading={isLoading} onClick={submit}
-    >登录 / 注册</Button>
+    <Button
+      variant="brand"
+      width="full"
+      mt={4}
+      isDisabled={!isValidEmail()}
+      isLoading={isLoading}
+      onClick={submitEmail}
+    >
+      发送验证码
+    </Button>
   </>;
 }
