@@ -6,7 +6,7 @@ import {
 import { useRouter } from 'next/router';
 import _ from "lodash";
 import { zMenteeStatus } from 'shared/MenteeStatus';
-import MenteeStatusSelect, { NULL_MENTEE_STATUS } from './MenteeStatusSelect';
+import MenteeStatusSelect, { nullMenteeStatus } from './MenteeStatusSelect';
 import UserSelector from './UserSelector';
 
 /**
@@ -26,7 +26,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       // `typeof v == "string"` to ignore cases of null and string[].
       if (k == "pointOfContactId" && typeof v == "string") f[k] = v;
       if (k == "menteeStatus") {
-        f[k] = v == NULL_MENTEE_STATUS ? null : zMenteeStatus.parse(v);
+        f[k] = v == nullMenteeStatus ? null : zMenteeStatus.parse(v);
       }
     }
     if (!_.isEqual(f, filter)) onChange(f);
@@ -41,7 +41,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       }
     }
     // router.replace() ignores null-valued keys
-    if (query.menteeStatus === null) query.menteeStatus = NULL_MENTEE_STATUS;
+    if (query.menteeStatus === null) query.menteeStatus = nullMenteeStatus;
     await router.replace({ pathname: router.pathname, query });
   };
 
