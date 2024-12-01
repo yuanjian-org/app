@@ -1,0 +1,37 @@
+# 介绍
+微信平台：
+- 开放平台： https://open.weixin.qq.com/
+  - 网站应用：仅支持扫码登陆
+- 公众平台： https://mp.weixin.qq.com/
+  - 服务号：仅支持微信内登陆，即微信浏览器登陆
+  - 订阅号：不支持微信登陆
+
+
+# 微信平台配置
+配置微信OAuth可信回调域名
+1. 微信开放平台 
+> 管理中心-网站应用-查看应用-开发信息-授权回调域-修改
+
+需要配置域名，如 `mentors.org.cn`，可以多次修改。
+
+2. 微信公众平台（服务号）
+> 设置与开发-账号设置-功能设置-网页授权域名-设置
+
+需要配置域名，如 `mentors.org.cn`，一个自然月内最多可修改并保存五次。
+也可以[使用微信测试账号对网页进行授权](https://cloud.tencent.com/developer/article/1703167)。
+
+
+# 本地开发
+
+1. 配置微信OAuth可信回调域名后，本地开发时如果使用生产app id/secret，需要访问https域名，如`https://mentors.org.cn`，否则无法通过鉴权。因此需要将本地开发环境配置为https环境。
+
+> 解决方式：
+> - 对于 mac 用户，可以使用开源工具[ophiuchi](https://www.ophiuchi.dev/)，配置本地SSL环境。[github](https://github.com/cheeselemon/ophiuchi-desktop)
+> - 对于其他系统用户，请参考 https://auth0.com/blog/using-https-in-your-development-environment/
+
+2. 项目也需要配置域名，在本地`.env`文件中添加(根据实际域名配置)：
+```
+AUTH_TRUSTED_HOST=mentors.org.cn
+NEXTAUTH_URL=https://mentors.org.cn
+
+```
