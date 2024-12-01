@@ -48,7 +48,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
   return <>
     {/* <WrapItem><b>过滤条件：</b></WrapItem> */}
 
-    <WrapItem>状态：</WrapItem>
+    <WrapItem><b>状态：</b></WrapItem>
     <WrapItem>
       <MenteeStatusSelect showAny value={filter.menteeStatus}
         onChange={v => updateUrlParams({
@@ -58,7 +58,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       }/>
     </WrapItem>
 
-    <WrapItem>联系人：</WrapItem>
+    <WrapItem><b>联络人：</b></WrapItem>
     <WrapItem>
       <UserSelector
         onSelect={userIds => updateUrlParams({
