@@ -13,4 +13,10 @@ setting up environmental variables:
 1. Create .env file in the project's root folder
 1. Set APP_DOCKER_IMAGE=<app_image_name> in .env, for example, "mentors_app"
 1. Run `docker compose build` to build the image.
-1. For Github-based auto build and deployment, read `.github/workflows/*.yml`
+1. Generate SSL certificate, modify `docker-compose.yml` to point to the
+   generated certificate and key files.
+
+# Production deployment
+
+1. Production deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml` for details.
+1. Production SSL certificate is managed by [LetsEncrypt](https://letsencrypt.org/).
