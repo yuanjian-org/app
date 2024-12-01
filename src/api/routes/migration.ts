@@ -28,9 +28,17 @@ export async function migrateDatabase() {
 
   // Replace AdhocMentor with TransactionalMentor in users.roles array
   await sequelize.query(`
-    UPDATE "users" 
-    SET roles = array_replace(roles, 'AdhocMentor', 'TransactionalMentor')
-    WHERE 'AdhocMentor' = ANY (roles);
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'users'
+      ) THEN
+        UPDATE "users" 
+        SET roles = array_replace(roles, 'AdhocMentor', 'TransactionalMentor')
+        WHERE 'AdhocMentor' = ANY (roles);
+      END IF;
+    END $$;
   `);
 
   // Rename endedAt to relationalEndedAt in Mentorships table
