@@ -19,9 +19,9 @@ const listLandmarks = procedure
   .use(authUser())
   .input(z.array(zLatitude))
   .output(z.record(z.string(), z.array(zLandmark)))
-  .query(async ({ input : latitudes }) =>
+  .query(async () =>
 {
-  return await readMapJsonFiles(latitudes);
+  return await readMapJsonFiles();
 });
 
 const createLandmarkAssessment = procedure

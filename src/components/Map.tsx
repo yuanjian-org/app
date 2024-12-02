@@ -1,17 +1,4 @@
-import {
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  SimpleGrid,
-  Heading,
-  Text,
-  Card,
-  CardHeader,
-  CardBody,
-  Link,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Tab, TabList, TabPanel, TabPanels, SimpleGrid, Heading, Text, Card, CardHeader, CardBody, Link, useBreakpointValue } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude } from 'shared/Map';
@@ -28,25 +15,20 @@ export default function Map( { data } : {data: Record<string, Landmark[]>}) {
   return <>
     <TabsWithUrlParam isLazy>
       <TabList>
-        {Object.keys(data).map(latitude =>
-            <Tab key={latitude}>{latitude}</Tab>
-        )}
+        {Object.keys(data).map(latitude => <Tab key={latitude}>{latitude}</Tab>)}
       </TabList>
 
       <TabPanels>
         {Object.keys(data).map(latitude =>
             <TabPanel key={latitude}>
-              <LandmarkTabPanel landmarks={data[latitude as Latitude]}
-                                selectLandmark={setSelectedLandmark} />
+              <LandmarkTabPanel landmarks={data[latitude as Latitude]} selectLandmark={setSelectedLandmark} />
             </TabPanel>
         )}
       </TabPanels>
     </TabsWithUrlParam>
 
     {selectedLandmark &&
-        <LandmarkDrawer
-            onClose={() => setSelectedLandmark(null)}
-            landmark={selectedLandmark} />}
+        <LandmarkDrawer onClose={() => setSelectedLandmark(null)} landmark={selectedLandmark} />}
   </>;
 }
 
@@ -55,10 +37,9 @@ const LandmarkTabPanel = ({ landmarks, selectLandmark }: {
   selectLandmark: (landmark: Landmark) => void
 }) => {
   return <SimpleGrid spacing={componentSpacing}
-                     templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
-    {landmarks.map((landmark, index) =>
-        <LandmarkCard key={index} landmark={landmark}
-                      selectLandmark={selectLandmark} />)}
+    templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
+      {landmarks.map((landmark, index) =>
+        <LandmarkCard key={index} landmark={landmark} selectLandmark={selectLandmark} />)}
   </SimpleGrid>;
 };
 

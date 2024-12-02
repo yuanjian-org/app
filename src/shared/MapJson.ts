@@ -1,9 +1,10 @@
 import path from "path";
 import { promises as fs } from "fs";
+import { Latitudes } from './Map';
 
-export const readMapJsonFiles = async (latitudes: string[]) => {
+export const readMapJsonFiles = async () => {
   const data = await Promise.all(
-      latitudes.map(async (latitude) => {
+      [...Latitudes].map(async (latitude) => {
         const landmarkDataPath = path.join(process.cwd(), 'public', 'map',
             latitude);
         const files = await fs.readdir(landmarkDataPath);

@@ -12,6 +12,6 @@ export default function Page({ data }: PageProps) {
   </>;
 }
 export async function getStaticProps() {
-  const res = await readMapJsonFiles([...Latitudes]);
+  const res = await readMapJsonFiles();
   return { props: { data: res } };
 }
