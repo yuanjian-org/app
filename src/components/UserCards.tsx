@@ -13,6 +13,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  Flex,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
@@ -196,7 +197,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
       </Heading>
     </CardHeader>
     <CardBody pt={1}>
-      <VStack align="start">
+      <Flex direction="column" gap="8px">
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {type == "TransactionalMentor" ? <>
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
@@ -210,7 +211,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
           {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
           {p?.生活日常 && <TruncatedText>{p.生活日常}</TruncatedText>}
         </>}
-      </VStack>
+      </Flex>
     </CardBody>
     <CardFooter>
       <Button>更多信息</Button>
