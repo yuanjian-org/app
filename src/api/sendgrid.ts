@@ -5,6 +5,7 @@ import User from './database/models/User';
 import { Op } from 'sequelize';
 import Role, { RoleProfiles } from '../shared/Role';
 import z from 'zod';
+import _ from 'lodash';
 
 if (apiEnv.hasSendGrid()) mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
@@ -38,7 +39,7 @@ export async function email(templateId: string,
   if (typeof global.it === 'function') return;
 
   // Always attach `baseUrl` as dynamic template data
-  const ps: any[] = structuredClone(personalization);
+  const ps: any[] = _.cloneDeep(personalization);
   for (const p of ps) {
     if ('dynamicTemplateData' in p) {
       p.dynamicTemplateData.baseUrl = baseUrl;
@@ -83,32 +84,41 @@ export function emailIgnoreError(templateId: string,
   }
 }
 
-export function emailRoleIgnoreError(role: Role, subject: string,
-  content: string, baseUrl: string)
-{
-  const impl = async () => {
-    const zTo = z.array(z.object({
-      name: z.string(),
-      email: z.string(),
-    }));
+export async function emailRole(
+  role: Role,
+  subject: string,
+  content: string,
+  baseUrl: string
+) {
+  const zTo = z.array(z.object({
+    name: z.string(),
+    email: z.string(),
+  }));
 
-    const managers = zTo.parse(await User.findAll({
-      where: {
-        // For some reason the compiler prefers `[role]` far more than `role`.
-        roles: { [Op.contains]: [role] },
-      },
-      attributes: ['name', 'email'],
-    }));
+  const managers = zTo.parse(await User.findAll({
+    where: { roles: { [Op.contains]: [role] } },
+    attributes: ['name', 'email'],
+  }));
 
-    emailIgnoreError('d-99d2ae84fe654400b448f8028238d461', [{
-      to: managers,
-      dynamicTemplateData: { 
-        subject, 
-        content,
-        roleDisplayName: RoleProfiles[role].displayName,
-      },
-    }], baseUrl);
-  };
+  await email('d-99d2ae84fe654400b448f8028238d461', [{
+    to: managers,
+    dynamicTemplateData: { 
+      subject, 
+      content,
+      roleDisplayName: RoleProfiles[role].displayName,
+    },
+  }], baseUrl);
+}
 
-  void impl();
+export function emailRoleIgnoreError(
+  role: Role,
+  subject: string,
+  content: string,
+  baseUrl: string
+) {
+  try {
+    void emailRole(role, subject, content, baseUrl);
+  } catch (e) {
+    console.log(`emailRoleIgnoreError() ignored error:`, e);
+  }
 }

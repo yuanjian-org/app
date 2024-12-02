@@ -12,19 +12,15 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
+import { BOOLEAN, CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
 
 /**
  * A mentorship is a mentee-mentor pair.
- * 
- * TODO: rename to Mentorship
  */
 @Table({
-  tableName: "Partnerships", // TODO: migrate table
-  paranoid: true,
   indexes: [{
     unique: true,
     fields: ['mentorId', 'menteeId']
@@ -48,8 +44,14 @@ class Mentorship extends Model {
   @Column(UUID)
   menteeId: string;
 
+  // Whether this mentorship is transactional or relational. See
+  // docs/Glossary.md for their definitions.
+  @AllowNull(false)
+  @Column(BOOLEAN)
+  transactional: boolean;
+
   @Column(DATE)
-  endedAt: string | null;
+  endsAt: string | null;
 
   /**
    * Associations

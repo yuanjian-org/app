@@ -6,11 +6,14 @@ export const AllRoles = [
   'GroupManager',
   'MentorshipAssessor',
   'MentorshipManager',
-  'AdhocMentor',
+  // See `docs/Glossary.md` for the definitions of this type.
+  'TransactionalMentor',
+  // Mentor role is either a transactional or relational mentor.
   'Mentor',
   'Mentee',
   'Interviewer',
   'MentorCoach',
+  'Volunteer',
 
   // Banned users can't sign in. Mostly to prevent users from repeatedly using
   // different email addresses than their main sign-in address.
@@ -54,7 +57,7 @@ export const RoleProfiles: { [key: string]: {
     privilegedUserDataAccess: true,
   },
   MentorshipManager: {
-    displayName: '学生导师管理员',
+    displayName: '师生管理员',
     actions: '管理学生信息、导师信息、面试信息、一对一学生导师匹配信息等',
     privilegedUserDataAccess: true,
   },
@@ -63,7 +66,7 @@ export const RoleProfiles: { [key: string]: {
     actions: '帮助年轻学子成长',
     automatic: true,
   },
-  AdhocMentor: {
+  TransactionalMentor: {
     displayName: '仅不定期导师',
     actions: '仅做不定期服务，不参与学生匹配',
   },
@@ -82,6 +85,10 @@ export const RoleProfiles: { [key: string]: {
     actions: '辅助与评估非资深导师',
     privilegedUserDataAccess: true,
     automatic: true,
+  },
+  Volunteer: {
+    displayName: '志愿者',
+    actions: '可以浏览其他志愿者信息',
   },
 
   Banned: {

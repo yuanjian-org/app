@@ -13,66 +13,77 @@ export default router({
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
 
+  // Rename the old Partnerships table to Mentorships
   await sequelize.query(`
-    DO $$
+    DO $$ 
     BEGIN
       IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'mentorProfile'
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'Partnerships'
       ) THEN
-        ALTER TABLE users RENAME COLUMN "mentorProfile" TO "profile";
+        ALTER TABLE "Partnerships" RENAME TO "Mentorships";
       END IF;
-    END;
-    $$;
+    END $$;
   `);
 
+  // Replace AdhocMentor with TransactionalMentor in users.roles array
   await sequelize.query(`
-    DO $$
+    DO $$ 
     BEGIN
       IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
+        SELECT 1 FROM information_schema.tables 
         WHERE table_name = 'users'
-          AND column_name = 'mentorApplication'
       ) THEN
-        ALTER TABLE users RENAME COLUMN "mentorApplication"
-        TO "volunteerApplication";
+        UPDATE "users" 
+        SET roles = array_replace(roles, 'AdhocMentor', 'TransactionalMentor')
+        WHERE 'AdhocMentor' = ANY (roles);
       END IF;
-    END;
-    $$;
+    END $$;
   `);
 
+  // Rename endedAt to relationalEndedAt in Mentorships table
   await sequelize.query(`
-    DO $$
+    DO $$ 
     BEGIN
       IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'sex'
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'endedAt'
       ) THEN
-        ALTER TABLE users DROP COLUMN "sex";
+        ALTER TABLE "Mentorships" RENAME COLUMN "endedAt" TO "relationalEndedAt";
       END IF;
-    END;
-    $$;
+    END $$;
   `);
 
+  // Rename relationalEndedAt to endsAt in Mentorships table
   await sequelize.query(`
-    DO $$
+    DO $$ 
     BEGIN
       IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-          AND column_name = 'city'
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'relationalEndedAt'
       ) THEN
-        ALTER TABLE users DROP COLUMN "city";
+        ALTER TABLE "Mentorships" RENAME COLUMN "relationalEndedAt" TO "endsAt";
       END IF;
-    END;
-    $$;
+    END $$;
   `);
+  
+  // Add transactional column to Mentorships table and fill in data
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Mentorships' AND column_name = 'transactional'
+      ) THEN
+        ALTER TABLE "Mentorships" ADD COLUMN "transactional" BOOLEAN DEFAULT false;
+        UPDATE "Mentorships" SET "transactional" = false WHERE "transactional" IS NULL;
+        ALTER TABLE "Mentorships" ALTER COLUMN "transactional" SET NOT NULL;
+        ALTER TABLE "Mentorships" ALTER COLUMN "transactional" DROP DEFAULT;
+      END IF;
+    END $$;
+  `);
+
+  await dropParanoid();
 
   await sequelize.sync({ alter: { drop: false } });
 
@@ -88,4 +99,24 @@ async function cleanupFeedbackAttemptLogs() {
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
   `);
+}
+
+async function dropParanoid() {
+  for (const table of ["users", "groups", "group_users", "Transcripts",
+    "Summaries", "Interviews", "InterviewFeedbacks", "Assessments",
+    "Calibrations"]) 
+  {
+    await sequelize.query(`
+      DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = '${table}' AND column_name = 'deletedAt'
+      ) THEN
+        DELETE FROM "${table}" WHERE "deletedAt" IS NOT NULL;
+        ALTER TABLE "${table}" DROP COLUMN "deletedAt";
+      END IF;
+      END $$;
+    `);
+  }
 }

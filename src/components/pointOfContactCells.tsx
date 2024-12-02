@@ -17,6 +17,8 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import UserSelector from './UserSelector';
 import trpc from 'trpc';
 import EditableWithIconOrLink from './EditableWithIconOrLink';
+import { useUserContext } from 'UserContext';
+import { isPermitted } from 'shared/Role';
 
 export function PointOfContactHeaderCells() {
   return <>
@@ -29,6 +31,7 @@ export function PointOfContactCells({ user, refetch } : {
   user: User,
   refetch: () => void,
 }) {
+  const [me] = useUserContext();
   const [ editing, setEditing ] = useState<boolean>(false);
 
   const savePoCNote = async (note: string) => {
@@ -39,26 +42,38 @@ export function PointOfContactCells({ user, refetch } : {
     refetch();
   };
 
-  return <>
-    {editing && <PoCEditor user={user} poc={user.pointOfContact}
-      onClose={() => setEditing(false)} refetch={refetch} />}
+  if (isPermitted(me.roles, "MentorshipManager")) {
+    return <>
+      {editing && <PoCEditor
+      user={user}
+      poc={user.pointOfContact}
+      onClose={() => setEditing(false)}
+      refetch={refetch}
+    />}
 
-    {/* PoC */}
-    <Td><Link onClick={() => setEditing(true)}>
-      {user.pointOfContact ?
-        formatUserName(user.pointOfContact.name)
-        :
-        <MdEdit />
-      }
-    </Link></Td>
+      {/* PoC */}
+      <Td><Link onClick={() => setEditing(true)}>
+        {user.pointOfContact ?
+          formatUserName(user.pointOfContact.name)
+          :
+          <MdEdit />
+        }
+      </Link></Td>
 
-    {/* PoC notes */}
-    <Td>
-      <EditableWithIconOrLink editor="input" decorator="link"
-        defaultValue={user.pointOfContactNote || ""}
-        onSubmit={savePoCNote} />
-    </Td>
-  </>;
+      {/* PoC notes */}
+      <Td>
+        <EditableWithIconOrLink editor="input" decorator="link"
+          defaultValue={user.pointOfContactNote || ""}
+          onSubmit={savePoCNote} />
+      </Td>
+    </>;
+
+  } else {
+    return <>
+      <Td>{user.pointOfContact && formatUserName(user.pointOfContact.name)}</Td>
+      <Td>{user.pointOfContactNote}</Td>
+    </>;
+  }
 }
 
 function PoCEditor({ user, poc, refetch, onClose } : {
@@ -77,7 +92,7 @@ function PoCEditor({ user, poc, refetch, onClose } : {
     refetch();
   };
 
-  return <ModalWithBackdrop isOpen onClose={onClose}>
+  return <ModalWithBackdrop isCentered isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>{formatUserName(user.name)}的联络人</ModalHeader>
       <ModalCloseButton />

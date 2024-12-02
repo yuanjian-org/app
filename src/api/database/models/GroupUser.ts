@@ -18,7 +18,10 @@ import User from "./User";
 import Group from "./Group";
 
 
-@Table({ paranoid: true, tableName: "group_users", modelName: "group_user" })
+@Table({
+  tableName: "group_users",
+  modelName: "group_user",
+})
 @Fix
 class GroupUser extends Model {
   @Unique

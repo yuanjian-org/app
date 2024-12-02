@@ -11,13 +11,14 @@ import {
   Tooltip,
   HStack,
   Td,
+  Link,
 } from '@chakra-ui/react';
 import React from 'react';
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
 import { useUserContext } from 'UserContext';
-import { CheckIcon } from '@chakra-ui/icons';
+import { CheckIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { sectionSpacing } from 'theme/metrics';
 import {
   EditorFeedback,
@@ -37,6 +38,8 @@ import {
   PointOfContactHeaderCells, 
   PointOfContactCells 
 } from './pointOfContactCells';
+import { MenteeSourceHeaderCell, MenteeSourceCell } from './MenteeSourceCell';
+import { menteeSourceField } from 'shared/applicationFields';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -44,9 +47,12 @@ import {
  * 
  * TODO: Refactor to remove the `forCalibration` flag.
  */
-export default function Interviews({ interviews, forCalibration }: {
+export default function Interviews({ interviews, forCalibration,
+  hideTotalCount = false
+}: {
   interviews: Interview[] | undefined
   forCalibration: boolean
+  hideTotalCount?: boolean
 }) {
   const [me] = useUserContext();
 
@@ -59,6 +65,7 @@ export default function Interviews({ interviews, forCalibration }: {
       <Thead><Tr>
         {showStatus && <Th>状态</Th>}
         <PointOfContactHeaderCells />
+        <MenteeSourceHeaderCell />
         <Th>候选人</Th>
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
@@ -81,9 +88,11 @@ export default function Interviews({ interviews, forCalibration }: {
       </Tbody>
     </Table>
 
-    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
-      共 <b>{interviews.length}</b> 名
-    </Text>
+    {!hideTotalCount && <Text
+      fontSize="sm" color="grey" marginTop={sectionSpacing}
+    >共 <b>{interviews.length}</b> 名
+    </Text>}
+
     <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
       <CheckIcon /> 表示已经填写了面试反馈的面试官。
     </Text>
@@ -100,6 +109,8 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     userId: i.interviewee.id,
     type: i.type,
   });
+  const source = (app?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
     invariant(status !== undefined);
@@ -126,7 +137,12 @@ function InterviewRow({ i, forCalibration, showStatus }: {
       <PointOfContactCells user={app.user} refetch={refetch} />
     }
 
-    <TdLink href={url}><b>{formatUserName(i.interviewee.name)}</b></TdLink>
+    <MenteeSourceCell source={source} />
+
+    <TdLink href={url}><Link>
+      <b>{formatUserName(i.interviewee.name)}</b>
+      <ChevronRightIcon />
+    </Link></TdLink>
 
     <TdLink href={url}><Wrap spacing="2">
       {i.feedbacks

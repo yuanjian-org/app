@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import { zMinUser } from './User';
+import { zNullableDateColumn } from './DateColumn';
 
 // TODO: rename to Interviewer
 export const zMinInterviewFeedback = z.object({
   id: z.string(),
   interviewer: zMinUser,
-  feedbackUpdatedAt: z.coerce.string().nullable(),
+  feedbackUpdatedAt: zNullableDateColumn,
 });
 
 // TODO: Remove it completely

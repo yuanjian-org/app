@@ -17,9 +17,7 @@ import Interview from "./Interview";
 import { FeedbackDeprecated, zFeedbackDeprecated } from "../../../shared/InterviewFeedback";
 
 // TODO: rename to Interviewer
-@Table({
-  paranoid: true,
-})
+@Table
 class InterviewFeedback extends Model {
   @Unique
   @IsUUID(4)

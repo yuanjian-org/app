@@ -63,7 +63,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="light"
+            theme="colored"
           />
         </SwitchBoard>
       </SessionProvider>

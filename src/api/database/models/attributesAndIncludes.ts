@@ -10,7 +10,12 @@ import User from "./User";
  * User
  */
 
-export const minUserAttributes = ['id', 'name'];
+export const minUserAttributes = ['id', 'name', 'url'];
+
+// These attributes are used to determine if the person has pending interviews.
+//See isCandidatePending().
+export const extraUserAttributesForInterviews = ["roles", "menteeStatus",
+  "volunteerApplication"];
 
 export const userAttributes = [...minUserAttributes, "wechat", "email",
   "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
@@ -49,7 +54,7 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Mentorship
  */
 
-export const mentorshipAttributes = ['id', 'endedAt'];
+export const mentorshipAttributes = ['id', 'transactional', 'endsAt'];
 
 export const mentorshipInclude = [{
   association: 'mentor',
@@ -69,7 +74,8 @@ export const mentorshipInclude = [{
 
 export const minInterviewFeedbackAttributes = ["id", "feedbackUpdatedAt"];
 
-export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes, "feedback"];
+export const interviewFeedbackAttributes = [...minInterviewFeedbackAttributes,
+  "feedback"];
 
 export const interviewFeedbackInclude = [{
   model: User,
@@ -99,9 +105,7 @@ export const interviewAttributes = ["id", "type", "decision", "createdAt"];
 
 export const interviewInclude = [{
   model: User,
-  // menteeStatus and roles are used to determine if the person's pending
-  // interviews. See isCandidatePending().
-  attributes: [...minUserAttributes, "roles", "menteeStatus"],
+  attributes: [...minUserAttributes, ...extraUserAttributesForInterviews],
 }, {
   model: InterviewFeedback,
   attributes: minInterviewFeedbackAttributes,
@@ -139,4 +143,24 @@ export const chatRoomInclude = [{
   association: "messages",
   attributes: chatMessageAttributes,
   include: chatMessageInclude,
+}];
+
+/**
+ * MentorBooking
+ */
+
+export const mentorBookingAttributes = ["id", "topic", "notes", "createdAt"];
+
+export const mentorBookingInclude = [{
+  association: 'requester',
+  attributes: minUserAttributes,
+}, {
+  association: 'requestedMentor',
+  attributes: minUserAttributes,
+}, {
+  association: 'assignedMentor',
+  attributes: minUserAttributes,
+}, {
+  association: 'updater',
+  attributes: minUserAttributes,
 }];

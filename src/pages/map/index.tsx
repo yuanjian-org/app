@@ -11,6 +11,7 @@ export default function Page({ data }: PageProps) {
     <Map data={data}/>
   </>;
 }
+
 export async function getStaticProps() {
   const res = await readMapJsonFiles();
   return { props: { data: res } };

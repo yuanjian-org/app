@@ -9,10 +9,11 @@ import {
   TextareaProps,
   VStack,
   Select,
+  StackProps,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
-import { componentSpacing, paragraphSpacing } from 'theme/metrics';
+import { breakpoint, componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { MdEdit, MdSend } from 'react-icons/md';
@@ -24,22 +25,36 @@ import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
 import { compareDate } from 'shared/strings';
 
-export default function Room({ menteeId }: {
+export default function Room({
+  menteeId,
+  newMessageButtonLabel = "新消息",
+  ...rest
+}: {
   menteeId: string,
-}) {
+  newMessageButtonLabel?: string,
+} & StackProps) {
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
 
   return !room ? <Loader /> :
-    <VStack spacing={paragraphSpacing * 1.5} align="start" maxWidth="800px">
-      <MessageCreator roomId={room.id} />
+    <VStack
+      spacing={paragraphSpacing * 1.5}
+      align="start"
+      maxWidth="800px"
+      {...rest}
+    >
+      <MessageCreator
+        roomId={room.id}
+        newMessageButtonLabel={newMessageButtonLabel}
+      />
       {room.messages.sort((a, b) => compareDate(a.createdAt, b.createdAt))
       .map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;
 }
 
-function MessageCreator({ roomId }: {
+function MessageCreator({ roomId, newMessageButtonLabel }: {
   roomId: string,
+  newMessageButtonLabel: string,
 }) {
   const [editing, setEditing] = useState<boolean>(false);
 
@@ -48,7 +63,7 @@ function MessageCreator({ roomId }: {
       marginTop={componentSpacing} />
     :
     <Button variant="outline" leftIcon={<AddIcon />}
-      onClick={() => setEditing(true)}>新消息</Button>;
+      onClick={() => setEditing(true)}>{newMessageButtonLabel}</Button>;
 }
 
 function Message({ message: m }: {
@@ -58,14 +73,35 @@ function Message({ message: m }: {
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
+  const createdAt = m.createdAt ? `${prettifyDate(m.createdAt)}` : "";
+  const updatedAt = m.updatedAt && m.updatedAt !== m.createdAt ?
+    `${prettifyDate(m.updatedAt)}` : "";
+
   return <HStack align="top" spacing={componentSpacing} width="100%">
     <Avatar name={name} boxSize={10} />
     <VStack align="start" width="100%">
       <HStack minWidth="210px" spacing={componentSpacing}>
-        <Text>{name}</Text>
-        <Text color="grey">
-          {m.createdAt && `${prettifyDate(m.createdAt)}创建`}
-          {m.updatedAt && m.updatedAt !== m.createdAt && ` ｜ ${prettifyDate(m.updatedAt)}更新`}
+        {/* flexShrink is to prevent the name from being squished */}
+        <Text flexShrink={0}>{name}</Text>
+
+        {/* This is for desktop */}
+        <Text
+          display={{ base: "none", [breakpoint]: "block" }}
+          fontSize="sm"
+          color="grey"
+        >
+          {createdAt}创建
+          {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
+        </Text>
+
+        {/* This is for mobile */}
+        <Text
+          display={{ base: "block", [breakpoint]: "none" }}
+          fontSize="sm"
+          color="grey"
+        >
+          {createdAt}创建
+          {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
         </Text>
 
         {!editing && user.id == m.user.id && <>
@@ -134,16 +170,18 @@ function Editor({ roomId, message, onClose, ...rest }: {
         确认
       </Button>
       <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+
       <Spacer />
 
-      <MarkdownSupport />
+      {/* Hide on mobile due to limited space */}
+      <MarkdownSupport display={{ base: "none", [breakpoint]: "block" }} />
 
       <Select placeholder="模版文字"
         onChange={e => insertSnippet(snippets.find(snippet => 
           snippet.title === e.target.value)?.text || "")} 
           // if maxWidth is not specified, it will take up all the remaining width.
           // this must work with Spacer to create a gap.
-          maxWidth="180px" 
+          maxWidth="150px"
       >
         {snippets.map((snippet, index) => (
           <option key={index} value={snippet.title}>{snippet.title}</option>

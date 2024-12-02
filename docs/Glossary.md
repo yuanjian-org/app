@@ -1,0 +1,2 @@
+- **RelationalMentor** (一对一导师) is a mentor who can match mentees for long-term mentorship and also have one-off sessions with any mentee on demand.
+- **TransactionalMentor** (不定期导师) is a mentor who cannot match for long-term mentorship and only perform one-off sessions.

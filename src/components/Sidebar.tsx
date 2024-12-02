@@ -2,10 +2,13 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import React from 'react';
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
-
+import { IoIosCog, IoMdCalendar } from "react-icons/io";
+import { MdOutlineFace } from "react-icons/md";
+import { IoStarOutline } from "react-icons/io5";
+import invariant from 'tiny-invariant';
 import {
   Avatar,
   HStack,
@@ -35,20 +38,19 @@ import {
   MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdLocalLibrary,
-  MdPerson2,
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { sidebarWidth } from './Navbars';
 import { breakpoint } from 'theme/metrics';
-import { formatUserName } from 'shared/strings';
+import { compareChinese, compareDate, formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
-import { PiFlagCheckeredFill } from 'react-icons/pi';
 import { componentSpacing } from 'theme/metrics';
 import colors from 'theme/colors';
 import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
+import { mentorshipStatusIconType } from 'pages/mentees';
+import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -77,12 +79,12 @@ interface DropdownMenuItem {
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: '学生面试',
-    action: '/interviews?type=mentee',
+    action: '/interviews?type=MenteeInterview',
     roles: 'MentorshipManager',
   },
   {
     name: '导师面试',
-    action: '/interviews?type=mentor',
+    action: '/interviews?type=MentorInterview',
     roles: 'MentorshipManager',
   },
   {
@@ -109,7 +111,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
-    name: '个人信息',
+    name: '个人资料',
     action: '/profiles/me',
   },
   {
@@ -144,7 +146,7 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '资深导师页',
     path: '/coachees',
-    icon: MdSupervisorAccount,
+    icon: MdOutlineFace,
     regex: /^\/coachees/,
     permission: 'MentorCoach',
   },
@@ -159,28 +161,25 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '预约不定期导师',
     path: '/mentors',
-    icon: MdSupervisorAccount,
+    icon: IoMdCalendar,
     regex: /^\/mentors$/,
-    permission: 'MentorshipManager',
-    // permission: (me: User) => isAcceptedMentee(me, true)
-    //   || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus, true)
+      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
     name: '浏览一对一导师',
-    path: '/mentors/matchable',
+    path: '/mentors/relational',
     icon: MdSupervisorAccount,
-    regex: /^\/mentors\/matchable$/,
-    permission: 'MentorshipManager',
-    // permission: (me: User) => isAcceptedMentee(me)
-    //   || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+    regex: /^\/mentors\/relational$/,
+    permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
+      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '资源库',
-    path: '/resources',
-    icon: MdLocalLibrary,
-    regex: /^\/resources$/,
-    permission: (me: User) => isAcceptedMentee(me)
-      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+    name: '志愿者档案',
+    path: '/volunteers',
+    icon: IoStarOutline,
+    regex: /^\/volunteers/,
+    permission: 'Volunteer',
   },
   {
     name: '学生档案',
@@ -195,20 +194,28 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    if ((a.endedAt === null) == (b.endedAt === null)) {
-      return formatUserName(a.mentee.name).localeCompare(
-        formatUserName(b.mentee.name));
+    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) > 0;
+    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) > 0;
+    if (aEnded !== bEnded) {
+      // ended ones should be sorted after ongoing ones.
+      return aEnded ? 1 : -1;
+    } else if (a.transactional !== b.transactional) {
+      // transactional should be sorted after relational.
+      return a.transactional ? 1 : -1;
     } else {
-      return a.endedAt === null ? -1 : 1;
+      return compareChinese(a.mentee.name, b.mentee.name);
     }
   });
 
-  return mentorships.map(m => ({
-    name: formatUserName(m.mentee.name),
-    icon: m.endedAt === null ? MdFace : PiFlagCheckeredFill,
-    path: `/mentees/${m.mentee.id}`,
-    regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
-  }));
+  return mentorships.map(m => {
+    const icon = mentorshipStatusIconType(m);
+    return {
+      name: formatUserName(m.mentee.name),
+      icon: icon ?? MdFace,
+      path: `/mentees/${m.mentee.id}`,
+      regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
+    };
+  });
 }
 
 interface SidebarProps extends BoxProps {
@@ -255,6 +262,10 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
           marginLeft={sidebarItemPaddingLeft - 2}
           marginY={sidebarItemPaddingY}  
         />
+
+        <ImpersonationBanner />
+
+        {/* White spacing */}
         <Box height={{
           base: 0,
           [breakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
@@ -271,7 +282,7 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
         <DropdownMenuIfPermitted
           title="管理功能"
-          icon={<Icon as={MdPerson2} marginRight="2" />}
+          icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
@@ -295,6 +306,41 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 };
 
 export default Sidebar;
+
+function ImpersonationBanner() {
+  const { data: session, update } = useSession();
+  const [, setUser] = useUserContext();
+  const router = useRouter();
+
+  const stopImpersonation = async () => {
+    const req: ImpersonationRequest = { impersonate: null };
+    await update(req);
+    invariant(session);
+    setUser(session.user);
+    await router.push("/users");
+  };
+
+  return !session?.impersonated ? <></> : <Box
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+    bg="orange.100"
+    color="orange.800"
+    py={2}
+    px={4}
+    fontSize="sm"
+  >
+    <Text>假扮模式</Text>
+    <Link
+      ml={2}
+      color="orange.600"
+      textDecoration="underline"
+      onClick={stopImpersonation}
+    >
+      退出
+    </Link>
+  </Box>;
+}
 
 function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   title: string,

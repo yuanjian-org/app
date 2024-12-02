@@ -47,10 +47,12 @@ function SetNameModal() {
   const [name, setName] = useState(user.name || '');
   const handleSubmit = async () => {
     if (name) {
-      const updatedUser = structuredClone(user);
-      updatedUser.name = name;
-      await trpc.users.update.mutate(updatedUser);
-      setUser(updatedUser);
+      const updated = {
+        ...user,
+        name,
+      };
+      await trpc.users.update.mutate(updated);
+      setUser(updated);
     };
   };
 
@@ -96,7 +98,7 @@ function Groups() {
     <PageBreadcrumb current='我的会议' parents={[]} />
 
     {isLoading && <Loader />}
-    
+
     {!isLoading && groups && groups.length == 0 && <NoGroup />}
 
     <VStack divider={<StackDivider />} align='left' spacing={6}>
@@ -115,11 +117,11 @@ function Groups() {
 }
 
 function NoGroup() {
-  const { data, isLoading } = trpcNext.users.listRedactedEmailsWithSameName
+  const { data } = trpcNext.users.listRedactedEmailsWithSameName
     .useQuery();
 
   return <VStack spacing={componentSpacing} align="start">
-    {isLoading ? <Loader /> : data?.length && 
+    {data?.length && 
       <Alert status="warning" mb={componentSpacing}>
         <HStack>
           <AlertIcon />

@@ -49,17 +49,18 @@ export default function Page() {
   // same pattern.
   const updateInterviewerPref = (data: InterviewerPreference) => {
     invariant(pref);
-    const updated = structuredClone(pref);
-    updated.interviewer = data;
-    setPref(updated);
+    setPref({
+      ...pref,
+      interviewer: data,
+    });
   };
 
   const updateMentorPref = (k: keyof MentorPreference, v: any) => {
     invariant(pref);
-    const updated = structuredClone(pref);
-    if (!updated.mentor) updated.mentor = {};
-    updated.mentor[k] = v;
-    setPref(updated);
+    setPref({
+      ...pref,
+      mentor: { ...pref.mentor, [k]: v },
+    });
   };
 
   const [isSaving, setIsSaving] = useState(false);

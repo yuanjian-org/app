@@ -1,6 +1,5 @@
 import type {
   CreationOptional,
-  Transaction,
 } from "sequelize";
 import {
   AllowNull,
@@ -22,7 +21,6 @@ import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
-import { toPinyin } from "../../../shared/strings";
 import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
@@ -31,7 +29,10 @@ import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 
 
-@Table({ paranoid: true, tableName: "users", modelName: "user" })
+@Table({
+  tableName: "users",
+  modelName: "user"
+})
 @Fix
 class User extends Model {
   @Unique
@@ -44,6 +45,12 @@ class User extends Model {
   // Always use `formatUserName` to display user names.
   @Column(STRING)
   name: string | null;
+
+  // Only uesrs with the Volutneer role can set up urls. A user doesn't lose
+  // the url after they are no longer a volunteer.
+  @Unique
+  @Column(STRING)
+  url: string | null;
 
   @Column(STRING)
   pinyin: string | null;
@@ -67,10 +74,17 @@ class User extends Model {
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
 
-  // Leave it here as opposed to inside the profile column because in some cases
+  // User defined WeChat ID, which is different from WeChat OpenID and UnionID
+  // and is not provided by WeChat auth API.
+  // Store it here as opposed to inside the profile column because in some cases
   // we need to redact this field (and email field).
   @Column(STRING)
   wechat: string | null;
+
+  // Used by WeChat auth. See WeChatProvider.ts
+  @Unique
+  @Column(STRING)
+  wechatUnionId: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;
@@ -147,16 +161,3 @@ class User extends Model {
 }
 
 export default User;
-
-export async function createUser(
-  fields: any,
-  transaction?: Transaction,
-  mode: "create" | "upsert" = "create",
-): Promise<User> {
-  const f = structuredClone(fields);
-  if (!("name" in f)) f.name = "";
-  f.pinyin = toPinyin(f.name);
-  return mode == "create" ? 
-    await User.create(f, transaction ? { transaction } : {}) :
-    (await User.upsert(f, transaction ? { transaction } : {}))[0];
-}

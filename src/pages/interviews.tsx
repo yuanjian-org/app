@@ -20,7 +20,6 @@ import {
   WrapItem,
   Wrap,
   Select,
-  Tooltip,
   TableCellProps,
   TabList,
   Tab,
@@ -30,6 +29,7 @@ import {
   Box,
   UnorderedList,
   ListItem,
+  Link,
 } from '@chakra-ui/react';
 import React, { useMemo, useState, useEffect } from 'react';
 import { trpcNext } from "../trpc";
@@ -59,9 +59,14 @@ import {
   CalibrationManagerCells, 
   CalibrationManagerHeaderCells 
 } from 'components/CalibrationManagerCells';
+import { 
+  MenteeSourceCell, 
+  MenteeSourceHeaderCell 
+} from 'components/MenteeSourceCell';
+import NextLink from 'next/link';
 
 export default widePage(() => {
-  const type: InterviewType = useRouter().query.type === "mentee" ?
+  const type: InterviewType = useRouter().query.type === "MenteeInterview" ?
     "MenteeInterview" : "MentorInterview";
 
   // TODO: Optimize and merge the first two queries.
@@ -135,9 +140,11 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
       <Thead>
         <Tr>
           <PointOfContactHeaderCells />
-          <Th>候选人</Th><Th>拼音（方便查找）</Th><Th>面试官</Th>
-          <Th>来源（悬停光标看全文）</Th><Th>面试讨论组</Th><Th>申请表</Th>
-          <Th>面试页</Th>
+          {type == "MenteeInterview" && <MenteeSourceHeaderCell />}
+          <Th>候选人</Th>
+          <Th>面试官</Th>
+          <Th>面试讨论组</Th>
+          <Th>拼音（方便查找）</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -172,8 +179,10 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
   updateSource: (source: string) => void,
 }) {
   // TODO: it's duplicative to fetch the applicant again
-  const { data } = trpcNext.users.getApplicant.useQuery({ userId: applicant.id, type });
-  const source = (data?.application as Record<string, any> | null)?.[menteeSourceField];
+  const { data } = trpcNext.users.getApplicant.useQuery(
+    { userId: applicant.id, type });
+  const source = (data?.application as Record<string, any> | null)
+    ?.[menteeSourceField];
 
   useEffect(() => {
     updateSource(source);
@@ -214,13 +223,16 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
     <Tr key={applicant.id} _hover={{ bg: "white" }}>
       <PointOfContactCells user={applicant} refetch={refetchApplicants} />
 
+      {/* 来源 */}
+      {type == "MenteeInterview" && <MenteeSourceCell source={source} />}
+
       {/* 候选人 */}
-      <TdEditLink>
-        <b>{formatUserName(applicant.name)}</b>
-      </TdEditLink>
-      
-      {/* 拼音 */}
-      <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
+      <Td>
+        <Link as={NextLink} href={`/applicants/${applicant.id}?type=${type}`}>
+          <b>{formatUserName(applicant.name)}</b>
+          <ChevronRightIcon />
+        </Link>
+      </Td>
 
       {/* 面试官 */}
       <TdEditLink><Wrap spacing="2">
@@ -230,27 +242,13 @@ function Applicant({ type, applicant, interviews, refetchInterviews,
         </WrapItem>)}
       </Wrap></TdEditLink>
 
-      {/* 生源 */}
-      <TdEditLink>
-        {source && <Tooltip label={source}>
-          <Text isTruncated maxWidth="130px">{source}</Text>
-        </Tooltip>}
-      </TdEditLink>
-
       {/* 面试讨论组 */}
       <TdEditLink>
         {interview && interview.calibration?.name}
       </TdEditLink>
 
-      {/* 申请表 */}
-      <TdLink href={`/applicants/${applicant.id}?type=${type == "MenteeInterview" ? "mentee" : "mentor"}`}>
-        申请表 <ChevronRightIcon />
-      </TdLink>
-
-      {/* 面试页 */}
-      {interview && <TdLink href={`/interviews/${interview.id}`}>
-        面试页 <ChevronRightIcon />
-      </TdLink>}
+      {/* 拼音 */}
+      <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
     </Tr>
   </>;
 }
@@ -372,14 +370,20 @@ function Calibrations({ type, calibrations, refetch }: {
       </UnorderedList>
     </Box>
 
-    <Box><Button leftIcon={<AddIcon />} onClick={create}>新建面试讨论组</Button></Box>
+    <Box>
+      <Button variant="outline" leftIcon={<AddIcon />} onClick={create}>
+        新建面试讨论组
+      </Button>
+    </Box>
 
     <TableContainer><Table>
       <Thead>
         <Tr>
           <Th>名称</Th>
+          <Th>进入</Th>
+          <Th>状态</Th>
           <CalibrationManagerHeaderCells />
-          <Th>状态</Th><Th>创建日期</Th><Th>进入</Th>
+          <Th>创建日期</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -394,17 +398,24 @@ function Calibrations({ type, calibrations, refetch }: {
                   onSubmit={v => update(c, v, c.active)} 
                 />
               </Td>
-              <CalibrationManagerCells calibration={c} refetch={refetch} />
-              <Td>
-                <Switch isChecked={c.active} onChange={e => update(c, c.name, e.target.checked)} />
-                {" "} {c.active ? "开启" : "关闭"}
-              </Td>
-              <Td>
-                {c.createdAt && prettifyDate(c.createdAt)}
-              </Td>
+
               <TdLink href={`/calibrations/${c.id}`}>
                 <ViewIcon />
               </TdLink>
+
+              <Td>
+                <Switch
+                  isChecked={c.active}
+                  onChange={e => update(c, c.name, e.target.checked)}
+                />
+                {" "} {c.active ? "开启" : "关闭"}
+              </Td>
+
+              <CalibrationManagerCells calibration={c} refetch={refetch} />
+
+              <Td>
+                {c.createdAt && prettifyDate(c.createdAt)}
+              </Td>
             </Tr>;
           })
         }

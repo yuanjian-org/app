@@ -21,14 +21,20 @@ import {
   VStack,
   Spacer,
   LinkProps,
-  Checkbox,
-  Tooltip,
   Tag,
+  HStack,
+  Icon,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser, UserFilter } from 'shared/User';
-import { compareChinese, formatUserName, prettifyDate, toPinyin } from 'shared/strings';
+import { compareChinese,
+  compareDate, 
+  formatUserName, 
+  hash,
+  prettifyDate, 
+  toPinyin 
+} from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
@@ -38,21 +44,31 @@ import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import moment from "moment";
-import { Mentorship } from 'shared/Mentorship';
+import { isEndedTransactionalMentorship, Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
-import { sectionSpacing } from 'theme/metrics';
-import { formatMentorshipEndedAtText } from './mentees/[menteeId]';
+import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
-import { PointOfContactCells, PointOfContactHeaderCells } from 'components/pointOfContactCells';
+import {
+  PointOfContactCells, 
+  PointOfContactHeaderCells
+} from 'components/pointOfContactCells';
 import { widePage } from 'AppPage';
+import { TbClockOff, TbClock } from "react-icons/tb";
 
-const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
-type UpdateMenteeYear = (userId: string, acceptanceYear: string) => void;
+type Metadata = {
+  // The year the mentee was accepted
+  year: string,
+  source: string,
+};
+
+type SetMetadata = (menteeId: string, metadata: Metadata) => void;
 
 export default widePage(() => {
+  const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
+
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
@@ -81,14 +97,14 @@ function MenteeTable({ users, refetch }: {
   users: User[],
   refetch: () => void
 }) {
-  const [menteeToYear, setMenteeToYear] = useState(new Map<string, string>()); 
+  const [mentee2meta, setMentee2meta] = useState(new Map<string, Metadata>()); 
 
-  // Use a callback to avoid infinite re-rendering when menteeToYear is changed.
-  const updateMenteeYear = useCallback(
-    (userId: string, acceptanceYear: string) => {
-      setMenteeToYear(current => {
+  // Use a callback to avoid infinite re-rendering when mentee2meta is changed.
+  const setMetadata = useCallback(
+    (userId: string, metadata: Metadata) => {
+      setMentee2meta(current => {
         const newMap = new Map(current);
-        newMap.set(userId, acceptanceYear);
+        newMap.set(userId, metadata);
         return newMap;
       });
     }
@@ -96,11 +112,21 @@ function MenteeTable({ users, refetch }: {
 
   const sortedUsers = useMemo(() => {
     return users.sort((a, b) => {
-      const comp = (menteeToYear.get(b.id) || "")
-        .localeCompare(menteeToYear.get(a.id) || "");
-      return comp !== 0 ? comp : compareChinese(a.name, b.name);
+      // Sort by acceptance year
+      let comp = (mentee2meta.get(b.id)?.year || "")
+        .localeCompare(mentee2meta.get(a.id)?.year || "");
+      if (comp !== 0) return comp;
+
+      // Then sort by source
+      comp = compareChinese(
+        mentee2meta.get(a.id)?.source || "",
+        mentee2meta.get(b.id)?.source || "");
+      if (comp !== 0) return comp;
+
+      // Then sort by name
+      return compareChinese(a.name, b.name);
     });
-  }, [users, menteeToYear]); 
+  }, [users, mentee2meta]); 
  
   return <Table size="sm">
     <Thead>
@@ -114,18 +140,20 @@ function MenteeTable({ users, refetch }: {
       </Tr>
     </Thead>
     <Tbody>
-      {sortedUsers.map((u: User) =>
-        <MenteeRow key={u.id} user={u} refetch={refetch} 
-        updateMenteeYear={updateMenteeYear} />)
-      }
+      {sortedUsers.map((u: User) => <MenteeRow
+        key={u.id} 
+        user={u} 
+        refetch={refetch} 
+        setMetadata={setMetadata} 
+      />)}
     </Tbody>
   </Table>;
 }
 
-function MenteeRow({ user: u, refetch, updateMenteeYear }: {
+function MenteeRow({ user: u, refetch, setMetadata }: {
   user: User,
-  refetch: () => void
-  updateMenteeYear?: UpdateMenteeYear
+  refetch: () => void,
+  setMetadata: SetMetadata
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -145,7 +173,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
   return <Tr key={u.id} _hover={{ bg: "white" }}>
     <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
-    <MenteeCells mentee={u} updateMenteeYear={updateMenteeYear}/>
+    <MenteeCells mentee={u} setMetadata={setMetadata}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
     <Td>{pinyin}</Td>
@@ -155,13 +183,7 @@ function MenteeRow({ user: u, refetch, updateMenteeYear }: {
 function getColorFromText(text: string): string {
   const colors = ["red", "orange", "yellow", "green", "teal", "blue", "cyan",
     "purple"];
-
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const index = Math.abs(hash) % colors.length;
+  const index = Math.abs(hash(text)) % colors.length;
   return colors[index];
 }
 
@@ -173,9 +195,9 @@ function MenteeHeaderCells() {
   </>;
 }
 
-export function MenteeCells({ mentee, updateMenteeYear } : {
+export function MenteeCells({ mentee, setMetadata } : {
   mentee: MinUser,
-  updateMenteeYear?: UpdateMenteeYear
+  setMetadata?: SetMetadata
 }) {
   const { data } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
@@ -185,14 +207,11 @@ export function MenteeCells({ mentee, updateMenteeYear } : {
   const year = (data?.application as Record<string, any>)
     ?.[menteeAcceptanceYearField];
   
-    const source = (data?.application as Record<string, any> | null)
+  const source = (data?.application as Record<string, any> | null)
     ?.[menteeSourceField];
 
-  useEffect(() => {
-    if (updateMenteeYear) {
-      updateMenteeYear(mentee.id, year);
-    }
-  }, [mentee.id, year, updateMenteeYear]);
+  useEffect(() => setMetadata?.(mentee.id, { year, source }),
+    [mentee.id, year, source, setMetadata]);
 
   return <>
     {/* Acceptance Year */}
@@ -222,7 +241,11 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
   showCoach?: boolean,
   readonly?: boolean,
 }) {
-  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee.useQuery(mentee.id);
+  const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee
+    .useQuery({
+      menteeId: mentee.id,
+      includeEndedTransactional: true,
+    });
   if (!data) return <Td><Loader /></Td>;
 
   // Stablize list order
@@ -251,16 +274,20 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = transcriptRes.map(t => 
     getDateTextAndColor(t.data, 45, 60, "尚未通话"));
 
-  const coachRes = trpcNext.useQueries(t => {
-    return mentorships.map(m => t.users.getMentorCoach({ userId: m.mentor.id }));
+  const displayedMentorships = mentorships
+    .filter(m => !isEndedTransactionalMentorship(m));
+
+  const coachesRes = trpcNext.useQueries(t => {
+    return displayedMentorships.map(
+      m => t.users.getMentorCoach({ userId: m.mentor.id }));
   });
 
   const refetchAll = () => {
     refetch();
-    coachRes.map(c => void c.refetch());
+    coachesRes.map(c => void c.refetch());
   };
 
-  const [ editing, setEditing ] = useState<boolean>(false);
+  const [editing, setEditing] = useState<boolean>(false);
 
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
@@ -269,31 +296,25 @@ function LoadedMentorsCells({
     if (!addPinyin) return;
     const names = [
       ...mentorships.map(m => m.mentor.name),
-      ...coachRes.map(c => c.data ? c.data.name : null),
+      ...coachesRes.map(c => c.data ? c.data.name : null),
     ].filter(n => n !== null);
     addPinyin(names as string[]);
-  }, [mentorships, coachRes, addPinyin]);
+  }, [mentorships, coachesRes, addPinyin]);
 
   return <>
     {/* 导师 */}
     <Td>
       {editing && <MentorshipsEditor
         mentee={mentee} mentorships={mentorships}
-        coaches={coachRes.map(c => c.data === undefined ? null : c.data)}
         onClose={() => setEditing(false)} refetch={refetchAll}
       />}
 
       <LinkToEditor onClick={() => setEditing(true)}>
-        {mentorships.length ?
+        {displayedMentorships.length ?
           <VStack align="start">
-            {mentorships.map(m =>
+            {displayedMentorships.map(m =>
               <Flex key={m.id} gap={1}>
-                {m.endedAt !== null && 
-                  <Tooltip label={formatMentorshipEndedAtText(m.endedAt)}>
-                    <PiFlagCheckeredFill />
-                  </Tooltip>
-                }
-
+                <MentorshipStatusIcon m={m} />
                 {formatUserName(m.mentor.name)}
               </Flex>)
             }
@@ -305,14 +326,11 @@ function LoadedMentorsCells({
     </Td>
 
     {/* 资深导师 */}
-    {showCoach &&
-      <Td><LinkToEditor onClick={() => setEditing(true)}><VStack align="start">
-          {coachRes.map((c, idx) => c.data ? 
-            <Text key={idx}>{formatUserName(c.data.name)}</Text> :
-            <MdEdit key={idx}/>
-          )}
-      </VStack></LinkToEditor></Td>
-    }
+    {showCoach && <Td><VStack align="start">
+      {coachesRes.map((c, idx) => <Text key={idx}>
+        {c.data ? formatUserName(c.data.name) : "-"}
+      </Text>)}
+    </VStack></Td>}
 
     {/* 最近师生通话 */}
     <Td><VStack align="start">
@@ -351,69 +369,154 @@ export function getDateTextAndColor(date: string | null | undefined,
   return [text, color];
 }
 
-function MentorshipsEditor({ mentee, mentorships, coaches, refetch, onClose }: {
+function newTransactionalMentorshipEndsAt(): Date {
+  return moment().add(2, 'weeks').toDate();
+}
+
+export function mentorshipStatusIconType(m: Mentorship) {
+  return !m.endsAt ? undefined :
+    compareDate(m.endsAt, new Date()) > 0 ?
+      m.transactional ? TbClockOff : PiFlagCheckeredFill
+    :
+    m.transactional ? TbClock : undefined;
+}
+
+export function MentorshipStatusIcon({ m }: { m: Mentorship }) {
+  const type = mentorshipStatusIconType(m);
+  return type ? <Icon as={type} /> : <></>;
+}
+
+type ConfirmingData = {
+  message: string,
+  confirm: () => void,
+};
+
+function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
   mentee: MinUser,
   mentorships: Mentorship[],
-  coaches: (MinUser | null)[],
   refetch: () => void,
   onClose: () => void,
 }) {
-  invariant(mentorships.length == coaches.length);
   const [creating, setCreating] = useState<boolean>(false);
+  const [confirmingData, setConfirmingData] = useState<ConfirmingData>();
 
-  const saveCoach = async (mentorId: string, coachIds: string[]) => {
-    // TODO: allow removing coaches
-    if (coachIds.length == 0) return;
-    await trpc.users.setMentorCoach.mutate({
-      userId: mentorId,
-      coachId: coachIds[0],
-    });
-    refetch();
-  };
-
-  const updateMentorship = async (mentorshipId: string, ended: boolean) => {
+  const updateMentorship = async (
+    mentorshipId: string,
+    transactional: boolean,
+    endsAt: Date | null
+  ) => {
     await trpc.mentorships.update.mutate({
       mentorshipId,
-      endedAt: ended ? new Date().toISOString() : null,
+      transactional,
+      endsAt: endsAt?.toISOString() ?? null,
     });
     refetch();
   };
 
-  return <ModalWithBackdrop isOpen onClose={onClose}>
+  /*
+   * Display format:
+  *
+   * 类型    状态              操作
+   * ----------------------------------------------------------
+   * 不定期  将于<结束日期>结束  [立即结束] [延期结束] [转成一对一]
+   * 不定期  已于<结束日期>结束  [重新开始] [转成一对一]
+   * 一对一  已于<结束日期>结束  [重新开始]
+   * 一对一  进行中             [立即结束]
+   */
+  return <ModalWithBackdrop isOpen size="4xl" onClose={onClose}>
     <ModalContent>
-      <ModalHeader>{formatUserName(mentee.name)}的一对一导师匹配</ModalHeader>
+      <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
       <ModalCloseButton />
-      <ModalBody>
-        <TableContainer>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>已结束</Th>
-                <Th>导师</Th>
-                <Th>资深导师</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {mentorships.map((m: Mentorship, idx) => {
-                const coach: MinUser | null = coaches[idx];
-                return <Tr key={m.id}>
-                  <Td>
-                    <Checkbox isChecked={m.endedAt !== null}
-                      onChange={ev => updateMentorship(m.id, ev.target.checked)}
-                    />
-                  </Td>
-                  <Td>{formatUserName(m.mentor.name)}</Td>
-                  <Td>
-                    <UserSelector initialValue={coach ? [coach] : []}
-                      onSelect={userIds => saveCoach(m.mentor.id, userIds)}
-                    />
-                  </Td>
-                </Tr>;
-              })}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </ModalBody>
+      <ModalBody><TableContainer><Table>
+        <Thead>
+          <Tr>
+            <Th>导师</Th>
+            <Th>类型</Th>
+            <Th>状态</Th>
+            <Th>操作</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {mentorships.map(m => {
+            return <Tr key={m.id}>                  
+              {/* 导师 */}
+              <Td>{formatUserName(m.mentor.name)}</Td>
+
+              {/* 类型 */}
+              <Td>{m.transactional ? "不定期" : "一对一"}</Td>
+
+              {/* 状态 */}
+              <Td>
+                {!m.endsAt ? "进行中" :
+                  compareDate(m.endsAt, new Date()) > 0 ?
+                  <HStack>
+                    <MentorshipStatusIcon m={m} />
+                    <Text>已于{prettifyDate(m.endsAt)}结束</Text>
+                  </HStack>
+                  :
+                  <HStack>
+                    <MentorshipStatusIcon m={m} />
+                    <Text>将于{prettifyDate(m.endsAt)}结束</Text>
+                  </HStack>
+                }
+              </Td>
+
+              {/* 操作 */}
+              <Td><HStack spacing={6}>
+                {m.transactional ? <>
+                  {/* 不定期 */}
+                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定重新开始吗？",
+                      confirm: () => updateMentorship(m.id, true, 
+                        newTransactionalMentorshipEndsAt())
+                    })}>重新开始</Link>
+                    :
+                    <>
+                      <Link onClick={() => setConfirmingData({
+                        message: "确定立即结束吗？",
+                        confirm: () => updateMentorship(m.id, true,
+                          moment().subtract(1, 'minutes').toDate())
+                      })}>立即结束</Link>
+
+                      <Link onClick={() => setConfirmingData({
+                        message: "确定延期结束吗？",
+                        confirm: () => updateMentorship(m.id, true,
+                          newTransactionalMentorshipEndsAt())
+                      })}>延期结束</Link>
+                    </>
+                  }
+
+                  <Link onClick={() => setConfirmingData({
+                    message: "确定转成一对一吗？【注意】导师无法从一对一转回不定期。",
+                    confirm: () => updateMentorship(m.id, false, null)
+                  })}>转成一对一</Link>
+                </>
+                : 
+                <>
+                  {/* 一对一 */}
+                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定重新开始吗？",
+                      confirm: () => updateMentorship(m.id, false, null)
+                    })}>重新开始</Link>
+                    :
+                    <Link onClick={() => setConfirmingData({
+                      message: "确定立即结束吗？",
+                      confirm: () => updateMentorship(m.id, false,
+                        moment().subtract(1, 'minutes').toDate())
+                    })}>立即结束</Link>
+                  }
+                </>}
+              </HStack></Td>
+            </Tr>;
+          })}
+        </Tbody>
+      </Table></TableContainer></ModalBody>
+
+      {confirmingData && <Confirmation
+        {...confirmingData} onClose={() => setConfirmingData(undefined)} />}
+
       <ModalFooter>
         {creating && <MentorshipCreator menteeId={mentee.id} refetch={refetch}
           onClose={() => setCreating(false)}/>}
@@ -431,36 +534,57 @@ function MentorshipCreator({ menteeId, refetch, onClose }: {
   refetch: () => void,
   onClose: () => void,
 }) {
-  const [mentorId, setMentorId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      invariant(menteeId);
-      invariant(mentorId);
-      await trpc.mentorships.create.mutate({ mentorId, menteeId });
-      refetch();
-      onClose();
-    } finally {
-      setSaving(false);
-    }
+  const save = async (mentorId: string) => {
+    invariant(menteeId);
+    invariant(mentorId);
+    await trpc.mentorships.create.mutate({
+      mentorId,
+      menteeId,
+      // Always start from transactional mentorships.
+      transactional: true,
+      endsAt: newTransactionalMentorshipEndsAt().toISOString(),
+    });
+    onClose();
+    refetch();
   };
 
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
-      <ModalHeader>增加一对一导师</ModalHeader>
+      <ModalHeader>增加导师</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <FormControl>
           <UserSelector onSelect={
-            userIds => setMentorId(userIds.length ? userIds[0] : null)} />
+            userIds => userIds.length && save(userIds[0])
+          } />
         </FormControl>
       </ModalBody>
       <ModalFooter>
-        <Button variant='brand'
-          isDisabled={!mentorId}
-          isLoading={saving} onClick={save}>增加</Button>
+        <Button onClick={onClose}>取消</Button>
+      </ModalFooter>
+    </ModalContent>
+  </ModalWithBackdrop>;
+}
+
+function Confirmation({ message, confirm, onClose }: { 
+  message: string,
+  confirm: () => void,
+  onClose: () => void,
+}) {
+  return <ModalWithBackdrop isOpen onClose={onClose}>
+    <ModalContent>
+      <ModalHeader>确认</ModalHeader>
+      <ModalCloseButton />
+      <ModalBody>
+        {message}
+      </ModalBody>
+      <ModalFooter>
+        <HStack spacing={componentSpacing}>
+          <Button variant="brand" onClick={() => { confirm(); onClose(); }}>
+            确认
+          </Button>
+          <Button onClick={onClose}>取消</Button>
+        </HStack>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

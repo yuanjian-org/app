@@ -6,18 +6,32 @@ import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
 import randomNumber from "random-number-csprng";
 import { toChinese } from "../../../shared/strings";
-import { userAttributes, userInclude } from "../../../api/database/models/attributesAndIncludes";
+import {
+  userAttributes,
+  userInclude,
+} from "../../../api/database/models/attributesAndIncludes";
 import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from '../../../shared/getBaseUrl';
+import { isPermitted } from "../../../shared/Role";
+import { noPermissionError } from "../../../api/errors";
+import WeChatProvider from "./WeChatProvider";
 
-// The default session user would cause type error when using session user data
 declare module "next-auth" {
   interface Session {
+    // TODO: Remove `user` and use `me` instead.
     user: User;
+    impersonated: true | undefined;
   }
 }
+
+export type ImpersonationRequest = {
+  // The ID of the user to impersonate, or `null` to stop impersonation.
+  impersonate: string | null;
+};
+
+const impersonateTokenKey = "imp";
 
 const tokenMaxAgeInMins = 5;
 
@@ -29,7 +43,7 @@ export const authOptions: NextAuthOptions = {
   adapter,
 
   session: {
-    maxAge: 365 * 24 * 60 * 60, // 365 days
+    strategy: "jwt",
   },
 
   providers: [
@@ -40,7 +54,22 @@ export const authOptions: NextAuthOptions = {
       maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
       sendVerificationRequest,
       generateVerificationToken,
-    }
+    },
+    WeChatProvider({
+      id: "wechat-qr",
+      name: "微信扫码登陆",
+      checks: ["none"],
+      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+      platformType: "WebsiteApp",
+    }),
+    WeChatProvider({
+      id: "wechat",
+      name: "微信内登陆",
+      clientId: process.env.AUTH_WECHAT_APP_ID!,
+      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+      platformType: "OfficialAccount",
+    })
   ],
 
   pages: {
@@ -50,10 +79,32 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async session({ session }) {
-      const user = await userCache.fetch(session.user.email);
-      invariant(user);
-      session.user = user;
+    async jwt({ token, trigger, session }) {
+      // https://next-auth.js.org/getting-started/client#updating-the-session
+      if (trigger == "update") {
+        const req = session as ImpersonationRequest;
+        if (req.impersonate === null) {
+          delete token[impersonateTokenKey];
+        } else {
+          const me = await db.User.findByPk(token.sub);
+          invariant(me);
+          if (!isPermitted(me.roles, "UserManager")) {
+            throw noPermissionError("用户", req.impersonate);
+          }
+          token[impersonateTokenKey] = req.impersonate;
+        }
+      }
+      return token;
+    },
+
+    async session({ token, session }) {
+      const impersonate = token[impersonateTokenKey];
+      const id = (impersonate as string | undefined) ?? token.sub;
+      invariant(id);
+      const me = await userCache.fetch(id);
+      invariant(me);
+      session.user = me;
+      if (impersonate) session.impersonated = true;
       return session;
     }
   },
@@ -88,16 +139,16 @@ async function sendVerificationRequest({ identifier: email, url, token }:
 
 const userCache = new LRUCache<string, User>({
   max: 1000,
-  // The TTL should not too short so most consecutive requests from a page load should get a hit.
-  // It should not be too long to keep stalenss in reasonable control.
+  // The TTL should not too short so most consecutive requests from a page load
+  // should get a hit. It should not be too long to keep staleness in reasonable
+  // control.
   ttl: 5 * 1000,  // 5 sec
-  // Do not update age so that no matter how eagerly users refreshes the page the data is guaranteed to be fresh after
-  // TTL passes.
+  // Do not update age so that no matter how eagerly users refreshes the page
+  // the data is guaranteed to be fresh after TTL passes.
   // updateAgeOnGet: true,
 
-  fetchMethod: async (email: string) => {
-    const user = await db.User.findOne({
-      where: { email },
+  fetchMethod: async (id: string) => {
+    const user = await db.User.findByPk(id, {
       attributes: userAttributes,
       include: userInclude,
     });

@@ -15,6 +15,7 @@ import chat from './routes/chat';
 import matchmaker from './routes/matchmaker';
 import migration from './routes/migration';
 import map from './routes/map';
+import mentorBookings from './routes/mentorBookings';
 
 export const apiRouter = router({
   users,
@@ -33,6 +34,7 @@ export const apiRouter = router({
   matchmaker,
   map,
   migration,
+  mentorBookings,
 });
 
 export type ApiRouter = typeof apiRouter;
