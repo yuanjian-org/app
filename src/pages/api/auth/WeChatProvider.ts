@@ -92,10 +92,8 @@ export default function WeChatProvider(
       const email = user?.email ?? newUnboundEmail();
 
       return {
-        // next-auth requires it to identify the account when adding to the db.
-        // however, the users table uses generated UUID when creating rows so
-        // this field is always ignored. 
-        id: "unused",
+        // next-auth saves this id to the `accounts` table.
+        id: profile.unionid,
 
         // see docs/WeChat.md for unionid vs openid
         wechatUnionId: profile.unionid,
