@@ -42,11 +42,17 @@ import { useSession } from 'next-auth/react';
 import { ImpersonationRequest } from './api/auth/[...nextauth]';
 import invariant from 'tiny-invariant';
 import { useRouter } from 'next/router';
+import { isFakeEmail } from 'shared/fakeEmail';
+import { MdMerge } from "react-icons/md";
+import ConfirmationModal from 'components/ConfirmationModal';
+import { canIssueMergeToken } from 'shared/merge';
+import { toast } from 'react-toastify';
 
 export default function Page() {
   const [filter] = useState<UserFilter>({
     includeBanned: true,
     includeNonVolunteers: true,
+    includeMerged: true,
   });
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
@@ -85,7 +91,7 @@ export default function Page() {
 Page.title = "用户";
 
 function UserTable({ users, setUserBeingEdited }: {
-  users: User[],
+  users: (User & { merged?: boolean })[],
   setUserBeingEdited: (u: User | null) => void,
 }) {
   const [me] = useUserContext();
@@ -114,6 +120,7 @@ function UserTable({ users, setUserBeingEdited }: {
         <Th>拼音</Th>
         <Th>角色</Th>
         <Th>假扮</Th>
+        <Th>发送微信激活码</Th>
       </Tr>
     </Thead>
     <Tbody>
@@ -123,7 +130,9 @@ function UserTable({ users, setUserBeingEdited }: {
           cursor='pointer'
           _hover={{ bg: "white" }}
         >
-          <Td onClick={() => setUserBeingEdited(u)}>{u.email}</Td>
+          <Td onClick={() => setUserBeingEdited(u)}>
+            {isFakeEmail(u.email) ? "未设置" : u.email}
+          </Td>
           
           <Td>
             <Link as={NextLink} href={`/profiles/${u.id}`}>
@@ -161,18 +170,49 @@ function UserTable({ users, setUserBeingEdited }: {
                   </Tag>
                 </WrapItem>;
               })}
+
+              {u.merged && <WrapItem>
+                <Tag colorScheme='red'>已迁移</Tag>
+              </WrapItem>}
+
             </Wrap>
           </Td>
 
+          {/* Impersonate */}
           <Td>
             {me.id !== u.id && <Link onClick={() => startImpersonation(u.id)}>
               <TbSpy />
             </Link>}
           </Td>
+
+          {/* Send merge token */}
+          <Td>
+            <SendMergeToken userId={u.id} email={u.email} />
+          </Td>
         </Tr>
       ))}
     </Tbody>
   </Table>;
+}
+
+function SendMergeToken({ userId, email }: { userId: string, email: string }) {
+  const [confirming, setConfirming] = useState<boolean>(false);
+
+  const send = async () => {
+    await trpc.merge.emailMergeToken.mutate({ userId });
+    toast.success("发送成功。");
+  };
+
+  return !canIssueMergeToken(email) ? <></> : <Link
+    onClick={() => setConfirming(true)}
+  >
+    <MdMerge />
+    {confirming && <ConfirmationModal
+      message={`发送微信激活码到用户邮箱：${email}？`}
+      confirm={send}
+      close={() => setConfirming(false)}
+    />}
+  </Link>;
 }
 
 function UserEditor({ user, onClose }: {

@@ -17,6 +17,7 @@ import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
 import LandmarkAssessment from "./models/map/LandmarkAssessment";
 import MentorBooking from "./models/MentorBooking";
+import MergeToken from "./models/MergeToken";
 
 const db = {
   Mentorship,
@@ -35,6 +36,7 @@ const db = {
   ChatMessage,
   LandmarkAssessment,
   MentorBooking,
+  MergeToken,
 };
 
 export default db;

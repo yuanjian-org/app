@@ -4,7 +4,6 @@ import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
-import randomNumber from "random-number-csprng";
 import { toChinese } from "../../../shared/strings";
 import {
   userAttributes,
@@ -17,6 +16,7 @@ import getBaseUrl from '../../../shared/getBaseUrl';
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
 import WeChatProvider from "./WeChatProvider";
+import { generateShortLivedToken } from "../../../shared/token";
 
 declare module "next-auth" {
   interface Session {
@@ -53,7 +53,7 @@ export const authOptions: NextAuthOptions = {
       type: 'email',
       maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
       sendVerificationRequest,
-      generateVerificationToken,
+      generateVerificationToken: generateShortLivedToken,
     },
     WeChatProvider({
       id: "wechat-qr",
@@ -81,19 +81,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, trigger, session }) {
       // https://next-auth.js.org/getting-started/client#updating-the-session
-      if (trigger == "update") {
-        const req = session as ImpersonationRequest;
-        if (req.impersonate === null) {
+      if (trigger == "update" && session) {
+        const impersonate = (session as ImpersonationRequest).impersonate;
+        if (impersonate === null) {
           delete token[impersonateTokenKey];
         } else {
           const me = await db.User.findByPk(token.sub);
           invariant(me);
           if (!isPermitted(me.roles, "UserManager")) {
-            throw noPermissionError("用户", req.impersonate);
+            throw noPermissionError("用户", impersonate);
           }
-          token[impersonateTokenKey] = req.impersonate;
+          token[impersonateTokenKey] = impersonate;
         }
       }
+
       return token;
     },
 
@@ -101,12 +102,18 @@ export const authOptions: NextAuthOptions = {
       const impersonate = token[impersonateTokenKey];
       const id = (impersonate as string | undefined) ?? token.sub;
       invariant(id);
-      const me = await userCache.fetch(id);
-      invariant(me);
-      session.user = me;
+
+      const original = await userCache.fetch(id);
+      invariant(original);
+
+      const actual = !original.mergedTo ? original
+        : await userCache.fetch(original.mergedTo);
+      invariant(actual);
+
+      session.user = actual;
       if (impersonate) session.impersonated = true;
       return session;
-    }
+    },
   },
 
   events: {
@@ -116,10 +123,6 @@ export const authOptions: NextAuthOptions = {
 };
 
 export default NextAuth(authOptions);
-
-async function generateVerificationToken() {
-  return (await randomNumber(100000, 999999)).toString();
-}
 
 async function sendVerificationRequest({ identifier: email, url, token }:
   SendVerificationRequestParams
@@ -149,7 +152,7 @@ const userCache = new LRUCache<string, User>({
 
   fetchMethod: async (id: string) => {
     const user = await db.User.findByPk(id, {
-      attributes: userAttributes,
+      attributes: [...userAttributes, "mergedTo"],
       include: userInclude,
     });
     // next-auth must have already created the user.
@@ -157,3 +160,7 @@ const userCache = new LRUCache<string, User>({
     return user;
   }
 });
+
+export function invalidateUserCache(userId: string) {
+  userCache.delete(userId);
+}

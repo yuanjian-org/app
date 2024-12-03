@@ -41,12 +41,7 @@ import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
-import { isFakeEmail } from 'shared/fakeEmail';
 
-/**
- * The mentorId query parameter can be a user id or "me". The latter is to
- * allow a convenient URL to manage users' own mentor profiles.
- */
 export default function Page() {
   const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
   const [me] = useUserContext();
@@ -163,14 +158,6 @@ function Basic({ user, profile, setUser, setProfile }: {
 }) {
   return <>
     <Heading size="md">基本信息</Heading>
-
-    {!isFakeEmail(user.email) && <FormControl>
-      <FormLabel>邮箱</FormLabel>
-      <FormHelperTextWithMargin>如需更改，请联系
-        {RoleProfiles.UserManager.displayName}。
-      </FormHelperTextWithMargin>
-      <Input value={user.email} readOnly />
-    </FormControl>}
 
     {isPermitted(user.roles, "Volunteer") && <FormControl>
       <FormLabel>自定义URL</FormLabel>

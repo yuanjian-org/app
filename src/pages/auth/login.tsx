@@ -121,7 +121,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
             color="white"
             _hover={{ bg: "#06AE56" }}
           >
-            微信登陆
+            微信登录
           </Button>
         </TabPanel>}
 

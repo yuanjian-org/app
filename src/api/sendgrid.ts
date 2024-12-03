@@ -59,11 +59,7 @@ export async function email(templateId: string,
     personalizations: ps,
     templateId,
     from: {
-      email: 'hi@mentors.org.cn',
-      name: '社会导师服务平台',
-    },
-    replyTo: {
-      email: 'hi@yuanjian.org',
+      email: 'no-reply@mentors.org.cn',
       name: '社会导师服务平台',
     },
     trackingSettings: {

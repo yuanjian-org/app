@@ -1,15 +1,7 @@
 import {
-  Box,
-  Button,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
   StackDivider,
   Text,
   VStack,
-  FormLabel,
-  Input,
-  FormControl,
   Link,
   Alert,
   HStack,
@@ -18,76 +10,16 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { useUserContext } from "../UserContext";
-import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import ConsentModal, { consentFormAccepted } from '../components/ConsentModal';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { isValidChineseName } from '../shared/strings';
 import Loader from 'components/Loader';
 import { isPermitted } from 'shared/Role';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 
 export default function Page() {
-  const [user] = useUserContext();
-  const hasName = !!user.name;
-  return <>
-    {hasName ? <Groups /> : <SetNameModal />}
-    {hasName && !consentFormAccepted(user) && <ConsentModal />}
-  </>;
-};
-
-Page.title = "我的会议";
-
-function SetNameModal() {
-  const [user, setUser] = useUserContext();
-  const [name, setName] = useState(user.name || '');
-  const handleSubmit = async () => {
-    if (name) {
-      const updated = {
-        ...user,
-        name,
-      };
-      await trpc.users.update.mutate(updated);
-      setUser(updated);
-    };
-  };
-
-  return (
-    // onClose returns undefined to prevent user from closing the modal without
-    // entering name.
-    <ModalWithBackdrop isOpen onClose={() => undefined}>
-      <ModalContent>
-        <ModalHeader>欢迎你，新用户 👋</ModalHeader>
-        <ModalBody>
-          <Box mt={4}>
-            <FormControl>
-              <FormLabel>请填写中文全名</FormLabel>
-              <Input
-                isRequired={true}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder='请勿使用英文或其他符号'
-                mb='24px'
-              />
-              <Button
-                onClick={handleSubmit}
-                isDisabled={!isValidChineseName(name)}
-                variant='brand' w='100%' mb='24px'>
-                提交
-              </Button>
-            </FormControl>
-          </Box>
-        </ModalBody>
-      </ModalContent>
-    </ModalWithBackdrop>
-  );
-}
-
-function Groups() {
   const [me] = useUserContext();
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
     // TODO: This is a hack. Do it properly.
@@ -115,6 +47,8 @@ function Groups() {
     </VStack>
   </>);
 }
+
+Page.title = "我的会议";
 
 function NoGroup() {
   const { data } = trpcNext.users.listRedactedEmailsWithSameName

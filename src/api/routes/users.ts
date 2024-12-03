@@ -19,7 +19,7 @@ import User, {
 } from "../../shared/User";
 import { 
   formatUserName,
-  toPinyin 
+  toPinyin
 } from "../../shared/strings";
 import invariant from 'tiny-invariant';
 import {
@@ -41,6 +41,8 @@ import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
 import { getUser2MentorshipCount } from "./mentorships";
 import { fakeEmailDomain } from "../../shared/fakeEmail";
+import { zUserState } from "../../shared/UserState";
+import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -85,19 +87,35 @@ export async function createUser(
 const list = procedure
   .use(authUser(['UserManager', 'GroupManager', 'MentorshipManager']))
   .input(zUserFilter)
-  .output(z.array(zUser))
-  .query(async ({ input: filter }) =>
-{
+  .output(z.array(zUser.merge(z.object({
+    merged: z.boolean().optional(),
+  }))))
+  .query(async ({ ctx: { user }, input: filter }) =>
+{ 
+  if (filter.includeBanned === true
+    || filter.includeNonVolunteers === true
+    || filter.includeMerged === true
+  ) {
+    if (!isPermitted(user.roles, "UserManager")) {
+      throw noPermissionError("数据",
+        "includeBanned, includeNonVolunteers or includeMerged user filter");
+    }
+  }
+
   // Force type checking.
   const banned: Role = "Banned";
   const volunteer: Role = "Volunteer";
 
-  return await db.User.findAll({ 
+  return (await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
-    attributes: userAttributes,
+    attributes: [...userAttributes, "mergedTo"],
     include: userInclude,
 
     where: {
+      ...filter.includeMerged === true ? {} : {
+        mergedTo: { [Op.eq]: null }
+      },
+
       ...filter.includeBanned === true ? {} : {
         [Op.not]: { roles: { [Op.contains]: [banned] } }
       },
@@ -131,6 +149,12 @@ const list = procedure
         ],
       },
     },
+  })).map(u => {
+    if (filter.includeMerged && u.mergedTo) {
+      // @ts-expect-error
+      u.merged = true;
+    }
+    return u;
   });
 });
 
@@ -262,6 +286,8 @@ const update = procedure
         email: input.email,
       } : {},
     }, { transaction });
+
+    invalidateUserCache(user.id);
   });
 });
 
@@ -441,6 +467,28 @@ const setUserProfile = procedure
 
   const [cnt] = await db.User.update({ profile }, { where: { id: userId } });
   if (cnt == 0) throw notFoundError("用户", userId);
+});
+
+const getUserState = procedure
+  .use(authUser())
+  .output(zUserState.nullable())
+  .query(async ({ ctx: { user } }) =>
+{
+  const u = await db.User.findByPk(user.id, {
+    attributes: ["state"],
+  });
+
+  if (!u) throw notFoundError("用户", user.id);
+  return u.state;
+});
+
+const setUserState = procedure
+  .use(authUser())
+  .input(zUserState)
+  .mutation(async ({ ctx: { user }, input: state }) => 
+{
+  const [cnt] = await db.User.update({ state }, { where: { id: user.id } });
+  if (cnt == 0) throw notFoundError("用户", user.id);
 });
 
 /**
@@ -696,6 +744,9 @@ export default router({
 
   getUserProfile,
   setUserProfile,
+
+  getUserState,
+  setUserState,
 
   getMentorCoach,
   setMentorCoach,
