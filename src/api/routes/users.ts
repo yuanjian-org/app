@@ -40,6 +40,7 @@ import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
 import { getUser2MentorshipCount } from "./mentorships";
+import { fakeEmailDomain } from "../../shared/fakeEmail";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -87,8 +88,10 @@ const list = procedure
   .output(z.array(zUser))
   .query(async ({ input: filter }) =>
 {
-  // Declare a variable to force type checking.
+  // Force type checking.
   const banned: Role = "Banned";
+  const volunteer: Role = "Volunteer";
+
   return await db.User.findAll({ 
     order: [['pinyin', 'ASC']],
     attributes: userAttributes,
@@ -97,6 +100,10 @@ const list = procedure
     where: {
       ...filter.includeBanned === true ? {} : {
         [Op.not]: { roles: { [Op.contains]: [banned] } }
+      },
+
+      ...filter.includeNonVolunteers === true ? {} : {
+        roles: { [Op.contains]: [volunteer] }
       },
 
       ...filter.containsRoles === undefined ? {} : {
@@ -117,7 +124,10 @@ const list = procedure
         [Op.or]: [
           { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
           { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-          { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+          { [Op.and]: [
+            { email: { [Op.notLike]: `%${fakeEmailDomain}` } },
+            { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+          ] },
         ],
       },
     },

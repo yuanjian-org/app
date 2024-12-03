@@ -44,7 +44,10 @@ import invariant from 'tiny-invariant';
 import { useRouter } from 'next/router';
 
 export default function Page() {
-  const [filter] = useState<UserFilter>({ includeBanned: true });
+  const [filter] = useState<UserFilter>({
+    includeBanned: true,
+    includeNonVolunteers: true,
+  });
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>(filter);
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
