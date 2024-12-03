@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-export default function WeChatQRLogin() {
+export default function WeChatQRLogin({ appid }: { appid: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const callbackUrl = router.query.callbackUrl as string || '/';
@@ -24,7 +24,7 @@ export default function WeChatQRLogin() {
       if (containerRef.current && window.WxLogin) {
         new window.WxLogin({
           id: "wechat-qr-container",
-          appid: "wx5ca638d3eb3d9db9",
+          appid,
           scope: "snsapi_login",
           redirect_uri: encodeURIComponent(
             `${window.location.origin}/api/auth/callback/wechat-qr`
@@ -41,7 +41,7 @@ export default function WeChatQRLogin() {
     return () => {
       document.body.removeChild(script);
     };
-  }, [callbackUrl]);
+  }, [callbackUrl, appid]);
 
   return (
     <Box 
@@ -50,4 +50,5 @@ export default function WeChatQRLogin() {
       height="170px"
     />
   );
-} 
+}
+
