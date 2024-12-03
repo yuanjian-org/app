@@ -29,7 +29,7 @@ export default function WeChatProvider(
     id: "wechat",
     name: "WeChat",
     type: "oauth",
-    style: { logo: "/img/wechat.svg", bg: "#fff", text: "#000" },
+    // style: { logo: "/img/wechat.svg", bg: "#fff", text: "#000" },
     checks: ["state"],
 
     // We need this option to allow next-auth to link 微信开放平台 & 微信公众平台
