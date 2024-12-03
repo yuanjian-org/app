@@ -88,9 +88,18 @@ export async function migrateDatabase() {
   await sequelize.sync({ alter: { drop: false } });
 
   console.log("Migrating DB data...");
+  await migrateFakeEmails();
 
   console.log("Clean up old DB data...");
   await cleanupFeedbackAttemptLogs();
+}
+
+async function migrateFakeEmails() {
+  console.log("Migrating fake emails...");
+  await sequelize.query(`
+    UPDATE users SET "email" = REPLACE("email", '@ub.nd', '@f.ml')
+    WHERE "email" LIKE '%@ub.nd';
+  `);
 }
 
 async function cleanupFeedbackAttemptLogs() {

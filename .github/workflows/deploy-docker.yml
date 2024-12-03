@@ -81,8 +81,8 @@ jobs:
           git checkout main
           git pull
 
-          echo ">>> Restarting Docker containers"
-          docker compose pull
+          echo ">>> Restarting Docker containers. Only pulling app because pulling nginx from aliyun may get stuck."
+          docker compose pull app
           docker compose down
           docker compose up -d
 

@@ -3,7 +3,7 @@
  */
 import db from "../../../api/database/db";
 import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
-import { newUnboundEmail } from "./binding";
+import { newFakeEmail } from "../../../shared/fakeEmail";
 
 export interface WeChatProfile {
   openid: string
@@ -89,7 +89,7 @@ export default function WeChatProvider(
         where: { wechatUnionId: profile.unionid },
         attributes: ["email"],
       });
-      const email = user?.email ?? newUnboundEmail();
+      const email = user?.email ?? newFakeEmail();
 
       return {
         // next-auth saves this id to the `accounts` table.
