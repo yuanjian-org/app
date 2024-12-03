@@ -1,13 +1,20 @@
-import { Tab, TabList, TabPanel, TabPanels, SimpleGrid, Heading, Text, Card, CardHeader, CardBody, Link, useBreakpointValue } from '@chakra-ui/react';
+import {
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  SimpleGrid,
+  Heading,
+  Text,
+  Card,
+  CardHeader,
+  CardBody,
+} from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
 import { Landmark, Latitude } from 'shared/Map';
-import { breakpoint, componentSpacing } from 'theme/metrics';
+import { componentSpacing } from 'theme/metrics';
 import LandmarkDrawer from 'components/LandmarkDrawer';
-
-
-const desktopTextLimit = 80;
-const mobileTextLimit = 30;
 
 export default function Map( { data } : {data: Record<string, Landmark[]>}) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
@@ -47,16 +54,12 @@ const LandmarkCard = ({ landmark, selectLandmark }: {
   landmark: Landmark;
   selectLandmark: (landmark: Landmark) => void
 }) => {
-  const maxChar: number = useBreakpointValue({ base: mobileTextLimit,
-    [breakpoint]: desktopTextLimit }) || desktopTextLimit;
-  const cardText = landmark.定义.length <= maxChar ? landmark.定义 : <Text>
-    {landmark.定义.substring(0, maxChar)}...{' '}<Link>更多</Link>
-  </Text>;
-
   return <Card onClick={() => selectLandmark(landmark)} cursor='pointer'>
     <CardHeader>
       <Heading size="md">{landmark.名称}</Heading>
     </CardHeader>
-    <CardBody>{cardText}</CardBody>
+    <CardBody>
+      <Text noOfLines={4}>{landmark.定义}</Text>
+    </CardBody>
   </Card>;
 };
