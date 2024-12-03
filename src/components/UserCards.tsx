@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
-import { breakpoint, componentSpacing, sectionSpacing } from 'theme/metrics';
+import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
@@ -197,7 +197,7 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
       </Heading>
     </CardHeader>
     <CardBody pt={1}>
-      <Flex direction="column" gap="8px">
+      <Flex direction="column" gap={paragraphSpacing}>
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {type == "TransactionalMentor" ? <>
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
