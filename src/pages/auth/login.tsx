@@ -17,11 +17,15 @@ export const localStorageKeyForLoginEmail = "loginEmail";
 
 export const callbackUrlKey = "callbackUrl";
 
+type ServerSideProps = {
+  wechatQRAppId: string;
+};
+
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
  * logging in.
  */
-export default function Page() {
+export default function Page({ wechatQRAppId }: ServerSideProps) {
   const router = useRouter();
   const showWeChat = parseQueryStringOrUnknown(useRouter(), 'demo') === '1';
 
@@ -92,7 +96,7 @@ export default function Page() {
     {/* 微信扫码登录 */}
     {showWeChat && !isWechatBrowser && <VStack spacing={componentSpacing}>
       <Text>微信扫码登录</Text>
-      <WeChatQRLogin />
+      <WeChatQRLogin appid={wechatQRAppId} />
     </VStack>}
 
     {/* 微信服务号登录 */}
@@ -145,4 +149,12 @@ export default function Page() {
       onClick={submitEmail}
     >登录 / 注册</Button>
   </>;
+}
+
+export function getServerSideProps(): { props: ServerSideProps } {
+  return {
+    props: {
+      wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
+    },
+  };
 }
