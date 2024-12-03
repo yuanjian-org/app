@@ -1,4 +1,4 @@
-import { Button, InputGroup, InputLeftElement, Input, Heading, Text, VStack, Link, HStack } from '@chakra-ui/react';
+import { Button, InputGroup, InputLeftElement, Input, Heading, VStack, TabList, Tab, Tabs, TabPanels, TabPanel } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -8,9 +8,9 @@ import { parseQueryString, parseQueryStringOrUnknown } from "shared/strings";
 import { toast } from 'react-toastify';
 import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
-import Image from 'next/image';
 import WeChatQRLogin from 'components/WeChatQRLogin';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
+import { IoLogoWechat } from 'react-icons/io5';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -88,66 +88,80 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
 
   const isValidEmail = () => z.string().email().safeParse(email).success;
 
-  const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
+  // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
+  const isWechatMobileBrowser =
+    /MicroMessenger/i.test(navigator.userAgent) &&
+    /Mobile/i.test(navigator.userAgent);
 
   return <>
-    <Heading size="md" marginBottom={10}>社会导师服务平台</Heading>
+    <Heading size="md" marginBottom={sectionSpacing}>社会导师服务平台</Heading>
 
-    {/* 微信扫码登录 */}
-    {showWeChat && !isWechatBrowser && <VStack spacing={componentSpacing}>
-      <Text>微信扫码登录</Text>
-      <WeChatQRLogin appid={wechatQRAppId} />
-    </VStack>}
-
-    {/* 微信服务号登录 */}
-    {showWeChat && isWechatBrowser && <Link
-      onClick={() => signIn('wechat')}
+    <Tabs
+      isFitted
+      isLazy
+      size='sm'
     >
-      <HStack mb={sectionSpacing}>
-        <Image src="/img/wechat.svg" alt="WeChat" width={24} height={24} />
-        <Text>微信登录</Text>
-      </HStack>
-    </Link>}
+      <TabList display={showWeChat ? "flex" : "none"}>
+        {/* Only WeChat mobile browser supports logging in with WeChat
+            accounts. See docs/WeChat.md for more information. */}
+        {showWeChat && isWechatMobileBrowser && <Tab>微信登录</Tab>}
+        {showWeChat && <Tab>微信扫码</Tab>}
+        <Tab>邮箱登录</Tab>
+      </TabList>
 
-    {/* 微信扫码登陆(点击版) */}
-    {/* <Button
-      width="full"
-      mt={2}
-      leftIcon={<Image src="/img/wechat.svg" alt="WeChat" width={24} height={24} />}
-      onClick={() => signIn('wechat-qr')}
-      bg="#07C160"
-      color="white"
-      _hover={{ bg: "#06AE56" }}
-    >
-      微信扫码登陆(点击版)
-    </Button> */}
+      <TabPanels>
+        {showWeChat && isWechatMobileBrowser && <TabPanel>
+          {/* 微信服务号登录 */}
+          <Button
+            width="full"
+            mt={2}
+            leftIcon={<IoLogoWechat />}
+            onClick={() => signIn('wechat')}
+            bg="#07C160"
+            color="white"
+            _hover={{ bg: "#06AE56" }}
+          >
+            微信登陆
+          </Button>
+        </TabPanel>}
 
-    {/* Email login */}
-    <InputGroup>
-      <InputLeftElement pointerEvents='none'>
-        <EmailIcon color='gray.400' />
-      </InputLeftElement>
-      <Input
-        type="email"
-        name="email"
-        minWidth={80}
-        placeholder="请输入邮箱"
-        autoFocus
-        value={email}
-        onChange={(ev) => setEmail(ev.target.value)}
-        onKeyDown={async ev => {
-          if (ev.key == "Enter" && isValidEmail()) await submitEmail();
-        }}
-      />
-    </InputGroup>
+        {showWeChat && <TabPanel>
+          {/* 微信扫码登录 */}
+          {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
+          <VStack spacing={componentSpacing}>
+            <WeChatQRLogin appid={wechatQRAppId} />
+          </VStack>
+        </TabPanel>}
 
-    <Button
-      variant="brand"
-      width="full"
-      isDisabled={!isValidEmail()}
-      isLoading={isLoading}
-      onClick={submitEmail}
-    >登录 / 注册</Button>
+        <TabPanel>
+          {/* Email login */}
+          <InputGroup my={sectionSpacing}>
+            <InputLeftElement pointerEvents='none'>
+              <EmailIcon color='gray.400' />
+            </InputLeftElement>
+            <Input
+              type="email"
+              name="email"
+              minWidth={80}
+              placeholder="请输入邮箱"
+              value={email}
+              onChange={(ev) => setEmail(ev.target.value)}
+              onKeyDown={async ev => {
+                if (ev.key == "Enter" && isValidEmail()) await submitEmail();
+              }}
+            />
+          </InputGroup>
+
+          <Button
+            variant="brand"
+            width="full"
+            isDisabled={!isValidEmail()}
+            isLoading={isLoading}
+            onClick={submitEmail}
+          >登录 / 注册</Button>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   </>;
 }
 
