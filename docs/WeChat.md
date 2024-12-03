@@ -6,7 +6,7 @@
   - 网站应用：仅支持扫码登陆
 
 - 公众平台： https://mp.weixin.qq.com
-  - 服务号：仅支持微信内登陆，即微信浏览器登陆
+  - 服务号：仅支持微信内登陆，即微信移动端浏览器登陆（微信桌面端浏览器不支持）
   - 订阅号：不支持微信账号登陆
 
 关于OpenId和UnionId：
@@ -44,5 +44,7 @@
    AUTH_TRUSTED_HOST=acme.com
    NEXTAUTH_URL=https://acme.com
    ```
+
+   注意，设置NEXTAUTH_URL会影响在本地测试email登录。因此在测试完微信登录后，请清除此值。
 
 3. 使用[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)可以在本地测试微信内登录的功能。
