@@ -1,10 +1,23 @@
-import { Button, InputGroup, InputLeftElement, Input, Heading, VStack, TabList, Tab, Tabs, TabPanels, TabPanel } from '@chakra-ui/react';
+import {
+  Button,
+  InputGroup,
+  InputLeftElement,
+  Input,
+  Heading,
+  VStack,
+  TabList,
+  Tab,
+  Tabs,
+  TabPanels,
+  TabPanel,
+  Text
+} from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
 import { useRouter } from 'next/router';
-import { parseQueryString, parseQueryStringOrUnknown } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
@@ -27,7 +40,6 @@ type ServerSideProps = {
  */
 export default function Page({ wechatQRAppId }: ServerSideProps) {
   const router = useRouter();
-  const showWeChat = parseQueryStringOrUnknown(useRouter(), 'demo') === '1';
 
   // Use the last login email
   const [email, setEmail] = useState<string>("");
@@ -93,6 +105,10 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
     /MicroMessenger/i.test(navigator.userAgent) &&
     /Mobile/i.test(navigator.userAgent);
 
+  const MergeAccountHelpText = () => <Text fontSize="sm" color="gray">
+    如果您曾经使用邮件登录，在微信登录后，需要人工关联现有账号。请联系平台工作人员协助。
+  </Text>;
+
   return <>
     <Heading size="md" marginBottom={sectionSpacing}>社会导师服务平台</Heading>
 
@@ -101,40 +117,45 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       isLazy
       size='sm'
     >
-      <TabList display={showWeChat ? "flex" : "none"}>
+      <TabList>
         {/* Only WeChat mobile browser supports logging in with WeChat
             accounts. See docs/WeChat.md for more information. */}
-        {showWeChat && isWechatMobileBrowser && <Tab>微信登录</Tab>}
-        {showWeChat && <Tab>微信扫码</Tab>}
+        {isWechatMobileBrowser && <Tab>微信登录</Tab>}
+        <Tab>微信扫码</Tab>
         <Tab>邮箱登录</Tab>
       </TabList>
 
       <TabPanels>
-        {showWeChat && isWechatMobileBrowser && <TabPanel>
-          {/* 微信服务号登录 */}
-          <Button
-            width="full"
-            mt={2}
-            leftIcon={<IoLogoWechat />}
-            onClick={() => signIn('wechat')}
-            bg="#07C160"
-            color="white"
-            _hover={{ bg: "#06AE56" }}
-          >
-            微信登录
-          </Button>
-        </TabPanel>}
 
-        {showWeChat && <TabPanel>
-          {/* 微信扫码登录 */}
-          {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
+        {/* 微信服务号登录 */}
+        {isWechatMobileBrowser && <TabPanel>
           <VStack spacing={componentSpacing}>
-            <WeChatQRLogin appid={wechatQRAppId} />
+            <Button
+              width="full"
+              mt={sectionSpacing}
+              leftIcon={<IoLogoWechat />}
+              onClick={() => signIn('wechat')}
+              bg="#07C160"
+              color="white"
+              _hover={{ bg: "#06AE56" }}
+            >
+              微信登录
+            </Button>
+              <MergeAccountHelpText />
           </VStack>
         </TabPanel>}
 
+        {/* 微信扫码登录 */}
         <TabPanel>
-          {/* Email login */}
+          {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
+          <VStack spacing={componentSpacing}>
+            <WeChatQRLogin appid={wechatQRAppId} />
+            <MergeAccountHelpText />
+          </VStack>
+        </TabPanel>
+
+        {/* Email登录 */}
+        <TabPanel>
           <InputGroup my={sectionSpacing}>
             <InputLeftElement pointerEvents='none'>
               <EmailIcon color='gray.400' />
@@ -160,6 +181,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
             onClick={submitEmail}
           >登录 / 注册</Button>
         </TabPanel>
+
       </TabPanels>
     </Tabs>
   </>;
