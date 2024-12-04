@@ -60,7 +60,7 @@ export default function Page() {
       <Heading size="md">微信账号</Heading>
 
       <Text>
-        如果您通过邮件收到微信激活码，请点击下面的按钮输入。<MergeCodeFormat />
+        如果您通过电子邮件收到微信激活码，请点击下面的按钮输入。<MergeCodeFormat />
       </Text>
       <Text>
         警告：使用微信激活码后，您的账号将被迁移，而无法继续访问当前账号下的数据。

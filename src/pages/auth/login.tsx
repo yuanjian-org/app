@@ -105,8 +105,12 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
     /MicroMessenger/i.test(navigator.userAgent) &&
     /Mobile/i.test(navigator.userAgent);
 
-  const MergeAccountHelpText = () => <Text fontSize="sm" color="gray">
-    如果您曾经使用邮件登录，在微信登录后，需要人工关联现有账号。请联系平台工作人员协助。
+  const MergeAccountHelpText = () => <Text
+    align="center"
+    fontSize="sm"
+    color="gray"
+  >
+    如果您曾经使用邮箱登录，在微信登录后，需要人工关联现有账号。请联系平台工作人员协助。
   </Text>;
 
   return <>
