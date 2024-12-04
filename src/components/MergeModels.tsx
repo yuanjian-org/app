@@ -132,7 +132,6 @@ export function EnterTokenMergeModal({ cancelLabel, cancel }: {
             <Text>请输入九个英文字母的微信激活码，大小写不敏感：</Text>
             <HStack>
               <PinInput
-                size="sm"
                 onChange={v => setToken(v)}
                 autoFocus
                 type='alphanumeric'
