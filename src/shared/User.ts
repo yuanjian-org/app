@@ -26,6 +26,17 @@ type User = z.TypeOf<typeof zUser>;
 
 export default User;
 
+// These merge info fields should be populated only when
+// UserFilter.includeMerged is true.
+export const zUserWithMergeInfo = zUser.merge(z.object({
+  mergedTo: z.string().nullish(),
+  mergedFrom: z.array(zMinUser).optional(),
+  mergeToken: z.object({
+    expiresAt: zDateColumn,
+  }).nullish(),
+}));
+export type UserWithMergeInfo = z.TypeOf<typeof zUserWithMergeInfo>;
+
 export const zUserFilter = z.object({
   matchesNameOrEmail: z.string().optional(),
   containsRoles: zRoles.optional(),

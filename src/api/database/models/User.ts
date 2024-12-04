@@ -14,7 +14,8 @@ import {
   IsUUID,
   PrimaryKey,
   ForeignKey,
-  BelongsTo
+  BelongsTo,
+  HasOne,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
@@ -28,6 +29,7 @@ import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
+import MergeToken from "./MergeToken";
 
 @Table({
   tableName: "users",
@@ -150,6 +152,12 @@ class User extends Model {
 
   @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
   pointOfContact: User | null;
+
+  @HasMany(() => User, { foreignKey: 'mergedTo' })
+  mergedFrom: User[];
+
+  @HasOne(() => MergeToken)
+  mergeToken: MergeToken | null;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {

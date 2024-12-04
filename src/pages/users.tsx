@@ -24,12 +24,15 @@ import {
   Flex,
   TableContainer,
   Link,
+  HStack,
+  Badge,
+  Tooltip,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
-import User, { UserFilter } from 'shared/User';
+import User, { UserFilter, UserWithMergeInfo } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
+import { compareDate, formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import { useUserContext } from 'UserContext';
@@ -82,7 +85,11 @@ export default function Page() {
       </Wrap>
 
       {!users ? <Loader /> : <TableContainer>
-        <UserTable users={users} setUserBeingEdited={setUserBeingEdited} />
+        <UserTable
+          users={users}
+          setUserBeingEdited={setUserBeingEdited}
+          refetch={refetch}
+        />
       </TableContainer>}
     </Flex>
   </>;
@@ -90,9 +97,10 @@ export default function Page() {
 
 Page.title = "用户";
 
-function UserTable({ users, setUserBeingEdited }: {
-  users: (User & { merged?: boolean })[],
+function UserTable({ users, setUserBeingEdited, refetch }: {
+  users: UserWithMergeInfo[],
   setUserBeingEdited: (u: User | null) => void,
+  refetch: () => void,
 }) {
   const [me] = useUserContext();
   const { data: session, update } = useSession();
@@ -171,7 +179,7 @@ function UserTable({ users, setUserBeingEdited }: {
                 </WrapItem>;
               })}
 
-              {u.merged && <WrapItem>
+              {u.mergedTo && <WrapItem>
                 <Tag colorScheme='red'>已迁移</Tag>
               </WrapItem>}
 
@@ -187,7 +195,29 @@ function UserTable({ users, setUserBeingEdited }: {
 
           {/* Send merge token */}
           <Td>
-            <SendMergeToken userId={u.id} email={u.email} />
+            <HStack spacing={2}>
+              <SendMergeToken
+                userId={u.id}
+                email={u.email}
+                refetch={refetch}
+              />
+
+              {/* # mergedFrom */}
+              {u.mergedFrom && u.mergedFrom.length > 0 &&
+                <Tooltip label="已迁移到此账号的账号数量">
+                  <Badge colorScheme='red'>{u.mergedFrom.length}</Badge>
+                </Tooltip>
+              }
+
+              {/* # mergeToken */}
+              {u.mergeToken &&
+                compareDate(u.mergeToken.expiresAt, new Date()) <= 0 &&
+                <Tooltip label="已发送激活码，且尚未过期">
+                  <Badge colorScheme='green'>T</Badge>
+                </Tooltip>
+              }
+
+            </HStack>
           </Td>
         </Tr>
       ))}
@@ -195,12 +225,17 @@ function UserTable({ users, setUserBeingEdited }: {
   </Table>;
 }
 
-function SendMergeToken({ userId, email }: { userId: string, email: string }) {
+function SendMergeToken({ userId, email, refetch }: { 
+  userId: string,
+  email: string,
+  refetch: () => void,
+}) {
   const [confirming, setConfirming] = useState<boolean>(false);
 
   const send = async () => {
     await trpc.merge.emailMergeToken.mutate({ userId });
     toast.success("发送成功。");
+    refetch();
   };
 
   return !canIssueMergeToken(email) ? <></> : <Link

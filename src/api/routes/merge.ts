@@ -14,7 +14,7 @@ import {
 } from "shared/merge";
 import sequelize from "api/database/sequelize";
 import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
-import { formatUserName, toChinese } from "shared/strings";
+import { compareDate, formatUserName, toChinese } from "shared/strings";
 import { email as sendEmail } from "../sendgrid";
 import getBaseUrl from "shared/getBaseUrl";
 import { RoleProfiles } from "shared/Role";
@@ -95,7 +95,7 @@ const merge = procedure
     });
     if (!mt) {
       throw error(`merge token "${token}" not found`);
-    } else if (mt.expiresAt < new Date()) {
+    } else if (compareDate(mt.expiresAt, new Date()) > 0) {
       throw error(`merge token "${token}" expired`);
     } else if (!canIssueMergeToken(mt.user.email)) {
       throw error(`user ${mt.user.id} cannot issue merge token`);

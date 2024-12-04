@@ -12,6 +12,7 @@ import {
 } from "sequelize-typescript";
 import { CreationOptional, DATE, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
+import { DateColumn } from "shared/DateColumn";
 
 @Table
 export default class MergeToken extends Model {
@@ -34,7 +35,7 @@ export default class MergeToken extends Model {
 
   @AllowNull(false)
   @Column(DATE)
-  expiresAt: Date;
+  expiresAt: DateColumn;
 
   /**
    * Associations
