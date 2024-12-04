@@ -80,7 +80,7 @@ const merge = procedure
   const error = (message: string) => {
     console.error("Merge token validation failed: ", message);
     // Do not leak the actual error message to the client.
-    return generalBadRequestError("微信激活码无效或者已经过期。");
+    return generalBadRequestError("激活码无效或者已经过期。");
   };
 
   await sequelize.transaction(async transaction => {
@@ -88,7 +88,7 @@ const merge = procedure
      * Validate the token.
      */
     const mt = await db.MergeToken.findOne({
-      where: { token },
+      where: { token: token.toLowerCase() },
       attributes: ["id", "expiresAt"],
       include: [{ model: db.User, attributes: ["id", "email", "mergedTo"] }],
       transaction,

@@ -27,5 +27,6 @@ export async function generateLongLivedToken() {
 
 export function formatLongLivedTokenForReadability(token: string) {
   invariant(token.length === longLivedTokenLength);
-  return token.slice(0, 3) + '-' + token.slice(3, 6) + '-' + token.slice(6);
+  const upper = token.toUpperCase();
+  return upper.slice(0, 3) + '-' + upper.slice(3, 6) + '-' + upper.slice(6);
 }
