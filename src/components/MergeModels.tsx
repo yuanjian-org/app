@@ -16,7 +16,7 @@ import trpc from "../trpc";
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { componentSpacing } from 'theme/metrics';
 import { UserState } from 'shared/UserState';
-import { longLivedTokenLength } from 'shared/token';
+import { formatLongLivedTokenForReadability, longLivedTokenLength } from 'shared/token';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { accountPageTitle } from 'pages/accounts/[userId]';
@@ -51,7 +51,7 @@ export function MergeModals({ userState, close }: {
 export function MergeCodeFormat() {
   return <>
     激活码为九个英文字母，形如：
-    <b><code>abc-opq-xyz</code></b>
+    <b><code>{formatLongLivedTokenForReadability("abcdefghi")}</code></b>
   </>;
 }
 
@@ -128,10 +128,11 @@ export function EnterTokenMergeModal({ cancelLabel, cancel }: {
         <ModalHeader>微信激活码</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Flex direction="column" gap={componentSpacing}>
-            <Text>请输入九个英文字母的微信激活码：</Text>
+          <Flex direction="column" gap={componentSpacing} alignItems="center">
+            <Text>请输入九个英文字母的微信激活码，大小写不敏感：</Text>
             <HStack>
               <PinInput
+                size="sm"
                 onChange={v => setToken(v)}
                 autoFocus
                 type='alphanumeric'
