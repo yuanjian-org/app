@@ -20,7 +20,7 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { isValidChineseName } from 'shared/strings';
 import { signOut } from 'next-auth/react';
 import { canAcceptMergeToken } from 'shared/merge';
-import { MergeModals } from './MergeModels';
+import { MergeModals } from './MergeModals';
 
 export default function PostLoginModels() {
   const [user] = useUserContext();

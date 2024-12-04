@@ -14,7 +14,7 @@ import {
 import React, { useState } from 'react';
 import trpc from "../trpc";
 import ModalWithBackdrop from './ModalWithBackdrop';
-import { componentSpacing } from 'theme/metrics';
+import { breakpoint, componentSpacing } from 'theme/metrics';
 import { UserState } from 'shared/UserState';
 import { formatLongLivedTokenForReadability, longLivedTokenLength } from 'shared/token';
 import { useSession } from 'next-auth/react';
@@ -132,7 +132,7 @@ export function EnterTokenMergeModal({ cancelLabel, cancel }: {
             <Text>请输入九个英文字母的微信激活码，大小写不敏感：</Text>
             <HStack>
               <PinInput
-                size="sm"
+                size={{ base: "sm", [breakpoint]: "md" }}
                 onChange={v => setToken(v)}
                 autoFocus
                 type='alphanumeric'
@@ -140,11 +140,13 @@ export function EnterTokenMergeModal({ cancelLabel, cancel }: {
                 <PinInputField />
                 <PinInputField />
                 <PinInputField />
-                <Text>―</Text>
+                <Text display={{ base: "none", [breakpoint]: "inline" }}>―</Text>
+                <Text display={{ base: "inline", [breakpoint]: "none" }}>-</Text>
                 <PinInputField />
                 <PinInputField />
                 <PinInputField />
-                <Text>―</Text>
+                <Text display={{ base: "none", [breakpoint]: "inline" }}>―</Text>
+                <Text display={{ base: "inline", [breakpoint]: "none" }}>-</Text>
                 <PinInputField />
                 <PinInputField />
                 <PinInputField />

@@ -25,7 +25,7 @@ import { LockIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 import { canAcceptMergeToken } from 'shared/merge';
 import { useState } from 'react';
-import { EnterTokenMergeModal, MergeCodeFormat } from 'components/MergeModels';
+import { EnterTokenMergeModal, MergeCodeFormat } from 'components/MergeModals';
 
 export const accountPageTitle = "账号与安全";
 
