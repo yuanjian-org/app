@@ -48,7 +48,7 @@ import { isEndedTransactionalMentorship, Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
-import { componentSpacing, sectionSpacing } from 'theme/metrics';
+import { sectionSpacing } from 'theme/metrics';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
 import {
@@ -57,6 +57,7 @@ import {
 } from 'components/pointOfContactCells';
 import { widePage } from 'AppPage';
 import { TbClockOff, TbClock } from "react-icons/tb";
+import ConfirmationModal from 'components/ConfirmationModal';
 
 type Metadata = {
   // The year the mentee was accepted
@@ -386,7 +387,7 @@ export function MentorshipStatusIcon({ m }: { m: Mentorship }) {
   return type ? <Icon as={type} /> : <></>;
 }
 
-type ConfirmingData = {
+type ConfirmationModelProps = {
   message: string,
   confirm: () => void,
 };
@@ -398,7 +399,8 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
   onClose: () => void,
 }) {
   const [creating, setCreating] = useState<boolean>(false);
-  const [confirmingData, setConfirmingData] = useState<ConfirmingData>();
+  const [confirmationModelProps, setConfirmationModelProps] =
+    useState<ConfirmationModelProps>();
 
   const updateMentorship = async (
     mentorshipId: string,
@@ -466,20 +468,20 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
                 {m.transactional ? <>
                   {/* 不定期 */}
                   {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
-                    <Link onClick={() => setConfirmingData({
+                    <Link onClick={() => setConfirmationModelProps({
                       message: "确定重新开始吗？",
                       confirm: () => updateMentorship(m.id, true, 
                         newTransactionalMentorshipEndsAt())
                     })}>重新开始</Link>
                     :
                     <>
-                      <Link onClick={() => setConfirmingData({
+                      <Link onClick={() => setConfirmationModelProps({
                         message: "确定立即结束吗？",
                         confirm: () => updateMentorship(m.id, true,
                           moment().subtract(1, 'minutes').toDate())
                       })}>立即结束</Link>
 
-                      <Link onClick={() => setConfirmingData({
+                      <Link onClick={() => setConfirmationModelProps({
                         message: "确定延期结束吗？",
                         confirm: () => updateMentorship(m.id, true,
                           newTransactionalMentorshipEndsAt())
@@ -487,7 +489,7 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
                     </>
                   }
 
-                  <Link onClick={() => setConfirmingData({
+                  <Link onClick={() => setConfirmationModelProps({
                     message: "确定转成一对一吗？【注意】导师无法从一对一转回不定期。",
                     confirm: () => updateMentorship(m.id, false, null)
                   })}>转成一对一</Link>
@@ -496,12 +498,12 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
                 <>
                   {/* 一对一 */}
                   {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
-                    <Link onClick={() => setConfirmingData({
+                    <Link onClick={() => setConfirmationModelProps({
                       message: "确定重新开始吗？",
                       confirm: () => updateMentorship(m.id, false, null)
                     })}>重新开始</Link>
                     :
-                    <Link onClick={() => setConfirmingData({
+                    <Link onClick={() => setConfirmationModelProps({
                       message: "确定立即结束吗？",
                       confirm: () => updateMentorship(m.id, false,
                         moment().subtract(1, 'minutes').toDate())
@@ -514,8 +516,8 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
         </Tbody>
       </Table></TableContainer></ModalBody>
 
-      {confirmingData && <Confirmation
-        {...confirmingData} onClose={() => setConfirmingData(undefined)} />}
+      {confirmationModelProps && <ConfirmationModal
+        {...confirmationModelProps} close={() => setConfirmationModelProps(undefined)} />}
 
       <ModalFooter>
         {creating && <MentorshipCreator menteeId={mentee.id} refetch={refetch}
@@ -561,30 +563,6 @@ function MentorshipCreator({ menteeId, refetch, onClose }: {
       </ModalBody>
       <ModalFooter>
         <Button onClick={onClose}>取消</Button>
-      </ModalFooter>
-    </ModalContent>
-  </ModalWithBackdrop>;
-}
-
-function Confirmation({ message, confirm, onClose }: { 
-  message: string,
-  confirm: () => void,
-  onClose: () => void,
-}) {
-  return <ModalWithBackdrop isOpen onClose={onClose}>
-    <ModalContent>
-      <ModalHeader>确认</ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-        {message}
-      </ModalBody>
-      <ModalFooter>
-        <HStack spacing={componentSpacing}>
-          <Button variant="brand" onClick={() => { confirm(); onClose(); }}>
-            确认
-          </Button>
-          <Button onClick={onClose}>取消</Button>
-        </HStack>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>;

@@ -8,6 +8,7 @@ import NavBars from 'components/Navbars';
 import { breakpoint } from 'theme/metrics';
 import { AppPageType } from 'AppPage';
 import { pageMarginX } from 'theme/metrics';
+import PostLoginModels from './PostLoginModels';
 
 export default function AppPageContainer({ pageType, user, children }: {
   pageType?: AppPageType,
@@ -36,5 +37,7 @@ export default function AppPageContainer({ pageType, user, children }: {
       </VStack>
       }
     </NavBars>
+
+    <PostLoginModels />
   </UserContext.Provider>;
 }

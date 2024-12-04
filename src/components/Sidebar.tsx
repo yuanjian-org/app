@@ -3,7 +3,6 @@
  */
 import React from 'react';
 import { signOut, useSession } from "next-auth/react";
-import { LockIcon } from '@chakra-ui/icons';
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
 import { MdOutlineFace } from "react-icons/md";
@@ -51,6 +50,7 @@ import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
 import { mentorshipStatusIconType } from 'pages/mentees';
 import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
+import { accountPageTitle } from 'pages/accounts/[userId]';
 
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -119,9 +119,8 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
     action: '/preferences/me',
   },
   {
-    name: '谁能看到我的数据',
-    action: '/who-can-see-my-data',
-    icon: <LockIcon />
+    name: accountPageTitle,
+    action: '/accounts/me',
   },
   {
     name: '退出登录',

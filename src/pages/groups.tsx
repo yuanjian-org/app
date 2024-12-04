@@ -33,6 +33,7 @@ import { EditIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import UserSelector from '../components/UserSelector';
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
+import ConfirmationModal from 'components/ConfirmationModal';
 
 export const publicGroupDescription = "公开会议允许任何有远图会议链接的用户加入会议。" + 
   "仅下列用户有权查看会议历史。";
@@ -229,27 +230,11 @@ function GroupEditor({ group, onClose }: {
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
-    {confirmingDeletion && <ConfirmingDeletionModal onConfirm={destroy}
-      onCancel={() => setConfirmingDeletion(false)}/>}
+    {confirmingDeletion && <ConfirmationModal
+      message="确定永久删除此分组？删除后，相关数据包括通话记录将无法恢复。"
+      confirm={destroy}
+      red
+      close={() => setConfirmingDeletion(false)}
+    />}
   </>;
-}
-
-function ConfirmingDeletionModal(props: {
-  onConfirm: () => void,
-  onCancel: () => void
-}) {
-  return <ModalWithBackdrop isOpen onClose={props.onCancel}>
-    <ModalContent>
-      <ModalHeader />
-      <ModalCloseButton />
-      <ModalBody>
-        确定删除此分组？删除后，相关数据仍保留在数据库中，直到管理员手工清除。
-      </ModalBody>
-      <ModalFooter>
-        <Button onClick={props.onCancel}>取消</Button>
-        <Spacer />
-        <Button color='red' onClick={props.onConfirm}>确定删除</Button>
-      </ModalFooter>
-    </ModalContent>
-  </ModalWithBackdrop>;
 }

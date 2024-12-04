@@ -27,7 +27,7 @@ import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
-
+import { zUserState, UserState } from "../../../shared/UserState";
 
 @Table({
   tableName: "users",
@@ -68,9 +68,11 @@ class User extends Model {
   @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
 
+  // TODO: move into `state` column
   @Column(DATE)
   consentFormAcceptedAt: string | null;
  
+  // TODO: move into `state` column
   @Column(DATE)
   menteeInterviewerTestLastPassedAt: string | null;
 
@@ -81,7 +83,7 @@ class User extends Model {
   @Column(STRING)
   wechat: string | null;
 
-  // Used by WeChat auth. See WeChatProvider.ts
+  // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
   @Unique
   @Column(STRING)
   wechatUnionId: string | null;
@@ -89,8 +91,6 @@ class User extends Model {
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;
 
-  // TODO: rename to volunteer application
-  // TODO: Should we change all `nullable()` in models to `nullish`?
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   volunteerApplication: Record<string, any> | null;
 
@@ -116,6 +116,13 @@ class User extends Model {
 
   @ZodColumn(JSONB, zUserPreference.nullable())
   preference: UserPreference | null;
+
+  @ZodColumn(JSONB, zUserState.nullable())
+  state: UserState | null;
+
+  @Column(UUID)
+  @ForeignKey(() => User)
+  mergedTo: string | null;
 
   // Managed by next-auth
   @Column(DATE)

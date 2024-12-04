@@ -34,6 +34,7 @@ export const zUserFilter = z.object({
 
   includeBanned: z.boolean().optional(),
   includeNonVolunteers: z.boolean().optional(),
+  includeMerged: z.boolean().optional(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
 
