@@ -5,4 +5,4 @@ import { z } from "zod";
 export const zDateColumn = z.coerce.string();
 export const zOptionalDateColumn = zDateColumn.optional();
 export const zNullableDateColumn = zDateColumn.nullable();
-export type DateColumn = z.TypeOf<typeof zOptionalDateColumn>;
+export type DateColumn = z.TypeOf<typeof zDateColumn>;

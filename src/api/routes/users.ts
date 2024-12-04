@@ -15,7 +15,8 @@ import User, {
   zMinUser, 
   zUser, 
   zUserFilter, 
-  zUserPreference
+  zUserPreference,
+  zUserWithMergeInfo
 } from "../../shared/User";
 import { 
   formatUserName,
@@ -87,9 +88,7 @@ export async function createUser(
 const list = procedure
   .use(authUser(['UserManager', 'GroupManager', 'MentorshipManager']))
   .input(zUserFilter)
-  .output(z.array(zUser.merge(z.object({
-    merged: z.boolean().optional(),
-  }))))
+  .output(z.array(zUserWithMergeInfo))
   .query(async ({ ctx: { user }, input: filter }) =>
 { 
   if (filter.includeBanned === true
@@ -106,10 +105,24 @@ const list = procedure
   const banned: Role = "Banned";
   const volunteer: Role = "Volunteer";
 
-  return (await db.User.findAll({ 
+  return (await db.User.findAll({
     order: [['pinyin', 'ASC']],
-    attributes: [...userAttributes, "mergedTo"],
-    include: userInclude,
+
+    attributes: [
+      ...userAttributes,
+      ...filter.includeMerged === true ? ["mergedTo"] : [],
+    ],
+
+    include: [
+      ...userInclude,
+      ...filter.includeMerged === true ? [{
+        association: "mergedFrom",
+        attributes: minUserAttributes,
+      }, {
+        association: "mergeToken",
+        attributes: ["expiresAt"],
+      }] : [],
+    ],
 
     where: {
       ...filter.includeMerged === true ? {} : {
@@ -149,13 +162,7 @@ const list = procedure
         ],
       },
     },
-  })).map(u => {
-    if (filter.includeMerged && u.mergedTo) {
-      // @ts-expect-error
-      u.merged = true;
-    }
-    return u;
-  });
+  }));
 });
 
 const listMentorProfiles = procedure
