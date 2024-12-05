@@ -159,6 +159,10 @@ class User extends Model {
   @HasOne(() => MergeToken)
   mergeToken: MergeToken | null;
 
+  // TODO: rename `mergedTo` to `mergedToId` and rename this one to `mergedTo`
+  @BelongsTo(() => User, { foreignKey: 'mergedTo' })
+  mergedToUser: User | null;
+
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
 

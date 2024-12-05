@@ -29,7 +29,7 @@ export default User;
 // These merge info fields should be populated only when
 // UserFilter.includeMerged is true.
 export const zUserWithMergeInfo = zUser.merge(z.object({
-  mergedTo: z.string().nullish(),
+  mergedToUser: zMinUser.nullable(),
   mergedFrom: z.array(zMinUser).optional(),
   mergeToken: z.object({
     expiresAt: zDateColumn,
@@ -46,6 +46,8 @@ export const zUserFilter = z.object({
   includeBanned: z.boolean().optional(),
   includeNonVolunteers: z.boolean().optional(),
   includeMerged: z.boolean().optional(),
+
+  returnMergeInfo: z.boolean().optional(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
 
