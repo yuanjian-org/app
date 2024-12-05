@@ -93,10 +93,11 @@ const list = procedure
 { 
   if (filter.includeBanned === true
     || filter.includeMerged === true
+    || filter.returnMergeInfo === true
   ) {
     if (!isPermitted(user.roles, "UserManager")) {
       throw noPermissionError("数据",
-        "includeBanned or includeMerged user filter");
+        "includeBanned, includeMerged or returnMergeInfo user filter");
     }
   }
 
@@ -107,15 +108,15 @@ const list = procedure
   return (await db.User.findAll({
     order: [['pinyin', 'ASC']],
 
-    attributes: [
-      ...userAttributes,
-      ...filter.includeMerged === true ? ["mergedTo"] : [],
-    ],
+    attributes: userAttributes,
 
     include: [
       ...userInclude,
-      ...filter.includeMerged === true ? [{
+      ...filter.returnMergeInfo === true ? [{
         association: "mergedFrom",
+        attributes: minUserAttributes,
+      }, {
+        association: "mergedToUser",
         attributes: minUserAttributes,
       }, {
         association: "mergeToken",

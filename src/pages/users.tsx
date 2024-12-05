@@ -30,7 +30,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
-import User, { UserFilter, UserWithMergeInfo } from 'shared/User';
+import User, { UserWithMergeInfo } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { compareDate, formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
@@ -52,12 +52,16 @@ import { canIssueMergeToken } from 'shared/merge';
 import { toast } from 'react-toastify';
 
 export default function Page() {
-  const [filter] = useState<UserFilter>({
-    includeBanned: true,
+  const [includeMerged, setIncludeMerged] = useState(false);
+  const [includeBanned, setIncludeBanned] = useState(false);
+
+  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
+    includeMerged,
+    includeBanned,
     includeNonVolunteers: true,
-    includeMerged: true,
+    returnMergeInfo: true,
   });
-  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>(filter);
+
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
 
@@ -68,20 +72,42 @@ export default function Page() {
   };
 
   return <>
-    {userBeingEdited && <UserEditor user={userBeingEdited} onClose={closeUserEditor} />}
+    {userBeingEdited && <UserEditor
+      user={userBeingEdited}
+      onClose={closeUserEditor}
+    />}
+
     {creatingNewUser && <UserEditor onClose={closeUserEditor} />}
 
     <Flex direction='column' gap={6}>
       <Wrap spacing={4} align="center">
-        <Button
-          variant='brand'
+        <WrapItem>
+          <Button
+            variant='brand'
           leftIcon={<AddIcon />}
-          onClick={() => setCreatingNewUser(true)}
-        >新建用户</Button>
+            onClick={() => setCreatingNewUser(true)}
+          >
+            新建用户
+          </Button>
+        </WrapItem>
 
-        {/* <Divider orientation="vertical" />
-        <UserFilterSelector filter={filter} onChange={f => setFilter(f)} /> */}
+        <WrapItem>
+          <Checkbox
+            isChecked={includeMerged}
+            onChange={e => setIncludeMerged(e.target.checked)}
+          >
+            包含已迁移账号
+          </Checkbox>
+        </WrapItem>
 
+        <WrapItem>
+          <Checkbox
+            isChecked={includeBanned}
+            onChange={e => setIncludeBanned(e.target.checked)}
+          >
+            包含已停用账号
+          </Checkbox>
+        </WrapItem>
       </Wrap>
 
       {!users ? <Loader /> : <TableContainer>
@@ -179,8 +205,10 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
                 </WrapItem>;
               })}
 
-              {u.mergedTo && <WrapItem>
-                <Tag colorScheme='red'>已迁移</Tag>
+              {u.mergedToUser && <WrapItem>
+                <Tag colorScheme='red'>
+                  已迁移至：{formatUserName(u.mergedToUser.name)}
+                </Tag>
               </WrapItem>}
 
             </Wrap>
