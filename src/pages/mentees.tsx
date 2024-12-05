@@ -68,7 +68,10 @@ type Metadata = {
 type SetMetadata = (menteeId: string, metadata: Metadata) => void;
 
 export default widePage(() => {
-  const fixedFilter: UserFilter = { containsRoles: ["Mentee"] };
+  const fixedFilter: UserFilter = {
+    containsRoles: ["Mentee"],
+    includeNonVolunteers: true,
+  };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);

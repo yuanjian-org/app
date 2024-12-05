@@ -5,12 +5,12 @@ import { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import absoluteUrl from "next-absolute-url";
 
 export function createContext({ req, res }: CreateNextContextOptions) {
-  // TODO: Remove baseUrl from return value. Parse req on deman.
+  // TODO: Remove baseUrl from return value. Parse req on demand.
   const absolute = absoluteUrl(req);
   return {
     req,
     res,
-    baseUrl: `${absolute.protocol}//${absolute.host}`,
+    baseUrl: `${absolute.host}`,
   };
 }
 

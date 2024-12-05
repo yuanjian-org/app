@@ -92,12 +92,11 @@ const list = procedure
   .query(async ({ ctx: { user }, input: filter }) =>
 { 
   if (filter.includeBanned === true
-    || filter.includeNonVolunteers === true
     || filter.includeMerged === true
   ) {
     if (!isPermitted(user.roles, "UserManager")) {
       throw noPermissionError("数据",
-        "includeBanned, includeNonVolunteers or includeMerged user filter");
+        "includeBanned or includeMerged user filter");
     }
   }
 
