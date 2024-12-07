@@ -360,7 +360,7 @@ function HobbyFormControl({ profile, updateProfile }: {
   updateProfile: (k: keyof UserProfile, v: string) => void,
 }) {
   return <FormControl>
-    <FormLabel>业余爱好和特长</FormLabel>
+    <FormLabel>业余爱好和特长、个人网站或自媒体账号等</FormLabel>
     <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
       onChange={ev => updateProfile('爱好与特长', ev.target.value)}
     />
@@ -446,11 +446,12 @@ function Mentor({ profile, updateProfile }: {
     </FormControl>
 
     <FormControl>
-      <FormLabel>职业经历 <Highlight /></FormLabel>
+      <FormLabel>职业经历和网站 <Highlight /></FormLabel>
       <FormHelperTextWithMargin>
         <ListAndMarkdownSupport />，比如：<br /><br />
         * 经历1<br />
-        * 经历2
+        * 经历2<br />
+        * 领英：linkedin.com/in/user
       </FormHelperTextWithMargin>
       <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
         onChange={ev => updateProfile('职业经历', ev.target.value)}
