@@ -1,6 +1,6 @@
 import { isFakeEmail } from "./fakeEmail";
 
-export const mergeTokenMaxAgeInHours = 72;
+export const mergeTokenMaxAgeInHours = 48;
 
 /**
  * Strictly speaking, a user cannot issue merge tokens if their `mergedTo` is

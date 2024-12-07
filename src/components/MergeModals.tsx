@@ -16,7 +16,7 @@ import trpc from "../trpc";
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { breakpoint, componentSpacing } from 'theme/metrics';
 import { UserState } from 'shared/UserState';
-import { formatLongLivedTokenForReadability, longLivedTokenLength } from 'shared/token';
+import { formatReadableLongLivedToken, longLivedTokenLength } from 'shared/token';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { accountPageTitle } from 'pages/accounts/[userId]';
@@ -51,7 +51,7 @@ export function MergeModals({ userState, close }: {
 export function MergeCodeFormat() {
   return <>
     激活码为九个英文字母，形如：
-    <b><code>{formatLongLivedTokenForReadability("abcdefghi")}</code></b>
+    <b><code>{formatReadableLongLivedToken("abcdefghi")}</code></b>
   </>;
 }
 

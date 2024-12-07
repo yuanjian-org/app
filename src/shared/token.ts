@@ -25,8 +25,18 @@ export async function generateLongLivedToken() {
   return chars.join('');
 }
 
-export function formatLongLivedTokenForReadability(token: string) {
+/**
+ * @returns format "ABCDEFGHI"
+ */
+export function formatCopyableLongLivedToken(token: string) {
   invariant(token.length === longLivedTokenLength);
-  const upper = token.toUpperCase();
+  return token.toUpperCase();
+}
+
+/**
+ * @returns format "ABC-DEF-GHI"
+ */
+export function formatReadableLongLivedToken(token: string) {
+  const upper = formatCopyableLongLivedToken(token);
   return upper.slice(0, 3) + '-' + upper.slice(3, 6) + '-' + upper.slice(6);
 }

@@ -4,8 +4,9 @@ import { z } from "zod";
 import db from "../database/db";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import {
-  formatLongLivedTokenForReadability,
-  generateLongLivedToken
+  formatCopyableLongLivedToken,
+  formatReadableLongLivedToken,
+  generateLongLivedToken,
 } from "shared/token";
 import {
   canAcceptMergeToken,
@@ -62,7 +63,8 @@ const emailMergeToken = procedure
         name,
         userManagerRole: RoleProfiles.UserManager.displayName,
         senderName: formatUserName(ctx.user.name, "formal"),
-        token: formatLongLivedTokenForReadability(token),
+        readableToken: formatReadableLongLivedToken(token),
+        copyableToken: formatCopyableLongLivedToken(token),
         tokenMaxAgeInHours: toChinese(mergeTokenMaxAgeInHours),
       },
     }];
