@@ -1,4 +1,4 @@
-# See deploy-docker.yml for setup instructions
+# TODO: No need to ssh into the server. Just run the curl commands directly.
 #
 name: Cron jobs
 
@@ -30,4 +30,6 @@ jobs:
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.updateOngoingMeetings
           echo ">>> Syncing meeting summaries"
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncSummaries
+          echo ">>> Sending scheduled emails"
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledEmails
         EOF
