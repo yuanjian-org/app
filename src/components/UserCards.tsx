@@ -14,9 +14,10 @@ import {
   InputGroup,
   InputLeftElement,
   Flex,
+  Tooltip,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
-import { formatUserName, toPinyin } from 'shared/strings';
+import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
@@ -25,6 +26,9 @@ import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
+import { trpcNext } from 'trpc';
+import { useUserContext } from 'UserContext';
+import { Like } from 'shared/Like';
 
 export type FieldAndLabel = {
   field: keyof UserProfile;
@@ -115,12 +119,13 @@ export default function UserCards({ type, users }: {
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
-        {searchResult.map(m => <UserCardForDesktop
+        {searchResult.map(m => <UserCard
           key={m.user.id}
           user={m.user}
           profile={m.profile}
           type={type}
           openModal={() => setBookingMentor(m.user)}
+          device="desktop"
         />)}
       </SimpleGrid>
 
@@ -130,12 +135,13 @@ export default function UserCards({ type, users }: {
         spacing={componentSpacing}
         templateColumns='1fr'
       >
-        {searchResult.map(m => <UserCardForMobile
+        {searchResult.map(m => <UserCard
           key={m.user.id}
           user={m.user}
           profile={m.profile}
           type={type}
           openModal={() => setBookingMentor(m.user)}
+          device="mobile"
         />)}
       </SimpleGrid>
           
@@ -164,7 +170,56 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function UserCard({ user, type, children, ...rest }: {
+function UserCard({ user, profile: p, type, openModal, device }: {
+  user: MinUser,
+  profile: UserProfile | null,
+  type: UserCardType,
+  openModal: () => void,
+  device: "desktop" | "mobile",
+}) {
+  const [me] = useUserContext();
+  const { data: likes, refetch } = trpcNext.likes.get.useQuery({
+    userId: user.id,
+  });
+
+  // This variable allows local update of like count without waiting for
+  // server response.
+  const [likeCount, setLikeCount] = useState<number>(0);
+  useEffect(() => {
+    setLikeCount(likes?.reduce((acc, like) => acc + like.count, 0) ?? 0); 
+  }, [likes]);
+
+  const increment = trpcNext.likes.increment.useMutation({
+    onSuccess: refetch,
+  });
+
+  const clickLikes = (ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    if (user.id !== me.id) {
+      increment.mutate({ userId: user.id });
+      setLikeCount(likeCount + 1);
+    }
+  };
+
+  return device == "desktop" ? <UserCardForDesktop
+    user={user}
+    profile={p}
+    type={type}
+    openModal={openModal}
+    likes={likes}
+    likeCount={likeCount}
+    clickLikes={clickLikes}
+  /> : <UserCardForMobile
+    user={user}
+    profile={p}
+    type={type}
+    openModal={openModal}
+    likeCount={likeCount}
+    clickLikes={clickLikes}
+  />;
+}
+
+function UserCardContainer({ user, type, children, ...rest }: {
   user: MinUser,
   type: UserCardType,
 } & CardProps) {
@@ -181,13 +236,28 @@ function UserCard({ user, type, children, ...rest }: {
   </Card>;
 }
 
-function UserCardForDesktop({ user, profile: p, type, openModal }: {
+function UserCardForDesktop({
+  user, profile: p, type, openModal, likes, likeCount, clickLikes
+}: {
   user: MinUser,
   profile: UserProfile | null,
   type: UserCardType,
   openModal: () => void,
+  likes: Like[] | undefined,
+  likeCount: number,
+  clickLikes: (ev: React.MouseEvent) => void,
 }) {
-  return <UserCard user={user} type={type}>
+  const likesLabel = likes?.length == 0 ? <>点赞</> :
+    <Box>
+      {likes?.sort((a, b) => compareChinese(a.liker.name, b.liker.name))
+      .map(l => 
+        <Text key={l.liker.id}>
+          {formatUserName(l.liker.name, "formal") + "：" + l.count + "个赞"}
+        </Text>
+      )}
+    </Box>;
+
+  return <UserCardContainer user={user} type={type}>
 
     <FullWidthImageSquare profile={p} />
 
@@ -216,15 +286,28 @@ function UserCardForDesktop({ user, profile: p, type, openModal }: {
     <CardFooter>
       <Button>更多信息</Button>
 
+      <Spacer />
+
       {type == "TransactionalMentor" && <>
-        <Spacer />
         <Button variant="brand" onClick={ev => {
           ev.stopPropagation();
           openModal();
         }}>预约</Button>
       </>}
+
+      {type == "Volunteer" && <Tooltip label={likesLabel} placement="top">
+        <Text
+          display="flex"
+          alignItems="center"
+          color="orange.600"
+          onClick={clickLikes}
+        >
+          👍{likeCount > 0 && ` ${likeCount}`}
+        </Text>
+      </Tooltip>}
+
     </CardFooter>
-  </UserCard>;
+  </UserCardContainer>;
 }
 
 function TruncatedText({ children }: PropsWithChildren) {
@@ -263,13 +346,17 @@ function FullWidthImageSquare({ profile }: {
   </Box>;
 }
 
-function UserCardForMobile({ user, profile: p, type, openModal }: {
+function UserCardForMobile({
+  user, profile: p, type, openModal, likeCount, clickLikes
+}: {
   user: MinUser,
   profile: UserProfile | null,
   type: UserCardType,
   openModal: () => void,
+  likeCount: number,
+  clickLikes: (ev: React.MouseEvent) => void,
 }) {
-  return <UserCard
+  return <UserCardContainer
     user={user}
     size="sm"
     variant="unstyled"
@@ -347,7 +434,15 @@ function UserCardForMobile({ user, profile: p, type, openModal }: {
             openModal();
           }}>预约</Link>
         </>}
+
+        {type == "Volunteer" && <>
+          <Text color="gray.400">|</Text>
+          <Text onClick={clickLikes} color="orange.600">
+            👍{likeCount > 0 && ` ${likeCount}`}
+          </Text>
+        </>}
+
       </HStack>
     </HStack>
-  </UserCard>;
+  </UserCardContainer>;
 }

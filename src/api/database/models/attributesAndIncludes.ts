@@ -164,3 +164,14 @@ export const mentorBookingInclude = [{
   association: 'updater',
   attributes: minUserAttributes,
 }];
+
+/**
+ * Like
+ */
+
+export const likeAttributes = ["count"];
+
+export const likeInclude = [{
+  association: "liker",
+  attributes: minUserAttributes,
+}];
