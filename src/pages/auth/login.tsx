@@ -44,7 +44,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const callbackUrl = parseQueryString(router, callbackUrlKey)
+  const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
 
   // Protect local storage reads from being called without a browser window,
   // which may occur during server-side rendering and prerendering (by Vercel at
