@@ -1,5 +1,6 @@
 /**
- * TODO move rename folder `database` to `db`, rename this file to `db/index.ts`. Register all the models in this file.
+ * TODO move rename folder `database` to `db`, rename this file to `db/index.ts`.
+ * Register all the models in this file.
  */
 import User from "./models/User";
 import Group from "./models/Group";
@@ -19,6 +20,7 @@ import LandmarkAssessment from "./models/map/LandmarkAssessment";
 import MentorBooking from "./models/MentorBooking";
 import MergeToken from "./models/MergeToken";
 import Like from "./models/Like";
+import ScheduledEmail from "./models/ScheduledEmail";
 
 const db = {
   Mentorship,
@@ -39,6 +41,7 @@ const db = {
   MentorBooking,
   MergeToken,
   Like,
+  ScheduledEmail,
 };
 
 export default db;

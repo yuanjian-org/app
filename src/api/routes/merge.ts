@@ -16,7 +16,7 @@ import {
 import sequelize from "api/database/sequelize";
 import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
 import { compareDate, formatUserName, toChinese } from "shared/strings";
-import { email as sendEmail } from "../sendgrid";
+import { email } from "../sendgrid";
 import getBaseUrl from "shared/getBaseUrl";
 import { RoleProfiles } from "shared/Role";
 
@@ -69,7 +69,7 @@ const emailMergeToken = procedure
       },
     }];
   
-    await sendEmail("d-8933c38afe8144799233d10163675b88", personalizations,
+    await email("d-8933c38afe8144799233d10163675b88", personalizations,
       getBaseUrl());
   });
 });
