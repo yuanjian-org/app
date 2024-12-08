@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, Spinner, VStack } from '@chakra-ui/react';
+import { Box, Spinner } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 declare global {
@@ -11,7 +11,7 @@ declare global {
 export default function WeChatQRLogin({ appid }: { appid: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 获取当前路径作为回调URL
   const currentPath = typeof window !== 'undefined'
@@ -26,9 +26,7 @@ export default function WeChatQRLogin({ appid }: { appid: string }) {
     const script = document.createElement('script');
     script.src = 'https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js';
     script.async = true;
-
     script.onload = () => {
-      setIsLoading(true);
       if (containerRef.current && window.WxLogin) {
         const redirectUri = new URL(`${window.location.origin}/api/auth/callback/wechat-qr`);
         redirectUri.searchParams.append('callbackUrl', callbackUrl);
@@ -73,36 +71,45 @@ export default function WeChatQRLogin({ appid }: { appid: string }) {
   }, [callbackUrl, appid]);
 
   return (
-    <Box position="relative" height="170px">
-      {isLoading && (
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          width="100%"
-          height="100%"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          bg="white"
-          zIndex="1"
+    <Box position="relative" height="170px" width="300px">
+      <Box
+        position="absolute"
+        top="0"
+        left="0"
+        width="300px"
+        height="170px"
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        justifyContent="center"
+        bg="white"
+        zIndex="1"
+        opacity={isLoading ? 1 : 0}
+        transition="opacity 0.3s"
+        pointerEvents={isLoading ? "auto" : "none"}
+        style={{ minWidth: "300px", minHeight: "170px" }}
+      >
+        <Spinner 
+          thickness="4px"
+          speed="0.65s"
+          emptyColor="gray.200"
+          color="blue.500"
+          size="md"
+          mr={3}
+        />
+        <Box 
+          display="inline-block" 
+          whiteSpace="nowrap"  // 防止文字换行
         >
-          <VStack spacing={3}>
-            <Spinner
-              thickness="4px"
-              speed="0.65s"
-              emptyColor="gray.200"
-              color="blue.500"
-              size="md"
-            />
-            <Box>二维码加载中...</Box>
-          </VStack>
+          二维码加载中...
         </Box>
-      )}
+      </Box>
       <Box
         id="wechat-qr-container"
         ref={containerRef}
         height="100%"
+        opacity={isLoading ? 0 : 1}
+        transition="opacity 0.3s"
       />
     </Box>
   );
