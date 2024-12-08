@@ -247,7 +247,8 @@ function UserCardForDesktop({
   likeCount: number,
   clickLikes: (ev: React.MouseEvent) => void,
 }) {
-  const likesLabel = likes?.length == 0 ? <>点赞</> :
+  const name = formatUserName(user.name, "friendly");
+  const likesLabel = likes?.length == 0 ? <>点赞，{name}会收到Email哦</> :
     <Box>
       {likes?.sort((a, b) => compareChinese(a.liker.name, b.liker.name))
       .map(l => 
@@ -255,6 +256,8 @@ function UserCardForDesktop({
           {formatUserName(l.liker.name, "formal") + "：" + l.count + "个赞"}
         </Text>
       )}
+      <br />
+      <Text>点赞后，{name}会收到Email哦</Text>
     </Box>;
 
   return <UserCardContainer user={user} type={type}>
