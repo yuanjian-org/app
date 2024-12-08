@@ -44,6 +44,21 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [callbackUrl, setCallbackUrl] = useState<string>("/");
+
+  // Add this useEffect to capture the current path on component mount
+  useEffect(() => {
+    const urlCallbackParam = parseQueryString(router, callbackUrlKey);
+    if (urlCallbackParam) {
+      setCallbackUrl(urlCallbackParam);
+    } else {
+      // If no callback URL is specified, use the current path
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath !== '/auth/login') {
+        setCallbackUrl(currentPath);
+      }
+    }
+  }, [router]);
 
   // Protect local storage reads from being called without a browser window,
   // which may occur during server-side rendering and prerendering (by Vercel at
@@ -65,7 +80,6 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   }, [router]);
 
   const submitEmail = async () => {
-    const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
       if (await trpc.users.isBanned.query({ email })) {
@@ -138,7 +152,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
               width="full"
               mt={sectionSpacing}
               leftIcon={<IoLogoWechat />}
-              onClick={() => signIn('wechat')}
+              onClick={() => signIn('wechat', { callbackUrl })}
               bg="#07C160"
               color="white"
               _hover={{ bg: "#06AE56" }}
