@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Spinner } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
 
 declare global {
   interface Window {
@@ -8,17 +7,14 @@ declare global {
   }
 }
 
-export default function WeChatQRLogin({ appid }: { appid: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+interface WeChatQRLoginProps {
+  appid: string;
+  callbackUrl: string;
+}
 
-  // 获取当前路径作为回调URL
-  const currentPath = typeof window !== 'undefined'
-    ? window.location.pathname + window.location.search
-    : '/';
-  const callbackUrl = router.query.callbackUrl as string ||
-    (currentPath !== '/auth/login' ? currentPath : '/');
+export default function WeChatQRLogin({ appid, callbackUrl }: WeChatQRLoginProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // 动态加载微信登录JS
@@ -74,16 +70,10 @@ export default function WeChatQRLogin({ appid }: { appid: string }) {
     <Box position="relative" height="170px" width="300px">
       <Box
         position="absolute"
-        top="0"
-        left="0"
-        width="300px"
-        height="170px"
         display="flex"
         flexDirection="row"
         alignItems="center"
         justifyContent="center"
-        bg="white"
-        zIndex="1"
         opacity={isLoading ? 1 : 0}
         transition="opacity 0.3s"
         pointerEvents={isLoading ? "auto" : "none"}

@@ -44,21 +44,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [callbackUrl, setCallbackUrl] = useState<string>("/");
-
-  // Add this useEffect to capture the current path on component mount
-  useEffect(() => {
-    const urlCallbackParam = parseQueryString(router, callbackUrlKey);
-    if (urlCallbackParam) {
-      setCallbackUrl(urlCallbackParam);
-    } else {
-      // If no callback URL is specified, use the current path
-      const currentPath = window.location.pathname + window.location.search;
-      if (currentPath !== '/auth/login') {
-        setCallbackUrl(currentPath);
-      }
-    }
-  }, [router]);
+  const callbackUrl = parseQueryString(router, callbackUrlKey)
 
   // Protect local storage reads from being called without a browser window,
   // which may occur during server-side rendering and prerendering (by Vercel at
@@ -167,7 +153,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
         <TabPanel>
           {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
           <VStack spacing={componentSpacing}>
-            <WeChatQRLogin appid={wechatQRAppId} />
+            <WeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
             <MergeAccountHelpText />
           </VStack>
         </TabPanel>
