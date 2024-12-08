@@ -10,7 +10,8 @@ import {
   Tabs,
   TabPanels,
   TabPanel,
-  Text
+  Text,
+  Link
 } from '@chakra-ui/react';
 import { EmailIcon } from '@chakra-ui/icons';
 import { signIn } from "next-auth/react";
@@ -151,8 +152,13 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
 
         {/* 微信扫码登录 */}
         <TabPanel>
-          {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
           <VStack spacing={componentSpacing}>
+            <Text fontSize="sm" color="gray">
+              二维码若无法加载，
+              <Link onClick={() => signIn('wechat-qr', { callbackUrl })}>
+                点击此处
+              </Link>
+            </Text>
             <WeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
             <MergeAccountHelpText />
           </VStack>
