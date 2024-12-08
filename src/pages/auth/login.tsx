@@ -44,6 +44,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // Use the last login email
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
 
   // Protect local storage reads from being called without a browser window,
   // which may occur during server-side rendering and prerendering (by Vercel at
@@ -65,7 +66,6 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   }, [router]);
 
   const submitEmail = async () => {
-    const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
     setIsLoading(true);
     try {
       if (await trpc.users.isBanned.query({ email })) {
@@ -138,7 +138,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
               width="full"
               mt={sectionSpacing}
               leftIcon={<IoLogoWechat />}
-              onClick={() => signIn('wechat')}
+              onClick={() => signIn('wechat', { callbackUrl })}
               bg="#07C160"
               color="white"
               _hover={{ bg: "#06AE56" }}
@@ -153,7 +153,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
         <TabPanel>
           {/* For 点击版微信扫码登陆, use `() => signIn('wechat-qr')` */}
           <VStack spacing={componentSpacing}>
-            <WeChatQRLogin appid={wechatQRAppId} />
+            <WeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
             <MergeAccountHelpText />
           </VStack>
         </TabPanel>
