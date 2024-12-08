@@ -6,6 +6,10 @@ import { zNullableDateColumn, zDateColumn } from "./DateColumn";
 export const zMinUser = z.object({
   id: z.string(),
   name: z.string().nullable(),
+
+  /**
+   * Do not use this field directly. Call getUserUrl() instead.
+   */
   url: z.string().nullable(),
 });
 export type MinUser = z.TypeOf<typeof zMinUser>;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, Spinner } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
+import Loader from './Loader';
 
 declare global {
   interface Window {
@@ -7,12 +8,10 @@ declare global {
   }
 }
 
-interface WeChatQRLoginProps {
+export default function WeChatQRLogin({ appid, callbackUrl }: {
   appid: string;
   callbackUrl: string;
-}
-
-export default function WeChatQRLogin({ appid, callbackUrl }: WeChatQRLoginProps) {
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,8 +23,10 @@ export default function WeChatQRLogin({ appid, callbackUrl }: WeChatQRLoginProps
     script.async = true;
     script.onload = () => {
       if (containerRef.current && window.WxLogin) {
-        const redirectUri = new URL(`${window.location.origin}/api/auth/callback/wechat-qr`);
+        const redirectUri =
+          new URL(`${window.location.origin}/api/auth/callback/wechat-qr`);
         redirectUri.searchParams.append('callbackUrl', callbackUrl);
+
         new window.WxLogin({
           id: "wechat-qr-container",
           appid,
@@ -38,8 +39,8 @@ export default function WeChatQRLogin({ appid, callbackUrl }: WeChatQRLoginProps
         });
 
         // 添加监听二维码 iframe 加载完成的逻辑
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
+        const observer = new MutationObserver(mutations => {
+          mutations.forEach(mutation => {
             if (mutation.addedNodes.length) {
               const iframe = containerRef.current?.querySelector('iframe');
               if (iframe) {
@@ -79,20 +80,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: WeChatQRLoginProps
         pointerEvents={isLoading ? "auto" : "none"}
         style={{ minWidth: "300px", minHeight: "170px" }}
       >
-        <Spinner 
-          thickness="4px"
-          speed="0.65s"
-          emptyColor="gray.200"
-          color="blue.500"
-          size="md"
-          mr={3}
-        />
-        <Box 
-          display="inline-block" 
-          whiteSpace="nowrap"  // 防止文字换行
-        >
-          二维码加载中...
-        </Box>
+        <Loader loadingText="二维码加载中..." />
       </Box>
       <Box
         id="wechat-qr-container"

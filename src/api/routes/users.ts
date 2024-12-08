@@ -20,6 +20,7 @@ import User, {
 } from "../../shared/User";
 import { 
   formatUserName,
+  isValidChineseName,
   toPinyin
 } from "../../shared/strings";
 import invariant from 'tiny-invariant';
@@ -69,7 +70,12 @@ export async function createUser(
   transaction: Transaction,
   mode: "create" | "upsert" = "create"
 ): Promise<User> {
-  validateUserInput(input.name, input.email, input.url);
+  // We don't check Chinese name validity when creating a user, because the user
+  // may be automatically created via WeChat sign-in or application form
+  // submission. We simply can't enforce Chinese names in these cases without
+  // breaking the flow.
+
+  validateUserInput(input.email, input.url);
   const f = {
     ...input,
     pinyin: toPinyin(input.name ?? ""),
@@ -252,17 +258,22 @@ const update = procedure
   .input(zUser)
   .mutation(async ({ input, ctx }) => 
 {
-  validateUserInput(input.name, input.email, input.url);
-
-  const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
-  const isSelf = ctx.user.id === input.id;
-
-  // Non-UserManagers can only update their own profile.
-  if (!isUserManager && !isSelf) {
-    throw noPermissionError("用户", input.id);
-  }
-
   await sequelize.transaction(async transaction => {
+    // Validate user input
+    validateUserInput(input.email, input.url);
+    if (!isValidChineseName(input.name)) {
+      throw generalBadRequestError("中文姓名无效。");
+    }
+    invariant(input.name);
+
+    const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
+    const isSelf = ctx.user.id === input.id;
+
+    // Non-UserManagers can only update their own profile.
+    if (!isUserManager && !isSelf) {
+      throw noPermissionError("用户", input.id);
+    }
+
     const user = await db.User.findByPk(input.id, {
       attributes: ['id', 'roles', 'url'],
       transaction,
@@ -275,9 +286,6 @@ const update = procedure
     const rolesToRemove = user.roles.filter(r => !input.roles.includes(r));
     checkPermissionToManageRoles(ctx.user.roles,
       [...rolesToAdd, ...rolesToRemove]);
-
-    // Guaranteed by validateUserInput() above
-    invariant(input.name);
 
     await user.update({
       name: input.name,
@@ -766,14 +774,9 @@ export default router({
 });
 
 function validateUserInput(
-  name: string | null,
   email: string,
   url: string | null | undefined,
 ) {
-  // if (!isValidChineseName(name)) {
-  //   throw generalBadRequestError("中文姓名无效。");
-  // }
-
   if (!z.string().email().safeParse(email).success) {
     throw generalBadRequestError("Email地址无效。");
   }

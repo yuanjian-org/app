@@ -9,7 +9,7 @@ import { Transaction } from "sequelize";
 import { ScheduledLikeEmailData } from "shared/ScheduledEmail";
 import invariant from "tiny-invariant";
 import { Like } from "shared/Like";
-import { MinUser } from "shared/User";
+import { getUserUrl, MinUser } from "shared/User";
 import { formatUserName } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
 import { email, emailRoleIgnoreError } from "../sendgrid";
@@ -86,7 +86,7 @@ async function sendLikeEmail(
       name,
       total: after.reduce((acc, l) => acc + l.count, 0),
       delta: delta.map(l =>
-        `<a href="${getBaseUrl()}/${l.liker.url}">` +
+        `<a href="${getBaseUrl()}${getUserUrl(l.liker)}">` +
         formatUserName(l.liker.name, "formal") +
         `</a>刚刚给你点了 ${l.count} 个赞`,
       ).join("，"),
