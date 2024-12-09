@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box } from '@chakra-ui/react';
 import Loader from './Loader';
+import { getCsrfToken } from "next-auth/react";
 
 declare global {
   interface Window {
@@ -21,7 +22,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
     const script = document.createElement('script');
     script.src = 'https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js';
     script.async = true;
-    script.onload = () => {
+    script.onload = async () => {
       if (containerRef.current && window.WxLogin) {
         const redirectUri =
           new URL(`${window.location.origin}/api/auth/callback/wechat-qr`);
@@ -36,6 +37,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
           href: "", // 可以添加自定义CSS
           self_redirect: false,
           stylelite: 1,
+          state: await getCsrfToken(),
         });
 
         const iframe = containerRef.current?.querySelector('iframe');
