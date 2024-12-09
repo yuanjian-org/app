@@ -70,12 +70,14 @@ export async function createUser(
   transaction: Transaction,
   mode: "create" | "upsert" = "create"
 ): Promise<User> {
-  // We don't check Chinese name validity when creating a user, because the user
-  // may be automatically created via WeChat sign-in or application form
-  // submission. We simply can't enforce Chinese names in these cases without
-  // breaking the flow.
-
+  /** 
+   * We don't check Chinese name validity when creating a user, because the user
+   * may be automatically created via WeChat sign-in or application form
+   * submission. We simply can't enforce Chinese names in these cases without
+   * breaking the flow.
+   */
   validateUserInput(input.email, input.url);
+
   const f = {
     ...input,
     pinyin: toPinyin(input.name ?? ""),
@@ -261,10 +263,6 @@ const update = procedure
   await sequelize.transaction(async transaction => {
     // Validate user input
     validateUserInput(input.email, input.url);
-    if (!isValidChineseName(input.name)) {
-      throw generalBadRequestError("中文姓名无效。");
-    }
-    invariant(input.name);
 
     const isUserManager = isPermitted(ctx.user.roles, 'UserManager');
     const isSelf = ctx.user.id === input.id;
@@ -275,11 +273,17 @@ const update = procedure
     }
 
     const user = await db.User.findByPk(input.id, {
-      attributes: ['id', 'roles', 'url'],
+      attributes: ['id', 'roles', 'url', 'name'],
       transaction,
     });
     if (!user) {
       throw notFoundError("用户", input.id);
+    }
+
+    // Only check Chinese name when updating name. Allow invalid names created
+    // during sign-in to be carried over. See createUser.
+    if (user.name !== input.name && !isValidChineseName(input.name)) {
+      throw generalBadRequestError("中文姓名无效。");
     }
 
     const rolesToAdd = input.roles.filter(r => !user.roles.includes(r));
@@ -290,7 +294,7 @@ const update = procedure
     await user.update({
       name: input.name,
       wechat: input.wechat,
-      pinyin: toPinyin(input.name),
+      pinyin: toPinyin(input.name ?? ""),
       consentFormAcceptedAt: input.consentFormAcceptedAt,
       ...await checkAndPopulateUrl(input.name, input.roles, user.url, input.url,
         transaction),
