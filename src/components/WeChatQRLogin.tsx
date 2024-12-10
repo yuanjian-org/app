@@ -38,27 +38,19 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
           stylelite: 1,
         });
 
-        // 添加监听二维码 iframe 加载完成的逻辑
-        const observer = new MutationObserver(mutations => {
-          mutations.forEach(mutation => {
-            if (mutation.addedNodes.length) {
-              const iframe = containerRef.current?.querySelector('iframe');
-              if (iframe) {
-                iframe.onload = () => {
-                  console.log('WeChat QR Code loaded');
-                  setIsLoading(false);
-                };
-                observer.disconnect();
-              }
-            }
-          });
-        });
-
-        observer.observe(containerRef.current, {
-          childList: true,
-          subtree: true
-        });
+        const iframe = containerRef.current?.querySelector('iframe');
+        if (iframe) {
+          console.log('iframe found');
+          iframe.onload = () => {
+            console.log('iframe loaded');
+            setIsLoading(false);
+          };
+        }
       }
+    };
+
+    script.onerror = (error) => {
+      console.error('Script loading failed:', error);
     };
 
     document.body.appendChild(script);
