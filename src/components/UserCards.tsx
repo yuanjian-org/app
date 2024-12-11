@@ -20,7 +20,7 @@ import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
@@ -31,7 +31,7 @@ import { useUserContext } from 'UserContext';
 import { Like } from 'shared/Like';
 
 export type FieldAndLabel = {
-  field: keyof UserProfile;
+  field: keyof StringUserProfile;
   label?: string;
 };
 
