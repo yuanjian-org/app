@@ -20,7 +20,7 @@ import {
   HStack,
   useClipboard,
 } from '@chakra-ui/react';
-import { MinUserAndProfile, UserProfile } from "shared/UserProfile";
+import { MinUserAndProfile, UserProfile, StringUserProfile } from "shared/UserProfile";
 import { breakpoint, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
@@ -138,7 +138,7 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
 
 function ProfileRow({ profile: p, k, label }: {
   profile: UserProfile,
-  k: keyof UserProfile,
+  k: keyof StringUserProfile,
   label?: string,
 }) {
   return !p[k] ? <></> : <Tr>
