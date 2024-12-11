@@ -22,6 +22,8 @@ import GroupBar from 'components/GroupBar';
 import { breakpoint, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
+import Map from 'components/Map';
+import { Landmark, Latitudes } from '../../shared/Map';
 import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
 
@@ -33,16 +35,18 @@ export default widePage(() => {
       menteeId: userId,
       includeEndedTransactional: false,
     });
+  const { data:mapData } = trpcNext.map.listLandmarks.useQuery([...Latitudes]);
 
   return !u ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs mentee={u} mentorships={mentorships || []} />
+    <MenteeTabs mentee={u} mentorships={mentorships || []} mapData={mapData || {}} />
   </>;
 });
 
-function MenteeTabs({ mentee, mentorships }: {
+function MenteeTabs({ mentee, mentorships, mapData }: {
   mentee: MinUser,
   mentorships: Mentorship[],
+  mapData: Record<string, Landmark[]>
 }) {
   const [me] = useUserContext();
   const sortedMentorships = sortMentorship(mentorships, me.id);
@@ -63,6 +67,7 @@ function MenteeTabs({ mentee, mentorships }: {
       }
       <Tab>基本信息</Tab>
       <Tab>面试页</Tab>
+      <Tab>人才地图</Tab>
       {/* <Tab>年度反馈</Tab> */}
     </TabList>
 
@@ -79,6 +84,9 @@ function MenteeTabs({ mentee, mentorships }: {
       {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
+      <TabPanel>
+        <Map data={mapData}/>
+      </TabPanel>
     </TabPanels>
   </TabsWithUrlParam>;
 }
