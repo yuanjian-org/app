@@ -6,7 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
 import { MdOutlineFace } from "react-icons/md";
-import { IoStarOutline } from "react-icons/io5";
+import { IoStar } from "react-icons/io5";
 import invariant from 'tiny-invariant';
 import {
   Avatar,
@@ -176,7 +176,7 @@ const mainMenuItems: MainMenuItem[] = [
   {
     name: '志愿者档案',
     path: '/volunteers',
-    icon: IoStarOutline,
+    icon: IoStar,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
   },
