@@ -196,8 +196,8 @@ const listMentorProfiles = procedure
   const user2mentorships = await getUser2MentorshipCount();
 
   return users.map(u => {
-    const adhoc = u.roles.includes("TransactionalMentor");
-    const cap = adhoc ? 0 :
+    const transactional = u.roles.includes("TransactionalMentor");
+    const cap = transactional ? 0 :
       (u.preference?.mentor?.最多匹配学生 ?? defaultMentorCapacity)
       - (user2mentorships[u.id] ?? 0);
 

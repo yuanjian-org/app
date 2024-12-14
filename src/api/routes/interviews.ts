@@ -170,7 +170,7 @@ function isCandidatePending(
   createdAt: Date[]
 ) {
   if (type == "MenteeInterview") {
-    // A interview decision as made
+    // A interview decision hasn't been made
     return candidate.menteeStatus === null;
   } else if (candidate.volunteerApplication?.[volunteerApplyingforMentorField]
     !== volunteerApplyingforMentorFieldYes) {

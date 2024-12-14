@@ -83,10 +83,11 @@ export type UserPreference = z.TypeOf<typeof zUserPreference>;
 export function isAcceptedMentee(
   roles: Role[],
   menteeStatus: MenteeStatus | null,
-  includeAdhocMentorshipOnlyAcceptance?: boolean
+  includeTransactionalMentorshipOnlyAcceptance?: boolean,
 ) {
   const s: MenteeStatus[] = ["现届学子", "活跃校友", "学友",
-    ...includeAdhocMentorshipOnlyAcceptance ? ["仅不定期" as MenteeStatus] : [],
+    ...includeTransactionalMentorshipOnlyAcceptance ?
+      ["仅不定期" as MenteeStatus] : [],
   ];
   return isPermitted(roles, 'Mentee')
     && menteeStatus && s.includes(menteeStatus);

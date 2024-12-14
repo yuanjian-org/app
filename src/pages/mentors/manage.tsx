@@ -22,7 +22,7 @@ import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
 import trpc, { trpcNext } from "trpc";
 import { componentSpacing } from 'theme/metrics';
-import { isPermitted, RoleProfiles } from 'shared/Role';
+import Role, { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
 import User, {
   defaultMentorCapacity, getUserUrl, MentorPreference,
@@ -119,9 +119,11 @@ function Row({ user, profile, preference, mentorships }: {
   });
   const [editingCoach, setEditingCoach] = useState<boolean>(false);
 
-  const role = isPermitted(user.roles, 'MentorCoach') ? 'MentorCoach' :
+  const role: Role = isPermitted(user.roles, 'MentorCoach') ? 'MentorCoach' :
+    isPermitted(user.roles, 'TransactionalMentor') ? 'TransactionalMentor' :
     'Mentor';
-  const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
+  const roleColorScheme = role == 'MentorCoach' ? "yellow" :
+    isPermitted(user.roles, 'TransactionalMentor') ? "red" : "teal";
 
   const capacity = cap(preference);
   const isDefaultCapacity = preference.最多匹配学生 === undefined;

@@ -166,15 +166,9 @@ const listMentorStats = procedure
 .query(async () =>
 {
   // Force type check
-  const [mentorRole, adhocMentorRole]: Role[] = ["Mentor", "TransactionalMentor"];
+  const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
-    where: {
-      [Op.and]: [{
-        roles: { [Op.contains]: [mentorRole] },
-      }, {
-        [Op.not]: { roles: { [Op.contains]: [adhocMentorRole] }, }
-      }]
-    },
+    where: { roles: { [Op.contains]: [mentorRole] } },
     attributes: [...userAttributes, "profile", "preference"],
     include: userInclude,
   });
