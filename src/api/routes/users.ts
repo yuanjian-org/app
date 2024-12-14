@@ -99,14 +99,15 @@ const list = procedure
   .output(z.array(zUserWithMergeInfo))
   .query(async ({ ctx: { user }, input: filter }) =>
 { 
-  if (filter.includeBanned === true
-    || filter.includeMerged === true
-    || filter.returnMergeInfo === true
-  ) {
-    if (!isPermitted(user.roles, "UserManager")) {
-      throw noPermissionError("数据",
-        "includeBanned, includeMerged or returnMergeInfo user filter");
-    }
+  if ((filter.includeBanned === true || filter.includeMerged === true) &&
+    !isPermitted(user.roles, "UserManager")) {
+    throw noPermissionError("数据",
+      "includeBanned, includeMerged or returnMergeInfo user filter");
+  }
+
+  if (filter.returnMergeInfo === true &&
+    !isPermitted(user.roles, ["UserManager", "MentorshipManager"])) {
+    throw noPermissionError("数据", "returnMergeInfo user filter");
   }
 
   // Force type checking.
