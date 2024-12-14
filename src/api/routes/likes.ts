@@ -10,7 +10,8 @@ import { Sequelize, Transaction } from "sequelize";
 import { ScheduledEmailData, zScheduledLikeEmailData } from "shared/ScheduledEmail";
 
 const get = procedure
-  .use(authUser("Volunteer"))
+  // TODO: Remove Mentee after the like UI componenet is encapsulated
+  .use(authUser(["Volunteer", "Mentee"]))
   .input(z.object({
     userId: z.string(),
   }))
