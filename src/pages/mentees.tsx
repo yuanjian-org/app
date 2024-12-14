@@ -27,7 +27,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
-import User, { MinUser, UserFilter } from 'shared/User';
+import { MinUser, UserFilter, UserWithMergeInfo } from 'shared/User';
 import { compareChinese,
   compareDate, 
   formatUserName, 
@@ -58,6 +58,7 @@ import {
 import { widePage } from 'AppPage';
 import { TbClockOff, TbClock } from "react-icons/tb";
 import ConfirmationModal from 'components/ConfirmationModal';
+import MergeTokenCell from 'components/MergeTokenCell';
 
 type Metadata = {
   // The year the mentee was accepted
@@ -71,6 +72,7 @@ export default widePage(() => {
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
+    returnMergeInfo: true,
   };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -98,7 +100,7 @@ export default widePage(() => {
 }, "学生档案");
 
 function MenteeTable({ users, refetch }: {
-  users: User[],
+  users: UserWithMergeInfo[],
   refetch: () => void
 }) {
   const [mentee2meta, setMentee2meta] = useState(new Map<string, Metadata>()); 
@@ -140,11 +142,12 @@ function MenteeTable({ users, refetch }: {
         <MenteeHeaderCells />
         <MentorshipHeaderCells />
         <Th>最近内部笔记</Th>
+        <Th>微信激活码</Th>
         <Th>拼音（便于查找）</Th>
       </Tr>
     </Thead>
     <Tbody>
-      {sortedUsers.map((u: User) => <MenteeRow
+      {sortedUsers.map(u => <MenteeRow
         key={u.id} 
         user={u} 
         refetch={refetch} 
@@ -155,7 +158,7 @@ function MenteeTable({ users, refetch }: {
 }
 
 function MenteeRow({ user: u, refetch, setMetadata }: {
-  user: User,
+  user: UserWithMergeInfo,
   refetch: () => void,
   setMetadata: SetMetadata
 }) {
@@ -180,6 +183,7 @@ function MenteeRow({ user: u, refetch, setMetadata }: {
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
     <MostRecentChatMessageCell menteeId={u.id} />
+    <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
 }

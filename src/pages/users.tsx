@@ -24,15 +24,12 @@ import {
   Flex,
   TableContainer,
   Link,
-  HStack,
-  Badge,
-  Tooltip,
 } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { compareDate, formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
+import { formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
 import { useUserContext } from 'UserContext';
@@ -46,10 +43,7 @@ import { ImpersonationRequest } from './api/auth/[...nextauth]';
 import invariant from 'tiny-invariant';
 import { useRouter } from 'next/router';
 import { isFakeEmail } from 'shared/fakeEmail';
-import { MdMerge } from "react-icons/md";
-import ConfirmationModal from 'components/ConfirmationModal';
-import { canIssueMergeToken } from 'shared/merge';
-import { toast } from 'react-toastify';
+import MergeTokenCell from 'components/MergeTokenCell';
 
 export default function Page() {
   const [includeMerged, setIncludeMerged] = useState(false);
@@ -154,7 +148,7 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
         <Th>拼音</Th>
         <Th>角色</Th>
         <Th>假扮</Th>
-        <Th>发送微信激活码</Th>
+        <Th>微信激活码</Th>
       </Tr>
     </Thead>
     <Tbody>
@@ -222,60 +216,11 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
           </Td>
 
           {/* Send merge token */}
-          <Td>
-            <HStack spacing={2}>
-              <SendMergeToken
-                userId={u.id}
-                email={u.email}
-                refetch={refetch}
-              />
-
-              {/* # mergedFrom */}
-              {u.mergedFrom && u.mergedFrom.length > 0 &&
-                <Tooltip label="已迁移到此账号的账号数量">
-                  <Badge colorScheme='red'>{u.mergedFrom.length}</Badge>
-                </Tooltip>
-              }
-
-              {/* # mergeToken */}
-              {u.mergeToken &&
-                compareDate(u.mergeToken.expiresAt, new Date()) <= 0 &&
-                <Tooltip label="已发送激活码，且尚未过期">
-                  <Badge colorScheme='green'>T</Badge>
-                </Tooltip>
-              }
-
-            </HStack>
-          </Td>
+          <MergeTokenCell user={u} refetch={refetch} />
         </Tr>
       ))}
     </Tbody>
   </Table>;
-}
-
-function SendMergeToken({ userId, email, refetch }: { 
-  userId: string,
-  email: string,
-  refetch: () => void,
-}) {
-  const [confirming, setConfirming] = useState<boolean>(false);
-
-  const send = async () => {
-    await trpc.merge.emailMergeToken.mutate({ userId });
-    toast.success("发送成功。");
-    refetch();
-  };
-
-  return !canIssueMergeToken(email) ? <></> : <Link
-    onClick={() => setConfirming(true)}
-  >
-    <MdMerge />
-    {confirming && <ConfirmationModal
-      message={`发送微信激活码到用户邮箱：${email}？`}
-      confirm={send}
-      close={() => setConfirming(false)}
-    />}
-  </Link>;
 }
 
 function UserEditor({ user, onClose }: {
