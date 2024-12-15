@@ -16,9 +16,11 @@ import {
 import sequelize from "api/database/sequelize";
 import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
 import { compareDate, formatUserName, toChinese } from "shared/strings";
-import { email } from "../sendgrid";
+import { email, emailRoleIgnoreError } from "../sendgrid";
 import getBaseUrl from "shared/getBaseUrl";
 import { RoleProfiles } from "shared/Role";
+import { Transaction } from "sequelize";
+import { MergeTokenErrorEvent, zMergeTokenErrorEvent } from "shared/EventLog";
 
 const emailMergeToken = procedure
   .use(authUser("UserManager"))
@@ -79,15 +81,15 @@ const merge = procedure
   .input(z.object({ token: z.string() }))
   .mutation(async ({ ctx: { user }, input: { token } }) =>
 {
-  const error = (message: string) => {
-    console.error("Merge token validation failed: ", message);
-    // Do not leak the actual error message to the client.
-    return generalBadRequestError("激活码无效或者已经过期。");
-  };
-
-  await sequelize.transaction(async transaction => {
+  const exception = await sequelize.transaction(async transaction => {
     /**
-     * Validate the token.
+     * Limit rate
+     */
+    const ex = await limitRate(user.id, token, transaction);
+    if (ex) return ex;
+
+    /**
+     * Validate token
      */
     const mt = await db.MergeToken.findOne({
       where: { token: token.toLowerCase() },
@@ -96,15 +98,19 @@ const merge = procedure
       transaction,
     });
     if (!mt) {
-      throw error(`merge token "${token}" not found`);
+      return logMergeTokenError(user.id, token,
+        "token not found", transaction);
     } else if (compareDate(mt.expiresAt, new Date()) > 0) {
-      throw error(`merge token "${token}" expired`);
+      return logMergeTokenError(user.id, token,
+        "expired", transaction);
     } else if (!canIssueMergeToken(mt.user.email)) {
-      throw error(`user ${mt.user.id} cannot issue merge token`);
+      return logMergeTokenError(user.id, token, 
+        `user ${mt.user.id} cannot issue merge token`, transaction);
     } else if (mt.user.mergedTo) {
-      throw error(`BUGBUG: user ${mt.user.id} is already merged, ` +
+      return logMergeTokenError(user.id, token,
+        `BUGBUG: user ${mt.user.id} is already merged ` +
         `which should not happen due to the canAcceptMergeToken() check ` +
-        `below. Please debug this inconsistency.`);
+        `below. Please debug this inconsistency.`, transaction);
     }
 
     const me = await db.User.findByPk(user.id, {
@@ -112,17 +118,21 @@ const merge = procedure
       transaction,
     });
     if (!me) {
-      throw notFoundError("用户", user.id);
+      return logMergeTokenError(user.id, token,
+        `user not found`, transaction);
     } else if (!canAcceptMergeToken(user.email)) {
-      throw error(`user ${user.id} cannot accept merge token`);
+      return logMergeTokenError(user.id, token,
+        `user cannot accept merge token`, transaction);
     } else if (!me.wechatUnionId) {
-      throw error(`user ${user.id} has no wechat union id`);
+      return logMergeTokenError(user.id, token,
+        `user has no wechat union id`, transaction);
     } else if (me.mergedTo) {
-      throw error(`user ${user.id} is already merged`);
+      return logMergeTokenError(user.id, token,
+        `user is already merged`, transaction);
     }
 
     /**
-     * Perform the merge.
+     * Perform the merge
      */
     const wechatUnionId = me.wechatUnionId;
 
@@ -141,7 +151,58 @@ const merge = procedure
     invalidateUserCache(mt.user.id);
     invalidateUserCache(user.id);
   });
+
+  if (exception) throw exception;
 });
+
+/**
+ * Limit the rate of merge token attempts to 5 per day.
+ */
+async function limitRate(userId: string, token: string,
+  transaction: Transaction
+) {
+  const maxErrorAttemptsPerDay = 5;
+
+  // Force type check
+  const type: z.TypeOf<typeof zMergeTokenErrorEvent.shape.type> =
+    "MergeTokenError";
+
+  const count = await db.EventLog.count({
+    where: sequelize.literal(`
+      data ->> 'type' = '${type}' AND
+      "userId" = '${z.string().uuid().parse(userId)}' AND 
+      "createdAt" > NOW() - INTERVAL '1 day'
+    `),
+    transaction,
+  });
+
+  console.log(">>>>", count);
+  if (count > maxErrorAttemptsPerDay) {
+    emailRoleIgnoreError("SystemAlertSubscriber", "微信激活码尝试次数超限",
+      `用户 ${userId} 的当日尝试次数已经超过 ${maxErrorAttemptsPerDay} 次`,
+      getBaseUrl());
+
+    return logMergeTokenError(userId, token, "exceeded rate limit", transaction,
+      "已超过每日最大尝试次数。");
+  }
+}
+
+async function logMergeTokenError(userId: string, token: string,
+  error: string, transaction: Transaction, message?: string
+) {
+  console.error(
+    `Log merge token error by user ${userId}: token ${token}: ${error}`);
+
+  const data: MergeTokenErrorEvent = {
+    type: "MergeTokenError",
+    token,
+    error,
+  };
+  await db.EventLog.create({ userId, data }, { transaction });
+
+  // Do not leak the actual error message to the client.
+  return generalBadRequestError(message ?? "激活码无效或者已经过期。");
+}
 
 export default router({
   emailMergeToken,

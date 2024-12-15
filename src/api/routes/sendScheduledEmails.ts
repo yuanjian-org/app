@@ -6,7 +6,7 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
 import { Transaction } from "sequelize";
-import { ScheduledLikeEmailData } from "shared/ScheduledEmail";
+import { ScheduledLikeEmail } from "shared/ScheduledEmail";
 import invariant from "tiny-invariant";
 import { Like } from "shared/Like";
 import { getUserUrl, MinUser } from "shared/User";
@@ -35,7 +35,7 @@ const likeEmailMinDelayInMinutes = 5;
 
 async function sendLikeEmail(
   rowId: string,
-  data: ScheduledLikeEmailData,
+  data: ScheduledLikeEmail,
   updatedAt: Date,
   transaction: Transaction,
 ) {

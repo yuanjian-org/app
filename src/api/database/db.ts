@@ -21,6 +21,7 @@ import MentorBooking from "./models/MentorBooking";
 import MergeToken from "./models/MergeToken";
 import Like from "./models/Like";
 import ScheduledEmail from "./models/ScheduledEmail";
+import EventLog from "./models/EventLog";
 
 const db = {
   Mentorship,
@@ -42,6 +43,7 @@ const db = {
   MergeToken,
   Like,
   ScheduledEmail,
+  EventLog,
 };
 
 export default db;
