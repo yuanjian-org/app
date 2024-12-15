@@ -60,6 +60,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       WeChatProvider({
         id: "wechat-qr",
         name: "微信扫码登陆",
+        // The "checks: ['none']" is necessary because the current QR code login does not follow the full NA auth flow, 
+        // and the backend does not generate a state. Removing this would cause the check to fail, preventing login.
         checks: ["none"],
         clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
         clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
