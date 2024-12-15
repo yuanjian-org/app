@@ -11,6 +11,7 @@ import {
   ListItem,
 } from '@chakra-ui/react';
 import React from 'react';
+import { useState } from 'react';
 import { useUserContext } from "../UserContext";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
@@ -35,7 +36,7 @@ export default function Page() {
 
     <VStack divider={<StackDivider />} align='left' spacing={6}>
       {groups &&
-        groups.map(group => 
+        groups.map(group =>
           <GroupBar
             key={group.id}
             group={group}
@@ -53,9 +54,15 @@ Page.title = "我的会议";
 function NoGroup() {
   const { data } = trpcNext.users.listRedactedEmailsWithSameName
     .useQuery();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Function to toggle the modal visibility
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
 
   return <VStack spacing={componentSpacing} align="start">
-    {data?.length && 
+    {data?.length &&
       <Alert status="warning" mb={componentSpacing}>
         <HStack>
           <AlertIcon />
@@ -83,5 +90,34 @@ function NoGroup() {
         下载
       </Link>）
     </Text>
+    <div>
+      {/* Button at the end of the page*/}
+      <button className="floating-button" onClick={toggleModal}>
+        <img
+          src="https://via.placeholder.com/50"
+          alt="小助手"
+          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+        />
+      </button>
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={toggleModal}>
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+          >
+            <iframe
+              src="https://udify.app/chatbot/GYJfXH8oYrNThERB"
+              style={{
+                width: '100%',
+                height: '50%',
+                minHeight: '400px',
+              }}
+              allow="microphone">
+            </iframe>
+          </div>
+        </div>
+      )}
+    </div>
   </VStack>;
 }
