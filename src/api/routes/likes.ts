@@ -7,7 +7,7 @@ import { zLike } from "shared/Like";
 import { likeAttributes, likeInclude } from "api/database/models/attributesAndIncludes";
 import { generalBadRequestError } from "api/errors";
 import { Sequelize, Transaction } from "sequelize";
-import { ScheduledEmailData, zScheduledLikeEmailData } from "shared/ScheduledEmail";
+import { ScheduledEmailData, zScheduledLikeEmail } from "shared/ScheduledEmail";
 
 const get = procedure
   // TODO: Remove Mentee after the like UI componenet is encapsulated
@@ -63,14 +63,15 @@ const increment = procedure
 async function scheduleEmail(userId: string, transaction: Transaction) {
 
   // Check if an email for the user has already been scheduled.
-  const type: z.TypeOf<typeof zScheduledLikeEmailData.shape.type> = "Like";
+  // Force type check
+  const type: z.TypeOf<typeof zScheduledLikeEmail.shape.type> = "Like";
 
   // For some reason `replacements` doesn't work here. So validate input
   // manually with zod parsing.
   const existing = await db.ScheduledEmail.count({
     where: Sequelize.literal(`
-      data ->> 'type' = '${type}'
-      AND data ->> 'userId' = '${z.string().uuid().parse(userId)}'
+      data ->> 'type' = '${type}' AND
+      data ->> 'userId' = '${z.string().uuid().parse(userId)}'
     `),
     transaction,
   });
