@@ -17,6 +17,7 @@ import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
 import WeChatProvider from "./WeChatProvider";
 import { generateShortLivedToken } from "../../../shared/token";
+import { NextApiRequest, NextApiResponse } from 'next';
 
 declare module "next-auth" {
   interface Session {
@@ -39,90 +40,123 @@ export const adapter = SequelizeAdapter(sequelize, {
   models: { User: db.User },
 });
 
-export const authOptions: NextAuthOptions = {
-  adapter,
+export function authOptions(req?: NextApiRequest): NextAuthOptions {
+  return {
+    adapter,
 
-  session: {
-    strategy: "jwt",
-  },
-
-  providers: [
-    // @ts-expect-error
-    {
-      id: 'sendgrid',
-      type: 'email',
-      maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
-      sendVerificationRequest,
-      generateVerificationToken: generateShortLivedToken,
+    session: {
+      strategy: "jwt",
     },
-    WeChatProvider({
-      id: "wechat-qr",
-      name: "微信扫码登陆",
-      checks: ["none"],
-      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
-      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
-      platformType: "WebsiteApp",
-    }),
-    WeChatProvider({
-      id: "wechat",
-      name: "微信内登陆",
-      clientId: process.env.AUTH_WECHAT_APP_ID!,
-      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
-      platformType: "OfficialAccount",
-    })
-  ],
 
-  pages: {
-    signIn: '/auth/login',
-    // The login page respects the `?error=` URL param.
-    error: '/auth/login',
-  },
+    providers: [
+      // @ts-expect-error
+      {
+        id: 'sendgrid',
+        type: 'email',
+        maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
+        sendVerificationRequest,
+        generateVerificationToken: generateShortLivedToken,
+      },
 
-  callbacks: {
-    async jwt({ token, trigger, session }) {
-      // https://next-auth.js.org/getting-started/client#updating-the-session
-      if (trigger == "update" && session) {
-        const impersonate = (session as ImpersonationRequest).impersonate;
-        if (impersonate === null) {
-          delete token[impersonateTokenKey];
-        } else {
-          const me = await db.User.findByPk(token.sub);
-          invariant(me);
-          if (!isPermitted(me.roles, "UserManager")) {
-            throw noPermissionError("用户", impersonate);
+      WeChatProvider({
+        id: "wechat-qr",
+        name: "微信扫码登陆",
+
+        /**
+         * This line is necessary because the current QR code login does not
+         * follow the full next-auth auth flow, and the backend does not
+         * generate a state. Removing this would cause the check to fail
+         * preventing login.
+         * 
+         * We do manual checks in the signIn callback handler below.
+         */
+        checks: ["none"],
+
+        clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+        clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+        platformType: "WebsiteApp",
+      }),
+
+      WeChatProvider({
+        id: "wechat",
+        name: "微信内登陆",
+        clientId: process.env.AUTH_WECHAT_APP_ID!,
+        clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+        platformType: "OfficialAccount",
+      })
+    ],
+
+    pages: {
+      signIn: '/auth/login',
+      // The login page respects the `?error=` URL param.
+      error: '/auth/login',
+    },
+
+    callbacks: {
+      signIn: ({ account }) => {
+        // https://github.com/nextauthjs/next-auth/discussions/469
+        if (account?.provider === "wechat-qr") {
+          // https://next-auth.js.org/configuration/options#cookies
+          const csrf = req?.cookies?.["__Host-next-auth.csrf-token"]
+            ?.split("|")[0];
+          const state = req?.query?.state;
+          if (csrf !== state) {
+            console.error("WeChat QR OAuth state is illegal, csrf:", csrf,
+              "state:", state);
+            return false;
           }
-          token[impersonateTokenKey] = impersonate;
         }
-      }
+        return true;
+      },
 
-      return token;
+      async jwt({ token, trigger, session }) {
+        // https://next-auth.js.org/getting-started/client#updating-the-session
+        if (trigger == "update" && session) {
+          const impersonate = (session as ImpersonationRequest).impersonate;
+          if (impersonate === null) {
+            delete token[impersonateTokenKey];
+          } else {
+            const me = await db.User.findByPk(token.sub);
+            invariant(me);
+            if (!isPermitted(me.roles, "UserManager")) {
+              throw noPermissionError("用户", impersonate);
+            }
+            token[impersonateTokenKey] = impersonate;
+          }
+        }
+
+        return token;
+      },
+
+      async session({ token, session }) {
+        const impersonate = token[impersonateTokenKey];
+        const id = (impersonate as string | undefined) ?? token.sub;
+        invariant(id);
+
+        const original = await userCache.fetch(id);
+        invariant(original);
+
+        const actual = !original.mergedTo ? original
+          : await userCache.fetch(original.mergedTo);
+        invariant(actual);
+
+        session.user = actual;
+        if (impersonate) session.impersonated = true;
+        return session;
+      },
     },
 
-    async session({ token, session }) {
-      const impersonate = token[impersonateTokenKey];
-      const id = (impersonate as string | undefined) ?? token.sub;
-      invariant(id);
-
-      const original = await userCache.fetch(id);
-      invariant(original);
-
-      const actual = !original.mergedTo ? original
-        : await userCache.fetch(original.mergedTo);
-      invariant(actual);
-
-      session.user = actual;
-      if (impersonate) session.impersonated = true;
-      return session;
+    events: {
+      createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
+          `${message.user.email} 注册新用户 。`, ""),
     },
-  },
+  };
+}
 
-  events: {
-    createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
-        `${message.user.email} 注册新用户 。`, ""),
-  },
-};
-
-export default NextAuth(authOptions);
+// https://next-auth.js.org/configuration/initialization#advanced-initialization
+export default async function auth(req: NextApiRequest, res: NextApiResponse) {
+  return await NextAuth(req, res, authOptions(req));
+}
 
 async function sendVerificationRequest({ identifier: email, url, token }:
   SendVerificationRequestParams
