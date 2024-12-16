@@ -59,6 +59,7 @@ import { widePage } from 'AppPage';
 import { TbClockOff, TbClock } from "react-icons/tb";
 import ConfirmationModal from 'components/ConfirmationModal';
 import MergeTokenCell from 'components/MergeTokenCell';
+import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
 
 type Metadata = {
   // The year the mentee was accepted
@@ -141,7 +142,7 @@ function MenteeTable({ users, refetch }: {
         <PointOfContactHeaderCells />
         <MenteeHeaderCells />
         <MentorshipHeaderCells />
-        <Th>最近内部笔记</Th>
+        <Th>最近导师交流</Th>
         <Th>微信激活码</Th>
         <Th>拼音（便于查找）</Th>
       </Tr>
@@ -182,7 +183,7 @@ function MenteeRow({ user: u, refetch, setMetadata }: {
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
-    <MostRecentChatMessageCell menteeId={u.id} />
+    <NewestMentorDiscussionCell menteeId={u.id} />
     <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
@@ -349,12 +350,14 @@ function LoadedMentorsCells({
   </>;
 }
 
-export function MostRecentChatMessageCell({ menteeId } : {
+export function NewestMentorDiscussionCell({ menteeId } : {
   menteeId : string
 }) {
-  const { data } = trpcNext.chat.getMostRecentMessageUpdatedAt
-    .useQuery({ menteeId });
-  const textAndColor = getDateTextAndColor(data, 60, 90, "无笔记");
+  const { data } = trpcNext.chat.getNewestMessageCreatedAt.useQuery({ 
+    menteeId,
+    prefix: mentorMeetingMessagePrefix,
+  });
+  const textAndColor = getDateTextAndColor(data, 60, 90, "尚未交流");
   return <Td color={textAndColor[1]}>{textAndColor[0]}</Td>;
 }
 

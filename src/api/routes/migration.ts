@@ -16,15 +16,30 @@ export async function migrateDatabase() {
   await sequelize.sync({ alter: { drop: false } });
 
   console.log("Migrating DB data...");
+  await migrateChatMessages();
 
   console.log("Clean up old DB data...");
   await cleanupFeedbackAttemptLogs();
+  await cleanupEventLogs();
+}
+
+async function cleanupEventLogs() {
+  await sequelize.query(`
+    DELETE FROM "EventLogs"
+    WHERE "createdAt" < NOW() - INTERVAL '1 year';
+  `);
 }
 
 async function cleanupFeedbackAttemptLogs() {
-  console.log("Deleting old feedback attempt logs...");
   await sequelize.query(`
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
+  `);
+}
+async function migrateChatMessages() {
+  await sequelize.query(`
+    UPDATE "ChatMessages"
+    SET "markdown" = REPLACE("markdown", '【导师组内部讨论】', '【导师交流】')
+    WHERE "markdown" LIKE '%【导师组内部讨论】%';
   `);
 }
