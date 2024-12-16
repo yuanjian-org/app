@@ -59,9 +59,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
 
       WeChatProvider({
-        id: "wechat-qr",
-        name: "微信扫码登陆",
-
+        id: "wechat-iframe-qr",
+        name: "微信扫码登陆(iframe内嵌页面)",
         /**
          * This line is necessary because the current QR code login does not
          * follow the full next-auth auth flow, and the backend does not
@@ -72,6 +71,14 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
          */
         checks: ["none"],
 
+        clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+        clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+        platformType: "WebsiteApp",
+      }),
+
+      WeChatProvider({
+        id: "wechat-qr",
+        name: "微信扫码登陆",
         clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
         clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
         platformType: "WebsiteApp",
@@ -95,7 +102,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     callbacks: {
       signIn: ({ account }) => {
         // https://github.com/nextauthjs/next-auth/discussions/469
-        if (account?.provider === "wechat-qr") {
+        if (account?.provider === "wechat-iframe-qr") {
           // https://next-auth.js.org/configuration/options#cookies
           const csrf = req?.cookies?.["__Host-next-auth.csrf-token"]
             ?.split("|")[0];
