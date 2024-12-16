@@ -12,6 +12,7 @@ import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
 import { checkPermissionToAccessMentee } from "./users";
 import invariant from "tiny-invariant";
+import { Op } from "sequelize";
 
 const getRoom = procedure
   .use(authUser())
@@ -41,13 +42,14 @@ const getRoom = procedure
 /**
  * @return null if there is no message or corresponding chat room doesn't exist.
  */
-const getMostRecentMessageUpdatedAt = procedure
+const getNewestMessageCreatedAt = procedure
   .use(authUser())
   .input(z.object({
     menteeId: z.string(),
+    prefix: z.string(),
   }))
   .output(z.date().nullable())
-  .query(async ({ ctx, input: { menteeId } }) =>
+  .query(async ({ ctx, input: { menteeId, prefix } }) =>
 {
   const r = await db.ChatRoom.findOne({
     where: { menteeId },
@@ -57,7 +59,10 @@ const getMostRecentMessageUpdatedAt = procedure
 
   await checkRoomPermission(ctx.user, menteeId);
 
-  return await db.ChatMessage.max("updatedAt", { where: { roomId: r.id } });
+  return await db.ChatMessage.max("createdAt", { where: {
+    roomId: r.id,
+    markdown: { [Op.iLike]: `${prefix}%` },
+  } });
 });
 
 /**
@@ -118,5 +123,5 @@ export default router({
   getRoom,
   createMessage,
   updateMessage,
-  getMostRecentMessageUpdatedAt,
+  getNewestMessageCreatedAt,
 });

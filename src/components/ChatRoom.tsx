@@ -116,20 +116,13 @@ function Message({ message: m }: {
   </HStack>;
 }
 
-const snippets = [
-  {
-    title: "【一对一】",
-    text: "【一对一】"
-  },
-  {
-    title: "【导师组内部讨论】",
-    text: "【导师组内部讨论】"
-  }
-];
+export const mentorMeetingMessagePrefix = "【导师交流】";
 
 function Editor({ roomId, message, onClose, ...rest }: {
-  roomId?: string,        // create a new message when specified
-  message?: ChatMessage,  // must be specified iff. roomId is undefined
+  // if specified, create a new message
+  roomId?: string,
+  // must be specified if and only if roomId is undefined
+  message?: ChatMessage,
   onClose: Function,
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>(
@@ -137,8 +130,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
   
-  const insertSnippet = (snippet: string) => {
-    setMarkdown(prev => prev + snippet);
+  const insertPrefix = (prefix: string) => {
+    setMarkdown(prev => prefix + prev);
   };
 
   const save = async () => {
@@ -158,6 +151,11 @@ function Editor({ roomId, message, onClose, ...rest }: {
     }
   };
 
+  const prefixes = [
+    "【一对一】",
+    mentorMeetingMessagePrefix,
+  ];
+  
   return <>
     <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
       autoFocus background="white" height={200} {...rest}
@@ -166,26 +164,37 @@ function Editor({ roomId, message, onClose, ...rest }: {
     <HStack width="100%" spacing={componentSpacing}>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
         variant="brand" leftIcon={<Icon as={MdSend} />}
+        display={{ base: "none", [breakpoint]: "flex" }}
       >
         确认
       </Button>
-      <Button onClick={() => onClose()} variant="ghost" color="grey">取消</Button>
+
+      <Button onClick={save} isLoading={saving} isDisabled={!markdown}
+        variant="brand"
+        display={{ base: "flex", [breakpoint]: "none" }}
+      >
+        确认
+      </Button>
+
+      <Button onClick={() => onClose()} variant="ghost" color="grey">
+        取消
+      </Button>
 
       <Spacer />
 
       {/* Hide on mobile due to limited space */}
-      <MarkdownSupport display={{ base: "none", [breakpoint]: "block" }} />
+      <MarkdownSupport
+        fontSize="sm"
+        display={{ base: "none", [breakpoint]: "block" }} 
+      />
 
-      <Select placeholder="模版文字"
-        onChange={e => insertSnippet(snippets.find(snippet => 
-          snippet.title === e.target.value)?.text || "")} 
-          // if maxWidth is not specified, it will take up all the remaining width.
-          // this must work with Spacer to create a gap.
-          maxWidth="150px"
+      <Select placeholder="笔记分类"
+        onChange={e => insertPrefix(e.target.value)}
+        // if maxWidth is not specified, it will take up all the remaining width.
+        // this must work with Spacer to create a gap.
+        maxWidth="150px"
       >
-        {snippets.map((snippet, index) => (
-          <option key={index} value={snippet.title}>{snippet.title}</option>
-        ))}
+        {prefixes.map(p => <option key={p} value={p}>{p}</option>)}
       </Select>
     </HStack>
   </>;
