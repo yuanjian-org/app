@@ -24,5 +24,5 @@ export function isValidMentorshipIds(
 }
 
 export function isEndedTransactionalMentorship(m: Mentorship) {
-  return m.transactional && m.endsAt && compareDate(m.endsAt, new Date()) > 0;
+  return m.transactional && m.endsAt && compareDate(m.endsAt, new Date()) < 0;
 }

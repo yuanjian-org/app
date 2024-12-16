@@ -193,8 +193,8 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) > 0;
-    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) > 0;
+    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) < 0;
+    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) < 0;
     if (aEnded !== bEnded) {
       // ended ones should be sorted after ongoing ones.
       return aEnded ? 1 : -1;

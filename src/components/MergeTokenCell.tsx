@@ -35,7 +35,7 @@ export default function MergeTokenCell({ user, refetch } : {
 
       {/* # mergeToken */}
       {user.mergeToken && (
-        compareDate(user.mergeToken.expiresAt, new Date()) <= 0 ?
+        compareDate(user.mergeToken.expiresAt, new Date()) > 0 ?
           <Tooltip label="已发送激活码，且尚未过期">
             <Badge colorScheme='green'>T</Badge>
           </Tooltip>

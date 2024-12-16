@@ -46,7 +46,7 @@ export default function Room({
         roomId={room.id}
         newMessageButtonLabel={newMessageButtonLabel}
       />
-      {room.messages.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+      {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))
       .map(m => <Message key={m.id} message={m} />)}
     </VStack>
     ;

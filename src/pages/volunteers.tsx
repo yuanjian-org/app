@@ -8,7 +8,7 @@ import UserCards from "components/UserCards";
 export default widePage(() => {
   const { data } = trpcNext.users.listVolunteerProfiles.useQuery();
   const sorted = useMemo(() => 
-    data?.sort((a, b) => compareDate(a.updatedAt, b.updatedAt)), [data]);
+    data?.sort((a, b) => compareDate(b.updatedAt, a.updatedAt)), [data]);
 
   return <>
     <PageBreadcrumb current="志愿者档案" />

@@ -140,7 +140,7 @@ function LandmarkAssessmentHistory({ landmark } : {
       </Tr>
       <Tbody>
         {!assessments ?  <Loader /> :
-        assessments.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+        assessments.sort((a, b) => compareDate(b.createdAt, a.createdAt))
         .map((assessment, index) => (
           <Tr 
             key={index} 

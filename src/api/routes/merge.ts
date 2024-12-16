@@ -100,7 +100,7 @@ const merge = procedure
     if (!mt) {
       return logMergeTokenError(user.id, token,
         "token not found", transaction);
-    } else if (compareDate(mt.expiresAt, new Date()) > 0) {
+    } else if (compareDate(mt.expiresAt, new Date()) < 0) {
       return logMergeTokenError(user.id, token,
         "expired", transaction);
     } else if (!canIssueMergeToken(mt.user.email)) {

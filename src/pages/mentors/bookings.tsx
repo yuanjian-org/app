@@ -53,7 +53,7 @@ export default function Page() {
       </Thead>
 
       <Tbody>
-        {data?.sort((a, b) => compareDate(a.createdAt, b.createdAt))
+        {data?.sort((a, b) => compareDate(b.createdAt, a.createdAt))
         .map(mb => <Tr key={mb.id}>
           <Td>{formatUserName(mb.requester.name, "formal")}</Td>
 

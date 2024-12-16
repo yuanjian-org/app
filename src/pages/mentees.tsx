@@ -549,7 +549,7 @@ function newTransactionalMentorshipEndsAt(): Date {
 
 export function mentorshipStatusIconType(m: Mentorship) {
   return !m.endsAt ? undefined :
-    compareDate(m.endsAt, new Date()) > 0 ?
+    compareDate(m.endsAt, new Date()) < 0 ?
       m.transactional ? TbClockOff : PiFlagCheckeredFill
     :
     m.transactional ? TbClock : undefined;
@@ -623,7 +623,7 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
               {/* 状态 */}
               <Td>
                 {!m.endsAt ? "进行中" :
-                  compareDate(m.endsAt, new Date()) > 0 ?
+                  compareDate(m.endsAt, new Date()) < 0 ?
                   <HStack>
                     <MentorshipStatusIcon m={m} />
                     <Text>已于{prettifyDate(m.endsAt)}结束</Text>
@@ -640,7 +640,7 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
               <Td><HStack spacing={6}>
                 {m.transactional ? <>
                   {/* 不定期 */}
-                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                  {m.endsAt && compareDate(m.endsAt, new Date()) < 0 ? 
                     <Link onClick={() => setConfirmationModelProps({
                       message: "确定重新开始吗？",
                       confirm: () => updateMentorship(m.id, true, 
@@ -670,7 +670,7 @@ function MentorshipsEditor({ mentee, mentorships, refetch, onClose }: {
                 : 
                 <>
                   {/* 一对一 */}
-                  {m.endsAt && compareDate(m.endsAt, new Date()) > 0 ? 
+                  {m.endsAt && compareDate(m.endsAt, new Date()) < 0 ? 
                     <Link onClick={() => setConfirmationModelProps({
                       message: "确定重新开始吗？",
                       confirm: () => updateMentorship(m.id, false, null)

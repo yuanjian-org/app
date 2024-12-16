@@ -62,12 +62,14 @@ export function diffInMinutes(from: Date | string, to: Date | string): number {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
 }
 
+/**
+ * Return -1 if d1 is earlier than d2. Treat undefined & null as earliest date.
+ */
 export function compareDate(
   d1: Date | string | undefined | null,
   d2: Date | string | undefined | null
 ) {
   if (d1 == d2) return 0;
-  // Treat undefined and null as earliest date
   if (!d1) return -1;
   if (!d2) return 1;
   return moment(d2).isAfter(moment(d1)) ? -1 : 1;
