@@ -53,7 +53,7 @@ export default function LandmarkDrawer ({ onClose, landmark }: {
       <DrawerBody>
         <Flex flexDirection="column" gap={componentSpacing}>
           <LandmarkDefinition definition={landmark.定义} />
-          <LandmarkAssessment landmark={landmark} />
+          <LandmarkAssessmentSelect landmark={landmark} />
           <LandmarkAssessmentHistory landmark={landmark} />
         </Flex>
       </DrawerBody> 
@@ -65,7 +65,7 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
   return <Text>{definition}</Text>;
 }
 
-function LandmarkAssessment ({ landmark }: {
+function LandmarkAssessmentSelect ({ landmark }: {
   landmark: Landmark;
 }) {
   const [user] = useUserContext();      
