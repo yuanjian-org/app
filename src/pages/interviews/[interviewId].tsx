@@ -1,10 +1,12 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { widePage } from 'AppPage';
 import Interview from 'components/Interview';
+import Loader from 'components/Loader';
 
 export default widePage(() => {
-  const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
+  const interviewId = parseQueryString(useRouter(), 'interviewId');
 
-  return <Interview interviewId={interviewId} hasTitle />;
+  return interviewId ? <Interview interviewId={interviewId} hasTitle /> : 
+    <Loader />;
 });

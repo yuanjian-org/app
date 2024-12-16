@@ -1,7 +1,7 @@
 import { trpcNext } from "../../trpc";
 import Loader from 'components/Loader';
 import {
-  formatUserName, parseQueryString, parseQueryStringOrUnknown
+  formatUserName, parseQueryString
 } from 'shared/strings';
 import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -33,14 +33,12 @@ import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
 
-/**
- * The userId query parameter can be a user id or "me". The latter is to
- * allow a convenient URL to manage users' own mentor profiles.
- */
 export default function Page() {
-  const userId = parseQueryStringOrUnknown(useRouter(), 'userId');
-  const { data } = trpcNext.users.getUserProfile.useQuery({ userId });
-  return <UserPage data={data} />;
+  const userId = parseQueryString(useRouter(), 'userId');
+
+  const { data } = userId ?
+    trpcNext.users.getUserProfile.useQuery({ userId }) : { data: undefined };
+  return data ? <UserPage data={data} /> : <Loader />;
 }
 Page.title = "用户资料";
 

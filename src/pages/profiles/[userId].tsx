@@ -29,7 +29,7 @@ import { toast } from "react-toastify";
 import { UserProfile } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
-  parseQueryStringOrUnknown, shaChecksum 
+  parseQueryString, shaChecksum 
 } from 'shared/strings';
 import { useRouter } from 'next/router';
 import User, { getUserUrl } from 'shared/User';
@@ -43,7 +43,7 @@ import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
 
 export default function Page() {
-  const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const queryUserId = parseQueryString(useRouter(), 'userId');
   const [me] = useUserContext();
   const userId = queryUserId === "me" ? me.id : queryUserId;
 
@@ -52,12 +52,13 @@ export default function Page() {
     refetchOnWindowFocus: false
   };
 
-  const { data: oldUser } = trpcNext.users.getFull.useQuery(userId, queryOpts);
+  const { data: oldUser } = userId ? trpcNext.users.getFull
+    .useQuery(userId, queryOpts) : { data: undefined };
   const [user, setUser] = useState<User>();
   useEffect(() => setUser(oldUser), [oldUser]);
 
-  const { data: old } = 
-    trpcNext.users.getUserProfile.useQuery({ userId }, queryOpts);
+  const { data: old } = userId ? trpcNext.users.getUserProfile
+    .useQuery({ userId }, queryOpts) : { data: undefined };
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
@@ -80,7 +81,7 @@ export default function Page() {
         await trpc.users.update.mutate(user);
       }
       if (!_.isEqual(old?.profile, profile)) {
-        await trpc.users.setUserProfile.mutate({ userId, profile });
+        await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
       }
       toast.success("保存成功。");
     } finally {
@@ -111,7 +112,7 @@ export default function Page() {
     <Divider my={componentSpacing} />
 
     <Picture
-      userId={userId}
+      userId={user.id}
       profile={profile}
       updateProfile={updateProfile}
       SaveButton={SaveButton}

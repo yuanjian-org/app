@@ -81,12 +81,9 @@ export function compareUUID(id1: string, id2: string): number {
   return id1.localeCompare(id2);
 }
 
-export function parseQueryStringOrUnknown(router: NextRouter, slug: string): string {
-  return parseQueryString(router, slug) ?? "unknown";
-}
-
-export function parseQueryString(router: NextRouter, slug: string): string | null {
-  return typeof router.query[slug] === 'string' ? router.query[slug] as string : null;
+export function parseQueryString(router: NextRouter, slug: string) {
+  return typeof router.query[slug] === 'string' ? router.query[slug] as string
+    : undefined;
 }
 
 export function toBase64UrlSafe(str: string): string {

@@ -27,21 +27,22 @@ import { defaultMentorCapacity, InterviewerPreference, MentorPreference,
 } from 'shared/User';
 import datePicker from 'theme/datePicker';
 import { isPermitted } from 'shared/Role';
-import { parseQueryStringOrUnknown } from 'shared/strings';
+import { parseQueryString } from 'shared/strings';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 
 export default function Page() {
-  const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const queryUserId = parseQueryString(useRouter(), 'userId');
   const [me] = useUserContext();
   const userId = queryUserId === "me" ? me.id : queryUserId;
 
-  const { data: user } = trpcNext.users.getFull.useQuery(userId);
+  const { data: user } = userId ? trpcNext.users.getFull.useQuery(userId) :
+    { data: undefined };
 
-  const { data: oldPref } = trpcNext.users.getUserPreference.useQuery(
-    { userId });
+  const { data: oldPref } = userId ? trpcNext.users.getUserPreference.useQuery(
+    { userId }) : { data: undefined };
   const [pref, setPref] = useState<UserPreference>();
   useEffect(() => setPref(oldPref), [oldPref]);
 
@@ -67,6 +68,7 @@ export default function Page() {
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
+      invariant(userId);
       await trpc.users.setUserPreference.mutate({ 
         userId,
         preference: pref || {}
