@@ -162,10 +162,11 @@ function MenteeTable({ users, refetch }: {
 
   const sortUser = useCallback((a: MinUser, b: MinUser) => {
     for (const order of sortOrder) {
+      let comp = 0;
       const sign = order.dir === "asc" ? 1 : -1;
       switch (order.key) {
         case "year":
-          let comp = (mentee2meta[a.id]?.year ?? "")
+          comp = (mentee2meta[a.id]?.year ?? "")
             .localeCompare(mentee2meta[b.id]?.year ?? "");
           if (comp !== 0) return sign * comp;
           break;
@@ -428,14 +429,12 @@ function LoadedMentorsCells({
   useEffect(() => {
     if (!setLatestTranscriptDate) return;
 
-    const now = new Date().toISOString();
-    const latest = transcriptRes.reduce((min, res) => {
-      if (res.data && compareDate(res.data, min) < 0) return res.data;
-      return min;
-    }, now);
-    if (latest !== now) {
-      setLatestTranscriptDate(mentee.id, latest);
-    }
+    const earliest = "2000-01-01T00:00:00.000+08:00";
+    const latest = transcriptRes.reduce((latest, res) => {
+      if (res.data && compareDate(latest, res.data) < 0) return res.data;
+      return latest;
+    }, earliest);
+    if (latest !== earliest) setLatestTranscriptDate(mentee.id, latest);
   }, [mentee.id, setLatestTranscriptDate, transcriptRes]);
 
   const transcriptTextAndColors = transcriptRes.map(t => 
