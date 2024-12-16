@@ -30,9 +30,10 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
       }
     }
     if (!_.isEqual(f, filter)) onChange(f);
-  }, [filter, fixedFilter, onChange, router]);
+  }, [filter, fixedFilter, onChange, router.query]);
 
   // We rely on url parameter parsing (useEffect above) to invoke onChange().
+  // TODO: use JSON string to encode the entire filter.
   const updateUrlParams = async (filter: UserFilter) => {
     const query: Record<string, any> = {};
     for (const key of Object.keys(filter))  {

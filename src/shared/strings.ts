@@ -63,11 +63,14 @@ export function diffInMinutes(from: Date | string, to: Date | string): number {
 }
 
 export function compareDate(
-  d1: Date | string | undefined,
-  d2: Date | string | undefined
+  d1: Date | string | undefined | null,
+  d2: Date | string | undefined | null
 ) {
-  if (d1 === d2) return 0;
-  return moment(d2).isAfter(moment(d1)) ? 1 : -1;
+  if (d1 == d2) return 0;
+  // Treat undefined and null as earliest date
+  if (!d1) return -1;
+  if (!d2) return 1;
+  return moment(d2).isAfter(moment(d1)) ? -1 : 1;
 }
 
 // Need to convert it to pinyin, otherwise the result 

@@ -60,6 +60,8 @@ import { TbClockOff, TbClock } from "react-icons/tb";
 import ConfirmationModal from 'components/ConfirmationModal';
 import MergeTokenCell from 'components/MergeTokenCell';
 import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
+import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
+import { LuChevronsUpDown } from "react-icons/lu";
 
 type Metadata = {
   // The year the mentee was accepted
@@ -68,6 +70,14 @@ type Metadata = {
 };
 
 type SetMetadata = (menteeId: string, metadata: Metadata) => void;
+
+type SortOrderKey = "year" | "source" | "name" | "mentorMeeting" | "transcript";
+type SortOrderDir = "asc" | "desc";
+
+type SortOrder = {
+  key: SortOrderKey,
+  dir: SortOrderDir,
+}[];
 
 export default widePage(() => {
   const fixedFilter: UserFilter = {
@@ -90,7 +100,7 @@ export default widePage(() => {
 
       {!users ? <Loader /> :
         <TableContainer>
-          <MenteeTable users={users} refetch={refetch}/>
+          <MenteeTable users={users} refetch={refetch} />
           <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
             共 <b>{users.length}</b> 名
           </Text>
@@ -104,45 +114,117 @@ function MenteeTable({ users, refetch }: {
   users: UserWithMergeInfo[],
   refetch: () => void
 }) {
-  const [mentee2meta, setMentee2meta] = useState(new Map<string, Metadata>()); 
+  // TODO: Break out into two variables and remove `Metadata` type
+  const [mentee2meta, setMentee2meta] = useState<Record<string, Metadata>>({}); 
+  // Use callback to avoid infinite re-rendering when mentee2meta is changed.
+  const setMetadata = useCallback((userId: string, metadata: Metadata) => {
+    setMentee2meta(current => ({
+      ...current,
+      [userId]: metadata,
+    }));
+  }, []);
 
-  // Use a callback to avoid infinite re-rendering when mentee2meta is changed.
-  const setMetadata = useCallback(
-    (userId: string, metadata: Metadata) => {
-      setMentee2meta(current => {
-        const newMap = new Map(current);
-        newMap.set(userId, metadata);
-        return newMap;
-      });
+  const [mentee2latestMentorMeetingDate, setMentee2latestMentorMeetingDate] =
+    useState<Record<string, string>>({}); 
+  const setLatestMentorMeetingDate = useCallback((userId: string, date: string) => {
+    setMentee2latestMentorMeetingDate(current => ({
+      ...current,
+      [userId]: date,
+    }));
+  }, []);
+
+  const [mentee2latestTranscriptDate, setMentee2latestTranscriptDate] =
+    useState<Record<string, string>>({}); 
+  const setLatestTranscriptDate = useCallback((userId: string, date: string) => {
+    setMentee2latestTranscriptDate(current => ({
+      ...current,
+      [userId]: date,
+    }));
+  }, []);
+
+  const defaultSortOrder: SortOrder = [
+    { key: "year", dir: "desc" },
+    { key: "source", dir: "asc" },
+    { key: "name", dir: "asc" },
+  ];
+  const sortOrderLength = defaultSortOrder.length;
+
+  const [sortOrder, setSortOrder] = useState<SortOrder>(defaultSortOrder);
+
+  const addSortOrder = (key: SortOrderKey, dir: SortOrderDir) => {
+    setSortOrder([
+      { key, dir },
+      ...sortOrder
+        .filter(o => o.key !== key)
+        .slice(0, sortOrderLength - 1)
+    ]);
+  };
+
+  const sortUser = useCallback((a: MinUser, b: MinUser) => {
+    for (const order of sortOrder) {
+      const sign = order.dir === "asc" ? 1 : -1;
+      switch (order.key) {
+        case "year":
+          let comp = (mentee2meta[a.id]?.year ?? "")
+            .localeCompare(mentee2meta[b.id]?.year ?? "");
+          if (comp !== 0) return sign * comp;
+          break;
+
+        case "source":
+          comp = compareChinese(
+            mentee2meta[a.id]?.source ?? "",
+            mentee2meta[b.id]?.source ?? "");
+          if (comp !== 0) return sign * comp;
+          break;
+
+        case "name":
+          comp = compareChinese(a.name, b.name);
+          if (comp !== 0) return sign * comp;
+          break;
+
+        case "mentorMeeting":
+          comp = compareDate(
+            mentee2latestMentorMeetingDate[a.id],
+            mentee2latestMentorMeetingDate[b.id]);
+          if (comp !== 0) return sign * comp;
+          break;
+
+        case "transcript":
+          comp = compareDate(
+            mentee2latestTranscriptDate[a.id],
+            mentee2latestTranscriptDate[b.id]);
+          if (comp !== 0) return sign * comp;
+          break;
+      }
     }
-  , []);
+    // Fall back to id comparison
+    return a.id.localeCompare(b.id);
+  }, [mentee2latestMentorMeetingDate, mentee2latestTranscriptDate, mentee2meta, 
+    sortOrder]);
 
   const sortedUsers = useMemo(() => {
-    return users.sort((a, b) => {
-      // Sort by acceptance year
-      let comp = (mentee2meta.get(b.id)?.year || "")
-        .localeCompare(mentee2meta.get(a.id)?.year || "");
-      if (comp !== 0) return comp;
-
-      // Then sort by source
-      comp = compareChinese(
-        mentee2meta.get(a.id)?.source || "",
-        mentee2meta.get(b.id)?.source || "");
-      if (comp !== 0) return comp;
-
-      // Then sort by name
-      return compareChinese(a.name, b.name);
-    });
-  }, [users, mentee2meta]); 
+    return users.sort(sortUser);
+  }, [users, sortUser]); 
  
   return <Table size="sm">
     <Thead>
       <Tr>
         <Th>状态</Th>
         <PointOfContactHeaderCells />
-        <MenteeHeaderCells />
-        <MentorshipHeaderCells />
-        <Th>最近导师交流</Th>
+        <MenteeHeaderCells
+          sortOrder={sortOrder}
+          addSortOrder={addSortOrder}
+        />
+        <MentorshipHeaderCells
+          sortOrder={sortOrder}
+          addSortOrder={addSortOrder}
+        />
+        <SortableHeaderCell
+          label="最近导师交流"
+          sortOrderKey="mentorMeeting"
+          sortOrder={sortOrder}
+          addSortOrder={addSortOrder}
+        />
         <Th>微信激活码</Th>
         <Th>拼音（便于查找）</Th>
       </Tr>
@@ -152,16 +234,48 @@ function MenteeTable({ users, refetch }: {
         key={u.id} 
         user={u} 
         refetch={refetch} 
-        setMetadata={setMetadata} 
+        setMetadata={setMetadata}
+        setLatestMentorMeetingDate={setLatestMentorMeetingDate}
+        setLatestTranscriptDate={setLatestTranscriptDate}
       />)}
     </Tbody>
   </Table>;
 }
 
-function MenteeRow({ user: u, refetch, setMetadata }: {
+function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
+  label: string,
+  sortOrderKey: SortOrderKey,
+  sortOrder: SortOrder,
+  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void
+}) {
+  const idx = sortOrder.findIndex(o => o.key === sortOrderKey);
+  const dir = idx >= 0 ? sortOrder[idx].dir : undefined;
+
+  return <Th
+    _hover={{ cursor: "pointer" }}
+    onClick={() => addSortOrder(sortOrderKey, dir === "asc" ? "desc" : "asc")}
+  >
+    <HStack spacing={0.5}>
+      <Text>{label}</Text>
+      {idx >= 0 && dir === "asc" && <FaAngleDoubleUp color='grey' />}
+      {idx >= 0 && dir === "desc" && <FaAngleDoubleDown color='grey' />}
+      {idx >= 0 && <Text color='grey'><sup>{idx + 1}</sup></Text>}
+      {/* Use black and not grey for the icon because it's thinner than
+          FaAngle* icons. */}
+      {idx < 0 && <LuChevronsUpDown />}
+    </HStack>
+  </Th>;
+}
+
+function MenteeRow({
+  user: u, refetch, setMetadata, setLatestMentorMeetingDate,
+  setLatestTranscriptDate
+}: {
   user: UserWithMergeInfo,
   refetch: () => void,
-  setMetadata: SetMetadata
+  setMetadata: SetMetadata,
+  setLatestMentorMeetingDate: (userId: string, date: string) => void,
+  setLatestTranscriptDate: (userId: string, date: string) => void
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -182,8 +296,11 @@ function MenteeRow({ user: u, refetch, setMetadata }: {
     <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
-    <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach />
-    <NewestMentorDiscussionCell menteeId={u.id} />
+    <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach
+      setLatestTranscriptDate={setLatestTranscriptDate}
+    />
+    <LatestMentorMeetingDateCell menteeId={u.id}
+      setData={setLatestMentorMeetingDate}/>
     <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
@@ -196,11 +313,29 @@ function getColorFromText(text: string): string {
   return colors[index];
 }
 
-function MenteeHeaderCells() {
+function MenteeHeaderCells({ sortOrder, addSortOrder }: {
+  sortOrder: SortOrder,
+  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void
+}) {
   return <>
-    <Th>录取届</Th>
-    <Th>来源</Th>
-    <Th>姓名</Th>
+    <SortableHeaderCell
+      label="录取届"
+      sortOrderKey="year"
+      sortOrder={sortOrder}
+      addSortOrder={addSortOrder}
+    />
+    <SortableHeaderCell
+      label="来源"
+      sortOrderKey="source"
+      sortOrder={sortOrder}
+      addSortOrder={addSortOrder}
+    />
+    <SortableHeaderCell
+      label="姓名"
+      sortOrderKey="name"
+      sortOrder={sortOrder}
+      addSortOrder={addSortOrder}
+    />
   </>;
 }
 
@@ -236,19 +371,26 @@ export function MenteeCells({ mentee, setMetadata } : {
   </>;
 }
 
-function MentorshipHeaderCells() {
+function MentorshipHeaderCells({ sortOrder, addSortOrder }: {
+  sortOrder: SortOrder,
+  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void
+}) {
   return <>
     <Th>导师</Th>
     <Th>资深导师</Th>
-    <Th>最近师生通话</Th>
+    <SortableHeaderCell label="最近通话" sortOrderKey="transcript"
+      sortOrder={sortOrder} addSortOrder={addSortOrder} />
   </>;
 }
 
-export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
+export function MentorshipCells({ mentee, addPinyin, showCoach, readonly,
+  setLatestTranscriptDate
+ } : {
   mentee: MinUser,
   addPinyin?: (names: string[]) => void,
   showCoach?: boolean,
   readonly?: boolean,
+  setLatestTranscriptDate?: (userId: string, date: string) => void
 }) {
   const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee
     .useQuery({
@@ -262,11 +404,12 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly } : {
 
   return <LoadedMentorsCells mentee={mentee} mentorships={data}
     addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
-    readonly={readonly} />;
+    readonly={readonly} setLatestTranscriptDate={setLatestTranscriptDate} />;
 }
 
 function LoadedMentorsCells({
-  mentee, mentorships, addPinyin, refetch, showCoach, readonly
+  mentee, mentorships, addPinyin, refetch, showCoach, readonly,
+  setLatestTranscriptDate
 } : {
   mentee: MinUser,
   mentorships: Mentorship[],
@@ -274,12 +417,27 @@ function LoadedMentorsCells({
   refetch: () => void,
   showCoach?: boolean,
   readonly?: boolean,
+  setLatestTranscriptDate?: (userId: string, date: string) => void
 }) {
   const transcriptRes = trpcNext.useQueries(t => {
-    return mentorships.map(m => t.transcripts.getMostRecentStartedAt({
+    return mentorships.map(m => t.transcripts.getLatestStartedAt({
       groupId: m.group.id
     }));
   });
+
+  useEffect(() => {
+    if (!setLatestTranscriptDate) return;
+
+    const now = new Date().toISOString();
+    const latest = transcriptRes.reduce((min, res) => {
+      if (res.data && compareDate(res.data, min) < 0) return res.data;
+      return min;
+    }, now);
+    if (latest !== now) {
+      setLatestTranscriptDate(mentee.id, latest);
+    }
+  }, [mentee.id, setLatestTranscriptDate, transcriptRes]);
+
   const transcriptTextAndColors = transcriptRes.map(t => 
     getDateTextAndColor(t.data, 45, 60, "尚未通话"));
 
@@ -350,14 +508,20 @@ function LoadedMentorsCells({
   </>;
 }
 
-export function NewestMentorDiscussionCell({ menteeId } : {
-  menteeId : string
+export function LatestMentorMeetingDateCell({ menteeId, setData } : {
+  menteeId : string,
+  setData?: (userId: string, date: string) => void
 }) {
-  const { data } = trpcNext.chat.getNewestMessageCreatedAt.useQuery({ 
+  const { data: date } = trpcNext.chat.getLatestMessageCreatedAt.useQuery({ 
     menteeId,
     prefix: mentorMeetingMessagePrefix,
   });
-  const textAndColor = getDateTextAndColor(data, 60, 90, "尚未交流");
+
+  useEffect(() => {
+    if (setData && date) setData(menteeId, date);
+  }, [date, menteeId, setData]);
+
+  const textAndColor = getDateTextAndColor(date, 60, 90, "尚未交流");
   return <Td color={textAndColor[1]}>{textAndColor[0]}</Td>;
 }
 
