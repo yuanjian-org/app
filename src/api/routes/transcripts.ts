@@ -39,7 +39,7 @@ const list = procedure
 /**
  * @return null if there is no transcript.
  */
-const getMostRecentStartedAt = procedure
+const getLatestStartedAt = procedure
   .use(authUser(["MentorCoach", "MentorshipManager"]))
   .input(z.object({
     groupId: z.string(),
@@ -52,7 +52,7 @@ const getMostRecentStartedAt = procedure
 
 export default router({
   list,
-  getMostRecentStartedAt,
+  getLatestStartedAt,
 });
 
 export async function getSummaries(transcriptId: string):
