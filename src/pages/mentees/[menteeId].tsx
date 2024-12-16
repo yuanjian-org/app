@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { formatUserName, parseQueryStringOrUnknown, prettifyDate } from "shared/strings";
+import { formatUserName, parseQueryString, prettifyDate } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
@@ -26,17 +26,18 @@ import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
 
 export default widePage(() => {
-  const userId = parseQueryStringOrUnknown(useRouter(), 'menteeId');
-  const { data: u } = trpcNext.users.get.useQuery(userId);
-  const { data: mentorships } = trpcNext.mentorships.listMentorshipsForMentee
-    .useQuery({
+  const userId = parseQueryString(useRouter(), 'menteeId');
+  const { data: u } = userId ? trpcNext.users.get.useQuery(userId) :
+    { data: undefined };
+  const { data: mentorships } = userId ? trpcNext.mentorships
+    .listMentorshipsForMentee.useQuery({
       menteeId: userId,
       includeEndedTransactional: false,
-    });
+    }) : { data: undefined };
 
-  return !u ? <Loader /> : <>
+  return (!u || !mentorships) ? <Loader /> : <>
     <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs mentee={u} mentorships={mentorships || []} />
+    <MenteeTabs mentee={u} mentorships={mentorships} />
   </>;
 });
 

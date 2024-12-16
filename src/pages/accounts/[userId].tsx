@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { useUserContext } from 'UserContext';
 import {
-  parseQueryStringOrUnknown
+  parseQueryString
 } from 'shared/strings';
 import { useRouter } from 'next/router';
 import { RoleProfiles } from 'shared/Role';
@@ -30,11 +30,12 @@ import { EnterTokenMergeModal, MergeCodeFormat } from 'components/MergeModals';
 export const accountPageTitle = "账号与安全";
 
 export default function Page() {
-  const queryUserId = parseQueryStringOrUnknown(useRouter(), 'userId');
+  const queryUserId = parseQueryString(useRouter(), 'userId');
   const [me] = useUserContext();
   const userId = queryUserId === "me" ? me.id : queryUserId;
 
-  const { data: user } = trpcNext.users.getFull.useQuery(userId);
+  const { data: user } = userId ?
+    trpcNext.users.getFull.useQuery(userId) : { data: undefined };
 
   const [isMerging, setIsMerging] = useState(false);
 

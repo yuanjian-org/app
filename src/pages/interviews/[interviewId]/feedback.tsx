@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { Flex, Grid, GridItem,
@@ -24,8 +24,10 @@ import { widePage } from 'AppPage';
 import { InterviewType } from 'shared/InterviewType';
 
 export default widePage(() => {
-  const interviewId = parseQueryStringOrUnknown(useRouter(), 'interviewId');
-  const { data } = trpcNext.interviews.get.useQuery({ interviewId });
+  const interviewId = parseQueryString(useRouter(), 'interviewId');
+  const { data } = interviewId ?
+    trpcNext.interviews.get.useQuery({ interviewId }) : { data: undefined };
+
   const [me] = useUserContext();
 
   const interviewerTestPassed = () => {

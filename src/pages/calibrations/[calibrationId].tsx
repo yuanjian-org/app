@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { parseQueryStringOrUnknown } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -7,8 +7,9 @@ import Calibration from 'components/Calibration';
 import { widePage } from 'AppPage';
 
 export default widePage(() => {
-  const calibrationId = parseQueryStringOrUnknown(useRouter(), 'calibrationId');
-  const { data: calibration } = trpcNext.calibrations.get.useQuery(calibrationId);
+  const calibrationId = parseQueryString(useRouter(), 'calibrationId');
+  const { data: calibration } = calibrationId ? 
+    trpcNext.calibrations.get.useQuery(calibrationId) : { data: undefined };
 
   return !calibration ? <Loader /> : <>
     <PageBreadcrumb current={`面试讨论：${calibration.name}`} />
