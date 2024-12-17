@@ -151,14 +151,14 @@ function MenteeTable({ users, refetch }: {
 
   const [sortOrder, setSortOrder] = useState<SortOrder>(defaultSortOrder);
 
-  const addSortOrder = (key: SortOrderKey, dir: SortOrderDir) => {
+  const addSortOrder = useCallback((key: SortOrderKey, dir: SortOrderDir) => {
     setSortOrder([
       { key, dir },
       ...sortOrder
         .filter(o => o.key !== key)
         .slice(0, sortOrderLength - 1)
     ]);
-  };
+  }, [sortOrder, sortOrderLength]);
 
   const sortUser = useCallback((a: MinUser, b: MinUser) => {
     for (const order of sortOrder) {
@@ -425,20 +425,25 @@ function LoadedMentorsCells({
       groupId: m.group.id
     }));
   });
+  const transcriptData = transcriptRes.map(t => t.data);
 
   useEffect(() => {
     if (!setLatestTranscriptDate) return;
 
     const earliest = "2000-01-01T00:00:00.000+08:00";
-    const latest = transcriptRes.reduce((latest, res) => {
-      if (res.data && compareDate(latest, res.data) < 0) return res.data;
+    const latest = transcriptData.reduce((latest, data) => {
+      if (data && compareDate(latest, data) < 0) return data;
       return latest;
     }, earliest);
+    invariant(latest);
     if (latest !== earliest) setLatestTranscriptDate(mentee.id, latest);
-  }, [mentee.id, setLatestTranscriptDate, transcriptRes]);
 
-  const transcriptTextAndColors = transcriptRes.map(t => 
-    getDateTextAndColor(t.data, 45, 60, "尚未通话"));
+    // https://stackoverflow.com/a/59468261
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mentee.id, setLatestTranscriptDate, JSON.stringify(transcriptData)]);
+
+  const transcriptTextAndColors = transcriptData.map(t => 
+    getDateTextAndColor(t, 45, 60, "尚未通话"));
 
   const displayedMentorships = mentorships
     .filter(m => !isEndedTransactionalMentorship(m));
