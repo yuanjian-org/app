@@ -25,7 +25,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
     script.onload = async () => {
       if (containerRef.current && window.WxLogin) {
         const redirectUri =
-          new URL(`${window.location.origin}/api/auth/callback/wechat-qr`);
+          new URL(`${window.location.origin}/api/auth/callback/wechat-iframe-qr`);
         redirectUri.searchParams.append('callbackUrl', callbackUrl);
 
         new window.WxLogin({
