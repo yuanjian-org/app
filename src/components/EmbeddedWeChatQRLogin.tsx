@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-export default function WeChatQRLogin({ appid, callbackUrl }: {
+export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
   appid: string;
   callbackUrl: string;
 }) {
@@ -25,7 +25,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
     script.onload = async () => {
       if (containerRef.current && window.WxLogin) {
         const redirectUri =
-          new URL(`${window.location.origin}/api/auth/callback/wechat-iframe-qr`);
+          new URL(`${window.location.origin}/api/auth/callback/embedded-wechat-qr`);
         redirectUri.searchParams.append('callbackUrl', callbackUrl);
 
         new window.WxLogin({
@@ -70,7 +70,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
         alignItems="center"
         justifyContent="center"
         opacity={isLoading ? 1 : 0}
-        transition="opacity 0.3s"
+        transition="opacity 0.8s"
         pointerEvents={isLoading ? "auto" : "none"}
         style={{ minWidth: "300px", minHeight: "170px" }}
       >
@@ -81,7 +81,7 @@ export default function WeChatQRLogin({ appid, callbackUrl }: {
         ref={containerRef}
         height="100%"
         opacity={isLoading ? 0 : 1}
-        transition="opacity 0.3s"
+        transition="opacity 0.8s"
       />
     </Box>
   );
