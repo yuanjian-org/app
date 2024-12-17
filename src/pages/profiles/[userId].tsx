@@ -18,6 +18,7 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
+  Box,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -41,6 +42,8 @@ import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
+import { CropImageModal } from 'components/CropImageModal';
+import { FullWidthImageSquare } from 'components/UserCards';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -62,7 +65,8 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
-  const updateProfile = (k: keyof UserProfile, v: string) => {
+  const updateProfile = (k: keyof UserProfile, v: string | 
+    { x: number; y: number; zoom: number }) => {
     const updated = {
       ...profile,
       [k]: v,
@@ -243,10 +247,12 @@ function Basic({ user, profile, setUser, setProfile }: {
 function Picture({ userId, profile, updateProfile, SaveButton }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
+  updateProfile: (k: keyof UserProfile, v: string | 
+    { x: number; y: number; zoom: number }) => void,
   SaveButton: React.ComponentType,
 }) {
   const [me] = useUserContext();
+  const [isCropping, setIsCropping] = useState(false);
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -258,15 +264,36 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
     [userId, profile]
   );
 
+  const updateImageParams = (x: number, y: number, zoom: number) => {
+    updateProfile('照片参数', { x, y, zoom }); 
+  };
+
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      {profile.照片链接 && <Image
-        src={profile.照片链接}
-        alt="照片"
-        maxW='300px'
-        my={componentSpacing}
-      />}
+      {!profile.照片参数 && <FullWidthImageSquare profile={profile}/>}
+      {profile.照片链接 && profile.照片参数 &&
+        <Box
+          position="relative"
+          width="300px"
+          height="300px"
+          overflow="hidden"
+        >
+          <Image
+            width="300px"
+            height="300px"
+            position="absolute"
+            transform={`
+              translate(${(profile.照片参数.x)}px, 
+                        ${(profile.照片参数.y)}px)
+              scale(${profile.照片参数.zoom})
+            `}
+            transformOrigin="center center"
+            objectFit="contain"
+            src={profile.照片链接}
+            alt="照片"
+          />
+      </Box>}
 
       {uploadToken && <>
         <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
@@ -276,6 +303,17 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
             <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
           }
         </Link>
+        {profile.照片链接 && 
+          <HStack onClick={() => setIsCropping(true)}>
+            <MdChangeCircle /><Text>修改图像</Text>
+          </HStack>
+        }
+        {profile.照片链接 && isCropping && <CropImageModal 
+          imageUrl={profile.照片链接}
+          onClose={() => setIsCropping(false)}
+          onSave={updateImageParams}          
+          imageParams={profile.照片参数}
+        />}
       </>}
 
       <FormHelperTextWithMargin>

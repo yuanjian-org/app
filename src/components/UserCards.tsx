@@ -321,7 +321,7 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-function FullWidthImageSquare({ profile }: {
+export function FullWidthImageSquare({ profile }: {
   profile: UserProfile | null
 }) {
   return <Box
