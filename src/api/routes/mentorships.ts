@@ -92,9 +92,9 @@ const update = procedure
 });
 
 /**
- * If the current user is a MentorCoach, return all mentorships of the mentee.
- * Otherwise, return only the mentorship of the mentee where the current user
- * is the mentor.
+ * If the current user is a MentorCoach or MentorshipManager, return all
+ * mentorships of the mentee. Otherwise, return only the mentorship of the
+ * mentee where the current user is the mentor.
  */
 const listMentorshipsForMentee = procedure
   .use(authUser())
@@ -103,14 +103,15 @@ const listMentorshipsForMentee = procedure
     includeEndedTransactional: z.boolean(),
   }))
   .output(z.array(zMentorship))
-  .query(async ({ ctx, input: { menteeId, includeEndedTransactional } }) => 
+  .query(async ({ ctx: { user }, input: { menteeId, includeEndedTransactional } }) => 
 {
+  const isPrivileged = isPermitted(user.roles, ["MentorCoach",
+    "MentorshipManager"]);
+
   return (await db.Mentorship.findAll({
     where: {
       menteeId,
-      ...isPermitted(ctx.user.roles, "MentorCoach") ? {} : {
-        mentorId: ctx.user.id
-      }
+      ...isPrivileged ? {} : { mentorId: user.id }
     },
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
