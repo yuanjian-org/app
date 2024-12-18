@@ -20,7 +20,7 @@ import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
+import { MinUserAndProfile, UserProfile, StringUserProfile, ImageParams } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
@@ -260,9 +260,9 @@ function UserCardForDesktop({
       <Text>点赞后，{name}会收到Email哦</Text>
     </Box>;
 
-  return <UserCardContainer user={user} type={type}>
+  return <UserCardContainer user={user} type={type} width="300px">
 
-    <FullWidthImageSquare profile={p} />
+    <FullWidthImageSquare profile={p} imageParams={p?.照片参数} />
 
     <CardHeader>
       <Heading size='md' color="gray.600">
@@ -321,24 +321,33 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-export function FullWidthImageSquare({ profile }: {
-  profile: UserProfile | null
+export function FullWidthImageSquare({ 
+  profile, 
+  imageParams = { x: 0, y: 0, zoom: 1 }, 
+}: {
+  profile: UserProfile | null;
+  imageParams?: ImageParams
 }) {
   return <Box
     position="relative"
-    width="100%"
+    width="300px"
+    height="300px"
     // This hack enforces a square aspect ratio for the container. The
     // percentage is based on the width, so paddingBottom="100%" ensures the
     // height equals the width.
-    paddingBottom="100%"
+    overflow="hidden"
   >
     <Image
       position="absolute"
-      top="0"
-      left="0"
-      width="100%"
-      height="100%"
-      objectFit='cover'
+      width="300px"
+      height="300px"
+      transformOrigin="center center"
+      transform={`
+      translate(${(imageParams.x)}px, 
+                ${(imageParams.y)}px)
+      scale(${imageParams.zoom})
+     `}
+      objectFit="contain"
       src={
         profile?.照片链接 ? profile.照片链接 :
         profile?.性别 == "男" ? "/img/placeholder-male.png" :
@@ -380,8 +389,8 @@ function UserCardForMobile({
         // Align content to the left
         align="start"
       >
-        <Box width="100px">
-          <FullWidthImageSquare profile={p} />
+        <Box width="300px">
+          <FullWidthImageSquare profile={p} imageParams={p?.照片参数}/>
         </Box>
 
         <VStack
