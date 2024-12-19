@@ -6,7 +6,6 @@ import {
 import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
-  Image,
   Text,
   Table,
   Tr,
@@ -26,7 +25,7 @@ import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useEffect, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
-import { visibleUserProfileFields } from "components/UserCards";
+import { FullWidthImageSquare, visibleUserProfileFields } from "components/UserCards";
 import { useUserContext } from "UserContext";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
@@ -59,10 +58,8 @@ export function UserPage({ data }: {
     >
       <VStack>
         {data.profile?.照片链接 &&
-          <Image
-            maxW='300px'
-            src={data.profile.照片链接}
-            alt="照片"
+          <FullWidthImageSquare profile={data.profile} 
+            imageParams={data.profile.照片参数}
           />
         }
         <UserUrl u={data.user} />
