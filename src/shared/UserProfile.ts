@@ -24,7 +24,6 @@ export const zStringUserProfile = z.object({
   // Unused / deprecated
   '擅长辅导领域': zStr,
 });
-
 export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
 
 export const zImageParams = z.object({
@@ -32,13 +31,11 @@ export const zImageParams = z.object({
   y: z.number(),
   zoom: z.number(),
 });
-
 export type ImageParams = z.TypeOf<typeof zImageParams>;
 
 export const zUserProfile = zStringUserProfile.merge(z.object({
   '照片参数': zImageParams.optional(),
 }));
-
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
 
 export const zMinUserAndProfile = z.object({

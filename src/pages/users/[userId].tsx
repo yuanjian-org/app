@@ -57,11 +57,8 @@ export function UserPage({ data }: {
       direction={{ base: "column", [breakpoint]: "row" }}
     >
       <VStack>
-        {data.profile?.照片链接 &&
-          <FullWidthImageSquare profile={data.profile} 
-            imageParams={data.profile.照片参数}
-          />
-        }
+        <FullWidthImageSquare profile={data.profile} 
+          imageParams={data.profile.照片参数} size={300} />
         <UserUrl u={data.user} />
       </VStack>
       {data.profile && <ProfileTable

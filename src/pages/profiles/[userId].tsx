@@ -17,7 +17,6 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
-  Flex,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -264,16 +263,12 @@ function Picture({ userId, profile, updateProfile, SaveButton, save }: {
     [userId, profile]
   );
 
-  const updateImageParams = (x: number, y: number, zoom: number) => {
-    updateProfile('照片参数', { x, y, zoom }); 
-  };
-
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      <FullWidthImageSquare profile={profile} imageParams={profile.照片参数} />
-
-      {uploadToken && <Flex gap={componentSpacing}>
+      <FullWidthImageSquare profile={profile} imageParams={profile.照片参数} 
+          size={300} />
+      {uploadToken && <>
         {profile.照片链接 && <Link> 
           <HStack onClick={() => setIsCropping(true)}>
             <MdCrop /><Text>剪裁照片</Text>
@@ -282,7 +277,7 @@ function Picture({ userId, profile, updateProfile, SaveButton, save }: {
         {profile.照片链接 && isCropping && <CropImageModal 
           imageUrl={profile.照片链接}
           onClose={() => setIsCropping(false)}
-          updateImageParams={updateImageParams}
+          updateImageParams={(x, y, zoom) => updateProfile('照片参数', { x, y, zoom })}
           imageParams={profile.照片参数}
           save={save}
         />}
@@ -293,7 +288,7 @@ function Picture({ userId, profile, updateProfile, SaveButton, save }: {
             <HStack><MdCloudUpload /><Text>上传照片</Text></HStack>
           }
         </Link>
-      </Flex>}
+      </>}
 
       <FormHelperTextWithMargin>
         建议选择面部清晰、不戴墨镜的近照

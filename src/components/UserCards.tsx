@@ -260,8 +260,7 @@ function UserCardForDesktop({
       <Text>点赞后，{name}会收到Email哦</Text>
     </Box>;
 
-  return <UserCardContainer user={user} type={type} width="300px">
-
+  return <UserCardContainer user={user} type={type}>
     <FullWidthImageSquare profile={p} imageParams={p?.照片参数} />
 
     <CardHeader>
@@ -324,37 +323,43 @@ function TruncatedText({ children }: PropsWithChildren) {
 export function FullWidthImageSquare({ 
   profile, 
   imageParams = { x: 0, y: 0, zoom: 1 }, 
+  size,
 }: {
   profile: UserProfile | null;
-  imageParams?: ImageParams
+  imageParams?: ImageParams,
+  size?: number,
 }) {
-  return <Box
-    position="relative"
-    width="300px"
-    height="300px"
-    // This hack enforces a square aspect ratio for the container. The
-    // percentage is based on the width, so paddingBottom="100%" ensures the
-    // height equals the width.
-    overflow="hidden"
-  >
-    <Image
-      position="absolute"
-      width="300px"
-      height="300px"
-      transformOrigin="center center"
-      transform={`
-      translate(${(imageParams.x)}px, 
-                ${(imageParams.y)}px)
-      scale(${imageParams.zoom})
-     `}
-      objectFit="contain"
-      src={
-        profile?.照片链接 ? profile.照片链接 :
-        profile?.性别 == "男" ? "/img/placeholder-male.png" :
-        "/img/placeholder-female.png"
-      }
-      alt="照片"
-    />
+  const offset = 300 / (size ?? 300);
+  return <Box width={`${size}px`}>
+    <Box
+      position="relative"
+      width="100%"
+      // This hack enforces a square aspect ratio for the container. The
+      // percentage is based on the width, so paddingBottom="100%" ensures the
+      // height equals the width.
+      paddingBottom="100%"
+      overflow="hidden" 
+    >
+      <Image
+        position="absolute"
+        top="0"
+        left="0"
+        width="100%"
+        height="100%"
+        objectFit="contain"
+        transformOrigin="center center"
+        transform={
+          `translate(${imageParams.x / offset}px, ${imageParams.y / offset}px)
+            scale(${imageParams.zoom})
+          `}
+        src={
+          profile?.照片链接 ? profile.照片链接 :
+          profile?.性别 == "男" ? "/img/placeholder-male.png" :
+          "/img/placeholder-female.png"
+        }
+        alt="照片"
+      />
+    </Box>
   </Box>;
 }
 
@@ -389,10 +394,7 @@ function UserCardForMobile({
         // Align content to the left
         align="start"
       >
-        <Box width="300px">
-          <FullWidthImageSquare profile={p} imageParams={p?.照片参数}/>
-        </Box>
-
+        <FullWidthImageSquare profile={p} imageParams={p?.照片参数} size={100} />
         <VStack
           ml={componentSpacing}
           // Align content to the left

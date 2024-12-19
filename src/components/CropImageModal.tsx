@@ -68,9 +68,9 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
             onCropChange={updateCrop}
             onZoomChange={updateZoom}
             showGrid={true}
-            cropShape="rect"
+            aspect={1 / 1}
             cropSize={{ width: 300, height: 300 }}
-          />
+          />;
         </Box>
         <input
           type="range"
