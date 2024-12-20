@@ -6,6 +6,7 @@ import {
   ListItem,
   Wrap,
   WrapItem,
+  Heading,
 } from '@chakra-ui/react';
 import { hash } from 'shared/strings';
 import { trpcNext } from "trpc";
@@ -19,7 +20,7 @@ import { useUserContext } from 'UserContext';
 import UserCards, { MentorCardType } from "components/UserCards";
 
 export default widePage(() =>
-  <MentorPage type="TransactionalMentor" title="预约不定期导师" />,
+  <MentorPage type="TransactionalMentor" title="根据话题预约" />,
   "预约不定期导师");
 
 export function MentorPage({ type, title }: {
@@ -74,7 +75,7 @@ export function MentorPage({ type, title }: {
       :
       <>
         {/* 不定期导师说明文字 */}
-        <Text>欢迎你随时随地预约任何一位不定期导师，交流任何你关心的话题，比如：</Text>
+        <Text>欢迎你随时预约交流任何你关心的话题，比如：</Text>
 
         <UnorderedList>
           <ListItem>简历诊断与模拟面试</ListItem>
@@ -91,9 +92,15 @@ export function MentorPage({ type, title }: {
             </Button>
           </WrapItem>
           <WrapItem>
-            或者，预约你选中的导师：
+            
           </WrapItem>
         </Wrap>
+
+        <Text>或者：</Text>
+
+        <Heading size="md" color="gray.600" mt={componentSpacing}>
+          预约指定导师
+        </Heading>
       </>}
     </VStack>
 
