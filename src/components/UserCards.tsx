@@ -20,7 +20,7 @@ import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
+import { MinUserAndProfile, UserProfile, StringUserProfile, ImageParams } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
@@ -261,8 +261,7 @@ function UserCardForDesktop({
     </Box>;
 
   return <UserCardContainer user={user} type={type}>
-
-    <FullWidthImageSquare profile={p} />
+    <FullWidthImageSquare profile={p} imageParams={p?.照片参数} />
 
     <CardHeader>
       <Heading size='md' color="gray.600">
@@ -321,31 +320,46 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-function FullWidthImageSquare({ profile }: {
-  profile: UserProfile | null
+export function FullWidthImageSquare({ 
+  profile, 
+  imageParams = { x: 0, y: 0, zoom: 1 }, 
+  size,
+}: {
+  profile: UserProfile | null;
+  imageParams?: ImageParams,
+  size?: number,
 }) {
-  return <Box
-    position="relative"
-    width="100%"
-    // This hack enforces a square aspect ratio for the container. The
-    // percentage is based on the width, so paddingBottom="100%" ensures the
-    // height equals the width.
-    paddingBottom="100%"
-  >
-    <Image
-      position="absolute"
-      top="0"
-      left="0"
+  const offset = 300 / (size ?? 300);
+  return <Box width={`${size}px`}>
+    <Box
+      position="relative"
       width="100%"
-      height="100%"
-      objectFit='cover'
-      src={
-        profile?.照片链接 ? profile.照片链接 :
-        profile?.性别 == "男" ? "/img/placeholder-male.png" :
-        "/img/placeholder-female.png"
-      }
-      alt="照片"
-    />
+      // This hack enforces a square aspect ratio for the container. The
+      // percentage is based on the width, so paddingBottom="100%" ensures the
+      // height equals the width.
+      paddingBottom="100%"
+      overflow="hidden" 
+    >
+      <Image
+        position="absolute"
+        top="0"
+        left="0"
+        width="100%"
+        height="100%"
+        objectFit="contain"
+        transformOrigin="center center"
+        transform={
+          `translate(${imageParams.x / offset}px, ${imageParams.y / offset}px)
+            scale(${imageParams.zoom})
+          `}
+        src={
+          profile?.照片链接 ? profile.照片链接 :
+          profile?.性别 == "男" ? "/img/placeholder-male.png" :
+          "/img/placeholder-female.png"
+        }
+        alt="照片"
+      />
+    </Box>
   </Box>;
 }
 
@@ -380,10 +394,7 @@ function UserCardForMobile({
         // Align content to the left
         align="start"
       >
-        <Box width="100px">
-          <FullWidthImageSquare profile={p} />
-        </Box>
-
+        <FullWidthImageSquare profile={p} imageParams={p?.照片参数} size={100} />
         <VStack
           ml={componentSpacing}
           // Align content to the left

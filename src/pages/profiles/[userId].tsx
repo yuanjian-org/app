@@ -9,7 +9,6 @@ import {
   Link,
   Divider,
   Heading,
-  Image,
   HStack,
   Tag,
   Stack,
@@ -26,7 +25,7 @@ import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
-import { UserProfile } from 'shared/UserProfile';
+import { UserProfile, ImageParams } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
   parseQueryString, shaChecksum 
@@ -37,10 +36,12 @@ import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/upload';
-import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
+import { MdChangeCircle, MdCloudUpload, MdCrop } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
+import { CropImageModal } from 'components/CropImageModal';
+import { FullWidthImageSquare } from 'components/UserCards';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -62,12 +63,13 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
-  const updateProfile = (k: keyof UserProfile, v: string) => {
+  const updateProfile = (k: keyof UserProfile, v: string | ImageParams) => {
     const updated = {
       ...profile,
       [k]: v,
     };
     if (!v) delete updated[k];
+    if (k === "照片链接" && !v) delete updated["照片参数"];
     setProfile(updated);
   };
 
@@ -116,6 +118,7 @@ export default function Page() {
       profile={profile}
       updateProfile={updateProfile}
       SaveButton={SaveButton}
+      save={save}
     />
 
     <Divider my={componentSpacing} />
@@ -240,13 +243,15 @@ function Basic({ user, profile, setUser, setProfile }: {
   </>;
 }
 
-function Picture({ userId, profile, updateProfile, SaveButton }: {
+function Picture({ userId, profile, updateProfile, SaveButton, save }: {
   userId: string,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
+  updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
+  save: () => void,
 }) {
   const [me] = useUserContext();
+  const [isCropping, setIsCropping] = useState(false);
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -261,14 +266,21 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      {profile.照片链接 && <Image
-        src={profile.照片链接}
-        alt="照片"
-        maxW='300px'
-        my={componentSpacing}
-      />}
-
+      <FullWidthImageSquare profile={profile} imageParams={profile.照片参数} 
+          size={300} />
       {uploadToken && <>
+        {profile.照片链接 && <Link> 
+          <HStack onClick={() => setIsCropping(true)}>
+            <MdCrop /><Text>剪裁照片</Text>
+          </HStack>
+        </Link>}
+        {profile.照片链接 && isCropping && <CropImageModal 
+          imageUrl={profile.照片链接}
+          onClose={() => setIsCropping(false)}
+          updateImageParams={(x, y, zoom) => updateProfile('照片参数', { x, y, zoom })}
+          imageParams={profile.照片参数}
+          save={save}
+        />}
         <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
           {profile.照片链接 ? 
             <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
