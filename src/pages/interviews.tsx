@@ -132,7 +132,7 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
   }, [applicants, sources]);
 
   return <TableContainer>
-    <Text marginBottom={sectionSpacing} color="grey" fontSize="sm">
+    <Text marginBottom={sectionSpacing} color="gray" fontSize="sm">
       点击候选人以编辑面试官和面试讨论组：
     </Text>
 
@@ -158,11 +158,11 @@ function Applicants({ type, applicants, interviews, refetchInterviews,
       </Tbody>
     </Table>
 
-    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
+    <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
       共 <b>{applicants.length}</b> 名
     </Text>
 
-    <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
+    <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
       <CheckIcon /> 表示已经填写了面试反馈的面试官。
     </Text>
   </TableContainer>;

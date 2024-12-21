@@ -88,7 +88,7 @@ function Message({ message: m }: {
         <Text
           display={{ base: "none", [breakpoint]: "block" }}
           fontSize="sm"
-          color="grey"
+          color="gray"
         >
           {createdAt}创建
           {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
@@ -98,7 +98,7 @@ function Message({ message: m }: {
         <Text
           display={{ base: "block", [breakpoint]: "none" }}
           fontSize="sm"
-          color="grey"
+          color="gray"
         >
           {createdAt}创建
           {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
@@ -176,7 +176,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
         确认
       </Button>
 
-      <Button onClick={() => onClose()} variant="ghost" color="grey">
+      <Button onClick={() => onClose()} variant="ghost" color="gray">
         取消
       </Button>
 

@@ -92,7 +92,7 @@ function InterviewTabPanel({ menteeId }: {
   return <TabPanel>
     {isLoading ? <Loader /> : 
       interviewId ? <Interview interviewId={interviewId} readonly /> :
-        <Text color="grey">没有面试记录。</Text>
+        <Text color="gray">没有面试记录。</Text>
     }
   </TabPanel>;
 }
@@ -171,7 +171,7 @@ function MentorshipPanel({ mentorship: m }: {
 //     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
 //   };
 
-//   return !assessments ? <Loader /> : !assessments.length ? <Text color="grey">无反馈内容。</Text> : <Table>
+//   return !assessments ? <Loader /> : !assessments.length ? <Text color="gray">无反馈内容。</Text> : <Table>
 //     <Tbody>
 //       {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
 //         {/* Weird that Asseessment.createdAt must have optional() to suppress ts's complaint */}

@@ -190,7 +190,7 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
                   <Tag
                     color="white"
                     bgColor={
-                      r == 'Banned' ? "grey" :
+                      r == 'Banned' ? "gray" :
                       rp.privilegedUserDataAccess ? "orange" : "brand.c"
                     } 
                   >

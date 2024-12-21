@@ -101,7 +101,7 @@ export default widePage(() => {
       {!users ? <Loader /> :
         <TableContainer>
           <MenteeTable users={users} refetch={refetch} />
-          <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
+          <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
             共 <b>{users.length}</b> 名
           </Text>
         </TableContainer>
@@ -258,10 +258,10 @@ function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
   >
     <HStack spacing={0.5}>
       <Text>{label}</Text>
-      {idx >= 0 && dir === "asc" && <FaAngleDoubleUp color='grey' />}
-      {idx >= 0 && dir === "desc" && <FaAngleDoubleDown color='grey' />}
-      {idx >= 0 && <Text color='grey'><sup>{idx + 1}</sup></Text>}
-      {/* Use black and not grey for the icon because it's thinner than
+      {idx >= 0 && dir === "asc" && <FaAngleDoubleUp color='gray' />}
+      {idx >= 0 && dir === "desc" && <FaAngleDoubleDown color='gray' />}
+      {idx >= 0 && <Text color='gray'><sup>{idx + 1}</sup></Text>}
+      {/* Use black and not gray for the icon because it's thinner than
           FaAngle* icons. */}
       {idx < 0 && <LuChevronsUpDown />}
     </HStack>
@@ -543,7 +543,7 @@ export function getDateTextAndColor(date: string | null | undefined,
       daysAgo < redThreshold ? "yellow.600" : "brown";
   } else if (date === null) {
     text = nullText;
-    color = "grey";
+    color = "gray";
   }
   return [text, color];
 }

@@ -154,7 +154,7 @@ function GroupTagOrName({ group }: { group: Group }) {
               "FIXME" }
       </Tag>
       :      
-      <Text color='grey' fontSize='sm'>
+      <Text color='gray' fontSize='sm'>
         {formatGroupName(group.name, group.users.length)}
       </Text>
     }
