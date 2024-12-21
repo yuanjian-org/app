@@ -24,7 +24,7 @@ import NextLink from 'next/link';
 export default widePage(() => {
   const [me] = useUserContext();
 
-  const { data } = trpcNext.users.listMentorProfiles.useQuery();
+  const { data } = trpcNext.users.listMentorProfileAndTraitsPrefs.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
 
   const { data: applicant } = trpcNext.users.getApplicant.useQuery({
@@ -38,7 +38,7 @@ export default widePage(() => {
     const filtered: UserProfileAndScore[] = data
       .filter(m => m.relational)
       .map(m => {
-        const score = computeTraitsMatchingScore(
+        const { score } = computeTraitsMatchingScore(
           profile,
           applicant.application,
           m.traitsPreference,
@@ -127,13 +127,13 @@ function TraitsLinkAndModal({ setProfile }: {
 
   return <>
     <Text>
-      <b>标有
+      <b>【提示】</b>标有
       <MentorStar mx={1.5} />
-      的是推荐导师。</b>他们的匹配偏好与你的
+      的导师表示其匹配偏好与你的
       <Link onClick={() => setIsModalOpen(true)}>
         个人特质
       </Link>
-      有较高的契合。
+      契合度较高。推荐仅供参考，选择权在你。
     </Text>
 
     {isModalOpen && <TraitsModal onClose={() => {

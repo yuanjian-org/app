@@ -1,6 +1,9 @@
 import { 
+  hardTraitPrefAbsValue,
   isTraitsComplete,
-  maxTraitAbsValue, 
+  maxTraitAbsValue,
+  softTraitPrefAbsValue,
+  TraitsPreference, 
 } from "shared/Traits";
 import { Traits } from "shared/Traits";
 import ModalWithBackdrop from "./ModalWithBackdrop";
@@ -18,6 +21,8 @@ import {
   SliderThumb,
   SliderMark,
   Textarea,
+  WrapItem,
+  Tag,
 } from "@chakra-ui/react";
 import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import invariant from "tiny-invariant";
@@ -26,7 +31,7 @@ import trpc, { trpcNext } from "trpc";
 import { useUserContext } from "UserContext";
 import _ from "lodash";
 
-export const traitsType: {
+export const traitsProfiles: {
   title: string, 
   field: keyof Traits, 
   labels: string[] 
@@ -40,6 +45,42 @@ export const traitsType: {
   { title: "职业", field: "创业vs大厂", labels: ["创业", "就业"] },
   { title: "学术", field: "科研vs非科研", labels: ["科研", "非科研"] },
 ];
+
+export const traitsPrefProfiles: { 
+  title: string, 
+  field: keyof TraitsPreference, 
+  labels: string[] 
+}[] = [
+  { title: "性别", field: "男vs女", labels: ["男生", "女生", "仅匹配男生", "仅匹配女生"] },
+  { title: "年级", field: "低年级vs高年级", labels: ["低年级", "高年级"] },
+  ...traitsProfiles,
+];
+
+// The value of each label in the above traits preference profile.
+export const traitsPrefLabel2value = [
+  -softTraitPrefAbsValue, softTraitPrefAbsValue,
+  -hardTraitPrefAbsValue, hardTraitPrefAbsValue,
+];
+
+// A tag for displaying a trait. Should be used in a Wrap component.
+export function TraitTag({ label, selected, onClick } : {
+  label: string,
+  selected: boolean,
+  onClick?: () => void
+}) {
+  return <WrapItem>
+    <Tag 
+      size="lg"
+      borderRadius='full'
+      bgColor={selected ? "gray.600" : "gray.200"}
+      color={selected ? "white" : "gray.600"}
+      cursor={onClick ? "pointer" : undefined}
+      onClick={onClick}
+    >
+      {label}
+    </Tag>
+  </WrapItem>;
+}
 
 export function TraitsModal({ onClose }: {
   onClose: () => void,
@@ -59,9 +100,13 @@ export function TraitsModal({ onClose }: {
     });
   };
 
-  return <ModalWithBackdrop isOpen size="xl" onClose={() => undefined}>
+  const complete = isTraitsComplete(traits);
+
+  return <ModalWithBackdrop isOpen size="xl" onClose={() => {
+    if (complete) onClose();
+  }}>
     <ModalContent>
-      <ModalHeader>填写你的个人特点，让系统为你推荐导师</ModalHeader>
+      <ModalHeader>填写你的个人特质，让系统为你推荐导师</ModalHeader>
 
       <ModalBody>
         {traits && <SimpleGrid
@@ -83,7 +128,7 @@ export function TraitsModal({ onClose }: {
           </GridItem>
 
           {/* Traits */}
-          {traitsType.map(({ title, field, labels }, i) => 
+          {traitsProfiles.map(({ title, field, labels }, i) => 
             <Trait
               key={i}
               title={title}
@@ -103,7 +148,7 @@ export function TraitsModal({ onClose }: {
 
       <ModalFooter>
         <Button
-          isDisabled={!isTraitsComplete(traits)}
+          isDisabled={!complete}
           variant='brand'
           onClick={onClose}
         >

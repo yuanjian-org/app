@@ -16,9 +16,7 @@ import {
   FormLabel,
   SimpleGrid,
   GridItem,
-  Tag,
   Wrap,
-  WrapItem,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -38,10 +36,10 @@ import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
 import { TraitsPreference } from 'shared/Traits';
 import { 
-  traitsType
+  traitsPrefLabel2value,
+  traitsPrefProfiles,
+  TraitTag,
 } from 'components/Traits';
-import { softTraitPrefAbsValue } from "shared/Traits";
-import { hardTraitPrefAbsValue } from "shared/Traits";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -261,23 +259,13 @@ function MenteeTraitsPreferences({ data, update } : {
     update({ ...data, [trait]: value });
   };
 
-  const traitsPrefType: { 
-    title: string, 
-    field: keyof TraitsPreference, 
-    labels: string[] 
-  }[] = [
-    { title: "性别", field: "男vs女", labels: ["男生", "女生", "仅匹配男生", "仅匹配女生"] },
-    { title: "年级", field: "低年级vs高年级", labels: ["低年级", "高年级"] },
-    ...traitsType,
-  ];
-
   return <>
     <Text mt={sectionSpacing}>对学生的偏好：</Text>
 
     <SimpleGrid columns={2} rowGap={componentSpacing}
       templateColumns="auto 1fr"
     >
-      {traitsPrefType.map(({ title, field, labels }, i) => 
+      {traitsPrefProfiles.map(({ title, field, labels }, i) => 
         <TraitPreference
           key={i}
           title={title}
@@ -307,10 +295,6 @@ function TraitPreference({ title, labels, value, update } : {
   update: (value: number | undefined) => void,
 }) {
   invariant(labels.length <= 4);
-  const label2value = [
-    -softTraitPrefAbsValue, softTraitPrefAbsValue,
-    -hardTraitPrefAbsValue, hardTraitPrefAbsValue,
-  ];
 
   return <>
     <GridItem
@@ -326,29 +310,14 @@ function TraitPreference({ title, labels, value, update } : {
         />
 
         {labels.map((label, i) => 
-          <TraitTag key={i} label={label} selected={value === label2value[i]} 
-            onClick={() => update(label2value[i])}/>
+          <TraitTag 
+            key={i} 
+            label={label} 
+            selected={value === traitsPrefLabel2value[i]} 
+            onClick={() => update(traitsPrefLabel2value[i])}
+          />
         )}
       </Wrap>
     </GridItem>
   </>;
-}
-
-function TraitTag({ label, selected, onClick } : {
-  label: string,
-  selected: boolean,
-  onClick: () => void
-}) {
-  return <WrapItem>
-    <Tag 
-      size="lg"
-      borderRadius='full'
-      bgColor={selected ? "gray.600" : "gray.200"}
-      color={selected ? "white" : "gray.600"}
-      cursor="pointer"
-      onClick={onClick}
-    >
-      {label}
-    </Tag>
-  </WrapItem>;
 }

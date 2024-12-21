@@ -175,11 +175,11 @@ const list = procedure
   }));
 });
 
-const listMentorProfiles = procedure
+const listMentorProfileAndTraitsPrefs = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
     relational: z.boolean(),
-    traitsPreference: zTraitsPreference.optional(),
+    traitsPreference: zTraitsPreference.nullable(),
   }))))
   .query(async ({ ctx: { user: me } }) =>
 {
@@ -207,7 +207,7 @@ const listMentorProfiles = procedure
       user: u,
       profile: u.profile ?? {},
       relational: cap > 0,
-      traitsPreference: u.preference?.mentor?.学生特质,
+      traitsPreference: u.preference?.mentor?.学生特质 ?? null,
     };
   });
 });
@@ -420,6 +420,22 @@ const getUserPreference = procedure
 
   if (!user) throw notFoundError("用户", userId);
   return user.preference || {};
+});
+
+const getMentorTraitsPref = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zTraitsPreference.nullable())
+  .query(async ({ input: { userId } }) => 
+{
+  const user = await db.User.findByPk(userId, {
+    attributes: ['preference'] 
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return user.preference?.mentor?.学生特质 ?? null;
 });
 
 /**
@@ -756,7 +772,8 @@ export default router({
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
   listVolunteerProfiles,
-  listMentorProfiles,
+  listMentorProfileAndTraitsPrefs,
+  getMentorTraitsPref,
 
   update,
   setMenteeStatus,

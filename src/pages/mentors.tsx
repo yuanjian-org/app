@@ -22,7 +22,7 @@ export default widePage(() => {
   const [me] = useUserContext();
   const [booking, setBooking] = useState<boolean>();
 
-  const { data } = trpcNext.users.listMentorProfiles.useQuery();
+  const { data } = trpcNext.users.listMentorProfileAndTraitsPrefs.useQuery();
   const shuffled = useMemo(() => 
     data ? dailyShuffle(data, me.id) : undefined, [data, me]);
 

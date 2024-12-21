@@ -242,7 +242,8 @@ function UserCardContainer({ user, type, children, ...rest }: {
   type: UserCardType,
 } & CardProps) {
   const router = useRouter();
-  const url = `${getUserUrl(user)}${type == "RelationalMentor" ? "?booking=0" : ""}`;
+  const url = `${getUserUrl(user)}${type == "RelationalMentor" ? 
+    "?booking=0&traits=1" : ""}`;
 
   return <Card
     overflow="hidden"
@@ -413,7 +414,6 @@ function UserCardForMobile({
         >
           <Heading size='sm' color="gray.600">
             {formatUserName(user.name, "formal")}
-            {isMentorRecommended && <MentorStar ms={2} />}
           </Heading>
 
           {type == "TransactionalMentor" ? 
@@ -451,6 +451,8 @@ function UserCardForMobile({
         bottom={componentSpacing}
         right={componentSpacing}
       >
+        {isMentorRecommended && <MentorStar me={2} />}
+
         <Link>更多信息</Link>
 
         {type == "TransactionalMentor" && <>
@@ -474,7 +476,7 @@ function UserCardForMobile({
 }
 
 export function MentorStar(props: TextProps) {
-  return <Tooltip label="根据你的个人特质推荐的导师">
+  return <Tooltip label="该导师的匹配偏好与你的个人特质契合度较高。推荐仅供参考，选择权在你。">
     <Text display="inline" color="orange.600" {...props}>⭐</Text>
   </Tooltip>;
 }
