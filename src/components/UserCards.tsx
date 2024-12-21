@@ -15,8 +15,7 @@ import {
   InputLeftElement,
   Flex,
   Tooltip,
-  Tag,
-  TagProps,
+  TextProps,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
@@ -31,7 +30,6 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { trpcNext } from 'trpc';
 import { useUserContext } from 'UserContext';
 import { Like } from 'shared/Like';
-import { isMentorRecommended } from './Traits';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -64,7 +62,7 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-export type TraitsMatchingScore = {
+export type UserProfileAndScore = MinUserAndProfile & {
   traitsMatchingScore?: number;
 };
 
@@ -75,7 +73,7 @@ const isMac = typeof navigator !== 'undefined' &&
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: (MinUserAndProfile & TraitsMatchingScore)[] | undefined,
+  users: UserProfileAndScore[] | undefined,
 }) {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
@@ -164,7 +162,11 @@ export default function UserCards({ type, users }: {
   </>;
 }
 
-function search(users: (MinUserAndProfile & TraitsMatchingScore)[],
+function isMentorRecommended(traitsMatchingScore?: number) {
+  return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
+}
+
+function search(users: UserProfileAndScore[],
   searchTerm: string) 
 {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
@@ -285,7 +287,7 @@ function UserCardForDesktop({
     <CardHeader>
       <Heading size='md' color="gray.600">
         {formatUserName(user.name, "formal")}
-        {isMentorRecommended && <MentorRecommendedTag ms={3} />}
+        {isMentorRecommended && <MentorStar ms={3} />}
       </Heading>
     </CardHeader>
     <CardBody pt={1}>
@@ -411,6 +413,7 @@ function UserCardForMobile({
         >
           <Heading size='sm' color="gray.600">
             {formatUserName(user.name, "formal")}
+            {isMentorRecommended && <MentorStar ms={2} />}
           </Heading>
 
           {type == "TransactionalMentor" ? 
@@ -448,9 +451,6 @@ function UserCardForMobile({
         bottom={componentSpacing}
         right={componentSpacing}
       >
-
-        {isMentorRecommended && <MentorRecommendedTag />}
-
         <Link>更多信息</Link>
 
         {type == "TransactionalMentor" && <>
@@ -473,8 +473,8 @@ function UserCardForMobile({
   </UserCardContainer>;
 }
 
-function MentorRecommendedTag(props: TagProps) {
-  return <Tooltip label="根据你的个人特点推荐的导师">
-    <Tag colorScheme="teal" {...props}>推荐</Tag>
+export function MentorStar(props: TextProps) {
+  return <Tooltip label="根据你的个人特质推荐的导师">
+    <Text display="inline" color="orange.600" {...props}>⭐</Text>
   </Tooltip>;
 }

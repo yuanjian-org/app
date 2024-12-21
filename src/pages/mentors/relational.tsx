@@ -4,7 +4,7 @@ import {
   UnorderedList,
   ListItem,
   Link,
-  Icon,
+  OrderedList,
 } from '@chakra-ui/react';
 import { useEffect, useState } from "react";
 import { trpcNext } from "trpc";
@@ -13,11 +13,13 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo } from 'react';
 import { useUserContext } from 'UserContext';
-import UserCards, { TraitsMatchingScore } from "components/UserCards";
-import { RepeatIcon } from '@chakra-ui/icons';
+import UserCards, { MentorStar, UserProfileAndScore } from "components/UserCards";
 import { dailyShuffle } from 'pages/mentors';
-import { computeMatchingScore, isTraitsComplete, TraitsModal } from 'components/Traits';
-import { MinUserAndProfile, UserProfile } from 'shared/UserProfile';
+import { TraitsModal } from 'components/Traits';
+import { hardMismatchScore, isTraitsComplete } from "shared/Traits";
+import { computeTraitsMatchingScore } from "shared/Traits";
+import { UserProfile } from 'shared/UserProfile';
+import NextLink from 'next/link';
 
 export default widePage(() => {
   const [me] = useUserContext();
@@ -25,28 +27,39 @@ export default widePage(() => {
   const { data } = trpcNext.users.listMentorProfiles.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
 
+  const { data: applicant } = trpcNext.users.getApplicant.useQuery({
+    type: "MenteeInterview",
+    userId: me.id,
+  });
+
   const shuffled = useMemo(() => {
-    if (!profile || !data) return undefined;
+    if (!profile || !data || !applicant) return undefined;
 
-    type UserProfileAndScore = MinUserAndProfile & TraitsMatchingScore;
+    const filtered: UserProfileAndScore[] = data
+      .filter(m => m.relational)
+      .map(m => {
+        const score = computeTraitsMatchingScore(
+          profile,
+          applicant.application,
+          m.traitsPreference,
+        );
+        console.log("traitsMatchingScore", m.user.name, score);
+        return {
+          ...m,
+          traitsMatchingScore: score,
+        };
+      })
+      // Filter out hard mismatching mentors
+      .filter(m => m.traitsMatchingScore !== hardMismatchScore);
+
     const compare = (a: UserProfileAndScore, b: UserProfileAndScore) => {
-      return (a.traitsMatchingScore ?? 0) - (b.traitsMatchingScore ?? 0);
+      return (b.traitsMatchingScore ?? 0) - (a.traitsMatchingScore ?? 0);
     };
-
-    const filtered = data.filter(m => m.relational).map(m => {
-      const score = computeMatchingScore(profile, m.traitsPreference);
-      console.log("traitsMatchingScore", m.user.name, score);
-      return {
-        ...m,
-        traitsMatchingScore: score,
-      };
-    });
-
     return dailyShuffle(filtered, me.id, compare);
-  }, [data, me, profile]);
+  }, [data, me, profile, applicant]);
 
   return <>
-    <PageBreadcrumb current="浏览一对一导师" />
+    <PageBreadcrumb current="选择一对一导师" />
 
     <VStack
       spacing={componentSpacing}
@@ -54,36 +67,44 @@ export default widePage(() => {
       align="start"
       maxW={textMaxWidth}
     >
-      <Text><b>如何选择导师？</b>在你开始选择一对一导师之前，我们想讲一下一对一导师的{
-      }意义和我们的期望，希望能帮你更好地做选择：</Text>
-
-      <UnorderedList>
+      <Text>
+        在浏览导师信息之前，我们希望向你传达社会导师的意义与目标，以便你做出更好的选择：
+      </Text>
+      <UnorderedList fontSize="sm">
         <ListItem>
-          我们发现有不少同学会更请倾向于选一个跟自己专业对口，可以在这方面对自己有多帮助。{
-          }这当然是一个非常不错的选择，但是如果只以此为标准，你有可能会错过导师能带给你的{
-          }更多可能性。
+          首先，一对一导师将提供长期的陪伴与指导，在帮助你顺利度过校园时光的同时，为将来步入职场和社会做好准备，我们期待能够助力年轻人实现理想并承担社会责任。
         </ListItem>
         <ListItem>
-          我们从小的教育基本都是以学业，为以后的事业做准备，相比之下比较少关注我们作为一{
-          }个人成长中的其他部分，比如如何处人相处，如何计划自己的生活，如何与自己的亲人或{
-          }者爱人相处，如何全方面的成为更好的自己。我们希望一对一导师会成为你{
-          }可以信赖的朋友、可以倾述烦恼和寻求新视角的人。更重要的是，导师会{
-          }根据你的实际情况和需要，与你一起为更好的自己而努力。
+          其次，一对一导师是传统教育的有效补充，我们聚焦于提高综合素养及软实力、而非提供专业学科知识。在定期交流中，你可与导师展开一系列广泛的交流，如生活与学习、爱好与情感、理想与未来、科技与社会发展、或其他任何你感兴趣的话题。
         </ListItem>
         <ListItem>
-          你的一对一导师应该是一位你愿与ta成为亲密朋友的人，愿意与ta{
-          }分享快乐和悲伤。哪怕当ta跟你讲一些枯燥的道理时，也是用一种你可以接受的方式{
-          }交流。另外，你不用担心你与一位导师匹配之后便与其他导师无缘。{
-          }你可以通过“预约不定期导师”功能，随时与其他导师预约交流的时间。
+          最后，一对一导师期待与你建立好友般亲密、平等、互信的关系、而非传统的师生模式，导师将与你并肩前行和成长。
         </ListItem>
       </UnorderedList>
+
+      <Text>
+        基于以上内容，我们建议你选择时：
+      </Text>
+      <OrderedList fontSize="sm">
+        <ListItem>
+          避免将“专业对口”作为唯一标准，非同专业的导师往往能够为你提供更广阔的视角和多元的思维方式，有益于延伸个人发展可能性；
+        </ListItem>
+        <ListItem>
+          可关注导师的成长背景、兴趣爱好、沟通风格等信息，请用“交朋友”的心态来选择你乐于与其交流的导师；
+        </ListItem>
+        <ListItem>
+          无须担心在匹配完一对一导师后失去与其他导师沟通的机会，你随时可通过
+          <Link as={NextLink} href="/mentors">预约不定期导师</Link>
+          获得与社区内其他导师交流的机会。
+        </ListItem>
+      </OrderedList>
+
+      <TraitsLinkAndModal setProfile={setProfile} />
     </VStack>
 
     {shuffled && <UserCards type="RelationalMentor" users={shuffled} />}
-
-    <TraitsLinkAndModal setProfile={setProfile} />
   </>;
-}, "浏览一对一导师");
+}, "选择一对一导师");
 
 function TraitsLinkAndModal({ setProfile }: { 
   setProfile: (profile: UserProfile) => void 
@@ -98,21 +119,21 @@ function TraitsLinkAndModal({ setProfile }: {
     if (!data) return;
     const t = data?.profile?.特质;
     if (t && isTraitsComplete(t)) {
-      setProfile({
-        ...data.profile,
-        特质: t,
-      });
+      setProfile(data.profile);
     } else {
       setIsModalOpen(true);
     }
   }, [data, setProfile]);
 
   return <>
-    <Text mt={sectionSpacing}>
+    <Text>
+      <b>标有
+      <MentorStar mx={1.5} />
+      的是推荐导师。</b>他们的匹配偏好与你的
       <Link onClick={() => setIsModalOpen(true)}>
-        <Icon as={RepeatIcon} mr={1} />
-        修改个人特点，更新推荐结果
+        个人特质
       </Link>
+      有较高的契合。
     </Text>
 
     {isModalOpen && <TraitsModal onClose={() => {

@@ -36,8 +36,12 @@ import { parseQueryString } from 'shared/strings';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
-import { MenteeTraitsPreference } from 'shared/Traits';
-import { hardTraitPreferenceScore, softTraitPreferenceScore, traitsType } from 'components/Traits';
+import { TraitsPreference } from 'shared/Traits';
+import { 
+  traitsType
+} from 'components/Traits';
+import { softTraitPrefAbsValue } from "shared/Traits";
+import { hardTraitPrefAbsValue } from "shared/Traits";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -249,17 +253,17 @@ function MentorPreferences({ data, update } : {
 }
 
 function MenteeTraitsPreferences({ data, update } : {
-  data?: MenteeTraitsPreference,
-  update: (pref: MenteeTraitsPreference) => void,
+  data?: TraitsPreference,
+  update: (pref: TraitsPreference) => void,
 }) {
-  const updateTrait = (trait: keyof MenteeTraitsPreference, 
+  const updateTrait = (trait: keyof TraitsPreference, 
     value: number | undefined) => {
     update({ ...data, [trait]: value });
   };
 
   const traitsPrefType: { 
     title: string, 
-    field: keyof MenteeTraitsPreference, 
+    field: keyof TraitsPreference, 
     labels: string[] 
   }[] = [
     { title: "性别", field: "男vs女", labels: ["男生", "女生", "仅匹配男生", "仅匹配女生"] },
@@ -304,8 +308,8 @@ function TraitPreference({ title, labels, value, update } : {
 }) {
   invariant(labels.length <= 4);
   const label2value = [
-    -softTraitPreferenceScore, softTraitPreferenceScore,
-    -hardTraitPreferenceScore, hardTraitPreferenceScore,
+    -softTraitPrefAbsValue, softTraitPrefAbsValue,
+    -hardTraitPrefAbsValue, hardTraitPrefAbsValue,
   ];
 
   return <>

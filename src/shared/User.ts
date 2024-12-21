@@ -2,7 +2,7 @@ import { z } from "zod";
 import Role, { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
 import { zNullableDateColumn, zDateColumn } from "./DateColumn";
-import { zMenteeTraitsPreference } from "./Traits";
+import { zTraitsPreference } from "./Traits";
 
 export const zMinUser = z.object({
   id: z.string(),
@@ -59,10 +59,7 @@ export type UserFilter = z.TypeOf<typeof zUserFilter>;
 export const zMentorPreference = z.object({
   '最多匹配学生': z.number().optional(),
   '不参加就业辅导': z.boolean().optional(),
-  '学生特质': zMenteeTraitsPreference.optional(),
-
-  // Deprecated
-  '学生偏好': z.string().optional(),
+  '学生特质': zTraitsPreference.optional(),
 });
 export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
 
