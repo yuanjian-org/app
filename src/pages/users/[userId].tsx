@@ -19,12 +19,13 @@ import {
   VStack,
   HStack,
   useClipboard,
+  Wrap,
 } from '@chakra-ui/react';
 import { MinUserAndProfile, UserProfile, StringUserProfile } from "shared/UserProfile";
-import { breakpoint, sectionSpacing } from "theme/metrics";
+import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
 import { visibleUserProfileFields } from "components/UserCards";
 import { useUserContext } from "UserContext";
@@ -32,6 +33,9 @@ import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
+import { computeTraitsMatchingScore, TraitsPreference } from "shared/Traits";
+import { TraitsModal, traitsPrefLabel2value, traitsPrefProfiles, TraitTag } from "components/Traits";
+import invariant from "tiny-invariant";
 
 export default function Page() {
   const userId = parseQueryString(useRouter(), 'userId');
@@ -46,6 +50,8 @@ export function UserPage({ data }: {
   data: MinUserAndProfile & { isMentor: boolean } | undefined
 }) {
   const showBookingButton = parseQueryString(useRouter(), 'booking') !== "0" &&
+    !!data?.isMentor;
+  const showMatchingTraits = parseQueryString(useRouter(), 'traits') === "1" &&
     !!data?.isMentor;
 
   return !data ? <Loader /> : <>
@@ -66,7 +72,10 @@ export function UserPage({ data }: {
           />
         }
         <UserUrl u={data.user} />
+
+        {showMatchingTraits && <MatchingTraits userId={data.user.id} />}
       </VStack>
+
       {data.profile && <ProfileTable
         user={data.user}
         profile={data.profile}
@@ -97,6 +106,68 @@ function UserUrl({ u }: {
   </HStack>
   :
   <></>;
+}
+
+function MatchingTraits({ userId }: {
+  userId: string,
+}) {
+  const [me] = useUserContext();
+
+  const { data: traitsPref } = 
+    trpcNext.users.getMentorTraitsPref.useQuery({ userId });
+  const { data: user, refetch } = 
+    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+  const { data: applicant } = 
+    trpcNext.users.getApplicant.useQuery({
+      type: "MenteeInterview",
+      userId: me.id,
+    });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const matchingTraits = useMemo(() => {
+    if (user === undefined || applicant === undefined ||
+      traitsPref === undefined) return undefined;
+    const { matchingTraits } = computeTraitsMatchingScore(
+      user.profile,
+      applicant.application,
+      traitsPref,
+    );
+    return matchingTraits;
+  }, [user, applicant, traitsPref]);
+
+  return !matchingTraits ? <Loader /> : <>
+    <Text mt={sectionSpacing} mb={componentSpacing} fontSize="sm" 
+      textAlign="center"
+    >
+      你的这些
+      <Link onClick={() => setIsModalOpen(true)}>
+        个人特质
+      </Link>
+      符合导师的匹配偏好
+      <br />
+      （仅供参考，导师的选择权在你）
+    </Text>
+    <Wrap>
+      {matchingTraits.map(t => {
+        const profile = traitsPrefProfiles.find(p => p.field === t);
+        if (!profile) return <></>;
+
+        invariant(traitsPref);
+        invariant(traitsPrefLabel2value[0] < 0);
+        invariant(traitsPrefLabel2value[1] > 0);
+
+        const label = traitsPref[t as keyof TraitsPreference] as number < 0 ?
+          profile.labels[0] : profile.labels[1];
+        return <TraitTag key={t} label={label} selected />;
+      })}
+    </Wrap>
+
+    {isModalOpen && <TraitsModal onClose={() => {
+      setIsModalOpen(false);
+      void refetch();
+    }} />}
+  </>;
 }
 
 function ProfileTable({ user, profile: p, showBookingButton }: {

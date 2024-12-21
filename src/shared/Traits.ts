@@ -59,16 +59,22 @@ function isHardTraitPref(pv: number) {
  * preference (which is defined as an absolute preference value of
  * hardTraitPrefAbsValue). Otherwise, the score is the sum of the product of
  * the trait values and the preference values.
+ * 
+ * @returns The matching score and the keys of the traits that are matching.
+ * Return empty `matchingTraits` if the score is `hardMismatchScore`.
  */
 export function computeTraitsMatchingScore(
   profile: UserProfile,
   menteeApp: Record<string, any> | null,
-  pref: TraitsPreference | undefined,
-): number {
+  pref: TraitsPreference | null,
+): {
+  score: number,
+  matchingTraits: (keyof TraitsPreference)[],
+} {
   let score = 0;
 
   const traits = profile.特质;
-  if (!traits || !pref) return score;
+  if (!traits || !pref) return { score, matchingTraits: [] };
 
   /**
    * Sex and year in college are special cases as they are specified outside
@@ -86,7 +92,7 @@ export function computeTraitsMatchingScore(
 
     } else if (key === "男vs女") {
       unified[key] = profile.性别 === "男" ?
-        // N.B. Sign must be consistent with /preferences/[userId]
+        // N.B. Sign must be consistent with components/Traits.tsx
         -maxTraitAbsValue : maxTraitAbsValue;
 
     } else if (key === "低年级vs高年级") {
@@ -102,7 +108,7 @@ export function computeTraitsMatchingScore(
       }
 
       // Use 3rd year in college as the neutral point.
-      // N.B. Sign must be consistent with /preferences/[userId]
+      // N.B. Sign must be consistent with components/Traits.tsx
       unified[key] = maxTraitAbsValue * Math.max(-1, Math.min(1,
         (currentYear - freshmenYear - 3) / 3));
 
@@ -116,15 +122,21 @@ export function computeTraitsMatchingScore(
    * Do the actual score calculation.
    */
 
+  const matchingTraits: (keyof TraitsPreference)[] = [];
+
   for (const [key, tv] of Object.entries(unified)) {
     if (tv === undefined) continue;
 
     const pv = pref[key as keyof TraitsPreference];
     invariant(typeof pv === "number" && typeof tv === "number");
 
+    if (pv * tv > 0) {
+      matchingTraits.push(key as keyof TraitsPreference);
+    }
+
     if (isHardTraitPref(pv)) {
       if (pv * tv < 0) {
-        return hardMismatchScore;
+        return { score: hardMismatchScore, matchingTraits: [] };
       } else {
         score += tv * (pv > 0 ? softTraitPrefAbsValue : -softTraitPrefAbsValue);
       }
@@ -133,5 +145,5 @@ export function computeTraitsMatchingScore(
     }
   }
 
-  return score;
+  return { score, matchingTraits };
 }
