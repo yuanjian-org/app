@@ -15,6 +15,8 @@ import {
   InputLeftElement,
   Flex,
   Tooltip,
+  Tag,
+  TagProps,
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
@@ -29,6 +31,7 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { trpcNext } from 'trpc';
 import { useUserContext } from 'UserContext';
 import { Like } from 'shared/Like';
+import { isMentorRecommended } from './Traits';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -61,6 +64,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
+export type TraitsMatchingScore = {
+  traitsMatchingScore?: number;
+};
+
 const isMobile = typeof navigator !== 'undefined' &&
   /iPhone|iPad|Android/.test(navigator.userAgent);
 const isMac = typeof navigator !== 'undefined' &&
@@ -68,7 +75,7 @@ const isMac = typeof navigator !== 'undefined' &&
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: MinUserAndProfile[] | undefined,
+  users: (MinUserAndProfile & TraitsMatchingScore)[] | undefined,
 }) {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
@@ -126,6 +133,7 @@ export default function UserCards({ type, users }: {
           type={type}
           openModal={() => setBookingMentor(m.user)}
           device="desktop"
+          isMentorRecommended={isMentorRecommended(m.traitsMatchingScore)}
         />)}
       </SimpleGrid>
 
@@ -142,6 +150,7 @@ export default function UserCards({ type, users }: {
           type={type}
           openModal={() => setBookingMentor(m.user)}
           device="mobile"
+          isMentorRecommended={isMentorRecommended(m.traitsMatchingScore)}
         />)}
       </SimpleGrid>
           
@@ -155,7 +164,9 @@ export default function UserCards({ type, users }: {
   </>;
 }
 
-function search(users: MinUserAndProfile[], searchTerm: string) {
+function search(users: (MinUserAndProfile & TraitsMatchingScore)[],
+  searchTerm: string) 
+{
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
 
@@ -170,12 +181,15 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function UserCard({ user, profile: p, type, openModal, device }: {
+function UserCard({ user, profile: p, type, openModal, device,
+  isMentorRecommended
+} : {
   user: MinUser,
   profile: UserProfile | null,
   type: UserCardType,
   openModal: () => void,
   device: "desktop" | "mobile",
+  isMentorRecommended: boolean,
 }) {
   const [me] = useUserContext();
   const { data: likes, refetch } = trpcNext.likes.get.useQuery({
@@ -209,6 +223,7 @@ function UserCard({ user, profile: p, type, openModal, device }: {
     likes={likes}
     likeCount={likeCount}
     clickLikes={clickLikes}
+    isMentorRecommended={isMentorRecommended}
   /> : <UserCardForMobile
     user={user}
     profile={p}
@@ -216,6 +231,7 @@ function UserCard({ user, profile: p, type, openModal, device }: {
     openModal={openModal}
     likeCount={likeCount}
     clickLikes={clickLikes}
+    isMentorRecommended={isMentorRecommended}
   />;
 }
 
@@ -237,7 +253,8 @@ function UserCardContainer({ user, type, children, ...rest }: {
 }
 
 function UserCardForDesktop({
-  user, profile: p, type, openModal, likes, likeCount, clickLikes
+  user, profile: p, type, openModal, likes, likeCount, clickLikes, 
+  isMentorRecommended
 }: {
   user: MinUser,
   profile: UserProfile | null,
@@ -246,6 +263,7 @@ function UserCardForDesktop({
   likes: Like[] | undefined,
   likeCount: number,
   clickLikes: (ev: React.MouseEvent) => void,
+  isMentorRecommended: boolean,
 }) {
   const name = formatUserName(user.name, "friendly");
   const likesLabel = likes?.length == 0 ? <>点赞，{name}会收到Email哦</> :
@@ -267,6 +285,7 @@ function UserCardForDesktop({
     <CardHeader>
       <Heading size='md' color="gray.600">
         {formatUserName(user.name, "formal")}
+        {isMentorRecommended && <MentorRecommendedTag ms={3} />}
       </Heading>
     </CardHeader>
     <CardBody pt={1}>
@@ -350,7 +369,7 @@ function FullWidthImageSquare({ profile }: {
 }
 
 function UserCardForMobile({
-  user, profile: p, type, openModal, likeCount, clickLikes
+  user, profile: p, type, openModal, likeCount, clickLikes, isMentorRecommended
 }: {
   user: MinUser,
   profile: UserProfile | null,
@@ -358,6 +377,7 @@ function UserCardForMobile({
   openModal: () => void,
   likeCount: number,
   clickLikes: (ev: React.MouseEvent) => void,
+  isMentorRecommended: boolean,
 }) {
   return <UserCardContainer
     user={user}
@@ -428,6 +448,9 @@ function UserCardForMobile({
         bottom={componentSpacing}
         right={componentSpacing}
       >
+
+        {isMentorRecommended && <MentorRecommendedTag />}
+
         <Link>更多信息</Link>
 
         {type == "TransactionalMentor" && <>
@@ -448,4 +471,10 @@ function UserCardForMobile({
       </HStack>
     </HStack>
   </UserCardContainer>;
+}
+
+function MentorRecommendedTag(props: TagProps) {
+  return <Tooltip label="根据你的个人特点推荐的导师">
+    <Tag colorScheme="teal" {...props}>推荐</Tag>
+  </Tooltip>;
 }

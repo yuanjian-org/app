@@ -45,6 +45,7 @@ import { getUser2MentorshipCount } from "./mentorships";
 import { fakeEmailDomain } from "../../shared/fakeEmail";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
+import { zMenteeTraitsPreference } from "../../shared/Traits";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -178,6 +179,7 @@ const listMentorProfiles = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
     relational: z.boolean(),
+    traitsPreference: zMenteeTraitsPreference.optional(),
   }))))
   .query(async ({ ctx: { user: me } }) =>
 {
@@ -205,6 +207,7 @@ const listMentorProfiles = procedure
       user: u,
       profile: u.profile ?? {},
       relational: cap > 0,
+      traitsPreference: u.preference?.mentor?.学生特质,
     };
   });
 });
