@@ -11,13 +11,12 @@ import {
 import { hash } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
-import { MinUserAndProfile } from 'shared/UserProfile';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { useUserContext } from 'UserContext';
-import UserCards from "components/UserCards";
+import UserCards, { UserProfileAndScore } from "components/UserCards";
 
 export default widePage(() => {
   const [me] = useUserContext();
@@ -78,8 +77,8 @@ export default widePage(() => {
  * and is influenced by the length of the array and a specified UUID
  * (which should be the current user id).
  */
-export function dailyShuffle(users : MinUserAndProfile[], uuid: string, 
-  compare?: (a: any, b: any) => number)
+export function dailyShuffle(users : UserProfileAndScore[], uuid: string, 
+  compare?: (a: UserProfileAndScore, b: UserProfileAndScore) => number)
 {
   const now = new Date();
   const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),

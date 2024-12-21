@@ -5,6 +5,7 @@ import db from "../database/db";
 import { Op } from "sequelize";
 import _ from "lodash";
 import invariant from "tiny-invariant";
+import { softTraitPrefAbsValue } from "../../shared/Traits";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -51,15 +52,19 @@ async function migrateData() {
 
     for (const user of users) {
       const p = user.preference;
-      const 学生偏好 = p?.mentor?.学生偏好;
-      if (学生偏好) {
+      const traits = p?.mentor?.学生特质;
+      if (traits) {
+        const traits2 = _.cloneDeep(traits);
+        for (const [k, v] of Object.entries(traits2)) {
+          // @ts-expect-error
+          if (v === 2) traits2[k] = softTraitPrefAbsValue;
+          // @ts-expect-error
+          if (v === -2) traits2[k] = -softTraitPrefAbsValue;
+        }
+
         const p2 = _.cloneDeep(p);
         invariant(p2 && p2.mentor);
-        delete p2.mentor.学生偏好;
-        p2.mentor.学生特质 = {
-          ...p?.mentor?.学生特质,
-          '其他': 学生偏好,
-        };
+        p2.mentor.学生特质 = traits2;
         await user.update({ preference: p2 }, { transaction });
       }
     }
