@@ -1,6 +1,10 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
+import db from "../database/db";
+import { Op } from "sequelize";
+import _ from "lodash";
+import invariant from "tiny-invariant";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -13,33 +17,51 @@ export default router({
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
 
+  migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
-
-  console.log("Migrating DB data...");
-  await migrateChatMessages();
-
-  console.log("Clean up old DB data...");
-  await cleanupFeedbackAttemptLogs();
-  await cleanupEventLogs();
+  await migrateData();
+  await cleanupLogs();
 }
 
-async function cleanupEventLogs() {
+async function cleanupLogs() {
+  console.log("Clean up old logs...");
   await sequelize.query(`
     DELETE FROM "EventLogs"
     WHERE "createdAt" < NOW() - INTERVAL '1 year';
   `);
-}
-
-async function cleanupFeedbackAttemptLogs() {
   await sequelize.query(`
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
   `);
 }
-async function migrateChatMessages() {
-  await sequelize.query(`
-    UPDATE "ChatMessages"
-    SET "markdown" = REPLACE("markdown", '【导师组内部讨论】', '【导师交流】')
-    WHERE "markdown" LIKE '%【导师组内部讨论】%';
-  `);
+
+function migrateSchema() {
+  console.log("Migrating DB schema...");
+}
+
+async function migrateData() {
+  console.log("Migrating DB data...");
+
+  await sequelize.transaction(async transaction => {
+    const users = await db.User.findAll({
+      where: { [Op.not]: { preference: null } },
+      attributes: ['id', 'preference'],
+      transaction,
+    });
+
+    for (const user of users) {
+      const p = user.preference;
+      const 学生偏好 = p?.mentor?.学生偏好;
+      if (学生偏好) {
+        const p2 = _.cloneDeep(p);
+        invariant(p2 && p2.mentor);
+        delete p2.mentor.学生偏好;
+        p2.mentor.学生特质 = {
+          ...p?.mentor?.学生特质,
+          '其他': 学生偏好,
+        };
+        await user.update({ preference: p2 }, { transaction });
+      }
+    }
+  });
 }

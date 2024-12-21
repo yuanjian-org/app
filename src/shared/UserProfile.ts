@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
+import { zTraits } from "./Traits";
 
 const zStr = z.string().optional();
 
@@ -33,6 +34,7 @@ export const zUserProfile = zStringUserProfile.merge(z.object({
     y: z.number(),
     zoom: z.number(),
   }).optional(),
+  '特质': zTraits.optional(),
 }));
 
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
