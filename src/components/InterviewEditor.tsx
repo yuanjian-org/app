@@ -39,7 +39,7 @@ export function getScoreColor(scoreLabels: string[], score: number): string {
   invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
   const backgrounds = [
     "red.600", "orange", 
-    ...scoreLabels.length == 4 ? [] : ["grey"],
+    ...scoreLabels.length == 4 ? [] : ["gray"],
     "green.300", "green.600"
   ];
   return backgrounds[score - 1];

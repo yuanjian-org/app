@@ -99,7 +99,7 @@ function SumsRow({ stats } : {
 }
 
 function SumCell({ n }: { n: number }) {
-  return <Td><Text fontSize="sm" color="grey" marginTop={componentSpacing}>
+  return <Td><Text fontSize="sm" color="gray" marginTop={componentSpacing}>
     <b>共 {n}</b>
   </Text></Td>;
 }

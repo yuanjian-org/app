@@ -89,11 +89,11 @@ export default function Interviews({ interviews, forCalibration,
     </Table>
 
     {!hideTotalCount && <Text
-      fontSize="sm" color="grey" marginTop={sectionSpacing}
+      fontSize="sm" color="gray" marginTop={sectionSpacing}
     >共 <b>{interviews.length}</b> 名
     </Text>}
 
-    <Text marginTop={sectionSpacing} color="grey" fontSize="sm">
+    <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
       <CheckIcon /> 表示已经填写了面试反馈的面试官。
     </Text>
   </TableContainer>;

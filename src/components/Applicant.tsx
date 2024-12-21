@@ -124,7 +124,7 @@ function ContactFieldRow({ redacted, copyable, name, value }: {
   return <Flex direction="column">
     <Flex>
       <b>{name}{' '}</b>
-      {!copyable && <Text color="grey">
+      {!copyable && <Text color="gray">
         （请联系<Link as={NextLink} href="/who-can-see-my-data">学生管理员</Link>）
       </Text>}
     </Flex>
