@@ -1,7 +1,6 @@
 /**
  * This module generates security verification tokens.
  */
-import invariant from "tiny-invariant";
 import randomNumber from "random-number-csprng";
 
 /**
@@ -22,21 +21,5 @@ export async function generateLongLivedToken() {
   for (let i = 0; i < longLivedTokenLength; i++) {
     chars.push(String.fromCharCode(a + await randomNumber(0, 25)));
   }
-  return chars.join('');
-}
-
-/**
- * @returns format "ABCDEFGHI"
- */
-export function formatCopyableLongLivedToken(token: string) {
-  invariant(token.length === longLivedTokenLength);
-  return token.toUpperCase();
-}
-
-/**
- * @returns format "ABC-DEF-GHI"
- */
-export function formatReadableLongLivedToken(token: string) {
-  const upper = formatCopyableLongLivedToken(token);
-  return upper.slice(0, 3) + '-' + upper.slice(3, 6) + '-' + upper.slice(6);
+  return chars.join('').toUpperCase();
 }
