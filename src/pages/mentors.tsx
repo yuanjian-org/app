@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { useUserContext } from 'UserContext';
 import UserCards, { UserProfileAndScore } from "components/UserCards";
+import Loader from 'components/Loader';
 
 export default widePage(() => {
   const [me] = useUserContext();
@@ -63,7 +64,8 @@ export default widePage(() => {
       </Heading>
     </VStack>
 
-    <UserCards type="TransactionalMentor" users={shuffled} />
+    {!shuffled ? <Loader alignSelf="flex-start" /> :
+      <UserCards type="TransactionalMentor" users={shuffled} />}
 
     {booking &&
       <MentorBookingModal mentor={null} onClose={() => setBooking(false)} />

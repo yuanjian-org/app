@@ -17,7 +17,6 @@ import {
   Tooltip,
   TextProps,
 } from '@chakra-ui/react';
-import Loader from 'components/Loader';
 import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
 import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
@@ -73,7 +72,7 @@ const isMac = typeof navigator !== 'undefined' &&
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: UserProfileAndScore[] | undefined,
+  users: UserProfileAndScore[],
 }) {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
@@ -96,11 +95,11 @@ export default function UserCards({ type, users }: {
   }, [searchInputRef]);
 
   const searchResult = useMemo(() => {
-    return users && searchTerm ? search(users, searchTerm) : users;
+    return searchTerm ? search(users, searchTerm) : users;
   }, [searchTerm, users]); 
 
   return <>
-    {!searchResult ? <Loader /> : <>
+    {searchResult && <>
 
       {/* Search box */}
       <InputGroup mb={sectionSpacing}>

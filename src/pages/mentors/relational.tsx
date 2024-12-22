@@ -20,6 +20,7 @@ import { hardMismatchScore, isTraitsComplete } from "shared/Traits";
 import { computeTraitsMatchingScore } from "shared/Traits";
 import { UserProfile } from 'shared/UserProfile';
 import NextLink from 'next/link';
+import Loader from 'components/Loader';
 
 export default widePage(() => {
   const [me] = useUserContext();
@@ -102,7 +103,8 @@ export default widePage(() => {
       <TraitsLinkAndModal setProfile={setProfile} />
     </VStack>
 
-    {shuffled && <UserCards type="RelationalMentor" users={shuffled} />}
+    {!shuffled ? <Loader alignSelf="flex-start" /> :
+      <UserCards type="RelationalMentor" users={shuffled} />}
   </>;
 }, "选择一对一导师");
 
