@@ -45,19 +45,18 @@ import { breakpoint } from 'theme/metrics';
 import { compareChinese, compareDate, formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { componentSpacing } from 'theme/metrics';
-import colors from 'theme/colors';
+import colors, { activeNavLinkColor, inactiveNavLinkColor } from 'theme/colors';
 import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
 import { mentorshipStatusIconType } from 'pages/mentees';
 import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
 
-export const sidebarContentMarginTop = 10;
+const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
 const bgColorModeValues = ['white', 'gray.900'];
 const borderColorModeValues = ['gray.200', 'gray.700'];
-const siderbarTextColor = "gray.500";
 
 interface MainMenuItem {
   name: string,
@@ -385,7 +384,7 @@ const DropdownMenuButton = ({ title, icon } : {
   icon: React.ReactNode,
 }) => {
   return <MenuButton marginX={componentSpacing}  paddingLeft={componentSpacing}
-    color={siderbarTextColor} fontWeight="bold" transition="all 0.3s" 
+    color={inactiveNavLinkColor} fontWeight="bold" transition="all 0.3s" 
     _focus={{ boxShadow: 'none' }}>
     <HStack>{icon}<Text>{title}</Text><FiChevronRight /></HStack>
   </MenuButton>;
@@ -401,7 +400,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   return <Link
     as={NextLink}
     href={item.path}
-    color={active ? "brand.c" : siderbarTextColor}
+    color={active ? activeNavLinkColor : inactiveNavLinkColor}
     fontWeight="bold"
     onClick={onClose}
   >

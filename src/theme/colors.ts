@@ -34,3 +34,6 @@ const colors = {
 };
 
 export default colors;
+
+export const inactiveNavLinkColor = "gray.500";
+export const activeNavLinkColor = "brand.c";
