@@ -626,10 +626,11 @@ const setPointOfContactAndNote = procedure
 
 /**
  * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
- * of the applicant, and participants of the calibration (only if the calibration
- * is active) are allowed to call this route.
+ * of the applicant, participants of the calibration (only if the calibration
+ * is active), and the user themselves are allowed to call this route.
  * 
- * If the user is not an MentorshipManager, contact information is redacted.
+ * If the user is not an MentorshipManager or the user being requested, contact
+ * information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -642,7 +643,7 @@ const getApplicant = procedure
     sex: z.string().nullable(),
     application: z.record(z.string(), z.any()).nullable(),
   }))
-  .query(async ({ ctx, input: { userId, type } }) =>
+  .query(async ({ ctx: { user: me }, input: { userId, type } }) =>
 {
   const isMentee = type == "MenteeInterview";
 
@@ -656,7 +657,8 @@ const getApplicant = procedure
   });
   if (!user) throw notFoundError("用户", userId);
 
-  const application = isMentee ? user.menteeApplication : user.volunteerApplication;
+  const application = isMentee ? user.menteeApplication :
+    user.volunteerApplication;
   const sex = user.profile?.性别 ?? null;
 
   const ret = {
@@ -665,14 +667,16 @@ const getApplicant = procedure
     sex,
   };
 
-  if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
+  if (me.id === userId || isPermitted(me.roles, "MentorshipManager")) {
+    return ret;
+  }
 
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
-  if (isMentee && await isPermittedtoAccessMentee(ctx.user, userId)) return ret;
+  if (isMentee && await isPermittedtoAccessMentee(me, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -684,7 +688,7 @@ const getApplicant = procedure
     include: [{
       model: db.InterviewFeedback,
       attributes: [],
-      where: { interviewerId: ctx.user.id },
+      where: { interviewerId: me.id },
     }],
   });
   if (myInterviews.length) return ret;
@@ -699,7 +703,7 @@ const getApplicant = procedure
   });
   for (const i of allInterviews) {
     if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(
-      ctx.user, i.calibrationId)) return ret;
+      me, i.calibrationId)) return ret;
   }
 
   throw noPermissionError("申请表", user.id);
