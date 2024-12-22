@@ -136,7 +136,7 @@ function MatchingTraits({ userId }: {
     return matchingTraits;
   }, [user, applicant, traitsPref]);
 
-  return !matchingTraits ? <Loader /> : <>
+  return !matchingTraits ? <Loader /> : matchingTraits.length === 0 ? <></> : <>
     <Text mt={sectionSpacing} mb={componentSpacing} fontSize="sm" 
       textAlign="center"
     >
