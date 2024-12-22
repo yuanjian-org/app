@@ -62,6 +62,21 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
+  const save = async () => {
+    invariant(user && profile);
+    if (!_.isEqual(oldUser, user)) {
+      await trpc.users.update.mutate(user);
+    }
+    if (!_.isEqual(old?.profile, profile)) {
+      await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
+    }
+  };
+
+  const updateUser = (u: User) => {
+    setUser(u);
+    void save();
+  };
+
   const updateProfile = (k: keyof UserProfile, v: string) => {
     const updated = {
       ...profile,
@@ -69,20 +84,16 @@ export default function Page() {
     };
     if (!v) delete updated[k];
     setProfile(updated);
+    void save();
   };
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const save = async () => {
+  const onSave = async () => {
     invariant(user && profile);
     setIsSaving(true);
     try {
-      if (!_.isEqual(oldUser, user)) {
-        await trpc.users.update.mutate(user);
-      }
-      if (!_.isEqual(old?.profile, profile)) {
-        await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
-      }
+      await save();
       toast.success("保存成功。");
     } finally {
       setIsSaving(false);
@@ -90,7 +101,7 @@ export default function Page() {
   };
 
   const SaveButton = () => (
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
+    <Button onClick={onSave} variant="brand" isLoading={isSaving}>
       保存
     </Button>
   );
@@ -104,7 +115,7 @@ export default function Page() {
     <Basic
       user={user}
       profile={profile} 
-      setUser={setUser}
+      setUser={updateUser}
       setProfile={setProfile}
     />
     <SaveButton />
@@ -304,7 +315,6 @@ function NonMentor({ profile, updateProfile }: {
   return <>
     <Heading size="md">个人资料</Heading>
     <Text><MarkdownSupported /></Text>
-    <NoAutoSave />
     <PositionFormControl profile={profile} updateProfile={updateProfile} />
     <CityFormControl profile={profile} updateProfile={updateProfile} />
     <HobbyFormControl profile={profile} updateProfile={updateProfile} />
@@ -320,12 +330,6 @@ function MarkdownSupported() {
     </Link>。
   </>;
 };
-
-function NoAutoSave() {
-  return <Text color="red.700" mb={sectionSpacing}>
-    更新内容后务必点击“保存”。本页不支持自动保存。
-  </Text>;
-}
 
 function PositionFormControl({ profile, updateProfile, highlight }: {
   profile: UserProfile,
@@ -394,8 +398,6 @@ function Mentor({ profile, updateProfile }: {
       <Link target='_blank' href="/s/matchmaking">初次匹配</Link>
       时的唯一参考。请详尽填写，并展现出最真实的你。<MarkdownSupported />
     </Text>
-
-    <NoAutoSave />
 
     <PositionFormControl profile={profile} updateProfile={updateProfile}
       highlight />
