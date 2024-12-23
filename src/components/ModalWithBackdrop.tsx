@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 
 export default function ModalWithBackdrop(props: ModalProps) {
-  return <Modal {...props}>
+  return <Modal scrollBehavior="inside" {...props}>
     <ModalOverlay backdropFilter='blur(8px)' />
     {props.children}
   </Modal>;

@@ -16,14 +16,14 @@ import { widePage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { useUserContext } from 'UserContext';
-import UserCards, { UserProfileAndScore } from "components/UserCards";
+import UserCards, { UserCardData } from "components/UserCards";
 import Loader from 'components/Loader';
 
 export default widePage(() => {
   const [me] = useUserContext();
   const [booking, setBooking] = useState<boolean>();
 
-  const { data } = trpcNext.users.listMentorProfileAndTraitsPrefs.useQuery();
+  const { data } = trpcNext.users.listMentors.useQuery();
   const shuffled = useMemo(() => 
     data ? dailyShuffle(data, me.id) : undefined, [data, me]);
 
@@ -79,8 +79,8 @@ export default widePage(() => {
  * and is influenced by the length of the array and a specified UUID
  * (which should be the current user id).
  */
-export function dailyShuffle(users : UserProfileAndScore[], uuid: string, 
-  compare?: (a: UserProfileAndScore, b: UserProfileAndScore) => number)
+export function dailyShuffle(users : UserCardData[], uuid: string, 
+  compare?: (a: UserCardData, b: UserCardData) => number)
 {
   const now = new Date();
   const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),

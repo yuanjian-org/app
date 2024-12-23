@@ -1,17 +1,13 @@
 import z from "zod";
 
-export const zScheduledLikeEmail = z.object({
-  type: z.literal("Like"),
-  userId: z.string().uuid(),
-  before: z.array(z.object({
-    likerId: z.string().uuid(),
-    count: z.number(),
-  }))
+export const zScheduledKudosEmail = z.object({
+  type: z.literal("Kudos"),
+  receiverId: z.string().uuid(),
 });
-export type ScheduledLikeEmail = z.TypeOf<typeof zScheduledLikeEmail>;
+export type ScheduledKudosEmail = z.TypeOf<typeof zScheduledKudosEmail>;
 
 export const zScheduledEmailData = z.discriminatedUnion("type", [
-  zScheduledLikeEmail,
+  zScheduledKudosEmail,
 ]);
 
 export type ScheduledEmailData = z.TypeOf<typeof zScheduledEmailData>;

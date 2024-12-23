@@ -175,7 +175,7 @@ const list = procedure
   }));
 });
 
-const listMentorProfileAndTraitsPrefs = procedure
+const listMentors = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
     relational: z.boolean(),
@@ -212,9 +212,11 @@ const listMentorProfileAndTraitsPrefs = procedure
   });
 });
 
-const listVolunteerProfiles = procedure
+const listVolunteers = procedure
   .use(authUser(["Volunteer"]))
   .output(z.array(zMinUserAndProfile.merge(z.object({
+    likes: z.number(),
+    kudos: z.number(),
     updatedAt: zDateColumn
   }))))
   .query(async () =>
@@ -223,11 +225,14 @@ const listVolunteerProfiles = procedure
   const volunteerRole: Role = "Volunteer";
   return (await db.User.findAll({
     where: { roles: { [Op.contains]: [volunteerRole] } },
-    attributes: [...minUserAttributes, "roles", "profile", "updatedAt"],
+    attributes: [...minUserAttributes, "roles", "profile", "updatedAt",
+      "likes", "kudos"],
   })).map(u => ({
     user: u,
     profile: u.profile ?? {},
     updatedAt: u.updatedAt,
+    likes: u.likes ?? 0,
+    kudos: u.kudos ?? 0,
   }));
 });
 
@@ -775,8 +780,8 @@ export default router({
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
-  listVolunteerProfiles,
-  listMentorProfileAndTraitsPrefs,
+  listVolunteers,
+  listMentors,
   getMentorTraitsPref,
 
   update,
