@@ -13,7 +13,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo } from 'react';
 import { useUserContext } from 'UserContext';
-import UserCards, { MentorStar, UserProfileAndScore } from "components/UserCards";
+import UserCards, { MentorStar, UserCardData } from "components/UserCards";
 import { dailyShuffle } from 'pages/mentors';
 import { TraitsModal } from 'components/Traits';
 import { hardMismatchScore, isTraitsComplete } from "shared/Traits";
@@ -25,7 +25,7 @@ import Loader from 'components/Loader';
 export default widePage(() => {
   const [me] = useUserContext();
 
-  const { data } = trpcNext.users.listMentorProfileAndTraitsPrefs.useQuery();
+  const { data } = trpcNext.users.listMentors.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
 
   const { data: applicant } = trpcNext.users.getApplicant.useQuery({
@@ -36,7 +36,7 @@ export default widePage(() => {
   const shuffled = useMemo(() => {
     if (!profile || !data || !applicant) return undefined;
 
-    const filtered: UserProfileAndScore[] = data
+    const filtered: UserCardData[] = data
       .filter(m => m.relational)
       .map(m => {
         const { score } = computeTraitsMatchingScore(
@@ -53,7 +53,7 @@ export default widePage(() => {
       // Filter out hard mismatching mentors
       .filter(m => m.traitsMatchingScore !== hardMismatchScore);
 
-    const compare = (a: UserProfileAndScore, b: UserProfileAndScore) => {
+    const compare = (a: UserCardData, b: UserCardData) => {
       return (b.traitsMatchingScore ?? 0) - (a.traitsMatchingScore ?? 0);
     };
     return dailyShuffle(filtered, me.id, compare);

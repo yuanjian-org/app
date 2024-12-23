@@ -18,7 +18,7 @@ import {
   HasOne,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import { ARRAY, DATE, INTEGER, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -125,6 +125,12 @@ class User extends Model {
   @Column(UUID)
   @ForeignKey(() => User)
   mergedTo: string | null;
+
+  @Column(INTEGER)
+  likes: number;
+
+  @Column(INTEGER)
+  kudos: number;
 
   // Managed by next-auth
   @Column(DATE)

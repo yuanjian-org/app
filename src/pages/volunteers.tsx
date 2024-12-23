@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import UserCards from "components/UserCards";
 import Loader from 'components/Loader';
 export default widePage(() => {
-  const { data } = trpcNext.users.listVolunteerProfiles.useQuery();
+  const { data } = trpcNext.users.listVolunteers.useQuery();
   const sorted = useMemo(() => 
     data?.sort((a, b) => compareDate(b.updatedAt, a.updatedAt)), [data]);
 

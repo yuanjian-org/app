@@ -2,10 +2,6 @@ import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 import db from "../database/db";
-import { Op } from "sequelize";
-import _ from "lodash";
-import invariant from "tiny-invariant";
-import { softTraitPrefAbsValue } from "../../shared/Traits";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -44,29 +40,33 @@ async function migrateData() {
   console.log("Migrating DB data...");
 
   await sequelize.transaction(async transaction => {
-    const users = await db.User.findAll({
-      where: { [Op.not]: { preference: null } },
-      attributes: ['id', 'preference'],
+    const likes = await db.Like.findAll({
       transaction,
     });
 
-    for (const user of users) {
-      const p = user.preference;
-      const traits = p?.mentor?.学生特质;
-      if (traits) {
-        const traits2 = _.cloneDeep(traits);
-        for (const [k, v] of Object.entries(traits2)) {
-          // @ts-expect-error
-          if (v === 2) traits2[k] = softTraitPrefAbsValue;
-          // @ts-expect-error
-          if (v === -2) traits2[k] = -softTraitPrefAbsValue;
-        }
+    for (const like of likes) {
+      const user = await db.User.findByPk(like.userId, { 
+        attributes: ['id', 'likes'],
+        transaction,
+      });
+      await user?.update({
+        likes: (user?.likes ?? 0) + like.count,
+      }, { transaction });
 
-        const p2 = _.cloneDeep(p);
-        invariant(p2 && p2.mentor);
-        p2.mentor.学生特质 = traits2;
-        await user.update({ preference: p2 }, { transaction });
+      for (let i = 0; i < like.count; i++) {
+        await db.Kudos.create({
+          receiverId: like.userId,
+          giverId: like.likerId,
+          text: null,
+          createdAt: like.updatedAt,
+          updatedAt: like.updatedAt,
+        }, { transaction });
       }
     }
+
+    await db.Like.destroy({ 
+      where: sequelize.literal('1 = 1'),
+      transaction
+    });
   });
 }

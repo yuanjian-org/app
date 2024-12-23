@@ -102,7 +102,7 @@ export default function GroupBar({
       {showJoinButton &&
         <Box>
           <JoinButton
-            isLoading={isJoiningMeeting} loadingText={'加入'}
+            isLoading={isJoiningMeeting}
             onClick={() => launchMeeting(group.id)}
           >加入</JoinButton>
         </Box>

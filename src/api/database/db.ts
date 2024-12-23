@@ -22,6 +22,7 @@ import MergeToken from "./models/MergeToken";
 import Like from "./models/Like";
 import ScheduledEmail from "./models/ScheduledEmail";
 import EventLog from "./models/EventLog";
+import Kudos from "./models/Kudos";
 
 const db = {
   Mentorship,
@@ -44,6 +45,7 @@ const db = {
   Like,
   ScheduledEmail,
   EventLog,
+  Kudos,
 };
 
 export default db;

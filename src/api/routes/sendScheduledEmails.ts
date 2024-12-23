@@ -1,102 +1,115 @@
 import db from "api/database/db";
-import {
-  likeAttributes,
-  likeInclude,
-  minUserAttributes,
-} from "api/database/models/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
-import { Transaction } from "sequelize";
-import { ScheduledLikeEmail } from "shared/ScheduledEmail";
+import { Op, Transaction } from "sequelize";
+import { ScheduledKudosEmail } from "shared/ScheduledEmail";
 import invariant from "tiny-invariant";
-import { Like } from "shared/Like";
 import { getUserUrl, MinUser } from "shared/User";
 import { formatUserName } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
 import { email, emailRoleIgnoreError } from "../sendgrid";
+import {
+  kudosAttributes,
+  kudosInclude,
+} from "api/database/models/attributesAndIncludes";
+import moment from "moment";
 
 export default async function sendScheduledEmails() {
   await sequelize.transaction(async transaction => {
     const all = await db.ScheduledEmail.findAll({
-      attributes: ["id","data", "updatedAt"],
+      attributes: ["id","data", "createdAt"],
       transaction,
     });
     console.log(`Found ${all.length} scheduled emails`);
 
     for (const row of all) {
       switch (row.data.type) {
-        case "Like":
-          await sendLikeEmail(row.id, row.data, row.updatedAt, transaction);
+        case "Kudos":
+          await sendKudosEmail(row.id, row.data, row.createdAt, transaction);
       }
     }
   });
 }
 
-const likeEmailMinDelayInMinutes = 5;
-
-async function sendLikeEmail(
+async function sendKudosEmail(
   rowId: string,
-  data: ScheduledLikeEmail,
-  updatedAt: Date,
+  data: ScheduledKudosEmail,
+  createdAt: Date,
   transaction: Transaction,
 ) {
-  invariant(data.type === "Like");
+  invariant(data.type === "Kudos");
 
-  if (updatedAt.getTime() + likeEmailMinDelayInMinutes * 60 * 1000
+  const minDelayInMinutes = 5;
+
+  if (createdAt.getTime() + minDelayInMinutes * 60 * 1000
     > Date.now()) {
-    console.log(`Delaying Like email for ${data.userId}`);
+    console.log(`Delaying Kudos email for ${data.receiverId}`);
     return;
   }
 
-  const user = await db.User.findByPk(data.userId, { 
-    attributes: ["email", "name"],
+  const receiver = await db.User.findByPk(data.receiverId, { 
+    attributes: ["email", "name", "likes", "kudos"],
     transaction,
   });
-  if (!user) throw Error(`User not found: ${data.userId}`);
+  if (!receiver) throw Error(`User not found: ${data.receiverId}`);
 
-  const likersBefore: MinUser[] = await db.User.findAll({
-    where: { id: data.before.map(l => l.likerId) },
-    attributes: minUserAttributes,
-    transaction,
-  });
-
-  const before: Like[] = likersBefore.map(l => ({
-    liker: l,
-    count: data.before.find(b => b.likerId === l.id)?.count ?? 0,
-  }));
-
-  const after: Like[] = await db.Like.findAll({
-    where: { userId: data.userId },
-    attributes: likeAttributes,
-    include: likeInclude,
+  const delta = await db.Kudos.findAll({
+    where: {
+      receiverId: data.receiverId,
+      createdAt: {
+        // Offset by 1 second to counter any effect of time skew at commit time.
+        [Op.gte]: moment(createdAt).subtract(1, 'second').toISOString(),
+      },
+    },
+    attributes: kudosAttributes,
+    include: kudosInclude,
     transaction,
   });
 
-  const delta: Like[] = after.map(a => ({
-    liker: a.liker,
-    count: a.count - (before.find(b => b.liker.id === a.liker.id)?.count ?? 0),
-  })).filter(l => l.count !== 0);
+  const giver2user: Record<string, MinUser> = {};
+  const giver2likes: Record<string, number> = {};
+  const giver2kudos: Record<string, string[]> = {};
+  for (const k of delta) {
+    giver2user[k.giver.id] = k.giver;
+    if (k.text === null) {
+      giver2likes[k.giver.id] = (giver2likes[k.giver.id] ?? 0) + 1;
+    } else {
+      giver2kudos[k.giver.id] = [...(giver2kudos[k.giver.id] ?? []), k.text];
+    }
+  }
 
-  const name = formatUserName(user.name, "friendly");
+  const link = (u: MinUser) => `<a href="${getBaseUrl()}${getUserUrl(u)}">` +
+      formatUserName(u.name, "formal") +
+  `</a>`;
+
+  const message = [
+    ...Object.entries(giver2likes).map(([giverId, likes]) => {
+      const giver = giver2user[giverId];
+      return `${link(giver)}刚刚给你点了 ${likes} 个赞`;
+    }),
+    ...Object.entries(giver2kudos).map(([giverId, kudos]) => {
+      const giver = giver2user[giverId];
+      const kudosText = kudos.map(k => `“${k}”`).join("，");
+      return `${link(giver)}刚刚夸了你：<b>${kudosText}</b>`;
+    }),
+  ].join("<br />");
+  
+  const receiverName = formatUserName(receiver.name, "friendly");
   const personalizations = [{
     to: {
-      email: user.email,
-      name,
+      email: receiver.email,
+      name: receiverName,
     },
     dynamicTemplateData: {
-      name,
-      total: after.reduce((acc, l) => acc + l.count, 0),
-      delta: delta.map(l =>
-        `<a href="${getBaseUrl()}${getUserUrl(l.liker)}">` +
-        formatUserName(l.liker.name, "formal") +
-        `</a>刚刚给你点了 ${l.count} 个赞`,
-      ).join("，"),
+      name: receiverName,
+      delta: message,
+      total: (receiver.likes ?? 0) + (receiver.kudos ?? 0),
     },
   }];
 
   await email("d-cc3da26ada1a40318440dfebe5e57aa9", personalizations,
     getBaseUrl());
 
-  emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件（Like Email)",
+  emailRoleIgnoreError("SystemAlertSubscriber", "发送夸夸邮件（Kudos Email)",
     JSON.stringify(personalizations), getBaseUrl());
 
   await db.ScheduledEmail.destroy({

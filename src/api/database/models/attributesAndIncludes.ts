@@ -166,12 +166,15 @@ export const mentorBookingInclude = [{
 }];
 
 /**
- * Like
+ * Kudos
  */
 
-export const likeAttributes = ["count"];
+export const kudosAttributes = ["createdAt", "text"];
 
-export const likeInclude = [{
-  association: "liker",
+export const kudosInclude = [{
+  association: "receiver",
+  attributes: minUserAttributes,
+}, {
+  association: "giver",
   attributes: minUserAttributes,
 }];

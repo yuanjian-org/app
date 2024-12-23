@@ -7,7 +7,6 @@ import {
   VStack,
   Box,
   HStack,
-  CardProps,
   Link,
   Spacer,
   Input,
@@ -15,10 +14,10 @@ import {
   InputLeftElement,
   Flex,
   Tooltip,
-  TextProps,
+  TextProps, BoxProps
 } from '@chakra-ui/react';
-import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
-import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import { formatUserName, toPinyin } from 'shared/strings';
+import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
 import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
@@ -26,9 +25,8 @@ import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
-import { trpcNext } from 'trpc';
-import { useUserContext } from 'UserContext';
-import { Like } from 'shared/Like';
+import { ShowOnMobile, ShowOnDesktop } from './Show';
+import KudosControl from './KudosControl';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -61,8 +59,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-export type UserProfileAndScore = MinUserAndProfile & {
+export type UserCardData = MinUserAndProfile & {
   traitsMatchingScore?: number;
+  likes?: number;
+  kudos?: number;
 };
 
 const isMobile = typeof navigator !== 'undefined' &&
@@ -72,7 +72,7 @@ const isMac = typeof navigator !== 'undefined' &&
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: UserProfileAndScore[],
+  users: UserCardData[],
 }) {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
@@ -117,39 +117,35 @@ export default function UserCards({ type, users }: {
         />
       </InputGroup>
 
-      {/* Desktop version */}
-      <SimpleGrid
-        display={{ base: "none", [breakpoint]: "grid" }}
-        spacing={componentSpacing}
-        templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
-      >
-        {searchResult.map(m => <UserCard
-          key={m.user.id}
-          user={m.user}
-          profile={m.profile}
-          type={type}
-          openModal={() => setBookingMentor(m.user)}
-          device="desktop"
-          isMentorRecommended={isMentorRecommended(m.traitsMatchingScore)}
-        />)}
-      </SimpleGrid>
+      <ShowOnDesktop>
+        <SimpleGrid
+          spacing={componentSpacing}
+          templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
+        >
+          {searchResult.map(d => <UserCardForDesktop
+            key={d.user.id}
+            data={d}
+            type={type}
+            openModal={() => setBookingMentor(d.user)}
+            isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+          />)}
+        </SimpleGrid>
+      </ShowOnDesktop>
 
-      {/* Mobile version */}
-      <SimpleGrid
-        display={{ base: "grid", [breakpoint]: "none" }}
-        spacing={componentSpacing}
-        templateColumns='1fr'
-      >
-        {searchResult.map(m => <UserCard
-          key={m.user.id}
-          user={m.user}
-          profile={m.profile}
-          type={type}
-          openModal={() => setBookingMentor(m.user)}
-          device="mobile"
-          isMentorRecommended={isMentorRecommended(m.traitsMatchingScore)}
-        />)}
-      </SimpleGrid>
+      <ShowOnMobile>
+        <SimpleGrid
+          spacing={componentSpacing}
+          templateColumns='1fr'
+        >
+          {searchResult.map(d => <UserCardForMobile
+            key={d.user.id}
+            data={d}
+            type={type}
+            openModal={() => setBookingMentor(d.user)}
+            isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+          />)}
+        </SimpleGrid>
+      </ShowOnMobile>
           
       {bookingMentor !== undefined && 
         <MentorBookingModal
@@ -165,7 +161,7 @@ function isMentorRecommended(traitsMatchingScore?: number) {
   return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
 }
 
-function search(users: UserProfileAndScore[],
+function search(users: UserCardData[],
   searchTerm: string) 
 {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
@@ -182,111 +178,31 @@ function search(users: UserProfileAndScore[],
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function UserCard({ user, profile: p, type, openModal, device,
-  isMentorRecommended
-} : {
-  user: MinUser,
-  profile: UserProfile | null,
-  type: UserCardType,
-  openModal: () => void,
-  device: "desktop" | "mobile",
-  isMentorRecommended: boolean,
-}) {
-  const [me] = useUserContext();
-  const { data: likes, refetch } = trpcNext.likes.get.useQuery({
-    userId: user.id,
-  });
-
-  // This variable allows local update of like count without waiting for
-  // server response.
-  const [likeCount, setLikeCount] = useState<number>(0);
-  useEffect(() => {
-    setLikeCount(likes?.reduce((acc, like) => acc + like.count, 0) ?? 0); 
-  }, [likes]);
-
-  const increment = trpcNext.likes.increment.useMutation({
-    onSuccess: refetch,
-  });
-
-  const clickLikes = (ev: React.MouseEvent) => {
-    ev.stopPropagation();
-    if (user.id !== me.id) {
-      increment.mutate({ userId: user.id });
-      setLikeCount(likeCount + 1);
-    }
-  };
-
-  return device == "desktop" ? <UserCardForDesktop
-    user={user}
-    profile={p}
-    type={type}
-    openModal={openModal}
-    likes={likes}
-    likeCount={likeCount}
-    clickLikes={clickLikes}
-    isMentorRecommended={isMentorRecommended}
-  /> : <UserCardForMobile
-    user={user}
-    profile={p}
-    type={type}
-    openModal={openModal}
-    likeCount={likeCount}
-    clickLikes={clickLikes}
-    isMentorRecommended={isMentorRecommended}
-  />;
-}
-
-function UserCardContainer({ user, type, children, ...rest }: {
-  user: MinUser,
-  type: UserCardType,
-} & CardProps) {
-  const router = useRouter();
-  const url = `${getUserUrl(user)}${type == "RelationalMentor" ? 
+function getUrl(user: MinUser, type: UserCardType) {
+  return `${getUserUrl(user)}${type == "RelationalMentor" ? 
     "?booking=0&traits=1" : ""}`;
-
-  return <Card
-    overflow="hidden"
-    cursor="pointer"
-    onClick={() => router.push(url)}
-    {...rest}
-  >
-    {children}
-  </Card>;
 }
 
 function UserCardForDesktop({
-  user, profile: p, type, openModal, likes, likeCount, clickLikes, 
-  isMentorRecommended
+  data, type, openModal, isMentorRecommended
 }: {
-  user: MinUser,
-  profile: UserProfile | null,
+  data: UserCardData,
   type: UserCardType,
   openModal: () => void,
-  likes: Like[] | undefined,
-  likeCount: number,
-  clickLikes: (ev: React.MouseEvent) => void,
   isMentorRecommended: boolean,
 }) {
-  const name = formatUserName(user.name, "friendly");
-  const likesLabel = likes?.length == 0 ? <>点赞，{name}会收到Email哦</> :
-    <Box>
-      {likes?.sort((a, b) => compareChinese(a.liker.name, b.liker.name))
-      .map(l => 
-        <Text key={l.liker.id}>
-          {formatUserName(l.liker.name, "formal") + "：" + l.count + "个赞"}
-        </Text>
-      )}
-      <br />
-      <Text>点赞后，{name}会收到Email哦</Text>
-    </Box>;
+  const router = useRouter();
+  const p = data.profile;
 
-  return <UserCardContainer user={user} type={type}>
+  const visitUser = () => router.push(getUrl(data.user, type));
 
-    <FullWidthImageSquare profile={p} />
+  return <Card overflow="hidden">
+
+    <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
     <CardHeader>
       <Heading size='md' color="gray.600">
-        {formatUserName(user.name, "formal")}
+        {formatUserName(data.user.name, "formal")}
         {isMentorRecommended && <MentorStar ms={3} />}
       </Heading>
     </CardHeader>
@@ -308,7 +224,9 @@ function UserCardForDesktop({
       </Flex>
     </CardBody>
     <CardFooter>
-      <Button>更多信息</Button>
+      <Button onClick={visitUser}>
+        更多信息
+      </Button>
 
       <Spacer />
 
@@ -319,19 +237,14 @@ function UserCardForDesktop({
         }}>预约</Button>
       </>}
 
-      {type == "Volunteer" && <Tooltip label={likesLabel} placement="top">
-        <Text
-          display="flex"
-          alignItems="center"
-          color="orange.600"
-          onClick={clickLikes}
-        >
-          👍{likeCount > 0 && ` ${likeCount}`}
-        </Text>
-      </Tooltip>}
+      {type == "Volunteer" && <KudosControl
+        user={data.user}
+        likes={data.likes ?? 0}
+        kudos={data.kudos ?? 0}
+      />}
 
     </CardFooter>
-  </UserCardContainer>;
+  </Card>;
 }
 
 function TruncatedText({ children }: PropsWithChildren) {
@@ -342,9 +255,9 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-function FullWidthImageSquare({ profile }: {
+function FullWidthImageSquare({ profile, ...rest }: {
   profile: UserProfile | null
-}) {
+} & BoxProps) {
   return <Box
     position="relative"
     width="100%"
@@ -352,6 +265,7 @@ function FullWidthImageSquare({ profile }: {
     // percentage is based on the width, so paddingBottom="100%" ensures the
     // height equals the width.
     paddingBottom="100%"
+    {...rest}
   >
     <Image
       position="absolute"
@@ -371,22 +285,23 @@ function FullWidthImageSquare({ profile }: {
 }
 
 function UserCardForMobile({
-  user, profile: p, type, openModal, likeCount, clickLikes, isMentorRecommended
+  data, type, openModal, isMentorRecommended
 }: {
-  user: MinUser,
-  profile: UserProfile | null,
+  data: UserCardData,
   type: UserCardType,
   openModal: () => void,
-  likeCount: number,
-  clickLikes: (ev: React.MouseEvent) => void,
   isMentorRecommended: boolean,
 }) {
-  return <UserCardContainer
-    user={user}
+  const router = useRouter();
+  const p = data.profile;
+
+  const visitUser = () => router.push(getUrl(data.user, type));
+
+  return <Card
+    overflow="hidden"
     size="sm"
     variant="unstyled"
     boxShadow="sm"
-    type={type}
   >
     <HStack
       spacing={componentSpacing}
@@ -402,7 +317,7 @@ function UserCardForMobile({
         // Align content to the left
         align="start"
       >
-        <Box width="100px">
+        <Box width="100px" onClick={visitUser}>
           <FullWidthImageSquare profile={p} />
         </Box>
 
@@ -412,7 +327,7 @@ function UserCardForMobile({
           align="start"
         >
           <Heading size='sm' color="gray.600">
-            {formatUserName(user.name, "formal")}
+            {formatUserName(data.user.name, "formal")}
           </Heading>
 
           {type == "TransactionalMentor" ? 
@@ -452,7 +367,9 @@ function UserCardForMobile({
       >
         {isMentorRecommended && <MentorStar me={2} />}
 
-        <Link>更多信息</Link>
+        <Link onClick={visitUser}>
+          更多信息
+        </Link>
 
         {type == "TransactionalMentor" && <>
           <Text color="gray.400">|</Text>
@@ -464,14 +381,16 @@ function UserCardForMobile({
 
         {type == "Volunteer" && <>
           <Text color="gray.400">|</Text>
-          <Text onClick={clickLikes} color="orange.600">
-            👍{likeCount > 0 && ` ${likeCount}`}
-          </Text>
+          <KudosControl
+            user={data.user}
+            likes={data.likes ?? 0}
+            kudos={data.kudos ?? 0}
+          />
         </>}
 
       </HStack>
     </HStack>
-  </UserCardContainer>;
+  </Card>;
 }
 
 export function MentorStar(props: TextProps) {
