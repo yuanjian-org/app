@@ -74,7 +74,9 @@ export default function Page() {
 
   const updateUser = (u: User) => {
     setUser(u);
-    void save();
+    // Do not auto save, because it may violate the chinese name constraint
+    // when the user is typing using Pinyin input method.
+    // void save();
   };
 
   const updateProfile = (k: keyof UserProfile, v: string) => {
