@@ -21,7 +21,6 @@ export const zUser = zMinUser.merge(z.object({
   roles: zRoles,
   email: z.string().email(),
   wechat: z.string().nullable(),
-  consentFormAcceptedAt: zNullableDateColumn,
   menteeInterviewerTestLastPassedAt: zNullableDateColumn,
   menteeStatus: zMenteeStatus.nullable(),
   pointOfContact: zMinUser.nullable(),

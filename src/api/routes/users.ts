@@ -304,7 +304,6 @@ const update = procedure
       name: input.name,
       wechat: input.wechat,
       pinyin: toPinyin(input.name ?? ""),
-      consentFormAcceptedAt: input.consentFormAcceptedAt,
       ...await checkAndPopulateUrl(input.name, input.roles, user.url, input.url,
         transaction),
 
@@ -388,6 +387,9 @@ const get = procedure
   return u;
 });
 
+/**
+ * TODO: Remove this route. Use routes that returns more specific data instead.
+ */
 const getFull = procedure
   .use(authUser())
   .input(z.string())
@@ -521,7 +523,7 @@ const setUserProfile = procedure
 
 const getUserState = procedure
   .use(authUser())
-  .output(zUserState.nullable())
+  .output(zUserState)
   .query(async ({ ctx: { user } }) =>
 {
   const u = await db.User.findByPk(user.id, {
@@ -529,16 +531,29 @@ const getUserState = procedure
   });
 
   if (!u) throw notFoundError("用户", user.id);
-  return u.state;
+  return u.state ?? {};
 });
 
+/**
+ * Fields absent from the input are not updated.
+ */
 const setUserState = procedure
   .use(authUser())
-  .input(zUserState)
+  .input(zUserState.partial())
   .mutation(async ({ ctx: { user }, input: state }) => 
 {
-  const [cnt] = await db.User.update({ state }, { where: { id: user.id } });
-  if (cnt == 0) throw notFoundError("用户", user.id);
+  await sequelize.transaction(async transaction => {
+    const u = await db.User.findByPk(user.id, { 
+      attributes: ["id", "state"],
+      transaction,
+    });
+    if (!u) throw notFoundError("用户", user.id);
+
+    await u.update({ state: {
+      ...u.state,
+      ...state,
+    } }, { transaction });
+  });
 });
 
 /**

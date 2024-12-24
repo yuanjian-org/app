@@ -290,9 +290,8 @@ function KudosHistoryRow({ kudos, showReceiver }: {
 
         {showReceiver && (like ? "给 " : "赞 ")}
         {showReceiver && <UserLink user={kudos.receiver} />}
-        {showReceiver && " "}
+        {showReceiver && (like ? " 点赞 👍" : "：")}
 
-        {like ? "点赞 👍" : "说："}
         {!like && <b>“{kudos.text}”</b>}
       </Text>
     </GridItem>
