@@ -198,10 +198,15 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             记得给出色的小伙伴点赞哦{' '}😊
           </Text>
         </Flex>
-        {/* Force scrolling by setting maxH. Its value is empirically
-            determined. */}
-        <Box maxH={type == "desktop" ? "600px" : "220px"} overflowY="auto"
+
+        <Box
+          // Force scrolling by setting maxH. Its value is empirically set.
+          maxH={type == "desktop" ? "600px" : "220px"}
+          overflowY="auto"
           onScroll={markAsRead}
+          // On mobile, the scroll event is not triggered by touch or drag.
+          onTouchMove={markAsRead}
+          onDragEnd={markAsRead}
         >
           {!kudos ? <Loader /> : 
             <KudosHistory
