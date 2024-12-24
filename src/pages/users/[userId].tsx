@@ -36,6 +36,14 @@ import { toast } from "react-toastify";
 import { computeTraitsMatchingScore, TraitsPreference } from "shared/Traits";
 import { TraitsModal, traitsPrefLabel2value, traitsPrefProfiles, TraitTag } from "components/Traits";
 import invariant from "tiny-invariant";
+import { KudosControl } from "components/Kudos";
+
+export type UserDisplayData = MinUserAndProfile & {
+  // The presence of these fields depends on call sites and context
+  traitsMatchingScore?: number;
+  likes?: number;
+  kudos?: number;
+};
 
 export default function Page() {
   const userId = parseQueryString(useRouter(), 'userId');
@@ -47,8 +55,9 @@ export default function Page() {
 Page.title = "用户资料";
 
 export function UserPage({ data }: {
-  data: MinUserAndProfile & { isMentor: boolean } | undefined
+  data: UserDisplayData & { isMentor: boolean } | undefined
 }) {
+  const [me] = useUserContext();
   const showBookingButton = parseQueryString(useRouter(), 'booking') !== "0" &&
     !!data?.isMentor;
   const showMatchingTraits = parseQueryString(useRouter(), 'traits') === "1" &&
@@ -72,6 +81,14 @@ export function UserPage({ data }: {
           />
         }
         <UserUrl u={data.user} />
+
+        {isPermitted(me.roles, "Volunteer") && <HStack mt={sectionSpacing}>
+          <KudosControl
+            user={data.user}
+            likes={data.likes ?? 0}
+            kudos={data.kudos ?? 0}
+          />
+        </HStack>}
 
         {showMatchingTraits && <MatchingTraits userId={data.user.id} />}
       </VStack>

@@ -17,15 +17,17 @@ const list = procedure
   .use(authUser("Volunteer"))
   .input(z.object({
     userId: z.string().optional(),
+    limit: z.number().optional(),
   }))
   .output(z.array(zKudos))
-  .query(async ({ input: { userId } }) => 
+  .query(async ({ input: { userId, limit } }) => 
 {
   return await db.Kudos.findAll({
-    where: { receiverId: userId },
+    where: userId ? { receiverId: userId } : undefined,
     attributes: kudosAttributes,
     include: kudosInclude,
     order: [['createdAt', 'DESC']],
+    ...limit ? { limit } : {},
   });
 });
 

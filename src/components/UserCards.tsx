@@ -14,19 +14,24 @@ import {
   InputLeftElement,
   Flex,
   Tooltip,
-  TextProps, BoxProps
+  TextProps, BoxProps,
+  GridItem
 } from '@chakra-ui/react';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile, StringUserProfile } from 'shared/UserProfile';
-import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
+import { UserProfile, StringUserProfile } from 'shared/UserProfile';
+import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 import { ShowOnMobile, ShowOnDesktop } from './Show';
-import KudosControl from './KudosControl';
+import { KudosControl, KudosHistory } from './Kudos';
+import { CardForDesktop, CardForMobile } from './Card';
+import { trpcNext } from 'trpc';
+import Loader from './Loader';
+import { UserDisplayData } from 'pages/users/[userId]';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -59,12 +64,6 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-export type UserCardData = MinUserAndProfile & {
-  traitsMatchingScore?: number;
-  likes?: number;
-  kudos?: number;
-};
-
 const isMobile = typeof navigator !== 'undefined' &&
   /iPhone|iPad|Android/.test(navigator.userAgent);
 const isMac = typeof navigator !== 'undefined' &&
@@ -72,7 +71,7 @@ const isMac = typeof navigator !== 'undefined' &&
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: UserCardData[],
+  users: UserDisplayData[],
 }) {
   const [searchTerm, setSearchTerm] = useState<string>();
   // Set to null to book with any mentor
@@ -122,6 +121,10 @@ export default function UserCards({ type, users }: {
           spacing={componentSpacing}
           templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
         >
+          {type == "Volunteer" && <GridItem colSpan={2} rowSpan={1}>
+            <KudosHistoryCard type="desktop" />
+          </GridItem>}
+
           {searchResult.map(d => <UserCardForDesktop
             key={d.user.id}
             data={d}
@@ -136,7 +139,11 @@ export default function UserCards({ type, users }: {
         <SimpleGrid
           spacing={componentSpacing}
           templateColumns='1fr'
+          alignItems="stretch"
         >
+
+          {type == "Volunteer" && <KudosHistoryCard type="mobile" />}
+
           {searchResult.map(d => <UserCardForMobile
             key={d.user.id}
             data={d}
@@ -157,11 +164,43 @@ export default function UserCards({ type, users }: {
   </>;
 }
 
+function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
+  const { data: kudos } = trpcNext.kudos.list.useQuery({
+    userId: undefined,
+    limit: 100,
+  });
+
+  const MyCard = ({ children }: PropsWithChildren) => type == "desktop" ?
+    <CardForDesktop height="100%">{children}</CardForDesktop> :
+    <CardForMobile>{children}</CardForMobile>;
+
+  return <MyCard>
+    <CardBody>
+      <Flex direction="column" gap={componentSpacing}>
+        <Flex justify="space-between">
+          <Heading size={type == "desktop" ? "md" : "sm"}>
+            最近的赞
+          </Heading>
+          <Text fontSize="sm" color="gray">
+            记得给出色的小伙伴点赞哦{' '}😊
+          </Text>
+        </Flex>
+        {/* Force scrolling by setting maxH. Its value is empirically
+            determined. */}
+        <Box maxH={type == "desktop" ? "560px" : "220px"} overflowY="auto">
+          {!kudos ? <Loader /> : 
+            <KudosHistory kudos={kudos} type={type} showReceiver />}
+        </Box>
+      </Flex>
+    </CardBody>
+  </MyCard>;
+}
+
 function isMentorRecommended(traitsMatchingScore?: number) {
   return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
 }
 
-function search(users: UserCardData[],
+function search(users: UserDisplayData[],
   searchTerm: string) 
 {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
@@ -186,7 +225,7 @@ function getUrl(user: MinUser, type: UserCardType) {
 function UserCardForDesktop({
   data, type, openModal, isMentorRecommended
 }: {
-  data: UserCardData,
+  data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
   isMentorRecommended: boolean,
@@ -196,12 +235,12 @@ function UserCardForDesktop({
 
   const visitUser = () => router.push(getUrl(data.user, type));
 
-  return <Card overflow="hidden">
+  return <CardForDesktop>
 
     <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
     <CardHeader>
-      <Heading size='md' color="gray.600">
+      <Heading size='md'>
         {formatUserName(data.user.name, "formal")}
         {isMentorRecommended && <MentorStar ms={3} />}
       </Heading>
@@ -244,7 +283,7 @@ function UserCardForDesktop({
       />}
 
     </CardFooter>
-  </Card>;
+  </CardForDesktop>;
 }
 
 function TruncatedText({ children }: PropsWithChildren) {
@@ -287,7 +326,7 @@ function FullWidthImageSquare({ profile, ...rest }: {
 function UserCardForMobile({
   data, type, openModal, isMentorRecommended
 }: {
-  data: UserCardData,
+  data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
   isMentorRecommended: boolean,
@@ -297,12 +336,7 @@ function UserCardForMobile({
 
   const visitUser = () => router.push(getUrl(data.user, type));
 
-  return <Card
-    overflow="hidden"
-    size="sm"
-    variant="unstyled"
-    boxShadow="sm"
-  >
+  return <CardForMobile>
     <HStack
       spacing={componentSpacing}
       fontSize="sm"
@@ -326,7 +360,7 @@ function UserCardForMobile({
           // Align content to the left
           align="start"
         >
-          <Heading size='sm' color="gray.600">
+          <Heading size='sm'>
             {formatUserName(data.user.name, "formal")}
           </Heading>
 
@@ -390,7 +424,7 @@ function UserCardForMobile({
 
       </HStack>
     </HStack>
-  </Card>;
+  </CardForMobile>;
 }
 
 export function MentorStar(props: TextProps) {
