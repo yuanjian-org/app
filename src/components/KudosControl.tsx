@@ -43,9 +43,19 @@ export default function KudosControl({ user, likes, kudos }: {
   // This variable allows local update without waiting for server response.
   const [localLikes, setLocalLikes] = useState<number>(likes);
   const [localKudos, setLocalKudos] = useState<number>(kudos);
+  const [popoverTitle, setPopoverTitle] = useState<string>("");
+
+  const popoverInputRef = useRef<HTMLInputElement>(null);
+  const {
+    onOpen: onOpenPopover,
+    onClose: onClosePopover,
+    isOpen: isPopoverOpen
+  } = useDisclosure();
 
   const saveLike = async () => {
     setLocalLikes(localLikes + 1);
+    setPopoverTitle(`感谢点赞！要不要再给${name}留个言？（可选）`);
+    onOpenPopover();
     await trpc.kudos.create.mutate({ userId: user.id, text: null });
   };
 
@@ -53,9 +63,6 @@ export default function KudosControl({ user, likes, kudos }: {
     setLocalKudos(localKudos + 1);
     await trpc.kudos.create.mutate({ userId: user.id, text });
   };
-
-  const { onOpen, onClose, isOpen } = useDisclosure();
-  const fieldRef = useRef<HTMLInputElement>(null);
 
   return me.id == user.id ? <MyKudosControl likes={likes} kudos={kudos} /> : <>
     <Tooltip
@@ -78,10 +85,13 @@ export default function KudosControl({ user, likes, kudos }: {
       * for the use of initialFocusRef, FocusLock, etc.
       */}
     <Popover
-      isOpen={isOpen}
-      onOpen={onOpen}
-      onClose={onClose}
-      initialFocusRef={fieldRef}
+      isOpen={isPopoverOpen}
+      onOpen={() => {
+        setPopoverTitle(`赞一下${name}`);
+        onOpenPopover();
+      }}
+      onClose={onClosePopover}
+      initialFocusRef={popoverInputRef}
       // Ensure the popover doesn't close on outside click
       // closeOnBlur={false}
     >
@@ -96,17 +106,16 @@ export default function KudosControl({ user, likes, kudos }: {
       </PopoverTrigger>
 
       <Portal>
-        <PopoverContent boxShadow="lg">
+        <PopoverContent width="350px" boxShadow="lg">
           <FocusLock returnFocus persistentFocus={false}>
             <PopoverArrow />
-            {/* For some reason the close button doesn't work. */}
-            {/* <PopoverCloseButton /> */}
             <PopoverBody>
               <KudosForm
+                title={popoverTitle}
                 user={user}
-                fieldRef={fieldRef}
+                fieldRef={popoverInputRef}
                 save={saveKudos}
-                onClose={onClose}
+                onClose={onClosePopover}
               />
             </PopoverBody>
           </FocusLock>
@@ -150,14 +159,13 @@ function MyKudosControl({ likes, kudos }: {
   </>;
 }
 
-function KudosForm({ user, fieldRef, save, onClose }: {
+function KudosForm({ title, user, fieldRef, save, onClose }: {
+  title: string,
   user: MinUser,
   fieldRef: React.RefObject<HTMLInputElement>,
   save: (text: string) => Promise<void>,
   onClose: () => void,
 }) {
-  const name = formatUserName(user.name, "friendly");
-
   const [text, setText] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -166,7 +174,7 @@ function KudosForm({ user, fieldRef, save, onClose }: {
     setIsSaving(true);
     try {
       await save(text);
-      toast.success("感谢你的夸夸！");
+      toast.success("感谢你的赞！");
       setText("");
       onClose();
     } finally {
@@ -176,7 +184,8 @@ function KudosForm({ user, fieldRef, save, onClose }: {
 
   return <VStack spacing={componentSpacing}>
     <FormControl>
-      <FormLabel>夸夸{name}</FormLabel>
+      <FormLabel mb={componentSpacing}>{title}</FormLabel>
+
       <Input
         ref={fieldRef}
         placeholder={`感谢、鼓励、支持...`}
@@ -186,7 +195,7 @@ function KudosForm({ user, fieldRef, save, onClose }: {
     </FormControl>
 
     <ButtonGroup>
-      {["💖", "👏", "🎉", "🤗", "🙏"].map(emoji => <Button
+      {["💖", "👏", "🎉", "🤗", "🙏", "👍"].map(emoji => <Button
         key={emoji}
         variant="ghost"
         onClick={() => {
@@ -199,7 +208,7 @@ function KudosForm({ user, fieldRef, save, onClose }: {
 
     <ButtonGroup width="100%" alignItems="center">
       <Link onClick={() => setIsHistoryOpen(true)}>
-        查看所有夸夸
+        查看所有的赞
       </Link>
       <Spacer />
       <Button variant='outline' onClick={onClose}>
@@ -211,7 +220,7 @@ function KudosForm({ user, fieldRef, save, onClose }: {
         onClick={submit}
         isLoading={isSaving}
       >
-        保存
+        发送
       </Button>
     </ButtonGroup>
 
@@ -230,14 +239,14 @@ function KudosHistoryModal({ user, onClose }: {
 
   return <ModalWithBackdrop isOpen size="lg" onClose={onClose}>
     <ModalContent>
-      <ModalHeader>{formatUserName(user.name, "formal")}收到的夸夸</ModalHeader>
+      <ModalHeader>{formatUserName(user.name, "formal")}收到的赞</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
 
         {!kudos ? <Loader /> : kudos.length == 0 ?
           <Text>
-            {me.id == user.id ? "还没有夸夸。" :
-              `还没有人夸。快去夸夸${formatUserName(user.name, "friendly")}吧！`}
+            {me.id == user.id ? "还没有赞。" :
+              `还没有人赞。快去赞一下${formatUserName(user.name, "friendly")}吧！`}
           </Text>
           :
           <SimpleGrid
