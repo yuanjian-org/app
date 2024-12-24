@@ -16,7 +16,8 @@ import { widePage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { useUserContext } from 'UserContext';
-import UserCards, { UserCardData } from "components/UserCards";
+import UserCards from "components/UserCards";
+import { UserDisplayData } from './users/[userId]';
 import Loader from 'components/Loader';
 
 export default widePage(() => {
@@ -59,7 +60,7 @@ export default widePage(() => {
 
       <Text>或者：</Text>
 
-      <Heading size="md" color="gray.600" mt={componentSpacing}>
+      <Heading size="md" mt={componentSpacing}>
         预约指定导师
       </Heading>
     </VStack>
@@ -79,8 +80,8 @@ export default widePage(() => {
  * and is influenced by the length of the array and a specified UUID
  * (which should be the current user id).
  */
-export function dailyShuffle(users : UserCardData[], uuid: string, 
-  compare?: (a: UserCardData, b: UserCardData) => number)
+export function dailyShuffle(users : UserDisplayData[], uuid: string, 
+  compare?: (a: UserDisplayData, b: UserDisplayData) => number)
 {
   const now = new Date();
   const local4am = new Date(now.getFullYear(), now.getMonth(), now.getDate(),

@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { componentSpacing } from 'theme/metrics';
-import { getUserUrl, MinUser } from 'shared/User';
+import { MinUser } from 'shared/User';
 import { useState, useRef } from 'react';
 import trpc, { trpcNext } from 'trpc';
 import { useUserContext } from 'UserContext';
@@ -29,10 +29,10 @@ import FocusLock from "react-focus-lock";
 import { toast } from 'react-toastify';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { Kudos } from 'shared/Kudos';
-import NextLink from 'next/link';
 import Loader from './Loader';
+import { UserLink } from './UserChip';
 
-export default function KudosControl({ user, likes, kudos }: {
+export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
   likes: number,
   kudos: number,
@@ -153,7 +153,7 @@ function MyKudosControl({ likes, kudos }: {
       💬{kudos > 0 && ` ${kudos}`}
     </Text>
 
-    {isHistoryOpen && <KudosHistoryModal user={me}
+    {isHistoryOpen && <UserKudosHistoryModal user={me}
       onClose={() => setIsHistoryOpen(false)}
     />}
   </>;
@@ -224,13 +224,13 @@ function KudosForm({ title, user, fieldRef, save, onClose }: {
       </Button>
     </ButtonGroup>
 
-    {isHistoryOpen && <KudosHistoryModal user={user}
+    {isHistoryOpen && <UserKudosHistoryModal user={user}
       onClose={() => setIsHistoryOpen(false)}
     />}
   </VStack>;
 }
 
-function KudosHistoryModal({ user, onClose }: {
+function UserKudosHistoryModal({ user, onClose }: {
   user: MinUser,
   onClose: () => void,
 }) {
@@ -249,12 +249,7 @@ function KudosHistoryModal({ user, onClose }: {
               `还没有人赞。快去赞一下${formatUserName(user.name, "friendly")}吧！`}
           </Text>
           :
-          <SimpleGrid
-            templateColumns="1fr auto"
-            gap={componentSpacing}
-          >
-            {kudos?.map((k, i) => <KudosRow key={i} kudos={k} />)}
-          </SimpleGrid>
+          <KudosHistory kudos={kudos} type="desktop" />
         }
       </ModalBody>
       <ModalFooter>
@@ -264,14 +259,39 @@ function KudosHistoryModal({ user, onClose }: {
   </ModalWithBackdrop>;
 }
 
-function KudosRow({ kudos }: { kudos: Kudos }) {
+export function KudosHistory({ kudos, type, showReceiver }: { 
+  kudos: Kudos[],
+  type: "desktop" | "mobile",
+  showReceiver?: boolean
+}) {
+  return <SimpleGrid
+    templateColumns="1fr auto" 
+    gap={type == "desktop" ? componentSpacing : 2}
+    fontSize={type == "desktop" ? "md" : "sm"}
+  >
+    {kudos.map((k, i) => <KudosHistoryRow
+      key={i}
+      kudos={k}
+      showReceiver={showReceiver}
+    />)}
+  </SimpleGrid>;
+}
+
+function KudosHistoryRow({ kudos, showReceiver }: { 
+  kudos: Kudos,
+  showReceiver?: boolean
+}) {
   const like = kudos.text === null;
   return <>
     <GridItem>
       <Text>
-        <Link as={NextLink} href={getUserUrl(kudos.giver)} target="_blank">
-          {formatUserName(kudos.giver.name, "formal")}
-        </Link>
+        <UserLink user={kudos.giver} />
+        {" "}
+
+        {showReceiver && (like ? "给 " : "赞 ")}
+        {showReceiver && <UserLink user={kudos.receiver} />}
+        {showReceiver && " "}
+
         {like ? "点赞 👍" : "说："}
         {!like && <b>“{kudos.text}”</b>}
       </Text>

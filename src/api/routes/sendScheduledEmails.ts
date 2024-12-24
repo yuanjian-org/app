@@ -16,7 +16,7 @@ import moment from "moment";
 export default async function sendScheduledEmails() {
   await sequelize.transaction(async transaction => {
     const all = await db.ScheduledEmail.findAll({
-      attributes: ["id","data", "createdAt"],
+      attributes: ["id", "data", "createdAt"],
       transaction,
     });
     console.log(`Found ${all.length} scheduled emails`);

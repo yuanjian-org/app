@@ -90,7 +90,7 @@ export default function Page() {
             isChecked={includeMerged}
             onChange={e => setIncludeMerged(e.target.checked)}
           >
-            包含已迁移账号
+            显示已迁移账号
           </Checkbox>
         </WrapItem>
 
@@ -99,7 +99,7 @@ export default function Page() {
             isChecked={includeBanned}
             onChange={e => setIncludeBanned(e.target.checked)}
           >
-            包含已停用账号
+            显示已停用账号
           </Checkbox>
         </WrapItem>
       </Wrap>

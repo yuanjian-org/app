@@ -11,7 +11,7 @@ export default function PageBreadcrumb({ current, parents, ...rest } : {
   const parentItems = parents?.map(p => (
     <BreadcrumbItem key={p.link}>
       <BreadcrumbLink as={Link} href={p.link}>
-        <Heading size="md" color="gray.600">{p.name}</Heading>
+        <Heading size="md">{p.name}</Heading>
       </BreadcrumbLink>
     </BreadcrumbItem>
   ));
@@ -23,7 +23,7 @@ export default function PageBreadcrumb({ current, parents, ...rest } : {
     {parentItems}
     <BreadcrumbItem isCurrentPage>
       <BreadcrumbLink>
-        <Heading size="md" color="gray.600">{current}</Heading>
+        <Heading size="md">{current}</Heading>
       </BreadcrumbLink>
     </BreadcrumbItem>
   </Breadcrumb>;

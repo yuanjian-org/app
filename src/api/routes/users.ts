@@ -454,6 +454,8 @@ const getUserProfile = procedure
   }))
   .output(zMinUserAndProfile.merge(z.object({
     isMentor: z.boolean(),
+    likes: z.number(),
+    kudos: z.number(),
   })))
   .query(async ({ ctx: { user: me }, input: { userId, userUrl } }) => 
 {
@@ -462,7 +464,9 @@ const getUserProfile = procedure
       "Must provide either userId or userUrl and not both.");
   }
 
-  const attributes = [...minUserAttributes, 'menteeStatus', 'roles', 'profile'];
+  const attributes = [
+    ...minUserAttributes, 'menteeStatus', 'roles', 'profile', 'likes', 'kudos'
+  ];
   const u = userId ?
     await db.User.findByPk(userId, { attributes })
     :
@@ -494,6 +498,8 @@ const getUserProfile = procedure
     user: u,
     profile: u.profile ?? {},
     isMentor: isPermitted(u.roles, "Mentor"),
+    likes: u.likes ?? 0,
+    kudos: u.kudos ?? 0,
   };
 });
 

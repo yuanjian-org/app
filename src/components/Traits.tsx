@@ -124,7 +124,7 @@ export function TraitsModal({ onClose }: {
             fontSize='sm'
             color="gray"
           >
-            点击滑轨选择倾向。越接近两端则倾向程度越高。若无倾向或不确认，请点击滑轨中央。
+            点击滑轨选择倾向。越接近两侧则倾向程度越高。如果无明显倾向，点击滑轨中央。
           </GridItem>
 
           {/* Traits */}
