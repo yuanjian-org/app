@@ -173,7 +173,6 @@ async function limitRate(userId: string, token: string,
     transaction,
   });
 
-  console.log(">>>>", count);
   if (count > maxErrorAttemptsPerDay) {
     emailRoleIgnoreError("SystemAlertSubscriber", "微信激活码尝试次数超限",
       `用户 ${userId} 的当日尝试次数已经超过 ${maxErrorAttemptsPerDay} 次`,

@@ -23,7 +23,7 @@ import { getUserUrl, MinUser } from 'shared/User';
 import { UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
+import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 import { ShowOnMobile, ShowOnDesktop } from './Show';
@@ -171,17 +171,19 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
     limit,
   });
 
-  kudos?.map(k => console.log(">>>", typeof k.createdAt, k.createdAt));
-
   const utils = trpcNext.useContext();
-  const markAsRead = async () => {
+  const [marked, setMarked] = useState(false);
+  const markAsRead = useCallback(async () => {
+    if (marked) return;
     const newest = kudos?.[0]?.createdAt;
     if (newest) await hideUnreadKudosRedDot(utils, newest);
-  };
+    setMarked(true);
+  }, [marked, kudos, utils]);
 
-  const MyCard = ({ children }: PropsWithChildren) => type == "desktop" ?
-    <CardForDesktop height="100%">{children}</CardForDesktop> :
-    <CardForMobile>{children}</CardForMobile>;
+  const MyCard = useCallback(({ children }: PropsWithChildren) =>
+    type == "desktop" ?
+      <CardForDesktop height="100%">{children}</CardForDesktop> :
+      <CardForMobile>{children}</CardForMobile>, [type]);
 
   return <MyCard>
     <CardBody onClick={markAsRead}>
@@ -208,13 +210,12 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           onTouchMove={markAsRead}
           onDragEnd={markAsRead}
         >
-          {!kudos ? <Loader /> : 
-            <KudosHistory
-              kudos={kudos}
-              type={type}
-              showReceiver
-              limit={limit}
-            />}
+          {!kudos ? <Loader /> : <KudosHistory
+            kudos={kudos}
+            type={type}
+            showReceiver
+            limit={limit}
+          />}
         </Box>
       </Flex>
     </CardBody>

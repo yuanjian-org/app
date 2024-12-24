@@ -287,10 +287,8 @@ export function KudosHistory({ kudos, type, showReceiver, limit }: {
   const read = kudos.filter(k => moment(k.createdAt)
     .isSameOrBefore(lastKudosReadAt));
 
-  const gap = type == "desktop" ? componentSpacing * 2 : componentSpacing;
-
   const PseudoRow = ({ text, divider }: { text: string, divider?: boolean }) => (
-    <GridItem colSpan={2} py={-gap / 2}>
+    <GridItem colSpan={2}>
       <Box position='relative' px='10'>
         {divider && <Divider />}
         <AbsoluteCenter bg='white' px='4'>
@@ -306,7 +304,7 @@ export function KudosHistory({ kudos, type, showReceiver, limit }: {
 
   return <SimpleGrid
     templateColumns="1fr auto"
-    gap={gap}
+    gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
     fontSize={type == "desktop" ? "md" : "sm"}
   >
     {unread.map((k, i) => <KudosHistoryRow
