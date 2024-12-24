@@ -27,7 +27,7 @@ import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 import { ShowOnMobile, ShowOnDesktop } from './Show';
-import { KudosControl, KudosHistory } from './Kudos';
+import { KudosControl, KudosHistory, hideUnreadKudosRedDot, UnreadKudosRedDot } from './Kudos';
 import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
 import Loader from './Loader';
@@ -165,21 +165,34 @@ export default function UserCards({ type, users }: {
 }
 
 function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
+  const limit = 50;
   const { data: kudos } = trpcNext.kudos.list.useQuery({
     userId: undefined,
-    limit: 100,
+    limit,
   });
+
+  kudos?.map(k => console.log(">>>", typeof k.createdAt, k.createdAt));
+
+  const utils = trpcNext.useContext();
+  const markAsRead = async () => {
+    const newest = kudos?.[0]?.createdAt;
+    if (newest) await hideUnreadKudosRedDot(utils, newest);
+  };
 
   const MyCard = ({ children }: PropsWithChildren) => type == "desktop" ?
     <CardForDesktop height="100%">{children}</CardForDesktop> :
     <CardForMobile>{children}</CardForMobile>;
 
   return <MyCard>
-    <CardBody>
-      <Flex direction="column" gap={componentSpacing}>
+    <CardBody onClick={markAsRead}>
+      <Flex
+        direction="column"
+        gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
+      >
         <Flex justify="space-between">
-          <Heading size={type == "desktop" ? "md" : "sm"}>
+          <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
             最近的赞
+            <UnreadKudosRedDot />
           </Heading>
           <Text fontSize="sm" color="gray">
             记得给出色的小伙伴点赞哦{' '}😊
@@ -187,9 +200,16 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
         </Flex>
         {/* Force scrolling by setting maxH. Its value is empirically
             determined. */}
-        <Box maxH={type == "desktop" ? "560px" : "220px"} overflowY="auto">
+        <Box maxH={type == "desktop" ? "600px" : "220px"} overflowY="auto"
+          onScroll={markAsRead}
+        >
           {!kudos ? <Loader /> : 
-            <KudosHistory kudos={kudos} type={type} showReceiver />}
+            <KudosHistory
+              kudos={kudos}
+              type={type}
+              showReceiver
+              limit={limit}
+            />}
         </Box>
       </Flex>
     </CardBody>

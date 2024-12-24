@@ -389,6 +389,7 @@ const get = procedure
 
 /**
  * TODO: Remove this route. Use routes that returns more specific data instead.
+ * Also, the session user already has full information.
  */
 const getFull = procedure
   .use(authUser())

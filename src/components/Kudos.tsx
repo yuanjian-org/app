@@ -17,7 +17,10 @@ import {
   GridItem,
   ModalContent,
   ModalFooter,
-  ModalCloseButton
+  ModalCloseButton,
+  Box,
+  AbsoluteCenter,
+  Divider
 } from '@chakra-ui/react';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { componentSpacing } from 'theme/metrics';
@@ -31,6 +34,11 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { Kudos } from 'shared/Kudos';
 import Loader from './Loader';
 import { UserLink } from './UserChip';
+import moment from 'moment';
+import { SmallGrayText } from './SmallGrayText';
+import { DateColumn } from 'shared/DateColumn';
+import { UserState } from 'shared/UserState';
+import RedDot from './RedDot';
 
 export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
@@ -259,21 +267,64 @@ function UserKudosHistoryModal({ user, onClose }: {
   </ModalWithBackdrop>;
 }
 
-export function KudosHistory({ kudos, type, showReceiver }: { 
+export function KudosHistory({ kudos, type, showReceiver, limit }: { 
   kudos: Kudos[],
   type: "desktop" | "mobile",
-  showReceiver?: boolean
+  showReceiver?: boolean,
+  limit?: number,
 }) {
+  // Use a state variable to avoid updating it when `markKudosHistoryAsRead`
+  // is called.
+  const [lastKudosReadAt, setLastKudosReadAt] = useState<moment.Moment>();
+  trpcNext.users.getUserState.useQuery(undefined, {
+    onSuccess: state => {
+      if (!lastKudosReadAt) setLastKudosReadAt(getLastKudosReadAt(state));
+    }
+  });
+
+  const unread = kudos.filter(k => moment(k.createdAt)
+    .isAfter(lastKudosReadAt));
+  const read = kudos.filter(k => moment(k.createdAt)
+    .isSameOrBefore(lastKudosReadAt));
+
+  const gap = type == "desktop" ? componentSpacing * 2 : componentSpacing;
+
+  const PseudoRow = ({ text, divider }: { text: string, divider?: boolean }) => (
+    <GridItem colSpan={2} py={-gap / 2}>
+      <Box position='relative' px='10'>
+        {divider && <Divider />}
+        <AbsoluteCenter bg='white' px='4'>
+          <SmallGrayText textAlign="center"
+            fontSize={type == "desktop" ? "sm" : "xs"}
+          >
+            {text}
+          </SmallGrayText>
+        </AbsoluteCenter>
+      </Box>
+    </GridItem>
+  );
+
   return <SimpleGrid
-    templateColumns="1fr auto" 
-    gap={type == "desktop" ? componentSpacing : 2}
+    templateColumns="1fr auto"
+    gap={gap}
     fontSize={type == "desktop" ? "md" : "sm"}
   >
-    {kudos.map((k, i) => <KudosHistoryRow
+    {unread.map((k, i) => <KudosHistoryRow
       key={i}
       kudos={k}
       showReceiver={showReceiver}
     />)}
+
+    {read.length > 0 && unread.length > 0 &&
+      <PseudoRow divider text={`以上为未读的赞`} />}
+
+    {read.map((k, i) => <KudosHistoryRow
+      key={i}
+      kudos={k}
+      showReceiver={showReceiver}
+    />)}
+
+    {limit && <PseudoRow text={`仅显示最近 ${limit} 个赞`} />}
   </SimpleGrid>;
 }
 
@@ -288,17 +339,53 @@ function KudosHistoryRow({ kudos, showReceiver }: {
         <UserLink user={kudos.giver} />
         {" "}
 
-        {showReceiver && (like ? "给 " : "赞 ")}
-        {showReceiver && <UserLink user={kudos.receiver} />}
-        {showReceiver && (like ? " 点赞 👍" : "：")}
+        {showReceiver ? <>
+          {like ? "给 " : "赞 "}
+          <UserLink user={kudos.receiver} />
+          {like ? " 点赞 👍" : "："}
+        </> : <>
+          {like ? " 点赞 👍" : "说："}
+        </>}
 
         {!like && <b>“{kudos.text}”</b>}
       </Text>
     </GridItem>
     <GridItem>
-      <Text fontSize="sm" color="gray.500">
+      <SmallGrayText>
         {kudos.createdAt && prettifyDate(kudos.createdAt)}
-      </Text>
+      </SmallGrayText>
     </GridItem>
   </>;
+}
+
+/**
+ * The parent element should have position="relative".
+ */
+export function UnreadKudosRedDot() {
+  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: newest } = trpcNext.kudos.getNewestKudosCreatedAt.useQuery();
+  return <RedDot show={showUnreadKudosRedDot(state, newest)} />;
+}
+
+export function showUnreadKudosRedDot(
+  userState: UserState | undefined,
+  newestKudosCreatedAt: DateColumn | undefined
+) {
+  return !!userState && !!newestKudosCreatedAt &&
+    moment(newestKudosCreatedAt).isAfter(getLastKudosReadAt(userState));
+}
+
+function getLastKudosReadAt(state: UserState): moment.Moment {
+  // If lastKudosReadAt is absent, treat consentedAt as the last read time.
+  // If consentedAt is also absent, then use the current time.
+  // `moment(undefined)` returns the current time.
+  return moment(state.lastKudosReadAt ?? state.consentedAt);
+}
+
+export async function hideUnreadKudosRedDot(
+  utils: ReturnType<typeof trpcNext.useContext>,
+  newestCreatedAt: DateColumn
+) {
+  await trpc.users.setUserState.mutate({ lastKudosReadAt: newestCreatedAt });
+  await utils.users.getUserState.invalidate();
 }

@@ -1,7 +1,7 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React, { ReactNode, useCallback, useRef, useState } from 'react';
+import { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   IconButton,
   Box,
@@ -16,7 +16,6 @@ import {
 import {
   FiMenu,
 } from 'react-icons/fi';
-import NextLink from 'next/link';
 import colors from 'theme/colors';
 import AutosaveIndicator, {
   AutosaveState,
@@ -28,6 +27,10 @@ import AutosaveIndicator, {
 import AutosaveContext from 'AutosaveContext';
 import Sidebar from './Sidebar';
 import { breakpoint } from 'theme/metrics';
+import { ShowOnDesktop, ShowOnMobile } from './Show';
+import RedDot from './RedDot';
+import { showUnreadKudosRedDot } from './Kudos';
+import { trpcNext } from 'trpc';
 
 export const sidebarWidth = 60;
 
@@ -65,13 +68,12 @@ export default function Navbars({
     <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight,
       colors.backgroundDark)}
     >
-      {/* The sidebar on desktop */}
-      <Sidebar
-        onClose={() => onClose}
-        display={{ base: 'none', [breakpoint]: 'block' }}
-      />
+      {/* Desktop sidebar */}
+      <ShowOnDesktop>
+        <Sidebar onClose={() => onClose} />
+      </ShowOnDesktop>
 
-      {/* The sidebar on mobile */}
+      {/* Mobile sidebar */}
       <Drawer
         autoFocus={false}
         isOpen={isOpen}
@@ -110,29 +112,39 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
   return (
     <Flex justifyContent="flex-end">
       <HStack spacing={6} marginTop={{ base: 0, [breakpoint]: 10 }} >
-        <IconButton
-          zIndex={2}
-          marginX={4}
-          marginTop={4}
-          marginBottom={-8}
-          display={{ base: 'flex', [breakpoint]: 'none' }}
-          onClick={onOpen}
-          variant="outline"
-          aria-label="open menu"
-          icon={<FiMenu />}
-          bg="white"
-        />
+
+        {/* Mobile menu icon */}
+        <ShowOnMobile>
+          <Box position="relative">
+            <IconButton
+              zIndex={2}
+              marginX={4}
+              marginTop={4}
+              marginBottom={-8}
+              onClick={onOpen}
+              variant="outline"
+              aria-label="open menu"
+              icon={<FiMenu />}
+              bg="white"
+              position="relative"
+            />
+            <MobileMenuIconRedDot />
+          </Box>
+        </ShowOnMobile>
+
         <AutosaveIndicator
           display="flex"
           mt={{ base: "80px", [breakpoint]: 0 }}
           state={autosaveState}
         />
       </HStack>
-
-      <Box display="flex">
-        <NextLink href="http://yuanjian.org" target="_blank">
-        </NextLink>
-      </Box>
     </Flex>
   );
 };
+
+function MobileMenuIconRedDot() {
+  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: newest } = trpcNext.kudos.getNewestKudosCreatedAt.useQuery();
+  const show = showUnreadKudosRedDot(state, newest);
+  return <RedDot show={show} top={6} right="22px" zIndex={3} />;
+}
