@@ -4,10 +4,11 @@ import { z } from "zod";
 import sequelize from "api/database/sequelize";
 import db from "api/database/db";
 import { generalBadRequestError, notFoundError } from "api/errors";
-import { Sequelize, Transaction } from "sequelize";
+import { Op, Sequelize, Transaction } from "sequelize";
 import { ScheduledEmailData, zScheduledKudosEmail } from "shared/ScheduledEmail";
 import { kudosAttributes, kudosInclude } from "api/database/models/attributesAndIncludes";
 import { zKudos } from "shared/Kudos";
+import { zDateColumn } from "shared/DateColumn";
 
 /**
  * List kudos for a user. If userId is not provided, list all kudos.
@@ -29,6 +30,20 @@ const list = procedure
     order: [['createdAt', 'DESC']],
     ...limit ? { limit } : {},
   });
+});
+
+/**
+ * Get the createdAt of the newest kudos that were not sent by the user.
+ */
+const getNewestKudosCreatedAt = procedure
+  .use(authUser("Volunteer"))
+  .output(zDateColumn)
+  .query(async ({ ctx: { user: me } }) => 
+{
+  const ret = await db.Kudos.max("createdAt", {
+    where: { giverId: { [Op.ne]: me.id } },
+  });
+  return zDateColumn.parse(ret ?? "1970-01-01");
 });
 
 /**
@@ -95,4 +110,5 @@ async function scheduleEmail(receiverId: string, transaction: Transaction)
 export default router({
   create,
   list,
+  getNewestKudosCreatedAt,
 });

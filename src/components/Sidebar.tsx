@@ -51,6 +51,8 @@ import User, { isAcceptedMentee } from 'shared/User';
 import { mentorshipStatusIconType } from 'pages/mentees';
 import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
+import { UnreadKudosRedDot } from './Kudos';
+import { ShowOnMobile } from './Show';
 
 const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -65,6 +67,7 @@ interface MainMenuItem {
   path: string,
   regex?: RegExp,
   permission?: Role | Role[] | ((u: User) => boolean),
+  unreadKudosRedDot?: boolean,
 }
 
 interface DropdownMenuItem {
@@ -178,6 +181,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
+    unreadKudosRedDot: true,
   },
   {
     name: '学生档案',
@@ -254,12 +258,13 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       overflowY="auto"
       h="full">
       <Box>
-        <CloseButton
-          display={{ base: 'flex', [breakpoint]: 'none' }} 
-          onClick={onClose} 
-          marginLeft={sidebarItemPaddingLeft - 2}
-          marginY={sidebarItemPaddingY}  
-        />
+        <ShowOnMobile>
+          <CloseButton
+            onClick={onClose} 
+            marginLeft={sidebarItemPaddingLeft - 2}
+            marginY={sidebarItemPaddingY}  
+          />
+        </ShowOnMobile>
 
         <ImpersonationBanner />
 
@@ -413,7 +418,10 @@ const SidebarRow = ({ item, onClose, ...rest }: {
       {...rest}
     >
       <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
-      <Text marginX={componentSpacing}>{item.name}</Text>
+      <Text marginX={componentSpacing} position="relative">
+        {item.name}
+        {item.unreadKudosRedDot && <UnreadKudosRedDot />}
+      </Text>
       <Icon
         as={MdChevronRight}
         opacity={0}
@@ -422,3 +430,4 @@ const SidebarRow = ({ item, onClose, ...rest }: {
     </Flex>
   </Link>;
 };
+
