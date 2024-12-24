@@ -109,7 +109,7 @@ async function sendKudosEmail(
   await email("d-cc3da26ada1a40318440dfebe5e57aa9", personalizations,
     getBaseUrl());
 
-  emailRoleIgnoreError("SystemAlertSubscriber", "发送夸夸邮件（Kudos Email)",
+  emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件（Kudos Email)",
     JSON.stringify(personalizations), getBaseUrl());
 
   await db.ScheduledEmail.destroy({
