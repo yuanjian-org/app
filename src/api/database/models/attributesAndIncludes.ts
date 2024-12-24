@@ -18,7 +18,7 @@ export const extraUserAttributesForInterviews = ["roles", "menteeStatus",
   "volunteerApplication"];
 
 export const userAttributes = [...minUserAttributes, "wechat", "email",
-  "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
+  "roles", "menteeInterviewerTestLastPassedAt",
   "menteeStatus", "pointOfContactNote"];
 
 export const userInclude = [{

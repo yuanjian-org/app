@@ -2,6 +2,8 @@ import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 import db from "../database/db";
+import { Op } from "sequelize";
+import moment from "moment";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -40,33 +42,21 @@ async function migrateData() {
   console.log("Migrating DB data...");
 
   await sequelize.transaction(async transaction => {
-    const likes = await db.Like.findAll({
+    const users = await db.User.findAll({
+      where: {
+        consentFormAcceptedAt: { [Op.not]: null }
+      },
+      attributes: ['id', 'consentFormAcceptedAt', 'state'],
       transaction,
     });
 
-    for (const like of likes) {
-      const user = await db.User.findByPk(like.userId, { 
-        attributes: ['id', 'likes'],
-        transaction,
-      });
-      await user?.update({
-        likes: (user?.likes ?? 0) + like.count,
+    for (const user of users) {
+      await user.update({
+        state: {
+          ...user.state,
+          consentedAt: moment(user.consentFormAcceptedAt).toISOString(),
+        }
       }, { transaction });
-
-      for (let i = 0; i < like.count; i++) {
-        await db.Kudos.create({
-          receiverId: like.userId,
-          giverId: like.likerId,
-          text: null,
-          createdAt: like.updatedAt,
-          updatedAt: like.updatedAt,
-        }, { transaction });
-      }
     }
-
-    await db.Like.destroy({ 
-      where: sequelize.literal('1 = 1'),
-      transaction
-    });
   });
 }

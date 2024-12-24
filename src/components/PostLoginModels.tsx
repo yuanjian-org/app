@@ -12,27 +12,26 @@ import {
   ModalFooter,
   Spacer,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useUserContext } from "../UserContext";
 import trpc, { trpcNext } from "../trpc";
-import User from '../shared/User';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { isValidChineseName } from 'shared/strings';
 import { signOut } from 'next-auth/react';
 import { canAcceptMergeToken } from 'shared/merge';
 import { MergeModals } from './MergeModals';
+import { DateColumn } from 'shared/DateColumn';
 
 export default function PostLoginModels() {
   const [user] = useUserContext();
-  const { data: state, refetch } = trpcNext.users.getUserState
-    .useQuery();
+  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
 
   return state === undefined ?
     <></>
     : !user.name ?
       <SetNameModal />
-      : !consentFormAccepted(user) ?
-        <ConsentModal />
+      : !isConsented(state.consentedAt) ?
+        <ConsentModal refetch={refetch} />
         : canAcceptMergeToken(user.email) && !state?.declinedMergeModal ?
           <MergeModals userState={state} close={refetch} />
           : <></>;
@@ -83,25 +82,21 @@ function SetNameModal() {
   );
 }
 
-function consentFormAccepted(user: User) {
-  const consentContentLastUpdatedAt = new Date("2023-06-01");
+function isConsented(consentedAt: DateColumn | undefined) {
+  const consentTextLastUpdatedAt = new Date("2023-06-01");
 
-  return user.consentFormAcceptedAt &&
-    new Date(user.consentFormAcceptedAt).getTime() >=
-      consentContentLastUpdatedAt.getTime();
+  return consentedAt && new Date(consentedAt).getTime() >=
+    consentTextLastUpdatedAt.getTime();
 }
 
-function ConsentModal() {
-  const [user, setUser] = useUserContext();
+function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
 
-  const handleSubmit = async () => {
-    const updated = {
-      ...user,
-      consentFormAcceptedAt: new Date().toISOString(),
-    };
-    await trpc.users.update.mutate(updated);
-    setUser(updated);
+  const submit = async () => {
+    await trpc.users.setUserState.mutate({
+      consentedAt: new Date().toISOString(),
+    });
+    refetch();
   };
 
   return <>
@@ -122,7 +117,7 @@ function ConsentModal() {
         <ModalFooter>
           <Button onClick={() => setDeclined(true)}>拒绝使用</Button>
           <Spacer />
-          <Button variant='brand' onClick={handleSubmit}>已阅，同意使用本网站</Button>
+          <Button variant='brand' onClick={submit}>已阅，同意使用本网站</Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
