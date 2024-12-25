@@ -146,5 +146,5 @@ function MobileMenuIconRedDot() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: newest } = trpcNext.kudos.getNewestKudosCreatedAt.useQuery();
   const show = showUnreadKudosRedDot(state, newest);
-  return <RedDot show={show} top={6} right="22px" zIndex={3} />;
+  return <RedDot show={show} top="22px" right="20px" zIndex={3} />;
 }

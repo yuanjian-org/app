@@ -19,7 +19,6 @@ import ChatMessage from "./models/ChatMessage";
 import LandmarkAssessment from "./models/map/LandmarkAssessment";
 import MentorBooking from "./models/MentorBooking";
 import MergeToken from "./models/MergeToken";
-import Like from "./models/Like";
 import ScheduledEmail from "./models/ScheduledEmail";
 import EventLog from "./models/EventLog";
 import Kudos from "./models/Kudos";
@@ -42,7 +41,6 @@ const db = {
   LandmarkAssessment,
   MentorBooking,
   MergeToken,
-  Like,
   ScheduledEmail,
   EventLog,
   Kudos,

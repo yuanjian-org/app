@@ -176,8 +176,10 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
   const markAsRead = useCallback(async () => {
     if (marked) return;
     const newest = kudos?.[0]?.createdAt;
-    if (newest) await hideUnreadKudosRedDot(utils, newest);
-    setMarked(true);
+    if (newest) {
+      await hideUnreadKudosRedDot(utils, newest);
+      setMarked(true);
+    }
   }, [marked, kudos, utils]);
 
   const MyCard = useCallback(({ children }: PropsWithChildren) =>
