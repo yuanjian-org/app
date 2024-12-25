@@ -125,19 +125,19 @@ function MenteeTable({ users, refetch }: {
     }));
   }, []);
 
-  const [mentee2latestMentorMeetingDate, setMentee2latestMentorMeetingDate] =
+  const [mentee2lastMentorMeetingDate, setMentee2lastMentorMeetingDate] =
     useState<Record<string, string>>({}); 
-  const setLatestMentorMeetingDate = useCallback((userId: string, date: string) => {
-    setMentee2latestMentorMeetingDate(current => ({
+  const setLastMentorMeetingDate = useCallback((userId: string, date: string) => {
+    setMentee2lastMentorMeetingDate(current => ({
       ...current,
       [userId]: date,
     }));
   }, []);
 
-  const [mentee2latestTranscriptDate, setMentee2latestTranscriptDate] =
+  const [mentee2lastTranscriptDate, setMentee2lastTranscriptDate] =
     useState<Record<string, string>>({}); 
-  const setLatestTranscriptDate = useCallback((userId: string, date: string) => {
-    setMentee2latestTranscriptDate(current => ({
+  const setLastTranscriptDate = useCallback((userId: string, date: string) => {
+    setMentee2lastTranscriptDate(current => ({
       ...current,
       [userId]: date,
     }));
@@ -186,22 +186,22 @@ function MenteeTable({ users, refetch }: {
 
         case "mentorMeeting":
           comp = compareDate(
-            mentee2latestMentorMeetingDate[a.id],
-            mentee2latestMentorMeetingDate[b.id]);
+            mentee2lastMentorMeetingDate[a.id],
+            mentee2lastMentorMeetingDate[b.id]);
           if (comp !== 0) return sign * comp;
           break;
 
         case "transcript":
           comp = compareDate(
-            mentee2latestTranscriptDate[a.id],
-            mentee2latestTranscriptDate[b.id]);
+            mentee2lastTranscriptDate[a.id],
+            mentee2lastTranscriptDate[b.id]);
           if (comp !== 0) return sign * comp;
           break;
       }
     }
     // Fall back to id comparison
     return a.id.localeCompare(b.id);
-  }, [mentee2latestMentorMeetingDate, mentee2latestTranscriptDate, mentee2meta, 
+  }, [mentee2lastMentorMeetingDate, mentee2lastTranscriptDate, mentee2meta, 
     sortOrder]);
 
   const sortedUsers = useMemo(() => {
@@ -237,8 +237,8 @@ function MenteeTable({ users, refetch }: {
         user={u} 
         refetch={refetch} 
         setMetadata={setMetadata}
-        setLatestMentorMeetingDate={setLatestMentorMeetingDate}
-        setLatestTranscriptDate={setLatestTranscriptDate}
+        setLastMentorMeetingDate={setLastMentorMeetingDate}
+        setLastTranscriptDate={setLastTranscriptDate}
       />)}
     </Tbody>
   </Table>;
@@ -270,14 +270,13 @@ function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
 }
 
 function MenteeRow({
-  user: u, refetch, setMetadata, setLatestMentorMeetingDate,
-  setLatestTranscriptDate
+  user: u, refetch, setMetadata, setLastMentorMeetingDate, setLastTranscriptDate
 }: {
   user: UserWithMergeInfo,
   refetch: () => void,
   setMetadata: SetMetadata,
-  setLatestMentorMeetingDate: (userId: string, date: string) => void,
-  setLatestTranscriptDate: (userId: string, date: string) => void
+  setLastMentorMeetingDate: (userId: string, date: string) => void,
+  setLastTranscriptDate: (userId: string, date: string) => void
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -299,10 +298,10 @@ function MenteeRow({
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach
-      setLatestTranscriptDate={setLatestTranscriptDate}
+      setLastTranscriptDate={setLastTranscriptDate}
     />
-    <LatestMentorMeetingDateCell menteeId={u.id}
-      setData={setLatestMentorMeetingDate}/>
+    <LastMentorMeetingDateCell menteeId={u.id}
+      setData={setLastMentorMeetingDate}/>
     <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
@@ -386,13 +385,13 @@ function MentorshipHeaderCells({ sortOrder, addSortOrder }: {
 }
 
 export function MentorshipCells({ mentee, addPinyin, showCoach, readonly,
-  setLatestTranscriptDate
+  setLastTranscriptDate
  } : {
   mentee: MinUser,
   addPinyin?: (names: string[]) => void,
   showCoach?: boolean,
   readonly?: boolean,
-  setLatestTranscriptDate?: (userId: string, date: string) => void
+  setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
   const { data, refetch } = trpcNext.mentorships.listMentorshipsForMentee
     .useQuery({
@@ -406,12 +405,12 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly,
 
   return <LoadedMentorsCells mentee={mentee} mentorships={data}
     addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
-    readonly={readonly} setLatestTranscriptDate={setLatestTranscriptDate} />;
+    readonly={readonly} setLastTranscriptDate={setLastTranscriptDate} />;
 }
 
 function LoadedMentorsCells({
   mentee, mentorships, addPinyin, refetch, showCoach, readonly,
-  setLatestTranscriptDate
+  setLastTranscriptDate
 } : {
   mentee: MinUser,
   mentorships: Mentorship[],
@@ -419,29 +418,29 @@ function LoadedMentorsCells({
   refetch: () => void,
   showCoach?: boolean,
   readonly?: boolean,
-  setLatestTranscriptDate?: (userId: string, date: string) => void
+  setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
   const transcriptRes = trpcNext.useQueries(t => {
-    return mentorships.map(m => t.transcripts.getLatestStartedAt({
+    return mentorships.map(m => t.transcripts.getLastStartedAt({
       groupId: m.group.id
     }));
   });
   const transcriptData = transcriptRes.map(t => t.data);
 
   useEffect(() => {
-    if (!setLatestTranscriptDate) return;
+    if (!setLastTranscriptDate) return;
 
     const earliest = "2000-01-01T00:00:00.000+08:00";
-    const latest = transcriptData.reduce((latest, data) => {
-      if (data && compareDate(latest, data) < 0) return data;
-      return latest;
+    const last = transcriptData.reduce((last, data) => {
+      if (data && compareDate(last, data) < 0) return data;
+      return last;
     }, earliest);
-    invariant(latest);
-    if (latest !== earliest) setLatestTranscriptDate(mentee.id, latest);
+    invariant(last);
+    if (last !== earliest) setLastTranscriptDate(mentee.id, last);
 
     // https://stackoverflow.com/a/59468261
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mentee.id, setLatestTranscriptDate, JSON.stringify(transcriptData)]);
+  }, [mentee.id, setLastTranscriptDate, JSON.stringify(transcriptData)]);
 
   const transcriptTextAndColors = transcriptData.map(t => 
     getDateTextAndColor(t, 45, 60, "尚未通话"));
@@ -513,11 +512,11 @@ function LoadedMentorsCells({
   </>;
 }
 
-export function LatestMentorMeetingDateCell({ menteeId, setData } : {
+export function LastMentorMeetingDateCell({ menteeId, setData } : {
   menteeId : string,
   setData?: (userId: string, date: string) => void
 }) {
-  const { data: date } = trpcNext.chat.getNewestMessageCreatedAt.useQuery({ 
+  const { data: date } = trpcNext.chat.getLastMessageCreatedAt.useQuery({ 
     menteeId,
     prefix: mentorMeetingMessagePrefix,
   });

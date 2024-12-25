@@ -33,9 +33,9 @@ const list = procedure
 });
 
 /**
- * Get the createdAt of the newest kudos that were not sent by the user.
+ * Get the createdAt of the newest kudos that were NOT given by the user.
  */
-const getNewestKudosCreatedAt = procedure
+const getLastKudosCreatedAt = procedure
   .use(authUser("Volunteer"))
   .output(zDateColumn)
   .query(async ({ ctx: { user: me } }) => 
@@ -113,5 +113,5 @@ async function scheduleEmail(receiverId: string, transaction: Transaction)
 export default router({
   create,
   list,
-  getNewestKudosCreatedAt,
+  getLastKudosCreatedAt,
 });

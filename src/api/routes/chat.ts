@@ -47,7 +47,7 @@ const getRoom = procedure
 /**
  * @return null if there is no message or corresponding chat room doesn't exist.
  */
-const getNewestMessageCreatedAt = procedure
+const getLastMessageCreatedAt = procedure
   .use(authUser())
   .input(z.object({
     menteeId: z.string(),
@@ -160,5 +160,5 @@ export default router({
   getRoom,
   createMessage,
   updateMessage,
-  getNewestMessageCreatedAt,
+  getLastMessageCreatedAt,
 });

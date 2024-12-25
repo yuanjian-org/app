@@ -29,8 +29,7 @@ import Sidebar from './Sidebar';
 import { breakpoint } from 'theme/metrics';
 import { ShowOnDesktop, ShowOnMobile } from './Show';
 import RedDot from './RedDot';
-import { showUnreadKudosRedDot } from './Kudos';
-import { trpcNext } from 'trpc';
+import { useUnreadKudos } from './Kudos';
 
 export const sidebarWidth = 60;
 
@@ -143,8 +142,6 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
 };
 
 function MobileMenuIconRedDot() {
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: newest } = trpcNext.kudos.getNewestKudosCreatedAt.useQuery();
-  const show = showUnreadKudosRedDot(state, newest);
+  const show = useUnreadKudos();
   return <RedDot show={show} top="22px" right="20px" zIndex={3} />;
 }
