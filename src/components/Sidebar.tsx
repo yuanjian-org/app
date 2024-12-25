@@ -1,7 +1,7 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
@@ -53,6 +53,7 @@ import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
 import { UnreadKudosRedDot } from './Kudos';
 import { ShowOnMobile } from './Show';
+import { UnreadChatMessagesRedDot } from './ChatRoom';
 
 const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
@@ -67,7 +68,7 @@ interface MainMenuItem {
   path: string,
   regex?: RegExp,
   permission?: Role | Role[] | ((u: User) => boolean),
-  unreadKudosRedDot?: boolean,
+  redDot?: ReactNode,
 }
 
 interface DropdownMenuItem {
@@ -181,7 +182,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
-    unreadKudosRedDot: true,
+    redDot: <UnreadKudosRedDot />,
   },
   {
     name: '学生档案',
@@ -196,8 +197,8 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) < 0;
-    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) < 0;
+    const aEnded = isMentorshipEnded(a);
+    const bEnded = isMentorshipEnded(b);
     if (aEnded !== bEnded) {
       // ended ones should be sorted after ongoing ones.
       return aEnded ? 1 : -1;
@@ -216,25 +217,42 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
       icon: icon ?? MdFace,
       path: `/mentees/${m.mentee.id}`,
       regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
+      redDot: showRedDotForMentorship(m) ?
+        <UnreadChatMessagesRedDot menteeId={m.mentee.id} /> :
+        undefined,
     };
   });
+}
+
+export function showRedDotForMentorship(m: Mentorship) {
+  return !m.transactional && !isMentorshipEnded(m);
+}
+
+function isMentorshipEnded(m: Mentorship) {
+  return m.endsAt !== null && compareDate(m.endsAt, new Date()) < 0;
 }
 
 interface SidebarProps extends BoxProps {
   onClose: () => void;
 }
 
+export function useMyMentorshipsAsMentor() {
+  const [me] = useUserContext();
+  const { data } = isPermitted(me.roles, "Mentor") ?
+    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() :
+    { data: [] };
+  return data;
+}
+
 const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
   const [me] = useUserContext();
-  const userName = formatUserName(me.name);
-  // Save an API call if the user is not a mentor.
-  const { data: mentorships } = isPermitted(me.roles, "Mentor") ?
-    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() : { data: undefined };
+  const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
   const borderColor = useColorModeValue(borderColorModeValues[0], 
     borderColorModeValues[1]); 
+  const userName = formatUserName(me.name);
 
   return <Box
     transition="3s ease"
@@ -388,8 +406,8 @@ const DropdownMenuButton = ({ title, icon } : {
   title: string,
   icon: React.ReactNode,
 }) => {
-  return <MenuButton marginX={componentSpacing}  paddingLeft={componentSpacing}
-    color={inactiveNavLinkColor} fontWeight="bold" transition="all 0.3s" 
+  return <MenuButton marginX={componentSpacing} paddingLeft={componentSpacing}
+    color={inactiveNavLinkColor} transition="all 0.3s" 
     _focus={{ boxShadow: 'none' }}>
     <HStack>{icon}<Text>{title}</Text><FiChevronRight /></HStack>
   </MenuButton>;
@@ -406,7 +424,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
     as={NextLink}
     href={item.path}
     color={active ? activeNavLinkColor : inactiveNavLinkColor}
-    fontWeight="bold"
+    fontWeight={active ? "bold" : "normal"}
     onClick={onClose}
   >
     <Flex
@@ -420,7 +438,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
       <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
       <Text marginX={componentSpacing} position="relative">
         {item.name}
-        {item.unreadKudosRedDot && <UnreadKudosRedDot />}
+        {item.redDot}
       </Text>
       <Icon
         as={MdChevronRight}

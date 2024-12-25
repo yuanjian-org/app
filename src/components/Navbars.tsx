@@ -25,11 +25,12 @@ import AutosaveIndicator, {
   setPendingSaverError
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
-import Sidebar from './Sidebar';
+import Sidebar, { showRedDotForMentorship, useMyMentorshipsAsMentor } from './Sidebar';
 import { breakpoint } from 'theme/metrics';
 import { ShowOnDesktop, ShowOnMobile } from './Show';
 import RedDot from './RedDot';
 import { useUnreadKudos } from './Kudos';
+import { useUnreadChatMessages } from './ChatRoom';
 
 export const sidebarWidth = 60;
 
@@ -142,6 +143,17 @@ const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
 };
 
 function MobileMenuIconRedDot() {
-  const show = useUnreadKudos();
-  return <RedDot show={show} top="22px" right="20px" zIndex={3} />;
+  const hasUnreadKudos = useUnreadKudos();
+  const mentorships = useMyMentorshipsAsMentor();
+  const hasUnreadChatMessages = useUnreadChatMessages(
+    mentorships?.filter(m => showRedDotForMentorship(m))
+      .map(m => m.mentee.id) ?? []
+  );
+
+  return <RedDot
+    show={hasUnreadKudos || hasUnreadChatMessages}
+    top="22px"
+    right="20px"
+    zIndex={3} 
+  />;
 }

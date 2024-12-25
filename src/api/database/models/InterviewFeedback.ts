@@ -15,6 +15,7 @@ import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
 import { FeedbackDeprecated, zFeedbackDeprecated } from "../../../shared/InterviewFeedback";
+import { DateColumn } from "shared/DateColumn";
 
 // TODO: rename to Interviewer
 @Table
@@ -40,7 +41,7 @@ class InterviewFeedback extends Model {
   feedback: FeedbackDeprecated | null;
 
   @Column(DATE)
-  feedbackUpdatedAt: string | null;
+  feedbackUpdatedAt: DateColumn | null;
 
   /**
    * Associations

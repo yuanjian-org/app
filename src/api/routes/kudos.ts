@@ -9,6 +9,7 @@ import { ScheduledEmailData, zScheduledKudosEmail } from "shared/ScheduledEmail"
 import { kudosAttributes, kudosInclude } from "api/database/models/attributesAndIncludes";
 import { zKudos } from "shared/Kudos";
 import { zDateColumn } from "shared/DateColumn";
+import moment from "moment";
 
 /**
  * List kudos for a user. If userId is not provided, list all kudos.
@@ -33,7 +34,7 @@ const list = procedure
 });
 
 /**
- * Get the createdAt of the newest kudos that were NOT given by the user.
+ * @return excludes kudos given by the current user.
  */
 const getLastKudosCreatedAt = procedure
   .use(authUser("Volunteer"))
@@ -43,7 +44,7 @@ const getLastKudosCreatedAt = procedure
   const ret = await db.Kudos.max("createdAt", {
     where: { giverId: { [Op.ne]: me.id } },
   });
-  return zDateColumn.parse(ret ?? "1970-01-01");
+  return ret ?? moment(0);
 });
 
 /**

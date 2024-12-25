@@ -12,6 +12,7 @@ import {
 import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
 import Summary from "./Summary";
+import { DateColumn } from "shared/DateColumn";
 
 @Table
 class Transcript extends Model {
@@ -29,10 +30,10 @@ class Transcript extends Model {
   group: Group;
 
   @Column(DATE)
-  startedAt: string;
+  startedAt: DateColumn;
 
   @Column(DATE)
-  endedAt: string;
+  endedAt: DateColumn;
 
   @HasMany(() => Summary)
   summaries: Summary[];

@@ -430,7 +430,7 @@ function LoadedMentorsCells({
   useEffect(() => {
     if (!setLastTranscriptDate) return;
 
-    const earliest = "2000-01-01T00:00:00.000+08:00";
+    const earliest = moment(0).toISOString();
     const last = transcriptData.reduce((last, data) => {
       if (data && compareDate(last, data) < 0) return data;
       return last;

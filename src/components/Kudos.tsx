@@ -378,6 +378,7 @@ export function useUnreadKudos() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery();
 
+  // Assume no unread kudos while the values are being fetched.
   return !!state && !!lastCreated &&
     moment(lastCreated).isAfter(getLastKudosReadAt(state));
 }

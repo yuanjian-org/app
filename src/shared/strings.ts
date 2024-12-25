@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import stringifyStable from 'json-stable-stringify';
 
 import { NextRouter } from 'next/router';
+import { DateColumn } from './DateColumn';
 
 export function isValidChineseName(s: string | null): boolean {
   return !!s && s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
@@ -33,11 +34,11 @@ export function toChinese(n: number): string {
   return nzh.cn.encodeS(n);
 }
 
-export function prettifyDuration(from: Date | string, to: Date | string) {
+export function prettifyDuration(from: Date | DateColumn, to: Date | DateColumn) {
   return `${diffInMinutes(from, to)}分钟`;
 }
 
-export function prettifyDate(str: Date | string) {
+export function prettifyDate(str: Date | DateColumn) {
   const date = new Date(str);
   const now = new Date();
   const dim = diffInMinutes(date, now);
@@ -58,16 +59,19 @@ export function prettifyDate(str: Date | string) {
 }
 
 // TODO: Sort out this Date-is-not-actually-string nonsense
-export function diffInMinutes(from: Date | string, to: Date | string): number {
+export function diffInMinutes(from: Date | DateColumn, to: Date | DateColumn) {
   return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
 }
 
 /**
  * Return -1 if d1 is earlier than d2. Treat undefined & null as earliest date.
+ * 
+ * TODO: allow moment objects and remove the stupid `moment(...).toISOString()`
+ * form codebase.
  */
 export function compareDate(
-  d1: Date | string | undefined | null,
-  d2: Date | string | undefined | null
+  d1: Date | DateColumn | undefined | null,
+  d2: Date | DateColumn | undefined | null
 ) {
   if (d1 == d2) return 0;
   if (!d1) return -1;
