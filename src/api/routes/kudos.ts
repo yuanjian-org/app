@@ -84,17 +84,20 @@ const create = procedure
   });
 });
 
+// TODO: dedupe with chat.ts
 async function scheduleEmail(receiverId: string, transaction: Transaction)
 {
   // Force type check
   const type: z.TypeOf<typeof zScheduledKudosEmail.shape.type> = "Kudos";
+  const typeKey: keyof typeof zScheduledKudosEmail.shape = "type";
+  const receiverIdKey: keyof typeof zScheduledKudosEmail.shape = "receiverId";
 
   // For some reason `replacements` doesn't work here. So validate input
   // manually with zod parsing.
   const existing = await db.ScheduledEmail.count({
     where: Sequelize.literal(`
-      data ->> 'type' = '${type}' AND
-      data ->> 'receiverId' = '${z.string().uuid().parse(receiverId)}'
+      data ->> '${typeKey}' = '${type}' AND
+      data ->> '${receiverIdKey}' = '${z.string().uuid().parse(receiverId)}'
     `),
     transaction,
   });

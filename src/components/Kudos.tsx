@@ -34,7 +34,7 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import { Kudos } from 'shared/Kudos';
 import Loader from './Loader';
 import { UserLink } from './UserChip';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { SmallGrayText } from './SmallGrayText';
 import { DateColumn } from 'shared/DateColumn';
 import { UserState } from 'shared/UserState';
@@ -275,7 +275,7 @@ export function KudosHistory({ kudos, type, showReceiver, limit }: {
 }) {
   // Use a state variable to avoid updating it when `markKudosHistoryAsRead`
   // is called.
-  const [lastKudosReadAt, setLastKudosReadAt] = useState<moment.Moment>();
+  const [lastKudosReadAt, setLastKudosReadAt] = useState<Moment>();
   trpcNext.users.getUserState.useQuery(undefined, {
     onSuccess: state => {
       if (!lastKudosReadAt) setLastKudosReadAt(getLastKudosReadAt(state));
@@ -373,7 +373,7 @@ export function showUnreadKudosRedDot(
     moment(newestKudosCreatedAt).isAfter(getLastKudosReadAt(userState));
 }
 
-function getLastKudosReadAt(state: UserState): moment.Moment {
+function getLastKudosReadAt(state: UserState): Moment {
   // If lastKudosReadAt is absent, treat consentedAt as the last read time.
   // If consentedAt is also absent, then use the current time.
   // `moment(undefined)` returns the current time.

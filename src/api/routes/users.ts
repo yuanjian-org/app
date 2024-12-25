@@ -920,7 +920,8 @@ export async function checkPermissionToAccessMentee(me: User, menteeId: string) 
 
 export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
   if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
-  if (await db.Mentorship.count(
-    { where: { mentorId: me.id, menteeId } }) > 0) return true;
+  if (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } }) > 0) {
+    return true;
+  }
   return false;
 }
