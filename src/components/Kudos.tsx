@@ -114,7 +114,7 @@ export function KudosControl({ user, likes, kudos }: {
       </PopoverTrigger>
 
       <Portal>
-        <PopoverContent width="350px" boxShadow="lg">
+        <PopoverContent boxShadow="lg">
           <FocusLock returnFocus persistentFocus={false}>
             <PopoverArrow />
             <PopoverBody>
@@ -203,7 +203,7 @@ function KudosForm({ title, user, fieldRef, save, onClose }: {
     </FormControl>
 
     <ButtonGroup>
-      {["💖", "👏", "🎉", "🤗", "🙏", "👍"].map(emoji => <Button
+      {["💖", "👏", "🤗", "🙏", "👍"].map(emoji => <Button
         key={emoji}
         variant="ghost"
         onClick={() => {

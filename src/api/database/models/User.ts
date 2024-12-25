@@ -69,10 +69,6 @@ class User extends Model {
   @Default([])
   @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
-
-  // TODO: move into `state` column
-  @Column(DATE)
-  consentFormAcceptedAt: string | null;
  
   // TODO: move into `state` column
   @Column(DATE)

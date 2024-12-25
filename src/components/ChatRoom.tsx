@@ -24,6 +24,8 @@ import Loader from './Loader';
 import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
 import { compareDate } from 'shared/strings';
+import { SmallGrayText } from './SmallGrayText';
+import { ShowOnDesktop, ShowOnMobile } from './Show';
 
 export default function Room({
   menteeId,
@@ -84,25 +86,19 @@ function Message({ message: m }: {
         {/* flexShrink is to prevent the name from being squished */}
         <Text flexShrink={0}>{name}</Text>
 
-        {/* This is for desktop */}
-        <Text
-          display={{ base: "none", [breakpoint]: "block" }}
-          fontSize="sm"
-          color="gray"
-        >
-          {createdAt}创建
-          {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
-        </Text>
+        <ShowOnDesktop>
+          <SmallGrayText> 
+            {createdAt}创建
+            {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
+          </SmallGrayText>
+        </ShowOnDesktop>
 
-        {/* This is for mobile */}
-        <Text
-          display={{ base: "block", [breakpoint]: "none" }}
-          fontSize="sm"
-          color="gray"
-        >
-          {createdAt}创建
-          {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
-        </Text>
+        <ShowOnMobile>
+          <SmallGrayText>
+            {createdAt}创建
+            {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
+          </SmallGrayText>
+        </ShowOnMobile>
 
         {!editing && user.id == m.user.id && <>
           <Spacer />

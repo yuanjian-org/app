@@ -1,9 +1,6 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
-import db from "../database/db";
-import { Op } from "sequelize";
-import moment from "moment";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -18,7 +15,7 @@ export async function migrateDatabase() {
 
   migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
-  await migrateData();
+  // await migrateData();
   await cleanupLogs();
 }
 
@@ -38,25 +35,6 @@ function migrateSchema() {
   console.log("Migrating DB schema...");
 }
 
-async function migrateData() {
-  console.log("Migrating DB data...");
-
-  await sequelize.transaction(async transaction => {
-    const users = await db.User.findAll({
-      where: {
-        consentFormAcceptedAt: { [Op.not]: null }
-      },
-      attributes: ['id', 'consentFormAcceptedAt', 'state'],
-      transaction,
-    });
-
-    for (const user of users) {
-      await user.update({
-        state: {
-          ...user.state,
-          consentedAt: moment(user.consentFormAcceptedAt).toISOString(),
-        }
-      }, { transaction });
-    }
-  });
-}
+// async function migrateData() {
+//   console.log("Migrating DB data...");
+// }
