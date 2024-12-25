@@ -25,15 +25,16 @@ import {
   HStack,
   Icon,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import { MinUser, UserFilter, UserWithMergeInfo } from 'shared/User';
-import { compareChinese,
-  compareDate, 
-  formatUserName, 
+import {
+  compareChinese,
+  compareDate,
+  formatUserName,
   hash,
-  prettifyDate, 
-  toPinyin 
+  prettifyDate,
+  toPinyin
 } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
@@ -52,7 +53,7 @@ import { sectionSpacing } from 'theme/metrics';
 import { menteeAcceptanceYearField } from 'shared/applicationFields';
 import { menteeSourceField } from 'shared/applicationFields';
 import {
-  PointOfContactCells, 
+  PointOfContactCells,
   PointOfContactHeaderCells
 } from 'components/pointOfContactCells';
 import { widePage } from 'AppPage';
@@ -516,7 +517,7 @@ export function LatestMentorMeetingDateCell({ menteeId, setData } : {
   menteeId : string,
   setData?: (userId: string, date: string) => void
 }) {
-  const { data: date } = trpcNext.chat.getLatestMessageCreatedAt.useQuery({ 
+  const { data: date } = trpcNext.chat.getNewestMessageCreatedAt.useQuery({ 
     menteeId,
     prefix: mentorMeetingMessagePrefix,
   });
