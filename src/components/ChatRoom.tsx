@@ -10,8 +10,11 @@ import {
   VStack,
   Select,
   StackProps,
+  useBreakpointValue,
+  Link,
+  Kbd
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
 import { breakpoint, componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
@@ -25,7 +28,9 @@ import MarkdownStyler from './MarkdownStyler';
 import MarkdownSupport from './MarkdownSupport';
 import { compareDate } from 'shared/strings';
 import { SmallGrayText } from './SmallGrayText';
-import { ShowOnDesktop, ShowOnMobile } from './Show';
+import moment, { Moment } from 'moment';
+import RedDot, { redDotTransitionProps } from './RedDot';
+import { ShowOnDesktop } from './Show';
 
 export default function Room({
   menteeId,
@@ -35,49 +40,105 @@ export default function Room({
   menteeId: string,
   newMessageButtonLabel?: string,
 } & StackProps) {
+  const utils = trpcNext.useContext();
+
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
+  const { data: lastReadAt } = trpcNext.chat.getLastReadAt.useQuery({ menteeId });
 
-  return !room ? <Loader /> :
-    <VStack
-      spacing={paragraphSpacing * 1.5}
-      align="start"
-      maxWidth="800px"
-      {...rest}
-    >
-      <MessageCreator
-        roomId={room.id}
-        newMessageButtonLabel={newMessageButtonLabel}
-      />
-      {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))
-      .map(m => <Message key={m.id} message={m} />)}
-    </VStack>
-    ;
-}
-
-function MessageCreator({ roomId, newMessageButtonLabel }: {
-  roomId: string,
-  newMessageButtonLabel: string,
-}) {
   const [editing, setEditing] = useState<boolean>(false);
+  const [hasUnread, setHasUnread] = useState<boolean>(false);
 
-  return editing ?
-    <Editor roomId={roomId} onClose={() => setEditing(false)}
-      marginTop={componentSpacing} />
+  const markAsRead = useCallback(async () => {
+    if (!room || room.messages.length === 0) return;
+    const earliest = moment(0);
+    // Note that `last` covers all the messages authored by the current user.
+    const last = room.messages.reduce((latest, m) => {
+      const updatedAt = m.updatedAt ? moment(m.updatedAt) : earliest;
+      return moment.max(latest, updatedAt);
+    }, earliest);
+    await trpc.chat.setLastReadAt.mutate({ menteeId, lastReadAt: last });
+    await utils.chat.getLastReadAt.invalidate();
+    setHasUnread(false);
+  }, [menteeId, room, utils]);
+
+  useEffect(() => {
+    const onKeydown = (event: KeyboardEvent) => {
+      if (editing || !hasUnread) return;
+      if ((event.key === 'r' || event.key === 'R') && 
+        !event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault();
+        void markAsRead();
+      }
+    };
+    window.addEventListener('keydown', onKeydown);
+    return () => {
+      window.removeEventListener('keydown', onKeydown);
+    };
+  }, [markAsRead, hasUnread, editing]);
+
+  return !room ? <Loader /> : <VStack
+    spacing={paragraphSpacing * 1.5}
+    align="start"
+    maxWidth="800px"
+    {...rest}
+  >
+    {editing ? <Editor
+      roomId={room.id}
+      onClose={() => setEditing(false)}
+      marginTop={componentSpacing}
+    />
     :
-    <Button variant="outline" leftIcon={<AddIcon />}
-      onClick={() => setEditing(true)}>{newMessageButtonLabel}</Button>;
+    <HStack width="100%">
+      <Button
+        variant="outline"
+        leftIcon={<AddIcon />}
+        onClick={() => setEditing(true)}
+      >
+        {newMessageButtonLabel}
+      </Button>
+
+      <Spacer />
+
+      <Link
+        onClick={markAsRead}
+        {...redDotTransitionProps(hasUnread)}
+      >
+        标为全部已读
+      </Link>
+      <ShowOnDesktop>
+        <Kbd {...redDotTransitionProps(hasUnread)}>R</Kbd>
+      </ShowOnDesktop>
+    </HStack>}
+
+    {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))
+    .map(m => <Message
+      key={m.id}
+      message={m}
+      lastReadAt={moment(lastReadAt)}
+      setHasUnread={() => setHasUnread(true)} 
+    />)}
+  </VStack>;
 }
 
-function Message({ message: m }: {
+function Message({ message: m, lastReadAt, setHasUnread }: {
   message: ChatMessage,
+  lastReadAt: Moment,
+  setHasUnread: () => void,
 }) {
-  const [user] = useUserContext();
+  const [me] = useUserContext();
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
   const createdAt = m.createdAt ? `${prettifyDate(m.createdAt)}` : "";
   const updatedAt = m.updatedAt && m.updatedAt !== m.createdAt ?
-    `${prettifyDate(m.updatedAt)}` : "";
+    prettifyDate(m.updatedAt) : null;
+  const updatedAtText = useBreakpointValue({
+      base: updatedAt ? <><br />{updatedAt}更新</> : <></>  ,
+      [breakpoint]: updatedAt ? <> ｜ {updatedAt}更新</> : <></>,
+  });
+
+  const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);
+  useEffect(() => { if (unread) setHasUnread(); }, [setHasUnread, unread]);
 
   return <HStack align="top" spacing={componentSpacing} width="100%">
     <Avatar name={name} boxSize={10} />
@@ -86,21 +147,13 @@ function Message({ message: m }: {
         {/* flexShrink is to prevent the name from being squished */}
         <Text flexShrink={0}>{name}</Text>
 
-        <ShowOnDesktop>
-          <SmallGrayText> 
-            {createdAt}创建
-            {updatedAt && updatedAt !== createdAt && ` ｜ ${updatedAt}更新`}
-          </SmallGrayText>
-        </ShowOnDesktop>
+        <SmallGrayText position="relative">
+          {createdAt}创建
+          {updatedAtText}
+          <RedDot show={unread} />
+        </SmallGrayText>
 
-        <ShowOnMobile>
-          <SmallGrayText>
-            {createdAt}创建
-            {updatedAt && updatedAt !== createdAt && <><br />{updatedAt}更新</>}
-          </SmallGrayText>
-        </ShowOnMobile>
-
-        {!editing && user.id == m.user.id && <>
+        {!editing && me.id == m.user.id && <>
           <Spacer />
           <Icon as={MdEdit} cursor="pointer" onClick={() => setEditing(true)} />
         </>}
@@ -195,3 +248,35 @@ function Editor({ roomId, message, onClose, ...rest }: {
     </HStack>
   </>;
 }
+
+/**
+ * @returns whether there are unread messages in any of the specified chat rooms.
+ */
+export function useUnreadChatMessages(menteeIds: string[]) {
+  const lastReads = trpcNext.useQueries(t => {
+    return menteeIds.map(id => t.chat.getLastReadAt({ menteeId: id }));
+  });
+  const lastUpdates = trpcNext.useQueries(t => {
+    return menteeIds.map(id => t.chat.getLastMessageUpdatedAt({ menteeId: id }));
+  });
+  invariant(lastReads.length === lastUpdates.length);
+
+  return lastReads.some((res, i) => {
+    const lastRead = res.data;
+    const lastUpdated = lastUpdates[i].data;
+
+    // Assume no unread message while the values are being fetched.
+    return lastRead !== undefined && lastUpdated !== undefined &&
+      // lastUpdated is null if there is no message.
+      lastUpdated !== null && moment(lastUpdated).isAfter(lastRead);
+  });
+}
+
+/**
+ * The parent element should have position="relative".
+ */
+export function UnreadChatMessagesRedDot({ menteeId }: { menteeId: string }) {
+  const show = useUnreadChatMessages([menteeId]);
+  return <RedDot show={show} />;
+}
+

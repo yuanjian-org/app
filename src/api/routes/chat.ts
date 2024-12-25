@@ -12,9 +12,10 @@ import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
 import { checkPermissionToAccessMentee } from "./users";
 import invariant from "tiny-invariant";
-import { Op, Sequelize, Transaction } from "sequelize";
-import { zNullableDateColumn } from "shared/DateColumn";
+import { Includeable, Op, Sequelize, Transaction } from "sequelize";
+import { zDateColumn, zNullableDateColumn } from "shared/DateColumn";
 import { ScheduledEmailData, zScheduledChatEmail } from "shared/ScheduledEmail";
+import moment from "moment";
 
 const getRoom = procedure
   .use(authUser())
@@ -28,13 +29,8 @@ const getRoom = procedure
 
   return await sequelize.transaction(async transaction => {
     while (true) {
-      const r = await db.ChatRoom.findOne({
-        where: { menteeId },
-        attributes: chatRoomAttributes,
-        include: chatRoomInclude,
-        transaction,
-      });
-
+      const r = await findRoom(menteeId, transaction, chatRoomAttributes,
+        chatRoomInclude);
       if (!r) {
         await db.ChatRoom.create({ menteeId }, { transaction });
       } else {
@@ -54,24 +50,104 @@ const getLastMessageCreatedAt = procedure
     prefix: z.string(),
   }))
   .output(zNullableDateColumn)
-  .query(async ({ ctx, input: { menteeId, prefix } }) =>
+  .query(async ({ ctx: { user }, input: { menteeId, prefix } }) =>
 {
-  await checkRoomPermission(ctx.user, menteeId);
+  await checkRoomPermission(user, menteeId);
 
   return await sequelize.transaction(async transaction => {
-    const r = await db.ChatRoom.findOne({
-      where: { menteeId },
-      attributes: ["id"],
-      transaction,
-    });
-    if (!r) return null;
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return null;
 
     return await db.ChatMessage.max("createdAt", { where: {
-      roomId: r.id,
-      markdown: { [Op.iLike]: `${prefix}%` },
+      roomId: room.id,
+      ...prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {},
     }, transaction });
   });
 });
+
+/**
+ * @return excludes messages by the current user. null if there is no message or
+ * corresponding chat room doesn't exist.
+ */
+const getLastMessageUpdatedAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+  }))
+  .output(zNullableDateColumn)
+  .query(async ({ ctx: { user }, input: { menteeId } }) =>
+{
+  await checkRoomPermission(user, menteeId);
+
+  return await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return null;
+
+    return await db.ChatMessage.max("updatedAt", { where: {
+      roomId: room.id,
+      userId: { [Op.ne]: user.id },
+    }, transaction });
+  });
+});
+
+// No need to checkRoomPermission() because there is no harmful side effect
+const getLastReadAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+  }))
+  .output(zDateColumn)
+  .query(async ({ ctx: { user }, input: { menteeId } }) =>
+{
+  return await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return moment(0);
+
+    const l = await db.LastReadChatRoom.findOne({
+      where: {
+        roomId: room.id,
+        userId: user.id,
+      },
+      attributes: ["lastReadAt"],
+      transaction,
+    });
+    return l ? l.lastReadAt : moment(0);
+  });
+});
+
+// No need to checkRoomPermission() because there is no harmful side effect
+const setLastReadAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+    lastReadAt: zDateColumn,
+  }))
+  .mutation(async ({ ctx: { user }, input: { menteeId, lastReadAt } }) =>
+{
+  await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) throw notFoundError("讨论空间", menteeId);
+    await db.LastReadChatRoom.upsert({
+      roomId: room.id,
+      userId: user.id,
+      lastReadAt,
+    }, { transaction });
+  });
+});
+
+async function findRoom(
+  menteeId: string,
+  transaction: Transaction,
+  attributes: string[] = ["id"],
+  include: Includeable[] = [],
+) {
+  return await db.ChatRoom.findOne({
+    where: { menteeId },
+    attributes,
+    include,
+    transaction,
+  });
+}
 
 /**
  * Use mentorshipId etc to query instaed of using roomId, so that much logic of
@@ -161,4 +237,7 @@ export default router({
   createMessage,
   updateMessage,
   getLastMessageCreatedAt,
+  getLastMessageUpdatedAt,
+  getLastReadAt,
+  setLastReadAt,
 });

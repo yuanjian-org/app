@@ -16,8 +16,14 @@ export default function RedDot({ show, ...rest }: {
     position="absolute"
     top={0}
     right="-18px"
-    opacity={show ? 1 : 0}
-    transition="opacity 1s"
+    {...redDotTransitionProps(show)}
     {...rest}
   />;
+}
+
+export function redDotTransitionProps(show: boolean) {
+  return {
+    opacity: show ? 1 : 0,
+    transition: "opacity 1s",
+  };
 }

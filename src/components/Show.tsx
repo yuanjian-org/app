@@ -1,15 +1,14 @@
-import { ReactNode } from "react";
 import { breakpoint } from "theme/metrics";
-import { Show } from "@chakra-ui/react";
+import { Show, ShowProps } from "@chakra-ui/react";
 
-export function ShowOnDesktop({ children }: { children: ReactNode }) {
-  return <Show above={breakpoint}>
+export function ShowOnDesktop({ children, ...rest }: ShowProps) {
+  return <Show above={breakpoint} {...rest}>
     {children}
   </Show>;
 }
 
-export function ShowOnMobile({ children }: { children: ReactNode }) {
-  return <Show below={breakpoint}>
+export function ShowOnMobile({ children, ...rest }: ShowProps) {
+  return <Show below={breakpoint} {...rest}>
     {children}
   </Show>;
 }

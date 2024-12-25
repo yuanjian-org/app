@@ -13,7 +13,14 @@ import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ChatRoom from "./ChatRoom";
 
-@Table
+@Table({
+  indexes: [
+    // Used by getLastMessageCreatedAt
+    { fields: ['roomId', 'createdAt'] },
+    // Used by getLastMessageUpdatedAt
+    { fields: ['roomId', 'userId', 'updatedAt'] },
+  ]
+})
 class ChatMessage extends Model {
   @IsUUID(4)
   @PrimaryKey
@@ -26,6 +33,7 @@ class ChatMessage extends Model {
   @Column(UUID)
   roomId: string;
 
+  // TODO: Rename to authorId
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(UUID)

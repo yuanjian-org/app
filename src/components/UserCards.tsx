@@ -15,7 +15,8 @@ import {
   Flex,
   Tooltip,
   TextProps, BoxProps,
-  GridItem
+  GridItem,
+  useBreakpointValue
 } from '@chakra-ui/react';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
@@ -64,8 +65,6 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-const isMobile = typeof navigator !== 'undefined' &&
-  /iPhone|iPad|Android/.test(navigator.userAgent);
 const isMac = typeof navigator !== 'undefined' &&
   /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
 
@@ -79,23 +78,26 @@ export default function UserCards({ type, users }: {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-    
+    const onKeydown = (event: KeyboardEvent) => {
       if ((isMac ? event.metaKey : event.ctrlKey) && event.key === 'f') {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKeydown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', onKeydown);
     };
   }, [searchInputRef]);
 
   const searchResult = useMemo(() => {
     return searchTerm ? search(users, searchTerm) : users;
   }, [searchTerm, users]); 
+
+  const hotKey = useBreakpointValue({
+    base: "", 
+    md: (isMac ? "⌘" : "Ctrl") + "+F "
+  });
 
   return <>
     {searchResult && <>
@@ -107,10 +109,7 @@ export default function UserCards({ type, users }: {
           ref={searchInputRef}
           bg="white"
           type="search"
-          placeholder={
-            (isMobile ? "" : ((isMac ? "⌘" : "Ctrl") + "+F ")) +
-            `搜索关键字，比如“金融“、“女”、“成都”，支持拼音`
-          }
+          placeholder={`${hotKey}搜索关键字，比如“金融“、“女”、“成都”，支持拼音`}
           value={searchTerm}
           onChange={ev => setSearchTerm(ev.target.value)}
         />
@@ -175,6 +174,7 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
   const [marked, setMarked] = useState(false);
   const markAsRead = useCallback(async () => {
     if (marked) return;
+    // Note that `last` covers all the kudos given by the current user.
     const last = kudos?.[0]?.createdAt;
     if (last) {
       await markKudosAsRead(utils, last);

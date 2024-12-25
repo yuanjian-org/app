@@ -16,6 +16,7 @@ import { BOOLEAN, CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
+import { DateColumn } from "shared/DateColumn";
 
 /**
  * A mentorship is a mentee-mentor pair.
@@ -51,7 +52,7 @@ class Mentorship extends Model {
   transactional: boolean;
 
   @Column(DATE)
-  endsAt: string | null;
+  endsAt: DateColumn | null;
 
   /**
    * Associations
