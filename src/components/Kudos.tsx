@@ -356,23 +356,6 @@ function KudosHistoryRow({ kudos, showReceiver }: {
   </>;
 }
 
-/**
- * The parent element should have position="relative".
- */
-export function UnreadKudosRedDot() {
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: newest } = trpcNext.kudos.getNewestKudosCreatedAt.useQuery();
-  return <RedDot show={showUnreadKudosRedDot(state, newest)} />;
-}
-
-export function showUnreadKudosRedDot(
-  userState: UserState | undefined,
-  newestKudosCreatedAt: DateColumn | undefined
-) {
-  return !!userState && !!newestKudosCreatedAt &&
-    moment(newestKudosCreatedAt).isAfter(getLastKudosReadAt(userState));
-}
-
 function getLastKudosReadAt(state: UserState): Moment {
   // If lastKudosReadAt is absent, treat consentedAt as the last read time.
   // If consentedAt is also absent, then use the current time.
@@ -380,10 +363,29 @@ function getLastKudosReadAt(state: UserState): Moment {
   return moment(state.lastKudosReadAt ?? state.consentedAt);
 }
 
-export async function hideUnreadKudosRedDot(
+/**
+ * The parent element should have position="relative".
+ */
+export function UnreadKudosRedDot() {
+  const show = useUnreadKudos();
+  return <RedDot show={show} />;
+}
+
+/**
+ * @returns whether there are unread kudos.
+ */
+export function useUnreadKudos() {
+  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery();
+
+  return !!state && !!lastCreated &&
+    moment(lastCreated).isAfter(getLastKudosReadAt(state));
+}
+
+export async function markKudosAsRead(
   utils: ReturnType<typeof trpcNext.useContext>,
-  newestCreatedAt: DateColumn
+  lastKudosReadAt: DateColumn
 ) {
-  await trpc.users.setUserState.mutate({ lastKudosReadAt: newestCreatedAt });
+  await trpc.users.setUserState.mutate({ lastKudosReadAt });
   await utils.users.getUserState.invalidate();
 }

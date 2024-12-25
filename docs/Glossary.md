@@ -1,2 +1,3 @@
-- **RelationalMentor** (一对一导师) is a mentor who can match mentees for long-term mentorship and also have one-off sessions with any mentee on demand.
-- **TransactionalMentor** (不定期导师) is a mentor who cannot match for long-term mentorship and only perform one-off sessions.
+- **Relational Mentor** (一对一导师) is a mentor who can match mentees for long-term mentorship and also have one-off sessions with any mentee on demand.
+- **Transactional Mentor** (不定期导师) is a mentor who cannot match for long-term mentorship and only perform one-off sessions.
+- **Last** is used throughout the codebase to refer to the "most recent" items, and not the "final" item. For consistency, use "last" in preference to "latest" and "newest" when possible.

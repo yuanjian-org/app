@@ -27,7 +27,7 @@ import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } 
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
 import { ShowOnMobile, ShowOnDesktop } from './Show';
-import { KudosControl, KudosHistory, hideUnreadKudosRedDot, UnreadKudosRedDot } from './Kudos';
+import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from './Kudos';
 import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
 import Loader from './Loader';
@@ -175,9 +175,9 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
   const [marked, setMarked] = useState(false);
   const markAsRead = useCallback(async () => {
     if (marked) return;
-    const newest = kudos?.[0]?.createdAt;
-    if (newest) {
-      await hideUnreadKudosRedDot(utils, newest);
+    const last = kudos?.[0]?.createdAt;
+    if (last) {
+      await markKudosAsRead(utils, last);
       setMarked(true);
     }
   }, [marked, kudos, utils]);
