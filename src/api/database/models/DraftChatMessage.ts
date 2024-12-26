@@ -40,7 +40,7 @@ class DraftChatMessage extends Model {
   authorId: string;
 
   @AllowNull(false)
-  @Column(STRING)
+  @Column(STRING(1 * 1024 * 1024))
   markdown: string;
 }
 

@@ -182,10 +182,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
     roomId, messageId: message?.id,
   });
   useEffect(() => {
-    if (draft !== undefined) {
+    if (markdown === undefined && draft !== undefined) {
       setMarkdown(draft !== null ? draft : message?.markdown ?? "");
     }
-  }, [draft, message?.markdown]);
+  }, [draft, message?.markdown, markdown]);
 
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
@@ -206,6 +206,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
         await trpc.chat.createMessage.mutate({ roomId, markdown });
       }
       await utils.chat.getRoom.invalidate();
+      // The draft is deleted in the backend.
       await utils.chat.getDraftMessage.invalidate();
       onClose();
     } finally {
@@ -218,7 +219,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
     await trpc.chat.saveDraftMessage.mutate({
       roomId, messageId: message?.id, markdown
     });
-  }, [message?.id, roomId]);
+    await utils.chat.getDraftMessage.invalidate();
+  }, [message?.id, roomId, utils.chat.getDraftMessage]);
 
   const prefixes = [
     "【一对一】",
