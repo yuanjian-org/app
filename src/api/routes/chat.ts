@@ -159,7 +159,7 @@ const createMessage = procedure
     roomId: z.string(),
     markdown: z.string(),
   }))
-  .mutation(async ({ ctx, input: { roomId, markdown } }) => 
+  .mutation(async ({ ctx: { user }, input: { roomId, markdown } }) => 
 {
   await sequelize.transaction(async transaction => {
     const r = await db.ChatRoom.findByPk(roomId, {
@@ -167,17 +167,22 @@ const createMessage = procedure
     });
     if (!r) throw notFoundError("讨论空间", roomId);
 
-    await checkRoomPermission(ctx.user, r.menteeId);
+    await checkRoomPermission(user, r.menteeId);
 
-    await db.ChatMessage.create({ roomId, markdown, userId: ctx.user.id },
+    await db.ChatMessage.create({ roomId, markdown, userId: user.id },
       { transaction });
+
+    await db.DraftChatMessage.destroy({
+      where: { roomId, authorId: user.id },
+      transaction,
+    });
 
     await scheduleEmail(roomId, transaction);
   });
 });
 
 /**
- * Only the user who created the message can update it
+ * Only the user who created the message can update it.
  */
 const updateMessage = procedure
   .use(authUser())
@@ -185,7 +190,7 @@ const updateMessage = procedure
     messageId: z.string(),
     markdown: z.string(),
   }))
-  .mutation(async ({ ctx, input: { messageId, markdown } }) => 
+  .mutation(async ({ ctx: { user }, input: { messageId, markdown } }) => 
 {
   if (!markdown) throw generalBadRequestError("消息内容不能为空");
 
@@ -195,12 +200,85 @@ const updateMessage = procedure
       transaction,
     });
     if (!m) throw notFoundError("讨论消息", messageId);
-    if (m.userId !== ctx.user.id) throw noPermissionError("讨论消息", messageId);
+    if (m.userId !== user.id) throw noPermissionError("讨论消息", messageId);
+
     await m.update({ markdown }, { transaction });
+
+    await db.DraftChatMessage.destroy({
+      where: { messageId, authorId: user.id },
+      transaction,
+    });
 
     await scheduleEmail(m.roomId, transaction);
   });
 });
+
+// No need for permission check because there isn't harmful side effect.
+const saveDraftMessage = procedure
+  .use(authUser())
+  .input(z.object({
+    roomId: z.string().optional(),
+    messageId: z.string().optional(),
+    markdown: z.string(),
+  }))
+  .mutation(async ({ ctx: { user }, input: { roomId, messageId, markdown } }) => 
+{
+  checkDraftMessageInput(roomId, messageId);
+
+  // Sequelize's upsert() doesn't work well when there are multiple unique
+  // constraints. So we do upsert manually.
+
+  await sequelize.transaction(async transaction => {  
+    const condition = roomId === undefined ? { messageId } : { roomId };
+    const cnt = await db.DraftChatMessage.count({ where: {
+      authorId: user.id,
+      ...condition,
+    }, transaction });
+    if (cnt > 0) {
+      await db.DraftChatMessage.update({ markdown }, {
+        where: condition,
+        transaction,
+      });
+    } else {
+      await db.DraftChatMessage.create({
+        authorId: user.id,
+        ...condition,
+        markdown,
+      }, { transaction });
+    }
+  });
+});
+
+// No need for permission check because there isn't harmful side effect.
+const getDraftMessage = procedure
+  .use(authUser())
+  .input(z.object({
+    roomId: z.string().optional(),
+    messageId: z.string().optional(),
+  }))
+  .output(z.string().nullable())
+  .query(async ({ ctx: { user }, input: { roomId, messageId } }) => 
+{
+  checkDraftMessageInput(roomId, messageId);
+
+  return (await db.DraftChatMessage.findOne({
+    where: {
+      authorId: user.id,
+      ...roomId === undefined ? { messageId } : { roomId },
+    },
+    attributes: ["markdown"],
+  }))?.markdown ?? null;
+});
+
+// See models/DraftChatMessage.ts for the explanation of roomId and messageId.
+function checkDraftMessageInput(
+  roomId: string | undefined, messageId: string | undefined
+) {
+  if ((roomId === undefined) == (messageId === undefined)) {
+    throw generalBadRequestError(
+      "one and only one of roomId and messageId must be specified");
+  }
+}
 
 // TODO: dedupe with kudos.ts
 async function scheduleEmail(roomId: string, transaction: Transaction) {
@@ -240,4 +318,6 @@ export default router({
   getLastMessageUpdatedAt,
   getLastReadAt,
   setLastReadAt,
+  saveDraftMessage,
+  getDraftMessage,
 });

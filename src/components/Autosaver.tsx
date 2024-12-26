@@ -13,8 +13,9 @@ export default function Autosaver({ data, onSave }: {
   data: any,
   onSave: (data: any) => Promise<void>,
 }) {
-  const { addPendingSaver, removePendingSaver, setPendingSaverError } = useAutosaveContext();
-  // Once initialized, initialData never changes on subsequent renders.
+  const { addPendingSaver, removePendingSaver, setPendingSaverError } =
+    useAutosaveContext();
+
   const [initialData] = useState(data);
   const memo = useMemo(() => ({ 
     id: crypto.randomUUID(),
@@ -32,7 +33,7 @@ export default function Autosaver({ data, onSave }: {
         const data = memo.pendingData;
         memo.pendingData = null;
         console.debug(`Autosaver ${memo.id}: Savinging data.`);
-        await saveWithRetry(onSave, data, (e) => setPendingSaverError(memo.id, e));
+        await saveWithRetry(onSave, data, e => setPendingSaverError(memo.id, e));
         memo.lastSavedData = data;
       }
     } finally {
@@ -49,7 +50,7 @@ export default function Autosaver({ data, onSave }: {
     if (memo.saving) {
       console.debug(`Autosaver ${memo.id}: Enqueue data only.`);
     } else {
-      console.debug(`Autosaver ${memo.id}: Enqueue data and schedule savinging.`);
+      console.debug(`Autosaver ${memo.id}: Enqueue data and schedule saving.`);
       debouncedSave();
     }
     addPendingSaver(memo.id);
@@ -69,7 +70,8 @@ async function saveWithRetry(
       setError();
       break;
     } catch (e) {
-      console.error(`Autosaver: error during saving. retry in ${retryIntervalSec} secs:`, e);
+      console.error(`Autosaver: error during saving. retry in ` +
+        `${retryIntervalSec} secs:`, e);
       setError(`保存失败，自动重试中。`);
       await sleep(retryIntervalSec * 1000);
     }
@@ -80,9 +82,7 @@ function debounce(memo: any, func: Function, delayInMs: number): Function {
   return (...args: any[]) => {
     clearTimeout(memo.timeout);
     memo.timeout = setTimeout(() => {
-      // TODO: FIXME
-      // eslint-disable-next-line prefer-spread
-      func.apply(null, args);
+      func(...args);
     }, delayInMs);
   };
 }
