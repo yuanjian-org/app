@@ -23,6 +23,7 @@ import ScheduledEmail from "./models/ScheduledEmail";
 import EventLog from "./models/EventLog";
 import Kudos from "./models/Kudos";
 import LastReadChatRoom from "./models/LastReadChatRoom";
+import DraftChatMessage from "./models/DraftChatMessage";
 
 const db = {
   Mentorship,
@@ -46,6 +47,7 @@ const db = {
   EventLog,
   Kudos,
   LastReadChatRoom,
+  DraftChatMessage,
 };
 
 export default db;

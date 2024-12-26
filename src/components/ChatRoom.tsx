@@ -31,6 +31,7 @@ import { SmallGrayText } from './SmallGrayText';
 import moment, { Moment } from 'moment';
 import RedDot, { redDotTransitionProps } from './RedDot';
 import { ShowOnDesktop } from './Show';
+import Autosaver from './Autosaver';
 
 export default function Room({
   menteeId,
@@ -175,8 +176,17 @@ function Editor({ roomId, message, onClose, ...rest }: {
   message?: ChatMessage,
   onClose: Function,
 } & TextareaProps) {
-  const [markdown, setMarkdown] = useState<string>(
-    message ? message.markdown : "");
+  const [markdown, setMarkdown] = useState<string>();
+
+  const { data: draft } = trpcNext.chat.getDraftMessage.useQuery({
+    roomId, messageId: message?.id,
+  });
+  useEffect(() => {
+    if (draft !== undefined) {
+      setMarkdown(draft !== null ? draft : message?.markdown ?? "");
+    }
+  }, [draft, message?.markdown]);
+
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
   
@@ -184,7 +194,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
     setMarkdown(prev => prefix + prev);
   };
 
-  const save = async () => {
+  const save = useCallback(async () => {
+    invariant(markdown);
     setSaving(true);
     try {
       if (message) {
@@ -195,11 +206,19 @@ function Editor({ roomId, message, onClose, ...rest }: {
         await trpc.chat.createMessage.mutate({ roomId, markdown });
       }
       await utils.chat.getRoom.invalidate();
+      await utils.chat.getDraftMessage.invalidate();
       onClose();
     } finally {
       setSaving(false);
     }
-  };
+  }, [markdown, message, utils.chat.getRoom, utils.chat.getDraftMessage,
+    onClose, roomId]);
+
+  const saveDraft = useCallback(async (markdown: string) => {
+    await trpc.chat.saveDraftMessage.mutate({
+      roomId, messageId: message?.id, markdown
+    });
+  }, [message?.id, roomId]);
 
   const prefixes = [
     "【一对一】",
@@ -207,9 +226,19 @@ function Editor({ roomId, message, onClose, ...rest }: {
   ];
   
   return <>
-    <Textarea value={markdown} onChange={e => setMarkdown(e.target.value)}
-      autoFocus background="white" height={200} {...rest}
+    <Textarea
+      value={markdown === undefined ? "" : markdown}
+      // Waiting for the draft to be fetched. Do not do it because it will
+      // mess up with autoFocus. Find a better solution maybe?
+      // disabled={markdown === undefined}
+      onChange={e => setMarkdown(e.target.value)}
+      background="white" height={200}
+      placeholder={markdown === undefined ? "加载草稿中..." : "（草稿自动保存）"}
+      autoFocus
+      {...rest}
     />
+
+    <Autosaver data={markdown} onSave={saveDraft} />
 
     <HStack width="100%" spacing={componentSpacing}>
       <Button onClick={save} isLoading={saving} isDisabled={!markdown}
@@ -232,10 +261,10 @@ function Editor({ roomId, message, onClose, ...rest }: {
 
       <Spacer />
 
-      {/* Hide on mobile due to limited space */}
+      {/* Hide on narrow screen due to limited space */}
       <MarkdownSupport
         fontSize="sm"
-        display={{ base: "none", [breakpoint]: "block" }} 
+        display={{ base: "none", "2xl": "block" }} 
       />
 
       <Select placeholder="笔记分类"
