@@ -1,6 +1,4 @@
-import { HStack, Link, Wrap, WrapItem, WrapProps } from '@chakra-ui/react';
-import Image from "next/image";
-import beian from '../../public/img/beian.png';
+import { Link, Wrap, WrapItem, WrapProps } from '@chakra-ui/react';
 import { componentSpacing } from 'theme/metrics';
 import { pageMarginX } from 'theme/metrics';
 
@@ -21,23 +19,14 @@ export default function Footer({ ...rest } : WrapProps) {
       &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
     </WrapItem>
     <WrapItem>
-      <HStack>
-        <Image
-          alt="备案"
-          width={13}
-          // Fix browser warning
-          style={{ height: "auto" }}
-          src={beian}
-        />
-        <Link
-          color={color}
-          isExternal
-          href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
-          rel="noreferrer"
-        >
-          浙公网安备33010802013665
-        </Link>
-      </HStack>
+      <Link
+        color={color}
+        isExternal
+        href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
+        rel="noreferrer"
+      >
+        浙公网安备33010802013665
+      </Link>
     </WrapItem>
     <WrapItem>
       <Link
