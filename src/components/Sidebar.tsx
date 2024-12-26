@@ -406,9 +406,14 @@ const DropdownMenuButton = ({ title, icon } : {
   title: string,
   icon: React.ReactNode,
 }) => {
-  return <MenuButton marginX={componentSpacing} paddingLeft={componentSpacing}
-    color={inactiveNavLinkColor} transition="all 0.3s" 
-    _focus={{ boxShadow: 'none' }}>
+  return <MenuButton
+    marginX={componentSpacing}
+    paddingLeft={componentSpacing}
+    color={inactiveNavLinkColor}
+    fontWeight="medium"
+    transition="all 0.3s" 
+    _focus={{ boxShadow: 'none' }}
+  >
     <HStack>{icon}<Text>{title}</Text><FiChevronRight /></HStack>
   </MenuButton>;
 };
@@ -424,7 +429,7 @@ const SidebarRow = ({ item, onClose, ...rest }: {
     as={NextLink}
     href={item.path}
     color={active ? activeNavLinkColor : inactiveNavLinkColor}
-    fontWeight={active ? "bold" : "normal"}
+    fontWeight={active ? "bold" : "medium"}
     onClick={onClose}
   >
     <Flex
