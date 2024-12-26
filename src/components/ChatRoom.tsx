@@ -129,12 +129,13 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
-  const createdAt = m.createdAt ? `${prettifyDate(m.createdAt)}` : "";
-  const updatedAt = m.updatedAt && m.updatedAt !== m.createdAt ?
-    prettifyDate(m.updatedAt) : null;
+  const createdAt = m.createdAt ? prettifyDate(m.createdAt) : "";
+  const updatedAt = m.updatedAt ? prettifyDate(m.updatedAt) : "";
+
+  // Do not show update time if the formatted text is the same as created time.
   const updatedAtText = useBreakpointValue({
-      base: updatedAt ? <><br />{updatedAt}更新</> : <></>  ,
-      [breakpoint]: updatedAt ? <> ｜ {updatedAt}更新</> : <></>,
+      base: updatedAt !== createdAt ? <><br />{updatedAt}更新</> : <></>  ,
+      [breakpoint]: updatedAt !== createdAt ? <> ｜ {updatedAt}更新</> : <></>,
   });
 
   const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);

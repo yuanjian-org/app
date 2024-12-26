@@ -216,7 +216,8 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             kudos={kudos}
             type={type}
             showReceiver
-            limit={limit}
+            showPseudoRows
+            showLimit={limit}
           />}
         </Box>
       </Flex>

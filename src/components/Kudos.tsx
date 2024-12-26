@@ -25,7 +25,7 @@ import {
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { componentSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import trpc, { trpcNext } from 'trpc';
 import { useUserContext } from 'UserContext';
 import FocusLock from "react-focus-lock";
@@ -39,6 +39,7 @@ import { SmallGrayText } from './SmallGrayText';
 import { DateColumn } from 'shared/DateColumn';
 import { UserState } from 'shared/UserState';
 import RedDot from './RedDot';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
@@ -52,6 +53,7 @@ export function KudosControl({ user, likes, kudos }: {
   const [localLikes, setLocalLikes] = useState<number>(likes);
   const [localKudos, setLocalKudos] = useState<number>(kudos);
   const [popoverTitle, setPopoverTitle] = useState<string>("");
+  const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
 
   const popoverInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -60,12 +62,15 @@ export function KudosControl({ user, likes, kudos }: {
     isOpen: isPopoverOpen
   } = useDisclosure();
 
-  const saveLike = async () => {
+  const animeDurationInSeconds = 2;
+  const saveLike = useCallback(async () => {
     setLocalLikes(localLikes + 1);
+    setShowPlusOneAnime(true);
+    setTimeout(() => setShowPlusOneAnime(false), animeDurationInSeconds * 1000);
     setPopoverTitle(`感谢点赞！要不要再给${name}留个言？（可选）`);
     onOpenPopover();
     await trpc.kudos.create.mutate({ userId: user.id, text: null });
-  };
+  }, [localLikes, name, onOpenPopover, user.id]);
 
   const saveKudos = async (text: string) => {
     setLocalKudos(localKudos + 1);
@@ -77,16 +82,43 @@ export function KudosControl({ user, likes, kudos }: {
       label={`点赞后，${name}会收到Email哦`}
       placement="top"
     >
-      <Text
-        display="flex"
-        alignItems="center"
-        color="orange.600"
-        cursor="pointer"
-        onClick={saveLike}
-      >
-        👍{localLikes > 0 && ` ${localLikes}`}
-      </Text>
+      <Box position="relative" display="flex" alignItems="center">
+        <Text
+          display="flex"
+          alignItems="center"
+          color="orange.600"
+          cursor="pointer"
+          onClick={saveLike}
+        >
+          👍{localLikes > 0 && ` ${localLikes}`}
+        </Text>
+
+        <AnimatePresence>
+          {showPlusOneAnime && (
+            <motion.div
+              initial={{ opacity: 1, x: -25, y: 0 }}
+              animate={{ opacity: 0, x: -25, y: -100 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: animeDurationInSeconds }}
+              style={{
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '3em',
+                fontWeight: 'bold',
+                color: 'orange',
+                pointerEvents: 'none',
+                // Make it above the popover
+                zIndex: 1000,
+              }}
+            >
+              +1
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Box>
     </Tooltip>
+  
 
     {/**
       * See https://v2.chakra-ui.com/docs/components/popover#trapping-focus-within-popover
@@ -267,14 +299,17 @@ function UserKudosHistoryModal({ user, onClose }: {
   </ModalWithBackdrop>;
 }
 
-export function KudosHistory({ kudos, type, showReceiver, limit }: { 
+export function KudosHistory({ kudos, type, showReceiver, showPseudoRows,
+  showLimit
+}: { 
   kudos: Kudos[],
   type: "desktop" | "mobile",
+  showPseudoRows?: boolean,
   showReceiver?: boolean,
-  limit?: number,
+  // Valid only when `showPseudoRows` is also true.
+  showLimit?: number,
 }) {
-  // Use a state variable to avoid updating it when `markKudosHistoryAsRead`
-  // is called.
+  // Use a state variable to avoid updating it when `markKudosAsRead` is called.
   const [lastKudosReadAt, setLastKudosReadAt] = useState<Moment>();
   trpcNext.users.getUserState.useQuery(undefined, {
     onSuccess: state => {
@@ -313,7 +348,7 @@ export function KudosHistory({ kudos, type, showReceiver, limit }: {
       showReceiver={showReceiver}
     />)}
 
-    {read.length > 0 && unread.length > 0 &&
+    {showPseudoRows && read.length > 0 && unread.length > 0 &&
       <PseudoRow divider text={`以上为未读的赞`} />}
 
     {read.map((k, i) => <KudosHistoryRow
@@ -322,7 +357,9 @@ export function KudosHistory({ kudos, type, showReceiver, limit }: {
       showReceiver={showReceiver}
     />)}
 
-    {limit && <PseudoRow text={`仅显示最近 ${limit} 个赞`} />}
+    {showPseudoRows && showLimit &&
+      <PseudoRow text={`仅显示最近 ${showLimit} 个赞`} />}
+
   </SimpleGrid>;
 }
 
@@ -345,7 +382,7 @@ function KudosHistoryRow({ kudos, showReceiver }: {
           {like ? " 点赞 👍" : "说："}
         </>}
 
-        {!like && <b>“{kudos.text}”</b>}
+        {!like && <i>“{kudos.text}”</i>}
       </Text>
     </GridItem>
     <GridItem>
