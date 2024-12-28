@@ -153,7 +153,7 @@ function MentorshipPanel({ mentorship: m }: {
         </Flex>
       </GridItem>
       <GridItem>
-        <Transcripts groupId={m.group.id} />
+        <Transcripts group={m.group} />
       </GridItem>
     </SimpleGrid>
 

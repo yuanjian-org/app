@@ -184,7 +184,6 @@ const list = procedure
 });
 
 const get = procedure
-  // We will throw access denied later if the user isn't a privileged user and isn't in the group.
   .use(authUser())
   .input(z.string())
   .output(zGroup)

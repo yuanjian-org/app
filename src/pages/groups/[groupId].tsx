@@ -21,7 +21,7 @@ export default function Page() {
     <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false}
       marginBottom={paragraphSpacing} />
     {isPermittedForGroupHistory(me, group) && 
-      <Transcripts groupId={group.id} />
+      <Transcripts group={group} />
     }
   </Stack>;
 };
