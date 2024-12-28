@@ -72,7 +72,7 @@ export default function UserCards({ type, users }: {
   type: UserCardType,
   users: UserDisplayData[],
 }) {
-  const [searchTerm, setSearchTerm] = useState<string>();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -99,67 +99,67 @@ export default function UserCards({ type, users }: {
     md: (isMac ? "⌘" : "Ctrl") + "+F "
   });
 
+  // Show kudos history card only when not searching.
+  const showKudosHistory = type == "Volunteer" && !searchTerm;
+
   return <>
-    {searchResult && <>
+    {/* Search box */}
+    <InputGroup mb={sectionSpacing}>
+      <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+      <Input
+        ref={searchInputRef}
+        bg="white"
+        type="search"
+        autoFocus
+        placeholder={`${hotKey}搜索关键字，比如“金融“、“女”、“成都”，支持拼音`}
+        value={searchTerm}
+        onChange={ev => setSearchTerm(ev.target.value)}
+      />
+    </InputGroup>
 
-      {/* Search box */}
-      <InputGroup mb={sectionSpacing}>
-        <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
-        <Input
-          ref={searchInputRef}
-          bg="white"
-          type="search"
-          placeholder={`${hotKey}搜索关键字，比如“金融“、“女”、“成都”，支持拼音`}
-          value={searchTerm}
-          onChange={ev => setSearchTerm(ev.target.value)}
-        />
-      </InputGroup>
+    <ShowOnDesktop>
+      <SimpleGrid
+        spacing={componentSpacing}
+        templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
+      >
+        {showKudosHistory && <GridItem colSpan={2} rowSpan={1}>
+          <KudosHistoryCard type="desktop" />
+        </GridItem>}
 
-      <ShowOnDesktop>
-        <SimpleGrid
-          spacing={componentSpacing}
-          templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
-        >
-          {type == "Volunteer" && <GridItem colSpan={2} rowSpan={1}>
-            <KudosHistoryCard type="desktop" />
-          </GridItem>}
+        {searchResult.map(d => <UserCardForDesktop
+          key={d.user.id}
+          data={d}
+          type={type}
+          openModal={() => setBookingMentor(d.user)}
+          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+        />)}
+      </SimpleGrid>
+    </ShowOnDesktop>
 
-          {searchResult.map(d => <UserCardForDesktop
-            key={d.user.id}
-            data={d}
-            type={type}
-            openModal={() => setBookingMentor(d.user)}
-            isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
-          />)}
-        </SimpleGrid>
-      </ShowOnDesktop>
+    <ShowOnMobile>
+      <SimpleGrid
+        spacing={componentSpacing}
+        templateColumns='1fr'
+        alignItems="stretch"
+      >
+        {showKudosHistory && <KudosHistoryCard type="mobile" />}
 
-      <ShowOnMobile>
-        <SimpleGrid
-          spacing={componentSpacing}
-          templateColumns='1fr'
-          alignItems="stretch"
-        >
-
-          {type == "Volunteer" && <KudosHistoryCard type="mobile" />}
-
-          {searchResult.map(d => <UserCardForMobile
-            key={d.user.id}
-            data={d}
-            type={type}
-            openModal={() => setBookingMentor(d.user)}
-            isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
-          />)}
-        </SimpleGrid>
-      </ShowOnMobile>
-          
-      {bookingMentor !== undefined && 
-        <MentorBookingModal
-          mentor={bookingMentor} 
-          onClose={() => setBookingMentor(undefined)}
-        />
-      }
-    </>}
+        {searchResult.map(d => <UserCardForMobile
+          key={d.user.id}
+          data={d}
+          type={type}
+          openModal={() => setBookingMentor(d.user)}
+          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+        />)}
+      </SimpleGrid>
+    </ShowOnMobile>
+        
+    {bookingMentor !== undefined &&
+      <MentorBookingModal
+        mentor={bookingMentor} 
+        onClose={() => setBookingMentor(undefined)}
+      />
+    }
   </>;
 }
 
@@ -229,9 +229,7 @@ function isMentorRecommended(traitsMatchingScore?: number) {
   return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
 }
 
-function search(users: UserDisplayData[],
-  searchTerm: string) 
-{
+function search(users: UserDisplayData[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
 
