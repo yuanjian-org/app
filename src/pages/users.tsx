@@ -159,9 +159,9 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
           _hover={{ bg: "white" }}
         >
           <Td onClick={() => setUserBeingEdited(u)}>
-            {isFakeEmail(u.email) ? "未设置" : u.email}
+            {u.email}
           </Td>
-          
+
           <Td>
             <Link as={NextLink} href={`/profiles/${u.id}`}>
               <b>
