@@ -76,7 +76,6 @@ const get = procedure
     i.calibrationId)) return ret;
 
   if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
-  
   throw noPermissionError("面试", interviewId);
 });
 
