@@ -27,13 +27,13 @@ export const whereUnowned = {
   coacheeId: null,
 };
 
-export function isPermittedForGroup(u: User, g: Group): boolean {
+export function isPermittedToAccessGroup(u: User, g: Group): boolean {
   // Public groups allow everyone to see member list and join group meetings but
   // not to read group history including transcripts and summaries.
-  return g.public || isPermittedForGroupHistory(u, g);
+  return g.public || isPermittedToAccessGroupHistory(u, g);
 }
 
-export function isPermittedForGroupHistory(u: User, g: Group): boolean {
+export function isPermittedToAccessGroupHistory(u: User, g: Group): boolean {
   return isPermitted(u.roles, "GroupManager") ||
     // Allow coaches to access all mentorship groups
     (isPermitted(u.roles, "MentorCoach") && g.partnershipId !== null) ||

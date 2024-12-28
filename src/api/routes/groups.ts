@@ -9,7 +9,8 @@ import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { noPermissionError, notFoundError } from "../errors";
-import { Group, isPermittedForGroup, isPermittedForGroupHistory, whereUnowned, zGroup, 
+import {
+  Group, isPermittedToAccessGroup, isPermittedToAccessGroupHistory, whereUnowned, zGroup,
 } from "../../shared/Group";
 import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
 import User from "shared/User";
@@ -210,11 +211,11 @@ export default router({
 });
 
 export function checkPermissionForGroup(u: User, g: Group) {
-  if (!isPermittedForGroup(u, g)) throw noPermissionError("分组", g.id);
+  if (!isPermittedToAccessGroup(u, g)) throw noPermissionError("分组", g.id);
 }
 
 export function checkPermissionForGroupHistory(u: User, g: Group) {
-  if (!isPermittedForGroupHistory(u, g)) throw noPermissionError("分组", g.id);
+  if (!isPermittedToAccessGroupHistory(u, g)) throw noPermissionError("分组", g.id);
 }
 
 /**

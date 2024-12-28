@@ -37,9 +37,9 @@ import {
 } from "../../shared/applicationFields";
 
 /**
- * Only MentorshipManager, interviewers of the interview, users allowed by 
- * `getCalibrationAndCheckPermissionSafe` and `isPermittedForMentee` are allowed
- * to call this route.
+ * Only MentorshipManager, interviewers of the interview, and users
+ * allowed by `getCalibrationAndCheckPermissionSafe` and
+ * `isPermittedToAccessMentee` are allowed to call this route.
  */
 const get = procedure
   .use(authUser())
@@ -75,8 +75,8 @@ const get = procedure
   if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
     i.calibrationId)) return ret;
 
-  if (!await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
-
+  if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
+  
   throw noPermissionError("面试", interviewId);
 });
 

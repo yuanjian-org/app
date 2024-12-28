@@ -174,9 +174,9 @@ async function getCalibrationAndCheckPermission(me: User, calibrationId: string)
  * 
  * TODO: optimize queries. combine queries from the call site.
  */
-export async function getCalibrationAndCheckPermissionSafe(me: User, calibrationId: string):
-  Promise<Calibration | null>
-{
+export async function getCalibrationAndCheckPermissionSafe(
+  me: User, calibrationId: string
+): Promise<Calibration | null> {
   const c = await db.Calibration.findByPk(calibrationId, {
     attributes: calibrationAttributes,
     include: calibrationInclude,
@@ -200,7 +200,9 @@ export async function getCalibrationAndCheckPermissionSafe(me: User, calibration
   return c;
 }
 
-export async function syncCalibrationGroup(calibrationId: string, transaction: Transaction) {
+export async function syncCalibrationGroup(
+  calibrationId: string, transaction: Transaction
+) {
   const c = await db.Calibration.findByPk(calibrationId, {
     include: [{
       model: db.Group,
