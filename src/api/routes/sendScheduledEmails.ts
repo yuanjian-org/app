@@ -226,11 +226,11 @@ async function sendChatEmail(
         authors,
         roomLink: `${getBaseUrl()}/mentees/${room.mentee.id}`,
         delta: filtered.map(m => {
-          const verb = moment(m.createdAt).isAfter(timestamp) ? "创建了新的" :
+          const verb = moment(m.createdAt).isAfter(timestamp) ? "创建了新" :
             `更新了${prettifyDate(m.createdAt)}创建的`;
           const truncated = m.markdown.length > 200 ?
             m.markdown.slice(0, 200) + "..." : m.markdown;
-          return `<b>${formatUserlink(m.user)}${verb}内部笔记: </b>` +
+          return `<b>${formatUserlink(m.user)}${verb}笔记: </b>` +
             `<br /><br />` +
             // This is a big quotation mark.
             `<span style="color: gray;">❝</span>` +
