@@ -2,14 +2,14 @@ import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem,
+import {
+  Flex, Grid, GridItem,
   Icon,
   Link,
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
 import { breakpoint } from 'theme/metrics';
-import { useUserContext } from 'UserContext';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
@@ -21,6 +21,7 @@ import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { widePage } from 'AppPage';
+import useMe, { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
 
 export default widePage(() => {
@@ -28,7 +29,7 @@ export default widePage(() => {
   const { data } = interviewId ?
     trpcNext.interviews.get.useQuery({ interviewId }) : { data: undefined };
 
-  const [me] = useUserContext();
+  const me = useMe();
 
   const interviewerTestPassed = () => {
     if (process.env.NODE_ENV !== 'production') return true;
@@ -86,14 +87,14 @@ function Instructions({ type, interviewers }: {
   type: InterviewType,
   interviewers: MinUser[],
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   let first: boolean | null = null;
   let other: MinUser | null = null;
-  invariant(interviewers.filter(i => i.id === me.id).length == 1);
+  invariant(interviewers.filter(i => i.id === myId).length == 1);
   if (interviewers.length == 2) {
-    other = interviewers[0].id === me.id ? interviewers[1] : interviewers[0];
-    first = other.id > me.id;
+    other = interviewers[0].id === myId ? interviewers[1] : interviewers[0];
+    first = other.id > myId;
   }
 
   const isMentee = type == "MenteeInterview";

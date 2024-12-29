@@ -1,9 +1,9 @@
 import {
-  Drawer, 
-  DrawerBody, 
-  DrawerHeader, 
-  DrawerOverlay, 
-  DrawerContent, 
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
   DrawerCloseButton,
   Radio,
   RadioGroup,
@@ -25,18 +25,18 @@ import {
   ModalFooter,
 } from '@chakra-ui/react';
 import { Landmark, LandmarkAssessment, LandmarkScore } from 'shared/Map';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { componentSpacing } from 'theme/metrics';
 import MarkdownSupport from './MarkdownSupport';
 import trpc, { trpcNext } from 'trpc';
 import { prettifyDate } from 'shared/strings';
-import { useUserContext } from 'UserContext';
 import { breakpoint } from 'theme/metrics';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
 import { compareDate } from 'shared/strings';
 import Loader from './Loader';
+import { useMyId } from 'useMe';
 
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
@@ -68,13 +68,13 @@ function LandmarkDefinition ({ definition }: { definition: string })  {
 function LandmarkAssessmentSelect ({ landmark }: {
   landmark: Landmark;
 }) {
-  const [user] = useUserContext();      
+  const myId = useMyId();      
   const [score, setScore] = useState<LandmarkScore | undefined>();
   const [markdown, setMarkdown] = useState<string>("");
   const createLandmarkAssessment = async() => {
     invariant(score !== undefined);
     await trpc.map.createLandmarkAssessment.mutate({
-      userId: user.id,
+      userId: myId,
       landmark: landmark.名称,
       score,
       markdown,
@@ -121,9 +121,8 @@ function getAssessmentDate(assessment: LandmarkAssessment) {
 function LandmarkAssessmentHistory({ landmark } : {
   landmark: Landmark;
 }) {
-  const [user] = useUserContext();
   const { data: assessments } = trpcNext.map.listLandmarkAssessments.useQuery({
-    userId: user.id,
+    userId: useMyId(),
     landmark: landmark.名称,
   });
   

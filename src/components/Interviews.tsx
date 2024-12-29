@@ -13,11 +13,9 @@ import {
   Td,
   Link,
 } from '@chakra-ui/react';
-import React from 'react';
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
 import { Interview } from 'shared/Interview';
-import { useUserContext } from 'UserContext';
 import { CheckIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { sectionSpacing } from 'theme/metrics';
 import {
@@ -34,12 +32,13 @@ import trpc, { trpcNext } from 'trpc';
 import { MenteeStatus } from 'shared/MenteeStatus';
 import invariant from 'tiny-invariant';
 import TdLink from './TdLink';
-import { 
-  PointOfContactHeaderCells, 
-  PointOfContactCells 
+import {
+  PointOfContactHeaderCells,
+  PointOfContactCells
 } from './pointOfContactCells';
 import { MenteeSourceHeaderCell, MenteeSourceCell } from './MenteeSourceCell';
 import { menteeSourceField } from 'shared/applicationFields';
+import { useMyId, useMyRoles } from 'useMe';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -54,11 +53,10 @@ export default function Interviews({ interviews, forCalibration,
   forCalibration: boolean
   hideTotalCount?: boolean
 }) {
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
 
   // Show interviewee statuses only to MentorshipManagers
-  const showStatus = forCalibration && isPermitted(me.roles,
-    "MentorshipManager");
+  const showStatus = forCalibration && isPermitted(myRoles, "MentorshipManager");
   
   return !interviews ? <Loader /> : <TableContainer>
     <Table>
@@ -104,7 +102,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
   forCalibration: boolean,
   showStatus: boolean
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
   const { data: app, refetch } = trpcNext.users.getApplicant.useQuery({
     userId: i.interviewee.id,
     type: i.type,
@@ -146,7 +144,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
 
     <TdLink href={url}><Wrap spacing="2">
       {i.feedbacks
-        .filter(f => forCalibration || f.interviewer.id !== me.id)
+        .filter(f => forCalibration || f.interviewer.id !== myId)
         .map(f => <WrapItem key={f.id}>
           {formatUserName(f.interviewer.name)}
           {f.feedbackUpdatedAt && <CheckIcon marginStart={1} />}
@@ -162,7 +160,7 @@ function InterviewRow({ i, forCalibration, showStatus }: {
     {forCalibration && <TdLink href={url}>
       {toPinyin(i.interviewee.name ?? "")},
       {i.feedbacks
-        .filter(f => forCalibration || f.interviewer.id !== me.id)
+        .filter(f => forCalibration || f.interviewer.id !== myId)
         .map(f => toPinyin(f.interviewer.name ?? "")).join(",")
       }
     </TdLink>}

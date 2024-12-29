@@ -20,13 +20,12 @@ import replaceUrlParam from 'shared/replaceUrlParam';
 import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
 import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
-import { useUserContext } from 'UserContext';
+import useMe from 'useMe';
 
 export default function Transcripts({ group }: {
   group: Group,
 }) {
-  const [me] = useUserContext();
-  if (!isPermittedToAccessGroupHistory(me, group)) {
+  if (!isPermittedToAccessGroupHistory(useMe(), group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
   }
 

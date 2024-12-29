@@ -1,9 +1,8 @@
 import { Avatar, HStack, Link, Text } from '@chakra-ui/react';
-import React from 'react';
 import { getUserUrl, MinUser } from 'shared/User';
 import { formatUserName } from 'shared/strings';
 import NextLink from 'next/link';
-import { useUserContext } from 'UserContext';
+import { useMyId } from 'useMe';
 
 export default function UserChip({ user }: {
   user: MinUser;
@@ -16,8 +15,8 @@ export default function UserChip({ user }: {
 }
 
 export function UserLink({ user }: { user: MinUser }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
   return <Link as={NextLink} href={getUserUrl(user)} target="_blank">
-    {me.id === user.id ? "我" : formatUserName(user.name, "formal")}
+    {myId === user.id ? "我" : formatUserName(user.name, "formal")}
   </Link>;
 }

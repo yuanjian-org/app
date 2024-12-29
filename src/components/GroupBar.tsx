@@ -24,11 +24,10 @@ import {
   HStack,
   Tooltip,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import trpc from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
-import { useUserContext } from 'UserContext';
 import { formatGroupName } from 'shared/strings';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { breakpoint } from 'theme/metrics';
@@ -37,6 +36,7 @@ import { MinUser } from 'shared/User';
 import { Group, isOwned } from 'shared/Group';
 import { ChevronRightIcon, QuestionIcon } from '@chakra-ui/icons';
 import { publicGroupDescription } from 'pages/groups';
+import { useMyId } from 'useMe';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile,
@@ -50,7 +50,7 @@ export default function GroupBar({
   abbreviateOnMobile?: boolean,   // default: true
   abbreviateOnDesktop?: boolean,  // default: false
 } & SimpleGridProps) {
-  const [user] = useUserContext();
+  const myId = useMyId();
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
 
@@ -112,7 +112,7 @@ export default function GroupBar({
       <LinkBox>
         <Flex>
           <UserChips 
-            currentUserId={showSelf ? undefined : user.id} 
+            currentUserId={showSelf ? undefined : myId} 
             users={group.users}
             abbreviateOnMobile={abbreviateOnMobile}
             abbreviateOnDesktop={abbreviateOnDesktop}

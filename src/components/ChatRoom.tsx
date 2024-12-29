@@ -20,7 +20,6 @@ import { breakpoint, componentSpacing, paragraphSpacing } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { MdEdit, MdSend } from 'react-icons/md';
-import { useUserContext } from 'UserContext';
 import { AddIcon } from '@chakra-ui/icons';
 import invariant from "tiny-invariant";
 import Loader from './Loader';
@@ -32,6 +31,7 @@ import moment, { Moment } from 'moment';
 import RedDot, { redDotTransitionProps } from './RedDot';
 import { ShowOnDesktop } from './Show';
 import Autosaver from './Autosaver';
+import { useMyId } from 'useMe';
 
 export default function Room({
   menteeId,
@@ -126,7 +126,7 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
   lastReadAt: Moment,
   setHasUnread: () => void,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
 
@@ -139,7 +139,7 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
       [breakpoint]: updatedAt !== createdAt ? <> ｜ {updatedAt}更新</> : <></>,
   });
 
-  const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);
+  const unread = m.user.id !== myId && moment(m.updatedAt).isAfter(lastReadAt);
   useEffect(() => { if (unread) setHasUnread(); }, [setHasUnread, unread]);
 
   return <HStack align="top" spacing={componentSpacing} width="100%">
@@ -155,7 +155,7 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
           <RedDot show={unread} />
         </SmallGrayText>
 
-        {!editing && me.id == m.user.id && <>
+        {!editing && myId == m.user.id && <>
           <Spacer />
           <Icon as={MdEdit} cursor="pointer" onClick={() => setEditing(true)} />
         </>}

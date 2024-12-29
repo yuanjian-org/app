@@ -7,7 +7,6 @@ import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
 import { MdOutlineFace } from "react-icons/md";
 import { IoStar } from "react-icons/io5";
-import invariant from 'tiny-invariant';
 import {
   Avatar,
   HStack,
@@ -26,7 +25,7 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useUserContext } from 'UserContext';
+import useMe, { useMyRoles } from 'useMe';
 import { isPermitted } from 'shared/Role';
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
@@ -237,22 +236,22 @@ interface SidebarProps extends BoxProps {
 }
 
 export function useMyMentorshipsAsMentor() {
-  const [me] = useUserContext();
-  const { data } = isPermitted(me.roles, "Mentor") ?
+  const myRoles = useMyRoles();
+  const { data } = isPermitted(myRoles, "Mentor") ?
     trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() :
     { data: [] };
   return data;
 }
 
 const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
-  const [me] = useUserContext();
+  const me = useMe();
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
   const borderColor = useColorModeValue(borderColorModeValues[0], 
     borderColorModeValues[1]); 
-  const userName = formatUserName(me.name);
+  const myName = formatUserName(me.name);
 
   return <Box
     transition="3s ease"
@@ -315,8 +314,8 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
 
       <Box>
         <DropdownMenuIfPermitted 
-          title={userName} 
-          icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
+          title={myName} 
+          icon={<Avatar size={'sm'} bg="brand.a" color="white" name={myName} 
             />}
           menuItems={userDropdownMenuItems}
           onClose={onClose}
@@ -330,14 +329,11 @@ export default Sidebar;
 
 function ImpersonationBanner() {
   const { data: session, update } = useSession();
-  const [, setUser] = useUserContext();
   const router = useRouter();
 
   const stopImpersonation = async () => {
     const req: ImpersonationRequest = { impersonate: null };
     await update(req);
-    invariant(session);
-    setUser(session.user);
     await router.push("/users");
   };
 
@@ -368,14 +364,14 @@ function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   icon: React.ReactNode,
   menuItems: DropdownMenuItem[],
 } & SidebarProps) {
-  const [user] = useUserContext();
+  const myRoles = useMyRoles();
   const backgroundColor = useColorModeValue(bgColorModeValues[0], 
     bgColorModeValues[1]);
   const borderColor = useColorModeValue(borderColorModeValues[0], 
     borderColorModeValues[1]);
   const filteredItems = menuItems.filter(item => 
-    isPermitted(user.roles, item.roles));
-  
+    isPermitted(myRoles, item.roles));
+
   if (filteredItems.length === 0) {
     return <></>;
   }

@@ -20,7 +20,7 @@ import Role, { AllRoles, RoleProfiles } from '../shared/Role';
 import { staticUrlPrefix } from 'static';
 import NextLink from "next/link";
 import { getUserUrl } from 'shared/User';
-import { useUserContext } from 'UserContext';
+import useMe from 'useMe';
 
 export default function Page() {
   const { data: privileged } = trpcNext.users.listPriviledgedUserDataAccess
@@ -50,7 +50,7 @@ export default function Page() {
 const dp = (r: Role) => <>{RoleProfiles[r].displayName}</>;
 
 function DataTable() {
-  const [me] = useUserContext();
+  const me = useMe();
 
   return <TableContainer>
     <Table>

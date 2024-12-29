@@ -9,7 +9,6 @@ import {
   Link,
   Button,
 } from '@chakra-ui/react';
-import { useUserContext } from 'UserContext';
 import {
   parseQueryString
 } from 'shared/strings';
@@ -26,13 +25,14 @@ import NextLink from 'next/link';
 import { canAcceptMergeToken } from 'shared/merge';
 import { useState } from 'react';
 import { EnterTokenMergeModal, MergeCodeFormat } from 'components/MergeModals';
+import { useMyId } from 'useMe';
 
 export const accountPageTitle = "账号与安全";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
-  const [me] = useUserContext();
-  const userId = queryUserId === "me" ? me.id : queryUserId;
+  const myId = useMyId();
+  const userId = queryUserId === "me" ? myId : queryUserId;
 
   const { data: user } = userId ?
     trpcNext.users.getFull.useQuery(userId) : { data: undefined };

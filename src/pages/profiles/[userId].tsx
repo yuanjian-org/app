@@ -21,7 +21,6 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
-import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
@@ -29,7 +28,7 @@ import { toast } from "react-toastify";
 import { UserProfile } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
-  parseQueryString, shaChecksum 
+  parseQueryString, shaChecksum
 } from 'shared/strings';
 import { useRouter } from 'next/router';
 import User, { getUserUrl } from 'shared/User';
@@ -41,11 +40,14 @@ import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
+import { useMyId, useMyRoles } from 'useMe';
+import { useSession } from 'next-auth/react';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
-  const [me] = useUserContext();
-  const userId = queryUserId === "me" ? me.id : queryUserId;
+  const myId = useMyId();
+  const userId = queryUserId === "me" ? myId : queryUserId;
+  const { update: updateSession } = useSession();
 
   const queryOpts = {
     // Avoid accidental override when switching between windows
@@ -66,6 +68,7 @@ export default function Page() {
     invariant(user && profile);
     if (!_.isEqual(oldUser, user)) {
       await trpc.users.update.mutate(user);
+      await updateSession();
     }
     if (!_.isEqual(old?.profile, profile)) {
       await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
@@ -259,7 +262,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   updateProfile: (k: keyof UserProfile, v: string) => void,
   SaveButton: React.ComponentType,
 }) {
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -295,7 +298,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
         建议选择面部清晰、不戴墨镜的近照
       </FormHelperTextWithMargin>
 
-      {isPermitted(me.roles, 'UserManager') && <>
+      {isPermitted(myRoles, 'UserManager') && <>
         <FormHelperTextWithMargin>
           <Text color="red.700">以下链接仅
           {RoleProfiles.UserManager.displayName}

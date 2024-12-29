@@ -1,9 +1,9 @@
-import { 
+import {
   hardTraitPrefAbsValue,
   isTraitsComplete,
   maxTraitAbsValue,
   softTraitPrefAbsValue,
-  TraitsPreference, 
+  TraitsPreference,
 } from "shared/Traits";
 import { Traits } from "shared/Traits";
 import ModalWithBackdrop from "./ModalWithBackdrop";
@@ -28,8 +28,8 @@ import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import invariant from "tiny-invariant";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "trpc";
-import { useUserContext } from "UserContext";
 import _ from "lodash";
+import { useMyId } from "useMe";
 
 export const traitsProfiles: {
   title: string, 
@@ -85,8 +85,8 @@ export function TraitTag({ label, selected, onClick } : {
 export function TraitsModal({ onClose }: {
   onClose: () => void,
 }) {
-  const [me] = useUserContext();
-  const { data } = trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+  const myId = useMyId();
+  const { data } = trpcNext.users.getUserProfile.useQuery({ userId: myId });
 
   const [traits, setTraits] = useState<Traits>();
   useEffect(() => setTraits(data?.profile?.特质 ?? {}), [data]);
@@ -95,7 +95,7 @@ export function TraitsModal({ onClose }: {
     const v = { ...traits, [field]: value };
     setTraits(v);
     await trpc.users.setUserProfile.mutate({
-      userId: me.id,
+      userId: myId,
       profile: { ...data?.profile, 特质: v },
     });
   };
