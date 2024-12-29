@@ -157,7 +157,7 @@ function MatchingTraits({ userId }: {
     <Text mt={sectionSpacing} mb={componentSpacing} fontSize="sm" 
       textAlign="center"
     >
-      你的这些
+      你的以下这些
       <Link onClick={() => setIsModalOpen(true)}>
         个人特质
       </Link>

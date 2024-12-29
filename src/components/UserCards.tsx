@@ -266,13 +266,13 @@ function UserCardForDesktop({
 
     <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
-    <CardHeader>
+    <CardHeader onClick={visitUser} cursor="pointer">
       <Heading size='md'>
         {formatUserName(data.user.name, "formal")}
         {isMentorRecommended && <MentorStar ms={3} />}
       </Heading>
     </CardHeader>
-    <CardBody pt={1}>
+    <CardBody pt={1} onClick={visitUser} cursor="pointer">
       <Flex direction="column" gap={paragraphSpacing}>
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {type == "TransactionalMentor" ? <>
@@ -377,8 +377,9 @@ function UserCardForMobile({
         mb={componentSpacing}
         // Align content to the left
         align="start"
+        onClick={visitUser}
       >
-        <Box width="100px" onClick={visitUser}>
+        <Box width="100px">
           <FullWidthImageSquare profile={p} />
         </Box>
 
@@ -406,6 +407,7 @@ function UserCardForMobile({
         align="start"
         // Preserve space for the <Link> below
         pb={3 + componentSpacing}
+        onClick={visitUser}
       >
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
 
