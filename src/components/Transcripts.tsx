@@ -19,14 +19,14 @@ import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import replaceUrlParam from 'shared/replaceUrlParam';
 import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
-import { Group, isPermittedForGroupHistory } from 'shared/Group';
+import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
 import { useUserContext } from 'UserContext';
 
 export default function Transcripts({ group }: {
   group: Group,
 }) {
   const [me] = useUserContext();
-  if (!isPermittedForGroupHistory(me, group)) {
+  if (!isPermittedToAccessGroupHistory(me, group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
   }
 

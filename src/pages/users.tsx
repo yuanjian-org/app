@@ -25,7 +25,7 @@ import {
   TableContainer,
   Link,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
@@ -42,7 +42,6 @@ import { useSession } from 'next-auth/react';
 import { ImpersonationRequest } from './api/auth/[...nextauth]';
 import invariant from 'tiny-invariant';
 import { useRouter } from 'next/router';
-import { isFakeEmail } from 'shared/fakeEmail';
 import MergeTokenCell from 'components/MergeTokenCell';
 
 export default function Page() {
