@@ -28,7 +28,6 @@ import MentorBookingModal from "components/MentorBookingModal";
 import { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
 import { visibleUserProfileFields } from "components/UserCards";
-import { useUserContext } from "UserContext";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
@@ -37,6 +36,7 @@ import { computeTraitsMatchingScore, TraitsPreference } from "shared/Traits";
 import { TraitsModal, traitsPrefLabel2value, traitsPrefProfiles, TraitTag } from "components/Traits";
 import invariant from "tiny-invariant";
 import { KudosControl } from "components/Kudos";
+import useMe, { useMyId, useMyRoles } from "useMe";
 
 export type UserDisplayData = MinUserAndProfile & {
   // The presence of these fields depends on call sites and context
@@ -57,7 +57,7 @@ Page.title = "用户资料";
 export function UserPage({ data }: {
   data: UserDisplayData & { isMentor: boolean } | undefined
 }) {
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
   const showBookingButton = parseQueryString(useRouter(), 'booking') !== "0" &&
     !!data?.isMentor;
   const showMatchingTraits = parseQueryString(useRouter(), 'traits') === "1" &&
@@ -82,7 +82,7 @@ export function UserPage({ data }: {
         }
         <UserUrl u={data.user} />
 
-        {isPermitted(me.roles, "Volunteer") && <HStack mt={sectionSpacing}>
+        {isPermitted(myRoles, "Volunteer") && <HStack mt={sectionSpacing}>
           <KudosControl
             user={data.user}
             likes={data.likes ?? 0}
@@ -128,16 +128,16 @@ function UserUrl({ u }: {
 function MatchingTraits({ userId }: {
   userId: string,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   const { data: traitsPref } = 
     trpcNext.users.getMentorTraitsPref.useQuery({ userId });
   const { data: user, refetch } = 
-    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+    trpcNext.users.getUserProfile.useQuery({ userId: myId });
   const { data: applicant } = 
     trpcNext.users.getApplicant.useQuery({
       type: "MenteeInterview",
-      userId: me.id,
+      userId: myId,
     });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -192,7 +192,7 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
   profile: UserProfile,
   showBookingButton: boolean,
 }) {
-  const [me] = useUserContext();
+  const me = useMe();
   const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table>

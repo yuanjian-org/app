@@ -17,13 +17,13 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { MinUser } from 'shared/User';
 import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
-import { useUserContext } from 'UserContext';
 import GroupBar from 'components/GroupBar';
 import { breakpoint, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
 import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
+import { useMyId } from 'useMe';
 
 export default widePage(() => {
   const userId = parseQueryString(useRouter(), 'menteeId');
@@ -45,20 +45,20 @@ function MenteeTabs({ mentee, mentorships }: {
   mentee: MinUser,
   mentorships: Mentorship[],
 }) {
-  const [me] = useUserContext();
-  const sortedMentorships = sortMentorship(mentorships, me.id);
+  const myId = useMyId();
+  const sortedMentorships = sortMentorship(mentorships, myId);
 
   return <TabsWithUrlParam isLazy>
     <TabList>
       {sortedMentorships.length == 1 ?
         <Tab>
-          一对一通话{sortedMentorships[0].mentor.id !== me.id &&
+          一对一通话{sortedMentorships[0].mentor.id !== myId &&
             `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
         </Tab>
         :
         sortedMentorships.map(m =>
           <Tab key={m.id}>
-            一对一通话{formatMentorshipTabSuffix(m, me.id)}
+            一对一通话{formatMentorshipTabSuffix(m, myId)}
           </Tab>
         )
       }
@@ -114,7 +114,7 @@ function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
 function MentorshipPanel({ mentorship: m }: {
   mentorship: Mentorship,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
     {m.transactional && m.endsAt && <HStack >
@@ -136,7 +136,7 @@ function MentorshipPanel({ mentorship: m }: {
     >
       <GridItem>
         <Flex direction="column" gap={sectionSpacing}>
-          {m.mentor.id === me.id &&
+          {m.mentor.id === myId &&
             <GroupBar
               group={m.group}
               showJoinButton

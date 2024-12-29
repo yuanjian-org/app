@@ -13,41 +13,42 @@ import {
   Spacer,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { useUserContext } from "../UserContext";
+import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { isValidChineseName } from 'shared/strings';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { canAcceptMergeToken } from 'shared/merge';
 import { MergeModals } from './MergeModals';
 import { DateColumn } from 'shared/DateColumn';
 
 export default function PostLoginModels() {
-  const [user] = useUserContext();
+  const me = useMe();
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
 
   return state === undefined ?
     <></>
-    : !user.name ?
+    : !me.name ?
       <SetNameModal />
       : !isConsented(state.consentedAt) ?
         <ConsentModal refetch={refetch} />
-        : canAcceptMergeToken(user.email) && !state?.declinedMergeModal ?
+        : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ?
           <MergeModals userState={state} close={refetch} />
           : <></>;
 }
 
 function SetNameModal() {
-  const [user, setUser] = useUserContext();
-  const [name, setName] = useState(user.name || '');
+  const me = useMe();
+  const { update } = useSession();
+  const [name, setName] = useState(me.name || '');
   const submit = async () => {
     if (name) {
       const updated = {
-        ...user,
+        ...me,
         name,
       };
       await trpc.users.update.mutate(updated);
-      setUser(updated);
+      await update();
     };
   };
 

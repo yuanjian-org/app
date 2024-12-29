@@ -12,7 +12,6 @@ import { componentSpacing, sectionSpacing, textMaxWidth } from 'theme/metrics';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo } from 'react';
-import { useUserContext } from 'UserContext';
 import UserCards, { MentorStar } from "components/UserCards";
 import { UserDisplayData } from 'pages/users/[userId]';
 import { dailyShuffle } from 'pages/mentors';
@@ -22,16 +21,17 @@ import { computeTraitsMatchingScore } from "shared/Traits";
 import { UserProfile } from 'shared/UserProfile';
 import NextLink from 'next/link';
 import Loader from 'components/Loader';
+import { useMyId } from 'useMe';
 
 export default widePage(() => {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   const { data } = trpcNext.users.listMentors.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
 
   const { data: applicant } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
-    userId: me.id,
+    userId: myId,
   });
 
   const shuffled = useMemo(() => {
@@ -57,8 +57,8 @@ export default widePage(() => {
     const compare = (a: UserDisplayData, b: UserDisplayData) => {
       return (b.traitsMatchingScore ?? 0) - (a.traitsMatchingScore ?? 0);
     };
-    return dailyShuffle(filtered, me.id, compare);
-  }, [data, me, profile, applicant]);
+    return dailyShuffle(filtered, myId, compare);
+  }, [data, myId, profile, applicant]);
 
   return <>
     <PageBreadcrumb current="选择一对一导师" />
@@ -112,9 +112,8 @@ export default widePage(() => {
 function TraitsLinkAndModal({ setProfile }: { 
   setProfile: (profile: UserProfile) => void 
 }) {
-  const [me] = useUserContext();
   const { data, refetch } = trpcNext.users.getUserProfile.useQuery({ 
-    userId: me.id });
+    userId: useMyId() });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 

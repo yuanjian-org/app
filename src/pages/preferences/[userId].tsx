@@ -20,12 +20,12 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import trpc, { trpcNext } from "../../trpc";
-import { useUserContext } from 'UserContext';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
-import { defaultMentorCapacity, InterviewerPreference, MentorPreference,
+import {
+  defaultMentorCapacity, InterviewerPreference, MentorPreference,
   UserPreference
 } from 'shared/User';
 import datePicker from 'theme/datePicker';
@@ -35,16 +35,17 @@ import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
 import { TraitsPreference } from 'shared/Traits';
-import { 
+import {
   traitsPrefLabel2value,
   traitsPrefProfiles,
   TraitTag,
 } from 'components/Traits';
+import { useMyId } from 'useMe';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
-  const [me] = useUserContext();
-  const userId = queryUserId === "me" ? me.id : queryUserId;
+  const myId = useMyId();
+  const userId = queryUserId === "me" ? myId : queryUserId;
 
   const { data: user } = userId ? trpcNext.users.getFull.useQuery(userId) :
     { data: undefined };

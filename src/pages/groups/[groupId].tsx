@@ -7,11 +7,11 @@ import Loader from 'components/Loader';
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import { isPermittedToAccessGroupHistory } from 'shared/Group';
-import { useUserContext } from 'UserContext';
+import useMe from 'useMe';
 
 export default function Page() {
   const router = useRouter();
-  const [me] = useUserContext();
+  const me = useMe();
   const groupId = parseQueryString(router, "groupId");
   const { data: group } = groupId ? 
     trpcNext.groups.get.useQuery(groupId) : { data: undefined };

@@ -15,13 +15,13 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
-import { useUserContext } from 'UserContext';
 import UserCards from "components/UserCards";
 import { UserDisplayData } from './users/[userId]';
 import Loader from 'components/Loader';
+import useMe from 'useMe';
 
 export default widePage(() => {
-  const [me] = useUserContext();
+  const me = useMe();
   const [booking, setBooking] = useState<boolean>();
 
   const { data } = trpcNext.users.listMentors.useQuery();

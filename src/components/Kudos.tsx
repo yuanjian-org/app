@@ -27,7 +27,6 @@ import { componentSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
 import { useState, useRef, useCallback } from 'react';
 import trpc, { trpcNext } from 'trpc';
-import { useUserContext } from 'UserContext';
 import FocusLock from "react-focus-lock";
 import { toast } from 'react-toastify';
 import ModalWithBackdrop from './ModalWithBackdrop';
@@ -40,13 +39,14 @@ import { DateColumn } from 'shared/DateColumn';
 import { UserState } from 'shared/UserState';
 import RedDot from './RedDot';
 import { motion, AnimatePresence } from 'framer-motion';
+import useMe, { useMyId } from 'useMe';
 
 export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
   likes: number,
   kudos: number,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
   const name = formatUserName(user.name, "friendly");
 
   // This variable allows local update without waiting for server response.
@@ -77,7 +77,7 @@ export function KudosControl({ user, likes, kudos }: {
     await trpc.kudos.create.mutate({ userId: user.id, text });
   };
 
-  return me.id == user.id ? <MyKudosControl likes={likes} kudos={kudos} /> : <>
+  return myId == user.id ? <MyKudosControl likes={likes} kudos={kudos} /> : <>
     <Tooltip
       label={`点赞后，${name}会收到Email哦`}
       placement="top"
@@ -169,7 +169,7 @@ function MyKudosControl({ likes, kudos }: {
   likes: number,
   kudos: number,
 }) {
-  const [me] = useUserContext();
+  const me = useMe();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   return <>
@@ -274,7 +274,7 @@ function UserKudosHistoryModal({ user, onClose }: {
   user: MinUser,
   onClose: () => void,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
   const { data: kudos } = trpcNext.kudos.list.useQuery({ userId: user.id });
 
   return <ModalWithBackdrop isOpen size="lg" onClose={onClose}>
@@ -285,7 +285,7 @@ function UserKudosHistoryModal({ user, onClose }: {
 
         {!kudos ? <Loader /> : kudos.length == 0 ?
           <Text>
-            {me.id == user.id ? "还没有赞。" :
+            {myId == user.id ? "还没有赞。" :
               `还没有人赞。快去赞一下${formatUserName(user.name, "friendly")}吧！`}
           </Text>
           :

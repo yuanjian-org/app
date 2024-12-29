@@ -1,22 +1,17 @@
 import { Spacer, VStack } from '@chakra-ui/react';
 import Footer from 'components/Footer';
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren } from 'react';
 
-import UserContext from "../UserContext";
-import User from '../shared/User';
 import NavBars from 'components/Navbars';
 import { breakpoint } from 'theme/metrics';
 import { AppPageType } from 'AppPage';
 import { pageMarginX } from 'theme/metrics';
 import PostLoginModels from './PostLoginModels';
 
-export default function AppPageContainer({ pageType, user, children }: {
+export default function AppPageContainer({ pageType, children }: {
   pageType?: AppPageType,
-  user: User,
 } & PropsWithChildren) {
-  const [u, setUser] = useState<User>(user);
-
-  return <UserContext.Provider value={[u, setUser]}>
+  return <>
     <NavBars>
       {pageType === "full" ?
         children
@@ -39,5 +34,5 @@ export default function AppPageContainer({ pageType, user, children }: {
     </NavBars>
 
     <PostLoginModels />
-  </UserContext.Provider>;
+  </>;
 }
