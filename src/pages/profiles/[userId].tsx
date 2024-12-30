@@ -42,6 +42,8 @@ import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
 import { useMyId, useMyRoles } from 'useMe';
 import { useSession } from 'next-auth/react';
+import NextLink from 'next/link';
+import { getFormUrl } from 'pages/form';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -285,7 +287,7 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
       />}
 
       {uploadToken && <>
-        <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
+        <Link as={NextLink} href={getFormUrl('Bz3uSO', uploadToken)}>
           {profile.照片链接 ? 
             <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
           : 

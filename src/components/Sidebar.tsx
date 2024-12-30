@@ -54,7 +54,7 @@ import { UnreadKudosRedDot } from './Kudos';
 import { ShowOnMobile } from './Show';
 import { UnreadChatMessagesRedDot } from './ChatRoom';
 
-const sidebarContentMarginTop = 10;
+export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
 const bgColorModeValues = ['white', 'gray.900'];
