@@ -1,16 +1,9 @@
 import apiEnv from "api/apiEnv";
 import { router } from "../trpc";
-import {
-  submitMenteeApplication, submitVolunteerApplication
-} from "./submitApplication";
-import submitMenteeInterviewerTestResult from "./submitMenteeInterviewerTestResult";
-import upload from "./upload";
+import jinshuju from "./jinshuju";
 
 export default router({
   [apiEnv.WEBHOOK_TOKEN]: router({
-    submitMenteeApplication,
-    submitMenteeInterviewerTestResult,
-    submitVolunteerApplication,
-    upload,
+    jinshuju,
   }),
 });

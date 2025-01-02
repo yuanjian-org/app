@@ -1,22 +1,13 @@
-import { procedure } from "../trpc";
-import z from "zod";
-import { generalBadRequestError, notFoundError } from "../errors";
-import db from "../database/db";
-import { shaChecksum } from "shared/strings";
-import { decodeUploadTokenUrlSafe } from "shared/upload";
-import sequelize from "api/database/sequelize";
+import { generalBadRequestError, notFoundError } from "../../errors";
+import db from "../../database/db";
+import { shaChecksum } from "../../../shared/strings";
+import { decodeUploadTokenUrlSafe } from "../../../shared/upload";
+import sequelize from "../../database/sequelize";
 
 /**
  * The Webhook for 金数据 form https://jsj.top/f/Bz3uSO
  */
-export default procedure
-  .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input: { form, entry } }) => 
-{
-  if (form !== "Bz3uSO") {
-    throw generalBadRequestError(`金数据 form id ${form} is not suppoted.`);
-  }
-
+export default async function submit(entry: Record<string, any>) {
   const urls: string[] = entry.field_1;
   if (urls.length !== 1) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
@@ -41,7 +32,7 @@ export default procedure
   } else {
     throw generalBadRequestError(`Unknown upload target: ${target}`);
   }
-});
+}
 
 async function uploadUserProfilePicture(userId: string, sha: string,
   url: string) 

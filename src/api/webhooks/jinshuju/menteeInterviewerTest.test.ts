@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { submit } from './submitMenteeInterviewerTestResult';
-import User from '../database/models/User';
-import { createUser } from "../routes/users";
-import sequelize from '../database/sequelize';
+import { submit } from '.';
+import User from '../../database/models/User';
+import { createUser } from "../../routes/users";
+import sequelize from '../../database/sequelize';
 
 const input = {
   "form": "w02l95",

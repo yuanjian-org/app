@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { submitMenteeApp } from './submitApplication';
-import User from '../database/models/User';
+import User from '../../database/models/User';
+import { submit } from '.';
 
 const inputMenteeApp = {
   "form": "FBTWTe",
@@ -269,7 +269,7 @@ describe('submitApplication', () => {
   });
 
   it('should submit mentee application', async () => {
-    await submitMenteeApp(inputMenteeApp);
+    await submit(inputMenteeApp);
     const u = await User.findOne({ where: { email: "test1@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("dingyi");
@@ -279,7 +279,7 @@ describe('submitApplication', () => {
   });
 
   it('should submit proxied mentee application', async () => {
-    await submitMenteeApp(inputProxiedMenteeApp);
+    await submit(inputProxiedMenteeApp);
     const u = await User.findOne({ where: { email: "test2@email.com" } });
     expect(u).is.not.null;
     expect(u?.pinyin).is.equal("wangxiaohan");

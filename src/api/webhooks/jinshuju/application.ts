@@ -1,7 +1,5 @@
-import { procedure } from "../trpc";
-import z from "zod";
-import { generalBadRequestError } from "../errors";
-import { createUser } from "../routes/users";
+import { generalBadRequestError } from "../../errors";
+import { createUser } from "../../routes/users";
 import {
   menteeApplicationFields,
   menteeSourceField,
@@ -9,10 +7,10 @@ import {
   volutneerNationalityField,
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes,
-} from "../../shared/applicationFields";
+} from "../../../shared/applicationFields";
 import { UserProfile } from "shared/UserProfile";
-import sequelize from "../database/sequelize";
-import db from "../database/db";
+import sequelize from "../../database/sequelize";
+import db from "../../database/db";
 
 /**
  * The Webhook for three 金数据 forms:
@@ -20,26 +18,18 @@ import db from "../database/db";
  *    * Proxied mentee application: https://jsj.top/f/S74k0V
  *    * 馒头工坊 mentee application: https://jsj.top/f/Z82u8w
  */
-export const submitMenteeApplication = procedure
-  .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input }) => await submitMenteeApp(input));
-
 export async function submitMenteeApp(
-  { form, entry }: Record<string, any>,
+  formId: string, entry: Record<string, any>
 ) {
-  if (form !== "FBTWTe" && form !== "S74k0V" && form !== "Z82u8w") {
-    throw generalBadRequestError(`金数据 form id ${form} is not suppoted.`);
-  }
-
   const application: Record<string, any> = {};
   for (const field of menteeApplicationFields) {
-    const jn = form == "S74k0V" ? field.jsjProxiedField : field.jsjField;
+    const jn = formId == "S74k0V" ? field.jsjProxiedField : field.jsjField;
     if (jn && jn in entry) {
       application[field.name] = entry[jn];
     }
   }
 
-  if (form == "Z82u8w") {
+  if (formId == "Z82u8w") {
     application[menteeSourceField] = "馒头工坊";
   }
 
@@ -58,14 +48,7 @@ export async function submitMenteeApp(
 /**
  * The Webhook for volunteer application: https://jsj.top/f/OzuvWD
  */
-export const submitVolunteerApplication = procedure
-  .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input: { form, entry } }) =>
-{
-  if (form !== "OzuvWD") {
-    throw generalBadRequestError(`金数据 form id ${form} is not suppoted.`);
-  }
-
+export async function submitVolunteerApp(entry: Record<string, any>) {
   const application: Record<string, any> = {};
   for (const field of volunteerApplicationFields) {
     const jn = field.jsjField;
@@ -91,7 +74,7 @@ export const submitVolunteerApplication = procedure
   const location = entry.field_23;
 
   await save("Volunteer", email, name, wechat, undefined, location, application);
-});
+}
 
 async function save(
   type: "Mentee" | "Volunteer",
