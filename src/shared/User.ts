@@ -1,7 +1,7 @@
 import { z } from "zod";
 import Role, { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
-import { zNullableDateColumn, zDateColumn } from "./DateColumn";
+import { zDateColumn } from "./DateColumn";
 import { zTraitsPreference } from "./Traits";
 
 export const zMinUser = z.object({
@@ -21,7 +21,6 @@ export const zUser = zMinUser.merge(z.object({
   roles: zRoles,
   email: z.string().email(),
   wechat: z.string().nullable(),
-  menteeInterviewerTestLastPassedAt: zNullableDateColumn,
   menteeStatus: zMenteeStatus.nullable(),
   pointOfContact: zMinUser.nullable(),
   pointOfContactNote: z.string().nullable(),

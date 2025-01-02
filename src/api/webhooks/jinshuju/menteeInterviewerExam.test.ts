@@ -38,7 +38,7 @@ describe('submitMenteeInterviewerTestResult', () => {
   it('should submit passing score for all users of same name', async () => {
     await submit(input);
     for (const u of await User.findAll({ where: { name: "测试员" } })) {
-      expect(u.menteeInterviewerTestLastPassedAt).is.not.null;
+      expect(u.state?.menteeInterviewerExam).is.not.null;
     }
   });
 });

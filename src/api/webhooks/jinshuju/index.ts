@@ -1,7 +1,7 @@
 import { procedure } from "../../trpc";
 import z from "zod";
 import { generalBadRequestError } from "../../errors";
-import submitMenteeInterviewerTest from "./menteeInterviewerTest";
+import submitMenteeInterviewerExam from "./menteeInterviewerExam";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 
@@ -28,7 +28,7 @@ export async function submit({ form, entry }: Record<string, any>) {
       break;
 
     case "w02l95":
-      await submitMenteeInterviewerTest(entry);
+      await submitMenteeInterviewerExam(entry);
       break;
 
     default:

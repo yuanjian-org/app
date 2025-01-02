@@ -21,38 +21,40 @@ import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { widePage } from 'AppPage';
-import useMe, { useMyId } from 'useMe';
+import { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
+import { useCallback } from 'react';
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
   const { data } = interviewId ?
     trpcNext.interviews.get.useQuery({ interviewId }) : { data: undefined };
 
-  const me = useMe();
+  const myId = useMyId();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
 
-  const interviewerTestPassed = () => {
+  const interviewerExamPassed = useCallback(() => {
     if (process.env.NODE_ENV !== 'production') return true;
-    const passed = me.menteeInterviewerTestLastPassedAt;
+    const passed = state?.menteeInterviewerExam;
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
-  };
+  }, [state]);
 
   if (!data) return <Loader />;
 
   const i = data.interviewWithGroup;
 
-  const getMyFeedbackId = () => {
-    const feedbacks = i.feedbacks.filter(f => f.interviewer.id === me.id);
+  const getMyFeedbackId = useCallback(() => {
+    const feedbacks = i.feedbacks.filter(f => f.interviewer.id === myId);
     invariant(feedbacks.length == 1);
     return feedbacks[0].id;
-  };
+  }, [i, myId]);
 
   return <>
     <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 
-    {!interviewerTestPassed() ? <PassTestFirst type={i.type} /> :
+    {!interviewerExamPassed() ? <PassTestFirst type={i.type} /> :
       <Grid templateColumns={{ base: "100%", [breakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
         <GridItem>
