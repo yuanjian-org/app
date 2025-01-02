@@ -9,10 +9,34 @@ import Loader from 'components/Loader';
 export default fullPage(() => {
   const id = parseQueryString(useRouter(), 'id');
   const x = parseQueryString(useRouter(), 'x');
-  const url = `https://jsj.top/f/${id}?x_field_1=${x}` +
-    `&background=transparent&banner=hide&embedded=true&inner_redirect=false`;
 
-  return (!id || !x) ? <Loader /> : (
+  return <JinshujuForm formId={id} urlSafeXField={x} />;
+}, "填写表单");
+
+/**
+ * @param encodedXField the x_field_1 value passed to the form. Must be URL safe.
+ * Consider using `toBase64UrlSafe`. https://help.jinshuju.net/articles/case30
+ */
+export function getFormUrl(formId: string, encodedXField: string) {
+  return `/form?id=${formId}&x=${encodedXField}`;
+}
+
+/**
+ * The containing page must be a `fullPage`, and the form should be the only
+ * component on the page.
+ * 
+ * @returns <Loader /> if any of the parameters are undefined,
+ */
+export function JinshujuForm({ formId, urlSafeXField }: {
+  formId: string | undefined,
+  urlSafeXField: string | undefined,
+}) {
+  const url = formId && urlSafeXField ? `https://jsj.top/f/${formId}` +
+    `?x_field_1=${urlSafeXField}` +
+    `&background=transparent&banner=hide&embedded=true&inner_redirect=false` :
+    null;
+
+  return !url ? <Loader /> : (
     <Box
       width="100%"
       height="100vh"
@@ -30,12 +54,4 @@ export default fullPage(() => {
       />
     </Box>
   );
-}, "填写表单");
-
-/**
- * @param encodedXField the x_field_1 value passed to the form. Must be URL safe.
- * Consider using `toBase64UrlSafe`. https://help.jinshuju.net/articles/case30
- */
-export function getFormUrl(formId: string, encodedXField: string) {
-  return `/form?id=${formId}&x=${encodedXField}`;
 }
