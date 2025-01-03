@@ -1,4 +1,22 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
+import { MinUser } from "./User";
+
+/**
+ * Prefix the user's url in the x field to make it easier to identify the user
+ * when examining raw data on Jinshuju's website.
+ * 
+ * @param urlSafeValue must be a URL-safe string
+ */
+export function encodeXField(user: MinUser, urlSafeValue: string) {
+  return (user.url ? user.url : "") + ',' + urlSafeValue;
+}
+
+/**
+ * @returns undefined if the x_field_1 is empty or malformed
+ */
+export function decodeXField(formEntry: Record<string, any>): string | undefined {
+  return formEntry.x_field_1?.split(',')[1];
+}
 
 export type UploadTarget = "UserProfilePicture";
 

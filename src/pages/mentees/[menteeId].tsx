@@ -9,6 +9,7 @@ import {
   Flex,
   SimpleGrid,
   GridItem,
+  Link,
 } from '@chakra-ui/react';
 import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -18,45 +19,79 @@ import { MinUser } from 'shared/User';
 import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
 import GroupBar from 'components/GroupBar';
-import { breakpoint, sectionSpacing } from 'theme/metrics';
+import { breakpoint, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
 import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
 import { useMyId } from 'useMe';
+import { useMemo } from 'react';
+import moment from 'moment';
+import NextLink from 'next/link';
 
 export default widePage(() => {
-  const userId = parseQueryString(useRouter(), 'menteeId');
-  const { data: u } = userId ? trpcNext.users.get.useQuery(userId) :
+  const menteeId = parseQueryString(useRouter(), 'menteeId');
+  const { data: mentee } = menteeId ? trpcNext.users.get.useQuery(menteeId) :
     { data: undefined };
-  const { data: mentorships } = userId ? trpcNext.mentorships
+  const { data: mentorships } = menteeId ? trpcNext.mentorships
     .listMentorshipsForMentee.useQuery({
-      menteeId: userId,
+      menteeId,
       includeEndedTransactional: false,
     }) : { data: undefined };
 
-  return (!u || !mentorships) ? <Loader /> : <>
-    <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs mentee={u} mentorships={mentorships} />
-  </>;
+  const myId = useMyId();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
+
+  const shouldPassExamFirst = useMemo(() => {
+    if (process.env.NODE_ENV !== 'production') return false;
+
+    if (state === undefined || !mentorships) return undefined;
+    
+    // Exam is needed only if the current user has relational mentorship with
+    // the mentee.
+    const myRelational = mentorships
+      .filter(m => !m.transactional && m.mentor.id == myId);
+    if (myRelational.length == 0) return false;
+
+    return !state.handbookExam ||
+      moment().diff(moment(state.handbookExam), "days") > 365;
+  }, [state, mentorships, myId]);
+
+  return (!mentee || !mentorships || shouldPassExamFirst === undefined) ?
+    <Loader /> : shouldPassExamFirst ? <PassExamFirst /> :
+      <>
+        <PageBreadcrumb current={`${formatUserName(mentee.name)}`} />
+        <MenteeTabs mentee={mentee} mentorships={mentorships} />
+      </>
+    ;
 });
+
+function PassExamFirst() {
+  return <Flex direction="column" gap={paragraphSpacing}>
+    <p>请首先完成
+      <Link as={NextLink} href="/exams/handbook">《社会导师手册》评测</Link>
+      ，即可看到学生页面，开始一对一通话。
+    </p>
+    <p>为了加强记忆，我们要求导师每年重新评测一次，感谢理解！</p>
+  </Flex>;
+}
 
 function MenteeTabs({ mentee, mentorships }: {
   mentee: MinUser,
   mentorships: Mentorship[],
 }) {
   const myId = useMyId();
-  const sortedMentorships = sortMentorship(mentorships, myId);
+  const sorted = sortMentorship(mentorships, myId);
 
   return <TabsWithUrlParam isLazy>
     <TabList>
-      {sortedMentorships.length == 1 ?
+      {sorted.length == 1 ?
         <Tab>
-          一对一通话{sortedMentorships[0].mentor.id !== myId &&
-            `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
+          一对一通话{sorted[0].mentor.id !== myId &&
+            `【${formatUserName(sorted[0].mentor.name)}】`}
         </Tab>
         :
-        sortedMentorships.map(m =>
+        sorted.map(m =>
           <Tab key={m.id}>
             一对一通话{formatMentorshipTabSuffix(m, myId)}
           </Tab>
@@ -68,7 +103,7 @@ function MenteeTabs({ mentee, mentorships }: {
     </TabList>
 
     <TabPanels>
-      {sortedMentorships.map(m =>
+      {sorted.map(m =>
         <TabPanel key={m.id}>
           <MentorshipPanel mentorship={m} />
         </TabPanel>

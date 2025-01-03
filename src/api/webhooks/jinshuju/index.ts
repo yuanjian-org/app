@@ -4,6 +4,7 @@ import { generalBadRequestError } from "../../errors";
 import submitMenteeInterviewerExam from "./menteeInterviewerExam";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
+import submitHandbookExam from "./handbookExam";
 
 /**
  * The Webhook for all 金数据 forms.
@@ -19,6 +20,7 @@ export async function submit({ form, entry }: Record<string, any>) {
     case "Z82u8w":
       await submitMenteeApp(form, entry);
       break;
+
     case "OzuvWD":
       await submitVolunteerApp(entry);
       break;
@@ -29,6 +31,10 @@ export async function submit({ form, entry }: Record<string, any>) {
 
     case "w02l95":
       await submitMenteeInterviewerExam(entry);
+      break;
+
+    case "wqPdKE":
+      await submitHandbookExam(entry);
       break;
 
     default:
