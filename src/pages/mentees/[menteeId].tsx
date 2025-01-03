@@ -28,6 +28,8 @@ import { useMyId } from 'useMe';
 import { useMemo } from 'react';
 import moment from 'moment';
 import NextLink from 'next/link';
+import invariant from 'tiny-invariant';
+import { examsEnabled } from 'shared/jinshuju';
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -42,9 +44,16 @@ export default widePage(() => {
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
 
-  const shouldPassExamFirst = useMemo(() => {
-    if (process.env.NODE_ENV !== 'production') return false;
+  const needCommsExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
 
+    return !state.commsExam ||
+      moment().diff(moment(state.commsExam), "days") > 365;
+  }, [state]);
+
+  const needHandbookExam = useMemo(() => {
+    if (!examsEnabled()) return false;
     if (state === undefined || !mentorships) return undefined;
     
     // Exam is needed only if the current user has relational mentorship with
@@ -57,22 +66,37 @@ export default widePage(() => {
       moment().diff(moment(state.handbookExam), "days") > 365;
   }, [state, mentorships, myId]);
 
-  return (!mentee || !mentorships || shouldPassExamFirst === undefined) ?
-    <Loader /> : shouldPassExamFirst ? <PassExamFirst /> :
-      <>
+  return (!mentee || !mentorships || 
+    needCommsExam === undefined || needHandbookExam === undefined) ?
+    <Loader /> :
+      needCommsExam || needHandbookExam ? <NeedExams
+        comms={needCommsExam}
+        handbook={needHandbookExam}
+      /> : <>
         <PageBreadcrumb current={`${formatUserName(mentee.name)}`} />
         <MenteeTabs mentee={mentee} mentorships={mentorships} />
       </>
     ;
 });
 
-function PassExamFirst() {
+function NeedExams({ comms, handbook }: {
+  comms: boolean,
+  handbook: boolean,
+}) {
+  invariant(comms || handbook);
+
   return <Flex direction="column" gap={paragraphSpacing}>
-    <p>请首先完成
-      <Link as={NextLink} href="/exams/handbook">《社会导师手册》评测</Link>
+    <p>
+      请首先完成
+      {comms &&
+        <Link as={NextLink} href="/exams/comms">《学生通信原则》评测</Link>}
+      {comms && handbook && " 以及"}
+      {handbook &&
+        <Link as={NextLink} href="/exams/handbook">《社会导师手册》评测</Link>}
       ，即可看到学生页面，开始一对一通话。
     </p>
-    <p>为了加强记忆，我们要求导师每年重新评测一次，感谢理解！</p>
+
+    <p>为了巩固记忆，我们邀请导师每年重新评测一次，感谢您的理解与支持。</p>
   </Flex>;
 }
 

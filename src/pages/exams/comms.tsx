@@ -6,5 +6,5 @@ import useMe from "useMe";
 export default fullPage(() => {
   const me = useMe();
   const x = encodeXField(me, me.id);
-  return <JinshujuForm formId="wqPdKE" urlSafeXField={x} />;
-}, "《导师手册》评测");
+  return <JinshujuForm formId="nsnx4G" urlSafeXField={x} />;
+}, "《学生通信原则》评测");

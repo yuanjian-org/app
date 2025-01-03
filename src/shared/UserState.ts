@@ -11,5 +11,7 @@ export const zUserState = z.object({
   menteeInterviewerExam: zDateColumn.optional(),
   // 《导师手册》评测
   handbookExam: zDateColumn.optional(),
+  // 《学生通信原则》评测
+  commsExam: zDateColumn.optional(),
 });
 export type UserState = z.TypeOf<typeof zUserState>;
