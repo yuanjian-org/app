@@ -1,7 +1,7 @@
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
 import { shaChecksum } from "../../../shared/strings";
-import { decodeUploadTokenUrlSafe } from "../../../shared/upload";
+import { decodeUploadTokenUrlSafe, decodeXField } from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
 
 /**
@@ -13,9 +13,9 @@ export default async function submit(entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
   }
 
-  const token = entry.x_field_1;
+  const token = decodeXField(entry);
   if (!token) {
-    throw generalBadRequestError(`Empty token in x_field_1`);
+    throw generalBadRequestError(`Empty or malformed x_field_1`);
   }
 
   const { target, id, opaque } = decodeUploadTokenUrlSafe(token);

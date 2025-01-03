@@ -36,6 +36,8 @@ export default widePage(() => {
   const interviewerExamPassed = useCallback(() => {
     if (process.env.NODE_ENV !== 'production') return true;
     const passed = state?.menteeInterviewerExam;
+    // 300 days instead of 365 days is to allow interviewers to retake
+    // the exam **before** the start of the next interview cycle.
     return passed ? moment().diff(moment(passed), "days") < 300 : false;
   }, [state]);
 
@@ -54,7 +56,7 @@ export default widePage(() => {
       name: "我的面试", link: "/interviews/mine",
     }]}/>
 
-    {!interviewerExamPassed() ? <PassTestFirst type={i.type} /> :
+    {!interviewerExamPassed() ? <PassExamFirst type={i.type} /> :
       <Grid templateColumns={{ base: "100%", [breakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
         <GridItem>
@@ -73,15 +75,13 @@ export default widePage(() => {
   </>;
 });
 
-function PassTestFirst({ type } : { type : InterviewType}) {
+function PassExamFirst({ type } : { type : InterviewType}) {
   return <Flex direction="column" gap={paragraphSpacing}>
-    <b>请首先完成面试官测试</b>
-    <p>通过<Link isExternal href="https://jsj.top/f/w02l95">
-      《面试流程和标准测试》</Link>后，刷新此页，即可看到面试信息。</p>
-    <p>请注意：测试的通过分数是 <b>120</b> 分。</p>
+    <p>请首先完成<Link isExternal href="https://jsj.top/f/w02l95">
+      《面试流程和标准评测》</Link>，即可看到面试信息。</p>
     {type == "MentorInterview" &&
       <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
-    <p>为了避免遗忘，我们要求300天以后重新测试，感谢理解！</p>
+    <p>为了加强记忆，我们要求面试官每年重新评测一次，感谢理解！</p>
   </Flex>;
 }
 

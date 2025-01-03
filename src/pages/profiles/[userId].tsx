@@ -31,11 +31,11 @@ import {
   parseQueryString, shaChecksum
 } from 'shared/strings';
 import { useRouter } from 'next/router';
-import User, { getUserUrl } from 'shared/User';
+import User, { getUserUrl, MinUser } from 'shared/User';
 import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import { encodeUploadTokenUrlSafe } from 'shared/upload';
+import { encodeUploadTokenUrlSafe } from 'shared/jinshuju';
 import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
@@ -44,6 +44,7 @@ import { useMyId, useMyRoles } from 'useMe';
 import { useSession } from 'next-auth/react';
 import NextLink from 'next/link';
 import { getFormUrl } from 'pages/form';
+import { encodeXField } from 'shared/jinshuju';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -130,7 +131,7 @@ export default function Page() {
     <Divider my={componentSpacing} />
 
     <Picture
-      userId={user.id}
+      user={user}
       profile={profile}
       updateProfile={updateProfile}
       SaveButton={SaveButton}
@@ -258,8 +259,8 @@ function Basic({ user, profile, setUser, setProfile }: {
   </>;
 }
 
-function Picture({ userId, profile, updateProfile, SaveButton }: {
-  userId: string,
+function Picture({ user, profile, updateProfile, SaveButton }: {
+  user: MinUser,
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
   SaveButton: React.ComponentType,
@@ -271,9 +272,9 @@ function Picture({ userId, profile, updateProfile, SaveButton }: {
   // TODO: It's a weak security measure because anyone who has access to the
   // mentor's profile can compute the hash. Use a stronger method.
   const uploadToken = useMemo(() =>
-    profile ? encodeUploadTokenUrlSafe("UserProfilePicture", userId,
-      shaChecksum(profile)) : null, 
-    [userId, profile]
+    profile ? encodeXField(user, encodeUploadTokenUrlSafe("UserProfilePicture", 
+      user.id, shaChecksum(profile))) : null, 
+    [user, profile]
   );
 
   return <>
