@@ -18,8 +18,7 @@ export const extraUserAttributesForInterviews = ["roles", "menteeStatus",
   "volunteerApplication"];
 
 export const userAttributes = [...minUserAttributes, "wechat", "email",
-  "roles", "menteeInterviewerTestLastPassedAt",
-  "menteeStatus", "pointOfContactNote"];
+  "roles", "menteeStatus", "pointOfContactNote"];
 
 export const userInclude = [{
   association: "pointOfContact",
