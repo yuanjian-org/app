@@ -50,7 +50,7 @@ export default function Page() {
       </Button>
 
       {state && <>
-        <Text>上次评测通过日期：</Text>
+        <Text>上次评测通过时间：</Text>
         <Text><b>
           {state.commsExam ?
             prettifyDate(state.commsExam) : "无"

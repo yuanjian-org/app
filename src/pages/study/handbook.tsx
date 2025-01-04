@@ -24,7 +24,7 @@ export default function Page() {
       align="stretch"
     >
       <Text>
-        这份文档是一对一导师的重要参考资料，总结了导师辅助学生时应遵循的原则和方法框架。
+        此手册是一对一导师的重要参考资料，总结了导师在辅助学生时应遵循的原则和方法框架。
       </Text>
 
       <Text>第一步：</Text>
@@ -50,7 +50,7 @@ export default function Page() {
       </Button>
 
       {state && <>
-        <Text>上次评测通过日期：</Text>
+        <Text>上次评测通过时间：</Text>
         <Text><b>
           {state.handbookExam ?
             prettifyDate(state.handbookExam) : "无"
