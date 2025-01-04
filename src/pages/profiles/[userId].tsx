@@ -325,6 +325,7 @@ function NonMentor({ profile, updateProfile }: {
     <Text><MarkdownSupported /></Text>
     <PositionFormControl profile={profile} updateProfile={updateProfile} />
     <CityFormControl profile={profile} updateProfile={updateProfile} />
+    <CareerFormControl profile={profile} updateProfile={updateProfile} />
     <HobbyFormControl profile={profile} updateProfile={updateProfile} />
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
   </>;
@@ -361,7 +362,7 @@ function CityFormControl({ profile, updateProfile, highlight }: {
   highlight?: boolean,
 }) {
   return <FormControl>
-    <FormLabel>现居住城市或地区{highlight && <Highlight />}</FormLabel>
+    <FormLabel>现居住城市或地区 {highlight && <Highlight />}</FormLabel>
     <Input bg="white" value={profile.现居住地 || ""} 
       onChange={ev => updateProfile('现居住地', ev.target.value)}
     />
@@ -376,6 +377,25 @@ function HobbyFormControl({ profile, updateProfile }: {
     <FormLabel>业余爱好和特长、个人网站或自媒体账号等</FormLabel>
     <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
       onChange={ev => updateProfile('爱好与特长', ev.target.value)}
+    />
+  </FormControl>;
+}
+
+function CareerFormControl({ profile, updateProfile, highlight }: {
+  profile: UserProfile,
+  updateProfile: (k: keyof UserProfile, v: string) => void,
+  highlight?: boolean,
+}) {
+  return <FormControl>
+    <FormLabel>职业经历和网站 {highlight && <Highlight />}</FormLabel>
+    <FormHelperTextWithMargin>
+      <ListAndMarkdownSupport />，比如：<br /><br />
+      * 经历1<br />
+      * 经历2<br />
+      * 领英：linkedin.com/in/user
+    </FormHelperTextWithMargin>
+    <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
+      onChange={ev => updateProfile('职业经历', ev.target.value)}
     />
   </FormControl>;
 }
@@ -456,18 +476,8 @@ function Mentor({ profile, updateProfile }: {
       />
     </FormControl>
 
-    <FormControl>
-      <FormLabel>职业经历和网站 <Highlight /></FormLabel>
-      <FormHelperTextWithMargin>
-        <ListAndMarkdownSupport />，比如：<br /><br />
-        * 经历1<br />
-        * 经历2<br />
-        * 领英：linkedin.com/in/user
-      </FormHelperTextWithMargin>
-      <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
-        onChange={ev => updateProfile('职业经历', ev.target.value)}
-      />
-    </FormControl>
+    <CareerFormControl profile={profile} updateProfile={updateProfile}
+      highlight />
 
     <FormControl>
       <FormLabel>教育经历</FormLabel>

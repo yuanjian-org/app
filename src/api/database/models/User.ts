@@ -30,7 +30,6 @@ import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
 import MergeToken from "./MergeToken";
-import { DateColumn } from "shared/DateColumn";
 
 @Table({
   tableName: "users",
@@ -70,10 +69,6 @@ class User extends Model {
   @Default([])
   @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
- 
-  // TODO: move into `state` column
-  @Column(DATE)
-  menteeInterviewerTestLastPassedAt: DateColumn | null;
 
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.
