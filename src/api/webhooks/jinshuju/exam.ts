@@ -3,16 +3,21 @@ import db from "../../database/db";
 import moment from "moment";
 import { generalBadRequestError, notFoundError } from "../../errors";
 import sequelize from "../../database/sequelize";
+import { UserState } from "shared/UserState";
 
-// Webhook for https://jsj.top/f/wqPdKE, which is embedded in /exams/handbook
-export default async function submit(entry: Record<string, any>) {
-  const userId = decodeXField(entry);
+export default async function submit(
+  formEntry: Record<string, any>,
+  exam: keyof UserState,
+  passingScore: number,
+) {
+  const userId = decodeXField(formEntry);
   if (!userId) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }
 
-  if (entry.exam_score < 100) {
-    console.log(`HandbookExam not passed for ${userId}. Igored.`);
+  const score = formEntry.exam_score;
+  if (score < passingScore) {
+    console.log(`Exam not passed for ${userId}: ${score} < ${passingScore}.`);
     return;
   }
 
@@ -25,7 +30,7 @@ export default async function submit(entry: Record<string, any>) {
     await u.update({
       state: {
         ...u.state,
-        handbookExam: moment().toISOString(),
+        [exam]: moment().toISOString(),
       },
     }, { transaction });
   });

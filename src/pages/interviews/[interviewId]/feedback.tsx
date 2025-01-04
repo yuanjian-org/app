@@ -23,7 +23,9 @@ import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { widePage } from 'AppPage';
 import { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
-import { useCallback } from 'react';
+import { useMemo } from 'react';
+import NextLink from 'next/link';
+import { examsEnabled } from 'shared/jinshuju';
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
@@ -33,30 +35,48 @@ export default widePage(() => {
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
 
-  const interviewerExamPassed = useCallback(() => {
-    if (process.env.NODE_ENV !== 'production') return true;
-    const passed = state?.menteeInterviewerExam;
-    // 300 days instead of 365 days is to allow interviewers to retake
-    // the exam **before** the start of the next interview cycle.
-    return passed ? moment().diff(moment(passed), "days") < 300 : false;
+  const needCommsExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
+
+    return !state.commsExam ||
+      moment().diff(moment(state.commsExam), "days") > 365;
   }, [state]);
 
-  if (!data) return <Loader />;
+  const needInterviewExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
 
-  const i = data.interviewWithGroup;
+    const passed = state.menteeInterviewerExam;
+    // 300 days instead of 365 days because the start of the next interview
+    // cycle varies from year to year.
+    return !passed || moment().diff(moment(passed), "days") > 300;
+  }, [state]);
 
-  const getMyFeedbackId = useCallback(() => {
-    const feedbacks = i.feedbacks.filter(f => f.interviewer.id === myId);
+  const myFeedbackId = useMemo(() => {
+    if (!data) return undefined;
+    const feedbacks = data.interviewWithGroup.feedbacks.filter(
+      f => f.interviewer.id === myId);
     invariant(feedbacks.length == 1);
     return feedbacks[0].id;
-  }, [i, myId]);
+  }, [data, myId]);
 
-  return <>
-    <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
-      name: "我的面试", link: "/interviews/mine",
-    }]}/>
+  const i = data?.interviewWithGroup;
 
-    {!interviewerExamPassed() ? <PassExamFirst type={i.type} /> :
+  return i === undefined || needInterviewExam === undefined ||
+    needCommsExam === undefined ? <Loader />
+    :
+    needInterviewExam || needCommsExam ? <NeedExams
+      type={i.type}
+      interview={needInterviewExam}
+      comms={needCommsExam}
+    /> 
+    :
+    <>
+      <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
+        name: "我的面试", link: "/interviews/mine",
+      }]}/>
+
       <Grid templateColumns={{ base: "100%", [breakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
         <GridItem>
@@ -64,24 +84,39 @@ export default widePage(() => {
             <Instructions type={i.type}
               interviewers={i.feedbacks.map(f => f.interviewer)} />
             <InterviewFeedbackEditor type={i.type}
-              interviewFeedbackId={getMyFeedbackId()} />
+              interviewFeedbackId={myFeedbackId ?? ""} />
           </Flex>
         </GridItem>
         <GridItem>
           <Applicant userId={i.interviewee.id} type={i.type} showTitle /> 
         </GridItem>
       </Grid>
-    }
-  </>;
+    </>;
 });
 
-function PassExamFirst({ type } : { type : InterviewType}) {
+function NeedExams({ type, interview, comms } : {
+  type : InterviewType,
+  interview : boolean,
+  comms : boolean,
+}) {
+  invariant(comms || interview);
+
   return <Flex direction="column" gap={paragraphSpacing}>
-    <p>请首先完成<Link isExternal href="https://jsj.top/f/w02l95">
-      《面试流程和标准评测》</Link>，即可看到面试信息。</p>
+    <p>
+      请首先完成
+      {comms &&
+        <Link as={NextLink} href="/exams/comms">《学生通信原则》评测</Link>}
+      {comms && interview && " 以及"}
+      {interview &&
+        <Link as={NextLink} href="/exams/interview">
+          《面试流程和标准》评测</Link>}
+      ，即可看到面试信息。
+    </p>
+
     {type == "MentorInterview" &&
       <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
-    <p>为了加强记忆，我们要求面试官每年重新评测一次，感谢理解！</p>
+
+    <p>为了巩固记忆，我们邀请面试官每年重新评测一次，感谢您的理解与支持。</p>
   </Flex>;
 }
 

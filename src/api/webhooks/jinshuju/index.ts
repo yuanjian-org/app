@@ -1,10 +1,9 @@
 import { procedure } from "../../trpc";
 import z from "zod";
 import { generalBadRequestError } from "../../errors";
-import submitMenteeInterviewerExam from "./menteeInterviewerExam";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
-import submitHandbookExam from "./handbookExam";
+import submitExam from "./exam";
 
 /**
  * The Webhook for all 金数据 forms.
@@ -29,12 +28,19 @@ export async function submit({ form, entry }: Record<string, any>) {
       await submitUpload(entry);
       break;
 
+    // /exams/interview
     case "w02l95":
-      await submitMenteeInterviewerExam(entry);
+      await submitExam(entry, "menteeInterviewerExam", 120);
       break;
 
+    // /exams/handbook
     case "wqPdKE":
-      await submitHandbookExam(entry);
+      await submitExam(entry, "handbookExam", 100);
+      break;
+
+    // /exams/comms
+    case "nsnx4G":
+      await submitExam(entry, "commsExam", 90);
       break;
 
     default:
