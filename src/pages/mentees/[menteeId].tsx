@@ -19,7 +19,7 @@ import { MinUser } from 'shared/User';
 import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
 import GroupBar from 'components/GroupBar';
-import { breakpoint, paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import { breakpoint, paragraphSpacing, sectionSpacing, textMaxWidth } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
 import { MentorshipStatusIcon } from 'pages/mentees';
@@ -85,14 +85,14 @@ function NeedExams({ comms, handbook }: {
 }) {
   invariant(comms || handbook);
 
-  return <Flex direction="column" gap={paragraphSpacing}>
+  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
     <p>
       请首先完成
       {comms &&
-        <Link as={NextLink} href="/exams/comms">《学生通信原则》评测</Link>}
+        <Link as={NextLink} href="/study/comms">《学生通信原则》自学与评测</Link>}
       {comms && handbook && " 以及"}
       {handbook &&
-        <Link as={NextLink} href="/exams/handbook">《社会导师手册》评测</Link>}
+        <Link as={NextLink} href="/study/handbook">《社会导师手册》自学与评测</Link>}
       ，即可看到学生页面，开始一对一通话。
     </p>
 

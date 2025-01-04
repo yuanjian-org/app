@@ -9,7 +9,7 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import { breakpoint } from 'theme/metrics';
+import { breakpoint, textMaxWidth } from 'theme/metrics';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
@@ -101,15 +101,15 @@ function NeedExams({ type, interview, comms } : {
 }) {
   invariant(comms || interview);
 
-  return <Flex direction="column" gap={paragraphSpacing}>
+  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
     <p>
       请首先完成
       {comms &&
-        <Link as={NextLink} href="/exams/comms">《学生通信原则》评测</Link>}
+        <Link as={NextLink} href="/study/comms">《学生通信原则》自学与评测</Link>}
       {comms && interview && " 以及"}
       {interview &&
-        <Link as={NextLink} href="/exams/interview">
-          《面试流程和标准》评测</Link>}
+        <Link as={NextLink} href="/study/interview">
+          面试官自学与评测</Link>}
       ，即可看到面试信息。
     </p>
 

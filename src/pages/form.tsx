@@ -14,11 +14,18 @@ export default fullPage(() => {
 }, "填写表单");
 
 /**
- * @param encodedXField the x_field_1 value passed to the form. Must be URL safe.
+ * @param urlSafeXField the x_field_1 value passed to the form.
  * Consider using `toBase64UrlSafe`. https://help.jinshuju.net/articles/case30
  */
-export function getFormUrl(formId: string, encodedXField: string) {
-  return `/form?id=${formId}&x=${encodedXField}`;
+export function getEmbeddedFormUrl(formId: string, urlSafeXField: string) {
+  return `/form?id=${formId}&x=${urlSafeXField}`;
+}
+
+/**
+ * See getEmbeddedFormUrl
+ */
+export function getStandaloneFormUrl(formId: string, urlSafeXField: string) {
+  return `https://jsj.top/f/${formId}?x_field_1=${urlSafeXField}`;
 }
 
 /**
@@ -31,9 +38,10 @@ export function JinshujuForm({ formId, urlSafeXField }: {
   formId: string | undefined,
   urlSafeXField: string | undefined,
 }) {
-  const url = formId && urlSafeXField ? `https://jsj.top/f/${formId}` +
-    `?x_field_1=${urlSafeXField}` +
-    `&background=transparent&banner=hide&embedded=true&inner_redirect=false` :
+  const url = formId && urlSafeXField ?
+    getStandaloneFormUrl(formId, urlSafeXField) +
+    `&background=transparent&banner=hide&embedded=true&inner_redirect=false`
+    :
     null;
 
   return !url ? <Loader /> : (

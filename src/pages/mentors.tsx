@@ -50,7 +50,7 @@ export default widePage(() => {
       <Wrap spacing={componentSpacing} align="center">
         <WrapItem>
           <Button variant="brand" onClick={() => setBooking(true)}>
-            我有一个话题想聊，请帮我选择适合的导师
+            我有一个话题，请帮我预约适合的导师
           </Button>
         </WrapItem>
         <WrapItem>
@@ -58,10 +58,8 @@ export default widePage(() => {
         </WrapItem>
       </Wrap>
 
-      <Text>或者：</Text>
-
       <Heading size="md" mt={componentSpacing}>
-        预约指定导师
+        或者，预约指定导师
       </Heading>
     </VStack>
 

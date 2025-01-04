@@ -43,7 +43,7 @@ import getBaseUrl from 'shared/getBaseUrl';
 import { useMyId, useMyRoles } from 'useMe';
 import { useSession } from 'next-auth/react';
 import NextLink from 'next/link';
-import { getFormUrl } from 'pages/form';
+import { getEmbeddedFormUrl } from 'pages/form';
 import { encodeXField } from 'shared/jinshuju';
 
 export default function Page() {
@@ -288,7 +288,7 @@ function Picture({ user, profile, updateProfile, SaveButton }: {
       />}
 
       {uploadToken && <>
-        <Link as={NextLink} href={getFormUrl('Bz3uSO', uploadToken)}>
+        <Link as={NextLink} href={getEmbeddedFormUrl('Bz3uSO', uploadToken)}>
           {profile.照片链接 ? 
             <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
           : 
