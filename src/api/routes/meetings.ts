@@ -100,16 +100,14 @@ export default router({
 const subjectSep = ' | ';
 
 /**
- * Meeting subject format: "<description> | <group_id> | <tm_user_id>"
+ * Meeting subject format: "<description> | <group_id>"
  * 
- * Only the group id is used by the system. Description and tmUserId are for
- * human readability and reference purposes.
+ * Only the group id is used by the system. Description is only for human
+ * readability.
  */
-export function encodeMeetingSubject(groupId: string, description: string,
-  tmUserId: string): string
-{
+export function encodeMeetingSubject(groupId: string, description: string) {
   invariant(z.string().uuid().safeParse(groupId).success);
-  return description + subjectSep + groupId + subjectSep + tmUserId;
+  return description + subjectSep + groupId;
 }
 
 /**
@@ -124,7 +122,7 @@ export function safeDecodeMeetingSubject(subject: string): string | null {
 
 async function create(g: Group, tmUserId: string) {
   const groupName = formatGroupName(g.name, g.users.length);
-  const subject = encodeMeetingSubject(g.id, groupName, tmUserId);
+  const subject = encodeMeetingSubject(g.id, groupName);
   const now = Math.floor(Date.now() / 1000);
   const res = await createMeeting(tmUserId, subject, now, now + 3600);
   invariant(res.meeting_info_list.length === 1);
