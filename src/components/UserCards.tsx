@@ -379,7 +379,9 @@ function UserCardForMobile({
         align="start"
         onClick={visitUser}
       >
-        <FullWidthImageSquare profile={p} imageParams={p?.照片参数} size={100} />
+        <Box width="100px">
+          <FullWidthImageSquare profile={p} />
+        </Box>
         <VStack
           ml={componentSpacing}
           // Align content to the left

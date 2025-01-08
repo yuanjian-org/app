@@ -28,11 +28,12 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
   const [crop, setCrop] = useState({ x: initialX, y: initialY });
   const [zoom, setZoom] = useState(initialZoom);
 
-  const onSave = async () => {
-    await updateImageParams(crop.x, crop.y, zoom); // 确保参数更新完成
-    save(); // 然后保存最新的数据
+  const onSave = () => {
+    updateImageParams(crop.x, crop.y, zoom);
+    save();
     onClose();
-  };
+  };  
+
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>剪裁照片</ModalHeader>

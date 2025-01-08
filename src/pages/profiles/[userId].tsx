@@ -9,6 +9,7 @@ import {
   Link,
   Divider,
   Heading,
+  Image,
   HStack,
   Tag,
   Stack,
@@ -24,7 +25,7 @@ import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
-import { UserProfile, ImageParams } from 'shared/UserProfile';
+import { UserProfile } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
   parseQueryString, shaChecksum
@@ -90,7 +91,6 @@ export default function Page() {
       [k]: v,
     };
     if (!v) delete updated[k];
-    if (k === "照片链接" && !v) delete updated["照片参数"];
     setProfile(updated);
     void save();
   };
@@ -135,7 +135,6 @@ export default function Page() {
       profile={profile}
       updateProfile={updateProfile}
       SaveButton={SaveButton}
-      save={save}
     />
 
     <Divider my={componentSpacing} />
@@ -262,13 +261,9 @@ function Basic({ user, profile, setUser, setProfile }: {
 
 function Picture({ user, profile, updateProfile, SaveButton }: {
   user: MinUser,
-function Picture({ userId, profile, updateProfile, SaveButton, save }: {
-  userId: string,
   profile: UserProfile,
   updateProfile: (k: keyof UserProfile, v: string) => void,
-  updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
-  save: () => void,
 }) {
   const myRoles = useMyRoles();
 
@@ -293,19 +288,7 @@ function Picture({ userId, profile, updateProfile, SaveButton, save }: {
       />}
 
       {uploadToken && <>
-        {profile.照片链接 && <Link> 
-          <HStack onClick={() => setIsCropping(true)}>
-            <MdCrop /><Text>剪裁照片</Text>
-          </HStack>
-        </Link>}
-        {profile.照片链接 && isCropping && <CropImageModal 
-          imageUrl={profile.照片链接}
-          onClose={() => setIsCropping(false)}
-          updateImageParams={(x, y, zoom) => updateProfile('照片参数', { x, y, zoom })}
-          imageParams={profile.照片参数}
-          save={save}
-        />}
-        <Link href={`https://jsj.ink/f/Bz3uSO?x_field_1=${uploadToken}`}>
+        <Link as={NextLink} href={getEmbeddedFormUrl('Bz3uSO', uploadToken)}>
           {profile.照片链接 ? 
             <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>
           : 
