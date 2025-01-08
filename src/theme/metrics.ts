@@ -19,5 +19,10 @@ export const pageMarginX = {
   [breakpoint]: "30px"
 };
 
+export const pageMarginTop = {
+  base: "25px",
+  [breakpoint]: "40px"
+};
+
 // https://v2.chakra-ui.com/docs/components/container/usage#container-size
 export const textMaxWidth = "60ch";
