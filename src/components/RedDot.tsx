@@ -1,7 +1,8 @@
 import { Box, BoxProps } from "@chakra-ui/react";
 
 /**
- * The parent element must have position="relative".
+ * The parent element must have position="relative" unless the positiion prop
+ * is overridden.
  */
 export default function RedDot({ show, ...rest }: { 
   show: boolean

@@ -1,7 +1,5 @@
 import { Box } from '@chakra-ui/react';
 import { fullPage } from 'AppPage';
-import { breakpoint } from 'theme/metrics';
-import { sidebarContentMarginTop } from 'components/Sidebar';
 import { parseQueryString } from 'shared/strings';
 import { useRouter } from 'next/router';
 import Loader from 'components/Loader';
@@ -45,14 +43,7 @@ export function JinshujuForm({ formId, urlSafeXField }: {
     null;
 
   return !url ? <Loader /> : (
-    <Box
-      width="100%"
-      height="100vh"
-      marginTop={{
-        base: sidebarContentMarginTop,
-        [breakpoint]: -sidebarContentMarginTop
-      }}
-    >
+    <Box width="100%" height="100vh">
       <iframe
         id="jinshuju"
         src={url}

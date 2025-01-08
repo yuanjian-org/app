@@ -4,14 +4,7 @@
 import { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   IconButton,
-  Box,
-  Flex,
-  HStack,
-  useColorModeValue,
-  Drawer,
-  DrawerContent,
-  useDisclosure,
-  FlexProps
+  Box, HStack, useDisclosure, Spacer
 } from '@chakra-ui/react';
 import {
   FiMenu,
@@ -25,21 +18,19 @@ import AutosaveIndicator, {
   setPendingSaverError
 } from './AutosaveIndicator';
 import AutosaveContext from 'AutosaveContext';
-import Sidebar, { showRedDotForMentorship, useMyMentorshipsAsMentor } from './Sidebar';
+import {
+  desktopSidebarWidth,
+  showRedDotForMentorship, SidebarForDesktop,
+  SidebarForMobile,
+  useMyMentorshipsAsMentor
+} from './Sidebar';
 import { breakpoint } from 'theme/metrics';
 import { ShowOnDesktop, ShowOnMobile } from './Show';
 import RedDot from './RedDot';
 import { useUnreadKudos } from './Kudos';
 import { useUnreadChatMessages } from './ChatRoom';
 
-export const sidebarWidth = 60;
-
-/**
- * The container for navbar, sidebar and page content that is passed in as `children`.
- */
-export default function Navbars({
-  children,
-}: {
+export default function Navbars({ children }: {
   children: ReactNode;
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -65,32 +56,18 @@ export default function Navbars({
   }, [stateRef]);
 
   return (
-    <Box minHeight="100vh" bg={useColorModeValue(colors.backgroundLight,
-      colors.backgroundDark)}
-    >
-      {/* Desktop sidebar */}
+    <Box minH="100vh" bg={colors.backgroundLight}>
       <ShowOnDesktop>
-        <Sidebar onClose={() => onClose} />
+        <SidebarForDesktop />
       </ShowOnDesktop>
 
-      {/* Mobile sidebar */}
-      <Drawer
-        autoFocus={false}
-        isOpen={isOpen}
-        placement="left"
-        onClose={onClose}
-        returnFocusOnClose={false}
-        onOverlayClick={onClose}
-        size="xs"
-      >
-        <DrawerContent>
-          <Sidebar onClose={onClose} />
-        </DrawerContent>
-      </Drawer>
+      <ShowOnMobile>
+        <SidebarForMobile isOpen={isOpen} onClose={onClose} />
+      </ShowOnMobile>
 
-      <Topbar onOpen={onOpen} autosaveState={autosaveState} />
+      <TopFixedComponents onOpen={onOpen} autosaveState={autosaveState} />
 
-      <Box marginLeft={{ base: 0, [breakpoint]: sidebarWidth }}>
+      <Box ml={{ base: 0, [breakpoint]: desktopSidebarWidth }}>
         <AutosaveContext.Provider value={{
           addPendingSaver: addPS,
           removePendingSaver: removePS,
@@ -103,42 +80,44 @@ export default function Navbars({
   );
 }
 
-interface TopbarProps extends FlexProps {
+const TopFixedComponents = ({ onOpen, autosaveState }: {
   onOpen: () => void,
   autosaveState: AutosaveState,
-}
-
-const Topbar = ({ onOpen, autosaveState }: TopbarProps) => {
+}) => {
   return (
-    <Flex justifyContent="flex-end">
-      <HStack spacing={6} marginTop={{ base: 0, [breakpoint]: 10 }} >
+    <HStack
+      position="fixed"
+      zIndex={2}
+      top="0"
+      left="0"
+      width="100%"
+      ps={10}
+      pe={4}
+      pt={{ base: 4, [breakpoint]: 1 }}
+    >
+      <ShowOnMobile>
+        <Spacer />
+      </ShowOnMobile>
 
-        {/* Mobile menu icon */}
-        <ShowOnMobile>
-          <Box position="relative">
-            <IconButton
-              zIndex={2}
-              marginX={4}
-              marginTop={4}
-              marginBottom={-8}
-              onClick={onOpen}
-              variant="outline"
-              aria-label="open menu"
-              icon={<FiMenu />}
-              bg="white"
-              position="relative"
-            />
-            <MobileMenuIconRedDot />
-          </Box>
-        </ShowOnMobile>
+      <AutosaveIndicator
+        state={autosaveState}
+        // For debugging only
+        // state={{ id2state: new Map([["a", "无法保存"]]), virgin: false }}
+      />
 
-        <AutosaveIndicator
-          display="flex"
-          mt={{ base: "80px", [breakpoint]: 0 }}
-          state={autosaveState}
+      {/* Mobile menu icon */}
+      <ShowOnMobile>
+        <IconButton
+          onClick={onOpen}
+          variant="outline"
+          aria-label="open menu"
+          icon={<FiMenu />}
+          bg="white"
+          shadow="sm"
         />
-      </HStack>
-    </Flex>
+        <MobileMenuIconRedDot />
+      </ShowOnMobile>
+    </HStack>
   );
 };
 
@@ -154,6 +133,7 @@ function MobileMenuIconRedDot() {
     show={hasUnreadKudos || hasUnreadChatMessages}
     top="22px"
     right="20px"
-    zIndex={3} 
+    position="fixed"
+    zIndex={3}
   />;
 }
