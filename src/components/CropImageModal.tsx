@@ -28,21 +28,11 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
   const [crop, setCrop] = useState({ x: initialX, y: initialY });
   const [zoom, setZoom] = useState(initialZoom);
 
-  const onSave = () => {
-    save();
+  const onSave = async () => {
+    await updateImageParams(crop.x, crop.y, zoom); // 确保参数更新完成
+    save(); // 然后保存最新的数据
     onClose();
   };
-
-  const updateCrop = (newCrop: { x: number; y: number }) => {
-    setCrop(newCrop);
-    updateImageParams(newCrop.x, newCrop.y, zoom);
-  };
-
-  const updateZoom = (newZoom: number) => {
-    setZoom(newZoom);
-    updateImageParams(crop.x, crop.y, newZoom);
-  };
-
   return <ModalWithBackdrop isOpen onClose={onClose}>
     <ModalContent>
       <ModalHeader>剪裁照片</ModalHeader>
@@ -65,8 +55,8 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
             image={imageUrl}
             crop={crop}
             zoom={zoom}
-            onCropChange={updateCrop}
-            onZoomChange={updateZoom}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
             showGrid={true}
             aspect={1 / 1}
             cropSize={{ width: 300, height: 300 }}
@@ -78,15 +68,15 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
           min={1}
           max={10}
           step={0.1}
-          onChange={e => { updateZoom(Number(e.target.value)); }}
+          onChange={ e => setZoom(Number(e.target.value)) }
           style={{ width: '300px' }}
         /> 
-        <Text textAlign="center">使用滑块来调整图片的缩放比例，上下左右拖动图片至满意的位置
-          ，确保图片至少填满裁剪框</Text>
+        <Text textAlign="center">使用滑块来调整图片的缩放比例，上下左右拖动图片至满意的位
+          置，确保图片至少填满裁剪框</Text>
         <ModalFooter width="100%">
           <Flex gap={componentSpacing}>
             <Button onClick={onSave} variant="brand">保存</Button>
-            <Button onClick={onClose}>关闭</Button>
+            <Button onClick={onClose}>取消</Button>
           </Flex>
         </ModalFooter>
       </ModalBody>
