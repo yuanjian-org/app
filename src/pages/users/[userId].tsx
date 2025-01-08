@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'next/router';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
+  Image,
   Text,
   Table,
   Tr,
@@ -72,8 +73,13 @@ export function UserPage({ data }: {
       direction={{ base: "column", [breakpoint]: "row" }}
     >
       <VStack>
-        <FullWidthImageSquare profile={data.profile} 
-          imageParams={data.profile.照片参数} size={300} />
+        {data.profile?.照片链接 &&
+          <Image
+            maxW='300px'
+            src={data.profile.照片链接}
+            alt="照片"
+          />
+        }
         <UserUrl u={data.user} />
 
         {isPermitted(myRoles, "Volunteer") && <HStack mt={sectionSpacing}>
