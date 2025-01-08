@@ -15,12 +15,11 @@ import ModalWithBackdrop from "./ModalWithBackdrop";
 import Cropper from 'react-easy-crop';
 import { UserProfile } from "shared/UserProfile";
 
-export function CropImageModal({ imageUrl, onClose, updateImageParams, imageParams, save } : {
+export function CropImageModal({ imageUrl, onClose, updateImageParams, imageParams } : {
   imageUrl: string,
   onClose: () => void,
   updateImageParams: (x: number, y: number, zoom: number) => void,
   imageParams: UserProfile['照片参数'],
-  save: () => void,
 }) {
   const initialX = imageParams?.x ?? 0;
   const initialY = imageParams?.y ?? 0;
@@ -30,7 +29,6 @@ export function CropImageModal({ imageUrl, onClose, updateImageParams, imagePara
 
   const onSave = () => {
     updateImageParams(crop.x, crop.y, zoom);
-    save();
     onClose();
   };  
 
