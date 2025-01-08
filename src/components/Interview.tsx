@@ -7,12 +7,12 @@ import { breakpoint } from 'theme/metrics';
 import Applicant from 'components/Applicant';
 import { sectionSpacing } from 'theme/metrics';
 import {
-  InterviewDecisionEditor, InterviewFeedbackEditor 
+  InterviewDecisionEditor, InterviewFeedbackEditor
 } from 'components/InterviewEditor';
 import { formatUserName, compareUUID } from 'shared/strings';
-import { useUserContext } from 'UserContext';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import MobileExperienceAlert from 'components/MobileExperienceAlert';
+import { useMyId } from 'useMe';
 
 export default function Interview({ interviewId, hasTitle, readonly }: {
   interviewId: string, 
@@ -22,7 +22,7 @@ export default function Interview({ interviewId, hasTitle, readonly }: {
   // See Editor()'s comment on the reason for `catchTime: 0`
   const { data } = trpcNext.interviews.get.useQuery({ interviewId },
     { cacheTime: 0 });
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   if (!data) return <Loader />;
   const i = data.interviewWithGroup;
@@ -63,7 +63,7 @@ export default function Interview({ interviewId, hasTitle, readonly }: {
           <Flex direction="column" gap={sectionSpacing}>
             <Heading size="md">{formatUserName(f.interviewer.name)}</Heading>
             <InterviewFeedbackEditor type={i.type} interviewFeedbackId={f.id} 
-              readonly={readonly || me.id !== f.interviewer.id} />
+              readonly={readonly || myId !== f.interviewer.id} />
           </Flex>
         </GridItem>
       )}

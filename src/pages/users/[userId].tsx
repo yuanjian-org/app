@@ -18,19 +18,31 @@ import {
   VStack,
   HStack,
   useClipboard,
+  Wrap,
 } from '@chakra-ui/react';
 import { MinUserAndProfile, UserProfile, StringUserProfile } from "shared/UserProfile";
-import { breakpoint, sectionSpacing } from "theme/metrics";
+import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
-import { FullWidthImageSquare, visibleUserProfileFields } from "components/UserCards";
-import { useUserContext } from "UserContext";
+import { visibleUserProfileFields } from "components/UserCards";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
+import { computeTraitsMatchingScore, TraitsPreference } from "shared/Traits";
+import { TraitsModal, traitsPrefLabel2value, traitsPrefProfiles, TraitTag } from "components/Traits";
+import invariant from "tiny-invariant";
+import { KudosControl } from "components/Kudos";
+import useMe, { useMyId, useMyRoles } from "useMe";
+
+export type UserDisplayData = MinUserAndProfile & {
+  // The presence of these fields depends on call sites and context
+  traitsMatchingScore?: number;
+  likes?: number;
+  kudos?: number;
+};
 
 export default function Page() {
   const userId = parseQueryString(useRouter(), 'userId');
@@ -42,9 +54,12 @@ export default function Page() {
 Page.title = "用户资料";
 
 export function UserPage({ data }: {
-  data: MinUserAndProfile & { isMentor: boolean } | undefined
+  data: UserDisplayData & { isMentor: boolean } | undefined
 }) {
+  const myRoles = useMyRoles();
   const showBookingButton = parseQueryString(useRouter(), 'booking') !== "0" &&
+    !!data?.isMentor;
+  const showMatchingTraits = parseQueryString(useRouter(), 'traits') === "1" &&
     !!data?.isMentor;
 
   return !data ? <Loader /> : <>
@@ -60,7 +75,18 @@ export function UserPage({ data }: {
         <FullWidthImageSquare profile={data.profile} 
           imageParams={data.profile.照片参数} size={300} />
         <UserUrl u={data.user} />
+
+        {isPermitted(myRoles, "Volunteer") && <HStack mt={sectionSpacing}>
+          <KudosControl
+            user={data.user}
+            likes={data.likes ?? 0}
+            kudos={data.kudos ?? 0}
+          />
+        </HStack>}
+
+        {showMatchingTraits && <MatchingTraits userId={data.user.id} />}
       </VStack>
+
       {data.profile && <ProfileTable
         user={data.user}
         profile={data.profile}
@@ -93,12 +119,74 @@ function UserUrl({ u }: {
   <></>;
 }
 
+function MatchingTraits({ userId }: {
+  userId: string,
+}) {
+  const myId = useMyId();
+
+  const { data: traitsPref } = 
+    trpcNext.users.getMentorTraitsPref.useQuery({ userId });
+  const { data: user, refetch } = 
+    trpcNext.users.getUserProfile.useQuery({ userId: myId });
+  const { data: applicant } = 
+    trpcNext.users.getApplicant.useQuery({
+      type: "MenteeInterview",
+      userId: myId,
+    });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const matchingTraits = useMemo(() => {
+    if (user === undefined || applicant === undefined ||
+      traitsPref === undefined) return undefined;
+    const { matchingTraits } = computeTraitsMatchingScore(
+      user.profile,
+      applicant.application,
+      traitsPref,
+    );
+    return matchingTraits;
+  }, [user, applicant, traitsPref]);
+
+  return !matchingTraits ? <Loader /> : matchingTraits.length === 0 ? <></> : <>
+    <Text mt={sectionSpacing} mb={componentSpacing} fontSize="sm" 
+      textAlign="center"
+    >
+      你的以下这些
+      <Link onClick={() => setIsModalOpen(true)}>
+        个人特质
+      </Link>
+      符合导师的匹配偏好
+      <br />
+      （仅供参考，导师的选择权在你）
+    </Text>
+    <Wrap>
+      {matchingTraits.map(t => {
+        const profile = traitsPrefProfiles.find(p => p.field === t);
+        if (!profile) return <></>;
+
+        invariant(traitsPref);
+        invariant(traitsPrefLabel2value[0] < 0);
+        invariant(traitsPrefLabel2value[1] > 0);
+
+        const label = traitsPref[t as keyof TraitsPreference] as number < 0 ?
+          profile.labels[0] : profile.labels[1];
+        return <TraitTag key={t} label={label} selected />;
+      })}
+    </Wrap>
+
+    {isModalOpen && <TraitsModal onClose={() => {
+      setIsModalOpen(false);
+      void refetch();
+    }} />}
+  </>;
+}
+
 function ProfileTable({ user, profile: p, showBookingButton }: {
   user: MinUser,
   profile: UserProfile,
   showBookingButton: boolean,
 }) {
-  const [me] = useUserContext();
+  const me = useMe();
   const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table>

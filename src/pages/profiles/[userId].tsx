@@ -20,7 +20,6 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
-import { useUserContext } from 'UserContext';
 import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
@@ -28,25 +27,29 @@ import { toast } from "react-toastify";
 import { UserProfile, ImageParams } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
-  parseQueryString, shaChecksum 
+  parseQueryString, shaChecksum
 } from 'shared/strings';
 import { useRouter } from 'next/router';
-import User, { getUserUrl } from 'shared/User';
+import User, { getUserUrl, MinUser } from 'shared/User';
 import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
-import { encodeUploadTokenUrlSafe } from 'shared/upload';
-import { MdChangeCircle, MdCloudUpload, MdCrop } from 'react-icons/md';
+import { encodeUploadTokenUrlSafe } from 'shared/jinshuju';
+import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
-import { CropImageModal } from 'components/CropImageModal';
-import { FullWidthImageSquare } from 'components/UserCards';
+import { useMyId, useMyRoles } from 'useMe';
+import { useSession } from 'next-auth/react';
+import NextLink from 'next/link';
+import { getEmbeddedFormUrl } from 'pages/form';
+import { encodeXField } from 'shared/jinshuju';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
-  const [me] = useUserContext();
-  const userId = queryUserId === "me" ? me.id : queryUserId;
+  const myId = useMyId();
+  const userId = queryUserId === "me" ? myId : queryUserId;
+  const { update: updateSession } = useSession();
 
   const queryOpts = {
     // Avoid accidental override when switching between windows
@@ -63,7 +66,25 @@ export default function Page() {
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 
-  const updateProfile = (k: keyof UserProfile, v: string | ImageParams) => {
+  const save = async () => {
+    invariant(user && profile);
+    if (!_.isEqual(oldUser, user)) {
+      await trpc.users.update.mutate(user);
+      await updateSession();
+    }
+    if (!_.isEqual(old?.profile, profile)) {
+      await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
+    }
+  };
+
+  const updateUser = (u: User) => {
+    setUser(u);
+    // Do not auto save, because it may violate the chinese name constraint
+    // when the user is typing using Pinyin input method.
+    // void save();
+  };
+
+  const updateProfile = (k: keyof UserProfile, v: string) => {
     const updated = {
       ...profile,
       [k]: v,
@@ -71,20 +92,16 @@ export default function Page() {
     if (!v) delete updated[k];
     if (k === "照片链接" && !v) delete updated["照片参数"];
     setProfile(updated);
+    void save();
   };
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const save = async () => {
+  const onSave = async () => {
     invariant(user && profile);
     setIsSaving(true);
     try {
-      if (!_.isEqual(oldUser, user)) {
-        await trpc.users.update.mutate(user);
-      }
-      if (!_.isEqual(old?.profile, profile)) {
-        await trpc.users.setUserProfile.mutate({ userId: user.id, profile });
-      }
+      await save();
       toast.success("保存成功。");
     } finally {
       setIsSaving(false);
@@ -92,7 +109,7 @@ export default function Page() {
   };
 
   const SaveButton = () => (
-    <Button onClick={save} variant="brand" isLoading={isSaving}>
+    <Button onClick={onSave} variant="brand" isLoading={isSaving}>
       保存
     </Button>
   );
@@ -106,7 +123,7 @@ export default function Page() {
     <Basic
       user={user}
       profile={profile} 
-      setUser={setUser}
+      setUser={updateUser}
       setProfile={setProfile}
     />
     <SaveButton />
@@ -114,7 +131,7 @@ export default function Page() {
     <Divider my={componentSpacing} />
 
     <Picture
-      userId={user.id}
+      user={user}
       profile={profile}
       updateProfile={updateProfile}
       SaveButton={SaveButton}
@@ -243,31 +260,38 @@ function Basic({ user, profile, setUser, setProfile }: {
   </>;
 }
 
+function Picture({ user, profile, updateProfile, SaveButton }: {
+  user: MinUser,
 function Picture({ userId, profile, updateProfile, SaveButton, save }: {
   userId: string,
   profile: UserProfile,
+  updateProfile: (k: keyof UserProfile, v: string) => void,
   updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
   save: () => void,
 }) {
-  const [me] = useUserContext();
-  const [isCropping, setIsCropping] = useState(false);
+  const myRoles = useMyRoles();
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
   // TODO: It's a weak security measure because anyone who has access to the
   // mentor's profile can compute the hash. Use a stronger method.
   const uploadToken = useMemo(() =>
-    profile ? encodeUploadTokenUrlSafe("UserProfilePicture", userId,
-      shaChecksum(profile)) : null, 
-    [userId, profile]
+    profile ? encodeXField(user, encodeUploadTokenUrlSafe("UserProfilePicture", 
+      user.id, shaChecksum(profile))) : null, 
+    [user, profile]
   );
 
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      <FullWidthImageSquare profile={profile} imageParams={profile.照片参数} 
-          size={300} />
+      {profile.照片链接 && <Image
+        src={profile.照片链接}
+        alt="照片"
+        maxW='300px'
+        my={componentSpacing}
+      />}
+
       {uploadToken && <>
         {profile.照片链接 && <Link> 
           <HStack onClick={() => setIsCropping(true)}>
@@ -294,7 +318,7 @@ function Picture({ userId, profile, updateProfile, SaveButton, save }: {
         建议选择面部清晰、不戴墨镜的近照
       </FormHelperTextWithMargin>
 
-      {isPermitted(me.roles, 'UserManager') && <>
+      {isPermitted(myRoles, 'UserManager') && <>
         <FormHelperTextWithMargin>
           <Text color="red.700">以下链接仅
           {RoleProfiles.UserManager.displayName}
@@ -316,9 +340,9 @@ function NonMentor({ profile, updateProfile }: {
   return <>
     <Heading size="md">个人资料</Heading>
     <Text><MarkdownSupported /></Text>
-    <NoAutoSave />
     <PositionFormControl profile={profile} updateProfile={updateProfile} />
     <CityFormControl profile={profile} updateProfile={updateProfile} />
+    <CareerFormControl profile={profile} updateProfile={updateProfile} />
     <HobbyFormControl profile={profile} updateProfile={updateProfile} />
     <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
   </>;
@@ -332,12 +356,6 @@ function MarkdownSupported() {
     </Link>。
   </>;
 };
-
-function NoAutoSave() {
-  return <Text color="red.700" mb={sectionSpacing}>
-    更新内容后务必点击“保存”。本页不支持自动保存。
-  </Text>;
-}
 
 function PositionFormControl({ profile, updateProfile, highlight }: {
   profile: UserProfile,
@@ -361,7 +379,7 @@ function CityFormControl({ profile, updateProfile, highlight }: {
   highlight?: boolean,
 }) {
   return <FormControl>
-    <FormLabel>现居住城市或地区{highlight && <Highlight />}</FormLabel>
+    <FormLabel>现居住城市或地区 {highlight && <Highlight />}</FormLabel>
     <Input bg="white" value={profile.现居住地 || ""} 
       onChange={ev => updateProfile('现居住地', ev.target.value)}
     />
@@ -376,6 +394,25 @@ function HobbyFormControl({ profile, updateProfile }: {
     <FormLabel>业余爱好和特长、个人网站或自媒体账号等</FormLabel>
     <Textarea bg="white" height={140} value={profile.爱好与特长 || ""} 
       onChange={ev => updateProfile('爱好与特长', ev.target.value)}
+    />
+  </FormControl>;
+}
+
+function CareerFormControl({ profile, updateProfile, highlight }: {
+  profile: UserProfile,
+  updateProfile: (k: keyof UserProfile, v: string) => void,
+  highlight?: boolean,
+}) {
+  return <FormControl>
+    <FormLabel>职业经历和网站 {highlight && <Highlight />}</FormLabel>
+    <FormHelperTextWithMargin>
+      <ListAndMarkdownSupport />，比如：<br /><br />
+      * 经历1<br />
+      * 经历2<br />
+      * 领英：linkedin.com/in/user
+    </FormHelperTextWithMargin>
+    <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
+      onChange={ev => updateProfile('职业经历', ev.target.value)}
     />
   </FormControl>;
 }
@@ -406,8 +443,6 @@ function Mentor({ profile, updateProfile }: {
       <Link target='_blank' href="/s/matchmaking">初次匹配</Link>
       时的唯一参考。请详尽填写，并展现出最真实的你。<MarkdownSupported />
     </Text>
-
-    <NoAutoSave />
 
     <PositionFormControl profile={profile} updateProfile={updateProfile}
       highlight />
@@ -458,18 +493,8 @@ function Mentor({ profile, updateProfile }: {
       />
     </FormControl>
 
-    <FormControl>
-      <FormLabel>职业经历和网站 <Highlight /></FormLabel>
-      <FormHelperTextWithMargin>
-        <ListAndMarkdownSupport />，比如：<br /><br />
-        * 经历1<br />
-        * 经历2<br />
-        * 领英：linkedin.com/in/user
-      </FormHelperTextWithMargin>
-      <Textarea bg="white" height={140} value={profile.职业经历 || ""} 
-        onChange={ev => updateProfile('职业经历', ev.target.value)}
-      />
-    </FormControl>
+    <CareerFormControl profile={profile} updateProfile={updateProfile}
+      highlight />
 
     <FormControl>
       <FormLabel>教育经历</FormLabel>

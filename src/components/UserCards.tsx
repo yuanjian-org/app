@@ -7,7 +7,6 @@ import {
   VStack,
   Box,
   HStack,
-  CardProps,
   Link,
   Spacer,
   Input,
@@ -15,20 +14,25 @@ import {
   InputLeftElement,
   Flex,
   Tooltip,
+  TextProps, BoxProps,
+  GridItem,
+  useBreakpointValue
 } from '@chakra-ui/react';
-import Loader from 'components/Loader';
-import { compareChinese, formatUserName, toPinyin } from 'shared/strings';
-import { breakpoint, componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import { formatUserName, toPinyin } from 'shared/strings';
+import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { getUserUrl, MinUser } from 'shared/User';
-import { MinUserAndProfile, UserProfile, StringUserProfile, ImageParams } from 'shared/UserProfile';
-import { Card, CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
+import { UserProfile, StringUserProfile } from 'shared/UserProfile';
+import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useMemo, useState, useRef, useEffect, PropsWithChildren } from 'react';
+import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
+import { ShowOnMobile, ShowOnDesktop } from './Show';
+import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from './Kudos';
+import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
-import { useUserContext } from 'UserContext';
-import { Like } from 'shared/Like';
+import Loader from './Loader';
+import { UserDisplayData } from 'pages/users/[userId]';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -61,101 +65,171 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-const isMobile = typeof navigator !== 'undefined' &&
-  /iPhone|iPad|Android/.test(navigator.userAgent);
 const isMac = typeof navigator !== 'undefined' &&
   /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
 
 export default function UserCards({ type, users }: {
   type: UserCardType,
-  users: MinUserAndProfile[] | undefined,
+  users: UserDisplayData[],
 }) {
-  const [searchTerm, setSearchTerm] = useState<string>();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-    
+    const onKeydown = (event: KeyboardEvent) => {
       if ((isMac ? event.metaKey : event.ctrlKey) && event.key === 'f') {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', onKeydown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', onKeydown);
     };
   }, [searchInputRef]);
 
   const searchResult = useMemo(() => {
-    return users && searchTerm ? search(users, searchTerm) : users;
+    return searchTerm ? search(users, searchTerm) : users;
   }, [searchTerm, users]); 
 
+  const hotKey = useBreakpointValue({
+    base: "", 
+    md: (isMac ? "⌘" : "Ctrl") + "+F "
+  });
+
+  // Show kudos history card only when not searching.
+  const showKudosHistory = type == "Volunteer" && !searchTerm;
+
   return <>
-    {!searchResult ? <Loader /> : <>
+    {/* Search box */}
+    <InputGroup mb={sectionSpacing}>
+      <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+      <Input
+        ref={searchInputRef}
+        bg="white"
+        type="search"
+        autoFocus
+        placeholder={`${hotKey}搜索关键字，比如“金融“、“女”、“成都”，支持拼音`}
+        value={searchTerm}
+        onChange={ev => setSearchTerm(ev.target.value)}
+      />
+    </InputGroup>
 
-      {/* Search box */}
-      <InputGroup mb={sectionSpacing}>
-        <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
-        <Input
-          ref={searchInputRef}
-          bg="white"
-          type="search"
-          placeholder={
-            (isMobile ? "" : ((isMac ? "⌘" : "Ctrl") + "+F ")) +
-            `搜索关键字，比如“金融“、“女”、“成都”，支持拼音`
-          }
-          value={searchTerm}
-          onChange={ev => setSearchTerm(ev.target.value)}
-        />
-      </InputGroup>
-
-      {/* Desktop version */}
+    <ShowOnDesktop>
       <SimpleGrid
-        display={{ base: "none", [breakpoint]: "grid" }}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
-        {searchResult.map(m => <UserCard
-          key={m.user.id}
-          user={m.user}
-          profile={m.profile}
+        {showKudosHistory && <GridItem colSpan={2} rowSpan={1}>
+          <KudosHistoryCard type="desktop" />
+        </GridItem>}
+
+        {searchResult.map(d => <UserCardForDesktop
+          key={d.user.id}
+          data={d}
           type={type}
-          openModal={() => setBookingMentor(m.user)}
-          device="desktop"
+          openModal={() => setBookingMentor(d.user)}
+          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
         />)}
       </SimpleGrid>
+    </ShowOnDesktop>
 
-      {/* Mobile version */}
+    <ShowOnMobile>
       <SimpleGrid
-        display={{ base: "grid", [breakpoint]: "none" }}
         spacing={componentSpacing}
         templateColumns='1fr'
+        alignItems="stretch"
       >
-        {searchResult.map(m => <UserCard
-          key={m.user.id}
-          user={m.user}
-          profile={m.profile}
+        {showKudosHistory && <KudosHistoryCard type="mobile" />}
+
+        {searchResult.map(d => <UserCardForMobile
+          key={d.user.id}
+          data={d}
           type={type}
-          openModal={() => setBookingMentor(m.user)}
-          device="mobile"
+          openModal={() => setBookingMentor(d.user)}
+          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
         />)}
       </SimpleGrid>
-          
-      {bookingMentor !== undefined && 
-        <MentorBookingModal
-          mentor={bookingMentor} 
-          onClose={() => setBookingMentor(undefined)}
-        />
-      }
-    </>}
+    </ShowOnMobile>
+        
+    {bookingMentor !== undefined &&
+      <MentorBookingModal
+        mentor={bookingMentor} 
+        onClose={() => setBookingMentor(undefined)}
+      />
+    }
   </>;
 }
 
-function search(users: MinUserAndProfile[], searchTerm: string) {
+function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
+  const limit = 50;
+  const { data: kudos } = trpcNext.kudos.list.useQuery({
+    userId: undefined,
+    limit,
+  });
+
+  const utils = trpcNext.useContext();
+  const [marked, setMarked] = useState(false);
+  const markAsRead = useCallback(async () => {
+    if (marked) return;
+    // Note that `last` covers all the kudos given by the current user.
+    const last = kudos?.[0]?.createdAt;
+    if (last) {
+      await markKudosAsRead(utils, last);
+      setMarked(true);
+    }
+  }, [marked, kudos, utils]);
+
+  const MyCard = useCallback(({ children }: PropsWithChildren) =>
+    type == "desktop" ?
+      <CardForDesktop height="100%">{children}</CardForDesktop> :
+      <CardForMobile>{children}</CardForMobile>, [type]);
+
+  return <MyCard>
+    <CardBody onClick={markAsRead}>
+      <Flex
+        direction="column"
+        gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
+      >
+        <Flex justify="space-between">
+          <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
+            最近的赞
+            <UnreadKudosRedDot />
+          </Heading>
+          <Text fontSize="sm" color="gray">
+            记得给出色的小伙伴点赞哦{' '}😊
+          </Text>
+        </Flex>
+
+        <Box
+          // Force scrolling by setting maxH. Its value is empirically set.
+          maxH={type == "desktop" ? "600px" : "220px"}
+          overflowY="auto"
+          onScroll={markAsRead}
+          // On mobile, the scroll event is not triggered by touch or drag.
+          onTouchMove={markAsRead}
+          onDragEnd={markAsRead}
+        >
+          {!kudos ? <Loader /> : <KudosHistory
+            kudos={kudos}
+            type={type}
+            showReceiver
+            showPseudoRows
+            showLimit={limit}
+          />}
+        </Box>
+      </Flex>
+    </CardBody>
+  </MyCard>;
+}
+
+function isMentorRecommended(traitsMatchingScore?: number) {
+  return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
+}
+
+function search(users: UserDisplayData[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
 
@@ -170,105 +244,35 @@ function search(users: MinUserAndProfile[], searchTerm: string) {
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function UserCard({ user, profile: p, type, openModal, device }: {
-  user: MinUser,
-  profile: UserProfile | null,
-  type: UserCardType,
-  openModal: () => void,
-  device: "desktop" | "mobile",
-}) {
-  const [me] = useUserContext();
-  const { data: likes, refetch } = trpcNext.likes.get.useQuery({
-    userId: user.id,
-  });
-
-  // This variable allows local update of like count without waiting for
-  // server response.
-  const [likeCount, setLikeCount] = useState<number>(0);
-  useEffect(() => {
-    setLikeCount(likes?.reduce((acc, like) => acc + like.count, 0) ?? 0); 
-  }, [likes]);
-
-  const increment = trpcNext.likes.increment.useMutation({
-    onSuccess: refetch,
-  });
-
-  const clickLikes = (ev: React.MouseEvent) => {
-    ev.stopPropagation();
-    if (user.id !== me.id) {
-      increment.mutate({ userId: user.id });
-      setLikeCount(likeCount + 1);
-    }
-  };
-
-  return device == "desktop" ? <UserCardForDesktop
-    user={user}
-    profile={p}
-    type={type}
-    openModal={openModal}
-    likes={likes}
-    likeCount={likeCount}
-    clickLikes={clickLikes}
-  /> : <UserCardForMobile
-    user={user}
-    profile={p}
-    type={type}
-    openModal={openModal}
-    likeCount={likeCount}
-    clickLikes={clickLikes}
-  />;
-}
-
-function UserCardContainer({ user, type, children, ...rest }: {
-  user: MinUser,
-  type: UserCardType,
-} & CardProps) {
-  const router = useRouter();
-  const url = `${getUserUrl(user)}${type == "RelationalMentor" ? "?booking=0" : ""}`;
-
-  return <Card
-    overflow="hidden"
-    cursor="pointer"
-    onClick={() => router.push(url)}
-    {...rest}
-  >
-    {children}
-  </Card>;
+function getUrl(user: MinUser, type: UserCardType) {
+  return `${getUserUrl(user)}${type == "RelationalMentor" ? 
+    "?booking=0&traits=1" : ""}`;
 }
 
 function UserCardForDesktop({
-  user, profile: p, type, openModal, likes, likeCount, clickLikes
+  data, type, openModal, isMentorRecommended
 }: {
-  user: MinUser,
-  profile: UserProfile | null,
+  data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
-  likes: Like[] | undefined,
-  likeCount: number,
-  clickLikes: (ev: React.MouseEvent) => void,
+  isMentorRecommended: boolean,
 }) {
-  const name = formatUserName(user.name, "friendly");
-  const likesLabel = likes?.length == 0 ? <>点赞，{name}会收到Email哦</> :
-    <Box>
-      {likes?.sort((a, b) => compareChinese(a.liker.name, b.liker.name))
-      .map(l => 
-        <Text key={l.liker.id}>
-          {formatUserName(l.liker.name, "formal") + "：" + l.count + "个赞"}
-        </Text>
-      )}
-      <br />
-      <Text>点赞后，{name}会收到Email哦</Text>
-    </Box>;
+  const router = useRouter();
+  const p = data.profile;
 
-  return <UserCardContainer user={user} type={type}>
-    <FullWidthImageSquare profile={p} imageParams={p?.照片参数} />
+  const visitUser = () => router.push(getUrl(data.user, type));
 
-    <CardHeader>
-      <Heading size='md' color="gray.600">
-        {formatUserName(user.name, "formal")}
+  return <CardForDesktop>
+
+    <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
+
+    <CardHeader onClick={visitUser} cursor="pointer">
+      <Heading size='md'>
+        {formatUserName(data.user.name, "formal")}
+        {isMentorRecommended && <MentorStar ms={3} />}
       </Heading>
     </CardHeader>
-    <CardBody pt={1}>
+    <CardBody pt={1} onClick={visitUser} cursor="pointer">
       <Flex direction="column" gap={paragraphSpacing}>
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
         {type == "TransactionalMentor" ? <>
@@ -286,7 +290,9 @@ function UserCardForDesktop({
       </Flex>
     </CardBody>
     <CardFooter>
-      <Button>更多信息</Button>
+      <Button onClick={visitUser}>
+        更多信息
+      </Button>
 
       <Spacer />
 
@@ -297,19 +303,14 @@ function UserCardForDesktop({
         }}>预约</Button>
       </>}
 
-      {type == "Volunteer" && <Tooltip label={likesLabel} placement="top">
-        <Text
-          display="flex"
-          alignItems="center"
-          color="orange.600"
-          onClick={clickLikes}
-        >
-          👍{likeCount > 0 && ` ${likeCount}`}
-        </Text>
-      </Tooltip>}
+      {type == "Volunteer" && <KudosControl
+        user={data.user}
+        likes={data.likes ?? 0}
+        kudos={data.kudos ?? 0}
+      />}
 
     </CardFooter>
-  </UserCardContainer>;
+  </CardForDesktop>;
 }
 
 function TruncatedText({ children }: PropsWithChildren) {
@@ -320,66 +321,49 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-export function FullWidthImageSquare({ 
-  profile, 
-  imageParams = { x: 0, y: 0, zoom: 1 }, 
-  size,
-}: {
-  profile: UserProfile | null;
-  imageParams?: ImageParams,
-  size?: number,
-}) {
-  const offset = 300 / (size ?? 300);
-  return <Box width={`${size}px`}>
-    <Box
-      position="relative"
+function FullWidthImageSquare({ profile, ...rest }: {
+  profile: UserProfile | null
+} & BoxProps) {
+  return <Box
+    position="relative"
+    width="100%"
+    // This hack enforces a square aspect ratio for the container. The
+    // percentage is based on the width, so paddingBottom="100%" ensures the
+    // height equals the width.
+    paddingBottom="100%"
+    {...rest}
+  >
+    <Image
+      position="absolute"
+      top="0"
+      left="0"
       width="100%"
-      // This hack enforces a square aspect ratio for the container. The
-      // percentage is based on the width, so paddingBottom="100%" ensures the
-      // height equals the width.
-      paddingBottom="100%"
-      overflow="hidden" 
-    >
-      <Image
-        position="absolute"
-        top="0"
-        left="0"
-        width="100%"
-        height="100%"
-        objectFit="contain"
-        transformOrigin="center center"
-        transform={
-          `translate(${imageParams.x / offset}px, ${imageParams.y / offset}px)
-            scale(${imageParams.zoom})
-          `}
-        src={
-          profile?.照片链接 ? profile.照片链接 :
-          profile?.性别 == "男" ? "/img/placeholder-male.png" :
-          "/img/placeholder-female.png"
-        }
-        alt="照片"
-      />
-    </Box>
+      height="100%"
+      objectFit='cover'
+      src={
+        profile?.照片链接 ? profile.照片链接 :
+        profile?.性别 == "男" ? "/img/placeholder-male.png" :
+        "/img/placeholder-female.png"
+      }
+      alt="照片"
+    />
   </Box>;
 }
 
 function UserCardForMobile({
-  user, profile: p, type, openModal, likeCount, clickLikes
+  data, type, openModal, isMentorRecommended
 }: {
-  user: MinUser,
-  profile: UserProfile | null,
+  data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
-  likeCount: number,
-  clickLikes: (ev: React.MouseEvent) => void,
+  isMentorRecommended: boolean,
 }) {
-  return <UserCardContainer
-    user={user}
-    size="sm"
-    variant="unstyled"
-    boxShadow="sm"
-    type={type}
-  >
+  const router = useRouter();
+  const p = data.profile;
+
+  const visitUser = () => router.push(getUrl(data.user, type));
+
+  return <CardForMobile>
     <HStack
       spacing={componentSpacing}
       fontSize="sm"
@@ -393,6 +377,7 @@ function UserCardForMobile({
         mb={componentSpacing}
         // Align content to the left
         align="start"
+        onClick={visitUser}
       >
         <FullWidthImageSquare profile={p} imageParams={p?.照片参数} size={100} />
         <VStack
@@ -400,8 +385,8 @@ function UserCardForMobile({
           // Align content to the left
           align="start"
         >
-          <Heading size='sm' color="gray.600">
-            {formatUserName(user.name, "formal")}
+          <Heading size='sm'>
+            {formatUserName(data.user.name, "formal")}
           </Heading>
 
           {type == "TransactionalMentor" ? 
@@ -419,6 +404,7 @@ function UserCardForMobile({
         align="start"
         // Preserve space for the <Link> below
         pb={3 + componentSpacing}
+        onClick={visitUser}
       >
         {p?.身份头衔 && <Text><b>{p.身份头衔}</b></Text>}
 
@@ -439,7 +425,11 @@ function UserCardForMobile({
         bottom={componentSpacing}
         right={componentSpacing}
       >
-        <Link>更多信息</Link>
+        {isMentorRecommended && <MentorStar me={2} />}
+
+        <Link onClick={visitUser}>
+          更多信息
+        </Link>
 
         {type == "TransactionalMentor" && <>
           <Text color="gray.400">|</Text>
@@ -451,12 +441,20 @@ function UserCardForMobile({
 
         {type == "Volunteer" && <>
           <Text color="gray.400">|</Text>
-          <Text onClick={clickLikes} color="orange.600">
-            👍{likeCount > 0 && ` ${likeCount}`}
-          </Text>
+          <KudosControl
+            user={data.user}
+            likes={data.likes ?? 0}
+            kudos={data.kudos ?? 0}
+          />
         </>}
 
       </HStack>
     </HStack>
-  </UserCardContainer>;
+  </CardForMobile>;
+}
+
+export function MentorStar(props: TextProps) {
+  return <Tooltip label="该导师的匹配偏好与你的个人特质契合度较高。推荐仅供参考，选择权在你。">
+    <Text display="inline" color="orange.600" {...props}>⭐</Text>
+  </Tooltip>;
 }

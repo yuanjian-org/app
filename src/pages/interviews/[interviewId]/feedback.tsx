@@ -2,14 +2,14 @@ import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
 import { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Flex, Grid, GridItem,
+import {
+  Flex, Grid, GridItem,
   Icon,
   Link,
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import { breakpoint } from 'theme/metrics';
-import { useUserContext } from 'UserContext';
+import { breakpoint, textMaxWidth } from 'theme/metrics';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
@@ -21,37 +21,62 @@ import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { widePage } from 'AppPage';
+import { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
+import { useMemo } from 'react';
+import NextLink from 'next/link';
+import { examsEnabled } from 'shared/jinshuju';
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
   const { data } = interviewId ?
     trpcNext.interviews.get.useQuery({ interviewId }) : { data: undefined };
 
-  const [me] = useUserContext();
+  const myId = useMyId();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
 
-  const interviewerTestPassed = () => {
-    if (process.env.NODE_ENV !== 'production') return true;
-    const passed = me.menteeInterviewerTestLastPassedAt;
-    return passed ? moment().diff(moment(passed), "days") < 300 : false;
-  };
+  const needCommsExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
 
-  if (!data) return <Loader />;
+    return !state.commsExam ||
+      moment().diff(moment(state.commsExam), "days") > 365;
+  }, [state]);
 
-  const i = data.interviewWithGroup;
+  const needInterviewExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
 
-  const getMyFeedbackId = () => {
-    const feedbacks = i.feedbacks.filter(f => f.interviewer.id === me.id);
+    const passed = state.menteeInterviewerExam;
+    // 300 days instead of 365 days because the start of the next interview
+    // cycle varies from year to year.
+    return !passed || moment().diff(moment(passed), "days") > 300;
+  }, [state]);
+
+  const myFeedbackId = useMemo(() => {
+    if (!data) return undefined;
+    const feedbacks = data.interviewWithGroup.feedbacks.filter(
+      f => f.interviewer.id === myId);
     invariant(feedbacks.length == 1);
     return feedbacks[0].id;
-  };
+  }, [data, myId]);
 
-  return <>
-    <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
-      name: "我的面试", link: "/interviews/mine",
-    }]}/>
+  const i = data?.interviewWithGroup;
 
-    {!interviewerTestPassed() ? <PassTestFirst type={i.type} /> :
+  return i === undefined || needInterviewExam === undefined ||
+    needCommsExam === undefined ? <Loader />
+    :
+    needInterviewExam || needCommsExam ? <NeedExams
+      type={i.type}
+      interview={needInterviewExam}
+      comms={needCommsExam}
+    /> 
+    :
+    <>
+      <PageBreadcrumb current={formatUserName(i.interviewee.name)} parents={[{
+        name: "我的面试", link: "/interviews/mine",
+      }]}/>
+
       <Grid templateColumns={{ base: "100%", [breakpoint]: "1fr 1fr" }}
         gap={sectionSpacing}>
         <GridItem>
@@ -59,26 +84,39 @@ export default widePage(() => {
             <Instructions type={i.type}
               interviewers={i.feedbacks.map(f => f.interviewer)} />
             <InterviewFeedbackEditor type={i.type}
-              interviewFeedbackId={getMyFeedbackId()} />
+              interviewFeedbackId={myFeedbackId ?? ""} />
           </Flex>
         </GridItem>
         <GridItem>
           <Applicant userId={i.interviewee.id} type={i.type} showTitle /> 
         </GridItem>
       </Grid>
-    }
-  </>;
+    </>;
 });
 
-function PassTestFirst({ type } : { type : InterviewType}) {
-  return <Flex direction="column" gap={paragraphSpacing}>
-    <b>请首先完成面试官测试</b>
-    <p>通过<Link isExternal href="https://jsj.top/f/w02l95">
-      《面试流程和标准测试》</Link>后，刷新此页，即可看到面试信息。</p>
-    <p>请注意：测试的通过分数是 <b>120</b> 分。</p>
+function NeedExams({ type, interview, comms } : {
+  type : InterviewType,
+  interview : boolean,
+  comms : boolean,
+}) {
+  invariant(comms || interview);
+
+  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
+    <p>
+      请首先完成
+      {comms &&
+        <Link as={NextLink} href="/study/comms">《学生通信原则》自学与评测</Link>}
+      {comms && interview && " 以及"}
+      {interview &&
+        <Link as={NextLink} href="/study/interview">
+          面试官自学与评测</Link>}
+      ，即可看到面试信息。
+    </p>
+
     {type == "MentorInterview" &&
       <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
-    <p>为了避免遗忘，我们要求300天以后重新测试，感谢理解！</p>
+
+    <p>为了巩固记忆，我们邀请面试官每年重新评测一次，感谢您的理解与支持。</p>
   </Flex>;
 }
 
@@ -86,14 +124,14 @@ function Instructions({ type, interviewers }: {
   type: InterviewType,
   interviewers: MinUser[],
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   let first: boolean | null = null;
   let other: MinUser | null = null;
-  invariant(interviewers.filter(i => i.id === me.id).length == 1);
+  invariant(interviewers.filter(i => i.id === myId).length == 1);
   if (interviewers.length == 2) {
-    other = interviewers[0].id === me.id ? interviewers[1] : interviewers[0];
-    first = other.id > me.id;
+    other = interviewers[0].id === myId ? interviewers[1] : interviewers[0];
+    first = other.id > myId;
   }
 
   const isMentee = type == "MenteeInterview";

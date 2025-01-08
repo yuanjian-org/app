@@ -16,9 +16,9 @@ import { useRef, useState } from 'react';
 import Autosaver from 'components/Autosaver';
 import { TRPCClientError } from '@trpc/client';
 import { FeedbackDeprecated } from "shared/InterviewFeedback";
-import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import { InterviewType } from 'shared/InterviewType';
+import { useMyRoles } from 'useMe';
 
 // TODO: Replace EditorFeedback and EditorFeedbackDimension with Feedback and
 // FeedbackDimension
@@ -39,7 +39,7 @@ export function getScoreColor(scoreLabels: string[], score: number): string {
   invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
   const backgrounds = [
     "red.600", "orange", 
-    ...scoreLabels.length == 4 ? [] : ["grey"],
+    ...scoreLabels.length == 4 ? [] : ["gray"],
     "green.300", "green.600"
   ];
   return backgrounds[score - 1];
@@ -107,7 +107,7 @@ export function InterviewDecisionEditor({ type, interviewId, decision, etag,
   etag: number,
   readonly?: boolean
 }) {
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
 
   const save = async (decision: EditorFeedback, etag: number) => {
     return await trpc.interviews.updateDecision.mutate({
@@ -118,7 +118,7 @@ export function InterviewDecisionEditor({ type, interviewId, decision, etag,
   };
 
   return <Editor type={type} defaultFeedback={decision} etag={etag} save={save}
-    readonly={readonly || !isPermitted(me.roles, "MentorshipManager")}
+    readonly={readonly || !isPermitted(myRoles, "MentorshipManager")}
     showDimensions={false}
   />;
 }

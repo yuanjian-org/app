@@ -18,7 +18,7 @@ import {
   HasOne,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { ARRAY, DATE, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import { ARRAY, DATE, INTEGER, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -70,14 +70,6 @@ class User extends Model {
   @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
 
-  // TODO: move into `state` column
-  @Column(DATE)
-  consentFormAcceptedAt: string | null;
- 
-  // TODO: move into `state` column
-  @Column(DATE)
-  menteeInterviewerTestLastPassedAt: string | null;
-
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.
   // Store it here as opposed to inside the profile column because in some cases
@@ -125,6 +117,12 @@ class User extends Model {
   @Column(UUID)
   @ForeignKey(() => User)
   mergedTo: string | null;
+
+  @Column(INTEGER)
+  likes: number;
+
+  @Column(INTEGER)
+  kudos: number;
 
   // Managed by next-auth
   @Column(DATE)

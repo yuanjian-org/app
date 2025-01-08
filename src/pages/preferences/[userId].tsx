@@ -14,15 +14,18 @@ import {
   NumberDecrementStepper,
   Heading,
   FormLabel,
+  SimpleGrid,
+  GridItem,
+  Wrap,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import trpc, { trpcNext } from "../../trpc";
-import { useUserContext } from 'UserContext';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
-import { defaultMentorCapacity, InterviewerPreference, MentorPreference,
+import {
+  defaultMentorCapacity, InterviewerPreference, MentorPreference,
   UserPreference
 } from 'shared/User';
 import datePicker from 'theme/datePicker';
@@ -31,12 +34,18 @@ import { parseQueryString } from 'shared/strings';
 import { useRouter } from 'next/router';
 import invariant from 'tiny-invariant';
 import Loader from 'components/Loader';
-import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
+import { TraitsPreference } from 'shared/Traits';
+import {
+  traitsPrefLabel2value,
+  traitsPrefProfiles,
+  TraitTag,
+} from 'components/Traits';
+import { useMyId } from 'useMe';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
-  const [me] = useUserContext();
-  const userId = queryUserId === "me" ? me.id : queryUserId;
+  const myId = useMyId();
+  const userId = queryUserId === "me" ? myId : queryUserId;
 
   const { data: user } = userId ? trpcNext.users.getFull.useQuery(userId) :
     { data: undefined };
@@ -46,23 +55,27 @@ export default function Page() {
   const [pref, setPref] = useState<UserPreference>();
   useEffect(() => setPref(oldPref), [oldPref]);
 
-  // TODO: Refactor updateInterviewerPref and updateMentorPref to follow the
-  // same pattern.
-  const updateInterviewerPref = (data: InterviewerPreference) => {
-    invariant(pref);
-    setPref({
-      ...pref,
-      interviewer: data,
+  const update = async (p: UserPreference) => {
+    setPref(p);
+    // Auto save
+    invariant(userId);
+    await trpc.users.setUserPreference.mutate({ 
+      userId,
+      preference: p
     });
   };
 
-  const updateMentorPref = (k: keyof MentorPreference, v: any) => {
-    invariant(pref);
-    setPref({
-      ...pref,
-      mentor: { ...pref.mentor, [k]: v },
-    });
-  };
+  // TODO: Refactor updateInterviewerPref and updateMentorPref to follow the
+  // same pattern.
+  const updateInterviewerPref = (data: InterviewerPreference) => update({
+    ...pref,
+    interviewer: data,
+  });
+
+  const updateMentorPref = (k: keyof MentorPreference, v: any) => update({
+    ...pref,
+    mentor: { ...pref?.mentor, [k]: v },
+  });
 
   const [isSaving, setIsSaving] = useState(false);
   const handleSubmit = async () => {
@@ -94,10 +107,10 @@ export default function Page() {
     {isMentor || !isMentee ?
       <>
         <InterviewerPreferences data={pref.interviewer}
-          updateData={updateInterviewerPref} isMentor={isMentor} />
+          update={updateInterviewerPref} isMentor={isMentor} />
 
         {isMentor &&
-          <MentorPreferences data={pref.mentor} updateData={updateMentorPref} />
+          <MentorPreferences data={pref.mentor} update={updateMentorPref} />
         }
 
         <Button isLoading={isSaving} onClick={handleSubmit} variant="brand">
@@ -115,9 +128,9 @@ export default function Page() {
 
 Page.title = "偏好设置";
 
-function InterviewerPreferences({ data, updateData, isMentor } : {
+function InterviewerPreferences({ data, update, isMentor } : {
   data?: InterviewerPreference,
-  updateData: (data: InterviewerPreference) => void,
+  update: (data: InterviewerPreference) => void,
   isMentor: boolean
 }) {
   const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
@@ -126,7 +139,7 @@ function InterviewerPreferences({ data, updateData, isMentor } : {
   const noMoreThan = data?.limit?.noMoreThan || 0;
 
   const setLimit = (noMoreThan: number, until: Date) => {
-    updateData({
+    update({
       ...data,
       limit: {
         noMoreThan,
@@ -136,14 +149,14 @@ function InterviewerPreferences({ data, updateData, isMentor } : {
   };
 
   const removeLimit = () => {
-    updateData({
+    update({
       ...data,
       limit: undefined,
     });
   };
 
   const toggleOptIn = (optIn: boolean) => {
-    updateData({
+    update({
       ...data,
       optIn: optIn ? true : undefined,
     });
@@ -196,34 +209,20 @@ function InterviewerPreferences({ data, updateData, isMentor } : {
   </>;
 }
 
-
-function MentorPreferences({ data, updateData } : {
+function MentorPreferences({ data, update } : {
   data?: MentorPreference,
-  updateData: (k: keyof MentorPreference, v: any) => void,
+  update: (k: keyof MentorPreference, v: any) => void,
 }) {
 
   return <>
     <Heading size="md">导师偏好</Heading>
 
     <FormControl>
-      <FormLabel>学生匹配偏好</FormLabel>
-      <FormHelperTextWithMargin>
-        比如希望匹配农村学生等，或具体学生的姓名。
-      </FormHelperTextWithMargin>
-      <Input
-        bg="white"
-        value={data?.学生偏好 || ""} 
-        onChange={ev => updateData('学生偏好', ev.target.value)}
-        placeholder='无'
-      />
-    </FormControl>
-
-    <FormControl>
       <Flex align="center">
         我可以同时带
         <NumberInput background="white" size="sm" maxW={20} mx={1} min={0}
           value={data?.最多匹配学生 ?? defaultMentorCapacity} 
-          onChange={v => updateData('最多匹配学生', Number.parseInt(v))}
+          onChange={v => update('最多匹配学生', Number.parseInt(v))}
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -233,18 +232,93 @@ function MentorPreferences({ data, updateData } : {
         名学生。
       </Flex>
       <FormHelperText>
-        强烈建议两名学生或以上，因为学生的横向对比对导师工作非常有帮助。
-        若希望避免匹配学生，请选择0。
+        强烈建议两名学生或以上，因为横向对比十分有助于导师的工作。{
+        }若希望避免匹配学生，请选择0。
       </FormHelperText>
     </FormControl>
 
-    <FormControl mb={sectionSpacing}>
+    <MenteeTraitsPreferences data={data?.学生特质}
+      update={v => update('学生特质', v)} />
+
+    <FormControl my={sectionSpacing}>
       <Checkbox
         isChecked={data?.不参加就业辅导 ?? false}
-        onChange={e => updateData('不参加就业辅导', e.target.checked)}
+        onChange={e => update('不参加就业辅导', e.target.checked)}
       >
         我暂不参与简历诊断、模拟面试等就业类服务，仅参加长期一对一服务。
       </Checkbox>
     </FormControl>
+  </>;
+}
+
+function MenteeTraitsPreferences({ data, update } : {
+  data?: TraitsPreference,
+  update: (pref: TraitsPreference) => void,
+}) {
+  const updateTrait = (trait: keyof TraitsPreference, 
+    value: number | undefined) => {
+    update({ ...data, [trait]: value });
+  };
+
+  return <>
+    <Text mt={sectionSpacing}>对学生的偏好：</Text>
+
+    <SimpleGrid columns={2} rowGap={componentSpacing}
+      templateColumns="auto 1fr"
+    >
+      {traitsPrefProfiles.map(({ title, field, labels }, i) => 
+        <TraitPreference
+          key={i}
+          title={title}
+          labels={labels} 
+          value={data?.[field] as number | undefined}
+          update={v => updateTrait(field, v)}
+        />
+      )}
+    </SimpleGrid>
+  
+    <FormControl>
+      <FormLabel>其他偏好：</FormLabel>
+      <Input
+        bg="white"
+        value={data?.其他 ?? ""} 
+        onChange={ev => update({ ...data, 其他: ev.target.value })}
+        placeholder='无'
+      />
+    </FormControl>
+  </>;
+}
+
+function TraitPreference({ title, labels, value, update } : {
+  title: string,
+  labels: string[],
+  value: number | undefined,
+  update: (value: number | undefined) => void,
+}) {
+  invariant(labels.length <= 4);
+
+  return <>
+    <GridItem
+      // Vertically center the text
+      display="flex" alignItems="center"
+    >
+      <Text><b>{title}：</b></Text>
+    </GridItem>
+    <GridItem>
+      <Wrap>
+        <TraitTag label="无偏好" selected={value === undefined} 
+          onClick={() => update(undefined)}
+        />
+
+        {labels.map((label, i) => 
+          <TraitTag 
+            key={i} 
+            label={label} 
+            selected={value === traitsPrefLabel2value[i]} 
+            onClick={() => update(traitsPrefLabel2value[i])}
+          />
+        )}
+      </Wrap>
+    </GridItem>
   </>;
 }

@@ -13,33 +13,32 @@ export default router({
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
 
+  migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
-
-  console.log("Migrating DB data...");
-  await migrateChatMessages();
-
-  console.log("Clean up old DB data...");
-  await cleanupFeedbackAttemptLogs();
-  await cleanupEventLogs();
+  await migrateData();
+  await cleanupLogs();
 }
 
-async function cleanupEventLogs() {
+async function cleanupLogs() {
+  console.log("Clean up old logs...");
   await sequelize.query(`
     DELETE FROM "EventLogs"
     WHERE "createdAt" < NOW() - INTERVAL '1 year';
   `);
-}
-
-async function cleanupFeedbackAttemptLogs() {
   await sequelize.query(`
     DELETE FROM "InterviewFeedbackUpdateAttempts"
     WHERE "createdAt" < NOW() - INTERVAL '30 days';
   `);
 }
-async function migrateChatMessages() {
-  await sequelize.query(`
-    UPDATE "ChatMessages"
-    SET "markdown" = REPLACE("markdown", '【导师组内部讨论】', '【导师交流】')
-    WHERE "markdown" LIKE '%【导师组内部讨论】%';
-  `);
+
+function migrateSchema() {
+  console.log("Migrating DB schema...");
+}
+
+async function migrateData() {
+  console.log("Migrating DB data...");
+
+  // A no-op promise for when this function has no actual work to do to suppress
+  // build error.
+  await Promise.resolve();
 }

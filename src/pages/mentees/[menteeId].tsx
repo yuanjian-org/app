@@ -9,6 +9,7 @@ import {
   Flex,
   SimpleGrid,
   GridItem,
+  Link,
 } from '@chakra-ui/react';
 import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -17,48 +18,106 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { MinUser } from 'shared/User';
 import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
-import { useUserContext } from 'UserContext';
 import GroupBar from 'components/GroupBar';
-import { breakpoint, sectionSpacing } from 'theme/metrics';
+import { breakpoint, paragraphSpacing, sectionSpacing, textMaxWidth } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
 import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
+import { useMyId } from 'useMe';
+import { useMemo } from 'react';
+import moment from 'moment';
+import NextLink from 'next/link';
+import invariant from 'tiny-invariant';
+import { examsEnabled } from 'shared/jinshuju';
 
 export default widePage(() => {
-  const userId = parseQueryString(useRouter(), 'menteeId');
-  const { data: u } = userId ? trpcNext.users.get.useQuery(userId) :
+  const menteeId = parseQueryString(useRouter(), 'menteeId');
+  const { data: mentee } = menteeId ? trpcNext.users.get.useQuery(menteeId) :
     { data: undefined };
-  const { data: mentorships } = userId ? trpcNext.mentorships
+  const { data: mentorships } = menteeId ? trpcNext.mentorships
     .listMentorshipsForMentee.useQuery({
-      menteeId: userId,
+      menteeId,
       includeEndedTransactional: false,
     }) : { data: undefined };
 
-  return (!u || !mentorships) ? <Loader /> : <>
-    <PageBreadcrumb current={`${formatUserName(u.name)}`} />
-    <MenteeTabs mentee={u} mentorships={mentorships} />
-  </>;
+  const myId = useMyId();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
+
+  const needCommsExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined) return undefined;
+
+    return !state.commsExam ||
+      moment().diff(moment(state.commsExam), "days") > 365;
+  }, [state]);
+
+  const needHandbookExam = useMemo(() => {
+    if (!examsEnabled()) return false;
+    if (state === undefined || !mentorships) return undefined;
+    
+    // Exam is needed only if the current user has relational mentorship with
+    // the mentee.
+    const myRelational = mentorships
+      .filter(m => !m.transactional && m.mentor.id == myId);
+    if (myRelational.length == 0) return false;
+
+    return !state.handbookExam ||
+      moment().diff(moment(state.handbookExam), "days") > 365;
+  }, [state, mentorships, myId]);
+
+  return (!mentee || !mentorships || 
+    needCommsExam === undefined || needHandbookExam === undefined) ?
+    <Loader /> :
+      needCommsExam || needHandbookExam ? <NeedExams
+        comms={needCommsExam}
+        handbook={needHandbookExam}
+      /> : <>
+        <PageBreadcrumb current={`${formatUserName(mentee.name)}`} />
+        <MenteeTabs mentee={mentee} mentorships={mentorships} />
+      </>
+    ;
 });
+
+function NeedExams({ comms, handbook }: {
+  comms: boolean,
+  handbook: boolean,
+}) {
+  invariant(comms || handbook);
+
+  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
+    <p>
+      请首先完成
+      {comms &&
+        <Link as={NextLink} href="/study/comms">《学生通信原则》自学与评测</Link>}
+      {comms && handbook && " 以及"}
+      {handbook &&
+        <Link as={NextLink} href="/study/handbook">《社会导师手册》自学与评测</Link>}
+      ，即可看到学生页面，开始一对一通话。
+    </p>
+
+    <p>为了巩固记忆，我们邀请导师每年重新评测一次，感谢您的理解与支持。</p>
+  </Flex>;
+}
 
 function MenteeTabs({ mentee, mentorships }: {
   mentee: MinUser,
   mentorships: Mentorship[],
 }) {
-  const [me] = useUserContext();
-  const sortedMentorships = sortMentorship(mentorships, me.id);
+  const myId = useMyId();
+  const sorted = sortMentorship(mentorships, myId);
 
   return <TabsWithUrlParam isLazy>
     <TabList>
-      {sortedMentorships.length == 1 ?
+      {sorted.length == 1 ?
         <Tab>
-          一对一通话{sortedMentorships[0].mentor.id !== me.id &&
-            `【${formatUserName(sortedMentorships[0].mentor.name)}】`}
+          一对一通话{sorted[0].mentor.id !== myId &&
+            `【${formatUserName(sorted[0].mentor.name)}】`}
         </Tab>
         :
-        sortedMentorships.map(m =>
+        sorted.map(m =>
           <Tab key={m.id}>
-            一对一通话{formatMentorshipTabSuffix(m, me.id)}
+            一对一通话{formatMentorshipTabSuffix(m, myId)}
           </Tab>
         )
       }
@@ -68,7 +127,7 @@ function MenteeTabs({ mentee, mentorships }: {
     </TabList>
 
     <TabPanels>
-      {sortedMentorships.map(m =>
+      {sorted.map(m =>
         <TabPanel key={m.id}>
           <MentorshipPanel mentorship={m} />
         </TabPanel>
@@ -92,7 +151,7 @@ function InterviewTabPanel({ menteeId }: {
   return <TabPanel>
     {isLoading ? <Loader /> : 
       interviewId ? <Interview interviewId={interviewId} readonly /> :
-        <Text color="grey">没有面试记录。</Text>
+        <Text color="gray">没有面试记录。</Text>
     }
   </TabPanel>;
 }
@@ -114,7 +173,7 @@ function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
 function MentorshipPanel({ mentorship: m }: {
   mentorship: Mentorship,
 }) {
-  const [me] = useUserContext();
+  const myId = useMyId();
 
   return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
     {m.transactional && m.endsAt && <HStack >
@@ -136,7 +195,7 @@ function MentorshipPanel({ mentorship: m }: {
     >
       <GridItem>
         <Flex direction="column" gap={sectionSpacing}>
-          {m.mentor.id === me.id &&
+          {m.mentor.id === myId &&
             <GroupBar
               group={m.group}
               showJoinButton
@@ -153,7 +212,7 @@ function MentorshipPanel({ mentorship: m }: {
         </Flex>
       </GridItem>
       <GridItem>
-        <Transcripts groupId={m.group.id} />
+        <Transcripts group={m.group} />
       </GridItem>
     </SimpleGrid>
 
@@ -171,7 +230,7 @@ function MentorshipPanel({ mentorship: m }: {
 //     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
 //   };
 
-//   return !assessments ? <Loader /> : !assessments.length ? <Text color="grey">无反馈内容。</Text> : <Table>
+//   return !assessments ? <Loader /> : !assessments.length ? <Text color="gray">无反馈内容。</Text> : <Table>
 //     <Tbody>
 //       {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
 //         {/* Weird that Asseessment.createdAt must have optional() to suppress ts's complaint */}

@@ -16,10 +16,11 @@ import trpc from "../trpc";
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { breakpoint, componentSpacing } from 'theme/metrics';
 import { UserState } from 'shared/UserState';
-import { formatReadableLongLivedToken, longLivedTokenLength } from 'shared/token';
+import { longLivedTokenLength } from 'shared/token';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { accountPageTitle } from 'pages/accounts/[userId]';
+import _ from 'lodash';
 
 export function MergeModals({ userState, close }: {
   userState: UserState | null,
@@ -51,7 +52,7 @@ export function MergeModals({ userState, close }: {
 export function MergeCodeFormat() {
   return <>
     激活码为九个英文字母，形如：
-    <b><code>{formatReadableLongLivedToken("abcdefghi")}</code></b>
+    <b><code>ABCDEFGHI</code></b>
   </>;
 }
 
@@ -137,19 +138,9 @@ export function EnterTokenMergeModal({ cancelLabel, cancel }: {
                 autoFocus
                 type='alphanumeric'
               >
-                <PinInputField />
-                <PinInputField />
-                <PinInputField />
-                <Text display={{ base: "none", [breakpoint]: "inline" }}>―</Text>
-                <Text display={{ base: "inline", [breakpoint]: "none" }}>-</Text>
-                <PinInputField />
-                <PinInputField />
-                <PinInputField />
-                <Text display={{ base: "none", [breakpoint]: "inline" }}>―</Text>
-                <Text display={{ base: "inline", [breakpoint]: "none" }}>-</Text>
-                <PinInputField />
-                <PinInputField />
-                <PinInputField />
+                {_.times(longLivedTokenLength, i => (
+                  <PinInputField key={i} />
+                ))}
               </PinInput>
             </HStack>
           </Flex>

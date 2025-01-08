@@ -55,10 +55,11 @@ export async function email(templateId: string,
     return;
   }
 
-  await mail.send({
-    personalizations: ps,
-    templateId,
-    from: {
+  try {
+    await mail.send({
+      personalizations: ps,
+      templateId,
+      from: {
       email: 'no-reply@mentors.org.cn',
       name: '社会导师服务平台',
     },
@@ -66,8 +67,14 @@ export async function email(templateId: string,
       openTracking: {
         enable: true,
       },
-    }
-  });
+      }
+    });
+  } catch (e) {
+    // Log the error message from SendGrid
+    // @ts-expect-error
+    console.log(`email() failed:`, e.response.body);
+    throw e;
+  }
 }
 
 export function emailIgnoreError(templateId: string,

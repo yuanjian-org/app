@@ -23,6 +23,7 @@ import {
   FeedbackDeprecated, zFeedbackDeprecated
 } from "../../../shared/InterviewFeedback";
 import Calibration from "./Calibration";
+import { DateColumn } from "shared/DateColumn";
 
 @Table
 class Interview extends Model {
@@ -50,7 +51,7 @@ class Interview extends Model {
   decision: FeedbackDeprecated | null;
 
   @Column(DATE)
-  decisionUpdatedAt: string | null;
+  decisionUpdatedAt: DateColumn | null;
 
   /**
    * Associations

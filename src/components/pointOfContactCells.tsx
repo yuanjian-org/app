@@ -9,7 +9,7 @@ import {
   ModalFooter,
   Button,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MdEdit } from 'react-icons/md';
 import User, { MinUser } from 'shared/User';
 import { formatUserName } from 'shared/strings';
@@ -17,8 +17,8 @@ import ModalWithBackdrop from './ModalWithBackdrop';
 import UserSelector from './UserSelector';
 import trpc from 'trpc';
 import EditableWithIconOrLink from './EditableWithIconOrLink';
-import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
+import { useMyRoles } from 'useMe';
 
 export function PointOfContactHeaderCells() {
   return <>
@@ -31,7 +31,6 @@ export function PointOfContactCells({ user, refetch } : {
   user: User,
   refetch: () => void,
 }) {
-  const [me] = useUserContext();
   const [ editing, setEditing ] = useState<boolean>(false);
 
   const savePoCNote = async (note: string) => {
@@ -42,7 +41,7 @@ export function PointOfContactCells({ user, refetch } : {
     refetch();
   };
 
-  if (isPermitted(me.roles, "MentorshipManager")) {
+  if (isPermitted(useMyRoles(), "MentorshipManager")) {
     return <>
       {editing && <PoCEditor
       user={user}

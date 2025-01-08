@@ -18,8 +18,7 @@ export const extraUserAttributesForInterviews = ["roles", "menteeStatus",
   "volunteerApplication"];
 
 export const userAttributes = [...minUserAttributes, "wechat", "email",
-  "roles", "consentFormAcceptedAt", "menteeInterviewerTestLastPassedAt",
-  "menteeStatus", "pointOfContactNote"];
+  "roles", "menteeStatus", "pointOfContactNote"];
 
 export const userInclude = [{
   association: "pointOfContact",
@@ -166,12 +165,15 @@ export const mentorBookingInclude = [{
 }];
 
 /**
- * Like
+ * Kudos
  */
 
-export const likeAttributes = ["count"];
+export const kudosAttributes = ["createdAt", "text"];
 
-export const likeInclude = [{
-  association: "liker",
+export const kudosInclude = [{
+  association: "receiver",
+  attributes: minUserAttributes,
+}, {
+  association: "giver",
   attributes: minUserAttributes,
 }];

@@ -16,6 +16,7 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
         next(value) {
           observer.next(value);
         },
+
         error(err: TRPCClientError<ApiRouter>) {
           console.log('TRPC got an error:', err);
 
@@ -30,17 +31,17 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
             //    An error occurred with your deployment
             //
             //    FUNCTION_INVOCATION_TIMEOUT
-            // 
-            if (err.message == `Unexpected token 'A', "An error o"... is not` +
-                ` valid JSON`) {
-              toast.error("服务器端超时，请稍后重试。");
+            //
+            const msg = err.message ==
+              `Unexpected token 'A', "An error o"... is not valid JSON` ?
+              "服务器端超时，请稍后重试。" : `糟糕！${err.message}`;
 
-            } else {
-              toast.error(`糟糕！${err.message}`);
-            }
+            // Avoid multiple toasts with the same message.
+            toast.error(msg, { toastId: msg });
           }
           observer.error(err);
         },
+
         complete() {
           observer.complete();
         },

@@ -4,8 +4,6 @@ import { z } from "zod";
 import db from "../database/db";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import {
-  formatCopyableLongLivedToken,
-  formatReadableLongLivedToken,
   generateLongLivedToken,
 } from "shared/token";
 import {
@@ -63,10 +61,9 @@ const emailMergeToken = procedure
       },
       dynamicTemplateData: {
         name,
+        token,
         userManagerRole: RoleProfiles.UserManager.displayName,
         senderName: formatUserName(ctx.user.name, "formal"),
-        readableToken: formatReadableLongLivedToken(token),
-        copyableToken: formatCopyableLongLivedToken(token),
         tokenMaxAgeInHours: toChinese(mergeTokenMaxAgeInHours),
       },
     }];
@@ -89,10 +86,10 @@ const merge = procedure
     if (ex) return ex;
 
     /**
-     * Validate token
+     * Validate token. Case insensitive.
      */
     const mt = await db.MergeToken.findOne({
-      where: { token: token.toLowerCase() },
+      where: { token: token.toUpperCase() },
       attributes: ["id", "expiresAt"],
       include: [{ model: db.User, attributes: ["id", "email", "mergedTo"] }],
       transaction,
@@ -176,7 +173,6 @@ async function limitRate(userId: string, token: string,
     transaction,
   });
 
-  console.log(">>>>", count);
   if (count > maxErrorAttemptsPerDay) {
     emailRoleIgnoreError("SystemAlertSubscriber", "微信激活码尝试次数超限",
       `用户 ${userId} 的当日尝试次数已经超过 ${maxErrorAttemptsPerDay} 次`,

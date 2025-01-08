@@ -9,23 +9,24 @@ import {
   useClipboard,
   Tooltip,
 } from '@chakra-ui/react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { CopyIcon, DownloadIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import trpc, { trpcNext } from 'trpc';
-import { menteeApplicationFields, volunteerApplicationFields }
-from 'shared/applicationFields';
+import {
+  menteeApplicationFields, volunteerApplicationFields
+} from 'shared/applicationFields';
 import z from "zod";
 import { sectionSpacing } from 'theme/metrics';
 import { formatUserName } from 'shared/strings';
 import invariant from "tiny-invariant";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from 'shared/User';
-import { useUserContext } from 'UserContext';
 import { isPermitted } from 'shared/Role';
 import NextLink from "next/link";
 import { toast } from 'react-toastify';
 import { InterviewType } from 'shared/InterviewType';
+import { useMyRoles } from 'useMe';
 
 export default function Applicant({
   userId, type, showTitle, useNameAsTitle
@@ -62,9 +63,9 @@ function LoadedApplicant({ user, sex, type, application, showTitle,
   showTitle?: boolean,
   useNameAsTitle?: boolean,
 }) {
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
   const isMentee = type == "MenteeInterview";
-  const imManager = isPermitted(me.roles, "MentorshipManager");
+  const imManager = isPermitted(myRoles, "MentorshipManager");
 
   const update = async (name: string, value: string) => {
     await trpc.users.setApplication.mutate({
@@ -124,7 +125,7 @@ function ContactFieldRow({ redacted, copyable, name, value }: {
   return <Flex direction="column">
     <Flex>
       <b>{name}{' '}</b>
-      {!copyable && <Text color="grey">
+      {!copyable && <Text color="gray">
         （请联系<Link as={NextLink} href="/who-can-see-my-data">学生管理员</Link>）
       </Text>}
     </Flex>

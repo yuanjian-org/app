@@ -25,14 +25,13 @@ import {
   TableContainer,
   Link,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from 'shared/User';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import { formatUserName, isValidChineseName, toPinyin } from 'shared/strings';
 import Role, { AllRoles, RoleProfiles, isPermitted } from 'shared/Role';
 import trpc from 'trpc';
-import { useUserContext } from 'UserContext';
 import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import Loader from 'components/Loader';
 import z from "zod";
@@ -40,10 +39,9 @@ import NextLink from 'next/link';
 import { TbSpy } from "react-icons/tb";
 import { useSession } from 'next-auth/react';
 import { ImpersonationRequest } from './api/auth/[...nextauth]';
-import invariant from 'tiny-invariant';
 import { useRouter } from 'next/router';
-import { isFakeEmail } from 'shared/fakeEmail';
 import MergeTokenCell from 'components/MergeTokenCell';
+import useMe, { useMyRoles } from 'useMe';
 
 export default function Page() {
   const [includeMerged, setIncludeMerged] = useState(false);
@@ -90,7 +88,7 @@ export default function Page() {
             isChecked={includeMerged}
             onChange={e => setIncludeMerged(e.target.checked)}
           >
-            包含已迁移账号
+            显示已迁移账号
           </Checkbox>
         </WrapItem>
 
@@ -99,7 +97,7 @@ export default function Page() {
             isChecked={includeBanned}
             onChange={e => setIncludeBanned(e.target.checked)}
           >
-            包含已停用账号
+            显示已停用账号
           </Checkbox>
         </WrapItem>
       </Wrap>
@@ -122,9 +120,8 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
   setUserBeingEdited: (u: User | null) => void,
   refetch: () => void,
 }) {
-  const [me] = useUserContext();
-  const { data: session, update } = useSession();
-  const [, setUser] = useUserContext();
+  const me = useMe();
+  const { update: updateSession } = useSession();
   const router = useRouter();
 
   const startImpersonation = async (userId: string) => {
@@ -134,9 +131,7 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
 
     // https://next-auth.js.org/getting-started/client#updating-the-session
     const req: ImpersonationRequest = { impersonate: userId };
-    await update(req);
-    invariant(session);
-    setUser(session.user);
+    await updateSession(req);
   };
 
   return <Table size="sm">
@@ -159,9 +154,9 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
           _hover={{ bg: "white" }}
         >
           <Td onClick={() => setUserBeingEdited(u)}>
-            {isFakeEmail(u.email) ? "未设置" : u.email}
+            {u.email}
           </Td>
-          
+
           <Td>
             <Link as={NextLink} href={`/profiles/${u.id}`}>
               <b>
@@ -190,7 +185,7 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
                   <Tag
                     color="white"
                     bgColor={
-                      r == 'Banned' ? "grey" :
+                      r == 'Banned' ? "gray" :
                       rp.privilegedUserDataAccess ? "orange" : "brand.c"
                     } 
                   >
@@ -233,7 +228,7 @@ function UserEditor({ user, onClose }: {
     roles: [],
   };
 
-  const [me] = useUserContext();
+  const myRoles = useMyRoles();
   const [email, setEmail] = useState(u.email);
   const [name, setName] = useState(u.name || '');
   const [roles, setRoles] = useState(u.roles);
@@ -293,7 +288,7 @@ function UserEditor({ user, onClose }: {
             <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
           </FormControl>
 
-          {isPermitted(me.roles, "UserManager") && <FormControl>
+          {isPermitted(myRoles, "UserManager") && <FormControl>
             <FormLabel>角色</FormLabel>
             <Stack>
               {AllRoles.map(r => {

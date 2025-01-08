@@ -55,7 +55,7 @@ export default widePage(() => {
       </Tbody>
     </Table>
 
-    <Text fontSize="sm" color="grey" marginTop={sectionSpacing}>
+    <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
       共 <b>{stats.length}</b> 名
     </Text>
   </TableContainer>;

@@ -22,7 +22,7 @@ import { parseQueryString } from "shared/strings";
 import { toast } from 'react-toastify';
 import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
-import WeChatQRLogin from 'components/WeChatQRLogin';
+import EmbeddedWeChatQRLogin from 'components/EmbeddedWeChatQRLogin';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import { IoLogoWechat } from 'react-icons/io5';
 
@@ -159,7 +159,8 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
                 点击此处
               </Link>
             </Text>
-            <WeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
+            <EmbeddedWeChatQRLogin appid={wechatQRAppId}
+              callbackUrl={callbackUrl} />
             <MergeAccountHelpText />
           </VStack>
         </TabPanel>

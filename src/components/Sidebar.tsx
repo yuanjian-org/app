@@ -1,13 +1,12 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
 import { MdOutlineFace } from "react-icons/md";
 import { IoStar } from "react-icons/io5";
-import invariant from 'tiny-invariant';
 import {
   Avatar,
   HStack,
@@ -15,18 +14,15 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
-  Box,
-  CloseButton,
-  Flex,
-  Icon,
-  useColorModeValue,
-  Link,
-  Text,
-  BoxProps,
-  Divider,
+  Box, Flex,
+  Icon, Link,
+  Text, Divider,
+  DrawerContent,
+  Drawer,
+  DrawerCloseButton
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useUserContext } from 'UserContext';
+import useMe, { useMyRoles } from 'useMe';
 import { isPermitted } from 'shared/Role';
 import { useRouter } from 'next/router';
 import { trpcNext } from 'trpc';
@@ -40,24 +36,23 @@ import {
   MdHome,
 } from 'react-icons/md';
 import Role from "../shared/Role";
-import { sidebarWidth } from './Navbars';
-import { breakpoint } from 'theme/metrics';
 import { compareChinese, compareDate, formatUserName } from 'shared/strings';
 import { AttachmentIcon } from '@chakra-ui/icons';
 import { componentSpacing } from 'theme/metrics';
-import colors from 'theme/colors';
+import colors, { activeNavLinkColor, inactiveNavLinkColor } from 'theme/colors';
 import { staticUrlPrefix } from 'static';
 import User, { isAcceptedMentee } from 'shared/User';
 import { mentorshipStatusIconType } from 'pages/mentees';
 import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
+import { UnreadKudosRedDot } from './Kudos';
+import { UnreadChatMessagesRedDot } from './ChatRoom';
 
+export const desktopSidebarWidth = 60;
 export const sidebarContentMarginTop = 10;
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
-const bgColorModeValues = ['white', 'gray.900'];
-const borderColorModeValues = ['gray.200', 'gray.700'];
-const siderbarTextColor = "gray.500";
+const borderColor = "gray.200";
 
 interface MainMenuItem {
   name: string,
@@ -66,6 +61,7 @@ interface MainMenuItem {
   path: string,
   regex?: RegExp,
   permission?: Role | Role[] | ((u: User) => boolean),
+  redDot?: ReactNode,
 }
 
 interface DropdownMenuItem {
@@ -166,7 +162,7 @@ const mainMenuItems: MainMenuItem[] = [
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
   {
-    name: '浏览一对一导师',
+    name: '选择一对一导师',
     path: '/mentors/relational',
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/relational$/,
@@ -179,6 +175,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
+    redDot: <UnreadKudosRedDot />,
   },
   {
     name: '学生档案',
@@ -193,8 +190,8 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
   if (!mentorships) return [];
 
   mentorships.sort((a, b) => {
-    const aEnded = a.endsAt !== null && compareDate(a.endsAt, new Date()) < 0;
-    const bEnded = b.endsAt !== null && compareDate(b.endsAt, new Date()) < 0;
+    const aEnded = isMentorshipEnded(a);
+    const bEnded = isMentorshipEnded(b);
     if (aEnded !== bEnded) {
       // ended ones should be sorted after ongoing ones.
       return aEnded ? 1 : -1;
@@ -213,109 +210,127 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
       icon: icon ?? MdFace,
       path: `/mentees/${m.mentee.id}`,
       regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
+      redDot: showRedDotForMentorship(m) ?
+        <UnreadChatMessagesRedDot menteeId={m.mentee.id} /> :
+        undefined,
     };
   });
 }
 
-interface SidebarProps extends BoxProps {
-  onClose: () => void;
+export function showRedDotForMentorship(m: Mentorship) {
+  return !m.transactional && !isMentorshipEnded(m);
 }
 
-const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
-  const [me] = useUserContext();
-  const userName = formatUserName(me.name);
-  // Save an API call if the user is not a mentor.
-  const { data: mentorships } = isPermitted(me.roles, "Mentor") ?
-    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() : { data: undefined };
-  const mentorshipItems = mentorships2Items(mentorships);
-  const backgroundColor = useColorModeValue(bgColorModeValues[0], 
-    bgColorModeValues[1]);
-  const borderColor = useColorModeValue(borderColorModeValues[0], 
-    borderColorModeValues[1]); 
+function isMentorshipEnded(m: Mentorship) {
+  return m.endsAt !== null && compareDate(m.endsAt, new Date()) < 0;
+}
 
+export function useMyMentorshipsAsMentor() {
+  const myRoles = useMyRoles();
+  const { data } = isPermitted(myRoles, "Mentor") ?
+    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() :
+    { data: [] };
+  return data;
+}
+
+export function SidebarForDesktop() {
   return <Box
-    transition="3s ease"
-    bg={backgroundColor}
+    bg="white"
     borderRight="1px"
     borderRightColor={borderColor}
-    w={{ base: "full", [breakpoint]: sidebarWidth }}
+    w={desktopSidebarWidth}
     pos="fixed"
     h="full"
     // Setting pos to fixed creates a new stacking context,
     // which might cause the element to render beneath others (dropdown) menu.
     // Solved it by setting a lower ZIndex to it.
     zIndex="1"
-    {...rest}
   >
-    <Flex
-      direction="column"
-      justifyContent="space-between"
-      // If there are many items in the sidebar or in a smaller screen size, 
-      // we need to enable scrolling to access the items and user menu.
-      overflowY="auto"
-      h="full">
-      <Box>
-        <CloseButton
-          display={{ base: 'flex', [breakpoint]: 'none' }} 
-          onClick={onClose} 
-          marginLeft={sidebarItemPaddingLeft - 2}
-          marginY={sidebarItemPaddingY}  
-        />
-
-        <ImpersonationBanner />
-
-        {/* White spacing */}
-        <Box height={{
-          base: 0,
-          [breakpoint]: sidebarContentMarginTop - sidebarItemPaddingY,
-        }} />
-
-        {mainMenuItems
-          .filter(item => typeof item.permission === "function" ?
-            item.permission(me)
-            :
-            isPermitted(me.roles, item.permission)
-          ).map(item => <SidebarRow
-            key={item.path} item={item} onClose={onClose} 
-          />)}
-
-        <DropdownMenuIfPermitted
-          title="管理功能"
-          icon={<Icon as={IoIosCog} marginRight="2" />}
-          menuItems={managerDropdownMenuItems}
-          onClose={onClose}
-        />
-
-        {mentorshipItems?.length > 0 && <Divider marginY={2} />}
-        {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
-          onClose={onClose} />)}
-      </Box>
-
-      <Box>
-        <DropdownMenuIfPermitted 
-          title={userName} 
-          icon={<Avatar size={'sm'} bg="brand.a" color="white" name={userName} 
-            />}
-          menuItems={userDropdownMenuItems}
-          onClose={onClose}
-        />
-      </Box>
-    </Flex>
+    <SidebarContent onClose={() => undefined} />
   </Box>;
-};
+}
 
-export default Sidebar;
+export function SidebarForMobile({ isOpen, onClose }: {
+  isOpen: boolean,
+  onClose: () => void,
+}) {
+  return <Drawer
+    returnFocusOnClose={false}
+    placement="left"
+    isOpen={isOpen}
+    onClose={onClose}
+    onOverlayClick={onClose}
+  >
+    <DrawerContent>
+      <DrawerCloseButton />
+      <SidebarContent onClose={onClose} />
+    </DrawerContent>
+  </Drawer>;
+}
+
+function SidebarContent({ onClose }: {
+  onClose: () => void,
+}) {
+  const me = useMe();
+  const mentorships = useMyMentorshipsAsMentor();
+  const mentorshipItems = mentorships2Items(mentorships);
+  const myName = formatUserName(me.name);
+
+  return <Flex
+    direction="column"
+    justifyContent="space-between"
+
+    // Enable scrolling.
+    overflowY="auto"
+    h="full"
+  >
+    <Box>
+      <ImpersonationBanner />
+
+      {/* White spacing */}
+      <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
+
+      {mainMenuItems
+        .filter(item => typeof item.permission === "function" ?
+          item.permission(me)
+          :
+          isPermitted(me.roles, item.permission)
+        ).map(item => <SidebarRow
+          key={item.path} item={item} onClose={onClose} 
+        />)}
+
+      <DropdownMenuIfPermitted
+        title="管理功能"
+        icon={<Icon as={IoIosCog} marginRight="2" />}
+        menuItems={managerDropdownMenuItems}
+        onClose={onClose}
+      />
+
+      {mentorshipItems?.length > 0 && <Divider marginY={2} />}
+      {mentorshipItems.map(item => <SidebarRow key={item.path} item={item}
+        onClose={onClose} />)}
+    </Box>
+
+    <Box>
+      <DropdownMenuIfPermitted 
+        title={myName} 
+        icon={<Avatar size={'sm'} bg="brand.a" color="white" name={myName} 
+          />}
+        menuItems={userDropdownMenuItems}
+        onClose={onClose}
+      />
+    </Box>
+  </Flex>;
+}
+
 
 function ImpersonationBanner() {
   const { data: session, update } = useSession();
-  const [, setUser] = useUserContext();
   const router = useRouter();
 
   const stopImpersonation = async () => {
     const req: ImpersonationRequest = { impersonate: null };
     await update(req);
-    invariant(session);
-    setUser(session.user);
     await router.push("/users");
   };
 
@@ -345,22 +360,19 @@ function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   title: string,
   icon: React.ReactNode,
   menuItems: DropdownMenuItem[],
-} & SidebarProps) {
-  const [user] = useUserContext();
-  const backgroundColor = useColorModeValue(bgColorModeValues[0], 
-    bgColorModeValues[1]);
-  const borderColor = useColorModeValue(borderColorModeValues[0], 
-    borderColorModeValues[1]);
+  onClose: () => void,
+}) {
+  const myRoles = useMyRoles();
   const filteredItems = menuItems.filter(item => 
-    isPermitted(user.roles, item.roles));
-  
+    isPermitted(myRoles, item.roles));
+
   if (filteredItems.length === 0) {
     return <></>;
   }
   return <Flex paddingY={sidebarItemPaddingY}>
     <Menu placement='right-start'>
       <DropdownMenuButton title={title} icon={icon}/>
-        <MenuList bg={backgroundColor} borderColor={borderColor}>
+        <MenuList bg="white" borderColor={borderColor}>
           {filteredItems.map((item, index) => {
             const isUrl = typeof item.action === 'string';
             return (
@@ -384,16 +396,22 @@ const DropdownMenuButton = ({ title, icon } : {
   title: string,
   icon: React.ReactNode,
 }) => {
-  return <MenuButton marginX={componentSpacing}  paddingLeft={componentSpacing}
-    color={siderbarTextColor} fontWeight="bold" transition="all 0.3s" 
-    _focus={{ boxShadow: 'none' }}>
+  return <MenuButton
+    marginX={componentSpacing}
+    paddingLeft={componentSpacing}
+    color={inactiveNavLinkColor}
+    fontWeight="medium"
+    transition="all 0.3s" 
+    _focus={{ boxShadow: 'none' }}
+  >
     <HStack>{icon}<Text>{title}</Text><FiChevronRight /></HStack>
   </MenuButton>;
 };
 
-const SidebarRow = ({ item, onClose, ...rest }: {
+function SidebarRow({ item, onClose }: {
   item: MainMenuItem,
-} & SidebarProps) => {
+  onClose: () => void,
+}) {
   const router = useRouter();
   const active = item.regex && (
     item.regex.test(router.pathname) || item.regex.test(router.asPath));
@@ -401,8 +419,8 @@ const SidebarRow = ({ item, onClose, ...rest }: {
   return <Link
     as={NextLink}
     href={item.path}
-    color={active ? "brand.c" : siderbarTextColor}
-    fontWeight="bold"
+    color={active ? activeNavLinkColor : inactiveNavLinkColor}
+    fontWeight={active ? "bold" : "medium"}
     onClick={onClose}
   >
     <Flex
@@ -411,10 +429,12 @@ const SidebarRow = ({ item, onClose, ...rest }: {
       paddingY={sidebarItemPaddingY}
       role="group"
       cursor={active ? "default" : "pointer"}
-      {...rest}
     >
       <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
-      <Text marginX={componentSpacing}>{item.name}</Text>
+      <Text marginX={componentSpacing} position="relative">
+        {item.name}
+        {item.redDot}
+      </Text>
       <Icon
         as={MdChevronRight}
         opacity={0}
@@ -422,4 +442,4 @@ const SidebarRow = ({ item, onClose, ...rest }: {
       />
     </Flex>
   </Link>;
-};
+}

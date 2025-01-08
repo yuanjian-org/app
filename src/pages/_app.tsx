@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { ChakraProvider } from '@chakra-ui/react';
 import { AppProps } from 'next/app';
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren } from 'react';
 import theme from '../theme';
 import Head from 'next/head';
 import { trpcNext } from "../trpc";
@@ -78,7 +78,7 @@ function SwitchBoard({ children, pageType }: {
   pageType?: AppPageType
 } & PropsWithChildren)
 {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   // Invariant guaranteed by the caller
@@ -105,7 +105,7 @@ function SwitchBoard({ children, pageType }: {
       void router.replace("/");
       return null;
     } else {
-      return <AppPageContainer pageType={pageType} user={session.user}>
+      return <AppPageContainer pageType={pageType}>
         {children}
       </AppPageContainer>;
     }

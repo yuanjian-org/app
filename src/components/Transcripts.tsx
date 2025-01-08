@@ -5,9 +5,8 @@ import {
   Button,
   Spacer,
   Flex,
-  Text,
+  Text
 } from '@chakra-ui/react';
-import React from 'react';
 import { trpcNext } from "../trpc";
 import { Transcript } from '../shared/Transcript';
 import { useRouter } from 'next/router';
@@ -20,14 +19,21 @@ import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import replaceUrlParam from 'shared/replaceUrlParam';
 import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
+import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
+import useMe from 'useMe';
 
-export default function Transcripts({ groupId }: {
-  groupId: string,
+export default function Transcripts({ group }: {
+  group: Group,
 }) {
-  const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
+  if (!isPermittedToAccessGroupHistory(useMe(), group)) {
+    return <Text color="gray">您没有访问会议摘要的权限。</Text>;
+  }
+
+  const { data: transcripts } = trpcNext.transcripts.list.useQuery({
+    groupId: group.id });
   return !transcripts ? <Loader /> 
     : transcripts.length ? <LoadedTranscripts transcripts={transcripts} />
-    : <Text color="gray">无通话记录。会议结束后一小时之内会显示在这里。</Text>;
+    : <Text color="gray">会议摘要将在会议结束后一小时内显示在这里。</Text>;
 }
 
 /**

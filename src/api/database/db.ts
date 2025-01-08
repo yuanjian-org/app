@@ -19,9 +19,11 @@ import ChatMessage from "./models/ChatMessage";
 import LandmarkAssessment from "./models/map/LandmarkAssessment";
 import MentorBooking from "./models/MentorBooking";
 import MergeToken from "./models/MergeToken";
-import Like from "./models/Like";
 import ScheduledEmail from "./models/ScheduledEmail";
 import EventLog from "./models/EventLog";
+import Kudos from "./models/Kudos";
+import LastReadChatRoom from "./models/LastReadChatRoom";
+import DraftChatMessage from "./models/DraftChatMessage";
 
 const db = {
   Mentorship,
@@ -41,9 +43,11 @@ const db = {
   LandmarkAssessment,
   MentorBooking,
   MergeToken,
-  Like,
   ScheduledEmail,
   EventLog,
+  Kudos,
+  LastReadChatRoom,
+  DraftChatMessage,
 };
 
 export default db;

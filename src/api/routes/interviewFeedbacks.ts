@@ -9,11 +9,10 @@ import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
+import { isPermittedtoAccessMentee } from "./users";
 
 /**
- * Only MentorshipManager, the interviewer of the feedback, and participant's of
- * the interview's calibration (only if the calibration is active) are allowed
- * to call this route.
+ * Permissions of this route are the same as the `interviews.get` route.
  */
 const get = procedure
   .use(authUser())
@@ -24,17 +23,28 @@ const get = procedure
   }))
   .query(async ({ ctx, input: id }) =>
 {
-  const f = await getInterviewFeedback(id, ctx.user, /*allowOnlyInterviewer=*/ false);
+  const f = await getInterviewFeedback(id, ctx.user,
+      /*allowOnlyInterviewer=*/ false);
   return {
     interviewFeedback: f,
     etag: date2etag(f.feedbackUpdatedAt),
   };
 });
 
-async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: boolean) {
+async function getInterviewFeedback(id: string, me: User, 
+  allowOnlyInterviewer: boolean
+) {
   const f = await db.InterviewFeedback.findByPk(id, {
     attributes: [...interviewFeedbackAttributes, "interviewId"],
-    include: interviewFeedbackInclude,
+    include: [...interviewFeedbackInclude, {
+      // Include interview.interviewee.id for `isPermittedtoAccessMentee` below.
+      model: db.Interview,
+      attributes: ["id"],
+      include: [{
+        association: "interviewee",
+        attributes: ["id"],
+      }],
+    }],
   });
   if (!f) throw notFoundError("面试反馈", id);
 
@@ -43,11 +53,19 @@ async function getInterviewFeedback(id: string, me: User, allowOnlyInterviewer: 
   if (!allowOnlyInterviewer) {
     if (isPermitted(me.roles, "MentorshipManager")) return f;
 
-    // Check if the user is a participant of the interview's calibration and the calibration is active.
+    // Check if the user is a participant of the interview's calibration and the
+    // calibration is active.
     const i = await db.Interview.findByPk(f.interviewId, {
       attributes: ["calibrationId"],
     });
-    if (i?.calibrationId && await getCalibrationAndCheckPermissionSafe(me, i.calibrationId)) return f;
+    if (i?.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
+      i.calibrationId)) {
+      return f;
+    }
+
+    if (await isPermittedtoAccessMentee(me, f.interview.interviewee.id)) {
+      return f;
+    }
   }
 
   throw noPermissionError("面试反馈", id);
@@ -73,7 +91,9 @@ const update = procedure
   .mutation(async ({ ctx, input }) =>
 {
   // TODO: Use transaction
-  const f = await getInterviewFeedback(input.id, ctx.user, /*allowOnlyInterviewer=*/ true);
+  const f = await getInterviewFeedback(input.id, ctx.user,
+    /*allowOnlyInterviewer=*/ true);
+
   if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
     throw conflictError();
   }

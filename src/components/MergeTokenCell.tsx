@@ -41,7 +41,7 @@ export default function MergeTokenCell({ user, refetch } : {
           </Tooltip>
           :
           <Tooltip label="发送的激活码已经过期">
-            <Badge bg="grey" color='white'><s>T</s></Badge>
+            <Badge bg="gray" color='white'><s>T</s></Badge>
           </Tooltip>
         )
       }

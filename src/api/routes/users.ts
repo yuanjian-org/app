@@ -45,6 +45,7 @@ import { getUser2MentorshipCount } from "./mentorships";
 import { fakeEmailDomain } from "../../shared/fakeEmail";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
+import { zTraitsPreference } from "../../shared/Traits";
 
 const create = procedure
   .use(authUser('UserManager'))
@@ -174,10 +175,11 @@ const list = procedure
   }));
 });
 
-const listMentorProfiles = procedure
+const listMentors = procedure
   .use(authUser())
   .output(z.array(zMinUserAndProfile.merge(z.object({
     relational: z.boolean(),
+    traitsPreference: zTraitsPreference.nullable(),
   }))))
   .query(async ({ ctx: { user: me } }) =>
 {
@@ -205,13 +207,16 @@ const listMentorProfiles = procedure
       user: u,
       profile: u.profile ?? {},
       relational: cap > 0,
+      traitsPreference: u.preference?.mentor?.学生特质 ?? null,
     };
   });
 });
 
-const listVolunteerProfiles = procedure
+const listVolunteers = procedure
   .use(authUser(["Volunteer"]))
   .output(z.array(zMinUserAndProfile.merge(z.object({
+    likes: z.number(),
+    kudos: z.number(),
     updatedAt: zDateColumn
   }))))
   .query(async () =>
@@ -220,11 +225,14 @@ const listVolunteerProfiles = procedure
   const volunteerRole: Role = "Volunteer";
   return (await db.User.findAll({
     where: { roles: { [Op.contains]: [volunteerRole] } },
-    attributes: [...minUserAttributes, "roles", "profile", "updatedAt"],
+    attributes: [...minUserAttributes, "roles", "profile", "updatedAt",
+      "likes", "kudos"],
   })).map(u => ({
     user: u,
     profile: u.profile ?? {},
     updatedAt: u.updatedAt,
+    likes: u.likes ?? 0,
+    kudos: u.kudos ?? 0,
   }));
 });
 
@@ -296,7 +304,6 @@ const update = procedure
       name: input.name,
       wechat: input.wechat,
       pinyin: toPinyin(input.name ?? ""),
-      consentFormAcceptedAt: input.consentFormAcceptedAt,
       ...await checkAndPopulateUrl(input.name, input.roles, user.url, input.url,
         transaction),
 
@@ -380,6 +387,10 @@ const get = procedure
   return u;
 });
 
+/**
+ * TODO: Remove this route. Use routes that returns more specific data instead.
+ * Also, the session user already has full information.
+ */
 const getFull = procedure
   .use(authUser())
   .input(z.string())
@@ -419,6 +430,22 @@ const getUserPreference = procedure
   return user.preference || {};
 });
 
+const getMentorTraitsPref = procedure
+  .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }))
+  .output(zTraitsPreference.nullable())
+  .query(async ({ input: { userId } }) => 
+{
+  const user = await db.User.findByPk(userId, {
+    attributes: ['preference'] 
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return user.preference?.mentor?.学生特质 ?? null;
+});
+
 /**
  * Query users using either userId or userUrl but not both
  */
@@ -430,6 +457,8 @@ const getUserProfile = procedure
   }))
   .output(zMinUserAndProfile.merge(z.object({
     isMentor: z.boolean(),
+    likes: z.number(),
+    kudos: z.number(),
   })))
   .query(async ({ ctx: { user: me }, input: { userId, userUrl } }) => 
 {
@@ -438,7 +467,9 @@ const getUserProfile = procedure
       "Must provide either userId or userUrl and not both.");
   }
 
-  const attributes = [...minUserAttributes, 'menteeStatus', 'roles', 'profile'];
+  const attributes = [
+    ...minUserAttributes, 'menteeStatus', 'roles', 'profile', 'likes', 'kudos'
+  ];
   const u = userId ?
     await db.User.findByPk(userId, { attributes })
     :
@@ -470,6 +501,8 @@ const getUserProfile = procedure
     user: u,
     profile: u.profile ?? {},
     isMentor: isPermitted(u.roles, "Mentor"),
+    likes: u.likes ?? 0,
+    kudos: u.kudos ?? 0,
   };
 });
 
@@ -491,7 +524,7 @@ const setUserProfile = procedure
 
 const getUserState = procedure
   .use(authUser())
-  .output(zUserState.nullable())
+  .output(zUserState)
   .query(async ({ ctx: { user } }) =>
 {
   const u = await db.User.findByPk(user.id, {
@@ -499,16 +532,29 @@ const getUserState = procedure
   });
 
   if (!u) throw notFoundError("用户", user.id);
-  return u.state;
+  return u.state ?? {};
 });
 
+/**
+ * Fields absent from the input are not updated.
+ */
 const setUserState = procedure
   .use(authUser())
-  .input(zUserState)
+  .input(zUserState.partial())
   .mutation(async ({ ctx: { user }, input: state }) => 
 {
-  const [cnt] = await db.User.update({ state }, { where: { id: user.id } });
-  if (cnt == 0) throw notFoundError("用户", user.id);
+  await sequelize.transaction(async transaction => {
+    const u = await db.User.findByPk(user.id, { 
+      attributes: ["id", "state"],
+      transaction,
+    });
+    if (!u) throw notFoundError("用户", user.id);
+
+    await u.update({ state: {
+      ...u.state,
+      ...state,
+    } }, { transaction });
+  });
 });
 
 /**
@@ -607,10 +653,11 @@ const setPointOfContactAndNote = procedure
 
 /**
  * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
- * of the applicant, and participants of the calibration (only if the calibration
- * is active) are allowed to call this route.
+ * of the applicant, participants of the calibration (only if the calibration
+ * is active), and the user themselves are allowed to call this route.
  * 
- * If the user is not an MentorshipManager, contact information is redacted.
+ * If the user is not an MentorshipManager or the user being requested, contact
+ * information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -623,7 +670,7 @@ const getApplicant = procedure
     sex: z.string().nullable(),
     application: z.record(z.string(), z.any()).nullable(),
   }))
-  .query(async ({ ctx, input: { userId, type } }) =>
+  .query(async ({ ctx: { user: me }, input: { userId, type } }) =>
 {
   const isMentee = type == "MenteeInterview";
 
@@ -637,7 +684,8 @@ const getApplicant = procedure
   });
   if (!user) throw notFoundError("用户", userId);
 
-  const application = isMentee ? user.menteeApplication : user.volunteerApplication;
+  const application = isMentee ? user.menteeApplication :
+    user.volunteerApplication;
   const sex = user.profile?.性别 ?? null;
 
   const ret = {
@@ -646,14 +694,16 @@ const getApplicant = procedure
     sex,
   };
 
-  if (isPermitted(ctx.user.roles, "MentorshipManager")) return ret;
+  if (me.id === userId || isPermitted(me.roles, "MentorshipManager")) {
+    return ret;
+  }
 
   // Redact
   user.email = "redacted@redacted.com";
   user.wechat = "redacted";
 
   // Check if the user is a mentorcoach or mentor of the mentee
-  if (isMentee && await isPermittedtoAccessMentee(ctx.user, userId)) return ret;
+  if (isMentee && await isPermittedtoAccessMentee(me, userId)) return ret;
 
   // Check if the user is an interviewer
   const myInterviews = await db.Interview.findAll({
@@ -665,7 +715,7 @@ const getApplicant = procedure
     include: [{
       model: db.InterviewFeedback,
       attributes: [],
-      where: { interviewerId: ctx.user.id },
+      where: { interviewerId: me.id },
     }],
   });
   if (myInterviews.length) return ret;
@@ -680,7 +730,7 @@ const getApplicant = procedure
   });
   for (const i of allInterviews) {
     if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(
-      ctx.user, i.calibrationId)) return ret;
+      me, i.calibrationId)) return ret;
   }
 
   throw noPermissionError("申请表", user.id);
@@ -752,8 +802,9 @@ export default router({
   list,
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
-  listVolunteerProfiles,
-  listMentorProfiles,
+  listVolunteers,
+  listMentors,
+  getMentorTraitsPref,
 
   update,
   setMenteeStatus,
@@ -869,7 +920,8 @@ export async function checkPermissionToAccessMentee(me: User, menteeId: string) 
 
 export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
   if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
-  if (await db.Mentorship.count(
-    { where: { mentorId: me.id, menteeId } }) > 0) return true;
+  if (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } }) > 0) {
+    return true;
+  }
   return false;
 }

@@ -10,8 +10,7 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import React from 'react';
-import { useUserContext } from "../UserContext";
+import { useMyRoles } from "../useMe";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -20,10 +19,9 @@ import { isPermitted } from 'shared/Role';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 
 export default function Page() {
-  const [me] = useUserContext();
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
     // TODO: This is a hack. Do it properly.
-    includeOwned: isPermitted(me.roles, "Mentee"),
+    includeOwned: isPermitted(useMyRoles(), "Mentee"),
   });
 
   return (<>

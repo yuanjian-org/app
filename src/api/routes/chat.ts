@@ -4,7 +4,7 @@ import db from "../database/db";
 import { z } from "zod";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
-import { 
+import {
   chatRoomAttributes,
   chatRoomInclude,
 } from "api/database/models/attributesAndIncludes";
@@ -12,7 +12,10 @@ import { zChatRoom } from "shared/ChatRoom";
 import User from "shared/User";
 import { checkPermissionToAccessMentee } from "./users";
 import invariant from "tiny-invariant";
-import { Op } from "sequelize";
+import { Includeable, Op, Sequelize, Transaction } from "sequelize";
+import { zDateColumn, zNullableDateColumn } from "shared/DateColumn";
+import { ScheduledEmailData, zScheduledChatEmail } from "shared/ScheduledEmail";
+import moment from "moment";
 
 const getRoom = procedure
   .use(authUser())
@@ -22,52 +25,133 @@ const getRoom = procedure
   .output(zChatRoom)
   .query(async ({ ctx, input: { menteeId } }) =>
 {
-  while (true) {
-    const r = await db.ChatRoom.findOne({
-      where: { menteeId },
-      attributes: chatRoomAttributes,
-      include: chatRoomInclude,
-    });
+  await checkRoomPermission(ctx.user, menteeId);
 
-    if (!r) {
-      await db.ChatRoom.create({ menteeId });
-      continue;
+  return await sequelize.transaction(async transaction => {
+    while (true) {
+      const r = await findRoom(menteeId, transaction, chatRoomAttributes,
+        chatRoomInclude);
+      if (!r) {
+        await db.ChatRoom.create({ menteeId }, { transaction });
+      } else {
+        return r;
+      }
     }
-
-    await checkRoomPermission(ctx.user, menteeId);
-    return r;
-  }
+  });
 });
 
 /**
  * @return null if there is no message or corresponding chat room doesn't exist.
  */
-const getLatestMessageCreatedAt = procedure
+const getLastMessageCreatedAt = procedure
   .use(authUser())
   .input(z.object({
     menteeId: z.string(),
     prefix: z.string(),
   }))
-  .output(z.date().nullable())
-  .query(async ({ ctx, input: { menteeId, prefix } }) =>
+  .output(zNullableDateColumn)
+  .query(async ({ ctx: { user }, input: { menteeId, prefix } }) =>
 {
-  const r = await db.ChatRoom.findOne({
-    where: { menteeId },
-    attributes: ["id"],
+  await checkRoomPermission(user, menteeId);
+
+  return await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return null;
+
+    return await db.ChatMessage.max("createdAt", { where: {
+      roomId: room.id,
+      ...prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {},
+    }, transaction });
   });
-  if (!r) return null;
-
-  await checkRoomPermission(ctx.user, menteeId);
-
-  return await db.ChatMessage.max("createdAt", { where: {
-    roomId: r.id,
-    markdown: { [Op.iLike]: `${prefix}%` },
-  } });
 });
 
 /**
- * Use mentorshipId etc to query instaed of using roomId, so that much logic of this function can be deduped with
- * `getRoom` and `getMostRecentMessageUpdatedAt`
+ * @return excludes messages by the current user. null if there is no message or
+ * corresponding chat room doesn't exist.
+ */
+const getLastMessageUpdatedAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+  }))
+  .output(zNullableDateColumn)
+  .query(async ({ ctx: { user }, input: { menteeId } }) =>
+{
+  await checkRoomPermission(user, menteeId);
+
+  return await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return null;
+
+    return await db.ChatMessage.max("updatedAt", { where: {
+      roomId: room.id,
+      userId: { [Op.ne]: user.id },
+    }, transaction });
+  });
+});
+
+// No need to checkRoomPermission() because there is no harmful side effect
+const getLastReadAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+  }))
+  .output(zDateColumn)
+  .query(async ({ ctx: { user }, input: { menteeId } }) =>
+{
+  return await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) return moment(0);
+
+    const l = await db.LastReadChatRoom.findOne({
+      where: {
+        roomId: room.id,
+        userId: user.id,
+      },
+      attributes: ["lastReadAt"],
+      transaction,
+    });
+    return l ? l.lastReadAt : moment(0);
+  });
+});
+
+// No need to checkRoomPermission() because there is no harmful side effect
+const setLastReadAt = procedure
+  .use(authUser())
+  .input(z.object({
+    menteeId: z.string(),
+    lastReadAt: zDateColumn,
+  }))
+  .mutation(async ({ ctx: { user }, input: { menteeId, lastReadAt } }) =>
+{
+  await sequelize.transaction(async transaction => {
+    const room = await findRoom(menteeId, transaction);
+    if (!room) throw notFoundError("讨论空间", menteeId);
+    await db.LastReadChatRoom.upsert({
+      roomId: room.id,
+      userId: user.id,
+      lastReadAt,
+    }, { transaction });
+  });
+});
+
+async function findRoom(
+  menteeId: string,
+  transaction: Transaction,
+  attributes: string[] = ["id"],
+  include: Includeable[] = [],
+) {
+  return await db.ChatRoom.findOne({
+    where: { menteeId },
+    attributes,
+    include,
+    transaction,
+  });
+}
+
+/**
+ * Use mentorshipId etc to query instaed of using roomId, so that much logic of
+ * this function can be deduped with `getRoom` and `getMostRecentMessageUpdatedAt`.
  */
 const createMessage = procedure
   .use(authUser())
@@ -75,7 +159,7 @@ const createMessage = procedure
     roomId: z.string(),
     markdown: z.string(),
   }))
-  .mutation(async ({ ctx, input: { roomId, markdown } }) => 
+  .mutation(async ({ ctx: { user }, input: { roomId, markdown } }) => 
 {
   await sequelize.transaction(async transaction => {
     const r = await db.ChatRoom.findByPk(roomId, {
@@ -83,15 +167,22 @@ const createMessage = procedure
     });
     if (!r) throw notFoundError("讨论空间", roomId);
 
-    await checkRoomPermission(ctx.user, r.menteeId);
+    await checkRoomPermission(user, r.menteeId);
 
-    await db.ChatMessage.create({ roomId, markdown, userId: ctx.user.id },
+    await db.ChatMessage.create({ roomId, markdown, userId: user.id },
       { transaction });
+
+    await db.DraftChatMessage.destroy({
+      where: { roomId, authorId: user.id },
+      transaction,
+    });
+
+    await scheduleEmail(roomId, transaction);
   });
 });
 
 /**
- * Only the user who created the message can update it
+ * Only the user who created the message can update it.
  */
 const updateMessage = procedure
   .use(authUser())
@@ -99,20 +190,120 @@ const updateMessage = procedure
     messageId: z.string(),
     markdown: z.string(),
   }))
-  .mutation(async ({ ctx, input: { messageId, markdown } }) => 
+  .mutation(async ({ ctx: { user }, input: { messageId, markdown } }) => 
 {
   if (!markdown) throw generalBadRequestError("消息内容不能为空");
 
   await sequelize.transaction(async (transaction) => {
     const m = await db.ChatMessage.findByPk(messageId, {
-      attributes: ["id", "userId"],
+      attributes: ["id", "userId", "roomId"],
       transaction,
     });
     if (!m) throw notFoundError("讨论消息", messageId);
-    if (m.userId !== ctx.user.id) throw noPermissionError("讨论消息", messageId);
+    if (m.userId !== user.id) throw noPermissionError("讨论消息", messageId);
+
     await m.update({ markdown }, { transaction });
+
+    await db.DraftChatMessage.destroy({
+      where: { messageId, authorId: user.id },
+      transaction,
+    });
+
+    await scheduleEmail(m.roomId, transaction);
   });
 });
+
+// No need for permission check because there isn't harmful side effect.
+const saveDraftMessage = procedure
+  .use(authUser())
+  .input(z.object({
+    roomId: z.string().optional(),
+    messageId: z.string().optional(),
+    markdown: z.string(),
+  }))
+  .mutation(async ({ ctx: { user }, input: { roomId, messageId, markdown } }) => 
+{
+  checkDraftMessageInput(roomId, messageId);
+
+  // Sequelize's upsert() doesn't work well when there are multiple unique
+  // constraints. So we do upsert manually.
+
+  await sequelize.transaction(async transaction => {  
+    const condition = roomId === undefined ? { messageId } : { roomId };
+    const cnt = await db.DraftChatMessage.count({ where: {
+      authorId: user.id,
+      ...condition,
+    }, transaction });
+    if (cnt > 0) {
+      await db.DraftChatMessage.update({ markdown }, {
+        where: condition,
+        transaction,
+      });
+    } else {
+      await db.DraftChatMessage.create({
+        authorId: user.id,
+        ...condition,
+        markdown,
+      }, { transaction });
+    }
+  });
+});
+
+// No need for permission check because there isn't harmful side effect.
+const getDraftMessage = procedure
+  .use(authUser())
+  .input(z.object({
+    roomId: z.string().optional(),
+    messageId: z.string().optional(),
+  }))
+  .output(z.string().nullable())
+  .query(async ({ ctx: { user }, input: { roomId, messageId } }) => 
+{
+  checkDraftMessageInput(roomId, messageId);
+
+  return (await db.DraftChatMessage.findOne({
+    where: {
+      authorId: user.id,
+      ...roomId === undefined ? { messageId } : { roomId },
+    },
+    attributes: ["markdown"],
+  }))?.markdown ?? null;
+});
+
+// See models/DraftChatMessage.ts for the explanation of roomId and messageId.
+function checkDraftMessageInput(
+  roomId: string | undefined, messageId: string | undefined
+) {
+  if ((roomId === undefined) == (messageId === undefined)) {
+    throw generalBadRequestError(
+      "one and only one of roomId and messageId must be specified");
+  }
+}
+
+// TODO: dedupe with kudos.ts
+async function scheduleEmail(roomId: string, transaction: Transaction) {
+  // Force type check
+  const type: z.TypeOf<typeof zScheduledChatEmail.shape.type> = "Chat";
+  const typeKey: keyof typeof zScheduledChatEmail.shape = "type";
+  const roomIdKey: keyof typeof zScheduledChatEmail.shape = "roomId";
+
+  // For some reason `replacements` doesn't work here. So validate input
+  // manually with zod parsing.
+  const existing = await db.ScheduledEmail.count({
+    where: Sequelize.literal(`
+      data ->> '${typeKey}' = '${type}' AND
+      data ->> '${roomIdKey}' = '${z.string().uuid().parse(roomId)}'
+    `),
+    transaction,
+  });
+  if (existing > 0) {
+    console.log(`Chat email already scheduled for ${roomId}`);
+    return;
+  }
+
+  const data: ScheduledEmailData = { type, roomId };
+  await db.ScheduledEmail.create({ data }, { transaction });
+}
 
 async function checkRoomPermission(me: User, menteeId: string | null) {
   if (menteeId !== null) await checkPermissionToAccessMentee(me, menteeId);
@@ -123,5 +314,10 @@ export default router({
   getRoom,
   createMessage,
   updateMessage,
-  getLatestMessageCreatedAt,
+  getLastMessageCreatedAt,
+  getLastMessageUpdatedAt,
+  getLastReadAt,
+  setLastReadAt,
+  saveDraftMessage,
+  getDraftMessage,
 });
