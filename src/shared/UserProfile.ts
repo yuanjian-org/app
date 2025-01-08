@@ -25,6 +25,7 @@ export const zStringUserProfile = z.object({
   // Unused / deprecated
   '擅长辅导领域': zStr,
 });
+
 export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
 
 export const zUserProfile = zStringUserProfile.merge(z.object({
@@ -35,6 +36,7 @@ export const zUserProfile = zStringUserProfile.merge(z.object({
   }).optional(),
   '特质': zTraits.optional(),
 }));
+
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
 
 export const zMinUserAndProfile = z.object({
