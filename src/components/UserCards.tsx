@@ -382,7 +382,7 @@ function UserCardForMobile({
         <Box width="100px">
           <FullWidthImageSquare profile={p} />
         </Box>
-        
+
         <VStack
           ml={componentSpacing}
           // Align content to the left
