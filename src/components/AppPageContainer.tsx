@@ -13,22 +13,26 @@ export default function AppPageContainer({ pageType, children }: {
 } & PropsWithChildren) {
   return <>
     <NavBars>
-      {pageType === "full" ?
+      {pageType === "bare" ?
         children
         :
         <VStack
           minH="100vh"
           align="stretch"
-          px={pageMarginX}
-          pt={pageMarginTop}
+          {...pageType !== "full" && {
+            px: pageMarginX,
+            pt: pageMarginTop,
+          }}
           maxWidth={{
             base: "100%",
-            ...pageType !== "wide" && { xl: "1200px" }
+            ...pageType === undefined && { xl: "1200px" }
           }}
         >
           {children}
+
           <Spacer />
           <Footer alignItems={{ base: 'center', [breakpoint]: 'start' }} />
+
         </VStack>
       }
     </NavBars>

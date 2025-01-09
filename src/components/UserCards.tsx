@@ -65,17 +65,20 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-const isMac = typeof navigator !== 'undefined' &&
-  /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
-
-export default function UserCards({ type, users }: {
-  type: UserCardType,
-  users: UserDisplayData[],
+export function FullTextSearchBox({ value, setValue, shortPlaceholder }: {
+  value: string,
+  setValue: (value: string) => void,
+  shortPlaceholder?: boolean,
 }) {
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  // Set to null to book with any mentor
-  const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
+  const isMac = typeof navigator !== 'undefined' &&
+    /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const hotKey = useBreakpointValue({
+    base: "", 
+    md: (isMac ? "⌘" : "Ctrl") + "+F "
+  });
 
   useEffect(() => {
     const onKeydown = (event: KeyboardEvent) => {
@@ -88,37 +91,48 @@ export default function UserCards({ type, users }: {
     return () => {
       window.removeEventListener('keydown', onKeydown);
     };
-  }, [searchInputRef]);
+  }, [searchInputRef, isMac]);  
+
+  return <InputGroup>
+    <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
+    <Input
+      ref={searchInputRef}
+      bg="white"
+      type="search"
+      autoFocus
+      placeholder={`${hotKey}搜索关键字` +
+        `${shortPlaceholder ? "" : "，比如“金融“、“女”、“成都”，支持拼音"}`}
+      value={value}
+      onChange={ev => setValue(ev.target.value)}
+    />
+  </InputGroup>;
+}
+
+
+export default function UserCards({ type, users }: {
+  type: UserCardType,
+  users: UserDisplayData[],
+}) {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  // Set to null to book with any mentor
+  const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
 
   const searchResult = useMemo(() => {
     return searchTerm ? search(users, searchTerm) : users;
   }, [searchTerm, users]); 
 
-  const hotKey = useBreakpointValue({
-    base: "", 
-    md: (isMac ? "⌘" : "Ctrl") + "+F "
-  });
-
   // Show kudos history card only when not searching.
   const showKudosHistory = type == "Volunteer" && !searchTerm;
 
   return <>
-    {/* Search box */}
-    <InputGroup mb={sectionSpacing}>
-      <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
-      <Input
-        ref={searchInputRef}
-        bg="white"
-        type="search"
-        autoFocus
-        placeholder={`${hotKey}搜索关键字，比如“金融“、“女”、“成都”，支持拼音`}
-        value={searchTerm}
-        onChange={ev => setSearchTerm(ev.target.value)}
-      />
-    </InputGroup>
+    <FullTextSearchBox
+      value={searchTerm}
+      setValue={setSearchTerm}
+    />
 
     <ShowOnDesktop>
       <SimpleGrid
+        mt={sectionSpacing}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
       >
