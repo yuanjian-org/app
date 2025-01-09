@@ -1,10 +1,10 @@
 import { Box } from '@chakra-ui/react';
-import { fullPage } from 'AppPage';
+import { barePage } from 'AppPage';
 import { parseQueryString } from 'shared/strings';
 import { useRouter } from 'next/router';
 import Loader from 'components/Loader';
 
-export default fullPage(() => {
+export default barePage(() => {
   const id = parseQueryString(useRouter(), 'id');
   const x = parseQueryString(useRouter(), 'x');
 

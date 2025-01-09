@@ -48,11 +48,11 @@ import { accountPageTitle } from 'pages/accounts/[userId]';
 import { UnreadKudosRedDot } from './Kudos';
 import { UnreadChatMessagesRedDot } from './ChatRoom';
 
-export const desktopSidebarWidth = 60;
+export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
+export const sideBarBorderColor = "gray.200";
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
-const borderColor = "gray.200";
 
 interface MainMenuItem {
   name: string,
@@ -237,7 +237,7 @@ export function SidebarForDesktop() {
   return <Box
     bg="white"
     borderRight="1px"
-    borderRightColor={borderColor}
+    borderRightColor={sideBarBorderColor}
     w={desktopSidebarWidth}
     pos="fixed"
     h="full"
@@ -372,7 +372,7 @@ function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   return <Flex paddingY={sidebarItemPaddingY}>
     <Menu placement='right-start'>
       <DropdownMenuButton title={title} icon={icon}/>
-        <MenuList bg="white" borderColor={borderColor}>
+        <MenuList bg="white" borderColor={sideBarBorderColor}>
           {filteredItems.map((item, index) => {
             const isUrl = typeof item.action === 'string';
             return (
