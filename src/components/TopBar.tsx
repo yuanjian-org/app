@@ -3,12 +3,14 @@ import { desktopSidebarWidth, sideBarBorderColor } from "components/Sidebar";
 import { useEffect, useRef, useState } from "react";
 import { breakpoint, pageMarginTop, componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
+import { mobileMenuButtonMarginTop } from "./Navbars";
 
 export const topBarPaddings = {
   ps: pageMarginX,
   // Avoid the sidebar menu icon on mobile
   pe: { base: "70px", [breakpoint]: 4 },
-  pt: pageMarginTop,
+  // On mobile, align top component (such as search box) with the menu button
+  pt: { ...pageMarginTop, base: mobileMenuButtonMarginTop },
   pb: componentSpacing,
 };
 
@@ -31,6 +33,7 @@ export default function TopBar({ children, ...rest }: BoxProps) {
       borderBottom="1px"
       borderColor={sideBarBorderColor}
       shadow="sm"
+      zIndex={1}
       ref={refTopbar}
       {...rest}
     >

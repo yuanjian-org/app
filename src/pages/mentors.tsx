@@ -1,70 +1,51 @@
 import {
   Text,
   Button,
-  VStack,
-  UnorderedList,
-  ListItem,
-  Wrap,
-  WrapItem,
-  Heading,
+  VStack
 } from '@chakra-ui/react';
 import { hash } from 'shared/strings';
 import { trpcNext } from "trpc";
-import { componentSpacing, sectionSpacing } from 'theme/metrics';
-import PageBreadcrumb from 'components/PageBreadcrumb';
-import { widePage } from 'AppPage';
+import { componentSpacing, pageMarginX } from 'theme/metrics';
+import { fullPage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
-import UserCards from "components/UserCards";
+import UserCards, { FullTextSearchBox } from "components/UserCards";
 import { UserDisplayData } from '../components/UserPanel';
 import Loader from 'components/Loader';
 import useMe from 'useMe';
+import TopBar from 'components/TopBar';
+import { topBarPaddings } from 'components/TopBar';
 
-export default widePage(() => {
+export default fullPage(() => {
   const me = useMe();
   const [booking, setBooking] = useState<boolean>();
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const { data } = trpcNext.users.listMentors.useQuery();
   const shuffled = useMemo(() => 
     data ? dailyShuffle(data, me.id) : undefined, [data, me]);
 
   return <>
-    <PageBreadcrumb current="根据话题预约" />
+    <TopBar {...topBarPaddings}>
+      <VStack
+        spacing={componentSpacing}
+        align="start"
+      >
+        <Text>欢迎你随时预约择业就业、面试辅导、情感困惑等任何你关心的话题：</Text>
 
-    <VStack
-      spacing={componentSpacing}
-      mb={sectionSpacing}
-      align="start"
-      maxW="800px"
-    >
-      <Text>欢迎你随时预约交流任何你关心的话题，比如：</Text>
+        <Button variant="brand" onClick={() => setBooking(true)}>
+          我有一个话题，请帮我预约适合的导师
+        </Button>
 
-      <UnorderedList>
-        <ListItem>简历诊断与模拟面试</ListItem>
-        <ListItem>就业咨询与职业规划</ListItem>
-        <ListItem>生活与情感类话题</ListItem>
-        <ListItem>人生选择与规划</ListItem>
-        <ListItem>其他困扰你的问题</ListItem>
-      </UnorderedList>
+        <Text>或者指定预约任何一位导师：</Text>
 
-      <Wrap spacing={componentSpacing} align="center">
-        <WrapItem>
-          <Button variant="brand" onClick={() => setBooking(true)}>
-            我有一个话题，请帮我预约适合的导师
-          </Button>
-        </WrapItem>
-        <WrapItem>
-          
-        </WrapItem>
-      </Wrap>
-
-      <Heading size="md" mt={componentSpacing}>
-        或者，预约指定导师
-      </Heading>
-    </VStack>
+        <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
+      </VStack>
+    </TopBar>
 
     {!shuffled ? <Loader alignSelf="flex-start" /> :
-      <UserCards type="TransactionalMentor" users={shuffled} />}
+      <UserCards type="TransactionalMentor" users={shuffled}
+        searchTerm={searchTerm} mx={pageMarginX} mt={componentSpacing} />}
 
     {booking &&
       <MentorBookingModal mentor={null} onClose={() => setBooking(false)} />

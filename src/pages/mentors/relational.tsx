@@ -105,7 +105,7 @@ export default widePage(() => {
     </VStack>
 
     {!shuffled ? <Loader alignSelf="flex-start" /> :
-      <UserCards type="RelationalMentor" users={shuffled} />}
+      <UserCards type="RelationalMentor" users={shuffled} searchTerm="" />}
   </>;
 }, "选择一对一导师");
 

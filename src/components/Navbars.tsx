@@ -30,6 +30,8 @@ import RedDot from './RedDot';
 import { useUnreadKudos } from './Kudos';
 import { useUnreadChatMessages } from './ChatRoom';
 
+export const mobileMenuButtonMarginTop = 4;
+
 export default function Navbars({ children }: {
   children: ReactNode;
 }) {
@@ -93,7 +95,7 @@ const TopFixedComponents = ({ onOpen, autosaveState }: {
       width="100%"
       ps={10}
       pe={4}
-      pt={{ base: 4, [breakpoint]: 1 }}
+      pt={{ base: mobileMenuButtonMarginTop, [breakpoint]: 1 }}
     >
       <ShowOnMobile>
         <Spacer />
@@ -105,7 +107,7 @@ const TopFixedComponents = ({ onOpen, autosaveState }: {
         // state={{ id2state: new Map([["a", "无法保存"]]), virgin: false }}
       />
 
-      {/* Mobile menu icon */}
+      {/* Mobile menu button */}
       <ShowOnMobile>
         <IconButton
           onClick={onOpen}

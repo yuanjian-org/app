@@ -1,10 +1,9 @@
 import {
-  Drawer,
-  DrawerBody,
-  DrawerOverlay,
+  Drawer, DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
-  DrawerHeader
+  DrawerBody,
+  DrawerHeader,
 } from '@chakra-ui/react';
 import UserPanel, { UserPanelProps } from 'components/UserPanel';
 
@@ -14,7 +13,7 @@ export default function UserDrawer({ onClose, ...rest }: UserPanelProps & {
   return <Drawer size="xl" isOpen onClose={onClose}>
     <DrawerOverlay />
     <DrawerContent>
-      <DrawerCloseButton /> 
+      <DrawerCloseButton size="lg" /> 
       <DrawerHeader />
       <DrawerBody>
         <UserPanel {...rest} />

@@ -16,10 +16,12 @@ import {
   Tooltip,
   TextProps, BoxProps,
   GridItem,
-  useBreakpointValue
+  useBreakpointValue,
+  InputGroupProps,
+  GridProps
 } from '@chakra-ui/react';
 import { formatUserName, toPinyin } from 'shared/strings';
-import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
+import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import { MinUser } from 'shared/User';
 import { UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
@@ -66,11 +68,10 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-export function FullTextSearchBox({ value, setValue, shortPlaceholder }: {
+export function FullTextSearchBox({ value, setValue, ...inputGroupProps }: {
   value: string,
   setValue: (value: string) => void,
-  shortPlaceholder?: boolean,
-}) {
+} & InputGroupProps) {
   const isMac = typeof navigator !== 'undefined' &&
     /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
 
@@ -94,27 +95,28 @@ export function FullTextSearchBox({ value, setValue, shortPlaceholder }: {
     };
   }, [searchInputRef, isMac]);  
 
-  return <InputGroup>
+  return <InputGroup {...inputGroupProps}>
     <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
     <Input
       ref={searchInputRef}
       bg="white"
       type="search"
       autoFocus
-      placeholder={`${hotKey}搜索关键字` +
-        `${shortPlaceholder ? "" : "，比如“金融“、“女”、“成都”，支持拼音"}`}
+      placeholder={`${hotKey}搜索关键字，支持拼音`}
       value={value}
       onChange={ev => setValue(ev.target.value)}
     />
   </InputGroup>;
 }
 
-
-export default function UserCards({ type, users }: {
+/**
+ * @param searchTerm Empty string means no search.
+ */
+export default function UserCards({ type, users, searchTerm, ...gridProps }: {
   type: UserCardType,
   users: UserDisplayData[],
-}) {
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  searchTerm: string,
+} & GridProps) {
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
 
@@ -126,16 +128,11 @@ export default function UserCards({ type, users }: {
   const showKudosHistory = type == "Volunteer" && !searchTerm;
 
   return <>
-    <FullTextSearchBox
-      value={searchTerm}
-      setValue={setSearchTerm}
-    />
-
     <ShowOnDesktop>
       <SimpleGrid
-        mt={sectionSpacing}
         spacing={componentSpacing}
         templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
+        {...gridProps}
       >
         {showKudosHistory && <GridItem colSpan={2} rowSpan={1}>
           <KudosHistoryCard type="desktop" />
@@ -156,6 +153,7 @@ export default function UserCards({ type, users }: {
         spacing={componentSpacing}
         templateColumns='1fr'
         alignItems="stretch"
+        {...gridProps}
       >
         {showKudosHistory && <KudosHistoryCard type="mobile" />}
 
@@ -310,7 +308,7 @@ function UserCardForDesktop({
         <Button variant="brand" onClick={ev => {
           ev.stopPropagation();
           openModal();
-        }}>预约</Button>
+        }}>预约交流</Button>
       </>}
 
       {type == "Volunteer" && <KudosControl
@@ -456,7 +454,7 @@ function UserCardForMobile({
           <Link onClick={ev => {
             ev.stopPropagation();
             openModal();
-          }}>预约</Link>
+          }}>预约交流</Link>
         </>}
 
         {type == "Volunteer" && <>
