@@ -16,7 +16,7 @@ import { widePage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import UserCards from "components/UserCards";
-import { UserDisplayData } from './users/[userId]';
+import { UserDisplayData } from '../components/UserPanel';
 import Loader from 'components/Loader';
 import useMe from 'useMe';
 

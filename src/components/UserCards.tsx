@@ -20,10 +20,9 @@ import {
 } from '@chakra-ui/react';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { componentSpacing, paragraphSpacing, sectionSpacing } from 'theme/metrics';
-import { getUserUrl, MinUser } from 'shared/User';
+import { MinUser } from 'shared/User';
 import { UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { SearchIcon } from '@chakra-ui/icons';
@@ -32,7 +31,9 @@ import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from '
 import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
 import Loader from './Loader';
-import { UserDisplayData } from 'pages/users/[userId]';
+import { UserDisplayData } from 'components/UserPanel';
+import UserDrawer from './UserDrawer';
+import { SmallGrayText } from './SmallGrayText';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -212,9 +213,9 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             最近的赞
             <UnreadKudosRedDot />
           </Heading>
-          <Text fontSize="sm" color="gray">
-            记得给出色的小伙伴点赞哦{' '}😊
-          </Text>
+          <SmallGrayText>
+            记得给出色的小伙伴点赞哦
+          </SmallGrayText>
         </Flex>
 
         <Box
@@ -258,11 +259,6 @@ function search(users: UserDisplayData[], searchTerm: string) {
     visibleUserProfileFields.some(fl => match(u.profile?.[fl.field])))));
 }
 
-function getUrl(user: MinUser, type: UserCardType) {
-  return `${getUserUrl(user)}${type == "RelationalMentor" ? 
-    "?booking=0&traits=1" : ""}`;
-}
-
 function UserCardForDesktop({
   data, type, openModal, isMentorRecommended
 }: {
@@ -271,10 +267,10 @@ function UserCardForDesktop({
   openModal: () => void,
   isMentorRecommended: boolean,
 }) {
-  const router = useRouter();
   const p = data.profile;
 
-  const visitUser = () => router.push(getUrl(data.user, type));
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const visitUser = () => setIsDrawerOpen(true);
 
   return <CardForDesktop>
 
@@ -324,6 +320,13 @@ function UserCardForDesktop({
       />}
 
     </CardFooter>
+
+    {isDrawerOpen && <UserDrawer
+      data={{ ...data, isMentor: type != "Volunteer" }}
+      showBookingButton={type == "TransactionalMentor"}
+      showMatchingTraits={type == "RelationalMentor"}
+      onClose={() => setIsDrawerOpen(false)}
+    />}
   </CardForDesktop>;
 }
 
@@ -372,10 +375,10 @@ function UserCardForMobile({
   openModal: () => void,
   isMentorRecommended: boolean,
 }) {
-  const router = useRouter();
   const p = data.profile;
 
-  const visitUser = () => router.push(getUrl(data.user, type));
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const visitUser = () => setIsDrawerOpen(true);
 
   return <CardForMobile>
     <HStack
@@ -467,6 +470,14 @@ function UserCardForMobile({
 
       </HStack>
     </HStack>
+
+    {isDrawerOpen && <UserDrawer
+      data={{ ...data, isMentor: type != "Volunteer" }}
+      showBookingButton={type == "TransactionalMentor"}
+      showMatchingTraits={type == "RelationalMentor"}
+      onClose={() => setIsDrawerOpen(false)}
+    />}
+
   </CardForMobile>;
 }
 
