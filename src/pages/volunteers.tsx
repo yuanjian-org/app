@@ -1,18 +1,46 @@
 import { compareDate } from 'shared/strings';
 import { trpcNext } from "trpc";
-import PageBreadcrumb from 'components/PageBreadcrumb';
-import { widePage } from 'AppPage';
-import { useMemo } from 'react';
-import UserCards from "components/UserCards";
+import { useMemo, useState } from 'react';
+import UserCards, { FullTextSearchBox } from "components/UserCards";
 import Loader from 'components/Loader';
-export default widePage(() => {
+import TopBar, { topBarPaddings } from 'components/TopBar';
+import { componentSpacing, pageMarginX } from 'theme/metrics';
+import { Heading, HStack } from '@chakra-ui/react';
+import { VStack } from '@chakra-ui/react';
+import { fullPage } from 'AppPage';
+import { ShowOnDesktop } from 'components/Show';
+
+const title = "志愿者档案";
+
+export default fullPage(() => {
   const { data } = trpcNext.users.listVolunteers.useQuery();
   const sorted = useMemo(() => 
     data?.sort((a, b) => compareDate(b.updatedAt, a.updatedAt)), [data]);
 
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
   return <>
-    <PageBreadcrumb current="志愿者档案" />
-    {!sorted ? <Loader /> :
-      <UserCards type="Volunteer" users={sorted} />}
+    <TopBar {...topBarPaddings}>
+      <VStack spacing={componentSpacing} align="start">
+
+        <HStack spacing={componentSpacing} width="full">
+          <ShowOnDesktop>
+            <Heading size="md" whiteSpace="nowrap">{title}</Heading>
+          </ShowOnDesktop>
+
+          <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
+        </HStack>
+
+        {/* <ShowOnMobile> somehow messes up with TooBar's auto height
+            calculation. */}
+        <Heading size="md" display={{ base: "block", md: "none" }}>
+          {title}
+        </Heading>
+
+      </VStack>
+    </TopBar>
+
+    {!sorted ? <Loader /> : <UserCards type="Volunteer" users={sorted}
+      searchTerm={searchTerm} mx={pageMarginX} mt={componentSpacing} />}
   </>;
-}, "志愿者档案");
+}, title);

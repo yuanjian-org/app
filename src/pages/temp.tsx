@@ -1,4 +1,4 @@
-import { Box, Button, Heading, Text, VStack, Wrap, WrapItem, Link, Spacer, Stack, HStack } from "@chakra-ui/react";
+import { Box, Button, Heading, Text, VStack, Wrap, WrapItem, Link, Stack, HStack } from "@chakra-ui/react";
 import { fullPage } from "AppPage";
 import { SmallGrayText } from "components/SmallGrayText";
 import TopBar, { topBarPaddings } from "components/TopBar";
@@ -10,7 +10,7 @@ export default fullPage(() => {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   return <>
-    <TopBar pb={0}>
+    <TopBar>
       <VStack align="start">
         <Stack
           w="full"
@@ -20,21 +20,18 @@ export default fullPage(() => {
           spacing={componentSpacing}
           {...topBarPaddings}
         >
+          <FullTextSearchBox
+            value={searchTerm}
+            setValue={setSearchTerm}
+            maxWidth="300px"
+          />
 
           <Wrap align="center" spacing={componentSpacing}>
             <WrapItem>
-              <Heading size="md">请选择至少五位导师</Heading>
+              <Heading size="md">选择至少五位导师</Heading>
             </WrapItem>
             <WrapItem>
               <Button disabled>已选三位</Button>
-            </WrapItem>
-            <Spacer />
-            <WrapItem>
-              <FullTextSearchBox
-                value={searchTerm}
-                setValue={setSearchTerm}
-                shortPlaceholder
-              />
             </WrapItem>
           </Wrap>
 
@@ -56,7 +53,7 @@ export default fullPage(() => {
           px={4}
         >
           <SmallGrayText>
-            ⭐ 是匹配偏好与你的个人特质比较匹配的导师。推荐仅供参考，选择权在你。
+            ⭐ 是匹配偏好与你的个人特质比较相近的导师。推荐仅供参考，选择权在你。
           </SmallGrayText>
         </Box>
       </VStack>
