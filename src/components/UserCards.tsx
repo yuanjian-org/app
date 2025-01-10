@@ -68,9 +68,12 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
 
-export function FullTextSearchBox({ value, setValue, ...inputGroupProps }: {
+export function FullTextSearchBox({ 
+  value, setValue, narrow, ...inputGroupProps
+}: {
   value: string,
   setValue: (value: string) => void,
+  narrow?: boolean,
 } & InputGroupProps) {
   const isMac = typeof navigator !== 'undefined' &&
     /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
@@ -95,7 +98,7 @@ export function FullTextSearchBox({ value, setValue, ...inputGroupProps }: {
     };
   }, [searchInputRef, isMac]);  
 
-  return <InputGroup {...inputGroupProps}>
+  return <InputGroup maxW={narrow ? "300px" : undefined} {...inputGroupProps}>
     <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>
     <Input
       ref={searchInputRef}
