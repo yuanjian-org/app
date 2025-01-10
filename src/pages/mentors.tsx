@@ -37,7 +37,7 @@ export default fullPage(() => {
           我有一个话题，请帮我预约适合的导师
         </Button>
 
-        <Text>或者指定预约任何一位导师：</Text>
+        <Text>或者预约任何一位指定的导师：</Text>
 
         <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
       </VStack>
