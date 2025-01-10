@@ -19,7 +19,8 @@ import {
   Text, Divider,
   DrawerContent,
   Drawer,
-  DrawerCloseButton
+  DrawerCloseButton,
+  DrawerOverlay
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import useMe, { useMyRoles } from 'useMe';
@@ -261,6 +262,7 @@ export function SidebarForMobile({ isOpen, onClose }: {
     onClose={onClose}
     onOverlayClick={onClose}
   >
+    <DrawerOverlay />
     <DrawerContent>
       <DrawerCloseButton />
       <SidebarContent onClose={onClose} />

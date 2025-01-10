@@ -13,7 +13,7 @@ import PageBreadcrumb from 'components/PageBreadcrumb';
 import { widePage } from 'AppPage';
 import { useMemo } from 'react';
 import UserCards, { MentorStar } from "components/UserCards";
-import { UserDisplayData } from 'pages/users/[userId]';
+import { UserDisplayData } from '../../components/UserPanel';
 import { dailyShuffle } from 'pages/mentors';
 import { TraitsModal } from 'components/Traits';
 import { hardMismatchScore, isTraitsComplete } from "shared/Traits";
