@@ -103,11 +103,17 @@ export function TraitsModal({ onClose }: {
 
   const complete = isTraitsComplete(traits);
 
-  return <ModalWithBackdrop isOpen size="xl" onClose={() => {
-    if (complete) onClose();
-  }}>
+  return <ModalWithBackdrop
+    isOpen 
+    size="xl"
+    // To make sure user doesn't miss important content inside the modal.
+    scrollBehavior="outside"
+    onClose={() => {
+      if (complete) onClose();
+    }}
+  >
     <ModalContent>
-      <ModalHeader>填写你的个人特质，让系统为你推荐导师</ModalHeader>
+      <ModalHeader>填写你的个人特质，让系统推荐导师</ModalHeader>
       <ModalCloseButton disabled={!complete} />
 
       <ModalBody>

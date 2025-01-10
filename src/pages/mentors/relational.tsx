@@ -141,7 +141,13 @@ function InstructionsLinkAndModal() {
 function InstructionsModal({ close }: {
   close: () => void
 }) {
-  return <ModalWithBackdrop size="xl" isOpen onClose={close}>
+  return <ModalWithBackdrop
+    size="xl"
+    isOpen
+    onClose={close}
+    // To make sure user doesn't miss important content inside the modal.
+    scrollBehavior="outside"
+  >
     <ModalContent>
       <ModalHeader>如何选择一对一导师</ModalHeader>
       <ModalCloseButton />

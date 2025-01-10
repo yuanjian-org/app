@@ -8,7 +8,7 @@ import { componentSpacing, pageMarginX } from 'theme/metrics';
 import { Heading, HStack, Spacer } from '@chakra-ui/react';
 import { VStack } from '@chakra-ui/react';
 import { fullPage } from 'AppPage';
-import { ShowOnDesktop } from 'components/Show';
+import { ShowOnDesktop, ShowOnMobile } from 'components/Show';
 
 const title = "志愿者档案";
 
@@ -36,17 +36,21 @@ export default fullPage(() => {
             narrow 
           />
         </HStack>
-
-        {/* <ShowOnMobile> somehow messes up with TooBar's auto height
-            calculation. */}
-        <Heading size="md" display={{ base: "block", md: "none" }}>
-          {title}
-        </Heading>
-
       </VStack>
     </TopBar>
 
-    {!sorted ? <Loader /> : <UserCards type="Volunteer" users={sorted}
-      searchTerm={searchTerm} mx={pageMarginX} mt={componentSpacing} />}
+    <VStack
+      spacing={componentSpacing}
+      align="start"
+      mx={pageMarginX}
+      mt={componentSpacing}
+    >
+      <ShowOnMobile>
+        <Heading size="md">{title}</Heading>
+      </ShowOnMobile>
+
+      {!sorted ? <Loader /> : <UserCards type="Volunteer" users={sorted}
+        searchTerm={searchTerm} />}
+    </VStack>
   </>;
 }, title);
