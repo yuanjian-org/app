@@ -23,6 +23,7 @@ import {
   Textarea,
   WrapItem,
   Tag,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import invariant from "tiny-invariant";
@@ -107,6 +108,7 @@ export function TraitsModal({ onClose }: {
   }}>
     <ModalContent>
       <ModalHeader>填写你的个人特质，让系统为你推荐导师</ModalHeader>
+      <ModalCloseButton disabled={!complete} />
 
       <ModalBody>
         {traits && <SimpleGrid
@@ -114,7 +116,6 @@ export function TraitsModal({ onClose }: {
           templateColumns="auto auto 1fr auto"
           gap={componentSpacing}
           rowGap={sectionSpacing}
-          m={sectionSpacing}
         >
           {/* First row */}
           <GridItem />
@@ -124,7 +125,7 @@ export function TraitsModal({ onClose }: {
             fontSize='sm'
             color="gray"
           >
-            点击滑轨选择倾向。越接近两侧则倾向程度越高。如果无明显倾向，点击滑轨中央。
+            点击滑轨选择倾向。越接近两侧则倾向程度越高。如果不确定或无明显倾向，点击滑轨中央。
           </GridItem>
 
           {/* Traits */}
