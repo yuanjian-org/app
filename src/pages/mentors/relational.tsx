@@ -85,7 +85,7 @@ export default fullPage(() => {
           <FullTextSearchBox
             value={searchTerm}
             setValue={setSearchTerm}
-            maxWidth="300px"
+            narrow
           />
 
           <Wrap align="center" spacing={componentSpacing}>

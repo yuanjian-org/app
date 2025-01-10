@@ -5,7 +5,7 @@ import UserCards, { FullTextSearchBox } from "components/UserCards";
 import Loader from 'components/Loader';
 import TopBar, { topBarPaddings } from 'components/TopBar';
 import { componentSpacing, pageMarginX } from 'theme/metrics';
-import { Heading, HStack } from '@chakra-ui/react';
+import { Heading, HStack, Spacer } from '@chakra-ui/react';
 import { VStack } from '@chakra-ui/react';
 import { fullPage } from 'AppPage';
 import { ShowOnDesktop } from 'components/Show';
@@ -28,7 +28,13 @@ export default fullPage(() => {
             <Heading size="md" whiteSpace="nowrap">{title}</Heading>
           </ShowOnDesktop>
 
-          <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
+          <Spacer />
+
+          <FullTextSearchBox
+            value={searchTerm}
+            setValue={setSearchTerm}
+            narrow 
+          />
         </HStack>
 
         {/* <ShowOnMobile> somehow messes up with TooBar's auto height
