@@ -164,8 +164,8 @@ function Row({ user, profile, preference, mentorships }: {
     {/* 剩余容量 */}
     <Td>{capacity - mentorships}</Td>
     {/* 其他偏好 */}
-    <Td>
-      <Text maxWidth="200px" whiteSpace="pre-wrap" wordBreak="break-word">
+    <Td maxW="200px" whiteSpace="normal">
+      <Text>
         {preference.学生特质?.其他}
       </Text>
     </Td>
