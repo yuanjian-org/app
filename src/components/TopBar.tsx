@@ -18,12 +18,19 @@ export default function TopBar({ children, ...rest }: BoxProps) {
   const refTopbar = useRef<HTMLDivElement>(null);
   const [fixedBoxBottom, setFixedBoxBottom] = useState(0);
 
+  // Watch for size changes of the topbar
   useEffect(() => {
-    if (refTopbar.current) {
-      const rect = refTopbar.current.getBoundingClientRect();
-      setFixedBoxBottom(rect.bottom);
-    }
-  }, [refTopbar]);
+    if (!refTopbar.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      const rect = refTopbar.current?.getBoundingClientRect();
+      if (rect) setFixedBoxBottom(rect.bottom);
+    });
+
+    resizeObserver.observe(refTopbar.current);
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   return <>
     <Box

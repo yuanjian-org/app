@@ -27,7 +27,7 @@ import { UserProfile, StringUserProfile } from 'shared/UserProfile';
 import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
-import { SearchIcon } from '@chakra-ui/icons';
+import { CheckIcon, SearchIcon } from '@chakra-ui/icons';
 import { ShowOnMobile, ShowOnDesktop } from './Show';
 import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from './Kudos';
 import { CardForDesktop, CardForMobile } from './Card';
@@ -36,6 +36,7 @@ import Loader from './Loader';
 import { UserDisplayData } from 'components/UserPanel';
 import UserDrawer from './UserDrawer';
 import { SmallGrayText } from './SmallGrayText';
+import { MentorSelection } from 'shared/MentorSelection';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -115,10 +116,13 @@ export function FullTextSearchBox({
 /**
  * @param searchTerm Empty string means no search.
  */
-export default function UserCards({ type, users, searchTerm, ...gridProps }: {
+export default function UserCards({
+  type, users, searchTerm, mentorSelections, ...gridProps 
+}: {
   type: UserCardType,
   users: UserDisplayData[],
   searchTerm: string,
+  mentorSelections?: MentorSelection[],
 } & GridProps) {
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
@@ -146,7 +150,8 @@ export default function UserCards({ type, users, searchTerm, ...gridProps }: {
           data={d}
           type={type}
           openModal={() => setBookingMentor(d.user)}
-          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+          recommended={isMentorRecommended(d.traitsMatchingScore)}
+          selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
         />)}
       </SimpleGrid>
     </ShowOnDesktop>
@@ -165,7 +170,8 @@ export default function UserCards({ type, users, searchTerm, ...gridProps }: {
           data={d}
           type={type}
           openModal={() => setBookingMentor(d.user)}
-          isMentorRecommended={isMentorRecommended(d.traitsMatchingScore)}
+          recommended={isMentorRecommended(d.traitsMatchingScore)}
+          selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
         />)}
       </SimpleGrid>
     </ShowOnMobile>
@@ -261,26 +267,27 @@ function search(users: UserDisplayData[], searchTerm: string) {
 }
 
 function UserCardForDesktop({
-  data, type, openModal, isMentorRecommended
+  data, type, openModal, recommended, selected
 }: {
   data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
-  isMentorRecommended: boolean,
+  recommended: boolean,
+  selected?: boolean,
 }) {
   const p = data.profile;
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
 
-  return <CardForDesktop>
+  return <CardForDesktop {...(selected ? { bg: "green.50" } : {})}>
 
     <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
     <CardHeader onClick={visitUser} cursor="pointer">
       <Heading size='md'>
         {formatUserName(data.user.name, "formal")}
-        {isMentorRecommended && <MentorStar ms={3} />}
+        {recommended && <MentorStar ms={3} />}
       </Heading>
     </CardHeader>
     <CardBody pt={1} onClick={visitUser} cursor="pointer">
@@ -300,12 +307,15 @@ function UserCardForDesktop({
         </>}
       </Flex>
     </CardBody>
-    <CardFooter>
+
+    <CardFooter alignItems="center">
       <Button onClick={visitUser}>
         更多信息
       </Button>
 
       <Spacer />
+
+      {selected && <Text color="green.500"><CheckIcon mr={1} />已选择</Text>}
 
       {type == "TransactionalMentor" && <>
         <Button variant="brand" onClick={ev => {
@@ -325,7 +335,7 @@ function UserCardForDesktop({
     {isDrawerOpen && <UserDrawer
       data={{ ...data, isMentor: type != "Volunteer" }}
       showBookingButton={type == "TransactionalMentor"}
-      showMatchingTraits={type == "RelationalMentor"}
+      showMatchingTraitsAndSelection={type == "RelationalMentor"}
       onClose={() => setIsDrawerOpen(false)}
     />}
   </CardForDesktop>;
@@ -369,19 +379,20 @@ function FullWidthImageSquare({ profile, ...rest }: {
 }
 
 function UserCardForMobile({
-  data, type, openModal, isMentorRecommended
+  data, type, openModal, recommended, selected
 }: {
   data: UserDisplayData,
   type: UserCardType,
   openModal: () => void,
-  isMentorRecommended: boolean,
+  recommended: boolean,
+  selected?: boolean,
 }) {
   const p = data.profile;
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
 
-  return <CardForMobile>
+  return <CardForMobile {...(selected ? { bg: "green.50" } : {})}>
     <HStack
       spacing={componentSpacing}
       fontSize="sm"
@@ -446,7 +457,12 @@ function UserCardForMobile({
         bottom={componentSpacing}
         right={componentSpacing}
       >
-        {isMentorRecommended && <MentorStar me={2} />}
+        {recommended && <MentorStar me={2} />}
+
+        {selected && <>
+          <Text color="green.500"><CheckIcon mr={1} />已选择</Text>
+          <Text color="gray.400">|</Text>
+        </>}
 
         <Link onClick={visitUser}>
           更多信息
@@ -475,7 +491,7 @@ function UserCardForMobile({
     {isDrawerOpen && <UserDrawer
       data={{ ...data, isMentor: type != "Volunteer" }}
       showBookingButton={type == "TransactionalMentor"}
-      showMatchingTraits={type == "RelationalMentor"}
+      showMatchingTraitsAndSelection={type == "RelationalMentor"}
       onClose={() => setIsDrawerOpen(false)}
     />}
 

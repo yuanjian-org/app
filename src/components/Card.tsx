@@ -3,21 +3,21 @@ import {
 } from '@chakra-ui/react';
 import { Card } from '@chakra-ui/react';
 
-export function CardForDesktop({ children, ...rest }: CardProps) {
+export function CardForDesktop({ children, ...cardProps }: CardProps) {
   return <Card
     overflow="hidden"
-    {...rest}
+    {...cardProps}
   >
     {children}
   </Card>;
 }
 
-export function CardForMobile({ children, ...rest }: CardProps) {
+export function CardForMobile({ children, ...cardProps }: CardProps) {
   return <Card
     overflow="hidden"
     size="sm"
     boxShadow="sm"
-    {...rest}
+    {...cardProps}
   >
     {children}
   </Card>;

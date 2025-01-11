@@ -13,7 +13,6 @@ export default function Page() {
   return data ? <UserPanel
     data={data}
     showBookingButton={data.isMentor}
-    showMatchingTraits={false}
   /> : <Loader />;
 }
 Page.title = "用户资料";

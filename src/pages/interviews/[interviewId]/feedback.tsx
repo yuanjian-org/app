@@ -9,7 +9,7 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import { breakpoint, textMaxWidth } from 'theme/metrics';
+import { breakpoint, maxTextWidth } from 'theme/metrics';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
@@ -101,7 +101,7 @@ function NeedExams({ type, interview, comms } : {
 }) {
   invariant(comms || interview);
 
-  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
+  return <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
     <p>
       请首先完成
       {comms &&

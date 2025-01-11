@@ -19,7 +19,7 @@ import { MinUser } from 'shared/User';
 import ChatRoom from 'components/ChatRoom';
 import { Mentorship } from 'shared/Mentorship';
 import GroupBar from 'components/GroupBar';
-import { breakpoint, paragraphSpacing, sectionSpacing, textMaxWidth } from 'theme/metrics';
+import { breakpoint, paragraphSpacing, sectionSpacing, maxTextWidth } from 'theme/metrics';
 import Transcripts from 'components/Transcripts';
 import Interview from 'components/Interview';
 import { MentorshipStatusIcon } from 'pages/mentees';
@@ -85,7 +85,7 @@ function NeedExams({ comms, handbook }: {
 }) {
   invariant(comms || handbook);
 
-  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
+  return <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
     <p>
       请首先完成
       {comms &&
