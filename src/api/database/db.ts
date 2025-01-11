@@ -24,6 +24,8 @@ import EventLog from "./models/EventLog";
 import Kudos from "./models/Kudos";
 import LastReadChatRoom from "./models/LastReadChatRoom";
 import DraftChatMessage from "./models/DraftChatMessage";
+import MentorSelection from "./models/MentorSelection";
+import MentorSelectionBatch from "./models/MentorSelectionBatch";
 
 const db = {
   Mentorship,
@@ -48,6 +50,8 @@ const db = {
   Kudos,
   LastReadChatRoom,
   DraftChatMessage,
+  MentorSelection,
+  MentorSelectionBatch,
 };
 
 export default db;

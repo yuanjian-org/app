@@ -136,8 +136,8 @@ const mainMenuItems: MainMenuItem[] = [
     name: '我的会议',
     path: '/',
     icon: MdVideocam,
-    // match "/", "/groups/.*" but not "/groups/lab.*". "?" is a lookahead sign
-    regex: /^\/$|\/groups\/(?!lab).*/,
+    // match "/" and "/groups/.*"
+    regex: /^\/$|\/groups\/.*/,
   },
   {
     name: '资深导师页',
@@ -166,7 +166,7 @@ const mainMenuItems: MainMenuItem[] = [
     name: '选择一对一导师',
     path: '/mentors/relational',
     icon: MdSupervisorAccount,
-    regex: /^\/mentors\/relational$/,
+    regex: /^\/mentors\/relational.*/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },

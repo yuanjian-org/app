@@ -1,4 +1,4 @@
-import { trpcNext } from "../trpc";
+import trpc, { trpcNext } from "../trpc";
 import Loader from 'components/Loader';
 import {
   formatUserName
@@ -18,7 +18,10 @@ import {
   VStack,
   HStack,
   useClipboard,
-  Wrap,
+  Wrap, Textarea,
+  FormControl,
+  FormErrorMessage,
+  SimpleGrid
 } from '@chakra-ui/react';
 import {
   MinUserAndProfile,
@@ -61,12 +64,12 @@ export type UserDisplayData = MinUserAndProfile & {
 
 export type UserPanelProps = {
   data: UserDisplayData & { isMentor: boolean },
-  showBookingButton: boolean,
-  showMatchingTraits: boolean,
+  showBookingButton?: boolean,
+  showMatchingTraitsAndSelection?: boolean,
 };
 
 export default function UserPanel({ 
-  data, showBookingButton, showMatchingTraits 
+  data, showBookingButton, showMatchingTraitsAndSelection
 }: UserPanelProps) {
   return <>
     <PageBreadcrumb current={
@@ -77,15 +80,17 @@ export default function UserPanel({
       spacing={sectionSpacing}
       direction={{ base: "column", [breakpoint]: "row" }}
     >
-      <VStack>
-        {data.profile?.照片链接 &&
-          <Image
-            maxW='300px'
-            src={data.profile.照片链接}
-            alt="照片"
-          />
-        }
-        <UserUrl u={data.user} />
+      <VStack spacing={sectionSpacing}>
+        <VStack spacing={componentSpacing}>
+          {data.profile?.照片链接 &&
+            <Image
+              maxW='300px'
+              src={data.profile.照片链接}
+              alt="照片"
+            />
+          }
+          <UserUrl u={data.user} />
+        </VStack>
 
         {/* TODO: Popover is displayed behind the user drawer. 
             cf. https://github.com/chakra-ui/chakra-ui/discussions/5974 */}
@@ -97,13 +102,17 @@ export default function UserPanel({
           />
         </HStack>} */}
 
-        {showMatchingTraits && <MatchingTraits userId={data.user.id} />}
+        {showMatchingTraitsAndSelection && <>
+          <MatchingTraits userId={data.user.id} />
+          <Selection mentorId={data.user.id} />
+        </>}
+
+        {showBookingButton && <BookingButtonAndModal user={data.user} />}
       </VStack>
 
       {data.profile && <ProfileTable
         user={data.user}
         profile={data.profile}
-        showBookingButton={showBookingButton}
       />}
     </Stack>
   </>;
@@ -161,31 +170,31 @@ function MatchingTraits({ userId }: {
   }, [user, applicant, traitsPref]);
 
   return !matchingTraits ? <Loader /> : matchingTraits.length === 0 ? <></> : <>
-    <Text mt={sectionSpacing} mb={componentSpacing} fontSize="sm" 
-      textAlign="center"
-    >
-      你的以下这些
-      <Link onClick={() => setIsModalOpen(true)}>
-        个人特质
-      </Link>
-      符合导师的匹配偏好
-      <br />
-      （仅供参考，导师的选择权在你）
-    </Text>
-    <Wrap>
-      {matchingTraits.map(t => {
-        const profile = traitsPrefProfiles.find(p => p.field === t);
-        if (!profile) return <></>;
+    <VStack spacing={componentSpacing}>
+      <Text fontSize="sm" textAlign="center">
+        你的以下这些
+        <Link onClick={() => setIsModalOpen(true)}>
+          个人特质
+        </Link>
+        符合导师的匹配偏好
+        <br />
+        （仅供参考，导师的选择权在你）
+      </Text>
+      <Wrap>
+        {matchingTraits.map(t => {
+          const profile = traitsPrefProfiles.find(p => p.field === t);
+          if (!profile) return <></>;
 
-        invariant(traitsPref);
-        invariant(traitsPrefLabel2value[0] < 0);
-        invariant(traitsPrefLabel2value[1] > 0);
+          invariant(traitsPref);
+          invariant(traitsPrefLabel2value[0] < 0);
+          invariant(traitsPrefLabel2value[1] > 0);
 
-        const label = traitsPref[t as keyof TraitsPreference] as number < 0 ?
-          profile.labels[0] : profile.labels[1];
-        return <TraitTag key={t} label={label} selected />;
-      })}
-    </Wrap>
+          const label = traitsPref[t as keyof TraitsPreference] as number < 0 ?
+            profile.labels[0] : profile.labels[1];
+          return <TraitTag key={t} label={label} selected />;
+        })}
+      </Wrap>
+    </VStack>
 
     {isModalOpen && <TraitsModal onClose={() => {
       setIsModalOpen(false);
@@ -194,24 +203,129 @@ function MatchingTraits({ userId }: {
   </>;
 }
 
-function ProfileTable({ user, profile: p, showBookingButton }: {
+function Selection({ mentorId }: {
+  mentorId: string,
+}) {
+  const [reason, setReason] = useState("");
+  const [showError, setShowError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const utils = trpcNext.useContext();
+
+  const { data } = trpcNext.mentorSelections.getDraft.useQuery({ mentorId });
+
+  useEffect(() => {
+    // `old ?? ...` so that existing data doesn't get overridden
+    if (data !== undefined) setReason(old => old || (data?.reason ?? ""));
+  }, [data]);
+
+  const selected = data !== null;
+  const busy = saving || data === undefined;
+
+  const invalidate = async () => {
+    await utils.mentorSelections.listDrafts.invalidate();
+    await utils.mentorSelections.getDraft.invalidate({ mentorId });
+  };
+
+  const select = async () => {
+    setShowError(reason.length === 0);
+    if (reason.length === 0) return;
+    setSaving(true);
+    try {
+      await trpc.mentorSelections.createDraft.mutate({ mentorId, reason });
+      await invalidate();
+      toast.success("选择成功。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const unselect = async () => {
+    setSaving(true);
+    try {
+      await trpc.mentorSelections.destroyDraft.mutate({ mentorId });
+      await invalidate();
+      toast.success("选择已取消。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const update = async () => {
+    setSaving(true);
+    try {
+      await trpc.mentorSelections.updateDraft.mutate({ mentorId, reason });
+      await invalidate();
+      toast.success("更新成功。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return <VStack spacing={componentSpacing} w="full">
+    <FormControl isInvalid={showError}>
+      <Textarea
+        height="140px"
+        bg="white"
+        value={reason} 
+        onChange={ev => setReason(ev.target.value)}
+        isDisabled={busy}
+        placeholder="填写选择导师的理由"
+        autoFocus
+      />
+      {showError && <FormErrorMessage>首先填写选择理由。</FormErrorMessage>}
+    </FormControl>
+
+    {selected && <SimpleGrid columns={2} spacing={componentSpacing} w="full">
+      <Button
+        onClick={unselect}
+        isLoading={busy}
+      >取消选择</Button>
+      <Button
+        variant="brand"
+        onClick={update}
+        isLoading={busy}
+      >更新选择理由</Button>
+    </SimpleGrid>}
+
+    {!selected && <Button
+      width="full" 
+      variant={"brand"}
+      onClick={select}
+      isLoading={busy}
+    >选择这位导师</Button>}
+
+  </VStack>;
+}
+
+function BookingButtonAndModal({ user }: {
+  user: MinUser,
+}) {
+  const [booking, setBooking] = useState<boolean>();
+  return <>
+    <Button
+      width="full" 
+      variant="brand"
+      onClick={() => setBooking(true)}
+    >预约交流</Button>
+
+    {booking && <MentorBookingModal 
+      mentor={user}
+      onClose={() => setBooking(false)}
+    />}
+  </>;
+}
+
+function ProfileTable({ user, profile: p }: {
   user: MinUser,
   profile: UserProfile,
-  showBookingButton: boolean,
 }) {
   const me = useMe();
-  const [booking, setBooking] = useState<boolean>();
 
   return <TableContainer maxW="700px"><Table variant="unstyled">
     <Tbody>
       {visibleUserProfileFields.map((fl, idx) => 
         <ProfileRow key={idx} profile={p} k={fl.field} label={fl.label} />)
       }
-
-      {showBookingButton && <Tr><Td></Td><Td><Button
-        variant="brand"
-        onClick={() => setBooking(true)}
-      >预约交流</Button></Td></Tr>}
 
       {(me.id == user.id || isPermitted(me.roles, "UserManager")) &&
         <Tr><Td></Td><Td><Link
@@ -220,12 +334,6 @@ function ProfileTable({ user, profile: p, showBookingButton }: {
         ><EditIcon /> 修改资料</Link></Td></Tr>
       }
     </Tbody>
-
-    {booking && <MentorBookingModal 
-      mentor={user}
-      onClose={() => setBooking(false)}
-    />}
-
   </Table></TableContainer>;
 }
 

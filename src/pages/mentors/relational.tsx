@@ -14,11 +14,15 @@ import {
   ModalContent,
   ModalBody,
   ModalFooter,
-  ModalCloseButton
+  ModalCloseButton,
+  MenuList,
+  Menu,
+  MenuItem,
+  MenuButton
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from "react";
 import { trpcNext } from "trpc";
-import { breakpoint, componentSpacing, pageMarginX, sectionSpacing, textMaxWidth } from 'theme/metrics';
+import { breakpoint, componentSpacing, pageMarginX, sectionSpacing, maxTextWidth } from 'theme/metrics';
 import UserCards, { FullTextSearchBox } from "components/UserCards";
 import { UserDisplayData } from '../../components/UserPanel';
 import { dailyShuffle } from 'pages/mentors';
@@ -32,6 +36,11 @@ import TopBar, { topBarPaddings } from 'components/TopBar';
 import { fullPage } from 'AppPage';
 import { SmallGrayText } from 'components/SmallGrayText';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
+import { toChinese } from 'shared/strings';
+import { ArrowForwardIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import NextLink from 'next/link';
+
+export const minSelectedMentors = 5;
 
 export default fullPage(() => {
   const myId = useMyId();
@@ -44,6 +53,9 @@ export default fullPage(() => {
     type: "MenteeInterview",
     userId: myId,
   });
+
+  const { data: selections } = trpcNext.mentorSelections.listDrafts.useQuery();
+  const selected = selections?.length ?? 0;
 
   const shuffled = useMemo(() => {
     if (!profile || !data || !applicant) return undefined;
@@ -88,22 +100,59 @@ export default fullPage(() => {
             narrow
           />
 
-          <Wrap align="center" spacing={componentSpacing}>
-            <WrapItem>
-              <Heading size="md">选择一对一导师</Heading>
-            </WrapItem>
-            {/* <WrapItem>
-              <Heading size="md">选择至少五位导师</Heading>
-            </WrapItem>
-            <WrapItem>
-              <Button disabled>已选三位</Button>
-            </WrapItem> */}
-          </Wrap>
+          {selected < minSelectedMentors ?
+            <Heading size="md">
+              请选择至少{toChinese(minSelectedMentors)}位导师（
+              {selected === 0 ? "尚未选择" : `已选${toChinese(selected)}位`}
+              ）
+            </Heading>
+            :
+            <Wrap
+              spacing={componentSpacing}
+              align="center"
+              // Flashing animation to grab attention
+              animation="flash 1s ease-in-out infinite"
+              sx={{
+                "@keyframes flash": {
+                  "0%, 100%": { opacity: 1 },
+                  "50%": { opacity: 0.1 }
+                }
+              }}
+            >
+              <WrapItem>
+                <Heading size="md">
+                  选择更多导师，或者
+                  <ArrowForwardIcon ms={2} />
+                </Heading>
+              </WrapItem>
+              <WrapItem>
+                <Button
+                  variant="brand"
+                  as={NextLink} 
+                  href="/mentors/relational/sort"
+                >
+                  完成选择
+                </Button>
+              </WrapItem>
+            </Wrap>
+          }
 
           <HStack spacing={2}>
             <InstructionsLinkAndModal />
+
             <Text color="gray">|</Text>
-            <TraitsLinkAndModal setProfile={setProfile} />
+
+            <Menu>
+              <MenuButton as={Link}>
+                更多功能{' '}<ChevronDownIcon />
+              </MenuButton>
+              <MenuList>
+                <TraitsMenuItemAndModal setProfile={setProfile} />
+                <MenuItem as={NextLink} href="/mentors/relational/history">
+                  查看选择历史
+                </MenuItem>
+              </MenuList>
+            </Menu>            
           </HStack>
         </Stack>
 
@@ -121,8 +170,14 @@ export default fullPage(() => {
     </TopBar>
 
     {!shuffled ? <Loader alignSelf="flex-start" /> :
-      <UserCards type="RelationalMentor" users={shuffled}
-        searchTerm={searchTerm} mx={pageMarginX} mt={componentSpacing} />}
+      <UserCards
+        type="RelationalMentor"
+        users={shuffled}
+        mentorSelections={selections}
+        searchTerm={searchTerm}
+        mx={pageMarginX}
+        mt={componentSpacing}
+      />}
   </>;
 }, "选择一对一导师");
 
@@ -156,7 +211,7 @@ function InstructionsModal({ close }: {
           spacing={componentSpacing}
           mb={sectionSpacing}
           align="start"
-          maxW={textMaxWidth}
+          maxW={maxTextWidth}
         >
           <Text>
             在浏览导师信息之前，我们希望向你传达社会导师的意义与目标，以便你做出更好的选择：
@@ -200,7 +255,7 @@ function InstructionsModal({ close }: {
   </ModalWithBackdrop>;
 }
 
-function TraitsLinkAndModal({ setProfile }: { 
+function TraitsMenuItemAndModal({ setProfile }: { 
   setProfile: (profile: UserProfile) => void 
 }) {
   const { data, refetch } = trpcNext.users.getUserProfile.useQuery({ 
@@ -219,9 +274,9 @@ function TraitsLinkAndModal({ setProfile }: {
   }, [data, setProfile]);
 
   return <>
-    <Link onClick={() => setState("traits")}>
+    <MenuItem onClick={() => setState("traits")}>
       更新个人特质
-    </Link>
+    </MenuItem>
 
     {state === "instructions" && <InstructionsModal close={() => {
       setState("traits");

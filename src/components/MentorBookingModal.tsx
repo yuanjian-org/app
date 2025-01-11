@@ -69,7 +69,7 @@ export default function MentorBookingModal({ mentor, onClose }: {
       </ModalBody>
       <ModalFooter>
         <Button variant="brand" isLoading={submitting} isDisabled={!topic}
-          onClick={submit}>预约</Button>
+          onClick={submit}>提交</Button>
       </ModalFooter>
     </ModalContent>
   </ModalWithBackdrop>
