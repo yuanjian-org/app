@@ -102,9 +102,13 @@ export default fullPage(() => {
 
           {selected < minSelectedMentors ?
             <Heading size="md">
-              请选择至少{toChinese(minSelectedMentors)}位导师（
-              {selected === 0 ? "尚未选择" : `已选${toChinese(selected)}位`}
-              ）
+              请选择至少{toChinese(minSelectedMentors)}位导师
+              <Text
+                display="inline"
+                color={selected === 0 ? "gray" : "green.600"}
+              >
+                （{selected === 0 ? "尚未选择" : `已选${toChinese(selected)}位`}）
+              </Text>
             </Heading>
             :
             <Wrap
