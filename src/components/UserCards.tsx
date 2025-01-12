@@ -297,9 +297,9 @@ function UserCardForDesktop({
           {p?.专业领域 && <Text><b>专业</b>：{p.专业领域}</Text>}
           {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
         </> : type == "RelationalMentor" ? <>
-          {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
-          {p?.擅长话题 && <TruncatedText><b>擅长聊</b>：{p.擅长话题}</TruncatedText>}
-          {p?.成长亮点 && <TruncatedText>{p.成长亮点}</TruncatedText>}
+          {p?.现居住地 && <Text>坐标：{p.现居住地}</Text>}
+          {p?.擅长话题 && <TruncatedText>擅长聊：{p.擅长话题}</TruncatedText>}
+          {p?.成长亮点 && <TruncatedText>成长亮点：{p.成长亮点}</TruncatedText>}
         </> : <>
           {p?.现居住地 && <Text><b>坐标</b>：{p.现居住地}</Text>}
           {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
@@ -315,7 +315,7 @@ function UserCardForDesktop({
 
       <Spacer />
 
-      {selected && <Text color="green.500"><CheckIcon mr={1} />已选择</Text>}
+      {selected && <Text color="green.600"><CheckIcon mr={1} /><b>已选择</b></Text>}
 
       {type == "TransactionalMentor" && <>
         <Button variant="brand" onClick={ev => {
@@ -460,7 +460,7 @@ function UserCardForMobile({
         {recommended && <MentorStar me={2} />}
 
         {selected && <>
-          <Text color="green.500"><CheckIcon mr={1} />已选择</Text>
+          <Text color="green.600"><CheckIcon mr={1} />已选择</Text>
           <Text color="gray.400">|</Text>
         </>}
 
