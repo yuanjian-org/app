@@ -28,7 +28,6 @@ import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { CheckIcon, SearchIcon } from '@chakra-ui/icons';
-import { ShowOnMobile, ShowOnDesktop } from './Show';
 import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from './Kudos';
 import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
@@ -37,6 +36,7 @@ import { UserDisplayData } from 'components/UserPanel';
 import UserDrawer from './UserDrawer';
 import { SmallGrayText } from './SmallGrayText';
 import { MentorSelection } from 'shared/MentorSelection';
+import useMobile from 'useMobile';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -134,47 +134,45 @@ export default function UserCards({
   // Show kudos history card only when not searching.
   const showKudosHistory = type == "Volunteer" && !searchTerm;
 
+  const mobile = useMobile();
+
   return <>
-    <ShowOnDesktop>
-      <SimpleGrid
-        spacing={componentSpacing}
-        templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
-        {...gridProps}
-      >
-        {showKudosHistory && <GridItem colSpan={2} rowSpan={1}>
-          <KudosHistoryCard type="desktop" />
-        </GridItem>}
+    {!mobile && <SimpleGrid
+      spacing={componentSpacing}
+      templateColumns='repeat(auto-fill, minmax(270px, 1fr))'
+      {...gridProps}
+    >
+      {showKudosHistory && <GridItem colSpan={2} rowSpan={1}>
+        <KudosHistoryCard type="desktop" />
+      </GridItem>}
 
-        {searchResult.map(d => <UserCardForDesktop
-          key={d.user.id}
-          data={d}
-          type={type}
-          openModal={() => setBookingMentor(d.user)}
-          recommended={isMentorRecommended(d.traitsMatchingScore)}
-          selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
-        />)}
-      </SimpleGrid>
-    </ShowOnDesktop>
+      {searchResult.map(d => <UserCardForDesktop
+        key={d.user.id}
+        data={d}
+        type={type}
+        openModal={() => setBookingMentor(d.user)}
+        recommended={isMentorRecommended(d.traitsMatchingScore)}
+        selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
+      />)}
+    </SimpleGrid>}
 
-    <ShowOnMobile>
-      <SimpleGrid
-        spacing={componentSpacing}
-        templateColumns='1fr'
-        alignItems="stretch"
-        {...gridProps}
-      >
-        {showKudosHistory && <KudosHistoryCard type="mobile" />}
+    {mobile && <SimpleGrid
+      spacing={componentSpacing}
+      templateColumns='1fr'
+      alignItems="stretch"
+      {...gridProps}
+    >
+      {showKudosHistory && <KudosHistoryCard type="mobile" />}
 
-        {searchResult.map(d => <UserCardForMobile
-          key={d.user.id}
-          data={d}
-          type={type}
-          openModal={() => setBookingMentor(d.user)}
-          recommended={isMentorRecommended(d.traitsMatchingScore)}
-          selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
-        />)}
-      </SimpleGrid>
-    </ShowOnMobile>
+      {searchResult.map(d => <UserCardForMobile
+        key={d.user.id}
+        data={d}
+        type={type}
+        openModal={() => setBookingMentor(d.user)}
+        recommended={isMentorRecommended(d.traitsMatchingScore)}
+        selected={mentorSelections?.some(ms => ms.mentor.id == d.user.id)}
+      />)}
+    </SimpleGrid>}
         
     {bookingMentor !== undefined &&
       <MentorBookingModal
