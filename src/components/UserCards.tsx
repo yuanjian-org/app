@@ -310,7 +310,7 @@ function UserCardForDesktop({
 
     <CardFooter alignItems="center">
       <Button onClick={visitUser}>
-        更多信息
+        查看详情
       </Button>
 
       <Spacer />
@@ -465,7 +465,7 @@ function UserCardForMobile({
         </>}
 
         <Link onClick={visitUser}>
-          更多信息
+          查看详情
         </Link>
 
         {type == "TransactionalMentor" && <>

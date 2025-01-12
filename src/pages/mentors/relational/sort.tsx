@@ -51,11 +51,11 @@ export default function Page() {
   };
 
   return <>
-    <PageBreadcrumb current="完成导师选择" />
+    <PageBreadcrumb current="为导师排序" />
 
     <VStack maxW={maxTextWidth} spacing={sectionSpacing} align="stretch">
       <Text>
-        拖拽卡片进行排序，将你最喜欢的导师放在顶部。越靠前的导师越有可能与你匹配：
+        请拖拽卡片进行排序，将最喜欢的导师放在顶部。越靠前的导师越有可能匹配：
       </Text>
 
       <Sorter setIsSaving={setIsSaving} setIsFinalizable={setIsFinalizable} />
@@ -168,7 +168,7 @@ const SortableCard = ({ ms, currentOrder }: {
             <Text color="gray" mt={componentSpacing}>{ms.reason}</Text>
           </GridItem>
           <GridItem display="flex" alignItems="center">
-            <MdDragIndicator color="gray" />
+            <MdDragIndicator color="gray" size={24} />
           </GridItem>
         </Grid>
       </CardBody>
