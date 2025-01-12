@@ -43,7 +43,7 @@ export default fullPage(() => {
       spacing={componentSpacing}
       align="start"
       mx={pageMarginX}
-      mt={componentSpacing}
+      mt={pageMarginX}
     >
       <ShowOnMobile>
         <Heading size="md">{title}</Heading>

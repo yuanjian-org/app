@@ -180,7 +180,7 @@ export default fullPage(() => {
         mentorSelections={selections}
         searchTerm={searchTerm}
         mx={pageMarginX}
-        mt={componentSpacing}
+        mt={pageMarginX}
       />}
   </>;
 }, "选择一对一导师");

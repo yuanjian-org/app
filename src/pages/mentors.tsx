@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { hash } from 'shared/strings';
 import { trpcNext } from "trpc";
-import { componentSpacing, pageMarginX } from 'theme/metrics';
+import { breakpoint, componentSpacing, pageMarginX, sectionSpacing } from 'theme/metrics';
 import { fullPage } from 'AppPage';
 import { useMemo, useState } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
@@ -26,7 +26,10 @@ export default fullPage(() => {
     data ? dailyShuffle(data, me.id) : undefined, [data, me]);
 
   return <>
-    <TopBar {...topBarPaddings}>
+    <TopBar
+      {...topBarPaddings}
+      pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
+    >
       <VStack
         spacing={componentSpacing}
         align="start"
@@ -44,8 +47,13 @@ export default fullPage(() => {
     </TopBar>
 
     {!shuffled ? <Loader alignSelf="flex-start" /> :
-      <UserCards type="TransactionalMentor" users={shuffled}
-        searchTerm={searchTerm} mx={pageMarginX} mt={componentSpacing} />}
+      <UserCards
+        type="TransactionalMentor"
+        users={shuffled}
+        searchTerm={searchTerm}
+        mx={pageMarginX}
+        mt={pageMarginX}
+      />}
 
     {booking &&
       <MentorBookingModal mentor={null} onClose={() => setBooking(false)} />

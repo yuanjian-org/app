@@ -1,6 +1,6 @@
-import { Box, BoxProps } from "@chakra-ui/react";
+import { Box, BoxProps, useDimensions } from "@chakra-ui/react";
 import { desktopSidebarWidth, sideBarBorderColor } from "components/Sidebar";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { breakpoint, pageMarginTop, componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
 import { mobileSidbarIconLeftWithMargin, mobileSidbarIconTop } from "./Navbars";
@@ -15,22 +15,9 @@ export const topBarPaddings = {
 };
 
 export default function TopBar({ children, ...rest }: BoxProps) {
-  const refTopbar = useRef<HTMLDivElement>(null);
-  const [fixedBoxBottom, setFixedBoxBottom] = useState(0);
-
-  // Watch for size changes of the topbar
-  useEffect(() => {
-    if (!refTopbar.current) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      const rect = refTopbar.current?.getBoundingClientRect();
-      if (rect) setFixedBoxBottom(rect.bottom);
-    });
-
-    resizeObserver.observe(refTopbar.current);
-
-    return () => resizeObserver.disconnect();
-  }, []);
+  const ref = useRef<HTMLDivElement>(null);
+  // https://github.com/chakra-ui/chakra-ui/issues/6856
+  const dim = useDimensions(ref, true);
 
   return <>
     <Box
@@ -41,13 +28,13 @@ export default function TopBar({ children, ...rest }: BoxProps) {
       borderColor={sideBarBorderColor}
       shadow="sm"
       zIndex={1}
-      ref={refTopbar}
+      ref={ref}
       {...rest}
     >
       {children}
     </Box>
 
     {/* Placeholder to push down other content on the page */}
-    <Box height={`${fixedBoxBottom}px`} />
+    <Box height={`${dim?.borderBox.bottom ?? 0}px`} />
   </>;
 }

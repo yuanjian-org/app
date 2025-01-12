@@ -27,6 +27,7 @@ export default function AppPageContainer({ pageType, children }: {
             base: "100%",
             ...pageType === undefined && { xl: "1200px" }
           }}
+          spacing={0}
         >
           {children}
 
