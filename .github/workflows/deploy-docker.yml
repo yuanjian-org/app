@@ -75,6 +75,7 @@ jobs:
     - name: Deploy to server
       run: |
         ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          set -e
           cd ~/app
 
           echo ">>> Pulling origin/main to get latest docker-compose.yml"

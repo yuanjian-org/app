@@ -24,6 +24,7 @@ jobs:
     - name: Run cron jobs
       run: |
         ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          set -e
           cd ~/app
           source .env
           echo ">>> Updating ongoing meetings"
