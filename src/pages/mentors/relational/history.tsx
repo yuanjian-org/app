@@ -1,4 +1,4 @@
-import { Card, CardBody, Grid, GridItem, Heading } from "@chakra-ui/react";
+import { Card, CardBody, Grid, GridItem, Heading, Text } from "@chakra-ui/react";
 
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { Link, VStack } from "@chakra-ui/react";
@@ -18,9 +18,11 @@ export default function Page() {
 
     <VStack maxW={maxTextWidth} spacing={sectionSpacing} align="start">
 
-      {!data ? <Loader /> : data
-        .sort((a, b) => compareDate(b.finalizedAt, a.finalizedAt))
-        .map(batch => <Batch key={batch.id} batch={batch} />)
+      {!data ? <Loader /> : data.length === 0 ?
+        <Text color="gray"> 尚无选择历史。 </Text>
+        :
+        data.sort((a, b) => compareDate(b.finalizedAt, a.finalizedAt))
+          .map(batch => <Batch key={batch.id} batch={batch} />)
       }
 
       <Link as={NextLink} href="/mentors/relational">
