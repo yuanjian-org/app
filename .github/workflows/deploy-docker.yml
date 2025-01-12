@@ -79,8 +79,8 @@ jobs:
           cd ~/app
 
           echo ">>> Pulling origin/main to get latest docker-compose.yml"
-          git checkout main
-          git pull
+          echo ">>>> SKIPPED DUE TO GITHUB ACCESS ISSUE: git checkout main"
+          echo ">>>> SKIPPED DUE TO GITHUB ACCESS ISSUE: git pull"
 
           echo ">>> Restarting Docker containers. Only pulling app because pulling nginx from aliyun may get stuck."
           docker compose pull app
