@@ -16,7 +16,7 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalFooter,
-  ModalHeader,
+  ModalHeader
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
@@ -35,6 +35,8 @@ import { MdEdit } from 'react-icons/md';
 import { useState } from 'react';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
+import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
+import { ExamPassDateText } from 'exams';
 
 /**
  * TODO: this file closely resembles interviewers.tsx. Dedupe?
@@ -53,11 +55,13 @@ export default widePage(() => {
           <Th>学生容量</Th>
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
-          <Th>其他偏好</Th>
+          <Th>通讯原则评测</Th>
+          <Th>导师手册评测</Th>
+          <Th>已设偏好</Th>
+          <Th>文字偏好</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
-          <Th>邮箱</Th>
-          <Th>微信</Th>     
+          <Th>微信</Th>
           <Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
@@ -114,6 +118,9 @@ function Row({ user, profile, preference, mentorships }: {
   preference: MentorPreference,
   profile: UserProfile,
 }) {
+  const { data: state } = trpcNext.users.getUserState.useQuery({
+    userId: user.id,
+  });
   const { data: coach, refetch } = trpcNext.users.getMentorCoach.useQuery({
     userId: user.id,
   });
@@ -159,24 +166,45 @@ function Row({ user, profile, preference, mentorships }: {
 
     {/* 学生容量 */}
     <Td>{capacity}{isDefaultCapacity && `（默认）`}</Td>
+
     {/* 学生数量 */}
     <Td>{mentorships}</Td>
+
     {/* 剩余容量 */}
     <Td>{capacity - mentorships}</Td>
-    {/* 其他偏好 */}
-    <Td maxW="200px" whiteSpace="normal">
-      <Text>
-        {preference.学生特质?.其他}
-      </Text>
+
+    {/* 通讯原则评测 */}
+    <Td>
+      {state && <ExamPassDateText lastPassed={state.commsExam} />}
     </Td>
+
+    {/* 导师手册评测 */}
+    <Td>
+      {state && <ExamPassDateText lastPassed={state.handbookExam} />}
+    </Td>
+
+    {/* 已设偏好 */}
+    <Td>
+      {preference.学生特质 ?
+        <Tag colorScheme="green">是</Tag> : <Tag colorScheme="red">否</Tag>}
+    </Td>
+
+    {/* 文字偏好 */}
+    <Td>
+      <TruncatedTextWithTooltip text={preference.学生特质?.其他} />
+    </Td>
+
     {/* 性别 */}
     <Td>{profile.性别}</Td>
+
     {/* 坐标 */}
-    <Td>{profile.现居住地}</Td>
-    {/* 邮箱 */}
-    <Td>{user.email}</Td>
+    <Td>
+      <TruncatedTextWithTooltip text={profile.现居住地} />
+    </Td>
+
     {/* 微信 */}
     <Td>{user.wechat}</Td>
+
     {/* 拼音 */}
     <Td>{toPinyin(user.name ?? "")}</Td>
   </Tr>;

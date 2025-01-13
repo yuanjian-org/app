@@ -1,7 +1,6 @@
 // TODO: Apply Yuanjian brand color theme to all color variations.
 const colors = {
   
-  // TODO: Use useColorModeValue()?
   text: "gray.700",
   backgroundLight: "#f1f3f4", // "gray.100" == "#eef2f6",
   backgroundDark: "gray.900",
@@ -37,3 +36,7 @@ export default colors;
 
 export const inactiveNavLinkColor = "gray.600";
 export const activeNavLinkColor = "brand.c";
+
+export const okTextColor = "green";
+export const warningTextColor = "yellow.600";
+export const actionRequiredTextColor = "brown";

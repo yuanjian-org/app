@@ -93,4 +93,7 @@ jobs:
           echo ">>> Migrating database"
           source .env
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/migration.migrateDatabase
+
+          echo ">>> Prune Docker images"
+          docker image prune -f
         EOF

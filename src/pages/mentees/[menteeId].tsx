@@ -26,10 +26,9 @@ import { MentorshipStatusIcon } from 'pages/mentees';
 import { RoleProfiles } from 'shared/Role';
 import { useMyId } from 'useMe';
 import { useMemo } from 'react';
-import moment from 'moment';
 import NextLink from 'next/link';
 import invariant from 'tiny-invariant';
-import { examsEnabled } from 'shared/jinshuju';
+import { examsEnabled, isExamExpired } from "exams";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -47,9 +46,7 @@ export default widePage(() => {
   const needCommsExam = useMemo(() => {
     if (!examsEnabled()) return false;
     if (state === undefined) return undefined;
-
-    return !state.commsExam ||
-      moment().diff(moment(state.commsExam), "days") > 365;
+    return isExamExpired(state.commsExam);
   }, [state]);
 
   const needHandbookExam = useMemo(() => {
@@ -62,8 +59,7 @@ export default widePage(() => {
       .filter(m => !m.transactional && m.mentor.id == myId);
     if (myRelational.length == 0) return false;
 
-    return !state.handbookExam ||
-      moment().diff(moment(state.handbookExam), "days") > 365;
+    return isExamExpired(state.handbookExam);
   }, [state, mentorships, myId]);
 
   return (!mentee || !mentorships || 

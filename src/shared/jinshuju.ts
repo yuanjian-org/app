@@ -36,7 +36,3 @@ export function decodeUploadTokenUrlSafe(encoded: string) {
   const { target, id, opaque } = JSON.parse(fromBase64UrlSafe(encoded));
   return { target, id, opaque };
 }
-
-export function examsEnabled() {
-  return false; // process.env.NODE_ENV !== 'production';
-}
