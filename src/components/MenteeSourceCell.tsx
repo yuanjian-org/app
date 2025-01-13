@@ -1,15 +1,14 @@
-import { Th, Td, Tooltip, Text, } from '@chakra-ui/react';
+import { Th, Td } from '@chakra-ui/react';
+import TruncatedTextWithTooltip from './TruncatedTextWithTooltip';
 
 export function MenteeSourceHeaderCell() {
-  return <Th>来源（悬停光标看全文）</Th>;
+  return <Th>来源</Th>;
 }
 
 export function MenteeSourceCell({ source } : {
   source: string | null,
 }) {
   return <Td>
-    {source && <Tooltip label={source}>
-      <Text isTruncated maxWidth="130px">{source}</Text>
-    </Tooltip>}
+    {source && <TruncatedTextWithTooltip text={source} maxW="130px" />}
   </Td>;
 }
