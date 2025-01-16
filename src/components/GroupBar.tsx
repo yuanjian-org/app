@@ -192,16 +192,22 @@ export function OngoingMeetingWarning(props: {
   );
 }
 
-export function UserChips(props: { 
+export function UserChips({
+  currentUserId,
+  users,
+  abbreviateOnMobile,
+  abbreviateOnDesktop,
+}: { 
   currentUserId?: string, 
   users: MinUser[],
   abbreviateOnMobile?: boolean, // default: true
   abbreviateOnDesktop?: boolean, // default: false
 }) {
-  const displayUsers = props.users.filter((u: any) => props.currentUserId != u.id);
-  const abbreviateOnMobile = (props.abbreviateOnMobile === undefined || props.abbreviateOnMobile) 
-    // Mobile screen can only accommodate one person per row when their names are displayed. So abbreviate as long as
-    // there are more than one user.
+  const displayUsers = users.filter((u: any) => currentUserId != u.id);
+  
+  // Abbreviate only if there are more than one user.
+  const abbrOnDesktop = abbreviateOnDesktop && displayUsers.length > 1;
+  const abbrOnMobile = (abbreviateOnMobile === undefined || abbreviateOnMobile) 
     && displayUsers.length > 1;
 
   return <>
@@ -209,8 +215,8 @@ export function UserChips(props: {
     <AvatarGroup 
       max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
       display={{
-        base: abbreviateOnMobile ? "flex" : "none",
-        [breakpoint]: props.abbreviateOnDesktop ? "flex" : "none",
+        base: abbrOnMobile ? "flex" : "none",
+        [breakpoint]: abbrOnDesktop ? "flex" : "none",
       }}
     >
       {displayUsers.map(user => <Avatar key={user.id} name={user.name || undefined} />)}
@@ -218,8 +224,8 @@ export function UserChips(props: {
 
     {/* Unabridged mode */}
     <Wrap spacing='1.5em' display={{
-      base: abbreviateOnMobile ? "none" : "flex",
-      [breakpoint]: props.abbreviateOnDesktop ? "none" : "flex",
+      base: abbrOnMobile ? "none" : "flex",
+      [breakpoint]: abbrOnDesktop ? "none" : "flex",
     }}>
       {displayUsers.map(user =>
         <WrapItem key={user.id}>
