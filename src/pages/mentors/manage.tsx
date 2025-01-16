@@ -44,7 +44,7 @@ import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
 import { ExamPassDateText } from 'exams';
 import TopBar, { topBarPaddings } from 'components/TopBar';
 
-const title = "管理导师";
+const title = "导师档案";
 
 /**
  * TODO: this file closely resembles interviewers.tsx. Dedupe?

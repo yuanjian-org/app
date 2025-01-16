@@ -269,10 +269,10 @@ function Selection({ mentorId }: {
         value={reason} 
         onChange={ev => setReason(ev.target.value)}
         isDisabled={busy}
-        placeholder="选择导师的原因"
+        placeholder="选择这位导师的原因"
         autoFocus
       />
-      {showError && <FormErrorMessage>首先填写选择原因。</FormErrorMessage>}
+      {showError && <FormErrorMessage>请首先填写选择原因。</FormErrorMessage>}
     </FormControl>
 
     {selected && <SimpleGrid columns={2} spacing={componentSpacing} w="full">

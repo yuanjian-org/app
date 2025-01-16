@@ -31,10 +31,9 @@ import { Mentorship } from 'shared/Mentorship';
 import {
   MdChevronRight,
   MdFace,
-  MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdHome,
+  MdHome
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { compareChinese, compareDate, formatUserName } from 'shared/strings';
@@ -48,6 +47,7 @@ import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
 import { UnreadKudosRedDot } from './Kudos';
 import { UnreadChatMessagesRedDot } from './ChatRoom';
+import { FaStreetView } from 'react-icons/fa';
 
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
@@ -133,9 +133,9 @@ const mainMenuItems: MainMenuItem[] = [
     iconColor: colors.brand.b,
   },
   {
-    name: '我的会议',
+    name: '个人空间',
     path: '/',
-    icon: MdVideocam,
+    icon: FaStreetView,
     // match "/" and "/groups/.*"
     regex: /^\/$|\/groups\/.*/,
   },
