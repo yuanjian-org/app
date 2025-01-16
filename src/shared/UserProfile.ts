@@ -28,12 +28,16 @@ export const zStringUserProfile = z.object({
 
 export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
 
+export const zImageParams = z.object({
+  x: z.number(),
+  y: z.number(),
+  zoom: z.number(),
+});
+
+export type ImageParams = z.TypeOf<typeof zImageParams>;
+
 export const zUserProfile = zStringUserProfile.merge(z.object({
-  '照片参数': z.object({
-    x: z.number(),
-    y: z.number(),
-    zoom: z.number(),
-  }).optional(),
+  '照片参数': zImageParams.optional(),
   '特质': zTraits.optional(),
 }));
 

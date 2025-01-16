@@ -9,7 +9,6 @@ import {
   Link,
   Divider,
   Heading,
-  Image,
   HStack,
   Tag,
   Stack,
@@ -18,6 +17,7 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
+  Box,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -25,7 +25,7 @@ import Loader from 'components/Loader';
 import { componentSpacing } from 'theme/metrics';
 import { sectionSpacing } from 'theme/metrics';
 import { toast } from "react-toastify";
-import { UserProfile } from 'shared/UserProfile';
+import { UserProfile, ImageParams } from 'shared/UserProfile';
 import invariant from "tiny-invariant";
 import {
   parseQueryString, shaChecksum
@@ -36,7 +36,7 @@ import { markdownSyntaxUrl } from 'components/MarkdownSupport';
 import { ExternalLinkIcon, LockIcon } from '@chakra-ui/icons';
 import { isPermitted, RoleProfiles } from 'shared/Role';
 import { encodeUploadTokenUrlSafe } from 'shared/jinshuju';
-import { MdChangeCircle, MdCloudUpload } from 'react-icons/md';
+import { MdChangeCircle, MdCloudUpload, MdCrop } from 'react-icons/md';
 import _ from 'lodash';
 import FormHelperTextWithMargin from 'components/FormHelperTextWithMargin';
 import getBaseUrl from 'shared/getBaseUrl';
@@ -45,6 +45,8 @@ import { useSession } from 'next-auth/react';
 import NextLink from 'next/link';
 import { getEmbeddedFormUrl } from 'pages/form';
 import { encodeXField } from 'shared/jinshuju';
+import { CropImageModal } from 'components/CropImageModal';
+import { FullWidthImageSquare } from 'components/UserCards';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -85,12 +87,13 @@ export default function Page() {
     // void save();
   };
 
-  const updateProfile = (k: keyof UserProfile, v: string) => {
+  const updateProfile = (k: keyof UserProfile, v: string | ImageParams) => {
     const updated = {
       ...profile,
       [k]: v,
     };
     if (!v) delete updated[k];
+    if (k === "照片链接" && !v) delete updated["照片参数"];
     setProfile(updated);
     void save();
   };
@@ -262,10 +265,11 @@ function Basic({ user, profile, setUser, setProfile }: {
 function Picture({ user, profile, updateProfile, SaveButton }: {
   user: MinUser,
   profile: UserProfile,
-  updateProfile: (k: keyof UserProfile, v: string) => void,
+  updateProfile: (k: keyof UserProfile, v: string | ImageParams) => void,
   SaveButton: React.ComponentType,
 }) {
   const myRoles = useMyRoles();
+  const [isCropping, setIsCropping] = useState(false);
 
   // We use the checksum not only as a security measure but also an e-tag to
   // prevent concurrent writes.
@@ -280,14 +284,26 @@ function Picture({ user, profile, updateProfile, SaveButton }: {
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      {profile.照片链接 && <Image
-        src={profile.照片链接}
-        alt="照片"
-        maxW='300px'
-        my={componentSpacing}
-      />}
+      {profile.照片链接 && <Box width="300px">
+        <FullWidthImageSquare profile={profile} />
+      </Box>}
 
       {uploadToken && <>
+        <Link>
+          {profile.照片链接 && 
+            <HStack onClick={() => setIsCropping(true)}>
+              <MdCrop /><Text>剪裁照片</Text>
+            </HStack>
+          }
+        </Link>
+        {profile.照片链接 && isCropping && 
+          <CropImageModal 
+            imageUrl={profile.照片链接}
+            onClose={() => setIsCropping(false)}
+            updateImageParams={(x, y, zoom) => updateProfile("照片参数", { x, y, zoom })}
+            imageParams={profile.照片参数}
+          />
+        }
         <Link as={NextLink} href={getEmbeddedFormUrl('Bz3uSO', uploadToken)}>
           {profile.照片链接 ? 
             <HStack><MdChangeCircle /><Text>更换照片</Text></HStack>

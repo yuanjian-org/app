@@ -5,7 +5,6 @@ import {
 } from 'shared/strings';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import {
-  Image,
   Text,
   Table,
   Tr,
@@ -54,6 +53,7 @@ import {
 } from "components/Traits";
 import invariant from "tiny-invariant";
 import useMe, { useMyId } from "useMe";
+import { FullWidthImageSquare } from "components/UserCards";
 
 export type UserDisplayData = MinUserAndProfile & {
   // The presence of these fields depends on call sites and context
@@ -81,13 +81,9 @@ export default function UserPanel({
       direction={{ base: "column", [breakpoint]: "row" }}
     >
       <VStack spacing={sectionSpacing}>
-        <VStack spacing={componentSpacing}>
+        <VStack spacing={componentSpacing} width="300px">
           {data.profile?.照片链接 &&
-            <Image
-              maxW='300px'
-              src={data.profile.照片链接}
-              alt="照片"
-            />
+            <FullWidthImageSquare profile={data.profile} />
           }
           <UserUrl u={data.user} />
         </VStack>
