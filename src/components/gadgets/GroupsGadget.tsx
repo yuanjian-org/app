@@ -1,4 +1,3 @@
-@ -0,0 +1,92 @@
 import {
   Text,
   VStack,
