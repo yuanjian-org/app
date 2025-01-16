@@ -1,5 +1,5 @@
+@ -0,0 +1,92 @@
 import {
-  StackDivider,
   Text,
   VStack,
   Link,
@@ -12,14 +12,15 @@ import {
   Heading,
   CardHeader,
   CardBody,
+  StackDivider
 } from '@chakra-ui/react';
 import { useMyRoles } from "../../useMe";
 import { trpcNext } from "../../trpc";
-import GroupBar from 'components/GroupBar';
 import Loader from 'components/Loader';
 import { isPermitted } from 'shared/Role';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import { ResponsiveCard } from 'components/Card';
+import GroupBar from 'components/GroupBar';
 
 export default function GroupsGadget() {
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
@@ -58,30 +59,32 @@ function NoGroup() {
     .useQuery();
 
   return <VStack spacing={componentSpacing} align="start">
-    {data?.length && 
-      <Alert status="warning" mb={componentSpacing}>
+    {data?.length ?
+      <Alert status="warning">
         <HStack>
           <AlertIcon />
           <AlertDescription>
             系统发现有与您同名但使用不同电子邮箱的账号。如果您在当前账号下未找到所需功能，{
-            }请尝试使用以下可能属于您的邮箱重新登录：
+            }请尝试退出当前账号，使用以下可能属于您的邮箱或者微信账号重新登录：
             <UnorderedList mt={paragraphSpacing}>
               {data.map((d, idx) => <ListItem key={idx}><b>{d}</b></ListItem>)}
             </UnorderedList>
           </AlertDescription>
         </HStack>
       </Alert>
+      :
+      <Text color="gray">
+        平台提供的功能会根据您的角色的不同而有所差异。如果您未找到所需功能，请与管理员联系。
+      </Text>
     }
 
-    <Text>
-      平台提供的功能会根据您的角色的不同而有所差异。如果您未找到所需功能，请与管理员联系。{
-      }在继续使用前请确保：</Text>
-    <Text>🇨🇳 国内用户请安装腾讯会议（
+    <Text mt={componentSpacing}>在使用会议功能前请确保：</Text>
+    <Text>🇨🇳 国内用户安装腾讯会议（
       <Link isExternal href="https://meeting.tencent.com/download/">
         下载
       </Link>）
     </Text>
-    <Text>🌎 海外用户请安装海外版腾讯会议（
+    <Text>🌎 海外用户安装海外版腾讯会议（
       <Link isExternal href="https://voovmeeting.com/download-center.html">
         下载
       </Link>）
