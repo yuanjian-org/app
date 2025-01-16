@@ -9,7 +9,6 @@ import {
   Link,
   Divider,
   Heading,
-  Image,
   HStack,
   Tag,
   Stack,
@@ -18,6 +17,7 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
+  Box,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../../trpc";
@@ -46,6 +46,7 @@ import NextLink from 'next/link';
 import { getEmbeddedFormUrl } from 'pages/form';
 import { encodeXField } from 'shared/jinshuju';
 import { CropImageModal } from 'components/CropImageModal';
+import { FullWidthImageSquare } from 'components/UserCards';
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), 'userId');
@@ -283,12 +284,9 @@ function Picture({ user, profile, updateProfile, SaveButton }: {
   return <>
     <Heading size="md">生活照</Heading>
     <FormControl>
-      {profile.照片链接 && <Image
-        src={profile.照片链接}
-        alt="照片"
-        maxW='300px'
-        my={componentSpacing}
-      />}
+      {profile.照片链接 && <Box width="300px">
+        <FullWidthImageSquare profile={profile} />
+      </Box>}
 
       {uploadToken && <>
         <Link>

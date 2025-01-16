@@ -37,6 +37,7 @@ import UserDrawer from './UserDrawer';
 import { SmallGrayText } from './SmallGrayText';
 import { MentorSelection } from 'shared/MentorSelection';
 import useMobile from 'useMobile';
+import { useSize } from "@chakra-ui/react-use-size";
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -347,9 +348,16 @@ function TruncatedText({ children }: PropsWithChildren) {
  * This component ensures the image fill the container's width and is cropped
  * into a square.
  */
-function FullWidthImageSquare({ profile, ...rest }: {
+export function FullWidthImageSquare({ profile, ...rest }: {
   profile: UserProfile | null
 } & BoxProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const size = useSize(ref);
+
+  const adjustedX = size ? (profile?.照片参数?.x ?? 0) * size.width / 300 : profile?.照片参数?.x;
+  const adjustedY = size ? (profile?.照片参数?.y ?? 0) * size.height / 300 : profile?.照片参数?.y;
+  const zoom = profile?.照片参数?.zoom || 1;
+
   return <Box
     position="relative"
     width="100%"
@@ -358,6 +366,8 @@ function FullWidthImageSquare({ profile, ...rest }: {
     // height equals the width.
     paddingBottom="100%"
     {...rest}
+    overflow="hidden"
+    ref={ref}
   >
     <Image
       position="absolute"
@@ -365,13 +375,17 @@ function FullWidthImageSquare({ profile, ...rest }: {
       left="0"
       width="100%"
       height="100%"
-      objectFit='cover'
+      objectFit='contain'
       src={
         profile?.照片链接 ? profile.照片链接 :
         profile?.性别 == "男" ? "/img/placeholder-male.png" :
         "/img/placeholder-female.png"
       }
       alt="照片"
+      transformOrigin="center center"
+      transform={
+        `translate(${adjustedX}px, ${adjustedY}px) scale(${zoom})`
+      }
     />
   </Box>;
 }
