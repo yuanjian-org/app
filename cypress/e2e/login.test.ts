@@ -4,11 +4,11 @@ describe("Homepage test", () => {
 		cy.login();
 		// Visit a route in order to allow cypress to actually set the cookie
 		cy.visit("/");
-	})
+	});
 
 	it("can render home page", () => {
-		cy.findAllByText("我的会议").should("be.visible");
-	})
+		cy.findAllByText("我的桌面").should("be.visible");
+	});
 
 	it("can join meeting", () => {
 		cy.get('div[id="__next"]').each(($ele) => {
@@ -16,14 +16,14 @@ describe("Homepage test", () => {
 			cy.origin('https://meeting.tencent.com/', () => {
 				// Add more cross-origin tests.
 			  });
-		})
-	})
+		});
+	});
 
 	it("can expand meeting details", () => {
 		cy.get('div[id="__next"]').each(($ele) => {
 			cy.wrap($ele).get(".chakra-linkbox").click();
-		})
-	})
+		});
+	});
 
 	// it("nav button presents", () => {
 		// cy.get(".chakra-button[aria-label='open menu']").click();

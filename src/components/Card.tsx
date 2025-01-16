@@ -2,23 +2,31 @@ import {
   CardProps
 } from '@chakra-ui/react';
 import { Card } from '@chakra-ui/react';
+import useMobile from 'useMobile';
 
-export function CardForDesktop({ children, ...rest }: CardProps) {
+export function CardForDesktop({ children, ...cardProps }: CardProps) {
   return <Card
     overflow="hidden"
-    {...rest}
+    {...cardProps}
   >
     {children}
   </Card>;
 }
 
-export function CardForMobile({ children, ...rest }: CardProps) {
+export function CardForMobile({ children, ...cardProps }: CardProps) {
   return <Card
     overflow="hidden"
     size="sm"
     boxShadow="sm"
-    {...rest}
+    {...cardProps}
   >
     {children}
   </Card>;
+}
+
+export function ResponsiveCard({ children, ...cardProps }: CardProps) {
+  const mobile = useMobile();
+  return mobile ? 
+    <CardForMobile {...cardProps}>{children}</CardForMobile> :
+    <CardForDesktop {...cardProps}>{children}</CardForDesktop>;
 }

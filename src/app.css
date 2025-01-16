@@ -1,3 +1,8 @@
+/* Apply word break to all HTML elements */
+* {
+  word-break: break-word;
+}
+
 /* https://stackoverflow.com/a/76522536 */
 nextjs-portal {
   display: none;

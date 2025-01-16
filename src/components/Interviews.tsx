@@ -7,11 +7,9 @@ import {
   TableContainer,
   WrapItem,
   Wrap,
-  Text,
-  Tooltip,
-  HStack,
+  Text, HStack,
   Td,
-  Link,
+  Link
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, compareUUID, toPinyin } from 'shared/strings';
@@ -39,6 +37,7 @@ import {
 import { MenteeSourceHeaderCell, MenteeSourceCell } from './MenteeSourceCell';
 import { menteeSourceField } from 'shared/applicationFields';
 import { useMyId, useMyRoles } from 'useMe';
+import TruncatedTextWithTooltip from './TruncatedTextWithTooltip';
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -68,7 +67,7 @@ export default function Interviews({ interviews, forCalibration,
         <Th>{forCalibration ? "" : "其他"}面试官</Th>
         {forCalibration && <>
           <Th>讨论结果</Th>
-          <Th>讨论备注（悬停光标看全文）</Th>
+          <Th>讨论备注</Th>
           <Th>拼音（便于查找）</Th>
         </>}
       </Tr></Thead>
@@ -174,16 +173,14 @@ function DecisionScore({ interview } : {
   return d?.score ? <HStack gap={2}>
     <CircleIcon color={getScoreColor(summaryScoreLabels, d.score)} />
     <Text>{summaryScoreLabels[d.score - 1]}</Text>
-  </HStack> : null;
+  </HStack> : <></>;
 }
 
 function DecisionComment({ interview } : {
   interview: Interview,
 }) {
   const d = getDimension(interview);
-  return d?.comment ? <Tooltip label={d.comment}>
-    <Text isTruncated maxWidth="200px">{d.comment}</Text>
-  </Tooltip> : null;
+  return d?.comment ? <TruncatedTextWithTooltip text={d.comment} /> : <></>;
 }
 
 function getDimension(i: Interview): EditorFeedbackDimension | null {

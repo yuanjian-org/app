@@ -17,11 +17,16 @@ import {
   ModalCloseButton,
   ModalFooter,
   ModalHeader,
+  Checkbox,
+  Box,
+  Wrap,
+  WrapItem,
+  Heading
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
 import trpc, { trpcNext } from "trpc";
-import { componentSpacing } from 'theme/metrics';
+import { componentSpacing, pageMarginX } from 'theme/metrics';
 import Role, { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
 import User, {
@@ -30,16 +35,49 @@ import User, {
 } from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import { UserProfile } from 'shared/UserProfile';
-import { widePage } from 'AppPage';
+import { fullPage } from 'AppPage';
 import { MdEdit } from 'react-icons/md';
 import { useState } from 'react';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
+import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
+import { ExamPassDateText } from 'exams';
+import TopBar, { topBarPaddings } from 'components/TopBar';
+
+const title = "导师档案";
 
 /**
  * TODO: this file closely resembles interviewers.tsx. Dedupe?
  */
-export default widePage(() => {
+export default fullPage(() => {
+  const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
+
+  return <>
+    <TopBar {...topBarPaddings}>
+      <Wrap spacing={componentSpacing}>
+        <WrapItem>
+          <Heading size="md">{title}</Heading>
+        </WrapItem>
+        <WrapItem>
+          <Checkbox
+            isChecked={showOnlyWithCapacity}
+            onChange={e => setShowOnlyWithCapacity(e.target.checked)}
+          >
+            仅显示有剩余容量的一对一导师
+          </Checkbox>
+        </WrapItem>
+      </Wrap>
+    </TopBar>
+
+    <Box mx={pageMarginX} mt={pageMarginX}>
+      <Mentors showOnlyWithCapacity={showOnlyWithCapacity} />
+    </Box>
+  </>;
+}, title);
+
+function Mentors({ showOnlyWithCapacity }: {
+  showOnlyWithCapacity: boolean,
+}) {
   const { data: stats } = 
     trpcNext.mentorships.listMentorStats.useQuery();
 
@@ -53,17 +91,26 @@ export default widePage(() => {
           <Th>学生容量</Th>
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
-          <Th>其他偏好</Th>
+          <Th>通讯原则评测</Th>
+          <Th>导师手册评测</Th>
+          <Th>已设偏好</Th>
+          <Th>文字偏好</Th>
           <Th>性别</Th>
           <Th>坐标</Th>
-          <Th>邮箱</Th>
-          <Th>微信</Th>     
+          <Th>微信</Th>
           <Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
 
       <Tbody>
-        {stats.map(s => <Row 
+        {stats
+        .filter(s =>
+          !showOnlyWithCapacity || (
+            cap(s.preference) - s.mentorships > 0 && 
+            !isPermitted(s.user.roles, "TransactionalMentor")
+          )
+        )
+        .map(s => <Row 
           key={s.user.id}
           user={s.user}
           mentorships={s.mentorships} 
@@ -74,7 +121,7 @@ export default widePage(() => {
       </Tbody>
     </Table>
   </TableContainer>;
-}, "导师");
+}
 
 function SumsRow({ stats } : {
   stats: {
@@ -114,6 +161,9 @@ function Row({ user, profile, preference, mentorships }: {
   preference: MentorPreference,
   profile: UserProfile,
 }) {
+  const { data: state } = trpcNext.users.getUserState.useQuery({
+    userId: user.id,
+  });
   const { data: coach, refetch } = trpcNext.users.getMentorCoach.useQuery({
     userId: user.id,
   });
@@ -159,24 +209,45 @@ function Row({ user, profile, preference, mentorships }: {
 
     {/* 学生容量 */}
     <Td>{capacity}{isDefaultCapacity && `（默认）`}</Td>
+
     {/* 学生数量 */}
     <Td>{mentorships}</Td>
+
     {/* 剩余容量 */}
     <Td>{capacity - mentorships}</Td>
-    {/* 其他偏好 */}
+
+    {/* 通讯原则评测 */}
     <Td>
-      <Text maxWidth="200px" whiteSpace="pre-wrap" wordBreak="break-word">
-        {preference.学生特质?.其他}
-      </Text>
+      {state && <ExamPassDateText lastPassed={state.commsExam} />}
     </Td>
+
+    {/* 导师手册评测 */}
+    <Td>
+      {state && <ExamPassDateText lastPassed={state.handbookExam} />}
+    </Td>
+
+    {/* 已设偏好 */}
+    <Td>
+      {preference.学生特质 ?
+        <Tag colorScheme="green">是</Tag> : <Tag colorScheme="red">否</Tag>}
+    </Td>
+
+    {/* 文字偏好 */}
+    <Td>
+      <TruncatedTextWithTooltip text={preference.学生特质?.其他} />
+    </Td>
+
     {/* 性别 */}
     <Td>{profile.性别}</Td>
+
     {/* 坐标 */}
-    <Td>{profile.现居住地}</Td>
-    {/* 邮箱 */}
-    <Td>{user.email}</Td>
+    <Td>
+      <TruncatedTextWithTooltip text={profile.现居住地} />
+    </Td>
+
     {/* 微信 */}
     <Td>{user.wechat}</Td>
+
     {/* 拼音 */}
     <Td>{toPinyin(user.name ?? "")}</Td>
   </Tr>;

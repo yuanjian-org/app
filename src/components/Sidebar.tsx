@@ -19,7 +19,8 @@ import {
   Text, Divider,
   DrawerContent,
   Drawer,
-  DrawerCloseButton
+  DrawerCloseButton,
+  DrawerOverlay
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import useMe, { useMyRoles } from 'useMe';
@@ -30,10 +31,9 @@ import { Mentorship } from 'shared/Mentorship';
 import {
   MdChevronRight,
   MdFace,
-  MdVideocam,
   MdSupervisorAccount,
   MdMic,
-  MdHome,
+  MdHome
 } from 'react-icons/md';
 import Role from "../shared/Role";
 import { compareChinese, compareDate, formatUserName } from 'shared/strings';
@@ -47,12 +47,13 @@ import { ImpersonationRequest } from 'pages/api/auth/[...nextauth]';
 import { accountPageTitle } from 'pages/accounts/[userId]';
 import { UnreadKudosRedDot } from './Kudos';
 import { UnreadChatMessagesRedDot } from './ChatRoom';
+import { FaStreetView } from 'react-icons/fa';
 
-export const desktopSidebarWidth = 60;
+export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
+export const sideBarBorderColor = "gray.200";
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
-const borderColor = "gray.200";
 
 interface MainMenuItem {
   name: string,
@@ -132,11 +133,11 @@ const mainMenuItems: MainMenuItem[] = [
     iconColor: colors.brand.b,
   },
   {
-    name: '我的会议',
+    name: '个人空间',
     path: '/',
-    icon: MdVideocam,
-    // match "/", "/groups/.*" but not "/groups/lab.*". "?" is a lookahead sign
-    regex: /^\/$|\/groups\/(?!lab).*/,
+    icon: FaStreetView,
+    // match "/" and "/groups/.*"
+    regex: /^\/$|\/groups\/.*/,
   },
   {
     name: '资深导师页',
@@ -165,7 +166,7 @@ const mainMenuItems: MainMenuItem[] = [
     name: '选择一对一导师',
     path: '/mentors/relational',
     icon: MdSupervisorAccount,
-    regex: /^\/mentors\/relational$/,
+    regex: /^\/mentors\/relational.*/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
       || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
   },
@@ -237,7 +238,7 @@ export function SidebarForDesktop() {
   return <Box
     bg="white"
     borderRight="1px"
-    borderRightColor={borderColor}
+    borderRightColor={sideBarBorderColor}
     w={desktopSidebarWidth}
     pos="fixed"
     h="full"
@@ -261,6 +262,7 @@ export function SidebarForMobile({ isOpen, onClose }: {
     onClose={onClose}
     onOverlayClick={onClose}
   >
+    <DrawerOverlay />
     <DrawerContent>
       <DrawerCloseButton />
       <SidebarContent onClose={onClose} />
@@ -372,7 +374,7 @@ function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
   return <Flex paddingY={sidebarItemPaddingY}>
     <Menu placement='right-start'>
       <DropdownMenuButton title={title} icon={icon}/>
-        <MenuList bg="white" borderColor={borderColor}>
+        <MenuList bg="white" borderColor={sideBarBorderColor}>
           {filteredItems.map((item, index) => {
             const isUrl = typeof item.action === 'string';
             return (

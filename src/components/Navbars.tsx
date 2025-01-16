@@ -4,7 +4,7 @@
 import { ReactNode, useCallback, useRef, useState } from 'react';
 import {
   IconButton,
-  Box, HStack, useDisclosure, Spacer
+  Box, useDisclosure
 } from '@chakra-ui/react';
 import {
   FiMenu,
@@ -25,10 +25,13 @@ import {
   useMyMentorshipsAsMentor
 } from './Sidebar';
 import { breakpoint } from 'theme/metrics';
-import { ShowOnDesktop, ShowOnMobile } from './Show';
 import RedDot from './RedDot';
 import { useUnreadKudos } from './Kudos';
 import { useUnreadChatMessages } from './ChatRoom';
+import useMobile from 'useMobile';
+
+export const mobileSidbarIconTop = 4;
+export const mobileSidbarIconLeftWithMargin = "70px";
 
 export default function Navbars({ children }: {
   children: ReactNode;
@@ -55,17 +58,19 @@ export default function Navbars({ children }: {
     setAutosateState(stateRef.current);
   }, [stateRef]);
 
+  const mobile = useMobile();
+
   return (
     <Box minH="100vh" bg={colors.backgroundLight}>
-      <ShowOnDesktop>
-        <SidebarForDesktop />
-      </ShowOnDesktop>
 
-      <ShowOnMobile>
+      {mobile ? <>
         <SidebarForMobile isOpen={isOpen} onClose={onClose} />
-      </ShowOnMobile>
-
-      <TopFixedComponents onOpen={onOpen} autosaveState={autosaveState} />
+        <AutosaveIndicatorForMobile autosaveState={autosaveState} />
+        <SidebarIconForMobile onOpen={onOpen} />
+      </> : <>
+        <SidebarForDesktop />
+        <AutosaveIndicatorForDesktop autosaveState={autosaveState} />
+      </>}
 
       <Box ml={{ base: 0, [breakpoint]: desktopSidebarWidth }}>
         <AutosaveContext.Provider value={{
@@ -80,48 +85,28 @@ export default function Navbars({ children }: {
   );
 }
 
-const TopFixedComponents = ({ onOpen, autosaveState }: {
+function SidebarIconForMobile({ onOpen }: {
   onOpen: () => void,
-  autosaveState: AutosaveState,
-}) => {
-  return (
-    <HStack
+}) {
+  return <>
+    <IconButton
       position="fixed"
       zIndex={2}
-      top="0"
-      left="0"
-      width="100%"
-      ps={10}
-      pe={4}
-      pt={{ base: 4, [breakpoint]: 1 }}
-    >
-      <ShowOnMobile>
-        <Spacer />
-      </ShowOnMobile>
+      top={mobileSidbarIconTop}
+      right={4}
 
-      <AutosaveIndicator
-        state={autosaveState}
-        // For debugging only
-        // state={{ id2state: new Map([["a", "无法保存"]]), virgin: false }}
-      />
+      onClick={onOpen}
+      variant="outline"
+      aria-label="open menu"
+      icon={<FiMenu />}
+      bg="white"
+      shadow="sm"
+    />
+    <SidbarIconRedDot />
+  </>;
+}
 
-      {/* Mobile menu icon */}
-      <ShowOnMobile>
-        <IconButton
-          onClick={onOpen}
-          variant="outline"
-          aria-label="open menu"
-          icon={<FiMenu />}
-          bg="white"
-          shadow="sm"
-        />
-        <MobileMenuIconRedDot />
-      </ShowOnMobile>
-    </HStack>
-  );
-};
-
-function MobileMenuIconRedDot() {
+function SidbarIconRedDot() {
   const hasUnreadKudos = useUnreadKudos();
   const mentorships = useMyMentorshipsAsMentor();
   const hasUnreadChatMessages = useUnreadChatMessages(
@@ -130,10 +115,45 @@ function MobileMenuIconRedDot() {
   );
 
   return <RedDot
-    show={hasUnreadKudos || hasUnreadChatMessages}
-    top="22px"
-    right="20px"
     position="fixed"
     zIndex={3}
+    top="22px"
+    right="20px"
+
+    show={hasUnreadKudos || hasUnreadChatMessages}
   />;
+}
+
+function AutosaveIndicatorForMobile({ autosaveState }: {
+  autosaveState: AutosaveState,
+}) {
+  return <Box
+    position="fixed"
+    zIndex={2}
+    top={mobileSidbarIconTop + 2}
+    right={mobileSidbarIconLeftWithMargin}
+  >
+    <AutosaveIndicator
+      state={autosaveState}
+      // For debugging only
+      // state={{ id2state: new Map([["a", "无法保存"]]), virgin: false }}
+    />
+  </Box>;
+}
+
+function AutosaveIndicatorForDesktop({ autosaveState }: {
+  autosaveState: AutosaveState,
+}) {
+  return <Box
+    position="fixed"
+    zIndex={2}
+    top={1}
+    left={10}
+  >
+    <AutosaveIndicator
+      state={autosaveState}
+      // For debugging only
+      // state={{ id2state: new Map([["a", "无法保存"]]), virgin: false }}
+    />
+  </Box>;
 }

@@ -18,6 +18,7 @@ import map from './routes/map';
 import mentorBookings from './routes/mentorBookings';
 import merge from './routes/merge';
 import kudos from './routes/kudos';
+import mentorSelections from './routes/mentorSelections';
 
 export const apiRouter = router({
   users,
@@ -39,6 +40,7 @@ export const apiRouter = router({
   mentorBookings,
   merge,
   kudos,
+  mentorSelections,
 });
 
 export type ApiRouter = typeof apiRouter;

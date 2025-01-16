@@ -177,3 +177,26 @@ export const kudosInclude = [{
   association: "giver",
   attributes: minUserAttributes,
 }];
+
+/**
+ * MentorSelection
+ */
+
+export const mentorSelectionAttributes = ["id", "reason", "order"];
+
+export const mentorSelectionInclude = [{
+  association: "mentor",
+  attributes: minUserAttributes,
+}];
+
+/**
+ * MentorSelectionBatch
+ */
+
+export const mentorSelectionBatchAttributes = ["id", "finalizedAt"];
+
+export const mentorSelectionBatchInclude = [{
+  association: "selections",
+  attributes: mentorSelectionAttributes,
+  include: mentorSelectionInclude,
+}];

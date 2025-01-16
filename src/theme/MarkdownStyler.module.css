@@ -23,11 +23,8 @@
   font-size: 1.1em;
 }
 
-/* break-word allows text to wrap onto the next line by breaking words 
-  if they are too long to fit within their container */
 .markdownStyler p {
   margin: 0.75em 0;
-  word-break: break-word;
 }
 
 /* This color mirrors brand.c color in theme/colors.ts */

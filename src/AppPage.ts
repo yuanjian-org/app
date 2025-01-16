@@ -1,6 +1,6 @@
 import { NextPage } from "next";
 
-export type AppPageType = "wide" | "full";
+export type AppPageType = "wide" | "full" | "bare";
 
 type AppPage<P = {}, IP = P> = NextPage<P, IP> & {
   type?: AppPageType,
@@ -12,7 +12,7 @@ type AppPage<P = {}, IP = P> = NextPage<P, IP> & {
 export default AppPage;
 
 /**
- * Occupy 100% useable width instead of leaving a broad margin on the right.
+ * Occupy full page width instead of leaving a broad margin on the right.
  */
 export function widePage(page: AppPage, title?: string): AppPage {
   page.type = "wide";
@@ -21,11 +21,19 @@ export function widePage(page: AppPage, title?: string): AppPage {
 }
 
 /**
- * Occupy the entire useable area with no margin to neighboring elements. Also
- * remove pager footer.
+ * Same as `wide` but with no margin to neighboring elements.
  */
 export function fullPage(page: AppPage, title?: string): AppPage {
   page.type = "full";
+  page.title = title;
+  return page;
+}
+
+/**
+ * Same as `full` but with no footer.
+ */
+export function barePage(page: AppPage, title?: string): AppPage {
+  page.type = "bare";
   page.title = title;
   return page;
 }

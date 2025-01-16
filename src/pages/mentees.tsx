@@ -63,6 +63,8 @@ import MergeTokenCell from 'components/MergeTokenCell';
 import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
 import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
 import { LuChevronsUpDown } from "react-icons/lu";
+import { actionRequiredTextColor, okTextColor } from 'theme/colors';
+import { warningTextColor } from 'theme/colors';
 
 type Metadata = {
   // The year the mentee was accepted
@@ -539,8 +541,8 @@ export function getDateTextAndColor(date: string | null | undefined,
   if (date) {
     text = prettifyDate(date);
     const daysAgo = moment().diff(date, "days");
-    color = daysAgo < yellowThreshold ? "green" :
-      daysAgo < redThreshold ? "yellow.600" : "brown";
+    color = daysAgo < yellowThreshold ? okTextColor :
+      daysAgo < redThreshold ? warningTextColor : actionRequiredTextColor;
   } else if (date === null) {
     text = nullText;
     color = "gray";

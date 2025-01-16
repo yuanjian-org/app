@@ -1,24 +1,24 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
-  AllRoles, 
-  RoleProfiles, 
-  isPermitted, 
-  zRoles 
+  AllRoles,
+  RoleProfiles,
+  isPermitted,
+  zRoles
 } from "../../shared/Role";
 import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { authUser } from "../auth";
 import User, {
-  defaultMentorCapacity, 
-  isAcceptedMentee, 
-  zMinUser, 
-  zUser, 
-  zUserFilter, 
+  defaultMentorCapacity,
+  isAcceptedMentee,
+  zMinUser,
+  zUser,
+  zUserFilter,
   zUserPreference,
   zUserWithMergeInfo
 } from "../../shared/User";
-import { 
+import {
   formatUserName,
   isValidChineseName,
   toPinyin
@@ -30,10 +30,10 @@ import {
   notFoundError
 } from "../errors";
 import { zInterviewType } from "../../shared/InterviewType";
-import { 
-  minUserAttributes, 
+import {
+  minUserAttributes,
   userAttributes,
-  userInclude, 
+  userInclude,
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
@@ -524,14 +524,23 @@ const setUserProfile = procedure
 
 const getUserState = procedure
   .use(authUser())
+  .input(z.object({
+    userId: z.string(),
+  }).optional())
   .output(zUserState)
-  .query(async ({ ctx: { user } }) =>
+  .query(async ({ ctx: { user: me }, input }) =>
 {
-  const u = await db.User.findByPk(user.id, {
+  const userId = input?.userId ?? me.id;
+  if (userId !== me.id && !isPermitted(me.roles,
+    ["UserManager", "MentorshipManager"])) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const u = await db.User.findByPk(userId, {
     attributes: ["state"],
   });
 
-  if (!u) throw notFoundError("用户", user.id);
+  if (!u) throw notFoundError("用户", userId);
   return u.state ?? {};
 });
 

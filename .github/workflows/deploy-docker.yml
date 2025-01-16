@@ -75,11 +75,12 @@ jobs:
     - name: Deploy to server
       run: |
         ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          set -e
           cd ~/app
 
           echo ">>> Pulling origin/main to get latest docker-compose.yml"
-          git checkout main
-          git pull
+          echo ">>>> SKIPPED DUE TO GITHUB ACCESS ISSUE: git checkout main"
+          echo ">>>> SKIPPED DUE TO GITHUB ACCESS ISSUE: git pull"
 
           echo ">>> Restarting Docker containers. Only pulling app because pulling nginx from aliyun may get stuck."
           docker compose pull app
@@ -92,4 +93,7 @@ jobs:
           echo ">>> Migrating database"
           source .env
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/migration.migrateDatabase
+
+          echo ">>> Prune Docker images"
+          docker image prune -f
         EOF

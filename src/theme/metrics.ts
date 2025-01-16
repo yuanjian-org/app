@@ -25,4 +25,4 @@ export const pageMarginTop = {
 };
 
 // https://v2.chakra-ui.com/docs/components/container/usage#container-size
-export const textMaxWidth = "60ch";
+export const maxTextWidth = "60ch";

@@ -9,7 +9,7 @@ import {
   UnorderedList,
   ListItem,
 } from '@chakra-ui/react';
-import { breakpoint, textMaxWidth } from 'theme/metrics';
+import { breakpoint, maxTextWidth } from 'theme/metrics';
 import invariant from "tiny-invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
@@ -17,7 +17,6 @@ import Applicant from 'components/Applicant';
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from 'shared/User';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import moment from "moment";
 import { paragraphSpacing, sectionSpacing } from 'theme/metrics';
 import { InterviewFeedbackEditor } from 'components/InterviewEditor';
 import { widePage } from 'AppPage';
@@ -25,7 +24,7 @@ import { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
 import { useMemo } from 'react';
 import NextLink from 'next/link';
-import { examsEnabled } from 'shared/jinshuju';
+import { examsEnabled, interviewExamExpiryDays, isExamExpired } from "exams";
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
@@ -38,19 +37,13 @@ export default widePage(() => {
   const needCommsExam = useMemo(() => {
     if (!examsEnabled()) return false;
     if (state === undefined) return undefined;
-
-    return !state.commsExam ||
-      moment().diff(moment(state.commsExam), "days") > 365;
+    return isExamExpired(state.commsExam);
   }, [state]);
 
   const needInterviewExam = useMemo(() => {
     if (!examsEnabled()) return false;
     if (state === undefined) return undefined;
-
-    const passed = state.menteeInterviewerExam;
-    // 300 days instead of 365 days because the start of the next interview
-    // cycle varies from year to year.
-    return !passed || moment().diff(moment(passed), "days") > 300;
+    return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
   }, [state]);
 
   const myFeedbackId = useMemo(() => {
@@ -101,7 +94,7 @@ function NeedExams({ type, interview, comms } : {
 }) {
   invariant(comms || interview);
 
-  return <Flex direction="column" gap={paragraphSpacing} maxW={textMaxWidth}>
+  return <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
     <p>
       请首先完成
       {comms &&
