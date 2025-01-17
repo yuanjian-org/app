@@ -15,7 +15,7 @@ export default function Page() {
     <PageBreadcrumb current={title} />
 
     <Grid
-      templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }} 
+      templateColumns={{ base: "1fr", [breakpoint]: "1fr 0.618fr" }}
       gap={sectionSpacing}
     >
       <Column>
