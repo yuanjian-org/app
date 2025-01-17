@@ -24,7 +24,7 @@ export default function Page() {
       align="stretch"
     >
       <Text>
-        这份文档讲述志愿者与学生沟通时应注意的事项，以及具体的情景分析。
+        这份材料介绍志愿者与学生沟通时的注意事项，并提供具体的情景分析。
       </Text>
 
       <Text>第一步：</Text>

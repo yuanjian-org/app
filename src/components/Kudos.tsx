@@ -39,7 +39,8 @@ import { DateColumn } from 'shared/DateColumn';
 import { UserState } from 'shared/UserState';
 import RedDot from './RedDot';
 import { motion, AnimatePresence } from 'framer-motion';
-import useMe, { useMyId } from 'useMe';
+import useMe, { useMyId, useMyRoles } from 'useMe';
+import { isPermitted } from 'shared/Role';
 
 export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
@@ -412,6 +413,8 @@ export function UnreadKudosRedDot() {
  * @returns whether there are unread kudos.
  */
 export function useUnreadKudos() {
+  if (!isPermitted(useMyRoles(), "Volunteer")) return false;
+
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery();
 
