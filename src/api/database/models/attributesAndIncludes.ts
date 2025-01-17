@@ -200,3 +200,14 @@ export const mentorSelectionBatchInclude = [{
   attributes: mentorSelectionAttributes,
   include: mentorSelectionInclude,
 }];
+
+/**
+ * Task
+ */
+
+export const taskAttributes = ["id", "autoTaskId", "markdown", "done", "updatedAt"];
+
+export const taskInclude = [{
+  association: "creator",
+  attributes: minUserAttributes,
+}];

@@ -9,14 +9,15 @@ import { ResponsiveCard } from 'components/Card';
 import NextLink from 'next/link';
 import { IoMdBookmark } from 'react-icons/io';
 import colors from 'theme/colors';
+import { componentSpacing } from 'theme/metrics';
 
-export default function StudyGadget() {
+export default function StudyCard() {
   return <ResponsiveCard>
     <CardHeader>
       <Heading size="sm">志愿者学习材料</Heading>
     </CardHeader>
     <CardBody>
-      <Flex direction="column" gap={2}>
+      <Flex direction="column" gap={componentSpacing}>
         <StudyItem title="《学生通讯原则》" href="/study/comms" />
         <StudyItem title="《社会导师手册》" href="/study/handbook" />
         <StudyItem title="《招生流程》与《面试标准》" href="/study/interview" />

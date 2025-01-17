@@ -394,6 +394,11 @@ function KudosHistoryRow({ kudos, showReceiver }: {
   </>;
 }
 
+/**
+ * TODO: The following functions are very similar to the ones in TasksCard.tsx.
+ * Consider refactoring them to be shared.
+ */
+
 function getLastKudosReadAt(state: UserState): Moment {
   // If lastKudosReadAt is absent, treat consentedAt as the last read time.
   // If consentedAt is also absent, then use the current time.

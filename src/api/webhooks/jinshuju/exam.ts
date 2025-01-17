@@ -4,6 +4,7 @@ import moment from "moment";
 import { generalBadRequestError, notFoundError } from "../../errors";
 import sequelize from "../../database/sequelize";
 import { UserState } from "shared/UserState";
+import { AutoTaskId } from "shared/Task";
 
 export default async function submit(
   formEntry: Record<string, any>,
@@ -27,11 +28,22 @@ export default async function submit(
       transaction,
     });
     if (!u) throw notFoundError("用户", userId);
+
+    // Update user state
     await u.update({
       state: {
         ...u.state,
         [exam]: moment().toISOString(),
       },
     }, { transaction });
+
+    // Update task state
+    if (exam === "commsExam") {
+      // Force type check
+      const autoTaskId: AutoTaskId = "study-comms";
+      await db.Task.update({
+        done: true,
+      }, { where: { userId, autoTaskId }, transaction });
+    }
   });
 }

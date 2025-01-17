@@ -101,10 +101,11 @@ export default function Room({
       <Spacer />
 
       <Link
+        fontSize="sm"
         onClick={markAsRead}
         {...redDotTransitionProps(hasUnread)}
       >
-        标为全部已读
+        全部已读
       </Link>
       <ShowOnDesktop>
         <Kbd {...redDotTransitionProps(hasUnread)}>R</Kbd>

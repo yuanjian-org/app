@@ -37,6 +37,7 @@ import UserDrawer from './UserDrawer';
 import { SmallGrayText } from './SmallGrayText';
 import { MentorSelection } from 'shared/MentorSelection';
 import useMobile from 'useMobile';
+import LinkDivider from './LinkDivider';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -462,7 +463,7 @@ function UserCardForMobile({
 
         {selected && <>
           <Text color="green.600"><CheckIcon mr={1} />已选择</Text>
-          <Text color="gray.400">|</Text>
+          <LinkDivider />
         </>}
 
         <Link onClick={visitUser}>
@@ -470,7 +471,7 @@ function UserCardForMobile({
         </Link>
 
         {type == "TransactionalMentor" && <>
-          <Text color="gray.400">|</Text>
+          <LinkDivider />
           <Link onClick={ev => {
             ev.stopPropagation();
             openModal();
@@ -478,7 +479,7 @@ function UserCardForMobile({
         </>}
 
         {type == "Volunteer" && <>
-          <Text color="gray.400">|</Text>
+          <LinkDivider />
           <KudosControl
             user={data.user}
             likes={data.likes ?? 0}
