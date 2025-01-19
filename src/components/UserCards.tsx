@@ -339,8 +339,10 @@ function UserCardForDesktop({
   </CardForDesktop>;
 }
 
-function TruncatedText({ children }: PropsWithChildren) {
-  return <Text noOfLines={5}>{children}</Text>;
+function TruncatedText({ children, noOfLines = 5 }: {
+  noOfLines?: number,
+} & PropsWithChildren) {
+  return <Text noOfLines={noOfLines}>{children}</Text>;
 }
 
 /**
@@ -441,10 +443,11 @@ function UserCardForMobile({
         {type == "TransactionalMentor" ? <>
           {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
         </> : type == "RelationalMentor" ? <>
-          {p?.擅长话题 && <TruncatedText>擅长聊：{p.擅长话题}</TruncatedText>}
+          {p?.擅长话题 && <TruncatedText noOfLines={3}>擅长聊：{p.擅长话题}</TruncatedText>}
+          {p?.成长亮点 && <TruncatedText noOfLines={3}>成长亮点：{p.成长亮点}</TruncatedText>}
         </> : <>
-          {p?.爱好与特长 && <TruncatedText>爱好：{p.爱好与特长}</TruncatedText>}
-          {p?.生活日常 && <TruncatedText>日常：{p.生活日常}</TruncatedText>}
+          {p?.爱好与特长 && <TruncatedText noOfLines={3}>爱好：{p.爱好与特长}</TruncatedText>}
+          {p?.生活日常 && <TruncatedText noOfLines={3}>日常：{p.生活日常}</TruncatedText>}
         </>}
       </VStack>
 
