@@ -8,8 +8,8 @@ import { widePage } from 'AppPage';
 
 export default widePage(() => {
   const calibrationId = parseQueryString(useRouter(), 'calibrationId');
-  const { data: calibration } = calibrationId ? 
-    trpcNext.calibrations.get.useQuery(calibrationId) : { data: undefined };
+  const { data: calibration } = trpcNext.calibrations.get.useQuery(
+    calibrationId ?? "", { enabled: !!calibrationId });
 
   return !calibration ? <Loader /> : <>
     <PageBreadcrumb current={`面试讨论：${calibration.name}`} />

@@ -32,13 +32,16 @@ import { examsEnabled, isExamExpired } from "exams";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
-  const { data: mentee } = menteeId ? trpcNext.users.get.useQuery(menteeId) :
-    { data: undefined };
-  const { data: mentorships } = menteeId ? trpcNext.mentorships
+  const { data: mentee } = trpcNext.users.get.useQuery(menteeId ?? "", {
+    enabled: !!menteeId,
+  });
+  const { data: mentorships } = trpcNext.mentorships
     .listMentorshipsForMentee.useQuery({
-      menteeId,
+      menteeId: menteeId ?? "",
       includeEndedTransactional: false,
-    }) : { data: undefined };
+    }, {
+      enabled: !!menteeId,
+    });
 
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();

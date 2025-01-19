@@ -6,8 +6,9 @@ import UserPanel from "components/UserPanel";
 
 export default function Page() {
   const userId = parseQueryString(useRouter(), 'userId');
-  const { data } = userId ?
-    trpcNext.users.getUserProfile.useQuery({ userId }) : { data: undefined };
+  const { data } = trpcNext.users.getUserProfile.useQuery({ userId }, {
+    enabled: !!userId,
+  });
   return data ? <UserPanel
     data={data}
     showBookingButton={data.isMentor}

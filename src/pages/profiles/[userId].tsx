@@ -54,16 +54,17 @@ export default function Page() {
 
   const queryOpts = {
     // Avoid accidental override when switching between windows
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    enabled: !!userId,
   };
 
-  const { data: oldUser } = userId ? trpcNext.users.getFull
-    .useQuery(userId, queryOpts) : { data: undefined };
+  const { data: oldUser } = trpcNext.users.getFull
+    .useQuery(userId ?? "", queryOpts);
   const [user, setUser] = useState<User>();
   useEffect(() => setUser(oldUser), [oldUser]);
 
-  const { data: old } = userId ? trpcNext.users.getUserProfile
-    .useQuery({ userId }, queryOpts) : { data: undefined };
+  const { data: old } = trpcNext.users.getUserProfile
+    .useQuery({ userId }, queryOpts);
   const [profile, setProfile] = useState<UserProfile>();
   useEffect(() => setProfile(old?.profile), [old]);
 

@@ -47,11 +47,12 @@ export default function Page() {
   const myId = useMyId();
   const userId = queryUserId === "me" ? myId : queryUserId;
 
-  const { data: user } = userId ? trpcNext.users.getFull.useQuery(userId) :
-    { data: undefined };
+  const { data: user } = trpcNext.users.getFull.useQuery(userId ?? "", {
+    enabled: !!userId,
+  });
 
-  const { data: oldPref } = userId ? trpcNext.users.getUserPreference.useQuery(
-    { userId }) : { data: undefined };
+  const { data: oldPref } = trpcNext.users.getUserPreference.useQuery(
+    { userId: userId ?? "" }, { enabled: !!userId });
   const [pref, setPref] = useState<UserPreference>();
   useEffect(() => setPref(oldPref), [oldPref]);
 

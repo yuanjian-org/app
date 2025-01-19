@@ -8,8 +8,9 @@ import Loader from "components/Loader";
 
 export default function Page() {
   const userUrl = parseQueryString(useRouter(), 'userUrl');
-  const { data } = userUrl ?
-    trpcNext.users.getUserProfile.useQuery({ userUrl }) : { data: undefined };
+  const { data } = trpcNext.users.getUserProfile.useQuery({ userUrl }, {
+    enabled: !!userUrl,
+  });
   return data ? <UserPanel
     data={data}
     showBookingButton={data.isMentor}

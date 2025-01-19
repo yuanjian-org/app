@@ -20,7 +20,7 @@ import {
   Checkbox,
   Link
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import trpc from "../trpc";
 import { trpcNext } from "../trpc";
 import GroupBar from 'components/GroupBar';
@@ -63,11 +63,16 @@ export default function Page() {
   };
 
   return <>
-    {groupBeingEdited && <GroupEditor group={groupBeingEdited} onClose={closeGroupEditor}/>}
+    {groupBeingEdited && <GroupEditor group={groupBeingEdited}
+      onClose={closeGroupEditor}/>}
 
     <Wrap spacing={6}>
       <WrapItem minWidth={100} alignItems="center">
-        <UserSelector isMulti placeholder="按用户过滤，或为创建分组输入一名或以上用户" onSelect={setUserIds} />
+        <UserSelector
+          isMulti
+          placeholder="按用户过滤，或为创建分组输入一名或以上用户"
+          onSelect={setUserIds} 
+        />
       </WrapItem>
       <WrapItem alignItems="center">
         <Button
@@ -79,8 +84,13 @@ export default function Page() {
         </Button>
       </WrapItem>
       <WrapItem alignItems="center">
-        <Checkbox isChecked={includeOwned} onChange={e => setIncludeOwned(e.target.checked)}>显示托管分组</Checkbox>
-        <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
+        <Checkbox
+          isChecked={includeOwned}
+          onChange={e => setIncludeOwned(e.target.checked)}
+        >显示托管分组</Checkbox>
+        <QuestionIconTooltip
+          label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。"
+        />
       </WrapItem>
       <WrapItem alignItems="center">
         <Checkbox isChecked={includeArchived} 

@@ -13,12 +13,18 @@ export default function Page() {
   const router = useRouter();
   const me = useMe();
   const groupId = parseQueryString(router, "groupId");
-  const { data: group } = groupId ? 
-    trpcNext.groups.get.useQuery(groupId) : { data: undefined };
+  const { data: group } = trpcNext.groups.get.useQuery(groupId ?? "", {
+    enabled: !!groupId,
+  });
 
   return !group ? <Loader /> : <Stack spacing={sectionSpacing}>
-    <GroupBar group={group} showJoinButton showSelf abbreviateOnMobile={false}
-      marginBottom={paragraphSpacing} />
+    <GroupBar
+      group={group}
+      showJoinButton
+      showSelf
+      abbreviateOnMobile={false}
+      marginBottom={paragraphSpacing}
+    />
     {isPermittedToAccessGroupHistory(me, group) && 
       <Transcripts group={group} />
     }

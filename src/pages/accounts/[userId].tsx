@@ -34,8 +34,9 @@ export default function Page() {
   const myId = useMyId();
   const userId = queryUserId === "me" ? myId : queryUserId;
 
-  const { data: user } = userId ?
-    trpcNext.users.getFull.useQuery(userId) : { data: undefined };
+  const { data: user } = trpcNext.users.getFull.useQuery(userId ?? "", {
+    enabled: !!userId,
+  });
 
   const [isMerging, setIsMerging] = useState(false);
 
