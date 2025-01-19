@@ -16,7 +16,10 @@ export default function UserDrawer({ onClose, ...rest }: UserPanelProps & {
       <DrawerCloseButton size="lg" /> 
       <DrawerHeader />
       <DrawerBody>
-        <UserPanel {...rest} />
+        {/**
+          * TODO: Popover is displayed behind the user drawer. 
+          * cf. https://github.com/chakra-ui/chakra-ui/discussions/5974 */}
+        <UserPanel {...rest} hideKudosControl={true} />
       </DrawerBody> 
     </DrawerContent>
   </Drawer>;

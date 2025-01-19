@@ -53,7 +53,8 @@ import {
   TraitTag,
 } from "components/Traits";
 import invariant from "tiny-invariant";
-import useMe, { useMyId } from "useMe";
+import useMe, { useMyId, useMyRoles } from "useMe";
+import { KudosControl } from "./Kudos";
 
 export type UserDisplayData = MinUserAndProfile & {
   // The presence of these fields depends on call sites and context
@@ -66,11 +67,14 @@ export type UserPanelProps = {
   data: UserDisplayData & { isMentor: boolean },
   showBookingButton?: boolean,
   showMatchingTraitsAndSelection?: boolean,
+  hideKudosControl?: boolean,
 };
 
 export default function UserPanel({ 
-  data, showBookingButton, showMatchingTraitsAndSelection
+  data, showBookingButton, showMatchingTraitsAndSelection, hideKudosControl
 }: UserPanelProps) {
+  const myRoles = useMyRoles();
+
   return <>
     <PageBreadcrumb current={
       (data.isMentor ? "导师：" : "") + formatUserName(data.user.name, "formal")}
@@ -92,22 +96,23 @@ export default function UserPanel({
           <UserUrl u={data.user} />
         </VStack>
 
-        {/* TODO: Popover is displayed behind the user drawer. 
-            cf. https://github.com/chakra-ui/chakra-ui/discussions/5974 */}
-        {/* {isPermitted(myRoles, "Volunteer") && <HStack mt={sectionSpacing}>
-          <KudosControl
-            user={data.user}
-            likes={data.likes ?? 0}
-            kudos={data.kudos ?? 0}
-          />
-        </HStack>} */}
-
         {showMatchingTraitsAndSelection && <>
           <MatchingTraits userId={data.user.id} />
           <Selection mentorId={data.user.id} />
         </>}
 
         {showBookingButton && <BookingButtonAndModal user={data.user} />}
+
+        {!hideKudosControl && isPermitted(myRoles, "Volunteer") && (
+          <HStack mt={sectionSpacing}>
+            <KudosControl
+              user={data.user}
+              likes={data.likes ?? 0}
+              kudos={data.kudos ?? 0}
+            />
+          </HStack>
+        )}
+
       </VStack>
 
       {data.profile && <ProfileTable
