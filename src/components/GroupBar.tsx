@@ -145,13 +145,16 @@ function GroupTagOrName({ group }: { group: Group }) {
       </Tag>
     </Tooltip>}
 
-    {isOwned(group) ?
+    {/*
+      * Don't display the tag if the group is for mentorship. It used to display
+      * "一对一导师" but we want to weaken mentees' impression of being mentored.
+      */}
+    {isOwned(group) && !group.partnershipId ?
       <Tag color="white" bgColor="gray">
-      {group.partnershipId ? "一对一导师" :
-        group.calibrationId ? "面试讨论" :
-          group.coacheeId ? "资深导师" :
-            group.interviewId ? "面试" :
-              "FIXME" }
+      {group.calibrationId ? "面试讨论" :
+        group.coacheeId ? "资深导师" :
+          group.interviewId ? "面试" :
+            "FIXME" }
       </Tag>
       :      
       <Text color='gray' fontSize='sm'>
