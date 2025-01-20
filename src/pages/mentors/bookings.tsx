@@ -10,6 +10,7 @@ import {
 import EditableWithIconOrLink from 'components/EditableWithIconOrLink';
 import Loader from 'components/Loader';
 import PageBreadcrumb from 'components/PageBreadcrumb';
+import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
 import UserSelector from 'components/UserSelector';
 import { MentorBooking } from 'shared/MentorBooking';
 import { compareDate, formatUserName, prettifyDate } from 'shared/strings';
@@ -57,7 +58,7 @@ export default function Page() {
         .map(mb => <Tr key={mb.id}>
           <Td>{formatUserName(mb.requester.name, "formal")}</Td>
 
-          <Td>{mb.topic}</Td>
+          <Td><TruncatedTextWithTooltip maxW="400px" text={mb.topic} /></Td>
 
           <Td>{mb.requestedMentor ?
             formatUserName(mb.requestedMentor.name, "formal") : "-"}

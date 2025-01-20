@@ -1,8 +1,7 @@
 import db from "api/database/db";
 import sequelize from "api/database/sequelize";
 import { Op, Transaction } from "sequelize";
-import { ScheduledChatEmail, ScheduledKudosEmail } from "shared/ScheduledEmail";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { formatUserName, prettifyDate } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
@@ -11,23 +10,46 @@ import {
   chatMessageAttributes,
   chatMessageInclude,
   kudosAttributes,
-  kudosInclude, minUserAttributes, userAttributes
+  kudosInclude, minUserAttributes, taskAttributes, taskInclude, userAttributes
 } from "api/database/models/attributesAndIncludes";
 import moment, { Moment } from "moment";
 import Role from "shared/Role";
+import { ScheduledEmailType } from "shared/ScheduledEmailType";
+import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
+import { getTaskMarkdown } from "shared/Task";
+import markdown2html from "shared/markdown2html";
+
+export async function scheduleEmail(
+  type: ScheduledEmailType,
+  subjectId: string,
+  transaction: Transaction)
+{
+  const count = await db.ScheduledEmail.count({
+    where: { type, subjectId },
+    transaction,
+  });
+
+  if (count > 0) {
+    console.log(`${type} email already scheduled for ${subjectId}`);
+  } else {
+    console.log(`scheduling ${type} email for ${subjectId}`);
+    await db.ScheduledEmail.create({ type, subjectId }, { transaction });
+  }
+}
 
 const minDelayInMinutes = 5;
 
-export default async function sendScheduledEmails() {
+export async function sendScheduledEmails() {
   await sequelize.transaction(async transaction => {
     const all = await db.ScheduledEmail.findAll({
-      attributes: ["id", "data", "createdAt"],
+      attributes: ["id", "type", "subjectId", "createdAt"],
       transaction,
     });
     console.log(`Found ${all.length} scheduled emails`);
 
     for (const row of all) {
-      if (row.createdAt.getTime() + minDelayInMinutes * 60 * 1000 > Date.now()) {
+      const delayed = moment(row.createdAt).add(minDelayInMinutes, 'minutes');
+      if (delayed.isAfter(moment())) {
         console.log(`Delaying email with row id ${row.id}`);
         continue;
       }
@@ -35,21 +57,80 @@ export default async function sendScheduledEmails() {
       // Offset by 1 second to counter any time skew at commit time.
       const timestamp = moment(row.createdAt).subtract(1, 'second');
 
-      switch (row.data.type) {
+      switch (row.type) {
         case "Kudos":
-          await sendKudosEmail(row.data, timestamp, transaction);
+          await sendKudosEmail(row.subjectId, timestamp, transaction);
           break;
         case "Chat":
-          await sendChatEmail(row.data, timestamp, transaction);
+          await sendChatEmail(row.subjectId, timestamp, transaction);
           break;
+        case "Task":
+          await sendTaskEmail(row.subjectId, timestamp, transaction);
+          break;
+        default:
+          invariant(false, `Unknown scheduled email type: ${row.type}`);
       }
 
-      await db.ScheduledEmail.destroy({
-        where: { id: row.id },
-        transaction,
-      });
+      if (row.type !== "Task") {  // TESTING ONLY
+        await db.ScheduledEmail.destroy({
+          where: { id: row.id },
+          transaction,
+        });
+      }
     }
   });
+}
+
+async function sendTaskEmail(
+  userId: string,
+  timestamp: Moment,
+  transaction: Transaction,
+) {
+  const tasks = await db.Task.findAll({
+    where: {
+      userId,
+      creatorId: isAutoTaskOrCreatorIsOther(userId),
+      done: false,
+      updatedAt: isOnOrAfter(timestamp),
+    },
+    attributes: taskAttributes,
+    include: taskInclude,
+    transaction,
+  });
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ["email", "name", "state"],
+    transaction,
+  });
+  if (!user) throw Error(`User not found: ${userId}`);
+
+  const name = formatUserName(user.name, "friendly");
+  const htmls = await Promise.all(tasks.map(t => {
+    const md = getTaskMarkdown(castTask(t), user.state ?? {}, getBaseUrl());
+    return markdown2html(md);
+  }));
+
+  const personalizations = [{
+    to: {
+      email: user.email,
+      name,
+    },
+    dynamicTemplateData: {
+      name,
+      delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
+    },
+  }];
+
+  // TESTING ONLY
+  // await email("d-6af19a6bdf1b4b0b80574caabdfa1a07", personalizations,
+  //   getBaseUrl());
+
+  emailRoleIgnoreError("SystemAlertSubscriber", "发送待办事项邮件",
+    JSON.stringify(personalizations), getBaseUrl());
+}
+
+function isOnOrAfter(timestamp: Moment) {
+  return { [Op.gte]: timestamp.toISOString() };
 }
 
 function formatUserlink(u: MinUser) {
@@ -59,22 +140,20 @@ function formatUserlink(u: MinUser) {
 }
 
 async function sendKudosEmail(
-  data: ScheduledKudosEmail,
+  receiverId: string,
   timestamp: Moment,
   transaction: Transaction,
 ) {
-  invariant(data.type === "Kudos");
-
-  const receiver = await db.User.findByPk(data.receiverId, { 
+  const receiver = await db.User.findByPk(receiverId, { 
     attributes: ["email", "name", "likes", "kudos"],
     transaction,
   });
-  if (!receiver) throw Error(`User not found: ${data.receiverId}`);
+  if (!receiver) throw Error(`User not found: ${receiverId}`);
 
   const delta = await db.Kudos.findAll({
     where: {
-      receiverId: data.receiverId,
-      createdAt: { [Op.gte]: timestamp.toISOString() },
+      receiverId,
+      createdAt: isOnOrAfter(timestamp),
     },
     attributes: kudosAttributes,
     include: kudosInclude,
@@ -121,19 +200,16 @@ async function sendKudosEmail(
   await email("d-cc3da26ada1a40318440dfebe5e57aa9", personalizations,
     getBaseUrl());
 
-  emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件（Kudos Email)",
+  emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件",
     JSON.stringify(personalizations), getBaseUrl());
 }
 
-
 async function sendChatEmail(
-  data: ScheduledChatEmail,
+  roomId: string,
   timestamp: Moment,
   transaction: Transaction,
 ) {
-  invariant(data.type === "Chat");
-
-  const room = await db.ChatRoom.findByPk(data.roomId, { 
+  const room = await db.ChatRoom.findByPk(roomId, { 
     attributes: ["id"],
     include: [{
       association: 'mentee',
@@ -141,10 +217,9 @@ async function sendChatEmail(
     }],
     transaction,
   });
-  if (!room) throw Error(`Chat room not found: ${data.roomId}`);
+  if (!room) throw Error(`Chat room not found: ${roomId}`);
 
-  // We only support mentee rooms for now.
-  invariant(room.mentee);
+  invariant(room.mentee, "Only mentee rooms are supported for now");
 
   /**
    * Compute receipients which should include mentors of all ongoing relational
@@ -187,10 +262,10 @@ async function sendChatEmail(
 
   const delta = await db.ChatMessage.findAll({
     where: {
-      roomId: data.roomId,
+      roomId,
       [Op.or]: [
-        { createdAt: { [Op.gte]: timestamp.toISOString() } },
-        { updatedAt: { [Op.gte]: timestamp.toISOString() } },
+        { createdAt: isOnOrAfter(timestamp) },
+        { updatedAt: isOnOrAfter(timestamp) },
       ],
     },
     attributes: chatMessageAttributes,
@@ -214,7 +289,7 @@ async function sendChatEmail(
 
     const toName = formatUserName(u.name, "friendly");
 
-    invariant(room.mentee);
+    invariant(room.mentee, "Only mentee rooms are supported for now");
     const personalizations = [{
       to: {
         email: u.email,

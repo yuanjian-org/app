@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from '../theme/MarkdownStyler.module.css';
@@ -13,6 +12,8 @@ import rehypeRaw from 'rehype-raw';
  * https://stackoverflow.com/a/64317290
  * 
  * @params allowHtml Whether to parse raw html tags in content. DANGEROUS!
+ * 
+ * TODO: replace the implementation with markdown2html.ts?
  */
 export default function MarkdownStyler({ content, allowHtml }: {
   content: string,
@@ -26,7 +27,7 @@ export default function MarkdownStyler({ content, allowHtml }: {
       * inline code blocks (`...` or ```...```):
       * https://github.com/remarkjs/remark-gfm/issues/57
       */}
-    {/* @ts-ignore for "Types of property 'rehypePlugins' are incompatible" */}
+    {/* @ts-expect-error for "Types of property 'rehypePlugins' are incompatible" */}
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       {...allowHtml ? { rehypePlugins: [rehypeRaw] } : {}}

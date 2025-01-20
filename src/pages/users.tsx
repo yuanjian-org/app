@@ -144,6 +144,7 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
         <Th>角色</Th>
         <Th>假扮</Th>
         <Th>微信激活码</Th>
+        <Th>ID</Th>
       </Tr>
     </Thead>
     <Tbody>
@@ -212,6 +213,9 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
 
           {/* Send merge token */}
           <MergeTokenCell user={u} refetch={refetch} />
+
+          {/* ID */}
+          <Td>{u.id}</Td>
         </Tr>
       ))}
     </Tbody>

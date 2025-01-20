@@ -1,18 +1,18 @@
 import { procedure, router } from "../trpc";
 import { authIntegration, authUser } from "../auth";
 import db from "../database/db";
-import { 
+import {
   isEndedTransactionalMentorship,
   isValidMentorshipIds,
   zMentorship,
 } from "../../shared/Mentorship";
 import { z } from "zod";
-import { 
+import {
   alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError
 } from "../errors";
 import sequelize from "../database/sequelize";
 import Role, { isPermitted } from "../../shared/Role";
-import { 
+import {
   mentorshipAttributes,
   mentorshipInclude,
   minUserAttributes,
@@ -157,14 +157,14 @@ export async function getUser2MentorshipCount() {
 }
 
 const listMentorStats = procedure
-.use(authUser("MentorshipManager"))
-.output(z.array(z.object({
-  user: zUser,
-  mentorships: z.number(),
-  preference: zMentorPreference,
-  profile: zUserProfile,
-})))
-.query(async () =>
+  .use(authUser("MentorshipManager"))
+  .output(z.array(z.object({
+    user: zUser,
+    mentorships: z.number(),
+    preference: zMentorPreference,
+    profile: zUserProfile,
+  })))
+  .query(async () =>
 {
   // Force type check
   const mentorRole: Role = "Mentor";

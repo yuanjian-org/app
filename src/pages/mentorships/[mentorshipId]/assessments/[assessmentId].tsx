@@ -1,9 +1,7 @@
-import React from 'react';
 import { trpcNext } from "../../../../trpc";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useRouter } from 'next/router';
 import { parseQueryString } from "shared/strings";
-import Assessment from 'shared/Assessment';
 import Loader from 'components/Loader';
 import { Heading, Text, Flex } from '@chakra-ui/react';
 
@@ -12,8 +10,9 @@ export default function Page() { return <AssessmentEditor />; }
 function AssessmentEditor() {
   const router = useRouter();
   const id = parseQueryString(router, "assessmentId");
-  const { data: assessment } = id ?
-    trpcNext.assessments.get.useQuery<Assessment>(id) : { data: undefined };
+  const { data: assessment } = trpcNext.assessments.get.useQuery(id ?? "", {
+    enabled: !!id,
+  });
 
   // const save = useCallback(async (summary: string) => {
   //   await trpc.assessments.update.mutate({ id, summary });

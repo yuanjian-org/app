@@ -11,8 +11,7 @@ import {
   Select,
   StackProps,
   useBreakpointValue,
-  Link,
-  Kbd
+  Link
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -29,7 +28,6 @@ import { compareDate } from 'shared/strings';
 import { SmallGrayText } from './SmallGrayText';
 import moment, { Moment } from 'moment';
 import RedDot, { redDotTransitionProps } from './RedDot';
-import { ShowOnDesktop } from './Show';
 import Autosaver from './Autosaver';
 import { useMyId } from 'useMe';
 
@@ -62,21 +60,6 @@ export default function Room({
     setHasUnread(false);
   }, [menteeId, room, utils]);
 
-  useEffect(() => {
-    const onKeydown = (event: KeyboardEvent) => {
-      if (editing || !hasUnread) return;
-      if ((event.key === 'r' || event.key === 'R') && 
-        !event.ctrlKey && !event.altKey && !event.metaKey) {
-        event.preventDefault();
-        void markAsRead();
-      }
-    };
-    window.addEventListener('keydown', onKeydown);
-    return () => {
-      window.removeEventListener('keydown', onKeydown);
-    };
-  }, [markAsRead, hasUnread, editing]);
-
   return !room ? <Loader /> : <VStack
     spacing={paragraphSpacing * 1.5}
     align="start"
@@ -107,9 +90,6 @@ export default function Room({
       >
         全部已读
       </Link>
-      <ShowOnDesktop>
-        <Kbd {...redDotTransitionProps(hasUnread)}>R</Kbd>
-      </ShowOnDesktop>
     </HStack>}
 
     {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))

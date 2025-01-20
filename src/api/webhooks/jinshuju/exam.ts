@@ -38,9 +38,10 @@ export default async function submit(
     }, { transaction });
 
     // Update task state
-    if (exam === "commsExam") {
+    if (exam === "commsExam" || exam === "handbookExam") {
       // Force type check
-      const autoTaskId: AutoTaskId = "study-comms";
+      const autoTaskId: AutoTaskId = exam === "commsExam" ?
+        "study-comms" : "study-handbook";
       await db.Task.update({
         done: true,
       }, { where: { userId, autoTaskId }, transaction });
