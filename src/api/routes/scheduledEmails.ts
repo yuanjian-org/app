@@ -71,12 +71,10 @@ export async function sendScheduledEmails() {
           invariant(false, `Unknown scheduled email type: ${row.type}`);
       }
 
-      if (row.type !== "Task") {  // TESTING ONLY
-        await db.ScheduledEmail.destroy({
-          where: { id: row.id },
-          transaction,
-        });
-      }
+      await db.ScheduledEmail.destroy({
+        where: { id: row.id },
+        transaction,
+      });
     }
   });
 }
@@ -121,9 +119,8 @@ async function sendTaskEmail(
     },
   }];
 
-  // TESTING ONLY
-  // await email("d-6af19a6bdf1b4b0b80574caabdfa1a07", personalizations,
-  //   getBaseUrl());
+  await email("d-6af19a6bdf1b4b0b80574caabdfa1a07", personalizations,
+    getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送待办事项邮件",
     JSON.stringify(personalizations), getBaseUrl());

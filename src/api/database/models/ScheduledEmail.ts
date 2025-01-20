@@ -11,7 +11,14 @@ import {
 } from "../../../shared/ScheduledEmailType";
 import { z } from "zod";
 
-@Table
+@Table({
+  indexes: [
+    {
+      fields: ["type", "subjectId"],
+      unique: true,
+    },
+  ],
+})
 export default class ScheduledEmail extends Model {
   @AllowNull(false)
   @ZodColumn(TEXT, zScheduledEmailType)

@@ -1,5 +1,8 @@
 import { Box, BoxProps } from "@chakra-ui/react";
 
+export const redDotRightOffset = -4;
+export const redDotTopOffset = 0;
+
 /**
  * The parent element must have position="relative" unless the positiion prop
  * is overridden.
@@ -15,8 +18,8 @@ export default function RedDot({ show, ...rest }: {
     borderRadius="full"
     bg="red.400"
     position="absolute"
-    top={0}
-    right="-18px"
+    top={redDotTopOffset}
+    right={redDotRightOffset}
     {...redDotTransitionProps(show)}
     {...rest}
   />;

@@ -20,7 +20,7 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { DateColumn } from 'shared/DateColumn';
 import moment, { Moment } from 'moment';
-import RedDot, { redDotTransitionProps } from 'components/RedDot';
+import RedDot, { redDotRightOffset, redDotTransitionProps } from 'components/RedDot';
 import LinkDivider from 'components/LinkDivider';
 import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
@@ -105,6 +105,8 @@ function TaskItem({ t, refetch }: {
     toast.success("待办事项已更新。");
   };
 
+  const markdownStylerMarginY = 3;
+  
   return <Tooltip
     isDisabled={t.creator !== null}
     hasArrow
@@ -121,13 +123,19 @@ function TaskItem({ t, refetch }: {
         }}
       />
 
-      {/* -3 to offset the margin of the MarkdownStyler */}
-      <Box position="relative" my={-3}>
+      <Box
+        position="relative" 
+        // to offset the margin of the MarkdownStyler
+        my={-markdownStylerMarginY}
+        // to make sure the red dot doesn't go beyond the right edge of the
+        // container
+        pe={-redDotRightOffset}
+      >
         {done ?
           <s><MarkdownStyler content={markdown} /></s> :
           <MarkdownStyler content={markdown} />
         }
-        <RedDot show={showRedDot} left={-4} top={3} />
+        <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
       </Box>
     </HStack>
   </Tooltip>;
