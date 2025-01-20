@@ -29,6 +29,7 @@ import RedDot from './RedDot';
 import { useUnreadKudos } from './Kudos';
 import { useUnreadChatMessages } from './ChatRoom';
 import useMobile from 'useMobile';
+import { useUnreadTasks } from './launchpad/TasksCard';
 
 export const mobileSidbarIconTop = 4;
 export const mobileSidbarIconLeftWithMargin = "70px";
@@ -108,6 +109,8 @@ function SidebarIconForMobile({ onOpen }: {
 
 function SidbarIconRedDot() {
   const hasUnreadKudos = useUnreadKudos();
+  const hasUnreadTasks = useUnreadTasks();
+
   const mentorships = useMyMentorshipsAsMentor();
   const hasUnreadChatMessages = useUnreadChatMessages(
     mentorships?.filter(m => showRedDotForMentorship(m))
@@ -119,8 +122,7 @@ function SidbarIconRedDot() {
     zIndex={3}
     top="22px"
     right="20px"
-
-    show={hasUnreadKudos || hasUnreadChatMessages}
+    show={hasUnreadKudos || hasUnreadChatMessages || hasUnreadTasks}
   />;
 }
 

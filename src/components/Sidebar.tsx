@@ -1,7 +1,7 @@
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
@@ -48,6 +48,7 @@ import { accountPageTitle } from 'pages/accounts/[userId]';
 import { UnreadKudosRedDot } from './Kudos';
 import { UnreadChatMessagesRedDot } from './ChatRoom';
 import { FaStreetView } from 'react-icons/fa';
+import { UnreadTasksRedDot } from './launchpad/TasksCard';
 
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
@@ -62,7 +63,7 @@ interface MainMenuItem {
   path: string,
   regex?: RegExp,
   permission?: Role | Role[] | ((u: User) => boolean),
-  redDot?: ReactNode,
+  redDot?: React.ComponentType,
 }
 
 interface DropdownMenuItem {
@@ -138,6 +139,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: FaStreetView,
     // match "/" and "/groups/.*"
     regex: /^\/$|\/groups\/.*/,
+    redDot: UnreadTasksRedDot,
   },
   {
     name: '资深导师页',
@@ -176,7 +178,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: 'Volunteer',
-    redDot: <UnreadKudosRedDot />,
+    redDot: UnreadKudosRedDot,
   },
   {
     name: '学生档案',
@@ -212,7 +214,7 @@ function mentorships2Items(mentorships: Mentorship[] | undefined): MainMenuItem[
       path: `/mentees/${m.mentee.id}`,
       regex: new RegExp(`^\/mentees\/${m.mentee.id}`),
       redDot: showRedDotForMentorship(m) ?
-        <UnreadChatMessagesRedDot menteeId={m.mentee.id} /> :
+        () => <UnreadChatMessagesRedDot menteeId={m.mentee.id} /> :
         undefined,
     };
   });
@@ -435,7 +437,7 @@ function SidebarRow({ item, onClose }: {
       <Icon as={item.icon} {...item.iconColor && { color: item.iconColor }} />
       <Text marginX={componentSpacing} position="relative">
         {item.name}
-        {item.redDot}
+        {item.redDot && <item.redDot />}
       </Text>
       <Icon
         as={MdChevronRight}

@@ -5,6 +5,7 @@ export const zUserState = z.object({
   consentedAt: zDateColumn.optional(),
   declinedMergeModal: z.boolean().optional(),
   lastKudosReadAt: zDateColumn.optional(),
+  lastTasksReadAt: zDateColumn.optional(),
 
   // Last passed date of various exams.
   // 招生面试流程及标准评测

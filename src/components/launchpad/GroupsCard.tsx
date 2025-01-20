@@ -21,7 +21,7 @@ import { componentSpacing, paragraphSpacing } from 'theme/metrics';
 import { ResponsiveCard } from 'components/Card';
 import GroupBar from 'components/GroupBar';
 
-export default function GroupsGadget() {
+export default function GroupsCard() {
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
     // TODO: This is a hack. Do it properly.
     includeOwned: isPermitted(useMyRoles(), "Mentee"),

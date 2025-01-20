@@ -1,8 +1,8 @@
 import { Grid, VStack } from '@chakra-ui/react';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import GroupsGadget from 'components/gadgets/GroupsGadget';
-import NewsGadget from 'components/gadgets/NewsGadget';
-import StudyGadget from 'components/gadgets/StudyGadget';
+import GroupsCard from 'components/launchpad/GroupsCard';
+import StudyCard from 'components/launchpad/StudyCard';
+import TasksCard from 'components/launchpad/TasksCard';
 import { PropsWithChildren } from 'react';
 import { isPermitted } from 'shared/Role';
 import { breakpoint, sectionSpacing } from 'theme/metrics';
@@ -19,13 +19,13 @@ export default function Page() {
       gap={sectionSpacing}
     >
       <Column>
-        <GroupsGadget />
+        <GroupsCard />
       </Column>
 
       <Column>
-        <NewsGadget />
+        <TasksCard />
 
-        {isPermitted(useMyRoles(), "Volunteer") && <StudyGadget />}
+        {isPermitted(useMyRoles(), "Volunteer") && <StudyCard />}
       </Column>
     </Grid>
   </>);

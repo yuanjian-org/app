@@ -5,6 +5,7 @@ import { Text } from "@chakra-ui/react";
 import { warningTextColor } from "theme/colors";
 import { okTextColor } from "theme/colors";
 import { actionRequiredTextColor } from "theme/colors";
+
 export const defaultExamExpiryDays = 365;
 
 // 300 days instead of 365 days because the start of the next interview
@@ -15,6 +16,9 @@ export function examsEnabled() {
   return process.env.NODE_ENV === 'production';
 }
 
+/**
+ * @param lastPassed Assume the exam is expired if undefined
+ */
 export function isExamExpired(
   lastPassed: DateColumn | undefined,
   expiryDays: number = defaultExamExpiryDays,
@@ -23,6 +27,9 @@ export function isExamExpired(
   return moment().diff(moment(lastPassed), "days") > expiryDays;
 }
 
+/**
+ * @param lastPassed Assume the exam is expired if undefined
+ */
 export function isExamAboutToExpire(
   lastPassed: DateColumn | undefined,
   expiryDays: number = defaultExamExpiryDays,

@@ -26,6 +26,7 @@ import LastReadChatRoom from "./models/LastReadChatRoom";
 import DraftChatMessage from "./models/DraftChatMessage";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
+import Task from "./models/Task";
 
 const db = {
   Mentorship,
@@ -52,6 +53,7 @@ const db = {
   DraftChatMessage,
   MentorSelection,
   MentorSelectionBatch,
+  Task,
 };
 
 export default db;
