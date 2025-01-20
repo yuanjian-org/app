@@ -61,7 +61,8 @@ export function getTaskMarkdown(
     } else {
       // The user has passed the exam but about to expire.
       const expiry = moment(state.commsExam).add(defaultExamExpiryDays, "days");
-      return `${base}需每年完成一次。你的上次评测结果**将于` +
+      const expired = expiry.isBefore(moment());
+      return `${base}需每年完成一次。你的上次评测结果**${expired ? '已' : '将'}于` +
         `${prettifyDate(expiry.toDate())}过期**。` +
         `为确保继续访问学生资料，请尽早完成评测。谢谢 🙏`;
     }
