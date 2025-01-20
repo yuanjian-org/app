@@ -4,12 +4,12 @@ import { z } from "zod";
 import sequelize from "api/database/sequelize";
 import db from "api/database/db";
 import { generalBadRequestError, notFoundError } from "api/errors";
-import { Op, Sequelize, Transaction } from "sequelize";
-import { ScheduledEmailData, zScheduledKudosEmail } from "shared/ScheduledEmail";
+import { Op } from "sequelize";
 import { kudosAttributes, kudosInclude } from "api/database/models/attributesAndIncludes";
 import { zKudos } from "shared/Kudos";
 import { zDateColumn } from "shared/DateColumn";
 import moment from "moment";
+import { scheduleEmail } from "./scheduledEmails";
 
 /**
  * List kudos for a user. If userId is not provided, list all kudos.
@@ -81,35 +81,9 @@ const create = procedure
       ...text === null ? { likes: user.likes + 1 } : { kudos: user.kudos + 1 },
     }, { transaction });
 
-    await scheduleEmail(userId, transaction);
+    await scheduleEmail("Kudos", userId, transaction);
   });
 });
-
-// TODO: dedupe with chat.ts
-async function scheduleEmail(receiverId: string, transaction: Transaction)
-{
-  // Force type check
-  const type: z.TypeOf<typeof zScheduledKudosEmail.shape.type> = "Kudos";
-  const typeKey: keyof typeof zScheduledKudosEmail.shape = "type";
-  const receiverIdKey: keyof typeof zScheduledKudosEmail.shape = "receiverId";
-
-  // For some reason `replacements` doesn't work here. So validate input
-  // manually with zod parsing.
-  const existing = await db.ScheduledEmail.count({
-    where: Sequelize.literal(`
-      data ->> '${typeKey}' = '${type}' AND
-      data ->> '${receiverIdKey}' = '${z.string().uuid().parse(receiverId)}'
-    `),
-    transaction,
-  });
-  if (existing > 0) {
-    console.log(`Kudos email already scheduled for ${receiverId}`);
-    return;
-  }
-
-  const data: ScheduledEmailData = { type, receiverId };
-  await db.ScheduledEmail.create({ data }, { transaction });
-}
 
 export default router({
   create,

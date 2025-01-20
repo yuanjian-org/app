@@ -3,7 +3,6 @@ import User from "../src/api/database/models/User";
 import sequelize from "../src/api/database/sequelize";
 import { createGroup, findGroups } from "../src/api/routes/groups";
 import invariant from "tiny-invariant";
-import _ from "lodash";
 import moment from "moment";
 import Role, { AllRoles } from "../src/shared/Role";
 import { toPinyin } from "../src/shared/strings";

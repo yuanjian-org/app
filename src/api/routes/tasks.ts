@@ -2,13 +2,15 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { AutoTaskId, zTask } from "shared/Task";
+import { AutoTaskId, Task, zTask } from "shared/Task";
 import { taskAttributes, taskInclude } from "api/database/models/attributesAndIncludes";
 import { noPermissionError, notFoundError } from "api/errors";
 import sequelize from "api/database/sequelize";
 import { zDateColumn } from "shared/DateColumn";
 import moment from "moment";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
+import { isExamAboutToExpire } from "shared/exams";
+import { scheduleEmail } from "./scheduledEmails";
 
 const list = procedure
   .use(authUser())
@@ -28,17 +30,16 @@ const list = procedure
     },
     attributes: taskAttributes,
     include: taskInclude,
-  })).map(n => ({
-    // id is defined as an optional field in the model but it's required by
-    // the return type. Hence we manually translate it which is a stupid hack.
-    id: n.id,
-    autoTaskId: n.autoTaskId as AutoTaskId | null,
-    markdown: n.markdown,
-    done: n.done,
-    creator: n.creator,
-    updatedAt: n.updatedAt,
-  }));
+  })).map(n => castTask(n));
 });
+
+/**
+ * We need this pseudo function because id and updatedAt are defined as an
+ * optional field in the model but required by the zod type.
+ */
+export function castTask(n: any): Task {
+  return zTask.parse(n);
+}
 
 const updateDone = procedure
   .use(authUser())
@@ -71,15 +72,86 @@ const getLastTasksUpdatedAt = procedure
   const ret = await db.Task.max("updatedAt", {
     where: {
       userId: me.id,
-      creatorId: { [Op.or]: [{ [Op.eq]: null }, { [Op.ne]: me.id }] },
+      creatorId: isAutoTaskOrCreatorIsOther(me.id),
       done: false,
     },
   });
   return ret ?? moment(0);
 });
 
+export function isAutoTaskOrCreatorIsOther(userId: string) {
+  return { [Op.or]: [{ [Op.eq]: null }, { [Op.ne]: userId }] };
+}
+
 export default router({
   list,
   updateDone,
   getLastTasksUpdatedAt,
 });
+
+export async function createAutoTasks() {
+  await sequelize.transaction(async transaction => {
+    // Find all ongoing mentorships
+    const mentorships = await db.Mentorship.findAll({
+      where: {
+        [Op.or]: [
+          { endsAt: null },
+          { endsAt: { [Op.gt]: new Date() } }
+        ]
+      },
+      attributes: [],
+      include: [{
+        association: "mentor",
+        attributes: ["id", "state"],
+      }],
+      transaction,
+    });
+
+    // Create study-comms tasks
+    for (const m of mentorships) {
+      if (isExamAboutToExpire(m.mentor.state?.commsExam)) {
+        await createAutoTask(m.mentor.id, "study-comms", transaction);
+      }
+    }
+
+    // Create study-handbook tasks
+    for (const m of mentorships) {
+      if (isExamAboutToExpire(m.mentor.state?.handbookExam)) {
+        await createAutoTask(m.mentor.id, "study-handbook", transaction);
+      }
+    }
+  });
+}
+
+async function createAutoTask(
+  userId: string,
+  autoTaskId: AutoTaskId,
+  transaction: Transaction,
+) {
+  const task = await db.Task.findOne({
+    where: { userId, autoTaskId },
+    attributes: ["id", "done"],
+    transaction,
+  });
+
+  // Do nothing if the task is already created and pending.
+  if (task && !task.done) {
+    console.log(`AutoTask ${autoTaskId} for user ${userId} is already created`);
+    return;
+  }
+
+  console.log(`creating AutoTask ${autoTaskId} for user ${userId}`);
+
+  // Sequelize's upsert() doesn't work because it can't deal with the id column.
+  if (task) {
+    await task.update({ done: false }, { transaction });
+  } else {
+    await db.Task.create({
+      userId,
+      autoTaskId,
+      done: false,
+    }, { transaction });
+  }
+
+  await scheduleEmail("Task", userId, transaction);
+}

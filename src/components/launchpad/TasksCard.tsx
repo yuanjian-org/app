@@ -12,20 +12,19 @@ import {
 import { ResponsiveCard } from 'components/Card';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
-import { Task } from 'shared/Task';
+import { getTaskMarkdown, Task } from 'shared/Task';
 import { useMyId } from 'useMe';
-import { compareDate, prettifyDate } from 'shared/strings';
+import { compareDate } from 'shared/strings';
 import MarkdownStyler from 'components/MarkdownStyler';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import invariant from 'tiny-invariant';
 import { DateColumn } from 'shared/DateColumn';
 import moment, { Moment } from 'moment';
 import RedDot, { redDotTransitionProps } from 'components/RedDot';
 import LinkDivider from 'components/LinkDivider';
 import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
-import { defaultExamExpiryDays } from 'exams';
+import getBaseUrl from 'shared/getBaseUrl';
 
 export default function TasksCard() {
   const utils = trpcNext.useContext();
@@ -82,32 +81,6 @@ export default function TasksCard() {
   </ResponsiveCard>;
 }
 
-function useAutoTaskMarkdown(t: Task): string {
-  const { data: state } = trpcNext.users.getUserState.useQuery(undefined, {
-    enabled: t.autoTaskId !== "study-comms",
-  });
-
-  if (t.autoTaskId === null) {
-    invariant(t.markdown !== null, "both autoTaskId and markdown are null");
-    return t.markdown;
-
-  } else if (t.autoTaskId === "study-comms") {
-    const base = "[《学生通讯原则》](/study/comms)自学与评测";
-    if (t.done || !state) {
-      return `请完成${base}。`;
-    } else if (!state.commsExam) {
-      return `请完成${base}，之后即可访问相关学生的资料。`;
-    } else {
-      const expiry = moment(state.commsExam).add(defaultExamExpiryDays, "days");
-      return `请完成年度${base}。上次评测结果将于**${prettifyDate(expiry.toDate())}` +
-        `**过期。过期后，相关学生资料将无法访问。`;
-    }
-
-  } else {
-    invariant(false, "invalid autoTaskId");
-  }
-}
-
 function TaskItem({ t, refetch }: {
   t: Task,
   refetch: () => void,
@@ -115,7 +88,7 @@ function TaskItem({ t, refetch }: {
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const lastTasksReadAt = state ? getLastTasksReadAt(state) : moment();
-  const markdown = useAutoTaskMarkdown(t);
+  const markdown = getTaskMarkdown(t, state, getBaseUrl());
 
   const [done, setDone] = useState(t.done);
 
@@ -136,7 +109,7 @@ function TaskItem({ t, refetch }: {
     isDisabled={t.creator !== null}
     hasArrow
     openDelay={500}
-    label="此为自动生成的待办事项。完成相应任务后，系统会自动更新状态"
+    label="自动生成的待办事项。完成相应任务后，系统会自动标记为已完成"
   >
     <HStack w="full">
       <Checkbox
@@ -154,7 +127,7 @@ function TaskItem({ t, refetch }: {
           <s><MarkdownStyler content={markdown} /></s> :
           <MarkdownStyler content={markdown} />
         }
-        <RedDot show={showRedDot} right={-3} top={3} />
+        <RedDot show={showRedDot} left={-4} top={3} />
       </Box>
     </HStack>
   </Tooltip>;

@@ -1,20 +1,23 @@
 import {
   Table,
   Model,
-  AllowNull,
-  Index,
+  AllowNull
 } from "sequelize-typescript";
-import { JSONB } from "sequelize";
+import { TEXT, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import {
-  zScheduledEmailData,
-  ScheduledEmailData,
-} from "../../../shared/ScheduledEmail";
+  zScheduledEmailType,
+  ScheduledEmailType
+} from "../../../shared/ScheduledEmailType";
+import { z } from "zod";
 
 @Table
 export default class ScheduledEmail extends Model {
-  @Index({ using: 'gin' })
   @AllowNull(false)
-  @ZodColumn(JSONB, zScheduledEmailData)
-  data: ScheduledEmailData;
+  @ZodColumn(TEXT, zScheduledEmailType)
+  type: ScheduledEmailType;
+
+  @AllowNull(false)
+  @ZodColumn(UUID, z.string().uuid())
+  subjectId: string;
 }

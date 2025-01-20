@@ -10,3 +10,4 @@ name in the `shared` folder.
 1. zod types returned by API routes and the fields within these types should
 use nullable() and not optional(). optional() allows undefined values which
 should be only used to indicate data is still being loaded in the frontend.
+1. Use `TEXT` instead of `STRING` for sequelize columns: https://stackoverflow.com/a/143764

@@ -31,6 +31,8 @@ jobs:
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.updateOngoingMeetings
           echo ">>> Syncing meeting summaries"
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncSummaries
+          echo ">>> Creating auto tasks"
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
           echo ">>> Sending scheduled emails"
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledEmails
         EOF

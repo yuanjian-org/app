@@ -9,13 +9,13 @@ import {
   chatRoomInclude,
 } from "api/database/models/attributesAndIncludes";
 import { zChatRoom } from "shared/ChatRoom";
+import { Includeable, Op, Transaction } from "sequelize";
+import { zDateColumn, zNullableDateColumn } from "shared/DateColumn";
+import moment from "moment";
+import { scheduleEmail } from "./scheduledEmails";
 import User from "shared/User";
 import { checkPermissionToAccessMentee } from "./users";
 import invariant from "tiny-invariant";
-import { Includeable, Op, Sequelize, Transaction } from "sequelize";
-import { zDateColumn, zNullableDateColumn } from "shared/DateColumn";
-import { ScheduledEmailData, zScheduledChatEmail } from "shared/ScheduledEmail";
-import moment from "moment";
 
 const getRoom = procedure
   .use(authUser())
@@ -177,7 +177,7 @@ const createMessage = procedure
       transaction,
     });
 
-    await scheduleEmail(roomId, transaction);
+    await scheduleEmail("Chat", roomId, transaction);
   });
 });
 
@@ -209,7 +209,7 @@ const updateMessage = procedure
       transaction,
     });
 
-    await scheduleEmail(m.roomId, transaction);
+    await scheduleEmail("Chat", m.roomId, transaction);
   });
 });
 
@@ -278,31 +278,6 @@ function checkDraftMessageInput(
     throw generalBadRequestError(
       "one and only one of roomId and messageId must be specified");
   }
-}
-
-// TODO: dedupe with kudos.ts
-async function scheduleEmail(roomId: string, transaction: Transaction) {
-  // Force type check
-  const type: z.TypeOf<typeof zScheduledChatEmail.shape.type> = "Chat";
-  const typeKey: keyof typeof zScheduledChatEmail.shape = "type";
-  const roomIdKey: keyof typeof zScheduledChatEmail.shape = "roomId";
-
-  // For some reason `replacements` doesn't work here. So validate input
-  // manually with zod parsing.
-  const existing = await db.ScheduledEmail.count({
-    where: Sequelize.literal(`
-      data ->> '${typeKey}' = '${type}' AND
-      data ->> '${roomIdKey}' = '${z.string().uuid().parse(roomId)}'
-    `),
-    transaction,
-  });
-  if (existing > 0) {
-    console.log(`Chat email already scheduled for ${roomId}`);
-    return;
-  }
-
-  const data: ScheduledEmailData = { type, roomId };
-  await db.ScheduledEmail.create({ data }, { transaction });
 }
 
 async function checkRoomPermission(me: User, menteeId: string | null) {

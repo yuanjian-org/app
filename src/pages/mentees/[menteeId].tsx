@@ -28,7 +28,8 @@ import { useMyId } from 'useMe';
 import { useMemo } from 'react';
 import NextLink from 'next/link';
 import invariant from 'tiny-invariant';
-import { examsEnabled, isExamExpired } from "exams";
+import { isExamExpired } from "shared/exams";
+import { isProd } from "shared/isProd";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -47,13 +48,13 @@ export default widePage(() => {
   const { data: state } = trpcNext.users.getUserState.useQuery();
 
   const needCommsExam = useMemo(() => {
-    if (!examsEnabled()) return false;
+    if (!isProd()) return false;
     if (state === undefined) return undefined;
     return isExamExpired(state.commsExam);
   }, [state]);
 
   const needHandbookExam = useMemo(() => {
-    if (!examsEnabled()) return false;
+    if (!isProd()) return false;
     if (state === undefined || !mentorships) return undefined;
     
     // Exam is needed only if the current user has relational mentorship with
@@ -95,7 +96,7 @@ function NeedExams({ comms, handbook }: {
       ，即可看到学生页面，开始一对一通话。
     </p>
 
-    <p>为了巩固记忆，我们邀请导师每年重新评测一次，感谢您的理解与支持。</p>
+    <p>我们邀请导师每年重新评测一次，感谢你的理解与支持。</p>
   </Flex>;
 }
 

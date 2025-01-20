@@ -41,7 +41,7 @@ import { useState } from 'react';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import UserSelector from 'components/UserSelector';
 import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
-import { ExamPassDateText } from 'exams';
+import ExamPassDateText from 'components/ExamPassDateText';
 import TopBar, { topBarPaddings } from 'components/TopBar';
 
 const title = "导师档案";

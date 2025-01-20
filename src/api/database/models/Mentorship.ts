@@ -51,6 +51,7 @@ class Mentorship extends Model {
   @Column(BOOLEAN)
   transactional: boolean;
 
+  // If null, the mentorship is active without an end date.
   @Column(DATE)
   endsAt: DateColumn | null;
 

@@ -24,7 +24,8 @@ import { useMyId } from 'useMe';
 import { InterviewType } from 'shared/InterviewType';
 import { useMemo } from 'react';
 import NextLink from 'next/link';
-import { examsEnabled, interviewExamExpiryDays, isExamExpired } from "exams";
+import { interviewExamExpiryDays, isExamExpired } from "shared/exams";
+import { isProd } from "shared/isProd";
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
@@ -35,13 +36,13 @@ export default widePage(() => {
   const { data: state } = trpcNext.users.getUserState.useQuery();
 
   const needCommsExam = useMemo(() => {
-    if (!examsEnabled()) return false;
+    if (!isProd()) return false;
     if (state === undefined) return undefined;
     return isExamExpired(state.commsExam);
   }, [state]);
 
   const needInterviewExam = useMemo(() => {
-    if (!examsEnabled()) return false;
+    if (!isProd()) return false;
     if (state === undefined) return undefined;
     return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
   }, [state]);
@@ -109,7 +110,7 @@ function NeedExams({ type, interview, comms } : {
     {type == "MentorInterview" &&
       <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>}
 
-    <p>为了巩固记忆，我们邀请面试官每年重新评测一次，感谢您的理解与支持。</p>
+    <p>我们邀请面试官每年重新评测一次，感谢你的理解与支持。</p>
   </Flex>;
 }
 

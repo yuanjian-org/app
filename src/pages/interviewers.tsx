@@ -22,7 +22,7 @@ import { ChevronRightIcon } from '@chakra-ui/icons';
 import { widePage } from 'AppPage';
 import moment from 'moment';
 import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
-import { ExamPassDateText } from 'exams';
+import ExamPassDateText from 'components/ExamPassDateText';
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
