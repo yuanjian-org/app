@@ -28,16 +28,16 @@ import { CardHeader, CardBody, CardFooter } from '@chakra-ui/react';
 import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } from 'react';
 import MentorBookingModal from 'components/MentorBookingModal';
 import { CheckIcon, SearchIcon } from '@chakra-ui/icons';
-import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot } from './Kudos';
+import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot, useUnreadKudos } from './Kudos';
 import { CardForDesktop, CardForMobile } from './Card';
 import { trpcNext } from 'trpc';
 import Loader from './Loader';
 import { UserDisplayData } from 'components/UserPanel';
 import UserDrawer from './UserDrawer';
-import { SmallGrayText } from './SmallGrayText';
 import { MentorSelection } from 'shared/MentorSelection';
 import useMobile from 'useMobile';
 import LinkDivider from './LinkDivider';
+import { redDotTransitionProps } from './RedDot';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -190,10 +190,12 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
     userId: undefined,
     limit,
   });
+  const hasUnread = useUnreadKudos();
 
   const utils = trpcNext.useContext();
   const [marked, setMarked] = useState(false);
   const markAsRead = useCallback(async () => {
+    // Avoid frequent calls.
     if (marked) return;
     // Note that `last` covers all the kudos given by the current user.
     const last = kudos?.[0]?.createdAt;
@@ -219,9 +221,12 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             最近的赞
             <UnreadKudosRedDot />
           </Heading>
-          <SmallGrayText>
-            记得给出色的小伙伴点赞哦
-          </SmallGrayText>
+
+          <HStack spacing={2} fontSize="sm">
+            <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
+              全部已读
+            </Link>
+          </HStack>
         </Flex>
 
         <Box

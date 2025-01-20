@@ -64,7 +64,7 @@ function NoGroup() {
           <AlertIcon />
           <AlertDescription>
             系统发现有与您同名但使用不同电子邮箱的账号。如果您在当前账号下未找到所需功能，{
-            }请尝试退出当前账号，使用以下可能属于您的邮箱或者微信账号重新登录：
+            }请尝试退出当前账号，使用以下可能属于您的邮箱账号重新登录：
             <UnorderedList mt={paragraphSpacing}>
               {data.map((d, idx) => <ListItem key={idx}><b>{d}</b></ListItem>)}
             </UnorderedList>

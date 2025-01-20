@@ -239,15 +239,25 @@ const listVolunteers = procedure
 const listRedactedEmailsWithSameName = procedure
   .use(authUser())
   .output(z.array(z.string()))
-  .query(async ({ ctx }) =>
+  .query(async ({ ctx: { user } }) =>
 {
   // Force type check
   const banned: Role = "Banned";
   return (await db.User.findAll({
     where: {
-      name: ctx.user.name,
-      id: { [Op.ne]: ctx.user.id },
-      [Op.not]: { roles: { [Op.contains]: [banned] }, },
+      name: user.name,
+      id: { [Op.ne]: user.id },
+      [Op.and]: [
+        { [Op.not]: { roles: { [Op.contains]: [banned] } } },
+
+        // Exclude fake emails because non-email-binding accounts are the ones
+        // that were created using WeChat sign-in and haven't merged with an
+        // email-bound accounts. Admins can only set up functions for
+        // email-bound accounts, and therefore the missing function warning that
+        // is displayed in the frontend don't need to show for these accounts.
+        //
+        { [Op.not]: { email: { [Op.like]: `%${fakeEmailDomain}` } } }
+      ]
     },
     attributes: ["email"],
   })).map(u => redactEmail(u.email));

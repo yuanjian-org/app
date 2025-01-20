@@ -39,12 +39,13 @@ export default function TasksCard() {
     // Place done tasks at the bottom.
     if (a.done && !b.done) return 1;
     if (!a.done && b.done) return -1;
+    // Place tasks that are updated more recently at the top.
     return compareDate(b.updatedAt, a.updatedAt);
   });
 
   const hasUnread = useUnreadTasks();
 
-  const markAllAsRead = async () => {
+  const markAsRead = async () => {
     // Note that `last` covers all the tasks created by the current user.
     const last = sorted?.[0]?.updatedAt;
     if (last) await markTasksAsRead(utils, last);
@@ -59,7 +60,7 @@ export default function TasksCard() {
         </Heading>
 
         <HStack spacing={2} fontSize="sm">
-          <Link onClick={markAllAsRead} {...redDotTransitionProps(hasUnread)}>
+          <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
             全部已读
           </Link>
           <LinkDivider  {...redDotTransitionProps(hasUnread)} />
