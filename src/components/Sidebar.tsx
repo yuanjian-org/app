@@ -122,7 +122,7 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
   },
   {
     name: '退出登录',
-    action: signOut,
+    action: () => signOut({ callbackUrl: staticUrlPrefix }),
   },
 ];
 
