@@ -25,5 +25,8 @@ export const generalBadRequestError = (message: string) =>
 export const conflictError = () =>
   new TRPCError({ code: "CONFLICT", message: "版本冲突。" });
 
-  export const notImplemnetedError = () =>
+export const notImplemnetedError = () =>
   new TRPCError({ code: "METHOD_NOT_SUPPORTED", message: "功能尚未实现。" });
+
+export const internalServerError = (message: string) =>
+  new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message });

@@ -4,6 +4,7 @@ import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
+import { internalServerError } from './errors';
 
 const LOG_HEADER = "[TecentMeeting]";
 
@@ -57,7 +58,6 @@ const sign = (
 };
 
 /**
- * TODO: handle error responses
  * TODO: rewrite using `axios` and remove `requestWithBody`
  */
 const tmRequest = async (
@@ -105,7 +105,7 @@ const tmRequest = async (
 
   const port = _port ?? (protocol === 'http:' ? "80" : "443");
 
-  return JSON.parse(await requestWithBody(bodyText, {
+  const res = JSON.parse(await requestWithBody(bodyText, {
     host,
     port,
     path: "/" + path,
@@ -113,6 +113,14 @@ const tmRequest = async (
     method,
     headers,
   }));
+
+  if ("error_info" in res) {
+    const e = res.error_info;
+    throw internalServerError(`腾讯会议后台错误：${e.message}。` +
+      `错误码：${e.new_error_code}` +
+      (e.error_code !== e.new_error_code ? `（旧错误码：${e.error_code}）` : ""));
+  }
+  return res;
 };
 
 /**
