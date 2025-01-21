@@ -17,10 +17,10 @@ export function toPinyin(s: string) {
 
 export function formatUserName(
   name: string | null,
-  mood: 'friendly' | 'formal' = "formal"
+  mode: 'friendly' | 'formal' = "formal"
 ) {
   if (!name) return '（佚名）';
-  return mood === 'friendly' ? name.substring(Math.max(0, name.length - 2)) : name;
+  return mode === 'friendly' ? name.substring(Math.max(0, name.length - 2)) : name;
 }
 
 export function formatGroupName(name: string | null, userCount: number): string {

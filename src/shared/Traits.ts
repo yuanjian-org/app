@@ -64,7 +64,7 @@ function isHardTraitPref(pv: number) {
  * Return empty `matchingTraits` if the score is `hardMismatchScore`.
  */
 export function computeTraitsMatchingScore(
-  profile: UserProfile,
+  menteeProfile: UserProfile,
   menteeApp: Record<string, any> | null,
   pref: TraitsPreference | null,
 ): {
@@ -73,7 +73,7 @@ export function computeTraitsMatchingScore(
 } {
   let score = 0;
 
-  const traits = profile.特质;
+  const traits = menteeProfile.特质;
   if (!traits || !pref) return { score, matchingTraits: [] };
 
   /**
@@ -91,7 +91,7 @@ export function computeTraitsMatchingScore(
       continue;
 
     } else if (key === "男vs女") {
-      unified[key] = profile.性别 === "男" ?
+      unified[key] = menteeProfile.性别 === "男" ?
         // N.B. Sign must be consistent with components/Traits.tsx
         -maxTraitAbsValue : maxTraitAbsValue;
 

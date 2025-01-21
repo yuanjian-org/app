@@ -19,6 +19,8 @@ import { FeedbackDeprecated } from "shared/InterviewFeedback";
 import { isPermitted } from 'shared/Role';
 import { InterviewType } from 'shared/InterviewType';
 import { useMyRoles } from 'useMe';
+import { menteeInterviewDimensions } from 'shared/interviewDimentions';
+import { mentorInterviewDimensions } from 'shared/interviewDimentions';
 
 // TODO: Replace EditorFeedback and EditorFeedbackDimension with Feedback and
 // FeedbackDimension
@@ -146,13 +148,8 @@ function Editor({ type, defaultFeedback, etag, save, showDimensions, readonly }:
     defaultFeedback as EditorFeedback || { dimensions: [] });
   const refEtag = useRef<number>(etag);
 
-  const dimensions = type == "MenteeInterview" ? [
-    "成绩优秀", "心中有爱", "脑中有料", "眼中有光", "脚下有土", "开放与成长思维",
-    "个人潜力", "导师价值",
-  ] : [
-    "基本原则", "理念一致", "开放思维", "学习成长", "善于倾听", "谨慎评价", "脑中有料",
-    "循循善诱", "忘年之交", "相关经历",
-  ];
+  const dimensions = type == "MenteeInterview" ?
+    menteeInterviewDimensions : mentorInterviewDimensions;
 
   const onSave = async (f: EditorFeedback) => {
     try {

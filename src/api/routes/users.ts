@@ -175,19 +175,27 @@ const list = procedure
   }));
 });
 
-const listMentors = procedure
+const zListMentorsOutput = z.array(zMinUserAndProfile.merge(z.object({
+  // relational == true if and only if the mentor's roles don't include
+  // TransactionalMentor and the mentor's capacity is not exhausted.
+  relational: z.boolean(),
+  traitsPreference: zTraitsPreference.nullable(),
+})));
+export type ListMentorsOutput = z.infer<typeof zListMentorsOutput>;
+
+const listMentorsRoute = procedure
   .use(authUser())
-  .output(z.array(zMinUserAndProfile.merge(z.object({
-    relational: z.boolean(),
-    traitsPreference: zTraitsPreference.nullable(),
-  }))))
+  .output(zListMentorsOutput)
   .query(async ({ ctx: { user: me } }) =>
 {
   if (!isPermitted(me.roles, ["Mentor", "MentorshipManager"]) &&
     !isAcceptedMentee(me.roles, me.menteeStatus, true)) {
     throw noPermissionError("导师");
   }
+  return await listMentors();
+});
 
+export async function listMentors(): Promise<ListMentorsOutput> {
   // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
@@ -210,7 +218,7 @@ const listMentors = procedure
       traitsPreference: u.preference?.mentor?.学生特质 ?? null,
     };
   });
-});
+}
 
 const listVolunteers = procedure
   .use(authUser(["Volunteer"]))
@@ -822,7 +830,7 @@ export default router({
   listPriviledgedUserDataAccess,
   listRedactedEmailsWithSameName,
   listVolunteers,
-  listMentors,
+  listMentors: listMentorsRoute,
   getMentorTraitsPref,
 
   update,

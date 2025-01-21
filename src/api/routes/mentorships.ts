@@ -30,6 +30,13 @@ import {
 import { zUserProfile } from "../../shared/UserProfile";
 import { zNullableDateColumn } from "../../shared/DateColumn";
 
+export const whereMentorshipIsOngoing = {
+  [Op.or]: [
+    { endsAt: null },
+    { endsAt: { [Op.gt]: new Date() } }
+  ]
+};
+
 const create = procedure
   .use(authUser('MentorshipManager'))
   .input(z.object({

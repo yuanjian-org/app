@@ -86,6 +86,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
+    name: '一对一匹配',
+    action: '/match',
+    roles: 'MentorshipManager',
+  },
+  {
     name: '面试官',
     action: '/interviewers',
     roles: 'MentorshipManager',

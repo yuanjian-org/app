@@ -11,6 +11,7 @@ import moment from "moment";
 import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "shared/exams";
 import { scheduleEmail } from "./scheduledEmails";
+import { whereMentorshipIsOngoing } from "./mentorships";
 
 const list = procedure
   .use(authUser())
@@ -93,12 +94,7 @@ export async function createAutoTasks() {
   await sequelize.transaction(async transaction => {
     // Find all ongoing mentorships
     const mentorships = await db.Mentorship.findAll({
-      where: {
-        [Op.or]: [
-          { endsAt: null },
-          { endsAt: { [Op.gt]: new Date() } }
-        ]
-      },
+      where: whereMentorshipIsOngoing,
       attributes: [],
       include: [{
         association: "mentor",

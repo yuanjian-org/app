@@ -193,7 +193,7 @@ export const mentorSelectionInclude = [{
  * MentorSelectionBatch
  */
 
-export const mentorSelectionBatchAttributes = ["id", "finalizedAt"];
+export const mentorSelectionBatchAttributes = ["id", "finalizedAt", "userId"];
 
 export const mentorSelectionBatchInclude = [{
   association: "selections",
