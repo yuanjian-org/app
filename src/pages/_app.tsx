@@ -16,7 +16,7 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage, { AppPageType } from 'AppPage';
-import { isStaticPage } from '../static';
+import { isStaticPage, staticUrlPrefix } from '../static';
 import StaticPageContainer from 'components/StaticPageContainer';
 import { loginUrl } from './auth/login';
 import getBaseUrl from 'shared/getBaseUrl';
@@ -91,6 +91,13 @@ function SwitchBoard({ children, pageType }: {
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
       return <AuthPageContainer>{children}</AuthPageContainer>;
+
+    // Redirect to static page if the user attempts to access the home page, ...
+    } else if (router.asPath === "/") {
+      void router.push(staticUrlPrefix);
+      return null;
+
+    // ... and redirect to login if they attempt to access specific sub-pages.
     } else {
       void router.push(loginUrl(router.asPath));
       return null;
