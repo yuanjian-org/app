@@ -2,9 +2,7 @@ import {
   Button,
   InputGroup,
   InputLeftElement,
-  Input,
-  Heading,
-  VStack,
+  Input, VStack,
   TabList,
   Tab,
   Tabs,
@@ -25,11 +23,21 @@ import { RoleProfiles } from 'shared/Role';
 import EmbeddedWeChatQRLogin from 'components/EmbeddedWeChatQRLogin';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import { IoLogoWechat } from 'react-icons/io5';
+import PageBreadcrumb from 'components/PageBreadcrumb';
+import { staticUrlPrefix } from 'static';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
 
-export const callbackUrlKey = "callbackUrl";
+const callbackUrlKey = "callbackUrl";
+
+export function callbackUrlParam(url: string | undefined) {
+  return url ? `${callbackUrlKey}=${encodeURIComponent(url)}` : "";
+}
+
+export function loginUrl(callbackUrl?: string) {
+  return `/auth/login?${callbackUrlParam(callbackUrl)}`;
+}
 
 type ServerSideProps = {
   wechatQRAppId: string;
@@ -115,7 +123,10 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   </Text>;
 
   return <>
-    <Heading size="md" marginBottom={sectionSpacing}>社会导师服务平台</Heading>
+    <PageBreadcrumb
+      current="登录"
+      parents={[{ name: "社会导师服务平台", link: staticUrlPrefix }]}
+    />
 
     <Tabs
       isFitted

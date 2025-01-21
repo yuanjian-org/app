@@ -1,10 +1,10 @@
 import {
-  Link, 
-  Text, 
-  HStack, 
-  PinInput, 
+  Link,
+  Text,
+  HStack,
+  PinInput,
   PinInputField,
-  Heading 
+  Heading
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import NextLink from "next/link";
@@ -12,7 +12,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import {
-  callbackUrlKey,
+  callbackUrlParam,
   localStorageKeyForLoginCallbackUrl,
   localStorageKeyForLoginEmail
 } from './login';
@@ -34,7 +34,7 @@ export default function Page() {
         // next-auth automatically convert all email addresses to lower case.
         const lower = email.toLowerCase();
         await router.push(`/api/auth/callback/sendgrid?` +
-          `${callbackUrlKey}=${encodeURIComponent(callbackUrl)}` +
+          `${callbackUrlParam(callbackUrl)}` +
           `&token=${token}&email=${encodeURIComponent(lower)}`);
       }
     } finally {

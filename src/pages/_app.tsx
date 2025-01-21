@@ -16,9 +16,9 @@ import PageLoader from 'components/PageLoader';
 import AppPageContainer from 'components/AppPageContainer';
 import AuthPageContainer from 'components/AuthPageContainer';
 import AppPage, { AppPageType } from 'AppPage';
-import { isStaticPage, staticUrlPrefix } from '../static';
+import { isStaticPage } from '../static';
 import StaticPageContainer from 'components/StaticPageContainer';
-import { callbackUrlKey } from './auth/login';
+import { loginUrl } from './auth/login';
 import getBaseUrl from 'shared/getBaseUrl';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
@@ -92,10 +92,7 @@ function SwitchBoard({ children, pageType }: {
     if (isAuthPage) {
       return <AuthPageContainer>{children}</AuthPageContainer>;
     } else {
-      const encoded = encodeURIComponent(router.asPath);
-      // StaticNavBar in the static page is supposed to pick up the callback URL
-      // and then pass it to the login page.
-      void router.push(`${staticUrlPrefix}?${callbackUrlKey}=${encoded}`);
+      void router.push(loginUrl(router.asPath));
       return null;
     }
 

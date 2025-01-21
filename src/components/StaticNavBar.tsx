@@ -1,15 +1,13 @@
-import React from 'react';
 import {
   Box, Button, Flex, HStack, Text,
- } from '@chakra-ui/react';
+} from '@chakra-ui/react';
 import { pageMarginX, staticPageMaxWidth } from 'theme/metrics';
 import { staticUrlPrefix } from '../static';
 import NextLink from 'next/link';
 import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
 import Image from "next/image";
 import { useRouter } from 'next/router';
-import { parseQueryString } from 'shared/strings';
-import { callbackUrlKey } from 'pages/auth/login';
+import { loginUrl } from 'pages/auth/login';
 import { activeNavLinkColor } from 'theme/colors';
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
@@ -20,12 +18,7 @@ const inactiveNavLinkColor = "gray.700";
  * The top navigation bar for static (non-app) pages.
  */
 export default function StaticNavBar() {
-  const router = useRouter();
-  const callbackUrl = parseQueryString(router, callbackUrlKey);
-  const loginUrl = `/auth/login${!callbackUrl ? "" :
-    `?${callbackUrlKey}=${encodeURIComponent(callbackUrl)}`}`;
-
-  const current = router.asPath;
+  const current = useRouter().asPath;
 
   return <Box
     as="nav"
@@ -60,11 +53,11 @@ export default function StaticNavBar() {
           <NavLink href={`${staticUrlPrefix}/articles`} current={current}
             text="文章" />
 
-          <NextLink href="/">
+          <NextLink href={loginUrl()}>
             <Text color={inactiveNavLinkColor}>进入平台</Text>
           </NextLink>
 
-          <Button variant="brand" as={NextLink} href={loginUrl}>
+          <Button variant="brand" as={NextLink} href={loginUrl()}>
             登录 / 注册
           </Button>
 
