@@ -3,7 +3,7 @@ import { authIntegration, authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
-import { safeDecodeMeetingSubject } from "./meetings";
+import { gracePeriodMinutes } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
@@ -12,6 +12,7 @@ import { notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
 import formatMeetingMinutes from "./formatMeetingMinutes";
+import { Op } from "sequelize";
 
 const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 
@@ -123,27 +124,37 @@ async function findMissingSummariesforTmUser(tmUserId: string,
 {
   await Promise.all((await listRecords(tmUserId))
     // Only interested in meetings that are ready to download.
-    .filter(meeting => meeting.state === 3)
-    .map(async meeting => {
-      // Only interested in meetings that refers to valid groups.
-      const groupId = safeDecodeMeetingSubject(meeting.subject);
-      if (!groupId || !(await db.Group.count({ where: { id: groupId } }))) {
-        console.log(`Ignoring invalid meeting subject or non-existing group` +
-          ` "${meeting.subject}"`);
-        return;
-      }
-
-      if (!meeting.record_files) return;
+    .filter(record => record.state === 3)
+    .map(async record => {
+      if (!record.record_files) return;
 
       // Have start and end times cover all record files.
       let startedAt = Number.MAX_VALUE;
       let endedAt = Number.MIN_VALUE;
-      for (const file of meeting.record_files) {
+      for (const file of record.record_files) {
         startedAt = Math.min(startedAt, file.record_start_time);
         endedAt = Math.max(endedAt, file.record_end_time);
       }
 
-      await Promise.all(meeting.record_files.map(async file => {
+      const history = await db.MeetingHistory.findOne({
+        where: {
+          meetingId: record.meeting_id,
+          // Only interested in files the starte time of which falls in
+          // (meeting start time, meeting start time + grace period].
+          [Op.and]: [
+            { startTime: { [Op.lt]: startedAt } },
+            { startTime: { [Op.gte]: startedAt - gracePeriodMinutes * 60 } },
+          ],
+        },
+        attributes: ["groupId"],
+      });
+      if (!history) {
+        console.log(`Ignoring meeting record ${record.meeting_record_id} for` +
+          ` meeting ${record.meeting_id} because no history matches it.`);
+        return;
+      }
+
+      await Promise.all(record.record_files.map(async file => {
         const transcriptId = file.record_file_id;
         const addrs = await getFileAddresses(file.record_file_id, tmUserId);
 
@@ -154,7 +165,7 @@ async function findMissingSummariesforTmUser(tmUserId: string,
           addrs.ai_minutes
           .filter(addr => addr.file_type == "txt")
           .map(addr => descs.push({
-            groupId,
+            groupId: history.groupId,
             transcriptId,
             summaryKey: AI_MINUTES_SUMMARY_KEY, 
             speakerStats,

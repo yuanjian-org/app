@@ -7,7 +7,6 @@ import Group from "./models/Group";
 import GroupUser from "./models/GroupUser";
 import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
-import OngoingMeetings from "./models/OngoingMeetings";
 import Mentorship from './models/Mentorship';
 import Assessment from "./models/Assessment";
 import Interview from "./models/Interview";
@@ -27,6 +26,8 @@ import DraftChatMessage from "./models/DraftChatMessage";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
 import Task from "./models/Task";
+import MeetingSlot from "./models/MeetingSlot";
+import MeetingHistory from "./models/MeetingHistory";
 
 const db = {
   Mentorship,
@@ -35,7 +36,8 @@ const db = {
   GroupUser,
   Transcript,
   Summary,
-  OngoingMeetings,
+  MeetingSlot,
+  MeetingHistory,
   Assessment,
   Interview,
   InterviewFeedback,
