@@ -57,29 +57,37 @@ const join = procedure
     });
     if (existing) return existing.meetingLink;
 
-    // No slots available. Refresh them to see if any meeting has ended.
-    await refreshMeetingSlots(transaction);
+    let refreshed = false;
+    while (true) {
+      const free = await db.MeetingSlot.findOne({
+        where: { groupId: null },
+        attributes: ["id", "meetingId", "meetingLink"],
+        lock: true,
+        transaction,
+      });
+      
+      if (free) {
+        await free.update({ groupId }, { transaction });
+        await db.MeetingHistory.create({
+          meetingId: free.meetingId,
+          groupId,
+          startTime: currentTimestamp(),
+        }, { transaction });    
+        return free.meetingLink;
 
-    const free = await db.MeetingSlot.findOne({
-      where: { groupId: null },
-      attributes: ["id", "meetingId", "meetingLink"],
-      lock: true,
-      transaction,
-    });
-    if (!free) {
-      emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
-        `发起会议的分组：${baseUrl}/groups/${groupId}`, baseUrl);
-      return null;
+      } else {
+        if (!refreshed) {
+          // No slots available. Refresh them and try again.
+          await refreshMeetingSlots(transaction);
+          refreshed = true;
+          continue;
+        } else {
+          emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
+            `发起会议的分组：${baseUrl}/groups/${groupId}`, baseUrl);
+          return null;
+        }
+      }
     }
-
-    await free.update({ groupId }, { transaction });
-    await db.MeetingHistory.create({
-      meetingId: free.meetingId,
-      groupId,
-      startTime: currentTimestamp(),
-    }, { transaction });
-
-    return free.meetingLink;
   });
 });
 
