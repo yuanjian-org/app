@@ -19,7 +19,7 @@ const requestWithBody = (body: string, options: {
   port: string,
   protocol: string,
   path: string,
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'PUT',
   headers: Record<string, string>
 }) => {
   return new Promise<string>((resolve, reject) => {
@@ -61,7 +61,7 @@ const sign = (
  * TODO: rewrite using `axios` and remove `requestWithBody`
  */
 const tmRequest = async (
-  method: 'POST' | 'GET',
+  method: 'GET' | 'POST' | 'PUT',
   requestUri: string,
   query: Record<string, string | number>,
   body: Record<string, string> = {},
@@ -123,9 +123,9 @@ const tmRequest = async (
   return res;
 };
 
+const defaultInstanceId = "1";
+
 /**
- * Create a meeting.
- * 
  * https://cloud.tencent.com/document/product/1095/42417
  */
 export async function createMeeting(
@@ -137,53 +137,46 @@ export async function createMeeting(
   console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond},` +
     ` ${endTimeSecond})`);
 
-  const zRes = z.object({
-    meeting_number: z.number(),
-    meeting_info_list: z.array(z.object({
-      subject: z.string(),
-      meeting_id: z.string(),
-      meeting_code: z.string(),
-      type: z.number(),
-      join_url: z.string().url(),
-      hosts: z.array(z.object({
-        userid: z.string(),
-      })),
-      start_time: z.string(),
-      end_time: z.string(),
-      settings: z.object({
-        mute_enable_join: z.boolean(),
-        allow_unmute_self: z.boolean(),
-        mute_all: z.boolean(),
-        mute_enable_type_join: z.number(),
-      }),
-      meeting_type: z.number(),
-      enable_live: z.boolean(),
-      media_set_type: z.number(),
-      location: z.string(),
-      host_key: z.string().optional(),
-    })),
-  });
-
   const res = await tmRequest('POST', '/v1/meetings', {}, {
     userid: tmUserId,
-    instanceid: "1",
-    subject: subject,
+    instanceid: defaultInstanceId,
+    subject,
     start_time: "" + startTimeSecond,
     end_time: "" + endTimeSecond,
     type: "0", // 0: scheduled, 1: fast
   });
 
-  return zRes.parse(res);
+  return z.object({
+    meeting_info_list: z.array(z.object({
+      meeting_id: z.string(),
+      join_url: z.string().url(),
+    })),
+  }).parse(res);
 }
 
 /**
- * List meeting info of the input meeting and tencent user id
+ * https://cloud.tencent.com/document/product/1095/42424
+ */
+export async function updateMeeting(
+  meetingId: string,
+  tmUserId: string,
+  subject: string,
+) {
+  console.log(LOG_HEADER, `updateMeeting('${meetingId}', '${subject}')`);
+
+  await tmRequest('PUT', `/v1/meetings/${meetingId}`, {}, {
+    userid: tmUserId,
+    instanceid: defaultInstanceId,
+    subject,
+  });
+}
+
+/**
  * https://cloud.tencent.com/document/product/1095/93432
  */
 export async function getMeeting(meetingId: string, tmUserId: string) {
-  console.log(LOG_HEADER, 'listMeetings()');
-  const zRes = z.object({
-    meeting_number: z.number(),
+  console.log(LOG_HEADER, 'getMeeting()');
+  return z.object({
     meeting_info_list: z.array(z.object({
       subject: z.string(),
       meeting_id: z.string(),
@@ -194,43 +187,43 @@ export async function getMeeting(meetingId: string, tmUserId: string) {
       start_time: z.string(),
       end_time: z.string(),
     }))
-  });
-
-  return zRes.parse(
+  }).parse(
     await tmRequest('GET', '/v1/meetings/' + meetingId,
       {
         userid: tmUserId,
-        instanceid: "1",
+        instanceid: defaultInstanceId,
       })
   ).meeting_info_list[0];
 }
+
+const zMeetingRecord = z.object({
+  meeting_id: z.string(),
+  meeting_record_id: z.string(), // needed for script download
+  state: z.number(), // 3 - ready for download
+  record_files: z.array(
+    z.object({
+      record_file_id: z.string(),
+      record_start_time: z.number(),
+      record_end_time: z.number(),
+    })
+  ).optional()
+});
+type MeetingRecord = TypeOf<typeof zMeetingRecord>;
 
 /**
  * List meeting recordings since 31 days ago (max allowed date range).
  * 
  * https://cloud.tencent.com/document/product/1095/51189
  */
-export async function listRecords(tmUserId: string) {
+export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
   console.log(LOG_HEADER, 'listRecords()');
-  const zRecordMeetings = z.object({
-    meeting_record_id: z.string(), // needed for script download
-    subject: z.string(),
-    state: z.number(), // 3 - ready for download
-    record_files: z.array(
-      z.object({
-        record_file_id: z.string(),
-        record_start_time: z.number(),
-        record_end_time: z.number(),
-      })
-    ).optional()
-  });
   const zRes = z.object({
     total_count: z.number(),
     total_page: z.number(),
-    record_meetings: z.array(zRecordMeetings).optional()
+    record_meetings: z.array(zMeetingRecord).optional()
   });
 
-  let ret: TypeOf<typeof zRecordMeetings>[] = [];
+  let ret: MeetingRecord[] = [];
   let page = 1;
   while (true) {
     const res = zRes.parse(await tmRequest('GET', '/v1/records', {
@@ -325,5 +318,10 @@ function millisecondsToMinutes(milliseconds: number): number {
   return Math.round(milliseconds / 60000);
 }
 
-// Uncomment and modify this line to debug TM APIs.
-// listRecords().then(res => console.log(JSON.stringify(res, null, 2)));
+/**
+ * Uncomment this line to debug. Command:
+ * 
+ *  $ npx ts-node src/api/TencentMeeting.ts
+ */
+// void updateMeeting("2100486146236013614", "wwh", "1234567890")
+//   .then((res) => console.log("done"));

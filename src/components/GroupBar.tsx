@@ -89,7 +89,7 @@ export default function GroupBar({
       spacing={4}
       {...rest}
     >
-      {showMeetingQuotaWarning && <OngoingMeetingWarning onClose={
+      {showMeetingQuotaWarning && <MeetingQuotaWarning onClose={
         () => setShowMeetingQuotaWarning(false)} />}
 
       {/* row 1 col 1 */}
@@ -174,7 +174,7 @@ export function JoinButton(props: ButtonProps) {
   >{props.children ? props.children : "加入"}</Button>;
 }
 
-export function OngoingMeetingWarning(props: {
+export function MeetingQuotaWarning(props: {
   onClose: () => void,
 }) {
   return (<ModalWithBackdrop isOpen onClose={props.onClose}>
