@@ -1,20 +1,13 @@
 import { procedure, router } from "../trpc";
-import { refreshMeetingSlots } from "./meetings";
-import { syncSummaries } from "./summaries";
+import { syncMeetings } from "./meetings";
 import { authIntegration } from "../auth";
 import { sendScheduledEmails } from "./scheduledEmails";
 import { createAutoTasks } from "./tasks";
-import sequelize from "../database/sequelize";
 
 export default router({
-  syncSummaries,
-  refreshMeetingSlots: procedure
+  syncMeetings: procedure
     .use(authIntegration())
-    .mutation(async () => {
-      await sequelize.transaction(async transaction => {
-        await refreshMeetingSlots(transaction);
-      });
-    }),
+    .mutation(syncMeetings),
   sendScheduledEmails: procedure
     .use(authIntegration())
     .mutation(sendScheduledEmails),
