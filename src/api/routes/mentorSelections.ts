@@ -13,7 +13,8 @@ import invariant from "tiny-invariant";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import moment from "moment";
-import { Op, Transaction } from "sequelize";
+import { Op, Transaction, literal } from "sequelize";
+import { zDateColumn } from "shared/DateColumn";
 
 const createDraft = procedure
   .use(authUser())
@@ -224,12 +225,44 @@ const listFinalizedBatches = procedure
   });
 });
 
+/**
+ * @return the latest batch finalizedAt of all users. If a user has a draft
+ * (i.e. unfinalized) batch, the returned value is null.
+ */
+const listLastBatchFinalizedAt = procedure
+  .use(authUser("MentorshipManager"))
+  .output(z.array(z.object({
+    userId: z.string(),
+    finalizedAt: zDateColumn.nullable(),
+  })))
+  .query(async () =>
+{
+  return await db.MentorSelectionBatch.findAll({
+    attributes: [
+      "userId",
+      [
+        literal(`
+          CASE
+            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
+            ELSE MAX("finalizedAt")
+          END
+        `),
+        "finalizedAt",
+      ],
+    ],
+    group: ["userId"],
+    // Return the raw result, without wrapping it in Sequelize instances.
+    raw: true,
+  });
+});
+
 export default router({
   createDraft,
   destroyDraft,
   getDraft,
   updateDraft,
   listDrafts,
+  listLastBatchFinalizedAt,
   listFinalizedBatches,
   reorderDraft,
   finalizeDraft,

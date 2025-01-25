@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { UserFilter } from 'shared/User';
 import {
+  Wrap,
   WrapItem
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
@@ -8,6 +9,7 @@ import _ from "lodash";
 import { zMenteeStatus } from 'shared/MenteeStatus';
 import MenteeStatusSelect, { nullMenteeStatus } from './MenteeStatusSelect';
 import UserSelector from './UserSelector';
+import { componentSpacing } from 'theme/metrics';
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
@@ -46,7 +48,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     await router.replace({ pathname: router.pathname, query });
   };
 
-  return <>
+  return <Wrap spacing={componentSpacing} align="center">
     {/* <WrapItem><b>过滤条件：</b></WrapItem> */}
 
     <WrapItem><b>状态：</b></WrapItem>
@@ -68,5 +70,5 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
         })
       } />
     </WrapItem>
-  </>;
+  </Wrap>;
 }
