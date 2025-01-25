@@ -15,6 +15,8 @@ import {
 } from 'api/database/models/attributesAndIncludes';
 import { Op, Transaction } from 'sequelize';
 import moment from 'moment';
+import invariant from "shared/invariant";
+import { downloadSummaries } from "./summaries";
 
 export const gracePeriodMinutes = 1;
 
@@ -71,7 +73,6 @@ const join = procedure
         await db.MeetingHistory.create({
           meetingId: free.meetingId,
           groupId,
-          startTime: currentTimestamp(),
         }, { transaction });    
         return free.meetingLink;
 
@@ -90,10 +91,6 @@ const join = procedure
     }
   });
 });
-
-function currentTimestamp() {
-  return Math.floor(Date.now() / 1000);
-}
 
 export default router({
   join,
@@ -114,7 +111,7 @@ export default router({
 export async function refreshMeetingSlots(transaction: Transaction) {
   const slots = await db.MeetingSlot.findAll({
     where: { groupId: { [Op.ne]: null } },
-    attributes: ["id", "tmUserId", "meetingId", "updatedAt"],
+    attributes: ["id", "tmUserId", "meetingId", "updatedAt", "groupId"],
     lock: true,
     transaction,
   });
@@ -131,8 +128,43 @@ export async function refreshMeetingSlots(transaction: Transaction) {
     if (moment().diff(slot.updatedAt, 'minutes') < gracePeriodMinutes) continue;
     const m = await getMeeting(slot.meetingId, slot.tmUserId);
 
-    if (m.status !== 'MEETING_STATE_STARTED') {
-      await slot.update({ groupId: null }, { transaction });
-    }
+    // Meeting is ongoing. Skip.
+    if (m.status == 'MEETING_STATE_STARTED') continue;
+
+    // Mark the meeting as ended.
+    const histories = await db.MeetingHistory.findAll({
+      where: { 
+        meetingId: slot.meetingId,
+        endedBefore: null,
+      },
+      transaction,
+    });
+
+    /**
+     * MeetingSlot and MeetingHistory should be consistent in that an
+     * occupied MeetingSlot must has a corresponding MeetingHistory entry
+     * with a null endedBefore.
+     */
+    invariant(histories.length === 1, `more than one history with null
+      endedBefore found for ${slot.meetingId}`);
+    invariant(histories[0].groupId === slot.groupId, `group id mismatch for 
+      history ${slot.meetingId}: ${histories[0].groupId} != ${slot.groupId}`);
+
+    await histories[0].update({ endedBefore: new Date() }, { transaction });
+    await slot.update({ groupId: null }, { transaction });
   }
+}
+
+export async function syncMeetings() {
+  /**
+   * Refresh meeting slots *before* downloading summaries because the latter
+   * only looks at MeetingHistory entries with `endedBefore` already set for
+   * simplicity. The former makes sure this field is set for all the meetings
+   * that have ended.
+   */
+  await sequelize.transaction(async transaction => {
+    await refreshMeetingSlots(transaction);
+  });
+
+  await downloadSummaries();
 }

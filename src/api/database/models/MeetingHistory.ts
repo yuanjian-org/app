@@ -2,32 +2,32 @@ import {
   AllowNull,
   Column,
   Table,
-  Model,
-  PrimaryKey,
-  ForeignKey
+  Model, ForeignKey
 } from "sequelize-typescript";
-import { BIGINT, STRING, UUID } from "sequelize";
+import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
+import { DateColumn } from "shared/DateColumn";
 
 @Table
 class MeetingHistory extends Model {
-  @PrimaryKey
   @AllowNull(false)
   @Column(STRING)
   meetingId: string;
-
-  // timestamp in seconds when the meeting started. Use this format to
-  // be consistent with TencentMeeting API.
-  @PrimaryKey
-  @AllowNull(false)
-  @Column(BIGINT)
-  startTime: number;
 
   // TODO: Why didn't migration script add the foreign key constraint to SQL?
   @AllowNull(false)
   @Column(UUID)
   @ForeignKey(() => Group)
   groupId: string;
+
+  /**
+   * The upper bound of meeting end time. We don't know the exact end time
+   * because we only pull meeting status periodically. See refreshMeetingSlots()
+   * 
+   * Meeting start time is encoded as the `createdAt` column.
+   */
+  @Column(DATE)
+  endedBefore: DateColumn | null;
 }
 
 export default MeetingHistory;

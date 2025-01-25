@@ -1,9 +1,8 @@
 import { procedure, router } from "../trpc";
-import { authIntegration, authUser } from "../auth";
+import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
-import { gracePeriodMinutes } from "./meetings";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
 import { zSummary } from "shared/Summary";
@@ -13,6 +12,7 @@ import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
 import formatMeetingMinutes from "./formatMeetingMinutes";
 import { Op } from "sequelize";
+import moment from "moment";
 
 const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 
@@ -57,29 +57,15 @@ export default router({
 
 /**
  * Download summaries from Tencent Meeting and save them locally.
- *
- * @returns the transcriptIds of synced transcripts.
  */
-export const syncSummaries = procedure
-  .use(authIntegration())
-  .output(z.object({
-    syncedSummaries: z.array(z.string()),
-  }))
-  .mutation(async () => 
-{
-  console.log('Looking for missing summaries...');
+export async function downloadSummaries() {
   const summaries = await findMissingSummaries();
-
   await Promise.all(summaries.map(async (summary) => {
     console.log(`Downloading ${summary.transcriptId}...`);
     const res = await axios.get(summary.url);
     await saveSummary(summary, res.data);
   }));
-
-  return {
-    syncedSummaries: summaries.map((t: any) => t.transcriptId),
-  };
-});
+}
 
 async function saveSummary(desc: SummaryDescriptor, summary: string) 
 {
@@ -112,6 +98,7 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
  */
 async function findMissingSummaries(): Promise<SummaryDescriptor[]>
 {
+  console.log('findMissingSummaries()...');
   const descs: SummaryDescriptor[] = [];
   for (const tmUserId of apiEnv.TM_USER_IDS) {
     await findMissingSummariesforTmUser(tmUserId, descs);
@@ -136,21 +123,43 @@ async function findMissingSummariesforTmUser(tmUserId: string,
         endedAt = Math.max(endedAt, file.record_end_time);
       }
 
+      console.log(
+        "meeting_id", record.meeting_id, 
+        "record_id", record.meeting_record_id, 
+        "mins", moment(endedAt).diff(moment(startedAt), 'minutes'),
+        "start", moment(startedAt).utcOffset(8).format(),
+        "end", moment(endedAt).utcOffset(8).format());
+
       const history = await db.MeetingHistory.findOne({
+        /**
+         * We are only interested in records that fall into the time range
+         * [meeting start time, meeting end time upper bound]. `createdAt`
+         * indicates meeting start time.
+         * 
+         * This is needed to exclude records that are accidentally created 
+         * outside of the platform. For example, one may copy the Tencent
+         * meeting URL and reuse it later, bypassing the platform.
+         * 
+         * Since we don't know the exact end time of meetings, this filtering
+         * method doesn't guarantee accuracy. It is better than nothing never
+         * the less.
+         * 
+         * Note: We don't look at entries with null endedBefore only for
+         * simplicity.
+         */
         where: {
-          meetingId: record.meeting_id,
-          // Only interested in files the starte time of which falls in
-          // (meeting start time, meeting start time + grace period].
           [Op.and]: [
-            { startTime: { [Op.lt]: startedAt } },
-            { startTime: { [Op.gte]: startedAt - gracePeriodMinutes * 60 } },
+            { meetingId: record.meeting_id },
+            { createdAt: { [Op.lte]: new Date(startedAt) } },
+            { endedBefore: { [Op.gte]: new Date(endedAt) } },
           ],
         },
         attributes: ["groupId"],
       });
+
       if (!history) {
-        console.log(`Ignoring meeting record ${record.meeting_record_id} for` +
-          ` meeting ${record.meeting_id} because no history matches it.`);
+        console.log(`History not found for meeting_id ${record.meeting_id} ` +
+          `record_id ${record.meeting_record_id}`);
         return;
       }
 
@@ -163,16 +172,16 @@ async function findMissingSummariesforTmUser(tmUserId: string,
           const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
 
           addrs.ai_minutes
-          .filter(addr => addr.file_type == "txt")
-          .map(addr => descs.push({
-            groupId: history.groupId,
-            transcriptId,
-            summaryKey: AI_MINUTES_SUMMARY_KEY, 
-            speakerStats,
-            url: addr.download_address,
-            startedAt,
-            endedAt,
-          }));
+            .filter(addr => addr.file_type == "txt")
+            .map(addr => descs.push({
+              groupId: history.groupId,
+              transcriptId,
+              summaryKey: AI_MINUTES_SUMMARY_KEY, 
+              speakerStats,
+              url: addr.download_address,
+              startedAt,
+              endedAt,
+            }));
         }
       }));
     }));

@@ -27,10 +27,8 @@ jobs:
           set -e
           cd ~/app
           source .env
-          echo ">>> Updating ongoing meetings"
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.refreshMeetingSlots
-          echo ">>> Syncing meeting summaries"
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncSummaries
+          echo ">>> Syncing meetings"
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings
           echo ">>> Creating auto tasks"
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
           echo ">>> Sending scheduled emails"
