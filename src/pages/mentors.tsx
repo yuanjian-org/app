@@ -27,7 +27,7 @@ export default fullPage(() => {
 
   return <>
     <TopBar
-      {...topBarPaddings}
+      {...topBarPaddings()}
       pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
     >
       <VStack

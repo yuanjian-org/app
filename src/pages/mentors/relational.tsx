@@ -92,7 +92,7 @@ export default fullPage(() => {
           align={{ base: "start", [breakpoint]: "center" }}
           direction={{ base: "column", [breakpoint]: "row" }}
           spacing={componentSpacing}
-          {...topBarPaddings}
+          {...topBarPaddings()}
         >
           <FullTextSearchBox
             value={searchTerm}

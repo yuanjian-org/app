@@ -53,7 +53,7 @@ export default fullPage(() => {
   const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
 
   return <>
-    <TopBar {...topBarPaddings}>
+    <TopBar {...topBarPaddings()}>
       <Wrap spacing={componentSpacing}>
         <WrapItem>
           <Heading size="md">{title}</Heading>

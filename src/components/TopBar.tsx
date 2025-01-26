@@ -5,14 +5,15 @@ import { breakpoint, pageMarginTop, componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
 import { mobileSidbarIconLeftWithMargin, mobileSidbarIconTop } from "./Navbars";
 
-export const topBarPaddings = {
+// Use function to avoid circular dependency across tsx files
+export const topBarPaddings = () => ({
   ps: pageMarginX,
   // On mobile, avoid overlap with sidebar icon
   pe: { base: mobileSidbarIconLeftWithMargin, [breakpoint]: 4 },
   // On mobile, align top component (such as search box) with sidebar icon
   pt: { ...pageMarginTop, base: mobileSidbarIconTop },
   pb: componentSpacing,
-};
+});
 
 export default function TopBar({ children, ...rest }: BoxProps) {
   const ref = useRef<HTMLDivElement>(null);

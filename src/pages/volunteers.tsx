@@ -20,7 +20,7 @@ export default fullPage(() => {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   return <>
-    <TopBar {...topBarPaddings}>
+    <TopBar {...topBarPaddings()}>
       <VStack spacing={componentSpacing} align="start">
 
         <HStack spacing={componentSpacing} width="full">

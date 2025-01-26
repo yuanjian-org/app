@@ -4,13 +4,10 @@ import {
   Tbody,
   Tr,
   Th,
-  Td,
-  Wrap,
-  Flex,
+  Td, Flex,
   TableContainer,
   Link,
   Text,
-  Divider,
   Button,
   ModalHeader,
   ModalContent,
@@ -19,52 +16,52 @@ import {
   ModalCloseButton,
   FormControl,
   VStack,
-  Spacer,
-  LinkProps,
-  Tag,
+  Spacer, Tag,
   HStack,
-  Icon,
+  Icon, Box,
+  LinkProps,
+  WrapItem,
+  Wrap,
+  Checkbox
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import trpc, { trpcNext } from "../trpc";
 import { MinUser, UserFilter, UserWithMergeInfo } from 'shared/User';
 import {
   compareChinese,
   compareDate,
-  formatUserName,
-  hash,
-  prettifyDate,
+  formatUserName, hash, prettifyDate,
   toPinyin
 } from 'shared/strings';
 import Loader from 'components/Loader';
 import UserFilterSelector from 'components/UserFilterSelector';
 import { MenteeStatusSelectCell } from 'components/MenteeStatusSelect';
 import invariant from 'tiny-invariant';
-import { MenteeStatus } from 'shared/MenteeStatus';
 import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { PiFlagCheckeredFill } from "react-icons/pi";
 import moment from "moment";
-import { isEndedTransactionalMentorship, Mentorship } from 'shared/Mentorship';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import UserSelector from 'components/UserSelector';
 import { MdEdit } from 'react-icons/md';
-import { sectionSpacing } from 'theme/metrics';
-import { menteeAcceptanceYearField } from 'shared/applicationFields';
-import { menteeSourceField } from 'shared/applicationFields';
+import { pageMarginX, sectionSpacing } from 'theme/metrics';
 import {
   PointOfContactCells,
   PointOfContactHeaderCells
 } from 'components/pointOfContactCells';
-import { widePage } from 'AppPage';
-import { TbClockOff, TbClock } from "react-icons/tb";
+import { fullPage } from 'AppPage';
 import ConfirmationModal from 'components/ConfirmationModal';
 import MergeTokenCell from 'components/MergeTokenCell';
-import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
 import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
 import { LuChevronsUpDown } from "react-icons/lu";
-import { actionRequiredTextColor, okTextColor } from 'theme/colors';
-import { warningTextColor } from 'theme/colors';
+import { topBarPaddings } from 'components/TopBar';
+import TopBar from 'components/TopBar';
+import UserSelector from 'components/UserSelector';
+import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
+import { TbClockOff, TbClock } from 'react-icons/tb';
+import { MenteeStatus } from 'shared/MenteeStatus';
+import { Mentorship, isEndedTransactionalMentorship } from 'shared/Mentorship';
+import { menteeAcceptanceYearField, menteeSourceField } from 'shared/applicationFields';
+import { okTextColor, warningTextColor, actionRequiredTextColor } from 'theme/colors';
+import { PiFlagCheckeredFill } from "react-icons/pi";
 
 type Metadata = {
   // The year the mentee was accepted
@@ -82,7 +79,9 @@ type SortOrder = {
   dir: SortOrderDir,
 }[];
 
-export default widePage(() => {
+const title = "学生档案";
+
+export default fullPage(() => {
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
@@ -90,32 +89,46 @@ export default widePage(() => {
   };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
+  const [showMentorSelectionState, setShowMentorSelectionState] = useState(false);
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
   return <>
-    <Flex direction='column' gap={6}>
-      <Wrap spacing={4} align="center">
-        <UserFilterSelector filter={filter} fixedFilter={fixedFilter} 
-          onChange={f => setFilter(f)} />
+    <TopBar {...topBarPaddings()}>
+      <Wrap spacing={sectionSpacing} align="center">
+        <WrapItem>
+          <UserFilterSelector filter={filter} fixedFilter={fixedFilter} 
+            onChange={f => setFilter(f)} />
+        </WrapItem>
+        <WrapItem>
+          <Checkbox isChecked={showMentorSelectionState}
+            onChange={e => setShowMentorSelectionState(e.target.checked)}>
+            一对一导师选择状态
+          </Checkbox>
+        </WrapItem>
       </Wrap>
-      
-      <Divider />
+    </TopBar>
 
+    <Box mx={pageMarginX} mt={pageMarginX}> 
       {!users ? <Loader /> :
         <TableContainer>
-          <MenteeTable users={users} refetch={refetch} />
-          <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-            共 <b>{users.length}</b> 名
-          </Text>
-        </TableContainer>
-      }
-    </Flex>
+          <MenteeTable
+            users={users}
+            showMentorSelectionState={showMentorSelectionState}
+            refetch={refetch}
+          />
+        <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
+          共 <b>{users.length}</b> 名
+        </Text>
+      </TableContainer>
+    }
+    </Box>
   </>;
-}, "学生档案");
+}, title);
 
-function MenteeTable({ users, refetch }: {
+function MenteeTable({ users, refetch, showMentorSelectionState }: {
   users: UserWithMergeInfo[],
-  refetch: () => void
+  refetch: () => void,
+  showMentorSelectionState: boolean,
 }) {
   // TODO: Break out into two variables and remove `Metadata` type
   const [mentee2meta, setMentee2meta] = useState<Record<string, Metadata>>({}); 
@@ -219,6 +232,7 @@ function MenteeTable({ users, refetch }: {
           sortOrder={sortOrder}
           addSortOrder={addSortOrder}
         />
+        {showMentorSelectionState && <Th color="brand.c">导师选择状态</Th>}
         <MentorshipHeaderCells
           sortOrder={sortOrder}
           addSortOrder={addSortOrder}
@@ -241,6 +255,7 @@ function MenteeTable({ users, refetch }: {
         setMetadata={setMetadata}
         setLastMentorMeetingDate={setLastMentorMeetingDate}
         setLastTranscriptDate={setLastTranscriptDate}
+        showMentorSelectionState={showMentorSelectionState}
       />)}
     </Tbody>
   </Table>;
@@ -272,13 +287,15 @@ function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
 }
 
 function MenteeRow({
-  user: u, refetch, setMetadata, setLastMentorMeetingDate, setLastTranscriptDate
+  user: u, refetch, setMetadata, setLastMentorMeetingDate, setLastTranscriptDate,
+  showMentorSelectionState
 }: {
   user: UserWithMergeInfo,
   refetch: () => void,
   setMetadata: SetMetadata,
   setLastMentorMeetingDate: (userId: string, date: string) => void,
-  setLastTranscriptDate: (userId: string, date: string) => void
+  setLastTranscriptDate: (userId: string, date: string) => void,
+  showMentorSelectionState: boolean,
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -299,6 +316,7 @@ function MenteeRow({
     <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
+    {showMentorSelectionState && <MentorSelectionStateCell menteeId={u.id} />}
     <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach
       setLastTranscriptDate={setLastTranscriptDate}
     />
@@ -372,6 +390,18 @@ export function MenteeCells({ mentee, setMetadata } : {
       <b>{mentee.name}</b> <ChevronRightIcon />
     </Link></Td>
   </>;
+}
+
+function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
+  const { data } = trpcNext.mentorSelections.listLastBatchFinalizedAt
+    .useQuery();
+  const f = data?.find(d => d.userId === menteeId)?.finalizedAt;
+  return <Td>
+    {f === undefined ?
+      <Text color={actionRequiredTextColor}>未选择</Text> : f === null ? 
+      <Text color={warningTextColor}>草稿</Text> : 
+      <Text color={okTextColor}>{prettifyDate(f)}完成</Text>}
+  </Td>;
 }
 
 function MentorshipHeaderCells({ sortOrder, addSortOrder }: {
