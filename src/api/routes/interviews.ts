@@ -14,14 +14,14 @@ import {
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
-  conflictError, generalBadRequestError, noPermissionError, notFoundError 
+  conflictError, generalBadRequestError, noPermissionError, notFoundError
 } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { diffInMinutes, formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import {
-  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup 
+  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup
 } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
@@ -146,7 +146,7 @@ const listPendingCandidates = procedure
     where: {
       ...type == "MenteeInterview" ?
         { menteeApplication: { [Op.ne]: null } } :
-        { volunteerApplication: { [Op.ne]: null } },
+        { },
     },
     attributes: [...userAttributes, ...extraUserAttributesForInterviews],
     include: [...userInclude, {
@@ -168,9 +168,13 @@ function isCandidatePending(
   candidate: User & { volunteerApplication: Record<string, any> | null },
   createdAt: Date[]
 ) {
+
+
   if (type == "MenteeInterview") {
     // A interview decision hasn't been made
     return candidate.menteeStatus === null;
+  } else if (isPermitted(candidate.roles, "Mentor")) {
+    return true;
   } else if (candidate.volunteerApplication?.[volunteerApplyingforMentorField]
     !== volunteerApplyingforMentorFieldYes) {
     // The user didn't apply as a mentor
