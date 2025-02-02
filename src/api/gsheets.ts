@@ -5,15 +5,13 @@ import { JWT } from 'google-auth-library';
  * See https://theoephraim.github.io/node-google-spreadsheet/#/guides/authentication
  * for setup instructions.
  */
-export async function loadGoogleSpreadsheet(
-  docId: string,
-  clientEmail: string,
-  privateKey: string,
-): Promise<GoogleSpreadsheet> {
+export async function loadGoogleSpreadsheet(docId: string): 
+  Promise<GoogleSpreadsheet>
+{
   console.log("Loading Google Spreadsheet", docId);
   const serviceAccountAuth = new JWT({
-    email: clientEmail,
-    key: privateKey,
+    email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL!,
+    key: process.env.GOOGLE_SHEETS_PRIVATE_KEY!,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
   

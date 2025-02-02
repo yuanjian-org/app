@@ -12,6 +12,7 @@ import { authUser } from "../auth";
 import User, {
   defaultMentorCapacity,
   isAcceptedMentee,
+  zMentorPreference,
   zMinUser,
   zUser,
   zUserFilter,
@@ -19,6 +20,7 @@ import User, {
   zUserWithMergeInfo
 } from "../../shared/User";
 import {
+  compareChinese,
   formatUserName,
   isValidChineseName,
   toPinyin
@@ -218,6 +220,44 @@ export async function listMentors(): Promise<ListMentorsOutput> {
       traitsPreference: u.preference?.mentor?.学生特质 ?? null,
     };
   });
+}
+
+const zListMentorStatsOutput = z.array(z.object({
+  user: zUser,
+  mentorships: z.number(),
+  preference: zMentorPreference,
+  profile: zUserProfile,
+}));
+export type ListMentorStatsOutput = z.infer<typeof zListMentorStatsOutput>;
+
+/**
+ * Compared to listMentorsRoute, this route is restricted to MentorshipManager
+ * access.
+ */
+const listMentorStatsRoute = procedure
+  .use(authUser("MentorshipManager"))
+  .output(zListMentorStatsOutput)
+  .query(listMentorStats);
+
+export async function listMentorStats(): Promise<ListMentorStatsOutput> {
+  // Force type check
+  const mentorRole: Role = "Mentor";
+  const users = await db.User.findAll({
+    where: { roles: { [Op.contains]: [mentorRole] } },
+    attributes: [...userAttributes, "profile", "preference"],
+    include: userInclude,
+  });
+
+  const user2mentorships = await getUser2MentorshipCount();
+  const ret = users.map(u => ({
+      user: u,
+      mentorships: user2mentorships[u.id] ?? 0,
+      preference: u.preference?.mentor ?? {},
+      profile: u.profile ?? {},
+    }));
+
+  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
+  return ret;
 }
 
 const listVolunteers = procedure
@@ -831,6 +871,7 @@ export default router({
   listRedactedEmailsWithSameName,
   listVolunteers,
   listMentors: listMentorsRoute,
+  listMentorStats: listMentorStatsRoute,
   getMentorTraitsPref,
 
   update,

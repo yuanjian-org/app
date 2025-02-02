@@ -11,23 +11,17 @@ import {
   alreadyExistsError, generalBadRequestError, noPermissionError, notFoundError
 } from "../errors";
 import sequelize from "../database/sequelize";
-import Role, { isPermitted } from "../../shared/Role";
+import { isPermitted } from "../../shared/Role";
 import {
   mentorshipAttributes,
   mentorshipInclude,
-  minUserAttributes,
-  userAttributes,
-  userInclude,
+  minUserAttributes
 } from "../database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op } from "sequelize";
-import { compareChinese, formatUserName } from "../../shared/strings";
+import { formatUserName } from "../../shared/strings";
 import { isPermittedtoAccessMentee } from "./users";
-import {
-  zMentorPreference, zUser
-} from "../../shared/User";
-import { zUserProfile } from "../../shared/UserProfile";
 import { zNullableDateColumn } from "../../shared/DateColumn";
 
 export const whereMentorshipIsOngoing = {
@@ -163,36 +157,6 @@ export async function getUser2MentorshipCount() {
   }, {});
 }
 
-const listMentorStats = procedure
-  .use(authUser("MentorshipManager"))
-  .output(z.array(z.object({
-    user: zUser,
-    mentorships: z.number(),
-    preference: zMentorPreference,
-    profile: zUserProfile,
-  })))
-  .query(async () =>
-{
-  // Force type check
-  const mentorRole: Role = "Mentor";
-  const users = await db.User.findAll({
-    where: { roles: { [Op.contains]: [mentorRole] } },
-    attributes: [...userAttributes, "profile", "preference"],
-    include: userInclude,
-  });
-
-  const user2mentorships = await getUser2MentorshipCount();
-  const ret = users.map(u => ({
-      user: u,
-      mentorships: user2mentorships[u.id] ?? 0,
-      preference: u.preference?.mentor ?? {},
-      profile: u.profile ?? {},
-    }));
-
-  ret.sort((a, b) => compareChinese(a.user.name, b.user.name));
-  return ret;
-});
-
 /**
  * Usage:
  *
@@ -260,6 +224,5 @@ export default router({
   listMyMentorshipsAsMentor,
   listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
-  listMentorStats,
   countMentorships: deprecatedCountMentorships,
 });
