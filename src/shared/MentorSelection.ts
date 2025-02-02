@@ -11,8 +11,8 @@ export type MentorSelection = z.TypeOf<typeof zMentorSelection>;
 
 export const zMentorSelectionBatch = z.object({
   id: z.string(),
+  userId: z.string(),
   selections: z.array(zMentorSelection),
-  // Only finalized batches are supported. Add `.nullable()` to support drafts.
-  finalizedAt: zDateColumn,
+  finalizedAt: zDateColumn.nullable(),
 });
 export type MentorSelectionBatch = z.TypeOf<typeof zMentorSelectionBatch>;

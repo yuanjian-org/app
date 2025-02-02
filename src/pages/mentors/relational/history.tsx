@@ -9,6 +9,7 @@ import { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { MentorSelectionBatch } from "shared/MentorSelection";
 import { compareDate, formatUserName, prettifyDate } from "shared/strings";
+import invariant from "shared/invariant";
 
 export default function Page() {
   const { data } = trpcNext.mentorSelections.listFinalizedBatches.useQuery();
@@ -35,6 +36,7 @@ export default function Page() {
 function Batch({ batch }: {
   batch: MentorSelectionBatch
 }) {
+  invariant(batch.finalizedAt, "Batch must be finalized");
   return <>
     <Heading size="sm">
       {prettifyDate(batch.finalizedAt)}

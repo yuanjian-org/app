@@ -12,7 +12,7 @@ import interviews from './routes/interviews';
 import interviewFeedbacks from './routes/interviewFeedbacks';
 import calibrations from './routes/calibrations';
 import chat from './routes/chat';
-import matchmaker from './routes/matchmaker';
+import match from './routes/match';
 import migration from './routes/migration';
 import map from './routes/map';
 import mentorBookings from './routes/mentorBookings';
@@ -35,7 +35,7 @@ export const apiRouter = router({
   interviewFeedbacks,
   calibrations,
   chat,
-  matchmaker,
+  match,
   map,
   migration,
   mentorBookings,

@@ -9,7 +9,7 @@ export const zMinInterviewFeedback = z.object({
   feedbackUpdatedAt: zNullableDateColumn,
 });
 
-// TODO: Remove it completely
+// TODO: Replace with zInterviewFeedback
 export const zFeedbackDeprecated = z.record(z.string(), z.any());
 // z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets typescript.
 export type FeedbackDeprecated = object;
