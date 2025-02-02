@@ -64,7 +64,7 @@ export async function updateGoogleSpreadsheet(
     await sheet.saveUpdatedCells();
     // Pause to avoid rate limiting. Default write quota is 300 per min.
     // https://console.cloud.google.com/apis/api/sheets.googleapis.com/quotas
-    await new Promise(resolve => setTimeout(resolve, 210));
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 }
 
