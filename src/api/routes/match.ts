@@ -22,7 +22,6 @@ import { updateGoogleSpreadsheet } from "api/gsheets";
 import { Op } from "sequelize";
 import { MentorSelectionBatch } from "shared/MentorSelection";
 import moment from "moment";
-import getBaseUrl from "shared/getBaseUrl";
 import { UserProfile } from "shared/UserProfile";
 import {
   menteeInterviewDimensions,
@@ -38,6 +37,10 @@ import { z } from "zod";
 // Must be the same as BANNED_SCORE in 
 // https://github.com/yuanjian-org/ops/blob/main/matchmaker/match.ipynb
 const bannedScore = -10;
+
+// Because servers in China has no access to Google APIs, we have to run the 
+// Spreadsheet export on a dev server.
+const baseUrl = "https://mentors.org.cn";
 
 const exportInitialMatchData = procedure
   .use(authUser("MentorshipManager"))
@@ -71,7 +74,6 @@ const exportInitialMatchData = procedure
       mentorFnDs,
       mentorCoacheIds,
     ));
-    break;
   }
 
   const doc = await loadGoogleSpreadsheet(documentId,
@@ -100,15 +102,15 @@ function formatInstructionsWorksheet(
     title: '【使用说明】',
     cells: [
       ['【使用说明】'],
-      ['1. 除红色粗体的columns之外，请勿更新任何其他数据。它们会被自动重置。'],
-      ['2. 在完成每位学生的匹配度打分后，请更新本页下面的 “已完成” 列。'],
+      ['除红色粗体的columns之外，请勿更新任何其他数据。它们会被自动重置。'],
+      // ['2. 在完成每位学生的匹配度打分后，请更新本页下面的 “已完成” 列。'],
       [],
       [],
       [
         colHeader('学生姓名'),
         colHeader('偏好提交时间'),
-        colHeader('匹配负责人', true),
-        colHeader('已完成', true),
+        // colHeader('匹配负责人', true),
+        // colHeader('已完成', true),
       ],
       ...sorted.map(m => [
         formatUserName(m.name),
@@ -191,7 +193,7 @@ function formatMenteeWorksheet(
     menteeInterviewDimensions, menteeFnD);
 
   const nameCell = { 
-    value: hyperlink(getBaseUrl() + "/mentees/" + mentee.id, name),
+    value: hyperlink(baseUrl + "/mentees/" + mentee.id, name),
     bold: true 
   };
 
@@ -207,23 +209,27 @@ function formatMenteeWorksheet(
       note: '学生与导师行业相似，并属于以下敏感行业：AI、大数据、量子计算、芯片半导体、生物、能源、航空航天',
     },
     {
-      ...colHeader('互补：各+2', true),
+      ...colHeader('偏专：-2', true),
+      note: '学生偏好原因和导师专业领域有关',
+    },
+    {
+      ...colHeader('互补：每项+2', true),
       note: '导师在学生面试的低分项上恰是高分项',
     },
     {
-      ...colHeader('关注：各+2', true),
+      ...colHeader('关注：每项+2', true),
       note: '导师在在学生面试总评中需关注的方面有特长',
     },
     {
-      ...colHeader('个性：各+2', true),
+      ...colHeader('个性：每项+2', true),
       note: '导师在学生个性方面有特长。比如有心理学背景的导师适合情绪敏感的学生，循循善诱分数高的导师适合思维能力较弱的学生，忘年之交分数高的导师适合低年纪学生等',
     },
     {
-      ...colHeader('偏好：各+2', true),
+      ...colHeader('偏好：每项+2', true),
       note: '学生符合在“导师偏好文字”中描述的特质',
     },
     {
-      ...colHeader('期待：各+1', true),
+      ...colHeader('期待：每项+1', true),
       note: '导师在学生对远见的期待方面有特长',
     },
     colHeader('备注', true),
@@ -271,23 +277,33 @@ function formatMenteeWorksheet(
       ).score === hardMismatchScore,
     }));
 
+  const 姓名行 = [nameCell, bioCell];
+  const 总评行 = [null, "面试总评", ...menteeInterviewDimensions];
+  const 维度打分行 = ['维度打分', decisinoScore, ...formatInterviewScores(feedbackScores)];
+  const mentorRowStart = 12;
+  
+  const 匹配负责人行 = [null, null, null, 
+    "Canoee", "Canoee", "Weihan", "Xichang", "Xichang", "Yixin", "Yixin",
+  ];
+
   return {
     title: name,
     cells: [
-      [nameCell, bioCell],
+      [...姓名行, ...Array(14).fill(null), ...姓名行],
       [],
-      [null, "总评", ...menteeInterviewDimensions],
-      ['维度打分', decisinoScore, ...formatInterviewScores(feedbackScores)],      
+      [...总评行, ...Array(6).fill(null), ...总评行],
+      [...维度打分行, ...Array(6).fill(null), ...维度打分行],
       [],
-      ['总评文字', decisionComment?.trim()],
+      ['面试总评', decisionComment?.trim()],
       [],
       ['学生期待', app?.[menteeExpectationField]?.trim()],
       [],
+      匹配负责人行,
       menteePreferenceTableHeaderRow,
       ...preferredMentors.map((m, i) =>
-        formatMentorRow(i + 11, m)),
+        formatMentorRow(i + mentorRowStart, m)),
       ...otherMentors.map((m, i) =>
-        formatMentorRow(i + 11 + preferredMentors.length, m)),
+        formatMentorRow(i + mentorRowStart + preferredMentors.length, m)),
     ],
   };
 }
@@ -310,7 +326,7 @@ function formatMentorRow(row: number, {
   reason: string | null,
 }) {
   const matchingScore = `=IF(D${row}=${bannedScore}, ${bannedScore}, ` +
-    `B${row}+E${row}+F${row}+G${row}+H${row}+I${row})`;
+    `B${row}+E${row}+F${row}+G${row}+H${row}+I${row}+J${row})`;
 
   const { feedbackScores, decisionComment } = getInterviewData(
     mentorInterviewDimensions, fnd);
@@ -324,17 +340,12 @@ function formatMentorRow(row: number, {
     // 学生偏好原因
     hardMismatch ? "不满足硬性特质偏好" : reason,
     // 匹配打分
-    cell,
-    cell,
-    cell,
-    cell,
-    cell,
-    cell,
+    ...Array(7).fill(cell),
     // 匹配备注
     cell,
     // 姓名
     hyperlink(
-      getBaseUrl() + "/users/" + user.id,
+      baseUrl + "/users/" + user.id,
       formatUserName(user.name)),
     // 性别
     profile.性别,
