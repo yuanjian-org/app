@@ -282,8 +282,16 @@ function formatMenteeWorksheet(
   const 维度打分行 = ['维度打分', decisinoScore, ...formatInterviewScores(feedbackScores)];
   const mentorRowStart = 12;
   
-  const 匹配负责人行 = [null, null, null, 
-    "Canoee", "Canoee", "Weihan", "Xichang", "Xichang", "Yixin", "Yixin",
+  const 匹配负责人行 = [null, null, null,
+    ...batch?.finalizedAt ? [
+      "Canoee", "Canoee", "Weihan", "Xichang", "Xichang", "Yixin", "Yixin",
+    ] : [{
+      value: "学生尚未完整提交偏好，请暂时忽略该生",
+      textFormat: {
+        foregroundColor: { red: 1 },
+        bold: true,
+      }
+    }],
   ];
 
   return {
