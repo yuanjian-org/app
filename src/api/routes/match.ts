@@ -210,15 +210,15 @@ function formatMenteeWorksheet(
     },
     {
       ...colHeader('偏专：-2', true),
-      note: '学生偏好原因和导师专业领域有关',
+      note: '“学生偏好原因”和导师专业领域有关',
     },
     {
       ...colHeader('互补：每项+2', true),
-      note: '导师在学生面试的低分项上恰是高分项',
+      note: '导师在学生面试“维度打分”的低分项上恰是高分项',
     },
     {
       ...colHeader('关注：每项+2', true),
-      note: '导师在在学生面试总评中需关注的方面有特长',
+      note: '导师在在学生“面试总评”中需导师关注的方面有特长',
     },
     {
       ...colHeader('个性：每项+2', true),
@@ -229,8 +229,8 @@ function formatMenteeWorksheet(
       note: '学生符合在“导师偏好文字”中描述的特质',
     },
     {
-      ...colHeader('期待：每项+1', true),
-      note: '导师在学生对远见的期待方面有特长',
+      ...colHeader('期待：每项+2', true),
+      note: '导师在“学生期待”的领域有特长，请注意⚠️：忽略与职业相关的期待',
     },
     colHeader('备注', true),
     '导师', 

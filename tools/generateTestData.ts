@@ -45,9 +45,6 @@ const mentors: TestUser[] = [{
 
 const allUsers = [...mentees, ...mentors];
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-main().then();
-
 async function main() {
   let users = await getUserManagers();
   if (users.length == 0) {
@@ -228,3 +225,5 @@ async function findGroupsByType(groupType: "Unowned" | "Interview" | "Partnershi
     calibrationId: { [Op.is]: null }
   });
 }
+
+void main().then();
