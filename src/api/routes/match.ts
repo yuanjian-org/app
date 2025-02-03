@@ -16,7 +16,7 @@ import {
   menteeExpectationField,
 } from "shared/applicationFields";
 import { whereMentorshipIsOngoing } from "./mentorships";
-import { MinUser } from "shared/User";
+import { defaultMentorCapacity, MinUser } from "shared/User";
 import { loadGoogleSpreadsheet, SpreadsheetInputData } from "api/gsheets";
 import { updateGoogleSpreadsheet } from "api/gsheets";
 import { Op } from "sequelize";
@@ -28,21 +28,20 @@ import {
   mentorInterviewDimensions
 } from "shared/interviewDimentions";
 import { InterviewType } from "shared/InterviewType";
-import { listMentors, ListMentorsOutput } from "./users";
+import { listMentors, ListMentorsOutput, listMentorStats } from "./users";
 import invariant from "shared/invariant";
 import { computeTraitsMatchingScore, hardMismatchScore, TraitsPreference } from "shared/Traits";
 import Role from "shared/Role";
 import { z } from "zod";
 
-// Must be the same as BANNED_SCORE in 
-// https://github.com/yuanjian-org/ops/blob/main/matchmaker/match.ipynb
+// Must be the same as BANNED_SCORE in tools/match.ipynb
 const bannedScore = -10;
 
 // Because servers in China has no access to Google APIs, we have to run the 
 // Spreadsheet export on a dev server.
 const baseUrl = "https://mentors.org.cn";
 
-const exportInitialMatchData = procedure
+const exportSpreadsheet = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     documentId: z.string(),
@@ -76,9 +75,7 @@ const exportInitialMatchData = procedure
     ));
   }
 
-  const doc = await loadGoogleSpreadsheet(documentId,
-    process.env.GOOGLE_SHEETS_CLIENT_EMAIL!,
-    process.env.GOOGLE_SHEETS_PRIVATE_KEY!);
+  const doc = await loadGoogleSpreadsheet(documentId);
   await updateGoogleSpreadsheet(doc, data);
 });
 
@@ -483,6 +480,7 @@ type FeedbackAndDecision = {
   feedbacks: Feedback[];
   decision: Feedback;
 }
+
 /**
  * @returns a map from userId to FeedbackAndDecision.
  * 
@@ -514,6 +512,82 @@ async function listInterviewFeedbackAndDecisions(
   }, {} as Record<string, FeedbackAndDecision>);
 }
 
+/**
+ * Generate input CSV files for tools/match.ipynb.
+ * 
+ * TODO: Add dummy mentors.
+ */
+const generateCSVs = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    documentId: z.string(),
+  }))
+  .output(z.object({
+    capacities: z.string(),
+    scores: z.string(),
+  }))
+  .mutation(async ({ input: { documentId } }) => ({
+    capacities: await generateCapacitiesCSV(),
+    scores: await generateScoresCSV(documentId),
+  }));
+
+async function generateCapacitiesCSV(): Promise<string> {
+  const mentors = await listMentorStats();
+  const name2capacity = mentors.reduce((acc, m) => {
+    acc[formatUserName(m.user.name)] = Math.max(0, 
+      (m.preference.最多匹配学生 ?? defaultMentorCapacity) - m.mentorships);
+    return acc;
+  }, {} as Record<string, number>);
+
+  return [
+    // Must match the format in tools/match.ipynb
+    "中文姓名,学生容量",
+    ...Object.entries(name2capacity).map(([name, capacity]) =>
+      `${name},${capacity}`),
+  ].join("\n");
+}
+
+async function generateScoresCSV(docId: string): Promise<string> 
+{
+  const doc = await loadGoogleSpreadsheet(docId);
+
+  // A two-level map of mentee-name => mentor-name => score
+  const mentee2map: Record<string, Record<string, number>> = {};
+  for (const sheet of doc.sheetsByIndex) {
+    console.log("Reading sheet", sheet.title);
+    await sheet.loadCells();
+    const mentorRowIndex = 10;
+    const mentorColIndex = 11;
+    if (sheet.getCell(mentorRowIndex, mentorColIndex).value != '导师') continue;
+
+    const mentor2score: Record<string, number> = {};
+    for (let r = mentorRowIndex + 1; ; r++) {
+      const mentor = sheet.getCell(r, mentorColIndex).value;
+      if (!mentor) break;
+      mentor2score[mentor as string] = sheet.getCell(r, 0).value as number;
+    }
+    mentee2map[sheet.title] = mentor2score;
+  }
+
+  // Sort mentors and mentees
+  const mentors = new Set<string>();
+  for (const v of Object.values(mentee2map)) {
+    Object.keys(v).forEach(mentors.add, mentors);
+  }
+  const sortedMentors = [...mentors].sort(compareChinese);
+  const sortedMentees = Object.keys(mentee2map).sort(compareChinese);
+
+  // Generate CSV
+  const lines: string[] = [
+    ["学生", ...sortedMentors].join(",")
+  ];
+  for (const s of sortedMentees) {
+    lines.push([s, ...sortedMentors.map(m => mentee2map[s][m] ?? 0)].join(","));
+  }
+  return lines.join("\n");
+}
+
 export default router({
-  exportInitialMatchData,
+  exportSpreadsheet,
+  generateCSVs,
 });

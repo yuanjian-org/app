@@ -1,32 +1,58 @@
-import { Button, VStack, Text, OrderedList, ListItem, Input } from '@chakra-ui/react';
-import PageBreadcrumb from 'components/PageBreadcrumb';
+import {
+  Button,
+  VStack,
+  OrderedList,
+  ListItem,
+  Input,
+  Heading,
+  Table,
+  TableContainer,
+  Text,
+  Th,
+  Tr,
+  Thead,
+  Tbody,
+  Td,
+  Link
+} from '@chakra-ui/react';
 import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { sectionSpacing } from 'theme/metrics';
 import trpc from 'trpc';
 
-const title = "一对一匹配";
-
 export default function Page() {
   const [working, setWorking] = useState(false);
   const [documentId, setDocumentId] = useState('');
+  const [capacitiesCsv, setCapacitiesCsv] = useState<string>();
+  const [scoresCsv, setScoresCsv] = useState<string>();
 
-  const exportInitialMatchData = async () => {
+
+  const exportSpreadsheet = async () => {
     setWorking(true);
     try {
-      await trpc.match.exportInitialMatchData.mutate({ documentId });
+      await trpc.match.exportSpreadsheet.mutate({ documentId });
       toast.success("导出成功");
     } finally {
       setWorking(false);
     }
   };
 
-  return <>
-    <PageBreadcrumb current={title} />
+  const generateCSVs = async () => {
+    setWorking(true);
+    try {
+      const ret = await trpc.match.generateCSVs.mutate({ documentId });
+      setCapacitiesCsv(ret.capacities);
+      setScoresCsv(ret.scores);
+    } finally {
+      setWorking(false);
+    }
+  };
 
+  return <>
     <VStack align="start" spacing={sectionSpacing}>
-      <Text>生成工作表的步骤：</Text>
+      <Heading size="md">第一步，导出匹配工作表</Heading>
+
       <OrderedList>
         <ListItem>
           结束所有需要换导师的学生的一对一导师关系。
@@ -51,16 +77,71 @@ export default function Page() {
 
       <Button
         variant="brand"
-        onClick={exportInitialMatchData}
+        onClick={exportSpreadsheet}
         isLoading={working}
         isDisabled={working || !documentId}
-      >生成一对一匹配工作表</Button>
+      >导出工作表</Button>
 
       <SmallGrayText>
-        如果学生数量比较多，导出时间会比较长。在此期间，可观察Spreadsheet的动态更新。
+        如果学生数量比较多，导出时间会比较长。在此期间，可观察工作表文件的动态更新。
       </SmallGrayText>
+
+      <Heading size="md" mt={sectionSpacing}>第二步，在工作表中打分</Heading>
+
+      <Text>
+        多位匹配负责人可按评分维度分工，并行完成工作。
+      </Text>
+
+      <Heading size="md" mt={sectionSpacing}>第三步，生成CSV文件</Heading>
+
+      <Button
+        variant="brand"
+        onClick={generateCSVs}
+        isLoading={working}
+        isDisabled={working || !documentId}
+      >生成CSV文件</Button>
+
+      <SmallGrayText>
+        如果学生数量比较多，生成时间会比较长。请耐心等待。
+      </SmallGrayText>
+
+      <TableContainer>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>mentor_capacities_with_dummy.csv</Th>
+              <Th>matching_scores_with_dummy.csv</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            <Tr>
+              <Td verticalAlign="top">
+                {capacitiesCsv ? <pre>{capacitiesCsv}</pre> : "待生成"}
+              </Td>
+              <Td verticalAlign="top">
+                {scoresCsv ? <pre>{scoresCsv}</pre> : "待生成"}
+              </Td>
+            </Tr>
+          </Tbody>
+        </Table>
+      </TableContainer>
+
+
+      <Heading size="md" mt={sectionSpacing}>第四步，运行自动求解算法</Heading>
+
+      <Text>
+        把两个CSV文件上传到下面的Google Colab页面，并运行。
+      </Text>
+
+      <Button
+        variant="brand"
+        as={Link}
+        href="https://colab.research.google.com/github/yuanjian-org/app/blob/main/tools/match.ipynb"
+        isExternal
+      >打开Google Colab页面</Button>
+
     </VStack>
   </>;
 }
 
-Page.title = title;
+Page.title = "一对一匹配";

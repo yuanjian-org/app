@@ -79,7 +79,7 @@ function Mentors({ showOnlyWithCapacity }: {
   showOnlyWithCapacity: boolean,
 }) {
   const { data: stats } = 
-    trpcNext.mentorships.listMentorStats.useQuery();
+    trpcNext.users.listMentorStats.useQuery();
 
   return !stats ? <Loader /> : <TableContainer>
     <Table size="sm">
