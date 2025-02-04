@@ -24,8 +24,8 @@ import trpc from 'trpc';
 export default function Page() {
   const [working, setWorking] = useState(false);
   const [documentId, setDocumentId] = useState('');
-  const [capacitiesCsv, setCapacitiesCsv] = useState<string>();
-  const [scoresCsv, setScoresCsv] = useState<string>();
+  const [capacitiesCsv, setCapacitiesCsv] = useState<{ ids: string; names: string }>();
+  const [scoresCsv, setScoresCsv] = useState<{ ids: string; names: string }>();
 
 
   const exportSpreadsheet = async () => {
@@ -116,10 +116,26 @@ export default function Page() {
           <Tbody>
             <Tr>
               <Td verticalAlign="top">
-                {capacitiesCsv ? <pre>{capacitiesCsv}</pre> : "待生成"}
+                {capacitiesCsv ? <pre>{capacitiesCsv.ids}</pre> : "待生成"}
               </Td>
               <Td verticalAlign="top">
-                {scoresCsv ? <pre>{scoresCsv}</pre> : "待生成"}
+                {scoresCsv ? <pre>{scoresCsv.ids}</pre> : "待生成"}
+              </Td>
+            </Tr>
+            <Tr>
+              <Td verticalAlign="top">
+                <Text>以下数据仅用于人工核对，请勿用做求解算法的输入：</Text>
+              </Td>
+              <Td verticalAlign="top">
+                <Text>以下数据仅用于人工核对，请勿用做求解算法的输入：</Text>
+              </Td>
+            </Tr>
+            <Tr>
+              <Td verticalAlign="top">
+                {capacitiesCsv ? <pre>{capacitiesCsv.names}</pre> : "待生成"}
+              </Td>
+              <Td verticalAlign="top">
+                {scoresCsv ? <pre>{scoresCsv.names}</pre> : "待生成"}
               </Td>
             </Tr>
           </Tbody>
@@ -130,7 +146,7 @@ export default function Page() {
       <Heading size="md" mt={sectionSpacing}>第四步，运行自动求解算法</Heading>
 
       <Text>
-        把两个CSV文件上传到下面的Google Colab页面，并运行。
+        把两个CSV文件上传到下面的求解算法页面，并运行。
       </Text>
 
       <Button
@@ -138,7 +154,7 @@ export default function Page() {
         as={Link}
         href="https://colab.research.google.com/github/yuanjian-org/app/blob/main/tools/match.ipynb"
         isExternal
-      >打开Google Colab页面</Button>
+      >打开求解算法页面</Button>
 
     </VStack>
   </>;
