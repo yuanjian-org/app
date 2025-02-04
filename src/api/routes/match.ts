@@ -3,7 +3,7 @@ import db from "../database/db";
 import {
   interviewFeedbackAttributes, mentorSelectionBatchAttributes, mentorSelectionBatchInclude, minUserAttributes
 } from "api/database/models/attributesAndIncludes";
-import { compareChinese, formatUserName } from "shared/strings";
+import { compareChinese, compareUUID, formatUserName } from "shared/strings";
 import { MenteeStatus } from "shared/MenteeStatus";
 import { Feedback } from "shared/InterviewFeedback";
 import { authUser } from "../auth";
@@ -198,36 +198,39 @@ function formatMenteeWorksheet(
     '最终匹配度',
     {
       value: '学生偏好度',
-      note: "根据学生偏好顺序，从10到2依次递减",
+      note: "根据学生偏好的顺序递减",
     },
     '学生偏好原因', 
     {
-      ...colHeader(`敏感：${bannedScore}并终止`, true),
-      note: '学生与导师行业相似，并属于以下敏感行业：AI、大数据、量子计算、芯片半导体、生物、能源、航空航天',
+      ...colHeader(`特殊情况`, true),
+      note: 
+        `情况A，设成“${bannedScore}”：学生与导师行业相似，并属于以下敏感行业：AI、大数据、量子计算、芯片半导体、生物、能源、航空航天` + 
+        `\n\n` +
+        `情况B，设成“学生匹配度”的负数：“学生偏好原因”是导师的外貌`,
     },
     {
       ...colHeader('偏专：-2', true),
-      note: '“学生偏好原因”和导师专业领域有关',
+      note: '“学生偏好原因”和导师专业领域有关\n\n减1或2分',
     },
     {
-      ...colHeader('互补：每项+2', true),
-      note: '导师在学生面试“维度打分”的低分项上恰是高分项',
+      ...colHeader('互补：各+2', true),
+      note: '导师在学生面试“维度打分”的低分项上恰是高分项\n\n每项加1或2分',
     },
     {
-      ...colHeader('关注：每项+2', true),
-      note: '导师在在学生“面试总评”中需导师关注的方面有特长',
+      ...colHeader('关注：各+2', true),
+      note: '导师在在学生“面试总评”中需导师关注的方面有特长\n\n每项加1或2分',
     },
     {
-      ...colHeader('个性：每项+2', true),
-      note: '导师在学生个性方面有特长。比如有心理学背景的导师适合情绪敏感的学生，循循善诱分数高的导师适合思维能力较弱的学生，忘年之交分数高的导师适合低年纪学生等',
+      ...colHeader('个性：各+2', true),
+      note: '导师在学生个性方面有特长。比如有心理学背景的导师适合情绪敏感的学生，循循善诱分数高的导师适合思维能力较弱的学生，忘年之交分数高的导师适合低年纪学生等\n\n每项加1或2分',
     },
     {
-      ...colHeader('偏好：每项+2', true),
-      note: '学生符合在“导师偏好文字”中描述的特质',
+      ...colHeader('偏好：各+2', true),
+      note: '学生符合在“导师偏好文字”中描述的特质\n\n每项加1或2分',
     },
     {
-      ...colHeader('期待：每项+2', true),
-      note: '导师在“学生期待”的领域有特长，请注意⚠️：忽略与职业相关的期待',
+      ...colHeader('期待：各+2', true),
+      note: '导师在“学生期待”的领域有特长，请注意⚠️：忽略与职业相关的期待\n\n每项加1或2分',
     },
     colHeader('备注', true),
     '导师', 
@@ -314,7 +317,7 @@ function formatMenteeWorksheet(
 }
 
 function order2matchingScore(order: number | null): number {
-  return order === null ? 0 : Math.max(10 - order, 2);
+  return order === null ? 0 : Math.max(100 - order, 2);
 }
 
 function formatMentorRow(row: number, {
@@ -512,6 +515,14 @@ async function listInterviewFeedbackAndDecisions(
   }, {} as Record<string, FeedbackAndDecision>);
 }
 
+const zCsvFormats = z.object({
+  // The keys of the CSV file are user ids.
+  ids: z.string(),
+  // The keys of the CSV file are user names.
+  names: z.string(),
+});
+type CsvFormats = z.infer<typeof zCsvFormats>;
+
 /**
  * Generate input CSV files for tools/match.ipynb.
  * 
@@ -523,35 +534,49 @@ const generateCSVs = procedure
     documentId: z.string(),
   }))
   .output(z.object({
-    capacities: z.string(),
-    scores: z.string(),
+    capacities: zCsvFormats,
+    scores: zCsvFormats,
   }))
-  .mutation(async ({ input: { documentId } }) => ({
-    capacities: await generateCapacitiesCSV(),
-    scores: await generateScoresCSV(documentId),
-  }));
+  .mutation(async ({ input: { documentId } }) =>
+  {
+    return { 
+      capacities: await generateCapacitiesCSV(),
+      scores: await generateScoresCSV(documentId),
+    };
+  });
 
-async function generateCapacitiesCSV(): Promise<string> {
-  const mentors = await listMentorStats();
-  const name2capacity = mentors.reduce((acc, m) => {
-    acc[formatUserName(m.user.name)] = Math.max(0, 
+async function generateCapacitiesCSV(): Promise<CsvFormats> {
+  const ids: string[] = [];
+  const names: string[] = [];
+  (await listMentorStats()).forEach(m => {
+    const cap = Math.max(0, 
       (m.preference.最多匹配学生 ?? defaultMentorCapacity) - m.mentorships);
-    return acc;
-  }, {} as Record<string, number>);
+    ids.push(`${m.user.id},${cap}`);
+    names.push(`${formatUserName(m.user.name)},${cap}`);
+  });
 
-  return [
-    // Must match the format in tools/match.ipynb
-    "中文姓名,学生容量",
-    ...Object.entries(name2capacity).map(([name, capacity]) =>
-      `${name},${capacity}`),
-  ].join("\n");
+  // Must match the format in tools/match.ipynb
+  const header = "导师,学生容量";
+
+  return {
+    ids: [header, ...ids].join("\n"),
+    names: [header, ...names].join("\n"),
+  };
 }
 
-async function generateScoresCSV(docId: string): Promise<string> 
+// It assumes the links are in the form of ".../<uuid>"
+function hyperlink2userId(hyperlink: string | undefined): string {
+  invariant(hyperlink, "Hyperlink is undefined");
+  const uuid = hyperlink.split('/').pop();
+  invariant(uuid, "UUID is undefined");
+  return uuid;
+}
+
+async function generateScoresCSV(docId: string): Promise<CsvFormats> 
 {
   const doc = await loadGoogleSpreadsheet(docId);
 
-  // A two-level map of mentee-name => mentor-name => score
+  // A two-level map of mentee-id => mentor-id => score
   const mentee2map: Record<string, Record<string, number>> = {};
   for (const sheet of doc.sheetsByIndex) {
     console.log("Reading sheet", sheet.title);
@@ -562,11 +587,14 @@ async function generateScoresCSV(docId: string): Promise<string>
 
     const mentor2score: Record<string, number> = {};
     for (let r = mentorRowIndex + 1; ; r++) {
-      const mentor = sheet.getCell(r, mentorColIndex).value;
-      if (!mentor) break;
-      mentor2score[mentor as string] = sheet.getCell(r, 0).value as number;
+      const cell = sheet.getCell(r, mentorColIndex);
+      if (!cell.value) break;
+      const mentorId = hyperlink2userId(cell.hyperlink);
+      mentor2score[mentorId] = sheet.getCell(r, 0).value as number;
     }
-    mentee2map[sheet.title] = mentor2score;
+
+    const menteeId = hyperlink2userId(sheet.getCell(0, 0).hyperlink);
+    mentee2map[menteeId] = mentor2score;
   }
 
   // Sort mentors and mentees
@@ -574,17 +602,33 @@ async function generateScoresCSV(docId: string): Promise<string>
   for (const v of Object.values(mentee2map)) {
     Object.keys(v).forEach(mentors.add, mentors);
   }
-  const sortedMentors = [...mentors].sort(compareChinese);
-  const sortedMentees = Object.keys(mentee2map).sort(compareChinese);
+  const sortedMentors = [...mentors].sort(compareUUID);
+  const sortedMentees = Object.keys(mentee2map).sort(compareUUID);
 
-  // Generate CSV
-  const lines: string[] = [
-    ["学生", ...sortedMentors].join(",")
-  ];
-  for (const s of sortedMentees) {
-    lines.push([s, ...sortedMentors.map(m => mentee2map[s][m] ?? 0)].join(","));
+  // Generate CSVs
+  const idHeader: string[] = ["学生"];
+  const nameHeader: string[] = ["学生"];
+  for (const mentorId of sortedMentors) {
+    const u = await db.User.findByPk(mentorId, { attributes: ["name"] });
+    invariant(u, "Mentor not found");
+    idHeader.push(mentorId);
+    nameHeader.push(formatUserName(u.name));
   }
-  return lines.join("\n");
+
+  const idRows: string[] = [];
+  const nameRows: string[] = [];
+  for (const menteeId of sortedMentees) {
+    const u = await db.User.findByPk(menteeId, { attributes: ["name"] });
+    invariant(u, "Mentee not found");
+    const scores = sortedMentors.map(m => mentee2map[menteeId][m] ?? 0);
+    idRows.push([menteeId, ...scores].join(","));
+    nameRows.push([formatUserName(u.name), ...scores].join(","));
+  }
+
+  return {
+    ids: [idHeader.join(","), ...idRows].join("\n"),
+    names: [nameHeader.join(","), ...nameRows].join("\n"),
+  };
 }
 
 export default router({
