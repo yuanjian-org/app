@@ -3,6 +3,7 @@ import { zMinUser } from "./User";
 import { zGroup } from "./Group";
 import { zNullableDateColumn } from "./DateColumn";
 import { compareDate } from "./strings";
+import moment from "moment";
 
 export const zMentorship = z.object({
   id: z.string(),
@@ -25,4 +26,8 @@ export function isValidMentorshipIds(
 
 export function isEndedTransactionalMentorship(m: Mentorship) {
   return m.transactional && m.endsAt && compareDate(m.endsAt, new Date()) < 0;
+}
+
+export function newTransactionalMentorshipEndsAt(): Date {
+  return moment().add(2, 'weeks').toDate();
 }

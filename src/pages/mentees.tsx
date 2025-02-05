@@ -58,7 +58,7 @@ import UserSelector from 'components/UserSelector';
 import { mentorMeetingMessagePrefix } from 'components/ChatRoom';
 import { TbClockOff, TbClock } from 'react-icons/tb';
 import { MenteeStatus } from 'shared/MenteeStatus';
-import { Mentorship, isEndedTransactionalMentorship } from 'shared/Mentorship';
+import { Mentorship, isEndedTransactionalMentorship, newTransactionalMentorshipEndsAt } from 'shared/Mentorship';
 import { menteeAcceptanceYearField, menteeSourceField } from 'shared/applicationFields';
 import { okTextColor, warningTextColor, actionRequiredTextColor } from 'theme/colors';
 import { PiFlagCheckeredFill } from "react-icons/pi";
@@ -578,10 +578,6 @@ export function getDateTextAndColor(date: string | null | undefined,
     color = "gray";
   }
   return [text, color];
-}
-
-function newTransactionalMentorshipEndsAt(): Date {
-  return moment().add(2, 'weeks').toDate();
 }
 
 export function mentorshipStatusIconType(m: Mentorship) {

@@ -1,4 +1,5 @@
 import {
+  Textarea,
   Button,
   VStack,
   OrderedList,
@@ -18,6 +19,8 @@ import {
 import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { MatchSolution } from 'shared/MatchSolution';
+import { formatUserName } from 'shared/strings';
 import { sectionSpacing } from 'theme/metrics';
 import trpc from 'trpc';
 
@@ -26,7 +29,8 @@ export default function Page() {
   const [documentId, setDocumentId] = useState('');
   const [capacitiesCsv, setCapacitiesCsv] = useState<{ ids: string; names: string }>();
   const [scoresCsv, setScoresCsv] = useState<{ ids: string; names: string }>();
-
+  const [rawSolution, setRawSolution] = useState<string>('');
+  const [appliedSolution, setAppliedSolution] = useState<MatchSolution>();
 
   const exportSpreadsheet = async () => {
     setWorking(true);
@@ -49,9 +53,22 @@ export default function Page() {
     }
   };
 
+  const applySolution = async (dryrun: boolean) => {
+    setWorking(true);
+    try {
+      const ret = await trpc.match.applySolution.mutate({
+        solution: rawSolution,
+        dryrun,
+      });
+      setAppliedSolution(ret);
+    } finally {
+      setWorking(false);
+    }
+  };
+
   return <>
     <VStack align="start" spacing={sectionSpacing}>
-      <Heading size="md">第一步，导出匹配工作表</Heading>
+      <StepHeading>第一步，导出匹配工作表</StepHeading>
 
       <OrderedList>
         <ListItem>
@@ -86,13 +103,13 @@ export default function Page() {
         如果学生数量比较多，导出时间会比较长。在此期间，可观察工作表文件的动态更新。
       </SmallGrayText>
 
-      <Heading size="md" mt={sectionSpacing}>第二步，在工作表中打分</Heading>
+      <StepHeading>第二步，在工作表中打分</StepHeading>
 
       <Text>
         多位匹配负责人可按评分维度分工，并行完成工作。
       </Text>
 
-      <Heading size="md" mt={sectionSpacing}>第三步，生成CSV文件</Heading>
+      <StepHeading>第三步，生成CSV文件</StepHeading>
 
       <Button
         variant="brand"
@@ -142,11 +159,10 @@ export default function Page() {
         </Table>
       </TableContainer>
 
-
-      <Heading size="md" mt={sectionSpacing}>第四步，运行自动求解算法</Heading>
+      <StepHeading>第四步，运行自动求解算法</StepHeading>
 
       <Text>
-        把两个CSV文件上传到下面的求解算法页面，并运行。
+        把两个CSV文件上传到下面的求解算法页面，并运行算法：
       </Text>
 
       <Button
@@ -156,8 +172,77 @@ export default function Page() {
         isExternal
       >打开求解算法页面</Button>
 
+      <StepHeading>第五步，核对匹配结果</StepHeading>
+
+      <Text>
+        把上一步算法输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下：
+      </Text>
+
+      <Textarea
+        placeholder="输入算法输出"
+        value={rawSolution}
+        onChange={(e) => setRawSolution(e.target.value)}
+      />
+
+      <Button
+        variant="brand"
+        onClick={() => applySolution(true)}
+        isLoading={working}
+        isDisabled={working || !rawSolution}
+      >打印匹配结果</Button>
+
+      {appliedSolution && (
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>学生</Th>
+                <Th>匹配的导师 ∩ 学生选择的导师</Th>
+                <Th>匹配的导师 - 学生选择的导师</Th>
+                <Th>学生选择的导师 - 匹配的导师</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {appliedSolution.map(({
+                mentee,
+                preferredMentors,
+                nonPreferredMentors,
+                excludedPreferredMentors,
+              }) => (
+                <Tr key={mentee.id}>
+                  <Td>{formatUserName(mentee.name)}</Td>
+                  <Td>{preferredMentors.map(m => formatUserName(m.name)).join(", ")}</Td>
+                  <Td>{nonPreferredMentors.map(m => formatUserName(m.name)).join(", ")}</Td>
+                  <Td><s>
+                    {excludedPreferredMentors.map(m => formatUserName(m.name)).join(", ")}
+                  </s></Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <StepHeading>第六步，应用匹配结果</StepHeading>
+
+      <Text>
+        系统会自动创建相应的不定期导师关系（或重启已有的不定期导师关系）以及反馈表的数据结构，
+        用于学生和导师在交流以后填写。
+      </Text>
+
+      <Button
+        colorScheme="red"
+        onClick={() => applySolution(false)}
+        isLoading={working}
+        isDisabled={working || !rawSolution || !appliedSolution}
+      >应用匹配结果</Button>
+
     </VStack>
   </>;
 }
 
 Page.title = "一对一匹配";
+
+function StepHeading({ children }: { children: React.ReactNode }) {
+  return <Heading size="md" mt={sectionSpacing}>{children}</Heading>;
+}
