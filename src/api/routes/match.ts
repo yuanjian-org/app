@@ -15,11 +15,11 @@ import {
   menteeMajorField,
   menteeExpectationField,
 } from "shared/applicationFields";
-import { whereMentorshipIsOngoing } from "./mentorships";
+import { createMentorship, updateMentorship, whereMentorshipIsOngoing } from "./mentorships";
 import { defaultMentorCapacity, MinUser } from "shared/User";
 import { loadGoogleSpreadsheet, SpreadsheetInputData } from "api/gsheets";
 import { updateGoogleSpreadsheet } from "api/gsheets";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { MentorSelectionBatch } from "shared/MentorSelection";
 import moment from "moment";
 import { UserProfile } from "shared/UserProfile";
@@ -33,6 +33,10 @@ import invariant from "shared/invariant";
 import { computeTraitsMatchingScore, hardMismatchScore, TraitsPreference } from "shared/Traits";
 import Role from "shared/Role";
 import { z } from "zod";
+import sequelize from "api/database/sequelize";
+import { generalBadRequestError, notFoundError } from "api/errors";
+import { newTransactionalMentorshipEndsAt } from "shared/Mentorship";
+import { MatchSolution, zMatchSolution } from "shared/MatchSolution";
 
 // Must be the same as BANNED_SCORE in tools/match.ipynb
 const bannedScore = -10;
@@ -49,7 +53,8 @@ const exportSpreadsheet = procedure
   .mutation(async ({ input: { documentId } }) =>
 {
   const mentees = await listEligibleMentees();
-  const batches = await listMentorSelectionBatches(mentees);
+  const batches = await sequelize.transaction(async transaction =>
+    await listMentorSelectionBatches(mentees.map(m => m.id), transaction));
   const apps = await listMenteeApplications(mentees);
   const profiles = await listMenteeProfiles(mentees);
   const menteeFnDs = await listInterviewFeedbackAndDecisions(
@@ -158,6 +163,8 @@ function getInterviewDimensionalScores(
   return scores;
 }
 
+const ignoreLabel = "学生尚未完整提交偏好，请暂时忽略该生";
+
 function formatMenteeWorksheet(
   mentee: MinUser,
   batch: MentorSelectionBatch | null,
@@ -209,8 +216,8 @@ function formatMenteeWorksheet(
         `情况B，设成“学生匹配度”的负数：“学生偏好原因”是导师的外貌`,
     },
     {
-      ...colHeader('偏专：-2', true),
-      note: '“学生偏好原因”和导师专业领域有关\n\n减1或2分',
+      ...colHeader('偏专：-9或-5', true),
+      note: '“学生偏好原因”和职业技能辅导或导师专业领域有关，这些话题应通过不定期导师实现\n\n减9分，确保该导师排在其他学生选择的导师之后\n\n减5分，如果学生例举了选择该导师的其他原因',
     },
     {
       ...colHeader('互补：各+2', true),
@@ -284,9 +291,16 @@ function formatMenteeWorksheet(
   
   const 匹配负责人行 = [null, null, null,
     ...batch?.finalizedAt ? [
-      "Canoee", "Canoee", "Weihan", "Xichang", "Xichang", "Yixin", "Yixin",
+      // Reset formatting of the ignoreLabel
+      { 
+        value: "Canoee",
+        textFormat: {
+          foregroundColor: { red: 0, green: 0, blue: 0 },
+          bold: false,
+        }
+      }, "Canoee", "Weihan", "Xichang", "Xichang", "Yixin", "Yixin",
     ] : [{
-      value: "学生尚未完整提交偏好，请暂时忽略该生",
+      value: ignoreLabel,
       textFormat: {
         foregroundColor: { red: 1 },
         bold: true,
@@ -334,7 +348,7 @@ function formatMentorRow(row: number, {
   reason: string | null,
 }) {
   const matchingScore = `=IF(D${row}=${bannedScore}, ${bannedScore}, ` +
-    `B${row}+E${row}+F${row}+G${row}+H${row}+I${row}+J${row})`;
+    `B${row}+D${row}+E${row}+F${row}+G${row}+H${row}+I${row}+J${row})`;
 
   const { feedbackScores, decisionComment } = getInterviewData(
     mentorInterviewDimensions, fnd);
@@ -421,15 +435,17 @@ async function listEligibleMentees(): Promise<MinUser[]> {
 /**
  * @returns a map from userId to mentor selection batch.
  */
-async function listMentorSelectionBatches(mentees: MinUser[]): 
-  Promise<Record<string, MentorSelectionBatch>> 
+async function listMentorSelectionBatches(
+  menteeIds: string[], transaction: Transaction
+): Promise<Record<string, MentorSelectionBatch>> 
 {
   const batches = await db.MentorSelectionBatch.findAll({
     where: {
-      userId: { [Op.in]: mentees.map(m => m.id) },
+      userId: { [Op.in]: menteeIds },
     },
     attributes: mentorSelectionBatchAttributes,
     include: mentorSelectionBatchInclude,
+    transaction,
   });
 
   return batches.reduce((acc, b) => {
@@ -585,6 +601,11 @@ async function generateScoresCSV(docId: string): Promise<CsvFormats>
     const mentorColIndex = 11;
     if (sheet.getCell(mentorRowIndex, mentorColIndex).value != '导师') continue;
 
+    if (sheet.getCell(9, 3).value == ignoreLabel) {
+      console.log("Ignoring mentee with no mentor selection", sheet.title);
+      continue;
+    }
+
     const mentor2score: Record<string, number> = {};
     for (let r = mentorRowIndex + 1; ; r++) {
       const cell = sheet.getCell(r, mentorColIndex);
@@ -631,7 +652,106 @@ async function generateScoresCSV(docId: string): Promise<CsvFormats>
   };
 }
 
+const applySolution = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    solution: z.string(),
+    dryrun: z.boolean(),
+  }))
+  .output(zMatchSolution)
+  .mutation(async ({ input: { solution, dryrun } }) =>
+{
+  return await sequelize.transaction(async transaction => {
+
+    const id2ids = parseSolution(solution);
+    const batches = await listMentorSelectionBatches(
+      Object.keys(id2ids), transaction);
+
+    const ret: MatchSolution = [];
+    for (const [menteeId, mentorIds] of Object.entries(id2ids)) {
+      const mentee = await db.User.findByPk(menteeId, {
+        attributes: minUserAttributes,
+        transaction,
+      });
+      if (!mentee) throw notFoundError("学生", menteeId);
+
+      const mentors: MinUser[] = [];
+      for (const mentorId of mentorIds) {
+        const mentor = await db.User.findByPk(mentorId, {
+          attributes: minUserAttributes,
+          transaction,
+        });
+        if (!mentor) throw notFoundError("导师", mentorId);
+        mentors.push(mentor);
+      }
+
+      const selections = batches[menteeId] && batches[menteeId].finalizedAt ?
+        batches[menteeId].selections : [];
+
+      ret.push({
+        mentee,
+        preferredMentors:
+          selections
+            .filter(s => mentorIds.includes(s.mentor.id))
+            .map(s => s.mentor),
+        excludedPreferredMentors:
+          selections
+            .filter(s => !mentorIds.includes(s.mentor.id))
+            .map(s => s.mentor),
+        nonPreferredMentors:
+          mentors
+            .filter(m => !selections.some(s => s.mentor.id === m.id)),
+      });
+    }
+
+    if (!dryrun) {
+      await createTransactionalMentorships(id2ids, transaction);
+    }
+
+    return ret;
+  });
+});
+
+/**
+ * @returns a map from mentee id to mentor ids.
+ */
+function parseSolution(solution: string): Record<string, string[]> {
+  const lines = solution.split("\n");
+  const result: Record<string, string[]> = {};
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const ids = line.split(",");
+    invariant(!result[ids[0]], "Mentee already exists");
+    result[ids[0]] = ids.slice(1);
+  }
+  return result;
+}
+
+async function createTransactionalMentorships(
+  menteeId2mentorIds: Record<string, string[]>, transaction: Transaction
+) {
+  const endsAt = newTransactionalMentorshipEndsAt();
+  for (const [menteeId, mentorIds] of Object.entries(menteeId2mentorIds)) {
+    for (const mentorId of mentorIds) {
+      const m = await db.Mentorship.findOne({
+        where: { mentorId, menteeId },
+        attributes: ["id", "transactional"],
+      });
+      if (!m) {
+        await createMentorship(mentorId, menteeId, true, endsAt.toISOString(),
+          transaction);
+      } else if (m.transactional) {
+        await updateMentorship(m.id, true, endsAt.toISOString(), transaction);
+      } else {
+        throw generalBadRequestError("一对一导师不能转换成不定期导师。" +
+          "学生不应该选择曾经的一对一导师");
+      }
+    }
+  }
+}
+
 export default router({
   exportSpreadsheet,
   generateCSVs,
+  applySolution,
 });

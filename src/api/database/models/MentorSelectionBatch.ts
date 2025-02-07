@@ -21,6 +21,7 @@ export default class MentorSelectionBatch extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
+  // TODO: Rename to menteeId
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(UUID)

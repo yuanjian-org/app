@@ -2,9 +2,7 @@ import { procedure, router } from "../trpc";
 import { authIntegration, authUser } from "../auth";
 import db from "../database/db";
 import {
-  isEndedTransactionalMentorship,
-  isValidMentorshipIds,
-  zMentorship,
+  isEndedTransactionalMentorship, zMentorship
 } from "../../shared/Mentorship";
 import { z } from "zod";
 import {
@@ -19,10 +17,10 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { formatUserName } from "../../shared/strings";
 import { isPermittedtoAccessMentee } from "./users";
-import { zNullableDateColumn } from "../../shared/DateColumn";
+import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 
 export const whereMentorshipIsOngoing = {
   [Op.or]: [
@@ -41,40 +39,46 @@ const create = procedure
   }))
   .mutation(async ({ input: { mentorId, menteeId, transactional, endsAt } }) => 
 {
-  if (!isValidMentorshipIds(menteeId, mentorId)) {
+  await sequelize.transaction(async transaction => {
+    await createMentorship(mentorId, menteeId, transactional, endsAt, transaction);
+  });
+});
+
+export async function createMentorship(
+  mentorId: string,
+  menteeId: string,
+  transactional: boolean,
+  endsAt: DateColumn | null,
+  transaction: Transaction
+) {
+  const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
+  const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
+  if (!mentor || !mentee) {
     throw generalBadRequestError('无效用户ID');
   }
 
-  await sequelize.transaction(async transaction => {
-    const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
-    const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
-    if (!mentor || !mentee) {
-      throw generalBadRequestError('无效用户ID');
+  // Assign appropriate roles.
+  mentor.roles = [...mentor.roles.filter(r => r != "Mentor"), "Mentor"];
+  await mentor.save({ transaction });
+  mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
+  await mentee.save({ transaction });
+
+  let mentorship;
+  try {
+    mentorship = await db.Mentorship.create({
+      mentorId, menteeId, transactional, endsAt
+    }, { transaction });
+  } catch (e: any) {
+    if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
+      throw alreadyExistsError("一对一匹配");
     }
+  }
 
-    // Assign appropriate roles.
-    mentor.roles = [...mentor.roles.filter(r => r != "Mentor"), "Mentor"];
-    await mentor.save({ transaction });
-    mentee.roles = [...mentee.roles.filter(r => r != "Mentee"), "Mentee"];
-    await mentee.save({ transaction });
-
-    let mentorship;
-    try {
-      mentorship = await db.Mentorship.create({
-        mentorId, menteeId, transactional, endsAt
-      }, { transaction });
-    } catch (e: any) {
-      if ('name' in e && e.name === "SequelizeUniqueConstraintError") {
-        throw alreadyExistsError("一对一匹配");
-      }
-    }
-
-    // Create groups
-    invariant(mentorship);
-    await createGroup(null, [mentorId, menteeId], mentorship.id, null, null,
-      null, transaction);
-  });
-});
+  // Create groups
+  invariant(mentorship);
+  await createGroup(null, [mentorId, menteeId], mentorship.id, null, null,
+    null, transaction);
+}
 
 const update = procedure
   .use(authUser('MentorshipManager'))
@@ -86,11 +90,30 @@ const update = procedure
   .mutation(async ({ input: { mentorshipId, transactional, endsAt } }) => 
 {
   await sequelize.transaction(async transaction => {
-    const m = await db.Mentorship.findByPk(mentorshipId, { transaction });
-    if (!m) throw notFoundError("一对一匹配", mentorshipId);
-    await m.update({ transactional, endsAt }, { transaction });
+    await updateMentorship(mentorshipId, transactional, endsAt, transaction);
   });
 });
+
+export async function updateMentorship(
+  mentorshipId: string,
+  transactional: boolean,
+  endsAt: DateColumn | null,
+  transaction: Transaction
+) {
+  const m = await db.Mentorship.findByPk(mentorshipId, {
+    attributes: ["id", "transactional"],
+    lock: true,
+    transaction
+  });
+  if (!m) throw notFoundError("一对一匹配", mentorshipId);
+
+  // Also see the transition table in MentorshipsEditor()
+  if (!m.transactional && transactional) {
+    throw generalBadRequestError("一对一导师不能转换为不定期导师");
+  }
+
+  await m.update({ transactional, endsAt }, { transaction });
+}
 
 /**
  * If the current user is a MentorCoach or MentorshipManager, return all
