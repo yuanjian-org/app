@@ -14,7 +14,9 @@ import {
   Thead,
   Tbody,
   Td,
-  Link
+  Link,
+  AlertIcon,
+  Alert, AlertDescription
 } from '@chakra-ui/react';
 import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
@@ -238,9 +240,16 @@ export default function Page() {
       <StepHeading>第六步，应用匹配结果</StepHeading>
 
       <Text>
-        系统会自动创建相应的不定期导师关系（或重启已有的不定期导师关系）以及反馈表的数据结构，
-        用于学生和导师在交流以后填写。
+        系统会自动创建相应的不定期导师关系（或重启已有的不定期导师关系）以及交流反馈表。
       </Text>
+
+      <Alert status="warning" mb={4}>
+        <AlertIcon />
+        <AlertDescription>
+          多次应用匹配结果会生成重复的反馈表。用户只能在最新的反馈表中输入数据，之前的反馈表{
+          }自动变成只读。如不慎生成了多余数据，请手动删除 MatchFeedback 数据表的内容。
+        </AlertDescription>
+      </Alert>
 
       <Button
         colorScheme="red"

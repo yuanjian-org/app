@@ -20,6 +20,7 @@ import merge from './routes/merge';
 import kudos from './routes/kudos';
 import mentorSelections from './routes/mentorSelections';
 import tasks from './routes/tasks';
+import matchFeedback from './routes/matchFeedback';
 
 export const apiRouter = router({
   users,
@@ -43,6 +44,7 @@ export const apiRouter = router({
   kudos,
   mentorSelections,
   tasks,
+  matchFeedback,
 });
 
 export type ApiRouter = typeof apiRouter;

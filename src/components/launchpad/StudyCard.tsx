@@ -5,7 +5,7 @@ import {
   Text,
   Link, Flex
 } from '@chakra-ui/react';
-import { ResponsiveCard } from 'components/Card';
+import { ResponsiveCard } from 'components/ResponsiveCard';
 import NextLink from 'next/link';
 import { IoMdBookmark } from 'react-icons/io';
 import colors from 'theme/colors';

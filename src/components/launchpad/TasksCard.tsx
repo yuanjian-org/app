@@ -9,7 +9,7 @@ import {
   Box,
   Link
 } from '@chakra-ui/react';
-import { ResponsiveCard } from 'components/Card';
+import { ResponsiveCard } from 'components/ResponsiveCard';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { getTaskMarkdown, Task } from 'shared/Task';

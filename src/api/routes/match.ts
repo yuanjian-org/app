@@ -38,6 +38,7 @@ import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import { newTransactionalMentorshipEndsAt } from "shared/Mentorship";
 import { MatchSolution, zMatchSolution } from "shared/MatchSolution";
+import { MenteeMatchFeedback, MentorMatchFeedback } from "shared/MatchFeedback";
 
 // Must be the same as BANNED_SCORE in tools/match.ipynb
 const bannedScore = -10;
@@ -713,6 +714,7 @@ const applySolution = procedure
 
     if (!dryrun) {
       await createTransactionalMentorships(id2ids, transaction);
+      await createMatchFeedback(id2ids, transaction);
     }
 
     return ret;
@@ -754,6 +756,38 @@ async function createTransactionalMentorships(
           "学生不应该选择曾经的一对一导师");
       }
     }
+  }
+}
+
+async function createMatchFeedback(
+  menteeId2mentorIds: Record<string, string[]>, transaction: Transaction
+) {
+  // Map from mentor id to mentee ids.
+  const inverse: Record<string, string[]> = {};
+  for (const [menteeId, mentorIds] of Object.entries(menteeId2mentorIds)) {
+    for (const mentorId of mentorIds) {
+      if (!inverse[mentorId]) inverse[mentorId] = [];
+      inverse[mentorId].push(menteeId);
+    }
+    const menteeFeedback: MenteeMatchFeedback = {
+      type: "Mentee",
+      mentors: mentorIds.map(id => ({ id })),
+    };
+    await db.MatchFeedback.create({
+      userId: menteeId,
+      feedback: menteeFeedback,
+    }, { transaction });
+  }
+
+  for (const [mentorId, menteeIds] of Object.entries(inverse)) {
+    const mentorFeedback: MentorMatchFeedback = {
+      type: "Mentor",
+      mentees: menteeIds.map(id => ({ id })),
+    };
+    await db.MatchFeedback.create({
+      userId: mentorId,
+      feedback: mentorFeedback,
+    }, { transaction });
   }
 }
 

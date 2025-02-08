@@ -18,7 +18,7 @@ import { trpcNext } from "../../trpc";
 import Loader from 'components/Loader';
 import { isPermitted } from 'shared/Role';
 import { componentSpacing, paragraphSpacing } from 'theme/metrics';
-import { ResponsiveCard } from 'components/Card';
+import { ResponsiveCard } from 'components/ResponsiveCard';
 import GroupBar from 'components/GroupBar';
 
 export default function GroupsCard() {

@@ -28,6 +28,7 @@ import MentorSelectionBatch from "./models/MentorSelectionBatch";
 import Task from "./models/Task";
 import MeetingSlot from "./models/MeetingSlot";
 import MeetingHistory from "./models/MeetingHistory";
+import MatchFeedback from "./models/MatchFeedback";
 
 const db = {
   Mentorship,
@@ -56,6 +57,7 @@ const db = {
   MentorSelection,
   MentorSelectionBatch,
   Task,
+  MatchFeedback,
 };
 
 export default db;

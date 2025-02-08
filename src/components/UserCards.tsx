@@ -29,7 +29,7 @@ import { useMemo, useState, useRef, useEffect, PropsWithChildren, useCallback } 
 import MentorBookingModal from 'components/MentorBookingModal';
 import { CheckIcon, SearchIcon } from '@chakra-ui/icons';
 import { KudosControl, KudosHistory, markKudosAsRead, UnreadKudosRedDot, useUnreadKudos } from './Kudos';
-import { CardForDesktop, CardForMobile } from './Card';
+import { CardForDesktop, CardForMobile } from './ResponsiveCard';
 import { trpcNext } from 'trpc';
 import Loader from './Loader';
 import { UserDisplayData } from 'components/UserPanel';
