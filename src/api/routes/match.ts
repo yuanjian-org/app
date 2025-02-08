@@ -14,6 +14,7 @@ import {
   menteeFirstYearInCollegeField,
   menteeMajorField,
   menteeExpectationField,
+  menteeSourceField,
 } from "shared/applicationFields";
 import { createMentorship, updateMentorship, whereMentorshipIsOngoing } from "./mentorships";
 import { defaultMentorCapacity, MinUser } from "shared/User";
@@ -232,8 +233,8 @@ function formatMenteeWorksheet(
       note: '导师在学生个性方面有特长。比如有心理学背景的导师适合情绪敏感的学生，循循善诱分数高的导师适合思维能力较弱的学生，忘年之交分数高的导师适合低年纪学生等\n\n每项加1或2分',
     },
     {
-      ...colHeader('偏好：各+2', true),
-      note: '学生符合在“导师偏好文字”中描述的特质\n\n每项加1或2分',
+      ...colHeader('偏好：+千或各+2', true),
+      note: '学生符合在“导师偏好文字”中描述的特质\n\n每项加1或2分\n\n+1000分，如果导师特别指定了学生的姓名。确保该导师排在所有其他导师之前',
     },
     {
       ...colHeader('期待：各+2', true),
@@ -670,7 +671,11 @@ const applySolution = procedure
     const ret: MatchSolution = [];
     for (const [menteeId, mentorIds] of Object.entries(id2ids)) {
       const mentee = await db.User.findByPk(menteeId, {
-        attributes: minUserAttributes,
+        attributes: [...minUserAttributes, "menteeApplication"],
+        include: {
+          association: "pointOfContact",
+          attributes: minUserAttributes,
+        },
         transaction,
       });
       if (!mentee) throw notFoundError("学生", menteeId);
@@ -690,6 +695,8 @@ const applySolution = procedure
 
       ret.push({
         mentee,
+        pointOfContact: mentee.pointOfContact,
+        source: mentee.menteeApplication?.[menteeSourceField],
         preferredMentors:
           selections
             .filter(s => mentorIds.includes(s.mentor.id))

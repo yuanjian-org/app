@@ -20,7 +20,7 @@ import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { MatchSolution } from 'shared/MatchSolution';
-import { formatUserName } from 'shared/strings';
+import { compareChinese, formatUserName } from 'shared/strings';
 import { sectionSpacing } from 'theme/metrics';
 import trpc from 'trpc';
 
@@ -109,7 +109,7 @@ export default function Page() {
         多位匹配负责人可按评分维度分工，并行完成工作。
       </Text>
 
-      <StepHeading>第三步，生成CSV文件</StepHeading>
+      <StepHeading>第三步，生成求解算法输入</StepHeading>
 
       <Button
         variant="brand"
@@ -159,7 +159,7 @@ export default function Page() {
         </Table>
       </TableContainer>
 
-      <StepHeading>第四步，运行自动求解算法</StepHeading>
+      <StepHeading>第四步，运行求解算法</StepHeading>
 
       <Text>
         把两个CSV文件上传到下面的求解算法页面，并运行算法：
@@ -172,10 +172,10 @@ export default function Page() {
         isExternal
       >打开求解算法页面</Button>
 
-      <StepHeading>第五步，核对匹配结果</StepHeading>
+      <StepHeading>第五步，核对求解算法输出</StepHeading>
 
       <Text>
-        把上一步算法输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下：
+        把输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下：
       </Text>
 
       <Textarea
@@ -196,6 +196,8 @@ export default function Page() {
           <Table>
             <Thead>
               <Tr>
+                <Th>联络人</Th>
+                <Th>生源</Th>
                 <Th>学生</Th>
                 <Th>匹配的导师 ∩ 学生选择的导师</Th>
                 <Th>匹配的导师 - 学生选择的导师</Th>
@@ -203,13 +205,23 @@ export default function Page() {
               </Tr>
             </Thead>
             <Tbody>
-              {appliedSolution.map(({
+              {appliedSolution
+              .sort((a, b) => {
+                const comp = compareChinese(a.pointOfContact?.name ?? "",
+                  b.pointOfContact?.name ?? "");
+                if (comp !== 0) return comp;
+                return compareChinese(a.source ?? "", b.source ?? "");
+              }).map(({
+                pointOfContact,
+                source,
                 mentee,
                 preferredMentors,
                 nonPreferredMentors,
                 excludedPreferredMentors,
               }) => (
                 <Tr key={mentee.id}>
+                  <Td>{pointOfContact ? formatUserName(pointOfContact.name) : "-"}</Td>
+                  <Td>{source ?? "-"}</Td>
                   <Td>{formatUserName(mentee.name)}</Td>
                   <Td>{preferredMentors.map(m => formatUserName(m.name)).join(", ")}</Td>
                   <Td>{nonPreferredMentors.map(m => formatUserName(m.name)).join(", ")}</Td>
