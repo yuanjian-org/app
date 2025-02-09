@@ -18,7 +18,15 @@ import {
 import { ResponsiveCard } from "components/ResponsiveCard";
 import Loader from "components/Loader";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { MatchFeedback, MenteeMatchFeedback, MentorMatchFeedback, MentorMatchFeedbackChoice, mentorMatchFeedbackChoices, zMenteeMatchFeedback, zMentorMatchFeedback } from "shared/MatchFeedback";
+import {
+  MatchFeedback,
+  MenteeMatchFeedback,
+  MentorMatchFeedback,
+  MentorMatchFeedbackChoice,
+  mentorMatchFeedbackChoices,
+  zMenteeMatchFeedback,
+  zMentorMatchFeedback
+} from "shared/MatchFeedback";
 import { compareDate } from "shared/strings";
 import { sectionSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
@@ -26,7 +34,7 @@ import invariant from "shared/invariant";
 import { z } from "zod";
 import { UserLink } from "components/UserChip";
 import { SmallGrayText } from "components/SmallGrayText";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Autosaver from "components/Autosaver";
 
 const title = "初次交流反馈";
@@ -50,11 +58,9 @@ export default function Page() {
     <PageBreadcrumb current={title} />
 
     <VStack align="start" spacing={sectionSpacing}>
-      <Text>
-        建议每次交流后立即填写反馈，在第一时间记下感受。反馈信息可反复修改和补充。
-      </Text>
-
-      {!data ? <Loader /> : data
+      {!data ? <Loader /> : data.length === 0 ?<Text>
+        没有需要填写的反馈表。
+      </Text> : data
         // Place the latest feedback at the top
         .sort((a, b) => compareDate(b.createdAt, a.createdAt))
         .map((fnc, idx) => <VStack key={idx} align="start" w="full">
@@ -73,8 +79,6 @@ export default function Page() {
               {...idx == 0 ? { update: setEditable } : {}}
             />
           }
-
-          {idx == 0 && <SmallGrayText>系统会自动保存填写的信息。</SmallGrayText>}
         </VStack>)
       }
     </VStack>
@@ -85,6 +89,27 @@ export default function Page() {
 Page.title = title;
 
 type FeedbackOnMentor = z.infer<typeof zMenteeMatchFeedback.shape.mentors.element>;
+
+function LargeTh({ children }: { children: ReactNode }) {
+  return <Th fontSize="md">{children}</Th>;
+}
+
+function FeedbackCard({ editable, children }: { 
+  editable: boolean, 
+  children: ReactNode
+}) {
+  return <ResponsiveCard w="full">
+    <CardBody>
+      <VStack align="start" spacing={sectionSpacing} w="full">
+        {editable && <Text>
+          建议每次交流后尽早填写反馈，在第一时间记录下感受。反馈信息可反复修改和补充。
+        </Text>}
+        {children}
+        {editable && <SmallGrayText>系统会自动保存填写的信息。</SmallGrayText>}
+      </VStack>
+    </CardBody>
+  </ResponsiveCard>;
+}
 
 function MenteeFeedback({ f, update }: { 
   f: MenteeMatchFeedback,
@@ -103,30 +128,31 @@ function MenteeFeedback({ f, update }: {
   };
 
   invariant(f.type == "Mentee", "expect Mentee feedback");
-  return <ResponsiveCard w="full">
-    <CardBody>
-      <TableContainer>
-        <Table variant="unstyled">
-          <Thead>
-            <Tr>
-              <Th>导师</Th>
-              <Th>打分<br />1：不想匹配<br />5：特想匹配</Th>
-              <Th>打分的原因</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {f.mentors.map((f, idx) => 
-              <MenteeFeedbackRow
-                key={idx} 
-                f={f} 
-                {...update ? { update: updateRow } : {}}
-              />
-            )}
-          </Tbody>
-        </Table>
-      </TableContainer>
-    </CardBody>
-  </ResponsiveCard>;
+  return <FeedbackCard editable={!!update}>
+    <TableContainer w="full">
+      <Table variant="unstyled">
+        <Thead>
+          <Tr>
+            <LargeTh>导师</LargeTh>
+            <LargeTh>
+              打分<br />
+              <Text as="span" fontSize="xs">1：不想匹配<br />5：很想匹配</Text>
+            </LargeTh>
+            <LargeTh>打分的原因</LargeTh>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {f.mentors.map((f, idx) => 
+            <MenteeFeedbackRow
+              key={idx} 
+              f={f} 
+              {...update ? { update: updateRow } : {}}
+            />
+          )}
+        </Tbody>
+      </Table>
+    </TableContainer>
+  </FeedbackCard>;
 }
 
 function MenteeFeedbackRow({ f, update }: { 
@@ -188,30 +214,28 @@ function MentorFeedback({ f, update }: {
   };
 
   invariant(f.type == "Mentor", "expect Mentor feedback");
-  return <ResponsiveCard w="full">
-    <CardBody>
-      <TableContainer>
-        <Table variant="unstyled">
-          <Thead>
-            <Tr>
-              <Th>学生</Th>
-              <Th>评价</Th>
-              <Th>如果是“特别喜欢”，原因是什么？</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {f.mentees.map((f, idx) => 
-              <MentorFeedbackRow
-                key={idx} 
-                f={f} 
-                {...update ? { update: updateRow } : {}}
-              />
-            )}
-          </Tbody>
-        </Table>
-      </TableContainer>
-    </CardBody>
-  </ResponsiveCard>;
+  return  <FeedbackCard editable={!!update}>
+    <TableContainer w="full">
+      <Table variant="unstyled">
+        <Thead>
+          <Tr>
+            <Th>学生</Th>
+            <Th>评价</Th>
+            <Th>如果是“特别喜欢”，原因是什么？</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {f.mentees.map((f, idx) => 
+            <MentorFeedbackRow
+              key={idx} 
+              f={f} 
+              {...update ? { update: updateRow } : {}}
+            />
+          )}
+        </Tbody>
+      </Table>
+    </TableContainer>
+  </FeedbackCard>;
 }
 
 function MentorFeedbackRow({ f, update }: { 
