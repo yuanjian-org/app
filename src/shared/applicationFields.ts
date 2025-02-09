@@ -78,7 +78,7 @@ export const volutneerNationalityField = "国籍";
  * Field order dictates the order the fields are displayed.
  */
 export const volunteerApplicationFields: ApplicationField[] = [
-  { jsjField: "field_24", name: "英文别名", showForEdits: true },
+  { jsjField: "field_24", name: "昵称或英文名", showForEdits: true },
   { name: volunteerApplyingforMentorField, showForEdits: true },
   { jsjField: "field_10", name: "申请其他岗位" },
   { jsjField: "field_18", name: "每周贡献时数" },

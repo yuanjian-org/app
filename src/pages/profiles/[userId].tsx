@@ -219,7 +219,7 @@ function Basic({ user, profile, setUser, setProfile }: {
     </FormControl>
 
     <FormControl>
-      <FormLabel>英文别名</FormLabel>
+      <FormLabel>昵称或英文名</FormLabel>
       <Input
         bg="white"
         value={profile.英文别名 ?? ""}
