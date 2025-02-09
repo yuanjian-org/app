@@ -46,21 +46,23 @@ export function getTaskMarkdown(
     return t.markdown;
 
   } else if (
-    t.autoTaskId === "study-comms" || t.autoTaskId === "study-handbook") {
-
+    t.autoTaskId === "study-comms" || t.autoTaskId === "study-handbook"
+  ) {
     const link = t.autoTaskId === "study-comms" ?
       `[《学生通讯原则》](${baseUrl}/study/comms)` :
       `[《社会导师手册》](${baseUrl}/study/handbook)`;
     const base = `${link}自学与评测`;
+    const examPassedAt = t.autoTaskId === "study-comms" ?
+      state?.commsExam : state?.handbookExam;
 
     if (t.done || !state) {
       return `请完成${base}。`;
-    } else if (!state.commsExam) {
+    } else if (!examPassedAt) {
       // The user has never passed the exam.
       return `请完成${base}，之后即可访问相关的学生资料。`;
     } else {
       // The user has passed the exam but about to expire.
-      const expiry = moment(state.commsExam).add(defaultExamExpiryDays, "days");
+      const expiry = moment(examPassedAt).add(defaultExamExpiryDays, "days");
       const expired = expiry.isBefore(moment());
       return `${base}需每年完成一次。你的上次评测结果**${expired ? '已' : '将'}于` +
         `${prettifyDate(expiry.toDate())}过期**。` +
