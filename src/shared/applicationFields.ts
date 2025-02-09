@@ -30,7 +30,7 @@ export const menteeExpectationField = "你希望导师和社区对你的学业�
  * Field order dictates the order the fields are displayed.
  */
 export const menteeApplicationFields: ApplicationField[] = [
-  { jsjProxiedField: "field_173", name: "合作机构推荐文字", showForEdits: true, },
+  { jsjProxiedField: "field_173", name: "备注和合作机构推荐文字", showForEdits: true, },
   { name: menteeAcceptanceYearField, showForEdits: true, },
   { jsjField: "field_165", jsjProxiedField: "field_165", name: menteeSourceField, showForEdits: true, },
   { jsjField: "field_149", jsjProxiedField: "field_149", name: menteeDegreeField, showForEdits: true, },
