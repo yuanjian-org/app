@@ -108,6 +108,12 @@ async function sendTaskEmail(
     return markdown2html(md);
   }));
 
+  if (htmls.length === 0) {
+    console.log(`No tasks to send to user ${userId}, assuming user has` +
+      `completed the tasks that triggered this scheduled email.`);
+    return;
+  }
+
   const personalizations = [{
     to: {
       email: user.email,
