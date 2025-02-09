@@ -219,9 +219,9 @@ function MentorFeedback({ f, update }: {
       <Table variant="unstyled">
         <Thead>
           <Tr>
-            <Th>学生</Th>
-            <Th>评价</Th>
-            <Th>如果是“特别喜欢”，原因是什么？</Th>
+            <LargeTh>学生</LargeTh>
+            <LargeTh>评价</LargeTh>
+            <LargeTh>如果是“特别喜欢”，原因是什么？</LargeTh>
           </Tr>
         </Thead>
         <Tbody>

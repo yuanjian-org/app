@@ -21,7 +21,8 @@ import {
   Box,
   Wrap,
   WrapItem,
-  Heading
+  Heading,
+  Tooltip
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
@@ -43,6 +44,7 @@ import UserSelector from 'components/UserSelector';
 import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
 import ExamPassDateText from 'components/ExamPassDateText';
 import TopBar, { topBarPaddings } from 'components/TopBar';
+import { okTextColor, warningTextColor } from 'theme/colors';
 
 const title = "导师档案";
 
@@ -51,6 +53,8 @@ const title = "导师档案";
  */
 export default fullPage(() => {
   const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
+  const [showMentorCoach, setShowMentorCoach] = useState(false);
+  const [showMatchState, setShowMatchState] = useState(false);
 
   return <>
     <TopBar {...topBarPaddings()}>
@@ -66,17 +70,39 @@ export default fullPage(() => {
             仅显示有剩余容量的一对一导师
           </Checkbox>
         </WrapItem>
+        <WrapItem>
+          <Checkbox
+            isChecked={showMentorCoach}
+            onChange={e => setShowMentorCoach(e.target.checked)}
+          >
+            显示资深导师
+          </Checkbox>
+        </WrapItem>
+        <WrapItem>
+          <Checkbox 
+            isChecked={showMatchState}
+            onChange={e => setShowMatchState(e.target.checked)}
+          >
+            显示师生匹配状态
+          </Checkbox>
+        </WrapItem>
       </Wrap>
     </TopBar>
 
     <Box mx={pageMarginX} mt={pageMarginX}>
-      <Mentors showOnlyWithCapacity={showOnlyWithCapacity} />
+      <Mentors
+        showOnlyWithCapacity={showOnlyWithCapacity}
+        showMentorCoach={showMentorCoach}
+        showMatchState={showMatchState}
+      />
     </Box>
   </>;
 }, title);
 
-function Mentors({ showOnlyWithCapacity }: {
+function Mentors({ showOnlyWithCapacity, showMentorCoach, showMatchState }: {
   showOnlyWithCapacity: boolean,
+  showMentorCoach: boolean,
+  showMatchState: boolean,
 }) {
   const { data: stats } = 
     trpcNext.users.listMentorStats.useQuery();
@@ -85,9 +111,10 @@ function Mentors({ showOnlyWithCapacity }: {
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>导师</Th>
           <Th>角色</Th>
-          <Th>资深导师</Th>
+          <Th>导师</Th>
+          {showMentorCoach && <Th color="brand.c">资深导师</Th>}
+          {showMatchState && <Th color="brand.c">交流反馈状态</Th>}
           <Th>学生容量</Th>
           <Th>学生数量</Th>
           <Th>剩余容量</Th>
@@ -110,12 +137,14 @@ function Mentors({ showOnlyWithCapacity }: {
             !isPermitted(s.user.roles, "TransactionalMentor")
           )
         )
-        .map(s => <Row 
+        .map(s => <MentorRow 
           key={s.user.id}
           user={s.user}
           mentorships={s.mentorships} 
           preference={s.preference}
           profile={s.profile}
+          showMentorCoach={showMentorCoach}
+          showMatchState={showMatchState}
         />)}
         <SumsRow stats={stats} />
       </Tbody>
@@ -155,11 +184,15 @@ function cap(pref: MentorPreference): number {
   return pref.最多匹配学生 ?? defaultMentorCapacity;
 }
 
-function Row({ user, profile, preference, mentorships }: {
+function MentorRow({ user, profile, preference, mentorships,
+  showMentorCoach, showMatchState
+}: {
   user: User,
   mentorships: number,
   preference: MentorPreference,
   profile: UserProfile,
+  showMentorCoach: boolean,
+  showMatchState: boolean,
 }) {
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
@@ -178,13 +211,7 @@ function Row({ user, profile, preference, mentorships }: {
   const capacity = cap(preference);
   const isDefaultCapacity = preference.最多匹配学生 === undefined;
 
-  return <Tr key={user.id} _hover={{ bg: "white" }}> 
-    {/* 导师 */}
-    <Td>
-      <Link as={NextLink} href={getUserUrl(user)}>
-        <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
-      </Link>
-    </Td>
+  return <Tr _hover={{ bg: "white" }}> 
 
     {/* 角色 */}
     <Td>
@@ -193,12 +220,24 @@ function Row({ user, profile, preference, mentorships }: {
       </Tag>
     </Td>
 
-    {/* 资深导师 */}
+    {/* 导师 */}
     <Td>
-      <Link onClick={() => setEditingCoach(true)}>
-        {coach ? formatUserName(coach.name) : <MdEdit />}
+      <Link as={NextLink} href={getUserUrl(user)}>
+        <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
       </Link>
     </Td>
+
+    {/* 资深导师 */}
+    {showMentorCoach && (
+      <Td>
+        <Link onClick={() => setEditingCoach(true)}>
+          {coach ? formatUserName(coach.name) : <MdEdit />}
+        </Link>
+      </Td>
+    )}
+
+    {/* 师生匹配状态 */}
+    {showMatchState && <MentorMatchFeedbackStateCell mentorId={user.id} />}
 
     {coach !== undefined && editingCoach && <CoachEditor
       mentor={user}
@@ -251,6 +290,44 @@ function Row({ user, profile, preference, mentorships }: {
     {/* 拼音 */}
     <Td>{toPinyin(user.name ?? "")}</Td>
   </Tr>;
+}
+
+function MentorMatchFeedbackStateCell({ mentorId }: { mentorId: string }) {
+  const { data } = trpcNext.matchFeedback.getLastMentorMatchFeedback.useQuery({
+    mentorId,
+  });
+
+  const total = data?.mentees.length ?? 0;
+  const [choices, reasons] = data?.mentees.reduce(([choices, reasons], m) => {
+    if (m.choice) choices += 1;
+    if (m.reason) reasons += 1;
+    return [choices, reasons];
+  }, [0, 0]) ?? [0, 0];
+
+  return <MatchFeedbackStateCell
+    loading={data === undefined}
+    total={total}
+    scores={choices}
+    reasons={reasons}
+  />;
+}
+
+export function MatchFeedbackStateCell({ loading, total, scores, reasons }: {
+  loading: boolean,
+  total: number,
+  scores: number,
+  reasons: number,
+}) {
+  return <Td>{
+    loading ? <Text /> : total === 0 ? 
+      <Text color="gray">无反馈表</Text> 
+      :
+      <Tooltip label="匹配数量 / 已评分数量 / 评分原因数量">
+        <Text color={total == scores ? okTextColor : warningTextColor}>
+          {total} / {scores} / {reasons}
+        </Text>
+      </Tooltip>
+  }</Td>;
 }
 
 function CoachEditor({ mentor, coach, refetch, onClose }: {
