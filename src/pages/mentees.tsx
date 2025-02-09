@@ -62,6 +62,7 @@ import { Mentorship, isEndedTransactionalMentorship, newTransactionalMentorshipE
 import { menteeAcceptanceYearField, menteeSourceField } from 'shared/applicationFields';
 import { okTextColor, warningTextColor, actionRequiredTextColor } from 'theme/colors';
 import { PiFlagCheckeredFill } from "react-icons/pi";
+import { MatchFeedbackStateCell } from './mentors/manage';
 
 type Metadata = {
   // The year the mentee was accepted
@@ -89,7 +90,9 @@ export default fullPage(() => {
   };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
-  const [showMentorSelectionState, setShowMentorSelectionState] = useState(false);
+  const [showMatchState, setShowMatchState] = useState(false);
+  const [showMentorCoach, setShowMentorCoach] = useState(false);
+
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
   return <>
@@ -100,9 +103,19 @@ export default fullPage(() => {
             onChange={f => setFilter(f)} />
         </WrapItem>
         <WrapItem>
-          <Checkbox isChecked={showMentorSelectionState}
-            onChange={e => setShowMentorSelectionState(e.target.checked)}>
-            一对一导师选择状态
+          <Checkbox 
+            isChecked={showMentorCoach}
+            onChange={e => setShowMentorCoach(e.target.checked)}
+          >
+            显示资深导师
+          </Checkbox>
+        </WrapItem>
+        <WrapItem>
+          <Checkbox 
+            isChecked={showMatchState}
+            onChange={e => setShowMatchState(e.target.checked)}
+          >
+            显示师生匹配状态
           </Checkbox>
         </WrapItem>
       </Wrap>
@@ -113,7 +126,8 @@ export default fullPage(() => {
         <TableContainer>
           <MenteeTable
             users={users}
-            showMentorSelectionState={showMentorSelectionState}
+            showMatchState={showMatchState}
+            showMentorCoach={showMentorCoach}
             refetch={refetch}
           />
         <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
@@ -125,10 +139,11 @@ export default fullPage(() => {
   </>;
 }, title);
 
-function MenteeTable({ users, refetch, showMentorSelectionState }: {
+function MenteeTable({ users, refetch, showMatchState, showMentorCoach }: {
   users: UserWithMergeInfo[],
   refetch: () => void,
-  showMentorSelectionState: boolean,
+  showMatchState: boolean,
+  showMentorCoach: boolean,
 }) {
   // TODO: Break out into two variables and remove `Metadata` type
   const [mentee2meta, setMentee2meta] = useState<Record<string, Metadata>>({}); 
@@ -232,10 +247,16 @@ function MenteeTable({ users, refetch, showMentorSelectionState }: {
           sortOrder={sortOrder}
           addSortOrder={addSortOrder}
         />
-        {showMentorSelectionState && <Th color="brand.c">导师选择状态</Th>}
+        
+        {showMatchState && <>
+          <Th color="brand.c">导师选择状态</Th>
+          <Th color="brand.c">交流反馈状态</Th>
+        </>}
+
         <MentorshipHeaderCells
           sortOrder={sortOrder}
           addSortOrder={addSortOrder}
+          showMentorCoach={showMentorCoach}
         />
         <SortableHeaderCell
           label="最近导师交流"
@@ -255,7 +276,8 @@ function MenteeTable({ users, refetch, showMentorSelectionState }: {
         setMetadata={setMetadata}
         setLastMentorMeetingDate={setLastMentorMeetingDate}
         setLastTranscriptDate={setLastTranscriptDate}
-        showMentorSelectionState={showMentorSelectionState}
+        showMatchState={showMatchState}
+        showMentorCoach={showMentorCoach}
       />)}
     </Tbody>
   </Table>;
@@ -288,14 +310,15 @@ function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
 
 function MenteeRow({
   user: u, refetch, setMetadata, setLastMentorMeetingDate, setLastTranscriptDate,
-  showMentorSelectionState
+  showMatchState, showMentorCoach
 }: {
   user: UserWithMergeInfo,
   refetch: () => void,
   setMetadata: SetMetadata,
   setLastMentorMeetingDate: (userId: string, date: string) => void,
   setLastTranscriptDate: (userId: string, date: string) => void,
-  showMentorSelectionState: boolean,
+  showMatchState: boolean,
+  showMentorCoach: boolean,
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -316,8 +339,16 @@ function MenteeRow({
     <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
     <PointOfContactCells user={u} refetch={refetch} />
     <MenteeCells mentee={u} setMetadata={setMetadata}/>
-    {showMentorSelectionState && <MentorSelectionStateCell menteeId={u.id} />}
-    <MentorshipCells mentee={u} addPinyin={addPinyin} showCoach
+    
+    {showMatchState && <>
+      <MentorSelectionStateCell menteeId={u.id} />
+      <MenteeMatchFeedbackStateCell menteeId={u.id} />
+    </>}
+
+    <MentorshipCells
+      mentee={u}
+      addPinyin={addPinyin}
+      showMentorCoach={showMentorCoach}
       setLastTranscriptDate={setLastTranscriptDate}
     />
     <LastMentorMeetingDateCell menteeId={u.id}
@@ -325,6 +356,26 @@ function MenteeRow({
     <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
+}
+
+function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
+  const { data } = trpcNext.matchFeedback.getLastMenteeMatchFeedback.useQuery({
+    menteeId,
+  });
+
+  const total = data?.mentors.length ?? 0;
+  const [scores, reasons] = data?.mentors.reduce(([scores, reasons], m) => {
+    if (m.score) scores += 1;
+    if (m.reason) reasons += 1;
+    return [scores, reasons];
+  }, [0, 0]) ?? [0, 0];
+
+  return <MatchFeedbackStateCell
+    loading={data === undefined}
+    total={total}
+    scores={scores}
+    reasons={reasons}
+  />;
 }
 
 function getColorFromText(text: string): string {
@@ -397,31 +448,32 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
     .useQuery();
   const f = data?.find(d => d.userId === menteeId)?.finalizedAt;
   return <Td>
-    {f === undefined ?
+    {data === undefined ? "" : f === undefined ?
       <Text color={actionRequiredTextColor}>未选择</Text> : f === null ? 
       <Text color={warningTextColor}>草稿</Text> : 
       <Text color={okTextColor}>{prettifyDate(f)}完成</Text>}
   </Td>;
 }
 
-function MentorshipHeaderCells({ sortOrder, addSortOrder }: {
+function MentorshipHeaderCells({ sortOrder, addSortOrder, showMentorCoach }: {
   sortOrder: SortOrder,
-  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void
+  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void,
+  showMentorCoach: boolean,
 }) {
   return <>
     <Th>导师</Th>
-    <Th>资深导师</Th>
+    {showMentorCoach && <Th>资深导师</Th>}
     <SortableHeaderCell label="最近通话" sortOrderKey="transcript"
       sortOrder={sortOrder} addSortOrder={addSortOrder} />
   </>;
 }
 
-export function MentorshipCells({ mentee, addPinyin, showCoach, readonly,
+export function MentorshipCells({ mentee, addPinyin, showMentorCoach, readonly,
   setLastTranscriptDate
  } : {
   mentee: MinUser,
   addPinyin?: (names: string[]) => void,
-  showCoach?: boolean,
+  showMentorCoach?: boolean,
   readonly?: boolean,
   setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
@@ -436,19 +488,19 @@ export function MentorshipCells({ mentee, addPinyin, showCoach, readonly,
   data.sort((a, b) => a.id.localeCompare(b.id));
 
   return <LoadedMentorsCells mentee={mentee} mentorships={data}
-    addPinyin={addPinyin} refetch={refetch} showCoach={showCoach} 
+    addPinyin={addPinyin} refetch={refetch} showMentorCoach={showMentorCoach} 
     readonly={readonly} setLastTranscriptDate={setLastTranscriptDate} />;
 }
 
 function LoadedMentorsCells({
-  mentee, mentorships, addPinyin, refetch, showCoach, readonly,
+  mentee, mentorships, addPinyin, refetch, showMentorCoach, readonly,
   setLastTranscriptDate
 } : {
   mentee: MinUser,
   mentorships: Mentorship[],
   addPinyin?: (names: string[]) => void,
   refetch: () => void,
-  showCoach?: boolean,
+  showMentorCoach?: boolean,
   readonly?: boolean,
   setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
@@ -529,7 +581,7 @@ function LoadedMentorsCells({
     </Td>
 
     {/* 资深导师 */}
-    {showCoach && <Td><VStack align="start">
+    {showMentorCoach && <Td><VStack align="start">
       {coachesRes.map((c, idx) => <Text key={idx}>
         {c.data ? formatUserName(c.data.name) : "-"}
       </Text>)}

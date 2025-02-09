@@ -80,7 +80,39 @@ const updateLast = procedure
   });
 });
 
+const getLastMenteeMatchFeedback = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({ menteeId: z.string() }))
+  .output(zMenteeMatchFeedback.nullable())
+  .query(async ({ input: { menteeId } }) => 
+{
+  const f = await getLastMatchFeedback(menteeId);
+  return f && f.type == "Mentee" ? f : null;
+});
+
+const getLastMentorMatchFeedback = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({ mentorId: z.string() }))
+  .output(zMentorMatchFeedback.nullable())
+  .query(async ({ input: { mentorId } }) => 
+{
+  const f = await getLastMatchFeedback(mentorId);
+  return f && f.type == "Mentor" ? f : null;
+});
+
+async function getLastMatchFeedback(userId: string) {
+  const row = await db.MatchFeedback.findOne({
+    where: { userId },
+    order: [["createdAt", "DESC"]],
+    limit: 1,
+    attributes: ["feedback"],
+  });
+  return row?.feedback;
+}
+
 export default router({
   list,
   updateLast,
+  getLastMenteeMatchFeedback,
+  getLastMentorMatchFeedback,
 });

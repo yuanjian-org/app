@@ -123,8 +123,12 @@ function UserTable({ users, setUserBeingEdited, refetch }: {
   const me = useMe();
   const { update: updateSession } = useSession();
   const router = useRouter();
+  const utils = trpcNext.useContext();
 
   const startImpersonation = async (userId: string) => {
+    // Invalidate all queries before impersonation to ensure fresh data
+    await utils.invalidate();
+
     // If staying on the current page, permission denied error will pop up
     // as soon as the session is updated to a user without access to this page.
     await router.push("/");
