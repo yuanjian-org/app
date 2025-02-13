@@ -37,8 +37,9 @@ import { z } from "zod";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import { newTransactionalMentorshipEndsAt } from "shared/Mentorship";
-import { MatchSolution, zMatchSolution } from "shared/MatchSolution";
+import { CsvFormats, MatchSolution, zCsvFormats, zMatchSolution } from "shared/MatchSolution";
 import { MenteeMatchFeedback, MentorMatchFeedback } from "shared/MatchFeedback";
+import { getLastMatchFeedback } from "./matchFeedback";
 
 // Must be the same as BANNED_SCORE in tools/match.ipynb
 const bannedScore = -10;
@@ -61,10 +62,10 @@ const exportSpreadsheet = procedure
   const profiles = await listMenteeProfiles(mentees);
   const menteeFnDs = await listInterviewFeedbackAndDecisions(
     "MenteeInterview", mentees.map(m => m.id));
-  const mentors = (await listMentors()).filter(m => m.relational);
+  const mentors = await listEligibleMentors();
   const mentorFnDs = await listInterviewFeedbackAndDecisions(
     "MentorInterview", mentors.map(m => m.user.id));
-  const mentorCoacheIds = await listMentorCoacheIds();
+  const mentorCoachIds = await listMentorCoachIds();
 
   const data: SpreadsheetInputData = [];
   data.push(formatInstructionsWorksheet(mentees, batches));
@@ -78,7 +79,7 @@ const exportSpreadsheet = procedure
       menteeFnDs[mentee.id],
       mentors,
       mentorFnDs,
-      mentorCoacheIds,
+      mentorCoachIds,
     ));
   }
 
@@ -175,7 +176,7 @@ function formatMenteeWorksheet(
   menteeFnD: FeedbackAndDecision | null,
   mentors: ListMentorsOutput,
   mentorFnDs: Record<string, FeedbackAndDecision>,
-  mentorCoacheIds: string[]
+  mentorCoachIds: string[]
 )
 {
   invariant(!batch || batch.userId === mentee.id, "Mentor & batch mismatch");
@@ -259,7 +260,7 @@ function formatMenteeWorksheet(
       profile: id2mentor[s.mentor.id].profile,
       pref: id2mentor[s.mentor.id].traitsPreference,
       fnd: mentorFnDs[s.mentor.id],
-      isMentorCoach: mentorCoacheIds.includes(s.mentor.id),
+      isMentorCoach: mentorCoachIds.includes(s.mentor.id),
       order: s.order,
       reason: s.reason,
       // UI doesn't allow mentees to select hard mismatching mentors at all
@@ -276,7 +277,7 @@ function formatMenteeWorksheet(
       profile: m.profile,
       pref: m.traitsPreference,
       fnd: mentorFnDs[m.user.id],
-      isMentorCoach: mentorCoacheIds.includes(m.user.id),
+      isMentorCoach: mentorCoachIds.includes(m.user.id),
       order: null,
       reason: null,
       hardMismatch: !profile ? false : computeTraitsMatchingScore(
@@ -434,6 +435,10 @@ async function listEligibleMentees(): Promise<MinUser[]> {
   return all.filter(m => !relational.some(r => r.menteeId == m.id));
 }
 
+async function listEligibleMentors(): Promise<ListMentorsOutput> {
+  return (await listMentors()).filter(m => m.relational);
+}
+
 /**
  * @returns a map from userId to mentor selection batch.
  */
@@ -488,7 +493,7 @@ async function listMenteeProfiles(mentees: MinUser[]):
   }, {} as Record<string, UserProfile>);
 }
 
-async function listMentorCoacheIds(): Promise<string[]> {
+async function listMentorCoachIds(): Promise<string[]> {
   // Force type check
   const coachRole: Role = "MentorCoach";
   return (await db.User.findAll({
@@ -533,20 +538,10 @@ async function listInterviewFeedbackAndDecisions(
   }, {} as Record<string, FeedbackAndDecision>);
 }
 
-const zCsvFormats = z.object({
-  // The keys of the CSV file are user ids.
-  ids: z.string(),
-  // The keys of the CSV file are user names.
-  names: z.string(),
-});
-type CsvFormats = z.infer<typeof zCsvFormats>;
-
 /**
- * Generate input CSV files for tools/match.ipynb.
- * 
- * TODO: Add dummy mentors.
+ * Generate input CSVs for the initial match solver.
  */
-const generateCSVs = procedure
+const generateInitialSolverInput = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     documentId: z.string(),
@@ -555,15 +550,29 @@ const generateCSVs = procedure
     capacities: zCsvFormats,
     scores: zCsvFormats,
   }))
-  .mutation(async ({ input: { documentId } }) =>
-  {
-    return { 
-      capacities: await generateCapacitiesCSV(),
-      scores: await generateScoresCSV(documentId),
-    };
-  });
+  .query(async ({ input: { documentId } }) =>
+{
+  return { 
+    capacities: await generateMentorCapacitiesCSV(),
+    scores: await generateInitialScoresCSV(documentId),
+  };
+});
 
-async function generateCapacitiesCSV(): Promise<CsvFormats> {
+const generateFinalSolverInput = procedure
+  .use(authUser("MentorshipManager"))
+  .output(z.object({
+    capacities: zCsvFormats,
+    scores: zCsvFormats,
+  }))
+  .query(async () =>
+{
+  return { 
+    capacities: await generateMentorCapacitiesCSV(),
+    scores: await generateFinalScoresCSV(),
+  };
+});
+
+async function generateMentorCapacitiesCSV(): Promise<CsvFormats> {
   const ids: string[] = [];
   const names: string[] = [];
   (await listMentorStats()).forEach(m => {
@@ -590,7 +599,7 @@ function hyperlink2userId(hyperlink: string | undefined): string {
   return uuid;
 }
 
-async function generateScoresCSV(docId: string): Promise<CsvFormats> 
+async function generateInitialScoresCSV(docId: string): Promise<CsvFormats> 
 {
   const doc = await loadGoogleSpreadsheet(docId);
 
@@ -620,7 +629,16 @@ async function generateScoresCSV(docId: string): Promise<CsvFormats>
     mentee2map[menteeId] = mentor2score;
   }
 
-  // Sort mentors and mentees
+  return await formatScoresCSV(mentee2map);
+}
+
+/**
+ * @param mentee2map A two-level map of mentee-id => mentor-id => score
+ */
+async function formatScoresCSV(
+  mentee2map: Record<string, Record<string, number>>
+): Promise<CsvFormats> {
+  // Get a full set of mentors.
   const mentors = new Set<string>();
   for (const v of Object.values(mentee2map)) {
     Object.keys(v).forEach(mentors.add, mentors);
@@ -654,7 +672,85 @@ async function generateScoresCSV(docId: string): Promise<CsvFormats>
   };
 }
 
-const applySolution = procedure
+async function generateFinalScoresCSV(): Promise<CsvFormats> {
+  const mentees = await listEligibleMentees();
+  const mentors = await listEligibleMentors();
+
+  const mentee2feedback: Record<string, MenteeMatchFeedback> = {};
+  for (const m of mentees) {
+    const f = await getLastMatchFeedback(m.id, "Mentee");
+    if (f) {
+      invariant(f.type == "Mentee", "wtf");
+      mentee2feedback[m.id] = f;
+    }
+  }
+
+  const mentor2feedback: Record<string, MentorMatchFeedback> = {};
+  for (const m of mentors) {
+    const f = await getLastMatchFeedback(m.user.id, "Mentor");
+    if (f) {
+      invariant(f.type == "Mentor", "wtf");
+      mentor2feedback[m.user.id] = f;
+    }
+  }
+  // A two-level map of mentee-id => mentor-id => score
+  const mentee2map: Record<string, Record<string, number>> = {};
+  for (const mentee of mentees) {
+    const mentor2score: Record<string, number> = {};
+    for (const mentor of mentors) {
+      const score = computeFinalMatchScore(
+        mentee.id,
+        mentor.user.id,
+        mentee2feedback[mentee.id], 
+        mentor2feedback[mentor.user.id]);
+      mentor2score[mentor.user.id] = score;
+    }
+    mentee2map[mentee.id] = mentor2score;
+  }
+
+  return await formatScoresCSV(mentee2map);
+}
+
+function computeFinalMatchScore(
+  menteeId: string,
+  mentorId: string,
+  menteeFeedback: MenteeMatchFeedback | undefined,
+  mentorFeedback: MentorMatchFeedback | undefined
+): number {
+  let score = 0;
+  if (menteeFeedback) {
+    // Mentee score is between 1 and 5, as constraint by the UI
+    const menteeScore = menteeFeedback.mentors.find(m => m.id == mentorId)
+      ?.score ?? 0;
+    invariant(menteeScore >= 0 && menteeScore <= 5, "Invalid mentee score");
+    // Ban matching with least preferred menters
+    score = menteeScore == 1 ? bannedScore : score + menteeScore;
+  }
+  if (mentorFeedback) {
+    const mentorChoice = mentorFeedback.mentees.find(m => m.id == menteeId)
+      ?.choice ?? "Neutral";
+    /**
+     * Mentor preference overrides mentee preference. For example, if a mentee
+     * scores mentor A as 3 and mentor B as 5, and mentor A prefers the mentee
+     * while mentor B is neutral, then the overall score should lean towards
+     * mentor A.
+     * 
+     * The reason is that the earlier steps of the matching process rely mostly
+     * on the mentee's preference, and final score is the only chance to 
+     * consider the mentor's preference.
+     * 
+     * Additionally, if a mentor feels good about a mentee, it's likely that the
+     * feeling is mutual. So the chance that this algorithm leads to bad
+     * matches is low.
+     */
+    if (mentorChoice == "Prefer") score += 10;
+    else if (mentorChoice == "Avoid") score = bannedScore;
+  }
+  return score;
+}
+
+// Apply the output of the initial match solver to the database.
+const applyInitialSolverOutput = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     solution: z.string(),
@@ -793,6 +889,7 @@ async function createMatchFeedback(
 
 export default router({
   exportSpreadsheet,
-  generateCSVs,
-  applySolution,
+  generateInitialSolverInput,
+  applyInitialSolverOutput,
+  generateFinalSolverInput,
 });

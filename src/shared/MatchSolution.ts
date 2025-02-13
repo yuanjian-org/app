@@ -14,3 +14,11 @@ export const zMatchSolution = z.array(z.object({
   excludedPreferredMentors: z.array(zMinUser),
 }));
 export type MatchSolution = z.TypeOf<typeof zMatchSolution>;
+
+export const zCsvFormats = z.object({
+  // The keys of the CSV file are user ids.
+  ids: z.string(),
+  // The keys of the CSV file are user names.
+  names: z.string(),
+});
+export type CsvFormats = z.infer<typeof zCsvFormats>;
