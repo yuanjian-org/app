@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
-import { MatchFeedbackAndCreatedAt, MenteeMatchFeedback, MentorMatchFeedback, zMatchFeedback, zMatchFeedbackAndCreatedAt, zMenteeMatchFeedback, zMentorMatchFeedback } from "shared/MatchFeedback";
+import { MatchFeedback, MatchFeedbackAndCreatedAt, MenteeMatchFeedback, MentorMatchFeedback, zMatchFeedback, zMatchFeedbackAndCreatedAt, zMenteeMatchFeedback, zMentorMatchFeedback } from "shared/MatchFeedback";
 import { z } from "zod";
 import db from "api/database/db";
 import { minUserAttributes } from "api/database/models/attributesAndIncludes";
@@ -86,8 +86,8 @@ const getLastMenteeMatchFeedback = procedure
   .output(zMenteeMatchFeedback.nullable())
   .query(async ({ input: { menteeId } }) => 
 {
-  const f = await getLastMatchFeedback(menteeId);
-  return f && f.type == "Mentee" ? f : null;
+  return await getLastMatchFeedback(menteeId, "Mentee") as
+    MenteeMatchFeedback | null;
 });
 
 const getLastMentorMatchFeedback = procedure
@@ -96,18 +96,21 @@ const getLastMentorMatchFeedback = procedure
   .output(zMentorMatchFeedback.nullable())
   .query(async ({ input: { mentorId } }) => 
 {
-  const f = await getLastMatchFeedback(mentorId);
-  return f && f.type == "Mentor" ? f : null;
+  return await getLastMatchFeedback(mentorId, "Mentor") as
+    MentorMatchFeedback | null;
 });
 
-async function getLastMatchFeedback(userId: string) {
+export async function getLastMatchFeedback(
+  userId: string, type: "Mentee" | "Mentor"
+): Promise<MatchFeedback | null> {
   const row = await db.MatchFeedback.findOne({
     where: { userId },
     order: [["createdAt", "DESC"]],
     limit: 1,
     attributes: ["feedback"],
   });
-  return row?.feedback;
+  const f = row?.feedback;
+  return f && f.type == type ? zMatchFeedback.parse(f) : null;
 }
 
 export default router({
