@@ -29,7 +29,7 @@ export const zMentorMatchFeedback = z.object({
   mentees: z.array(z.object({
     id: z.string().uuid(),
     choice: zMentorMatchFeedbackChoice.optional(),
-    reason: z.string().nullish(),
+    reason: z.string().optional(),
 
     // For frontend display only
     user: zMinUser.optional(),

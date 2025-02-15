@@ -41,10 +41,20 @@ export default function Page() {
     scores: CsvFormats;
   }>();
 
-  const exportSpreadsheet = async () => {
+  const exportInitialSpreadsheet = async () => {
     setWorking(true);
     try {
-      await trpc.match.exportSpreadsheet.mutate({ documentId });
+      await trpc.match.exportInitialSpreadsheet.mutate({ documentId });
+      toast.success("导出成功");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const exportFinalSpreadsheet = async () => {
+    setWorking(true);
+    try {
+      await trpc.match.exportFinalSpreadsheet.mutate({ documentId });
       toast.success("导出成功");
     } finally {
       setWorking(false);
@@ -115,7 +125,7 @@ export default function Page() {
 
       <Button
         variant="brand"
-        onClick={exportSpreadsheet}
+        onClick={exportInitialSpreadsheet}
         isLoading={working}
         isDisabled={working || !documentId}
       >导出工作表</Button>
@@ -287,7 +297,14 @@ export default function Page() {
       <Text>
         把输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下
       </Text>
-      
+
+      <Button
+        variant="brand"
+        onClick={exportFinalSpreadsheet}
+        isLoading={working}
+        isDisabled={working || !documentId}
+      >导出工作表</Button>
+
       <StepHeading>J. 在工作表中对定配结果进行核对与手动微调</StepHeading>
 
       <StepHeading>K. 应用定配结果</StepHeading>
