@@ -1,7 +1,18 @@
+/**
+ * @fileoverview There are two stages of the matching process: 初配 and 定配.
+ * 
+ * All the functions starting with "initial" or "initialMatch" are for the 1st
+ * stage. All the functions starting with "final" or "finalMatch" are for the
+ * 2nd stage.
+ */
+
 import { procedure, router } from "../trpc";
 import db from "../database/db";
 import {
-  interviewFeedbackAttributes, mentorSelectionBatchAttributes, mentorSelectionBatchInclude, minUserAttributes
+  interviewFeedbackAttributes,
+  mentorSelectionBatchAttributes,
+  mentorSelectionBatchInclude,
+  minUserAttributes,
 } from "api/database/models/attributesAndIncludes";
 import { compareChinese, compareUUID, formatUserName } from "shared/strings";
 import { MenteeStatus } from "shared/MenteeStatus";
@@ -16,7 +27,11 @@ import {
   menteeExpectationField,
   menteeSourceField,
 } from "shared/applicationFields";
-import { createMentorship, updateMentorship, whereMentorshipIsOngoing } from "./mentorships";
+import {
+  createMentorship,
+  updateMentorship,
+  whereMentorshipIsOngoing
+} from "./mentorships";
 import { defaultMentorCapacity, MinUser } from "shared/User";
 import { loadGoogleSpreadsheet, SpreadsheetInputData } from "api/gsheets";
 import { updateGoogleSpreadsheet } from "api/gsheets";
@@ -31,14 +46,29 @@ import {
 import { InterviewType } from "shared/InterviewType";
 import { listMentors, ListMentorsOutput, listMentorStats } from "./users";
 import invariant from "shared/invariant";
-import { computeTraitsMatchingScore, hardMismatchScore, TraitsPreference } from "shared/Traits";
+import {
+  computeTraitsMatchingScore,
+  hardMismatchScore,
+  TraitsPreference
+} from "shared/Traits";
 import Role from "shared/Role";
 import { z } from "zod";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import { newTransactionalMentorshipEndsAt } from "shared/Mentorship";
-import { CsvFormats, MatchSolution, zCsvFormats, zMatchSolution } from "shared/MatchSolution";
-import { MenteeMatchFeedback, MentorMatchFeedback, MentorMatchFeedbackChoice } from "shared/MatchFeedback";
+import {
+  CsvFormats,
+  FinalMatchSolution,
+  InitialMatchSolution,
+  zCsvFormats,
+  zFinalMatchSolution,
+  zInitialMatchSolution
+} from "shared/match";
+import {
+  MenteeMatchFeedback,
+  MentorMatchFeedback,
+  MentorMatchFeedbackChoice
+} from "shared/MatchFeedback";
 import { getLastMatchFeedback } from "./matchFeedback";
 
 // Must be the same as BANNED_SCORE in tools/match.ipynb
@@ -134,6 +164,24 @@ function hyperlink(url: string, str: string) {
   return `=HYPERLINK("${url}", "${str}")`;
 }
 
+function menteeHyperlink(mentee: MinUser) {
+  return hyperlink(baseUrl + "/mentees/" + mentee.id, formatUserName(mentee.name));
+}
+
+function mentorHyperlink(mentor: MinUser) {
+  return hyperlink(baseUrl + "/users/" + mentor.id, formatUserName(mentor.name));
+}
+
+/**
+ * This function assumes that the links are in the form of ".../<uuid>"
+ */
+function hyperlink2userId(hyperlink: string | undefined): string {
+  invariant(hyperlink, "Hyperlink is undefined");
+  const uuid = hyperlink.split('/').pop();
+  invariant(uuid, "UUID is undefined");
+  return uuid;
+}
+
 function getInterviewData(
   dimensions: string[], 
   fnd: FeedbackAndDecision | null
@@ -201,7 +249,7 @@ function formatMenteeWorksheet(
     menteeInterviewDimensions, menteeFnD);
 
   const nameCell = { 
-    value: hyperlink(baseUrl + "/mentees/" + mentee.id, name),
+    value: menteeHyperlink(mentee),
     bold: true 
   };
 
@@ -370,9 +418,7 @@ function formatMentorRow(row: number, {
     // 匹配备注
     cell,
     // 姓名
-    hyperlink(
-      baseUrl + "/users/" + user.id,
-      formatUserName(user.name)),
+    mentorHyperlink(user),
     // 性别
     profile.性别,
     // 偏好文字
@@ -599,14 +645,6 @@ async function generateMentorCapacitiesCSV(): Promise<CsvFormats> {
   };
 }
 
-// It assumes the links are in the form of ".../<uuid>"
-function hyperlink2userId(hyperlink: string | undefined): string {
-  invariant(hyperlink, "Hyperlink is undefined");
-  const uuid = hyperlink.split('/').pop();
-  invariant(uuid, "UUID is undefined");
-  return uuid;
-}
-
 async function generateInitialScoresCSV(docId: string): Promise<CsvFormats> 
 {
   const doc = await loadGoogleSpreadsheet(docId);
@@ -805,19 +843,19 @@ async function generateFinalScoresCSV(): Promise<CsvFormats> {
 const applyInitialSolverOutput = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
-    solution: z.string(),
+    output: z.string(),
     dryrun: z.boolean(),
   }))
-  .output(zMatchSolution)
-  .mutation(async ({ input: { solution, dryrun } }) =>
+  .output(zInitialMatchSolution)
+  .mutation(async ({ input: { output, dryrun } }) =>
 {
   return await sequelize.transaction(async transaction => {
 
-    const id2ids = parseSolution(solution);
+    const id2ids = parseSolverOutput(output);
     const batches = await listMentorSelectionBatches(
       Object.keys(id2ids), transaction);
 
-    const ret: MatchSolution = [];
+    const ret: InitialMatchSolution = [];
     for (const [menteeId, mentorIds] of Object.entries(id2ids)) {
       const mentee = await db.User.findByPk(menteeId, {
         attributes: [...minUserAttributes, "menteeApplication"],
@@ -870,10 +908,12 @@ const applyInitialSolverOutput = procedure
 });
 
 /**
+ * @param output Output of the solver, each line of the output should be in the
+ * format of "mentee_id,mentor_id1,mentor_id2...".
  * @returns a map from mentee id to mentor ids.
  */
-function parseSolution(solution: string): Record<string, string[]> {
-  const lines = solution.split("\n");
+function parseSolverOutput(output: string): Record<string, string[]> {
+  const lines = output.split("\n");
   const result: Record<string, string[]> = {};
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -902,6 +942,24 @@ async function createTransactionalMentorships(
       } else {
         throw generalBadRequestError("一对一导师不能转换成不定期导师。" +
           "学生不应该选择曾经的一对一导师");
+      }
+    }
+  }
+}
+
+async function createRelationalMentorships(
+  mentorId2menteeIds: Record<string, string[]>, transaction: Transaction
+) {
+  for (const [mentorId, menteeIds] of Object.entries(mentorId2menteeIds)) {
+    for (const menteeId of menteeIds) {
+      const m = await db.Mentorship.findOne({
+        where: { mentorId, menteeId },
+        attributes: ["id"],
+      });
+      if (!m) {
+        await createMentorship(mentorId, menteeId, false, null, transaction);
+      } else {
+        await updateMentorship(m.id, false, null, transaction);
       }
     }
   }
@@ -945,14 +1003,18 @@ const exportFinalSpreadsheet = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     documentId: z.string(),
+    finalSolverOutput: z.string(),
   }))
-  .mutation(async ({ input: { documentId } }) =>
+  .mutation(async ({ input: { documentId, finalSolverOutput } }) =>
 {
   const doc = await loadGoogleSpreadsheet(documentId);
-  await updateGoogleSpreadsheet(doc, [await formatFinalMatchWorksheet()]);
+  await updateGoogleSpreadsheet(doc, [
+    await formatFinalMatchWorksheet(finalSolverOutput),
+  ]);
 });
 
-async function formatFinalMatchWorksheet() {
+async function formatFinalMatchWorksheet(finalSolverOutput: string) {
+  const menteeId2mentorIds = parseSolverOutput(finalSolverOutput);
   const sortedMentees = (await listEligibleMentees())
     .sort((a, b) => compareChinese(a.name, b.name));
   const sortedMentors = (await listEligibleMentors())
@@ -961,15 +1023,29 @@ async function formatFinalMatchWorksheet() {
   const mentorId2Capacity = await listMentorCapacities();
   const mentee2map = await generateMatchFeedbackAndScoreMap();
 
-  const cells: any[][] = [];
-  cells.push([null, ...sortedMentors.map(m => formatUserName(m.name))]);
-  cells.push(["容量", ...sortedMentors.map(m => mentorId2Capacity[m.id])]);
-  cells.push(["匹配"]);
-  cells.push(["剩余"]);
+  const rightCell = (v: any) => ({
+    value: v,
+    horizontalAlignment: "RIGHT",
+  });
 
-  for (const mentee of sortedMentees) {
+  const cells: any[][] = [];
+  cells.push([null, null, ...sortedMentors.map(m => rightCell(mentorHyperlink(m)))]);
+  cells.push(["容量", null, ...sortedMentors.map(m => rightCell(mentorId2Capacity[m.id]))]);
+  cells.push(["匹配", null, ...sortedMentors.map((m, i) => {
+    const col = sheetColumnLetter(i + 2);
+    return rightCell(`=COUNTIF(${col}5:${col}, "*M*")`);
+  })]);
+  cells.push(["剩余", null, ...sortedMentors.map((m, i) => {
+    const col = sheetColumnLetter(i + 2);
+    return rightCell(`=${col}2-${col}3`);
+  })]);
+
+  for (const [i, mentee] of sortedMentees.entries()) {
     const menteeName = formatUserName(mentee.name);
-    const row: any[] = [menteeName];
+    const row: any[] = [
+      menteeHyperlink(mentee),
+      rightCell(`=COUNTIF(C${i + 5}:ZZ${i + 5}, "*M*")`),
+    ];
     for (const mentor of sortedMentors) {
       const pair = mentee2map[mentee.id][mentor.id];
       const empty = !pair || (!pair.menteeScore && !pair.menteeReason &&
@@ -978,8 +1054,9 @@ async function formatFinalMatchWorksheet() {
         row.push(null);
       } else {
         const mentorName = formatUserName(mentor.name);
+        const matched = menteeId2mentorIds[mentee.id]?.includes(mentor.id);
         row.push({
-          value: pair.score,
+          ...rightCell(matched ? `${pair.score}M` : pair.score),
           note:
             `${menteeName}: ${pair.menteeScore ?? "-"}｜${pair.menteeReason ?? "-"}` +
             `\n\n` +
@@ -990,12 +1067,70 @@ async function formatFinalMatchWorksheet() {
     cells.push(row);
   }
 
-  return {
-    title: "【定配表】",
-    cells,
-  };
+  return { title: "【定配】", cells };
 }
 
+function sheetColumnLetter(index: number): string {
+  if (index < 26) return String.fromCharCode(65 + index);
+  const firstChar = String.fromCharCode(65 + Math.floor(index / 26) - 1);
+  const secondChar = String.fromCharCode(65 + (index % 26));
+  return firstChar + secondChar;
+}
+
+const applyFinalSolution = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    documentId: z.string(),
+    dryrun: z.boolean(),
+  }))
+  .output(zFinalMatchSolution)
+  .mutation(async ({ input: { documentId, dryrun } }) =>
+{
+  const doc = await loadGoogleSpreadsheet(documentId);
+  const sheet = doc.sheetsByTitle["【定配】"];
+  if (!sheet) throw generalBadRequestError("工作表【定配】不存在");
+  await sheet.loadCells();
+
+  const ret: FinalMatchSolution = [];
+
+  await sequelize.transaction(async transaction => {
+    for (let r = 4; r < sheet.rowCount; r++) {
+      for (let c = 2; c < sheet.columnCount; c++) {
+        const cell = sheet.getCell(r, c);
+        if (cell.value?.toString().endsWith("M")) {
+          const mentorId = hyperlink2userId(sheet.getCell(0, c).hyperlink);
+          const menteeId = hyperlink2userId(sheet.getCell(r, 0).hyperlink);
+          let entry = ret.find(e => e.mentor.id == mentorId);
+          if (!entry) {
+            const mentor = await db.User.findByPk(mentorId, {
+              attributes: minUserAttributes,
+              transaction,
+            });
+            if (!mentor) throw notFoundError("导师", mentorId);
+            entry = { mentor, mentees: [] };
+            ret.push(entry);
+          }
+          const mentee = await db.User.findByPk(menteeId, {
+            attributes: minUserAttributes,
+            transaction,
+          });
+          if (!mentee) throw notFoundError("学生", menteeId);
+          entry.mentees.push(mentee);
+        }
+      }
+    }
+
+    if (!dryrun) {
+      const id2ids: Record<string, string[]> = {};
+      for (const { mentor, mentees } of ret) {
+        id2ids[mentor.id] = mentees.map(m => m.id);
+      }
+      await createRelationalMentorships(id2ids, transaction);
+    }
+  });
+
+  return ret;
+});
 
 export default router({
   exportInitialSpreadsheet,
@@ -1003,4 +1138,5 @@ export default router({
   applyInitialSolverOutput,
   generateFinalSolverInput,
   exportFinalSpreadsheet,
+  applyFinalSolution,
 });

@@ -21,7 +21,11 @@ import {
 import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { MatchSolution, CsvFormats } from 'shared/MatchSolution';
+import {
+  InitialMatchSolution,
+  FinalMatchSolution,
+  CsvFormats
+} from 'shared/match';
 import { compareChinese, formatUserName } from 'shared/strings';
 import { sectionSpacing } from 'theme/metrics';
 import trpc from 'trpc';
@@ -29,32 +33,25 @@ import trpc from 'trpc';
 export default function Page() {
   const [working, setWorking] = useState(false);
   const [documentId, setDocumentId] = useState('');
-  const [rawSolution, setRawSolution] = useState<string>('');
-  const [appliedSolution, setAppliedSolution] = useState<MatchSolution>();
 
   const [initialSolverInput, setInitialSolverInput] = useState<{
     capacities: CsvFormats;
     scores: CsvFormats;
   }>();
+  const [initialSolverOutput, setInitialSolverOutput] = useState<string>('');
+  const [initialSolution, setInitialSolution] = useState<InitialMatchSolution>();
+
   const [finalSolverInput, setFinalSolverInput] = useState<{
     capacities: CsvFormats;
     scores: CsvFormats;
   }>();
+  const [finalSolverOutput, setFinalSolverOutput] = useState<string>('');
+  const [finalSolution, setFinalSolution] = useState<FinalMatchSolution>();
 
   const exportInitialSpreadsheet = async () => {
     setWorking(true);
     try {
       await trpc.match.exportInitialSpreadsheet.mutate({ documentId });
-      toast.success("导出成功");
-    } finally {
-      setWorking(false);
-    }
-  };
-
-  const exportFinalSpreadsheet = async () => {
-    setWorking(true);
-    try {
-      await trpc.match.exportFinalSpreadsheet.mutate({ documentId });
       toast.success("导出成功");
     } finally {
       setWorking(false);
@@ -71,6 +68,19 @@ export default function Page() {
     }
   };
 
+  const applyInitialSolverOutput = async (dryrun: boolean) => {
+    setWorking(true);
+    try {
+      const ret = await trpc.match.applyInitialSolverOutput.mutate({
+        output: initialSolverOutput,
+        dryrun,
+      });
+      setInitialSolution(ret);
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const generateFinalSolverInput = async () => {
     setWorking(true);
     try {
@@ -80,14 +90,28 @@ export default function Page() {
     }
   };
 
-  const applyInitialSolverOutput = async (dryrun: boolean) => {
+  const exportFinalSpreadsheet = async () => {
     setWorking(true);
     try {
-      const ret = await trpc.match.applyInitialSolverOutput.mutate({
-        solution: rawSolution,
+      await trpc.match.exportFinalSpreadsheet.mutate({
+        documentId,
+        finalSolverOutput,
+      });
+      toast.success("导出成功");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const applyFinalSolution = async (dryrun: boolean) => {
+    setWorking(true);
+    try {
+      const ret = await trpc.match.applyFinalSolution.mutate({
+        documentId,
         dryrun,
       });
-      setAppliedSolution(ret);
+      setFinalSolution(ret.sort((a, b) =>
+        compareChinese(a.mentor.name, b.mentor.name)));
     } finally {
       setWorking(false);
     }
@@ -177,23 +201,23 @@ export default function Page() {
       <StepHeading>E. 核对初配结果</StepHeading>
 
       <Text>
-        把输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下
+        把上一步输出中 ”Mentee,Mentor...  (machine friendly)“ 一节的内容拷贝如下：
       </Text>
 
       <Textarea
         placeholder="输入算法输出"
-        value={rawSolution}
-        onChange={(e) => setRawSolution(e.target.value)}
+        value={initialSolverOutput}
+        onChange={(e) => setInitialSolverOutput(e.target.value)}
       />
 
       <Button
         variant="brand"
         onClick={() => applyInitialSolverOutput(true)}
         isLoading={working}
-        isDisabled={working || !rawSolution}
-      >打印匹配结果</Button>
+        isDisabled={working || !initialSolverOutput}
+      >打印初配结果</Button>
 
-      {appliedSolution && (
+      {initialSolution && (
         <TableContainer>
           <Table>
             <Thead>
@@ -207,7 +231,7 @@ export default function Page() {
               </Tr>
             </Thead>
             <Tbody>
-              {appliedSolution
+              {initialSolution
               .sort((a, b) => {
                 const comp = compareChinese(a.pointOfContact?.name ?? "",
                   b.pointOfContact?.name ?? "");
@@ -255,7 +279,7 @@ export default function Page() {
         colorScheme="red"
         onClick={() => applyInitialSolverOutput(false)}
         isLoading={working}
-        isDisabled={working || !rawSolution || !appliedSolution}
+        isDisabled={working || !initialSolverOutput || !initialSolution}
       >应用初配结果</Button>
 
       <StepHeading>师生初次沟通</StepHeading>
@@ -295,19 +319,75 @@ export default function Page() {
       <StepHeading>I. 把定配结果导出到工作表</StepHeading>
 
       <Text>
-        把输出数据中格式为 ”mentee,mentor1,mentor2...“ 的部分拷贝如下
+        把上一步输出中 ”Mentee,Mentor...  (machine friendly)“ 一节的内容拷贝如下：
       </Text>
+
+      <Textarea
+        placeholder="输入算法输出"
+        value={finalSolverOutput}
+        onChange={(e) => setFinalSolverOutput(e.target.value)}
+      />
 
       <Button
         variant="brand"
         onClick={exportFinalSpreadsheet}
         isLoading={working}
-        isDisabled={working || !documentId}
+        isDisabled={working || !documentId || !finalSolverOutput}
       >导出工作表</Button>
 
-      <StepHeading>J. 在工作表中对定配结果进行核对与手动微调</StepHeading>
+      <StepHeading>J. 核对工作表中【定配】页的数据并手动微调</StepHeading>
 
-      <StepHeading>K. 应用定配结果</StepHeading>
+      <StepHeading>K. 核对定配结果</StepHeading>
+      
+      <Button
+        variant="brand"
+        onClick={() => applyFinalSolution(true)}
+        isLoading={working}
+        isDisabled={working || !documentId}
+      >打印定配结果</Button>
+
+      {finalSolution && <>
+        <Text>
+          将以下导师列表拷贝到发给导师群的消息模板：
+        </Text>
+        
+        <Text>
+          {finalSolution.map(({ mentor }) => formatUserName(mentor.name))
+            .join("、")}
+        </Text>
+
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>导师</Th>
+                <Th>学生</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {finalSolution.map(({ mentor, mentees }) => (
+                <Tr key={mentor.id}>
+                  <Td>{formatUserName(mentor.name)}</Td>
+                  <Td>{mentees.map(m => formatUserName(m.name)).join(", ")}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </>}
+
+      <StepHeading>L. 应用定配结果</StepHeading>
+
+      <Text>
+        系统会自动创建或更新相应的一对一导师关系。
+      </Text>
+
+      <Button
+        colorScheme="red"
+        onClick={() => applyFinalSolution(false)}
+        isLoading={working}
+        isDisabled={working || !finalSolution}
+      >应用定配结果</Button>
 
     </VStack>
   </>;
