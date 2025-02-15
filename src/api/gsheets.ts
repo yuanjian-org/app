@@ -56,8 +56,7 @@ export async function updateGoogleSpreadsheet(
   for (const worksheet of data) {
     const title = worksheet.title;
     console.log("Updating worksheet", title);
-    const sheet = doc.sheetsByTitle[title] ??
-      await doc.addSheet({ title });
+    const sheet = doc.sheetsByTitle[title] ?? await doc.addSheet({ title });
     await updateCells(sheet, worksheet.cells);
     await sheet.saveUpdatedCells();
     // Pause to avoid rate limiting. Default write quota is 300 per min.

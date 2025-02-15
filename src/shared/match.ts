@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
 
-export const zMatchSolution = z.array(z.object({
+export const zInitialMatchSolution = z.array(z.object({
   mentee: zMinUser,
   pointOfContact: zMinUser.nullable(),
   // 机构来源
@@ -13,7 +13,13 @@ export const zMatchSolution = z.array(z.object({
   // Mentors not in the solution that the mentee preferred
   excludedPreferredMentors: z.array(zMinUser),
 }));
-export type MatchSolution = z.TypeOf<typeof zMatchSolution>;
+export type InitialMatchSolution = z.TypeOf<typeof zInitialMatchSolution>;
+
+export const zFinalMatchSolution = z.array(z.object({
+  mentor: zMinUser,
+  mentees: z.array(zMinUser),
+}));
+export type FinalMatchSolution = z.TypeOf<typeof zFinalMatchSolution>;
 
 export const zCsvFormats = z.object({
   // The keys of the CSV file are user ids.
