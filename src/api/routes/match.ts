@@ -38,7 +38,7 @@ import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import { newTransactionalMentorshipEndsAt } from "shared/Mentorship";
 import { CsvFormats, MatchSolution, zCsvFormats, zMatchSolution } from "shared/MatchSolution";
-import { MenteeMatchFeedback, MentorMatchFeedback } from "shared/MatchFeedback";
+import { MenteeMatchFeedback, MentorMatchFeedback, MentorMatchFeedbackChoice } from "shared/MatchFeedback";
 import { getLastMatchFeedback } from "./matchFeedback";
 
 // Must be the same as BANNED_SCORE in tools/match.ipynb
@@ -48,7 +48,8 @@ const bannedScore = -10;
 // Spreadsheet export on a dev server.
 const baseUrl = "https://mentors.org.cn";
 
-const exportSpreadsheet = procedure
+// Export spreadsheet for initial match
+const exportInitialSpreadsheet = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
     documentId: z.string(),
@@ -572,15 +573,22 @@ const generateFinalSolverInput = procedure
   };
 });
 
+async function listMentorCapacities(): Promise<Record<string, number>> {
+  const stats = await listMentorStats();
+  return stats.reduce((acc, m) => {
+    acc[m.user.id] = Math.max(0,
+      (m.preference.最多匹配学生 ?? defaultMentorCapacity) - m.mentorships);
+    return acc;
+  }, {} as Record<string, number>);
+}
+
 async function generateMentorCapacitiesCSV(): Promise<CsvFormats> {
   const ids: string[] = [];
   const names: string[] = [];
-  (await listMentorStats()).forEach(m => {
-    const cap = Math.max(0, 
-      (m.preference.最多匹配学生 ?? defaultMentorCapacity) - m.mentorships);
-    ids.push(`${m.user.id},${cap}`);
-    names.push(`${formatUserName(m.user.name)},${cap}`);
-  });
+  for (const [id, cap] of Object.entries(await listMentorCapacities())) {
+    ids.push(`${id},${cap}`);
+    names.push(`${formatUserName(await getUserName(id))},${cap}`);
+  }
 
   // Must match the format in tools/match.ipynb
   const header = "导师,学生容量";
@@ -632,6 +640,12 @@ async function generateInitialScoresCSV(docId: string): Promise<CsvFormats>
   return await formatScoresCSV(mentee2map);
 }
 
+async function getUserName(id: string): Promise<string | null> {
+  const u = await db.User.findByPk(id, { attributes: ["name"] });
+  invariant(u, "User not found");
+  return u.name;
+}
+
 /**
  * @param mentee2map A two-level map of mentee-id => mentor-id => score
  */
@@ -650,20 +664,17 @@ async function formatScoresCSV(
   const idHeader: string[] = ["学生"];
   const nameHeader: string[] = ["学生"];
   for (const mentorId of sortedMentors) {
-    const u = await db.User.findByPk(mentorId, { attributes: ["name"] });
-    invariant(u, "Mentor not found");
     idHeader.push(mentorId);
-    nameHeader.push(formatUserName(u.name));
+    nameHeader.push(formatUserName(await getUserName(mentorId)));
   }
 
   const idRows: string[] = [];
   const nameRows: string[] = [];
   for (const menteeId of sortedMentees) {
-    const u = await db.User.findByPk(menteeId, { attributes: ["name"] });
-    invariant(u, "Mentee not found");
+    const name = await getUserName(menteeId);
     const scores = sortedMentors.map(m => mentee2map[menteeId][m] ?? 0);
     idRows.push([menteeId, ...scores].join(","));
-    nameRows.push([formatUserName(u.name), ...scores].join(","));
+    nameRows.push([formatUserName(name), ...scores].join(","));
   }
 
   return {
@@ -672,7 +683,20 @@ async function formatScoresCSV(
   };
 }
 
-async function generateFinalScoresCSV(): Promise<CsvFormats> {
+type PerPairFeedbackAndScore = {
+  menteeScore: number | undefined;
+  menteeReason: string | undefined;
+  mentorChoice: MentorMatchFeedbackChoice | undefined;
+  mentorReason: string | undefined;
+  score: number;
+}
+
+/**
+ * @returns a map from mentee-id => mentor-id => PerPairFeedbackAndScore
+ */
+async function generateMatchFeedbackAndScoreMap(): 
+  Promise<Record<string, Record<string, PerPairFeedbackAndScore>>> 
+{
   const mentees = await listEligibleMentees();
   const mentors = await listEligibleMentors();
 
@@ -693,22 +717,21 @@ async function generateFinalScoresCSV(): Promise<CsvFormats> {
       mentor2feedback[m.user.id] = f;
     }
   }
-  // A two-level map of mentee-id => mentor-id => score
-  const mentee2map: Record<string, Record<string, number>> = {};
+  const ret: Record<string, Record<string, PerPairFeedbackAndScore>> = {};
   for (const mentee of mentees) {
-    const mentor2score: Record<string, number> = {};
+    const mentor2fns: Record<string, PerPairFeedbackAndScore> = {};
     for (const mentor of mentors) {
-      const score = computeFinalMatchScore(
+      const pair = computeFinalMatchScore(
         mentee.id,
         mentor.user.id,
         mentee2feedback[mentee.id], 
         mentor2feedback[mentor.user.id]);
-      mentor2score[mentor.user.id] = score;
+      if (pair) mentor2fns[mentor.user.id] = pair;
     }
-    mentee2map[mentee.id] = mentor2score;
+    ret[mentee.id] = mentor2fns;
   }
 
-  return await formatScoresCSV(mentee2map);
+  return ret;
 }
 
 function computeFinalMatchScore(
@@ -716,19 +739,33 @@ function computeFinalMatchScore(
   mentorId: string,
   menteeFeedback: MenteeMatchFeedback | undefined,
   mentorFeedback: MentorMatchFeedback | undefined
-): number {
-  let score = 0;
+): PerPairFeedbackAndScore | null {
+
+  const r: PerPairFeedbackAndScore = {
+    menteeScore: undefined,
+    menteeReason: undefined,
+    mentorChoice: undefined,
+    mentorReason: undefined,
+    score: 0,
+  };
+
   if (menteeFeedback) {
+    const entry = menteeFeedback.mentors.find(m => m.id == mentorId);
+    r.menteeReason = entry?.reason;
     // Mentee score is between 1 and 5, as constraint by the UI
-    const menteeScore = menteeFeedback.mentors.find(m => m.id == mentorId)
-      ?.score ?? 0;
-    invariant(menteeScore >= 0 && menteeScore <= 5, "Invalid mentee score");
+    r.menteeScore = entry?.score;
+
+    const score = r.menteeScore ?? 0;
+    invariant(score >= 0 && score <= 5, "Invalid mentee score");
     // Ban matching with least preferred menters
-    score = menteeScore == 1 ? bannedScore : score + menteeScore;
+    r.score = score == 1 ? bannedScore : r.score + score;
   }
+
   if (mentorFeedback) {
-    const mentorChoice = mentorFeedback.mentees.find(m => m.id == menteeId)
-      ?.choice ?? "Neutral";
+    const entry = mentorFeedback.mentees.find(m => m.id == menteeId);
+    r.mentorChoice = entry?.choice;
+    r.mentorReason = entry?.reason;
+
     /**
      * Mentor preference overrides mentee preference. For example, if a mentee
      * scores mentor A as 3 and mentor B as 5, and mentor A prefers the mentee
@@ -743,10 +780,25 @@ function computeFinalMatchScore(
      * feeling is mutual. So the chance that this algorithm leads to bad
      * matches is low.
      */
-    if (mentorChoice == "Prefer") score += 10;
-    else if (mentorChoice == "Avoid") score = bannedScore;
+    if (r.mentorChoice == "Prefer") r.score += 10;
+    else if (r.mentorChoice == "Avoid") r.score = bannedScore;
   }
-  return score;
+
+  return r;
+}
+
+async function generateFinalScoresCSV(): Promise<CsvFormats> {
+  const mentee2map = await generateMatchFeedbackAndScoreMap();
+
+  const mentee2ScoreMap: Record<string, Record<string, number>> = {};
+  for (const [menteeId, mentor2fns] of Object.entries(mentee2map)) {
+    const mentor2score: Record<string, number> = {};
+    for (const [mentorId, pair] of Object.entries(mentor2fns)) {
+      mentor2score[mentorId] = pair.score;
+    }
+    mentee2ScoreMap[menteeId] = mentor2score;
+  }
+  return await formatScoresCSV(mentee2ScoreMap);
 }
 
 // Apply the output of the initial match solver to the database.
@@ -887,9 +939,68 @@ async function createMatchFeedback(
   }
 }
 
+
+// Export spreadsheet for final match
+const exportFinalSpreadsheet = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({
+    documentId: z.string(),
+  }))
+  .mutation(async ({ input: { documentId } }) =>
+{
+  const doc = await loadGoogleSpreadsheet(documentId);
+  await updateGoogleSpreadsheet(doc, [await formatFinalMatchWorksheet()]);
+});
+
+async function formatFinalMatchWorksheet() {
+  const sortedMentees = (await listEligibleMentees())
+    .sort((a, b) => compareChinese(a.name, b.name));
+  const sortedMentors = (await listEligibleMentors())
+    .sort((a, b) => compareChinese(a.user.name, b.user.name))
+    .map(m => m.user);
+  const mentorId2Capacity = await listMentorCapacities();
+  const mentee2map = await generateMatchFeedbackAndScoreMap();
+
+  const cells: any[][] = [];
+  cells.push([null, ...sortedMentors.map(m => formatUserName(m.name))]);
+  cells.push(["容量", ...sortedMentors.map(m => mentorId2Capacity[m.id])]);
+  cells.push(["匹配"]);
+  cells.push(["剩余"]);
+
+  for (const mentee of sortedMentees) {
+    const menteeName = formatUserName(mentee.name);
+    const row: any[] = [menteeName];
+    for (const mentor of sortedMentors) {
+      const pair = mentee2map[mentee.id][mentor.id];
+      const empty = !pair || (!pair.menteeScore && !pair.menteeReason &&
+        !pair.mentorChoice && !pair.mentorReason && !pair.score);
+      if (empty) {
+        row.push(null);
+      } else {
+        const mentorName = formatUserName(mentor.name);
+        row.push({
+          value: pair.score,
+          note:
+            `${menteeName}: ${pair.menteeScore ?? "-"}｜${pair.menteeReason ?? "-"}` +
+            `\n\n` +
+            `${mentorName}: ${pair.mentorChoice ?? "-"}｜${pair.mentorReason ?? "-"}`,
+        });
+      }
+    }
+    cells.push(row);
+  }
+
+  return {
+    title: "【定配表】",
+    cells,
+  };
+}
+
+
 export default router({
-  exportSpreadsheet,
+  exportInitialSpreadsheet,
   generateInitialSolverInput,
   applyInitialSolverOutput,
   generateFinalSolverInput,
+  exportFinalSpreadsheet,
 });
