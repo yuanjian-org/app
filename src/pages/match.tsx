@@ -16,7 +16,8 @@ import {
   Td,
   Link,
   AlertIcon,
-  Alert, AlertDescription
+  Alert, AlertDescription,
+  UnorderedList
 } from '@chakra-ui/react';
 import { SmallGrayText } from 'components/SmallGrayText';
 import { useState } from 'react';
@@ -336,6 +337,26 @@ export default function Page() {
       >导出工作表</Button>
 
       <StepHeading>J. 核对工作表中【定配】页的数据并手动微调</StepHeading>
+
+      <Text>
+        单元格中的数字是匹配分数，数字越大，匹配度越高。计算方法如下，具体设计依据请参见
+        <code>computeFinalMatchScore</code>函数的注释。
+      </Text>
+      <UnorderedList>
+        <ListItem>
+          如果导师选择 “希望避免” 或者学生选择 1，则设分数为 -10 并停止计算。
+        </ListItem>
+        <ListItem>
+          设分数为学生选择的数值，范围是2到5。          
+        </ListItem>
+        <ListItem>
+          如果导师选择 “特别喜欢”，则加 10 分。
+        </ListItem>
+      </UnorderedList>
+
+      <Text>
+        单元格中的 “M” 是机器自动求解的结果。如需手动微调，请用 “m” 表示匹配，并删除 “M”。
+      </Text>
 
       <StepHeading>K. 核对定配结果</StepHeading>
       
