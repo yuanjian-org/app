@@ -16,18 +16,27 @@ export async function migrateDatabase() {
   migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
   await migrateData();
-  await cleanupLogs();
+  await purgeOldData();
 }
 
-async function cleanupLogs() {
-  console.log("Clean up old logs...");
+async function purgeOldData() {
+  console.log("Purge old data...");
   await sequelize.query(`
     DELETE FROM "EventLogs"
-    WHERE "createdAt" < NOW() - INTERVAL '1 year';
+    WHERE "updatedAt" < NOW() - INTERVAL '1 year';
   `);
+
   await sequelize.query(`
     DELETE FROM "InterviewFeedbackUpdateAttempts"
-    WHERE "createdAt" < NOW() - INTERVAL '30 days';
+    WHERE "updatedAt" < NOW() - INTERVAL '30 days';
+  `);
+
+  // MeetingHistories table is used to retrieve meeting summaries from Tencent
+  // Meeting API. Tencent retains meeting records only for 30 days. Keep the
+  // history here a bit longer for debugging purposes.
+  await sequelize.query(`
+    DELETE FROM "MeetingHistories"
+    WHERE "updatedAt" < NOW() - INTERVAL '60 days';
   `);
 }
 

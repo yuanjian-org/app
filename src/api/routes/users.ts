@@ -83,6 +83,7 @@ export async function createUser(
 
   const f = {
     ...input,
+    ...{ email: input.email.toLowerCase() },
     pinyin: toPinyin(input.name ?? ""),
     ...await checkAndPopulateUrl(input.name, input.roles, null, input.url,
       transaction),

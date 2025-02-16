@@ -26,8 +26,8 @@ class MeetingSlot extends Model {
   meetingLink: string;
 
   // Null when the meeting slot is available to use. Otherwise it's in use by
-  // the specified roup.
-  // TODO: Why didn't migration script add the foreign key constraint to SQL?
+  // the specified group.
+  // TODO: Why didn't migration code add the foreign key constraint to SQL?
   @Unique
   @Column(UUID)
   @ForeignKey(() => Group)
