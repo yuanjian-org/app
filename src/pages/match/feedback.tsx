@@ -114,9 +114,9 @@ function FeedbackCard({ editable, children }: {
 
         {editable && !data && <Loader />}
 
-        {editable && data && ended && endedAt && <>
+        {editable && data && ended && <>
           <Text>
-            ⚠️ 初次交流反馈表已于 {endedAt}关闭。
+            ⚠️ 初次交流反馈表已于{' '}{endedAt}关闭。
           </Text>
         </>}
 
