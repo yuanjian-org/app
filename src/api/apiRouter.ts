@@ -21,6 +21,7 @@ import kudos from './routes/kudos';
 import mentorSelections from './routes/mentorSelections';
 import tasks from './routes/tasks';
 import matchFeedback from './routes/matchFeedback';
+import globalConfigs from './routes/globalConfigs';
 
 export const apiRouter = router({
   users,
@@ -45,6 +46,7 @@ export const apiRouter = router({
   mentorSelections,
   tasks,
   matchFeedback,
+  globalConfigs,
 });
 
 export type ApiRouter = typeof apiRouter;

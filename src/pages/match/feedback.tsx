@@ -27,7 +27,7 @@ import {
   zMenteeMatchFeedback,
   zMentorMatchFeedback
 } from "shared/MatchFeedback";
-import { compareDate } from "shared/strings";
+import { compareDate, prettifyDate } from "shared/strings";
 import { sectionSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import invariant from "shared/invariant";
@@ -36,6 +36,8 @@ import { UserLink } from "components/UserChip";
 import { SmallGrayText } from "components/SmallGrayText";
 import { ReactNode, useEffect, useState } from "react";
 import Autosaver from "components/Autosaver";
+import moment from "moment";
+import { actionRequiredTextColor } from "theme/colors";
 
 const title = "初次交流反馈";
 
@@ -98,14 +100,42 @@ function FeedbackCard({ editable, children }: {
   editable: boolean, 
   children: ReactNode
 }) {
+  const { data } = trpcNext.globalConfigs.get.useQuery();
+
+  const ended = data?.matchFeedbackEndsAt && 
+    moment(data.matchFeedbackEndsAt).isBefore(moment());
+  const endedAt = data?.matchFeedbackEndsAt &&
+    prettifyDate(data.matchFeedbackEndsAt);
+
   return <ResponsiveCard w="full">
     <CardBody>
       <VStack align="start" spacing={sectionSpacing} w="full">
-        {editable && <Text>
-          建议在每次交流后的第一时间内记录你的感受。反馈信息可以反复修改和补充。
-        </Text>}
-        {children}
-        {editable && <SmallGrayText>系统会自动保存填写的信息。</SmallGrayText>}
+        {!editable && children}
+
+        {editable && !data && <Loader />}
+
+        {editable && data && ended && endedAt && <>
+          <Text>
+            ⚠️ 初次交流反馈表已于 {endedAt}关闭。
+          </Text>
+        </>}
+
+        {editable && data && !ended && <>
+          <Text>
+            {endedAt && <>
+              ⚠️ 反馈表将于{' '}
+              <Text color={actionRequiredTextColor} fontWeight="bold" as="span">
+                {endedAt}
+              </Text>
+              {' '}自动关闭，请务必在此前完成反馈。
+            </>}
+            建议在每次交流后第一时间内记录感受。反馈信息可以反复修改和补充。
+          </Text>
+          
+          {children}
+
+          <SmallGrayText>系统会自动保存填写的信息。</SmallGrayText>
+        </>}
       </VStack>
     </CardBody>
   </ResponsiveCard>;
