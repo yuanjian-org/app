@@ -40,7 +40,6 @@ export default function Page() {
         <Input
           defaultValue={data?.matchFeedbackEndsAt}
           onChange={(e) => setMatchFeedbackEndsAt(e.target.value)}
-          placeholder="2022-02-02T01:01:01+08:00"
         />
       </FormControl>
 
