@@ -9,20 +9,21 @@ import moment from 'moment-timezone';
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
-  const [matchFeedbackEndsAt, setMatchFeedbackEndsAt] = useState<DateColumn>();
+  const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
+    useState<DateColumn>();
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if (!moment(matchFeedbackEndsAt).isValid()) {
-      toast.error('初次交流反馈表结束时间格式错误');
+    if (!moment(matchFeedbackEditableUntil).isValid()) {
+      toast.error('初次交流反馈表截止时间格式错误');
       return;
     }
 
     setSaving(true);
     try {
       await trpc.globalConfigs.update.mutate({ 
-        ...matchFeedbackEndsAt && {
-          matchFeedbackEndsAt,
+        ...matchFeedbackEditableUntil && {
+          matchFeedbackEditableUntil,
         },
       });
       toast.success('保存成功');
@@ -36,10 +37,10 @@ export default function Page() {
       <PageBreadcrumb current="全局配置" />
 
       <FormControl>
-        <FormLabel>初次交流反馈表结束时间, 格式: 2022-02-02T01:01:01+08:00</FormLabel>
+        <FormLabel>初次交流反馈表截止时间，格式: 2022-02-02T01:01:01+08:00</FormLabel>
         <Input
-          defaultValue={data?.matchFeedbackEndsAt}
-          onChange={(e) => setMatchFeedbackEndsAt(e.target.value)}
+          defaultValue={data?.matchFeedbackEditableUntil}
+          onChange={(e) => setMatchFeedbackEditableUntil(e.target.value)}
         />
       </FormControl>
 
