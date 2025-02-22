@@ -1056,7 +1056,7 @@ async function formatFinalMatchWorksheet(finalSolverOutput: string) {
         const mentorName = formatUserName(mentor.name);
         const matched = menteeId2mentorIds[mentee.id]?.includes(mentor.id);
         row.push({
-          ...rightCell(matched ? `${pair.score}M` : pair.score),
+          ...rightCell(matched ? `${pair.score}m` : pair.score),
           note:
             `${menteeName}: ${pair.menteeScore ?? "-"}｜${pair.menteeReason ?? "-"}` +
             `\n\n` +
@@ -1097,7 +1097,7 @@ const applyFinalSolution = procedure
     for (let r = 4; r < sheet.rowCount; r++) {
       for (let c = 2; c < sheet.columnCount; c++) {
         const cell = sheet.getCell(r, c);
-        if (cell.value?.toString().endsWith("M")) {
+        if (cell.value?.toString().toLowerCase().endsWith("m")) {
           const mentorId = hyperlink2userId(sheet.getCell(0, c).hyperlink);
           const menteeId = hyperlink2userId(sheet.getCell(r, 0).hyperlink);
           let entry = ret.find(e => e.mentor.id == mentorId);

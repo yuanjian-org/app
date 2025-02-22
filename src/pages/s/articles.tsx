@@ -1,4 +1,4 @@
-import { 
+import {
   UnorderedList, VStack, ListItem, Link, HStack, Text,
 } from '@chakra-ui/react';
 import PageBreadcrumb from 'components/PageBreadcrumb';
@@ -38,7 +38,7 @@ export default function Page() {
         探索与实践
         <HStack>
           <MdOutlineDescription />
-          <Link as={NextLink} href="/s/matchmaking">
+          <Link as={NextLink} href="/s/match">
             设计科学高效的师生匹配系统
           </Link>
         </HStack>
@@ -49,4 +49,3 @@ export default function Page() {
 }
 
 Page.title = "文章";
-

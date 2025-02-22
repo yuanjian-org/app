@@ -355,8 +355,20 @@ export default function Page() {
       </UnorderedList>
 
       <Text>
-        单元格中的 “M” 是机器自动求解的结果。如需手动微调，请用 “m” 表示匹配，并删除 “M”。
+        单元格中的 “m” 是机器自动求解的结果。如需手动微调，请：
       </Text>
+
+      <OrderedList>
+        <ListItem>
+          用 “M” 表示匹配，
+        </ListItem>
+        <ListItem>
+          在 Notes 中记录微调的原因，比如：“手调：分数相同，平衡导师工作量”，
+        </ListItem>
+        <ListItem>
+          把原有的 “m” 改成 “x”。
+        </ListItem>
+      </OrderedList>
 
       <StepHeading>K. 核对定配结果</StepHeading>
       

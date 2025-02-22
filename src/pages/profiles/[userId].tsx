@@ -424,7 +424,7 @@ function Mentor({ profile, updateProfile }: {
     <Heading size="md">导师信息</Heading>
     <Text>
       这些信息是学生了解导师的重要渠道，是他们
-      <Link target='_blank' href="/s/matchmaking">初次匹配</Link>
+      <Link target='_blank' href="/s/match">初次匹配</Link>
       时的唯一参考。请详尽填写，并展现出最真实的你。<MarkdownSupported />
     </Text>
 

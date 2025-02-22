@@ -161,10 +161,10 @@ function MenteeFeedback({ f, update }: {
   return <FeedbackCard editable={!!update}>
     {update && <>
       <Text>
-        <b>务必跟随心里最真实的想法去打分</b>，打分会直接影响匹配结果。
+        <b>务必跟随心里最真实的想法打分</b>，打分会直接影响匹配结果。
       </Text>
       <Text>
-      <b>无须担心隐私</b>：导师无法看到你的反馈，所有反馈将由中立的专员统一分析，请放心填写。
+      <b>无须担心隐私</b>：导师无法看到你的反馈，所有反馈数据将由中立的专员统一分析，请放心填写。
       </Text>
     </>}
     <TableContainer w="full">
