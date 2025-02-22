@@ -18,7 +18,7 @@ export default function Page() {
     <VStack w="2xl" spacing={sectionSpacing} align="start">
 
       {!data ? <Loader /> : data.length === 0 ?
-        <Text color="gray"> 尚无选择历史。 </Text>
+        <Text> 尚无选择历史。 </Text>
         :
         data.sort((a, b) => compareDate(b.finalizedAt, a.finalizedAt))
           .map(batch => <Batch key={batch.id} batch={batch} />)
