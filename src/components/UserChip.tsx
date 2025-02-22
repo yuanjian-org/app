@@ -20,3 +20,11 @@ export function UserLink({ user }: { user: MinUser }) {
     {myId === user.id ? "我" : formatUserName(user.name, "formal")}
   </Link>;
 }
+
+export function MenteeLink({ user }: {
+  user: MinUser,
+}) {
+  return <Link as={NextLink} href={`/mentees/${user.id}`} target="_blank">
+    {formatUserName(user.name, "formal")}
+  </Link>;
+}

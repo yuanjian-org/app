@@ -32,7 +32,7 @@ import { sectionSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import invariant from "shared/invariant";
 import { z } from "zod";
-import { UserLink } from "components/UserChip";
+import { MenteeLink, UserLink } from "components/UserChip";
 import { SmallGrayText } from "components/SmallGrayText";
 import { ReactNode, useEffect, useState } from "react";
 import Autosaver from "components/Autosaver";
@@ -43,14 +43,19 @@ const title = "初次交流反馈";
 
 export default function Page() {
   const { data } = trpcNext.matchFeedback.list.useQuery();
-  const [editable, setEditable] = useState<MatchFeedback>();
+  const { editable, until, isLoading: isLoadingEditable } =
+    useMatchFeedbackEditableUntil();
+
+  const [editableFeedback, setEditableFeedback] = useState<MatchFeedback>();
   useEffect(() => {
     // Do not set editable if it is already set, so new data does not override
-    // it when reload. It can happen if, say, the user switches browser pages.
-    if (!editable && data && data.length > 0) {
-      setEditable(data[0].feedback);
+    // it when reloaded. It can happen if, say, the user switches browser pages.
+    if (editableFeedback) return;
+    
+    if (!isLoadingEditable && editable && data && data.length > 0) {
+      setEditableFeedback(data[0].feedback);
     }
-  }, [editable, data]);
+  }, [editableFeedback, data, isLoadingEditable, editable]);
 
   const save = async (data: MatchFeedback) => {
     await trpc.matchFeedback.updateLast.mutate(data);
@@ -59,33 +64,34 @@ export default function Page() {
   return <>
     <PageBreadcrumb current={title} />
 
-    <VStack align="start" spacing={sectionSpacing}>
-      {!data ? <Loader /> : data.length === 0 ?<Text>
+    <VStack align="start" spacing={sectionSpacing} w="full">
+      {!data || isLoadingEditable ? <Loader /> : data.length === 0 ? <Text>
         没有需要填写的反馈表。
       </Text> : data
         // Place the latest feedback at the top
         .sort((a, b) => compareDate(b.createdAt, a.createdAt))
-        .map((fnc, idx) => <VStack key={idx} align="start" w="full">
-          {idx > 0 && <Heading size="md" my={sectionSpacing}>历史记录</Heading>}
+        .map((fnc, idx) => {
+          const f = idx == 0 && editableFeedback ? editableFeedback : fnc.feedback;
+          const update = idx == 0 && editableFeedback ? setEditableFeedback : undefined;
 
-          {fnc.feedback.type == "Mentee" ?
-            <MenteeFeedback
-              f={idx == 0 && editable ?
-                editable as MenteeMatchFeedback : fnc.feedback}
-              {...idx == 0 ? { update: setEditable } : {}}
-            />
-            :
-            <MentorFeedback
-              f={idx == 0 && editable ?
-                editable as MentorMatchFeedback : fnc.feedback}
-              {...idx == 0 ? { update: setEditable } : {}}
-            />
-          }
-        </VStack>)
+          return <>
+            {idx == 0 && !editable && <Text>
+              反馈表已于{' '}{until}关闭。
+            </Text>}
+
+            {idx == 1 && <Heading size="md" my={sectionSpacing}>历史记录</Heading>}
+
+            {f.type == "Mentee" ?
+              <MenteeFeedback f={f as MenteeMatchFeedback} update={update} />
+              :
+              <MentorFeedback f={f as MentorMatchFeedback} update={update} />
+            }
+          </>;
+        })
       }
     </VStack>
 
-    <Autosaver data={editable} onSave={save} />
+    <Autosaver data={editableFeedback} onSave={save} />
   </>;
 }
 Page.title = title;
@@ -96,36 +102,34 @@ function LargeTh({ children }: { children: ReactNode }) {
   return <Th fontSize="md">{children}</Th>;
 }
 
+function useMatchFeedbackEditableUntil() {
+  const { data, isLoading } = trpcNext.globalConfigs.get.useQuery();
+
+  const editable = data?.matchFeedbackEditableUntil !== undefined && 
+    moment(data.matchFeedbackEditableUntil).isAfter(moment());
+  const until = data?.matchFeedbackEditableUntil &&
+    prettifyDate(data.matchFeedbackEditableUntil);
+
+  return { editable, until, isLoading };
+}
+
 function FeedbackCard({ editable, children }: { 
   editable: boolean, 
   children: ReactNode
 }) {
-  const { data } = trpcNext.globalConfigs.get.useQuery();
-
-  const ended = data?.matchFeedbackEndsAt && 
-    moment(data.matchFeedbackEndsAt).isBefore(moment());
-  const endedAt = data?.matchFeedbackEndsAt &&
-    prettifyDate(data.matchFeedbackEndsAt);
+  const { until } = useMatchFeedbackEditableUntil();
 
   return <ResponsiveCard w="full">
     <CardBody>
       <VStack align="start" spacing={sectionSpacing} w="full">
         {!editable && children}
 
-        {editable && !data && <Loader />}
-
-        {editable && data && ended && <>
+        {editable && <>
           <Text>
-            ⚠️ 初次交流反馈表已于{' '}{endedAt}关闭。
-          </Text>
-        </>}
-
-        {editable && data && !ended && <>
-          <Text>
-            {endedAt && <>
+            {until && <>
               ⚠️ 反馈表将于{' '}
               <Text color={actionRequiredTextColor} fontWeight="bold" as="span">
-                {endedAt}
+                {until}
               </Text>
               {' '}自动关闭，请务必在此前完成反馈。
             </>}
@@ -134,7 +138,7 @@ function FeedbackCard({ editable, children }: {
           
           {children}
 
-          <SmallGrayText>系统会自动保存填写的信息。</SmallGrayText>
+          <SmallGrayText>系统会自动保存填写的内容。</SmallGrayText>
         </>}
       </VStack>
     </CardBody>
@@ -283,7 +287,7 @@ function MentorFeedbackRow({ f, update }: {
 
   invariant(f.user, "expect user");
   return <Tr>
-    <Td><UserLink user={f.user} /></Td>
+    <Td><MenteeLink user={f.user} /></Td>
     <Td>
       <RadioGroup
         value={f.choice ?? ''}

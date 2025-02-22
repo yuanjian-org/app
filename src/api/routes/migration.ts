@@ -13,7 +13,7 @@ export default router({
 export async function migrateDatabase() {
   console.log("Migrating DB schema...");
 
-  migrateSchema();
+  await migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
   await migrateData();
   await purgeOldData();
@@ -40,8 +40,18 @@ async function purgeOldData() {
   `);
 }
 
-function migrateSchema() {
+async function migrateSchema() {
   console.log("Migrating DB schema...");
+
+  await sequelize.query(`
+    UPDATE "GlobalConfigs"
+    SET data = jsonb_set(
+      data #- '{matchFeedbackEndsAt}',
+      '{matchFeedbackEditableUntil}',
+      data #> '{matchFeedbackEndsAt}'
+    )
+    WHERE data ? 'matchFeedbackEndsAt';
+  `);
 }
 
 async function migrateData() {

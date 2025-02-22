@@ -153,7 +153,10 @@ export default fullPage(() => {
               <MenuList>
                 <TraitsMenuItemAndModal setProfile={setProfile} />
                 <MenuItem as={NextLink} href="/mentors/relational/history">
-                  查看选择历史
+                  导师选择历史
+                </MenuItem>
+                <MenuItem as={NextLink} href="/match/feedback">
+                  初次交流反馈
                 </MenuItem>
               </MenuList>
             </Menu>            
@@ -279,7 +282,7 @@ function TraitsMenuItemAndModal({ setProfile }: {
 
   return <>
     <MenuItem onClick={() => setState("traits")}>
-      更新个人特质
+      个人特质
     </MenuItem>
 
     {state === "instructions" && <InstructionsModal close={() => {

@@ -77,6 +77,7 @@ export default function Page() {
         dryrun,
       });
       setInitialSolution(ret);
+      if (!dryrun) toast.success("初配结果应用成功");
     } finally {
       setWorking(false);
     }

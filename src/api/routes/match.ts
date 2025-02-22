@@ -883,7 +883,7 @@ const applyInitialSolverOutput = procedure
       ret.push({
         mentee,
         pointOfContact: mentee.pointOfContact,
-        source: mentee.menteeApplication?.[menteeSourceField],
+        source: mentee.menteeApplication?.[menteeSourceField] ?? null,
         preferredMentors:
           selections
             .filter(s => mentorIds.includes(s.mentor.id))
