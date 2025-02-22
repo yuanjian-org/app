@@ -155,11 +155,11 @@ function GroupTagOrName({ group }: { group: Group }) {
         group.coacheeId ? "资深导师" :
           group.interviewId ? "面试" :
             "FIXME" }
-      </Tag>
-      :      
-      <Text color='gray' fontSize='sm'>
-        {formatGroupName(group.name, group.users.length)}
-      </Text>
+      </Tag> : group.name ?
+        <Text color='gray' fontSize='sm'>
+          {formatGroupName(group.name, group.users.length)}
+        </Text>
+        : <></>
     }
   </HStack>;
 }

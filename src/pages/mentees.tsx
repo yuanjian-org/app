@@ -504,8 +504,11 @@ function LoadedMentorsCells({
   readonly?: boolean,
   setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
+  const visibleMentorships = mentorships
+    .filter(m => !isEndedTransactionalMentorship(m));
+
   const transcriptRes = trpcNext.useQueries(t => {
-    return mentorships.map(m => t.transcripts.getLastStartedAt({
+    return visibleMentorships.map(m => t.transcripts.getLastStartedAt({
       groupId: m.group.id
     }));
   });
@@ -529,11 +532,8 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = transcriptData.map(t => 
     getDateTextAndColor(t, 45, 60, "尚未通话"));
 
-  const displayedMentorships = mentorships
-    .filter(m => !isEndedTransactionalMentorship(m));
-
   const coachesRes = trpcNext.useQueries(t => {
-    return displayedMentorships.map(
+    return visibleMentorships.map(
       m => t.users.getMentorCoach({ userId: m.mentor.id }));
   });
 
@@ -565,9 +565,9 @@ function LoadedMentorsCells({
       />}
 
       <LinkToEditor onClick={() => setEditing(true)}>
-        {displayedMentorships.length ?
+        {visibleMentorships.length ?
           <VStack align="start">
-            {displayedMentorships.map(m =>
+            {visibleMentorships.map(m =>
               <Flex key={m.id} gap={1}>
                 <MentorshipStatusIcon m={m} />
                 {formatUserName(m.mentor.name)}

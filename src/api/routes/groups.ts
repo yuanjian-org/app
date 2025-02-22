@@ -10,9 +10,15 @@ import nzh from 'nzh';
 import { email } from "../sendgrid";
 import { noPermissionError, notFoundError } from "../errors";
 import {
-  Group, isPermittedToAccessGroup, isPermittedToAccessGroupHistory, whereUnowned, zGroup,
+  Group,
+  isPermittedToAccessGroup,
+  isPermittedToAccessGroupHistory,
+  zGroup,
 } from "../../shared/Group";
-import { groupAttributes, groupInclude } from "../database/models/attributesAndIncludes";
+import {
+  groupAttributes,
+  groupInclude
+} from "../database/models/attributesAndIncludes";
 import User from "shared/User";
 
 const create = procedure
@@ -129,8 +135,16 @@ const unarchive = procedure
   await g.update({ archived: false });
 });
 
+const whereUnowned = {
+  partnershipId: null,
+  interviewId: null,
+  calibrationId: null,
+  coacheeId: null,
+};
+
 /**
- * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
+ * @param includeUnowned Whether to include unowned groups.
+ * A group is unowned if and only if its partnershipId is null.
  */
 const listMine = procedure
   .use(authUser())
@@ -150,7 +164,10 @@ const listMine = procedure
       include: groupInclude,
       where: { archived: false, ...input.includeOwned ? {} : whereUnowned },
     }]
-  })).map(groupUser => groupUser.group);
+  })).map(groupUser => groupUser.group)
+  // Filter out groups owned by interviews. We currently ask users to conduct
+  // interviews using WeChat calls.
+  .filter(g => !g.interviewId);
 });
 
 /**

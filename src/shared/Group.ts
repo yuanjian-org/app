@@ -20,13 +20,6 @@ export function isOwned(g: Group) {
   return g.partnershipId || g.interviewId || g.calibrationId || g.coacheeId;
 }
 
-export const whereUnowned = {
-  partnershipId: null,
-  interviewId: null,
-  calibrationId: null,
-  coacheeId: null,
-};
-
 export function isPermittedToAccessGroup(u: User, g: Group): boolean {
   // Public groups allow everyone to see member list and join group meetings but
   // not to read group history including transcripts and summaries.
