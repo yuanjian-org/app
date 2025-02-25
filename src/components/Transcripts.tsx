@@ -27,10 +27,15 @@ export default function Transcripts({ group }: {
 }) {
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
+  } else {
+    return <PermittedTranscripts groupId={group.id} />;
   }
+}
 
-  const { data: transcripts } = trpcNext.transcripts.list.useQuery({
-    groupId: group.id });
+function PermittedTranscripts({ groupId }: {
+  groupId: string,
+}) {
+  const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
   return !transcripts ? <Loader /> 
     : transcripts.length ? <LoadedTranscripts transcripts={transcripts} />
     : <Text color="gray">会议摘要将在会议结束后一小时内显示在这里。</Text>;
@@ -50,16 +55,21 @@ function LoadedTranscripts({ transcripts: unsorted }: {
   const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
 
   const router = useRouter();
+
   const getTranscriptAndIndex = () => {
     const id = parseQueryString(router, "transcriptId");
     for (let i = 0; i < filtered.length; i++) {
-      if (filtered[i].transcriptId == id) return { t: filtered[i], i };
+      if (filtered[i].transcriptId == id) {
+        return { transcript: filtered[i], transcriptIndex: i };
+      }
     }
-    return { t: filtered[0], i: 0 };
+    return { transcript: filtered[0], transcriptIndex: 0 };
   };
-  const { t: transcript, i: transcriptIndex } = getTranscriptAndIndex();
+  const { transcript, transcriptIndex } = getTranscriptAndIndex();
 
-  const { data: summaries } = trpcNext.summaries.list.useQuery(transcript.transcriptId);
+  const { data: summaries } = trpcNext.summaries.list.useQuery(
+    transcript.transcriptId);
+
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary which is the raw transcripts.

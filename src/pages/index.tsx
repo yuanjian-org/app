@@ -12,6 +12,8 @@ import { useMyRoles } from 'useMe';
 const title = "个人空间";
 
 export default function Page() {
+  const myRoles = useMyRoles();
+
   return (<>
     <PageBreadcrumb current={title} />
 
@@ -26,9 +28,9 @@ export default function Page() {
       <Column>
         <TasksCard />
 
-        {isPermitted(useMyRoles(), "Mentor") && <MentorCard />}
+        {isPermitted(myRoles, "Mentor") && <MentorCard />}
 
-        {isPermitted(useMyRoles(), "Volunteer") && <VolunteerStudyCard />}
+        {isPermitted(myRoles, "Volunteer") && <VolunteerStudyCard />}
       </Column>
     </Grid>
   </>);

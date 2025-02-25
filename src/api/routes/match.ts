@@ -14,7 +14,12 @@ import {
   mentorSelectionBatchInclude,
   minUserAttributes,
 } from "api/database/models/attributesAndIncludes";
-import { compareChinese, compareUUID, formatUserName } from "shared/strings";
+import {
+  compareChinese,
+  compareDate,
+  compareUUID,
+  formatUserName
+} from "shared/strings";
 import { MenteeStatus } from "shared/MenteeStatus";
 import { Feedback } from "shared/InterviewFeedback";
 import { authUser } from "../auth";
@@ -503,7 +508,13 @@ async function listMentorSelectionBatches(
   });
 
   return batches.reduce((acc, b) => {
-    acc[b.userId] = b;
+    if (b.userId in acc) {
+      // Select the last batch.
+      acc[b.userId] = compareDate(b.finalizedAt, acc[b.userId].finalizedAt) > 0 
+        ? b : acc[b.userId];
+    } else {
+      acc[b.userId] = b;
+    }
     return acc;
   }, {} as Record<string, MentorSelectionBatch>);
 }
