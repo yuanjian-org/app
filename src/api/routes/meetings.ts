@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { getMeeting } from "../TencentMeeting";
+import { createMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
@@ -96,18 +96,6 @@ export default router({
   join,
 });
 
-// async function create(g: Group, tmUserId: string) {
-//   const groupName = formatGroupName(g.name, g.users.length);
-//   const subject = encodeMeetingSubject(g.id, groupName);
-//   const now = Math.floor(Date.now() / 1000);
-//   const res = await createMeeting(tmUserId, subject, now, now + 3600);
-//   invariant(res.meeting_info_list.length === 1);
-//   return {
-//     meetingId: res.meeting_info_list[0].meeting_id,
-//     meetingLink: res.meeting_info_list[0].join_url,
-//   };
-// }
-
 export async function refreshMeetingSlots(transaction: Transaction) {
   const slots = await db.MeetingSlot.findAll({
     where: { groupId: { [Op.ne]: null } },
@@ -131,7 +119,9 @@ export async function refreshMeetingSlots(transaction: Transaction) {
     // Meeting is ongoing. Skip.
     if (m.status == 'MEETING_STATE_STARTED') continue;
 
-    // Mark the meeting as ended.
+    console.log(`Marking meeting ${slot.meetingId} as ended for group
+      ${slot.groupId}`);
+
     const histories = await db.MeetingHistory.findAll({
       where: { 
         meetingId: slot.meetingId,
@@ -164,7 +154,70 @@ export async function syncMeetings() {
    */
   await sequelize.transaction(async transaction => {
     await refreshMeetingSlots(transaction);
+    await recycleMeetings(transaction);
   });
 
   await downloadSummaries();
+}
+
+/**
+ * Starting mid-2024, Tencent Meeting imposed a new restriction that limits the
+ * number of meetings created each month to two per paying user:
+ * https://cloud.tencent.com/document/product/1095/42417 Therefore, we can't
+ * create new meetings on every meeting request. Instead, we reuse existing 
+ * meeting links and use this function to periodically attempt to create new
+ * meetings and replace existing ones.
+ * 
+ * This "recycling" process is necessary because:
+ * 
+ * 1) a meeting becomes unuseable after a while (e.g. one month for one-off
+ * meetings), and 2) we want to minimize the reuse of meeting links so that
+ * if someone remembers a meeting link and use it outside of our system,
+ * either accidentally or intentionally, the chance that they join an ongoing
+ * meeting of another group is low.
+ */
+async function recycleMeetings(transaction: Transaction) {
+  for (const tmUserId of apiEnv.TM_USER_IDS) {
+    const slot = await db.MeetingSlot.findOne({
+      where: { tmUserId },
+      attributes: ["id", "groupId"],
+      lock: true,
+      transaction,
+    });
+
+    // Skip ongoing meetings.
+    if (slot && slot.groupId) continue;
+
+    try {
+      const { meetingId, meetingLink } = await create(tmUserId);
+      console.log(`Meeting created for user ${tmUserId}: ` +
+        `${meetingId}, ${meetingLink}`);
+
+      if (slot) {
+        await slot.update({ 
+          meetingId, meetingLink,
+        }, { transaction });
+      } else {
+        await db.MeetingSlot.create({
+          tmUserId, meetingId, meetingLink,
+        }, { transaction });
+      }
+
+    } catch (e) {
+      console.error(`(Expected) meeting creation failure for user ${tmUserId}:
+        ${e}`);
+    }
+  }
+}
+
+async function create(tmUserId: string) {
+  const now = Math.floor(Date.now() / 1000);
+  const res = await createMeeting(tmUserId, "导师平台会议", now, now + 3600);
+  invariant(res.meeting_info_list.length === 1,
+    `meeting_info_list.length != 1: ${JSON.stringify(res)}`);
+
+  return {
+    meetingId: res.meeting_info_list[0].meeting_id,
+    meetingLink: res.meeting_info_list[0].join_url,
+  };
 }
