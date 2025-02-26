@@ -25,6 +25,7 @@ export default function Page() {
       abbreviateOnMobile={false}
       marginBottom={paragraphSpacing}
     />
+
     {isPermittedToAccessGroupHistory(me, group) && 
       <Transcripts group={group} />
     }
