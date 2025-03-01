@@ -81,11 +81,11 @@ function Row({ user, interviews, preference, profile }: {
   const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
   const limit = preference.limit;
 
-  return <Tr key={user.id} _hover={{ bg: "white" }}> 
+  return <Tr _hover={{ bg: "white" }}> 
     {/* 面试官 */}
     <Td>
       <Link as={NextLink} href={getUserUrl(user)}>
-        <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
+        <b>{formatUserName(user.name)}</b> <ChevronRightIcon />
       </Link>
     </Td>
 

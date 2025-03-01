@@ -24,14 +24,18 @@ export function formatUserName(
 }
 
 export function formatGroupName(name: string | null, userCount: number): string {
-  return name ?? `${toChinese(userCount)}人通话`;
+  return name ?? `${toChineseNumber(userCount)}人通话`;
 }
 
 /**
  * Convert a number into Chinese presentation, e.g. "十三".
  */
-export function toChinese(n: number): string {
+export function toChineseNumber(n: number): string {
   return nzh.cn.encodeS(n);
+}
+
+export function toChineseDayOfWeek(n: number): string {
+  return ['一', '二', '三', '四', '五', '六', '日'][n - 1];
 }
 
 export function prettifyDuration(from: Date | DateColumn, to: Date | DateColumn) {

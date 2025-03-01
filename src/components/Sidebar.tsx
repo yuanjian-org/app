@@ -111,6 +111,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
+    name: '一对一通话日程',
+    action: '/schedules',
+    roles: 'MentorshipManager',
+  },
+  {
     name: '全局设置',
     action: '/global',
     roles: 'MentorshipManager',
@@ -194,7 +199,7 @@ const mainMenuItems: MainMenuItem[] = [
     name: '学生档案',
     path: '/mentees?menteeStatus=现届学子',
     icon: AttachmentIcon,
-    regex: /^\/mentees/,
+    regex: /^\/mentees[^/]/,
     permission: 'MentorshipManager',
   },
 ];

@@ -12,11 +12,16 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { BOOLEAN, CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
+import { BOOLEAN, CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
-import { DateColumn } from "shared/DateColumn";
+import { DateColumn } from "../../../shared/DateColumn";
+import {
+  MentorshipSchedule,
+  zMentorshipSchedule,
+} from "../../../shared/Mentorship";
+import ZodColumn from "../modelHelpers/ZodColumn";
 
 /**
  * A mentorship is a mentee-mentor pair.
@@ -45,15 +50,17 @@ class Mentorship extends Model {
   @Column(UUID)
   menteeId: string;
 
-  // Whether this mentorship is transactional or relational. See
-  // docs/Glossary.md for their definitions.
+  // See shared/Mentorship.ts for documentation.
   @AllowNull(false)
   @Column(BOOLEAN)
   transactional: boolean;
 
-  // If null, the mentorship is active without an end date.
+  // See shared/Mentorship.ts for documentation.
   @Column(DATE)
   endsAt: DateColumn | null;
+
+  @ZodColumn(JSONB, zMentorshipSchedule.nullable())
+  schedule: MentorshipSchedule | null;
 
   /**
    * Associations

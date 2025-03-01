@@ -13,7 +13,7 @@ import {
 } from "shared/merge";
 import sequelize from "api/database/sequelize";
 import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
-import { compareDate, formatUserName, toChinese } from "shared/strings";
+import { compareDate, formatUserName, toChineseNumber } from "shared/strings";
 import { email, emailRoleIgnoreError } from "../sendgrid";
 import getBaseUrl from "shared/getBaseUrl";
 import { RoleProfiles } from "shared/Role";
@@ -64,7 +64,7 @@ const emailMergeToken = procedure
         token,
         userManagerRole: RoleProfiles.UserManager.displayName,
         senderName: formatUserName(ctx.user.name, "formal"),
-        tokenMaxAgeInHours: toChinese(mergeTokenMaxAgeInHours),
+        tokenMaxAgeInHours: toChineseNumber(mergeTokenMaxAgeInHours),
       },
     }];
   
