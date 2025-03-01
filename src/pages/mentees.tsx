@@ -548,13 +548,11 @@ function LoadedMentorsCells({
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
 
   useEffect(() => {
-    if (!addPinyin) return;
-    const names = [
-      ...mentorships.map(m => m.mentor.name),
-      ...coachesRes.map(c => c.data ? c.data.name : null),
-    ].filter(n => n !== null);
-    addPinyin(names as string[]);
-  }, [mentorships, coachesRes, addPinyin]);
+    if (addPinyin) {
+      addPinyin(visibleMentorships.map(m => m.mentor.name)
+        .filter(n => n !== null));
+    }
+  }, [visibleMentorships, addPinyin]);
 
   return <>
     {/* 导师 */}
