@@ -53,7 +53,7 @@ export const summaryAttributes = ['transcriptId', 'summaryKey', 'summary'];
  * Mentorship
  */
 
-export const mentorshipAttributes = ['id', 'transactional', 'endsAt'];
+export const mentorshipAttributes = ['id', 'transactional', 'endsAt', 'schedule'];
 
 export const mentorshipInclude = [{
   association: 'mentor',

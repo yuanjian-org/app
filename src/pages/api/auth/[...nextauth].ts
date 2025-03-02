@@ -4,7 +4,7 @@ import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
 import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
-import { toChinese } from "../../../shared/strings";
+import { toChineseNumber } from "../../../shared/strings";
 import {
   userAttributes,
   userInclude,
@@ -174,7 +174,7 @@ async function sendVerificationRequest({ identifier: email, url, token }:
     dynamicTemplateData: {
       url,
       token,
-      tokenMaxAgeInMins: toChinese(tokenMaxAgeInMins),
+      tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
     },
   }];
 

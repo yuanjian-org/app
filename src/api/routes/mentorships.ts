@@ -1,8 +1,9 @@
 import { procedure, router } from "../trpc";
-import { authIntegration, authUser } from "../auth";
+import { authUser } from "../auth";
 import db from "../database/db";
 import {
-  isEndedTransactionalMentorship, zMentorship
+  isEndedTransactionalMentorship, zMentorship,
+  zMentorshipSchedule
 } from "../../shared/Mentorship";
 import { z } from "zod";
 import {
@@ -12,13 +13,11 @@ import sequelize from "../database/sequelize";
 import { isPermitted } from "../../shared/Role";
 import {
   mentorshipAttributes,
-  mentorshipInclude,
-  minUserAttributes
+  mentorshipInclude
 } from "../database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
 import invariant from "tiny-invariant";
 import { Op, Transaction } from "sequelize";
-import { formatUserName } from "../../shared/strings";
 import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 
@@ -92,6 +91,17 @@ const update = procedure
   await sequelize.transaction(async transaction => {
     await updateMentorship(mentorshipId, transactional, endsAt, transaction);
   });
+});
+
+const updateSchedule = procedure
+  .use(authUser(["Mentor", "MentorshipManager"]))
+  .input(z.object({
+    mentorshipId: z.string(),
+    schedule: zMentorshipSchedule,
+  }))
+  .mutation(async ({ input: { mentorshipId, schedule } }) => 
+{
+  await db.Mentorship.update({ schedule }, { where: { id: mentorshipId } });
 });
 
 export async function updateMentorship(
@@ -180,34 +190,6 @@ export async function getUser2MentorshipCount() {
   }, {});
 }
 
-/**
- * Usage:
- *
- * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
- *  "${BASE_URL}/api/v1/mentorships.countMentorships"
- */
-const deprecatedCountMentorships = procedure
-  .use(authIntegration())
-  .output(z.array(z.object({
-    mentor: z.string(),
-    count: z.number(),
-  })))
-  .query(async () => 
-{
-  return (await db.User.findAll({ 
-    attributes: minUserAttributes,
-    include: [{
-      association: "mentorshipsAsMentor",
-      where: { endsAt: { [Op.eq]: null } },
-      attributes: mentorshipAttributes,
-      include: mentorshipInclude,
-    }]
-  })).map(u => ({
-    mentor: formatUserName(u.name),
-    count: u.mentorshipsAsMentor.length,
-  }));
-});
-
 const listMyMentorshipsAsMentor = procedure
   .use(authUser())
   .output(z.array(zMentorship))
@@ -218,6 +200,21 @@ const listMyMentorshipsAsMentor = procedure
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
   })).filter(m => !isEndedTransactionalMentorship(m));
+});
+
+const listOngoingRelationalMentorships = procedure
+  .use(authUser('MentorshipManager'))
+  .output(z.array(zMentorship))
+  .query(async () => 
+{
+  return (await db.Mentorship.findAll({
+    where: {
+      ...whereMentorshipIsOngoing,
+      transactional: false,
+    },
+    attributes: mentorshipAttributes,
+    include: mentorshipInclude,
+  }));
 });
 
 /**
@@ -244,8 +241,9 @@ export default router({
   create,
   get,
   update,
+  updateSchedule,
   listMyMentorshipsAsMentor,
   listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
-  countMentorships: deprecatedCountMentorships,
+  listOngoingRelationalMentorships,
 });

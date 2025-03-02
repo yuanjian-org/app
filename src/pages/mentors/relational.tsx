@@ -36,7 +36,7 @@ import TopBar, { topBarPaddings } from 'components/TopBar';
 import { fullPage } from 'AppPage';
 import { SmallGrayText } from 'components/SmallGrayText';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import { toChinese } from 'shared/strings';
+import { toChineseNumber } from 'shared/strings';
 import { ArrowForwardIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import NextLink from 'next/link';
 
@@ -102,12 +102,12 @@ export default fullPage(() => {
 
           {selected < minSelectedMentors ?
             <Heading size="md">
-              请选择至少{toChinese(minSelectedMentors)}位导师
+              请选择至少{toChineseNumber(minSelectedMentors)}位导师
               <Text
                 display="inline"
                 color={selected === 0 ? "gray" : "green.600"}
               >
-                （{selected === 0 ? "尚未选择" : `已选${toChinese(selected)}位`}）
+                （{selected === 0 ? "尚未选择" : `已选${toChineseNumber(selected)}位`}）
               </Text>
             </Heading>
             :

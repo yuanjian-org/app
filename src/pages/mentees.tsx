@@ -550,7 +550,7 @@ function LoadedMentorsCells({
   useEffect(() => {
     if (addPinyin) {
       addPinyin(visibleMentorships.map(m => m.mentor.name)
-        .filter(n => n !== null));
+        .filter(n => n !== null) as string[]);
     }
   }, [visibleMentorships, addPinyin]);
 
