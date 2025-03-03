@@ -148,7 +148,7 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
   </HStack>;
 }
 
-export const mentorMeetingMessagePrefix = "【导师交流】";
+export const mentorMeetingMessagePrefix = "【导师交流会】";
 
 function Editor({ roomId, message, onClose, ...rest }: {
   // if specified, create a new message

@@ -58,7 +58,7 @@ export default widePage(() => {
         <Tr>
           <Th>学生</Th>
           <Th>导师</Th>
-          <Th>通话日程</Th>
+          <Th>通话时间（北京时区）</Th>
           {_.range(bucketsPerMeeting).map(i => (
             <Th key={i}>
               {i * bucketSizeInMins}-{(i + 1) * bucketSizeInMins} 分钟
@@ -77,7 +77,7 @@ export default widePage(() => {
       共 <b>{sorted.length}</b> 个一对一匹配
     </Text>
   </TableContainer>;
-}, "一对一通话日程");
+}, "一对一通话时间");
 
 function buckets(s: MentorshipSchedule): number[] {
   const start = 
@@ -128,7 +128,7 @@ function Row({ mentorship: m, h, max }: {
       </Link>
     </Td>
 
-    {/* 通话日程 */}
+    {/* 通话时间 */}
     <Td>
       <Link as={NextLink} href={`/mentees/${m.mentee.id}`}>
         {s ? formatMentorshipSchedule(s) : "未设置"}

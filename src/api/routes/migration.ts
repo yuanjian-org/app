@@ -11,8 +11,6 @@ export default router({
 });
 
 export async function migrateDatabase() {
-  console.log("Migrating DB schema...");
-
   await migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
   await migrateData();
@@ -42,22 +40,17 @@ async function purgeOldData() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
-
-  await sequelize.query(`
-    UPDATE "GlobalConfigs"
-    SET data = jsonb_set(
-      data #- '{matchFeedbackEndsAt}',
-      '{matchFeedbackEditableUntil}',
-      data #> '{matchFeedbackEndsAt}'
-    )
-    WHERE data ? 'matchFeedbackEndsAt';
-  `);
+  await Promise.resolve();
 }
 
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  // A no-op promise for when this function has no actual work to do to suppress
-  // build error.
+  await sequelize.query(`
+    UPDATE "ChatMessages"
+    SET markdown = REPLACE(markdown, '【导师交流】', '【导师交流会】')
+    WHERE markdown LIKE '%【导师交流】%';
+  `);
+
   await Promise.resolve();
 }
