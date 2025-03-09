@@ -83,8 +83,16 @@ const join = procedure
           refreshed = true;
           continue;
         } else {
+          const slots = await db.MeetingSlot.findAll({
+            attributes: ["groupId"],
+            transaction,
+          });
+          const content = `试图发起会议的分组：${baseUrl}/groups/${groupId}。
+            会议进行中的分组：` +
+            slots.map(s => `${baseUrl}/groups/${s.groupId}`).join("、");
+
           emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
-            `发起会议的分组：${baseUrl}/groups/${groupId}`, baseUrl);
+            content, baseUrl);
           return null;
         }
       }

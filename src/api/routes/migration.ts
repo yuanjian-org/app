@@ -45,12 +45,5 @@ async function migrateSchema() {
 
 async function migrateData() {
   console.log("Migrating DB data...");
-
-  await sequelize.query(`
-    UPDATE "ChatMessages"
-    SET markdown = REPLACE(markdown, '【导师交流】', '【导师交流会】')
-    WHERE markdown LIKE '%【导师交流】%';
-  `);
-
   await Promise.resolve();
 }
