@@ -5,7 +5,7 @@ import invariant from "shared/invariant";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { formatUserName, prettifyDate } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
-import { email, emailRoleIgnoreError } from "../sendgrid";
+import { email, emailRoleIgnoreError } from "../email";
 import {
   chatMessageAttributes,
   chatMessageInclude,

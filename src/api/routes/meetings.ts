@@ -6,7 +6,7 @@ import { createMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
-import { emailRoleIgnoreError } from 'api/sendgrid';
+import { emailRoleIgnoreError } from 'api/email';
 import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import {
