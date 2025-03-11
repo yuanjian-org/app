@@ -35,35 +35,33 @@ export default function Transcripts({ group }: {
 function PermittedTranscripts({ groupId }: {
   groupId: string,
 }) {
-  const { data: transcripts } = trpcNext.transcripts.list.useQuery({ groupId });
-  return !transcripts ? <Loader /> 
-    : transcripts.length ? <LoadedTranscripts transcripts={transcripts} />
-    : <Text color="gray">会议摘要将在会议结束后一小时内显示在这里。</Text>;
-}
+  const { data } = trpcNext.transcripts.list.useQuery({ groupId });
 
-/**
- * Caller should guarantee that `transcripts` has one or more items.
- */
-function LoadedTranscripts({ transcripts: unsorted }: {
-  transcripts: Transcript[]
-}) {
   // Make a shadow copy
-  const sorted = [...unsorted];
+  const sorted = [...(data ?? [])];
   // Sort by reverse chronological order
   sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
   // Only show transcripts that are more than 1 min
   const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
 
+  return !data ? <Loader /> 
+    : filtered.length ? <LoadedTranscripts transcripts={filtered} />
+    : <Text color="gray">会议摘要将在会议结束后一小时内显示在这里。</Text>;
+}
+
+function LoadedTranscripts({ transcripts }: {
+  transcripts: Transcript[]
+}) {
   const router = useRouter();
 
   const getTranscriptAndIndex = () => {
     const id = parseQueryString(router, "transcriptId");
-    for (let i = 0; i < filtered.length; i++) {
-      if (filtered[i].transcriptId == id) {
-        return { transcript: filtered[i], transcriptIndex: i };
+    for (let i = 0; i < transcripts.length; i++) {
+      if (transcripts[i].transcriptId == id) {
+        return { transcript: transcripts[i], transcriptIndex: i };
       }
     }
-    return { transcript: filtered[0], transcriptIndex: 0 };
+    return { transcript: transcripts[0], transcriptIndex: 0 };
   };
   const { transcript, transcriptIndex } = getTranscriptAndIndex();
 
@@ -83,15 +81,15 @@ function LoadedTranscripts({ transcripts: unsorted }: {
     <Flex direction="column" gap={sectionSpacing}>
       <Flex>
         <Button variant="ghost" leftIcon={<ChevronLeftIcon />}
-          isDisabled={transcriptIndex == filtered.length - 1}
-          onClick={() => replaceUrlParam(router, "transcriptId", filtered[transcriptIndex + 1].transcriptId)}
+          isDisabled={transcriptIndex == transcripts.length - 1}
+          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
         <Spacer />
         <Flex direction={{ base: "column", [breakpoint]: "row" }} gap={componentSpacing}>
           <Select value={transcript.transcriptId} 
             onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
           >
-            {filtered.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
+            {transcripts.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
               {`${prettifyDate(t.startedAt)}，${prettifyDuration(t.startedAt, t.endedAt)}${!idx ? "（最近通话）" : ""}`}
             </option>)}
           </Select>
@@ -106,7 +104,7 @@ function LoadedTranscripts({ transcripts: unsorted }: {
         <Spacer />
         <Button variant="ghost" rightIcon={<ChevronRightIcon />}
           isDisabled={transcriptIndex == 0}
-          onClick={() => replaceUrlParam(router, "transcriptId", sorted[transcriptIndex - 1].transcriptId)}        
+          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex - 1].transcriptId)}        
         >后一次</Button>
       </Flex>
       {!summary ? <Loader /> :
