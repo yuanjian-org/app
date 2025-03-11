@@ -14,7 +14,7 @@ import {
 import sequelize from "api/database/sequelize";
 import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
 import { compareDate, formatUserName, toChineseNumber } from "shared/strings";
-import { email, emailRoleIgnoreError } from "../sendgrid";
+import { email, emailRoleIgnoreError } from "../email";
 import getBaseUrl from "shared/getBaseUrl";
 import { RoleProfiles } from "shared/Role";
 import { Transaction } from "sequelize";

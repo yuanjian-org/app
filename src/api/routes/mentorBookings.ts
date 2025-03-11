@@ -2,15 +2,15 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { z } from "zod";
-import { 
+import {
   notFoundError
 } from "../errors";
 import { zMentorBooking } from "shared/MentorBooking";
 import {
-  mentorBookingAttributes, mentorBookingInclude 
+  mentorBookingAttributes, mentorBookingInclude
 } from "api/database/models/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
-import { emailRole } from "api/sendgrid";
+import { emailRole } from "api/email";
 
 const create = procedure
   .use(authUser())

@@ -3,7 +3,7 @@ import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
 import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
-import { email as sendEmail, emailRoleIgnoreError } from "../../../api/sendgrid";
+import { email as sendEmail, emailRoleIgnoreError } from "../../../api/email";
 import { toChineseNumber } from "../../../shared/strings";
 import {
   userAttributes,

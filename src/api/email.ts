@@ -1,3 +1,7 @@
+/**
+ * API for sending transactionalemails
+ */
+
 import { PersonalizationData } from '@sendgrid/helpers/classes/personalization';
 import mail from '@sendgrid/mail';
 import apiEnv from './apiEnv';
@@ -6,6 +10,8 @@ import { Op } from 'sequelize';
 import Role, { RoleProfiles } from '../shared/Role';
 import z from 'zod';
 import _ from 'lodash';
+import axios from 'axios';
+import { internalServerError } from './errors';
 
 if (apiEnv.hasSendGrid()) mail.setApiKey(apiEnv.SENDGRID_API_KEY);
 
@@ -77,40 +83,23 @@ export async function email(templateId: string,
   }
 }
 
-export function emailIgnoreError(templateId: string,
-  personalization: PersonalizationData[], baseUrl: string)
-{
-  try {
-    void email(templateId, personalization, baseUrl);
-  } catch (e) {
-    console.log(`emailIgnoreError() ignored error:`, e);
-  }
-}
-
 export async function emailRole(
   role: Role,
   subject: string,
   content: string,
   baseUrl: string
 ) {
-  const zTo = z.array(z.object({
-    name: z.string(),
-    email: z.string(),
-  }));
-
-  const managers = zTo.parse(await User.findAll({
+  const users = await User.findAll({
     where: { roles: { [Op.contains]: [role] } },
-    attributes: ['name', 'email'],
-  }));
+    attributes: ['email'],
+  });
 
-  await email('d-99d2ae84fe654400b448f8028238d461', [{
-    to: managers,
-    dynamicTemplateData: { 
-      subject, 
-      content,
-      roleDisplayName: RoleProfiles[role].displayName,
-    },
-  }], baseUrl);
+  await email2(users.map(u => u.email), 'E_114706970517', {
+    subject,
+    content,
+    roleDisplayName: RoleProfiles[role].displayName,
+    baseUrl,
+  });
 }
 
 export function emailRoleIgnoreError(
@@ -124,4 +113,57 @@ export function emailRoleIgnoreError(
   } catch (e) {
     console.log(`emailRoleIgnoreError() ignored error:`, e);
   }
+}
+
+/**
+ * Send email via AoKSend.com. See https://www.aoksend.com/admin/apiconfig/index
+ */
+export async function emailOne(
+  toEmail: string,
+  templateId: string,
+  templateData: Record<string, string>,
+) {
+  // Skip everything in unittest.
+  // https://stackoverflow.com/a/29183140
+  if (typeof global.it === 'function') return;
+
+  console.log(`Sending mail via AoKSend, template id: ${templateId},` +
+    ` to: ${toEmail}, data: ${JSON.stringify(templateData, null, 2)}`);
+
+  const appKey = process.env.AOKSEND_APP_KEY;
+  if (!appKey) {
+    console.log('AoKSend not configured. Skip calling actual API.');
+    return;
+  }
+
+  console.log(`key: "${appKey}"`);
+
+  const form = new FormData();
+  form.append('app_key', appKey);
+  form.append('template_id', templateId);
+  form.append('to', toEmail);
+  form.append('data', JSON.stringify(templateData));
+
+  const response = await axios.post(
+    'https://www.aoksend.com/index/api/send_email',
+    form, 
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+
+  const result = z.object({
+    code: z.number(),
+    message: z.string(),
+  }).parse(response.data);
+
+  if (result.code !== 200) {
+    throw internalServerError(`邮件发送失败：${result.code}｜${result.message}`);
+  }
+}
+
+export async function email2(
+  toEmails: string[],
+  templateId: string,
+  templateData: Record<string, string>,
+) {
+  await Promise.all(toEmails.map(to => emailOne(to, templateId, templateData)));
 }

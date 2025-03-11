@@ -42,8 +42,9 @@ import { ImpersonationRequest } from './api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
 import MergeTokenCell from 'components/MergeTokenCell';
 import useMe, { useMyRoles } from 'useMe';
+import { widePage } from 'AppPage';
 
-export default function Page() {
+export default widePage(() => {
   const [includeMerged, setIncludeMerged] = useState(false);
   const [includeBanned, setIncludeBanned] = useState(false);
 
@@ -111,9 +112,7 @@ export default function Page() {
       </TableContainer>}
     </Flex>
   </>;
-};
-
-Page.title = "用户";
+}, "用户");
 
 function UserTable({ users, setUserBeingEdited, refetch }: {
   users: UserWithMergeInfo[],

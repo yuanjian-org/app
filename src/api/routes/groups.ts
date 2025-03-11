@@ -7,7 +7,7 @@ import invariant from "tiny-invariant";
 import sequelize from "../database/sequelize";
 import { formatUserName, formatGroupName } from "../../shared/strings";
 import nzh from 'nzh';
-import { email } from "../sendgrid";
+import { email } from "../email";
 import { noPermissionError, notFoundError } from "../errors";
 import {
   Group,
