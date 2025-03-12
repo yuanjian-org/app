@@ -53,23 +53,13 @@ const emailMergeToken = procedure
       { transaction },
     );
 
-    const name = formatUserName(u.name, "friendly");
-    const personalizations = [{
-      to: {
-        email: u.email,
-        name,
-      },
-      dynamicTemplateData: {
-        name,
-        token,
-        userManagerRole: RoleProfiles.UserManager.displayName,
-        senderName: formatUserName(ctx.user.name, "formal"),
-        tokenMaxAgeInHours: toChineseNumber(mergeTokenMaxAgeInHours),
-      },
-    }];
-  
-    await email("d-8933c38afe8144799233d10163675b88", personalizations,
-      getBaseUrl());
+    await email([u.email], "E_114701375857", {
+      name: formatUserName(u.name, "friendly"),
+      token,
+      userManagerRole: RoleProfiles.UserManager.displayName,
+      senderName: formatUserName(ctx.user.name, "formal"),
+      tokenMaxAgeInHours: toChineseNumber(mergeTokenMaxAgeInHours),
+    }, getBaseUrl());
   });
 });
 

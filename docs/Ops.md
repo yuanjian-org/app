@@ -1,3 +1,7 @@
+# Use Red Sift to monitor SSL Certificate expiry
+
+Register an account at https://redsift.com and set up SSL expiry notification emails for free.
+
 # Renew SSL Certificate
 
 Let's Encrypt's automatic renewal at `/etc/cron.d/certbot` requires port 80 to be open on the host which is occupied by the container. So we have to manually renew the certificate once every 3 months. TODO: Fine a better solution.
