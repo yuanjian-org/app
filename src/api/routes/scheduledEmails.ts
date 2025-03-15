@@ -230,6 +230,7 @@ async function sendChatEmail(
    */
   const userId2receipients: Record<string, User> = {};
 
+  // Force type check
   const role: Role = "MentorshipManager";
   (await db.User.findAll({
     where: { roles: { [Op.contains]: [role] } },
@@ -242,7 +243,7 @@ async function sendChatEmail(
       menteeId: room.mentee.id,
       transactional: false,
       [Op.or]: [
-        { endsAt: { [Op.gt]: moment().toISOString() } },
+        { endsAt: isOnOrAfter(moment()) },
         { endsAt: null },
       ],
     },

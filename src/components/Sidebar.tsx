@@ -116,6 +116,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
+    name: '不定期导师预约记录',
+    action: '/mentors/bookings',
+    roles: 'MentorshipManager',
+  },
+  {
     name: '全局设置',
     action: '/global',
     roles: 'MentorshipManager',
