@@ -10,7 +10,7 @@ import {
 import { trpcNext } from "../trpc";
 import { Transcript } from '../shared/Transcript';
 import { useRouter } from 'next/router';
-import invariant from 'tiny-invariant';
+import invariant from 'shared/invariant';
 import { diffInMinutes, prettifyDate, prettifyDuration } from 'shared/strings';
 import { parseQueryString } from "shared/strings";
 import Loader from 'components/Loader';
@@ -52,6 +52,9 @@ function PermittedTranscripts({ groupId }: {
 function LoadedTranscripts({ transcripts }: {
   transcripts: Transcript[]
 }) {
+  // Guaranteed by the caller
+  invariant(transcripts.length, "No transcripts");
+
   const router = useRouter();
 
   const getTranscriptAndIndex = () => {
@@ -71,7 +74,7 @@ function LoadedTranscripts({ transcripts }: {
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary which is the raw transcripts.
-    invariant(summaries.length);
+    invariant(summaries.length, "No summaries");
     const key = parseQueryString(router, "summaryKey");
     const match = summaries.filter(s => s.summaryKey == key);
     summary = match.length ? match[0] : summaries[0];

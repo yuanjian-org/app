@@ -125,8 +125,10 @@ async function sendTaskEmail(
     },
   }];
 
-  await email("d-6af19a6bdf1b4b0b80574caabdfa1a07", personalizations,
-    getBaseUrl());
+  await email([user.email], "E_114706042504", {
+    name,
+    delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
+  }, getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送待办事项邮件",
     JSON.stringify(personalizations), getBaseUrl());
@@ -200,8 +202,11 @@ async function sendKudosEmail(
     },
   }];
 
-  await email("d-cc3da26ada1a40318440dfebe5e57aa9", personalizations,
-    getBaseUrl());
+  await email([receiver.email], "E_114706274956", {
+    name: receiverName,
+    delta: message,
+    total: String((receiver.likes ?? 0) + (receiver.kudos ?? 0)),
+  }, getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件",
     JSON.stringify(personalizations), getBaseUrl());
@@ -291,34 +296,23 @@ async function sendChatEmail(
       .filter((id, i, arr) => arr.indexOf(id) === i)
       .length === 1 ? formatUserName(filtered[0].user.name, "friendly") : "多人";
 
-    const toName = formatUserName(u.name, "friendly");
-
     invariant(room.mentee, "Only mentee rooms are supported for now");
-    const personalizations = [{
-      to: {
-        email: u.email,
-        name: toName,
-      },
-      dynamicTemplateData: {
-        toName,
-        menteeName,
-        authors,
-        roomLink: `${getBaseUrl()}/mentees/${room.mentee.id}`,
-        delta: filtered.map(m => {
-          const verb = moment(m.createdAt).isAfter(timestamp) ? "新增" :
-            `更新了${prettifyDate(m.createdAt)}创建的`;
-          const truncated = m.markdown.length > 200 ?
-            m.markdown.slice(0, 200) + "..." : m.markdown;
-          return `<b>${formatUserlink(m.user)}${verb}笔记: </b>` +
-            `<br /><br />` +
-            // This is a big quotation mark.
-            `<span style="color: gray;">❝</span>` +
-            `${truncated}”`;
-        }).join("<br /><br />"),
-      },
-    }];
   
-    await email("d-443c3f57bd47425b818d52bcd32bbb08", personalizations,
-      getBaseUrl());
+    await email([u.email], "E_114702895735", {
+      menteeName,
+      authors,
+      roomLink: `${getBaseUrl()}/mentees/${room.mentee.id}`,
+      delta: filtered.map(m => {
+        const verb = moment(m.createdAt).isAfter(timestamp) ? "新增" :
+          `更新了${prettifyDate(m.createdAt)}创建的`;
+        const truncated = m.markdown.length > 200 ?
+          m.markdown.slice(0, 200) + "..." : m.markdown;
+        return `<b>${formatUserlink(m.user)}${verb}笔记: </b>` +
+          `<br /><br />` +
+          // This is a big quotation mark.
+          `<span style="color: gray;">❝</span>` +
+          `${truncated}”`;
+      }).join("<br /><br />"),
+    }, getBaseUrl());
   }));
 }

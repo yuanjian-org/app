@@ -3,7 +3,7 @@ import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
 import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
 import { SendVerificationRequestParams } from "next-auth/providers";
-import { email as sendEmail, emailRoleIgnoreError } from "../../../api/email";
+import { emailRoleIgnoreError, email } from "../../../api/email";
 import { toChineseNumber } from "../../../shared/strings";
 import {
   userAttributes,
@@ -166,20 +166,14 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
   return await NextAuth(req, res, authOptions(req));
 }
 
-async function sendVerificationRequest({ identifier: email, url, token }:
+async function sendVerificationRequest({ identifier, url, token }:
   SendVerificationRequestParams
 ) {
-  const personalizations = [{
-    to: { email },
-    dynamicTemplateData: {
-      url,
-      token,
-      tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
-    },
-  }];
-
-  await sendEmail("d-4f7625f48f1c494a9e2e708b89880c7a", personalizations,
-    getBaseUrl());
+  await email([identifier], "E_114709011649", {
+    url,
+    token,
+    tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+  }, getBaseUrl());
 }
 
 const userCache = new LRUCache<string, User>({

@@ -5,9 +5,6 @@ import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
 import invariant from "tiny-invariant";
 import sequelize from "../database/sequelize";
-import { formatUserName, formatGroupName } from "../../shared/strings";
-import nzh from 'nzh';
-import { email } from "../email";
 import { noPermissionError, notFoundError } from "../errors";
 import {
   Group,
@@ -26,25 +23,26 @@ const create = procedure
   .input(z.object({
     userIds: z.array(z.string()).min(1),
   }))
-  .mutation(async ({ ctx, input }) =>
+  .mutation(async ({ input }) =>
 {
   await sequelize.transaction(async t => {
-    const g = await createGroup(null, input.userIds, null, null, null, null, t);
-    await emailNewUsersOfGroupIgnoreError(ctx, g.id, input.userIds);
+    await createGroup(null, input.userIds, null, null, null, null, t);
   });
 });
 
 const update = procedure
   .use(authUser('GroupManager'))
   .input(zGroup)
-  .mutation(async ({ ctx, input }) =>
+  .mutation(async ({ input }) =>
 {
   const newUserIds = input.users.map(u => u.id);
-  const addedUserIds = await sequelize.transaction(async t =>
+  await sequelize.transaction(async t =>
     await updateGroup(input.id, input.name, input.public, newUserIds, t));
-  await emailNewUsersOfGroupIgnoreError(ctx, input.id, addedUserIds);
 });
 
+/**
+ * @returns The user ids that are added to the group.
+ */
 export async function updateGroup(id: string, name: string | null, 
   isPublic: boolean, userIds: string[], transaction: Transaction) 
 {
@@ -286,52 +284,4 @@ export async function createGroup(
     groupId: g.id,
   })), { transaction });
   return g;
-}
-
-async function emailNewUsersOfGroupIgnoreError(ctx: any, groupId: string, userIds: string[]) {
-  try {
-    await emailNewUsersOfGroup(ctx, groupId, userIds);
-  } catch (e) {
-    console.log('Error ignored by emailNewUsersOfGroupIgnoreError()', e);
-  }
-}
-
-async function emailNewUsersOfGroup(ctx: any, groupId: string, newUserIds: string[]) {
-  if (newUserIds.length == 0) return;
-
-  const group = await db.Group.findByPk(groupId, {
-    include: [{
-      model: db.User,
-      attributes: ['id', 'name', 'email'],
-    }]
-  });
-  if (!group) throw notFoundError('分组', groupId);
-
-  const formatNames = (names: (string | null)[]) =>
-    names.slice(0, 3).join('、') + (names.length > 3 ? `等${nzh.cn.encodeS(names.length)}人` : '');
-
-  const personalizations = newUserIds
-  // Don't send emails to self.
-  .filter(uid => uid != ctx.user.id)
-  .map(uid => {
-    const theseUsers = group.users.filter(u => u.id === uid);
-    invariant(theseUsers.length === 1);
-    const thisUser = theseUsers[0];
-
-    return {
-      to: [{
-        email: thisUser.email,
-        name: formatUserName(thisUser.name),
-      }],
-      dynamicTemplateData: {
-        name: formatUserName(thisUser.name, 'friendly'),
-        manager: ctx.user.name,
-        groupName: formatGroupName(group.name, group.users.length),
-        others: formatNames(group.users.filter(u => u.id !== uid).map(u => u.name)),
-        groupUrl: `${ctx.baseUrl}/groups/${group.id}`
-      }
-    };
-  });
-
-  await email('d-839f4554487c4f3abeca937c80858b4e', personalizations, ctx.baseUrl);
 }
