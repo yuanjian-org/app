@@ -206,6 +206,8 @@ function Editor({ roomId, message, onClose, ...rest }: {
   const prefixes = [
     "【一对一】",
     mentorMeetingMessagePrefix,
+    "【分享会】",
+    "【读书会】",
   ];
   
   return <>

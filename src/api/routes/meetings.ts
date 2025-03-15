@@ -6,7 +6,7 @@ import { createMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
-import { emailRoleIgnoreError } from 'api/email';
+import { emailRole, emailRoleIgnoreError } from 'api/email';
 import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import {
@@ -17,6 +17,7 @@ import { Op, Transaction } from 'sequelize';
 import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
+import { formatUserName } from "shared/strings";
 
 export const gracePeriodMinutes = 1;
 
@@ -100,8 +101,21 @@ const join = procedure
   });
 });
 
+/**
+ * Decline the meeting feature.
+ */
+const decline = procedure
+  .use(authUser())
+  .mutation(async ({ ctx: { user, baseUrl } }) => 
+{
+  await emailRole("MentorshipManager", "用户拒绝使用会议功能", 
+    `${formatUserName(user.name)}（用户ID: ${user.id}）拒绝使用会议功能。请与其取得联系，
+    商量替代方案。`, baseUrl);
+});
+
 export default router({
   join,
+  decline,
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {

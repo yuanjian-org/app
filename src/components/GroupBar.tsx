@@ -23,9 +23,11 @@ import {
   Tag,
   HStack,
   Tooltip,
+  VStack,
+  Heading,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import trpc from "../trpc";
+import trpc, { trpcNext } from "../trpc";
 import { MdVideocam } from 'react-icons/md';
 import Link from 'next/link';
 import { formatGroupName } from 'shared/strings';
@@ -37,6 +39,7 @@ import { Group, isOwned } from 'shared/Group';
 import { ChevronRightIcon, QuestionIcon } from '@chakra-ui/icons';
 import { publicGroupDescription } from 'pages/groups';
 import { useMyId } from 'useMe';
+import { ConsentText } from './PostLoginModels';
 
 export default function GroupBar({
   group, showSelf, showJoinButton, showTranscriptLink, abbreviateOnMobile,
@@ -103,8 +106,8 @@ export default function GroupBar({
         <Box>
           <JoinButton
             isLoading={isJoiningMeeting}
-            onClick={() => launchMeeting(group.id)}
-          >加入</JoinButton>
+            join={() => launchMeeting(group.id)}
+          />
         </Box>
       }
 
@@ -164,29 +167,106 @@ function GroupTagOrName({ group }: { group: Group }) {
   </HStack>;
 }
 
-export function JoinButton(props: ButtonProps) {
-  return <Button
-    boxShadow="md"
-    borderRadius="16px"
-    bgColor="white"
-    leftIcon={<MdVideocam />}
-    {...props}
-  >{props.children ? props.children : "加入"}</Button>;
+function JoinButton({ join, ...rest }: {
+  join: () => void,
+} & ButtonProps) {
+  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+  const consented = !!state?.meetingConsentedAt;
+  const [showConsentModal, setShowConsentModal] = useState(false);
+
+  return <>
+    <Button
+      boxShadow="md"
+      borderRadius="16px"
+      bgColor="white"
+      leftIcon={<MdVideocam />}
+      onClick={consented ? join : () => setShowConsentModal(true)}
+      {...rest}
+    >加入</Button>
+
+    {showConsentModal && <MeetingConsentModal
+      onClose={() => setShowConsentModal(false)}
+      consent={() => {
+        void refetch();
+        join();
+      }}
+    />}
+  </>;
 }
 
-export function MeetingQuotaWarning(props: {
+function MeetingConsentModal({ consent, onClose }: {
+  consent: () => void,
   onClose: () => void,
 }) {
-  return (<ModalWithBackdrop isOpen onClose={props.onClose}>
+  const [declined, setDeclined] = useState<boolean>(false);
+
+  const submit = async () => {
+    await trpc.users.setUserState.mutate({
+      meetingConsentedAt: new Date().toISOString(),
+    });
+    consent();
+    onClose();
+  };
+
+  const decline = async () => {
+    setDeclined(true);
+    await trpc.meetings.decline.mutate();
+  };
+
+  return <>
+    <ModalWithBackdrop isOpen={!declined} onClose={onClose}>
+      <ModalContent>
+        <ModalHeader>为什么会自动录制会议？</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={6} marginBottom={10} align='left'>
+            <Text>
+              您在每次加入会议时都会看到腾讯会议的自动录制提示，这是智能会议纪要{
+              }功能所需要的。但是，系统只会保存腾讯会议生成的智能纪要，而不会下载或使用{
+              }腾讯会议录制的音视频。此外，在会议结束后，您也可以修改智能纪要，删掉过于隐私{
+              }的内容。
+            </Text>
+            <Heading size='md'>声明</Heading>
+            <ConsentText />
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={decline}>拒绝使用会议</Button>
+          <Spacer />
+          <Button variant='brand' onClick={submit}>同意自动录制每次会议</Button>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+
+    <ModalWithBackdrop isOpen={declined} onClose={onClose}>
+      <ModalContent>
+        <ModalHeader> </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Text>您已拒绝使用本平台的会议功能。工作人员会与您取得联系，商量替代方案。</Text>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant='brand' onClick={onClose}>好的</Button>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  </>;
+}
+
+function MeetingQuotaWarning({ onClose }: {
+  onClose: () => void,
+}) {
+  return (<ModalWithBackdrop isOpen onClose={onClose}>
     <ModalOverlay />
     <ModalContent>
       <ModalHeader>无法加入会议</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
-        <p>抱歉，同时进行的会议数量已超过上线。请稍后再试。<br /><br />系统管理员已收到通知，会及时处理。</p>
+        <p>抱歉，同时进行的会议数量已超过上线。请稍后再试。<br /><br />
+        系统管理员已收到通知，会及时处理。</p>
       </ModalBody>
       <ModalFooter>
-        <Button onClick={props.onClose}>
+        <Button onClick={onClose}>
           确认
         </Button>
       </ModalFooter>
@@ -195,7 +275,7 @@ export function MeetingQuotaWarning(props: {
   );
 }
 
-export function UserChips({
+function UserChips({
   currentUserId,
   users,
   abbreviateOnMobile,

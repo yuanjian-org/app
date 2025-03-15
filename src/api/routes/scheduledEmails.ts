@@ -114,24 +114,15 @@ async function sendTaskEmail(
     return;
   }
 
-  const personalizations = [{
-    to: {
-      email: user.email,
-      name,
-    },
-    dynamicTemplateData: {
-      name,
-      delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
-    },
-  }];
-
-  await email([user.email], "E_114706042504", {
+  const templateData = {
     name,
     delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
-  }, getBaseUrl());
+  };
+
+  await email([user.email], "E_114706042504", templateData, getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送待办事项邮件",
-    JSON.stringify(personalizations), getBaseUrl());
+    JSON.stringify(templateData), getBaseUrl());
 }
 
 function isOnOrAfter(timestamp: Moment) {
@@ -190,26 +181,16 @@ async function sendKudosEmail(
   ].join("<br />");
   
   const receiverName = formatUserName(receiver.name, "friendly");
-  const personalizations = [{
-    to: {
-      email: receiver.email,
-      name: receiverName,
-    },
-    dynamicTemplateData: {
-      name: receiverName,
-      delta: message,
-      total: (receiver.likes ?? 0) + (receiver.kudos ?? 0),
-    },
-  }];
-
-  await email([receiver.email], "E_114706274956", {
+  const templateData = {
     name: receiverName,
     delta: message,
     total: String((receiver.likes ?? 0) + (receiver.kudos ?? 0)),
-  }, getBaseUrl());
+  };
+
+  await email([receiver.email], "E_114706274956", templateData, getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送点赞邮件",
-    JSON.stringify(personalizations), getBaseUrl());
+    JSON.stringify(templateData), getBaseUrl());
 }
 
 async function sendChatEmail(

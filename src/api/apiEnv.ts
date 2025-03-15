@@ -18,11 +18,7 @@ class ApiEnvDeprecated {
   TM_SECRET_KEY: string = process.env.TM_SECRET_KEY ?? '';
   TM_USER_IDS: string[] = (process.env.TM_USER_IDS ?? '').split(',');
 
-  SENDGRID_API_KEY: string = process.env.SENDGRID_API_KEY ?? '';
-
   WEBHOOK_TOKEN: string = process.env.WEBHOOK_TOKEN ?? '';
-
-  hasSendGrid() { return this.SENDGRID_API_KEY.length != 0; }
 
   // 'DUMMY' was used in some old development environments
   hasTencentMeeting() { return this.TM_SECRET_KEY.length != 0 && this.TM_SECRET_KEY != 'DUMMY'; }
