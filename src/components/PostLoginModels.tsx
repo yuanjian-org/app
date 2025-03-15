@@ -133,7 +133,7 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
 
     <ModalWithBackdrop isOpen={declined} onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader> </ModalHeader>
+        <ModalHeader />
         <ModalBody>
           <Text>您已拒绝继续使用，请退出登录。</Text>
         </ModalBody>

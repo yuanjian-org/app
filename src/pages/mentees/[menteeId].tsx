@@ -3,8 +3,7 @@ import { formatUserName, parseQueryString, prettifyDate, toChineseDayOfWeek } fr
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  TabList, TabPanels, Tab, TabPanel, Stack,
-  Text,
+  TabList, TabPanels, Tab, TabPanel, Text,
   HStack,
   Flex,
   SimpleGrid,
@@ -17,7 +16,7 @@ import {
   ModalCloseButton, Select,
   VStack,
   Wrap,
-  WrapItem
+  WrapItem, CardBody
 } from '@chakra-ui/react';
 import Applicant from 'components/Applicant';
 import TabsWithUrlParam from 'components/TabsWithUrlParam';
@@ -42,6 +41,7 @@ import { MdEdit } from 'react-icons/md';
 import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import _ from 'lodash';
 import { IoMdCalendar } from 'react-icons/io';
+import { ResponsiveCard } from 'components/ResponsiveCard';
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -140,7 +140,7 @@ function MenteeTabs({ mentee, mentorships }: {
 
     <TabPanels>
       {sorted.map(m =>
-        <TabPanel key={m.id}>
+        <TabPanel key={m.id} px={0} pt={sectionSpacing}>
           <MentorshipPanel mentorship={m} />
         </TabPanel>
       )}
@@ -185,63 +185,68 @@ function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
 function MentorshipPanel({ mentorship: m }: {
   mentorship: Mentorship,
 }) {
+  return <SimpleGrid
+    templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
+    spacing={sectionSpacing}
+  >
+    <GridItem>
+      <VStack align="stretch" gap={sectionSpacing}>
+        <MentorshipSummaryCard m={m} />
+
+        <ChatRoom menteeId={m.mentee.id} />
+      </VStack>
+    </GridItem>
+
+    <GridItem>
+      <Transcripts group={m.group} />
+    </GridItem>
+  </SimpleGrid>;
+}
+
+function MentorshipSummaryCard({ m }: {
+  m: Mentorship,
+}) {
   const myId = useMyId();
 
-  return <Stack spacing={sectionSpacing} marginTop={sectionSpacing}>
-    {m.transactional && m.endsAt && <HStack >
-      <MentorshipStatusIcon m={m} />
+  return <ResponsiveCard>
+    <CardBody>
+      <VStack align="stretch" gap={sectionSpacing}>
+        {m.transactional && m.endsAt && <HStack>
+          <MentorshipStatusIcon m={m} />
 
-      {/* After endsAt expires, listMentorshipsForMentee should not return
-       this mentorship anymore, so we don't need to handle this case. */}
+          {/* After endsAt expires, listMentorshipsForMentee should not return
+          this mentorship anymore, so we don't need to handle this case. */}
 
-      <Text>此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
-        {RoleProfiles.MentorshipManager.displayName}。</Text>
-    </HStack>}
+          <Text>
+            此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
+            {RoleProfiles.MentorshipManager.displayName}。
+          </Text>
+        </HStack>}
 
-    {!m.transactional && m.endsAt && <HStack >
-      <MentorshipStatusIcon m={m} />
-      <Text>一对一师生关系已于{prettifyDate(m.endsAt)}结束。</Text>
-    </HStack>}
-
-    <SimpleGrid
-      templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
-      spacing={sectionSpacing}
-    >
-      <GridItem>
-        <Flex
-          direction="column"
+        {!m.transactional && m.endsAt && <HStack >
+          <MentorshipStatusIcon m={m} />
+          <Text>一对一师生关系已于{prettifyDate(m.endsAt)}结束。</Text>
+        </HStack>}
+      
+        {(m.mentor.id === myId || !m.transactional && !m.endsAt) && <SimpleGrid
+          templateColumns={{ base: "1fr", "2xl": "1fr auto" }}
+          alignItems="center"
           gap={sectionSpacing}
-          paddingRight={{ base: 0, [breakpoint]: sectionSpacing }}
-        >          
-          <SimpleGrid
-            templateColumns={{ base: "1fr", "2xl": "1fr auto" }}
-            alignItems="center"
-            gap={sectionSpacing}
-            mb={sectionSpacing}
-          >
-            {m.mentor.id === myId && <GroupBar
-              group={m.group}
-              showJoinButton
-              showGroupName={false}
-            />}
+          my={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
+        >
+          {m.mentor.id === myId && <GroupBar
+            group={m.group}
+            showJoinButton
+            showGroupName={false}
+          />}
 
-            {!m.transactional && !m.endsAt && 
-              <MentorshipScheduleControl mentorship={m} />}
-          </SimpleGrid>
+          {!m.transactional && !m.endsAt && 
+            <MentorshipScheduleControl mentorship={m} />}
+        </SimpleGrid>}
 
-          <ChatRoom
-            menteeId={m.mentee.id}
-            newMessageButtonLabel="新内部笔记"
-          />
-          <Text size="sm" color="gray">内部笔记仅对导师可见。</Text>
-        </Flex>
-      </GridItem>
-      <GridItem>
-        <Transcripts group={m.group} />
-      </GridItem>
-    </SimpleGrid>
-
-  </Stack>;
+      </VStack>
+    </CardBody>
+  </ResponsiveCard>;
 }
 
 function MentorshipScheduleControl({ mentorship: m }: {
@@ -259,7 +264,7 @@ function MentorshipScheduleControl({ mentorship: m }: {
 
     {!s && <Link onClick={() => setEditing(true)}>设置每月通话时间</Link>}
 
-    {<Link onClick={() => setEditing(true)}><MdEdit /></Link>}
+    <Link color="gray" ms={2} onClick={() => setEditing(true)}><MdEdit /></Link>
 
     {editing && <MentorshipScheduleEditor
       mentorship={m} 

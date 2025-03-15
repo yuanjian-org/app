@@ -18,13 +18,12 @@ import {
   LinkBox,
   LinkOverlay,
   AvatarGroup,
-  ButtonProps,
   SimpleGridProps,
   Tag,
   HStack,
   Tooltip,
   VStack,
-  Heading,
+  Heading
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import trpc, { trpcNext } from "../trpc";
@@ -88,7 +87,7 @@ export default function GroupBar({
   return (
     <SimpleGrid 
       columns={(showJoinButton ? 2 : 1)} 
-      templateColumns={(showJoinButton ? '6em ' : '') + '1fr'}
+      templateColumns={(showJoinButton ? '5.5em ' : '') + '1fr'}
       spacing={4}
       {...rest}
     >
@@ -167,21 +166,21 @@ function GroupTagOrName({ group }: { group: Group }) {
   </HStack>;
 }
 
-function JoinButton({ join, ...rest }: {
+function JoinButton({ join, isLoading }: {
   join: () => void,
-} & ButtonProps) {
+  isLoading?: boolean,
+}) {
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const consented = !!state?.meetingConsentedAt;
   const [showConsentModal, setShowConsentModal] = useState(false);
 
   return <>
     <Button
-      boxShadow="md"
       borderRadius="16px"
       bgColor="white"
       leftIcon={<MdVideocam />}
       onClick={consented ? join : () => setShowConsentModal(true)}
-      {...rest}
+      isLoading={isLoading}
     >加入</Button>
 
     {showConsentModal && <MeetingConsentModal
@@ -216,7 +215,7 @@ function MeetingConsentModal({ consent, onClose }: {
   return <>
     <ModalWithBackdrop isOpen={!declined} onClose={onClose}>
       <ModalContent>
-        <ModalHeader>为什么会自动录制会议？</ModalHeader>
+        <ModalHeader>自动录制</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6} marginBottom={10} align='left'>
@@ -240,7 +239,7 @@ function MeetingConsentModal({ consent, onClose }: {
 
     <ModalWithBackdrop isOpen={declined} onClose={onClose}>
       <ModalContent>
-        <ModalHeader> </ModalHeader>
+        <ModalHeader />
         <ModalCloseButton />
         <ModalBody>
           <Text>您已拒绝使用本平台的会议功能。工作人员会与您取得联系，商量替代方案。</Text>

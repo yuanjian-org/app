@@ -1,11 +1,12 @@
 import {
-  Card,
   CardBody,
   Select,
   Button,
   Spacer,
   Flex,
-  Text
+  Text,
+  Heading,
+  CardHeader
 } from '@chakra-ui/react';
 import { trpcNext } from "../trpc";
 import { Transcript } from '../shared/Transcript';
@@ -17,10 +18,10 @@ import Loader from 'components/Loader';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
 import replaceUrlParam from 'shared/replaceUrlParam';
-import { breakpoint } from 'theme/metrics';
 import MarkdownStyler from './MarkdownStyler';
 import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
 import useMe from 'useMe';
+import { ResponsiveCard } from './ResponsiveCard';
 
 export default function Transcripts({ group }: {
   group: Group,
@@ -28,7 +29,14 @@ export default function Transcripts({ group }: {
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
   } else {
-    return <PermittedTranscripts groupId={group.id} />;
+    return <ResponsiveCard>
+      <CardHeader>
+        <Heading size="sm">智能会议纪要</Heading>
+      </CardHeader>
+      <CardBody>
+        <PermittedTranscripts groupId={group.id} />
+      </CardBody>
+    </ResponsiveCard>;
   }
 }
 
@@ -46,7 +54,7 @@ function PermittedTranscripts({ groupId }: {
 
   return !data ? <Loader /> 
     : filtered.length ? <LoadedTranscripts transcripts={filtered} />
-    : <Text color="gray">会议摘要将在会议结束后一小时内显示在这里。</Text>;
+    : <Text color="gray">会议纪要将在会议结束后一小时内显示在这里。</Text>;
 }
 
 function LoadedTranscripts({ transcripts }: {
@@ -82,40 +90,61 @@ function LoadedTranscripts({ transcripts }: {
 
   return (
     <Flex direction="column" gap={sectionSpacing}>
-      <Flex>
-        <Button variant="ghost" leftIcon={<ChevronLeftIcon />}
+      <Flex gap={componentSpacing}>
+        <Button 
+          variant="ghost"
+          leftIcon={<ChevronLeftIcon />}
           isDisabled={transcriptIndex == transcripts.length - 1}
           onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
+
         <Spacer />
-        <Flex direction={{ base: "column", [breakpoint]: "row" }} gap={componentSpacing}>
-          <Select value={transcript.transcriptId} 
-            onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
-          >
-            {transcripts.map((t, idx) => <option key={t.transcriptId} value={t.transcriptId}>
-              {`${prettifyDate(t.startedAt)}，${prettifyDuration(t.startedAt, t.endedAt)}${!idx ? "（最近通话）" : ""}`}
-            </option>)}
-          </Select>
-          {summaries && summary && 
-            <Select value={summary.summaryKey}
+
+        {/* <Flex
+          direction={{ base: "column", [breakpoint]: "row" }} 
+          gap={componentSpacing}
+        > */}
+
+        <Select
+          value={transcript.transcriptId}
+          maxWidth="300px"
+          onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
+        >
+          {transcripts.map((t, idx) => <option
+            key={t.transcriptId} 
+            value={t.transcriptId}
+            >
+              {prettifyDate(t.startedAt)}，
+              {prettifyDuration(t.startedAt, t.endedAt)}
+              {!idx ? "（最近通话）" : ""}
+          </option>)}
+        </Select>
+
+          {/* {summaries && summary && 
+            <Select
+              value={summary.summaryKey}
               onChange={ev => replaceUrlParam(router, "summaryKey", ev.target.value)}
             >
-              {summaries.map(s => <option key={s.summaryKey} value={s.summaryKey}>{s.summaryKey}</option>)}
+              {summaries.map(s => <option
+                key={s.summaryKey} 
+                value={s.summaryKey}
+              >{s.summaryKey}</option>)}
             </Select>
           }
-        </Flex>
+        </Flex> */}
+
         <Spacer />
-        <Button variant="ghost" rightIcon={<ChevronRightIcon />}
+
+        <Button
+          variant="ghost" 
+          rightIcon={<ChevronRightIcon />}
           isDisabled={transcriptIndex == 0}
-          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex - 1].transcriptId)}        
+          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex - 1].transcriptId)}
         >后一次</Button>
       </Flex>
+
       {!summary ? <Loader /> :
-        <Card variant="outline" backgroundColor="backgroundLight">
-          <CardBody>
-            <MarkdownStyler content={summary.summary} />
-          </CardBody>
-        </Card>
+          <MarkdownStyler content={summary.summary} />
       }
     </Flex>
   );
