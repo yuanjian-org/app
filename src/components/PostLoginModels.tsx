@@ -90,6 +90,18 @@ function isConsented(consentedAt: DateColumn | undefined) {
     consentTextLastUpdatedAt.getTime();
 }
 
+export function ConsentText() {
+  return <>
+    <Text>
+      为确保个人隐私，社会导师服务平台严格限制用户数据的访问权限。只有用{
+      }户本人和少量已签署保密协议的平台工作人员能够访问这些数据。通过【用户菜单】›{
+      }【账号与安全】›【谁能看到我的数据】，您可以查看所有授权人员的名单。
+    </Text>
+
+    <Text>本平台在未经用户许可的情况下，不会将用户数据提供给任何第三方。</Text>
+  </>;
+}
+
 function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
 
@@ -108,13 +120,7 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
         <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
         <ModalBody>
           <VStack spacing={6} marginBottom={10} align='left'>
-            <Text>
-              为确保个人隐私，社会导师服务平台严格限制自动会议摘要的访问权限。只有用{
-              }户本人和少量已签署保密协议的平台工作人员能够访问这些数据。通过用户菜单 ›{
-              }【账号与安全】›【谁能看到我的数据】，您可以查看所有授权人员的名单。
-            </Text>
-
-            <Text>本平台在未经用户许可的情况下，不会将上述数据提供给任何第三方。</Text>
+            <ConsentText />
           </VStack>
         </ModalBody>
         <ModalFooter>

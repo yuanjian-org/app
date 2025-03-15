@@ -14,5 +14,8 @@ export const zUserState = z.object({
   handbookExam: zDateColumn.optional(),
   // 《学生通信原则》评测
   commsExam: zDateColumn.optional(),
+
+  // The date when the user first agreed to join meetings using the website
+  meetingConsentedAt: zDateColumn.optional(),
 });
 export type UserState = z.TypeOf<typeof zUserState>;
