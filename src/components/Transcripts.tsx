@@ -81,10 +81,10 @@ function LoadedTranscripts({ transcripts }: {
 
   let summary = null;
   if (summaries) {
-    // Every transcript should have at least one summary which is the raw transcripts.
+    // Every transcript should have at least one summary
     invariant(summaries.length, "No summaries");
     const key = parseQueryString(router, "summaryKey");
-    const match = summaries.filter(s => s.summaryKey == key);
+    const match = summaries.filter(s => s.key == key);
     summary = match.length ? match[0] : summaries[0];
   }
 
@@ -95,7 +95,8 @@ function LoadedTranscripts({ transcripts }: {
           variant="ghost"
           leftIcon={<ChevronLeftIcon />}
           isDisabled={transcriptIndex == transcripts.length - 1}
-          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex + 1].transcriptId)}
+          onClick={() => replaceUrlParam(router, "transcriptId", 
+            transcripts[transcriptIndex + 1].transcriptId)}
         >前一次</Button>
 
         <Spacer />
@@ -122,13 +123,13 @@ function LoadedTranscripts({ transcripts }: {
 
           {/* {summaries && summary && 
             <Select
-              value={summary.summaryKey}
+              value={summary.key}
               onChange={ev => replaceUrlParam(router, "summaryKey", ev.target.value)}
             >
               {summaries.map(s => <option
-                key={s.summaryKey} 
-                value={s.summaryKey}
-              >{s.summaryKey}</option>)}
+                key={s.key} 
+                value={s.key}
+              >{s.key}</option>)}
             </Select>
           }
         </Flex> */}
@@ -139,12 +140,13 @@ function LoadedTranscripts({ transcripts }: {
           variant="ghost" 
           rightIcon={<ChevronRightIcon />}
           isDisabled={transcriptIndex == 0}
-          onClick={() => replaceUrlParam(router, "transcriptId", transcripts[transcriptIndex - 1].transcriptId)}
+          onClick={() => replaceUrlParam(router, "transcriptId",
+            transcripts[transcriptIndex - 1].transcriptId)}
         >后一次</Button>
       </Flex>
 
       {!summary ? <Loader /> :
-          <MarkdownStyler content={summary.summary} />
+          <MarkdownStyler content={summary.markdown} />
       }
     </Flex>
   );

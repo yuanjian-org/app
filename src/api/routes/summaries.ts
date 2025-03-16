@@ -19,7 +19,7 @@ const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 export interface SummaryDescriptor {
   groupId: string,
   transcriptId: string,
-  summaryKey: string,
+  key: string,
   startedAt: number,
   endedAt: number,
   url: string,
@@ -70,7 +70,7 @@ export async function downloadSummaries() {
 async function saveSummary(desc: SummaryDescriptor, summary: string) 
 {
   let formatted: string;
-  if (desc.summaryKey == AI_MINUTES_SUMMARY_KEY) {
+  if (desc.key == AI_MINUTES_SUMMARY_KEY) {
     formatted = formatSpeakerStats(desc.speakerStats) +
       formatMeetingMinutes(summary);
   } else {
@@ -85,8 +85,8 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
   });
   await db.Summary.create({
     transcriptId: desc.transcriptId,
-    summaryKey: desc.summaryKey,
-    summary: formatted,
+    key: desc.key,
+    markdown: formatted,
   });  
 }
 
@@ -176,7 +176,7 @@ async function findMissingSummariesforTmUser(tmUserId: string,
             .map(addr => descs.push({
               groupId: history.groupId,
               transcriptId,
-              summaryKey: AI_MINUTES_SUMMARY_KEY, 
+              key: AI_MINUTES_SUMMARY_KEY, 
               speakerStats,
               url: addr.download_address,
               startedAt,
@@ -187,12 +187,12 @@ async function findMissingSummariesforTmUser(tmUserId: string,
     }));
 }
 
-async function hasSummary(transcriptId: string, summaryKey: string) {
+async function hasSummary(transcriptId: string, key: string) {
   const ret = await db.Summary.count({
-    where: { transcriptId, summaryKey, }
+    where: { transcriptId, key, }
   }) > 0;
   if (ret) {
-    console.log(`Ignoring existing ${summaryKey} summary for transcript` +
+    console.log(`Ignoring existing ${key} summary for transcript` +
       ` "${transcriptId}"`);
   }
   return ret;
