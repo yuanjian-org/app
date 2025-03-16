@@ -22,26 +22,52 @@ import MarkdownStyler from './MarkdownStyler';
 import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
 import useMe from 'useMe';
 import { ResponsiveCard } from './ResponsiveCard';
+import { MdEdit } from 'react-icons/md';
+import { useState } from 'react';
+import { Summary } from 'shared/Summary';
+import SummaryEditor from './SummaryEditor';
 
 export default function Transcripts({ group }: {
   group: Group,
 }) {
+  const [currentSummary, setCurrentSummary] = useState<Summary | null>(null);
+  const [editing, setEditing] = useState(false);
+
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
   } else {
     return <ResponsiveCard>
       <CardHeader>
-        <Heading size="sm">智能会议纪要</Heading>
+        <Flex justify="space-between">
+          <Heading size="sm">智能会议纪要</Heading>
+
+          {currentSummary && <Button
+            leftIcon={<MdEdit />}
+            onClick={() => setEditing(true)}
+          >
+            编辑
+          </Button>}
+
+          {editing && currentSummary && <SummaryEditor
+            summary={currentSummary}
+            onClose={() => setEditing(false)}
+          />}
+
+        </Flex>
       </CardHeader>
       <CardBody>
-        <PermittedTranscripts groupId={group.id} />
+        <PermittedTranscripts
+          groupId={group.id} 
+          setCurrentSummary={setCurrentSummary} 
+        />
       </CardBody>
     </ResponsiveCard>;
   }
 }
 
-function PermittedTranscripts({ groupId }: {
+function PermittedTranscripts({ groupId, setCurrentSummary }: {
   groupId: string,
+  setCurrentSummary: (s: Summary | null) => void,
 }) {
   const { data } = trpcNext.transcripts.list.useQuery({ groupId });
 
@@ -53,12 +79,16 @@ function PermittedTranscripts({ groupId }: {
   const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
 
   return !data ? <Loader /> 
-    : filtered.length ? <LoadedTranscripts transcripts={filtered} />
+    : filtered.length ? <LoadedTranscripts
+        transcripts={filtered}
+        setCurrentSummary={setCurrentSummary}
+      />
     : <Text color="gray">会议纪要将在会议结束后一小时内显示在这里。</Text>;
 }
 
-function LoadedTranscripts({ transcripts }: {
-  transcripts: Transcript[]
+function LoadedTranscripts({ transcripts, setCurrentSummary }: {
+  transcripts: Transcript[],
+  setCurrentSummary: (s: Summary | null) => void,
 }) {
   // Guaranteed by the caller
   invariant(transcripts.length, "No transcripts");
@@ -87,6 +117,7 @@ function LoadedTranscripts({ transcripts }: {
     const match = summaries.filter(s => s.key == key);
     summary = match.length ? match[0] : summaries[0];
   }
+  setCurrentSummary(summary);
 
   return (
     <Flex direction="column" gap={sectionSpacing}>

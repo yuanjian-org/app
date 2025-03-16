@@ -1,6 +1,8 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
+import db from "../database/db";
+import { Op } from "sequelize";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -44,31 +46,16 @@ async function migrateSchema() {
   await sequelize.query(`
     DO $$ 
     BEGIN
-      IF EXISTS (
+      IF NOT EXISTS (
         SELECT 1 
         FROM information_schema.columns 
         WHERE table_name = 'Summaries'
-        AND column_name = 'summary'
+        AND column_name = 'initialLength'
       ) THEN
         ALTER TABLE "Summaries"
-        ALTER COLUMN "summary" TYPE TEXT;
+        ADD COLUMN "initialLength" INTEGER DEFAULT 0;
         ALTER TABLE "Summaries"
-        RENAME COLUMN "summary" TO "markdown";
-      END IF;
-    END $$;
-  `);
-
-  await sequelize.query(`
-    DO $$ 
-    BEGIN
-      IF EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = 'Summaries'
-        AND column_name = 'summaryKey'
-      ) THEN
-        ALTER TABLE "Summaries"
-        RENAME COLUMN "summaryKey" TO "key";
+        ADD COLUMN "deletedLength" INTEGER DEFAULT 0;
       END IF;
     END $$;
   `);
@@ -78,5 +65,20 @@ async function migrateSchema() {
 
 async function migrateData() {
   console.log("Migrating DB data...");
+
+  await sequelize.transaction(async (transaction) => {
+    const summaries = await db.Summary.findAll({ 
+      where: {
+        initialLength: { [Op.is]: null },
+      },
+      transaction
+     });
+    for (const s of summaries) {
+      s.initialLength = s.markdown.length;
+      s.deletedLength = 0;
+      await s.save({ transaction });
+    }
+  });
+
   await Promise.resolve();
 }
