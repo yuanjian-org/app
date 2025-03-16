@@ -22,7 +22,10 @@ export default function SummaryEditor({ summary, onClose }: {
   const [saving, setSaving] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const { deleted, allowed } = getDeletionInfo(summary, markdown);
+  const { deleted, totalDeletedLength, allowed } = getDeletionInfo(summary,
+    markdown);
+  const deletedRatio = (totalDeletedLength / summary.initialLength * 100)
+    .toFixed(1);
 
   const isMobile = useMobile();
   const utils = trpcNext.useContext();
@@ -56,8 +59,14 @@ export default function SummaryEditor({ summary, onClose }: {
         <VStack align='start' spacing={componentSpacing}>
           <Text>
             ⚠️ 因合规性的要求，被删除的纪要文字会以<b>完全匿名</b>的方式保存在系统后台。{
-            }同时，累计删除字数不得超过原始纪要总字数的 <b>{maxDeletionRatio * 100}%</b>。
-            <Link onClick={() => setShowDeleted(true)}>查看本次删除的内容</Link>
+            }同时，累计删除字数不得超过总字数的 <b>{maxDeletionRatio * 100}%</b>。
+            <Link 
+              onClick={() => setShowDeleted(true)}
+              color={allowed ? undefined : 'red'}
+            >
+              累计删除：
+              <b>{deletedRatio}%</b>
+            </Link>
           </Text>
 
           {showDeleted && (
@@ -79,7 +88,7 @@ export default function SummaryEditor({ summary, onClose }: {
         <HStack w="full" gap={componentSpacing}>
           {!allowed && (
             <Text color="red">
-              累计删除字数超过原始总字数的 {maxDeletionRatio * 100}%。请
+              累计删除过多。请
               {isMobile ? "摇摇手机" : `按 ${cmdOrCtrlChar()} + Z `}恢复被删的文字。
             </Text>
           )}
@@ -105,12 +114,12 @@ function DeletedContentModal({ deleted, onClose }: {
 
   return <ModalWithBackdrop isOpen onClose={onClose} size="4xl">
     <ModalContent>
-      <ModalHeader>待删除内容</ModalHeader>
+      <ModalHeader>本次编辑待删除内容</ModalHeader>
       <ModalCloseButton />
       <ModalBody>
         <VStack align='start' spacing={componentSpacing}>
           <Text fontWeight="bold">
-            保存本次修改后，以下内容将从纪要中删除，并以匿名地方式保存在系统后台：
+            保存本次编辑后，以下内容将从纪要中删除，并以匿名的方式保存在系统后台：
           </Text>
 
           {!deleted.length && <Text>（尚没有删除任何内容）</Text>}
