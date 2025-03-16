@@ -63,7 +63,7 @@ export default function TasksCard() {
           <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
             全部已读
           </Link>
-          <LinkDivider  {...redDotTransitionProps(hasUnread)} />
+          <LinkDivider {...redDotTransitionProps(hasUnread)} />
           <Link onClick={() => setIncludeDone(!includeDone)}>
             {includeDone ? "隐藏已完成" : "显示已完成"}
           </Link>

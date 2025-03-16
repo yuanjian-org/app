@@ -9,9 +9,12 @@ import {
   TextareaProps,
   VStack,
   Select,
-  StackProps,
   useBreakpointValue,
-  Link
+  Link,
+  Heading,
+  CardHeader,
+  CardBody,
+  Flex
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
 import { ChatMessage } from 'shared/ChatMessage';
@@ -29,16 +32,14 @@ import { SmallGrayText } from './SmallGrayText';
 import moment, { Moment } from 'moment';
 import RedDot, { redDotTransitionProps } from './RedDot';
 import Autosaver from './Autosaver';
+import { ResponsiveCard } from './ResponsiveCard';
 import { useMyId } from 'useMe';
 
 export default function Room({
   menteeId,
-  newMessageButtonLabel = "新消息",
-  ...rest
 }: {
   menteeId: string,
-  newMessageButtonLabel?: string,
-} & StackProps) {
+}) {
   const utils = trpcNext.useContext();
 
   const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
@@ -60,46 +61,54 @@ export default function Room({
     setHasUnread(false);
   }, [menteeId, room, utils]);
 
-  return !room ? <Loader /> : <VStack
-    spacing={paragraphSpacing * 1.5}
-    align="start"
-    maxWidth="800px"
-    {...rest}
-  >
-    {editing ? <Editor
-      roomId={room.id}
-      onClose={() => setEditing(false)}
-      marginTop={componentSpacing}
-    />
-    :
-    <HStack width="100%">
-      <Button
-        variant="outline"
-        leftIcon={<AddIcon />}
-        onClick={() => setEditing(true)}
+  return !room ? <Loader /> : <ResponsiveCard>
+    <CardHeader>
+      <Flex justify="space-between">
+        <Heading size="sm" position="relative">
+          内部笔记
+          <UnreadChatMessagesRedDot menteeId={menteeId} />
+        </Heading>
+        
+        <HStack spacing={componentSpacing} fontSize="sm">
+          <Link
+            onClick={markAsRead}
+            {...redDotTransitionProps(hasUnread)}
+          >
+            全部已读
+          </Link>
+
+          {!editing && <Button
+            leftIcon={<AddIcon />}
+            onClick={() => setEditing(true)}
+          >
+            新建
+          </Button>}
+        </HStack>
+      </Flex>
+    </CardHeader>
+
+    <CardBody>
+      <VStack
+        spacing={paragraphSpacing * 1.5}
+        align="start"
       >
-        {newMessageButtonLabel}
-      </Button>
+        {editing && <Editor
+          roomId={room.id}
+          onClose={() => setEditing(false)}
+        />}
 
-      <Spacer />
+        {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))
+        .map(m => <Message
+          key={m.id}
+          message={m}
+          lastReadAt={moment(lastReadAt)}
+          setHasUnread={() => setHasUnread(true)} 
+        />)}
 
-      <Link
-        fontSize="sm"
-        onClick={markAsRead}
-        {...redDotTransitionProps(hasUnread)}
-      >
-        全部已读
-      </Link>
-    </HStack>}
-
-    {room.messages.sort((a, b) => compareDate(b.createdAt, a.createdAt))
-    .map(m => <Message
-      key={m.id}
-      message={m}
-      lastReadAt={moment(lastReadAt)}
-      setHasUnread={() => setHasUnread(true)} 
-    />)}
-  </VStack>;
+        <Text size="sm" color="gray">内部笔记仅对导师可见。</Text>
+      </VStack>
+    </CardBody>
+  </ResponsiveCard>;
 }
 
 function Message({ message: m, lastReadAt, setHasUnread }: {
@@ -138,7 +147,7 @@ function Message({ message: m, lastReadAt, setHasUnread }: {
 
         {!editing && myId == m.user.id && <>
           <Spacer />
-          <Icon as={MdEdit} cursor="pointer" onClick={() => setEditing(true)} />
+          <Link color="gray" onClick={() => setEditing(true)}><MdEdit /></Link>
         </>}
       </HStack>
 
