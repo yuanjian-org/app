@@ -11,7 +11,7 @@ export const zSummary = z.object({
 
 export type Summary = z.TypeOf<typeof zSummary>;
 
-export const maxDeletionRatio = 0.15;
+export const maxDeletionRatio = 0.20;
 
 export function getDeletionInfo(old: Summary, edited: string) {
   const diff = diffWords(old.markdown, edited, { ignoreCase: true });
