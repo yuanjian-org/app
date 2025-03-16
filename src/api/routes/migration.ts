@@ -2,7 +2,6 @@ import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 import db from "../database/db";
-import { Op } from "sequelize";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -69,7 +68,7 @@ async function migrateData() {
   await sequelize.transaction(async (transaction) => {
     const summaries = await db.Summary.findAll({ 
       where: {
-        initialLength: { [Op.is]: null },
+        initialLength: 0,
       },
       transaction
      });
