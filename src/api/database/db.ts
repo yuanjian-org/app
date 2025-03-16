@@ -30,6 +30,7 @@ import MeetingSlot from "./models/MeetingSlot";
 import MeetingHistory from "./models/MeetingHistory";
 import MatchFeedback from "./models/MatchFeedback";
 import GlobalConfig from "./models/GlobalConfig";
+import DeletedSummary from "./models/DeletedSummary";
 
 const db = {
   Mentorship,
@@ -60,6 +61,7 @@ const db = {
   Task,
   MatchFeedback,
   GlobalConfig,
+  DeletedSummary,
 };
 
 export default db;

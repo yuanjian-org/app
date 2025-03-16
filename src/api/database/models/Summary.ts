@@ -6,7 +6,7 @@ import {
   Model,
   PrimaryKey
 } from "sequelize-typescript";
-import { STRING, TEXT } from "sequelize";
+import { STRING, TEXT, INTEGER } from "sequelize";
 import Transcript from "./Transcript";
 
 @Table({
@@ -27,6 +27,18 @@ class Summary extends Model {
 
   @Column(TEXT)
   markdown: string;
+
+  /**
+   * initialLength and deletedLength are used to track the number of characters
+   * deleted from the original summary. We only allow a small percentage of
+   * characters to be deleted for regulatory reasons. Deleted characters are
+   * stored anonymously in the DeletedSummary model.
+   */
+  @Column(INTEGER)
+  initialLength: number;
+
+  @Column(INTEGER)
+  deletedLength: number;
 
   /**
    * Associations

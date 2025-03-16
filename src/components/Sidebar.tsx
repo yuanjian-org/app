@@ -121,6 +121,11 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: 'MentorshipManager',
   },
   {
+    name: '已删除纪要文字',
+    action: '/deleted',
+    roles: 'MentorshipManager',
+  },
+  {
     name: '全局设置',
     action: '/global',
     roles: 'MentorshipManager',

@@ -38,6 +38,7 @@ import { MentorSelection } from 'shared/MentorSelection';
 import useMobile from 'useMobile';
 import LinkDivider from './LinkDivider';
 import { redDotTransitionProps } from './RedDot';
+import { cmdOrCtrlChar, isBrowserOnMac } from 'macOrWin';
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -77,19 +78,17 @@ export function FullTextSearchBox({
   setValue: (value: string) => void,
   narrow?: boolean,
 } & InputGroupProps) {
-  const isMac = typeof navigator !== 'undefined' &&
-    /macOS|Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
-
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const hotKey = useBreakpointValue({
     base: "", 
-    md: (isMac ? "⌘" : "Ctrl") + "+F "
+    md: cmdOrCtrlChar() + "+F "
   });
 
   useEffect(() => {
     const onKeydown = (event: KeyboardEvent) => {
-      if ((isMac ? event.metaKey : event.ctrlKey) && event.key === 'f') {
+      if ((isBrowserOnMac() ? event.metaKey : event.ctrlKey) &&
+        event.key === 'f') {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -98,7 +97,7 @@ export function FullTextSearchBox({
     return () => {
       window.removeEventListener('keydown', onKeydown);
     };
-  }, [searchInputRef, isMac]);  
+  }, [searchInputRef]);  
 
   return <InputGroup maxW={narrow ? "300px" : undefined} {...inputGroupProps}>
     <InputLeftElement><SearchIcon color="gray" /></InputLeftElement>

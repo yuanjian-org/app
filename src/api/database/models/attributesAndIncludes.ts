@@ -47,7 +47,8 @@ export const transcriptAttributes = ["transcriptId", "startedAt", "endedAt"];
  * Summary
  */
 
-export const summaryAttributes = ['transcriptId', 'key', 'markdown'];
+export const summaryAttributes = ['transcriptId', 'key', 'markdown',
+  'initialLength', 'deletedLength'];
 
 /**
  * Mentorship

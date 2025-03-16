@@ -5,14 +5,15 @@ import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
-import { zSummary } from "shared/Summary";
+import { getDeletionInfo, zSummary } from "shared/Summary";
 import { SpeakerStats } from 'api/TencentMeeting';
-import { notFoundError } from "api/errors";
+import { generalBadRequestError, notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
 import formatMeetingMinutes from "./formatMeetingMinutes";
 import { Op } from "sequelize";
 import moment from "moment";
+import sequelize from "api/database/sequelize";
 
 const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 
@@ -41,7 +42,7 @@ const list = procedure
     }]
   });
 
-  if (!t) throw notFoundError("会议转录", transcriptId);
+  if (!t) throw notFoundError("会议纪要", transcriptId);
 
   checkPermissionForGroupHistory(ctx.user, t.group);
 
@@ -51,8 +52,63 @@ const list = procedure
   });
 });
 
+const update = procedure
+  .use(authUser())
+  .input(z.object({
+    transcriptId: z.string(),
+    key: z.string(),
+    markdown: z.string(),
+  }))
+  .mutation(async ({ input: { transcriptId, key, markdown } }) =>
+{
+  // TODO: Check permission
+
+  await sequelize.transaction(async transaction => {
+    const s = await db.Summary.findOne({
+      where: { transcriptId, key },
+      attributes: summaryAttributes,
+      transaction,
+    });
+    if (!s) throw notFoundError("会议纪要", `${transcriptId}, ${key}`);
+
+    const { deleted, totalDeletedLength, allowed } = getDeletionInfo(s, markdown);
+    if (!allowed) throw generalBadRequestError(`累计删除字数过多。`);
+
+    s.markdown = markdown;
+    s.deletedLength = totalDeletedLength;
+    await s.save({ transaction });
+
+    // Use a fixed date to avoid deanonymization.
+    const fixed = new Date('2000-01-01');
+    await db.DeletedSummary.bulkCreate(deleted.map(d => ({ 
+      text: d,
+      createdAt: fixed,
+      updatedAt: fixed,
+    })),
+    { transaction });
+  });
+});
+
+const listDeleted = procedure
+  .use(authUser("MentorshipManager"))
+  .output(z.array(z.object({
+    id: z.number(),
+    text: z.string(),
+  })))
+  .query(async () =>
+{
+  return (await db.DeletedSummary.findAll({
+    attributes: ["id", "text"],
+  })).map(d => ({
+    id: d.id,
+    text: d.text,
+  }));
+});
+
 export default router({
   list,
+  update,
+  listDeleted,
 });
 
 /**
@@ -87,6 +143,8 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
     transcriptId: desc.transcriptId,
     key: desc.key,
     markdown: formatted,
+    initialLength: formatted.length,
+    deletedLength: 0,
   });  
 }
 
