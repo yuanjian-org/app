@@ -40,6 +40,39 @@ async function purgeOldData() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
+
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'Summaries'
+        AND column_name = 'summary'
+      ) THEN
+        ALTER TABLE "Summaries"
+        ALTER COLUMN "summary" TYPE TEXT;
+        ALTER TABLE "Summaries"
+        RENAME COLUMN "summary" TO "markdown";
+      END IF;
+    END $$;
+  `);
+
+  await sequelize.query(`
+    DO $$ 
+    BEGIN
+      IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'Summaries'
+        AND column_name = 'summaryKey'
+      ) THEN
+        ALTER TABLE "Summaries"
+        RENAME COLUMN "summaryKey" TO "key";
+      END IF;
+    END $$;
+  `);
+
   await Promise.resolve();
 }
 

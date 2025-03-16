@@ -141,7 +141,7 @@ async function generateSummaries(users: TestUser[]) {
 }
 
 async function upsertSummary(groupId: string, transcriptId: string, startedAt: number, endedAt: number,
-  summaryKey: string, summary: string) {
+  key: string, summary: string) {
   await Transcript.upsert({
     transcriptId,
     groupId,
@@ -150,7 +150,7 @@ async function upsertSummary(groupId: string, transcriptId: string, startedAt: n
   });
   await Summary.upsert({
     transcriptId,
-    summaryKey,
+    key,
     summary
   });
 }

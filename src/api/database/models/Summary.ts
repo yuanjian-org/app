@@ -6,13 +6,13 @@ import {
   Model,
   PrimaryKey
 } from "sequelize-typescript";
-import { STRING } from "sequelize";
+import { STRING, TEXT } from "sequelize";
 import Transcript from "./Transcript";
 
 @Table({
   indexes: [{
     unique: true,
-    fields: ['transcriptId', 'summaryKey']
+    fields: ['transcriptId', 'key']
   }]
 })
 class Summary extends Model {
@@ -21,14 +21,12 @@ class Summary extends Model {
   @Column(STRING)
   transcriptId: string;
 
-  // TODO: rename to `key`
   @PrimaryKey
   @Column(STRING)
-  summaryKey: string;
+  key: string;
 
-  // TODO: rename to `text`
-  @Column(STRING(1 * 1024 * 1024))
-  summary: string;
+  @Column(TEXT)
+  markdown: string;
 
   /**
    * Associations
