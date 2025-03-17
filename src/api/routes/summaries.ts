@@ -5,7 +5,7 @@ import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
-import { getDeletionInfo, zSummary } from "shared/Summary";
+import { computeDeletion, zSummary } from "shared/Summary";
 import { SpeakerStats } from 'api/TencentMeeting';
 import { generalBadRequestError, notFoundError } from "api/errors";
 import { checkPermissionForGroupHistory } from "./groups";
@@ -71,7 +71,7 @@ const update = procedure
     });
     if (!s) throw notFoundError("会议纪要", `${transcriptId}, ${key}`);
 
-    const { deleted, totalDeletedLength, allowed } = getDeletionInfo(s, markdown);
+    const { deleted, totalDeletedLength, allowed } = computeDeletion(s, markdown);
     if (!allowed) throw generalBadRequestError(`累计删除字数过多。`);
 
     s.markdown = markdown;

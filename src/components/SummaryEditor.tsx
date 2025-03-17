@@ -3,7 +3,7 @@ import { ModalFooter } from '@chakra-ui/react';
 import { ModalCloseButton } from '@chakra-ui/react';
 import { ModalHeader } from '@chakra-ui/react';
 import { ModalBody } from '@chakra-ui/react';
-import { getDeletionInfo, maxDeletionRatio, Summary } from 'shared/Summary';
+import { computeDeletion, maxDeletionRatio, Summary } from 'shared/Summary';
 import ModalWithBackdrop from './ModalWithBackdrop';
 import { ModalContent } from '@chakra-ui/react';
 import { useState } from 'react';
@@ -22,7 +22,7 @@ export default function SummaryEditor({ summary, onClose }: {
   const [saving, setSaving] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const { deleted, totalDeletedLength, allowed } = getDeletionInfo(summary,
+  const { deleted, totalDeletedLength, allowed } = computeDeletion(summary,
     markdown);
   const deletedRatio = (totalDeletedLength / summary.initialLength * 100)
     .toFixed(1);

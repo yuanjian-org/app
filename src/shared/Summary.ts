@@ -13,7 +13,7 @@ export type Summary = z.TypeOf<typeof zSummary>;
 
 export const maxDeletionRatio = 0.20;
 
-export function getDeletionInfo(old: Summary, edited: string) {
+export function computeDeletion(old: Summary, edited: string) {
   const diff = diffWords(old.markdown, edited, { ignoreCase: true });
   const deleted = diff.filter(change => change.removed)
     .map(change => change.value);
