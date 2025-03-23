@@ -1,4 +1,4 @@
-import { Button, Textarea, Text, VStack, Link, HStack, Spacer } from '@chakra-ui/react';
+import { Button, Textarea, Text, VStack, Link, HStack, Spacer, Code } from '@chakra-ui/react';
 import { ModalFooter } from '@chakra-ui/react';
 import { ModalCloseButton } from '@chakra-ui/react';
 import { ModalHeader } from '@chakra-ui/react';
@@ -58,15 +58,19 @@ export default function SummaryEditor({ summary, onClose }: {
       <ModalBody>
         <VStack align='start' spacing={componentSpacing}>
           <Text>
-            ⚠️ 因合规性的要求，被删除的纪要文字会以<b>完全匿名</b>的方式保存在系统后台。{
-            }同时，累计删除字数不得超过总字数的 <b>{maxDeletionRatio * 100}%</b>。
+            ⚠️ 由于合规性要求，系统会以完全匿名的方式在后台自动保存被删除的文字，{
+            }并限制累计删除字数不得超过总字数的 <b>{maxDeletionRatio * 100}%</b>。
             <Link 
               onClick={() => setShowDeleted(true)}
               color={allowed ? undefined : 'red'}
             >
-              累计删除：
-              <b>{deletedRatio}%</b>
+              已删除 <b>{deletedRatio}%</b>
             </Link>
+          </Text>
+
+          <Text>
+            为节省删除限额，建议在删除非敏感内容时使用波浪线语法而不是直接删除：
+            <Code>~需删除内容~</Code>
           </Text>
 
           {showDeleted && (
@@ -79,7 +83,7 @@ export default function SummaryEditor({ summary, onClose }: {
           <Textarea
             defaultValue={summary.markdown}
             onChange={e => setMarkdown(e.target.value)}
-            height="68vh"
+            height="63vh"
           />
         </VStack>
       </ModalBody>
