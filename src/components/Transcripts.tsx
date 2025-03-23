@@ -42,6 +42,7 @@ export default function Transcripts({ group }: {
           <Heading size="sm">智能会议纪要</Heading>
 
           {currentSummary && <Button
+            size="sm"
             leftIcon={<MdEdit />}
             onClick={() => setEditing(true)}
           >

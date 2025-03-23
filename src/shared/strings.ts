@@ -15,6 +15,9 @@ export function toPinyin(s: string) {
   return pinyin.convertToPinyin(s, /*separator=*/ '', /*lowerCase=*/ true);
 }
 
+/**
+ * Use <UserName> instead in frontend code.
+ */
 export function formatUserName(
   name: string | null,
   mode: 'friendly' | 'formal' = "formal"

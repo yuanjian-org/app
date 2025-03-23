@@ -7,13 +7,13 @@ import TasksCard from 'components/launchpad/TasksCard';
 import { PropsWithChildren } from 'react';
 import { isPermitted } from 'shared/Role';
 import { breakpoint, sectionSpacing } from 'theme/metrics';
-import { useMyRoles } from 'useMe';
+import { useMyId, useMyRoles } from 'useMe';
 
 const title = "个人空间";
 
 export default function Page() {
   const myRoles = useMyRoles();
-
+  const myId = useMyId();
   return (<>
     <PageBreadcrumb current={title} />
 
@@ -26,7 +26,11 @@ export default function Page() {
       </Column>
 
       <Column>
-        <TasksCard />
+        <TasksCard
+          assigneeIds={[myId]}
+          allowMentorshipAssignment
+          includeTasksCreatedByMe
+        />
 
         {isPermitted(myRoles, "Mentor") && <MentorCard />}
 

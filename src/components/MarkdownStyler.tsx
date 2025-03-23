@@ -31,6 +31,12 @@ export default function MarkdownStyler({ content, allowHtml }: {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       {...allowHtml ? { rehypePlugins: [rehypeRaw] } : {}}
+      // Avoid the propagation of clicking on a link to parent components.
+      components={{
+        a: ({ ...props }) => (
+          <a {...props} onClick={e => e.stopPropagation()} />
+        )
+      }}
     >{content}</ReactMarkdown>
   </div>;
 }

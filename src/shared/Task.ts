@@ -23,12 +23,18 @@ export type AutoTaskId = z.TypeOf<typeof zAutoTaskId>;
  */
 export const zTask = z.object({
   id: z.number(),
+
+  assignee: zMinUser,
   creator: zMinUser.nullable(),
+  
   // This field is used only when creator is null.
   autoTaskId: zAutoTaskId.nullable(),
+
   // This field is used only when creator is not null.
   markdown: z.string().nullable(),
+
   done: z.boolean(),
+
   updatedAt: zDateColumn,
 });
 export type Task = z.TypeOf<typeof zTask>;
@@ -72,4 +78,10 @@ export function getTaskMarkdown(
   } else {
     invariant(false, "invalid autoTaskId");
   }
+}
+
+export function isAutoTask(task: Task) {
+  invariant((task.creator !== null) === (task.autoTaskId === null),
+    `creator and autoTaskId: ${task.creator} ${task.autoTaskId}`);
+  return task.creator === null;
 }

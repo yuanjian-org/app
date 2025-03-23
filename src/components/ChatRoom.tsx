@@ -78,6 +78,7 @@ export default function Room({
           </Link>
 
           {!editing && <Button
+            size="sm"
             leftIcon={<AddIcon />}
             onClick={() => setEditing(true)}
           >
