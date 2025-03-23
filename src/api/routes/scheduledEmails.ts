@@ -80,14 +80,14 @@ export async function sendScheduledEmails() {
 }
 
 async function sendTaskEmail(
-  userId: string,
+  assigneeId: string,
   timestamp: Moment,
   transaction: Transaction,
 ) {
   const tasks = await db.Task.findAll({
     where: {
-      userId,
-      creatorId: isAutoTaskOrCreatorIsOther(userId),
+      assigneeId,
+      creatorId: isAutoTaskOrCreatorIsOther(assigneeId),
       done: false,
       updatedAt: isOnOrAfter(timestamp),
     },
@@ -96,21 +96,21 @@ async function sendTaskEmail(
     transaction,
   });
 
-  const user = await db.User.findByPk(userId, {
+  const assignee = await db.User.findByPk(assigneeId, {
     attributes: ["email", "name", "state"],
     transaction,
   });
-  if (!user) throw Error(`User not found: ${userId}`);
+  if (!assignee) throw Error(`Assignee not found: ${assigneeId}`);
 
-  const name = formatUserName(user.name, "friendly");
+  const name = formatUserName(assignee.name, "friendly");
   const htmls = await Promise.all(tasks.map(t => {
-    const md = getTaskMarkdown(castTask(t), user.state ?? {}, getBaseUrl());
+    const md = getTaskMarkdown(castTask(t), assignee.state ?? {}, getBaseUrl());
     return markdown2html(md);
   }));
 
   if (htmls.length === 0) {
-    console.log(`No tasks to send to user ${userId}, assuming user has` +
-      `completed the tasks that triggered this scheduled email.`);
+    console.log(`No tasks to send to assignee ${assigneeId}, assuming ` +
+      `assignee has completed the tasks that triggered this scheduled email.`);
     return;
   }
 
@@ -119,7 +119,7 @@ async function sendTaskEmail(
     delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
   };
 
-  await email([user.email], "E_114706042504", templateData, getBaseUrl());
+  await email([assignee.email], "E_114706042504", templateData, getBaseUrl());
 
   emailRoleIgnoreError("SystemAlertSubscriber", "发送待办事项邮件",
     JSON.stringify(templateData), getBaseUrl());

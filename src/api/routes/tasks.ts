@@ -2,9 +2,9 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { AutoTaskId, Task, zTask } from "../../shared/Task";
+import { AutoTaskId, isAutoTask, Task, zTask } from "../../shared/Task";
 import { taskAttributes, taskInclude } from "../database/models/attributesAndIncludes";
-import { noPermissionError, notFoundError } from "../errors";
+import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
 import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
@@ -12,22 +12,46 @@ import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
 import { scheduleEmail } from "./scheduledEmails";
 import { whereMentorshipIsOngoing } from "./mentorships";
+import { isPermittedtoAccessMentee } from "./users";
+import { isPermitted } from "../../shared/Role";
+import { User } from "next-auth";
 
 const list = procedure
   .use(authUser())
   .input(z.object({
-    userId: z.string(),
-    includeDone: z.boolean(),
+    assigneeIds: z.array(z.string()),
+    includeTasksCreatedByMe: z.boolean(),
+    includeDoneTasks: z.boolean(),
   }))
   .output(z.array(zTask))
-  .query(async ({ ctx: { user }, input: { userId, includeDone } }) =>
+  .query(async ({
+    ctx: { me },
+    input: {
+      assigneeIds,
+      includeTasksCreatedByMe,
+      includeDoneTasks,
+    },
+  }) => 
 {
-  if (userId !== user.id) throw noPermissionError("用户", userId);
-  
+  for (const assigneeId of assigneeIds) {
+    if (
+      assigneeId !== me.id &&
+      // For mentors, only mentorship managers can see their tasks.
+      !isPermitted(me.roles, "MentorshipManager") &&
+      // For mentees, only mentorship managers and mentors can see their tasks.
+      !await isPermittedtoAccessMentee(me, assigneeId)
+    ) {
+      throw noPermissionError("待办事项");
+    }
+  }
+
   return (await db.Task.findAll({
     where: {
-      userId,
-      ...!includeDone && { done: false },
+      [Op.or]: [
+        ...assigneeIds.map(assigneeId => ({ assigneeId })),
+        ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
+      ],
+      ...!includeDoneTasks && { done: false },
     },
     attributes: taskAttributes,
     include: taskInclude,
@@ -42,25 +66,94 @@ export function castTask(n: any): Task {
   return zTask.parse(n);
 }
 
+const create = procedure
+  .use(authUser())
+  .input(z.object({
+    assigneeId: z.string(),
+    markdown: z.string(),
+  }))
+  .mutation(async ({ ctx: { me }, input: { assigneeId, markdown } }) => 
+{
+  if (markdown.trim().length === 0) {
+    throw generalBadRequestError("待办事项不能为空。");
+  }
+
+  await sequelize.transaction(async transaction => {
+    await db.Task.create({
+      creatorId: me.id,
+      assigneeId,
+      markdown: markdown.trim(),
+      done: false,
+    }, { transaction });
+
+    await scheduleEmail("Task", assigneeId, transaction);
+  });
+});
+
+const update = procedure
+  .use(authUser())
+  .input(z.object({
+    id: z.number(),
+    assigneeId: z.string(),
+    markdown: z.string(),
+  }))
+  .mutation(async ({ ctx: { me }, input: { id, assigneeId, markdown } }) => 
+{
+  if (markdown.trim().length === 0) {
+    throw generalBadRequestError("待办事项不能为空。");
+  }
+
+  await sequelize.transaction(async transaction => {
+    const task = await db.Task.findByPk(id, {
+      attributes: taskAttributes,
+      include: taskInclude,
+      transaction,
+    });
+    checkForUpdate(castTask(task), me);
+
+    await db.Task.update({
+      assigneeId,
+      markdown: markdown.trim(),
+    }, { 
+      where: { id },
+      transaction,
+    });
+
+    await scheduleEmail("Task", assigneeId, transaction);
+  });
+});
+
 const updateDone = procedure
   .use(authUser())
   .input(z.object({
     id: z.number(),
     done: z.boolean(),
   }))
-  .mutation(async ({ ctx: { user }, input: { id, done } }) => 
+  .mutation(async ({ ctx: { me }, input: { id, done } }) => 
 {
   await sequelize.transaction(async transaction => {
     const task = await db.Task.findByPk(id, {
-      attributes: ["id", "userId"],
+      attributes: taskAttributes,
+      include: taskInclude,
       transaction,
     });
-    if (task === null) throw notFoundError("待办事项", id.toString());
-    if (task.userId !== user.id) throw noPermissionError("待办事项", task.userId);
-
-    await task.update({ done }, { transaction });
+    checkForUpdate(castTask(task), me);
+    await db.Task.update({ done }, { 
+      where: { id },
+      transaction,
+    });
   });
 });
+
+function checkForUpdate(task: Task | null, me: User) {
+  if (!task) throw notFoundError("待办事项");
+
+  if (isAutoTask(task) || (
+    task.assignee.id !== me.id && task.creator?.id !== me.id
+  )) {
+    throw noPermissionError("待办事项", task.assignee.id);
+  }
+}
 
 /**
  * @return excludes tasks that are done or created by the current user.
@@ -68,11 +161,11 @@ const updateDone = procedure
 const getLastTasksUpdatedAt = procedure
   .use(authUser())
   .output(zDateColumn)
-  .query(async ({ ctx: { user: me } }) => 
+  .query(async ({ ctx: { me } }) => 
 {
   const ret = await db.Task.max("updatedAt", {
     where: {
-      userId: me.id,
+      assigneeId: me.id,
       creatorId: isAutoTaskOrCreatorIsOther(me.id),
       done: false,
     },
@@ -80,12 +173,14 @@ const getLastTasksUpdatedAt = procedure
   return ret ?? moment(0);
 });
 
-export function isAutoTaskOrCreatorIsOther(userId: string) {
-  return { [Op.or]: [{ [Op.eq]: null }, { [Op.ne]: userId }] };
+export function isAutoTaskOrCreatorIsOther(assigneeId: string) {
+  return { [Op.or]: [{ [Op.eq]: null }, { [Op.ne]: assigneeId }] };
 }
 
 export default router({
   list,
+  create,
+  update,
   updateDone,
   getLastTasksUpdatedAt,
 });
@@ -119,35 +214,35 @@ export async function createAutoTasks() {
   });
 }
 
-async function createAutoTask(
-  userId: string,
+export async function createAutoTask(
+  assigneeId: string,
   autoTaskId: AutoTaskId,
   transaction: Transaction,
 ) {
   const task = await db.Task.findOne({
-    where: { userId, autoTaskId },
+    where: { assigneeId, autoTaskId },
     attributes: ["id", "done"],
     transaction,
   });
 
   // Do nothing if the task is already created and pending.
   if (task && !task.done) {
-    console.log(`AutoTask ${autoTaskId} for user ${userId} is already created`);
+    console.log(`AutoTask ${autoTaskId} for ${assigneeId} is already created`);
     return;
   }
 
-  console.log(`creating AutoTask ${autoTaskId} for user ${userId}`);
+  console.log(`creating AutoTask ${autoTaskId} for user ${assigneeId}`);
 
   // Sequelize's upsert() doesn't work because it can't deal with the id column.
   if (task) {
     await task.update({ done: false }, { transaction });
   } else {
     await db.Task.create({
-      userId,
+      assigneeId,
       autoTaskId,
       done: false,
     }, { transaction });
   }
 
-  await scheduleEmail("Task", userId, transaction);
+  await scheduleEmail("Task", assigneeId, transaction);
 }

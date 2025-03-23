@@ -3,7 +3,11 @@ import { formatUserName, parseQueryString, prettifyDate, toChineseDayOfWeek } fr
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import {
-  TabList, TabPanels, Tab, TabPanel, Text,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Text,
   HStack,
   Flex,
   SimpleGrid,
@@ -13,7 +17,8 @@ import {
   ModalContent,
   ModalFooter,
   Button,
-  ModalCloseButton, Select,
+  ModalCloseButton,
+  Select,
   VStack,
   Wrap,
   WrapItem, CardBody
@@ -42,6 +47,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import _ from 'lodash';
 import { IoMdCalendar } from 'react-icons/io';
 import { ResponsiveCard } from 'components/ResponsiveCard';
+import TasksCard from 'components/launchpad/TasksCard';
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -191,7 +197,9 @@ function MentorshipPanel({ mentorship: m }: {
   >
     <GridItem>
       <VStack align="stretch" gap={sectionSpacing}>
-        <MentorshipSummaryCard m={m} />
+        <MentorshipSummaryCard m={m} /> 
+
+        <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
 
         <ChatRoom menteeId={m.mentee.id} />
       </VStack>

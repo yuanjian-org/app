@@ -18,9 +18,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalCloseButton,
-  Box,
-  AbsoluteCenter,
-  Divider
+  Box
 } from '@chakra-ui/react';
 import { formatUserName, prettifyDate } from 'shared/strings';
 import { componentSpacing } from 'theme/metrics';
@@ -41,6 +39,7 @@ import RedDot from './RedDot';
 import { motion, AnimatePresence } from 'framer-motion';
 import useMe, { useMyId, useMyRoles } from 'useMe';
 import { isPermitted } from 'shared/Role';
+import ListItemDivider from './ListItemDivider';
 
 export function KudosControl({ user, likes, kudos }: {
   user: MinUser,
@@ -323,21 +322,6 @@ export function KudosHistory({ kudos, type, showReceiver, showPseudoRows,
   const read = kudos.filter(k => moment(k.createdAt)
     .isSameOrBefore(lastKudosReadAt));
 
-  const PseudoRow = ({ text, divider }: { text: string, divider?: boolean }) => (
-    <GridItem colSpan={2}>
-      <Box position='relative' px='10'>
-        {divider && <Divider />}
-        <AbsoluteCenter bg='white' px='4'>
-          <SmallGrayText textAlign="center"
-            fontSize={type == "desktop" ? "sm" : "xs"}
-          >
-            {text}
-          </SmallGrayText>
-        </AbsoluteCenter>
-      </Box>
-    </GridItem>
-  );
-
   return <SimpleGrid
     templateColumns="1fr auto"
     gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
@@ -350,7 +334,13 @@ export function KudosHistory({ kudos, type, showReceiver, showPseudoRows,
     />)}
 
     {showPseudoRows && read.length > 0 && unread.length > 0 &&
-      <PseudoRow divider text={`以上为未读的赞`} />}
+      <GridItem colSpan={2}>
+        <ListItemDivider 
+          grayText
+          text={`以上为未读的赞`}
+          extraSmallText={type == "mobile"} 
+        />
+      </GridItem>}
 
     {read.map((k, i) => <KudosHistoryRow
       key={i}
@@ -359,7 +349,14 @@ export function KudosHistory({ kudos, type, showReceiver, showPseudoRows,
     />)}
 
     {showPseudoRows && showLimit &&
-      <PseudoRow text={`仅显示最近 ${showLimit} 个赞`} />}
+      <GridItem colSpan={2}>
+        <ListItemDivider
+          textOnly
+          grayText
+          text={`仅显示最近 ${showLimit} 个赞`}
+          extraSmallText={type == "mobile"}
+        />
+      </GridItem>}
 
   </SimpleGrid>;
 }
@@ -420,7 +417,10 @@ export function UnreadKudosRedDot() {
 export function useUnreadKudos() {
   const myRoles = useMyRoles();
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery();
+  const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery(
+    undefined,
+    { enabled: isPermitted(myRoles, "Volunteer") }
+  );
 
   // Check permission after all hooks are called
   if (!isPermitted(myRoles, "Volunteer")) return false;

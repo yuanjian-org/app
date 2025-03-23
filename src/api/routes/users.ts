@@ -434,7 +434,9 @@ const get = procedure
   .query(async ({ ctx: { user: me }, input: userId }) =>
 {
   if (me.id !== userId && !isPermitted(me.roles, "UserManager") &&
-    !await isPermittedtoAccessMentee(me, userId)) {
+    !await isPermittedtoAccessMentee(me, userId) &&
+    !await isPermittedtoAccessMentor(me, userId)
+  ) {
     throw noPermissionError("用户", userId);
   }
 
@@ -996,6 +998,14 @@ export async function checkPermissionToAccessMentee(me: User, menteeId: string) 
 export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
   if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
   if (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } }) > 0) {
+    return true;
+  }
+  return false;
+}
+
+// TODO: Add transaction
+export async function isPermittedtoAccessMentor(me: User, mentorId: string) {
+  if (await db.Mentorship.count({ where: { mentorId, menteeId: me.id } }) > 0) {
     return true;
   }
   return false;

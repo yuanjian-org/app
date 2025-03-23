@@ -5,8 +5,8 @@ type Kind = "用户" | "分组" | "评估" | "一对一匹配" | "资深导师�
   | "学生状态" | "学生面试" | "导师" | "导师选择" | "待办事项"
   | "数据"; // A general kind
 
-export const notFoundError = (kind: Kind, id: string) =>
-  new TRPCError({ code: 'NOT_FOUND', message: `${kind} ${id} 不存在。` });
+export const notFoundError = (kind: Kind, id?: string) =>
+  new TRPCError({ code: 'NOT_FOUND', message: `${kind}${id ? ` ${id} ` : ""}不存在。` });
 
 export const noPermissionError = (kind: Kind, id?: string) =>
   new TRPCError({ code: 'FORBIDDEN', message: `没有权限访问${kind}${id ? ` ${id}` : ""}。` });

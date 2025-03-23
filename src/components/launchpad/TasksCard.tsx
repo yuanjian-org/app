@@ -7,39 +7,93 @@ import {
   Checkbox,
   HStack, Tooltip,
   Box,
-  Link
+  Link,
+  Button
 } from '@chakra-ui/react';
 import { ResponsiveCard } from 'components/ResponsiveCard';
 import trpc, { trpcNext } from 'trpc';
 import Loader from 'components/Loader';
 import { getTaskMarkdown, Task } from 'shared/Task';
 import { useMyId } from 'useMe';
-import { compareDate } from 'shared/strings';
+import { compareChinese, compareDate, formatUserName } from 'shared/strings';
 import MarkdownStyler from 'components/MarkdownStyler';
-import { useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
 import { DateColumn } from 'shared/DateColumn';
 import moment, { Moment } from 'moment';
-import RedDot, { redDotRightOffset, redDotTransitionProps } from 'components/RedDot';
-import LinkDivider from 'components/LinkDivider';
+import RedDot, {
+  redDotRightOffset,
+  redDotTransitionProps,
+} from 'components/RedDot';
 import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
 import getBaseUrl from 'shared/getBaseUrl';
+import { AddIcon } from '@chakra-ui/icons';
+import TaskEditor, { autoTaskDescription } from './TaskEditor';
+import ListItemDivider from 'components/ListItemDivider';
 
-export default function TasksCard() {
+/**
+ * @param assigneeIds The assignees of the tasks to be listed on this card.
+ * @param allowMentorshipAssignment Whether to allow the user to assign tasks to
+ * their mentees and mentors.
+ */
+export default function TasksCard({
+  assigneeIds,
+  allowMentorshipAssignment,
+  includeTasksCreatedByMe,
+}: { 
+  assigneeIds: string[],
+  allowMentorshipAssignment?: boolean,
+  includeTasksCreatedByMe?: boolean,
+}) {
   const utils = trpcNext.useContext();
+  const myId = useMyId();
 
+  const [creating, setCreating] = useState(false);
   const [includeDone, setIncludeDone] = useState(false);
   const { data, refetch } = trpcNext.tasks.list.useQuery({
-    userId: useMyId(),
-    includeDone,
+    assigneeIds,
+    includeTasksCreatedByMe: includeTasksCreatedByMe ?? false,
+    includeDoneTasks: includeDone,
   });
 
+  /**
+   * @returns The assignee ids that the current user is allowed to assign tasks
+   * to. If `allowMentorshipAssignment` is false, return the original assignee
+   * ids. Otherwise, return the original assignee ids plus the ids of the
+   * mentees and mentors of the current user.
+   */
+  const getAllowedAssigneeIds = useCallback(async () => {
+    const promises: Promise<string[]>[] = [];
+    if (allowMentorshipAssignment) {
+      promises.push(trpc.mentorships.listMyMentorships.query({
+        as: "Mentor",
+      }).then(mentorships => mentorships.map(m => m.mentee.id)));
+      promises.push(trpc.mentorships.listMyMentorships.query({
+        as: "Mentee",
+      }).then(mentorships => mentorships.map(m => m.mentor.id)));
+    }
+
+    return [
+      ...assigneeIds, 
+      ...(await Promise.all(promises)).flat()]
+    ;
+  }, [assigneeIds, allowMentorshipAssignment]);
+
   const sorted = data?.sort((a, b) => {
-    // Place done tasks at the bottom.
+    // Place tasks that are assigned to the current user at the top.
+    if (a.assignee.id === myId && b.assignee.id !== myId) return -1;
+    if (a.assignee.id !== myId && b.assignee.id === myId) return 1;
+
+    // Then Sort by assignee names
+    const compName = compareChinese(a.assignee.name, b.assignee.name);
+    if (compName !== 0) return compName;
+
+    // Then place done tasks at the bottom.
     if (a.done && !b.done) return 1;
     if (!a.done && b.done) return -1;
-    // Place tasks that are updated more recently at the top.
+    
+    // Finally, place tasks that are updated more recently at the top.
     return compareDate(b.updatedAt, a.updatedAt);
   });
 
@@ -55,18 +109,35 @@ export default function TasksCard() {
     <CardHeader>
       <Flex justify="space-between">
         <Heading size="sm" position="relative">
-          我的待办事项
+          待办事项
           <UnreadTasksRedDot />
         </Heading>
 
-        <HStack spacing={2} fontSize="sm">
+        <HStack spacing={componentSpacing} fontSize="sm">
           <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
             全部已读
           </Link>
-          <LinkDivider {...redDotTransitionProps(hasUnread)} />
+
+          {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
+
           <Link onClick={() => setIncludeDone(!includeDone)}>
             {includeDone ? "隐藏已完成" : "显示已完成"}
           </Link>
+
+          <Button
+            size="sm"
+            leftIcon={<AddIcon />}
+            onClick={() => setCreating(true)}
+          >
+            新建
+          </Button>
+
+          {creating && <TaskEditor
+            getAllowedAssigneeIds={getAllowedAssigneeIds}
+            onClose={() => setCreating(false)}
+            refetch={refetch}
+          />}
+
         </HStack>
       </Flex>
     </CardHeader>
@@ -75,16 +146,64 @@ export default function TasksCard() {
         {sorted === undefined ? <Loader /> : sorted.length === 0 ?
           <Text color="gray">🌙&nbsp;&nbsp;一切静谧，万物安然</Text>
           :
-          sorted.map(t => <TaskItem key={t.id} t={t} refetch={refetch} />)
+          <TaskItems
+            tasks={sorted}
+            assigneeIds={assigneeIds}
+            getAllowedAssigneeIds={getAllowedAssigneeIds}
+            refetch={refetch}
+          />
         }
       </Flex>
     </CardBody>
   </ResponsiveCard>;
 }
 
-function TaskItem({ t, refetch }: {
+function TaskItems({ tasks, refetch, assigneeIds, getAllowedAssigneeIds }: {
+  tasks: Task[],
+  refetch: () => void,
+  assigneeIds: string[],
+  getAllowedAssigneeIds: () => Promise<string[]>,
+}) {
+  const myId = useMyId();
+
+  const items: ReactNode[] = [];
+  let lastAssigneeId = myId;
+  for (const t of tasks) {
+    // Add a divider if the assignee is different from the last one.
+    if (t.assignee.id !== lastAssigneeId) {
+      lastAssigneeId = t.assignee.id;
+      items.push(<ListItemDivider
+        py={3}
+
+        // Use the done status in the key to work around the situation where
+        // a task is shown as not done when the user reveals done tasks right
+        // after they mark the task as done.
+        key={`${t.assignee.id}${t.done}`}
+
+        // If the assignee is not in the assigneeIds, it means the task is
+        // created by the current user.
+        text={
+          (assigneeIds.includes(t.assignee.id) ? "" : "我交给") + 
+          `${formatUserName(t.assignee.name, "friendly")}的事项`
+        }
+      />);
+    }
+
+    items.push(<TaskItem
+      key={t.id}
+      t={t}
+      refetch={refetch}
+      getAllowedAssigneeIds={getAllowedAssigneeIds}
+    />);
+  }
+
+  return <>{items}</>;
+}
+
+function TaskItem({ t, refetch, getAllowedAssigneeIds }: {
   t: Task,
   refetch: () => void,
+  getAllowedAssigneeIds: () => Promise<string[]>,
 }) {
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
@@ -92,6 +211,7 @@ function TaskItem({ t, refetch }: {
   const markdown = getTaskMarkdown(t, state, getBaseUrl());
 
   const [done, setDone] = useState(t.done);
+  const [editing, setEditing] = useState<Task>();
 
   // N.B. Its logic must be consistent with the logic of useUnreadTasks().
   const showRedDot = !t.done && myId !== t.creator?.id &&
@@ -112,7 +232,7 @@ function TaskItem({ t, refetch }: {
     isDisabled={t.creator !== null}
     hasArrow
     openDelay={500}
-    label="自动生成的待办事项。完成相应任务后，系统会自动标记为已完成"
+    label={autoTaskDescription}
   >
     <HStack w="full">
       <Checkbox
@@ -125,6 +245,9 @@ function TaskItem({ t, refetch }: {
       />
 
       <Box
+        onClick={() => setEditing(t)}
+        w="full"
+        cursor="pointer"
         position="relative" 
         // to offset the margin of the MarkdownStyler
         my={-markdownStylerMarginY}
@@ -138,6 +261,14 @@ function TaskItem({ t, refetch }: {
         }
         <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
       </Box>
+
+      {editing && <TaskEditor
+        task={editing}
+        getAllowedAssigneeIds={getAllowedAssigneeIds}
+        onClose={() => setEditing(undefined)}
+        refetch={refetch}
+      />}
+
     </HStack>
   </Tooltip>;
 }
