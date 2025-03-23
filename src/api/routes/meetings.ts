@@ -110,7 +110,7 @@ const decline = procedure
 {
   await emailRole("MentorshipManager", "用户拒绝使用会议功能", 
     `${formatUserName(user.name)}（用户ID: ${user.id}）拒绝使用会议功能。请与其取得联系，
-    商量替代方案。`, baseUrl);
+    商量解决方案。`, baseUrl);
 });
 
 export default router({

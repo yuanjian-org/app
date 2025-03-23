@@ -242,7 +242,7 @@ function MeetingConsentModal({ consent, onClose }: {
         <ModalHeader />
         <ModalCloseButton />
         <ModalBody>
-          <Text>您已拒绝使用本平台的会议功能。工作人员会与您取得联系，商量替代方案。</Text>
+          <Text>您已拒绝使用本平台的会议功能。工作人员会与您取得联系，商量解决方案。</Text>
         </ModalBody>
         <ModalFooter>
           <Button variant='brand' onClick={onClose}>好的</Button>
