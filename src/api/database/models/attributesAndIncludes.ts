@@ -211,4 +211,7 @@ export const taskAttributes = ["id", "autoTaskId", "markdown", "done", "updatedA
 export const taskInclude = [{
   association: "creator",
   attributes: minUserAttributes,
+}, {
+  association: "assignee",
+  attributes: minUserAttributes,
 }];
