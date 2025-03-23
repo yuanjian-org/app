@@ -26,12 +26,14 @@ import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
 import getBaseUrl from 'shared/getBaseUrl';
 
-export default function TasksCard() {
+export default function TasksCard({ assigneeOrCreatorId }: { 
+  assigneeOrCreatorId: string
+}) {
   const utils = trpcNext.useContext();
 
   const [includeDone, setIncludeDone] = useState(false);
   const { data, refetch } = trpcNext.tasks.list.useQuery({
-    userId: useMyId(),
+    assigneeOrCreatorId,
     includeDone,
   });
 
@@ -55,7 +57,7 @@ export default function TasksCard() {
     <CardHeader>
       <Flex justify="space-between">
         <Heading size="sm" position="relative">
-          我的待办事项
+          待办事项
           <UnreadTasksRedDot />
         </Heading>
 

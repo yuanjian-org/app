@@ -23,12 +23,18 @@ export type AutoTaskId = z.TypeOf<typeof zAutoTaskId>;
  */
 export const zTask = z.object({
   id: z.number(),
+
+  assignee: zMinUser,
   creator: zMinUser.nullable(),
+  
   // This field is used only when creator is null.
   autoTaskId: zAutoTaskId.nullable(),
+
   // This field is used only when creator is not null.
   markdown: z.string().nullable(),
+
   done: z.boolean(),
+
   updatedAt: zDateColumn,
 });
 export type Task = z.TypeOf<typeof zTask>;
