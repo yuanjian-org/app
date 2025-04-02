@@ -31,7 +31,7 @@ export default function TasksCard() {
 
   const [includeDone, setIncludeDone] = useState(false);
   const { data, refetch } = trpcNext.tasks.list.useQuery({
-    userId: useMyId(),
+    assigneeId: useMyId(),
     includeDone,
   });
 

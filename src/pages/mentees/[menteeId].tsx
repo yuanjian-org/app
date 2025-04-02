@@ -42,6 +42,7 @@ import ModalWithBackdrop from 'components/ModalWithBackdrop';
 import _ from 'lodash';
 import { IoMdCalendar } from 'react-icons/io';
 import { ResponsiveCard } from 'components/ResponsiveCard';
+import TasksCard from 'components/launchpad/TasksCard';
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), 'menteeId');
@@ -192,6 +193,8 @@ function MentorshipPanel({ mentorship: m }: {
     <GridItem>
       <VStack align="stretch" gap={sectionSpacing}>
         <MentorshipSummaryCard m={m} />
+
+        <TasksCard />
 
         <ChatRoom menteeId={m.mentee.id} />
       </VStack>
