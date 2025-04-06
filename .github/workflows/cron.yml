@@ -1,5 +1,3 @@
-# TODO: No need to ssh into the server. Just run the curl commands directly.
-#
 name: Cron jobs
 
 on:
@@ -11,26 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Add SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars.SERVER_HOSTNAME }}
-        config: |
-          Host ${{ vars.SERVER_HOSTNAME }}
-            User ${{ secrets.SERVER_SSH_USERNAME }}
-            StrictHostKeyChecking no
-
-    - name: Run cron jobs
-      run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
-          set -e
-          cd ~/app
-          source .env
-          echo ">>> Syncing meetings"
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings
-          echo ">>> Creating auto tasks"
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
-          echo ">>> Sending scheduled emails"
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledEmails
-        EOF
+      - name: Sync meetings
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings
+      
+      - name: Create auto tasks
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
+      
+      - name: Send scheduled emails
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledEmails
