@@ -1,4 +1,4 @@
-# Use Red Sift to monitor SSL Certificate expiry
+# Monitor SSL Certificate expiry
 
 Register an account at https://redsift.com and set up SSL expiry notification emails for free.
 
@@ -7,5 +7,34 @@ Register an account at https://redsift.com and set up SSL expiry notification em
 Let's Encrypt's automatic renewal at `/etc/cron.d/certbot` requires port 80 to be open on the host which is occupied by the container. So we have to manually renew the certificate once every 3 months. TODO: Fine a better solution.
 
 1. Stop docker containers.
-2. Run `certbot -q renew --no-random-sleep-on-renew`.
-3. Start docker containers.
+1. Run `certbot -q renew --no-random-sleep-on-renew`.
+1. Start docker containers.
+
+# 腾讯会议的初始设置
+
+需要在腾讯企业管理员界面的 “企业管理 > 账户管理 > 账户设置 > [组织名称] > 录制设置" 页面中：
+
+1. 打开 “云录制” 以及在其下方的所有功能选项
+1. 打开 "自动录制"
+1. 打开 "当有参会成员入会时立即开启云录制"
+1. 关闭 "主持人能够暂停/停止云录制"
+1. 打开 "通过链接分享云录制"，并选择 "同企业可查看"
+
+# 腾讯会议的定期刷新
+
+我们要求用户通过平台网站的“加入”功能进入腾讯会议。为了避免用户保存并重复使用原始的腾讯会议链接，管理员应该定期（比如每月）在腾讯会议网站创建新的会议，删除旧的会议，并更新 `MeetingSlots` 数据库表。
+
+刷新会议的步骤是，对于每一个现有的会议：
+
+1. 确认 `MeetingSlots` 表中的 `groupId` 列为 null
+1. 用 `tmUserId` 列制定的主持人账号登录腾讯会议网站：
+    1. 删除现有的会议系列
+    1. 创建新的周期性会议
+    1. 把标题设置为 “导师平台会议”
+    1. “重复频率” 选择 “每月”
+    1. “结束重复” 选择距今最远的日期
+    1. 关闭“开启文字水印”
+    1. 其他选项保留默认值
+1. 更新 `MeetingSlots` 表中的 `meetingId` 和 `meetingLink` 列
+
+注：从2024年起，平台无法自动刷新会议。见 `recycleMeetings()` 函数的注释。
