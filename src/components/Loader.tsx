@@ -1,6 +1,8 @@
 import { Button, ButtonProps } from "@chakra-ui/react";
 
-export default function Loader({ loadingText = "加载中...", ...rest }: {
+export const defaultLoadingText = "加载中...";
+
+export default function Loader({ loadingText = defaultLoadingText, ...rest }: {
   loadingText?: string,
 } & ButtonProps) {
   return <Button

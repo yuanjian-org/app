@@ -20,6 +20,7 @@ import { isStaticPage, staticUrlPrefix } from '../static';
 import StaticPageContainer from 'components/StaticPageContainer';
 import { loginUrl } from './auth/login';
 import getBaseUrl from 'shared/getBaseUrl';
+import { defaultLoadingText } from 'components/Loader';
 
 function App({ Component, pageProps: { session, ...pageProps } }: {
   Component: AppPage,
@@ -36,12 +37,14 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
     // and anything that ends with "yuanjian.org" like "hackingyuanjian.org".
     // Being over zealous here isn't a security risk.
     if (base.endsWith("yuanjian.org")) {
-      void router.replace(`https://yjjxj.cn${router.asPath}`);
+      void router.replace(`https://www.yjjxj.cn${router.asPath}`);
+      return defaultLoadingText;
 
     // Always direct to mentors.org.cn if it's a production environment and
     // is not hosted on mentors.org.cn or vercel.com (for testing purposes).
     } else if (base !== "https://mentors.org.cn" && !base.endsWith(".vercel.app")) {
       void router.replace(`https://mentors.org.cn/${router.asPath}`);
+      return defaultLoadingText;
     }
   }
 
