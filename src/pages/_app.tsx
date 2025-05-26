@@ -26,10 +26,21 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 } & AppProps) {
   const router = useRouter();
 
-  // Redirect all non-canonical ULRs
+  // Application-level URL redirection. Sometimes it's just easier to redirect
+  // at the application level than at lower levels.
   if (typeof window !== 'undefined' && process.env.NODE_ENV == "production") {
     const base = getBaseUrl();
-    if (base !== "https://mentors.org.cn" &&  !base.endsWith(".vercel.app")) {
+
+    // We configured yuanjian.org to point to a free-tier vercel.com instance to
+    // redirect this domain to yjjxj.cn for free. It accepts "www.yunajian.org"
+    // and anything that ends with "yuanjian.org" like "hackingyuanjian.org".
+    // Being over zealous here isn't a security risk.
+    if (base.endsWith("yuanjian.org")) {
+      void router.replace(`https://yjjxj.cn${router.asPath}`);
+
+    // Always direct to mentors.org.cn if it's a production environment and
+    // is not hosted on mentors.org.cn or vercel.com (for testing purposes).
+    } else if (base !== "https://mentors.org.cn" && !base.endsWith(".vercel.app")) {
       void router.replace(`https://mentors.org.cn/${router.asPath}`);
     }
   }
