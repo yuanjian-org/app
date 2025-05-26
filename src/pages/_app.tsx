@@ -38,13 +38,13 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
     // Being over zealous here isn't a security risk.
     if (base.endsWith("yuanjian.org")) {
       void router.replace(`https://www.yjjxj.cn${router.asPath}`);
-      return defaultLoadingText;
+      return <>{defaultLoadingText}</>;
 
     // Always direct to mentors.org.cn if it's a production environment and
     // is not hosted on mentors.org.cn or vercel.com (for testing purposes).
     } else if (base !== "https://mentors.org.cn" && !base.endsWith(".vercel.app")) {
       void router.replace(`https://mentors.org.cn/${router.asPath}`);
-      return defaultLoadingText;
+      return <>{defaultLoadingText}</>;
     }
   }
 

@@ -22,3 +22,7 @@ setting up environmental variables:
 
 1. Production deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml` for details.
 1. Production SSL certificate is managed by [LetsEncrypt](https://letsencrypt.org/).
+
+## Redirect yuanjian.org
+
+1. To wildcard redirect yuanjian.org to yjjxj.cn, point yuanjian.org & www.yuanjian.org to a vercel.com deployment. See details in _app.ts.
