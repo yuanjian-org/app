@@ -7,12 +7,21 @@ import { componentSpacing, maxTextWidth } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import moment from 'moment-timezone';
 
+type MeetingSlot = {
+  id: number;
+  tmUserId: string;
+  meetingId: string;
+  meetingLink: string;
+  groupId: string | null;
+  updatedAt: string;
+};
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
   const [saving, setSaving] = useState(false);
-
+  const meetingSlotQuery = trpcNext.meetingSlot.list.useQuery();
+  const meetingSlot = meetingSlotQuery.data as MeetingSlot[] | undefined;
   const save = async () => {
     if (!moment(matchFeedbackEditableUntil).isValid()) {
       toast.error('初次交流反馈表截止时间格式错误');
@@ -51,6 +60,20 @@ export default function Page() {
       >
         保存
       </Button>
+      {meetingSlot?.map((slot) => (
+        <div key={slot.id} style={{ border: '1px solid #ccc', padding: '10px', width: '100%', borderRadius: '4px' }}>
+          <div><strong>tmUserId:</strong> {slot.tmUserId}</div>
+          <div><strong>meetingId:</strong> {slot.meetingId}</div>
+          <div>
+            <strong>meetingLink:</strong>{' '}
+            <a href={slot.meetingLink} target="_blank" rel="noopener noreferrer">
+              {slot.meetingLink}
+            </a>
+          </div>
+          <div><strong>groupId:</strong> {slot.groupId ?? '空闲'}</div>
+          <div><strong>updatedAt:</strong> {moment(slot.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
+        </div>
+      ))}
     </VStack>
   );
 }
