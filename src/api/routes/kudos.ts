@@ -1,15 +1,15 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
-import sequelize from "api/database/sequelize";
-import db from "api/database/db";
-import { generalBadRequestError, notFoundError } from "api/errors";
+import sequelize from "../database/sequelize";
+import db from "../database/db";
 import { Op } from "sequelize";
-import { kudosAttributes, kudosInclude } from "api/database/models/attributesAndIncludes";
-import { zKudos } from "shared/Kudos";
-import { zDateColumn } from "shared/DateColumn";
+import { kudosAttributes, kudosInclude } from "../database/models/attributesAndIncludes";
+import { zKudos } from "../../shared/Kudos";
+import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { scheduleEmail } from "./scheduledEmails";
+import createKudos from "./kudosInternal";
 
 /**
  * List kudos for a user. If userId is not provided, list all kudos.
@@ -58,30 +58,9 @@ const create = procedure
   }))
   .mutation(async ({ ctx: { user: me }, input: { userId, text } }) =>
 {
-  if (userId === me.id) {
-    throw generalBadRequestError("User cannot send kudos to themselves");
-  }
-
-  return await sequelize.transaction(async transaction => {
-    await db.Kudos.create({
-      receiverId: userId,
-      giverId: me.id,
-      text,
-    }, { transaction });
-
-    // Can't use db.User.increment because it doesn't support incrementing a
-    // null field.
-    const user = await db.User.findByPk(userId, { 
-      attributes: ["id", "likes", "kudos"],
-      transaction 
-    });
-    if (!user) throw notFoundError("用户", userId);
-
-    await user.update({
-      ...text === null ? { likes: user.likes + 1 } : { kudos: user.kudos + 1 },
-    }, { transaction });
-
-    await scheduleEmail("Kudos", userId, transaction);
+  await sequelize.transaction(async t => {
+    await createKudos(me.id, userId, text, t);
+    await scheduleEmail("Kudos", userId, t);
   });
 });
 

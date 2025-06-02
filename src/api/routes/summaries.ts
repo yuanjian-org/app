@@ -3,19 +3,23 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { getFileAddresses, listRecords, getSpeakerStats } from "../TencentMeeting";
-import apiEnv from "api/apiEnv";
-import { groupAttributes, groupInclude, summaryAttributes } from "api/database/models/attributesAndIncludes";
-import { computeDeletion, zSummary } from "shared/Summary";
-import { SpeakerStats } from 'api/TencentMeeting';
-import { generalBadRequestError, notFoundError } from "api/errors";
+import apiEnv from "../apiEnv";
+import {
+  groupAttributes,
+  groupInclude,
+  summaryAttributes
+} from "../database/models/attributesAndIncludes";
+import { computeDeletion, zSummary } from "../../shared/Summary";
+import { SpeakerStats } from '../TencentMeeting';
+import { generalBadRequestError, notFoundError } from "../errors";
 import { checkPermissionForGroupHistory } from "./groups";
 import axios from "axios";
 import formatMeetingMinutes from "./formatMeetingMinutes";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import moment from "moment";
-import sequelize from "api/database/sequelize";
+import sequelize from "../database/sequelize";
 
-const AI_MINUTES_SUMMARY_KEY = "智能纪要";
+export const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 
 export interface SummaryDescriptor {
   groupId: string,
@@ -119,12 +123,11 @@ export async function downloadSummaries() {
   await Promise.all(summaries.map(async (summary) => {
     console.log(`Downloading ${summary.transcriptId}...`);
     const res = await axios.get(summary.url);
-    await saveSummary(summary, res.data);
+    await formatAndSaveSummary(summary, res.data);
   }));
 }
 
-async function saveSummary(desc: SummaryDescriptor, summary: string) 
-{
+async function formatAndSaveSummary(desc: SummaryDescriptor, summary: string) {
   let formatted: string;
   if (desc.key == AI_MINUTES_SUMMARY_KEY) {
     formatted = formatSpeakerStats(desc.speakerStats) +
@@ -132,20 +135,34 @@ async function saveSummary(desc: SummaryDescriptor, summary: string)
   } else {
     formatted = summary;
   }
-
-  await db.Transcript.upsert({
-    transcriptId: desc.transcriptId,
-    groupId: desc.groupId,
-    startedAt: desc.startedAt,
-    endedAt: desc.endedAt,
+  await sequelize.transaction(async transaction => {
+    await saveSummary(desc.transcriptId, desc.groupId, desc.startedAt,
+      desc.endedAt, desc.key, formatted, transaction);
   });
+}
+
+export async function saveSummary(
+  transcriptId: string, 
+  groupId: string, 
+  startedAt: number, 
+  endedAt: number, 
+  key: string, 
+  markdown: string,
+  transaction: Transaction,
+) {
+  await db.Transcript.upsert({
+    transcriptId,
+    groupId,
+    startedAt,
+    endedAt,
+  }, { transaction });
   await db.Summary.create({
-    transcriptId: desc.transcriptId,
-    key: desc.key,
-    markdown: formatted,
-    initialLength: formatted.length,
+    transcriptId,
+    key,
+    markdown,
+    initialLength: markdown.length,
     deletedLength: 0,
-  });  
+  }, { transaction });
 }
 
 /**

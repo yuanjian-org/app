@@ -1,23 +1,23 @@
-import db from "api/database/db";
-import sequelize from "api/database/sequelize";
+import db from "../database/db";
+import sequelize from "../database/sequelize";
 import { Op, Transaction } from "sequelize";
-import invariant from "shared/invariant";
-import User, { getUserUrl, MinUser } from "shared/User";
-import { formatUserName, prettifyDate } from "shared/strings";
-import getBaseUrl from "shared/getBaseUrl";
+import invariant from "../../shared/invariant";
+import User, { getUserUrl, MinUser } from "../../shared/User";
+import { formatUserName, prettifyDate } from "../../shared/strings";
+import getBaseUrl from "../../shared/getBaseUrl";
 import { email, emailRoleIgnoreError } from "../email";
 import {
   chatMessageAttributes,
   chatMessageInclude,
   kudosAttributes,
   kudosInclude, minUserAttributes, taskAttributes, taskInclude, userAttributes
-} from "api/database/models/attributesAndIncludes";
+} from "../database/models/attributesAndIncludes";
 import moment, { Moment } from "moment";
-import Role from "shared/Role";
-import { ScheduledEmailType } from "shared/ScheduledEmailType";
+import Role from "../../shared/Role";
+import { ScheduledEmailType } from "../../shared/ScheduledEmailType";
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
-import { getTaskMarkdown } from "shared/Task";
-import markdown2html from "shared/markdown2html";
+import { getTaskMarkdown } from "../../shared/Task";
+import markdown2html from "../../shared/markdown2html";
 
 export async function scheduleEmail(
   type: ScheduledEmailType,
