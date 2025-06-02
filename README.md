@@ -16,11 +16,10 @@ Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunt
    variables you can set in `.env`.
 1. Run `yarn` to install dependency packages.
    - If you run into error `"$VERCEL_ENV" was unexpected`, see this [`doc`](./docs/package.json.md).
-1. Run `yarn migrate-database` to initialize the database.
+1. Run `yarn migrate-db && yarn gen-demo-data` to initialize the database.
 1. Run `yarn dev` to start local server. By default it will listen on [`localhost:3000`](http://localhost:3000).
-1. Visit the local server from broswer. Sign up with your personal email address.
+1. Visit the local server from broswer. Sign up with email `admin@de.mo`.
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the six-digit token.
-1. Run `yarn gen-test-data` to finish setup and populate test data.
 1. If you use MacOS, run `chmod ug+x .husky/*` to activate husky/git hooks.
 
 ## Code Structure

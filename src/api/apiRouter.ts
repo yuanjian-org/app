@@ -11,7 +11,7 @@ import webhooks from './webhooks';
 import interviews from './routes/interviews';
 import interviewFeedbacks from './routes/interviewFeedbacks';
 import calibrations from './routes/calibrations';
-import chat from './routes/chat';
+import chat from './routes/chats';
 import match from './routes/match';
 import migration from './routes/migration';
 import map from './routes/map';
