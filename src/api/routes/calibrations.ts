@@ -7,7 +7,8 @@ import sequelize from "../database/sequelize";
 import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
-import { calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude, groupAttributes
+import {
+  calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude, groupAttributes
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
@@ -37,8 +38,8 @@ export async function createCalibration(type: InterviewType, name: string):
   return await sequelize.transaction(async transaction => {
     const c = await db.Calibration.create({ type, name, active: false },
       { transaction });
-    const g = await createGroup(null, [], null, null, c.id, null, transaction);
-    const dbGroup = await db.Group.findByPk(g.id, { transaction });
+    const gid = await createGroup(null, [], null, null, c.id, null, transaction);
+    const dbGroup = await db.Group.findByPk(gid, { transaction });
     invariant(dbGroup);
     await dbGroup.update({ public: true }, { transaction });
     return c.id;

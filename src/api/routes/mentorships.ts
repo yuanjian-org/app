@@ -43,13 +43,16 @@ const create = procedure
   });
 });
 
+/**
+ * @returns the created group id
+ */
 export async function createMentorship(
   mentorId: string,
   menteeId: string,
   transactional: boolean,
   endsAt: DateColumn | null,
   transaction: Transaction
-) {
+): Promise<string> {
   const mentor = await db.User.findByPk(mentorId, { lock: true, transaction });
   const mentee = await db.User.findByPk(menteeId, { lock: true, transaction });
   if (!mentor || !mentee) {
@@ -75,8 +78,8 @@ export async function createMentorship(
 
   // Create groups
   invariant(mentorship);
-  await createGroup(null, [mentorId, menteeId], mentorship.id, null, null,
-    null, transaction);
+  return await createGroup(null, [mentorId, menteeId], mentorship.id, null,
+    null, null, transaction);
 }
 
 const update = procedure

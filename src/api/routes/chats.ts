@@ -4,18 +4,17 @@ import db from "../database/db";
 import { z } from "zod";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
-import {
-  chatRoomAttributes,
-  chatRoomInclude,
-} from "api/database/models/attributesAndIncludes";
-import { zChatRoom } from "shared/ChatRoom";
-import { Includeable, Op, Transaction } from "sequelize";
-import { zDateColumn, zNullableDateColumn } from "shared/DateColumn";
+import { zChatRoom } from "../../shared/ChatRoom";
+import { Op } from "sequelize";
+import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { scheduleEmail } from "./scheduledEmails";
-import User from "shared/User";
-import { checkPermissionToAccessMentee } from "./users";
-import invariant from "tiny-invariant";
+import {
+  checkRoomPermission,
+  createChatMessage,
+  findOrCreateRoom,
+  findRoom,
+} from "./chatsInternal";
 
 const getRoom = procedure
   .use(authUser())
@@ -25,18 +24,8 @@ const getRoom = procedure
   .output(zChatRoom)
   .query(async ({ ctx, input: { menteeId } }) =>
 {
-  await checkRoomPermission(ctx.user, menteeId);
-
   return await sequelize.transaction(async transaction => {
-    while (true) {
-      const r = await findRoom(menteeId, transaction, chatRoomAttributes,
-        chatRoomInclude);
-      if (!r) {
-        await db.ChatRoom.create({ menteeId }, { transaction });
-      } else {
-        return r;
-      }
-    }
+    return await findOrCreateRoom(ctx.user, menteeId, transaction);
   });
 });
 
@@ -135,20 +124,6 @@ const setLastReadAt = procedure
   });
 });
 
-async function findRoom(
-  menteeId: string,
-  transaction: Transaction,
-  attributes: string[] = ["id"],
-  include: Includeable[] = [],
-) {
-  return await db.ChatRoom.findOne({
-    where: { menteeId },
-    attributes,
-    include,
-    transaction,
-  });
-}
-
 /**
  * Use mentorshipId etc to query instaed of using roomId, so that much logic of
  * this function can be deduped with `getRoom` and `getMostRecentMessageUpdatedAt`.
@@ -162,21 +137,7 @@ const createMessage = procedure
   .mutation(async ({ ctx: { user }, input: { roomId, markdown } }) => 
 {
   await sequelize.transaction(async transaction => {
-    const r = await db.ChatRoom.findByPk(roomId, {
-      attributes: ["menteeId"],
-    });
-    if (!r) throw notFoundError("讨论空间", roomId);
-
-    await checkRoomPermission(user, r.menteeId);
-
-    await db.ChatMessage.create({ roomId, markdown, userId: user.id },
-      { transaction });
-
-    await db.DraftChatMessage.destroy({
-      where: { roomId, authorId: user.id },
-      transaction,
-    });
-
+    await createChatMessage(user, roomId, markdown, transaction);
     await scheduleEmail("Chat", roomId, transaction);
   });
 });
@@ -278,11 +239,6 @@ function checkDraftMessageInput(
     throw generalBadRequestError(
       "one and only one of roomId and messageId must be specified");
   }
-}
-
-async function checkRoomPermission(me: User, menteeId: string | null) {
-  if (menteeId !== null) await checkPermissionToAccessMentee(me, menteeId);
-  else invariant(false);
 }
 
 export default router({

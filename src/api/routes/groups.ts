@@ -266,6 +266,9 @@ export async function findGroups(userIds: string[], mode: 'inclusive' | 'exclusi
   return res;
 }
 
+/**
+ * @returns the created group id
+ */
 export async function createGroup(
   name: string | null,
   userIds: string[],
@@ -273,15 +276,20 @@ export async function createGroup(
   interviewId: string | null, 
   calibrationId: string | null,
   coacheeId: string | null,
-  transaction: Transaction): Promise<Group>
+  transaction: Transaction): Promise<string>
 {
   invariant(!partnershipId || !interviewId || !calibrationId || !coacheeId);
 
-  const g = await db.Group.create({ name, partnershipId, interviewId, calibrationId, coacheeId },
-    { transaction });
+  const g = await db.Group.create({ 
+    name, 
+    partnershipId, 
+    interviewId, 
+    calibrationId, 
+    coacheeId 
+  }, { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,
     groupId: g.id,
   })), { transaction });
-  return g;
+  return g.id;
 }
