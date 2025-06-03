@@ -22,7 +22,6 @@ import mentorSelections from './routes/mentorSelections';
 import tasks from './routes/tasks';
 import matchFeedback from './routes/matchFeedback';
 import globalConfigs from './routes/globalConfigs';
-import { meetingSlotRouter } from './routes/meetingSlot';
 
 export const apiRouter = router({
   users,
@@ -48,7 +47,6 @@ export const apiRouter = router({
   tasks,
   matchFeedback,
   globalConfigs,
-  meetingSlot: meetingSlotRouter
 });
 
 export type ApiRouter = typeof apiRouter;

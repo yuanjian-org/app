@@ -22,7 +22,7 @@ export default function Page() {
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
   const [saving, setSaving] = useState(false);
-  const meetingSlotQuery = trpcNext.meetingSlot.list.useQuery();
+  const meetingSlotQuery = trpcNext.meetings.listSlots.useQuery();
   const meetingSlot = meetingSlotQuery.data as MeetingSlot[] | undefined;
   
   // State for inline editing
@@ -33,7 +33,8 @@ export default function Page() {
   }>({ meetingId: '', meetingLink: '' });
   const [updatingSlot, setUpdatingSlot] = useState(false);
 
-  const updateMeetingSlotMutation = trpcNext.meetingSlot.update.useMutation({
+  // Updated: use meetings.updateSlot instead of meetingSlot.update
+  const updateMeetingSlotMutation = trpcNext.meetings.updateSlot.useMutation({
     onSuccess: () => {
       toast.success('会议信息更新成功');
       void meetingSlotQuery.refetch();

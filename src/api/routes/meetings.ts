@@ -113,9 +113,36 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
+const listSlots = procedure.query(async () => {
+  return await db.MeetingSlot.findAll({
+    attributes: ["id", "tmUserId", "meetingId", "meetingLink", "groupId", "updatedAt"],
+    order: [["updatedAt", "DESC"]],
+  });
+});
+
+const updateSlot = procedure
+  .input(
+    z.object({
+      id: z.number(),
+      meetingId: z.string().optional(),
+      meetingLink: z.string().url().optional(),
+    })
+  )
+  .mutation(async ({ input }) => {
+    const { id, ...updateData } = input;
+    
+    return await db.MeetingSlot.update(updateData, {
+      where: { id },
+      returning: true,
+    });
+  });
+
+
 export default router({
   join,
   decline,
+  listSlots,
+  updateSlot
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {
