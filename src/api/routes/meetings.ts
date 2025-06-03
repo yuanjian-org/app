@@ -11,7 +11,8 @@ import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import {
   groupAttributes,
-  groupInclude
+  groupInclude,
+  meetingSlotAttributes
 } from 'api/database/models/attributesAndIncludes';
 import { Op, Transaction } from 'sequelize';
 import moment from 'moment';
@@ -113,14 +114,25 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
-const listSlots = procedure.query(async () => {
-  return await db.MeetingSlot.findAll({
-    attributes: ["id", "tmUserId", "meetingId", "meetingLink", "groupId", "updatedAt"],
-    order: [["updatedAt", "DESC"]],
+/**
+ * List all meeting slots for admin management.
+ * Only MentorshipManager can access this.
+ */
+const listSlots = procedure
+  .use(authUser("MentorshipManager"))
+  .query(async () => {
+    return await db.MeetingSlot.findAll({
+      attributes: meetingSlotAttributes,
+      order: [["updatedAt", "DESC"]],
+    });
   });
-});
 
+/**
+ * Update a meeting slot's information.
+ * Only MentorshipManager can modify meeting slots.
+ */
 const updateSlot = procedure
+  .use(authUser("MentorshipManager"))
   .input(
     z.object({
       id: z.number(),
@@ -131,18 +143,20 @@ const updateSlot = procedure
   .mutation(async ({ input }) => {
     const { id, ...updateData } = input;
     
+    const slot = await db.MeetingSlot.findByPk(id);
+    if (!slot) throw notFoundError("数据", id.toString());
+    
     return await db.MeetingSlot.update(updateData, {
       where: { id },
       returning: true,
     });
   });
 
-
 export default router({
   join,
   decline,
   listSlots,
-  updateSlot
+  updateSlot,
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {
