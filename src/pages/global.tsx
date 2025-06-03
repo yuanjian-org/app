@@ -4,26 +4,58 @@ import { toast } from 'react-toastify';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useState } from 'react';
 import { DateColumn } from 'shared/DateColumn';
+import { MeetingSlot } from 'shared/MeetingSlot';
 import { componentSpacing, maxTextWidth } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import moment from 'moment-timezone';
 
-type MeetingSlot = {
-  id: number;
-  tmUserId: string;
-  meetingId: string;
-  meetingLink: string;
-  groupId: string | null;
-  updatedAt: string;
-};
-
-export default function Page() {
+function MatchFeedbackEditableUntilComponent() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
   const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!moment(matchFeedbackEditableUntil).isValid()) {
+      toast.error('初次交流反馈表截止时间格式错误');
+      return;
+    }
+    setSaving(true);
+    try {
+      await trpc.globalConfigs.update.mutate({ 
+        ...matchFeedbackEditableUntil && {
+          matchFeedbackEditableUntil,
+        },
+      });
+      toast.success('保存成功');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <FormControl>
+        <FormLabel>初次交流反馈表截止时间，格式: 2022-02-02T01:01:01+08:00</FormLabel>
+        <Input
+          defaultValue={data?.matchFeedbackEditableUntil}
+          onChange={(e) => setMatchFeedbackEditableUntil(e.target.value)}
+        />
+      </FormControl>
+      <Button
+        variant="brand"
+        onClick={save}
+        isLoading={saving}
+      >
+        保存
+      </Button>
+    </>
+  );
+}
+
+function MeetingSlotsComponent() {
   const meetingSlotQuery = trpcNext.meetings.listSlots.useQuery();
-  const meetingSlot = meetingSlotQuery.data as MeetingSlot[] | undefined;
+  const meetingSlots = meetingSlotQuery.data as MeetingSlot[] | undefined;
   
   // State for inline editing
   const [editingSlot, setEditingSlot] = useState<number | null>(null);
@@ -33,7 +65,6 @@ export default function Page() {
   }>({ meetingId: '', meetingLink: '' });
   const [updatingSlot, setUpdatingSlot] = useState(false);
 
-  // Updated: use meetings.updateSlot instead of meetingSlot.update
   const updateMeetingSlotMutation = trpcNext.meetings.updateSlot.useMutation({
     onSuccess: () => {
       toast.success('会议信息更新成功');
@@ -47,25 +78,6 @@ export default function Page() {
       setUpdatingSlot(false);
     }
   });
-
-  const save = async () => {
-    if (!moment(matchFeedbackEditableUntil).isValid()) {
-      toast.error('初次交流反馈表截止时间格式错误');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await trpc.globalConfigs.update.mutate({ 
-        ...matchFeedbackEditableUntil && {
-          matchFeedbackEditableUntil,
-        },
-      });
-      toast.success('保存成功');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const startEditing = (slot: MeetingSlot) => {
     setEditingSlot(slot.id);
@@ -115,26 +127,8 @@ export default function Page() {
   };
 
   return (
-    <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
-      <PageBreadcrumb current="全局配置" />
-
-      <FormControl>
-        <FormLabel>初次交流反馈表截止时间，格式: 2022-02-02T01:01:01+08:00</FormLabel>
-        <Input
-          defaultValue={data?.matchFeedbackEditableUntil}
-          onChange={(e) => setMatchFeedbackEditableUntil(e.target.value)}
-        />
-      </FormControl>
-
-      <Button
-        variant="brand"
-        onClick={save}
-        isLoading={saving}
-      >
-        保存
-      </Button>
-
-      {meetingSlot?.map((slot) => (
+    <>
+      {meetingSlots?.map((slot) => (
         <Box key={slot.id} border="1px solid #ccc" padding="10px" width="100%" borderRadius="4px">
           <div><strong>tmUserId:</strong> {slot.tmUserId}</div>
           
@@ -216,6 +210,18 @@ export default function Page() {
           </div>
         </Box>
       ))}
+    </>
+  );
+}
+
+export default function Page() {
+  return (
+    <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
+      <PageBreadcrumb current="全局配置" />
+      
+      <MatchFeedbackEditableUntilComponent />
+      
+      <MeetingSlotsComponent />
     </VStack>
   );
 }
