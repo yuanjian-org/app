@@ -54,7 +54,7 @@ function MatchFeedbackEditableUntilComponent() {
 }
 
 function MeetingSlotsComponent() {
-  const meetingSlotQuery = trpcNext.meetings.listSlots.useQuery();
+  const meetingSlotQuery = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = meetingSlotQuery.data as MeetingSlot[] | undefined;
   
   // State for inline editing
@@ -65,7 +65,7 @@ function MeetingSlotsComponent() {
   }>({ meetingId: '', meetingLink: '' });
   const [updatingSlot, setUpdatingSlot] = useState(false);
 
-  const updateMeetingSlotMutation = trpcNext.meetings.updateSlot.useMutation({
+  const updateMeetingSlotMutation = trpcNext.meetings.updateMeetingSlot.useMutation({
     onSuccess: () => {
       toast.success('会议信息更新成功');
       void meetingSlotQuery.refetch();
