@@ -176,8 +176,7 @@ function MeetingSlotsComponent() {
           </div>
 
           <div><strong>groupId:</strong> {slot.groupId ?? '空闲'}</div>
-          <div><strong>updatedAt:</strong> {moment(slot.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
-
+          
           {/* Edit controls */}
           <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
             {editingSlot === slot.id ? (

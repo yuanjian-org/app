@@ -117,11 +117,11 @@ const decline = procedure
 const listMeetingSlots = procedure
   .use(authUser("MentorshipManager"))
   .query(async () => 
-  {
-    return await db.MeetingSlot.findAll({
-      attributes: meetingSlotAttributes,
-      order: [["updatedAt", "DESC"]],
-    });
+{
+  return await db.MeetingSlot.findAll({
+    attributes: meetingSlotAttributes,
+    order: [["updatedAt", "DESC"]],
+  });
 });
 
 const updateMeetingSlot = procedure
@@ -129,21 +129,21 @@ const updateMeetingSlot = procedure
   .input(
     z.object({
       id: z.number(),
-      meetingId: z.string().optional(),
-      meetingLink: z.string().url().optional(),
+      meetingId: z.string(),
+      meetingLink: z.string().url(),
     })
   )
-  .mutation(async ({ input }) => 
-  {
-    const { id, ...updateData } = input;
+  .mutation(async ({ input: { id, meetingId, meetingLink } }) => 
+{
+  const updated = await db.MeetingSlot.update(
+    { meetingId, meetingLink }, 
+    { where: { id } }
+  );
+  invariant(updated[0] <= 1, 'trying incorrect update');
+  if (updated[0] == 0){
+    throw notFoundError("数据", id.toString());
+  }
     
-    const slot = await db.MeetingSlot.findByPk(id);
-    if (!slot) throw notFoundError("数据", id.toString());
-    
-    return await db.MeetingSlot.update(updateData, {
-      where: { id },
-      returning: true,
-    });
 });
 
 export default router({
