@@ -146,11 +146,33 @@ const updateMeetingSlot = procedure
     
 });
 
+const createMeetingSlot = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      tmUserId: z.string(),
+      meetingId: z.string(),
+      meetingLink: z.string().url(),
+    })
+  )
+  .mutation(async ({ input: { tmUserId, meetingId, meetingLink } }) => 
+{
+  const newSlot = await db.MeetingSlot.create({
+    tmUserId,
+    meetingId,
+    meetingLink,
+    groupId: null,
+  });
+  
+  return newSlot;
+});
+
 export default router({
   join,
   decline,
   listMeetingSlots,
   updateMeetingSlot,
+  createMeetingSlot
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {
