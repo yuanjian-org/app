@@ -10,6 +10,8 @@ import { isPermitted } from "../../shared/Role";
 import moment from "moment";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import { isPermittedtoAccessMentee } from "./users";
+import sequelize from "../database/sequelize";
+import { Transaction } from "sequelize";
 
 /**
  * Permissions of this route are the same as the `interviews.get` route.
@@ -23,16 +25,21 @@ const get = procedure
   }))
   .query(async ({ ctx, input: id }) =>
 {
-  const f = await getInterviewFeedback(id, ctx.user,
-      /*allowOnlyInterviewer=*/ false);
-  return {
-    interviewFeedback: f,
-    etag: date2etag(f.feedbackUpdatedAt),
-  };
+  return await sequelize.transaction(async t => {
+    const f = await getInterviewFeedback(id, ctx.user,
+        /*allowOnlyInterviewer=*/ false, t);
+    return {
+      interviewFeedback: f,
+      etag: date2etag(f.feedbackUpdatedAt),
+    };
+  });
 });
 
-async function getInterviewFeedback(id: string, me: User, 
-  allowOnlyInterviewer: boolean
+async function getInterviewFeedback(
+  id: string, 
+  me: User, 
+  allowOnlyInterviewer: boolean,
+  transaction: Transaction
 ) {
   const f = await db.InterviewFeedback.findByPk(id, {
     attributes: [...interviewFeedbackAttributes, "interviewId"],
@@ -45,6 +52,7 @@ async function getInterviewFeedback(id: string, me: User,
         attributes: ["id"],
       }],
     }],
+    transaction,
   });
   if (!f) throw notFoundError("面试反馈", id);
 
@@ -57,9 +65,10 @@ async function getInterviewFeedback(id: string, me: User,
     // calibration is active.
     const i = await db.Interview.findByPk(f.interviewId, {
       attributes: ["calibrationId"],
+      transaction,
     });
     if (i?.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
-      i.calibrationId)) {
+      i.calibrationId, transaction)) {
       return f;
     }
 
@@ -90,21 +99,22 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx, input }) =>
 {
-  // TODO: Use transaction
-  const f = await getInterviewFeedback(input.id, ctx.user,
-    /*allowOnlyInterviewer=*/ true);
+  return await sequelize.transaction(async transaction => {
+    const f = await getInterviewFeedback(input.id, ctx.user,
+      /*allowOnlyInterviewer=*/ true, transaction);
 
-  if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
-    throw conflictError();
-  }
+    if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
+      throw conflictError();
+    }
 
-  const now = new Date();
-  await f.update({
-    feedback: input.feedback,
-    feedbackUpdatedAt: now,
+    const now = new Date();
+    await f.update({
+      feedback: input.feedback,
+      feedbackUpdatedAt: now,
+    }, { transaction });
+
+    return date2etag(now);
   });
-
-  return date2etag(now);
 });
 
 /**

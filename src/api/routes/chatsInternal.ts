@@ -14,7 +14,6 @@ import {
   chatRoomInclude,
 } from "../database/models/attributesAndIncludes";
 import { zChatRoom } from "../../shared/ChatRoom";
-import { scheduleEmail } from "./scheduledEmails";
 
 export async function findOrCreateRoom(me: User, menteeId: string, 
   transaction: Transaction) 
@@ -67,8 +66,6 @@ export async function createChatMessage(
     where: { roomId, authorId: author.id },
     transaction,
   });
-
-  await scheduleEmail("Chat", roomId, transaction);
 }
 
 export async function checkRoomPermission(me: User, menteeId: string | null) {
