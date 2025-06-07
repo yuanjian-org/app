@@ -138,7 +138,6 @@ const createMessage = procedure
 {
   await sequelize.transaction(async transaction => {
     await createChatMessage(user, roomId, markdown, transaction);
-    await scheduleEmail("Chat", roomId, transaction);
   });
 });
 
