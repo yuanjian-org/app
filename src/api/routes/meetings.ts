@@ -11,7 +11,8 @@ import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import {
   groupAttributes,
-  groupInclude
+  groupInclude,
+  meetingSlotAttributes
 } from 'api/database/models/attributesAndIncludes';
 import { Op, Transaction } from 'sequelize';
 import moment from 'moment';
@@ -113,9 +114,65 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
+const listMeetingSlots = procedure
+  .use(authUser("MentorshipManager"))
+  .query(async () => 
+{
+  return await db.MeetingSlot.findAll({
+    attributes: meetingSlotAttributes,
+    order: [["updatedAt", "DESC"]],
+  });
+});
+
+const updateMeetingSlot = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      id: z.number(),
+      meetingId: z.string(),
+      meetingLink: z.string().url(),
+    })
+  )
+  .mutation(async ({ input: { id, meetingId, meetingLink } }) => 
+{
+  const updated = await db.MeetingSlot.update(
+    { meetingId, meetingLink }, 
+    { where: { id } }
+  );
+  invariant(updated[0] <= 1, 'trying incorrect update');
+  if (updated[0] == 0){
+    throw notFoundError("数据", id.toString());
+  }
+    
+});
+
+const createMeetingSlot = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      tmUserId: z.string(),
+      meetingId: z.string(),
+      meetingLink: z.string().url(),
+    })
+  )
+  .mutation(async ({ input: { tmUserId, meetingId, meetingLink } }) => 
+{
+  const newSlot = await db.MeetingSlot.create({
+    tmUserId,
+    meetingId,
+    meetingLink,
+    groupId: null,
+  });
+  
+  return newSlot;
+});
+
 export default router({
   join,
   decline,
+  listMeetingSlots,
+  updateMeetingSlot,
+  createMeetingSlot
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {
