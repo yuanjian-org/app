@@ -24,7 +24,7 @@ Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunt
 
 ## Architecture and Development Guidelines
 
-* [deepwiki.com/yuanjian-org/app](https://deepwiki.com/yuanjian-org/app)
+* [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yuanjian-org/app)
 * [Cursor rules](.cursorrules) (mainly auto generated)
 * [Coding style](docs/CodingStyle.md)
 
