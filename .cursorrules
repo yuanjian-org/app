@@ -1,0 +1,204 @@
+# Cursor Rules
+
+## Repository Information
+- **Remote Repository**: https://github.com/yuanjian-org/app
+- **Description**: A Web app that supports mentorship programs at Visionary Education Foundation (远见教育基金会)
+- **Primary Language**: TypeScript (97.0%)
+- **Framework**: Next.js with Page Router
+- **Database**: PostgreSQL with Sequelize ORM
+- **Trust Score**: 3.2 (Context7)
+- **Code Examples Available**: 21 snippets
+
+## Project Structure
+This follows Next.js conventions with strict dependency rules enforced by ESLint:
+
+### Directory Structure
+- `src/pages/` - Next.js Page Router pages
+- `src/api/` - Server-side only code (can import from `src/shared`)
+- `src/shared/` - Code shared between client and server
+- `src/components/` - React components
+- `public/` - Static assets (includes robots.txt)
+- `cypress/e2e/` - End-to-end tests
+- `tools/` - Command-line scripts and utilities
+
+### Dependency Flow (ESLint enforced)
+```
+src (client) --> src/shared (ok)
+src/api --> src/shared (ok)
+```
+
+**Important**: Never import server-side code (`src/api`) into client-side code (`src/pages`, `src/components`). This will break the build and is prevented by ESLint rules.
+
+## Key Features & Architecture
+- **Mentorship Platform**: Supports mentor-mentee matching and ongoing relationships
+- **Real-time Communication**: Chat rooms and video call scheduling
+- **Role-based Access Control**: Different permissions for mentors, mentees, and administrators
+- **Automated Matching**: CP-SAT optimization algorithm for mentor-mentee pairing
+- **Assessment System**: Interview pages and performance tracking
+- **Task Management**: Automated task creation and tracking
+
+### Core User Roles
+1. **Mentors**: Experienced professionals providing guidance (capacity: 1-3 mentees)
+2. **Mentees**: Students/early-career individuals seeking mentorship
+3. **Administrators**: Platform managers with full access to matching and user management
+
+## Technology Stack
+- **Frontend**: Next.js with Chakra UI
+- **Backend**: tRPC for type-safe APIs
+- **Database**: PostgreSQL with Sequelize ORM
+- **Authentication**: NextAuth.js
+- **Testing**: Cypress for E2E tests
+- **Optimization**: OR-Tools CP-SAT solver for matching algorithms
+- **Deployment**: Docker with Vercel support
+
+### API Architecture
+- **tRPC**: Provides end-to-end type safety between client and server
+- **Type-safe**: All API calls are fully typed in TypeScript
+- **Server-side rendering**: Next.js handles SSR for better performance and SEO
+
+## Development Environment
+
+### Setup Requirements
+- **Node.js**: Latest LTS version recommended
+- **Yarn**: Package manager (preferred over npm)
+- **PostgreSQL**: Local instance or cloud database
+- **Environment Variables**: `.env` file with required secrets
+
+### Required Environment Variables
+```
+DATABASE_URI=postgresql://...
+NEXTAUTH_SECRET=your-secret-here
+```
+
+### Commands
+- `yarn test` - Run unit tests
+- `yarn prepare` - Setup project and Git hooks
+- `yarn cypress-open` - Interactive E2E testing
+- `yarn cypress-run` - Background E2E tests
+- `yarn dev` - Start development server
+- `yarn build` - Production build
+- `yarn start` - Start production server
+
+### Docker Support
+- `docker compose build` - Build containerized environment
+- `docker compose up` - Run full stack locally
+
+## Matching Algorithm
+The project includes a sophisticated mentor-mentee matching system:
+
+### Algorithm Details
+- **Engine**: CP-SAT (Constraint Programming - Satisfiability) solver
+- **Optimization**: Maximizes overall satisfaction scores
+- **Constraints**: Respects mentor capacity limits and preferences
+- **Scoring**: -5 to 5 scale for preference matching
+- **Types**: 
+  - 初配 (Initial Matching): First-time pairing
+  - 定配 (Final Matching): Confirmed long-term relationships
+
+### Matching Process
+1. **Data Collection**: Gather mentor/mentee preferences and availability
+2. **Constraint Setup**: Define capacity limits and compatibility rules
+3. **Optimization**: Run CP-SAT solver to find optimal pairings
+4. **Review & Approval**: Human oversight before finalizing matches
+5. **Notification**: Automated communication to matched pairs
+
+### Handling Edge Cases
+- **Supply/Demand Imbalances**: Uses "dummy" mentors to handle excess mentees
+- **Preference Conflicts**: Prioritizes mutual high scores over one-sided preferences
+- **Capacity Management**: Ensures mentors don't exceed their stated capacity
+
+## Development Workflows
+
+### Code Organization Principles
+1. **Separation of Concerns**: Clear boundaries between client, server, and shared code
+2. **Type Safety**: Leverage TypeScript throughout the application
+3. **Component Reusability**: Build modular, reusable React components
+4. **API Design**: Use tRPC for type-safe, self-documenting APIs
+
+### Best Practices
+- **File Naming**: Use PascalCase for React components, camelCase for utilities
+- **Import Organization**: Group imports by type (React, external libs, internal)
+- **Error Handling**: Implement proper error boundaries and user feedback
+- **Performance**: Use React.memo, useMemo, and useCallback where appropriate
+- **Accessibility**: Follow WCAG guidelines for inclusive design
+
+### Testing Strategy
+- **Unit Tests**: Critical business logic and utility functions
+- **Integration Tests**: API endpoints and database operations
+- **E2E Tests**: Complete user workflows with Cypress
+- **Manual Testing**: Role-based scenarios and edge cases
+
+## Database Architecture
+
+### Sequelize Models
+- **User Management**: Mentor, mentee, and admin profiles
+- **Matching System**: Preferences, constraints, and match results
+- **Communication**: Chat messages, call schedules, notifications
+- **Assessment**: Interview records, performance metrics, feedback
+
+### Migration Strategy
+- **Conditional Migrations**: Based on `VERCEL_ENV` for production safety
+- **Data Integrity**: Foreign key constraints and validation rules
+- **Performance**: Proper indexing for query optimization
+
+## Security Considerations
+
+### Authentication & Authorization
+- **NextAuth.js**: Secure session management
+- **Role-based Access**: Different permissions per user type
+- **API Protection**: tRPC procedures with authentication checks
+- **Data Validation**: Input sanitization and type checking
+
+### Data Protection
+- **Personal Information**: Secure handling of mentor/mentee data
+- **Communication Privacy**: Encrypted chat and call data
+- **Audit Trails**: Logging for administrative actions
+
+## Performance Optimization
+
+### Frontend Performance
+- **Lazy Loading**: Code splitting for route-based components
+- **Optimistic Updates**: Immediate UI feedback for better UX
+- **Caching**: Strategic use of React Query or SWR for data fetching
+- **Bundle Optimization**: Tree shaking and dead code elimination
+
+### Backend Performance
+- **Database Optimization**: Efficient queries and proper indexing
+- **Algorithm Efficiency**: Optimized matching algorithm implementation
+- **Caching Strategy**: In-memory caching for frequent operations
+
+## Platform-specific Notes
+- **Windows**: Use `cross-env` for environment variable issues
+- **Production**: Conditional migrations based on `VERCEL_ENV`
+- **Security**: Robots.txt allows all crawlers
+- **Performance**: Lazy loading and optimistic updates in UI
+- **Deployment**: Vercel-optimized with Docker fallback
+
+## Troubleshooting
+
+### Common Issues
+1. **Build Failures**: Check for improper imports between client/server code
+2. **Database Connections**: Verify `DATABASE_URI` format and accessibility
+3. **Authentication**: Ensure `NEXTAUTH_SECRET` is set and consistent
+4. **Matching Algorithm**: Check OR-Tools installation and solver availability
+
+### Debug Tools
+- **Next.js DevTools**: Built-in development server debugging
+- **tRPC DevTools**: API call inspection and debugging
+- **Sequelize Logging**: Database query debugging
+- **Cypress Dashboard**: E2E test result analysis
+
+## Contributing Guidelines
+
+### Code Style Guide & Quality
+- **Coding Style**: Follow docs/CodingStyle.md
+- **ESLint**: Follow configured linting rules strictly
+- **TypeScript**: Maintain strict type checking
+- **Prettier**: Use consistent code formatting
+- **Git Hooks**: Pre-commit checks for quality assurance
+
+### Pull Request Process
+1. **Feature Branches**: Create descriptive branch names
+2. **Testing**: Ensure all tests pass before submission
+3. **Documentation**: Update relevant documentation
+4. **Review**: Require code review before merging

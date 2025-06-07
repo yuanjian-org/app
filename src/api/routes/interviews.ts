@@ -14,14 +14,14 @@ import {
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
-  conflictError, generalBadRequestError, noPermissionError, notFoundError 
+  conflictError, generalBadRequestError, noPermissionError, notFoundError
 } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { diffInMinutes, formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import {
-  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup 
+  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup
 } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
@@ -30,7 +30,7 @@ import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedtoAccessMentee } from "./users";
 import User, { zInterviewerPreference, zUser } from "../../shared/User";
 import { zUserProfile } from "../../shared/UserProfile";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import {
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes
@@ -52,31 +52,34 @@ const get = procedure
   }))
   .query(async ({ ctx, input: { interviewId } }) =>
 {
-  const i = await db.Interview.findByPk(interviewId, {
-    attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
-    include: [...interviewInclude, {
-      model: Group,
-      attributes: groupAttributes,
-      include: groupInclude,
-    }],
+  return await sequelize.transaction(async transaction => {
+    const i = await db.Interview.findByPk(interviewId, {
+      attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
+      include: [...interviewInclude, {
+        model: Group,
+        attributes: groupAttributes,
+        include: groupInclude,
+      }],
+      transaction,
+    });
+    if (!i) throw notFoundError("面试", interviewId);
+
+    const ret = {
+      interviewWithGroup: i,
+      etag: date2etag(i.decisionUpdatedAt),
+    };
+
+    const me = ctx.user;
+    if (isPermitted(me.roles, "MentorshipManager")) return ret;
+
+    if (i.feedbacks.some(f => f.interviewer.id === me.id)) return ret;
+
+    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
+      i.calibrationId, transaction)) return ret;
+
+    if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
+    throw noPermissionError("面试", interviewId);
   });
-  if (!i) throw notFoundError("面试", interviewId);
-
-  const ret = {
-    interviewWithGroup: i,
-    etag: date2etag(i.decisionUpdatedAt),
-  };
-
-  const me = ctx.user;
-  if (isPermitted(me.roles, "MentorshipManager")) return ret;
-
-  if (i.feedbacks.some(f => f.interviewer.id === me.id)) return ret;
-
-  if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
-    i.calibrationId)) return ret;
-
-  if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
-  throw noPermissionError("面试", interviewId);
 });
 
 const getIdForMentee = procedure
@@ -87,7 +90,16 @@ const getIdForMentee = procedure
   .output(z.string().nullable())
   .query(async ({ input: { menteeId } }) =>
 {
-  // Define a variable to enforce type safety
+  return await sequelize.transaction(async transaction => {
+    return await getInterviewIdForMentee(menteeId, transaction);
+  });
+});
+
+export async function getInterviewIdForMentee(
+  menteeId: string, 
+  transaction: Transaction
+): Promise<string | null> {
+  // Force type safety
   const type: InterviewType = "MenteeInterview";
   const i = await db.Interview.findOne({
     where: {
@@ -95,9 +107,10 @@ const getIdForMentee = procedure
       type,
     },
     attributes: ["id"],
+    transaction,
   });
   return i ? i.id : null;
-});
+}
 
 const list = procedure
   .use(authUser("MentorshipManager"))
@@ -201,8 +214,10 @@ const create = procedure
   .output(z.string())
   .mutation(async ({ input }) =>
 {
-  return await createInterview(input.type, input.calibrationId,
-    input.intervieweeId, input.interviewerIds);
+  return await sequelize.transaction(async transaction => {
+    return await createInterview(input.type, input.calibrationId,
+      input.intervieweeId, input.interviewerIds, transaction);
+  });
 });
 
 /**
@@ -212,34 +227,34 @@ export async function createInterview(
   type: InterviewType,
   calibrationId: string | null, 
   intervieweeId: string,
-  interviewerIds: string[]
+  interviewerIds: string[],
+  transaction: Transaction,
 ): Promise<string> {
   validate(intervieweeId, interviewerIds);
 
-  return await sequelize.transaction(async transaction => {
-    const i = await db.Interview.create({
-      type, intervieweeId, calibrationId,
-    }, { transaction });
-    await db.InterviewFeedback.bulkCreate(interviewerIds.map(id => ({
-      interviewId: i.id,
-      interviewerId: id,
-    })), { transaction });
+  const i = await db.Interview.create({
+    type, intervieweeId, calibrationId,
+  }, { transaction });
+  await db.InterviewFeedback.bulkCreate(interviewerIds.map(id => ({
+    interviewId: i.id,
+    interviewerId: id,
+  })), { transaction });
 
-    // Update roles
-    for (const interviwerId of interviewerIds) {
-      const u = await db.User.findByPk(interviwerId);
-      invariant(u);
-      if (u.roles.some(r => r == "Interviewer")) continue;
-      u.roles = [...u.roles, "Interviewer"];
-      await u.save({ transaction });
-    }
+  // Update roles
+  for (const interviwerId of interviewerIds) {
+    const u = await db.User.findByPk(interviwerId, { transaction });
+    invariant(u);
+    if (u.roles.some(r => r == "Interviewer")) continue;
+    u.roles = [...u.roles, "Interviewer"];
+    await u.save({ transaction });
+  }
 
-    await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null, null, transaction);
+  await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null,
+    null, transaction);
 
-    if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
+  if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
 
-    return i.id;
-  });
+  return i.id;
 }
 
 const listInterviewerStats = procedure
