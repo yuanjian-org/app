@@ -740,68 +740,73 @@ const getApplicant = procedure
   }))
   .query(async ({ ctx: { user: me }, input: { userId, type } }) =>
 {
-  const isMentee = type == "MenteeInterview";
+  return await sequelize.transaction(async transaction => {
+    const isMentee = type == "MenteeInterview";
 
-  const user = await db.User.findByPk(userId, {
-    attributes: [
-      ...userAttributes, 
-      isMentee ? "menteeApplication" : "volunteerApplication",
-      "profile"
-    ],
-    include: userInclude,
-  });
-  if (!user) throw notFoundError("用户", userId);
+    const user = await db.User.findByPk(userId, {
+      attributes: [
+        ...userAttributes, 
+        isMentee ? "menteeApplication" : "volunteerApplication",
+        "profile"
+      ],
+      include: userInclude,
+      transaction,
+    });
+    if (!user) throw notFoundError("用户", userId);
 
-  const application = isMentee ? user.menteeApplication :
-    user.volunteerApplication;
-  const sex = user.profile?.性别 ?? null;
+    const application = isMentee ? user.menteeApplication :
+      user.volunteerApplication;
+    const sex = user.profile?.性别 ?? null;
 
-  const ret = {
-    user,
-    application,
-    sex,
-  };
+    const ret = {
+      user,
+      application,
+      sex,
+    };
 
-  if (me.id === userId || isPermitted(me.roles, "MentorshipManager")) {
-    return ret;
-  }
+    if (me.id === userId || isPermitted(me.roles, "MentorshipManager")) {
+      return ret;
+    }
 
-  // Redact
-  user.email = "redacted@redacted.com";
-  user.wechat = "redacted";
+    // Redact
+    user.email = "redacted@redacted.com";
+    user.wechat = "redacted";
 
-  // Check if the user is a mentorcoach or mentor of the mentee
-  if (isMentee && await isPermittedtoAccessMentee(me, userId)) return ret;
+    // Check if the user is a mentorcoach or mentor of the mentee
+    if (isMentee && await isPermittedtoAccessMentee(me, userId)) return ret;
 
-  // Check if the user is an interviewer
-  const myInterviews = await db.Interview.findAll({
-    where: {
-      type,
-      intervieweeId: userId,
-    },
-    attributes: [],
-    include: [{
-      model: db.InterviewFeedback,
+    // Check if the user is an interviewer
+    const myInterviews = await db.Interview.findAll({
+      where: {
+        type,
+        intervieweeId: userId,
+      },
       attributes: [],
-      where: { interviewerId: me.id },
-    }],
-  });
-  if (myInterviews.length) return ret;
+      include: [{
+        model: db.InterviewFeedback,
+        attributes: [],
+        where: { interviewerId: me.id },
+      }],
+      transaction,
+    });
+    if (myInterviews.length) return ret;
 
-  // Check if the user is a calibration participant
-  const allInterviews = await db.Interview.findAll({
-    where: {
-      type: type,
-      intervieweeId: userId,
-    },
-    attributes: ["calibrationId"],
-  });
-  for (const i of allInterviews) {
-    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(
-      me, i.calibrationId)) return ret;
-  }
+    // Check if the user is a calibration participant
+    const allInterviews = await db.Interview.findAll({
+      where: {
+        type: type,
+        intervieweeId: userId,
+      },
+      attributes: ["calibrationId"],
+      transaction,
+    });
+    for (const i of allInterviews) {
+      if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(
+        me, i.calibrationId, transaction)) return ret;
+    }
 
-  throw noPermissionError("申请表", user.id);
+    throw noPermissionError("申请表", user.id);
+  });
 });
 
 /**
@@ -987,6 +992,7 @@ export async function checkPermissionToAccessMentee(me: User, menteeId: string) 
   }
 }
 
+// TODO: Add transaction
 export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
   if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
   if (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } }) > 0) {

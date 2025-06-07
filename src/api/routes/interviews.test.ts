@@ -53,7 +53,9 @@ describe('interviews', () => {
   it('`create` should create group', async () => {
     const interviewee = await getUserId(intervieweeEmail);
     const interviewers = [await getUserId(interviewer1Email), await getUserId(interviewer2Email)];
-    await createInterview("MenteeInterview", null, interviewee, interviewers);
+    await sequelize.transaction(async transaction => {
+      await createInterview("MenteeInterview", null, interviewee, interviewers, transaction);
+    });
     const gs = await findGroups([interviewee, ...interviewers], "exclusive");
     expect(gs.length).is.equal(1);
   });
@@ -61,7 +63,9 @@ describe('interviews', () => {
   it('`update` should update group', async () => {
     const interviewee = await getUserId(intervieweeEmail);
     const interviewers = [await getUserId(interviewer2Email)];
-    const id = await createInterview("MenteeInterview", null, interviewee, interviewers);
+    const id = await sequelize.transaction(async transaction => {
+      return await createInterview("MenteeInterview", null, interviewee, interviewers, transaction);
+    });
 
     const newInterviewers = [await getUserId(interviewer1Email), await getUserId(interviewer3Email)];
     await updateInterview(id, "MenteeInterview", null, interviewee, newInterviewers);

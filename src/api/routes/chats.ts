@@ -5,7 +5,7 @@ import { z } from "zod";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
 import { zChatRoom } from "../../shared/ChatRoom";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { scheduleEmail } from "./scheduledEmails";
@@ -15,6 +15,7 @@ import {
   findOrCreateRoom,
   findRoom,
 } from "./chatsInternal";
+import User from "shared/User";
 
 const getRoom = procedure
   .use(authUser())
@@ -137,9 +138,19 @@ const createMessage = procedure
   .mutation(async ({ ctx: { user }, input: { roomId, markdown } }) => 
 {
   await sequelize.transaction(async transaction => {
-    await createChatMessage(user, roomId, markdown, transaction);
+    await createMessageAndScheduleEmail(user, roomId, markdown, transaction);
   });
 });
+
+export async function createMessageAndScheduleEmail(
+  author: User,
+  roomId: string,
+  markdown: string,
+  transaction: Transaction,
+) {
+  await createChatMessage(author, roomId, markdown, transaction);
+  await scheduleEmail("Chat", roomId, transaction);
+}
 
 /**
  * Only the user who created the message can update it.

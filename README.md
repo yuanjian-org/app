@@ -22,6 +22,12 @@ Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunt
    - When prompted to enter a verification code, find the `"token": "..."` string from `yarn dev`'s command-line output and enter the six-digit token.
 1. If you use MacOS, run `chmod ug+x .husky/*` to activate husky/git hooks.
 
+## Architecture and Development Guidelines
+
+* [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yuanjian-org/app)
+* [Cursor rules](.cursorrules) (mainly auto generated)
+* [Coding style](docs/CodingStyle.md)
+
 ## Code Structure
 
 We follow [next.js convention](https://nextjs.org/docs/getting-started/project-structure#top-level-folders):

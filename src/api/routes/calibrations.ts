@@ -8,7 +8,11 @@ import { createGroup, updateGroup } from "./groups";
 import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
 import { zCalibration } from "../../shared/Calibration";
 import {
-  calibrationAttributes, interviewInclude, interviewAttributes, calibrationInclude, groupAttributes
+  calibrationAttributes,
+  interviewInclude,
+  interviewAttributes,
+  calibrationInclude,
+  groupAttributes,
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
@@ -25,25 +29,29 @@ const create = procedure
   }))
   .mutation(async ({ input }) =>
 {
-  await createCalibration(input.type, input.name);
+  await sequelize.transaction(async transaction => {
+    await createCalibration(input.type, input.name, false, transaction);
+  });
 });
 
 /**
  * @returns the calibration id.
  */
-export async function createCalibration(type: InterviewType, name: string):
+export async function createCalibration(
+  type: InterviewType,
+  name: string,
+  active: boolean,
+  transaction: Transaction):
   Promise<string> 
 {
   if (!name.length) throw generalBadRequestError("名称不能为空");
-  return await sequelize.transaction(async transaction => {
-    const c = await db.Calibration.create({ type, name, active: false },
-      { transaction });
-    const gid = await createGroup(null, [], null, null, c.id, null, transaction);
-    const dbGroup = await db.Group.findByPk(gid, { transaction });
-    invariant(dbGroup);
-    await dbGroup.update({ public: true }, { transaction });
-    return c.id;
-  });
+  const c = await db.Calibration.create({ type, name, active },
+    { transaction });
+  const gid = await createGroup(null, [], null, null, c.id, null, transaction);
+  const rows = await db.Group.update({ public: true }, 
+    { where: { id: gid }, transaction });
+  invariant(rows[0] === 1);
+  return c.id;
 }
 
 const update = procedure
@@ -100,17 +108,21 @@ const listMine = procedure
   .output(z.array(zCalibration))
   .query(async ({ ctx }) =>
 {
-  const cids = (await db.Calibration.findAll({
-    attributes: ["id"],
-    where: { active: true },
-  })).map(c => c.id);
+  return await sequelize.transaction(async transaction => {
+    const cids = (await db.Calibration.findAll({
+      attributes: ["id"],
+      where: { active: true },
+      transaction,
+    })).map(c => c.id);
 
-  const cs: Calibration[] = [];
-  for (const cid of cids) {
-    const c = await getCalibrationAndCheckPermissionSafe(ctx.user, cid);
-    if (c) cs.push(c);
-  }
-  return cs;
+    const cs: Calibration[] = [];
+    for (const cid of cids) {
+      const c = await getCalibrationAndCheckPermissionSafe(ctx.user, cid,
+        transaction);
+      if (c) cs.push(c);
+    }
+    return cs;
+  });
 });
 
 /**
@@ -124,7 +136,9 @@ const get = procedure
   .output(zCalibration)
   .query(async ({ ctx, input: id }) =>
 {
-  return await getCalibrationAndCheckPermission(ctx.user, id);
+  return await sequelize.transaction(async transaction => {
+    return await getCalibrationAndCheckPermission(ctx.user, id, transaction);
+  });
 });
 
 /**
@@ -140,12 +154,16 @@ const getInterviews = procedure
   .output(z.array(zInterview))
   .query(async ({ ctx, input: calibrationId }) =>
 {
-  await getCalibrationAndCheckPermission(ctx.user, calibrationId);
+  return await sequelize.transaction(async transaction => {
+    await getCalibrationAndCheckPermission(ctx.user, calibrationId,
+      transaction);
 
-  return await db.Interview.findAll({
-    where: { calibrationId },
-    attributes: interviewAttributes,
-    include: interviewInclude,
+    return await db.Interview.findAll({
+      where: { calibrationId },
+      attributes: interviewAttributes,
+      include: interviewInclude,
+      transaction,
+    });
   });
 });
 
@@ -159,10 +177,14 @@ export default router({
   setManager,
 });
 
-async function getCalibrationAndCheckPermission(me: User, calibrationId: string):
+async function getCalibrationAndCheckPermission(
+  me: User,
+  calibrationId: string,
+  transaction: Transaction):
   Promise<Calibration>
 {
-  const c = await getCalibrationAndCheckPermissionSafe(me, calibrationId);
+  const c = await getCalibrationAndCheckPermissionSafe(me, calibrationId,
+    transaction);
   if (!c) throw noPermissionError("面试讨论", calibrationId);
   return c;
 }
@@ -176,11 +198,12 @@ async function getCalibrationAndCheckPermission(me: User, calibrationId: string)
  * TODO: optimize queries. combine queries from the call site.
  */
 export async function getCalibrationAndCheckPermissionSafe(
-  me: User, calibrationId: string
+  me: User, calibrationId: string, transaction: Transaction
 ): Promise<Calibration | null> {
   const c = await db.Calibration.findByPk(calibrationId, {
     attributes: calibrationAttributes,
     include: calibrationInclude,
+    transaction,
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
@@ -195,6 +218,7 @@ export async function getCalibrationAndCheckPermissionSafe(
       attributes: [],
       where: { id: me.id },
     }],
+    transaction,
   });
   if (!g) return null;
 
