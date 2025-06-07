@@ -18,7 +18,7 @@ export type DemoUser = {
   roles?: Role[],
   volunteerApplication?: Record<string, any> | null,
   menteeApplication?: Record<string, any> | null;
-  menteeStatus?: MenteeStatus,
+  menteeStatus?: MenteeStatus | null,
   profile?: UserProfile | null,
 };
 
@@ -89,6 +89,21 @@ const users: Record<string, DemoUser> = {
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
   },
+  mentee4: {
+    name: '丁学生',
+    email: 'mentee4@de.mo',
+    roles: ["Mentee"] as Role[],
+    menteeStatus: null,
+    menteeApplication,
+  },
+  mentee5: {
+    name: '戊学生',
+    email: 'mentee5@de.mo',
+    roles: ["Mentee"] as Role[],
+    menteeStatus: null,
+    menteeApplication,
+  },
+
   mentor1: {
     name: '丙导师',
     email: 'mentor1@de.mo',
@@ -234,7 +249,7 @@ const summary2md = `
 `;
 
 const menteeNote1 = `
-【一对一】参与了刚刚的《灰色思考》读书分享会，感觉收获非常多。“看一本书就是多过了一生”感受很大。
+【一对一】参与了刚刚的《灰色思考》读书分享会，感觉收获非常多。"看一本书就是多过了一生"感受很大。
 
 回到家以后忽然有了反差，意识到家长对某亲戚的负面影响比较大，导致不自信、萎靡。聊了很多如何帮助对方走出压抑陷阱的话题。
 `;
@@ -246,7 +261,7 @@ const menteeNote2 = `
 聊了很多现在与未来的联接，科研内容，交换项目，未来选项，鼓励多看别的选择。
 `;
 
-const demo = {
+const demoData = {
   users,
   summaries: [{
     md: summary1md,
@@ -262,6 +277,19 @@ const demo = {
     menteeNote1,
     menteeNote2,
   ],
-};
+  calibration: {
+    name: '2025届面试组',
+    interviews: [
+      {
+        interviewee: users.mentee4,
+        interviewers: [users.admin, users.mentor4],
+      },
+      {
+        interviewee: users.mentee5,
+        interviewers: [users.mentor1, users.mentor5],
+      },
+    ],
+  },
+} as const;
 
-export default demo;
+export default demoData;

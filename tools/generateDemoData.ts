@@ -4,7 +4,7 @@ import { createGroup, findGroups } from "../src/api/routes/groups";
 import invariant from "tiny-invariant";
 import moment from "moment";
 import { createUser } from "../src/api/routes/users";
-import demo, { DemoUser } from "./demoData";
+import demoData, { DemoUser } from "./demoData";
 import { createMentorship } from "../src/api/routes/mentorships";
 import { DateColumn } from "../src/shared/DateColumn";
 import db from "../src/api/database/db";
@@ -12,7 +12,14 @@ import createKudos from "../src/api/routes/kudosInternal";
 import { AI_MINUTES_SUMMARY_KEY, saveSummary } from "../src/api/routes/summaries";
 import { createChatMessage, findOrCreateRoom } from "../src/api/routes/chatsInternal";
 import User from "../src/shared/User";
+import { createCalibration } from "../src/api/routes/calibrations";
+import _ from "lodash";
+import {
+  createInterview,
+  getInterviewIdForMentee
+} from "../src/api/routes/interviews";
 
+const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
 const mentee1 = demo.users.mentee1;
 const mentee2 = demo.users.mentee2;
@@ -60,8 +67,7 @@ async function main() {
     await createKudos(id(mentor4), id(mentor2), null, t);
     await createKudos(id(admin), id(mentor1), null, t);
 
-    // const calibration = await findOrCreateCalibration();
-    // await generateInterview(users, calibration);
+    await generateCalibrationAndInterviews(t);
 });
   
   // This make sure the process doesn't hang waiting for connection closure.
@@ -147,36 +153,30 @@ async function generateMenteeNotes(author: DemoUser, mentee: DemoUser,
   }
 }
 
-// async function findOrCreateCalibration() {
-//   console.log("Creating Test MenteeIntervew Calibration");
-//   const [menteeCalibration, menteeCalibrationCreated] = await Calibration.findOrCreate({
-//     where: {
-//       type: 'MenteeInterview',
-//       name: '面试组A',
-//     },
-//     defaults: { active: true, }
-//   });
+async function generateCalibrationAndInterviews(t: Transaction) {
+  const c = demo.calibration;
+  const existing = await db.Calibration.findOne({
+    where: { name: c.name },
+    attributes: ['id'],
+    transaction: t,
+  });
 
-//   await sequelize.transaction(async t => {
-//     if (menteeCalibrationCreated) {
-//       await createGroup(null, [], null, null, menteeCalibration.id, null, t);
-//     }
-//   });
+  let calibrationId;
+  if (existing) {
+    calibrationId = existing.id;
+  } else {
+    console.log(`Creating calibration "${c.name}"...`);
+    calibrationId = await createCalibration('MenteeInterview', c.name, true, 
+      t);
+  }
 
-//   return { menteeCalibration };
-// }
-
-// async function generateInterview(users: User[], calibrations: { menteeCalibration: { id: string; } }) {
-//   const userIds = users.map(u => u.id as string);
-//   for (const tu of allUsers) {
-//     invariant(tu.id);
-//     if (tu.email.includes('mentee')) {
-//       console.log(`Creating MenteeInterview for [${users.map(u => u.name)}, ${tu.name}]`);
-//       if ((await findGroupsByType("Interview", [tu.id, ...userIds])).length != 0) continue;
-//       await createInterview("MenteeInterview", calibrations.menteeCalibration.id, tu.id, [...userIds]);
-//     };
-//   }
-// }
+  for (const interview of c.interviews) {
+    if (await getInterviewIdForMentee(id(interview.interviewee), t)) continue;
+    console.log(`Creating interview for ${interview.interviewee.name}...`);
+    await createInterview('MenteeInterview', calibrationId,
+      id(interview.interviewee), interview.interviewers.map(u => id(u)), t);
+  }
+}
 
 /**
  * Checking fields of IDs to return matching exclusive groups
