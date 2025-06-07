@@ -1,7 +1,5 @@
 # Cursor Rules
 
-This codebase is a local copy of https://github.com/yuanjian-org/app
-
 ## Repository Information
 - **Remote Repository**: https://github.com/yuanjian-org/app
 - **Description**: A Web app that supports mentorship programs at Visionary Education Foundation (远见教育基金会)
@@ -167,7 +165,7 @@ The project includes a sophisticated mentor-mentee matching system:
 ### Backend Performance
 - **Database Optimization**: Efficient queries and proper indexing
 - **Algorithm Efficiency**: Optimized matching algorithm implementation
-- **Caching Strategy**: Redis or in-memory caching for frequent operations
+- **Caching Strategy**: In-memory caching for frequent operations
 
 ## Platform-specific Notes
 - **Windows**: Use `cross-env` for environment variable issues
@@ -192,7 +190,8 @@ The project includes a sophisticated mentor-mentee matching system:
 
 ## Contributing Guidelines
 
-### Code Quality
+### Code Style Guide & Quality
+- **Coding Style**: Follow docs/CodingStyle.md
 - **ESLint**: Follow configured linting rules strictly
 - **TypeScript**: Maintain strict type checking
 - **Prettier**: Use consistent code formatting
