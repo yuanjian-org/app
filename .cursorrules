@@ -38,9 +38,9 @@ src/api --> src/shared (ok)
 - **Task Management**: Automated task creation and tracking
 
 ### Core User Roles
-1. **Mentors**: Experienced professionals providing guidance (capacity: 1-3 mentees)
-2. **Mentees**: Students/early-career individuals seeking mentorship
-3. **Administrators**: Platform managers with full access to matching and user management
+- **Mentors**: Experienced professionals providing guidance (capacity: 1-3 mentees)
+- **Mentees**: Students/early-career individuals seeking mentorship
+- **Administrators**: Platform managers with full access to matching and user management
 
 ## Technology Stack
 - **Frontend**: Next.js with Chakra UI
@@ -110,17 +110,21 @@ The project includes a sophisticated mentor-mentee matching system:
 ## Development Workflows
 
 ### Code Organization Principles
-1. **Separation of Concerns**: Clear boundaries between client, server, and shared code
-2. **Type Safety**: Leverage TypeScript throughout the application
-3. **Component Reusability**: Build modular, reusable React components
-4. **API Design**: Use tRPC for type-safe, self-documenting APIs
+- **Separation of Concerns**: Clear boundaries between client, server, and shared code
+- **Type Safety**: Leverage TypeScript throughout the application
+- **Component Reusability**: Build modular, reusable React components
+- **API Design**: Use tRPC for type-safe, self-documenting APIs
 
 ### Best Practices
+- **Coding Style**: Follow [docs/CodingStyle.md](docs/CodingStyle.md)
+- **ESLint**: Follow configured linting rules strictly
+- **TypeScript**: Maintain strict type checking
+- **Prettier**: Use consistent code formatting
 - **File Naming**: Use PascalCase for React components, camelCase for utilities
-- **Import Organization**: Group imports by type (React, external libs, internal)
+- **Import Organization**: Group imports by type (React, external libs, internal). Use 2 spaces for indentation.
 - **Error Handling**: Implement proper error boundaries and user feedback
-- **Performance**: Use React.memo, useMemo, and useCallback where appropriate
 - **Accessibility**: Follow WCAG guidelines for inclusive design
+- **Git Hooks**: Pre-commit checks for quality assurance
 
 ### Testing Strategy
 - **Unit Tests**: Critical business logic and utility functions
@@ -159,7 +163,7 @@ The project includes a sophisticated mentor-mentee matching system:
 ### Frontend Performance
 - **Lazy Loading**: Code splitting for route-based components
 - **Optimistic Updates**: Immediate UI feedback for better UX
-- **Caching**: Strategic use of React Query or SWR for data fetching
+- **Caching**: Use React.memo, useMemo, and useCallback where appropriate
 - **Bundle Optimization**: Tree shaking and dead code elimination
 
 ### Backend Performance
@@ -177,10 +181,10 @@ The project includes a sophisticated mentor-mentee matching system:
 ## Troubleshooting
 
 ### Common Issues
-1. **Build Failures**: Check for improper imports between client/server code
-2. **Database Connections**: Verify `DATABASE_URI` format and accessibility
-3. **Authentication**: Ensure `NEXTAUTH_SECRET` is set and consistent
-4. **Matching Algorithm**: Check OR-Tools installation and solver availability
+- **Build Failures**: Check for improper imports between client/server code
+- **Database Connections**: Verify `DATABASE_URI` format and accessibility
+- **Authentication**: Ensure `NEXTAUTH_SECRET` is set and consistent
+- **Matching Algorithm**: Check OR-Tools installation and solver availability
 
 ### Debug Tools
 - **Next.js DevTools**: Built-in development server debugging
@@ -188,17 +192,8 @@ The project includes a sophisticated mentor-mentee matching system:
 - **Sequelize Logging**: Database query debugging
 - **Cypress Dashboard**: E2E test result analysis
 
-## Contributing Guidelines
-
-### Code Style Guide & Quality
-- **Coding Style**: Follow docs/CodingStyle.md
-- **ESLint**: Follow configured linting rules strictly
-- **TypeScript**: Maintain strict type checking
-- **Prettier**: Use consistent code formatting
-- **Git Hooks**: Pre-commit checks for quality assurance
-
 ### Pull Request Process
-1. **Feature Branches**: Create descriptive branch names
-2. **Testing**: Ensure all tests pass before submission
-3. **Documentation**: Update relevant documentation
-4. **Review**: Require code review before merging
+- **Feature Branches**: Create descriptive branch names
+- **Testing**: Ensure all tests pass before submission
+- **Documentation**: Update relevant documentation
+- **Review**: Require code review before merging
