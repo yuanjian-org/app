@@ -418,10 +418,12 @@ export function UnreadKudosRedDot() {
  * @returns whether there are unread kudos.
  */
 export function useUnreadKudos() {
-  if (!isPermitted(useMyRoles(), "Volunteer")) return false;
-
+  const myRoles = useMyRoles();
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery();
+
+  // Check permission after all hooks are called
+  if (!isPermitted(myRoles, "Volunteer")) return false;
 
   // Assume no unread kudos while the values are being fetched.
   return !!state && !!lastCreated &&

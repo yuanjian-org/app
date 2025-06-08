@@ -255,10 +255,10 @@ function isMentorshipEnded(m: Mentorship) {
 
 export function useMyMentorshipsAsMentor() {
   const myRoles = useMyRoles();
-  const { data } = isPermitted(myRoles, "Mentor") ?
-    trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery() :
-    { data: [] };
-  return data;
+  const { data } = trpcNext.mentorships.listMyMentorshipsAsMentor.useQuery(undefined, {
+    enabled: isPermitted(myRoles, "Mentor")
+  });
+  return data ?? [];
 }
 
 export function SidebarForDesktop() {
