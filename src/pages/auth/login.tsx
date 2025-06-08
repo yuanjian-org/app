@@ -69,7 +69,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       toast.error("验证码无效，可能已经过期或者被使用。请重新登录。");
     } else if (err) {
       // See https://next-auth.js.org/configuration/pages#error-page
-      console.error(`Unkonwn error on /auth/verify: ${err}`);
+      console.error(`Unknown error on /auth/verify: ${err}`);
       toast.error(`糟糕，系统错误，请联系管理员：${err}`);
     }
   }, [router]);

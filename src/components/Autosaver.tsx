@@ -32,14 +32,14 @@ export default function Autosaver({ data, onSave }: {
       while (memo.pendingData !== null) {
         const data = memo.pendingData;
         memo.pendingData = null;
-        console.debug(`Autosaver ${memo.id}: Savinging data.`);
+        console.debug(`Autosaver ${memo.id}: Saving data.`);
         await saveWithRetry(onSave, data, e => setPendingSaverError(memo.id, e));
         memo.lastSavedData = data;
       }
     } finally {
       memo.saving = false;
     }
-    console.debug(`Autosaver ${memo.id}: Done all savingings.`);
+    console.debug(`Autosaver ${memo.id}: Done all savings.`);
     removePendingSaver(memo.id);
   }, autosaveDelayMs), [memo, onSave, removePendingSaver]);
 
