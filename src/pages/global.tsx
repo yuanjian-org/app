@@ -23,7 +23,7 @@ import {
   useDisclosure,
   HStack,
 } from '@chakra-ui/react';
-import { EditIcon, AddIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import { toast } from 'react-toastify';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useState } from 'react';
@@ -162,12 +162,16 @@ function MeetingSlots() {
               <Th>meetingId</Th>
               <Th>meetingLink</Th>
               <Th>groupId</Th>
-              <Th>操作</Th>
             </Tr>
           </Thead>
           <Tbody>
             {meetingSlots?.map((slot) => (
-              <Tr key={slot.id}>
+              <Tr 
+                key={slot.id}
+                onClick={() => handleEdit(slot)}
+                cursor="pointer"
+                _hover={{ bg: 'gray.50' }}
+              >
                 <Td>{slot.tmUserId}</Td>
                 <Td>{slot.meetingId}</Td>
                 <Td>
@@ -176,19 +180,12 @@ function MeetingSlots() {
                     target="_blank" 
                     rel="noopener noreferrer"
                     style={{ color: 'blue', textDecoration: 'underline' }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {slot.meetingLink}
                   </a>
                 </Td>
                 <Td>{slot.groupId}</Td>
-                <Td>
-                  <IconButton
-                    aria-label="编辑"
-                    icon={<EditIcon />}
-                    size="sm"
-                    onClick={() => handleEdit(slot)}
-                  />
-                </Td>
               </Tr>
             ))}
           </Tbody>
@@ -253,6 +250,7 @@ function MeetingSlots() {
     </>
   );
 }
+
 export default function Page() {
   return (
     <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
