@@ -150,8 +150,19 @@ function validateMeetingSlot(
   }
 }
 
+const zMeetingSlotQueryResult = z.object({
+  id: z.number().optional(),
+  tmUserId: z.string().optional(),
+  meetingId: z.string(),
+  meetingLink: z.string().url(),
+  groupId: z.string().nullable(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
 const listMeetingSlots = procedure
   .use(authUser("MentorshipManager"))
+  .output(z.array(zMeetingSlotQueryResult))
   .query(async () => 
 {
   return await db.MeetingSlot.findAll({
