@@ -150,7 +150,7 @@ function validateMeetingSlot(
   }
 }
 
-const zMeetingSlotQueryResult = z.object({
+const zMeetingSlot = z.object({
   id: z.number().optional(),
   tmUserId: z.string().optional(),
   meetingId: z.string(),
@@ -162,7 +162,7 @@ const zMeetingSlotQueryResult = z.object({
 
 const listMeetingSlots = procedure
   .use(authUser("MentorshipManager"))
-  .output(z.array(zMeetingSlotQueryResult))
+  .output(z.array(zMeetingSlot))
   .query(async () => 
 {
   return await db.MeetingSlot.findAll({
@@ -171,53 +171,47 @@ const listMeetingSlots = procedure
   });
 });
 
-const updateMeetingSlot = procedure
-  .use(authUser("MentorshipManager"))
-  .input(
-    z.object({
-      id: z.number(),
-      meetingId: z.string(),
-      meetingLink: z.string().url(),
-    })
-  )
-  .mutation(async ({ input: { id, meetingId, meetingLink } }) => 
-{
-  validateMeetingSlot({ meetingId, meetingLink }, false);
-  const updated = await db.MeetingSlot.update(
-    { meetingId, meetingLink }, 
-    { where: { id } }
-  );
-  invariant(updated[0] <= 1, 'trying incorrect update');
-  if (updated[0] == 0) {
-    throw notFoundError("数据", id.toString());
-  }
-});
 
-const createMeetingSlot = procedure
+const createOrUpdateMeetingSlot = procedure
   .use(authUser("MentorshipManager"))
   .input(
     z.object({
+      id: z.number().optional(), // If provided, update existing; if not, create new
       tmUserId: z.string(),
       meetingId: z.string(),
       meetingLink: z.string().url(),
     })
   )
-  .mutation(async ({ input: { tmUserId, meetingId, meetingLink } }) => 
+  .mutation(async ({ input: { id, tmUserId, meetingId, meetingLink } }) => 
 {
-  validateMeetingSlot({ tmUserId, meetingId, meetingLink }, true);
-  await db.MeetingSlot.create({
-    tmUserId,
-    meetingId,
-    meetingLink,
-  });
+  const isCreating = !id;
+  validateMeetingSlot({ tmUserId, meetingId, meetingLink }, isCreating);
+  
+  if (isCreating) {
+    // Create new meeting slot
+    await db.MeetingSlot.create({
+      tmUserId,
+      meetingId,
+      meetingLink,
+    });
+  } else {
+    // Update existing meeting slot
+    const updated = await db.MeetingSlot.update(
+      { tmUserId, meetingId, meetingLink }, 
+      { where: { id } }
+    );
+    invariant(updated[0] <= 1, 'trying incorrect update');
+    if (updated[0] == 0) {
+      throw notFoundError("数据", id.toString());
+    }
+  }
 });
 
 export default router({
   join,
   decline,
   listMeetingSlots,
-  updateMeetingSlot,
-  createMeetingSlot
+  createOrUpdateMeetingSlot
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {

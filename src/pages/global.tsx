@@ -5,9 +5,25 @@ import {
   Input,
   Button,
   Box,
-  IconButton
+  IconButton,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  HStack,
 } from '@chakra-ui/react';
-import { EditIcon, CheckIcon, CloseIcon, AddIcon } from '@chakra-ui/icons';
+import { EditIcon, AddIcon } from '@chakra-ui/icons';
 import { toast } from 'react-toastify';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { useState } from 'react';
@@ -65,204 +81,178 @@ function MeetingSlots() {
   const meetingSlotQuery = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = meetingSlotQuery.data as MeetingSlot[] | undefined;
 
-  const [editingSlot, setEditingSlot] = useState<number | null>(null);
-  const [editValues, setEditValues] = useState({
-    meetingId: '',
-    meetingLink: ''
-  });
-  const [creatingNew, setCreatingNew] = useState(false);
-  const [createValues, setCreateValues] = useState({
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editingSlot, setEditingSlot] = useState<MeetingSlot | null>(null);
+  const [formValues, setFormValues] = useState({
     tmUserId: '',
     meetingId: '',
     meetingLink: ''
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const updateMeetingSlotMutation = trpcNext.meetings.updateMeetingSlot.useMutation({
+  const createOrUpdateMutation = trpcNext.meetings.createOrUpdateMeetingSlot.useMutation({
     onSuccess: () => {
-      toast.success('会议信息更新成功');
+      const action = editingSlot ? '更新' : '创建';
+      toast.success(`会议位置${action}成功`);
       void meetingSlotQuery.refetch();
-      setEditingSlot(null);
+      handleCloseModal();
     },
     onError: (error) => {
-      toast.error(`更新失败: ${error.message}`);
+      const action = editingSlot ? '更新' : '创建';
+      toast.error(`${action}失败: ${error.message}`);
     },
     onSettled: () => setIsSaving(false)
   });
 
-  const createMeetingSlotMutation = trpcNext.meetings.createMeetingSlot.useMutation({
-    onSuccess: () => {
-      toast.success('会议位置创建成功');
-      void meetingSlotQuery.refetch();
-      setCreatingNew(false);
-      setCreateValues({ tmUserId: '', meetingId: '', meetingLink: '' });
-    },
-    onError: (error) => {
-      toast.error(`创建失败: ${error.message}`);
-    },
-    onSettled: () => setIsSaving(false)
-  });
-
-  const startEditing = (slot: MeetingSlot) => {
-    setEditingSlot(slot.id);
-    setEditValues({ meetingId: slot.meetingId, meetingLink: slot.meetingLink });
-  };
-
-  const cancelEditing = () => {
+  const handleCreateNew = () => {
     setEditingSlot(null);
-    setEditValues({ meetingId: '', meetingLink: '' });
+    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
+    onOpen();
   };
 
-  const startCreating = () => {
-    setCreatingNew(true);
-    setCreateValues({ tmUserId: '', meetingId: '', meetingLink: '' });
-  };
-
-  const cancelCreating = () => {
-    setCreatingNew(false);
-    setCreateValues({ tmUserId: '', meetingId: '', meetingLink: '' });
-  };
-
-  const saveSlotChanges = async () => {
-    if (!editingSlot) return;
-
-    setIsSaving(true);
-    await updateMeetingSlotMutation.mutateAsync({
-      id: editingSlot,
-      meetingId: editValues.meetingId,
-      meetingLink: editValues.meetingLink
+  const handleEdit = (slot: MeetingSlot) => {
+    setEditingSlot(slot);
+    setFormValues({
+      tmUserId: slot.tmUserId || '',
+      meetingId: slot.meetingId,
+      meetingLink: slot.meetingLink
     });
+    onOpen();
   };
 
-  const saveNewSlot = async () => {
+  const handleCloseModal = () => {
+    onClose();
+    setEditingSlot(null);
+    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
-    await createMeetingSlotMutation.mutateAsync(createValues);
+    const payload = {
+      tmUserId: formValues.tmUserId,
+      meetingId: formValues.meetingId,
+      meetingLink: formValues.meetingLink,
+      // Only include id if we're editing an existing slot
+      ...(editingSlot && { id: editingSlot.id }),
+    };
+    await createOrUpdateMutation.mutateAsync(payload);
+  };
+
+  const handleInputChange = (field: keyof typeof formValues, value: string) => {
+    setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <>
-      {/* Create new slot */}
-      {creatingNew && (
-        <Box border="1px solid #ccc" padding="10px" borderRadius="4px" backgroundColor="#f8f9fa">
-          <div><strong>创建新会议位置</strong></div>
+      <HStack justify="space-between" width="100%" mb={4}>
+        <Box fontSize="lg" fontWeight="bold">会议位置管理</Box>
+        <IconButton
+          aria-label="添加新会议位置"
+          icon={<AddIcon />}
+          colorScheme="blue"
+          onClick={handleCreateNew}
+        />
+      </HStack>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <strong>tmUserId:</strong>
-            <Input
-              size="sm"
-              value={createValues.tmUserId}
-              onChange={(e) => setCreateValues(prev => ({ ...prev, tmUserId: e.target.value }))}
-              width="200px"
-            />
-          </div>
+      <TableContainer width="100%">
+        <Table variant="simple" size="sm">
+          <Thead>
+            <Tr>
+              <Th>tmUserId</Th>
+              <Th>meetingId</Th>
+              <Th>meetingLink</Th>
+              <Th>groupId</Th>
+              <Th>操作</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {meetingSlots?.map((slot) => (
+              <Tr key={slot.id}>
+                <Td>{slot.tmUserId}</Td>
+                <Td>{slot.meetingId}</Td>
+                <Td>
+                  <a 
+                    href={slot.meetingLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: 'blue', textDecoration: 'underline' }}
+                  >
+                    {slot.meetingLink}
+                  </a>
+                </Td>
+                <Td>{slot.groupId}</Td>
+                <Td>
+                  <IconButton
+                    aria-label="编辑"
+                    icon={<EditIcon />}
+                    size="sm"
+                    onClick={() => handleEdit(slot)}
+                  />
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <strong>meetingId:</strong>
-            <Input
-              size="sm"
-              value={createValues.meetingId}
-              onChange={(e) => setCreateValues(prev => ({ ...prev, meetingId: e.target.value }))}
-              width="200px"
-            />
-          </div>
+      {/* Modal for Create/Edit */}
+      <Modal isOpen={isOpen} onClose={handleCloseModal} size="lg">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            {editingSlot ? '编辑会议位置' : '创建新会议位置'}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <FormControl isRequired>
+                <FormLabel>tmUserId</FormLabel>
+                <Input
+                  value={formValues.tmUserId}
+                  onChange={(e) => handleInputChange('tmUserId', e.target.value)}
+                  placeholder="输入腾讯会议用户ID"
+                  isReadOnly={!!editingSlot}
+                  bg={editingSlot ? 'gray.100' : 'white'}
+                />
+              </FormControl>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <strong>meetingLink:</strong>
-            <Input
-              size="sm"
-              value={createValues.meetingLink}
-              onChange={(e) => setCreateValues(prev => ({ ...prev, meetingLink: e.target.value }))}
-              width="300px"
-            />
-          </div>
+              <FormControl isRequired>
+                <FormLabel>meetingId</FormLabel>
+                <Input
+                  value={formValues.meetingId}
+                  onChange={(e) => handleInputChange('meetingId', e.target.value)}
+                  placeholder="输入会议ID"
+                />
+              </FormControl>
 
-          <div><strong>groupId:</strong> 空闲</div>
+              <FormControl isRequired>
+                <FormLabel>meetingLink</FormLabel>
+                <Input
+                  value={formValues.meetingLink}
+                  onChange={(e) => handleInputChange('meetingLink', e.target.value)}
+                  placeholder="输入会议链接"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
 
-          <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-            <IconButton aria-label="保存" icon={<CheckIcon />} size="sm" colorScheme="green" onClick={saveNewSlot} isLoading={isSaving} />
-            <IconButton aria-label="取消" icon={<CloseIcon />} size="sm" colorScheme="red" onClick={cancelCreating} isDisabled={isSaving} />
-          </div>
-        </Box>
-      )}
-
-      {!creatingNew && (
-        <div style={{ marginBottom: '16px' }}>
-          <IconButton
-            aria-label="添加新会议位置"
-            icon={<AddIcon />}
-            size="sm"
-            colorScheme="blue"
-            onClick={startCreating}
-          />
-        </div>
-      )}
-
-      {meetingSlots?.map((slot) => (
-        <Box key={slot.id} border="1px solid #ccc" padding="10px" width="100%" borderRadius="4px">
-          <div><strong>tmUserId:</strong> {slot.tmUserId}</div>
-          
-          {/* Editable meetingId */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <strong>meetingId:</strong>
-            {editingSlot === slot.id ? (
-              <Input
-                size="sm"
-                value={editValues.meetingId}
-                onChange={(e) => setEditValues(prev => ({ ...prev, meetingId: e.target.value }))}
-                width="200px"
-              />
-            ) : (
-              <span onClick={() => startEditing(slot)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
-                {slot.meetingId}
-              </span>
-            )}
-          </div>
-
-          {/* Editable meetingLink */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <strong>meetingLink:</strong>
-            {editingSlot === slot.id ? (
-              <Input
-                size="sm"
-                value={editValues.meetingLink}
-                onChange={(e) => setEditValues(prev => ({ ...prev, meetingLink: e.target.value }))}
-                width="300px"
-              />
-            ) : (
-              <a 
-                href={slot.meetingLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  startEditing(slot);
-                }}
-                style={{ cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                {slot.meetingLink}
-              </a>
-            )}
-          </div>
-
-          <div><strong>groupId:</strong> {slot.groupId ?? '空闲'}</div>
-          
-          {/* Edit controls */}
-          <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-            {editingSlot === slot.id ? (
-              <>
-                <IconButton aria-label="保存" icon={<CheckIcon />} size="sm" colorScheme="green" onClick={saveSlotChanges} isLoading={isSaving} />
-                <IconButton aria-label="取消" icon={<CloseIcon />} size="sm" colorScheme="red" onClick={cancelEditing} isDisabled={isSaving} />
-              </>
-            ) : (
-              <IconButton aria-label="编辑" icon={<EditIcon />} size="sm" onClick={() => startEditing(slot)} />
-            )}
-          </div>
-        </Box>
-      ))}
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={handleCloseModal}>
+              取消
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={handleSave}
+              isLoading={isSaving}
+            >
+              {editingSlot ? '更新' : '创建'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
-
 export default function Page() {
   return (
     <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
