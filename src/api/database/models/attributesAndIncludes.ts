@@ -216,4 +216,4 @@ export const taskInclude = [{
 /**
  * MeetingSlot
  */
-export const meetingSlotAttributes = ["id", "tmUserId", "meetingId", "meetingLink", "groupId", "updatedAt"];
+export const meetingSlotAttributes = ["id", "tmUserId", "meetingId", "meetingLink", "groupId", "createdAt", "updatedAt"];

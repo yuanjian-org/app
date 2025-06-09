@@ -19,6 +19,7 @@ import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
+import { TRPCError } from "@trpc/server";
 
 export const gracePeriodMinutes = 1;
 
@@ -114,6 +115,41 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
+function validateMeetingSlot(
+  values: { tmUserId?: string; meetingId: string; meetingLink: string },
+  isCreating: boolean
+): void {
+  if (isCreating && !values.tmUserId?.trim()) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '腾讯会议用户ID不能为空',
+    });
+  }
+  
+  if (!values.meetingId.trim()) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST', 
+      message: '会议ID不能为空',
+    });
+  }
+  
+  if (!values.meetingLink.trim()) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '会议链接不能为空',
+    });
+  }
+  
+  try {
+    new URL(values.meetingLink);
+  } catch {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: '会议链接格式不正确',
+    });
+  }
+}
+
 const listMeetingSlots = procedure
   .use(authUser("MentorshipManager"))
   .query(async () => 
@@ -135,15 +171,15 @@ const updateMeetingSlot = procedure
   )
   .mutation(async ({ input: { id, meetingId, meetingLink } }) => 
 {
+  validateMeetingSlot({ meetingId, meetingLink }, false);
   const updated = await db.MeetingSlot.update(
     { meetingId, meetingLink }, 
     { where: { id } }
   );
   invariant(updated[0] <= 1, 'trying incorrect update');
-  if (updated[0] == 0){
+  if (updated[0] == 0) {
     throw notFoundError("数据", id.toString());
   }
-    
 });
 
 const createMeetingSlot = procedure
@@ -157,14 +193,12 @@ const createMeetingSlot = procedure
   )
   .mutation(async ({ input: { tmUserId, meetingId, meetingLink } }) => 
 {
-  const newSlot = await db.MeetingSlot.create({
+  validateMeetingSlot({ tmUserId, meetingId, meetingLink }, true);
+  await db.MeetingSlot.create({
     tmUserId,
     meetingId,
     meetingLink,
-    groupId: null,
   });
-  
-  return newSlot;
 });
 
 export default router({

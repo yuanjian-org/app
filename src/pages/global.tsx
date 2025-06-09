@@ -17,7 +17,7 @@ import { componentSpacing, maxTextWidth } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import moment from 'moment-timezone';
 
-function MatchFeedbackEditableUntilComponent() {
+function MatchFeedbackEditableUntil() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
@@ -61,32 +61,7 @@ function MatchFeedbackEditableUntilComponent() {
   );
 }
 
-const validateMeetingSlot = (
-  values: { tmUserId?: string; meetingId: string; meetingLink: string },
-  isCreating: boolean
-): boolean => {
-  if (isCreating && !values.tmUserId?.trim()) {
-    toast.error('腾讯会议用户ID不能为空');
-    return false;
-  }
-  if (!values.meetingId.trim()) {
-    toast.error('会议ID不能为空');
-    return false;
-  }
-  if (!values.meetingLink.trim()) {
-    toast.error('会议链接不能为空');
-    return false;
-  }
-  try {
-    new URL(values.meetingLink);
-  } catch {
-    toast.error('会议链接格式不正确');
-    return false;
-  }
-  return true;
-};
-
-function MeetingSlotsComponent() {
+function MeetingSlots() {
   const meetingSlotQuery = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = meetingSlotQuery.data as MeetingSlot[] | undefined;
 
@@ -150,7 +125,6 @@ function MeetingSlotsComponent() {
 
   const saveSlotChanges = async () => {
     if (!editingSlot) return;
-    if (!validateMeetingSlot(editValues, false)) return;
 
     setIsSaving(true);
     await updateMeetingSlotMutation.mutateAsync({
@@ -161,8 +135,6 @@ function MeetingSlotsComponent() {
   };
 
   const saveNewSlot = async () => {
-    if (!validateMeetingSlot(createValues, true)) return;
-
     setIsSaving(true);
     await createMeetingSlotMutation.mutateAsync(createValues);
   };
@@ -295,8 +267,8 @@ export default function Page() {
   return (
     <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
       <PageBreadcrumb current="全局配置" />
-      <MatchFeedbackEditableUntilComponent />
-      <MeetingSlotsComponent />
+      <MatchFeedbackEditableUntil />
+      <MeetingSlots />
     </VStack>
   );
 }
