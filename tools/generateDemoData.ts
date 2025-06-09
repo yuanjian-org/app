@@ -161,7 +161,7 @@ async function generateCalibrationAndInterviews(t: Transaction) {
     transaction: t,
   });
 
-  let calibrationId;
+  let calibrationId: string;
   if (existing) {
     calibrationId = existing.id;
   } else {
@@ -172,9 +172,29 @@ async function generateCalibrationAndInterviews(t: Transaction) {
 
   for (const interview of c.interviews) {
     if (await getInterviewIdForMentee(id(interview.interviewee), t)) continue;
+
     console.log(`Creating interview for ${interview.interviewee.name}...`);
-    await createInterview('MenteeInterview', calibrationId,
-      id(interview.interviewee), interview.interviewers.map(u => id(u)), t);
+    const interviewId = await createInterview('MenteeInterview', calibrationId,
+      id(interview.interviewee), interview.interviewers.map(u => id(u.user)), t);
+    
+    // Interview feedbacks
+    for (const i of interview.interviewers) {
+      console.log(`Creating interview feedback...`);
+      await db.InterviewFeedback.update({
+        feedback: i.feedback,
+      }, {
+        where: { interviewId, interviewerId: id(i.user) },
+        transaction: t,
+      });
+    }
+
+    // Interview decision
+    await db.Interview.update({
+      decision: interview.decision,
+    }, {
+      where: { id: interviewId },
+      transaction: t,
+    });
   }
 }
 

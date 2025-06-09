@@ -18,7 +18,12 @@ import { FeedbackDeprecated, zFeedbackDeprecated } from "../../../shared/Intervi
 import { DateColumn } from "shared/DateColumn";
 
 // TODO: rename to Interviewer
-@Table
+@Table({
+  indexes: [{
+    unique: true,
+    fields: ['interviewId', 'interviewerId']
+  }]
+})
 class InterviewFeedback extends Model {
   @Unique
   @IsUUID(4)

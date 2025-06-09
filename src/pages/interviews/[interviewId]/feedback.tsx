@@ -10,7 +10,7 @@ import {
   ListItem,
 } from '@chakra-ui/react';
 import { breakpoint, maxTextWidth } from 'theme/metrics';
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { formatUserName } from 'shared/strings';
 import Applicant from 'components/Applicant';
@@ -29,8 +29,10 @@ import { isProd } from "shared/isProd";
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), 'interviewId');
-  const { data } = interviewId ?
-    trpcNext.interviews.get.useQuery({ interviewId }) : { data: undefined };
+  const { data } = trpcNext.interviews.get.useQuery(
+    { interviewId: interviewId ?? '' },
+    { enabled: !!interviewId }
+  );
 
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
@@ -51,7 +53,7 @@ export default widePage(() => {
     if (!data) return undefined;
     const feedbacks = data.interviewWithGroup.feedbacks.filter(
       f => f.interviewer.id === myId);
-    invariant(feedbacks.length == 1);
+    invariant(feedbacks.length == 1, "面试官只能有一个反馈");
     return feedbacks[0].id;
   }, [data, myId]);
 
@@ -93,7 +95,7 @@ function NeedExams({ type, interview, comms } : {
   interview : boolean,
   comms : boolean,
 }) {
-  invariant(comms || interview);
+  invariant(comms || interview, "需要完成评测");
 
   return <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
     <p>
@@ -122,7 +124,8 @@ function Instructions({ type, interviewers }: {
 
   let first: boolean | null = null;
   let other: MinUser | null = null;
-  invariant(interviewers.filter(i => i.id === myId).length == 1);
+  invariant(interviewers.filter(i => i.id === myId).length == 1,
+    "面试官只能有一个");
   if (interviewers.length == 2) {
     other = interviewers[0].id === myId ? interviewers[1] : interviewers[0];
     first = other.id > myId;

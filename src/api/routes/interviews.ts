@@ -325,21 +325,21 @@ const updateDecision = procedure
     etag: z.number(),
   }))
   .output(z.number())
-  .mutation(async ({ input }) =>
+  .mutation(async ({ input: { interviewId, decision, etag } }) =>
 {
   return await sequelize.transaction(async transaction => {
-    const i = await db.Interview.findByPk(input.interviewId, {
+    const i = await db.Interview.findByPk(interviewId, {
       attributes: ["id", "decisionUpdatedAt"],
       transaction,
       lock: true,
     });
-    if (!i) throw notFoundError("面试", input.interviewId);
-    if (date2etag(i.decisionUpdatedAt) !== input.etag) throw conflictError();
+    if (!i) throw notFoundError("面试", interviewId);
+    if (date2etag(i.decisionUpdatedAt) !== etag) throw conflictError();
 
-    i.decision = input.decision;
+    i.decision = decision;
     const now = new Date();
     await i.update({
-      decision: input.decision,
+      decision,
       decisionUpdatedAt: now,
     }, { transaction });
     return date2etag(now);
