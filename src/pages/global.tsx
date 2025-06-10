@@ -165,7 +165,7 @@ function MeetingSlots() {
             </Tr>
           </Thead>
           <Tbody>
-            {meetingSlots?.map((slot) => (
+            {meetingSlots?.sort((a, b) => (a.tmUserId || '').localeCompare(b.tmUserId || '')).map((slot) => (
               <Tr 
                 key={slot.id}
                 onClick={() => handleEdit(slot)}
