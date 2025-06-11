@@ -33,6 +33,16 @@ import { componentSpacing, maxTextWidth } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import moment from 'moment-timezone';
 
+export default function Page() {
+  return (
+    <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
+      <PageBreadcrumb current="全局配置" />
+      <MatchFeedbackEditableUntil />
+      <MeetingSlots />
+    </VStack>
+  );
+}
+
 function MatchFeedbackEditableUntil() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
@@ -248,15 +258,5 @@ function MeetingSlots() {
         </ModalContent>
       </Modal>
     </>
-  );
-}
-
-export default function Page() {
-  return (
-    <VStack spacing={componentSpacing} width={maxTextWidth} align="start">
-      <PageBreadcrumb current="全局配置" />
-      <MatchFeedbackEditableUntil />
-      <MeetingSlots />
-    </VStack>
   );
 }

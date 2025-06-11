@@ -5,7 +5,7 @@ import db from "../database/db";
 import { createMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
-import { notFoundError } from "api/errors";
+import { notFoundError, generalBadRequestError } from "api/errors";
 import { emailRole, emailRoleIgnoreError } from 'api/email';
 import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
@@ -19,7 +19,7 @@ import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
-import { TRPCError } from "@trpc/server";
+import { zMeetingSlot } from "../../shared/MeetingSlot";
 
 export const gracePeriodMinutes = 1;
 
@@ -115,50 +115,29 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
-function validateMeetingSlot(
-  values: { tmUserId?: string; meetingId: string; meetingLink: string },
-  isCreating: boolean
+function validateInput(
+  tmUserId: string | undefined,
+  meetingId: string,
+  meetingLink: string
 ): void {
-  if (isCreating && !values.tmUserId?.trim()) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '腾讯会议用户ID不能为空',
-    });
+  if (tmUserId !== undefined && !tmUserId) {
+    throw generalBadRequestError('腾讯会议用户ID不能为空');
   }
   
-  if (!values.meetingId.trim()) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST', 
-      message: '会议ID不能为空',
-    });
+  if (!meetingId) {
+    throw generalBadRequestError('会议ID不能为空');
   }
   
-  if (!values.meetingLink.trim()) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '会议链接不能为空',
-    });
+  if (!meetingLink) {
+    throw generalBadRequestError('会议链接不能为空');
   }
   
   try {
-    new URL(values.meetingLink);
+    new URL(meetingLink);
   } catch {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: '会议链接格式不正确',
-    });
+    throw generalBadRequestError('会议链接格式不正确');
   }
 }
-
-const zMeetingSlot = z.object({
-  id: z.number().optional(),
-  tmUserId: z.string().optional(),
-  meetingId: z.string(),
-  meetingLink: z.string().url(),
-  groupId: z.string().nullable(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-});
 
 const listMeetingSlots = procedure
   .use(authUser("MentorshipManager"))
@@ -167,16 +146,17 @@ const listMeetingSlots = procedure
 {
   return await db.MeetingSlot.findAll({
     attributes: meetingSlotAttributes,
-    order: [["updatedAt", "DESC"]],
   });
 });
 
-
+/**
+ * @param id If provided, update existing meeting slot; if not provided, create new meeting slot
+ */
 const createOrUpdateMeetingSlot = procedure
   .use(authUser("MentorshipManager"))
   .input(
     z.object({
-      id: z.number().optional(), // If provided, update existing; if not, create new
+      id: z.number().optional(),
       tmUserId: z.string(),
       meetingId: z.string(),
       meetingLink: z.string().url(),
@@ -185,19 +165,27 @@ const createOrUpdateMeetingSlot = procedure
   .mutation(async ({ input: { id, tmUserId, meetingId, meetingLink } }) => 
 {
   const isCreating = !id;
-  validateMeetingSlot({ tmUserId, meetingId, meetingLink }, isCreating);
+  validateInput(
+    isCreating ? tmUserId : undefined, 
+    meetingId.trim(), 
+    meetingLink.trim()
+  );
   
   if (isCreating) {
     // Create new meeting slot
     await db.MeetingSlot.create({
-      tmUserId,
-      meetingId,
-      meetingLink,
+      tmUserId: tmUserId.trim(),
+      meetingId: meetingId.trim(),
+      meetingLink: meetingLink.trim(),
     });
   } else {
     // Update existing meeting slot
     const updated = await db.MeetingSlot.update(
-      { tmUserId, meetingId, meetingLink }, 
+      { 
+        tmUserId: tmUserId.trim(), 
+        meetingId: meetingId.trim(), 
+        meetingLink: meetingLink.trim() 
+      }, 
       { where: { id } }
     );
     invariant(updated[0] <= 1, 'trying incorrect update');
