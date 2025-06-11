@@ -164,14 +164,13 @@ const createOrUpdateMeetingSlot = procedure
   )
   .mutation(async ({ input: { id, tmUserId, meetingId, meetingLink } }) => 
 {
-  const isCreating = !id;
   validateInput(
-    isCreating ? tmUserId : undefined, 
+    tmUserId, 
     meetingId.trim(), 
     meetingLink.trim()
   );
   
-  if (isCreating) {
+  if (!id) {
     // Create new meeting slot
     await db.MeetingSlot.create({
       tmUserId: tmUserId.trim(),
