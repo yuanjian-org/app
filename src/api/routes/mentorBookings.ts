@@ -12,6 +12,7 @@ import {
 import sequelize from "api/database/sequelize";
 import { emailRole } from "api/email";
 import { createMessageAndScheduleEmail } from "./chats";
+import { findOrCreateRoom } from "./chatsInternal";
 
 const create = procedure
   .use(authUser())
@@ -41,36 +42,14 @@ const create = procedure
         });
 
         if (requestedMentor) {
-          // Find existing chat room for the mentee (student who made the booking)
-          const room = await db.ChatRoom.findOne({
-            where: { menteeId: me.id },
-            attributes: ['id'],
+          const room = await findOrCreateRoom(requestedMentor, me.id, transaction);
+          const markdown = `【不定期导师预约】学生预约话题：${topic}`;
+          await createMessageAndScheduleEmail(
+            requestedMentor,
+            room.id,
+            markdown,
             transaction
-          });
-
-          if (room) {
-            // Create the chat message
-            const markdown = `【不定期导师预约】学生预约话题：${topic}`;
-            await createMessageAndScheduleEmail(
-              requestedMentor, // The mentor creates the message
-              room.id,
-              markdown,
-              transaction
-            );
-          } else {
-            // Create chat room if it doesn't exist
-            const newRoom = await db.ChatRoom.create({
-              menteeId: me.id
-            }, { transaction });
-            const markdown = `【不定期导师预约】学生预约话题：${topic}`;
-            
-            await createMessageAndScheduleEmail(
-              requestedMentor,
-              newRoom.id,
-              markdown,
-              transaction
-            );
-          }
+          );
         }
       } catch (error: any) {
         // Log error without failing the booking creation
