@@ -5,19 +5,21 @@ import db from "../database/db";
 import { createMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
-import { notFoundError } from "api/errors";
+import { notFoundError, generalBadRequestError } from "api/errors";
 import { emailRole, emailRoleIgnoreError } from 'api/email';
 import sequelize from 'api/database/sequelize';
 import { checkPermissionForGroup } from './groups';
 import {
   groupAttributes,
-  groupInclude
+  groupInclude,
+  meetingSlotAttributes
 } from 'api/database/models/attributesAndIncludes';
 import { Op, Transaction } from 'sequelize';
 import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
+import { zMeetingSlot } from "../../shared/MeetingSlot";
 
 export const gracePeriodMinutes = 1;
 
@@ -113,9 +115,90 @@ const decline = procedure
     商量解决方案。`, baseUrl);
 });
 
+function validateInput(
+  tmUserId: string | undefined,
+  meetingId: string,
+  meetingLink: string
+): void {
+  if (tmUserId !== undefined && !tmUserId) {
+    throw generalBadRequestError('腾讯会议用户ID不能为空');
+  }
+  
+  if (!meetingId) {
+    throw generalBadRequestError('会议ID不能为空');
+  }
+  
+  if (!meetingLink) {
+    throw generalBadRequestError('会议链接不能为空');
+  }
+  
+  try {
+    new URL(meetingLink);
+  } catch {
+    throw generalBadRequestError('会议链接格式不正确');
+  }
+}
+
+const listMeetingSlots = procedure
+  .use(authUser("MentorshipManager"))
+  .output(z.array(zMeetingSlot))
+  .query(async () => 
+{
+  return await db.MeetingSlot.findAll({
+    attributes: meetingSlotAttributes,
+  });
+});
+
+/**
+ * @param id If provided, update existing meeting slot; if not provided, create new meeting slot
+ */
+const createOrUpdateMeetingSlot = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      id: z.number().optional(),
+      tmUserId: z.string(),
+      meetingId: z.string(),
+      meetingLink: z.string().url(),
+    })
+  )
+  .mutation(async ({ input: { id, tmUserId, meetingId, meetingLink } }) => 
+{
+  validateInput(
+    tmUserId, 
+    meetingId.trim(), 
+    meetingLink.trim()
+  );
+  
+  if (!id) {
+    // Create new meeting slot
+    await db.MeetingSlot.create({
+      tmUserId: tmUserId.trim(),
+      meetingId: meetingId.trim(),
+      meetingLink: meetingLink.trim(),
+    });
+  } else {
+    // Update existing meeting slot
+    const updated = await db.MeetingSlot.update(
+      { 
+        tmUserId: tmUserId.trim(), 
+        meetingId: meetingId.trim(), 
+        meetingLink: meetingLink.trim() 
+      }, 
+      { where: { id } }
+    );
+    invariant(updated[0] <= 1, 'trying incorrect update');
+    if (updated[0] == 0) {
+      throw notFoundError("数据", id.toString());
+    }
+  }
+});
+
 export default router({
   join,
   decline,
+  listMeetingSlots,
+  createOrUpdateMeetingSlot
 });
 
 export async function refreshMeetingSlots(transaction: Transaction) {
