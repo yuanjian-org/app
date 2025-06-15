@@ -1,5 +1,7 @@
 name: Cron jobs
 
+permissions: {}
+
 on:
   schedule:
     - cron: "53 * * * *"  # Runs at the 53th minute of every hour
