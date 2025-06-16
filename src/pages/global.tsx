@@ -88,8 +88,8 @@ function MatchFeedbackEditableUntil() {
 }
 
 function MeetingSlots() {
-  const meetingSlotQuery = trpcNext.meetings.listMeetingSlots.useQuery();
-  const meetingSlots = meetingSlotQuery.data as MeetingSlot[] | undefined;
+  const query = trpcNext.meetings.listMeetingSlots.useQuery();
+  const meetingSlots = query.data;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [editingSlot, setEditingSlot] = useState<MeetingSlot | null>(null);
@@ -104,7 +104,7 @@ function MeetingSlots() {
     onSuccess: () => {
       const action = editingSlot ? '更新' : '创建';
       toast.success(`会议位置${action}成功`);
-      void meetingSlotQuery.refetch();
+      void query.refetch();
       handleCloseModal();
     },
     onError: (error) => {
