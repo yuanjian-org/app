@@ -7,7 +7,8 @@ import {
   Checkbox,
   HStack, Tooltip,
   Box,
-  Link
+  Link,
+  Button
 } from '@chakra-ui/react';
 import { ResponsiveCard } from 'components/ResponsiveCard';
 import trpc, { trpcNext } from 'trpc';
@@ -20,19 +21,28 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { DateColumn } from 'shared/DateColumn';
 import moment, { Moment } from 'moment';
-import RedDot, { redDotRightOffset, redDotTransitionProps } from 'components/RedDot';
-import LinkDivider from 'components/LinkDivider';
+import RedDot, {
+  redDotRightOffset,
+  redDotTransitionProps,
+} from 'components/RedDot';
 import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
 import getBaseUrl from 'shared/getBaseUrl';
+import { AddIcon } from '@chakra-ui/icons';
+import { CreateTaskModal } from './CreateTaskModal';
 
-export default function TasksCard() {
+export default function TasksCard({ assigneeIds, includeTasksCreatedByMe }: { 
+  assigneeIds: string[],
+  includeTasksCreatedByMe?: boolean,
+}) {
   const utils = trpcNext.useContext();
 
+  const [creating, setCreating] = useState(false);
   const [includeDone, setIncludeDone] = useState(false);
   const { data, refetch } = trpcNext.tasks.list.useQuery({
-    userId: useMyId(),
-    includeDone,
+    assigneeIds,
+    includeTasksCreatedByMe: includeTasksCreatedByMe ?? false,
+    includeDoneTasks: includeDone,
   });
 
   const sorted = data?.sort((a, b) => {
@@ -55,18 +65,34 @@ export default function TasksCard() {
     <CardHeader>
       <Flex justify="space-between">
         <Heading size="sm" position="relative">
-          我的待办事项
+          待办事项
           <UnreadTasksRedDot />
         </Heading>
 
-        <HStack spacing={2} fontSize="sm">
+        <HStack spacing={componentSpacing} fontSize="sm">
           <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
             全部已读
           </Link>
-          <LinkDivider {...redDotTransitionProps(hasUnread)} />
+
+          {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
+
           <Link onClick={() => setIncludeDone(!includeDone)}>
             {includeDone ? "隐藏已完成" : "显示已完成"}
           </Link>
+
+          <Button
+            size="sm"
+            leftIcon={<AddIcon />}
+            onClick={() => setCreating(true)}
+          >
+            新建
+          </Button>
+
+          {creating && <CreateTaskModal
+            allowedAssigneeIds={assigneeIds}
+            onClose={() => setCreating(false)}
+          />}
+
         </HStack>
       </Flex>
     </CardHeader>

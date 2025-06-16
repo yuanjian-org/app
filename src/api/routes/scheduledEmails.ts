@@ -80,14 +80,14 @@ export async function sendScheduledEmails() {
 }
 
 async function sendTaskEmail(
-  userId: string,
+  assigneeId: string,
   timestamp: Moment,
   transaction: Transaction,
 ) {
   const tasks = await db.Task.findAll({
     where: {
-      userId,
-      creatorId: isAutoTaskOrCreatorIsOther(userId),
+      assigneeId,
+      creatorId: isAutoTaskOrCreatorIsOther(assigneeId),
       done: false,
       updatedAt: isOnOrAfter(timestamp),
     },
@@ -96,11 +96,11 @@ async function sendTaskEmail(
     transaction,
   });
 
-  const user = await db.User.findByPk(userId, {
+  const user = await db.User.findByPk(assigneeId, {
     attributes: ["email", "name", "state"],
     transaction,
   });
-  if (!user) throw Error(`User not found: ${userId}`);
+  if (!user) throw Error(`Assignee not found: ${assigneeId}`);
 
   const name = formatUserName(user.name, "friendly");
   const htmls = await Promise.all(tasks.map(t => {
@@ -109,8 +109,8 @@ async function sendTaskEmail(
   }));
 
   if (htmls.length === 0) {
-    console.log(`No tasks to send to user ${userId}, assuming user has` +
-      `completed the tasks that triggered this scheduled email.`);
+    console.log(`No tasks to send to assignee ${assigneeId}, assuming ` +
+      `assignee has completed the tasks that triggered this scheduled email.`);
     return;
   }
 
