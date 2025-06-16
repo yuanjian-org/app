@@ -162,34 +162,31 @@ const createOrUpdateMeetingSlot = procedure
       meetingLink: z.string().url(),
     })
   )
-  .mutation(async ({ input: { id, tmUserId, meetingId, meetingLink } }) => 
+  .mutation(async ({ input }) => 
 {
-  validateInput(
-    tmUserId, 
-    meetingId.trim(), 
-    meetingLink.trim()
-  );
+  const tmUserId = input.tmUserId.trim();
+  const meetingId = input.meetingId.trim();
+  const meetingLink = input.meetingLink.trim();
   
-  if (!id) {
+  validateInput(tmUserId, meetingId, meetingLink);
+  
+  if (!input.id) {
     // Create new meeting slot
     await db.MeetingSlot.create({
-      tmUserId: tmUserId.trim(),
-      meetingId: meetingId.trim(),
-      meetingLink: meetingLink.trim(),
+      tmUserId,
+      meetingId,
+      meetingLink,
     });
-  } else {
-    // Update existing meeting slot
-    const updated = await db.MeetingSlot.update(
-      { 
-        tmUserId: tmUserId.trim(), 
-        meetingId: meetingId.trim(), 
-        meetingLink: meetingLink.trim() 
-      }, 
-      { where: { id } }
+  } else { // Update existing meeting slot
+    const updated = await db.MeetingSlot.update({
+      tmUserId,
+      meetingId,
+      meetingLink }, 
+      { where: { id: input.id } }
     );
     invariant(updated[0] <= 1, 'trying incorrect update');
     if (updated[0] == 0) {
-      throw notFoundError("数据", id.toString());
+      throw notFoundError("数据", input.id.toString());
     }
   }
 });
