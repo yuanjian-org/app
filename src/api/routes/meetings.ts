@@ -140,7 +140,7 @@ function validateInput(
 }
 
 const listMeetingSlots = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("GroupManager"))
   .output(z.array(zMeetingSlot))
   .query(async () => 
 {
@@ -153,7 +153,7 @@ const listMeetingSlots = procedure
  * @param id If provided, update existing meeting slot; if not provided, create new meeting slot
  */
 const createOrUpdateMeetingSlot = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("GroupManager"))
   .input(
     z.object({
       id: z.number().optional(),
