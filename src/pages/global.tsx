@@ -26,7 +26,7 @@ import {
 import { AddIcon } from '@chakra-ui/icons';
 import { toast } from 'react-toastify';
 import PageBreadcrumb from 'components/PageBreadcrumb';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DateColumn } from 'shared/DateColumn';
 import { MeetingSlot } from 'shared/MeetingSlot';
 import { componentSpacing, maxTextWidth } from 'theme/metrics';
@@ -90,60 +90,27 @@ function MatchFeedbackEditableUntil() {
 function MeetingSlots() {
   const query = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = query.data;
-
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [editingSlot, setEditingSlot] = useState<MeetingSlot | null>(null);
-  const [formValues, setFormValues] = useState({
-    tmUserId: '',
-    meetingId: '',
-    meetingLink: ''
-  });
-  const [isSaving, setIsSaving] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<MeetingSlot | null>(null);
 
   const handleCreateNew = () => {
-    setEditingSlot(null);
-    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
+    setSelectedSlot(null);
     onOpen();
   };
 
   const handleEdit = (slot: MeetingSlot) => {
-    setEditingSlot(slot);
-    setFormValues({
-      tmUserId: slot.tmUserId || '',
-      meetingId: slot.meetingId,
-      meetingLink: slot.meetingLink
-    });
+    setSelectedSlot(slot);
     onOpen();
   };
 
   const handleCloseModal = () => {
     onClose();
-    setEditingSlot(null);
-    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
+    setSelectedSlot(null);
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    const payload = {
-      tmUserId: formValues.tmUserId,
-      meetingId: formValues.meetingId,
-      meetingLink: formValues.meetingLink,
-      ...(editingSlot && { id: editingSlot.id }),
-    };
-    
-    try {
-      await trpc.meetings.createOrUpdateMeetingSlot.mutate(payload);
-      const action = editingSlot ? '更新' : '创建';
-      toast.success(`会议位置${action}成功`);
-      void query.refetch();
-      handleCloseModal();
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleInputChange = (field: keyof typeof formValues, value: string) => {
-    setFormValues(prev => ({ ...prev, [field]: value }));
+  const handleModalSuccess = () => {
+    void query.refetch();
+    handleCloseModal();
   };
 
   return (
@@ -199,11 +166,8 @@ function MeetingSlots() {
       <MeetingSlotModal
         isOpen={isOpen}
         onClose={handleCloseModal}
-        editingSlot={editingSlot}
-        formValues={formValues}
-        onInputChange={handleInputChange}
-        onSave={handleSave}
-        isSaving={isSaving}
+        editingSlot={selectedSlot}
+        onSuccess={handleModalSuccess}
       />
     </>
   );
@@ -213,25 +177,59 @@ function MeetingSlotModal({
   isOpen,
   onClose,
   editingSlot,
-  formValues,
-  onInputChange,
-  onSave,
-  isSaving
+  onSuccess
 }: {
   isOpen: boolean;
   onClose: () => void;
   editingSlot: MeetingSlot | null;
-  formValues: {
-    tmUserId: string;
-    meetingId: string;
-    meetingLink: string;
-  };
-  onInputChange: (field: keyof typeof formValues, value: string) => void;
-  onSave: () => void;
-  isSaving: boolean;
+  onSuccess: () => void;
 }) {
+  const [formValues, setFormValues] = useState({
+    tmUserId: '',
+    meetingId: '',
+    meetingLink: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  useEffect(() => {
+    if (isOpen) {
+      setFormValues({
+        tmUserId: editingSlot?.tmUserId || '',
+        meetingId: editingSlot?.meetingId || '',
+        meetingLink: editingSlot?.meetingLink || ''
+      });
+    }
+  }, [isOpen, editingSlot]);
+
+  const handleCloseModal = () => {
+    onClose();
+    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const payload = {
+      tmUserId: formValues.tmUserId,
+      meetingId: formValues.meetingId,
+      meetingLink: formValues.meetingLink,
+      ...(editingSlot && { id: editingSlot.id }),
+    };
+    
+    try {
+      await trpc.meetings.createOrUpdateMeetingSlot.mutate(payload);
+      const action = editingSlot ? '更新' : '创建';
+      toast.success(`会议位置${action}成功`);
+      onSuccess();
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof typeof formValues, value: string) => {
+    setFormValues(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={handleCloseModal} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -244,7 +242,7 @@ function MeetingSlotModal({
               <FormLabel>tmUserId</FormLabel>
               <Input
                 value={formValues.tmUserId}
-                onChange={(e) => onInputChange('tmUserId', e.target.value)}
+                onChange={(e) => handleInputChange('tmUserId', e.target.value)}
                 placeholder="输入腾讯会议用户ID"
                 isReadOnly={!!editingSlot}
                 bg={editingSlot ? 'gray.100' : 'white'}
@@ -255,7 +253,7 @@ function MeetingSlotModal({
               <FormLabel>meetingId</FormLabel>
               <Input
                 value={formValues.meetingId}
-                onChange={(e) => onInputChange('meetingId', e.target.value)}
+                onChange={(e) => handleInputChange('meetingId', e.target.value)}
                 placeholder="输入会议ID"
               />
             </FormControl>
@@ -264,7 +262,7 @@ function MeetingSlotModal({
               <FormLabel>meetingLink</FormLabel>
               <Input
                 value={formValues.meetingLink}
-                onChange={(e) => onInputChange('meetingLink', e.target.value)}
+                onChange={(e) => handleInputChange('meetingLink', e.target.value)}
                 placeholder="输入会议链接"
               />
             </FormControl>
@@ -272,12 +270,12 @@ function MeetingSlotModal({
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
+          <Button variant="ghost" mr={3} onClick={handleCloseModal}>
             取消
           </Button>
           <Button
             colorScheme="blue"
-            onClick={onSave}
+            onClick={handleSave}
             isLoading={isSaving}
           >
             {editingSlot ? '更新' : '创建'}
