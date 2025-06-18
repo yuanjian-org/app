@@ -27,9 +27,6 @@ import { componentSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { useMyId } from "useMe";
 
-export const autoTaskDescription =
-  "此为自动生成的待办事项。完成相应任务后，系统会自动标记为已完成。";
-
 /**
  * @param task The task to edit. If not provided, a new task will be created.
  */
@@ -116,14 +113,17 @@ export default function TaskEditor({
           }
 
           {task?.creator &&
-            <SmallGrayText>
-              <UserName user={task.creator} />创建的事项
-            </SmallGrayText>
+            <HStack justify="space-between" w="full">
+              <SmallGrayText>
+                创建人：<UserName user={task.creator} />
+              </SmallGrayText>
+              <MarkdownSupport fontSize="sm" />
+            </HStack>
           }
 
           {isAuto &&
             <SmallGrayText>
-              {autoTaskDescription}
+              此为自动生成的事项。完成相应任务后，系统会自动标记为已完成。
             </SmallGrayText>
           }
 
@@ -132,7 +132,6 @@ export default function TaskEditor({
 
       <ModalFooter>
         <HStack spacing={componentSpacing}>
-          <MarkdownSupport fontSize="sm" />
           <Button variant="ghost" color="gray" onClick={onClose}>取消</Button>
           <Button
             isDisabled={!assigneeId || markdown.trim().length === 0}

@@ -5,8 +5,7 @@ import {
   Text,
   Flex,
   Checkbox,
-  HStack, Tooltip,
-  Box,
+  HStack, Box,
   Link,
   Button,
   Badge
@@ -30,7 +29,7 @@ import { UserState } from 'shared/UserState';
 import { componentSpacing } from 'theme/metrics';
 import getBaseUrl from 'shared/getBaseUrl';
 import { AddIcon } from '@chakra-ui/icons';
-import TaskEditor, { autoTaskDescription } from './TaskEditor';
+import TaskEditor from './TaskEditor';
 import ListItemDivider from 'components/ListItemDivider';
 import { isEnded } from 'shared/Mentorship';
 
@@ -142,7 +141,6 @@ export default function TasksCard({
              ⇐ 新
           </Badge>
 
-
           {creating && <TaskEditor
             getAllowedAssigneeIds={getAllowedAssigneeIds}
             onClose={() => setCreating(false)}
@@ -239,51 +237,43 @@ function TaskItem({ t, refetch, getAllowedAssigneeIds }: {
 
   const markdownStylerMarginY = 3;
   
-  return <Tooltip
-    isDisabled={t.creator !== null}
-    hasArrow
-    openDelay={500}
-    label={autoTaskDescription}
-  >
-    <HStack w="full">
-      <Checkbox
-        isDisabled={t.creator === null}
-        isChecked={done}
-        onChange={async () => {
-          setDone(!done);
-          await updateDone(!done);
-        }}
-      />
+  return <HStack w="full">
+    <Checkbox
+      isDisabled={t.creator === null}
+      isChecked={done}
+      onChange={async () => {
+        setDone(!done);
+        await updateDone(!done);
+      }}
+    />
 
-      <Box
-        onClick={() => setEditing(t)}
-        w="full"
-        cursor="pointer"
-        position="relative" 
-        // to offset the margin of the MarkdownStyler
-        my={-markdownStylerMarginY}
-        // to make sure the red dot doesn't go beyond the right edge of the
-        // container
-        pe={-redDotRightOffset}
-      >
-        {done ?
-          <s><MarkdownStyler content={markdown} /></s> :
-          <MarkdownStyler content={markdown} />
-        }
-        <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
-      </Box>
+    <Box
+      onClick={() => setEditing(t)}
+      w="full"
+      cursor="pointer"
+      position="relative" 
+      // to offset the margin of the MarkdownStyler
+      my={-markdownStylerMarginY}
+      // to make sure the red dot doesn't go beyond the right edge of the
+      // container
+      pe={-redDotRightOffset}
+    >
+      {done ?
+        <s><MarkdownStyler content={markdown} /></s> :
+        <MarkdownStyler content={markdown} />
+      }
+      <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
+    </Box>
 
-      {editing && <TaskEditor
-        task={editing}
-        getAllowedAssigneeIds={getAllowedAssigneeIds}
-        onClose={() => setEditing(undefined)}
-        refetch={refetch}
-      />}
+    {editing && <TaskEditor
+      task={editing}
+      getAllowedAssigneeIds={getAllowedAssigneeIds}
+      onClose={() => setEditing(undefined)}
+      refetch={refetch}
+    />}
 
-    </HStack>
-  </Tooltip>;
+  </HStack>;
 }
-
 
 /**
  * TODO: The following functions are very similar to the ones in Kudos.tsx.
