@@ -91,7 +91,7 @@ function MatchFeedbackEditableUntil() {
 function MeetingSlots() {
   const query = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = query.data;
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onOpen, onClose } = useDisclosure();
   const [selectedSlot, setSelectedSlot] = useState<MeetingSlot | null>(null);
 
   const handleCreateNew = () => {
@@ -153,7 +153,6 @@ function MeetingSlots() {
       </TableContainer>
 
       <MeetingSlotModal
-        isOpen={isOpen}
         onClose={handleCloseModal}
         editingSlot={selectedSlot}
         onSuccess={handleModalSuccess}
@@ -163,12 +162,10 @@ function MeetingSlots() {
 }
 
 function MeetingSlotModal({
-  isOpen,
   onClose,
   editingSlot,
   onSuccess
 }: {
-  isOpen: boolean;
   onClose: () => void;
   editingSlot: MeetingSlot | null;
   onSuccess: () => void;
@@ -179,6 +176,9 @@ function MeetingSlotModal({
     meetingLink: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  
+  const isOpen = editingSlot !== null;
+  
   useEffect(() => {
     if (isOpen) {
       setFormValues({
