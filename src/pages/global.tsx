@@ -32,6 +32,7 @@ import { MeetingSlot } from 'shared/MeetingSlot';
 import { componentSpacing, maxTextWidth } from 'theme/metrics';
 import trpc, { trpcNext } from 'trpc';
 import moment from 'moment-timezone';
+import TrLink from 'components/TrLink';
 
 export default function Page() {
   return (
@@ -137,27 +138,15 @@ function MeetingSlots() {
           </Thead>
           <Tbody>
             {meetingSlots?.sort((a, b) => (a.tmUserId || '').localeCompare(b.tmUserId || '')).map((slot) => (
-              <Tr 
+              <TrLink 
                 key={slot.id}
                 onClick={() => handleEdit(slot)}
-                cursor="pointer"
-                _hover={{ bg: 'gray.50' }}
               >
                 <Td>{slot.tmUserId}</Td>
                 <Td>{slot.meetingId}</Td>
-                <Td>
-                  <a 
-                    href={slot.meetingLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ color: 'blue', textDecoration: 'underline' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {slot.meetingLink}
-                  </a>
-                </Td>
+                <Td>{slot.meetingLink}</Td>
                 <Td>{slot.groupId}</Td>
-              </Tr>
+              </TrLink>
             ))}
           </Tbody>
         </Table>
