@@ -154,7 +154,7 @@ function MeetingSlots() {
 
       <MeetingSlotModal
         onClose={handleCloseModal}
-        editingSlot={selectedSlot}
+        slot={selectedSlot}
         onSuccess={handleModalSuccess}
       />
     </>
@@ -163,11 +163,11 @@ function MeetingSlots() {
 
 function MeetingSlotModal({
   onClose,
-  editingSlot,
+  slot,
   onSuccess
 }: {
   onClose: () => void;
-  editingSlot: MeetingSlot | null;
+  slot: MeetingSlot | null;
   onSuccess: () => void;
 }) {
   const [formValues, setFormValues] = useState({
@@ -177,17 +177,17 @@ function MeetingSlotModal({
   });
   const [isSaving, setIsSaving] = useState(false);
   
-  const isOpen = editingSlot !== null;
+  const isOpen = slot !== null;
   
   useEffect(() => {
     if (isOpen) {
       setFormValues({
-        tmUserId: editingSlot?.tmUserId || '',
-        meetingId: editingSlot?.meetingId || '',
-        meetingLink: editingSlot?.meetingLink || ''
+        tmUserId: slot?.tmUserId || '',
+        meetingId: slot?.meetingId || '',
+        meetingLink: slot?.meetingLink || ''
       });
     }
-  }, [isOpen, editingSlot]);
+  }, [isOpen, slot]);
 
   const handleCloseModal = () => {
     onClose();
@@ -200,12 +200,12 @@ function MeetingSlotModal({
       tmUserId: formValues.tmUserId,
       meetingId: formValues.meetingId,
       meetingLink: formValues.meetingLink,
-      ...(editingSlot && { id: editingSlot.id }),
+      ...(slot && { id: slot.id }),
     };
     
     try {
       await trpc.meetings.createOrUpdateMeetingSlot.mutate(payload);
-      const action = editingSlot ? '更新' : '创建';
+      const action = slot ? '更新' : '创建';
       toast.success(`会议位置${action}成功`);
       onSuccess();
     } finally {
@@ -222,7 +222,7 @@ function MeetingSlotModal({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
-          {editingSlot ? '编辑会议位置' : '创建新会议位置'}
+          {slot ? '编辑会议位置' : '创建新会议位置'}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -233,8 +233,8 @@ function MeetingSlotModal({
                 value={formValues.tmUserId}
                 onChange={(e) => handleInputChange('tmUserId', e.target.value)}
                 placeholder="输入腾讯会议用户ID"
-                isReadOnly={!!editingSlot}
-                bg={editingSlot ? 'gray.100' : 'white'}
+                isReadOnly={!!slot}
+                bg={slot ? 'gray.100' : 'white'}
               />
             </FormControl>
 
@@ -267,7 +267,7 @@ function MeetingSlotModal({
             onClick={handleSave}
             isLoading={isSaving}
           >
-            {editingSlot ? '更新' : '创建'}
+            {slot ? '更新' : '创建'}
           </Button>
         </ModalFooter>
       </ModalContent>
