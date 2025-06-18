@@ -69,7 +69,7 @@ export default function SummaryEditor({ summary, onClose }: {
           </Text>
 
           <Text>
-            为节省删除限额，建议在删除非敏感内容时使用波浪线语法而不是直接删除：
+            为节省删除限额，建议在删除非敏感内容时使用波浪线语法而不是直接删除，比如：
             <Code>~需删除内容~</Code>
           </Text>
 

@@ -193,13 +193,18 @@ export async function getUser2MentorshipCount() {
   }, {});
 }
 
-const listMyMentorshipsAsMentor = procedure
+const listMyMentorships = procedure
   .use(authUser())
+  .input(z.object({
+    as: z.enum(["Mentor", "Mentee"]),
+  }))
   .output(z.array(zMentorship))
-  .query(async ({ ctx }) => 
+  .query(async ({ ctx, input: { as } }) => 
 {
   return (await db.Mentorship.findAll({
-    where: { mentorId: ctx.user.id },
+    where: { 
+      [as === "Mentor" ? "mentorId" : "menteeId"]: ctx.user.id
+    },
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
   })).filter(m => !isEndedTransactionalMentorship(m));
@@ -245,7 +250,7 @@ export default router({
   get,
   update,
   updateSchedule,
-  listMyMentorshipsAsMentor,
+  listMyMentorships,
   listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
   listOngoingRelationalMentorships,

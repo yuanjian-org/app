@@ -12,7 +12,7 @@ import User from "./User";
 
 @Table({
   indexes: [{
-    fields: ["userId", "autoTaskId"],
+    fields: ["assigneeId", "autoTaskId"],
     unique: true,
   }],
 })
@@ -21,7 +21,7 @@ export default class Task extends Model {
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(UUID)
-  userId: string;
+  assigneeId: string;
 
   /**
    * When null, the task is an auto task.
@@ -54,4 +54,7 @@ export default class Task extends Model {
 
   @BelongsTo(() => User, { foreignKey: "creatorId" })
   creator: User;
+
+  @BelongsTo(() => User, { foreignKey: "assigneeId" })
+  assignee: User;
 }

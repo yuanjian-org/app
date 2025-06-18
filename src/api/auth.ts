@@ -31,7 +31,14 @@ export const authUser = (permitted?: Role | Role[]) =>middleware(
 
   if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
 
-  return await next({ ctx: { user: session.user, baseUrl: ctx.baseUrl } });
+  return await next({ ctx: { 
+    me: session.user,
+    baseUrl: ctx.baseUrl,
+    session,
+
+    /** @deprecated Use `me` instead */
+    user: session.user,
+  } });
 });
 
 const unauthorizedError = () => new TRPCError({

@@ -4,6 +4,9 @@ import { formatUserName } from 'shared/strings';
 import NextLink from 'next/link';
 import { useMyId } from 'useMe';
 
+/**
+ * UserChip := The user's avatar icon + UserLink
+ */
 export default function UserChip({ user }: {
   user: MinUser;
 }) {
@@ -15,10 +18,14 @@ export default function UserChip({ user }: {
 }
 
 export function UserLink({ user }: { user: MinUser }) {
-  const myId = useMyId();
   return <Link as={NextLink} href={getUserUrl(user)} target="_blank">
-    {myId === user.id ? "我" : formatUserName(user.name, "formal")}
+    <UserName user={user} />
   </Link>;
+}
+
+export function UserName({ user }: { user: MinUser }) {
+  const myId = useMyId();
+  return <>{myId === user.id ? "我" : formatUserName(user.name)}</>;
 }
 
 export function MenteeLink({ user }: {
