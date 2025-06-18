@@ -104,14 +104,10 @@ function MeetingSlots() {
     onOpen();
   };
 
-  const handleCloseModal = () => {
-    onClose();
-    setSelectedSlot(null);
-  };
-
   const handleModalSuccess = () => {
     void query.refetch();
-    handleCloseModal();
+    onClose();
+    setSelectedSlot(null);
   };
 
   return (
@@ -153,7 +149,10 @@ function MeetingSlots() {
       </TableContainer>
 
       <MeetingSlotModal
-        onClose={handleCloseModal}
+        onClose={() => {
+          onClose();
+          setSelectedSlot(null);
+        }}
         slot={selectedSlot}
         onSuccess={handleModalSuccess}
       />
@@ -189,11 +188,6 @@ function MeetingSlotModal({
     }
   }, [isOpen, slot]);
 
-  const handleCloseModal = () => {
-    onClose();
-    setFormValues({ tmUserId: '', meetingId: '', meetingLink: '' });
-  };
-
   const handleSave = async () => {
     setIsSaving(true);
     const payload = {
@@ -218,7 +212,7 @@ function MeetingSlotModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleCloseModal} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -259,7 +253,7 @@ function MeetingSlotModal({
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={handleCloseModal}>
+          <Button variant="ghost" mr={3} onClick={onClose}>
             取消
           </Button>
           <Button
