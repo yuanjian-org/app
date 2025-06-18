@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
 import { zGroup } from "./Group";
-import { zNullableDateColumn } from "./DateColumn";
+import { DateColumn, zNullableDateColumn } from "./DateColumn";
 import { compareDate, toChineseDayOfWeek } from "./strings";
 import moment from "moment";
 
@@ -54,8 +54,12 @@ export function isValidMentorshipIds(
     && menteeId !== mentorId;
 }
 
+export function isEnded(endsAt: DateColumn | null) {
+  return endsAt && compareDate(endsAt, new Date()) < 0;
+}
+
 export function isEndedTransactionalMentorship(m: Mentorship) {
-  return m.transactional && m.endsAt && compareDate(m.endsAt, new Date()) < 0;
+  return m.transactional && isEnded(m.endsAt);
 }
 
 export function newTransactionalMentorshipEndsAt(): Date {
