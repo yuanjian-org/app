@@ -31,6 +31,7 @@ import getBaseUrl from 'shared/getBaseUrl';
 import { AddIcon } from '@chakra-ui/icons';
 import TaskEditor, { autoTaskDescription } from './TaskEditor';
 import ListItemDivider from 'components/ListItemDivider';
+import { isEnded } from 'shared/Mentorship';
 
 /**
  * @param assigneeIds The assignees of the tasks to be listed on this card.
@@ -68,10 +69,14 @@ export default function TasksCard({
     if (allowMentorshipAssignment) {
       promises.push(trpc.mentorships.listMyMentorships.query({
         as: "Mentor",
-      }).then(mentorships => mentorships.map(m => m.mentee.id)));
+      }).then(mentorships => mentorships
+        .filter(m => !isEnded(m.endsAt))
+        .map(m => m.mentee.id)));
       promises.push(trpc.mentorships.listMyMentorships.query({
         as: "Mentee",
-      }).then(mentorships => mentorships.map(m => m.mentor.id)));
+      }).then(mentorships => mentorships
+        .filter(m => !isEnded(m.endsAt))
+        .map(m => m.mentor.id)));
     }
 
     return [
