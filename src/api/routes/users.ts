@@ -412,7 +412,8 @@ const setMenteeStatus = procedure
 const isBanned = procedure
   .input(z.object({
     email: z.string()
-  })).output(z.boolean())
+  }))
+  .output(z.boolean())
   .query(async ({ input: { email } }) =>
 {
   // Declare a variable to force type checking

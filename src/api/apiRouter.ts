@@ -22,8 +22,10 @@ import mentorSelections from './routes/mentorSelections';
 import tasks from './routes/tasks';
 import matchFeedback from './routes/matchFeedback';
 import globalConfigs from './routes/globalConfigs';
+import password from './routes/password';
 
 export const apiRouter = router({
+  password,
   users,
   groups,
   meetings,

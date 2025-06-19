@@ -132,6 +132,18 @@ class User extends Model {
   @Column(STRING)
   image: string | null;
 
+  // Password hash for email/password login, nullable for users who use other
+  // providers.
+  @Column(STRING)
+  password: string | null;
+
+  // Password reset token
+  @Column(STRING)
+  resetToken: string | null;
+
+  @Column(DATE)
+  resetTokenExpiresAt: Date | null;
+
   /**
    * Associations
    */
