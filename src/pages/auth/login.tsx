@@ -22,12 +22,16 @@ import trpc from 'trpc';
 import { RoleProfiles } from 'shared/Role';
 import EmbeddedWeChatQRLogin from 'components/EmbeddedWeChatQRLogin';
 import { componentSpacing, sectionSpacing } from 'theme/metrics';
-import { IoLogoWechat } from 'react-icons/io5';
 import PageBreadcrumb from 'components/PageBreadcrumb';
 import { staticUrlPrefix } from 'static';
+import { IoLogoWechat } from 'react-icons/io5';
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
+
+export function loginUrl(callbackUrl?: string) {
+  return `/auth/login?${callbackUrlParam(callbackUrl)}`;
+}
 
 const callbackUrlKey = "callbackUrl";
 
@@ -35,8 +39,9 @@ export function callbackUrlParam(url: string | undefined) {
   return url ? `${callbackUrlKey}=${encodeURIComponent(url)}` : "";
 }
 
-export function loginUrl(callbackUrl?: string) {
-  return `/auth/login?${callbackUrlParam(callbackUrl)}`;
+function useCallbackUrl() {
+  const router = useRouter();
+  return parseQueryString(router, callbackUrlKey) ?? "/";
 }
 
 type ServerSideProps = {
@@ -50,18 +55,6 @@ type ServerSideProps = {
 export default function Page({ wechatQRAppId }: ServerSideProps) {
   const router = useRouter();
 
-  // Use the last login email
-  const [email, setEmail] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const callbackUrl = parseQueryString(router, callbackUrlKey) ?? "/";
-
-  // Protect local storage reads from being called without a browser window,
-  // which may occur during server-side rendering and prerendering (by Vercel at
-  // build time).
-  useEffect(() => {
-    setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
-  }, []);
-
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
     const err = parseQueryString(router, "error");
@@ -73,6 +66,121 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       toast.error(`糟糕，系统错误，请联系管理员：${err}`);
     }
   }, [router]);
+
+  // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
+  const isWechatMobileBrowser =
+    /MicroMessenger/i.test(navigator.userAgent) &&
+    /Mobile/i.test(navigator.userAgent);
+
+  return <>
+    <PageBreadcrumb
+      current="登录"
+      parents={[{ name: "社会导师服务平台", link: staticUrlPrefix }]}
+    />
+
+    <Tabs
+      isFitted
+      isLazy
+      size='sm'
+    >
+      <TabList>
+        {/* Only WeChat mobile browser supports logging in with WeChat
+            accounts. See docs/WeChat.md for more information. */}
+        {isWechatMobileBrowser && <Tab>微信登录</Tab>}
+        <Tab>微信扫码</Tab>
+        <Tab>邮箱验证码</Tab>
+        <Tab>邮箱密码</Tab>
+      </TabList>
+
+      <TabPanels>
+
+        {/* 微信服务号登录 */}
+        {isWechatMobileBrowser && <TabPanel>
+          <WechatAccountPanel />
+        </TabPanel>}
+
+        {/* 微信扫码登录 */}
+        <TabPanel>
+          <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+        </TabPanel>
+
+        <TabPanel>
+          <EmailVerificationPanel />
+        </TabPanel>
+
+      </TabPanels>
+    </Tabs>
+  </>;
+}
+
+function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
+  const callbackUrl = useCallbackUrl();
+  return (
+    <VStack spacing={componentSpacing}>
+    <Text fontSize="sm" color="gray">
+      二维码若无法加载，
+      <Link onClick={() => signIn('wechat-qr', { callbackUrl })}>
+        点击此处
+      </Link>
+    </Text>
+    <EmbeddedWeChatQRLogin appid={wechatQRAppId}
+      callbackUrl={callbackUrl} />
+      <MergeAccountHelpText />
+    </VStack>
+  );
+}
+
+function WechatAccountPanel() {
+  const callbackUrl = useCallbackUrl();
+
+  return (
+    <VStack spacing={componentSpacing}>
+    <Button
+      width="full"
+      mt={sectionSpacing}
+      leftIcon={<IoLogoWechat />}
+      onClick={() => signIn('wechat', { callbackUrl })}
+      bg="#07C160"
+      color="white"
+      _hover={{ bg: "#06AE56" }}
+    >
+      微信登录
+    </Button>
+      <MergeAccountHelpText />
+    </VStack>
+  );
+}
+
+function MergeAccountHelpText() {
+  return (
+    <Text
+      align="center"
+      fontSize="sm"
+      color="gray"
+    >
+      如果您曾经使用邮箱登录，在微信登录后，需要人工关联现有账号。请联系平台工作人员协助。
+    </Text>
+  );
+}
+
+function isValidEmail(email: string) {
+  return z.string().email().safeParse(email).success;
+}
+
+function EmailVerificationPanel() {
+  const router = useRouter();
+  const callbackUrl = useCallbackUrl();
+
+  // Use the last login email
+  const [email, setEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Protect local storage reads from being called without a browser window,
+  // which may occur during server-side rendering and prerendering (by Vercel at
+  // build time).
+  useEffect(() => {
+    setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
+  }, []);
 
   const submitEmail = async () => {
     setIsLoading(true);
@@ -86,6 +194,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       const res = await signIn('sendgrid', {
         email,
         callbackUrl,
+        // Display errors on the same page
         redirect: false
       });
 
@@ -107,106 +216,34 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
     }
   };
 
-  const isValidEmail = () => z.string().email().safeParse(email).success;
+  return (
+    <>
+      <InputGroup my={sectionSpacing}>
+        <InputLeftElement pointerEvents='none'>
+          <EmailIcon color='gray.400' />
+        </InputLeftElement>
+        <Input
+          type="email"
+          name="email"
+          minWidth={80}
+          placeholder="请输入邮箱"
+          value={email}
+          onChange={(ev) => setEmail(ev.target.value)}
+          onKeyDown={async ev => {
+            if (ev.key == "Enter" && isValidEmail(email)) await submitEmail();
+          }}
+        />
+      </InputGroup>
 
-  // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
-  const isWechatMobileBrowser =
-    /MicroMessenger/i.test(navigator.userAgent) &&
-    /Mobile/i.test(navigator.userAgent);
-
-  const MergeAccountHelpText = () => <Text
-    align="center"
-    fontSize="sm"
-    color="gray"
-  >
-    如果您曾经使用邮箱登录，在微信登录后，需要人工关联现有账号。请联系平台工作人员协助。
-  </Text>;
-
-  return <>
-    <PageBreadcrumb
-      current="登录"
-      parents={[{ name: "社会导师服务平台", link: staticUrlPrefix }]}
-    />
-
-    <Tabs
-      isFitted
-      isLazy
-      size='sm'
-    >
-      <TabList>
-        {/* Only WeChat mobile browser supports logging in with WeChat
-            accounts. See docs/WeChat.md for more information. */}
-        {isWechatMobileBrowser && <Tab>微信登录</Tab>}
-        <Tab>微信扫码</Tab>
-        <Tab>邮箱登录</Tab>
-      </TabList>
-
-      <TabPanels>
-
-        {/* 微信服务号登录 */}
-        {isWechatMobileBrowser && <TabPanel>
-          <VStack spacing={componentSpacing}>
-            <Button
-              width="full"
-              mt={sectionSpacing}
-              leftIcon={<IoLogoWechat />}
-              onClick={() => signIn('wechat', { callbackUrl })}
-              bg="#07C160"
-              color="white"
-              _hover={{ bg: "#06AE56" }}
-            >
-              微信登录
-            </Button>
-              <MergeAccountHelpText />
-          </VStack>
-        </TabPanel>}
-
-        {/* 微信扫码登录 */}
-        <TabPanel>
-          <VStack spacing={componentSpacing}>
-            <Text fontSize="sm" color="gray">
-              二维码若无法加载，
-              <Link onClick={() => signIn('wechat-qr', { callbackUrl })}>
-                点击此处
-              </Link>
-            </Text>
-            <EmbeddedWeChatQRLogin appid={wechatQRAppId}
-              callbackUrl={callbackUrl} />
-            <MergeAccountHelpText />
-          </VStack>
-        </TabPanel>
-
-        {/* Email登录 */}
-        <TabPanel>
-          <InputGroup my={sectionSpacing}>
-            <InputLeftElement pointerEvents='none'>
-              <EmailIcon color='gray.400' />
-            </InputLeftElement>
-            <Input
-              type="email"
-              name="email"
-              minWidth={80}
-              placeholder="请输入邮箱"
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
-              onKeyDown={async ev => {
-                if (ev.key == "Enter" && isValidEmail()) await submitEmail();
-              }}
-            />
-          </InputGroup>
-
-          <Button
-            variant="brand"
-            width="full"
-            isDisabled={!isValidEmail()}
-            isLoading={isLoading}
-            onClick={submitEmail}
-          >登录 / 注册</Button>
-        </TabPanel>
-
-      </TabPanels>
-    </Tabs>
-  </>;
+      <Button
+        variant="brand"
+        width="full"
+        isDisabled={!isValidEmail(email)}
+        isLoading={isLoading}
+        onClick={submitEmail}
+      >登录 / 注册</Button>
+    </>
+  );
 }
 
 export function getServerSideProps(): { props: ServerSideProps } {
