@@ -92,7 +92,7 @@ function MeetingSlots() {
   const [selectedSlot, setSelectedSlot] = useState<MeetingSlot>();
 
   const handleCreateNew = () => {
-    setSelectedSlot({} as MeetingSlot);
+    setSelectedSlot(null)
   };
 
   const handleEdit = (slot: MeetingSlot) => {
@@ -138,7 +138,7 @@ function MeetingSlots() {
       </TableContainer>
 
       {selectedSlot && (
-        <MeetingSlotModal
+        <MeetingSlotEditor
           onClose={() => setSelectedSlot(undefined)}
           slot={selectedSlot}
           onSuccess={query.refetch}
@@ -148,7 +148,7 @@ function MeetingSlots() {
   );
 }
 
-function MeetingSlotModal({
+function MeetingSlotEditor({
   onClose,
   slot,
   onSuccess
