@@ -215,3 +215,8 @@ export const taskInclude = [{
   association: "assignee",
   attributes: minUserAttributes,
 }];
+
+/**
+ * MeetingSlot
+ */
+export const meetingSlotAttributes = ["id", "tmUserId", "meetingId", "meetingLink", "groupId"];
