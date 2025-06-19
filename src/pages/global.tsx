@@ -89,10 +89,10 @@ function MatchFeedbackEditableUntil() {
 function MeetingSlots() {
   const query = trpcNext.meetings.listMeetingSlots.useQuery();
   const meetingSlots = query.data;
-  const [selectedSlot, setSelectedSlot] = useState<MeetingSlot>();
+  const [selectedSlot, setSelectedSlot] = useState<MeetingSlot | null>(null);
 
   const handleCreateNew = () => {
-    setSelectedSlot(null)
+    setSelectedSlot({} as MeetingSlot);
   };
 
   const handleEdit = (slot: MeetingSlot) => {
@@ -137,9 +137,9 @@ function MeetingSlots() {
         </Table>
       </TableContainer>
 
-      {selectedSlot && (
+      {selectedSlot !== null && (
         <MeetingSlotEditor
-          onClose={() => setSelectedSlot(undefined)}
+          onClose={() => setSelectedSlot(null)}
           slot={selectedSlot}
           onSuccess={query.refetch}
         />
@@ -148,13 +148,16 @@ function MeetingSlots() {
   );
 }
 
+/**
+ * @param slot null to create a new slot
+ */
 function MeetingSlotEditor({
   onClose,
   slot,
   onSuccess
 }: {
   onClose: () => void;
-  slot: MeetingSlot;
+  slot: MeetingSlot | null;
   onSuccess: () => void;
 }) {
   const [formValues, setFormValues] = useState({
@@ -164,7 +167,7 @@ function MeetingSlotEditor({
   });
   const [isSaving, setIsSaving] = useState(false);
   
-  const isEditing = !!slot.id;
+  const isEditing = !!slot?.id;
   
   useEffect(() => {
     setFormValues({
@@ -176,17 +179,16 @@ function MeetingSlotEditor({
 
   const handleSave = async () => {
     setIsSaving(true);
-    const payload = {
-      tmUserId: formValues.tmUserId,
-      meetingId: formValues.meetingId,
-      meetingLink: formValues.meetingLink,
-      ...(slot.id && { id: slot.id }),
-    };
     
     try {
-      await trpc.meetings.createOrUpdateMeetingSlot.mutate(payload);
+      await trpc.meetings.createOrUpdateMeetingSlot.mutate({
+        tmUserId: formValues.tmUserId,
+        meetingId: formValues.meetingId,
+        meetingLink: formValues.meetingLink,
+        ...(slot?.id && { id: slot.id }),
+      });
       const action = isEditing ? '更新' : '创建';
-      toast.success(`会议位置${action}成功`);
+      toast.success(`会议位置${action}成功。`);
       onSuccess();
       onClose();
     } finally {
