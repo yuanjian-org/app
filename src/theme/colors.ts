@@ -34,6 +34,8 @@ const colors = {
 
 export default colors;
 
+export const headingColor = "gray.600";
+
 export const inactiveNavLinkColor = "gray.600";
 export const activeNavLinkColor = "brand.c";
 

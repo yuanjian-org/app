@@ -133,3 +133,10 @@ export function hash(str: string): number {
   }
   return Math.abs(hash);
 }
+
+export const passwordMinLength = 8;
+
+// TODO check against common passwords
+export function isValidPassword(password: string): boolean {
+  return password.length >= passwordMinLength && password.length < 100;
+}
