@@ -11,6 +11,8 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
 import { emailRole } from "api/email";
+import { createMessageAndScheduleEmail } from "./chats";
+import { findOrCreateRoom } from "./chatsInternal";
 
 const create = procedure
   .use(authUser())
@@ -29,6 +31,31 @@ const create = procedure
       requestedMentorId,
       topic,
     }, { transaction });
+
+    // If a specific mentor was requested, create a chat message
+    if (requestedMentorId) {
+      try {
+        // Get the requested mentor user object
+        const requestedMentor = await db.User.findByPk(requestedMentorId, {
+          attributes: ['id', 'name', 'roles'],
+          transaction
+        });
+
+        if (requestedMentor) {
+          const room = await findOrCreateRoom(requestedMentor, me.id, transaction);
+          const markdown = `【不定期导师预约】学生预约话题：${topic}`;
+          await createMessageAndScheduleEmail(
+            requestedMentor,
+            room.id,
+            markdown,
+            transaction
+          );
+        }
+      } catch (error: any) {
+        // Log error without failing the booking creation
+        console.error('Failed to create chat message for mentor booking:', error);
+      }
+    }
 
     await emailRole(
       "MentorshipManager",
