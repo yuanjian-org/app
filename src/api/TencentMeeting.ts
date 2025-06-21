@@ -64,7 +64,7 @@ const tmRequest = async (
   method: 'GET' | 'POST' | 'PUT',
   requestUri: string,
   query: Record<string, string | number>,
-  body: Record<string, string> = {},
+  body: Record<string, any> = {},
 ) => {
   const now = Math.floor(Date.now() / 1000);
   const hasQuery = Object.keys(query).length > 0;
@@ -116,8 +116,8 @@ const tmRequest = async (
 
   if ("error_info" in res) {
     const e = res.error_info;
-    throw internalServerError(`腾讯会议后台错误：${e.message}。` +
-      `错误码：${e.new_error_code}` +
+    throw internalServerError(`腾讯会议后台错误：${e.message}` +
+      ` 错误码：${e.new_error_code}` +
       (e.error_code !== e.new_error_code ? `（旧错误码：${e.error_code}）` : ""));
   }
   return res;
@@ -128,22 +128,28 @@ const defaultInstanceId = "1";
 /**
  * https://cloud.tencent.com/document/product/1095/42417
  */
-export async function createMeeting(
+export async function createRecurringMeeting(
   tmUserId: string,
   subject: string,
   startTimeSecond: number,
   endTimeSecond: number,
 ) {
-  console.log(LOG_HEADER, `createMeeting('${subject}', ${startTimeSecond},` +
-    ` ${endTimeSecond})`);
+  console.log(LOG_HEADER, `createRecurringMeeting('${subject}',
+    ${startTimeSecond}, ${endTimeSecond})`);
 
   const res = await tmRequest('POST', '/v1/meetings', {}, {
     userid: tmUserId,
     instanceid: defaultInstanceId,
     subject,
-    start_time: "" + startTimeSecond,
-    end_time: "" + endTimeSecond,
-    type: "0", // 0: scheduled, 1: fast
+    start_time: startTimeSecond,
+    end_time: endTimeSecond,
+    type: 0,
+    meeting_type: 1,
+    recurring_rule: {
+      recurring_type: 4,
+      until_type: 1,
+      until_count: 50,
+    },
   });
 
   return z.object({
