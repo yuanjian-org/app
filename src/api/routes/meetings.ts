@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { createMeeting, getMeeting } from "../TencentMeeting";
+import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
@@ -18,6 +18,7 @@ import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
+import getBaseUrl from "shared/getBaseUrl";
 
 export const gracePeriodMinutes = 5;
 
@@ -65,6 +66,8 @@ const join = procedure
     while (true) {
       const free = await db.MeetingSlot.findOne({
         where: { groupId: null },
+        // To ease troubleshooting, always pick the smallest available tmUserId.
+        order: [["tmUserId", "ASC"]],
         attributes: ["id", "meetingId", "meetingLink"],
         lock: true,
         transaction,
@@ -235,12 +238,39 @@ async function recycleMeetings(transaction: Transaction) {
 
 async function create(tmUserId: string) {
   const now = Math.floor(Date.now() / 1000);
-  const res = await createMeeting(tmUserId, "导师平台会议", now, now + 3600);
-  invariant(res.meeting_info_list.length === 1,
-    `meeting_info_list.length != 1: ${JSON.stringify(res)}`);
+  const nextHour = Math.ceil(now / 3600) * 3600;
 
-  return {
-    meetingId: res.meeting_info_list[0].meeting_id,
-    meetingLink: res.meeting_info_list[0].join_url,
-  };
+  try {
+    const res = await createRecurringMeeting(
+      tmUserId,
+      "远图会议，请勿分享或保存链接，参会者需用远图平台进入",
+      nextHour,
+      nextHour + 3600);
+
+    invariant(res.meeting_info_list.length >= 1,
+      `meeting_info_list.length < 1: ${JSON.stringify(res)}`);
+    const meetingId = res.meeting_info_list[0].meeting_id;
+    const meetingLink = res.meeting_info_list[0].join_url;
+
+    await db.EventLog.create({
+      data: {
+        type: "MeetingCreation",
+        tmUserId,
+        meetingId,
+        meetingLink,
+      },
+    });
+
+    return {
+      meetingId,
+      meetingLink,
+    };
+    
+  } catch (e) {
+    if (!`${e}`.includes("每月总接口调用次数超过限制")) {
+      emailRoleIgnoreError("SystemAlertSubscriber", "会议创建失败",
+        `会议创建失败：${e}`, getBaseUrl());
+    }
+    throw e;
+  }
 }
