@@ -19,7 +19,7 @@ import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
 
-export const gracePeriodMinutes = 1;
+export const gracePeriodMinutes = 5;
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in
@@ -50,9 +50,9 @@ const join = procedure
   // simultaneously: https://stackoverflow.com/a/48297781
   // If the group is already present in MeetingSlot, return the meeting link.
   return await sequelize.transaction(async transaction => {
-    // Find an existing slot for the group. The slot's status is ignored.
-    // It means that even if the meeting is already ended, it will still be
-    // reused for the group.
+    // Find an existing slot for the group. TencentMeeting's status is ignored.
+    // It means that even if the meeting is ended, it will still be reused for
+    // the group.
     const existing = await db.MeetingSlot.findOne({ 
       where: { groupId },
       lock: true,
@@ -60,6 +60,7 @@ const join = procedure
     });
     if (existing) return existing.meetingLink;
 
+    // No matching slot found. Find a free slot.
     let refreshed = false;
     while (true) {
       const free = await db.MeetingSlot.findOne({
@@ -129,11 +130,11 @@ export async function refreshMeetingSlots(transaction: Transaction) {
     /**
      * Assume the meeting is ongoing if it is created not long time ago.
      * 
-     * This is added to support the corner case after a user creates a meeting 
-     * and before joining while the user's browser is loading TencentMeeting's
-     * meeting page. If another group attempts to start a meeting in this period,
-     * the slot would be deemed available because the meeting's status in
-     * TencentMeeting's backend hasn't been updated.
+     * This is added to support the corner case after a user clicked the join
+     * button and before actually joining TencentMeeting. Without this check,
+     * if another group attempts to start a meeting in this period, the slot
+     * would be incorrectly marked as available because TencentMeeting's backend
+     * hasn't updated the meeting status yet.
      */
     if (moment().diff(slot.updatedAt, 'minutes') < gracePeriodMinutes) continue;
     const m = await getMeeting(slot.meetingId, slot.tmUserId);

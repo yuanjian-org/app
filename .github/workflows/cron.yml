@@ -4,7 +4,14 @@ permissions: {}
 
 on:
   schedule:
-    - cron: "53 * * * *"  # Runs at the 53th minute of every hour
+    # Runs at the 18th minute of every hour. Do not run close to hour boundaries
+    # because there may be cases where users wait for a bit longer than
+    # `gracePeriodMinutes` to join a meeting after they have clicked the join
+    # button, and meetings are often scheduled at hour or 30 mins boundaries.
+    #
+    # Also, Github seems to have a 5-minute delay in running the cron job.
+    #
+    - cron: "13 * * * *"
 
 jobs:
   run_scheduled_task:
