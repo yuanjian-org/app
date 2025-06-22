@@ -180,7 +180,6 @@ export async function syncMeetings() {
    */
   await sequelize.transaction(async transaction => {
     await refreshMeetingSlots(transaction);
-    await recycleMeetings(transaction);
   });
 
   await downloadSummaries();
@@ -200,39 +199,42 @@ export async function syncMeetings() {
  * meetings), and 2) we want to minimize the reuse of meeting links so that
  * if someone remembers a meeting link and use it outside of our system,
  * either accidentally or intentionally, the chance that they join an ongoing
- * meeting of another group is low.
+ * meeting of another group or are exposed to previous meeting chat messages is
+ * low.
  */
-async function recycleMeetings(transaction: Transaction) {
+export async function recycleMeetings() {
   for (const tmUserId of apiEnv.TM_USER_IDS) {
-    const slot = await db.MeetingSlot.findOne({
-      where: { tmUserId },
-      attributes: ["id", "groupId"],
-      lock: true,
-      transaction,
-    });
+    await sequelize.transaction(async transaction => {
+      const slot = await db.MeetingSlot.findOne({
+        where: { tmUserId },
+        attributes: ["id", "groupId"],
+        lock: true,
+        transaction,
+      });
 
-    // Skip ongoing meetings.
-    if (slot && slot.groupId) continue;
+      // Skip ongoing meetings.
+      if (slot && slot.groupId) return;
 
-    try {
-      const { meetingId, meetingLink } = await create(tmUserId);
-      console.log(`Meeting created for user ${tmUserId}: ` +
-        `${meetingId}, ${meetingLink}`);
+      try {
+        const { meetingId, meetingLink } = await create(tmUserId);
+        console.log(`Meeting created for user ${tmUserId}: ` +
+          `${meetingId}, ${meetingLink}`);
 
-      if (slot) {
-        await slot.update({ 
-          meetingId, meetingLink,
-        }, { transaction });
-      } else {
-        await db.MeetingSlot.create({
-          tmUserId, meetingId, meetingLink,
-        }, { transaction });
+        if (slot) {
+          await slot.update({ 
+            meetingId, meetingLink,
+          }, { transaction });
+        } else {
+          await db.MeetingSlot.create({
+            tmUserId, meetingId, meetingLink,
+          }, { transaction });
+        }
+
+      } catch (e) {
+        console.error(`(Expected) meeting creation failure for user ${tmUserId}:
+          ${e}`);
       }
-
-    } catch (e) {
-      console.error(`(Expected) meeting creation failure for user ${tmUserId}:
-        ${e}`);
-    }
+    });
   }
 }
 
