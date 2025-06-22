@@ -12,15 +12,11 @@ export const AllRoles = [
   'Mentor',
   'Mentee',
   'Interviewer',
-  'MentorCoach',
   'Volunteer',
 
   // Banned users can't sign in. Mostly to prevent users from repeatedly using
   // different email addresses than their main sign-in address.
   'Banned',
-
-  // Deprecated
-  // 'MenteeManager',
 ] as const;
 
 export const RoleProfiles: { [key: string]: {
@@ -80,12 +76,6 @@ export const RoleProfiles: { [key: string]: {
     actions: '面试导师或学生候选人',
     automatic: true,
   },
-  MentorCoach: {
-    displayName: '资深导师',
-    actions: '辅助与评估非资深导师',
-    privilegedUserDataAccess: true,
-    automatic: true,
-  },
   Volunteer: {
     displayName: '志愿者',
     actions: '可以浏览其他志愿者信息',
@@ -95,12 +85,6 @@ export const RoleProfiles: { [key: string]: {
     displayName: '停用账号',
     actions: '停用账号无法登录系统。主要为防止用户使用非主登录邮箱',
   },
-
-  // // Deprecated
-  // MenteeManager: {
-  //   displayName: 'Deprecated',
-  //   actions: '管理学生',
-  // },
 };
 
 type Role = typeof AllRoles[number];

@@ -56,7 +56,6 @@ import {
   hardMismatchScore,
   TraitsPreference
 } from "shared/Traits";
-import Role from "shared/Role";
 import { z } from "zod";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
@@ -101,7 +100,6 @@ const exportInitialSpreadsheet = procedure
   const mentors = await listEligibleMentors();
   const mentorFnDs = await listInterviewFeedbackAndDecisions(
     "MentorInterview", mentors.map(m => m.user.id));
-  const mentorCoachIds = await listMentorCoachIds();
 
   const data: SpreadsheetInputData = [];
   data.push(formatInstructionsWorksheet(mentees, batches));
@@ -115,7 +113,6 @@ const exportInitialSpreadsheet = procedure
       menteeFnDs[mentee.id],
       mentors,
       mentorFnDs,
-      mentorCoachIds,
     ));
   }
 
@@ -230,7 +227,6 @@ function formatMenteeWorksheet(
   menteeFnD: FeedbackAndDecision | null,
   mentors: ListMentorsOutput,
   mentorFnDs: Record<string, FeedbackAndDecision>,
-  mentorCoachIds: string[]
 )
 {
   invariant(!batch || batch.userId === mentee.id, "Mentor & batch mismatch");
@@ -314,7 +310,6 @@ function formatMenteeWorksheet(
       profile: id2mentor[s.mentor.id].profile,
       pref: id2mentor[s.mentor.id].traitsPreference,
       fnd: mentorFnDs[s.mentor.id],
-      isMentorCoach: mentorCoachIds.includes(s.mentor.id),
       order: s.order,
       reason: s.reason,
       // UI doesn't allow mentees to select hard mismatching mentors at all
@@ -331,7 +326,6 @@ function formatMenteeWorksheet(
       profile: m.profile,
       pref: m.traitsPreference,
       fnd: mentorFnDs[m.user.id],
-      isMentorCoach: mentorCoachIds.includes(m.user.id),
       order: null,
       reason: null,
       hardMismatch: !profile ? false : computeTraitsMatchingScore(
@@ -392,13 +386,12 @@ function order2matchingScore(order: number | null): number {
 }
 
 function formatMentorRow(row: number, {
-  user, profile, pref, fnd, isMentorCoach, order, reason, hardMismatch
+  user, profile, pref, fnd, order, reason, hardMismatch
 }: {
   user: MinUser,
   profile: UserProfile,
   pref: TraitsPreference | null,
   fnd: FeedbackAndDecision | null,
-  isMentorCoach: boolean,
   // null if the mentor is not in the preference list
   order: number | null, 
   hardMismatch: boolean | null,
@@ -435,8 +428,8 @@ function formatMentorRow(row: number, {
     // 间隔列. Use non-null content to cut off text from previous column.
     " ",
     // 面试总评
-    isMentorCoach ? "【资深导师】" : flatten(decisionComment),
-    ...isMentorCoach ? [] : formatInterviewScores(feedbackScores),
+    flatten(decisionComment),
+    ...formatInterviewScores(feedbackScores),
   ];
 }
 
@@ -549,15 +542,6 @@ async function listMenteeProfiles(mentees: MinUser[]):
     acc[a.id] = a.profile ?? {};
     return acc;
   }, {} as Record<string, UserProfile>);
-}
-
-async function listMentorCoachIds(): Promise<string[]> {
-  // Force type check
-  const coachRole: Role = "MentorCoach";
-  return (await db.User.findAll({
-    where: { roles: { [Op.contains]: [coachRole] } },
-    attributes: ["id"],
-  })).map(c => c.id);
 }
 
 type FeedbackAndDecision = {

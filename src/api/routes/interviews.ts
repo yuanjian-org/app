@@ -250,7 +250,7 @@ export async function createInterview(
   }
 
   await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null,
-    null, transaction);
+    transaction);
 
   if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
 
@@ -287,7 +287,6 @@ const listInterviewerStats = procedure
   const stats = users
     .filter(user => user2interviews[user.id] 
       || user.preference?.interviewer?.optIn === true
-      || user.roles.includes("MentorCoach")
       || user.roles.includes("Mentor")
     ).map(user => ({
       user,

@@ -5,7 +5,6 @@ import React from 'react';
 import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from 'react-icons/fi';
 import { IoIosCog, IoMdCalendar } from "react-icons/io";
-import { MdOutlineFace } from "react-icons/md";
 import { IoStar } from "react-icons/io5";
 import {
   Avatar,
@@ -167,13 +166,6 @@ const mainMenuItems: MainMenuItem[] = [
     redDot: UnreadTasksRedDot,
   },
   {
-    name: '资深导师页',
-    path: '/coachees',
-    icon: MdOutlineFace,
-    regex: /^\/coachees/,
-    permission: 'MentorCoach',
-  },
-  {
     name: '我的面试',
     path: '/interviews/mine',
     icon: MdMic,
@@ -187,7 +179,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoMdCalendar,
     regex: /^\/mentors$/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus, true)
-      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+      || isPermitted(me.roles, 'Mentor'),
   },
   {
     name: '选择一对一导师',
@@ -195,7 +187,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/relational.*/,
     permission: (me: User) => isAcceptedMentee(me.roles, me.menteeStatus)
-      || isPermitted(me.roles, ['Mentor', 'MentorCoach']),
+      || isPermitted(me.roles, 'Mentor'),
   },
   {
     name: '志愿者档案',

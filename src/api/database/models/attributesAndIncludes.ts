@@ -30,7 +30,7 @@ export const userInclude = [{
  */
 
 export const groupAttributes = ["id", "name", "public", "archived",
-  "partnershipId", "interviewId", "calibrationId", "coacheeId"];
+  "partnershipId", "interviewId", "calibrationId"];
 
 export const groupInclude = [{
   association: "users",

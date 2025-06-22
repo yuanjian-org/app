@@ -79,7 +79,7 @@ export async function createMentorship(
   // Create groups
   invariant(mentorship);
   return await createGroup(null, [mentorId, menteeId], mentorship.id, null,
-    null, null, transaction);
+    null, transaction);
 }
 
 const update = procedure
@@ -129,9 +129,9 @@ export async function updateMentorship(
 }
 
 /**
- * If the current user is a MentorCoach or MentorshipManager, return all
- * mentorships of the mentee. Otherwise, return only the mentorship of the
- * mentee where the current user is the mentor.
+ * If the current user is a MentorshipManager, return all mentorships of the
+ * mentee. Otherwise, return only the mentorship of the mentee where the current
+ * user is the mentor.
  */
 const listMentorshipsForMentee = procedure
   .use(authUser())
@@ -142,8 +142,7 @@ const listMentorshipsForMentee = procedure
   .output(z.array(zMentorship))
   .query(async ({ ctx: { user }, input: { menteeId, includeEndedTransactional } }) => 
 {
-  const isPrivileged = isPermitted(user.roles, ["MentorCoach",
-    "MentorshipManager"]);
+  const isPrivileged = isPermitted(user.roles, "MentorshipManager");
 
   return (await db.Mentorship.findAll({
     where: {
@@ -154,26 +153,6 @@ const listMentorshipsForMentee = procedure
     include: mentorshipInclude,
   })).filter(m =>
     includeEndedTransactional || !isEndedTransactionalMentorship(m));
-});
-
-/**
- * Omit mentorships that are already ended.
- */
-const listMyMentorshipsAsCoach = procedure
-  .use(authUser())
-  .output(z.array(zMentorship))
-  .query(async ({ ctx }) =>
-{
-  return (await db.User.findAll({ 
-    where: { coachId: ctx.user.id },
-    attributes: [],
-    include: [{
-      association: "mentorshipsAsMentor",
-      where: { endsAt: { [Op.eq]: null } },
-      attributes: mentorshipAttributes,
-      include: mentorshipInclude,
-    }]
-  })).map(u => u.mentorshipsAsMentor).flat();
 });
 
 /**
@@ -227,7 +206,7 @@ const listOngoingRelationalMentorships = procedure
 
 /**
  * Get all information of a mentorship including private notes.
- * Only accessible by the mentor and mentor coaches
+ * Only accessible by the mentor and MentorshipManagers.
  */
 const get = procedure
   .use(authUser())
@@ -251,7 +230,6 @@ export default router({
   update,
   updateSchedule,
   listMyMentorships,
-  listMyMentorshipsAsCoach,
   listMentorshipsForMentee,
   listOngoingRelationalMentorships,
 });

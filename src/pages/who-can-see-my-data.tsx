@@ -99,8 +99,11 @@ function DataTable() {
         </Tr>
         <Tr>
           <Td>一对一导师与学生通话的纪要文字</Td>
-          <Td>{dp('GroupManager')}、{dp('MentorshipManager')}、
-            {dp('MentorshipAssessor')}、{dp('MentorCoach')}</Td>
+          <Td>
+            {dp('GroupManager')}、
+            {dp('MentorshipManager')}、
+            {dp('MentorshipAssessor')}
+          </Td>
         </Tr>
         <Tr>
           <Td>其他会议的纪要文字</Td>

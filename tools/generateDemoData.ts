@@ -103,7 +103,7 @@ async function generateGroup(users: DemoUser[], name: string | null,
   if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
 
   console.log(`Creating group "${name}" for ${users.map(u => u.name).join(", ")}...`);
-  await createGroup(name, userIds, null, null, null, null, transaction);
+  await createGroup(name, userIds, null, null, null, transaction);
 }
 
 /**
@@ -206,7 +206,7 @@ async function generateCalibrationAndInterviews(t: Transaction) {
  * Calibration Groups are excluded since they do not have userIds
  */
 async function findGroupsByType(
-  groupType: "Unowned" | "Interview" | "Partnership" | "Coachee",
+  groupType: "Unowned" | "Interview" | "Mentorship",
   userIds: string[]
 ) {
 
@@ -214,25 +214,14 @@ async function findGroupsByType(
     return await findGroups(userIds, 'exclusive', undefined, {
       interviewId: { [Op.ne]: null },
       partnershipId: { [Op.is]: null },
-      coacheeId: { [Op.is]: null },
       calibrationId: { [Op.is]: null }
     });
   }
 
-  if (groupType == "Partnership") {
+  if (groupType == "Mentorship") {
     return await findGroups(userIds, 'exclusive', undefined, {
       interviewId: { [Op.is]: null },
       partnershipId: { [Op.ne]: null },
-      coacheeId: { [Op.is]: null },
-      calibrationId: { [Op.is]: null }
-    });
-  }
-
-  if (groupType == "Coachee") {
-    return await findGroups(userIds, 'exclusive', undefined, {
-      interviewId: { [Op.is]: null },
-      partnershipId: { [Op.is]: null },
-      coacheeId: { [Op.ne]: null },
       calibrationId: { [Op.is]: null }
     });
   }
@@ -241,7 +230,6 @@ async function findGroupsByType(
   return await findGroups(userIds, 'exclusive', undefined, {
     interviewId: { [Op.is]: null },
     partnershipId: { [Op.is]: null },
-    coacheeId: { [Op.is]: null },
     calibrationId: { [Op.is]: null }
   });
 }
