@@ -24,16 +24,4 @@ describe("Homepage test", () => {
 			cy.wrap($ele).get(".chakra-linkbox").click();
 		});
 	});
-
-	// it("nav button presents", () => {
-		// cy.get(".chakra-button[aria-label='open menu']").click();
-		// cy.get(".chakra-portal").should("be.visible");
-		// cy.get(".button[aria-label='Close']").click();
-		// cy.get(".chakra-portal").should("be.invisible");
-	// })
-
-	// it("can direct to coachees", () => {
-	// 	cy.visit("/coachees");
-	// 	cy.findAllByText("资深导师职责").should("be.visible");
-	// });
 });

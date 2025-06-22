@@ -47,7 +47,7 @@ export async function createCalibration(
   if (!name.length) throw generalBadRequestError("名称不能为空");
   const c = await db.Calibration.create({ type, name, active },
     { transaction });
-  const gid = await createGroup(null, [], null, null, c.id, null, transaction);
+  const gid = await createGroup(null, [], null, null, c.id, transaction);
   const rows = await db.Group.update({ public: true }, 
     { where: { id: gid }, transaction });
   invariant(rows[0] === 1);

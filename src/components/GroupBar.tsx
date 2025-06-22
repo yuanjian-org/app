@@ -153,15 +153,15 @@ function GroupTagOrName({ group }: { group: Group }) {
       */}
     {isOwned(group) && !group.partnershipId ?
       <Tag color="white" bgColor="gray">
-      {group.calibrationId ? "面试讨论" :
-        group.coacheeId ? "资深导师" :
-          group.interviewId ? "面试" :
-            "FIXME" }
-      </Tag> : group.name ?
+        {group.calibrationId ? "面试讨论" : group.interviewId ? "面试" : "FIXME"}
+      </Tag>
+      : 
+      group.name ?
         <Text color='gray' fontSize='sm'>
           {formatGroupName(group.name, group.users.length)}
         </Text>
-        : <></>
+        :
+        <></>
     }
   </HStack>;
 }

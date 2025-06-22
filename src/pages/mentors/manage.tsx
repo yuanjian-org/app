@@ -8,16 +8,7 @@ import {
   Thead,
   Tbody,
   Text,
-  Tag,
-  Spacer,
-  ModalContent,
-  Button,
-  FormControl,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  ModalHeader,
-  Checkbox,
+  Tag, Checkbox,
   Box,
   Wrap,
   WrapItem,
@@ -26,21 +17,17 @@ import {
 } from '@chakra-ui/react';
 import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
-import trpc, { trpcNext } from "trpc";
+import { trpcNext } from "trpc";
 import { componentSpacing, pageMarginX } from 'theme/metrics';
 import Role, { isPermitted, RoleProfiles } from 'shared/Role';
 import NextLink from 'next/link';
 import User, {
-  defaultMentorCapacity, getUserUrl, MentorPreference,
-  MinUser
+  defaultMentorCapacity, getUserUrl, MentorPreference
 } from 'shared/User';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import { UserProfile } from 'shared/UserProfile';
 import { fullPage } from 'AppPage';
-import { MdEdit } from 'react-icons/md';
 import { useState } from 'react';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import UserSelector from 'components/UserSelector';
 import TruncatedTextWithTooltip from 'components/TruncatedTextWithTooltip';
 import ExamPassDateText from 'components/ExamPassDateText';
 import TopBar, { topBarPaddings } from 'components/TopBar';
@@ -53,7 +40,6 @@ const title = "导师档案";
  */
 export default fullPage(() => {
   const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
-  const [showMentorCoach, setShowMentorCoach] = useState(false);
   const [showMatchState, setShowMatchState] = useState(false);
 
   return <>
@@ -71,14 +57,6 @@ export default fullPage(() => {
           </Checkbox>
         </WrapItem>
         <WrapItem>
-          <Checkbox
-            isChecked={showMentorCoach}
-            onChange={e => setShowMentorCoach(e.target.checked)}
-          >
-            显示资深导师
-          </Checkbox>
-        </WrapItem>
-        <WrapItem>
           <Checkbox 
             isChecked={showMatchState}
             onChange={e => setShowMatchState(e.target.checked)}
@@ -92,16 +70,14 @@ export default fullPage(() => {
     <Box mx={pageMarginX} mt={pageMarginX}>
       <Mentors
         showOnlyWithCapacity={showOnlyWithCapacity}
-        showMentorCoach={showMentorCoach}
         showMatchState={showMatchState}
       />
     </Box>
   </>;
 }, title);
 
-function Mentors({ showOnlyWithCapacity, showMentorCoach, showMatchState }: {
+function Mentors({ showOnlyWithCapacity, showMatchState }: {
   showOnlyWithCapacity: boolean,
-  showMentorCoach: boolean,
   showMatchState: boolean,
 }) {
   const { data: stats } = 
@@ -113,7 +89,6 @@ function Mentors({ showOnlyWithCapacity, showMentorCoach, showMatchState }: {
         <Tr>
           <Th>角色</Th>
           <Th>导师</Th>
-          {showMentorCoach && <Th color="brand.c">资深导师</Th>}
           {showMatchState && <Th color="brand.c">交流反馈状态</Th>}
           <Th>学生容量</Th>
           <Th>学生数量</Th>
@@ -143,7 +118,6 @@ function Mentors({ showOnlyWithCapacity, showMentorCoach, showMatchState }: {
           mentorships={s.mentorships} 
           preference={s.preference}
           profile={s.profile}
-          showMentorCoach={showMentorCoach}
           showMatchState={showMatchState}
         />)}
         <SumsRow stats={stats} />
@@ -184,29 +158,27 @@ function cap(pref: MentorPreference): number {
   return pref.最多匹配学生 ?? defaultMentorCapacity;
 }
 
-function MentorRow({ user, profile, preference, mentorships,
-  showMentorCoach, showMatchState
+function MentorRow({
+  user,
+  profile,
+  preference,
+  mentorships,
+  showMatchState,
 }: {
   user: User,
   mentorships: number,
   preference: MentorPreference,
   profile: UserProfile,
-  showMentorCoach: boolean,
   showMatchState: boolean,
 }) {
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
-  const { data: coach, refetch } = trpcNext.users.getMentorCoach.useQuery({
-    userId: user.id,
-  });
-  const [editingCoach, setEditingCoach] = useState<boolean>(false);
 
-  const role: Role = isPermitted(user.roles, 'MentorCoach') ? 'MentorCoach' :
-    isPermitted(user.roles, 'TransactionalMentor') ? 'TransactionalMentor' :
-    'Mentor';
-  const roleColorScheme = role == 'MentorCoach' ? "yellow" :
-    isPermitted(user.roles, 'TransactionalMentor') ? "red" : "teal";
+  const role: Role = isPermitted(user.roles, 'TransactionalMentor') ?
+    'TransactionalMentor' : 'Mentor';
+  const roleColorScheme = isPermitted(user.roles, 'TransactionalMentor') ?
+    "red" : "teal";
 
   const capacity = cap(preference);
   const isDefaultCapacity = preference.最多匹配学生 === undefined;
@@ -227,24 +199,8 @@ function MentorRow({ user, profile, preference, mentorships,
       </Link>
     </Td>
 
-    {/* 资深导师 */}
-    {showMentorCoach && (
-      <Td>
-        <Link onClick={() => setEditingCoach(true)}>
-          {coach ? formatUserName(coach.name) : <MdEdit />}
-        </Link>
-      </Td>
-    )}
-
     {/* 师生匹配状态 */}
     {showMatchState && <MentorMatchFeedbackStateCell mentorId={user.id} />}
-
-    {coach !== undefined && editingCoach && <CoachEditor
-      mentor={user}
-      coach={coach}
-      refetch={refetch}
-      onClose={() => setEditingCoach(false)}
-    />}
 
     {/* 学生容量 */}
     <Td>{capacity}{isDefaultCapacity && `（默认）`}</Td>
@@ -328,39 +284,4 @@ export function MatchFeedbackStateCell({ loading, total, scores, reasons }: {
         </Text>
       </Tooltip>
   }</Td>;
-}
-
-function CoachEditor({ mentor, coach, refetch, onClose }: {
-  mentor: MinUser,
-  coach: MinUser | null,
-  refetch: () => void,
-  onClose: () => void,
-}) {
-  const saveCoach = async (coachId: string | null) => {
-    await trpc.users.setMentorCoach.mutate({
-      userId: mentor.id,
-      coachId,
-    });
-    onClose();
-    refetch();
-  };
-
-  return <ModalWithBackdrop isOpen onClose={onClose}>
-    <ModalContent>
-      <ModalHeader>{formatUserName(mentor.name)}的资深导师</ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-        <FormControl>
-          <UserSelector
-            initialValue={coach ? [coach] : []}
-            onSelect={userIds => saveCoach(userIds.length ? userIds[0] : null)}
-          />
-        </FormControl>
-      </ModalBody>
-      <ModalFooter>
-        <Spacer />
-        <Button onClick={onClose}>取消</Button>
-      </ModalFooter>
-    </ModalContent>
-  </ModalWithBackdrop>;
 }

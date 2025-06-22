@@ -39,7 +39,6 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import sequelize from "../database/sequelize";
-import { createGroup, updateGroup } from "./groups";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
@@ -628,80 +627,6 @@ const setUserState = procedure
   });
 });
 
-/**
- * Only the user themselves, MentorCoach, and MentorshipManager have access.
- */
-const getMentorCoach = procedure
-  .use(authUser())
-  .input(z.object({
-    userId: z.string(),
-  }))
-  .output(zMinUser.nullable())
-  .query(async ({ ctx, input: { userId } }) =>
-{
-  if (ctx.user.id !== userId && !isPermitted(ctx.user.roles,
-    ["MentorCoach", "MentorshipManager"])) {
-    throw noPermissionError("资深导师匹配", userId);
-  }
-
-  const u = await db.User.findByPk(userId, {
-    attributes: [],
-    include: [{
-      association: "coach",
-      attributes: minUserAttributes,
-    }]
-  });
-
-  if (!u) throw notFoundError("用户", userId);
-  return u.coach;
-});
-
-const setMentorCoach = procedure
-  .use(authUser("MentorshipManager"))
-  .input(z.object({
-    userId: z.string(),
-    coachId: z.string().nullable(),
-  }))
-  .mutation(async ({ input: { userId, coachId } }) =>
-{
-  await sequelize.transaction(async transaction => {
-    const u = await db.User.findByPk(userId, {
-      attributes: ["id", "coachId"],
-      transaction,
-      lock: true,
-    });
-    if (!u) throw notFoundError("用户", userId);
-    const oldCoachId = u.coachId;
-    await u.update({ coachId }, { transaction });
-
-    // Update role
-    if (coachId) {
-      const coach = await db.User.findByPk(coachId, { lock: true, transaction });
-      if (!coach) throw notFoundError("用户", coachId);
-      coach.roles = [...coach.roles.filter(r => r != "MentorCoach"),
-        "MentorCoach"];
-      await coach.save({ transaction });
-    }
-
-    // create or update group
-    if (oldCoachId) {
-      const gs = await db.Group.findAll({
-        where: { coacheeId: userId },
-        attributes: ["id", "public"],
-      });
-      invariant(gs.length == 1);
-
-      await updateGroup(gs[0].id, null, gs[0].public,
-        [userId, ...coachId ? [coachId] : []],
-        transaction);
-
-    } else if (coachId) {
-      await createGroup(null, [userId, coachId], null, null, null, userId,
-        transaction);
-    }
-  });
-});
-
 const setPointOfContactAndNote = procedure
   .use(authUser("MentorshipManager"))
   .input(z.object({
@@ -723,7 +648,7 @@ const setPointOfContactAndNote = procedure
 });
 
 /**
- * Only MentorshipManager, MentorCoach, mentor of the applicant, interviewers
+ * Only MentorshipManager, mentor of the applicant, interviewers
  * of the applicant, participants of the calibration (only if the calibration
  * is active), and the user themselves are allowed to call this route.
  * 
@@ -775,7 +700,7 @@ const getApplicant = procedure
     user.email = "redacted@redacted.com";
     user.wechat = "redacted";
 
-    // Check if the user is a mentorcoach or mentor of the mentee
+    // Check if the user is a mentor of the mentee
     if (isMentee && await isPermittedtoAccessMentee(me, userId)) return ret;
 
     // Check if the user is an interviewer
@@ -896,9 +821,6 @@ export default router({
   getUserState,
   setUserState,
 
-  getMentorCoach,
-  setMentorCoach,
-
   setUserPreference,
   getUserPreference,
 
@@ -997,7 +919,7 @@ export async function checkPermissionToAccessMentee(me: User, menteeId: string) 
 
 // TODO: Add transaction
 export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
-  if (isPermitted(me.roles, ["MentorCoach", "MentorshipManager"])) return true;
+  if (isPermitted(me.roles, "MentorshipManager")) return true;
   if (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } }) > 0) {
     return true;
   }

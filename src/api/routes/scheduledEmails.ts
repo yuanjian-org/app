@@ -212,7 +212,7 @@ async function sendChatEmail(
 
   /**
    * Compute receipients which should include mentors of all ongoing relational
-   * mentorships, their coaches, and MentorshipManagers.
+   * mentorships and MentorshipManagers.
    */
   const userId2receipients: Record<string, User> = {};
 
@@ -237,17 +237,10 @@ async function sendChatEmail(
     include: [{
       association: 'mentor',
       attributes: userAttributes,
-      include: [{
-        association: 'coach',
-        attributes: userAttributes,
-      }],
     }],
     transaction,
   })).forEach(m => {
     userId2receipients[m.mentor.id] = m.mentor;
-    if (m.mentor.coach) {
-      userId2receipients[m.mentor.coach.id] = m.mentor.coach;
-    }
   });
 
   const delta = await db.ChatMessage.findAll({

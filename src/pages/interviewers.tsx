@@ -14,7 +14,7 @@ import Loader from 'components/Loader';
 import { formatUserName, toPinyin } from 'shared/strings';
 import { trpcNext } from "trpc";
 import { sectionSpacing } from 'theme/metrics';
-import { isPermitted, RoleProfiles } from 'shared/Role';
+import Role, { isPermitted, RoleProfiles } from 'shared/Role';
 import User, { getUserUrl, InterviewerPreference } from 'shared/User';
 import { UserProfile } from 'shared/UserProfile';
 import NextLink from 'next/link';
@@ -75,10 +75,7 @@ function Row({ user, interviews, preference, profile }: {
     userId: user.id,
   });
 
-  const role = isPermitted(user.roles, 'MentorCoach')
-    ? 'MentorCoach' : isPermitted(user.roles, 'Mentor')
-    ? 'Mentor' : null;
-  const roleColorScheme = role == 'MentorCoach' ? "yellow" : "teal";
+  const role: Role | null = isPermitted(user.roles, 'Mentor') ? 'Mentor' : null;
   const limit = preference.limit;
 
   return <Tr _hover={{ bg: "white" }}> 
@@ -91,7 +88,7 @@ function Row({ user, interviews, preference, profile }: {
 
     {/* 角色 */}
     <Td>
-      {role && <Tag colorScheme={roleColorScheme}>
+      {role && <Tag colorScheme="teal">
         {RoleProfiles[role].displayName}
       </Tag>}
     </Td>

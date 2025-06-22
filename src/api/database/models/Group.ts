@@ -5,9 +5,9 @@ import {
   AllowNull,
   BeforeDestroy,
   BelongsToMany,
-  Column, 
+  Column,
   Model,
-  ForeignKey, 
+  ForeignKey,
   HasMany,
   Index,
   Table,
@@ -80,11 +80,6 @@ class Group extends Model {
   @Column(UUID)
   calibrationId: string | null;
 
-  // A group is "owned" by a mentor-coaching relationship if this field is non-null.
-  @ForeignKey(() => User)
-  @Column(UUID)
-  coacheeId: string | null;
-  
   /**
    * Associations
    */

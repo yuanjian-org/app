@@ -64,7 +64,7 @@ const users: Record<string, DemoUser> = {
   admin: {
     name: '管理员',
     email: 'admin@de.mo',
-    roles: AllRoles.filter(role => !["Banned", "Mentee", "TransactionalMentor", "MentorCoach"]
+    roles: AllRoles.filter(role => !["Banned", "Mentee", "TransactionalMentor"]
       .includes(role)),
     profile: adminProfile,
   },

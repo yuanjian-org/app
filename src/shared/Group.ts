@@ -12,12 +12,11 @@ export const zGroup = z.object({
   partnershipId: z.string().uuid().nullable(),
   interviewId: z.string().uuid().nullable(),
   calibrationId: z.string().uuid().nullable(),
-  coacheeId: z.string().uuid().nullable(),
 });
 export type Group = z.TypeOf<typeof zGroup>;
 
 export function isOwned(g: Group) {
-  return g.partnershipId || g.interviewId || g.calibrationId || g.coacheeId;
+  return g.partnershipId || g.interviewId || g.calibrationId;
 }
 
 export function isPermittedToAccessGroup(u: User, g: Group): boolean {
@@ -28,7 +27,5 @@ export function isPermittedToAccessGroup(u: User, g: Group): boolean {
 
 export function isPermittedToAccessGroupHistory(u: User, g: Group): boolean {
   return isPermitted(u.roles, "GroupManager") ||
-    // Allow coaches to access all mentorship groups
-    (isPermitted(u.roles, "MentorCoach") && g.partnershipId !== null) ||
     g.users.some(gu => gu.id === u.id);
 }

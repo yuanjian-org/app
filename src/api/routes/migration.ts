@@ -42,25 +42,24 @@ async function migrateSchema() {
   console.log("Migrating DB schema...");
 
   await sequelize.query(`
-    DO $$ 
-    BEGIN 
-      IF EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = 'Tasks'
-        AND column_name = 'userId'
-      ) THEN
-        ALTER TABLE "Tasks" RENAME COLUMN "userId" TO "assigneeId";
-      END IF;
-    END $$;
+    ALTER TABLE "groups" DROP COLUMN IF EXISTS "coacheeId";
   `);
 
-  
+  await sequelize.query(`
+    ALTER TABLE "users" DROP COLUMN IF EXISTS "coachId";
+  `);
+
   await Promise.resolve();
 }
 
 async function migrateData() {
   console.log("Migrating DB data...");
+
+  await sequelize.query(`
+    UPDATE "users" 
+    SET "roles" = array_remove("roles", 'MentorCoach')
+    WHERE 'MentorCoach' = ANY("roles");
+  `);
 
   await Promise.resolve();
 }
