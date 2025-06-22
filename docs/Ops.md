@@ -1,15 +1,3 @@
-# Monitor SSL Certificate expiry
-
-Register an account at https://redsift.com and set up SSL expiry notification emails for free.
-
-# Renew SSL Certificate
-
-Let's Encrypt's automatic renewal at `/etc/cron.d/certbot` requires port 80 to be open on the host which is occupied by the container. So we have to manually renew the certificate once every 3 months. TODO: Fine a better solution.
-
-1. Stop docker containers.
-1. Run `certbot -q renew --no-random-sleep-on-renew`.
-1. Start docker containers.
-
 # 腾讯会议的初始设置
 
 需要在腾讯企业管理员界面的 “企业管理 > 账户管理 > 账户设置 > [组织名称] > 录制设置" 页面中：
