@@ -84,7 +84,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   return <>
     <PageBreadcrumb
       current="登录"
-      parents={[{ name: "社会导师服务平台", link: staticUrlPrefix }]}
+      parents={[{ name: "远图", link: staticUrlPrefix }]}
     />
 
     <Tabs

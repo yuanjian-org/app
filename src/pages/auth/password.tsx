@@ -42,7 +42,7 @@ export default function Page() {
   return <>
     <PageBreadcrumb
       current="设置密码"
-      parents={[{ name: "社会导师服务平台", link: staticUrlPrefix }]}
+      parents={[{ name: "远图", link: staticUrlPrefix }]}
     />
 
     {email && <EmailInput
