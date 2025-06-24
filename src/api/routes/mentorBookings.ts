@@ -11,6 +11,8 @@ import {
 } from "api/database/models/attributesAndIncludes";
 import sequelize from "api/database/sequelize";
 import { emailRole } from "api/email";
+import { createMessageAndScheduleEmail } from "./chats";
+import { findOrCreateRoom } from "./chatsInternal";
 
 const create = procedure
   .use(authUser())
@@ -29,6 +31,29 @@ const create = procedure
       requestedMentorId,
       topic,
     }, { transaction });
+
+    let requestedMentor = null;
+    let markdown = `【不定期导师预约】学生预约话题：${topic}`;
+    
+    if (requestedMentorId) {
+      requestedMentor = await db.User.findByPk(requestedMentorId, {
+        attributes: ['id', 'name', 'roles'],
+        transaction
+      });
+
+      if (requestedMentor) {
+        markdown = `【不定期导师预约】学生预约导师：${requestedMentor.name}，话题：${topic}`;
+      }
+    }
+
+    const roomPartner = requestedMentor || me;
+    const room = await findOrCreateRoom(roomPartner, me.id, transaction);
+    await createMessageAndScheduleEmail(
+      me,
+      room.id,
+      markdown,
+      transaction
+    );
 
     await emailRole(
       "MentorshipManager",
