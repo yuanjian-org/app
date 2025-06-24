@@ -34,8 +34,6 @@ const create = procedure
 
     // If a specific mentor was requested, create a chat message
     if (requestedMentorId) {
-      try {
-        // Get the requested mentor user object
         const requestedMentor = await db.User.findByPk(requestedMentorId, {
           attributes: ['id', 'name', 'roles'],
           transaction
@@ -43,18 +41,14 @@ const create = procedure
 
         if (requestedMentor) {
           const room = await findOrCreateRoom(requestedMentor, me.id, transaction);
-          const markdown = `【不定期导师预约】学生预约话题：${topic}`;
+          const markdown = `【不定期导师预约】学生预约导师：${requestedMentor.name}，话题：${topic}`;
           await createMessageAndScheduleEmail(
-            requestedMentor,
+            me,
             room.id,
             markdown,
             transaction
           );
         }
-      } catch (error: any) {
-        // Log error without failing the booking creation
-        console.error('Failed to create chat message for mentor booking:', error);
-      }
     }
 
     await emailRole(
