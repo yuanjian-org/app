@@ -32,24 +32,28 @@ const create = procedure
       topic,
     }, { transaction });
 
-    // If a specific mentor was requested, create a chat message
+    let requestedMentor = null;
+    let markdown = `【不定期导师预约】学生预约话题：${topic}`;
+    
     if (requestedMentorId) {
-        const requestedMentor = await db.User.findByPk(requestedMentorId, {
-          attributes: ['id', 'name', 'roles'],
-          transaction
-        });
+      requestedMentor = await db.User.findByPk(requestedMentorId, {
+        attributes: ['id', 'name', 'roles'],
+        transaction
+      });
 
-        if (requestedMentor) {
-          const room = await findOrCreateRoom(requestedMentor, me.id, transaction);
-          const markdown = `【不定期导师预约】学生预约导师：${requestedMentor.name}，话题：${topic}`;
-          await createMessageAndScheduleEmail(
-            me,
-            room.id,
-            markdown,
-            transaction
-          );
-        }
+      if (requestedMentor) {
+        markdown = `【不定期导师预约】学生预约导师：${requestedMentor.name}，话题：${topic}`;
+      }
     }
+
+    const roomPartner = requestedMentor || me;
+    const room = await findOrCreateRoom(roomPartner, me.id, transaction);
+    await createMessageAndScheduleEmail(
+      me,
+      room.id,
+      markdown,
+      transaction
+    );
 
     await emailRole(
       "MentorshipManager",
