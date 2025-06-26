@@ -33,9 +33,12 @@ export default function Page() {
       } else {
         // next-auth automatically convert all email addresses to lower case.
         const lower = email.toLowerCase();
-        await router.push(`/api/auth/callback/sendgrid?` +
+        await router.push(
+          `/api/auth/callback/sendgrid?` +
           `${callbackUrlParam(callbackUrl)}` +
-          `&token=${token}&email=${encodeURIComponent(lower)}`);
+          `&token=${encodeURIComponent(token)}` +
+          `&email=${encodeURIComponent(lower)}`
+        );
       }
     } finally {
       setIsLoading(false);

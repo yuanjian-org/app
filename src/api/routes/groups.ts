@@ -26,7 +26,7 @@ const create = procedure
   .mutation(async ({ input }) =>
 {
   await sequelize.transaction(async t => {
-    await createGroup(null, input.userIds, null, null, null, null, t);
+    await createGroup(null, input.userIds, null, null, null, t);
   });
 });
 
@@ -137,7 +137,6 @@ const whereUnowned = {
   partnershipId: null,
   interviewId: null,
   calibrationId: null,
-  coacheeId: null,
 };
 
 /**
@@ -275,17 +274,15 @@ export async function createGroup(
   partnershipId: string | null, 
   interviewId: string | null, 
   calibrationId: string | null,
-  coacheeId: string | null,
   transaction: Transaction): Promise<string>
 {
-  invariant(!partnershipId || !interviewId || !calibrationId || !coacheeId);
+  invariant(!partnershipId || !interviewId || !calibrationId);
 
   const g = await db.Group.create({ 
-    name, 
-    partnershipId, 
-    interviewId, 
-    calibrationId, 
-    coacheeId 
+    name,
+    partnershipId,
+    interviewId,
+    calibrationId,
   }, { transaction });
   await db.GroupUser.bulkCreate(userIds.map(userId => ({
     userId,

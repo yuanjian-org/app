@@ -54,7 +54,7 @@ export default function StaticNavBar() {
             text="文章" />
 
           <NextLink href={loginUrl()}>
-            <Text color={inactiveNavLinkColor}>进入平台</Text>
+            <Text color={inactiveNavLinkColor}>进入远图</Text>
           </NextLink>
 
           <Button variant="brand" as={NextLink} href={loginUrl()}>

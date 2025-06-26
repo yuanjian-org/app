@@ -53,7 +53,11 @@ function App({ Component, pageProps: { session, ...pageProps } }: {
 
   return <ChakraProvider theme={theme}>
     <Head>
-      <title>{(subtitle ? subtitle + " | " : "") + "社会导师服务平台"}</title>
+      <title>{
+        (subtitle ? subtitle + " | " : "")
+        + 
+        (isStaticPage(router.route) ? "社会导师服务平台" : "远图")
+      }</title>
       <meta name='viewport' content='width=device-width, initial-scale=1' />
       <meta name='theme-color' content='#000000' />
     </Head>

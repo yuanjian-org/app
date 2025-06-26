@@ -91,7 +91,6 @@ export default fullPage(() => {
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const [showMatchState, setShowMatchState] = useState(false);
-  const [showMentorCoach, setShowMentorCoach] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
@@ -101,14 +100,6 @@ export default fullPage(() => {
         <WrapItem>
           <UserFilterSelector filter={filter} fixedFilter={fixedFilter} 
             onChange={f => setFilter(f)} />
-        </WrapItem>
-        <WrapItem>
-          <Checkbox 
-            isChecked={showMentorCoach}
-            onChange={e => setShowMentorCoach(e.target.checked)}
-          >
-            显示资深导师
-          </Checkbox>
         </WrapItem>
         <WrapItem>
           <Checkbox 
@@ -127,7 +118,6 @@ export default fullPage(() => {
           <MenteeTable
             users={users}
             showMatchState={showMatchState}
-            showMentorCoach={showMentorCoach}
             refetch={refetch}
           />
         <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
@@ -139,11 +129,10 @@ export default fullPage(() => {
   </>;
 }, title);
 
-function MenteeTable({ users, refetch, showMatchState, showMentorCoach }: {
+function MenteeTable({ users, refetch, showMatchState }: {
   users: UserWithMergeInfo[],
   refetch: () => void,
   showMatchState: boolean,
-  showMentorCoach: boolean,
 }) {
   // TODO: Break out into two variables and remove `Metadata` type
   const [mentee2meta, setMentee2meta] = useState<Record<string, Metadata>>({}); 
@@ -256,7 +245,6 @@ function MenteeTable({ users, refetch, showMatchState, showMentorCoach }: {
         <MentorshipHeaderCells
           sortOrder={sortOrder}
           addSortOrder={addSortOrder}
-          showMentorCoach={showMentorCoach}
         />
         <SortableHeaderCell
           label="最近导师交流"
@@ -277,7 +265,6 @@ function MenteeTable({ users, refetch, showMatchState, showMentorCoach }: {
         setLastMentorMeetingDate={setLastMentorMeetingDate}
         setLastTranscriptDate={setLastTranscriptDate}
         showMatchState={showMatchState}
-        showMentorCoach={showMentorCoach}
       />)}
     </Tbody>
   </Table>;
@@ -309,8 +296,12 @@ function SortableHeaderCell({ label, sortOrderKey, sortOrder, addSortOrder }: {
 }
 
 function MenteeRow({
-  user: u, refetch, setMetadata, setLastMentorMeetingDate, setLastTranscriptDate,
-  showMatchState, showMentorCoach
+  user: u,
+  refetch,
+  setMetadata,
+  setLastMentorMeetingDate,
+  setLastTranscriptDate,
+  showMatchState,
 }: {
   user: UserWithMergeInfo,
   refetch: () => void,
@@ -318,7 +309,6 @@ function MenteeRow({
   setLastMentorMeetingDate: (userId: string, date: string) => void,
   setLastTranscriptDate: (userId: string, date: string) => void,
   showMatchState: boolean,
-  showMentorCoach: boolean,
 }) {
   const menteePinyin = toPinyin(u.name ?? '');
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -348,11 +338,12 @@ function MenteeRow({
     <MentorshipCells
       mentee={u}
       addPinyin={addPinyin}
-      showMentorCoach={showMentorCoach}
       setLastTranscriptDate={setLastTranscriptDate}
     />
-    <LastMentorMeetingDateCell menteeId={u.id}
-      setData={setLastMentorMeetingDate}/>
+    <LastMentorMeetingDateCell
+      menteeId={u.id}
+      setData={setLastMentorMeetingDate}
+    />
     <MergeTokenCell user={u} refetch={refetch} />
     <Td>{pinyin}</Td>
   </Tr>;
@@ -455,25 +446,22 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
   </Td>;
 }
 
-function MentorshipHeaderCells({ sortOrder, addSortOrder, showMentorCoach }: {
+function MentorshipHeaderCells({ sortOrder, addSortOrder }: {
   sortOrder: SortOrder,
   addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void,
-  showMentorCoach: boolean,
 }) {
   return <>
     <Th>导师</Th>
-    {showMentorCoach && <Th>资深导师</Th>}
     <SortableHeaderCell label="最近通话" sortOrderKey="transcript"
       sortOrder={sortOrder} addSortOrder={addSortOrder} />
   </>;
 }
 
-export function MentorshipCells({ mentee, addPinyin, showMentorCoach, readonly,
+export function MentorshipCells({ mentee, addPinyin, readonly,
   setLastTranscriptDate
  } : {
   mentee: MinUser,
   addPinyin?: (names: string[]) => void,
-  showMentorCoach?: boolean,
   readonly?: boolean,
   setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
@@ -487,20 +475,24 @@ export function MentorshipCells({ mentee, addPinyin, showMentorCoach, readonly,
   // Stablize list order
   data.sort((a, b) => a.id.localeCompare(b.id));
 
-  return <LoadedMentorsCells mentee={mentee} mentorships={data}
-    addPinyin={addPinyin} refetch={refetch} showMentorCoach={showMentorCoach} 
-    readonly={readonly} setLastTranscriptDate={setLastTranscriptDate} />;
+  return <LoadedMentorsCells
+    mentee={mentee} 
+    mentorships={data}
+    addPinyin={addPinyin}
+    refetch={refetch} 
+    readonly={readonly} 
+    setLastTranscriptDate={setLastTranscriptDate} 
+  />;
 }
 
 function LoadedMentorsCells({
-  mentee, mentorships, addPinyin, refetch, showMentorCoach, readonly,
+  mentee, mentorships, addPinyin, refetch, readonly,
   setLastTranscriptDate
 } : {
   mentee: MinUser,
   mentorships: Mentorship[],
   addPinyin?: (names: string[]) => void,
   refetch: () => void,
-  showMentorCoach?: boolean,
   readonly?: boolean,
   setLastTranscriptDate?: (userId: string, date: string) => void
 }) {
@@ -532,16 +524,6 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = transcriptData.map(t => 
     getDateTextAndColor(t, 45, 60, "尚未通话"));
 
-  const coachesRes = trpcNext.useQueries(t => {
-    return visibleMentorships.map(
-      m => t.users.getMentorCoach({ userId: m.mentor.id }));
-  });
-
-  const refetchAll = () => {
-    refetch();
-    coachesRes.map(c => void c.refetch());
-  };
-
   const [editing, setEditing] = useState<boolean>(false);
 
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
@@ -558,8 +540,10 @@ function LoadedMentorsCells({
     {/* 导师 */}
     <Td>
       {editing && <MentorshipsEditor
-        mentee={mentee} mentorships={mentorships}
-        onClose={() => setEditing(false)} refetch={refetchAll}
+        mentee={mentee}
+        mentorships={mentorships}
+        refetch={refetch}
+        onClose={() => setEditing(false)}
       />}
 
       <LinkToEditor onClick={() => setEditing(true)}>
@@ -577,13 +561,6 @@ function LoadedMentorsCells({
         }
       </LinkToEditor>
     </Td>
-
-    {/* 资深导师 */}
-    {showMentorCoach && <Td><VStack align="start">
-      {coachesRes.map((c, idx) => <Text key={idx}>
-        {c.data ? formatUserName(c.data.name) : "-"}
-      </Text>)}
-    </VStack></Td>}
 
     {/* 最近师生通话 */}
     <Td><VStack align="start">

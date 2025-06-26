@@ -1,0 +1,17 @@
+name: Daily Cron Jobs
+
+permissions: {}
+
+on:
+  schedule:
+    # Runs at 3:42 AM China Standard Time every day.
+    - cron: "42 19 * * *"
+
+jobs:
+  run_scheduled_task:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recycle meetings
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings

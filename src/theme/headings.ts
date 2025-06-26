@@ -1,8 +1,10 @@
+import { headingColor } from "./colors";
+
 const headings = {
   components: {
     Heading: {
       baseStyle: {
-        color: 'gray.600',
+        color: headingColor,
       },
     },
   },

@@ -18,6 +18,7 @@ import { noPermissionError } from "../../../api/errors";
 import WeChatProvider from "./WeChatProvider";
 import { generateShortLivedToken } from "../../../shared/token";
 import { NextApiRequest, NextApiResponse } from 'next';
+import { compare } from 'bcryptjs';
 
 declare module "next-auth" {
   interface Session {
@@ -34,7 +35,7 @@ export type ImpersonationRequest = {
 
 const impersonateTokenKey = "imp";
 
-const tokenMaxAgeInMins = 5;
+export const tokenMaxAgeInMins = 5;
 
 export const adapter = SequelizeAdapter(sequelize, {
   models: { User: db.User },
@@ -49,6 +50,27 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     },
 
     providers: [
+      {
+        id: 'credentials',
+        name: '密码登录',
+        type: 'credentials',
+
+        // We don't use this field but it's required by NextAuth.
+        credentials: {},
+
+        async authorize(credentials) {
+          if (!credentials?.email || !credentials?.password) return null;
+          const user = await db.User.findOne({
+            where: { email: credentials.email },
+            attributes: [...userAttributes, "password"],
+            include: userInclude,
+          });
+          if (!user || !user.password) return null;
+          const match = await compare(credentials.password, user.password);
+          return match ? user : null;
+        }
+      },
+
       // @ts-expect-error
       {
         id: 'sendgrid',
@@ -118,14 +140,18 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
 
       async jwt({ token, trigger, session }) {
+        // Handle session updates.
         // https://next-auth.js.org/getting-started/client#updating-the-session
         if (trigger == "update" && session) {
           const impersonate = (session as ImpersonationRequest).impersonate;
           if (impersonate === null) {
             delete token[impersonateTokenKey];
           } else {
-            const me = await db.User.findByPk(token.sub);
-            invariant(me);
+            // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
+            const me = await db.User.findByPk(token.sub, {
+              attributes: ["roles"],
+            });
+            invariant(me, "me not found");
             if (!isPermitted(me.roles, "UserManager")) {
               throw noPermissionError("用户", impersonate);
             }
@@ -139,14 +165,14 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       async session({ token, session }) {
         const impersonate = token[impersonateTokenKey];
         const id = (impersonate as string | undefined) ?? token.sub;
-        invariant(id);
+        invariant(id, "id not found");
 
         const original = await userCache.fetch(id);
-        invariant(original);
+        invariant(original, "original not found");
 
         const actual = !original.mergedTo ? original
           : await userCache.fetch(original.mergedTo);
-        invariant(actual);
+        invariant(actual, "actual not found");
 
         session.user = actual;
         if (impersonate) session.impersonated = true;

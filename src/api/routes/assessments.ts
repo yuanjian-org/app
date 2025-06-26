@@ -5,7 +5,6 @@ import { z } from "zod";
 import { zAssessment } from "../../shared/Assessment";
 import { noPermissionError, notFoundError } from "../errors";
 import { assessmentAttributes } from "api/database/models/attributesAndIncludes";
-import { isPermitted } from "shared/Role";
 
 /**
  * @returns the ID of the created assessment.
@@ -52,8 +51,7 @@ const get = procedure
 });
 
 /**
- * Only the mentor of the specified mentorship and mentor coaches are allowed to
- * use this API.
+ * Only the mentor of the specified mentorship are allowed to access this API.
  */
 const listAllForMentorship = procedure
   .use(authUser())
@@ -61,10 +59,12 @@ const listAllForMentorship = procedure
     mentorshipId: z.string(),
   }))
   .output(z.array(zAssessment))
-  .query(async ({ ctx, input: { mentorshipId } }) =>
+  .query(async ({ ctx: { me }, input: { mentorshipId } }) =>
 {
-  const p = await db.Mentorship.findByPk(mentorshipId, { attributes: ["mentorId"] });
-  if (p?.mentorId !== ctx.user.id && !isPermitted(ctx.user.roles, "MentorCoach")) {
+  const p = await db.Mentorship.findByPk(mentorshipId, {
+    attributes: ["mentorId"],
+  });
+  if (p?.mentorId !== me.id) {
     throw noPermissionError("一对一匹配", mentorshipId);
   }
 

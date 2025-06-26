@@ -20,8 +20,14 @@ setting up environmental variables:
 
 # Production deployment
 
-1. Production deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml` for details.
-1. Production SSL certificate is managed by [LetsEncrypt](https://letsencrypt.org/).
+1. Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`.
+
+## SSL certification setup, renewal, and monitoring
+
+1. Install the initial cert on the host machine by following [LetsEncrypt](https://letsencrypt.org/)'s standard instructions.
+1. Modify `/etc/cron.d/certbot` and append `--webroot -w $REPO/certbot docker compose --project-directory $REPO restart` to certbot's command line. Replace `$REPO` with the folder where the repository was checked out on the host, for example, `/alice/app`. This allows the certbot to renew the certificate without requiring to stop the running server.
+1. Create an empty folder `$REPO/certbot`.
+1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
 
 ## Redirect yuanjian.org
 

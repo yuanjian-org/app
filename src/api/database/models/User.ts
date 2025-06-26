@@ -91,12 +91,6 @@ class User extends Model {
   @ZodColumn(JSONB, zUserProfile.nullable())
   profile: UserProfile | null;
 
-  // The coach of the mentor. Non-null only if the user is a mentor (ie.
-  // `mentorshipsAsMentor` is non-empty).
-  @ForeignKey(() => User)
-  @Column(UUID)
-  coachId: string | null;
-
   // `null` represents "待审"
   @ZodColumn(STRING, zMenteeStatus.nullable())
   menteeStatus: MenteeStatus | null;
@@ -132,6 +126,18 @@ class User extends Model {
   @Column(STRING)
   image: string | null;
 
+  // Password hash for email/password login, nullable for users who use other
+  // providers.
+  @Column(STRING)
+  password: string | null;
+
+  // Password reset token
+  @Column(STRING)
+  resetToken: string | null;
+
+  @Column(DATE)
+  resetTokenExpiresAt: Date | null;
+
   /**
    * Associations
    */
@@ -144,9 +150,6 @@ class User extends Model {
 
   @HasMany(() => Mentorship, { foreignKey: 'menteeId' })
   mentorshipsAsMentee: Mentorship[];
-
-  @BelongsTo(() => User, { foreignKey: 'coachId' })
-  coach: User | null;
 
   @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
   pointOfContact: User | null;

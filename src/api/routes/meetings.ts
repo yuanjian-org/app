@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { createMeeting, getMeeting } from "../TencentMeeting";
+import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
@@ -18,8 +18,9 @@ import moment from 'moment';
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
+import getBaseUrl from "shared/getBaseUrl";
 
-export const gracePeriodMinutes = 1;
+export const gracePeriodMinutes = 5;
 
 /**
  * Find the group meeting by the input group id. If the meeting is presented in
@@ -50,9 +51,9 @@ const join = procedure
   // simultaneously: https://stackoverflow.com/a/48297781
   // If the group is already present in MeetingSlot, return the meeting link.
   return await sequelize.transaction(async transaction => {
-    // Find an existing slot for the group. The slot's status is ignored.
-    // It means that even if the meeting is already ended, it will still be
-    // reused for the group.
+    // Find an existing slot for the group. TencentMeeting's status is ignored.
+    // It means that even if the meeting is ended, it will still be reused for
+    // the group.
     const existing = await db.MeetingSlot.findOne({ 
       where: { groupId },
       lock: true,
@@ -60,10 +61,13 @@ const join = procedure
     });
     if (existing) return existing.meetingLink;
 
+    // No matching slot found. Find a free slot.
     let refreshed = false;
     while (true) {
       const free = await db.MeetingSlot.findOne({
         where: { groupId: null },
+        // To ease troubleshooting, always pick the smallest available tmUserId.
+        order: [["tmUserId", "ASC"]],
         attributes: ["id", "meetingId", "meetingLink"],
         lock: true,
         transaction,
@@ -129,11 +133,11 @@ export async function refreshMeetingSlots(transaction: Transaction) {
     /**
      * Assume the meeting is ongoing if it is created not long time ago.
      * 
-     * This is added to support the corner case after a user creates a meeting 
-     * and before joining while the user's browser is loading TencentMeeting's
-     * meeting page. If another group attempts to start a meeting in this period,
-     * the slot would be deemed available because the meeting's status in
-     * TencentMeeting's backend hasn't been updated.
+     * This is added to support the corner case after a user clicked the join
+     * button and before actually joining TencentMeeting. Without this check,
+     * if another group attempts to start a meeting in this period, the slot
+     * would be incorrectly marked as available because TencentMeeting's backend
+     * hasn't updated the meeting status yet.
      */
     if (moment().diff(slot.updatedAt, 'minutes') < gracePeriodMinutes) continue;
     const m = await getMeeting(slot.meetingId, slot.tmUserId);
@@ -176,7 +180,6 @@ export async function syncMeetings() {
    */
   await sequelize.transaction(async transaction => {
     await refreshMeetingSlots(transaction);
-    await recycleMeetings(transaction);
   });
 
   await downloadSummaries();
@@ -196,50 +199,80 @@ export async function syncMeetings() {
  * meetings), and 2) we want to minimize the reuse of meeting links so that
  * if someone remembers a meeting link and use it outside of our system,
  * either accidentally or intentionally, the chance that they join an ongoing
- * meeting of another group is low.
+ * meeting of another group or are exposed to previous meeting chat messages is
+ * low.
  */
-async function recycleMeetings(transaction: Transaction) {
+export async function recycleMeetings() {
   for (const tmUserId of apiEnv.TM_USER_IDS) {
-    const slot = await db.MeetingSlot.findOne({
-      where: { tmUserId },
-      attributes: ["id", "groupId"],
-      lock: true,
-      transaction,
-    });
+    await sequelize.transaction(async transaction => {
+      const slot = await db.MeetingSlot.findOne({
+        where: { tmUserId },
+        attributes: ["id", "groupId"],
+        lock: true,
+        transaction,
+      });
 
-    // Skip ongoing meetings.
-    if (slot && slot.groupId) continue;
+      // Skip ongoing meetings.
+      if (slot && slot.groupId) return;
 
-    try {
-      const { meetingId, meetingLink } = await create(tmUserId);
-      console.log(`Meeting created for user ${tmUserId}: ` +
-        `${meetingId}, ${meetingLink}`);
+      try {
+        const { meetingId, meetingLink } = await create(tmUserId);
+        console.log(`Meeting created for user ${tmUserId}: ` +
+          `${meetingId}, ${meetingLink}`);
 
-      if (slot) {
-        await slot.update({ 
-          meetingId, meetingLink,
-        }, { transaction });
-      } else {
-        await db.MeetingSlot.create({
-          tmUserId, meetingId, meetingLink,
-        }, { transaction });
+        if (slot) {
+          await slot.update({ 
+            meetingId, meetingLink,
+          }, { transaction });
+        } else {
+          await db.MeetingSlot.create({
+            tmUserId, meetingId, meetingLink,
+          }, { transaction });
+        }
+
+      } catch (e) {
+        console.error(`(Expected) meeting creation failure for user ${tmUserId}:
+          ${e}`);
       }
-
-    } catch (e) {
-      console.error(`(Expected) meeting creation failure for user ${tmUserId}:
-        ${e}`);
-    }
+    });
   }
 }
 
 async function create(tmUserId: string) {
   const now = Math.floor(Date.now() / 1000);
-  const res = await createMeeting(tmUserId, "导师平台会议", now, now + 3600);
-  invariant(res.meeting_info_list.length === 1,
-    `meeting_info_list.length != 1: ${JSON.stringify(res)}`);
+  const nextHour = Math.ceil(now / 3600) * 3600;
 
-  return {
-    meetingId: res.meeting_info_list[0].meeting_id,
-    meetingLink: res.meeting_info_list[0].join_url,
-  };
+  try {
+    const res = await createRecurringMeeting(
+      tmUserId,
+      "远图会议，请勿分享或保存链接，参会者需用远图平台进入",
+      nextHour,
+      nextHour + 3600);
+
+    invariant(res.meeting_info_list.length >= 1,
+      `meeting_info_list.length < 1: ${JSON.stringify(res)}`);
+    const meetingId = res.meeting_info_list[0].meeting_id;
+    const meetingLink = res.meeting_info_list[0].join_url;
+
+    await db.EventLog.create({
+      data: {
+        type: "MeetingCreation",
+        tmUserId,
+        meetingId,
+        meetingLink,
+      },
+    });
+
+    return {
+      meetingId,
+      meetingLink,
+    };
+    
+  } catch (e) {
+    if (!`${e}`.includes("每月总接口调用次数超过限制")) {
+      emailRoleIgnoreError("SystemAlertSubscriber", "会议创建失败",
+        `会议创建失败：${e}`, getBaseUrl());
+    }
+    throw e;
+  }
 }
