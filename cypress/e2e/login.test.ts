@@ -12,7 +12,7 @@ describe("Homepage test", () => {
 
 	it("can join meeting", () => {
 		cy.get('div[id="__next"]').each(($ele) => {
-			cy.wrap($ele).find('.chakra-button').contains("加入").click({force: true});
+			cy.wrap($ele).find('.chakra-button').contains("加入").click({ force: true });
 			cy.origin('https://meeting.tencent.com/', () => {
 				// Add more cross-origin tests.
 			  });
