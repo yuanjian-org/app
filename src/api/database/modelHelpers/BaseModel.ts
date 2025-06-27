@@ -5,7 +5,8 @@ import {
 } from "sequelize";
 import { Model } from "sequelize-typescript";
 
-class BaseModel<TModelAttributes extends {}, TCreationAttributes extends {}> extends Model<
+// Fix build error
+class BaseModel<TModelAttributes extends Record<string, unknown>, TCreationAttributes extends Record<string, unknown>> extends Model<
   TModelAttributes,
   TCreationAttributes
 > {

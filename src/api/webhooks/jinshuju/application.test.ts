@@ -268,23 +268,24 @@ describe('submitApplication', () => {
     if (u2) await u2.destroy({ force: true });
   });
 
+// Fix build error
   it('should submit mentee application', async () => {
     await submit(inputMenteeApp);
     const u = await User.findOne({ where: { email: "test1@email.com" } });
-    expect(u).is.not.null;
-    expect(u?.pinyin).is.equal("dingyi");
-    expect(u?.profile?.性别).is.equal("女");
-    expect(u?.wechat).is.equal("微信号");
-    expect(u?.menteeApplication).is.deep.equal(outputMenteeApp);
+    void expect(u).is.not.null;
+    void expect(u?.pinyin).is.equal("dingyi");
+    void expect(u?.profile?.性别).is.equal("女");
+    void expect(u?.wechat).is.equal("微信号");
+    void expect(u?.menteeApplication).is.deep.equal(outputMenteeApp);
   });
 
   it('should submit proxied mentee application', async () => {
     await submit(inputProxiedMenteeApp);
     const u = await User.findOne({ where: { email: "test2@email.com" } });
-    expect(u).is.not.null;
-    expect(u?.pinyin).is.equal("wangxiaohan");
-    expect(u?.profile?.性别).is.equal("男");
-    expect(u?.wechat).is.equal("微信号2");
-    expect(u?.menteeApplication).is.deep.equal(outputProxiedMenteeApp);
+    void expect(u).is.not.null;
+    void expect(u?.pinyin).is.equal("wangxiaohan");
+    void expect(u?.profile?.性别).is.equal("男");
+    void expect(u?.wechat).is.equal("微信号2");
+    void expect(u?.menteeApplication).is.deep.equal(outputProxiedMenteeApp);
   });
 });

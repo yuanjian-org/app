@@ -1,0 +1,168 @@
+yarn run v1.22.22
+$ next build
+   ▲ Next.js 15.2.4
+   - Environments: .env
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/AppPage.ts
+5:18  Error: The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.  @typescript-eslint/no-empty-object-type
+
+./src/api/database/modelHelpers/BaseModel.ts
+8:42  Error: The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.  @typescript-eslint/no-empty-object-type
+8:74  Error: The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.  @typescript-eslint/no-empty-object-type
+
+./src/api/database/modelHelpers/IdModel.ts
+13:40  Error: The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.  @typescript-eslint/no-empty-object-type
+13:72  Error: The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead.  @typescript-eslint/no-empty-object-type
+
+./src/api/database/modelHelpers/ZodColumn.ts
+74:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+75:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+105:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+106:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+
+./src/api/database/sequelize.ts
+9:18  Error: A `require()` style import is forbidden.  @typescript-eslint/no-require-imports
+
+./src/api/parseSpeakerStats.test.ts
+8:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+13:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+18:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+37:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+42:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+65:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+
+./src/api/webhooks/jinshuju/application.test.ts
+274:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+284:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+
+./src/components/Autosaver.tsx
+81:36  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+81:66  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+
+./src/components/ChatRoom.tsx
+168:12  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+
+./src/components/EditIconButton.tsx
+5:13  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+
+./src/components/EditableWithIconOrLink.tsx
+29:5  Error: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+
+./src/components/Sidebar.tsx
+407:47  Error: The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type.  @typescript-eslint/no-unsafe-function-type
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+===== 2025-06-27 17:48:20 =====
+yarn run v1.22.22
+$ next build
+   ▲ Next.js 15.2.4
+   - Environments: .env
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+   Linting and checking validity of types ...
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Collecting page data ...
+   Generating static pages (0/48) ...
+   Generating static pages (12/48) 
+   Generating static pages (24/48) 
+   Generating static pages (36/48) 
+ ✓ Generating static pages (48/48)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (pages)                                                           Size  First Load JS
+┌ ○ / (3032 ms)                                                      3.92 kB         718 kB
+├   /_app                                                                0 B         710 kB
+├ ○ /[userUrl] (27552 ms)                                            3.44 kB         728 kB
+├ ○ /404                                                               195 B         710 kB
+├ ○ /accounts/[userId] (27563 ms)                                      206 B         710 kB
+├ ƒ /api/auth/[...nextauth]                                              0 B         710 kB
+├ ƒ /api/auth/WeChatProvider                                             0 B         710 kB
+├ ƒ /api/v1/[trpc]                                                       0 B         710 kB
+├ ○ /applicants/[applicantId]                                        3.33 kB         713 kB
+├ ƒ /auth/login                                                        197 B         710 kB
+├ ○ /auth/password (325 ms)                                          1.62 kB         712 kB
+├ ○ /auth/verify (3058 ms)                                           1.02 kB         711 kB
+├ ○ /calibrations/[calibrationId] (3050 ms)                          2.16 kB         727 kB
+├ ○ /deleted (320 ms)                                                  991 B         711 kB
+├ ○ /fake-meeting (3036 ms)                                            480 B         710 kB
+├ ○ /form (3029 ms)                                                    640 B         711 kB
+├ ○ /global (3030 ms)                                                38.1 kB         748 kB
+├ ○ /groups (27551 ms)                                               1.74 kB         716 kB
+├ ○ /groups/[groupId] (27333 ms)                                     3.13 kB         723 kB
+├ ○ /interviewers (27303 ms)                                         1.19 kB         711 kB
+├ ○ /interviews (3033 ms)                                            6.29 kB         716 kB
+├ ○ /interviews/[interviewId]                                          367 B         723 kB
+├ ○ /interviews/[interviewId]/feedback                               6.99 kB         724 kB
+├ ○ /interviews/mine (27302 ms)                                        607 B         721 kB
+├ ● /map                                                             2.11 kB         712 kB
+├ ○ /match (27296 ms)                                                4.07 kB         714 kB
+├ ○ /match/feedback (27306 ms)                                       2.47 kB         712 kB
+├ ○ /mentees (27296 ms)                                                195 B         710 kB
+├ ○ /mentees/[menteeId] (322 ms)                                     5.27 kB         737 kB
+├ ○ /mentors (27296 ms)                                              4.08 kB         728 kB
+├ ○ /mentors/bookings (332 ms)                                         946 B         711 kB
+├ ○ /mentors/manage (27302 ms)                                         201 B         710 kB
+├ ○ /mentors/relational (27570 ms)                                     219 B         731 kB
+├ ○ /mentors/relational/history (362 ms)                               821 B         711 kB
+├ ○ /mentors/relational/sort (27598 ms)                              16.6 kB         748 kB
+├ ○ /mentorships/[mentorshipId]/assessments/[assessmentId] (334 ms)    654 B         711 kB
+├ ○ /preferences/[userId] (3033 ms)                                  94.3 kB         811 kB
+├ ○ /profiles/[userId] (322 ms)                                      6.21 kB         716 kB
+├ ○ /s                                                               3.32 kB         713 kB
+├ ● /s/[article] (1204 ms)                                             663 B         711 kB
+├   ├ /s/why (309 ms)
+├   ├ /s/match (305 ms)
+├   ├ /s/armor-heart
+├   └ /s/meritocracy
+├ ○ /s/articles (325 ms)                                             1.66 kB         712 kB
+├ ○ /schedules (326 ms)                                              1.24 kB         711 kB
+├ ○ /study/comms                                                     1.38 kB         711 kB
+├ ○ /study/handbook (325 ms)                                         1.41 kB         711 kB
+├ ○ /study/interview                                                 1.49 kB         711 kB
+├ ○ /users                                                           2.99 kB         713 kB
+├ ○ /users/[userId] (27562 ms)                                       3.44 kB         728 kB
+├ ○ /volunteers (27549 ms)                                            4.1 kB         728 kB
+└ ○ /who-can-see-my-data (27550 ms)                                  2.24 kB         712 kB
++ First Load JS shared by all                                         715 kB
+  ├ chunks/framework-98e33da08653c927.js                             44.8 kB
+  ├ chunks/main-1da2c765580f151b.js                                    34 kB
+  ├ chunks/pages/_app-4a1928b4194b7184.js                             630 kB
+  └ other shared chunks (total)                                      6.33 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
+ƒ  (Dynamic)  server-rendered on demand
+
+Done in 352.19s.
