@@ -116,15 +116,15 @@
     "@types/react-table": "^7.7.12",
     "chai": "^4.3.7",
     "cypress": "^13.6.1",
-    "eslint": "^8.23.0",
-    "eslint-config-next": "^12.2.5",
-    "eslint-nibble": "^8.1.0",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "^15.3.4",
+    "eslint-nibble": "^9.0.0",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "mocha": "^11.6.0",
     "nyc": "^15.1.0",
     "regenerator-runtime": "^0.13.11",
     "ts-node": "^10.9.1",
-    "typescript-eslint": "^7.9.0"
+    "typescript-eslint": "^8.35.0"
   }
 }
