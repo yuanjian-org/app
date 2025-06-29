@@ -268,7 +268,6 @@ describe('submitApplication', () => {
     if (u2) await u2.destroy({ force: true });
   });
 
-// Fix build error
   it('should submit mentee application', async () => {
     await submit(inputMenteeApp);
     const u = await User.findOne({ where: { email: "test1@email.com" } });

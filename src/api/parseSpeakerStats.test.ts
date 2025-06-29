@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { parseSpeakerStats, SpeakerStats } from './parseSpeakerStats';
 
-// Fix build error
 describe('parseSpeakerStats', () => {
 
   it('should return empty array on random string', () => {

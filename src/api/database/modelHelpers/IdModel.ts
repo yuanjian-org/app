@@ -10,7 +10,6 @@ import {
 import BaseModel from "./BaseModel";
 import { CreationOptional } from "sequelize";
 
-// Fix build error
 class IdModel<TModelAttributes extends Record<string, unknown>, TCreationAttributes extends Record<string, unknown>> extends BaseModel<
   TModelAttributes,
   TCreationAttributes
