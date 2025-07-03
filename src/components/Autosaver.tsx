@@ -78,7 +78,7 @@ async function saveWithRetry(
   }
 }
 
-function debounce(memo: any, func: Function, delayInMs: number): Function {
+function debounce(memo: any, func: (...args: any[]) => void, delayInMs: number): (...args: any[]) => void {
   return (...args: any[]) => {
     clearTimeout(memo.timeout);
     memo.timeout = setTimeout(() => {

@@ -404,7 +404,7 @@ function DropdownMenuIfPermitted({ title, icon, menuItems, onClose } : {
                 // Only sets the link it is a url 
                 {...isUrl && { as: NextLink,  href: item.action } }
                 onClick={() => {
-                  if (!isUrl) (item.action as Function)();
+                  if (!isUrl) (item.action as () => void)();
                   onClose();
                 }}>
                 {item.icon}{item.name}

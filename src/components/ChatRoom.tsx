@@ -165,7 +165,7 @@ function Editor({ roomId, message, onClose, ...rest }: {
   roomId?: string,
   // must be specified if and only if roomId is undefined
   message?: ChatMessage,
-  onClose: Function,
+  onClose: () => void,
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>();
 
@@ -304,4 +304,3 @@ export function UnreadChatMessagesRedDot({ menteeId }: { menteeId: string }) {
   const show = useUnreadChatMessages([menteeId]);
   return <RedDot show={show} />;
 }
-

@@ -10,7 +10,7 @@ import {
 import BaseModel from "./BaseModel";
 import { CreationOptional } from "sequelize";
 
-class IdModel<TModelAttributes extends {}, TCreationAttributes extends {}> extends BaseModel<
+class IdModel<TModelAttributes extends Record<string, unknown>, TCreationAttributes extends Record<string, unknown>> extends BaseModel<
   TModelAttributes,
   TCreationAttributes
 > {

@@ -5,22 +5,22 @@ describe('parseSpeakerStats', () => {
 
   it('should return empty array on random string', () => {
     const input = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should return empty array when name is missing', () => {
     const input = '(00:00:10): Hello!\n';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should return empty array when time is missing', () => {
     const input = 'Speaker A: Hello!\n';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should return array with one element when content is missing', () => {
     const input = 'Speaker A(00:00:10):\n';
-    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+    void expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
   });
 
   it('should calculate speaking time for regular 3 line input', () => {
@@ -29,27 +29,27 @@ describe('parseSpeakerStats', () => {
       { name: 'Speaker A', totalSpeakingSeconds: 5 },
       { name: 'Speaker B', totalSpeakingSeconds: 5 }
     ];
-    expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
+    void expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
   });
 
   it('should return empty array for incorrect time format', () => {
     const input = 'Speaker A(00:60:10): Hello!\n Speaker A(00:60:20): Hello!\n';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should return empty array for empty string', () => {
     const input = '';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should return array with one element for single line record', () => {
     const input = 'Speaker A(00:00:10): Hello!\n';
-    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+    void expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
   });
 
   it('should calculate speaking time for two lines record', () => {
     const input = 'Speaker A(00:00:10): Hello!\nSpeaker B(00:00:15): Hi!\n';
-    expect(parseSpeakerStats(input)).to.deep.equal([
+    void expect(parseSpeakerStats(input)).to.deep.equal([
       { name: 'Speaker A', totalSpeakingSeconds: 5 },
       { name: 'Speaker B', totalSpeakingSeconds: 0 }
     ]);
@@ -57,12 +57,12 @@ describe('parseSpeakerStats', () => {
 
   it('should return array with one element for incomplete record', () => {
     const input = 'Speaker A(00:00:10): Hello!\nSpeaker B';
-    expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
+    void expect(parseSpeakerStats(input)).to.deep.equal([{ name: 'Speaker A', totalSpeakingSeconds: 0 }]);
   });
 
   it('should return empty array for incorrect format record', () => {
     const input = 'Speaker A 00:00:10): Hello!\n';
-    expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
+    void expect(parseSpeakerStats(input)).to.be.an("array").that.is.empty;
   });
 
   it('should calculate speaking time for long conversation also with space before speaker name', () => {
@@ -89,7 +89,7 @@ describe('parseSpeakerStats', () => {
       { name: 'Speaker B', totalSpeakingSeconds: 25 },
       { name: 'Speaker C', totalSpeakingSeconds: 20 }
     ];
-    expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
+    void expect(parseSpeakerStats(input)).to.deep.equal(expectedOutput);
   });
 
 });

@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize-typescript";
+import pg from 'pg';
 import apiEnv from "../apiEnv";
 import { hookIsPartialAfterSequelizeInit } from "./modelHelpers/ZodColumn";
 import db from "./db";
@@ -6,7 +7,7 @@ import db from "./db";
 const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
   models: Object.values(db),
   logging: false,
-  dialectModule: require('pg'),
+  dialectModule: pg,
 
   retry: {
     // Error types: https://sequelize.org/api/v6/identifiers.html#errors

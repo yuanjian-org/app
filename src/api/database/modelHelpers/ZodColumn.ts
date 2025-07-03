@@ -71,8 +71,8 @@ function annotate(
 
   // skip it in production
   if (process.env.NODE_ENV === "production") {
-    !!originalGet && (options.get = originalGet);
-    !!originalSet && (options.set = originalSet);
+    if (originalGet) options.get = originalGet;
+    if (originalSet) options.set = originalSet;
     addAttribute(target, propertyName, options);
     return;
   }
@@ -102,8 +102,8 @@ function annotate(
       }
     };
   } else {
-    !!originalGet && (options.get = originalGet);
-    !!originalSet && (options.set = originalSet);
+    if (originalGet) options.get = originalGet;
+    if (originalSet) options.set = originalSet;
   }
 
   addAttribute(target, propertyName, options);

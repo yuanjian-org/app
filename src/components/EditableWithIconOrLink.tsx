@@ -26,7 +26,7 @@ export default function EditableWithIconOrLink({ editor, decorator,
 
   const onSubmitWrapper = (newValue: string) => {
     setValue(newValue);
-    onSubmit && onSubmit(newValue);
+    if (onSubmit) onSubmit(newValue);
   };
 
   // Show the edit icon when not in editing mode. See
