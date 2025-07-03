@@ -14,7 +14,10 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-    globalIgnores(["src/api/database/sequelize-adapter-src", "**/next.config.js"]),
+    globalIgnores([
+        "src/api/database/sequelize-adapter-src", 
+        "**/next.config.js"
+    ]),
         {
         extends: compat.extends("next/core-web-vitals", "plugin:@typescript-eslint/recommended"),
 
