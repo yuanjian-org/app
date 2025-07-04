@@ -141,8 +141,8 @@ export async function createRecurringMeeting(
     userid: tmUserId,
     instanceid: defaultInstanceId,
     subject,
-    start_time: startTimeSecond,
-    end_time: endTimeSecond,
+    start_time: startTimeSecond.toString(),
+    end_time: endTimeSecond.toString(),
     type: 0,
     meeting_type: 1,
     recurring_rule: {
