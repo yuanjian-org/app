@@ -14,15 +14,20 @@ import { CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Interview from "./Interview";
-import { FeedbackDeprecated, zFeedbackDeprecated } from "../../../shared/InterviewFeedback";
+import {
+  FeedbackDeprecated,
+  zFeedbackDeprecated,
+} from "../../../shared/InterviewFeedback";
 import { DateColumn } from "shared/DateColumn";
 
 // TODO: rename to Interviewer
 @Table({
-  indexes: [{
-    unique: true,
-    fields: ['interviewId', 'interviewerId']
-  }]
+  indexes: [
+    {
+      unique: true,
+      fields: ["interviewId", "interviewerId"],
+    },
+  ],
 })
 class InterviewFeedback extends Model {
   @Unique

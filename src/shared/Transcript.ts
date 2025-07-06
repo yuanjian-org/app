@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { zDateColumn } from './DateColumn';
+import { z } from "zod";
+import { zDateColumn } from "./DateColumn";
 
 export const zTranscript = z.object({
   startedAt: zDateColumn,

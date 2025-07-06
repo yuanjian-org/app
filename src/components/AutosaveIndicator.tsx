@@ -1,62 +1,64 @@
-import { CheckIcon, RepeatIcon, WarningIcon } from '@chakra-ui/icons';
-import { Center, Text } from '@chakra-ui/react';
-import { useEffect } from 'react';
+import { CheckIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons";
+import { Center, Text } from "@chakra-ui/react";
+import { useEffect } from "react";
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
-import { useRouter } from 'next/router';
-import _ from 'lodash';
+import { useRouter } from "next/router";
+import _ from "lodash";
 
-export default function AutosaveIndicator({ state }: {
-  state: AutosaveState,
-}) {
-  const errors = [...state.id2state.values()].filter(v => v !== null);
+export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
+  const errors = [...state.id2state.values()].filter((v) => v !== null);
   const iconProps = {
     boxSize: 3.5,
     marginRight: 2,
   };
   const textProps = {
     fontSize: "sm",
-    textShadow: "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff",
+    textShadow:
+      "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff",
   };
 
-  return hasPendingSavers(state) ?
+  return hasPendingSavers(state) ? (
     <>
       <LeavePagePrompt />
       <motion.div
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
         <Center>
-          {errors.length > 0 ? <>
-            <WarningIcon {...iconProps} color="red" />
-            <Text {...textProps} color="red">
-              {errors[0].toString()}
-            </Text>
-          </> : <>
-            <RepeatIcon {...iconProps} color="disabled" />
-            <Text {...textProps} color="disabled">
-              保存中...
-            </Text>
-          </>}
+          {errors.length > 0 ? (
+            <>
+              <WarningIcon {...iconProps} color="red" />
+              <Text {...textProps} color="red">
+                {errors[0].toString()}
+              </Text>
+            </>
+          ) : (
+            <>
+              <RepeatIcon {...iconProps} color="disabled" />
+              <Text {...textProps} color="disabled">
+                保存中...
+              </Text>
+            </>
+          )}
         </Center>
       </motion.div>
     </>
-    :
-    state.virgin ? null : (
-      <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }} 
-        transition={{ duration: 3 }}
-      >
-        <Center>
-          <CheckIcon {...iconProps} color="green" />
-          <Text {...textProps} color="green">
-            已保存
-          </Text>
-        </Center>
-      </motion.div>
-    );
+  ) : state.virgin ? null : (
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: 3 }}
+    >
+      <Center>
+        <CheckIcon {...iconProps} color="green" />
+        <Text {...textProps} color="green">
+          已保存
+        </Text>
+      </Center>
+    </motion.div>
+  );
 }
 
 /**
@@ -72,14 +74,14 @@ function LeavePagePrompt() {
     };
     const handleBrowseAway = () => {
       if (window.confirm(warningText)) return;
-      router.events.emit('routeChangeError');
-      throw 'routeChange aborted.';
+      router.events.emit("routeChangeError");
+      throw "routeChange aborted.";
     };
-    window.addEventListener('beforeunload', handleWindowClose);
-    router.events.on('routeChangeStart', handleBrowseAway);
+    window.addEventListener("beforeunload", handleWindowClose);
+    router.events.on("routeChangeStart", handleBrowseAway);
     return () => {
-      window.removeEventListener('beforeunload', handleWindowClose);
-      router.events.off('routeChangeStart', handleBrowseAway);
+      window.removeEventListener("beforeunload", handleWindowClose);
+      router.events.off("routeChangeStart", handleBrowseAway);
     };
   }, [router]);
 
@@ -93,9 +95,9 @@ function LeavePagePrompt() {
  * @property virgin true if and only if any saves happened in the past.
  */
 export type AutosaveState = {
-  id2state: Map<string, null | any>,
-  virgin: boolean,
-}
+  id2state: Map<string, null | any>;
+  virgin: boolean;
+};
 
 // TODO: make a read only map
 export const initialState: AutosaveState = {
@@ -114,9 +116,7 @@ function hasPendingSavers(s: AutosaveState): boolean {
 /**
  * @param id identifies an Autosaver component
  */
-export function addPendingSaver(s: AutosaveState, id: string):
-  AutosaveState 
-{
+export function addPendingSaver(s: AutosaveState, id: string): AutosaveState {
   if (hasPendingSaver(s, id)) return s;
   const ret = _.cloneDeep(s);
   ret.id2state.set(id, null);
@@ -127,9 +127,10 @@ export function addPendingSaver(s: AutosaveState, id: string):
 /**
  * @param id identifies an Autosaver component
  */
-export function removePendingSaver(s: AutosaveState, id: string):
-  AutosaveState 
-{
+export function removePendingSaver(
+  s: AutosaveState,
+  id: string,
+): AutosaveState {
   invariant(hasPendingSaver(s, id));
   const ret = _.cloneDeep(s);
   ret.id2state.delete(id);
@@ -139,9 +140,11 @@ export function removePendingSaver(s: AutosaveState, id: string):
 /**
  * @param id identifies an Autosaver component
  */
-export function setPendingSaverError(s: AutosaveState, id: string, error?: any): 
-  AutosaveState 
-{
+export function setPendingSaverError(
+  s: AutosaveState,
+  id: string,
+  error?: any,
+): AutosaveState {
   invariant(hasPendingSaver(s, id));
   const ret = _.cloneDeep(s);
   ret.id2state.set(id, error ?? null);

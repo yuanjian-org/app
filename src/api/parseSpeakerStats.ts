@@ -8,9 +8,9 @@ export interface SpeakerStats {
  */
 export function parseSpeakerStats(data: string): SpeakerStats[] {
   const speakerTimes: Map<string, number> = new Map();
-  const lines = data.split('\n');
+  const lines = data.split("\n");
   const pattern = /^\s*(.+?)\((\d{2}):(\d{2}):(\d{2})\):/;
-  
+
   let lastTimestamp: number | null = null;
   let lastSpeaker: string | null = null;
 
@@ -33,26 +33,31 @@ export function parseSpeakerStats(data: string): SpeakerStats[] {
       if (lastSpeaker && lastTimestamp !== null) {
         // discard records in wrong order
         if (currentTimestamp < lastTimestamp) {
-          continue;  
+          continue;
         }
 
         const speakingTime = speakerTimes.get(lastSpeaker) || 0;
-        speakerTimes.set(lastSpeaker, speakingTime + currentTimestamp - lastTimestamp);
+        speakerTimes.set(
+          lastSpeaker,
+          speakingTime + currentTimestamp - lastTimestamp,
+        );
       }
 
       lastSpeaker = speaker;
       lastTimestamp = currentTimestamp;
     }
     // when last speaker only shows once in whole string
-     if (lastSpeaker && !speakerTimes.has(lastSpeaker)) {
+    if (lastSpeaker && !speakerTimes.has(lastSpeaker)) {
       speakerTimes.set(lastSpeaker, 0);
     }
   }
 
-  const speakerStats: SpeakerStats[] = Array.from(speakerTimes.entries()).map(([name, totalSpeakingSeconds]) => ({
-    name, totalSpeakingSeconds
-  }));
+  const speakerStats: SpeakerStats[] = Array.from(speakerTimes.entries()).map(
+    ([name, totalSpeakingSeconds]) => ({
+      name,
+      totalSpeakingSeconds,
+    }),
+  );
 
   return speakerStats;
 }
-

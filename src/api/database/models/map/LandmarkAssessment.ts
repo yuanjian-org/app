@@ -15,7 +15,7 @@ import { zLandmarkScore, LandmarkScore } from "../../../../shared/Map";
     {
       unique: true,
       // Composite key on userId, landmark, createdAt
-      fields: ['userId', 'landmark', 'createdAt'],
+      fields: ["userId", "landmark", "createdAt"],
     },
   ],
 })
@@ -30,7 +30,7 @@ class LandmarkAssessment extends Model {
   @Column(UUID)
   assessorId: string | null;
 
-  @BelongsTo(() => User, { foreignKey: 'assessorId' })
+  @BelongsTo(() => User, { foreignKey: "assessorId" })
   assessor: User | null;
 
   @Column(STRING)

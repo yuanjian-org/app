@@ -1,6 +1,5 @@
 // TODO: Apply Yuanjian brand color theme to all color variations.
 const colors = {
-  
   text: "gray.700",
   backgroundLight: "#f1f3f4", // "gray.100" == "#eef2f6",
   backgroundDark: "gray.900",
@@ -16,7 +15,7 @@ const colors = {
     800: "#190793",
     900: "#11047A",
 
-    // Yuanjian's brand colors. 
+    // Yuanjian's brand colors.
     // See https://www.notion.so/yuanjian/d443cc0615ad48c69ef6d6a59510836f?pvs=4#e2bd7d60169948a584b6291bdb8e3d0f
     a: "#171C8F",
     b: "#00A3E0",

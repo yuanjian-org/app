@@ -12,13 +12,13 @@ import {
 import invariant from "tiny-invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
-import getBaseUrl from '../../../shared/getBaseUrl';
+import getBaseUrl from "../../../shared/getBaseUrl";
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
 import WeChatProvider from "./WeChatProvider";
 import { generateShortLivedToken } from "../../../shared/token";
-import { NextApiRequest, NextApiResponse } from 'next';
-import { compare } from 'bcryptjs';
+import { NextApiRequest, NextApiResponse } from "next";
+import { compare } from "bcryptjs";
 
 declare module "next-auth" {
   interface Session {
@@ -51,9 +51,9 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
     providers: [
       {
-        id: 'credentials',
-        name: '密码登录',
-        type: 'credentials',
+        id: "credentials",
+        name: "密码登录",
+        type: "credentials",
 
         // We don't use this field but it's required by NextAuth.
         credentials: {},
@@ -68,13 +68,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
           if (!user || !user.password) return null;
           const match = await compare(credentials.password, user.password);
           return match ? user : null;
-        }
+        },
       },
 
       // @ts-expect-error
       {
-        id: 'sendgrid',
-        type: 'email',
+        id: "sendgrid",
+        type: "email",
         maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
         sendVerificationRequest,
         generateVerificationToken: generateShortLivedToken,
@@ -89,7 +89,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
          * follow the full next-auth auth flow, and the backend does not
          * generate a state. Removing this would cause the check to fail
          * preventing login.
-         * 
+         *
          * We do manual checks in the signIn callback handler below.
          */
         checks: ["none"],
@@ -113,13 +113,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         clientId: process.env.AUTH_WECHAT_APP_ID!,
         clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
         platformType: "OfficialAccount",
-      })
+      }),
     ],
 
     pages: {
-      signIn: '/auth/login',
+      signIn: "/auth/login",
       // The login page respects the `?error=` URL param.
-      error: '/auth/login',
+      error: "/auth/login",
     },
 
     callbacks: {
@@ -127,12 +127,16 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         // https://github.com/nextauthjs/next-auth/discussions/469
         if (account?.provider === "embedded-wechat-qr") {
           // https://next-auth.js.org/configuration/options#cookies
-          const csrf = req?.cookies?.["__Host-next-auth.csrf-token"]
-            ?.split("|")[0];
+          const csrf =
+            req?.cookies?.["__Host-next-auth.csrf-token"]?.split("|")[0];
           const state = req?.query?.state;
           if (csrf !== state) {
-            console.error("WeChat QR OAuth state is illegal, csrf:", csrf,
-              "state:", state);
+            console.error(
+              "WeChat QR OAuth state is illegal, csrf:",
+              csrf,
+              "state:",
+              state,
+            );
             return false;
           }
         }
@@ -170,7 +174,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         const original = await userCache.fetch(id);
         invariant(original, "original not found");
 
-        const actual = !original.mergedTo ? original
+        const actual = !original.mergedTo
+          ? original
           : await userCache.fetch(original.mergedTo);
         invariant(actual, "actual not found");
 
@@ -181,8 +186,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     },
 
     events: {
-      createUser: message => emailRoleIgnoreError("UserManager", "新用户注册",
-          `${message.user.email} 注册新用户 。`, ""),
+      createUser: (message) =>
+        emailRoleIgnoreError(
+          "UserManager",
+          "新用户注册",
+          `${message.user.email} 注册新用户 。`,
+          "",
+        ),
     },
   };
 }
@@ -192,14 +202,21 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
   return await NextAuth(req, res, authOptions(req));
 }
 
-async function sendVerificationRequest({ identifier, url, token }:
-  SendVerificationRequestParams
-) {
-  await email([identifier], "E_114709011649", {
-    url,
-    token,
-    tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
-  }, getBaseUrl());
+async function sendVerificationRequest({
+  identifier,
+  url,
+  token,
+}: SendVerificationRequestParams) {
+  await email(
+    [identifier],
+    "E_114709011649",
+    {
+      url,
+      token,
+      tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+    },
+    getBaseUrl(),
+  );
 }
 
 const userCache = new LRUCache<string, User>({
@@ -207,7 +224,7 @@ const userCache = new LRUCache<string, User>({
   // The TTL should not too short so most consecutive requests from a page load
   // should get a hit. It should not be too long to keep staleness in reasonable
   // control.
-  ttl: 5 * 1000,  // 5 sec
+  ttl: 5 * 1000, // 5 sec
   // Do not update age so that no matter how eagerly users refreshes the page
   // the data is guaranteed to be fresh after TTL passes.
   // updateAgeOnGet: true,
@@ -220,7 +237,7 @@ const userCache = new LRUCache<string, User>({
     // next-auth must have already created the user.
     invariant(user);
     return user;
-  }
+  },
 });
 
 export function invalidateUserCache(userId: string) {

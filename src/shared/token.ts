@@ -16,10 +16,10 @@ export const longLivedTokenLength = 9;
  * Stronger tokens are more secure but harder to remember and type.
  */
 export async function generateLongLivedToken() {
-  const a = 'a'.charCodeAt(0);
+  const a = "a".charCodeAt(0);
   const chars = [];
   for (let i = 0; i < longLivedTokenLength; i++) {
-    chars.push(String.fromCharCode(a + await randomNumber(0, 25)));
+    chars.push(String.fromCharCode(a + (await randomNumber(0, 25))));
   }
-  return chars.join('').toUpperCase();
+  return chars.join("").toUpperCase();
 }

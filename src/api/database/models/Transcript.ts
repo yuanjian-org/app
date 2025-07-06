@@ -7,7 +7,7 @@ import {
   PrimaryKey,
   HasMany,
   BeforeDestroy,
-  Unique
+  Unique,
 } from "sequelize-typescript";
 import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
@@ -40,9 +40,13 @@ class Transcript extends Model {
 
   @BeforeDestroy
   static async cascadeDestroy(tr: Transcript, options: any) {
-    const promises = (await Summary.findAll({
-      where: { transcriptId: tr.transcriptId }
-    })).map(async s => { await s.destroy(options); });
+    const promises = (
+      await Summary.findAll({
+        where: { transcriptId: tr.transcriptId },
+      })
+    ).map(async (s) => {
+      await s.destroy(options);
+    });
 
     await Promise.all(promises);
   }

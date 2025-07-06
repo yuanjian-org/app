@@ -1,28 +1,28 @@
-import { extendTheme } from '@chakra-ui/react';
-import breakpoints from './breakpoints';
+import { extendTheme } from "@chakra-ui/react";
+import breakpoints from "./breakpoints";
 import colors from "./colors";
-import links from './links';
-import buttons from './buttons';
-import avatars from './avatars';
-import checkboxes from './checkboxes';
-import radio from './radio';
-import numberInput from './numberInput';
-import dividers from './dividers';
-import headings from './headings';
+import links from "./links";
+import buttons from "./buttons";
+import avatars from "./avatars";
+import checkboxes from "./checkboxes";
+import radio from "./radio";
+import numberInput from "./numberInput";
+import dividers from "./dividers";
+import headings from "./headings";
 
 const global = {
   colors,
   styles: {
     global: {
-      'html, body': {
+      "html, body": {
         color: colors.text,
-      }
-    }
+      },
+    },
   },
 };
 
 export default extendTheme(
-	{ breakpoints },
+  { breakpoints },
   global,
   links,
   checkboxes,

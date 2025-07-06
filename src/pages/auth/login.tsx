@@ -2,7 +2,8 @@ import {
   Button,
   InputGroup,
   InputLeftElement,
-  Input, VStack,
+  Input,
+  VStack,
   TabList,
   Tab,
   Tabs,
@@ -16,26 +17,26 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  ModalFooter
-} from '@chakra-ui/react';
-import { EmailIcon, LockIcon } from '@chakra-ui/icons';
+  ModalFooter,
+} from "@chakra-ui/react";
+import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import z from "zod";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import { parseQueryString } from "shared/strings";
-import { toast } from 'react-toastify';
-import trpc from 'trpc';
-import { RoleProfiles } from 'shared/Role';
-import EmbeddedWeChatQRLogin from 'components/EmbeddedWeChatQRLogin';
-import { componentSpacing, sectionSpacing } from 'theme/metrics';
-import PageBreadcrumb from 'components/PageBreadcrumb';
-import { staticUrlPrefix } from 'static';
-import { IoLogoWechat } from 'react-icons/io5';
-import { SmallGrayText } from 'components/SmallGrayText';
-import { headingColor } from 'theme/colors';
-import ModalWithBackdrop from 'components/ModalWithBackdrop';
-import invariant from 'shared/invariant';
+import { toast } from "react-toastify";
+import trpc from "trpc";
+import { RoleProfiles } from "shared/Role";
+import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
+import { componentSpacing, sectionSpacing } from "theme/metrics";
+import PageBreadcrumb from "components/PageBreadcrumb";
+import { staticUrlPrefix } from "static";
+import { IoLogoWechat } from "react-icons/io5";
+import { SmallGrayText } from "components/SmallGrayText";
+import { headingColor } from "theme/colors";
+import ModalWithBackdrop from "components/ModalWithBackdrop";
+import invariant from "shared/invariant";
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -81,49 +82,50 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   const isMobileBrowser = /Mobile/i.test(navigator.userAgent);
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
 
-  return <>
-    <PageBreadcrumb
-      current="登录"
-      parents={[{ name: "远图", link: staticUrlPrefix }]}
-    />
+  return (
+    <>
+      <PageBreadcrumb
+        current="登录"
+        parents={[{ name: "远图", link: staticUrlPrefix }]}
+      />
 
-    <Tabs
-      isFitted
-      isLazy
-      size='sm'
+      <Tabs
+        isFitted
+        isLazy
+        size="sm"
+        // If the user is on mobile and not using WeChat browser, show the
+        // verification code tab as default, because the only WeChat option on
+        // non-WeChat mobile browser is QR code which is often impossible to scan.
+        defaultIndex={isMobileBrowser && !isWechatBrowser ? 1 : 0}
+      >
+        <TabList>
+          <Tab>微信</Tab>
+          <Tab>验证码</Tab>
+          <Tab>密码</Tab>
+        </TabList>
 
-      // If the user is on mobile and not using WeChat browser, show the
-      // verification code tab as default, because the only WeChat option on 
-      // non-WeChat mobile browser is QR code which is often impossible to scan.
-      defaultIndex={(isMobileBrowser && !isWechatBrowser) ? 1 : 0}
-    >
-      <TabList>
-        <Tab>微信</Tab>
-        <Tab>验证码</Tab>
-        <Tab>密码</Tab>
-      </TabList>
-
-      <TabPanels>
-        <TabPanel>
-          {/* Only WeChat browser supports logging in with WeChat accounts. See
+        <TabPanels>
+          <TabPanel>
+            {/* Only WeChat browser supports logging in with WeChat accounts. See
               docs/WeChat.md for more information. */}
-          {isWechatBrowser ?
-            <WechatAccountPanel />
-            :
-            <WechatQRPanel wechatQRAppId={wechatQRAppId} />
-          }
-        </TabPanel>
+            {isWechatBrowser ? (
+              <WechatAccountPanel />
+            ) : (
+              <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+            )}
+          </TabPanel>
 
-        <TabPanel>
-          <VerificationCodePanel />
-        </TabPanel>
+          <TabPanel>
+            <VerificationCodePanel />
+          </TabPanel>
 
-        <TabPanel>
-          <PasswordPanel />
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
-  </>;
+          <TabPanel>
+            <PasswordPanel />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </>
+  );
 }
 
 function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
@@ -132,7 +134,7 @@ function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
     <VStack spacing={componentSpacing}>
       <Text fontSize="sm" color="gray">
         二维码若无法加载，
-        <Link onClick={() => signIn('wechat-qr', { callbackUrl })}>
+        <Link onClick={() => signIn("wechat-qr", { callbackUrl })}>
           点击此处
         </Link>
       </Text>
@@ -147,17 +149,17 @@ function WechatAccountPanel() {
 
   return (
     <VStack spacing={componentSpacing}>
-    <Button
-      width="full"
-      mt={sectionSpacing}
-      leftIcon={<IoLogoWechat />}
-      onClick={() => signIn('wechat', { callbackUrl })}
-      bg="#07C160"
-      color="white"
-      _hover={{ bg: "#06AE56" }}
-    >
-      微信登录
-    </Button>
+      <Button
+        width="full"
+        mt={sectionSpacing}
+        leftIcon={<IoLogoWechat />}
+        onClick={() => signIn("wechat", { callbackUrl })}
+        bg="#07C160"
+        color="white"
+        _hover={{ bg: "#06AE56" }}
+      >
+        微信登录
+      </Button>
       <MergeAccountHelpText />
     </VStack>
   );
@@ -191,11 +193,11 @@ function PasswordPanel() {
     try {
       if (await testAndHandleBannedUser(email)) return;
 
-      const res = await signIn('credentials', {
+      const res = await signIn("credentials", {
         email,
         password,
         callbackUrl,
-        redirect: false
+        redirect: false,
       });
       if (!res || res.error) {
         toast.error("登录失败，请检查邮箱和密码。");
@@ -209,43 +211,47 @@ function PasswordPanel() {
     }
   };
 
-  return <>
-    <EmailInput
-      email={email}
-      setEmail={setEmail}
-      my={sectionSpacing}
-    />
+  return (
+    <>
+      <EmailInput email={email} setEmail={setEmail} my={sectionSpacing} />
 
-    <PasswordInput
-      password={password}
-      setPassword={setPassword}
-      isValidInput={isValidInput}
-      submit={submit}
-      my={sectionSpacing}
-    />
+      <PasswordInput
+        password={password}
+        setPassword={setPassword}
+        isValidInput={isValidInput}
+        submit={submit}
+        my={sectionSpacing}
+      />
 
-    <HStack w="full" spacing={4}>
-      <Button
-        w="50%"
-        color={headingColor}
-        isLoading={isLoading}
-        onClick={() => setIsPasswordResetModalOpen(true)}
-      >注册或找回密码</Button>
-      <Button
-        w="50%"
-        variant="brand"
-        isDisabled={!isValidInput}
-        isLoading={isLoading}
-        onClick={submit}
-      >登录</Button>
-    </HStack>
+      <HStack w="full" spacing={4}>
+        <Button
+          w="50%"
+          color={headingColor}
+          isLoading={isLoading}
+          onClick={() => setIsPasswordResetModalOpen(true)}
+        >
+          注册或找回密码
+        </Button>
+        <Button
+          w="50%"
+          variant="brand"
+          isDisabled={!isValidInput}
+          isLoading={isLoading}
+          onClick={submit}
+        >
+          登录
+        </Button>
+      </HStack>
 
-    {isPasswordResetModalOpen && <PasswordResetModal
-      email={email}
-      setEmail={setEmail}
-      close={() => setIsPasswordResetModalOpen(false)}
-    />}
-  </>;
+      {isPasswordResetModalOpen && (
+        <PasswordResetModal
+          email={email}
+          setEmail={setEmail}
+          close={() => setIsPasswordResetModalOpen(false)}
+        />
+      )}
+    </>
+  );
 }
 
 function VerificationCodePanel() {
@@ -260,15 +266,17 @@ function VerificationCodePanel() {
     try {
       if (await testAndHandleBannedUser(email)) return;
 
-      const res = await signIn('sendgrid', {
+      const res = await signIn("sendgrid", {
         email,
         callbackUrl,
         // Display errors on the same page
-        redirect: false
+        redirect: false,
       });
 
       if (!res || res.error) {
-        toast.error(`糟糕，signIn()错误，请联系管理员：${res?.error ?? "返回空值"}`);
+        toast.error(
+          `糟糕，signIn()错误，请联系管理员：${res?.error ?? "返回空值"}`,
+        );
       } else {
         localStorage.setItem(localStorageKeyForLoginCallbackUrl, callbackUrl);
         localStorage.setItem(localStorageKeyForLoginEmail, email);
@@ -281,22 +289,26 @@ function VerificationCodePanel() {
     }
   };
 
-  return <>
-    <EmailInput
-      email={email}
-      setEmail={setEmail}
-      submit={submit}
-      my={sectionSpacing}
-    />
+  return (
+    <>
+      <EmailInput
+        email={email}
+        setEmail={setEmail}
+        submit={submit}
+        my={sectionSpacing}
+      />
 
-    <Button
-      variant="brand"
-      width="full"
-      isDisabled={!isValidEmail(email)}
-      isLoading={isLoading}
-      onClick={submit}
-    >获取验证码</Button>
-  </>;
+      <Button
+        variant="brand"
+        width="full"
+        isDisabled={!isValidEmail(email)}
+        isLoading={isLoading}
+        onClick={submit}
+      >
+        获取验证码
+      </Button>
+    </>
+  );
 }
 
 /**
@@ -304,8 +316,10 @@ function VerificationCodePanel() {
  */
 async function testAndHandleBannedUser(email: string) {
   if (await trpc.users.isBanned.query({ email })) {
-    toast.error("此邮箱已被停用，请使用其他邮箱登录。有问题请联系" +
-      `${RoleProfiles.UserManager.displayName}。`);
+    toast.error(
+      "此邮箱已被停用，请使用其他邮箱登录。有问题请联系" +
+        `${RoleProfiles.UserManager.displayName}。`,
+    );
     return true;
   } else {
     return false;
@@ -385,14 +399,13 @@ export function EmailInput({
   isDisabled?: boolean;
   autoFocus?: boolean;
 } & InputGroupProps) {
-
   useEffect(() => {
     setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
   }, [setEmail]);
 
   return (
     <InputGroup {...inputGroupProps}>
-      <InputLeftElement pointerEvents='none'>
+      <InputLeftElement pointerEvents="none">
         <EmailIcon color={inputIconColor} />
       </InputLeftElement>
       <Input
@@ -404,7 +417,7 @@ export function EmailInput({
         autoFocus={autoFocus}
         value={email}
         onChange={(ev) => setEmail(ev.target.value)}
-        onKeyDown={async ev => {
+        onKeyDown={async (ev) => {
           if (submit && ev.key == "Enter" && isValidEmail(email)) {
             await submit();
           }
@@ -430,23 +443,25 @@ export function PasswordInput({
   autoFocus?: boolean;
   placeholder?: string;
 } & InputGroupProps) {
-  return <InputGroup {...inputGroupProps}>
-    <InputLeftElement pointerEvents='none'>
-      <LockIcon color={inputIconColor} />
-    </InputLeftElement>
-    <Input
-      type="password"
-      name="password"
-      minWidth={80}
-      placeholder={placeholder ?? "密码"}
-      autoFocus={autoFocus}
-      value={password}
-      onChange={(ev) => setPassword(ev.target.value)}
-      onKeyDown={async ev => {
-        if (ev.key == "Enter" && isValidInput) await submit();
-      }}
-    />
-  </InputGroup>;
+  return (
+    <InputGroup {...inputGroupProps}>
+      <InputLeftElement pointerEvents="none">
+        <LockIcon color={inputIconColor} />
+      </InputLeftElement>
+      <Input
+        type="password"
+        name="password"
+        minWidth={80}
+        placeholder={placeholder ?? "密码"}
+        autoFocus={autoFocus}
+        value={password}
+        onChange={(ev) => setPassword(ev.target.value)}
+        onKeyDown={async (ev) => {
+          if (ev.key == "Enter" && isValidInput) await submit();
+        }}
+      />
+    </InputGroup>
+  );
 }
 
 const inputIconColor = "gray.400";

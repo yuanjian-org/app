@@ -1,7 +1,7 @@
-import * as trpcNext from '@trpc/server/adapters/next';
+import * as trpcNext from "@trpc/server/adapters/next";
 import { apiRouter } from "../../../api/apiRouter";
-import { inferAsyncReturnType } from '@trpc/server';
-import { CreateNextContextOptions } from '@trpc/server/adapters/next';
+import { inferAsyncReturnType } from "@trpc/server";
+import { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import absoluteUrl from "next-absolute-url";
 
 export function createContext({ req, res }: CreateNextContextOptions) {
@@ -22,8 +22,8 @@ export default trpcNext.createNextApiHandler({
   router: apiRouter,
   createContext,
   onError({ error }) {
-    console.error('Error:', error);
-    if (error.code === 'INTERNAL_SERVER_ERROR') {
+    console.error("Error:", error);
+    if (error.code === "INTERNAL_SERVER_ERROR") {
       // TODO: send to bug reporting
     }
   },

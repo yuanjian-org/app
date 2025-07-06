@@ -10,18 +10,22 @@ import {
   interviewAttributes,
   userAttributes,
   userInclude,
-  extraUserAttributesForInterviews
+  extraUserAttributesForInterviews,
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
 import {
-  conflictError, generalBadRequestError, noPermissionError, notFoundError
+  conflictError,
+  generalBadRequestError,
+  noPermissionError,
+  notFoundError,
 } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { diffInMinutes, formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
 import {
-  getCalibrationAndCheckPermissionSafe, syncCalibrationGroup
+  getCalibrationAndCheckPermissionSafe,
+  syncCalibrationGroup,
 } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
@@ -33,7 +37,7 @@ import { zUserProfile } from "../../shared/UserProfile";
 import { Op, Transaction } from "sequelize";
 import {
   volunteerApplyingforMentorField,
-  volunteerApplyingforMentorFieldYes
+  volunteerApplyingforMentorFieldYes,
 } from "../../shared/applicationFields";
 
 /**
@@ -43,61 +47,79 @@ import {
  */
 const get = procedure
   .use(authUser())
-  .input(z.object({
-    interviewId: z.string()
-  }))
-  .output(z.object({
-    interviewWithGroup: zInterviewWithGroup,
-    etag: z.number(),
-  }))
-  .query(async ({ ctx, input: { interviewId } }) =>
-{
-  return await sequelize.transaction(async transaction => {
-    const i = await db.Interview.findByPk(interviewId, {
-      attributes: [...interviewAttributes, "calibrationId", "decisionUpdatedAt"],
-      include: [...interviewInclude, {
-        model: Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      }],
-      transaction,
+  .input(
+    z.object({
+      interviewId: z.string(),
+    }),
+  )
+  .output(
+    z.object({
+      interviewWithGroup: zInterviewWithGroup,
+      etag: z.number(),
+    }),
+  )
+  .query(async ({ ctx, input: { interviewId } }) => {
+    return await sequelize.transaction(async (transaction) => {
+      const i = await db.Interview.findByPk(interviewId, {
+        attributes: [
+          ...interviewAttributes,
+          "calibrationId",
+          "decisionUpdatedAt",
+        ],
+        include: [
+          ...interviewInclude,
+          {
+            model: Group,
+            attributes: groupAttributes,
+            include: groupInclude,
+          },
+        ],
+        transaction,
+      });
+      if (!i) throw notFoundError("面试", interviewId);
+
+      const ret = {
+        interviewWithGroup: i,
+        etag: date2etag(i.decisionUpdatedAt),
+      };
+
+      const me = ctx.user;
+      if (isPermitted(me.roles, "MentorshipManager")) return ret;
+
+      if (i.feedbacks.some((f) => f.interviewer.id === me.id)) return ret;
+
+      if (
+        i.calibrationId &&
+        (await getCalibrationAndCheckPermissionSafe(
+          me,
+          i.calibrationId,
+          transaction,
+        ))
+      )
+        return ret;
+
+      if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
+      throw noPermissionError("面试", interviewId);
     });
-    if (!i) throw notFoundError("面试", interviewId);
-
-    const ret = {
-      interviewWithGroup: i,
-      etag: date2etag(i.decisionUpdatedAt),
-    };
-
-    const me = ctx.user;
-    if (isPermitted(me.roles, "MentorshipManager")) return ret;
-
-    if (i.feedbacks.some(f => f.interviewer.id === me.id)) return ret;
-
-    if (i.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
-      i.calibrationId, transaction)) return ret;
-
-    if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
-    throw noPermissionError("面试", interviewId);
   });
-});
 
 const getIdForMentee = procedure
   .use(authUser())
-  .input(z.object({
-    menteeId: z.string()
-  }))
+  .input(
+    z.object({
+      menteeId: z.string(),
+    }),
+  )
   .output(z.string().nullable())
-  .query(async ({ input: { menteeId } }) =>
-{
-  return await sequelize.transaction(async transaction => {
-    return await getInterviewIdForMentee(menteeId, transaction);
+  .query(async ({ input: { menteeId } }) => {
+    return await sequelize.transaction(async (transaction) => {
+      return await getInterviewIdForMentee(menteeId, transaction);
+    });
   });
-});
 
 export async function getInterviewIdForMentee(
-  menteeId: string, 
-  transaction: Transaction
+  menteeId: string,
+  transaction: Transaction,
 ): Promise<string | null> {
   // Force type safety
   const type: InterviewType = "MenteeInterview";
@@ -116,76 +138,93 @@ const list = procedure
   .use(authUser("MentorshipManager"))
   .input(zInterviewType)
   .output(z.array(zInterview))
-  .query(async ({ input: type }) =>
-{
-  return (await db.Interview.findAll({
-    where: { type },
-    attributes: interviewAttributes,
-    include: interviewInclude,
-  }))
-  // TOOD: optimize query to filter interviews at the DB level.
-  .filter(i => isCandidatePending(i.type, i.interviewee, [i.createdAt]));
-});
+  .query(async ({ input: type }) => {
+    return (
+      (
+        await db.Interview.findAll({
+          where: { type },
+          attributes: interviewAttributes,
+          include: interviewInclude,
+        })
+      )
+        // TOOD: optimize query to filter interviews at the DB level.
+        .filter((i) => isCandidatePending(i.type, i.interviewee, [i.createdAt]))
+    );
+  });
 
 const listMine = procedure
   .use(authUser())
   .output(z.array(zInterview))
-  .query(async ({ ctx }) =>
-{
-  return (await db.InterviewFeedback.findAll({
-    where: { interviewerId: ctx.user.id },
-    attributes: [],
-    include: [{
-      model: db.Interview,
-      attributes: interviewAttributes,
-      include: interviewInclude
-    }]
-  })).map(feedback => feedback.interview)
-  // TOOD: optimize query to filter interviews at the DB level.
-  .filter(i => isCandidatePending(i.type, i.interviewee, [i.createdAt]));
-});
+  .query(async ({ ctx }) => {
+    return (
+      (
+        await db.InterviewFeedback.findAll({
+          where: { interviewerId: ctx.user.id },
+          attributes: [],
+          include: [
+            {
+              model: db.Interview,
+              attributes: interviewAttributes,
+              include: interviewInclude,
+            },
+          ],
+        })
+      )
+        .map((feedback) => feedback.interview)
+        // TOOD: optimize query to filter interviews at the DB level.
+        .filter((i) => isCandidatePending(i.type, i.interviewee, [i.createdAt]))
+    );
+  });
 
 /**
  * List all the users who have applications and their interviews are pending if
- * any. 
+ * any.
  */
 const listPendingCandidates = procedure
   .use(authUser("MentorshipManager"))
   .input(zInterviewType)
   .output(z.array(zUser))
-  .query(async ({ input: type }) =>
-{
-  return (await db.User.findAll({
-    where: {
-      ...type == "MenteeInterview" ?
-        { menteeApplication: { [Op.ne]: null } } :
-        { volunteerApplication: { [Op.ne]: null } },
-    },
-    attributes: [...userAttributes, ...extraUserAttributesForInterviews],
-    include: [...userInclude, {
-      association: "interviews",
-      attributes: ["type", "createdAt"],
-    }],
-  }))
-  // TOOD: optimize query to filter interviews at the DB level.
-  .filter(u => {
-    const dates = u.interviews
-      .filter(i => i.type == type)
-      .map(i => i.createdAt);
-    return isCandidatePending(type, u, dates);
+  .query(async ({ input: type }) => {
+    return (
+      (
+        await db.User.findAll({
+          where: {
+            ...(type == "MenteeInterview"
+              ? { menteeApplication: { [Op.ne]: null } }
+              : { volunteerApplication: { [Op.ne]: null } }),
+          },
+          attributes: [...userAttributes, ...extraUserAttributesForInterviews],
+          include: [
+            ...userInclude,
+            {
+              association: "interviews",
+              attributes: ["type", "createdAt"],
+            },
+          ],
+        })
+      )
+        // TOOD: optimize query to filter interviews at the DB level.
+        .filter((u) => {
+          const dates = u.interviews
+            .filter((i) => i.type == type)
+            .map((i) => i.createdAt);
+          return isCandidatePending(type, u, dates);
+        })
+    );
   });
-});
 
 function isCandidatePending(
   type: InterviewType,
   candidate: User & { volunteerApplication: Record<string, any> | null },
-  createdAt: Date[]
+  createdAt: Date[],
 ) {
   if (type == "MenteeInterview") {
     // A interview decision hasn't been made
     return candidate.menteeStatus === null;
-  } else if (candidate.volunteerApplication?.[volunteerApplyingforMentorField]
-    !== volunteerApplyingforMentorFieldYes) {
+  } else if (
+    candidate.volunteerApplication?.[volunteerApplyingforMentorField] !==
+    volunteerApplyingforMentorFieldYes
+  ) {
     // The user didn't apply as a mentor
     return false;
   } else if (isPermitted(candidate.roles, "Mentor")) {
@@ -196,7 +235,7 @@ function isCandidatePending(
     return true;
   } else {
     // Treat a mentor interview as done after 60 days of creation
-    return createdAt.some(d => diffInMinutes(d, new Date()) < 60 * 24 * 60);
+    return createdAt.some((d) => diffInMinutes(d, new Date()) < 60 * 24 * 60);
   }
 }
 
@@ -205,52 +244,72 @@ function isCandidatePending(
  */
 const create = procedure
   .use(authUser("MentorshipManager"))
-  .input(z.object({
-    type: zInterviewType,
-    calibrationId: z.string().nullable(),
-    intervieweeId: z.string(),
-    interviewerIds: z.array(z.string()),
-  }))
+  .input(
+    z.object({
+      type: zInterviewType,
+      calibrationId: z.string().nullable(),
+      intervieweeId: z.string(),
+      interviewerIds: z.array(z.string()),
+    }),
+  )
   .output(z.string())
-  .mutation(async ({ input }) =>
-{
-  return await sequelize.transaction(async transaction => {
-    return await createInterview(input.type, input.calibrationId,
-      input.intervieweeId, input.interviewerIds, transaction);
+  .mutation(async ({ input }) => {
+    return await sequelize.transaction(async (transaction) => {
+      return await createInterview(
+        input.type,
+        input.calibrationId,
+        input.intervieweeId,
+        input.interviewerIds,
+        transaction,
+      );
+    });
   });
-});
 
 /**
  * @returns the interview id.
  */
 export async function createInterview(
   type: InterviewType,
-  calibrationId: string | null, 
+  calibrationId: string | null,
   intervieweeId: string,
   interviewerIds: string[],
   transaction: Transaction,
 ): Promise<string> {
   validate(intervieweeId, interviewerIds);
 
-  const i = await db.Interview.create({
-    type, intervieweeId, calibrationId,
-  }, { transaction });
-  await db.InterviewFeedback.bulkCreate(interviewerIds.map(id => ({
-    interviewId: i.id,
-    interviewerId: id,
-  })), { transaction });
+  const i = await db.Interview.create(
+    {
+      type,
+      intervieweeId,
+      calibrationId,
+    },
+    { transaction },
+  );
+  await db.InterviewFeedback.bulkCreate(
+    interviewerIds.map((id) => ({
+      interviewId: i.id,
+      interviewerId: id,
+    })),
+    { transaction },
+  );
 
   // Update roles
   for (const interviwerId of interviewerIds) {
     const u = await db.User.findByPk(interviwerId, { transaction });
     invariant(u);
-    if (u.roles.some(r => r == "Interviewer")) continue;
+    if (u.roles.some((r) => r == "Interviewer")) continue;
     u.roles = [...u.roles, "Interviewer"];
     await u.save({ transaction });
   }
 
-  await createGroup(null, [intervieweeId, ...interviewerIds], null, i.id, null,
-    transaction);
+  await createGroup(
+    null,
+    [intervieweeId, ...interviewerIds],
+    null,
+    i.id,
+    null,
+    transaction,
+  );
 
   if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
 
@@ -258,102 +317,125 @@ export async function createInterview(
 }
 
 const listInterviewerStats = procedure
-.use(authUser("MentorshipManager"))
-.output(z.array(z.object({
-  user: zUser,
-  interviews: z.number(),
-  preference: zInterviewerPreference,
-  profile: zUserProfile,
-})))
-.query(async () =>
-{
-  const users = await db.User.findAll({
-    attributes: [...userAttributes, 'profile', 'preference'],
-    include: userInclude,
-  });
+  .use(authUser("MentorshipManager"))
+  .output(
+    z.array(
+      z.object({
+        user: zUser,
+        interviews: z.number(),
+        preference: zInterviewerPreference,
+        profile: zUserProfile,
+      }),
+    ),
+  )
+  .query(async () => {
+    const users = await db.User.findAll({
+      attributes: [...userAttributes, "profile", "preference"],
+      include: userInclude,
+    });
 
-  // A map from user to the total number of interviews conducted by the user.
-  const user2interviews = (await db.InterviewFeedback.findAll({
-    attributes: [
-      'interviewerId',
-      [sequelize.fn('COUNT', sequelize.col('interviewerId')), 'count']
-    ],
-    group: ['interviewerId']
-  })).reduce<{ [key: string]: number }>((acc, curr) => {
-      acc[curr.interviewerId] = Number.parseInt(curr.getDataValue('count'));
+    // A map from user to the total number of interviews conducted by the user.
+    const user2interviews = (
+      await db.InterviewFeedback.findAll({
+        attributes: [
+          "interviewerId",
+          [sequelize.fn("COUNT", sequelize.col("interviewerId")), "count"],
+        ],
+        group: ["interviewerId"],
+      })
+    ).reduce<{ [key: string]: number }>((acc, curr) => {
+      acc[curr.interviewerId] = Number.parseInt(curr.getDataValue("count"));
       return acc;
     }, {});
 
-  const stats = users
-    .filter(user => user2interviews[user.id] 
-      || user.preference?.interviewer?.optIn === true
-      || user.roles.includes("Mentor")
-    ).map(user => ({
-      user,
-      interviews: user2interviews[user.id] ?? 0,
-      preference: user.preference?.interviewer ?? {},
-      profile: user.profile ?? {},
-    }));
+    const stats = users
+      .filter(
+        (user) =>
+          user2interviews[user.id] ||
+          user.preference?.interviewer?.optIn === true ||
+          user.roles.includes("Mentor"),
+      )
+      .map((user) => ({
+        user,
+        interviews: user2interviews[user.id] ?? 0,
+        preference: user.preference?.interviewer ?? {},
+        profile: user.profile ?? {},
+      }));
 
-  stats.sort((a, b) => a.interviews - b.interviews);
-  return stats;
-});
+    stats.sort((a, b) => a.interviews - b.interviews);
+    return stats;
+  });
 
 const update = procedure
   .use(authUser("MentorshipManager"))
-  .input(z.object({
-    id: z.string(),
-    type: zInterviewType,
-    calibrationId: z.string().nullable(),
-    intervieweeId: z.string(),
-    interviewerIds: z.array(z.string()),
-  }))
-  .mutation(async ({ input }) =>
-{
-  await updateInterview(input.id, input.type, input.calibrationId, input.intervieweeId, input.interviewerIds);
-});
+  .input(
+    z.object({
+      id: z.string(),
+      type: zInterviewType,
+      calibrationId: z.string().nullable(),
+      intervieweeId: z.string(),
+      interviewerIds: z.array(z.string()),
+    }),
+  )
+  .mutation(async ({ input }) => {
+    await updateInterview(
+      input.id,
+      input.type,
+      input.calibrationId,
+      input.intervieweeId,
+      input.interviewerIds,
+    );
+  });
 
 /**
  * @return etag
  */
 const updateDecision = procedure
   .use(authUser("MentorshipManager"))
-  .input(z.object({
-    interviewId: z.string(),
-    decision: zFeedbackDeprecated,
-    etag: z.number(),
-  }))
+  .input(
+    z.object({
+      interviewId: z.string(),
+      decision: zFeedbackDeprecated,
+      etag: z.number(),
+    }),
+  )
   .output(z.number())
-  .mutation(async ({ input: { interviewId, decision, etag } }) =>
-{
-  return await sequelize.transaction(async transaction => {
-    const i = await db.Interview.findByPk(interviewId, {
-      attributes: ["id", "decisionUpdatedAt"],
-      transaction,
-      lock: true,
+  .mutation(async ({ input: { interviewId, decision, etag } }) => {
+    return await sequelize.transaction(async (transaction) => {
+      const i = await db.Interview.findByPk(interviewId, {
+        attributes: ["id", "decisionUpdatedAt"],
+        transaction,
+        lock: true,
+      });
+      if (!i) throw notFoundError("面试", interviewId);
+      if (date2etag(i.decisionUpdatedAt) !== etag) throw conflictError();
+
+      i.decision = decision;
+      const now = new Date();
+      await i.update(
+        {
+          decision,
+          decisionUpdatedAt: now,
+        },
+        { transaction },
+      );
+      return date2etag(now);
     });
-    if (!i) throw notFoundError("面试", interviewId);
-    if (date2etag(i.decisionUpdatedAt) !== etag) throw conflictError();
-
-    i.decision = decision;
-    const now = new Date();
-    await i.update({
-      decision,
-      decisionUpdatedAt: now,
-    }, { transaction });
-    return date2etag(now);
   });
-});
 
-export async function updateInterview(id: string, type: InterviewType, calibrationId: string | null,
-  intervieweeId: string, interviewerIds: string[]) 
-{
+export async function updateInterview(
+  id: string,
+  type: InterviewType,
+  calibrationId: string | null,
+  intervieweeId: string,
+  interviewerIds: string[],
+) {
   validate(intervieweeId, interviewerIds);
 
-  await sequelize.transaction(async transaction => {
+  await sequelize.transaction(async (transaction) => {
     const i = await db.Interview.findByPk(id, {
       include: [...interviewInclude, Group],
-      transaction
+      transaction,
     });
 
     if (!i) {
@@ -362,12 +444,17 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
     if (type !== i.type) {
       throw generalBadRequestError("面试类型错误");
     }
-    if (intervieweeId !== i.intervieweeId && i.feedbacks.some(f => f.feedbackUpdatedAt != null)) {
+    if (
+      intervieweeId !== i.intervieweeId &&
+      i.feedbacks.some((f) => f.feedbackUpdatedAt != null)
+    ) {
       throw generalBadRequestError("面试反馈已经递交，无法更改候选人");
     }
     for (const f of i.feedbacks) {
       if (f.feedbackUpdatedAt && !interviewerIds.includes(f.interviewer.id)) {
-        throw generalBadRequestError(`面试官${formatUserName(f.interviewer.name)}已经递交反馈，无法移除`);
+        throw generalBadRequestError(
+          `面试官${formatUserName(f.interviewer.name)}已经递交反馈，无法移除`,
+        );
       }
     }
 
@@ -382,24 +469,32 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
     }
     // Add interviewers
     for (const ir of interviewerIds) {
-      if (!i.feedbacks.some(f => ir === f.interviewer.id)) {
-        await db.InterviewFeedback.create({
-          interviewId: i.id,
-          interviewerId: ir,
-        }, { transaction });
+      if (!i.feedbacks.some((f) => ir === f.interviewer.id)) {
+        await db.InterviewFeedback.create(
+          {
+            interviewId: i.id,
+            interviewerId: ir,
+          },
+          { transaction },
+        );
       }
     }
     // Update roles
     for (const interviwerId of interviewerIds) {
       const u = await db.User.findByPk(interviwerId, { transaction });
       invariant(u);
-      if (u.roles.some(r => r == "Interviewer")) continue;
+      if (u.roles.some((r) => r == "Interviewer")) continue;
       u.roles = [...u.roles, "Interviewer"];
       await u.save({ transaction });
     }
     // Update group
-    await updateGroup(i.group.id, null, i.group.public, 
-      [intervieweeId, ...interviewerIds], transaction);
+    await updateGroup(
+      i.group.id,
+      null,
+      i.group.public,
+      [intervieweeId, ...interviewerIds],
+      transaction,
+    );
     // Update calibration. When the interviwer list is updated, the calibration group needs an update, too.
     if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
     if (oldCalibrationId && oldCalibrationId !== calibrationId) {
@@ -409,7 +504,7 @@ export async function updateInterview(id: string, type: InterviewType, calibrati
 }
 
 function validate(intervieweeId: string, interviewerIds: string[]) {
-  if (interviewerIds.some(id => id === intervieweeId)) {
+  if (interviewerIds.some((id) => id === intervieweeId)) {
     throw generalBadRequestError("面试官和候选人不能是同一人");
   }
 }

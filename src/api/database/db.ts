@@ -7,7 +7,7 @@ import Group from "./models/Group";
 import GroupUser from "./models/GroupUser";
 import Transcript from "./models/Transcript";
 import Summary from "./models/Summary";
-import Mentorship from './models/Mentorship';
+import Mentorship from "./models/Mentorship";
 import Assessment from "./models/Assessment";
 import Interview from "./models/Interview";
 import InterviewFeedback from "./models/InterviewFeedback";

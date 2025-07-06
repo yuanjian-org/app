@@ -1,6 +1,4 @@
-import type {
-  CreationOptional,
-} from "sequelize";
+import type { CreationOptional } from "sequelize";
 import {
   AllowNull,
   BeforeDestroy,
@@ -14,7 +12,7 @@ import {
   Default,
   IsUUID,
   Unique,
-  PrimaryKey
+  PrimaryKey,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import { BOOLEAN, STRING, UUID, UUIDV4 } from "sequelize";
@@ -28,7 +26,7 @@ import Calibration from "./Calibration";
 /**
  * A group is said to be "owned" if the mentorship or interview field is non-null.
  * Otherwise the group is said to be "unowned".
- * 
+ *
  * TODO: Add an index on `achived`
  */
 @Table({
@@ -75,7 +73,7 @@ class Group extends Model {
   // A group is "owned" by a calibration if this field is non-null.
   //
   // The index is used by getCalibrationAndCheckPermissionSafe()
-  @Index  
+  @Index
   @ForeignKey(() => Calibration)
   @Column(UUID)
   calibrationId: string | null;
@@ -95,13 +93,21 @@ class Group extends Model {
 
   @BeforeDestroy
   static async cascadeDestroy(group: Group, options: any) {
-    const promises1 = (await GroupUser.findAll({
-      where: { groupId: group.id }
-    })).map(async gu => { await gu.destroy(options); });
+    const promises1 = (
+      await GroupUser.findAll({
+        where: { groupId: group.id },
+      })
+    ).map(async (gu) => {
+      await gu.destroy(options);
+    });
 
-    const promises2 = (await Transcript.findAll({
-      where: { groupId: group.id }
-    })).map(async t => { await t.destroy(options); });
+    const promises2 = (
+      await Transcript.findAll({
+        where: { groupId: group.id },
+      })
+    ).map(async (t) => {
+      await t.destroy(options);
+    });
 
     await Promise.all([...promises1, ...promises2]);
   }

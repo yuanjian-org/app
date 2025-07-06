@@ -1,8 +1,8 @@
-import { expect } from 'chai';
-import formatMeetingMinutes from './formatMeetingMinutes';
+import { expect } from "chai";
+import formatMeetingMinutes from "./formatMeetingMinutes";
 
-describe('formatMeetingMinutes', () => {
-  it('should produce expected output', () => {
+describe("formatMeetingMinutes", () => {
+  it("should produce expected output", () => {
     const input = `会议摘要
 
 研究生毕业准备与实验室生活分享
@@ -38,7 +38,7 @@ describe('formatMeetingMinutes', () => {
     expect(formatMeetingMinutes(input)).is.equal(expeted);
   });
 
-  it('should allow missing todos', () => {
+  it("should allow missing todos", () => {
     const input = `会议摘要
 
 研究生毕业准备与实验室生活分享

@@ -1,8 +1,4 @@
-import {
-  Column,
-  Table,
-  Model,
-} from "sequelize-typescript";
+import { Column, Table, Model } from "sequelize-typescript";
 import { BIGINT, JSONB, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import z from "zod";
@@ -20,4 +16,4 @@ export default class InterviewFeedbackUpdateAttempt extends Model {
 
   @Column(BIGINT)
   etag: number;
-};
+}

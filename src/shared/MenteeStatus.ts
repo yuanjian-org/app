@@ -17,6 +17,6 @@ export const AllMenteeStatuses = [
   "学友",
 ] as const;
 
-export type MenteeStatus = typeof AllMenteeStatuses[number];
+export type MenteeStatus = (typeof AllMenteeStatuses)[number];
 
 export const zMenteeStatus = z.enum(AllMenteeStatuses);

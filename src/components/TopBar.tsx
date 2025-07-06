@@ -20,22 +20,27 @@ export default function TopBar({ children, ...rest }: BoxProps) {
   // https://github.com/chakra-ui/chakra-ui/issues/6856
   const dim = useDimensions(ref, true);
 
-  return <>
-    <Box
-      position="fixed" 
-      w={{ base: "100%", [breakpoint]: `calc(100% - ${desktopSidebarWidth})` }}
-      bg="white"
-      borderBottom="1px"
-      borderColor={sideBarBorderColor}
-      shadow="sm"
-      zIndex={1}
-      ref={ref}
-      {...rest}
-    >
-      {children}
-    </Box>
+  return (
+    <>
+      <Box
+        position="fixed"
+        w={{
+          base: "100%",
+          [breakpoint]: `calc(100% - ${desktopSidebarWidth})`,
+        }}
+        bg="white"
+        borderBottom="1px"
+        borderColor={sideBarBorderColor}
+        shadow="sm"
+        zIndex={1}
+        ref={ref}
+        {...rest}
+      >
+        {children}
+      </Box>
 
-    {/* Placeholder to push down other content on the page */}
-    <Box height={`${dim?.borderBox.bottom ?? 0}px`} />
-  </>;
+      {/* Placeholder to push down other content on the page */}
+      <Box height={`${dim?.borderBox.bottom ?? 0}px`} />
+    </>
+  );
 }

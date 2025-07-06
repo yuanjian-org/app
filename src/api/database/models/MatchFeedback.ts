@@ -1,8 +1,9 @@
 import {
   Column,
   Table,
-  Model, ForeignKey,
-  AllowNull
+  Model,
+  ForeignKey,
+  AllowNull,
 } from "sequelize-typescript";
 import { JSONB, UUID } from "sequelize";
 import User from "./User";

@@ -9,7 +9,7 @@ const zNum = z.number().optional();
  * This type is used in two different ways:
  * 1. The traits of a person.
  * 2. The preference of a mentor for a mentee's traits.
- * 
+ *
  * The meaning of the field values differ in the two cases:
  * 1. For a person, the values are the strengths of the traits,
  *    ranging from [-maxTraitAbsValue, maxTraitAbsValue].
@@ -31,10 +31,12 @@ export const zTraits = z.object({
 });
 export type Traits = z.TypeOf<typeof zTraits>;
 
-export const zTraitsPreference = zTraits.merge(z.object({
-  男vs女: zNum,
-  低年级vs高年级: zNum,
-}));
+export const zTraitsPreference = zTraits.merge(
+  z.object({
+    男vs女: zNum,
+    低年级vs高年级: zNum,
+  }),
+);
 export type TraitsPreference = z.TypeOf<typeof zTraitsPreference>;
 
 export const maxTraitAbsValue = 2;
@@ -44,9 +46,12 @@ export const softTraitPrefAbsValue = 1;
 export const hardMismatchScore = -666;
 
 export function isTraitsComplete(traits: Traits | undefined) {
-  return traits && Object.keys(zTraits.shape)
-    .filter(k => k !== "其他")
-    .every(k => k in traits);
+  return (
+    traits &&
+    Object.keys(zTraits.shape)
+      .filter((k) => k !== "其他")
+      .every((k) => k in traits)
+  );
 }
 
 function isHardTraitPref(pv: number) {
@@ -59,7 +64,7 @@ function isHardTraitPref(pv: number) {
  * preference (which is defined as an absolute preference value of
  * hardTraitPrefAbsValue). Otherwise, the score is the sum of the product of
  * the trait values and the preference values.
- * 
+ *
  * @returns The matching score and the keys of the traits that are matching.
  * Return empty `matchingTraits` if the score is `hardMismatchScore`.
  */
@@ -68,8 +73,8 @@ export function computeTraitsMatchingScore(
   menteeApp: Record<string, any> | null,
   pref: TraitsPreference | null,
 ): {
-  score: number,
-  matchingTraits: (keyof TraitsPreference)[],
+  score: number;
+  matchingTraits: (keyof TraitsPreference)[];
 } {
   let score = 0;
 
@@ -89,12 +94,12 @@ export function computeTraitsMatchingScore(
   for (const key in pref) {
     if (key === "其他") {
       continue;
-
     } else if (key === "男vs女") {
-      unified[key] = menteeProfile.性别 === "男" ?
-        // N.B. Sign must be consistent with components/Traits.tsx
-        -maxTraitAbsValue : maxTraitAbsValue;
-
+      unified[key] =
+        menteeProfile.性别 === "男"
+          ? // N.B. Sign must be consistent with components/Traits.tsx
+            -maxTraitAbsValue
+          : maxTraitAbsValue;
     } else if (key === "低年级vs高年级") {
       const currentYear = new Date().getFullYear();
       const freshmenYear = parseInt(menteeApp?.[menteeFirstYearInCollegeField]);
@@ -102,19 +107,23 @@ export function computeTraitsMatchingScore(
       // Check validity of the year. parseInt() returns NaN if the string is
       // null, undefined or invalid number. Plus 20 is to allow mentees to enter
       // a future college entrance year.
-      if (isNaN(freshmenYear) || freshmenYear < 2000 ||
-        freshmenYear > currentYear + 20) {
+      if (
+        isNaN(freshmenYear) ||
+        freshmenYear < 2000 ||
+        freshmenYear > currentYear + 20
+      ) {
         continue;
       }
 
       // Use 3rd year in college as the neutral point.
       // N.B. Sign must be consistent with components/Traits.tsx
-      unified[key] = maxTraitAbsValue * Math.max(-1, Math.min(1,
-        (currentYear - freshmenYear - 3) / 3));
-
+      unified[key] =
+        maxTraitAbsValue *
+        Math.max(-1, Math.min(1, (currentYear - freshmenYear - 3) / 3));
     } else {
-      unified[key as keyof UnifiedTraits] =
-        traits[key as keyof Traits] as number | undefined;
+      unified[key as keyof UnifiedTraits] = traits[key as keyof Traits] as
+        | number
+        | undefined;
     }
   }
 

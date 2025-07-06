@@ -1,13 +1,9 @@
-import {
-  Table,
-  Model,
-  AllowNull
-} from "sequelize-typescript";
+import { Table, Model, AllowNull } from "sequelize-typescript";
 import { TEXT, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import {
   zScheduledEmailType,
-  ScheduledEmailType
+  ScheduledEmailType,
 } from "../../../shared/ScheduledEmailType";
 import { z } from "zod";
 

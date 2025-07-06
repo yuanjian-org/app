@@ -7,13 +7,13 @@ import {
   Thead,
   Tbody,
   Text,
-} from '@chakra-ui/react';
-import EditableWithIconOrLink from 'components/EditableWithIconOrLink';
-import Loader from 'components/Loader';
-import PageBreadcrumb from 'components/PageBreadcrumb';
-import UserSelector from 'components/UserSelector';
-import { MentorBooking } from 'shared/MentorBooking';
-import { compareDate, formatUserName, prettifyDate } from 'shared/strings';
+} from "@chakra-ui/react";
+import EditableWithIconOrLink from "components/EditableWithIconOrLink";
+import Loader from "components/Loader";
+import PageBreadcrumb from "components/PageBreadcrumb";
+import UserSelector from "components/UserSelector";
+import { MentorBooking } from "shared/MentorBooking";
+import { compareDate, formatUserName, prettifyDate } from "shared/strings";
 import trpc, { trpcNext } from "trpc";
 
 export default function Page() {
@@ -37,60 +37,77 @@ export default function Page() {
     void refetch();
   };
 
-  return <>
-    <PageBreadcrumb current='导师预约记录' />
+  return (
+    <>
+      <PageBreadcrumb current="导师预约记录" />
 
-    {isLoading ? <Loader /> : <TableContainer><Table>
-      <Thead>
-        <Tr>
-          <Th>申请人</Th>
-          <Th>主题</Th>
-          <Th>指定导师</Th>
-          <Th>分配导师</Th>
-          <Th>申请日期</Th>
-          <Th>备注</Th>
-          <Th>备注人</Th>
-        </Tr>
-      </Thead>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>申请人</Th>
+                <Th>主题</Th>
+                <Th>指定导师</Th>
+                <Th>分配导师</Th>
+                <Th>申请日期</Th>
+                <Th>备注</Th>
+                <Th>备注人</Th>
+              </Tr>
+            </Thead>
 
-      <Tbody>
-        {data?.sort((a, b) => compareDate(b.createdAt, a.createdAt))
-        .map(mb => <Tr key={mb.id}>
-          <Td>{formatUserName(mb.requester.name, "formal")}</Td>
+            <Tbody>
+              {data
+                ?.sort((a, b) => compareDate(b.createdAt, a.createdAt))
+                .map((mb) => (
+                  <Tr key={mb.id}>
+                    <Td>{formatUserName(mb.requester.name, "formal")}</Td>
 
-          <Td>
-            <Text maxW="600px" whiteSpace="pre-wrap">
-              {mb.topic}
-            </Text>
-          </Td>
+                    <Td>
+                      <Text maxW="600px" whiteSpace="pre-wrap">
+                        {mb.topic}
+                      </Text>
+                    </Td>
 
-          <Td>{mb.requestedMentor ?
-            formatUserName(mb.requestedMentor.name, "formal") : "-"}
-          </Td>
+                    <Td>
+                      {mb.requestedMentor
+                        ? formatUserName(mb.requestedMentor.name, "formal")
+                        : "-"}
+                    </Td>
 
-          <Td>
-            <UserSelector
-              onSelect={userIds => assignMentor(mb, userIds[0])}
-              initialValue={mb.assignedMentor ? [mb.assignedMentor] : []}
-            />
-          </Td>
+                    <Td>
+                      <UserSelector
+                        onSelect={(userIds) => assignMentor(mb, userIds[0])}
+                        initialValue={
+                          mb.assignedMentor ? [mb.assignedMentor] : []
+                        }
+                      />
+                    </Td>
 
-          <Td>{mb.createdAt && prettifyDate(mb.createdAt)}</Td>
+                    <Td>{mb.createdAt && prettifyDate(mb.createdAt)}</Td>
 
-          <Td>
-            <EditableWithIconOrLink
-              editor='input'
-              decorator='icon'
-              defaultValue={mb.notes ?? ""}
-              onSubmit={notes => saveNotes(mb, notes)}
-            />
-          </Td>
+                    <Td>
+                      <EditableWithIconOrLink
+                        editor="input"
+                        decorator="icon"
+                        defaultValue={mb.notes ?? ""}
+                        onSubmit={(notes) => saveNotes(mb, notes)}
+                      />
+                    </Td>
 
-          <Td>{mb.updater && formatUserName(mb.updater.name, "formal")}</Td>
-        </Tr>)}
-      </Tbody>
-    </Table></TableContainer>}
-  </>;
+                    <Td>
+                      {mb.updater && formatUserName(mb.updater.name, "formal")}
+                    </Td>
+                  </Tr>
+                ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
+    </>
+  );
 }
 
 Page.title = "导师预约记录";

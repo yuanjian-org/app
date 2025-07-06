@@ -20,7 +20,8 @@ import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
 import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 import {
-  FeedbackDeprecated, zFeedbackDeprecated
+  FeedbackDeprecated,
+  zFeedbackDeprecated,
 } from "../../../shared/InterviewFeedback";
 import Calibration from "./Calibration";
 import { DateColumn } from "shared/DateColumn";
@@ -70,13 +71,21 @@ class Interview extends Model {
 
   @BeforeDestroy
   static async cascadeDestroy(i: Interview, options: any) {
-    const promises1 = (await InterviewFeedback.findAll({
-      where: { interviewId: i.id }
-    })).map(async feedback => { await feedback.destroy(options); });
+    const promises1 = (
+      await InterviewFeedback.findAll({
+        where: { interviewId: i.id },
+      })
+    ).map(async (feedback) => {
+      await feedback.destroy(options);
+    });
 
-    const promises2 = (await Group.findAll({
-      where: { interviewId: i.id }
-    })).map(async g => { await g.destroy(options); });
+    const promises2 = (
+      await Group.findAll({
+        where: { interviewId: i.id },
+      })
+    ).map(async (g) => {
+      await g.destroy(options);
+    });
 
     await Promise.all([...promises1, ...promises2]);
   }

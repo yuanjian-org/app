@@ -6,7 +6,7 @@ import {
   useSensors,
   TouchSensor,
   DragEndEvent,
-  MouseSensor
+  MouseSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -16,9 +16,21 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Button, Card, CardBody, Grid, GridItem, Heading, HStack, Link, ModalHeader, ModalContent, Spacer, Text, VStack,
+  Button,
+  Card,
+  CardBody,
+  Grid,
+  GridItem,
+  Heading,
+  HStack,
+  Link,
+  ModalHeader,
+  ModalContent,
+  Spacer,
+  Text,
+  VStack,
   ModalBody,
-  ModalFooter
+  ModalFooter,
 } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import trpc, { trpcNext } from "trpc";
@@ -50,41 +62,50 @@ export default function Page() {
     }
   };
 
-  return <>
-    <PageBreadcrumb current="为导师排序" />
+  return (
+    <>
+      <PageBreadcrumb current="为导师排序" />
 
-    <VStack maxW={maxTextWidth} spacing={sectionSpacing} align="stretch">
-      <Text>
-        请拖拽卡片进行排序，将最喜欢的导师放在顶部。越靠前的导师越有可能匹配：
-      </Text>
+      <VStack maxW={maxTextWidth} spacing={sectionSpacing} align="stretch">
+        <Text>
+          请拖拽卡片进行排序，将最喜欢的导师放在顶部。越靠前的导师越有可能匹配：
+        </Text>
 
-      <Sorter setIsSaving={setIsSaving} setIsFinalizable={setIsFinalizable} />
+        <Sorter setIsSaving={setIsSaving} setIsFinalizable={setIsFinalizable} />
 
-      <HStack align="center">
-        <Link as={NextLink} href="/mentors/relational">
-           <ChevronLeftIcon me={1} /> 返回选择页面
-        </Link>
-        <Spacer />
-        <Button
-          variant="brand"
-          isLoading={isSaving}
-          onClick={finalize}
-          isDisabled={!isFinalizable}
-        >
-          {isFinalizable ? "排好序了，完成选择" : "导师选择数量不足"}
-        </Button>
-      </HStack>
-    </VStack>
+        <HStack align="center">
+          <Link as={NextLink} href="/mentors/relational">
+            <ChevronLeftIcon me={1} /> 返回选择页面
+          </Link>
+          <Spacer />
+          <Button
+            variant="brand"
+            isLoading={isSaving}
+            onClick={finalize}
+            isDisabled={!isFinalizable}
+          >
+            {isFinalizable ? "排好序了，完成选择" : "导师选择数量不足"}
+          </Button>
+        </HStack>
+      </VStack>
 
-    {isFinalized && <FinalizedModal close={() => {
-      void router.push("/mentors/relational");
-    }} />}
-  </>;
+      {isFinalized && (
+        <FinalizedModal
+          close={() => {
+            void router.push("/mentors/relational");
+          }}
+        />
+      )}
+    </>
+  );
 }
 
-function Sorter({ setIsSaving, setIsFinalizable }: { 
-  setIsSaving: (v: boolean) => void,
-  setIsFinalizable: (v: boolean) => void
+function Sorter({
+  setIsSaving,
+  setIsFinalizable,
+}: {
+  setIsSaving: (v: boolean) => void;
+  setIsFinalizable: (v: boolean) => void;
 }) {
   const { data } = trpcNext.mentorSelections.listDrafts.useQuery();
   const [sorted, setSorted] = useState<MentorSelection[]>();
@@ -94,16 +115,13 @@ function Sorter({ setIsSaving, setIsFinalizable }: {
     setIsFinalizable(!!data && data.length >= minSelectedMentors);
   }, [data, setIsFinalizable]);
 
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor)
-  );
+  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
   const onDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
     invariant(sorted);
-    const oldIndex = sorted.findIndex(i => i.mentor.id === active.id);
-    const newIndex = sorted.findIndex(i => i.mentor.id === over.id);
+    const oldIndex = sorted.findIndex((i) => i.mentor.id === active.id);
+    const newIndex = sorted.findIndex((i) => i.mentor.id === over.id);
     const newSorted = arrayMove(sorted, oldIndex, newIndex);
     setSorted(newSorted);
 
@@ -111,40 +129,45 @@ function Sorter({ setIsSaving, setIsFinalizable }: {
       setIsSaving(true);
       await trpc.mentorSelections.reorderDraft.mutate(
         newSorted.map((s, i) => ({ mentorId: s.mentor.id, order: i })),
-      );  
+      );
     } finally {
       setIsSaving(false);
-    }  
+    }
   };
 
-  return sorted === undefined ? <Loader /> : (
+  return sorted === undefined ? (
+    <Loader />
+  ) : (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={onDragEnd}
     >
       <SortableContext
-        items={sorted.map(i => i.mentor.id)}
+        items={sorted.map((i) => i.mentor.id)}
         strategy={rectSortingStrategy}
       >
         <VStack align="stretch">
-          {sorted.map((item, index) =>
+          {sorted.map((item, index) => (
             <SortableCard key={item.mentor.id} ms={item} currentOrder={index} />
-          )}
+          ))}
         </VStack>
       </SortableContext>
     </DndContext>
   );
-};
+}
 
 /**
  * Account for varying heights of cards:
  * Code: https://github.com/clauderic/dnd-kit/blob/e9215e820798459ae036896fce7fd9a6fe855772/stories/2%20-%20Presets/Sortable/1-Vertical.story.tsx#L85
  * Demo: https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/?path=/story/presets-sortable-vertical--variable-heights
  */
-const SortableCard = ({ ms, currentOrder }: {
-  ms: MentorSelection,
-  currentOrder: number
+const SortableCard = ({
+  ms,
+  currentOrder,
+}: {
+  ms: MentorSelection;
+  currentOrder: number;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: ms.mentor.id });
@@ -165,7 +188,9 @@ const SortableCard = ({ ms, currentOrder }: {
             <Heading size="sm">
               {currentOrder + 1}. {formatUserName(ms.mentor.name, "formal")}
             </Heading>
-            <Text color="gray" mt={componentSpacing}>{ms.reason}</Text>
+            <Text color="gray" mt={componentSpacing}>
+              {ms.reason}
+            </Text>
           </GridItem>
           <GridItem display="flex" alignItems="center">
             <MdDragIndicator color="gray" size={24} />
@@ -176,25 +201,25 @@ const SortableCard = ({ ms, currentOrder }: {
   );
 };
 
-function FinalizedModal({ close }: {
-  close: () => void
-}) {
-  return <ModalWithBackdrop isOpen onClose={close}>
-    <ModalContent>
-      <ModalHeader>
-        <Heading size="md">导师选择完成</Heading>
-      </ModalHeader>
-      <ModalBody>
-        <Text>
-          相关工作人员会尽快通知下一步流程，请耐心等待。
-        </Text>
-        <Text mt={componentSpacing}>
-          你可以在页面右上角的“更多功能” → “查看选择历史”中查看选择历史。
-        </Text>
-      </ModalBody>
-      <ModalFooter>
-        <Button variant="brand" onClick={close}>知道了</Button>
-      </ModalFooter>
-    </ModalContent>
-  </ModalWithBackdrop>;
+function FinalizedModal({ close }: { close: () => void }) {
+  return (
+    <ModalWithBackdrop isOpen onClose={close}>
+      <ModalContent>
+        <ModalHeader>
+          <Heading size="md">导师选择完成</Heading>
+        </ModalHeader>
+        <ModalBody>
+          <Text>相关工作人员会尽快通知下一步流程，请耐心等待。</Text>
+          <Text mt={componentSpacing}>
+            你可以在页面右上角的“更多功能” → “查看选择历史”中查看选择历史。
+          </Text>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="brand" onClick={close}>
+            知道了
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  );
 }

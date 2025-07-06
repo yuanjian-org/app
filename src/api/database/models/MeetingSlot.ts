@@ -3,7 +3,8 @@ import {
   Column,
   Table,
   Model,
-  Unique, ForeignKey
+  Unique,
+  ForeignKey,
 } from "sequelize-typescript";
 import { STRING, UUID } from "sequelize";
 import Group from "./Group";

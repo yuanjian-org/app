@@ -11,7 +11,7 @@ import {
   VStack,
   RadioGroup,
   Input,
-  Box
+  Box,
 } from "@chakra-ui/react";
 import MarkdownStyler from "components/MarkdownStyler";
 import MarkdownSupport from "components/MarkdownSupport";
@@ -36,13 +36,14 @@ export default function TaskEditor({
   onClose,
   refetch,
 }: {
-  task?: Task,
-  getAllowedAssigneeIds: () => Promise<string[]>,
-  onClose: () => void,
-  refetch: () => void,
+  task?: Task;
+  getAllowedAssigneeIds: () => Promise<string[]>;
+  onClose: () => void;
+  refetch: () => void;
 }) {
   const [assigneeId, setAssigneeId] = useState<string | undefined>(
-    task?.assignee.id);
+    task?.assignee.id,
+  );
   const [markdown, setMarkdown] = useState(task?.markdown ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -72,91 +73,96 @@ export default function TaskEditor({
 
   const isAuto = task && isAutoTask(task);
 
-  return <ModalWithBackdrop isOpen={true} onClose={onClose} isCentered>
-    <ModalContent>
-      <ModalHeader>
-        {task ? "编辑" : "新建"}
-        待办事项
-      </ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-        <VStack spacing={componentSpacing} align="start">
-
-          {!isAuto &&
-            <AssigneeSelector
-              getAllowedAssigneeIds={getAllowedAssigneeIds}
-              selected={assigneeId}
-              setSelected={setAssigneeId}
-            />
-          }
-
-          {isAuto ?
-            <Box
-              w="full"
-              p={2}
-              borderRadius="md" 
-              borderWidth="1px" 
-              borderColor="gray.200" 
-              bg="gray.50"
-            >
-              <MarkdownStyler 
-                content={getTaskMarkdown(task as Task, undefined, getBaseUrl())}
+  return (
+    <ModalWithBackdrop isOpen={true} onClose={onClose} isCentered>
+      <ModalContent>
+        <ModalHeader>
+          {task ? "编辑" : "新建"}
+          待办事项
+        </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={componentSpacing} align="start">
+            {!isAuto && (
+              <AssigneeSelector
+                getAllowedAssigneeIds={getAllowedAssigneeIds}
+                selected={assigneeId}
+                setSelected={setAssigneeId}
               />
-            </Box>
-            :
-            <Input
-              placeholder="待办事项"
-              autoFocus
-              value={markdown}
-              onChange={e => setMarkdown(e.target.value)}
-            />
-          }
+            )}
 
-          {task?.creator &&
-            <HStack justify="space-between" w="full">
+            {isAuto ? (
+              <Box
+                w="full"
+                p={2}
+                borderRadius="md"
+                borderWidth="1px"
+                borderColor="gray.200"
+                bg="gray.50"
+              >
+                <MarkdownStyler
+                  content={getTaskMarkdown(
+                    task as Task,
+                    undefined,
+                    getBaseUrl(),
+                  )}
+                />
+              </Box>
+            ) : (
+              <Input
+                placeholder="待办事项"
+                autoFocus
+                value={markdown}
+                onChange={(e) => setMarkdown(e.target.value)}
+              />
+            )}
+
+            {task?.creator && (
+              <HStack justify="space-between" w="full">
+                <SmallGrayText>
+                  创建人：
+                  <UserName user={task.creator} />
+                </SmallGrayText>
+                <MarkdownSupport fontSize="sm" />
+              </HStack>
+            )}
+
+            {isAuto && (
               <SmallGrayText>
-                创建人：<UserName user={task.creator} />
+                此为自动生成的事项。完成相应任务后，系统会自动标记为已完成。
               </SmallGrayText>
-              <MarkdownSupport fontSize="sm" />
-            </HStack>
-          }
+            )}
+          </VStack>
+        </ModalBody>
 
-          {isAuto &&
-            <SmallGrayText>
-              此为自动生成的事项。完成相应任务后，系统会自动标记为已完成。
-            </SmallGrayText>
-          }
-
-        </VStack>
-      </ModalBody>
-
-      <ModalFooter>
-        <HStack spacing={componentSpacing}>
-          <Button variant="ghost" color="gray" onClick={onClose}>取消</Button>
-          <Button
-            isDisabled={!assigneeId || markdown.trim().length === 0}
-            variant="brand"
-            isLoading={isSaving}
-            onClick={save}
-          >
-            确认
-          </Button>
-
-        </HStack>
-      </ModalFooter>
-    </ModalContent>
-
-  </ModalWithBackdrop>;
+        <ModalFooter>
+          <HStack spacing={componentSpacing}>
+            <Button variant="ghost" color="gray" onClick={onClose}>
+              取消
+            </Button>
+            <Button
+              isDisabled={!assigneeId || markdown.trim().length === 0}
+              variant="brand"
+              isLoading={isSaving}
+              onClick={save}
+            >
+              确认
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  );
 }
 
-function AssigneeSelector({ 
+function AssigneeSelector({
   getAllowedAssigneeIds,
   selected,
   setSelected,
 }: {
-  getAllowedAssigneeIds: () => Promise<string[]>,
-  selected: string | undefined,
-  setSelected: (assigneeId: string) => void,
+  getAllowedAssigneeIds: () => Promise<string[]>;
+  selected: string | undefined;
+  setSelected: (assigneeId: string) => void;
 }) {
   const myId = useMyId();
   const [allowedAssigneeIds, setAllowedAssigneeIds] = useState<string[]>([]);
@@ -192,22 +198,26 @@ function AssigneeSelector({
     void initialize();
   }, [initialize]);
 
-  const users = trpcNext.useQueries(t => allowedAssigneeIds
-    .map(id => t.users.get(id)))
-    .map(res => res.data)
-    .filter(u => u !== undefined);
-  
-  return <HStack align="start">
-    <Text fontWeight="bold">待办人：</Text>
-    <RadioGroup onChange={setSelected} value={selected}>
-      <HStack spacing={2}>
-        {users.map(user => {
-          invariant(user !== undefined, "AssigneeSelector user undefined");
-          return <Radio key={user.id} value={user.id}>
-            <UserName user={user} />
-          </Radio>;
-        })}
-      </HStack>
-    </RadioGroup>
-  </HStack>;
+  const users = trpcNext
+    .useQueries((t) => allowedAssigneeIds.map((id) => t.users.get(id)))
+    .map((res) => res.data)
+    .filter((u) => u !== undefined);
+
+  return (
+    <HStack align="start">
+      <Text fontWeight="bold">待办人：</Text>
+      <RadioGroup onChange={setSelected} value={selected}>
+        <HStack spacing={2}>
+          {users.map((user) => {
+            invariant(user !== undefined, "AssigneeSelector user undefined");
+            return (
+              <Radio key={user.id} value={user.id}>
+                <UserName user={user} />
+              </Radio>
+            );
+          })}
+        </HStack>
+      </RadioGroup>
+    </HStack>
+  );
 }

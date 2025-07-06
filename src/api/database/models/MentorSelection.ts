@@ -1,21 +1,26 @@
 import {
   Column,
   Table,
-  Model, ForeignKey,
-  AllowNull, BelongsTo
+  Model,
+  ForeignKey,
+  AllowNull,
+  BelongsTo,
 } from "sequelize-typescript";
 import { INTEGER, STRING, UUID } from "sequelize";
 import User from "./User";
 import MentorSelectionBatch from "./MentorSelectionBatch";
 
 @Table({
-  indexes: [{
-    fields: ['batchId', 'mentorId'],
-    unique: true,
-  }, {
-    fields: ['batchId', 'order'],
-    unique: true,
-  }]
+  indexes: [
+    {
+      fields: ["batchId", "mentorId"],
+      unique: true,
+    },
+    {
+      fields: ["batchId", "order"],
+      unique: true,
+    },
+  ],
 })
 export default class MentorSelection extends Model {
   @ForeignKey(() => MentorSelectionBatch)

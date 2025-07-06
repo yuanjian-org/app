@@ -1,6 +1,4 @@
-import type {
-  CreationOptional,
-} from "sequelize";
+import type { CreationOptional } from "sequelize";
 import {
   AllowNull,
   BeforeDestroy,
@@ -18,7 +16,16 @@ import {
   HasOne,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
-import { ARRAY, DATE, INTEGER, JSONB, Op, STRING, UUID, UUIDV4 } from "sequelize";
+import {
+  ARRAY,
+  DATE,
+  INTEGER,
+  JSONB,
+  Op,
+  STRING,
+  UUID,
+  UUIDV4,
+} from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import Role, { zRoles } from "../../../shared/Role";
 import z from "zod";
@@ -33,7 +40,7 @@ import MergeToken from "./MergeToken";
 
 @Table({
   tableName: "users",
-  modelName: "user"
+  modelName: "user",
 })
 @Fix
 class User extends Model {
@@ -63,7 +70,7 @@ class User extends Model {
   email: string;
 
   @Index({
-    using: 'gin'
+    using: "gin",
   })
   @AllowNull(false)
   @Default([])
@@ -145,38 +152,37 @@ class User extends Model {
   @HasMany(() => Interview)
   interviews: Interview[];
 
-  @HasMany(() => Mentorship, { foreignKey: 'mentorId' })
+  @HasMany(() => Mentorship, { foreignKey: "mentorId" })
   mentorshipsAsMentor: Mentorship[];
 
-  @HasMany(() => Mentorship, { foreignKey: 'menteeId' })
+  @HasMany(() => Mentorship, { foreignKey: "menteeId" })
   mentorshipsAsMentee: Mentorship[];
 
-  @BelongsTo(() => User, { foreignKey: 'pointOfContactId' })
+  @BelongsTo(() => User, { foreignKey: "pointOfContactId" })
   pointOfContact: User | null;
 
-  @HasMany(() => User, { foreignKey: 'mergedTo' })
+  @HasMany(() => User, { foreignKey: "mergedTo" })
   mergedFrom: User[];
 
   @HasOne(() => MergeToken)
   mergeToken: MergeToken | null;
 
   // TODO: rename `mergedTo` to `mergedToId` and rename this one to `mergedTo`
-  @BelongsTo(() => User, { foreignKey: 'mergedTo' })
+  @BelongsTo(() => User, { foreignKey: "mergedTo" })
   mergedToUser: User | null;
 
   @BeforeDestroy
   static async cascadeDelete(user: User, options: any) {
-
-      await GroupUser.destroy({
-        where: { userId: user.id },
-        ...options
-      });
-      await Mentorship.destroy({
-        where: {
-          [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }]
-        },
-        ...options
-      });
+    await GroupUser.destroy({
+      where: { userId: user.id },
+      ...options,
+    });
+    await Mentorship.destroy({
+      where: {
+        [Op.or]: [{ menteeId: user.id }, { mentorId: user.id }],
+      },
+      ...options,
+    });
   }
 }
 

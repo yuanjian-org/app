@@ -1,14 +1,12 @@
-import {
-  Box, Button, Flex, HStack, Text,
-} from '@chakra-ui/react';
-import { pageMarginX, staticPageMaxWidth } from 'theme/metrics';
-import { staticUrlPrefix } from '../static';
-import NextLink from 'next/link';
-import yuanjianLogo80x80 from '../../public/img/yuanjian-logo-80x80.png';
+import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
+import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
+import { staticUrlPrefix } from "../static";
+import NextLink from "next/link";
+import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
 import Image from "next/image";
-import { useRouter } from 'next/router';
-import { loginUrl } from 'pages/auth/login';
-import { activeNavLinkColor } from 'theme/colors';
+import { useRouter } from "next/router";
+import { loginUrl } from "pages/auth/login";
+import { activeNavLinkColor } from "theme/colors";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -20,38 +18,36 @@ const inactiveNavLinkColor = "gray.700";
 export default function StaticNavBar() {
   const current = useRouter().asPath;
 
-  return <Box
-    as="nav"
-    w="100%"
-    bgColor="white"
-    boxShadow="sm"
-    position="sticky"
-    top="0"
-    zIndex="999"
-  >
-    <Flex
-      height={16}
-      justifyContent="space-between"
-      paddingX={pageMarginX}
-      maxW={staticPageMaxWidth}
-      alignItems="center" // Center content vertically
-      marginX="auto" // Centers content horizontally
+  return (
+    <Box
+      as="nav"
+      w="100%"
+      bgColor="white"
+      boxShadow="sm"
+      position="sticky"
+      top="0"
+      zIndex="999"
     >
+      <Flex
+        height={16}
+        justifyContent="space-between"
+        paddingX={pageMarginX}
+        maxW={staticPageMaxWidth}
+        alignItems="center" // Center content vertically
+        marginX="auto" // Centers content horizontally
+      >
         <NextLink href={staticUrlPrefix}>
-          <Image
-            src={yuanjianLogo80x80}
-            alt="图标"
-            width={30}
-          />
+          <Image src={yuanjianLogo80x80} alt="图标" width={30} />
         </NextLink>
 
         <HStack as="nav" spacing={7} fontWeight="bold">
+          <NavLink href={staticUrlPrefix} current={current} text="首页" />
 
-          <NavLink href={staticUrlPrefix} current={current}
-            text="首页" />
-
-          <NavLink href={`${staticUrlPrefix}/articles`} current={current}
-            text="文章" />
+          <NavLink
+            href={`${staticUrlPrefix}/articles`}
+            current={current}
+            text="文章"
+          />
 
           <NextLink href={loginUrl()}>
             <Text color={inactiveNavLinkColor}>进入远图</Text>
@@ -60,20 +56,28 @@ export default function StaticNavBar() {
           <Button variant="brand" as={NextLink} href={loginUrl()}>
             登录 / 注册
           </Button>
-
         </HStack>
-    </Flex>
-  </Box>;
-};
+      </Flex>
+    </Box>
+  );
+}
 
-function NavLink({ href, current, text }: {
+function NavLink({
+  href,
+  current,
+  text,
+}: {
   href: string;
   current: string;
   text: string;
 }) {
-  return <NextLink href={href}>
-    <Text color={current === href ? activeNavLinkColor : inactiveNavLinkColor}>
-      {text}
-    </Text>
-  </NextLink>;
+  return (
+    <NextLink href={href}>
+      <Text
+        color={current === href ? activeNavLinkColor : inactiveNavLinkColor}
+      >
+        {text}
+      </Text>
+    </NextLink>
+  );
 }

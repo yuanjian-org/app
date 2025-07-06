@@ -3,7 +3,7 @@ const radio = {
     Radio: {
       baseStyle: {
         control: {
-          bg: 'white', 
+          bg: "white",
         },
       },
     },

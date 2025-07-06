@@ -50,15 +50,15 @@ export default class MentorBooking extends Model {
    * Associations
    */
 
-  @BelongsTo(() => User, { foreignKey: 'requesterId' })
+  @BelongsTo(() => User, { foreignKey: "requesterId" })
   requester: User;
 
-  @BelongsTo(() => User, { foreignKey: 'requestedMentorId' })
+  @BelongsTo(() => User, { foreignKey: "requestedMentorId" })
   requestedMentor: User;
 
-  @BelongsTo(() => User, { foreignKey: 'assignedMentorId' })
+  @BelongsTo(() => User, { foreignKey: "assignedMentorId" })
   assignedMentor: User;
 
-  @BelongsTo(() => User, { foreignKey: 'updaterId' })
+  @BelongsTo(() => User, { foreignKey: "updaterId" })
   updater: User;
-};
+}

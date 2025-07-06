@@ -16,10 +16,10 @@ import ChatRoom from "./ChatRoom";
 @Table({
   indexes: [
     // Used by getLastMessageCreatedAt
-    { fields: ['roomId', 'createdAt'] },
+    { fields: ["roomId", "createdAt"] },
     // Used by getLastMessageUpdatedAt
-    { fields: ['roomId', 'userId', 'updatedAt'] },
-  ]
+    { fields: ["roomId", "userId", "updatedAt"] },
+  ],
 })
 class ChatMessage extends Model {
   @IsUUID(4)

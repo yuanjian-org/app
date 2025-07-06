@@ -21,14 +21,14 @@ import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
 
 @Table
 class Calibration extends Model {
-  @Unique('id_type_unique')
+  @Unique("id_type_unique")
   @IsUUID(4)
   @PrimaryKey
   @Default(UUIDV4)
   @Column(UUID)
   id: CreationOptional<string>;
 
-  @Unique('id_type_unique')
+  @Unique("id_type_unique")
   @AllowNull(false)
   @ZodColumn(STRING, zInterviewType)
   type: InterviewType;
@@ -56,7 +56,7 @@ class Calibration extends Model {
   @HasOne(() => Group)
   group: Group;
 
-  @BelongsTo(() => User, { foreignKey: 'managerId' })
+  @BelongsTo(() => User, { foreignKey: "managerId" })
   manager: User | null;
 }
 

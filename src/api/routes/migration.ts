@@ -7,7 +7,7 @@ export default router({
   // token?
   migrateDatabase: procedure
     .use(authIntegration())
-    .mutation(async () => await migrateDatabase())
+    .mutation(async () => await migrateDatabase()),
 });
 
 export async function migrateDatabase() {

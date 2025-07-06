@@ -11,10 +11,12 @@ import { BOOLEAN, STRING, TEXT, UUID } from "sequelize";
 import User from "./User";
 
 @Table({
-  indexes: [{
-    fields: ["assigneeId", "autoTaskId"],
-    unique: true,
-  }],
+  indexes: [
+    {
+      fields: ["assigneeId", "autoTaskId"],
+      unique: true,
+    },
+  ],
 })
 export default class Task extends Model {
   @Index

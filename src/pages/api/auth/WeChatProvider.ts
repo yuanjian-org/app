@@ -6,22 +6,22 @@ import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { newFakeEmail } from "../../../shared/fakeEmail";
 
 export interface WeChatProfile {
-  openid: string
-  nickname: string
-  sex: number
-  province: string
-  city: string
-  country: string
-  headimgurl: string
-  privilege: string[]
-  unionid: string
-  [claim: string]: unknown
+  openid: string;
+  nickname: string;
+  sex: number;
+  province: string;
+  city: string;
+  country: string;
+  headimgurl: string;
+  privilege: string[];
+  unionid: string;
+  [claim: string]: unknown;
 }
 
 export default function WeChatProvider(
   options: OAuthUserConfig<WeChatProfile> & {
-    platformType: "OfficialAccount" | "WebsiteApp"
-  }
+    platformType: "OfficialAccount" | "WebsiteApp";
+  },
 ): OAuthConfig<WeChatProfile> {
   const { clientId, clientSecret, platformType } = options;
 
@@ -54,7 +54,9 @@ export default function WeChatProvider(
       async request({ params }) {
         try {
           if (!params.code) throw new Error("No code provided");
-          const url = new URL("https://api.weixin.qq.com/sns/oauth2/access_token");
+          const url = new URL(
+            "https://api.weixin.qq.com/sns/oauth2/access_token",
+          );
           url.searchParams.set("appid", clientId);
           url.searchParams.set("secret", clientSecret);
           url.searchParams.set("code", params.code);
@@ -63,16 +65,16 @@ export default function WeChatProvider(
           const data = await response.json();
           return { tokens: data };
         } catch (error) {
-          console.error('WeChat token request failed:', error);
-          throw new Error('微信登录失败,请重试');
+          console.error("WeChat token request failed:", error);
+          throw new Error("微信登录失败,请重试");
         }
-      }
+      },
     },
 
     userinfo: {
       async request({ tokens }) {
         if (!tokens.access_token) {
-          throw new Error('未获取到微信授权');
+          throw new Error("未获取到微信授权");
         }
         const url = new URL("https://api.weixin.qq.com/sns/userinfo");
         url.searchParams.set("access_token", tokens.access_token!);

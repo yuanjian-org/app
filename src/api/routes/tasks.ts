@@ -3,8 +3,15 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import { AutoTaskId, isAutoTask, Task, zTask } from "../../shared/Task";
-import { taskAttributes, taskInclude } from "../database/models/attributesAndIncludes";
-import { generalBadRequestError, noPermissionError, notFoundError } from "../errors";
+import {
+  taskAttributes,
+  taskInclude,
+} from "../database/models/attributesAndIncludes";
+import {
+  generalBadRequestError,
+  noPermissionError,
+  notFoundError,
+} from "../errors";
 import sequelize from "../database/sequelize";
 import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
@@ -18,45 +25,46 @@ import { User } from "next-auth";
 
 const list = procedure
   .use(authUser())
-  .input(z.object({
-    assigneeIds: z.array(z.string()),
-    includeTasksCreatedByMe: z.boolean(),
-    includeDoneTasks: z.boolean(),
-  }))
+  .input(
+    z.object({
+      assigneeIds: z.array(z.string()),
+      includeTasksCreatedByMe: z.boolean(),
+      includeDoneTasks: z.boolean(),
+    }),
+  )
   .output(z.array(zTask))
-  .query(async ({
-    ctx: { me },
-    input: {
-      assigneeIds,
-      includeTasksCreatedByMe,
-      includeDoneTasks,
-    },
-  }) => 
-{
-  for (const assigneeId of assigneeIds) {
-    if (
-      assigneeId !== me.id &&
-      // For mentors, only mentorship managers can see their tasks.
-      !isPermitted(me.roles, "MentorshipManager") &&
-      // For mentees, only mentorship managers and mentors can see their tasks.
-      !await isPermittedtoAccessMentee(me, assigneeId)
-    ) {
-      throw noPermissionError("待办事项");
-    }
-  }
+  .query(
+    async ({
+      ctx: { me },
+      input: { assigneeIds, includeTasksCreatedByMe, includeDoneTasks },
+    }) => {
+      for (const assigneeId of assigneeIds) {
+        if (
+          assigneeId !== me.id &&
+          // For mentors, only mentorship managers can see their tasks.
+          !isPermitted(me.roles, "MentorshipManager") &&
+          // For mentees, only mentorship managers and mentors can see their tasks.
+          !(await isPermittedtoAccessMentee(me, assigneeId))
+        ) {
+          throw noPermissionError("待办事项");
+        }
+      }
 
-  return (await db.Task.findAll({
-    where: {
-      [Op.or]: [
-        ...assigneeIds.map(assigneeId => ({ assigneeId })),
-        ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
-      ],
-      ...!includeDoneTasks && { done: false },
+      return (
+        await db.Task.findAll({
+          where: {
+            [Op.or]: [
+              ...assigneeIds.map((assigneeId) => ({ assigneeId })),
+              ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
+            ],
+            ...(!includeDoneTasks && { done: false }),
+          },
+          attributes: taskAttributes,
+          include: taskInclude,
+        })
+      ).map((n) => castTask(n));
     },
-    attributes: taskAttributes,
-    include: taskInclude,
-  })).map(n => castTask(n));
-});
+  );
 
 /**
  * We need this pseudo function because id and updatedAt are defined as an
@@ -68,89 +76,102 @@ export function castTask(n: any): Task {
 
 const create = procedure
   .use(authUser())
-  .input(z.object({
-    assigneeId: z.string(),
-    markdown: z.string(),
-  }))
-  .mutation(async ({ ctx: { me }, input: { assigneeId, markdown } }) => 
-{
-  if (markdown.trim().length === 0) {
-    throw generalBadRequestError("待办事项不能为空。");
-  }
+  .input(
+    z.object({
+      assigneeId: z.string(),
+      markdown: z.string(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { assigneeId, markdown } }) => {
+    if (markdown.trim().length === 0) {
+      throw generalBadRequestError("待办事项不能为空。");
+    }
 
-  await sequelize.transaction(async transaction => {
-    await db.Task.create({
-      creatorId: me.id,
-      assigneeId,
-      markdown: markdown.trim(),
-      done: false,
-    }, { transaction });
+    await sequelize.transaction(async (transaction) => {
+      await db.Task.create(
+        {
+          creatorId: me.id,
+          assigneeId,
+          markdown: markdown.trim(),
+          done: false,
+        },
+        { transaction },
+      );
 
-    await scheduleEmail("Task", assigneeId, transaction);
+      await scheduleEmail("Task", assigneeId, transaction);
+    });
   });
-});
 
 const update = procedure
   .use(authUser())
-  .input(z.object({
-    id: z.number(),
-    assigneeId: z.string(),
-    markdown: z.string(),
-  }))
-  .mutation(async ({ ctx: { me }, input: { id, assigneeId, markdown } }) => 
-{
-  if (markdown.trim().length === 0) {
-    throw generalBadRequestError("待办事项不能为空。");
-  }
+  .input(
+    z.object({
+      id: z.number(),
+      assigneeId: z.string(),
+      markdown: z.string(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { id, assigneeId, markdown } }) => {
+    if (markdown.trim().length === 0) {
+      throw generalBadRequestError("待办事项不能为空。");
+    }
 
-  await sequelize.transaction(async transaction => {
-    const task = await db.Task.findByPk(id, {
-      attributes: taskAttributes,
-      include: taskInclude,
-      transaction,
+    await sequelize.transaction(async (transaction) => {
+      const task = await db.Task.findByPk(id, {
+        attributes: taskAttributes,
+        include: taskInclude,
+        transaction,
+      });
+      checkForUpdate(castTask(task), me);
+
+      await db.Task.update(
+        {
+          assigneeId,
+          markdown: markdown.trim(),
+        },
+        {
+          where: { id },
+          transaction,
+        },
+      );
+
+      await scheduleEmail("Task", assigneeId, transaction);
     });
-    checkForUpdate(castTask(task), me);
-
-    await db.Task.update({
-      assigneeId,
-      markdown: markdown.trim(),
-    }, { 
-      where: { id },
-      transaction,
-    });
-
-    await scheduleEmail("Task", assigneeId, transaction);
   });
-});
 
 const updateDone = procedure
   .use(authUser())
-  .input(z.object({
-    id: z.number(),
-    done: z.boolean(),
-  }))
-  .mutation(async ({ ctx: { me }, input: { id, done } }) => 
-{
-  await sequelize.transaction(async transaction => {
-    const task = await db.Task.findByPk(id, {
-      attributes: taskAttributes,
-      include: taskInclude,
-      transaction,
-    });
-    checkForUpdate(castTask(task), me);
-    await db.Task.update({ done }, { 
-      where: { id },
-      transaction,
+  .input(
+    z.object({
+      id: z.number(),
+      done: z.boolean(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { id, done } }) => {
+    await sequelize.transaction(async (transaction) => {
+      const task = await db.Task.findByPk(id, {
+        attributes: taskAttributes,
+        include: taskInclude,
+        transaction,
+      });
+      checkForUpdate(castTask(task), me);
+      await db.Task.update(
+        { done },
+        {
+          where: { id },
+          transaction,
+        },
+      );
     });
   });
-});
 
 function checkForUpdate(task: Task | null, me: User) {
   if (!task) throw notFoundError("待办事项");
 
-  if (isAutoTask(task) || (
-    task.assignee.id !== me.id && task.creator?.id !== me.id
-  )) {
+  if (
+    isAutoTask(task) ||
+    (task.assignee.id !== me.id && task.creator?.id !== me.id)
+  ) {
     throw noPermissionError("待办事项", task.assignee.id);
   }
 }
@@ -161,17 +182,16 @@ function checkForUpdate(task: Task | null, me: User) {
 const getLastTasksUpdatedAt = procedure
   .use(authUser())
   .output(zDateColumn)
-  .query(async ({ ctx: { me } }) => 
-{
-  const ret = await db.Task.max("updatedAt", {
-    where: {
-      assigneeId: me.id,
-      creatorId: isAutoTaskOrCreatorIsOther(me.id),
-      done: false,
-    },
+  .query(async ({ ctx: { me } }) => {
+    const ret = await db.Task.max("updatedAt", {
+      where: {
+        assigneeId: me.id,
+        creatorId: isAutoTaskOrCreatorIsOther(me.id),
+        done: false,
+      },
+    });
+    return ret ?? moment(0);
   });
-  return ret ?? moment(0);
-});
 
 export function isAutoTaskOrCreatorIsOther(assigneeId: string) {
   return { [Op.or]: [{ [Op.eq]: null }, { [Op.ne]: assigneeId }] };
@@ -186,15 +206,17 @@ export default router({
 });
 
 export async function createAutoTasks() {
-  await sequelize.transaction(async transaction => {
+  await sequelize.transaction(async (transaction) => {
     // Find all ongoing mentorships
     const mentorships = await db.Mentorship.findAll({
       where: whereMentorshipIsOngoing,
       attributes: [],
-      include: [{
-        association: "mentor",
-        attributes: ["id", "state"],
-      }],
+      include: [
+        {
+          association: "mentor",
+          attributes: ["id", "state"],
+        },
+      ],
       transaction,
     });
 
@@ -237,11 +259,14 @@ export async function createAutoTask(
   if (task) {
     await task.update({ done: false }, { transaction });
   } else {
-    await db.Task.create({
-      assigneeId,
-      autoTaskId,
-      done: false,
-    }, { transaction });
+    await db.Task.create(
+      {
+        assigneeId,
+        autoTaskId,
+        done: false,
+      },
+      { transaction },
+    );
   }
 
   await scheduleEmail("Task", assigneeId, transaction);

@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { zMinUser } from './User';
-import { zNullableDateColumn } from './DateColumn';
+import { z } from "zod";
+import { zMinUser } from "./User";
+import { zNullableDateColumn } from "./DateColumn";
 
 // TODO: rename to Interviewer
 export const zMinInterviewFeedback = z.object({
@@ -26,7 +26,9 @@ export const zFeedback = z.object({
 });
 export type Feedback = z.TypeOf<typeof zFeedback>;
 
-export const zInterviewFeedback = zMinInterviewFeedback.merge(z.object({
-  feedback: zFeedbackDeprecated.nullable(),
-}));
+export const zInterviewFeedback = zMinInterviewFeedback.merge(
+  z.object({
+    feedback: zFeedbackDeprecated.nullable(),
+  }),
+);
 export type InterviewFeedback = z.TypeOf<typeof zInterviewFeedback>;

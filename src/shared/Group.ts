@@ -26,6 +26,7 @@ export function isPermittedToAccessGroup(u: User, g: Group): boolean {
 }
 
 export function isPermittedToAccessGroupHistory(u: User, g: Group): boolean {
-  return isPermitted(u.roles, "GroupManager") ||
-    g.users.some(gu => gu.id === u.id);
+  return (
+    isPermitted(u.roles, "GroupManager") || g.users.some((gu) => gu.id === u.id)
+  );
 }

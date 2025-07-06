@@ -1,63 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
-import { MinUser } from 'shared/User';
-import { formatUserName } from 'shared/strings';
+import { MinUser } from "shared/User";
+import { formatUserName } from "shared/strings";
 
 export default function UserSelector(props: {
   onSelect: (userIds: string[]) => void;
   placeholder?: string;
-  isMulti?: boolean;    // Default is false
+  isMulti?: boolean; // Default is false
   isDisabled?: boolean;
-  initialValue?: MinUser[],
+  initialValue?: MinUser[];
 }) {
   const isMulti = props.isMulti ? true : false;
   type Option = {
     label: string;
     value: string;
   };
-  const [value, setValue] = useState<Option[]>(!props.initialValue ? [] : props.initialValue.map(u => ({
-    label: formatUserName(u.name),
-    value: u.id,
-  })));
+  const [value, setValue] = useState<Option[]>(
+    !props.initialValue
+      ? []
+      : props.initialValue.map((u) => ({
+          label: formatUserName(u.name),
+          value: u.id,
+        })),
+  );
 
   const loadOptions = (
     inputValue: string,
-    callback: (options: Option[]) => void
+    callback: (options: Option[]) => void,
   ) => {
-    void trpc.users.list.query({
-      matchesNameOrEmail: inputValue,
-    }).then(users => {
-      callback(users.map(u => {
-        return {
-          label: `${u.name} (${u.email})`,
-          value: u.id,
-        };
-      }));
-    });
+    void trpc.users.list
+      .query({
+        matchesNameOrEmail: inputValue,
+      })
+      .then((users) => {
+        callback(
+          users.map((u) => {
+            return {
+              label: `${u.name} (${u.email})`,
+              value: u.id,
+            };
+          }),
+        );
+      });
   };
 
   // https://react-select.com/props
-  return <AsyncSelect
-    isClearable
-    isDisabled={props.isDisabled}
-    cacheOptions
-    loadOptions={loadOptions}
-    isMulti={isMulti}
-    value={value}
-    noOptionsMessage={() => "可以用姓名拼音、中文或email搜索"}
-    loadingMessage={() => "正在检索..."}
-    placeholder={props.placeholder ?? '搜索用户...'}
-    onChange={value => {
-      // @ts-expect-error
-      setValue(value);
-      if (isMulti) props.onSelect((value as Option[]).map(o => o.value));
-      else props.onSelect(value ? [(value as Option).value] : []);
-    }}
-
-    // To prevent the dropdown menu being hidden under other elements.
-    // https://stackoverflow.com/a/63898744
-    menuPortalTarget={document.body}
-    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-  />;
+  return (
+    <AsyncSelect
+      isClearable
+      isDisabled={props.isDisabled}
+      cacheOptions
+      loadOptions={loadOptions}
+      isMulti={isMulti}
+      value={value}
+      noOptionsMessage={() => "可以用姓名拼音、中文或email搜索"}
+      loadingMessage={() => "正在检索..."}
+      placeholder={props.placeholder ?? "搜索用户..."}
+      onChange={(value) => {
+        // @ts-expect-error
+        setValue(value);
+        if (isMulti) props.onSelect((value as Option[]).map((o) => o.value));
+        else props.onSelect(value ? [(value as Option).value] : []);
+      }}
+      // To prevent the dropdown menu being hidden under other elements.
+      // https://stackoverflow.com/a/63898744
+      menuPortalTarget={document.body}
+      styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+    />
+  );
 }

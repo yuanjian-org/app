@@ -12,7 +12,14 @@ import {
   HasOne,
   Unique,
 } from "sequelize-typescript";
-import { BOOLEAN, CreationOptional, DATE, JSONB, UUID, UUIDV4 } from "sequelize";
+import {
+  BOOLEAN,
+  CreationOptional,
+  DATE,
+  JSONB,
+  UUID,
+  UUIDV4,
+} from "sequelize";
 import User from "./User";
 import Assessment from "./Assessment";
 import Group from "./Group";
@@ -27,10 +34,12 @@ import ZodColumn from "../modelHelpers/ZodColumn";
  * A mentorship is a mentee-mentor pair.
  */
 @Table({
-  indexes: [{
-    unique: true,
-    fields: ['mentorId', 'menteeId']
-  }]
+  indexes: [
+    {
+      unique: true,
+      fields: ["mentorId", "menteeId"],
+    },
+  ],
 })
 class Mentorship extends Model {
   @Unique
@@ -66,10 +75,10 @@ class Mentorship extends Model {
    * Associations
    */
 
-  @BelongsTo(() => User, { foreignKey: 'mentorId' })
+  @BelongsTo(() => User, { foreignKey: "mentorId" })
   mentor: User;
 
-  @BelongsTo(() => User, { foreignKey: 'menteeId' })
+  @BelongsTo(() => User, { foreignKey: "menteeId" })
   mentee: User;
 
   @HasOne(() => Group, { foreignKey: "partnershipId" })

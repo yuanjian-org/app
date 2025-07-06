@@ -2,7 +2,8 @@ import {
   AllowNull,
   Column,
   Table,
-  Model, ForeignKey
+  Model,
+  ForeignKey,
 } from "sequelize-typescript";
 import { DATE, STRING, UUID } from "sequelize";
 import Group from "./Group";
@@ -23,7 +24,7 @@ class MeetingHistory extends Model {
   /**
    * The upper bound of meeting end time. We don't know the exact end time
    * because we only pull meeting status periodically. See refreshMeetingSlots()
-   * 
+   *
    * Meeting start time is encoded as the `createdAt` column.
    */
   @Column(DATE)

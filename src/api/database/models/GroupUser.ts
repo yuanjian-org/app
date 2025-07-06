@@ -1,6 +1,4 @@
-import type {
-  CreationOptional,
-} from "sequelize";
+import type { CreationOptional } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -10,13 +8,12 @@ import {
   Default,
   IsUUID,
   Unique,
-  PrimaryKey
+  PrimaryKey,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import { UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Group from "./Group";
-
 
 @Table({
   tableName: "group_users",

@@ -6,9 +6,13 @@ import { z } from "zod";
 // "Mon Dec 23 2024 16:47:59 GMT-0800 (Pacific Standard Time)" but we want ISO
 // strings.
 export const zDateColumn = z.preprocess(
-  arg => arg instanceof Date ? arg.toISOString() :
-    moment.isMoment(arg) ? arg.toISOString() : arg,
-  z.coerce.string()
+  (arg) =>
+    arg instanceof Date
+      ? arg.toISOString()
+      : moment.isMoment(arg)
+        ? arg.toISOString()
+        : arg,
+  z.coerce.string(),
 );
 
 export const zOptionalDateColumn = zDateColumn.optional();

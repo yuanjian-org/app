@@ -1,5 +1,5 @@
-import trpc, { trpcNext } from 'trpc';
-import Loader from 'components/Loader';
+import trpc, { trpcNext } from "trpc";
+import Loader from "components/Loader";
 import {
   Flex,
   Box,
@@ -10,28 +10,28 @@ import {
   SliderMark,
   Tooltip,
   Textarea,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 import invariant from "tiny-invariant";
-import { useRef, useState } from 'react';
-import Autosaver from 'components/Autosaver';
-import { TRPCClientError } from '@trpc/client';
+import { useRef, useState } from "react";
+import Autosaver from "components/Autosaver";
+import { TRPCClientError } from "@trpc/client";
 import { FeedbackDeprecated } from "shared/InterviewFeedback";
-import { isPermitted } from 'shared/Role';
-import { InterviewType } from 'shared/InterviewType';
-import { useMyRoles } from 'useMe';
-import { menteeInterviewDimensions } from 'shared/interviewDimentions';
-import { mentorInterviewDimensions } from 'shared/interviewDimentions';
+import { isPermitted } from "shared/Role";
+import { InterviewType } from "shared/InterviewType";
+import { useMyRoles } from "useMe";
+import { menteeInterviewDimensions } from "shared/interviewDimentions";
+import { mentorInterviewDimensions } from "shared/interviewDimentions";
 
 // TODO: Replace EditorFeedback and EditorFeedbackDimension with Feedback and
 // FeedbackDimension
 export type EditorFeedback = {
-  dimensions: EditorFeedbackDimension[],
+  dimensions: EditorFeedbackDimension[];
 };
 
 export type EditorFeedbackDimension = {
-  name: string,
-  score: number | null,
-  comment: string | null,
+  name: string;
+  score: number | null;
+  comment: string | null;
 };
 
 export const summaryDimensionName = "总评";
@@ -40,15 +40,20 @@ export const summaryScoreLabels = ["拒", "弱拒", "弱收", "收"];
 export function getScoreColor(scoreLabels: string[], score: number): string {
   invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
   const backgrounds = [
-    "red.600", "orange", 
-    ...scoreLabels.length == 4 ? [] : ["gray"],
-    "green.300", "green.600"
+    "red.600",
+    "orange",
+    ...(scoreLabels.length == 4 ? [] : ["gray"]),
+    "green.300",
+    "green.600",
   ];
   return backgrounds[score - 1];
 }
 
-function getDimension(f: EditorFeedback, name: string): EditorFeedbackDimension {
-  const ds = f.dimensions.filter(d => d.name === name);
+function getDimension(
+  f: EditorFeedback,
+  name: string,
+): EditorFeedbackDimension {
+  const ds = f.dimensions.filter((d) => d.name === name);
   if (ds.length > 0) {
     invariant(ds.length == 1);
     return ds[0];
@@ -64,23 +69,32 @@ function getDimension(f: EditorFeedback, name: string): EditorFeedbackDimension 
 /**
  * @returns a new Feedback object
  */
-function setDimension(f: EditorFeedback, dimension: EditorFeedbackDimension):
-  EditorFeedback 
-{
+function setDimension(
+  f: EditorFeedback,
+  dimension: EditorFeedbackDimension,
+): EditorFeedback {
   return {
-    dimensions: [...f.dimensions.filter(d => dimension.name !== d.name), dimension],
+    dimensions: [
+      ...f.dimensions.filter((d) => dimension.name !== d.name),
+      dimension,
+    ],
   };
 }
 
-export function InterviewFeedbackEditor({ type, interviewFeedbackId, readonly } :
-{ 
-  type: InterviewType,
-  interviewFeedbackId: string,
-  readonly?: boolean,
+export function InterviewFeedbackEditor({
+  type,
+  interviewFeedbackId,
+  readonly,
+}: {
+  type: InterviewType;
+  interviewFeedbackId: string;
+  readonly?: boolean;
 }) {
   // See Editor()'s comment on the reason for `catchTime: 0`
-  const { data } = trpcNext.interviewFeedbacks.get.useQuery(interviewFeedbackId,
-    { cacheTime: 0 });
+  const { data } = trpcNext.interviewFeedbacks.get.useQuery(
+    interviewFeedbackId,
+    { cacheTime: 0 },
+  );
   if (!data) return <Loader />;
 
   const f = data.interviewFeedback;
@@ -93,21 +107,33 @@ export function InterviewFeedbackEditor({ type, interviewFeedbackId, readonly } 
     };
     // TODO: A holistic solution.
     await trpc.interviewFeedbacks.logUpdateAttempt.mutate(data);
-    return await trpc.interviewFeedbacks.update.mutate(data);    
+    return await trpc.interviewFeedbacks.update.mutate(data);
   };
 
-  return <Editor type={type} defaultFeedback={f.feedback} etag={data.etag}
-    save={save} showDimensions readonly={readonly} />;
+  return (
+    <Editor
+      type={type}
+      defaultFeedback={f.feedback}
+      etag={data.etag}
+      save={save}
+      showDimensions
+      readonly={readonly}
+    />
+  );
 }
 
-export function InterviewDecisionEditor({ type, interviewId, decision, etag, 
-  readonly
+export function InterviewDecisionEditor({
+  type,
+  interviewId,
+  decision,
+  etag,
+  readonly,
 }: {
-  type: InterviewType,
-  interviewId: string,
-  decision: FeedbackDeprecated | null,
-  etag: number,
-  readonly?: boolean
+  type: InterviewType;
+  interviewId: string;
+  decision: FeedbackDeprecated | null;
+  etag: number;
+  readonly?: boolean;
 }) {
   const myRoles = useMyRoles();
 
@@ -116,13 +142,19 @@ export function InterviewDecisionEditor({ type, interviewId, decision, etag,
       interviewId,
       decision,
       etag,
-    });    
+    });
   };
 
-  return <Editor type={type} defaultFeedback={decision} etag={etag} save={save}
-    readonly={readonly || !isPermitted(myRoles, "MentorshipManager")}
-    showDimensions={false}
-  />;
+  return (
+    <Editor
+      type={type}
+      defaultFeedback={decision}
+      etag={etag}
+      save={save}
+      readonly={readonly || !isPermitted(myRoles, "MentorshipManager")}
+      showDimensions={false}
+    />
+  );
 }
 
 /**
@@ -133,129 +165,181 @@ export function InterviewDecisionEditor({ type, interviewId, decision, etag,
  * validation error when the user attempts to edit data. See
  * https://tanstack.com/query/v4/docs/react/guides/caching
  */
-function Editor({ type, defaultFeedback, etag, save, showDimensions, readonly }:
-{
-  type: InterviewType,
-  defaultFeedback: FeedbackDeprecated | null,
-  etag: number,
-  save: (f: EditorFeedback, etag: number) => Promise<number>,
-  showDimensions: boolean,
-  readonly?: boolean,
+function Editor({
+  type,
+  defaultFeedback,
+  etag,
+  save,
+  showDimensions,
+  readonly,
+}: {
+  type: InterviewType;
+  defaultFeedback: FeedbackDeprecated | null;
+  etag: number;
+  save: (f: EditorFeedback, etag: number) => Promise<number>;
+  showDimensions: boolean;
+  readonly?: boolean;
 }) {
   // Only load the original feedback once, and not when the parent auto
   // refetches it. Changing content during edits may confuses the user to hell.
   const [feedback, setFeedback] = useState<EditorFeedback>(
-    defaultFeedback as EditorFeedback || { dimensions: [] });
+    (defaultFeedback as EditorFeedback) || { dimensions: [] },
+  );
   const refEtag = useRef<number>(etag);
 
-  const dimensions = type == "MenteeInterview" ?
-    menteeInterviewDimensions : mentorInterviewDimensions;
+  const dimensions =
+    type == "MenteeInterview"
+      ? menteeInterviewDimensions
+      : mentorInterviewDimensions;
 
   const onSave = async (f: EditorFeedback) => {
     try {
       refEtag.current = await save(f, refEtag.current);
     } catch (e) {
       if (e instanceof TRPCClientError && e.data.code == "CONFLICT") {
-        window.alert("内容已被更新其他用户或窗口更新，无法继续保存。请刷新查看新内容。");
+        window.alert(
+          "内容已被更新其他用户或窗口更新，无法继续保存。请刷新查看新内容。",
+        );
       }
     }
   };
 
-  return <Flex direction="column" gap={6}>
-    <DimensionEditor 
-      dimension={getDimension(feedback, summaryDimensionName)}
-      dimensionLabel={`${summaryDimensionName}与备注`}
-      scoreLabels={summaryScoreLabels}
-      commentPlaceholder={"评分理由、" +
-        (type == "MenteeInterview" ? "未来导师需关注的情况、" : "") +
-        "自由记录（自动保存）"}
-      readonly={readonly}
-      onChange={d => setFeedback(setDimension(feedback, d))}
-    />
+  return (
+    <Flex direction="column" gap={6}>
+      <DimensionEditor
+        dimension={getDimension(feedback, summaryDimensionName)}
+        dimensionLabel={`${summaryDimensionName}与备注`}
+        scoreLabels={summaryScoreLabels}
+        commentPlaceholder={
+          "评分理由、" +
+          (type == "MenteeInterview" ? "未来导师需关注的情况、" : "") +
+          "自由记录（自动保存）"
+        }
+        readonly={readonly}
+        onChange={(d) => setFeedback(setDimension(feedback, d))}
+      />
 
-    {showDimensions && dimensions.map((name, idx) => <DimensionEditor 
-      key={name}
-      dimension={getDimension(feedback, name)}
-      dimensionLabel={`${idx + 1}. ${name}`}
-      scoreLabels={["明显低于预期", "低于预期", "达到预期", "高于预期", "明显高于预期"]}
-      commentPlaceholder="评分理由，并例举具体回答（自动保存）"
-      readonly={readonly}
-      onChange={d => setFeedback(setDimension(feedback, d))}
-    />)}
+      {showDimensions &&
+        dimensions.map((name, idx) => (
+          <DimensionEditor
+            key={name}
+            dimension={getDimension(feedback, name)}
+            dimensionLabel={`${idx + 1}. ${name}`}
+            scoreLabels={[
+              "明显低于预期",
+              "低于预期",
+              "达到预期",
+              "高于预期",
+              "明显高于预期",
+            ]}
+            commentPlaceholder="评分理由，并例举具体回答（自动保存）"
+            readonly={readonly}
+            onChange={(d) => setFeedback(setDimension(feedback, d))}
+          />
+        ))}
 
-    {!readonly && <Autosaver data={feedback} onSave={onSave} />}
-  </Flex>;
+      {!readonly && <Autosaver data={feedback} onSave={onSave} />}
+    </Flex>
+  );
 }
 
-function DimensionEditor({ 
-  dimension: d, dimensionLabel, scoreLabels, commentPlaceholder, readonly, onChange,
+function DimensionEditor({
+  dimension: d,
+  dimensionLabel,
+  scoreLabels,
+  commentPlaceholder,
+  readonly,
+  onChange,
 }: {
-  dimension: EditorFeedbackDimension,
-  dimensionLabel: string,
-  scoreLabels: string[],
-  commentPlaceholder: string,
-  onChange: (d: EditorFeedbackDimension) => void,
-  readonly?: boolean,
-}) {  
+  dimension: EditorFeedbackDimension;
+  dimensionLabel: string;
+  scoreLabels: string[];
+  commentPlaceholder: string;
+  onChange: (d: EditorFeedbackDimension) => void;
+  readonly?: boolean;
+}) {
   const [showTooltip, setShowTooltip] = useState(false);
   const score = d.score ?? 1;
   const color = getScoreColor(scoreLabels, score);
 
-  const change = (v: number) => onChange({
-    name: d.name,
-    score: v,
-    comment: d.comment,
-  });
+  const change = (v: number) =>
+    onChange({
+      name: d.name,
+      score: v,
+      comment: d.comment,
+    });
 
-  const resetScore = () => onChange({
-    ...d,
-    score: null,
-  });
+  const resetScore = () =>
+    onChange({
+      ...d,
+      score: null,
+    });
 
-  return <>
-    <Flex direction="row" gap={3}>
-      <Box minWidth={140}><b>{dimensionLabel}</b></Box>
-      <Slider min={1} max={scoreLabels.length} step={1} isReadOnly={readonly}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        value={score}
-        // onChangeEnd is needed to triger events when the user clicks on the
-        // lowest score whilc d.score == null.
-        onChangeEnd={change}
-        // onChange is needed to triger events for other cases.
-        onChange={change}
-      >
-        <SliderTrack><SliderFilledTrack bg={color} /></SliderTrack>
-        {scoreLabels.map((_, idx) =>
-          <SliderMark key={idx} value={idx + 1}
-            marginTop={3} marginLeft={-1} fontSize="xs" color="gray.400"
-          >
-            {idx + 1}
-          </SliderMark>
-        )}
-        
-        <Tooltip
-          hasArrow
-          placement='top'
-          isOpen={showTooltip}
-          label={`${score}: ${scoreLabels[score - 1]}`}
+  return (
+    <>
+      <Flex direction="row" gap={3}>
+        <Box minWidth={140}>
+          <b>{dimensionLabel}</b>
+        </Box>
+        <Slider
+          min={1}
+          max={scoreLabels.length}
+          step={1}
+          isReadOnly={readonly}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          value={score}
+          // onChangeEnd is needed to triger events when the user clicks on the
+          // lowest score whilc d.score == null.
+          onChangeEnd={change}
+          // onChange is needed to triger events for other cases.
+          onChange={change}
         >
-          <SliderThumb bg={color} opacity={d.score == null ? 0 : 1} 
-            onClick={readonly ? undefined : resetScore} />
-        </Tooltip>
-      </Slider>
-    </Flex>
+          <SliderTrack>
+            <SliderFilledTrack bg={color} />
+          </SliderTrack>
+          {scoreLabels.map((_, idx) => (
+            <SliderMark
+              key={idx}
+              value={idx + 1}
+              marginTop={3}
+              marginLeft={-1}
+              fontSize="xs"
+              color="gray.400"
+            >
+              {idx + 1}
+            </SliderMark>
+          ))}
 
-    <Textarea
-      isReadOnly={readonly}
-      {...readonly ? {} : { placeholder: commentPlaceholder }}
-      height="200px"
-      {...readonly ? {} : { background: "white" }}
-      {...d.comment ? { value: d.comment } : {}}
-      onChange={e => onChange({
-        name: d.name,
-        score: d.score,
-        comment: e.target.value,
-      })} />
-  </>;
+          <Tooltip
+            hasArrow
+            placement="top"
+            isOpen={showTooltip}
+            label={`${score}: ${scoreLabels[score - 1]}`}
+          >
+            <SliderThumb
+              bg={color}
+              opacity={d.score == null ? 0 : 1}
+              onClick={readonly ? undefined : resetScore}
+            />
+          </Tooltip>
+        </Slider>
+      </Flex>
+
+      <Textarea
+        isReadOnly={readonly}
+        {...(readonly ? {} : { placeholder: commentPlaceholder })}
+        height="200px"
+        {...(readonly ? {} : { background: "white" })}
+        {...(d.comment ? { value: d.comment } : {})}
+        onChange={(e) =>
+          onChange({
+            name: d.name,
+            score: d.score,
+            comment: e.target.value,
+          })
+        }
+      />
+    </>
+  );
 }

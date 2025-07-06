@@ -5,37 +5,41 @@ import { zTraits } from "./Traits";
 const zStr = z.string().optional();
 
 export const zStringUserProfile = z.object({
-  '性别': zStr,
-  '英文别名': zStr,
-  '身份头衔': zStr,
-  '现居住地': zStr,
-  '曾居住地': zStr,
-  '专业领域': zStr,
-  '成长亮点': zStr,
-  '教育经历': zStr,
-  '职业经历': zStr,
-  '个性特点': zStr,
-  '爱好与特长': zStr,
-  '喜爱读物': zStr,
-  '生活日常': zStr,
-  '擅长话题': zStr,
+  性别: zStr,
+  英文别名: zStr,
+  身份头衔: zStr,
+  现居住地: zStr,
+  曾居住地: zStr,
+  专业领域: zStr,
+  成长亮点: zStr,
+  教育经历: zStr,
+  职业经历: zStr,
+  个性特点: zStr,
+  爱好与特长: zStr,
+  喜爱读物: zStr,
+  生活日常: zStr,
+  擅长话题: zStr,
 
-  '照片链接': zStr,
+  照片链接: zStr,
 
   // Unused / deprecated
-  '擅长辅导领域': zStr,
+  擅长辅导领域: zStr,
 });
 
 export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
 
-export const zUserProfile = zStringUserProfile.merge(z.object({
-  '照片参数': z.object({
-    x: z.number(),
-    y: z.number(),
-    zoom: z.number(),
-  }).optional(),
-  '特质': zTraits.optional(),
-}));
+export const zUserProfile = zStringUserProfile.merge(
+  z.object({
+    照片参数: z
+      .object({
+        x: z.number(),
+        y: z.number(),
+        zoom: z.number(),
+      })
+      .optional(),
+    特质: zTraits.optional(),
+  }),
+);
 
 export type UserProfile = z.TypeOf<typeof zUserProfile>;
 

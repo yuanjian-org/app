@@ -9,11 +9,11 @@
  */
 
 export default async function markdown2html(markdown: string) {
-  const { unified } = await import('unified');
-  const { default: remarkGfm } = await import('remark-gfm');
-  const { default: remarkParse } = await import('remark-parse');
-  const { default: remarkRehype } = await import('remark-rehype');
-  const { default: rehypeStringify } = await import('rehype-stringify');
+  const { unified } = await import("unified");
+  const { default: remarkGfm } = await import("remark-gfm");
+  const { default: remarkParse } = await import("remark-parse");
+  const { default: remarkRehype } = await import("remark-rehype");
+  const { default: rehypeStringify } = await import("rehype-stringify");
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)

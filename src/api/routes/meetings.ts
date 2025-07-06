@@ -6,15 +6,15 @@ import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
-import { emailRole, emailRoleIgnoreError } from 'api/email';
-import sequelize from 'api/database/sequelize';
-import { checkPermissionForGroup } from './groups';
+import { emailRole, emailRoleIgnoreError } from "api/email";
+import sequelize from "api/database/sequelize";
+import { checkPermissionForGroup } from "./groups";
 import {
   groupAttributes,
-  groupInclude
-} from 'api/database/models/attributesAndIncludes';
-import { Op, Transaction } from 'sequelize';
-import moment from 'moment';
+  groupInclude,
+} from "api/database/models/attributesAndIncludes";
+import { Op, Transaction } from "sequelize";
+import moment from "moment";
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
@@ -31,91 +31,100 @@ export const gracePeriodMinutes = 5;
 const join = procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
-  .mutation(async ({ ctx: { user, baseUrl }, input: { groupId } }) => 
-{
-  const g = await db.Group.findByPk(groupId, { 
-    attributes: groupAttributes,
-    include: groupInclude,
-  });
-  if (!g) throw notFoundError("分组", groupId);
-
-  checkPermissionForGroup(user, g);
-
-  if (!apiEnv.hasTencentMeeting()) {
-    await sleep(2000);
-    return "/fake-meeting";
-  }
-
-  // Lock option is applied to transactions in order to prevent conflicts when
-  // multiple transactions are trying to access or modify the same data
-  // simultaneously: https://stackoverflow.com/a/48297781
-  // If the group is already present in MeetingSlot, return the meeting link.
-  return await sequelize.transaction(async transaction => {
-    // Find an existing slot for the group. TencentMeeting's status is ignored.
-    // It means that even if the meeting is ended, it will still be reused for
-    // the group.
-    const existing = await db.MeetingSlot.findOne({ 
-      where: { groupId },
-      lock: true,
-      transaction,
+  .mutation(async ({ ctx: { user, baseUrl }, input: { groupId } }) => {
+    const g = await db.Group.findByPk(groupId, {
+      attributes: groupAttributes,
+      include: groupInclude,
     });
-    if (existing) return existing.meetingLink;
+    if (!g) throw notFoundError("分组", groupId);
 
-    // No matching slot found. Find a free slot.
-    let refreshed = false;
-    while (true) {
-      const free = await db.MeetingSlot.findOne({
-        where: { groupId: null },
-        // To ease troubleshooting, always pick the smallest available tmUserId.
-        order: [["tmUserId", "ASC"]],
-        attributes: ["id", "meetingId", "meetingLink"],
+    checkPermissionForGroup(user, g);
+
+    if (!apiEnv.hasTencentMeeting()) {
+      await sleep(2000);
+      return "/fake-meeting";
+    }
+
+    // Lock option is applied to transactions in order to prevent conflicts when
+    // multiple transactions are trying to access or modify the same data
+    // simultaneously: https://stackoverflow.com/a/48297781
+    // If the group is already present in MeetingSlot, return the meeting link.
+    return await sequelize.transaction(async (transaction) => {
+      // Find an existing slot for the group. TencentMeeting's status is ignored.
+      // It means that even if the meeting is ended, it will still be reused for
+      // the group.
+      const existing = await db.MeetingSlot.findOne({
+        where: { groupId },
         lock: true,
         transaction,
       });
-      
-      if (free) {
-        await free.update({ groupId }, { transaction });
-        await db.MeetingHistory.create({
-          meetingId: free.meetingId,
-          groupId,
-        }, { transaction });    
-        return free.meetingLink;
+      if (existing) return existing.meetingLink;
 
-      } else {
-        if (!refreshed) {
-          // No slots available. Refresh them and try again.
-          await refreshMeetingSlots(transaction);
-          refreshed = true;
-          continue;
+      // No matching slot found. Find a free slot.
+      let refreshed = false;
+      while (true) {
+        const free = await db.MeetingSlot.findOne({
+          where: { groupId: null },
+          // To ease troubleshooting, always pick the smallest available tmUserId.
+          order: [["tmUserId", "ASC"]],
+          attributes: ["id", "meetingId", "meetingLink"],
+          lock: true,
+          transaction,
+        });
+
+        if (free) {
+          await free.update({ groupId }, { transaction });
+          await db.MeetingHistory.create(
+            {
+              meetingId: free.meetingId,
+              groupId,
+            },
+            { transaction },
+          );
+          return free.meetingLink;
         } else {
-          const slots = await db.MeetingSlot.findAll({
-            attributes: ["groupId"],
-            transaction,
-          });
-          const content = `试图发起会议的分组：${baseUrl}/groups/${groupId}。
+          if (!refreshed) {
+            // No slots available. Refresh them and try again.
+            await refreshMeetingSlots(transaction);
+            refreshed = true;
+            continue;
+          } else {
+            const slots = await db.MeetingSlot.findAll({
+              attributes: ["groupId"],
+              transaction,
+            });
+            const content =
+              `试图发起会议的分组：${baseUrl}/groups/${groupId}。
             会议进行中的分组：` +
-            slots.map(s => `${baseUrl}/groups/${s.groupId}`).join("、");
+              slots.map((s) => `${baseUrl}/groups/${s.groupId}`).join("、");
 
-          emailRoleIgnoreError("SystemAlertSubscriber", "超过并发会议上限", 
-            content, baseUrl);
-          return null;
+            emailRoleIgnoreError(
+              "SystemAlertSubscriber",
+              "超过并发会议上限",
+              content,
+              baseUrl,
+            );
+            return null;
+          }
         }
       }
-    }
+    });
   });
-});
 
 /**
  * Decline the meeting feature.
  */
 const decline = procedure
   .use(authUser())
-  .mutation(async ({ ctx: { user, baseUrl } }) => 
-{
-  await emailRole("MentorshipManager", "用户拒绝使用会议功能", 
-    `${formatUserName(user.name)}（用户ID: ${user.id}）拒绝使用会议功能。请与其取得联系，
-    商量解决方案。`, baseUrl);
-});
+  .mutation(async ({ ctx: { user, baseUrl } }) => {
+    await emailRole(
+      "MentorshipManager",
+      "用户拒绝使用会议功能",
+      `${formatUserName(user.name)}（用户ID: ${user.id}）拒绝使用会议功能。请与其取得联系，
+    商量解决方案。`,
+      baseUrl,
+    );
+  });
 
 export default router({
   join,
@@ -132,24 +141,24 @@ export async function refreshMeetingSlots(transaction: Transaction) {
   for (const slot of slots) {
     /**
      * Assume the meeting is ongoing if it is created not long time ago.
-     * 
+     *
      * This is added to support the corner case after a user clicked the join
      * button and before actually joining TencentMeeting. Without this check,
      * if another group attempts to start a meeting in this period, the slot
      * would be incorrectly marked as available because TencentMeeting's backend
      * hasn't updated the meeting status yet.
      */
-    if (moment().diff(slot.updatedAt, 'minutes') < gracePeriodMinutes) continue;
+    if (moment().diff(slot.updatedAt, "minutes") < gracePeriodMinutes) continue;
     const m = await getMeeting(slot.meetingId, slot.tmUserId);
 
     // Meeting is ongoing. Skip.
-    if (m.status == 'MEETING_STATE_STARTED') continue;
+    if (m.status == "MEETING_STATE_STARTED") continue;
 
     console.log(`Marking meeting ${slot.meetingId} as ended for group
       ${slot.groupId}`);
 
     const histories = await db.MeetingHistory.findAll({
-      where: { 
+      where: {
         meetingId: slot.meetingId,
         endedBefore: null,
       },
@@ -161,10 +170,16 @@ export async function refreshMeetingSlots(transaction: Transaction) {
      * occupied MeetingSlot must has a corresponding MeetingHistory entry
      * with a null endedBefore.
      */
-    invariant(histories.length === 1, `more than one history with null
-      endedBefore found for ${slot.meetingId}`);
-    invariant(histories[0].groupId === slot.groupId, `group id mismatch for 
-      history ${slot.meetingId}: ${histories[0].groupId} != ${slot.groupId}`);
+    invariant(
+      histories.length === 1,
+      `more than one history with null
+      endedBefore found for ${slot.meetingId}`,
+    );
+    invariant(
+      histories[0].groupId === slot.groupId,
+      `group id mismatch for 
+      history ${slot.meetingId}: ${histories[0].groupId} != ${slot.groupId}`,
+    );
 
     await histories[0].update({ endedBefore: new Date() }, { transaction });
     await slot.update({ groupId: null }, { transaction });
@@ -178,7 +193,7 @@ export async function syncMeetings() {
    * simplicity. The former makes sure this field is set for all the meetings
    * that have ended.
    */
-  await sequelize.transaction(async transaction => {
+  await sequelize.transaction(async (transaction) => {
     await refreshMeetingSlots(transaction);
   });
 
@@ -189,12 +204,12 @@ export async function syncMeetings() {
  * Starting mid-2024, Tencent Meeting imposed a new restriction that limits the
  * number of meetings created each month to two per paying user:
  * https://cloud.tencent.com/document/product/1095/42417 Therefore, we can't
- * create new meetings on every meeting request. Instead, we reuse existing 
+ * create new meetings on every meeting request. Instead, we reuse existing
  * meeting links and use this function to periodically attempt to create new
  * meetings and replace existing ones.
- * 
+ *
  * This "recycling" process is necessary because:
- * 
+ *
  * 1) a meeting becomes unuseable after a while (e.g. one month for one-off
  * meetings), and 2) we want to minimize the reuse of meeting links so that
  * if someone remembers a meeting link and use it outside of our system,
@@ -204,7 +219,7 @@ export async function syncMeetings() {
  */
 export async function recycleMeetings() {
   for (const tmUserId of apiEnv.TM_USER_IDS) {
-    await sequelize.transaction(async transaction => {
+    await sequelize.transaction(async (transaction) => {
       const slot = await db.MeetingSlot.findOne({
         where: { tmUserId },
         attributes: ["id", "groupId"],
@@ -217,19 +232,29 @@ export async function recycleMeetings() {
 
       try {
         const { meetingId, meetingLink } = await create(tmUserId);
-        console.log(`Meeting created for user ${tmUserId}: ` +
-          `${meetingId}, ${meetingLink}`);
+        console.log(
+          `Meeting created for user ${tmUserId}: ` +
+            `${meetingId}, ${meetingLink}`,
+        );
 
         if (slot) {
-          await slot.update({ 
-            meetingId, meetingLink,
-          }, { transaction });
+          await slot.update(
+            {
+              meetingId,
+              meetingLink,
+            },
+            { transaction },
+          );
         } else {
-          await db.MeetingSlot.create({
-            tmUserId, meetingId, meetingLink,
-          }, { transaction });
+          await db.MeetingSlot.create(
+            {
+              tmUserId,
+              meetingId,
+              meetingLink,
+            },
+            { transaction },
+          );
         }
-
       } catch (e) {
         console.error(`(Expected) meeting creation failure for user ${tmUserId}:
           ${e}`);
@@ -247,10 +272,13 @@ async function create(tmUserId: string) {
       tmUserId,
       "远图会议，请勿分享或保存链接，参会者需用远图平台进入",
       nextHour,
-      nextHour + 3600);
+      nextHour + 3600,
+    );
 
-    invariant(res.meeting_info_list.length >= 1,
-      `meeting_info_list.length < 1: ${JSON.stringify(res)}`);
+    invariant(
+      res.meeting_info_list.length >= 1,
+      `meeting_info_list.length < 1: ${JSON.stringify(res)}`,
+    );
     const meetingId = res.meeting_info_list[0].meeting_id;
     const meetingLink = res.meeting_info_list[0].join_url;
 
@@ -267,11 +295,14 @@ async function create(tmUserId: string) {
       meetingId,
       meetingLink,
     };
-    
   } catch (e) {
     if (!`${e}`.includes("每月总接口调用次数超过限制")) {
-      emailRoleIgnoreError("SystemAlertSubscriber", "会议创建失败",
-        `会议创建失败：${e}`, getBaseUrl());
+      emailRoleIgnoreError(
+        "SystemAlertSubscriber",
+        "会议创建失败",
+        `会议创建失败：${e}`,
+        getBaseUrl(),
+      );
     }
     throw e;
   }

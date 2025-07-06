@@ -15,14 +15,20 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { zChatRoom } from "../../shared/ChatRoom";
 
-export async function findOrCreateRoom(me: User, menteeId: string, 
-  transaction: Transaction) 
-{
+export async function findOrCreateRoom(
+  me: User,
+  menteeId: string,
+  transaction: Transaction,
+) {
   await checkRoomPermission(me, menteeId);
 
   while (true) {
-    const r = await findRoom(menteeId, transaction, chatRoomAttributes,
-      chatRoomInclude);
+    const r = await findRoom(
+      menteeId,
+      transaction,
+      chatRoomAttributes,
+      chatRoomInclude,
+    );
     if (!r) {
       await db.ChatRoom.create({ menteeId }, { transaction });
     } else {
@@ -59,8 +65,10 @@ export async function createChatMessage(
 
   await checkRoomPermission(author, r.menteeId);
 
-  await db.ChatMessage.create({ roomId, markdown, userId: author.id },
-    { transaction });
+  await db.ChatMessage.create(
+    { roomId, markdown, userId: author.id },
+    { transaction },
+  );
 
   await db.DraftChatMessage.destroy({
     where: { roomId, authorId: author.id },
@@ -72,4 +80,3 @@ export async function checkRoomPermission(me: User, menteeId: string | null) {
   if (menteeId !== null) await checkPermissionToAccessMentee(me, menteeId);
   else invariant(false);
 }
-

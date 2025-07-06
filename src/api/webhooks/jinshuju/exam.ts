@@ -22,29 +22,35 @@ export default async function submit(
     return;
   }
 
-  await sequelize.transaction(async transaction => {
-    const u = await db.User.findByPk(userId, { 
+  await sequelize.transaction(async (transaction) => {
+    const u = await db.User.findByPk(userId, {
       attributes: ["id", "state"],
       transaction,
     });
     if (!u) throw notFoundError("用户", userId);
 
     // Update user state
-    await u.update({
-      state: {
-        ...u.state,
-        [exam]: moment().toISOString(),
+    await u.update(
+      {
+        state: {
+          ...u.state,
+          [exam]: moment().toISOString(),
+        },
       },
-    }, { transaction });
+      { transaction },
+    );
 
     // Update task state
     if (exam === "commsExam" || exam === "handbookExam") {
       // Force type check
-      const autoTaskId: AutoTaskId = exam === "commsExam" ?
-        "study-comms" : "study-handbook";
-      await db.Task.update({
-        done: true,
-      }, { where: { userId, autoTaskId }, transaction });
+      const autoTaskId: AutoTaskId =
+        exam === "commsExam" ? "study-comms" : "study-handbook";
+      await db.Task.update(
+        {
+          done: true,
+        },
+        { where: { userId, autoTaskId }, transaction },
+      );
     }
   });
 }

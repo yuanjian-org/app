@@ -1,6 +1,4 @@
-import {
-  Column, Table, Model
-} from "sequelize-typescript";
+import { Column, Table, Model } from "sequelize-typescript";
 import { TEXT } from "sequelize";
 
 @Table

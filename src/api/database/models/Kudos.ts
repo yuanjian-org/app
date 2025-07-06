@@ -33,9 +33,9 @@ export default class Kudos extends Model {
    * Associations
    */
 
-  @BelongsTo(() => User, { foreignKey: 'receiverId' })
+  @BelongsTo(() => User, { foreignKey: "receiverId" })
   receiver: User;
 
-  @BelongsTo(() => User, { foreignKey: 'giverId' })
+  @BelongsTo(() => User, { foreignKey: "giverId" })
   giver: User;
 }

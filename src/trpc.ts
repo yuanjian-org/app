@@ -1,9 +1,15 @@
-import { TRPCClientError, TRPCLink, createTRPCProxyClient, httpBatchLink, loggerLink } from '@trpc/client';
-import type { ApiRouter } from './api/apiRouter';
-import { observable } from '@trpc/server/observable';
+import {
+  TRPCClientError,
+  TRPCLink,
+  createTRPCProxyClient,
+  httpBatchLink,
+  loggerLink,
+} from "@trpc/client";
+import type { ApiRouter } from "./api/apiRouter";
+import { observable } from "@trpc/server/observable";
 import { toast } from "react-toastify";
 import { createTRPCNext } from "@trpc/next";
-import getBaseUrl from 'shared/getBaseUrl';
+import getBaseUrl from "shared/getBaseUrl";
 
 /**
  * Show toasts on all TRPC errors.
@@ -18,11 +24,10 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
         },
 
         error(err: TRPCClientError<ApiRouter>) {
-          console.log('TRPC got an error:', err);
+          console.log("TRPC got an error:", err);
 
           // Assume UI will manually handle this error.
           if (err.data?.code !== "CONFLICT") {
-
             // When Vercel's gateway times oute (504), it inserts the following
             // text in the response body which TRPC simply can't parse. When
             // this happens, TRPC also doesn't give us the HTTP status code.
@@ -32,9 +37,11 @@ const errorToastLink: TRPCLink<ApiRouter> = () => {
             //
             //    FUNCTION_INVOCATION_TIMEOUT
             //
-            const msg = err.message ==
-              `Unexpected token 'A', "An error o"... is not valid JSON` ?
-              "服务器端超时，请稍后重试。" : `糟糕！${err.message}`;
+            const msg =
+              err.message ==
+              `Unexpected token 'A', "An error o"... is not valid JSON`
+                ? "服务器端超时，请稍后重试。"
+                : `糟糕！${err.message}`;
 
             // Avoid multiple toasts with the same message.
             toast.error(msg, { toastId: msg });
@@ -55,10 +62,10 @@ export const links = [
   errorToastLink,
   ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
   httpBatchLink({
-    url: getBaseUrl() + '/api/v1',
+    url: getBaseUrl() + "/api/v1",
     headers: () => {
       return {
-        Authorization: `Bearer ${localStorage.getItem('_authing_token')}`,
+        Authorization: `Bearer ${localStorage.getItem("_authing_token")}`,
       };
     },
     maxURLLength: 2083, // a suitable size

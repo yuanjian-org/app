@@ -9,14 +9,14 @@ export function ColumnForAll(dataType: sequelize.DataType) {
   return (
     target: any,
     propertyName: string,
-    propertyDescriptor?: PropertyDescriptor
+    propertyDescriptor?: PropertyDescriptor,
   ) => {
     annotate(
       target,
       propertyName,
       propertyDescriptor ??
         Object.getOwnPropertyDescriptor(target, propertyName),
-      dataType
+      dataType,
     );
   };
 }
@@ -27,7 +27,7 @@ function annotate(
   propertyDescriptor?: PropertyDescriptor,
   optionsOrDataType:
     | Partial<ModelAttributeColumnOptions>
-    | sequelize.DataType = {}
+    | sequelize.DataType = {},
 ): void {
   let options: Partial<ModelAttributeColumnOptions>;
 
@@ -76,7 +76,7 @@ function annotate(
     options.set = function (val: any) {
       if (!Array.isArray(val)) {
         throw new Error(
-          "setting " + propertyName + "=" + val + ": not an array"
+          "setting " + propertyName + "=" + val + ": not an array",
         );
       }
       // console.log("setting " + propertyName, val);

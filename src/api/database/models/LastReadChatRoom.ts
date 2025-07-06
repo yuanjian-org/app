@@ -2,8 +2,9 @@ import {
   Column,
   Table,
   Model,
-  PrimaryKey, ForeignKey,
-  AllowNull
+  PrimaryKey,
+  ForeignKey,
+  AllowNull,
 } from "sequelize-typescript";
 import { DATE, UUID } from "sequelize";
 import User from "./User";

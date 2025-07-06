@@ -27,12 +27,12 @@ export class ZodColumnSetError extends Error {
 // from https://github.com/sequelize/sequelize-typescript/blob/master/src/model/column/column.ts
 export default function ZodColumn(
   optionsOrDataType: OptionsOrDataType,
-  zodType: ZodTypeAny
+  zodType: ZodTypeAny,
 ) {
   return (
     target: any,
     propertyName: string,
-    propertyDescriptor?: PropertyDescriptor
+    propertyDescriptor?: PropertyDescriptor,
   ) => {
     annotate(
       optionsOrDataType,
@@ -40,7 +40,7 @@ export default function ZodColumn(
       target,
       propertyName,
       propertyDescriptor ??
-        Object.getOwnPropertyDescriptor(target, propertyName)
+        Object.getOwnPropertyDescriptor(target, propertyName),
     );
   };
 }
@@ -50,7 +50,7 @@ function annotate(
   zodType: ZodTypeAny,
   target: any,
   propertyName: string,
-  propertyDescriptor?: PropertyDescriptor
+  propertyDescriptor?: PropertyDescriptor,
 ): void {
   let options: Partial<ModelAttributeColumnOptions>;
 
@@ -129,7 +129,7 @@ export const hookIsPartialAfterSequelizeInit = () => {
     if (values._isPartial) {
       // @ts-expect-error
       delete values._isPartial;
-      options = (options || {});
+      options = options || {};
       // @ts-expect-error
       options._isPartial = true;
     }

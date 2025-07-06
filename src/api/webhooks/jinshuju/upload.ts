@@ -1,7 +1,10 @@
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
 import { shaChecksum } from "../../../shared/strings";
-import { decodeUploadTokenUrlSafe, decodeXField } from "../../../shared/jinshuju";
+import {
+  decodeUploadTokenUrlSafe,
+  decodeXField,
+} from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
 
 /**
@@ -34,10 +37,12 @@ export default async function submit(entry: Record<string, any>) {
   }
 }
 
-async function uploadUserProfilePicture(userId: string, sha: string,
-  url: string) 
-{
-  await sequelize.transaction(async transaction => {
+async function uploadUserProfilePicture(
+  userId: string,
+  sha: string,
+  url: string,
+) {
+  await sequelize.transaction(async (transaction) => {
     const user = await db.User.findByPk(userId, {
       attributes: ["id", "profile"],
       transaction,
@@ -51,14 +56,18 @@ async function uploadUserProfilePicture(userId: string, sha: string,
     if (sha !== localSha) {
       throw generalBadRequestError(
         `SHA checksum mismatch: provided "${sha}" vs local "${localSha}". ` +
-        `Update conflict?`);
+          `Update conflict?`,
+      );
     }
 
-    await user.update({
-      profile: {
-        ...profile,
-        '照片链接': url,
+    await user.update(
+      {
+        profile: {
+          ...profile,
+          照片链接: url,
+        },
       },
-    }, { transaction });
+      { transaction },
+    );
   });
 }

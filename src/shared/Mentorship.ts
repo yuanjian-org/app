@@ -49,9 +49,11 @@ export function isValidMentorshipIds(
   menteeId: string | null,
   mentorId: string | null,
 ) {
-  return z.string().uuid().safeParse(menteeId).success
-    && z.string().uuid().safeParse(mentorId).success
-    && menteeId !== mentorId;
+  return (
+    z.string().uuid().safeParse(menteeId).success &&
+    z.string().uuid().safeParse(mentorId).success &&
+    menteeId !== mentorId
+  );
 }
 
 export function isEnded(endsAt: DateColumn | null) {
@@ -63,11 +65,13 @@ export function isEndedTransactionalMentorship(m: Mentorship) {
 }
 
 export function newTransactionalMentorshipEndsAt(): Date {
-  return moment().add(2, 'weeks').toDate();
+  return moment().add(2, "weeks").toDate();
 }
 
 export function formatMentorshipSchedule(s: MentorshipSchedule) {
-  return `第 ${s.week} 个周${toChineseDayOfWeek(s.day)} `
-    + `${s.hour.toString().padStart(2, '0')}` 
-    + `:${s.minute.toString().padStart(2, '0')}`;
+  return (
+    `第 ${s.week} 个周${toChineseDayOfWeek(s.day)} ` +
+    `${s.hour.toString().padStart(2, "0")}` +
+    `:${s.minute.toString().padStart(2, "0")}`
+  );
 }

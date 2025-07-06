@@ -1,10 +1,10 @@
-import { expect } from 'chai';
-import db from '../database/db';
-import { createInterview, updateInterview } from './interviews';
-import { findGroups } from './groups';
+import { expect } from "chai";
+import db from "../database/db";
+import { createInterview, updateInterview } from "./interviews";
+import { findGroups } from "./groups";
 import { createUser } from "./users";
 import invariant from "tiny-invariant";
-import sequelize from '../database/sequelize';
+import sequelize from "../database/sequelize";
 
 const intervieweeEmail = "test-interviewee@email.com";
 const interviewer1Email = "test-interviewer1@email.com";
@@ -25,13 +25,13 @@ async function getUserId(email: string): Promise<string> {
 async function createUserIfNotFound(email: string) {
   const id = await findUserId(email);
   if (!id) {
-    await sequelize.transaction(async transaction => {
-      await createUser({ email: email, name: "测试", roles: [] }, transaction );
+    await sequelize.transaction(async (transaction) => {
+      await createUser({ email: email, name: "测试", roles: [] }, transaction);
     });
   }
 }
 
-describe('interviews', () => {
+describe("interviews", () => {
   before(async () => {
     await createUserIfNotFound(intervieweeEmail);
     await createUserIfNotFound(interviewer1Email);
@@ -41,7 +41,7 @@ describe('interviews', () => {
 
   after(async () => {
     const is = await db.Interview.findAll({
-      where: { intervieweeId: await getUserId(intervieweeEmail) }
+      where: { intervieweeId: await getUserId(intervieweeEmail) },
     });
     for (const i of is) {
       await i.destroy({ force: true });
@@ -50,25 +50,49 @@ describe('interviews', () => {
     // TODO: Remove users
   });
 
-  it('`create` should create group', async () => {
+  it("`create` should create group", async () => {
     const interviewee = await getUserId(intervieweeEmail);
-    const interviewers = [await getUserId(interviewer1Email), await getUserId(interviewer2Email)];
-    await sequelize.transaction(async transaction => {
-      await createInterview("MenteeInterview", null, interviewee, interviewers, transaction);
+    const interviewers = [
+      await getUserId(interviewer1Email),
+      await getUserId(interviewer2Email),
+    ];
+    await sequelize.transaction(async (transaction) => {
+      await createInterview(
+        "MenteeInterview",
+        null,
+        interviewee,
+        interviewers,
+        transaction,
+      );
     });
     const gs = await findGroups([interviewee, ...interviewers], "exclusive");
     expect(gs.length).is.equal(1);
   });
 
-  it('`update` should update group', async () => {
+  it("`update` should update group", async () => {
     const interviewee = await getUserId(intervieweeEmail);
     const interviewers = [await getUserId(interviewer2Email)];
-    const id = await sequelize.transaction(async transaction => {
-      return await createInterview("MenteeInterview", null, interviewee, interviewers, transaction);
+    const id = await sequelize.transaction(async (transaction) => {
+      return await createInterview(
+        "MenteeInterview",
+        null,
+        interviewee,
+        interviewers,
+        transaction,
+      );
     });
 
-    const newInterviewers = [await getUserId(interviewer1Email), await getUserId(interviewer3Email)];
-    await updateInterview(id, "MenteeInterview", null, interviewee, newInterviewers);
+    const newInterviewers = [
+      await getUserId(interviewer1Email),
+      await getUserId(interviewer3Email),
+    ];
+    await updateInterview(
+      id,
+      "MenteeInterview",
+      null,
+      interviewee,
+      newInterviewers,
+    );
     const gs = await findGroups([interviewee, ...newInterviewers], "exclusive");
     expect(gs.length).is.equal(1);
   });

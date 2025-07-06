@@ -19,7 +19,8 @@ import db from "../../database/db";
  *    * 馒头工坊 mentee application: https://jsj.top/f/Z82u8w
  */
 export async function submitMenteeApp(
-  formId: string, entry: Record<string, any>
+  formId: string,
+  entry: Record<string, any>,
 ) {
   const application: Record<string, any> = {};
   for (const field of menteeApplicationFields) {
@@ -65,15 +66,24 @@ export async function submitVolunteerApp(entry: Record<string, any>) {
 
   // For Chinese citizens, the field contains national ID number which we should
   // redact: "中国：110102...."
-  application[volutneerNationalityField] = entry.field_22.startsWith("中国") ?
-    "中国" : entry.field_22;
+  application[volutneerNationalityField] = entry.field_22.startsWith("中国")
+    ? "中国"
+    : entry.field_22;
 
   const name = entry.field_4;
   const email = entry.field_8;
   const wechat = entry.field_9;
   const location = entry.field_23;
 
-  await save("Volunteer", email, name, wechat, undefined, location, application);
+  await save(
+    "Volunteer",
+    email,
+    name,
+    wechat,
+    undefined,
+    location,
+    application,
+  );
 }
 
 async function save(
@@ -83,10 +93,10 @@ async function save(
   wechat: string,
   sex: string | undefined,
   location: string | undefined,
-  application: Record<string, any>
+  application: Record<string, any>,
 ) {
-  const column = type == "Mentee" ?
-    "menteeApplication" : "volunteerApplication";
+  const column =
+    type == "Mentee" ? "menteeApplication" : "volunteerApplication";
 
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findOne({
@@ -102,22 +112,24 @@ async function save(
       }
 
       await user.update({ [column]: application }, { transaction });
-
     } else {
       // Force type check
       const sexKey: keyof UserProfile = "性别";
       const locationKey: keyof UserProfile = "现居住地";
-      await createUser({
-        name,
-        email,
-        wechat,
-        [column]: application,
-        ...type == "Mentee" ? { roles: ["Mentee"] } : {},
-        profile: {
-          ...sex ? { [sexKey]: sex } : {},
-          ...location ? { [locationKey]: location } : {},
-        }
-      }, transaction);
+      await createUser(
+        {
+          name,
+          email,
+          wechat,
+          [column]: application,
+          ...(type == "Mentee" ? { roles: ["Mentee"] } : {}),
+          profile: {
+            ...(sex ? { [sexKey]: sex } : {}),
+            ...(location ? { [locationKey]: location } : {}),
+          },
+        },
+        transaction,
+      );
     }
   });
 }

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { Box } from '@chakra-ui/react';
-import Loader from './Loader';
+import { useEffect, useRef, useState } from "react";
+import { Box } from "@chakra-ui/react";
+import Loader from "./Loader";
 import { getCsrfToken } from "next-auth/react";
 
 declare global {
@@ -9,7 +9,10 @@ declare global {
   }
 }
 
-export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
+export default function EmbeddedWeChatQRLogin({
+  appid,
+  callbackUrl,
+}: {
   appid: string;
   callbackUrl: string;
 }) {
@@ -19,14 +22,16 @@ export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
   useEffect(() => {
     // 动态加载微信登录JS
     // https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
-    const script = document.createElement('script');
-    script.src = 'https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js';
+    const script = document.createElement("script");
+    script.src =
+      "https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js";
     script.async = true;
     script.onload = async () => {
       if (containerRef.current && window.WxLogin) {
-        const redirectUri =
-          new URL(`${window.location.origin}/api/auth/callback/embedded-wechat-qr`);
-        redirectUri.searchParams.append('callbackUrl', callbackUrl);
+        const redirectUri = new URL(
+          `${window.location.origin}/api/auth/callback/embedded-wechat-qr`,
+        );
+        redirectUri.searchParams.append("callbackUrl", callbackUrl);
 
         new window.WxLogin({
           id: "wechat-qr-container",
@@ -40,11 +45,11 @@ export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
           state: await getCsrfToken(),
         });
 
-        const iframe = containerRef.current?.querySelector('iframe');
+        const iframe = containerRef.current?.querySelector("iframe");
         if (iframe) {
-          console.log('iframe found');
+          console.log("iframe found");
           iframe.onload = () => {
-            console.log('iframe loaded');
+            console.log("iframe loaded");
             setIsLoading(false);
           };
         }
@@ -52,7 +57,7 @@ export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
     };
 
     script.onerror = (error) => {
-      console.error('Script loading failed:', error);
+      console.error("Script loading failed:", error);
     };
 
     document.body.appendChild(script);
@@ -86,4 +91,3 @@ export default function EmbeddedWeChatQRLogin({ appid, callbackUrl }: {
     </Box>
   );
 }
-

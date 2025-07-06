@@ -9,11 +9,11 @@ const links = {
       baseStyle: {
         color: linkBaseColor,
         _hover: {
-          textDecoration: 'none',
+          textDecoration: "none",
         },
       },
-    }
-  }
+    },
+  },
 };
 
 export default links;

@@ -5,33 +5,34 @@ import {
   Text,
   Flex,
   Checkbox,
-  HStack, Box,
+  HStack,
+  Box,
   Link,
   Button,
-  Badge
-} from '@chakra-ui/react';
-import { ResponsiveCard } from 'components/ResponsiveCard';
-import trpc, { trpcNext } from 'trpc';
-import Loader from 'components/Loader';
-import { getTaskMarkdown, Task } from 'shared/Task';
-import { useMyId } from 'useMe';
-import { compareChinese, compareDate, formatUserName } from 'shared/strings';
-import MarkdownStyler from 'components/MarkdownStyler';
-import { ReactNode, useCallback, useState } from 'react';
-import { toast } from 'react-toastify';
-import { DateColumn } from 'shared/DateColumn';
-import moment, { Moment } from 'moment';
+  Badge,
+} from "@chakra-ui/react";
+import { ResponsiveCard } from "components/ResponsiveCard";
+import trpc, { trpcNext } from "trpc";
+import Loader from "components/Loader";
+import { getTaskMarkdown, Task } from "shared/Task";
+import { useMyId } from "useMe";
+import { compareChinese, compareDate, formatUserName } from "shared/strings";
+import MarkdownStyler from "components/MarkdownStyler";
+import { ReactNode, useCallback, useState } from "react";
+import { toast } from "react-toastify";
+import { DateColumn } from "shared/DateColumn";
+import moment, { Moment } from "moment";
 import RedDot, {
   redDotRightOffset,
   redDotTransitionProps,
-} from 'components/RedDot';
-import { UserState } from 'shared/UserState';
-import { componentSpacing } from 'theme/metrics';
-import getBaseUrl from 'shared/getBaseUrl';
-import { AddIcon } from '@chakra-ui/icons';
-import TaskEditor from './TaskEditor';
-import ListItemDivider from 'components/ListItemDivider';
-import { isEnded } from 'shared/Mentorship';
+} from "components/RedDot";
+import { UserState } from "shared/UserState";
+import { componentSpacing } from "theme/metrics";
+import getBaseUrl from "shared/getBaseUrl";
+import { AddIcon } from "@chakra-ui/icons";
+import TaskEditor from "./TaskEditor";
+import ListItemDivider from "components/ListItemDivider";
+import { isEnded } from "shared/Mentorship";
 
 /**
  * @param assigneeIds The assignees of the tasks to be listed on this card.
@@ -42,10 +43,10 @@ export default function TasksCard({
   assigneeIds,
   allowMentorshipAssignment,
   includeTasksCreatedByMe,
-}: { 
-  assigneeIds: string[],
-  allowMentorshipAssignment?: boolean,
-  includeTasksCreatedByMe?: boolean,
+}: {
+  assigneeIds: string[];
+  allowMentorshipAssignment?: boolean;
+  includeTasksCreatedByMe?: boolean;
 }) {
   const utils = trpcNext.useContext();
   const myId = useMyId();
@@ -67,22 +68,31 @@ export default function TasksCard({
   const getAllowedAssigneeIds = useCallback(async () => {
     const promises: Promise<string[]>[] = [];
     if (allowMentorshipAssignment) {
-      promises.push(trpc.mentorships.listMyMentorships.query({
-        as: "Mentor",
-      }).then(mentorships => mentorships
-        .filter(m => !isEnded(m.endsAt))
-        .map(m => m.mentee.id)));
-      promises.push(trpc.mentorships.listMyMentorships.query({
-        as: "Mentee",
-      }).then(mentorships => mentorships
-        .filter(m => !isEnded(m.endsAt))
-        .map(m => m.mentor.id)));
+      promises.push(
+        trpc.mentorships.listMyMentorships
+          .query({
+            as: "Mentor",
+          })
+          .then((mentorships) =>
+            mentorships
+              .filter((m) => !isEnded(m.endsAt))
+              .map((m) => m.mentee.id),
+          ),
+      );
+      promises.push(
+        trpc.mentorships.listMyMentorships
+          .query({
+            as: "Mentee",
+          })
+          .then((mentorships) =>
+            mentorships
+              .filter((m) => !isEnded(m.endsAt))
+              .map((m) => m.mentor.id),
+          ),
+      );
     }
 
-    return [
-      ...assigneeIds, 
-      ...(await Promise.all(promises)).flat()]
-    ;
+    return [...assigneeIds, ...(await Promise.all(promises)).flat()];
   }, [assigneeIds, allowMentorshipAssignment]);
 
   const sorted = data?.sort((a, b) => {
@@ -97,7 +107,7 @@ export default function TasksCard({
     // Then place done tasks at the bottom.
     if (a.done && !b.done) return 1;
     if (!a.done && b.done) return -1;
-    
+
     // Finally, place tasks that are updated more recently at the top.
     return compareDate(b.updatedAt, a.updatedAt);
   });
@@ -110,68 +120,76 @@ export default function TasksCard({
     if (last) await markTasksAsRead(utils, last);
   };
 
-  return <ResponsiveCard>
-    <CardHeader>
-      <Flex justify="space-between">
-        <Heading size="sm" position="relative">
-          待办事项
-          <UnreadTasksRedDot />
-        </Heading>
+  return (
+    <ResponsiveCard>
+      <CardHeader>
+        <Flex justify="space-between">
+          <Heading size="sm" position="relative">
+            待办事项
+            <UnreadTasksRedDot />
+          </Heading>
 
-        <HStack spacing={componentSpacing} fontSize="sm">
-          <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-            全部已读
-          </Link>
+          <HStack spacing={componentSpacing} fontSize="sm">
+            <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
+              全部已读
+            </Link>
 
-          {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
+            {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
 
-          <Link onClick={() => setIncludeDone(!includeDone)}>
-            {includeDone ? "隐藏已完成" : "显示已完成"}
-          </Link>
+            <Link onClick={() => setIncludeDone(!includeDone)}>
+              {includeDone ? "隐藏已完成" : "显示已完成"}
+            </Link>
 
-          <Button
-            size="sm"
-            leftIcon={<AddIcon />}
-            onClick={() => setCreating(true)}
-          >
-            新建
-          </Button>
+            <Button
+              size="sm"
+              leftIcon={<AddIcon />}
+              onClick={() => setCreating(true)}
+            >
+              新建
+            </Button>
 
-          <Badge colorScheme="green">
-             ⇐ 新
-          </Badge>
+            <Badge colorScheme="green">⇐ 新</Badge>
 
-          {creating && <TaskEditor
-            getAllowedAssigneeIds={getAllowedAssigneeIds}
-            onClose={() => setCreating(false)}
-            refetch={refetch}
-          />}
-
-        </HStack>
-      </Flex>
-    </CardHeader>
-    <CardBody>
-      <Flex direction="column" gap={componentSpacing}>
-        {sorted === undefined ? <Loader /> : sorted.length === 0 ?
-          <Text color="gray">🌙&nbsp;&nbsp;一切静谧，万物安然</Text>
-          :
-          <TaskItems
-            tasks={sorted}
-            assigneeIds={assigneeIds}
-            getAllowedAssigneeIds={getAllowedAssigneeIds}
-            refetch={refetch}
-          />
-        }
-      </Flex>
-    </CardBody>
-  </ResponsiveCard>;
+            {creating && (
+              <TaskEditor
+                getAllowedAssigneeIds={getAllowedAssigneeIds}
+                onClose={() => setCreating(false)}
+                refetch={refetch}
+              />
+            )}
+          </HStack>
+        </Flex>
+      </CardHeader>
+      <CardBody>
+        <Flex direction="column" gap={componentSpacing}>
+          {sorted === undefined ? (
+            <Loader />
+          ) : sorted.length === 0 ? (
+            <Text color="gray">🌙&nbsp;&nbsp;一切静谧，万物安然</Text>
+          ) : (
+            <TaskItems
+              tasks={sorted}
+              assigneeIds={assigneeIds}
+              getAllowedAssigneeIds={getAllowedAssigneeIds}
+              refetch={refetch}
+            />
+          )}
+        </Flex>
+      </CardBody>
+    </ResponsiveCard>
+  );
 }
 
-function TaskItems({ tasks, refetch, assigneeIds, getAllowedAssigneeIds }: {
-  tasks: Task[],
-  refetch: () => void,
-  assigneeIds: string[],
-  getAllowedAssigneeIds: () => Promise<string[]>,
+function TaskItems({
+  tasks,
+  refetch,
+  assigneeIds,
+  getAllowedAssigneeIds,
+}: {
+  tasks: Task[];
+  refetch: () => void;
+  assigneeIds: string[];
+  getAllowedAssigneeIds: () => Promise<string[]>;
 }) {
   const myId = useMyId();
 
@@ -181,38 +199,44 @@ function TaskItems({ tasks, refetch, assigneeIds, getAllowedAssigneeIds }: {
     // Add a divider if the assignee is different from the last one.
     if (t.assignee.id !== lastAssigneeId) {
       lastAssigneeId = t.assignee.id;
-      items.push(<ListItemDivider
-        py={3}
-
-        // Use the done status in the key to work around the situation where
-        // a task is shown as not done when the user reveals done tasks right
-        // after they mark the task as done.
-        key={`${t.assignee.id}${t.done}`}
-
-        // If the assignee is not in the assigneeIds, it means the task is
-        // created by the current user.
-        text={
-          (assigneeIds.includes(t.assignee.id) ? "" : "我交给") + 
-          `${formatUserName(t.assignee.name, "friendly")}的事项`
-        }
-      />);
+      items.push(
+        <ListItemDivider
+          py={3}
+          // Use the done status in the key to work around the situation where
+          // a task is shown as not done when the user reveals done tasks right
+          // after they mark the task as done.
+          key={`${t.assignee.id}${t.done}`}
+          // If the assignee is not in the assigneeIds, it means the task is
+          // created by the current user.
+          text={
+            (assigneeIds.includes(t.assignee.id) ? "" : "我交给") +
+            `${formatUserName(t.assignee.name, "friendly")}的事项`
+          }
+        />,
+      );
     }
 
-    items.push(<TaskItem
-      key={t.id}
-      t={t}
-      refetch={refetch}
-      getAllowedAssigneeIds={getAllowedAssigneeIds}
-    />);
+    items.push(
+      <TaskItem
+        key={t.id}
+        t={t}
+        refetch={refetch}
+        getAllowedAssigneeIds={getAllowedAssigneeIds}
+      />,
+    );
   }
 
   return <>{items}</>;
 }
 
-function TaskItem({ t, refetch, getAllowedAssigneeIds }: {
-  t: Task,
-  refetch: () => void,
-  getAllowedAssigneeIds: () => Promise<string[]>,
+function TaskItem({
+  t,
+  refetch,
+  getAllowedAssigneeIds,
+}: {
+  t: Task;
+  refetch: () => void;
+  getAllowedAssigneeIds: () => Promise<string[]>;
 }) {
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
@@ -223,7 +247,9 @@ function TaskItem({ t, refetch, getAllowedAssigneeIds }: {
   const [editing, setEditing] = useState<Task>();
 
   // N.B. Its logic must be consistent with the logic of useUnreadTasks().
-  const showRedDot = !t.done && myId !== t.creator?.id &&
+  const showRedDot =
+    !t.done &&
+    myId !== t.creator?.id &&
     moment(t.updatedAt).isAfter(lastTasksReadAt);
 
   const updateDone = async (done: boolean) => {
@@ -236,43 +262,49 @@ function TaskItem({ t, refetch, getAllowedAssigneeIds }: {
   };
 
   const markdownStylerMarginY = 3;
-  
-  return <HStack w="full">
-    <Checkbox
-      isDisabled={t.creator === null}
-      isChecked={done}
-      onChange={async () => {
-        setDone(!done);
-        await updateDone(!done);
-      }}
-    />
 
-    <Box
-      onClick={() => setEditing(t)}
-      w="full"
-      cursor="pointer"
-      position="relative" 
-      // to offset the margin of the MarkdownStyler
-      my={-markdownStylerMarginY}
-      // to make sure the red dot doesn't go beyond the right edge of the
-      // container
-      pe={-redDotRightOffset}
-    >
-      {done ?
-        <s><MarkdownStyler content={markdown} /></s> :
-        <MarkdownStyler content={markdown} />
-      }
-      <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
-    </Box>
+  return (
+    <HStack w="full">
+      <Checkbox
+        isDisabled={t.creator === null}
+        isChecked={done}
+        onChange={async () => {
+          setDone(!done);
+          await updateDone(!done);
+        }}
+      />
 
-    {editing && <TaskEditor
-      task={editing}
-      getAllowedAssigneeIds={getAllowedAssigneeIds}
-      onClose={() => setEditing(undefined)}
-      refetch={refetch}
-    />}
+      <Box
+        onClick={() => setEditing(t)}
+        w="full"
+        cursor="pointer"
+        position="relative"
+        // to offset the margin of the MarkdownStyler
+        my={-markdownStylerMarginY}
+        // to make sure the red dot doesn't go beyond the right edge of the
+        // container
+        pe={-redDotRightOffset}
+      >
+        {done ? (
+          <s>
+            <MarkdownStyler content={markdown} />
+          </s>
+        ) : (
+          <MarkdownStyler content={markdown} />
+        )}
+        <RedDot show={showRedDot} top={markdownStylerMarginY} right={0} />
+      </Box>
 
-  </HStack>;
+      {editing && (
+        <TaskEditor
+          task={editing}
+          getAllowedAssigneeIds={getAllowedAssigneeIds}
+          onClose={() => setEditing(undefined)}
+          refetch={refetch}
+        />
+      )}
+    </HStack>
+  );
 }
 
 /**
@@ -295,7 +327,7 @@ export function UnreadTasksRedDot() {
 /**
  * @returns whether there are unread undone tasks that are not created by the
  * current user.
- * 
+ *
  * N.B. The logic of `showRedDot` in <TaskItem> must be consistent with the
  * logic of this function.
  */
@@ -304,13 +336,16 @@ export function useUnreadTasks() {
   const { data: lastCreated } = trpcNext.tasks.getLastTasksUpdatedAt.useQuery();
 
   // Assume no unread tasks while the values are being fetched.
-  return !!state && !!lastCreated &&
-    moment(lastCreated).isAfter(getLastTasksReadAt(state));
+  return (
+    !!state &&
+    !!lastCreated &&
+    moment(lastCreated).isAfter(getLastTasksReadAt(state))
+  );
 }
 
 async function markTasksAsRead(
   utils: ReturnType<typeof trpcNext.useContext>,
-  lastTasksReadAt: DateColumn
+  lastTasksReadAt: DateColumn,
 ) {
   await trpc.users.setUserState.mutate({ lastTasksReadAt });
   await utils.users.getUserState.invalidate();

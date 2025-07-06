@@ -23,6 +23,7 @@ export default defineConfig([
     extends: compat.extends(
       "next/core-web-vitals",
       "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended",
     ),
 
     rules: {

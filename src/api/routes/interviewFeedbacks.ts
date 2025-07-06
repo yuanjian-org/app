@@ -2,9 +2,15 @@ import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
-import { interviewFeedbackInclude, interviewFeedbackAttributes } from "../database/models/attributesAndIncludes";
+import {
+  interviewFeedbackInclude,
+  interviewFeedbackAttributes,
+} from "../database/models/attributesAndIncludes";
 import { conflictError, noPermissionError, notFoundError } from "../errors";
-import { zFeedbackDeprecated, zInterviewFeedback } from "../../shared/InterviewFeedback";
+import {
+  zFeedbackDeprecated,
+  zInterviewFeedback,
+} from "../../shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
@@ -19,39 +25,49 @@ import { Transaction } from "sequelize";
 const get = procedure
   .use(authUser())
   .input(z.string())
-  .output(z.object({
-    interviewFeedback: zInterviewFeedback,
-    etag: z.number(),
-  }))
-  .query(async ({ ctx, input: id }) =>
-{
-  return await sequelize.transaction(async t => {
-    const f = await getInterviewFeedback(id, ctx.user,
-        /*allowOnlyInterviewer=*/ false, t);
-    return {
-      interviewFeedback: f,
-      etag: date2etag(f.feedbackUpdatedAt),
-    };
+  .output(
+    z.object({
+      interviewFeedback: zInterviewFeedback,
+      etag: z.number(),
+    }),
+  )
+  .query(async ({ ctx, input: id }) => {
+    return await sequelize.transaction(async (t) => {
+      const f = await getInterviewFeedback(
+        id,
+        ctx.user,
+        /*allowOnlyInterviewer=*/ false,
+        t,
+      );
+      return {
+        interviewFeedback: f,
+        etag: date2etag(f.feedbackUpdatedAt),
+      };
+    });
   });
-});
 
 async function getInterviewFeedback(
-  id: string, 
-  me: User, 
+  id: string,
+  me: User,
   allowOnlyInterviewer: boolean,
-  transaction: Transaction
+  transaction: Transaction,
 ) {
   const f = await db.InterviewFeedback.findByPk(id, {
     attributes: [...interviewFeedbackAttributes, "interviewId"],
-    include: [...interviewFeedbackInclude, {
-      // Include interview.interviewee.id for `isPermittedtoAccessMentee` below.
-      model: db.Interview,
-      attributes: ["id"],
-      include: [{
-        association: "interviewee",
+    include: [
+      ...interviewFeedbackInclude,
+      {
+        // Include interview.interviewee.id for `isPermittedtoAccessMentee` below.
+        model: db.Interview,
         attributes: ["id"],
-      }],
-    }],
+        include: [
+          {
+            association: "interviewee",
+            attributes: ["id"],
+          },
+        ],
+      },
+    ],
     transaction,
   });
   if (!f) throw notFoundError("面试反馈", id);
@@ -67,8 +83,14 @@ async function getInterviewFeedback(
       attributes: ["calibrationId"],
       transaction,
     });
-    if (i?.calibrationId && await getCalibrationAndCheckPermissionSafe(me,
-      i.calibrationId, transaction)) {
+    if (
+      i?.calibrationId &&
+      (await getCalibrationAndCheckPermissionSafe(
+        me,
+        i.calibrationId,
+        transaction,
+      ))
+    ) {
       return f;
     }
 
@@ -86,36 +108,44 @@ export function date2etag(feedbackUpdatedAt: string | Date | null) {
 
 /**
  * Only the interviewer of the feedback are allowed to call this route.
- * 
+ *
  * @return etag
  */
 const update = procedure
   .use(authUser())
-  .input(z.object({
-    id: z.string(),
-    feedback: zFeedbackDeprecated,
-    etag: z.number(),
-  }))
+  .input(
+    z.object({
+      id: z.string(),
+      feedback: zFeedbackDeprecated,
+      etag: z.number(),
+    }),
+  )
   .output(z.number())
-  .mutation(async ({ ctx, input }) =>
-{
-  return await sequelize.transaction(async transaction => {
-    const f = await getInterviewFeedback(input.id, ctx.user,
-      /*allowOnlyInterviewer=*/ true, transaction);
+  .mutation(async ({ ctx, input }) => {
+    return await sequelize.transaction(async (transaction) => {
+      const f = await getInterviewFeedback(
+        input.id,
+        ctx.user,
+        /*allowOnlyInterviewer=*/ true,
+        transaction,
+      );
 
-    if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
-      throw conflictError();
-    }
+      if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
+        throw conflictError();
+      }
 
-    const now = new Date();
-    await f.update({
-      feedback: input.feedback,
-      feedbackUpdatedAt: now,
-    }, { transaction });
+      const now = new Date();
+      await f.update(
+        {
+          feedback: input.feedback,
+          feedbackUpdatedAt: now,
+        },
+        { transaction },
+      );
 
-    return date2etag(now);
+      return date2etag(now);
+    });
   });
-});
 
 /**
  * Changelogging for auditing and data loss prevention.
@@ -124,20 +154,21 @@ const update = procedure
  */
 const logUpdateAttempt = procedure
   .use(authUser())
-  .input(z.object({
-    id: z.string(),
-    feedback: zFeedbackDeprecated,
-    etag: z.number(),
-  }))
-  .mutation(async ({ ctx, input }) =>
-{
-  await db.InterviewFeedbackUpdateAttempt.create({
-    userId: ctx.user.id,
-    interviewFeedbackId: input.id,
-    feedback: input.feedback,
-    etag: input.etag,
+  .input(
+    z.object({
+      id: z.string(),
+      feedback: zFeedbackDeprecated,
+      etag: z.number(),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    await db.InterviewFeedbackUpdateAttempt.create({
+      userId: ctx.user.id,
+      interviewFeedbackId: input.id,
+      feedback: input.feedback,
+      etag: input.etag,
+    });
   });
-});
 
 export default router({
   get,

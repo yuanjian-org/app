@@ -3,12 +3,12 @@ import { NextPage } from "next";
 export type AppPageType = "wide" | "full" | "bare";
 
 type AppPage<P = Record<string, unknown>, IP = P> = NextPage<P, IP> & {
-  type?: AppPageType,
+  type?: AppPageType;
 
   // Page title used for <html><head><title>. pageProps is the properties passed
   // into statically generated pages from getStaticProperties.
-  title?: string | ((pageProps: any) => string),
-}
+  title?: string | ((pageProps: any) => string);
+};
 export default AppPage;
 
 /**

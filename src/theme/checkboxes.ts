@@ -3,7 +3,7 @@ const checkboxes = {
     Checkbox: {
       baseStyle: {
         control: {
-          bg: 'white', 
+          bg: "white",
         },
       },
     },

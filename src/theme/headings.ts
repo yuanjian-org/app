@@ -10,4 +10,4 @@ const headings = {
   },
 };
 
-export default headings; 
+export default headings;

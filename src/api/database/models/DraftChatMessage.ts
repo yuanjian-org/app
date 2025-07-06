@@ -1,8 +1,9 @@
 import {
   Column,
   Table,
-  Model, ForeignKey,
-  AllowNull
+  Model,
+  ForeignKey,
+  AllowNull,
 } from "sequelize-typescript";
 import { STRING, UUID } from "sequelize";
 import User from "./User";
@@ -10,16 +11,18 @@ import ChatRoom from "./ChatRoom";
 import ChatMessage from "./ChatMessage";
 
 @Table({
-  indexes: [{
-    fields: ['roomId', 'authorId'],
-    unique: true,
-  }, {
-    fields: ['messageId', 'authorId'],
-    unique: true,
-  }]
+  indexes: [
+    {
+      fields: ["roomId", "authorId"],
+      unique: true,
+    },
+    {
+      fields: ["messageId", "authorId"],
+      unique: true,
+    },
+  ],
 })
 class DraftChatMessage extends Model {
-
   /**
    * roomId and messageId are mutually exclusive, meaning that one and only one
    * of them is null. When roomId is non-null, it's a draft of a new message.

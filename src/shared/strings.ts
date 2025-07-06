@@ -1,18 +1,20 @@
-import pinyin from 'tiny-pinyin';
-import nzh from 'nzh';
-import moment from 'moment';
-import crypto from 'crypto';
-import stringifyStable from 'json-stable-stringify';
+import pinyin from "tiny-pinyin";
+import nzh from "nzh";
+import moment from "moment";
+import crypto from "crypto";
+import stringifyStable from "json-stable-stringify";
 
-import { NextRouter } from 'next/router';
-import { DateColumn } from './DateColumn';
+import { NextRouter } from "next/router";
+import { DateColumn } from "./DateColumn";
 
 export function isValidChineseName(s: string | null): boolean {
-  return !!s && s.length >= 2 && pinyin.parse(s).every(token => token.type === 2);
+  return (
+    !!s && s.length >= 2 && pinyin.parse(s).every((token) => token.type === 2)
+  );
 }
 
 export function toPinyin(s: string) {
-  return pinyin.convertToPinyin(s, /*separator=*/ '', /*lowerCase=*/ true);
+  return pinyin.convertToPinyin(s, /*separator=*/ "", /*lowerCase=*/ true);
 }
 
 /**
@@ -20,13 +22,18 @@ export function toPinyin(s: string) {
  */
 export function formatUserName(
   name: string | null,
-  mode: 'friendly' | 'formal' = "formal"
+  mode: "friendly" | "formal" = "formal",
 ) {
-  if (!name) return '（佚名）';
-  return mode === 'friendly' ? name.substring(Math.max(0, name.length - 2)) : name;
+  if (!name) return "（佚名）";
+  return mode === "friendly"
+    ? name.substring(Math.max(0, name.length - 2))
+    : name;
 }
 
-export function formatGroupName(name: string | null, userCount: number): string {
+export function formatGroupName(
+  name: string | null,
+  userCount: number,
+): string {
   return name ?? `${toChineseNumber(userCount)}人通话`;
 }
 
@@ -38,10 +45,13 @@ export function toChineseNumber(n: number): string {
 }
 
 export function toChineseDayOfWeek(n: number): string {
-  return ['一', '二', '三', '四', '五', '六', '日'][n - 1];
+  return ["一", "二", "三", "四", "五", "六", "日"][n - 1];
 }
 
-export function prettifyDuration(from: Date | DateColumn, to: Date | DateColumn) {
+export function prettifyDuration(
+  from: Date | DateColumn,
+  to: Date | DateColumn,
+) {
   return `${diffInMinutes(from, to)}分钟`;
 }
 
@@ -57,30 +67,32 @@ export function prettifyDate(str: Date | DateColumn) {
   if (dim < 24 * 60) return `${Math.floor(dim / 60)} 小时前`;
   if (dim < 30 * 24 * 60) return `${Math.floor(dim / 24 / 60)} 天前`;
   if (date.getFullYear() == now.getFullYear()) {
-    return date.toLocaleDateString('zh-cn', { day: 'numeric', month: 'short' });
+    return date.toLocaleDateString("zh-cn", { day: "numeric", month: "short" });
   } else {
-    return date.toLocaleDateString('zh-cn', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    return date.toLocaleDateString("zh-cn", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   }
 }
 
 // TODO: Sort out this Date-is-not-actually-string nonsense
 export function diffInMinutes(from: Date | DateColumn, to: Date | DateColumn) {
-  return Math.floor((new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60);
+  return Math.floor(
+    (new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60,
+  );
 }
 
 /**
  * Return -1 if d1 is earlier than d2. Treat undefined & null as earliest date.
- * 
+ *
  * TODO: allow moment objects and remove the stupid `moment(...).toISOString()`
  * form codebase.
  */
 export function compareDate(
   d1: Date | DateColumn | undefined | null,
-  d2: Date | DateColumn | undefined | null
+  d2: Date | DateColumn | undefined | null,
 ) {
   if (d1 == d2) return 0;
   if (!d1) return -1;
@@ -88,11 +100,11 @@ export function compareDate(
   return moment(d2).isAfter(moment(d1)) ? -1 : 1;
 }
 
-// Need to convert it to pinyin, otherwise the result 
+// Need to convert it to pinyin, otherwise the result
 // will not be correct if compare Chinese directly. Ref:
 // https://www.leevii.com/2023/04/about-the-inaccurate-chinese-sorting-of-localecompare.html
 export function compareChinese(s1: string | null, s2: string | null) {
-  return toPinyin(s1 || '').localeCompare(toPinyin(s2 || ''));
+  return toPinyin(s1 || "").localeCompare(toPinyin(s2 || ""));
 }
 
 export function compareUUID(id1: string, id2: string): number {
@@ -100,27 +112,29 @@ export function compareUUID(id1: string, id2: string): number {
 }
 
 export function parseQueryString(router: NextRouter, slug: string) {
-  return typeof router.query[slug] === 'string' ? router.query[slug] as string
+  return typeof router.query[slug] === "string"
+    ? (router.query[slug] as string)
     : undefined;
 }
 
 export function toBase64UrlSafe(str: string): string {
-  return Buffer.from(str).toString('base64')
-    .replace(/\+/g, '-')  // Replace + with -
-    .replace(/\//g, '_')  // Replace / with _
-    .replace(/=+$/, '');  // Remove padding
+  return Buffer.from(str)
+    .toString("base64")
+    .replace(/\+/g, "-") // Replace + with -
+    .replace(/\//g, "_") // Replace / with _
+    .replace(/=+$/, ""); // Remove padding
 }
 
 export function fromBase64UrlSafe(base64: string): string {
-  base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+  base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4 !== 0) {
-    base64 += '=';
+    base64 += "=";
   }
-  return Buffer.from(base64, 'base64').toString();
+  return Buffer.from(base64, "base64").toString();
 }
 
 export function shaChecksum(obj: Record<string, any>): string {
-  return crypto.createHash('sha256').update(stringifyStable(obj)).digest('hex');
+  return crypto.createHash("sha256").update(stringifyStable(obj)).digest("hex");
 }
 
 // Simple hash function to generate a number from a string

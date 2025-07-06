@@ -4,16 +4,18 @@ import {
   Table,
   BelongsTo,
   Model,
-  PrimaryKey
+  PrimaryKey,
 } from "sequelize-typescript";
 import { STRING, TEXT, INTEGER } from "sequelize";
 import Transcript from "./Transcript";
 
 @Table({
-  indexes: [{
-    unique: true,
-    fields: ['transcriptId', 'key']
-  }]
+  indexes: [
+    {
+      unique: true,
+      fields: ["transcriptId", "key"],
+    },
+  ],
 })
 class Summary extends Model {
   @PrimaryKey

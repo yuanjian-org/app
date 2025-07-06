@@ -8,55 +8,59 @@ import {
   groupAttributes,
   groupInclude,
   transcriptAttributes,
-  summaryAttributes
+  summaryAttributes,
 } from "api/database/models/attributesAndIncludes";
 import { checkPermissionForGroupHistory } from "./groups";
 import Summary from "api/database/models/Summary";
 
 const list = procedure
   .use(authUser())
-  .input(z.object({
-    groupId: z.string(),
-  }))
+  .input(
+    z.object({
+      groupId: z.string(),
+    }),
+  )
   .output(z.array(zTranscript))
-  .query(async ({ input: { groupId }, ctx }) =>
-{
-  const g = await db.Group.findByPk(groupId, {
-    attributes: groupAttributes,
-    include: [...groupInclude, {
-      model: db.Transcript,
-      attributes: transcriptAttributes,
-    }],
+  .query(async ({ input: { groupId }, ctx }) => {
+    const g = await db.Group.findByPk(groupId, {
+      attributes: groupAttributes,
+      include: [
+        ...groupInclude,
+        {
+          model: db.Transcript,
+          attributes: transcriptAttributes,
+        },
+      ],
+    });
+
+    if (!g) throw notFoundError("分组", groupId);
+
+    checkPermissionForGroupHistory(ctx.user, g);
+
+    return g.transcripts;
   });
-
-  if (!g) throw notFoundError("分组", groupId);
-
-  checkPermissionForGroupHistory(ctx.user, g);
-
-  return g.transcripts;
-});
 
 /**
  * @return null if there is no transcript.
  */
 const getLastStartedAt = procedure
   .use(authUser("MentorshipManager"))
-  .input(z.object({
-    groupId: z.string(),
-  }))
+  .input(
+    z.object({
+      groupId: z.string(),
+    }),
+  )
   .output(z.date().nullable())
-  .query(async ({ input: { groupId } }) =>
-{
-  return await db.Transcript.max("startedAt", { where: { groupId } });
-});
+  .query(async ({ input: { groupId } }) => {
+    return await db.Transcript.max("startedAt", { where: { groupId } });
+  });
 
 export default router({
   list,
   getLastStartedAt,
 });
 
-export async function getSummaries(transcriptId: string):
-  Promise<Summary[]> {
+export async function getSummaries(transcriptId: string): Promise<Summary[]> {
   return await db.Summary.findAll({
     where: { transcriptId },
     attributes: summaryAttributes,

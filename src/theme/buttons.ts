@@ -12,7 +12,7 @@ const buttons = {
             bg: mode(colors.brand[600], colors.brand.c)(props),
             _disabled: {
               bg: mode(colors.brand[600], colors.brand.c)(props),
-            }
+            },
           },
         }),
 
@@ -21,13 +21,13 @@ const buttons = {
             bg: "gray.200",
           },
         },
-  
+
         ghost: {
           _hover: {
             bg: "gray.200",
           },
           bg: "transparent",
-        }
+        },
       },
     },
   },

@@ -23,7 +23,7 @@ export default function Fix(target: any): void {
         // QUESTION however the check does not work. console.log to see.
         const desc = Object.getOwnPropertyDescriptor(
           target.prototype,
-          propertyKey
+          propertyKey,
         );
         if (desc) {
           return;

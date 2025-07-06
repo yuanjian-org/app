@@ -6,69 +6,75 @@ import {
   Flex,
   Text,
   Heading,
-  CardHeader
-} from '@chakra-ui/react';
+  CardHeader,
+} from "@chakra-ui/react";
 import { trpcNext } from "../trpc";
-import { Transcript } from '../shared/Transcript';
-import { useRouter } from 'next/router';
-import invariant from 'shared/invariant';
-import { diffInMinutes, prettifyDate, prettifyDuration } from 'shared/strings';
+import { Transcript } from "../shared/Transcript";
+import { useRouter } from "next/router";
+import invariant from "shared/invariant";
+import { diffInMinutes, prettifyDate, prettifyDuration } from "shared/strings";
 import { parseQueryString } from "shared/strings";
-import Loader from 'components/Loader';
-import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { componentSpacing, sectionSpacing } from 'theme/metrics';
-import replaceUrlParam from 'shared/replaceUrlParam';
-import MarkdownStyler from './MarkdownStyler';
-import { Group, isPermittedToAccessGroupHistory } from 'shared/Group';
-import useMe from 'useMe';
-import { ResponsiveCard } from './ResponsiveCard';
-import { MdEdit } from 'react-icons/md';
-import { useState } from 'react';
-import { Summary } from 'shared/Summary';
-import SummaryEditor from './SummaryEditor';
+import Loader from "components/Loader";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { componentSpacing, sectionSpacing } from "theme/metrics";
+import replaceUrlParam from "shared/replaceUrlParam";
+import MarkdownStyler from "./MarkdownStyler";
+import { Group, isPermittedToAccessGroupHistory } from "shared/Group";
+import useMe from "useMe";
+import { ResponsiveCard } from "./ResponsiveCard";
+import { MdEdit } from "react-icons/md";
+import { useState } from "react";
+import { Summary } from "shared/Summary";
+import SummaryEditor from "./SummaryEditor";
 
-export default function Transcripts({ group }: {
-  group: Group,
-}) {
+export default function Transcripts({ group }: { group: Group }) {
   const [currentSummary, setCurrentSummary] = useState<Summary | null>(null);
   const [editing, setEditing] = useState(false);
 
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
     return <Text color="gray">您没有访问会议摘要的权限。</Text>;
   } else {
-    return <ResponsiveCard>
-      <CardHeader>
-        <Flex justify="space-between">
-          <Heading size="sm">智能会议纪要</Heading>
+    return (
+      <ResponsiveCard>
+        <CardHeader>
+          <Flex justify="space-between">
+            <Heading size="sm">智能会议纪要</Heading>
 
-          {currentSummary && <Button
-            size="sm"
-            leftIcon={<MdEdit />}
-            onClick={() => setEditing(true)}
-          >
-            编辑
-          </Button>}
+            {currentSummary && (
+              <Button
+                size="sm"
+                leftIcon={<MdEdit />}
+                onClick={() => setEditing(true)}
+              >
+                编辑
+              </Button>
+            )}
 
-          {editing && currentSummary && <SummaryEditor
-            summary={currentSummary}
-            onClose={() => setEditing(false)}
-          />}
-
-        </Flex>
-      </CardHeader>
-      <CardBody>
-        <PermittedTranscripts
-          groupId={group.id} 
-          setCurrentSummary={setCurrentSummary} 
-        />
-      </CardBody>
-    </ResponsiveCard>;
+            {editing && currentSummary && (
+              <SummaryEditor
+                summary={currentSummary}
+                onClose={() => setEditing(false)}
+              />
+            )}
+          </Flex>
+        </CardHeader>
+        <CardBody>
+          <PermittedTranscripts
+            groupId={group.id}
+            setCurrentSummary={setCurrentSummary}
+          />
+        </CardBody>
+      </ResponsiveCard>
+    );
   }
 }
 
-function PermittedTranscripts({ groupId, setCurrentSummary }: {
-  groupId: string,
-  setCurrentSummary: (s: Summary | null) => void,
+function PermittedTranscripts({
+  groupId,
+  setCurrentSummary,
+}: {
+  groupId: string;
+  setCurrentSummary: (s: Summary | null) => void;
 }) {
   const { data } = trpcNext.transcripts.list.useQuery({ groupId });
 
@@ -77,19 +83,28 @@ function PermittedTranscripts({ groupId, setCurrentSummary }: {
   // Sort by reverse chronological order
   sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
   // Only show transcripts that are more than 1 min
-  const filtered = sorted.filter(t => diffInMinutes(t.startedAt, t.endedAt) >= 1);
+  const filtered = sorted.filter(
+    (t) => diffInMinutes(t.startedAt, t.endedAt) >= 1,
+  );
 
-  return !data ? <Loader /> 
-    : filtered.length ? <LoadedTranscripts
-        transcripts={filtered}
-        setCurrentSummary={setCurrentSummary}
-      />
-    : <Text color="gray">会议纪要将在会议结束后一小时内显示在这里。</Text>;
+  return !data ? (
+    <Loader />
+  ) : filtered.length ? (
+    <LoadedTranscripts
+      transcripts={filtered}
+      setCurrentSummary={setCurrentSummary}
+    />
+  ) : (
+    <Text color="gray">会议纪要将在会议结束后一小时内显示在这里。</Text>
+  );
 }
 
-function LoadedTranscripts({ transcripts, setCurrentSummary }: {
-  transcripts: Transcript[],
-  setCurrentSummary: (s: Summary | null) => void,
+function LoadedTranscripts({
+  transcripts,
+  setCurrentSummary,
+}: {
+  transcripts: Transcript[];
+  setCurrentSummary: (s: Summary | null) => void;
 }) {
   // Guaranteed by the caller
   invariant(transcripts.length, "No transcripts");
@@ -108,14 +123,15 @@ function LoadedTranscripts({ transcripts, setCurrentSummary }: {
   const { transcript, transcriptIndex } = getTranscriptAndIndex();
 
   const { data: summaries } = trpcNext.summaries.list.useQuery(
-    transcript.transcriptId);
+    transcript.transcriptId,
+  );
 
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary
     invariant(summaries.length, "No summaries");
     const key = parseQueryString(router, "summaryKey");
-    const match = summaries.filter(s => s.key == key);
+    const match = summaries.filter((s) => s.key == key);
     summary = match.length ? match[0] : summaries[0];
   }
   setCurrentSummary(summary);
@@ -123,13 +139,20 @@ function LoadedTranscripts({ transcripts, setCurrentSummary }: {
   return (
     <Flex direction="column" gap={sectionSpacing}>
       <Flex gap={componentSpacing}>
-        <Button 
+        <Button
           variant="ghost"
           leftIcon={<ChevronLeftIcon />}
           isDisabled={transcriptIndex == transcripts.length - 1}
-          onClick={() => replaceUrlParam(router, "transcriptId", 
-            transcripts[transcriptIndex + 1].transcriptId)}
-        >前一次</Button>
+          onClick={() =>
+            replaceUrlParam(
+              router,
+              "transcriptId",
+              transcripts[transcriptIndex + 1].transcriptId,
+            )
+          }
+        >
+          前一次
+        </Button>
 
         <Spacer />
 
@@ -141,19 +164,20 @@ function LoadedTranscripts({ transcripts, setCurrentSummary }: {
         <Select
           value={transcript.transcriptId}
           maxWidth="300px"
-          onChange={ev => replaceUrlParam(router, "transcriptId", ev.target.value)}
+          onChange={(ev) =>
+            replaceUrlParam(router, "transcriptId", ev.target.value)
+          }
         >
-          {transcripts.map((t, idx) => <option
-            key={t.transcriptId} 
-            value={t.transcriptId}
-            >
+          {transcripts.map((t, idx) => (
+            <option key={t.transcriptId} value={t.transcriptId}>
               {prettifyDate(t.startedAt)}，
               {prettifyDuration(t.startedAt, t.endedAt)}
               {!idx ? "（最近通话）" : ""}
-          </option>)}
+            </option>
+          ))}
         </Select>
 
-          {/* {summaries && summary && 
+        {/* {summaries && summary && 
             <Select
               value={summary.key}
               onChange={ev => replaceUrlParam(router, "summaryKey", ev.target.value)}
@@ -169,17 +193,22 @@ function LoadedTranscripts({ transcripts, setCurrentSummary }: {
         <Spacer />
 
         <Button
-          variant="ghost" 
+          variant="ghost"
           rightIcon={<ChevronRightIcon />}
           isDisabled={transcriptIndex == 0}
-          onClick={() => replaceUrlParam(router, "transcriptId",
-            transcripts[transcriptIndex - 1].transcriptId)}
-        >后一次</Button>
+          onClick={() =>
+            replaceUrlParam(
+              router,
+              "transcriptId",
+              transcripts[transcriptIndex - 1].transcriptId,
+            )
+          }
+        >
+          后一次
+        </Button>
       </Flex>
 
-      {!summary ? <Loader /> :
-          <MarkdownStyler content={summary.markdown} />
-      }
+      {!summary ? <Loader /> : <MarkdownStyler content={summary.markdown} />}
     </Flex>
   );
 }

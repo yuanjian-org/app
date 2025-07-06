@@ -6,7 +6,8 @@ import {
   IsUUID,
   Default,
   ForeignKey,
-  AllowNull, HasMany
+  AllowNull,
+  HasMany,
 } from "sequelize-typescript";
 import { CreationOptional, DATE, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
@@ -27,7 +28,7 @@ export default class MentorSelectionBatch extends Model {
   @Column(UUID)
   userId: string;
 
-  // null if not finalized. There can be at most one non-finalized batch per 
+  // null if not finalized. There can be at most one non-finalized batch per
   // user.
   @Column(DATE)
   finalizedAt: DateColumn | null;

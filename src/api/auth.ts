@@ -11,47 +11,57 @@ import { authOptions } from "../pages/api/auth/[...nextauth]";
  * $ curl -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" \
  *  "${BASE_URL}/api/v1/foo.bar"
  */
-export const authIntegration = () => middleware(async ({ ctx, next }) => {
-  const token: string | undefined = ctx.req.headers['authorization']
-    ?.split(' ')[1];
+export const authIntegration = () =>
+  middleware(async ({ ctx, next }) => {
+    const token: string | undefined =
+      ctx.req.headers["authorization"]?.split(" ")[1];
 
-  if (!token) throw unauthorizedError();
-  if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
-  return await next({ ctx: { baseUrl: ctx.baseUrl } });
-});
+    if (!token) throw unauthorizedError();
+    if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
+    return await next({ ctx: { baseUrl: ctx.baseUrl } });
+  });
 
 /**
  * Authenticate for APIs used by end users as opposed to integration
  * applications.
  */
-export const authUser = (permitted?: Role | Role[]) =>middleware(
-  async ({ ctx, next }) => {
-    const session = await getServerSession(ctx.req, ctx.res, authOptions(ctx.req));
+export const authUser = (permitted?: Role | Role[]) =>
+  middleware(async ({ ctx, next }) => {
+    const session = await getServerSession(
+      ctx.req,
+      ctx.res,
+      authOptions(ctx.req),
+    );
     if (!session) throw unauthorizedError();
 
-  if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
+    if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
 
-  return await next({ ctx: { 
-    me: session.user,
-    baseUrl: ctx.baseUrl,
-    session,
+    return await next({
+      ctx: {
+        me: session.user,
+        baseUrl: ctx.baseUrl,
+        session,
 
-    /** @deprecated Use `me` instead */
-    user: session.user,
-  } });
-});
+        /** @deprecated Use `me` instead */
+        user: session.user,
+      },
+    });
+  });
 
-const unauthorizedError = () => new TRPCError({
-  code: 'UNAUTHORIZED',
-  message: '请重新登录。',
-});
+const unauthorizedError = () =>
+  new TRPCError({
+    code: "UNAUTHORIZED",
+    message: "请重新登录。",
+  });
 
-const invalidTokenError = () => new TRPCError({
-  code: 'BAD_REQUEST',
-  message: '验证令牌无效。',
-});
+const invalidTokenError = () =>
+  new TRPCError({
+    code: "BAD_REQUEST",
+    message: "验证令牌无效。",
+  });
 
-const forbiddenError = () => new TRPCError({
-  code: 'FORBIDDEN',
-  message: '禁止访问。',
-});
+const forbiddenError = () =>
+  new TRPCError({
+    code: "FORBIDDEN",
+    message: "禁止访问。",
+  });

@@ -1,23 +1,24 @@
-import { useEffect } from 'react';
-import { UserFilter } from 'shared/User';
-import {
-  Wrap,
-  WrapItem
-} from '@chakra-ui/react';
-import { useRouter } from 'next/router';
+import { useEffect } from "react";
+import { UserFilter } from "shared/User";
+import { Wrap, WrapItem } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import _ from "lodash";
-import { zMenteeStatus } from 'shared/MenteeStatus';
-import MenteeStatusSelect, { nullMenteeStatus } from './MenteeStatusSelect';
-import UserSelector from './UserSelector';
-import { componentSpacing } from 'theme/metrics';
+import { zMenteeStatus } from "shared/MenteeStatus";
+import MenteeStatusSelect, { nullMenteeStatus } from "./MenteeStatusSelect";
+import UserSelector from "./UserSelector";
+import { componentSpacing } from "theme/metrics";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
  */
-export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
-  filter: UserFilter,
-  fixedFilter?: UserFilter,
-  onChange: (f: UserFilter) => void,
+export default function UserFilterSelector({
+  filter,
+  fixedFilter,
+  onChange,
+}: {
+  filter: UserFilter;
+  fixedFilter?: UserFilter;
+  onChange: (f: UserFilter) => void;
 }) {
   const router = useRouter();
 
@@ -38,7 +39,7 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
   // TODO: use JSON string to encode the entire filter.
   const updateUrlParams = async (filter: UserFilter) => {
     const query: Record<string, any> = {};
-    for (const key of Object.keys(filter))  {
+    for (const key of Object.keys(filter)) {
       if (filter[key as keyof UserFilter] !== undefined) {
         query[key] = filter[key as keyof UserFilter];
       }
@@ -48,27 +49,39 @@ export default function UserFilterSelector({ filter, fixedFilter, onChange }: {
     await router.replace({ pathname: router.pathname, query });
   };
 
-  return <Wrap spacing={componentSpacing} align="center">
-    {/* <WrapItem><b>过滤条件：</b></WrapItem> */}
+  return (
+    <Wrap spacing={componentSpacing} align="center">
+      {/* <WrapItem><b>过滤条件：</b></WrapItem> */}
 
-    <WrapItem><b>状态：</b></WrapItem>
-    <WrapItem>
-      <MenteeStatusSelect showAny value={filter.menteeStatus}
-        onChange={v => updateUrlParams({
-          ...filter,
-          menteeStatus: v,
-        })
-      }/>
-    </WrapItem>
+      <WrapItem>
+        <b>状态：</b>
+      </WrapItem>
+      <WrapItem>
+        <MenteeStatusSelect
+          showAny
+          value={filter.menteeStatus}
+          onChange={(v) =>
+            updateUrlParams({
+              ...filter,
+              menteeStatus: v,
+            })
+          }
+        />
+      </WrapItem>
 
-    <WrapItem><b>联络人：</b></WrapItem>
-    <WrapItem>
-      <UserSelector
-        onSelect={userIds => updateUrlParams({
-          ...filter,
-          pointOfContactId: userIds.length > 0 ? userIds[0] : undefined,
-        })
-      } />
-    </WrapItem>
-  </Wrap>;
+      <WrapItem>
+        <b>联络人：</b>
+      </WrapItem>
+      <WrapItem>
+        <UserSelector
+          onSelect={(userIds) =>
+            updateUrlParams({
+              ...filter,
+              pointOfContactId: userIds.length > 0 ? userIds[0] : undefined,
+            })
+          }
+        />
+      </WrapItem>
+    </Wrap>
+  );
 }

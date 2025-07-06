@@ -5,15 +5,15 @@ import {
 } from "sequelize";
 import { Model } from "sequelize-typescript";
 
-class BaseModel<TModelAttributes extends Record<string, unknown>, TCreationAttributes extends Record<string, unknown>> extends Model<
-  TModelAttributes,
-  TCreationAttributes
-> {
+class BaseModel<
+  TModelAttributes extends Record<string, unknown>,
+  TCreationAttributes extends Record<string, unknown>,
+> extends Model<TModelAttributes, TCreationAttributes> {
   static async findAllInBatches<
-    T extends BaseModel<InferAttributes<T>, InferCreationAttributes<T>>
+    T extends BaseModel<InferAttributes<T>, InferCreationAttributes<T>>,
   >(
     query: FindOptions<T>,
-    callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
+    callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>,
   ) {
     if (!query.offset) {
       query.offset = 0;

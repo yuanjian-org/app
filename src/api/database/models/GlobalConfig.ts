@@ -1,12 +1,9 @@
-import {
-  Table,
-  Model, AllowNull
-} from "sequelize-typescript";
+import { Table, Model, AllowNull } from "sequelize-typescript";
 import { JSONB } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import {
   zGlobalConfig,
-  GlobalConfig as GlobalConfigType
+  GlobalConfig as GlobalConfigType,
 } from "../../../shared/GlobalConfig";
 
 /**
