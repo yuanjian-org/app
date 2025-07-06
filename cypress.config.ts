@@ -1,4 +1,4 @@
-import { defineConfig } from 'cypress'
+import { defineConfig } from 'cypress';
 
 /**
  * Example: https://github.com/cypress-io/cypress-realworld-app/blob/develop/cypress.config.js
