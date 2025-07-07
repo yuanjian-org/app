@@ -123,7 +123,7 @@ function PartnersSection() {
       image: partner_4,
     },
     {
-      name: "新华教育基金会",
+      name: "新华爱心教育基金会",
       image: partner_6,
     },
     {
