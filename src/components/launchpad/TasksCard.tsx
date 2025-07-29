@@ -8,8 +8,7 @@ import {
   HStack,
   Box,
   Link,
-  Button,
-  Badge,
+  Button
 } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import trpc, { trpcNext } from "trpc";
@@ -147,8 +146,6 @@ export default function TasksCard({
             >
               新建
             </Button>
-
-            <Badge colorScheme="green">⇐ 新</Badge>
 
             {creating && (
               <TaskEditor

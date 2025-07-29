@@ -263,6 +263,7 @@ function Editor({
     mentorMeetingMessagePrefix,
     "【分享会】",
     "【读书会】",
+    "【报备】",
   ];
 
   return (
