@@ -8,7 +8,7 @@ import {
   HStack,
   Box,
   Link,
-  Button
+  Button,
 } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import trpc, { trpcNext } from "trpc";
