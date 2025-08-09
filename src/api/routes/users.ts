@@ -481,6 +481,7 @@ const setMenteeStatus = procedure
       },
     );
     if (cnt == 0) throw notFoundError("用户", userId);
+    invalidateUserCache(userId);
   });
 
 const isBanned = procedure
@@ -749,6 +750,7 @@ const setPointOfContactAndNote = procedure
       { where: { id: userId } },
     );
     if (cnt == 0) throw notFoundError("用户", userId);
+    invalidateUserCache(userId);
   });
 
 /**
@@ -919,6 +921,7 @@ const destroy = procedure
       if (!user) throw notFoundError("用户", input.id);
       await user.destroy({ transaction });
     });
+    invalidateUserCache(input.id);
   });
 
 export default router({

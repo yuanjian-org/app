@@ -3,8 +3,13 @@ import { zDateColumn } from "./DateColumn";
 
 export const zUserState = z.object({
   consentedAt: zDateColumn.optional(),
+
   declinedMergeModal: z.boolean().optional(),
+
+  declinedPearlStudentModal: z.boolean().optional(),
+
   lastKudosReadAt: zDateColumn.optional(),
+
   lastTasksReadAt: zDateColumn.optional(),
 
   // Last passed date of various exams.

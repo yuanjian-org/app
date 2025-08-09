@@ -62,7 +62,7 @@ function Section({
 
 function IntroSection() {
   return (
-    <Section header="欢迎来到社会导师服务平台">
+    <Section header="欢迎来到远图社会导师服务平台">
       <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
         <VStack spacing={paragraphSpacing} align="start">
           <Text>

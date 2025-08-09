@@ -23,6 +23,7 @@ import tasks from "./routes/tasks";
 import matchFeedback from "./routes/matchFeedback";
 import globalConfigs from "./routes/globalConfigs";
 import password from "./routes/password";
+import pearlStudents from "./routes/pearlStudents";
 
 export const apiRouter = router({
   password,
@@ -49,6 +50,7 @@ export const apiRouter = router({
   tasks,
   matchFeedback,
   globalConfigs,
+  pearlStudents,
 });
 
 export type ApiRouter = typeof apiRouter;

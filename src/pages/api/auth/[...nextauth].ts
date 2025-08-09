@@ -240,6 +240,10 @@ const userCache = new LRUCache<string, User>({
   },
 });
 
+/**
+ * Call this method at all the places where fields in `userAttributes` are
+ * updated.
+ */
 export function invalidateUserCache(userId: string) {
   userCache.delete(userId);
 }

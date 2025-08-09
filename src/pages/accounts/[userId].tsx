@@ -22,8 +22,10 @@ import { LockIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { canAcceptMergeToken } from "shared/merge";
 import { useState } from "react";
-import { EnterTokenMergeModal, MergeCodeFormat } from "components/MergeModals";
+import { InputMergeTokenModal, MergeTokenFormat } from "components/MergeModals";
 import { useMyId } from "useMe";
+import { canValidatePearlStudent } from "shared/pearlStudent";
+import { PearlStudentValidationModal } from "components/PearlStudentModals";
 
 export const accountPageTitle = "账号与安全";
 
@@ -37,6 +39,8 @@ export default function Page() {
   });
 
   const [isMerging, setIsMerging] = useState(false);
+  const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
+    useState(false);
 
   return !user ? (
     <Loader />
@@ -68,7 +72,7 @@ export default function Page() {
 
           <Text>
             如果您通过电子邮件收到微信激活码，请点击下面的按钮输入。
-            <MergeCodeFormat />
+            <MergeTokenFormat />
           </Text>
           <Text>
             警告：使用微信激活码后，您的账号将被迁移，而无法继续访问当前账号下的数据。
@@ -82,9 +86,33 @@ export default function Page() {
       )}
 
       {isMerging && (
-        <EnterTokenMergeModal
+        <InputMergeTokenModal
           cancelLabel="取消"
           cancel={() => setIsMerging(false)}
+        />
+      )}
+
+      {canValidatePearlStudent(user.roles) && (
+        <>
+          <Heading mt={sectionSpacing} size="md">
+            珍珠生验证
+          </Heading>
+          <Text>
+            如果您是新华爱心教育基金会曾经或正在资助的珍珠生，请点击按钮进行验证。
+          </Text>
+          <Button
+            variant="brand"
+            onClick={() => setIsValidatingPearlStudent(true)}
+          >
+            开始验证
+          </Button>
+        </>
+      )}
+
+      {isValidatingPearlStudent && (
+        <PearlStudentValidationModal
+          cancelLabel="取消"
+          cancel={() => setIsValidatingPearlStudent(false)}
         />
       )}
 
