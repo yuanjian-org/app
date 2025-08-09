@@ -41,25 +41,11 @@ async function purgeOldData() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await sequelize.query(`
-    ALTER TABLE "groups" DROP COLUMN IF EXISTS "coacheeId";
-  `);
-
-  await sequelize.query(`
-    ALTER TABLE "users" DROP COLUMN IF EXISTS "coachId";
-  `);
-
   await Promise.resolve();
 }
 
 async function migrateData() {
   console.log("Migrating DB data...");
-
-  await sequelize.query(`
-    UPDATE "users" 
-    SET "roles" = array_remove("roles", 'MentorCoach')
-    WHERE 'MentorCoach' = ANY("roles");
-  `);
 
   await Promise.resolve();
 }
