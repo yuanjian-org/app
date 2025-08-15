@@ -30,7 +30,7 @@ export async function submit({ form, entry }: Record<string, any>) {
 
     // /exams/interview
     case "w02l95":
-      await submitExam(entry, "menteeInterviewerExam", 120);
+      await submitExam(entry, "menteeInterviewerExam", 110);
       break;
 
     // /exams/handbook
