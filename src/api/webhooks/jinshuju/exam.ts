@@ -49,7 +49,7 @@ export default async function submit(
         {
           done: true,
         },
-        { where: { userId, autoTaskId }, transaction },
+        { where: { assigneeId: userId, autoTaskId }, transaction },
       );
     }
   });
