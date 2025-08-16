@@ -1,32 +1,45 @@
+/**
+ * @returns An empty string if there is no meeting minutes or TODOs.
+ */
 export default function formatMeetingMinutes(minutes: string): string {
-  let sections = minutes.split("\n\n");
+  let sections = minutes
+    .replaceAll("（注：文档部分内容可能由 AI 生成）", "")
+    .replaceAll("暂无会议待办", "")
+    .split("\n\n");
+
+  const filtered = (s: string[]) => s.filter((s) => s.length > 0);
+
   const todoIndex = sections.findIndex((s) => s.startsWith("会议待办"));
   if (todoIndex >= 0) {
     // +1 to skip "会议摘要" and "会议待办" lines
-    const summarySection = sections.slice(1, todoIndex);
-    const todoSection = sections.slice(todoIndex + 1);
+    const summary = filtered(sections.slice(1, todoIndex));
+    const todo = filtered(sections.slice(todoIndex + 1));
+    if (todo.length == 0 && summary.length == 0) {
+      return "";
+    }
     sections = [
       "### 会议待办",
-      ...todoSection.map((s) => formatTodoSection(s)),
+      ...todo.map((s) => formatTodoItem(s)),
       "### 会议摘要",
-      ...summarySection.map((s) => formatSummarySection(s)),
+      ...summary.map((s) => formatSummaryBlock(s)),
     ];
   } else {
     // There is no TODOs
-    sections = [
-      "### 会议摘要",
-      ...sections.slice(1).map((s) => formatSummarySection(s)),
-    ];
+    const summary = filtered(sections.slice(1));
+    if (summary.length == 0) {
+      return "";
+    }
+    sections = ["### 会议摘要", ...summary.map((s) => formatSummaryBlock(s))];
   }
 
   return sections.join("\n\n\n");
 }
 
-function formatTodoSection(section: string): string {
+function formatTodoItem(section: string): string {
   return section.replaceAll("· ", "* ");
 }
 
-function formatSummarySection(section: string): string {
+function formatSummaryBlock(section: string): string {
   const lines = section.split("\n");
   return lines.length == 0
     ? section

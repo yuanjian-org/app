@@ -47,5 +47,17 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
+  await sequelize.query(`    
+    DELETE FROM "Summaries" WHERE length(markdown) < 250;
+  `);
+
+  await sequelize.query(`
+    DELETE FROM "Transcripts"
+    WHERE "transcriptId" NOT IN (
+      SELECT "transcriptId"
+      FROM "Summaries"
+    );
+  `);
+
   await Promise.resolve();
 }
