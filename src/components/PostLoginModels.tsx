@@ -21,6 +21,8 @@ import { signOut, useSession } from "next-auth/react";
 import { canAcceptMergeToken } from "shared/merge";
 import { MergeModals } from "./MergeModals";
 import { DateColumn } from "shared/DateColumn";
+import { PearlStudentModals } from "./PearlStudentModals";
+import { canValidatePearlStudent } from "shared/pearlStudent";
 
 export default function PostLoginModels() {
   const me = useMe();
@@ -33,7 +35,10 @@ export default function PostLoginModels() {
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
   ) : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ? (
-    <MergeModals userState={state} close={refetch} />
+    <MergeModals userState={state} refetchUserState={refetch} />
+  ) : canValidatePearlStudent(me.roles) && !state?.declinedPearlStudentModal ? (
+    // Ask for pearl student info only if user has no roles.
+    <PearlStudentModals userState={state} refetchUserState={refetch} />
   ) : (
     <></>
   );
@@ -59,7 +64,7 @@ function SetNameModal() {
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>欢迎你，新用户 👋</ModalHeader>
+        <ModalHeader>你好，新用户 👋</ModalHeader>
         <ModalBody>
           <Box mt={4}>
             <FormControl>
@@ -125,8 +130,8 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
 
   return (
     <>
-      {/* onClose returns undefined to prevent user from closing the modal without
-        entering name. */}
+      {/* onClose returns undefined to prevent user from closing the modal
+        without entering name. */}
       <ModalWithBackdrop isOpen={!declined} onClose={() => undefined}>
         <ModalContent>
           <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>

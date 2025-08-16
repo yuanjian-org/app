@@ -3,26 +3,26 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
-  Text,
   ModalFooter,
   HStack,
   ModalCloseButton,
-  PinInput,
-  PinInputField,
-  Flex,
+  FormControl,
+  Input,
+  FormLabel,
+  VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { breakpoint, componentSpacing } from "theme/metrics";
+import { componentSpacing } from "theme/metrics";
 import { UserState } from "shared/UserState";
-import { longLivedTokenLength } from "shared/token";
-import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { accountPageTitle } from "pages/accounts/[userId]";
-import _ from "lodash";
+import useMe from "useMe";
+import { isValidChineseName } from "shared/strings";
+import { useSession } from "next-auth/react";
 
-export function MergeModals({
+export function PearlStudentModals({
   userState,
   refetchUserState,
 }: {
@@ -36,7 +36,7 @@ export function MergeModals({
   const decline = async () => {
     await trpc.users.setUserState.mutate({
       ...userState,
-      declinedMergeModal: true,
+      declinedPearlStudentModal: true,
     });
     setState("Declined");
   };
@@ -44,7 +44,7 @@ export function MergeModals({
   return state === "Initial" ? (
     <InitialModal confirm={() => setState("Input")} decline={decline} />
   ) : state === "Input" ? (
-    <InputMergeTokenModal
+    <PearlStudentValidationModal
       cancelLabel="返回"
       cancel={() => setState("Initial")}
     />
@@ -52,17 +52,6 @@ export function MergeModals({
     <DeclinedModal close={refetchUserState} />
   ) : (
     <></>
-  );
-}
-
-export function MergeTokenFormat() {
-  return (
-    <>
-      激活码为九个英文字母，形如：
-      <b>
-        <code>ABCDEFGHI</code>
-      </b>
-    </>
   );
 }
 
@@ -78,16 +67,13 @@ function InitialModal({
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>微信激活码</ModalHeader>
-        <ModalBody>
-          您是否已经收到微信激活码？
-          <MergeTokenFormat />
-        </ModalBody>
+        <ModalHeader>珍珠生验证</ModalHeader>
+        <ModalBody>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing}>
-            <Button onClick={decline}>没有收到，跳过</Button>
+            <Button onClick={decline}>我不是珍珠生，或跳过此步</Button>
             <Button variant="brand" onClick={confirm}>
-              输入微信激活码
+              我是珍珠生
             </Button>
           </HStack>
         </ModalFooter>
@@ -100,12 +86,12 @@ function DeclinedModal({ close }: { close: () => void }) {
   return (
     <ModalWithBackdrop isOpen onClose={close}>
       <ModalContent>
-        <ModalHeader>微信激活码</ModalHeader>
+        <ModalHeader>珍珠生验证</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          如果您日后需要输入微信激活码，可随时前往用户菜单的【
+          您日后可随时前往用户菜单的【
           {accountPageTitle}
-          】页面进行操作。
+          】页面进行珍珠生验证。
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing}>
@@ -119,60 +105,74 @@ function DeclinedModal({ close }: { close: () => void }) {
   );
 }
 
-export function InputMergeTokenModal({
+export function PearlStudentValidationModal({
   cancelLabel,
   cancel,
 }: {
   cancelLabel: string;
   cancel: () => void;
 }) {
-  const [token, setToken] = useState<string>("");
+  const user = useMe();
+  const [name, setName] = useState<string>(user.name || "");
+  const [pearlId, setPearlId] = useState<string>("");
+  const [nationalIdLastFour, setNationalIdLastFour] = useState<string>("");
   const { update } = useSession();
 
+  const isInputValid =
+    isValidChineseName(name) &&
+    pearlId.length > 0 &&
+    nationalIdLastFour.length === 4;
+
   const submit = async () => {
-    await trpc.merge.merge.mutate({ token });
+    await trpc.pearlStudents.validate.mutate({
+      name,
+      pearlId,
+      nationalIdLastFour,
+    });
 
     // As soon as the session is updated, all affected page components should
-    // be refreshed including the caller to MergeModals, so we don't need to
-    // manually close this modal.
-    const session = await update();
+    // be refreshed including the caller to PearlStudentModals, so we don't need
+    // to manually close this modal.
+    await update();
 
-    const email = session?.user.email;
-    toast.success(
-      `激活成功。除了使用微信，您现在也可以使用电子邮箱 ${email} 登录了。`,
-    );
+    toast.success(`验证成功。您现在可以享受珍珠生专属功能了。`);
   };
 
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>微信激活码</ModalHeader>
+        <ModalHeader>珍珠生验证</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Flex direction="column" gap={componentSpacing} alignItems="center">
-            <Text>请输入九个英文字母的微信激活码，大小写不敏感：</Text>
-            <HStack>
-              <PinInput
-                size={{ base: "sm", [breakpoint]: "md" }}
-                onChange={(v) => setToken(v)}
+          <VStack spacing={componentSpacing} align="stretch">
+            <FormControl>
+              <FormLabel>姓名</FormLabel>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>珍珠生号（一般为11个字符）</FormLabel>
+              <Input
+                value={pearlId}
+                onChange={(e) => setPearlId(e.target.value)}
                 autoFocus
-                type="alphanumeric"
-              >
-                {_.times(longLivedTokenLength, (i) => (
-                  <PinInputField key={i} />
-                ))}
-              </PinInput>
-            </HStack>
-          </Flex>
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>身份证号最后四位</FormLabel>
+              <Input
+                value={nationalIdLastFour}
+                onChange={(e) => setNationalIdLastFour(e.target.value)}
+                maxLength={4}
+              />
+            </FormControl>
+          </VStack>
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing}>
             <Button onClick={cancel}>{cancelLabel}</Button>
-            <Button
-              onClick={submit}
-              variant="brand"
-              isDisabled={token.length !== longLivedTokenLength}
-            >
+            <Button onClick={submit} variant="brand" isDisabled={!isInputValid}>
               提交
             </Button>
           </HStack>
