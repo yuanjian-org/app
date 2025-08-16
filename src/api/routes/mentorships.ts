@@ -24,6 +24,9 @@ import invariant from "tiny-invariant";
 import { Op, Transaction } from "sequelize";
 import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
+import { getLastMessageCreatedAtImpl } from "./chats";
+import { compareDate } from "../../shared/strings";
+import { oneOnOneMessagePrefix } from "../../shared/ChatMessage";
 
 export const whereMentorshipIsOngoing = {
   [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
@@ -189,6 +192,54 @@ const listMentorshipsForMentee = procedure
   );
 
 /**
+ * @returns the last meeting start time of the mentorship, or the last chat
+ * message with 【一对一】 prefix, whichever is later.
+ */
+const getLastMeetingStartedAt = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({ mentorshipId: z.string() }))
+  .output(zNullableDateColumn)
+  .query(async ({ input: { mentorshipId } }) => {
+    return await sequelize.transaction(async (transaction) => {
+      return await getLastMeetingStartedAtImpl(mentorshipId, transaction);
+    });
+  });
+
+async function getLastMeetingStartedAtImpl(
+  mentorshipId: string,
+  transaction: Transaction,
+) {
+  const m = await db.Mentorship.findByPk(mentorshipId, {
+    attributes: ["menteeId"],
+    include: [
+      {
+        association: "group",
+        attributes: ["id"],
+      },
+    ],
+    transaction,
+  });
+  if (!m) throw notFoundError("一对一匹配", mentorshipId);
+
+  const groupId = m.group.id;
+  const t = zNullableDateColumn.parse(
+    await db.Transcript.max("startedAt", {
+      where: { groupId },
+      transaction,
+    }),
+  );
+  const c = zNullableDateColumn.parse(
+    await getLastMessageCreatedAtImpl(
+      m.menteeId,
+      oneOnOneMessagePrefix,
+      transaction,
+    ),
+  );
+
+  return compareDate(t, c) > 0 ? t : c;
+}
+
+/**
  * Return a map from user to the number of mentorships of this user as a mentor
  */
 export async function getUser2MentorshipCount() {
@@ -263,6 +314,7 @@ const get = procedure
 export default router({
   create,
   get,
+  getLastMeetingStartedAt,
   update,
   updateSchedule,
   listMyMentorships,

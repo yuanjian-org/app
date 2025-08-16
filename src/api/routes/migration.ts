@@ -47,16 +47,10 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await sequelize.query(`    
-    DELETE FROM "Summaries" WHERE length(markdown) < 250;
-  `);
-
   await sequelize.query(`
-    DELETE FROM "Transcripts"
-    WHERE "transcriptId" NOT IN (
-      SELECT "transcriptId"
-      FROM "Summaries"
-    );
+    UPDATE "Summaries" 
+    SET markdown = REPLACE(markdown, '（注：文档部分内容可能由 AI 生成）', '')
+    WHERE markdown LIKE '%（注：文档部分内容可能由 AI 生成）%';
   `);
 
   await Promise.resolve();
