@@ -11,7 +11,7 @@ import {
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
-import { breakpoint, maxTextWidth } from "theme/metrics";
+import { breakpoint } from "theme/metrics";
 import invariant from "shared/invariant";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { formatUserName } from "shared/strings";
@@ -19,15 +19,13 @@ import Applicant from "components/Applicant";
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from "shared/User";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
-import { paragraphSpacing, sectionSpacing } from "theme/metrics";
+import { sectionSpacing } from "theme/metrics";
 import { InterviewFeedbackEditor } from "components/InterviewEditor";
 import { widePage } from "AppPage";
 import { useMyId } from "useMe";
 import { InterviewType } from "shared/InterviewType";
 import { useMemo } from "react";
-import NextLink from "next/link";
-import { interviewExamExpiryDays, isExamExpired } from "shared/exams";
-import { isProd } from "shared/isProd";
+import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), "interviewId");
@@ -36,21 +34,9 @@ export default widePage(() => {
     { enabled: !!interviewId },
   );
 
+  const { commsExamRequired, interviewExamRequired } = useExamsRequired();
+
   const myId = useMyId();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-
-  const needCommsExam = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined) return undefined;
-    return isExamExpired(state.commsExam);
-  }, [state]);
-
-  const needInterviewExam = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined) return undefined;
-    return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
-  }, [state]);
-
   const myFeedbackId = useMemo(() => {
     if (!data) return undefined;
     const feedbacks = data.interviewWithGroup.feedbacks.filter(
@@ -63,14 +49,13 @@ export default widePage(() => {
   const i = data?.interviewWithGroup;
 
   return i === undefined ||
-    needInterviewExam === undefined ||
-    needCommsExam === undefined ? (
+    interviewExamRequired === undefined ||
+    commsExamRequired === undefined ? (
     <Loader />
-  ) : needInterviewExam || needCommsExam ? (
-    <NeedExams
-      type={i.type}
-      interview={needInterviewExam}
-      comms={needCommsExam}
+  ) : interviewExamRequired || commsExamRequired ? (
+    <ExamsRequired
+      interviewExamRequired={interviewExamRequired}
+      commsExamRequired={commsExamRequired}
     />
   ) : (
     <>
@@ -107,44 +92,6 @@ export default widePage(() => {
     </>
   );
 });
-
-function NeedExams({
-  type,
-  interview,
-  comms,
-}: {
-  type: InterviewType;
-  interview: boolean;
-  comms: boolean;
-}) {
-  invariant(comms || interview, "需要完成评测");
-
-  return (
-    <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
-      <p>
-        请首先完成
-        {comms && (
-          <Link as={NextLink} href="/study/comms">
-            《学生通信原则》自学与评测
-          </Link>
-        )}
-        {comms && interview && " 以及"}
-        {interview && (
-          <Link as={NextLink} href="/study/interview">
-            面试官自学与评测
-          </Link>
-        )}
-        ，即可看到面试信息。
-      </p>
-
-      {type == "MentorInterview" && (
-        <p>导师面试的原则与学生面试一样，因此使用同样的测试题目。</p>
-      )}
-
-      <p>我们邀请面试官每年重新评测一次，感谢你的理解与支持。</p>
-    </Flex>
-  );
-}
 
 function Instructions({
   type,
