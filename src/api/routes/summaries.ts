@@ -147,12 +147,20 @@ export async function downloadSummaries() {
 
 async function formatAndSaveSummary(desc: SummaryDescriptor, summary: string) {
   let formatted: string;
-  if (desc.key == AI_MINUTES_SUMMARY_KEY) {
-    formatted =
-      formatSpeakerStats(desc.speakerStats) + formatMeetingMinutes(summary);
-  } else {
+  if (desc.key != AI_MINUTES_SUMMARY_KEY) {
     formatted = summary;
+  } else {
+    const minutes = formatMeetingMinutes(summary);
+    if (minutes.length == 0) {
+      console.log(
+        `Empty minutes for tarnscript ${desc.transcriptId}. Transcript not saved.`,
+      );
+      return;
+    } else {
+      formatted = formatSpeakerStats(desc.speakerStats) + minutes;
+    }
   }
+
   await sequelize.transaction(async (transaction) => {
     await saveSummary(
       desc.transcriptId,
