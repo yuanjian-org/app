@@ -141,6 +141,7 @@ const upload = procedure
 
       for (const student of students) {
         const existing = await db.PearlStudent.findByPk(student.pearlId, {
+          attributes: ["pearlId"],
           transaction,
         });
 

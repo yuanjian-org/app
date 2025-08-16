@@ -85,7 +85,7 @@ function InitialModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing}>
-            <Button onClick={decline}>没有收到，跳过</Button>
+            <Button onClick={decline}>没有收到，跳过此步</Button>
             <Button variant="brand" onClick={confirm}>
               输入微信激活码
             </Button>
