@@ -34,7 +34,7 @@ import {
   compareChinese,
   compareDate,
   formatUserName,
-  hash,
+  getColorFromText,
   prettifyDate,
   toPinyin,
 } from "shared/strings";
@@ -66,7 +66,11 @@ import { MenteeStatus } from "shared/MenteeStatus";
 import {
   Mentorship,
   isOngoingRelationalMentorship,
+  mentorDiscussionRedThreshold,
+  mentorDiscussionYellowThreshold,
   newTransactionalMentorshipEndsAt,
+  oneOnOneMeetingRedThreshold,
+  oneOnOneMeetingYellowThreshold,
 } from "shared/Mentorship";
 import {
   menteeAcceptanceYearField,
@@ -446,21 +450,6 @@ function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
   );
 }
 
-function getColorFromText(text: string): string {
-  const colors = [
-    "red",
-    "orange",
-    "yellow",
-    "green",
-    "teal",
-    "blue",
-    "cyan",
-    "purple",
-  ];
-  const index = Math.abs(hash(text)) % colors.length;
-  return colors[index];
-}
-
 function MenteeHeaderCells({
   sortOrder,
   addSortOrder,
@@ -656,7 +645,12 @@ function LoadedMentorsCells({
   }, [mentee.id, setLastMeetingStartedAt, JSON.stringify(lastMeetingsData)]);
 
   const transcriptTextAndColors = lastMeetingsData.map((t) =>
-    getDateTextAndColor(t, 45, 60, "尚未通话"),
+    getDateTextAndColor(
+      t,
+      oneOnOneMeetingYellowThreshold,
+      oneOnOneMeetingRedThreshold,
+      "尚未通话",
+    ),
   );
 
   const [editing, setEditing] = useState<boolean>(false);
@@ -733,7 +727,12 @@ function LastMentorMeetingDateCell({
     if (setData && date) setData(menteeId, date);
   }, [date, menteeId, setData]);
 
-  const textAndColor = getDateTextAndColor(date, 60, 90, "尚未交流");
+  const textAndColor = getDateTextAndColor(
+    date,
+    mentorDiscussionYellowThreshold,
+    mentorDiscussionRedThreshold,
+    "尚未交流",
+  );
   return <Td color={textAndColor[1]}>{textAndColor[0]}</Td>;
 }
 

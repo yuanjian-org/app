@@ -79,3 +79,8 @@ export function formatMentorshipSchedule(s: MentorshipSchedule) {
     `:${s.minute.toString().padStart(2, "0")}`
   );
 }
+
+export const oneOnOneMeetingYellowThreshold = 45;
+export const oneOnOneMeetingRedThreshold = 60;
+export const mentorDiscussionYellowThreshold = 60;
+export const mentorDiscussionRedThreshold = 90;
