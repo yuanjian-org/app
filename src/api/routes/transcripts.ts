@@ -40,24 +40,8 @@ const list = procedure
     return g.transcripts;
   });
 
-/**
- * @return null if there is no transcript.
- */
-const getLastStartedAt = procedure
-  .use(authUser("MentorshipManager"))
-  .input(
-    z.object({
-      groupId: z.string(),
-    }),
-  )
-  .output(z.date().nullable())
-  .query(async ({ input: { groupId } }) => {
-    return await db.Transcript.max("startedAt", { where: { groupId } });
-  });
-
 export default router({
   list,
-  getLastStartedAt,
 });
 
 export async function getSummaries(transcriptId: string): Promise<Summary[]> {

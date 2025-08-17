@@ -51,18 +51,26 @@ const getLastMessageCreatedAt = procedure
     await checkRoomPermission(user, menteeId);
 
     return await sequelize.transaction(async (transaction) => {
-      const room = await findRoom(menteeId, transaction);
-      if (!room) return null;
-
-      return await db.ChatMessage.max("createdAt", {
-        where: {
-          roomId: room.id,
-          ...(prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {}),
-        },
-        transaction,
-      });
+      return await getLastMessageCreatedAtImpl(menteeId, prefix, transaction);
     });
   });
+
+export async function getLastMessageCreatedAtImpl(
+  menteeId: string,
+  prefix: string,
+  transaction: Transaction,
+) {
+  const room = await findRoom(menteeId, transaction);
+  if (!room) return null;
+
+  return await db.ChatMessage.max("createdAt", {
+    where: {
+      roomId: room.id,
+      ...(prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {}),
+    },
+    transaction,
+  });
+}
 
 /**
  * @return excludes messages by the current user. null if there is no message or

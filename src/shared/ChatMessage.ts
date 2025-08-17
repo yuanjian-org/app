@@ -10,3 +10,6 @@ export const zChatMessage = z.object({
   createdAt: zOptionalDateColumn,
 });
 export type ChatMessage = z.TypeOf<typeof zChatMessage>;
+
+export const oneOnOneMessagePrefix = "【一对一】";
+export const mentorDiscussionMessagePrefix = "【导师交流会】";

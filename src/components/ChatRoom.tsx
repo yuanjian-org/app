@@ -17,7 +17,11 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
-import { ChatMessage } from "shared/ChatMessage";
+import {
+  ChatMessage,
+  mentorDiscussionMessagePrefix,
+  oneOnOneMessagePrefix,
+} from "shared/ChatMessage";
 import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { formatUserName, prettifyDate } from "shared/strings";
@@ -183,8 +187,6 @@ function Message({
   );
 }
 
-export const mentorMeetingMessagePrefix = "【导师交流会】";
-
 function Editor({
   roomId,
   message,
@@ -259,8 +261,8 @@ function Editor({
   );
 
   const prefixes = [
-    "【一对一】",
-    mentorMeetingMessagePrefix,
+    oneOnOneMessagePrefix,
+    mentorDiscussionMessagePrefix,
     "【分享会】",
     "【读书会】",
     "【报备】",

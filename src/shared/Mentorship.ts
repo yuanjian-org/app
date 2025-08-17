@@ -64,6 +64,10 @@ export function isEndedTransactionalMentorship(m: Mentorship) {
   return m.transactional && isEnded(m.endsAt);
 }
 
+export function isOngoingRelationalMentorship(m: Mentorship) {
+  return !m.transactional && !isEnded(m.endsAt);
+}
+
 export function newTransactionalMentorshipEndsAt(): Date {
   return moment().add(2, "weeks").toDate();
 }
