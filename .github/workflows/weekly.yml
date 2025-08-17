@@ -1,0 +1,17 @@
+name: Weekly Cron Jobs
+
+permissions: {}
+
+on:
+  schedule:
+    # Runs at 2:42 AM China Standard Time every Friday.
+    - cron: "42 18 * * 4"
+
+jobs:
+  run_scheduled_task:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Audit last mentorship meetings
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.auditLastMentorshipMeetings

@@ -154,3 +154,18 @@ export const passwordMinLength = 8;
 export function isValidPassword(password: string): boolean {
   return password.length >= passwordMinLength && password.length < 100;
 }
+
+export function getColorFromText(text: string): string {
+  const colors = [
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "teal",
+    "blue",
+    "cyan",
+    "purple",
+  ];
+  const index = Math.abs(hash(text)) % colors.length;
+  return colors[index];
+}

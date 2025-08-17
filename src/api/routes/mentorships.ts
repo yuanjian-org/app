@@ -3,6 +3,9 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import {
   isEndedTransactionalMentorship,
+  mentorDiscussionYellowThreshold,
+  Mentorship,
+  oneOnOneMeetingYellowThreshold,
   zMentorship,
   zMentorshipSchedule,
 } from "../../shared/Mentorship";
@@ -25,8 +28,14 @@ import { Op, Transaction } from "sequelize";
 import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import { getLastMessageCreatedAtImpl } from "./chats";
-import { compareDate } from "../../shared/strings";
-import { oneOnOneMessagePrefix } from "../../shared/ChatMessage";
+import { compareDate, formatUserName } from "../../shared/strings";
+import {
+  mentorDiscussionMessagePrefix,
+  oneOnOneMessagePrefix,
+} from "../../shared/ChatMessage";
+import moment from "moment";
+import { emailRole } from "../email";
+import getBaseUrl from "../../shared/getBaseUrl";
 
 export const whereMentorshipIsOngoing = {
   [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
@@ -310,6 +319,108 @@ const get = procedure
     }
     return res;
   });
+
+/**
+ * Send admin emails that list mentors who haven't had meetings with their
+ * mentees for a while.
+ */
+export async function auditLastMentorshipMeetings() {
+  type Pair = {
+    mentorship: Mentorship;
+    last: DateColumn | null;
+  };
+
+  const oneOnOneTooOld: Pair[] = [];
+  const mentorDiscussionTooOld: Pair[] = [];
+
+  await sequelize.transaction(async (transaction) => {
+    // List all ongoing relational mentorships.
+    const ms = await db.Mentorship.findAll({
+      attributes: mentorshipAttributes,
+      include: mentorshipInclude,
+      where: {
+        ...whereMentorshipIsOngoing,
+        transactional: false,
+      },
+      transaction,
+    });
+
+    for (const m of ms) {
+      const last1v1 = await getLastMeetingStartedAtImpl(m.id, transaction);
+
+      if (
+        last1v1 === null ||
+        moment().diff(last1v1, "days") > oneOnOneMeetingYellowThreshold
+      ) {
+        oneOnOneTooOld.push({ mentorship: m, last: last1v1 });
+      }
+
+      const lastDiscussion = await getLastMessageCreatedAtImpl(
+        m.mentee.id,
+        mentorDiscussionMessagePrefix,
+        transaction,
+      );
+
+      if (
+        lastDiscussion === null ||
+        moment().diff(lastDiscussion, "days") > mentorDiscussionYellowThreshold
+      ) {
+        mentorDiscussionTooOld.push({ mentorship: m, last: lastDiscussion });
+      }
+    }
+  });
+
+  if (oneOnOneTooOld.length === 0 && mentorDiscussionTooOld.length === 0) {
+    console.log("auditLastMentorshipMeetings found no violations");
+    return;
+  }
+
+  const formatMentorship = (m: Mentorship) => `
+    <a href="${getBaseUrl()}/mentees/${m.mentee.id}">
+      ${formatUserName(m.mentor.name)} 
+      =>
+      ${formatUserName(m.mentee.name)} 
+    </a>
+  `;
+
+  const oneOnOneTooOldText = oneOnOneTooOld
+    .sort((a, b) => compareDate(a.last, b.last))
+    .map(
+      (p) => `
+        ${formatMentorship(p.mentorship)}：
+        ${p.last ? moment().diff(p.last, "days") + " 天前通话" : "尚未通话"}
+      `,
+    )
+    .join("<br />");
+
+  const mentorDiscussionTooOldText = mentorDiscussionTooOld
+    .sort((a, b) => compareDate(a.last, b.last))
+    .map(
+      (p) => `
+        ${formatMentorship(p.mentorship)}：
+        ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未交流"}
+      `,
+    )
+    .join("<br />");
+
+  const message = `
+    <b>以下师生长期未通话，请了解情况：</b>
+    <br /><br />
+    ${oneOnOneTooOldText}
+    <br /><br />
+    <b>以下导师长期未交流，请尽快预约交流：</b>
+    <br /><br />
+    ${mentorDiscussionTooOldText}
+  `;
+
+  await emailRole(
+    "MentorshipManager",
+    "导师长期未通话",
+    // Shrink message. Otherwise mail server may complain about message size.
+    message.replace(/\n/g, "").replace(/\s+/g, " "),
+    getBaseUrl(),
+  );
+}
 
 export default router({
   create,

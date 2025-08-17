@@ -63,13 +63,15 @@ export async function getLastMessageCreatedAtImpl(
   const room = await findRoom(menteeId, transaction);
   if (!room) return null;
 
-  return await db.ChatMessage.max("createdAt", {
-    where: {
-      roomId: room.id,
-      ...(prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {}),
-    },
-    transaction,
-  });
+  return zNullableDateColumn.parse(
+    await db.ChatMessage.max("createdAt", {
+      where: {
+        roomId: room.id,
+        ...(prefix ? { markdown: { [Op.iLike]: `${prefix}%` } } : {}),
+      },
+      transaction,
+    }),
+  );
 }
 
 /**
