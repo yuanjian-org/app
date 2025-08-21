@@ -1,4 +1,4 @@
-import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Text, Tooltip } from "@chakra-ui/react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
+import { RiCustomerServiceFill } from "react-icons/ri";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -52,6 +53,15 @@ export default function StaticNavBar() {
           <NextLink href={loginUrl()}>
             <Text color={inactiveNavLinkColor}>进入远图</Text>
           </NextLink>
+
+          <Tooltip label="联系客服">
+            <NextLink
+              href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+              target="_blank"
+            >
+              <RiCustomerServiceFill />
+            </NextLink>
+          </Tooltip>
 
           <Button variant="brand" as={NextLink} href={loginUrl()}>
             登录 / 注册

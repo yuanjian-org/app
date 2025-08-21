@@ -37,6 +37,7 @@ import { SmallGrayText } from "components/SmallGrayText";
 import { headingColor } from "theme/colors";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import invariant from "shared/invariant";
+import { RiCustomerServiceFill } from "react-icons/ri";
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -124,6 +125,19 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
           </TabPanel>
         </TabPanels>
       </Tabs>
+
+      <HStack justify="center" spacing={2}>
+        <RiCustomerServiceFill color="gray" />
+        <SmallGrayText>
+          若有登录问题，
+          <Link
+            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+            target="_blank"
+          >
+            联系客服
+          </Link>
+        </SmallGrayText>
+      </HStack>
     </>
   );
 }
@@ -139,7 +153,6 @@ function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
         </Link>
       </Text>
       <EmbeddedWeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
-      <MergeAccountHelpText />
     </VStack>
   );
 }
@@ -160,16 +173,7 @@ function WechatAccountPanel() {
       >
         微信登录
       </Button>
-      <MergeAccountHelpText />
     </VStack>
-  );
-}
-
-function MergeAccountHelpText() {
-  return (
-    <SmallGrayText align="center">
-      如需关联微信与邮箱账号，请联系远图工作人员。
-    </SmallGrayText>
   );
 }
 
