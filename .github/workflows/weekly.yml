@@ -15,3 +15,7 @@ jobs:
       - name: Audit last mentorship meetings
         run: |
           curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.auditLastMentorshipMeetings
+
+      - name: Recycle meetings
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings
