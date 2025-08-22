@@ -51,6 +51,7 @@ import { UnreadKudosRedDot } from "./Kudos";
 import { UnreadChatMessagesRedDot } from "./ChatRoom";
 import { FaStreetView } from "react-icons/fa";
 import { UnreadTasksRedDot } from "./launchpad/TasksCard";
+import { RiCustomerServiceFill } from "react-icons/ri";
 
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
@@ -72,6 +73,8 @@ interface DropdownMenuItem {
   name: string;
   // string url as the href attribute and function as the onClick handler.
   action: (() => void) | string;
+  // valid only if action is a string.
+  target?: "_blank";
   roles?: Role | Role[];
   icon?: React.ReactNode;
 }
@@ -146,6 +149,12 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: accountPageTitle,
     action: "/accounts/me",
+  },
+  {
+    icon: <RiCustomerServiceFill />,
+    name: "联系客服",
+    action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
+    target: "_blank",
   },
   {
     name: "退出登录",
@@ -429,13 +438,18 @@ function DropdownMenuIfPermitted({
               <MenuItem
                 key={index}
                 // Only sets the link it is a url
-                {...(isUrl && { as: NextLink, href: item.action })}
+                {...(isUrl && {
+                  as: NextLink,
+                  href: item.action,
+                  target: item.target,
+                })}
                 onClick={() => {
                   if (!isUrl) (item.action as () => void)();
                   onClose();
                 }}
               >
                 {item.icon}
+                {!!item.icon && <>&nbsp;</>}
                 {item.name}
               </MenuItem>
             );

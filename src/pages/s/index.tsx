@@ -72,13 +72,18 @@ function IntroSection() {
             {}，尽早为步入职场和社会做好准备，助力年轻人实现人生理想与社会责任。
           </Text>
           <Text>
-            <b>任何人都可以接受社会导师服务么？</b>是的。馒头工坊｜Mentor
-            Workshop
-            向公众提供社会导师服务，并为符合条件的大学生提供无偿服务。您可以
+            <b>任何人都可以接受社会导师服务么？</b>是的。
             <Link href="/img/wechat-app-qrcode.jpg" target="_blank">
-              通过”馒头工坊”微信小程序
+              馒头工坊｜Mentor Workshop
+            </Link>{" "}
+            向公众提供社会导师服务，并为符合条件的大学生提供无偿服务。您可以点击链接申请，或
+            <Link
+              href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+              target="_blank"
+            >
+              联系客服
             </Link>
-            进行申请。
+            进行咨询。
           </Text>
           <Text>
             <b>如何了解更多？</b>
