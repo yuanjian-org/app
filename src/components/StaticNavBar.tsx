@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
+import { ShowOnDesktop } from "./Show";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -42,7 +43,9 @@ export default function StaticNavBar() {
         </NextLink>
 
         <HStack as="nav" spacing={7} fontWeight="bold">
-          <NavLink href={staticUrlPrefix} current={current} text="首页" />
+          <ShowOnDesktop>
+            <NavLink href={staticUrlPrefix} current={current} text="首页" />
+          </ShowOnDesktop>
 
           <NavLink
             href={`${staticUrlPrefix}/articles`}
