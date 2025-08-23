@@ -1,4 +1,4 @@
-# 社会导师服务平台
+# 远图社会导师服务平台
 
 This is a web app that supports mentorship programs at [Visionary Education
 Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunteers.

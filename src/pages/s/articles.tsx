@@ -43,7 +43,7 @@ export default function Page() {
           </HStack>
           <HStack>
             <MdOutlineDescription />
-            <Link as={NextLink} href="/s/armor-heart">
+            <Link as={NextLink} href="/s/how">
               铠甲与火苗
             </Link>
           </HStack>
