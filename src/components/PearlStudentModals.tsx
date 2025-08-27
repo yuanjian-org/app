@@ -10,6 +10,8 @@ import {
   Input,
   FormLabel,
   VStack,
+  Spacer,
+  Link,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
@@ -21,6 +23,8 @@ import { accountPageTitle } from "pages/accounts/[userId]";
 import useMe from "useMe";
 import { isValidChineseName } from "shared/strings";
 import { useSession } from "next-auth/react";
+import { SmallGrayText } from "./SmallGrayText";
+import { RiCustomerServiceFill } from "react-icons/ri";
 
 export function PearlStudentModals({
   userState,
@@ -116,18 +120,21 @@ export function PearlStudentValidationModal({
   const [name, setName] = useState<string>(user.name || "");
   const [pearlId, setPearlId] = useState<string>("");
   const [nationalIdLastFour, setNationalIdLastFour] = useState<string>("");
+  const [wechat, setWechat] = useState<string>("");
   const { update } = useSession();
 
   const isInputValid =
     isValidChineseName(name) &&
     pearlId.length > 0 &&
-    nationalIdLastFour.length === 4;
+    nationalIdLastFour.length === 4 &&
+    wechat.length > 0;
 
   const submit = async () => {
     await trpc.pearlStudents.validate.mutate({
       name,
       pearlId,
       nationalIdLastFour,
+      wechat,
     });
 
     // As soon as the session is updated, all affected page components should
@@ -145,6 +152,7 @@ export function PearlStudentValidationModal({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
+            <SmallGrayText>请填写以下所有字段：</SmallGrayText>
             <FormControl>
               <FormLabel>姓名</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -167,10 +175,30 @@ export function PearlStudentValidationModal({
                 maxLength={4}
               />
             </FormControl>
+
+            <FormControl>
+              <FormLabel>微信号</FormLabel>
+              <Input
+                value={wechat}
+                onChange={(e) => setWechat(e.target.value)}
+              />
+            </FormControl>
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <HStack spacing={componentSpacing}>
+          <HStack spacing={componentSpacing} w="full">
+            <RiCustomerServiceFill color="gray" />
+            <SmallGrayText>
+              若验证有问题，
+              <Link
+                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+                target="_blank"
+              >
+                联系客服
+              </Link>
+            </SmallGrayText>
+
+            <Spacer />
             <Button onClick={cancel}>{cancelLabel}</Button>
             <Button onClick={submit} variant="brand" isDisabled={!isInputValid}>
               提交

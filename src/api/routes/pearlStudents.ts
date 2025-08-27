@@ -18,10 +18,11 @@ const validate = procedure
       name: z.string(),
       pearlId: z.string(),
       nationalIdLastFour: z.string(),
+      wechat: z.string(),
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    const { name, pearlId, nationalIdLastFour } = input;
+    const { name, pearlId, nationalIdLastFour, wechat } = input;
 
     await sequelize.transaction(async (transaction) => {
       const student = await db.PearlStudent.findOne({
@@ -74,6 +75,7 @@ const validate = procedure
         {
           name,
           pinyin: toPinyin(name),
+          wechat,
           roles: [...me.roles.filter((r) => r !== menteeRole), menteeRole],
           menteeStatus,
         },
