@@ -129,7 +129,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       <HStack justify="center" spacing={2}>
         <RiCustomerServiceFill color="gray" />
         <SmallGrayText>
-          若有登录问题，
+          若登录有问题，
           <Link
             href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
             target="_blank"
