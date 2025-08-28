@@ -222,7 +222,7 @@
 
 在匹配人员完成匹配度打分后，我们会运行一个自动求解程序。该程序把匹配度打分作为输入信息，自动生成一份用于师生初次交流的匹配名单。它为每位导师匹配 M 至 N 名学生，为每名学生匹配 P 至 Q 位导师。M、N、P、Q 都是根据学生和导师的精力预先设定的参数。这些参数不仅控制师生的交流数量，还会影响定配算法（详见下节）的工作量——参数值越大，工作量越大。在实践中，我们通常把这些参数设置为 M = 2、N = 4、P = Q = 3。
 
-自动求解程序采用业界标准的组合优化算法——谷歌的 CP-SAT 求解器。该算法能确保输出的方案是最优的。我们已将这个程序的源代码公开，感兴趣的读者可以访问 https://github.com/yuanjian-org/app/blob/main/tools/match.ipynb。
+自动求解程序采用业界标准的组合优化算法——谷歌的 CP-SAT 求解器。该算法能确保输出的方案是最优的。我们已将这个程序的源代码公开，感兴趣的读者可以访问 [github.com/yuanjian-org/app/blob/main/tools/match.ipynb](https://github.com/yuanjian-org/app/blob/main/tools/match.ipynb)。
 
 # 定配算法
 
