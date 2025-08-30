@@ -21,6 +21,8 @@ export const zUser = zMinUser.merge(
     // object just for permission checking.
     roles: zRoles,
     email: z.string().email(),
+    // cell phone number. See models/User.ts for information about this field.
+    cell: z.string().nullable(),
     wechat: z.string().nullable(),
     menteeStatus: zMenteeStatus.nullable(),
     pointOfContact: zMinUser.nullable(),
@@ -28,6 +30,10 @@ export const zUser = zMinUser.merge(
   }),
 );
 type User = z.TypeOf<typeof zUser>;
+
+export const cellRequiredButNotProvided = "CELL_REQUIRED_BUT_NOT_PROVIDED";
+export const cellTokenMaxAgeInMins = 5;
+export const cellTokenMinSendIntervalInSeconds = 60;
 
 export default User;
 

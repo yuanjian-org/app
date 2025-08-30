@@ -11,18 +11,25 @@ import {
   VStack,
   ModalFooter,
   Spacer,
+  InputGroup,
+  InputRightElement,
+  HStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { isValidChineseName } from "shared/strings";
+import { isValidChineseCellNumber, isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
 import { canAcceptMergeToken } from "shared/merge";
 import { MergeModals } from "./MergeModals";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
 import { canValidatePearlStudent } from "shared/pearlStudent";
+import {
+  cellRequiredButNotProvided,
+  cellTokenMinSendIntervalInSeconds,
+} from "shared/User";
 
 export default function PostLoginModels() {
   const me = useMe();
@@ -30,17 +37,114 @@ export default function PostLoginModels() {
 
   return state === undefined ? (
     <></>
-  ) : !me.name ? (
-    <SetNameModal />
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
   ) : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ? (
     <MergeModals userState={state} refetchUserState={refetch} />
+  ) : !me.name ? (
+    <SetNameModal />
+  ) : me.cell === null || me.cell === cellRequiredButNotProvided ? (
+    <SetCellModal />
   ) : canValidatePearlStudent(me.roles) && !state?.declinedPearlStudentModal ? (
     // Ask for pearl student info only if user has no roles.
     <PearlStudentModals userState={state} refetchUserState={refetch} />
   ) : (
     <></>
+  );
+}
+
+function SetCellModal() {
+  const me = useMe();
+  const { update } = useSession();
+  const required = me.cell === cellRequiredButNotProvided;
+  const [cell, setCell] = useState(required ? "" : me.cell || "");
+  const [token, setToken] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  const sendToken = async () => {
+    await trpc.users.sendCellToken.mutate({ cell });
+    setCountdown(cellTokenMinSendIntervalInSeconds);
+
+    // Start countdown timer
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const submit = async () => {
+    await trpc.users.setCell.mutate({ cell, token });
+    await update();
+  };
+
+  const isValidCell = isValidChineseCellNumber(cell);
+  const isValidInput = isValidCell && token;
+
+  return (
+    // Set onClose to undefined to prevent user from closing the modal without
+    // entering name.
+    <ModalWithBackdrop isOpen onClose={() => undefined}>
+      <ModalContent>
+        <ModalHeader>手机号验证</ModalHeader>
+        <ModalBody>
+          <Box mt={4}>
+            <FormControl>
+              <FormLabel>请填写手机号</FormLabel>
+              <Input
+                isRequired={true}
+                value={cell}
+                onChange={(e) => setCell(e.target.value)}
+                placeholder="仅支持中国大陆手机号"
+                mb="24px"
+              />
+              <FormControl>
+                <InputGroup size="md">
+                  <Input
+                    isRequired={true}
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    isDisabled={!isValidCell}
+                    mb="24px"
+                  />
+                  <InputRightElement w="120px">
+                    <Button
+                      w="120px"
+                      isDisabled={!isValidCell || countdown > 0}
+                      onClick={sendToken}
+                    >
+                      {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+            </FormControl>
+          </Box>
+        </ModalBody>
+        <ModalFooter>
+          <HStack w="100%">
+            {!required && (
+              <>
+                <Button>我没有中国大陆手机号，跳过此步</Button>
+                <Spacer />
+              </>
+            )}
+            <Button
+              colorScheme="blue"
+              isDisabled={!isValidInput}
+              onClick={submit}
+              {...(required ? { w: "100%" } : {})}
+            >
+              确认
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
   );
 }
 

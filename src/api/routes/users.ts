@@ -10,6 +10,8 @@ import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { authUser } from "../auth";
 import User, {
+  cellTokenMaxAgeInMins,
+  cellTokenMinSendIntervalInSeconds,
   defaultMentorCapacity,
   isAcceptedMentee,
   zMentorPreference,
@@ -23,6 +25,7 @@ import {
   compareChinese,
   formatUserName,
   isValidChineseName,
+  toChineseNumber,
   toPinyin,
 } from "../../shared/strings";
 import invariant from "tiny-invariant";
@@ -47,6 +50,9 @@ import { fakeEmailDomain } from "../../shared/fakeEmail";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
+import { generateShortLivedToken } from "../../shared/token";
+import { sms } from "../sms";
+import moment from "moment";
 
 const create = procedure
   .use(authUser("UserManager"))
@@ -377,6 +383,69 @@ export function redactEmail(email: string): string {
     return `${first}${"*".repeat(rest.length)}${domain}`;
   });
 }
+
+const sendCellToken = procedure
+  .use(authUser())
+  .input(z.object({ cell: z.string() }))
+  .mutation(async ({ input: { cell }, ctx: { user } }) => {
+    await sequelize.transaction(async (transaction) => {
+      const existing = await db.CellToken.findByPk(user.id, {
+        attributes: ["updatedAt"],
+        transaction,
+      });
+      if (
+        existing &&
+        moment().diff(existing.updatedAt, "seconds") <
+          cellTokenMinSendIntervalInSeconds
+      ) {
+        throw generalBadRequestError("手机验证码发送过于频繁。");
+      }
+
+      const token = await generateShortLivedToken();
+      await db.CellToken.upsert(
+        { userId: user.id, cell, token },
+        { transaction },
+      );
+      await sms("yaD264", [
+        {
+          to: cell,
+          vars: {
+            token: token.toString(),
+            tokenMaxAgeInMins: toChineseNumber(cellTokenMaxAgeInMins),
+          },
+        },
+      ]);
+    });
+  });
+
+const setCell = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      cell: z.string(),
+      token: z.string(),
+    }),
+  )
+  .mutation(async ({ input: { cell, token }, ctx: { user } }) => {
+    await sequelize.transaction(async (transaction) => {
+      const existing = await db.CellToken.findOne({
+        where: { userId: user.id, cell, token },
+        attributes: ["userId", "updatedAt"],
+        transaction,
+      });
+
+      if (!existing) {
+        throw generalBadRequestError("手机验证码错误。");
+      } else if (
+        moment().diff(existing.updatedAt, "minutes") > cellTokenMaxAgeInMins
+      ) {
+        throw generalBadRequestError("手机验证码已过期，请重新验证。");
+      }
+
+      await existing.destroy({ transaction });
+      await user.update({ cell }, { transaction });
+    });
+  });
 
 const update = procedure
   .use(authUser())
@@ -940,6 +1009,9 @@ export default router({
   update,
   setMenteeStatus,
   destroy,
+
+  setCell,
+  sendCellToken,
 
   getApplicant,
   setApplication,
