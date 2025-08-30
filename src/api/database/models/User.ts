@@ -69,13 +69,18 @@ class User extends Model {
   @Column(STRING)
   email: string;
 
-  @Index({
-    using: "gin",
-  })
-  @AllowNull(false)
-  @Default([])
-  @ZodColumn(ARRAY(STRING), zRoles)
-  roles: Role[];
+  /**
+   * Cell phone number:
+   * - `null`: user hasn't gotten a chance to provide the number
+   * - `""`: the user chose not to provide the number
+   * - `cellRequiredButNotProvided`: the cell phone number is required but
+   *   not provided
+   * - Once a number is provided, this field can no longer enter the other three
+   *   states.
+   */
+  @Index
+  @Column(STRING)
+  cell: string | null;
 
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.
@@ -83,6 +88,14 @@ class User extends Model {
   // we need to redact this field (and email field).
   @Column(STRING)
   wechat: string | null;
+
+  @Index({
+    using: "gin",
+  })
+  @AllowNull(false)
+  @Default([])
+  @ZodColumn(ARRAY(STRING), zRoles)
+  roles: Role[];
 
   // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
   @Unique

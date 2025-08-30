@@ -24,6 +24,7 @@ export const userAttributes = [
   ...minUserAttributes,
   "wechat",
   "email",
+  "cell",
   "roles",
   "menteeStatus",
   "pointOfContactNote",

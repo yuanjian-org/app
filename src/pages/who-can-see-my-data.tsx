@@ -40,7 +40,10 @@ export default function Page() {
           {}
           个人数据，以及已授权数据访问的人员名单。这些信息会随时间变化而调整，恕不另行通知。
           {}欢迎您随时访问本网页，查阅最新信息。如有任何问题，请随时
-          <Link isExternal href="mailto:sizhujiaoyu@163.com">
+          <Link
+            isExternal
+            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+          >
             联系我们
           </Link>
           。

@@ -3,7 +3,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import sequelize from "api/database/sequelize";
 import { createUser } from "./users";
-import { tokenMaxAgeInMins } from "pages/api/auth/[...nextauth]";
+import { authTokenMaxAgeInMins } from "pages/api/auth/[...nextauth]";
 import { isValidPassword, toChineseNumber } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
 import { email as sendEmail } from "api/email";
@@ -27,7 +27,7 @@ const requestReset = procedure
           email,
           resetToken: token,
           resetTokenExpiresAt: new Date(
-            Date.now() + 1000 * 60 * tokenMaxAgeInMins,
+            Date.now() + 1000 * 60 * authTokenMaxAgeInMins,
           ),
         },
         transaction,
@@ -42,7 +42,7 @@ const requestReset = procedure
           // safety of both token and email.
           url: `${getBaseUrl()}/auth/password?token=${token}&email=${email}`,
           token,
-          tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+          tokenMaxAgeInMins: toChineseNumber(authTokenMaxAgeInMins),
         },
         getBaseUrl(),
       );
