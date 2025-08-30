@@ -111,6 +111,7 @@
     "@types/react-table": "^7.7.12",
     "chai": "^4.3.7",
     "cypress": "^13.17.0",
+    "dotenv": "^17.2.1",
     "eslint": "^9.30.1",
     "eslint-config-next": "^15.3.5",
     "eslint-config-prettier": "^10.1.5",

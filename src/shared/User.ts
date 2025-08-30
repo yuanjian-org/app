@@ -3,6 +3,7 @@ import Role, { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
 import { zDateColumn } from "./DateColumn";
 import { zTraitsPreference } from "./Traits";
+import { isValidChineseCellNumber } from "./strings";
 
 export const zMinUser = z.object({
   id: z.string(),
@@ -15,12 +16,57 @@ export const zMinUser = z.object({
 });
 export type MinUser = z.TypeOf<typeof zMinUser>;
 
+/**
+ * Values of the cell phone number field of the User object / model:
+ *
+ * - null: user hasn't gotten a chance to provide the number
+ * - "declined-<uuid>": the user chose not to provide the number
+ * - "required-<uuid>": the cell phone number is required but not provided
+ * - Once a number is provided, this field can no longer enter the other
+ *   three states.
+ *
+ * The `uuid` is to satisfy the cell column's unique constraint.
+ */
+export const cellDeclinedPrefix = "declined-";
+export const cellRequiredPrefix = "required-";
+
+export const zCell = z
+  .string()
+  .nullable()
+  .refine(
+    (cell) => {
+      return (
+        cell === null ||
+        cell.startsWith(cellDeclinedPrefix) ||
+        cell.startsWith(cellRequiredPrefix) ||
+        isValidChineseCellNumber(cell)
+      );
+    },
+    {
+      message: "无效手机号码",
+    },
+  );
+export type Cell = z.TypeOf<typeof zCell>;
+
+export function isCellDeclined(cell: Cell) {
+  return cell?.startsWith(cellDeclinedPrefix);
+}
+
+export function isCellRequired(cell: Cell) {
+  return cell?.startsWith(cellRequiredPrefix);
+}
+
+export function isCellSet(cell: Cell) {
+  return cell !== null && !isCellDeclined(cell) && !isCellRequired(cell);
+}
+
 export const zUser = zMinUser.merge(
   z.object({
     // TODO: Consider moving roles to MinUser to avoid retrieving the whole User
     // object just for permission checking.
     roles: zRoles,
     email: z.string().email(),
+    cell: zCell,
     wechat: z.string().nullable(),
     menteeStatus: zMenteeStatus.nullable(),
     pointOfContact: zMinUser.nullable(),

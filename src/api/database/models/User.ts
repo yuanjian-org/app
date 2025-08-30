@@ -33,7 +33,7 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
-import { UserPreference, zUserPreference } from "../../../shared/User";
+import { Cell, UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
 import MergeToken from "./MergeToken";
@@ -69,13 +69,10 @@ class User extends Model {
   @Column(STRING)
   email: string;
 
-  @Index({
-    using: "gin",
-  })
-  @AllowNull(false)
-  @Default([])
-  @ZodColumn(ARRAY(STRING), zRoles)
-  roles: Role[];
+  // Cell phone number. See shared/User.ts for information about this field.
+  @Unique
+  @Column(STRING)
+  cell: Cell;
 
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.
@@ -83,6 +80,14 @@ class User extends Model {
   // we need to redact this field (and email field).
   @Column(STRING)
   wechat: string | null;
+
+  @Index({
+    using: "gin",
+  })
+  @AllowNull(false)
+  @Default([])
+  @ZodColumn(ARRAY(STRING), zRoles)
+  roles: Role[];
 
   // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
   @Unique
