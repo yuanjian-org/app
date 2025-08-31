@@ -35,7 +35,7 @@ export type ImpersonationRequest = {
 
 const impersonateTokenKey = "imp";
 
-export const tokenMaxAgeInMins = 5;
+export const authTokenMaxAgeInMins = 5;
 
 export const adapter = SequelizeAdapter(sequelize, {
   models: { User: db.User },
@@ -75,7 +75,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       {
         id: "sendgrid",
         type: "email",
-        maxAge: tokenMaxAgeInMins * 60, // For verification token expiry
+        maxAge: authTokenMaxAgeInMins * 60, // For verification token expiry
         sendVerificationRequest,
         generateVerificationToken: generateShortLivedToken,
       },
@@ -213,7 +213,7 @@ async function sendVerificationRequest({
     {
       url,
       token,
-      tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+      tokenMaxAgeInMins: toChineseNumber(authTokenMaxAgeInMins),
     },
     getBaseUrl(),
   );

@@ -11,36 +11,203 @@ import {
   VStack,
   ModalFooter,
   Spacer,
+  InputGroup,
+  InputRightElement,
+  HStack,
+  Link,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { isValidChineseName } from "shared/strings";
+import { isValidChineseCellNumber, isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
 import { canAcceptMergeToken } from "shared/merge";
 import { MergeModals } from "./MergeModals";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
 import { canValidatePearlStudent } from "shared/pearlStudent";
+import { cellTokenMinSendIntervalInSeconds } from "shared/token";
+import { isCellDeclined, isCellRequired, isCellSet } from "shared/User";
+import { SmallGrayText } from "./SmallGrayText";
+import { componentSpacing } from "theme/metrics";
+import { RiCustomerServiceFill } from "react-icons/ri";
 
+// prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
 
   return state === undefined ? (
     <></>
-  ) : !me.name ? (
-    <SetNameModal />
-  ) : !isConsented(state.consentedAt) ? (
-    <ConsentModal refetch={refetch} />
+
+  // Ask for marge token first because information accessed later (name, cell,
+  // roles, etc) may have been already filled in the merge's target account.
   ) : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ? (
     <MergeModals userState={state} refetchUserState={refetch} />
+
+  ) : !isConsented(state.consentedAt) ? (
+    <ConsentModal refetch={refetch} />
+
+  // Validate pearl student before setting name because the former also sets 
+  // name. Do it before setting cell because the system will require cell for
+  // all pearl students.
   ) : canValidatePearlStudent(me.roles) && !state?.declinedPearlStudentModal ? (
-    // Ask for pearl student info only if user has no roles.
     <PearlStudentModals userState={state} refetchUserState={refetch} />
+
+  ) : !me.name ? (
+    <SetNameModal />
+
+  ) : me.cell === null || isCellRequired(me.cell) ? (
+    <SetCellModal cancel={() => undefined} cancelLabel="跳过" />
+
   ) : (
     <></>
+  );
+}
+
+export function SetCellModal({
+  cancel,
+  cancelLabel,
+}: {
+  cancel: () => void;
+  cancelLabel: string;
+}) {
+  const me = useMe();
+  const { update } = useSession();
+  const required = isCellRequired(me.cell);
+  const [cell, setCell] = useState("");
+  const [token, setToken] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const sendToken = async () => {
+    setLoading(true);
+    try {
+      await trpc.users.sendCellToken.mutate({ cell });
+      setCountdown(cellTokenMinSendIntervalInSeconds);
+
+      // Start countdown timer
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submit = async () => {
+    setLoading(true);
+    try {
+      await trpc.users.setCell.mutate({ cell, token });
+      await update();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const decline = async () => {
+    if (isCellSet(me.cell) || isCellDeclined(me.cell)) {
+      cancel();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await trpc.users.declineCell.mutate();
+      await update();
+      cancel();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isValidCell = isValidChineseCellNumber(cell);
+  const isValidInput = isValidCell && token;
+
+  const rightButtonWidth = "120px";
+
+  return (
+    // Set onClose to undefined to prevent user from closing the modal without
+    // entering name.
+    <ModalWithBackdrop isOpen onClose={cancel}>
+      <ModalContent>
+        <ModalHeader>手机号验证</ModalHeader>
+        <ModalBody>
+          <FormControl>
+            <FormLabel>请填写手机号</FormLabel>
+            <Input
+              isRequired={true}
+              value={cell}
+              onChange={(e) => setCell(e.target.value)}
+              placeholder="仅支持中国大陆手机号"
+              mb="24px"
+            />
+          </FormControl>
+          <FormControl>
+            <InputGroup size="md">
+              <Input
+                isRequired={true}
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                isDisabled={!isValidCell}
+                mb="24px"
+              />
+              <InputRightElement w={rightButtonWidth}>
+                <Button
+                  w={rightButtonWidth}
+                  isDisabled={!isValidCell || countdown > 0}
+                  onClick={sendToken}
+                  isLoading={loading}
+                >
+                  {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+
+            <HStack spacing={componentSpacing} w="full">
+              <RiCustomerServiceFill color="gray" />
+              <SmallGrayText>
+                若验证有问题，
+                <Link
+                  href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+                  target="_blank"
+                >
+                  联系客服
+                </Link>
+              </SmallGrayText>
+            </HStack>
+          </FormControl>
+        </ModalBody>
+        <ModalFooter>
+          <HStack w="100%">
+            {!required && (
+              <>
+                <Button onClick={decline}>
+                  我没有中国大陆手机号，{cancelLabel}
+                </Button>
+                <Spacer />
+              </>
+            )}
+            <Button
+              variant="brand"
+              w={required ? "100%" : rightButtonWidth}
+              isDisabled={!isValidInput}
+              onClick={submit}
+              isLoading={loading}
+            >
+              确认
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
   );
 }
 

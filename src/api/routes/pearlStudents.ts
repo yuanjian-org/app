@@ -10,6 +10,9 @@ import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
 import { emailRoleIgnoreError } from "api/email";
 import getBaseUrl from "shared/getBaseUrl";
 import { toPinyin } from "shared/strings";
+import { cellRequiredPrefix, isCellSet } from "shared/User";
+import invariant from "shared/invariant";
+import { menteeSourceField } from "shared/applicationFields";
 
 const validate = procedure
   .use(authUser())
@@ -70,17 +73,37 @@ const validate = procedure
 
       await student.update({ userId: me.id }, { transaction });
 
+      const user = await db.User.findByPk(me.id, {
+        attributes: ["id", "cell", "menteeApplication"],
+        transaction,
+      });
+      invariant(user, `User not found: ${me.id}`);
+
+      const menteeApplication = {
+        ...user.menteeApplication,
+        [menteeSourceField]: "珍珠生：" + pearlId,
+      };
+
       // TODO: Consolidate with users.ts:createUser.
-      await db.User.update(
+      await user.update(
         {
           name,
           pinyin: toPinyin(name),
           wechat,
           roles: [...me.roles.filter((r) => r !== menteeRole), menteeRole],
           menteeStatus,
+          menteeApplication,
         },
-        { where: { id: me.id }, transaction },
+        { transaction },
       );
+
+      // Require students to set cell number.
+      if (!isCellSet(user.cell)) {
+        await user.update(
+          { cell: cellRequiredPrefix + crypto.randomUUID() },
+          { transaction },
+        );
+      }
 
       invalidateUserCache(me.id);
     });

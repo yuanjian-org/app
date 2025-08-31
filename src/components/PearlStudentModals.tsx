@@ -152,10 +152,14 @@ export function PearlStudentValidationModal({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
-            <SmallGrayText>请填写以下所有字段：</SmallGrayText>
+            <SmallGrayText>所有字段为必填：</SmallGrayText>
             <FormControl>
               <FormLabel>姓名</FormLabel>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </FormControl>
 
             <FormControl>
@@ -163,7 +167,6 @@ export function PearlStudentValidationModal({
               <Input
                 value={pearlId}
                 onChange={(e) => setPearlId(e.target.value)}
-                autoFocus
               />
             </FormControl>
 

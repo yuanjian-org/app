@@ -26,6 +26,8 @@ import { InputMergeTokenModal, MergeTokenFormat } from "components/MergeModals";
 import { useMyId } from "useMe";
 import { canValidatePearlStudent } from "shared/pearlStudent";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
+import { isCellSet } from "shared/User";
+import { SetCellModal } from "components/PostLoginModels";
 
 export const accountPageTitle = "账号与安全";
 
@@ -38,9 +40,16 @@ export default function Page() {
     enabled: !!userId,
   });
 
+  const [isSettingCell, setIsSettingCell] = useState(false);
   const [isMerging, setIsMerging] = useState(false);
   const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
     useState(false);
+
+  const SectionHeading = ({ children }: { children: React.ReactNode }) => (
+    <Heading mt={sectionSpacing} size="md">
+      {children}
+    </Heading>
+  );
 
   return !user ? (
     <Loader />
@@ -51,25 +60,39 @@ export default function Page() {
       spacing={componentSpacing}
       margin={sectionSpacing}
     >
-      {!isFakeEmail(user.email) && (
-        <>
-          <Heading size="md">账号信息</Heading>
+      <SectionHeading>账号信息</SectionHeading>
 
-          <FormControl>
-            <FormLabel>邮箱</FormLabel>
-            <FormHelperTextWithMargin>
-              如需更改，请联系
-              {RoleProfiles.UserManager.displayName}。
-            </FormHelperTextWithMargin>
-            <Input value={user.email} readOnly />
-          </FormControl>
-        </>
+      {!isFakeEmail(user.email) && (
+        <FormControl>
+          <FormLabel>邮箱</FormLabel>
+          <Input value={user.email} readOnly />
+          <FormHelperTextWithMargin>
+            如需更改，请联系
+            {RoleProfiles.UserManager.displayName}。
+          </FormHelperTextWithMargin>
+        </FormControl>
+      )}
+
+      <FormControl>
+        <FormLabel>手机号</FormLabel>
+        <Input value={isCellSet(user.cell) ? user.cell! : "未提供"} readOnly />
+      </FormControl>
+      <FormControl>
+        <Button variant="brand" onClick={() => setIsSettingCell(true)}>
+          修改
+        </Button>
+      </FormControl>
+
+      {isSettingCell && (
+        <SetCellModal
+          cancelLabel="取消"
+          cancel={() => setIsSettingCell(false)}
+        />
       )}
 
       {canAcceptMergeToken(user.email) && (
         <>
-          <Heading size="md">微信账号</Heading>
-
+          <SectionHeading>微信激活码</SectionHeading>
           <Text>
             如果您通过电子邮件收到微信激活码，请点击下面的按钮输入。
             <MergeTokenFormat />
@@ -94,9 +117,7 @@ export default function Page() {
 
       {canValidatePearlStudent(user.roles) && (
         <>
-          <Heading mt={sectionSpacing} size="md">
-            珍珠生验证
-          </Heading>
+          <SectionHeading>珍珠生验证</SectionHeading>
           <Text>
             如果您是新华爱心教育基金会曾经或正在资助的珍珠生，请点击按钮进行验证。
           </Text>
@@ -116,9 +137,7 @@ export default function Page() {
         />
       )}
 
-      <Heading mt={sectionSpacing} size="md">
-        安全信息
-      </Heading>
+      <SectionHeading>安全信息</SectionHeading>
 
       <Link as={NextLink} href="/who-can-see-my-data">
         <HStack>

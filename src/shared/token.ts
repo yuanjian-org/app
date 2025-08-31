@@ -1,7 +1,10 @@
-/**
- * This module generates security verification tokens.
- */
 import randomNumber from "random-number-csprng";
+
+/**
+ * Tokens for cell phone number verification.
+ */
+export const cellTokenMaxAgeInMins = 5;
+export const cellTokenMinSendIntervalInSeconds = 60;
 
 /**
  * These tokens are weaker than long-lived tokens. Apply short expiration.

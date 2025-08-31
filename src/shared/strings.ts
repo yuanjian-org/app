@@ -169,3 +169,7 @@ export function getColorFromText(text: string): string {
   const index = Math.abs(hash(text)) % colors.length;
   return colors[index];
 }
+
+export function isValidChineseCellNumber(cell: string): boolean {
+  return /^1[3-9]\d{9}$/.test(cell);
+}
