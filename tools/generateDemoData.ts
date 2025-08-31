@@ -153,7 +153,12 @@ async function generateMenteeNotes(author: DemoUser, mentee: DemoUser,
   transaction: Transaction) 
 {
   console.log('Creating mentee notes...');
-  const room = await findOrCreateRoom(author as User, id(mentee), transaction);
+  const room = await findOrCreateRoom(
+    author as User,
+    id(mentee),
+    "write",
+    transaction,
+  );
   for (const note of demo.menteeNotes) {
     await createChatMessage(author as User, room.id, note, transaction);
   }

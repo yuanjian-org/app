@@ -18,10 +18,10 @@ import { zChatRoom, ChatRoom } from "../../shared/ChatRoom";
 export async function findOrCreateRoom(
   me: User,
   menteeId: string,
+  action: "read" | "write",
   transaction: Transaction,
-  allowMenteeForOwnRoom: boolean = false,
 ): Promise<ChatRoom> {
-  await checkRoomPermission(me, menteeId, allowMenteeForOwnRoom);
+  await checkRoomPermission(me, menteeId, action);
 
   while (true) {
     const r = await findRoom(
@@ -57,7 +57,6 @@ export async function createChatMessage(
   roomId: string,
   markdown: string,
   transaction: Transaction,
-  allowMenteeForOwnRoom: boolean = false,
 ) {
   const r = await db.ChatRoom.findByPk(roomId, {
     attributes: ["menteeId"],
@@ -65,7 +64,7 @@ export async function createChatMessage(
   });
   if (!r) throw notFoundError("讨论空间", roomId);
 
-  await checkRoomPermission(author, r.menteeId, allowMenteeForOwnRoom);
+  await checkRoomPermission(author, r.menteeId, "write");
 
   await db.ChatMessage.create(
     { roomId, markdown, userId: author.id },
@@ -81,10 +80,15 @@ export async function createChatMessage(
 export async function checkRoomPermission(
   me: User,
   menteeId: string | null,
-  allowMenteeForOwnRoom: boolean = false,
+  action: "read" | "write" | "readMetadata",
 ) {
   if (menteeId !== null) {
-    if (allowMenteeForOwnRoom && me.id === menteeId) return;
-    await checkPermissionToAccessMentee(me, menteeId);
+    // Allow the mentee to write to their own room.
+    if (action === "write" && me.id === menteeId) return;
+    await checkPermissionToAccessMentee(
+      me,
+      menteeId,
+      action == "readMetadata" ? "readMetadata" : "any",
+    );
   } else invariant(false, "Unexpectedchat room type");
 }

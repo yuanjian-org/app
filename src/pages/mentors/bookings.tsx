@@ -7,6 +7,7 @@ import {
   Thead,
   Tbody,
   Text,
+  Link,
 } from "@chakra-ui/react";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import Loader from "components/Loader";
@@ -15,6 +16,8 @@ import UserSelector from "components/UserSelector";
 import { MentorBooking } from "shared/MentorBooking";
 import { compareDate, formatUserName, prettifyDate } from "shared/strings";
 import trpc, { trpcNext } from "trpc";
+import NextLink from "next/link";
+import { getUserUrl } from "shared/User";
 
 export default function Page() {
   const { data, isLoading, refetch } = trpcNext.mentorBookings.list.useQuery();
@@ -63,7 +66,11 @@ export default function Page() {
                 ?.sort((a, b) => compareDate(b.createdAt, a.createdAt))
                 .map((mb) => (
                   <Tr key={mb.id}>
-                    <Td>{formatUserName(mb.requester.name, "formal")}</Td>
+                    <Td>
+                      <Link as={NextLink} href={`/mentees/${mb.requester.id}`}>
+                        {formatUserName(mb.requester.name)}
+                      </Link>
+                    </Td>
 
                     <Td>
                       <Text minW="300px" maxW="600px" whiteSpace="pre-wrap">
@@ -72,9 +79,16 @@ export default function Page() {
                     </Td>
 
                     <Td>
-                      {mb.requestedMentor
-                        ? formatUserName(mb.requestedMentor.name, "formal")
-                        : "-"}
+                      {mb.requestedMentor && (
+                        <Link
+                          as={NextLink}
+                          href={getUserUrl(mb.requestedMentor)}
+                        >
+                          {formatUserName(mb.requestedMentor.name)}
+                        </Link>
+                      )}
+
+                      {!mb.requestedMentor && "-"}
                     </Td>
 
                     <Td>

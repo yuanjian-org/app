@@ -98,7 +98,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "导师",
     action: "/mentors/manage",
-    roles: "MentorshipManager",
+    roles: ["MentorshipManager", "MentorshipOperator"],
   },
   {
     name: "会议",
@@ -216,7 +216,7 @@ const mainMenuItems: MainMenuItem[] = [
     path: "/mentees?menteeStatus=现届学子",
     icon: AttachmentIcon,
     regex: /^\/mentees[^/]/,
-    permission: "MentorshipManager",
+    permission: ["MentorshipManager", "MentorshipOperator"],
   },
 ];
 

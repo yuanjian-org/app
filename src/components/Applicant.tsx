@@ -23,7 +23,7 @@ import { formatUserName } from "shared/strings";
 import invariant from "tiny-invariant";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from "shared/User";
-import { isPermitted } from "shared/Role";
+import { isPermitted, RoleProfiles } from "shared/Role";
 import NextLink from "next/link";
 import { toast } from "react-toastify";
 import { InterviewType } from "shared/InterviewType";
@@ -79,7 +79,10 @@ function LoadedApplicant({
 }) {
   const myRoles = useMyRoles();
   const isMentee = type == "MenteeInterview";
-  const imManager = isPermitted(myRoles, "MentorshipManager");
+  const imPrivileged = isPermitted(myRoles, [
+    "MentorshipManager",
+    "MentorshipOperator",
+  ]);
 
   const update = async (name: string, value: string) => {
     await trpc.users.setApplication.mutate({
@@ -106,14 +109,14 @@ function LoadedApplicant({
       {/* It's okay to have mentors' contact information visible to peers */}
       <ContactFieldRow
         redacted={isMentee}
-        copyable={!isMentee || imManager}
+        copyable={!isMentee || imPrivileged}
         name="微信"
         value={user.wechat || "（未提供微信）"}
       />
 
       <ContactFieldRow
         redacted={isMentee}
-        copyable={!isMentee || imManager}
+        copyable={!isMentee || imPrivileged}
         name="邮箱"
         value={user.email}
       />
@@ -123,14 +126,14 @@ function LoadedApplicant({
           if (application && f.name in application) {
             return (
               <FieldRow
-                readonly={!imManager}
+                readonly={!imPrivileged}
                 key={f.name}
                 name={f.name}
                 value={application[f.name]}
                 update={(v) => update(f.name, v)}
               />
             );
-          } else if (imManager && f.showForEdits) {
+          } else if (imPrivileged && f.showForEdits) {
             return (
               <FieldRow
                 readonly={false}
@@ -174,7 +177,7 @@ function ContactFieldRow({
           <Text color="gray">
             （请联系
             <Link as={NextLink} href="/who-can-see-my-data">
-              学生管理员
+              {RoleProfiles["MentorshipOperator"].displayName}
             </Link>
             ）
           </Text>

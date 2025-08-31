@@ -119,7 +119,14 @@ export async function createUser(
  * Returned users are ordered by Pinyin.
  */
 const list = procedure
-  .use(authUser(["UserManager", "GroupManager", "MentorshipManager"]))
+  .use(
+    authUser([
+      "UserManager",
+      "GroupManager",
+      "MentorshipManager",
+      "MentorshipOperator",
+    ]),
+  )
   .input(zUserFilter)
   .output(z.array(zUserWithMergeInfo))
   .query(async ({ ctx: { user }, input: filter }) => {
@@ -135,7 +142,11 @@ const list = procedure
 
     if (
       filter.returnMergeInfo === true &&
-      !isPermitted(user.roles, ["UserManager", "MentorshipManager"])
+      !isPermitted(user.roles, [
+        "UserManager",
+        "MentorshipManager",
+        "MentorshipOperator",
+      ])
     ) {
       throw noPermissionError("数据", "`returnMergeInfo` user filter");
     }
@@ -296,7 +307,7 @@ export type ListMentorStatsOutput = z.infer<typeof zListMentorStatsOutput>;
  * access.
  */
 const listMentorStatsRoute = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .output(zListMentorStatsOutput)
   .query(listMentorStats);
 
@@ -652,7 +663,7 @@ const get = procedure
     if (
       me.id !== userId &&
       !isPermitted(me.roles, "UserManager") &&
-      !(await isPermittedtoAccessMentee(me, userId)) &&
+      !(await isPermittedtoAccessMentee(me, userId, "readMetadata")) &&
       !(await isPermittedtoAccessMentor(me, userId))
     ) {
       throw noPermissionError("用户", userId);
@@ -829,7 +840,11 @@ const getUserState = procedure
     const userId = input?.userId ?? me.id;
     if (
       userId !== me.id &&
-      !isPermitted(me.roles, ["UserManager", "MentorshipManager"])
+      !isPermitted(me.roles, [
+        "UserManager",
+        "MentorshipManager",
+        "MentorshipOperator",
+      ])
     ) {
       throw noPermissionError("用户", userId);
     }
@@ -869,7 +884,7 @@ const setUserState = procedure
   });
 
 const setPointOfContactAndNote = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .input(
     z.object({
       userId: z.string(),
@@ -894,12 +909,13 @@ const setPointOfContactAndNote = procedure
   });
 
 /**
- * Only MentorshipManager, mentor of the applicant, interviewers
- * of the applicant, participants of the calibration (only if the calibration
- * is active), and the user themselves are allowed to call this route.
+ * Only MentorshipManager, MentorshipOperator, mentor of the applicant,
+ * interviewers of the applicant, participants of the calibration (only if the
+ * calibration is active), and the user themselves are allowed to call this
+ * route.
  *
- * If the user is not an MentorshipManager or the user being requested, contact
- * information is redacted.
+ * If the user is not an MentorshipManager, MentorshipOperator or the user being
+ * requested, contact information is redacted.
  */
 const getApplicant = procedure
   .use(authUser())
@@ -942,7 +958,10 @@ const getApplicant = procedure
         sex,
       };
 
-      if (me.id === userId || isPermitted(me.roles, "MentorshipManager")) {
+      if (
+        me.id === userId ||
+        isPermitted(me.roles, ["MentorshipManager", "MentorshipOperator"])
+      ) {
         return ret;
       }
 
@@ -1181,16 +1200,26 @@ function checkPermissionToManageRoles(myRoles: Role[], subjectRoles: Role[]) {
 export async function checkPermissionToAccessMentee(
   me: User,
   menteeId: string,
+  action: "any" | "readMetadata" = "any",
 ) {
-  if (!(await isPermittedtoAccessMentee(me, menteeId))) {
+  if (!(await isPermittedtoAccessMentee(me, menteeId, action))) {
     throw noPermissionError("学生", menteeId);
   }
 }
 
-// TODO: Add transaction
-export async function isPermittedtoAccessMentee(me: User, menteeId: string) {
-  if (isPermitted(me.roles, "MentorshipManager")) return true;
+/**
+ * Metadata is data about the mentee and their mentoerships, but not the actual
+ * conversation or notes contents between the mentee and their mentors.
+ */
+export async function isPermittedtoAccessMentee(
+  me: User,
+  menteeId: string,
+  action: "any" | "readMetadata" = "any",
+) {
   if (
+    isPermitted(me.roles, "MentorshipManager") ||
+    (action === "readMetadata" &&
+      isPermitted(me.roles, "MentorshipOperator")) ||
     (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } })) > 0
   ) {
     return true;
