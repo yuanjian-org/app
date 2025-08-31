@@ -21,6 +21,7 @@ import {
   ChatMessage,
   mentorDiscussionMessagePrefix,
   oneOnOneMessagePrefix,
+  transactionalMessagePrefix,
 } from "shared/ChatMessage";
 import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
@@ -262,10 +263,11 @@ function Editor({
 
   const prefixes = [
     oneOnOneMessagePrefix,
-    mentorDiscussionMessagePrefix,
+    transactionalMessagePrefix,
     "【分享会】",
     "【读书会】",
-    "【报备】",
+    mentorDiscussionMessagePrefix,
+    "【情况报备】",
   ];
 
   return (

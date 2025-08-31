@@ -176,8 +176,15 @@ export async function createMessageAndScheduleEmail(
   roomId: string,
   markdown: string,
   transaction: Transaction,
+  allowMenteeSelf: boolean = false,
 ) {
-  await createChatMessage(author, roomId, markdown, transaction);
+  await createChatMessage(
+    author,
+    roomId,
+    markdown,
+    transaction,
+    allowMenteeSelf,
+  );
   await scheduleEmail("Chat", roomId, transaction);
 }
 

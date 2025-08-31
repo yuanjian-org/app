@@ -8,19 +8,20 @@ import { notFoundError } from "../errors";
 import { Includeable, Transaction } from "sequelize";
 import User from "../../shared/User";
 import { checkPermissionToAccessMentee } from "./users";
-import invariant from "tiny-invariant";
+import invariant from "../../shared/invariant";
 import {
   chatRoomAttributes,
   chatRoomInclude,
 } from "../database/models/attributesAndIncludes";
-import { zChatRoom } from "../../shared/ChatRoom";
+import { zChatRoom, ChatRoom } from "../../shared/ChatRoom";
 
 export async function findOrCreateRoom(
   me: User,
   menteeId: string,
   transaction: Transaction,
-) {
-  await checkRoomPermission(me, menteeId);
+  allowMenteeForOwnRoom: boolean = false,
+): Promise<ChatRoom> {
+  await checkRoomPermission(me, menteeId, allowMenteeForOwnRoom);
 
   while (true) {
     const r = await findRoom(
@@ -56,6 +57,7 @@ export async function createChatMessage(
   roomId: string,
   markdown: string,
   transaction: Transaction,
+  allowMenteeForOwnRoom: boolean = false,
 ) {
   const r = await db.ChatRoom.findByPk(roomId, {
     attributes: ["menteeId"],
@@ -63,7 +65,7 @@ export async function createChatMessage(
   });
   if (!r) throw notFoundError("讨论空间", roomId);
 
-  await checkRoomPermission(author, r.menteeId);
+  await checkRoomPermission(author, r.menteeId, allowMenteeForOwnRoom);
 
   await db.ChatMessage.create(
     { roomId, markdown, userId: author.id },
@@ -76,7 +78,13 @@ export async function createChatMessage(
   });
 }
 
-export async function checkRoomPermission(me: User, menteeId: string | null) {
-  if (menteeId !== null) await checkPermissionToAccessMentee(me, menteeId);
-  else invariant(false);
+export async function checkRoomPermission(
+  me: User,
+  menteeId: string | null,
+  allowMenteeForOwnRoom: boolean = false,
+) {
+  if (menteeId !== null) {
+    if (allowMenteeForOwnRoom && me.id === menteeId) return;
+    await checkPermissionToAccessMentee(me, menteeId);
+  } else invariant(false, "Unexpectedchat room type");
 }

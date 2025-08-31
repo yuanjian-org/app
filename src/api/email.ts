@@ -9,6 +9,17 @@ import z from "zod";
 import axios from "axios";
 import { internalServerError } from "./errors";
 
+export async function emailRoles(
+  roles: Role[],
+  subject: string,
+  content: string,
+  baseUrl: string,
+) {
+  for (const role of roles) {
+    await emailRole(role, subject, content, baseUrl);
+  }
+}
+
 export async function emailRole(
   role: Role,
   subject: string,

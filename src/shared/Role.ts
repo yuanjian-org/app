@@ -6,6 +6,8 @@ export const AllRoles = [
   "GroupManager",
   "MentorshipAssessor",
   "MentorshipManager",
+  "MentorshipOperator",
+
   // See `docs/Glossary.md` for the definitions of this type.
   "TransactionalMentor",
   // Mentor role is either a transactional or relational mentor.
@@ -57,6 +59,11 @@ export const RoleProfiles: {
   MentorshipManager: {
     displayName: "师生管理员",
     actions: "管理学生信息、导师信息、面试信息、一对一学生导师匹配信息等",
+    privilegedUserDataAccess: true,
+  },
+  MentorshipOperator: {
+    displayName: "师生运营员",
+    actions: "协助导师和学生活动的运营",
     privilegedUserDataAccess: true,
   },
   Mentor: {

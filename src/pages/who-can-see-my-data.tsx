@@ -76,7 +76,7 @@ function DataTable() {
             <Td>姓名</Td>
             <Td>
               {dp("UserManager")}、{dp("GroupManager")}、
-              {dp("MentorshipManager")}
+              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
               、同一会议分组的其他成员
             </Td>
           </Tr>
@@ -84,12 +84,14 @@ function DataTable() {
             <Td>电子邮箱</Td>
             <Td>
               {dp("UserManager")}、{dp("GroupManager")}、
-              {dp("MentorshipManager")}
+              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
             </Td>
           </Tr>
           <Tr>
-            <Td>微信号</Td>
-            <Td>{dp("MentorshipManager")}</Td>
+            <Td>微信号、手机号</Td>
+            <Td>
+              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
+            </Td>
           </Tr>
           <Tr>
             <Td>
@@ -107,10 +109,10 @@ function DataTable() {
                   {dp("UserManager")}、{dp("MentorshipManager")}、{dp("Mentor")}
                 </ListItem>
                 <ListItem>
-                  如果你是{dp("Volunteer")}，则其他{dp("Volunteer")}
+                  如果你是{dp("Volunteer")}，则其他{dp("Volunteer")}可访问
                 </ListItem>
                 <ListItem>
-                  如果你是{dp("Mentor")}，则已被录取的{dp("Mentee")}
+                  如果你是{dp("Mentor")}，则已被录取的{dp("Mentee")}可访问
                 </ListItem>
               </UnorderedList>
             </Td>
@@ -170,3 +172,5 @@ function Privileged({
     </TableContainer>
   );
 }
+
+Page.title = "谁能看到我的数据";
