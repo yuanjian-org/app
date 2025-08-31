@@ -511,6 +511,9 @@ const setCell = procedure
     });
   });
 
+/**
+ * Only selected fields in the User object are respected. See code for details.
+ */
 const update = procedure
   .use(authUser())
   .input(zUser)
@@ -518,9 +521,6 @@ const update = procedure
     await sequelize.transaction(async (transaction) => {
       // Validate user input
       validateUserInput(input.email, input.url);
-      if (input.cell) {
-        throw generalBadRequestError("Use setCell API to update cell number.");
-      }
 
       const isUserManager = isPermitted(ctx.user.roles, "UserManager");
       const isSelf = ctx.user.id === input.id;
