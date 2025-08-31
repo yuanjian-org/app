@@ -19,6 +19,7 @@ import {
   getInterviewIdForMentee
 } from "../src/api/routes/interviews";
 import { createAutoTask } from "../src/api/routes/tasks";
+import { createMentorBooking } from "../src/api/routes/mentorBookings";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -71,6 +72,8 @@ async function main() {
     await generateCalibrationAndInterviews(t);
 
     await createAutoTasks(t);
+
+    await generateMentorBookings(t);
 });
   
   // This make sure the process doesn't hang waiting for connection closure.
@@ -238,6 +241,17 @@ async function createAutoTasks(t: Transaction) {
   console.log('Creating auto tasks...');
   await createAutoTask(id(admin), "study-comms", t);
   await createAutoTask(id(admin), "study-handbook", t);
+}
+
+async function generateMentorBookings(t: Transaction) {
+  console.log('Creating mentor bookings...');
+  await createMentorBooking(
+    mentee1 as User,
+    id(mentor4),
+    "希望交流目前医药行业的现状和未来职业规划",
+    "http://localhost:3000",
+    t,
+  );
 }
 
 void main().then();

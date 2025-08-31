@@ -66,7 +66,7 @@ export default function Page() {
                     <Td>{formatUserName(mb.requester.name, "formal")}</Td>
 
                     <Td>
-                      <Text maxW="600px" whiteSpace="pre-wrap">
+                      <Text minW="300px" maxW="600px" whiteSpace="pre-wrap">
                         {mb.topic}
                       </Text>
                     </Td>

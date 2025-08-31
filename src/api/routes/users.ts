@@ -129,7 +129,7 @@ const list = procedure
     ) {
       throw noPermissionError(
         "数据",
-        "includeBanned, includeMerged or returnMergeInfo user filter",
+        "`includeBanned, includeMerged or returnMergeInfo user filter",
       );
     }
 
@@ -137,7 +137,7 @@ const list = procedure
       filter.returnMergeInfo === true &&
       !isPermitted(user.roles, ["UserManager", "MentorshipManager"])
     ) {
-      throw noPermissionError("数据", "returnMergeInfo user filter");
+      throw noPermissionError("数据", "`returnMergeInfo` user filter");
     }
 
     // Force type checking.
@@ -243,8 +243,12 @@ const listMentorsRoute = procedure
   .output(zListMentorsOutput)
   .query(async ({ ctx: { user: me } }) => {
     if (
-      !isPermitted(me.roles, ["Mentor", "MentorshipManager"]) &&
-      !isAcceptedMentee(me.roles, me.menteeStatus, true)
+      !isAcceptedMentee(me.roles, me.menteeStatus, true) &&
+      !isPermitted(me.roles, [
+        "Mentor",
+        "MentorshipManager",
+        "MentorshipOperator",
+      ])
     ) {
       throw noPermissionError("导师");
     }

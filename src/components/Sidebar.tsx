@@ -123,7 +123,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "不定期导师预约记录",
     action: "/mentors/bookings",
-    roles: "MentorshipManager",
+    roles: ["MentorshipManager", "MentorshipOperator"],
   },
   {
     name: "已删除纪要文字",
@@ -192,7 +192,7 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/mentors$/,
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, true) ||
-      isPermitted(me.roles, "Mentor"),
+      isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
   },
   {
     name: "选择一对一导师",
@@ -201,7 +201,7 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/mentors\/relational.*/,
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus) ||
-      isPermitted(me.roles, "Mentor"),
+      isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
   },
   {
     name: "志愿者档案",
