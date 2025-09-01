@@ -171,11 +171,7 @@ function GroupTagOrName({ group }: { group: Group }) {
        */}
       {isOwned(group) && !group.partnershipId ? (
         <Tag color="white" bgColor="gray">
-          {group.calibrationId
-            ? "面试讨论"
-            : group.interviewId
-              ? "面试"
-              : "FIXME"}
+          {group.interviewId ? "面试" : "FIXME"}
         </Tag>
       ) : group.name ? (
         <Text color="gray" fontSize="sm">

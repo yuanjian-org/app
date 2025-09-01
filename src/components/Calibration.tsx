@@ -1,10 +1,8 @@
-import React from "react";
 import { trpcNext } from "../trpc";
 import { Calibration as SharedCalibration } from "shared/Calibration";
 import Interviews from "./Interviews";
 import { sectionSpacing } from "theme/metrics";
 import { Flex, FlexProps } from "@chakra-ui/react";
-import GroupBar from "./GroupBar";
 
 export default function Calibration({
   calibration: c,
@@ -18,14 +16,6 @@ export default function Calibration({
 
   return (
     <Flex direction="column" gap={sectionSpacing} {...rest}>
-      <GroupBar
-        group={c.group}
-        showSelf
-        showJoinButton
-        showGroupName={false}
-        showTranscriptLink
-        abbreviateOnDesktop
-      />
       <Interviews interviews={interviews} forCalibration />
     </Flex>
   );

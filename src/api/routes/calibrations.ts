@@ -4,7 +4,6 @@ import { z } from "zod";
 import db from "../database/db";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import sequelize from "../database/sequelize";
-import { createGroup, updateGroup } from "./groups";
 import {
   generalBadRequestError,
   noPermissionError,
@@ -53,12 +52,6 @@ export async function createCalibration(
     { type, name, active },
     { transaction },
   );
-  const gid = await createGroup(null, [], null, null, c.id, transaction);
-  const rows = await db.Group.update(
-    { public: true },
-    { where: { id: gid }, transaction },
-  );
-  invariant(rows[0] === 1);
   return c.id;
 }
 
@@ -279,12 +272,4 @@ export async function syncCalibrationGroup(
       if (!userIds.includes(f.interviewer.id)) userIds.push(f.interviewer.id);
     }
   }
-
-  await updateGroup(
-    c.group.id,
-    c.group.name,
-    c.group.public,
-    userIds,
-    transaction,
-  );
 }

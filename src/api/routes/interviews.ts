@@ -311,7 +311,6 @@ export async function createInterview(
     [intervieweeId, ...interviewerIds],
     null,
     i.id,
-    null,
     transaction,
   );
 

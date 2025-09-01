@@ -106,7 +106,7 @@ async function generateGroup(users: DemoUser[], name: string | null,
   if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
 
   console.log(`Creating group "${name}" for ${users.map(u => u.name).join(", ")}...`);
-  await createGroup(name, userIds, null, null, null, transaction);
+  await createGroup(name, userIds, null, null, transaction);
 }
 
 /**

@@ -7,7 +7,6 @@ import {
   Model,
   ForeignKey,
   HasMany,
-  Index,
   Table,
   Default,
   IsUUID,
@@ -21,7 +20,6 @@ import User from "./User";
 import Transcript from "./Transcript";
 import Mentorship from "./Mentorship";
 import Interview from "./Interview";
-import Calibration from "./Calibration";
 
 /**
  * A group is said to be "owned" if the mentorship or interview field is non-null.
@@ -69,14 +67,6 @@ class Group extends Model {
   @ForeignKey(() => Interview)
   @Column(UUID)
   interviewId: string | null;
-
-  // A group is "owned" by a calibration if this field is non-null.
-  //
-  // The index is used by getCalibrationAndCheckPermissionSafe()
-  @Index
-  @ForeignKey(() => Calibration)
-  @Column(UUID)
-  calibrationId: string | null;
 
   /**
    * Associations

@@ -2,7 +2,6 @@
  * Collect things in this file as opposed to model files to avoid cyclic dependencies.
  */
 import Calibration from "./Calibration";
-import Group from "./Group";
 import InterviewFeedback from "./InterviewFeedback";
 import User from "./User";
 
@@ -48,7 +47,6 @@ export const groupAttributes = [
   "archived",
   "partnershipId",
   "interviewId",
-  "calibrationId",
 ];
 
 export const groupInclude = [
@@ -134,11 +132,6 @@ export const calibrationAttributes = [
 ];
 
 export const calibrationInclude = [
-  {
-    model: Group,
-    attributes: groupAttributes,
-    include: groupInclude,
-  },
   {
     association: "manager",
     attributes: minUserAttributes,
