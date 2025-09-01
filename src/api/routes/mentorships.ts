@@ -111,7 +111,6 @@ export async function createMentorship(
     [mentorId, menteeId],
     mentorship.id,
     null,
-    null,
     transaction,
   );
 }

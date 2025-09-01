@@ -11,12 +11,11 @@ export const zGroup = z.object({
 
   partnershipId: z.string().uuid().nullable(),
   interviewId: z.string().uuid().nullable(),
-  calibrationId: z.string().uuid().nullable(),
 });
 export type Group = z.TypeOf<typeof zGroup>;
 
 export function isOwned(g: Group) {
-  return g.partnershipId || g.interviewId || g.calibrationId;
+  return g.partnershipId || g.interviewId;
 }
 
 export function isPermittedToAccessGroup(u: User, g: Group): boolean {
