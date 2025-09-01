@@ -95,10 +95,14 @@ const get = procedure
           i.calibrationId,
           transaction,
         ))
-      )
+      ) {
         return ret;
+      }
 
-      if (await isPermittedtoAccessMentee(me, i.interviewee.id)) return ret;
+      if (await isPermittedtoAccessMentee(me, i.interviewee.id, transaction)) {
+        return ret;
+      }
+
       throw noPermissionError("面试", interviewId);
     });
   });

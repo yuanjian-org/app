@@ -660,21 +660,29 @@ const get = procedure
   .input(z.string())
   .output(zMinUser)
   .query(async ({ ctx: { user: me }, input: userId }) => {
-    if (
-      me.id !== userId &&
-      !isPermitted(me.roles, "UserManager") &&
-      !(await isPermittedtoAccessMentee(me, userId, "readMetadata")) &&
-      !(await isPermittedtoAccessMentor(me, userId))
-    ) {
-      throw noPermissionError("用户", userId);
-    }
+    return await sequelize.transaction(async (transaction) => {
+      if (
+        me.id !== userId &&
+        !isPermitted(me.roles, "UserManager") &&
+        !(await isPermittedtoAccessMentor(me, userId, transaction)) &&
+        !(await isPermittedtoAccessMentee(
+          me,
+          userId,
+          transaction,
+          "readMetadata",
+        ))
+      ) {
+        throw noPermissionError("用户", userId);
+      }
 
-    const u = await db.User.findByPk(userId, {
-      attributes: minUserAttributes,
+      const u = await db.User.findByPk(userId, {
+        attributes: minUserAttributes,
+        transaction,
+      });
+
+      if (!u) throw notFoundError("用户", userId);
+      return u;
     });
-
-    if (!u) throw notFoundError("用户", userId);
-    return u;
   });
 
 /**
@@ -970,7 +978,12 @@ const getApplicant = procedure
       user.wechat = "redacted";
 
       // Check if the user is a mentor of the mentee
-      if (isMentee && (await isPermittedtoAccessMentee(me, userId))) return ret;
+      if (
+        isMentee &&
+        (await isPermittedtoAccessMentee(me, userId, transaction))
+      ) {
+        return ret;
+      }
 
       // Check if the user is an interviewer
       const myInterviews = await db.Interview.findAll({
@@ -1200,9 +1213,10 @@ function checkPermissionToManageRoles(myRoles: Role[], subjectRoles: Role[]) {
 export async function checkPermissionToAccessMentee(
   me: User,
   menteeId: string,
+  transaction: Transaction,
   action: "any" | "readMetadata" = "any",
 ) {
-  if (!(await isPermittedtoAccessMentee(me, menteeId, action))) {
+  if (!(await isPermittedtoAccessMentee(me, menteeId, transaction, action))) {
     throw noPermissionError("学生", menteeId);
   }
 }
@@ -1214,25 +1228,29 @@ export async function checkPermissionToAccessMentee(
 export async function isPermittedtoAccessMentee(
   me: User,
   menteeId: string,
+  transaction: Transaction,
   action: "any" | "readMetadata" = "any",
 ) {
-  if (
+  return (
     isPermitted(me.roles, "MentorshipManager") ||
     (action === "readMetadata" &&
       isPermitted(me.roles, "MentorshipOperator")) ||
-    (await db.Mentorship.count({ where: { mentorId: me.id, menteeId } })) > 0
-  ) {
-    return true;
-  }
-  return false;
+    (await db.Mentorship.count({
+      where: { mentorId: me.id, menteeId },
+      transaction,
+    })) > 0
+  );
 }
 
-// TODO: Add transaction
-export async function isPermittedtoAccessMentor(me: User, mentorId: string) {
-  if (
-    (await db.Mentorship.count({ where: { mentorId, menteeId: me.id } })) > 0
-  ) {
-    return true;
-  }
-  return false;
+export async function isPermittedtoAccessMentor(
+  me: User,
+  mentorId: string,
+  transaction: Transaction,
+) {
+  return (
+    (await db.Mentorship.count({
+      where: { mentorId, menteeId: me.id },
+      transaction,
+    })) > 0
+  );
 }

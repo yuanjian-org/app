@@ -313,14 +313,20 @@ const get = procedure
   .input(z.string())
   .output(zMentorship)
   .query(async ({ ctx, input: id }) => {
-    const res = await db.Mentorship.findByPk(id, {
-      attributes: mentorshipAttributes,
-      include: mentorshipInclude,
+    return await sequelize.transaction(async (transaction) => {
+      const res = await db.Mentorship.findByPk(id, {
+        attributes: mentorshipAttributes,
+        include: mentorshipInclude,
+        transaction,
+      });
+      if (
+        !res ||
+        !(await isPermittedtoAccessMentee(ctx.user, res.mentee.id, transaction))
+      ) {
+        throw noPermissionError("一对一匹配", id);
+      }
+      return res;
     });
-    if (!res || !(await isPermittedtoAccessMentee(ctx.user, res.mentee.id))) {
-      throw noPermissionError("一对一匹配", id);
-    }
-    return res;
   });
 
 /**

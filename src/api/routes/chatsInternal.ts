@@ -21,7 +21,7 @@ export async function findOrCreateRoom(
   action: "read" | "write",
   transaction: Transaction,
 ): Promise<ChatRoom> {
-  await checkRoomPermission(me, menteeId, action);
+  await checkRoomPermission(me, menteeId, action, transaction);
 
   while (true) {
     const r = await findRoom(
@@ -64,7 +64,7 @@ export async function createChatMessage(
   });
   if (!r) throw notFoundError("讨论空间", roomId);
 
-  await checkRoomPermission(author, r.menteeId, "write");
+  await checkRoomPermission(author, r.menteeId, "write", transaction);
 
   await db.ChatMessage.create(
     { roomId, markdown, userId: author.id },
@@ -81,6 +81,7 @@ export async function checkRoomPermission(
   me: User,
   menteeId: string | null,
   action: "read" | "write" | "readMetadata",
+  transaction: Transaction,
 ) {
   if (menteeId !== null) {
     // Allow the mentee to write to their own room.
@@ -88,6 +89,7 @@ export async function checkRoomPermission(
     await checkPermissionToAccessMentee(
       me,
       menteeId,
+      transaction,
       action == "readMetadata" ? "readMetadata" : "any",
     );
   } else invariant(false, "Unexpectedchat room type");
