@@ -48,9 +48,8 @@ const getLastMessageCreatedAt = procedure
   )
   .output(zNullableDateColumn)
   .query(async ({ ctx: { user }, input: { menteeId, prefix } }) => {
-    await checkRoomPermission(user, menteeId, "readMetadata");
-
     return await sequelize.transaction(async (transaction) => {
+      await checkRoomPermission(user, menteeId, "readMetadata", transaction);
       return await getLastMessageCreatedAtImpl(menteeId, prefix, transaction);
     });
   });
@@ -87,9 +86,8 @@ const getLastMessageUpdatedAt = procedure
   )
   .output(zNullableDateColumn)
   .query(async ({ ctx: { user }, input: { menteeId } }) => {
-    await checkRoomPermission(user, menteeId, "read");
-
     return await sequelize.transaction(async (transaction) => {
+      await checkRoomPermission(user, menteeId, "read", transaction);
       const room = await findRoom(menteeId, transaction);
       if (!room) return null;
 

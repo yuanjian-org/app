@@ -38,31 +38,34 @@ const list = procedure
       ctx: { me },
       input: { assigneeIds, includeTasksCreatedByMe, includeDoneTasks },
     }) => {
-      for (const assigneeId of assigneeIds) {
-        if (
-          assigneeId !== me.id &&
-          // For mentors, only mentorship managers can see their tasks.
-          !isPermitted(me.roles, "MentorshipManager") &&
-          // For mentees, only mentorship managers and mentors can see their tasks.
-          !(await isPermittedtoAccessMentee(me, assigneeId))
-        ) {
-          throw noPermissionError("待办事项");
+      return await sequelize.transaction(async (transaction) => {
+        for (const assigneeId of assigneeIds) {
+          if (
+            assigneeId !== me.id &&
+            // For mentors, only mentorship managers can see their tasks.
+            !isPermitted(me.roles, "MentorshipManager") &&
+            // For mentees, only mentorship managers and mentors can see their tasks.
+            !(await isPermittedtoAccessMentee(me, assigneeId, transaction))
+          ) {
+            throw noPermissionError("待办事项");
+          }
         }
-      }
 
-      return (
-        await db.Task.findAll({
-          where: {
-            [Op.or]: [
-              ...assigneeIds.map((assigneeId) => ({ assigneeId })),
-              ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
-            ],
-            ...(!includeDoneTasks && { done: false }),
-          },
-          attributes: taskAttributes,
-          include: taskInclude,
-        })
-      ).map((n) => castTask(n));
+        return (
+          await db.Task.findAll({
+            where: {
+              [Op.or]: [
+                ...assigneeIds.map((assigneeId) => ({ assigneeId })),
+                ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
+              ],
+              ...(!includeDoneTasks && { done: false }),
+            },
+            attributes: taskAttributes,
+            include: taskInclude,
+            transaction,
+          })
+        ).map((n) => castTask(n));
+      });
     },
   );
 

@@ -94,7 +94,13 @@ async function getInterviewFeedback(
       return f;
     }
 
-    if (await isPermittedtoAccessMentee(me, f.interview.interviewee.id)) {
+    if (
+      await isPermittedtoAccessMentee(
+        me,
+        f.interview.interviewee.id,
+        transaction,
+      )
+    ) {
       return f;
     }
   }
