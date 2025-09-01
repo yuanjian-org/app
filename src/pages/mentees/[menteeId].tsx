@@ -34,7 +34,7 @@ import Applicant from "components/Applicant";
 import TabsWithUrlParam from "components/TabsWithUrlParam";
 import { widePage } from "AppPage";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { MinUser } from "shared/User";
+import User, { MinUser } from "shared/User";
 import ChatRoom from "components/ChatRoom";
 import {
   formatMentorshipSchedule,
@@ -52,8 +52,8 @@ import {
 import Transcripts from "components/Transcripts";
 import Interview from "components/Interview";
 import { MentorshipStatusIcon } from "pages/mentees";
-import { RoleProfiles } from "shared/Role";
-import { useMyId } from "useMe";
+import { isPermitted, RoleProfiles } from "shared/Role";
+import useMe, { useMyId } from "useMe";
 import { useMemo, useState } from "react";
 import NextLink from "next/link";
 import invariant from "tiny-invariant";
@@ -153,30 +153,32 @@ function MenteeTabs({
   mentee: MinUser;
   mentorships: Mentorship[];
 }) {
-  const myId = useMyId();
-  const sorted = sortMentorship(mentorships, myId);
+  const me = useMe();
+  const filtered = filterAndSortMentorship(mentorships, me);
 
   return (
     <TabsWithUrlParam isLazy>
       <TabList>
-        {sorted.length == 1 ? (
+        {filtered.length == 1 ? (
           <Tab>
             一对一通话
-            {sorted[0].mentor.id !== myId &&
-              `【${formatUserName(sorted[0].mentor.name)}】`}
+            {filtered[0].mentor.id !== me.id &&
+              `【${formatUserName(filtered[0].mentor.name)}】`}
           </Tab>
         ) : (
-          sorted.map((m) => (
-            <Tab key={m.id}>一对一通话{formatMentorshipTabSuffix(m, myId)}</Tab>
+          filtered.map((m) => (
+            <Tab key={m.id}>
+              一对一通话{formatMentorshipTabSuffix(m, me.id)}
+            </Tab>
           ))
         )}
         <Tab>基本信息</Tab>
-        <Tab>面试页</Tab>
+        {!isPermitted(me.roles, "MentorshipOperator") && <Tab>面试页</Tab>}
         {/* <Tab>年度反馈</Tab> */}
       </TabList>
 
       <TabPanels>
-        {sorted.map((m) => (
+        {filtered.map((m) => (
           <TabPanel key={m.id} px={0} pt={sectionSpacing}>
             <MentorshipPanel mentorship={m} />
           </TabPanel>
@@ -184,7 +186,9 @@ function MenteeTabs({
         <TabPanel>
           <Applicant type="MenteeInterview" userId={mentee.id} />
         </TabPanel>
-        <InterviewTabPanel menteeId={mentee.id} />
+        {!isPermitted(me.roles, "MentorshipOperator") && (
+          <InterviewTabPanel menteeId={mentee.id} />
+        )}
         {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}
@@ -209,13 +213,18 @@ function InterviewTabPanel({ menteeId }: { menteeId: string }) {
   );
 }
 
-function sortMentorship(ms: Mentorship[], myUserId: string): Mentorship[] {
+function filterAndSortMentorship(ms: Mentorship[], me: User): Mentorship[] {
+  // MentorshipOperators cannot view details such as transcripts and notes for
+  // mentorships other than their own.
+  if (isPermitted(me.roles, "MentorshipOperator")) {
+    ms = ms.filter((m) => m.mentor.id == me.id);
+  }
   return [
     // Always put my mentorship as the first tab
-    ...ms.filter((m) => m.mentor.id == myUserId),
+    ...ms.filter((m) => m.mentor.id == me.id),
     // Then sort by ids
     ...ms
-      .filter((m) => m.mentor.id != myUserId)
+      .filter((m) => m.mentor.id != me.id)
       .sort((a, b) => a.id.localeCompare(b.id)),
   ];
 }

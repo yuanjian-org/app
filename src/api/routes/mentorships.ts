@@ -165,9 +165,9 @@ export async function updateMentorship(
 }
 
 /**
- * If the current user is a MentorshipManager, return all mentorships of the
- * mentee. Otherwise, return only the mentorship of the mentee where the current
- * user is the mentor.
+ * If the current user is a MentorshipManager or MentoershipOperator, return all
+ * mentorships of the mentee. Otherwise, return only the mentorship of the
+ * mentee where the current user is the mentor.
  */
 const listMentorshipsForMentee = procedure
   .use(authUser())
@@ -183,7 +183,10 @@ const listMentorshipsForMentee = procedure
       ctx: { user },
       input: { menteeId, includeEndedTransactional },
     }) => {
-      const isPrivileged = isPermitted(user.roles, "MentorshipManager");
+      const isPrivileged = isPermitted(user.roles, [
+        "MentorshipManager",
+        "MentorshipOperator",
+      ]);
 
       return (
         await db.Mentorship.findAll({
@@ -205,7 +208,7 @@ const listMentorshipsForMentee = procedure
  * message with 【一对一】 prefix, whichever is later.
  */
 const getLastMeetingStartedAt = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .input(z.object({ mentorshipId: z.string() }))
   .output(zNullableDateColumn)
   .query(async ({ input: { mentorshipId } }) => {

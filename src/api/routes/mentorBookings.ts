@@ -64,15 +64,14 @@ export async function createMentorBooking(
   const room = await findOrCreateRoom(
     requester,
     requester.id,
+    "write",
     transaction,
-    true,
   );
   await createMessageAndScheduleEmail(
     requester,
     room.id,
     markdown,
     transaction,
-    true,
   );
 
   await emailRoles(

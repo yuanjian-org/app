@@ -31,7 +31,7 @@ const getRoom = procedure
   .output(zChatRoom)
   .query(async ({ ctx, input: { menteeId } }) => {
     return await sequelize.transaction(async (transaction) => {
-      return await findOrCreateRoom(ctx.user, menteeId, transaction);
+      return await findOrCreateRoom(ctx.user, menteeId, "read", transaction);
     });
   });
 
@@ -48,7 +48,7 @@ const getLastMessageCreatedAt = procedure
   )
   .output(zNullableDateColumn)
   .query(async ({ ctx: { user }, input: { menteeId, prefix } }) => {
-    await checkRoomPermission(user, menteeId);
+    await checkRoomPermission(user, menteeId, "readMetadata");
 
     return await sequelize.transaction(async (transaction) => {
       return await getLastMessageCreatedAtImpl(menteeId, prefix, transaction);
@@ -87,7 +87,7 @@ const getLastMessageUpdatedAt = procedure
   )
   .output(zNullableDateColumn)
   .query(async ({ ctx: { user }, input: { menteeId } }) => {
-    await checkRoomPermission(user, menteeId);
+    await checkRoomPermission(user, menteeId, "read");
 
     return await sequelize.transaction(async (transaction) => {
       const room = await findRoom(menteeId, transaction);
@@ -176,15 +176,8 @@ export async function createMessageAndScheduleEmail(
   roomId: string,
   markdown: string,
   transaction: Transaction,
-  allowMenteeSelf: boolean = false,
 ) {
-  await createChatMessage(
-    author,
-    roomId,
-    markdown,
-    transaction,
-    allowMenteeSelf,
-  );
+  await createChatMessage(author, roomId, markdown, transaction);
   await scheduleEmail("Chat", roomId, transaction);
 }
 
