@@ -192,7 +192,7 @@ export function PearlStudentValidationModal({
           <HStack spacing={componentSpacing} w="full">
             <RiCustomerServiceFill color="gray" />
             <SmallGrayText>
-              若验证有问题，
+              若有问题，
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 target="_blank"

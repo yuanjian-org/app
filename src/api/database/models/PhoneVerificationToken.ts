@@ -9,11 +9,8 @@ import {
 import { STRING, UUID } from "sequelize";
 import User from "./User";
 
-/**
- * Used for cell phone number verification.
- */
 @Table
-export default class CellToken extends Model {
+export default class PhoneVerificationToken extends Model {
   @PrimaryKey
   @ForeignKey(() => User)
   @AllowNull(false)
@@ -22,7 +19,7 @@ export default class CellToken extends Model {
 
   @AllowNull(false)
   @Column(STRING)
-  cell: string;
+  phone: string;
 
   @AllowNull(false)
   @Column(STRING)

@@ -26,8 +26,7 @@ import { InputMergeTokenModal, MergeTokenFormat } from "components/MergeModals";
 import { useMyId } from "useMe";
 import { canValidatePearlStudent } from "shared/pearlStudent";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
-import { isCellSet } from "shared/User";
-import { SetCellModal } from "components/PostLoginModels";
+import { SetPhoneModal } from "components/PostLoginModels";
 
 export const accountPageTitle = "账号与安全";
 
@@ -75,7 +74,7 @@ export default function Page() {
 
       <FormControl>
         <FormLabel>手机号</FormLabel>
-        <Input value={isCellSet(user.cell) ? user.cell! : "未提供"} readOnly />
+        <Input value={user.phone ?? "未提供"} readOnly />
       </FormControl>
       <FormControl>
         <Button variant="brand" onClick={() => setIsSettingCell(true)}>
@@ -84,7 +83,7 @@ export default function Page() {
       </FormControl>
 
       {isSettingCell && (
-        <SetCellModal
+        <SetPhoneModal
           cancelLabel="取消"
           cancel={() => setIsSettingCell(false)}
         />
