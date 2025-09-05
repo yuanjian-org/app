@@ -228,18 +228,23 @@ export async function getCalibrationAndCheckPermissionSafe(
 
   if (!c.active) return null;
 
-  const g = await db.Group.findOne({
-    where: { calibrationId: calibrationId },
+  // Check if the user is a participant (interviewer) in this calibration
+  const participant = await db.InterviewFeedback.count({
+    where: {
+      interviewerId: me.id,
+    },
     include: [
       {
-        model: db.User,
-        attributes: [],
-        where: { id: me.id },
+        model: db.Interview,
+        where: {
+          calibrationId: calibrationId,
+        },
       },
     ],
     transaction,
   });
-  if (!g) return null;
+
+  if (!participant) return null;
 
   return c;
 }
