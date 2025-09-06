@@ -13,7 +13,6 @@ import {
   PrimaryKey,
   ForeignKey,
   BelongsTo,
-  HasOne,
 } from "sequelize-typescript";
 import Fix from "../modelHelpers/Fix";
 import {
@@ -36,7 +35,6 @@ import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
 import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
-import MergeToken from "./MergeToken";
 
 @Table({
   tableName: "users",
@@ -167,12 +165,6 @@ class User extends Model {
 
   @BelongsTo(() => User, { foreignKey: "pointOfContactId" })
   pointOfContact: User | null;
-
-  @HasMany(() => User, { foreignKey: "mergedTo" })
-  mergedFrom: User[];
-
-  @HasOne(() => MergeToken)
-  mergeToken: MergeToken | null;
 
   // TODO: rename `mergedTo` to `mergedToId` and rename this one to `mergedTo`
   @BelongsTo(() => User, { foreignKey: "mergedTo" })

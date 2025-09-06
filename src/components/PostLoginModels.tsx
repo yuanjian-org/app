@@ -22,8 +22,6 @@ import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import { isValidPhoneNumber, isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
-import { canAcceptMergeToken } from "shared/merge";
-import { MergeModals } from "./MergeModals";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
 import { canValidatePearlStudent } from "shared/pearlStudent";
@@ -47,9 +45,6 @@ export default function PostLoginModels() {
   // roles, etc) may have been already filled in the merged account.
   ) : me.phone === null ? (
     <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
-
-  ) : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ? (
-    <MergeModals userState={state} refetchUserState={refetch} />
 
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />

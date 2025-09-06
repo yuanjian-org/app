@@ -37,12 +37,6 @@ export default User;
 export const zUserWithMergeInfo = zUser.merge(
   z.object({
     mergedToUser: zMinUser.nullish(),
-    mergedFrom: z.array(zMinUser).optional(),
-    mergeToken: z
-      .object({
-        expiresAt: zDateColumn,
-      })
-      .nullish(),
   }),
 );
 export type UserWithMergeInfo = z.TypeOf<typeof zUserWithMergeInfo>;

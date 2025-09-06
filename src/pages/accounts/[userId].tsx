@@ -20,9 +20,7 @@ import { componentSpacing } from "theme/metrics";
 import { sectionSpacing } from "theme/metrics";
 import { LockIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-import { canAcceptMergeToken } from "shared/merge";
 import { useState } from "react";
-import { InputMergeTokenModal, MergeTokenFormat } from "components/MergeModals";
 import { useMyId } from "useMe";
 import { canValidatePearlStudent } from "shared/pearlStudent";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
@@ -39,8 +37,7 @@ export default function Page() {
     enabled: !!userId,
   });
 
-  const [isSettingCell, setIsSettingCell] = useState(false);
-  const [isMerging, setIsMerging] = useState(false);
+  const [isSettingPhone, setIsSettingPhone] = useState(false);
   const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
     useState(false);
 
@@ -86,40 +83,15 @@ export default function Page() {
         />
       </FormControl>
       <FormControl>
-        <Button variant="brand" onClick={() => setIsSettingCell(true)}>
+        <Button variant="brand" onClick={() => setIsSettingPhone(true)}>
           修改
         </Button>
       </FormControl>
 
-      {isSettingCell && (
+      {isSettingPhone && (
         <SetPhoneModal
           cancelLabel="取消"
-          cancel={() => setIsSettingCell(false)}
-        />
-      )}
-
-      {canAcceptMergeToken(user.email) && (
-        <>
-          <SectionHeading>微信激活码</SectionHeading>
-          <Text>
-            如果您通过电子邮件收到微信激活码，请点击下面的按钮输入。
-            <MergeTokenFormat />
-          </Text>
-          <Text>
-            警告：使用微信激活码后，您的账号将被迁移，而无法继续访问当前账号下的数据。
-            如需迁移当前账号下的数据，请联系
-            {RoleProfiles.UserManager.displayName}。
-          </Text>
-          <Button variant="brand" onClick={() => setIsMerging(true)}>
-            输入微信激活码
-          </Button>
-        </>
-      )}
-
-      {isMerging && (
-        <InputMergeTokenModal
-          cancelLabel="取消"
-          cancel={() => setIsMerging(false)}
+          cancel={() => setIsSettingPhone(false)}
         />
       )}
 

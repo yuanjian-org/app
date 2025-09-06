@@ -54,7 +54,6 @@ import {
 } from "components/pointOfContactCells";
 import { fullPage } from "AppPage";
 import ConfirmationModal from "components/ConfirmationModal";
-import MergeTokenCell from "components/MergeTokenCell";
 import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { topBarPaddings } from "components/TopBar";
@@ -419,7 +418,6 @@ function MenteeRow({
         menteeId={u.id}
         setData={setLastMentorMeetingDate}
       />
-      <MergeTokenCell user={u} refetch={refetch} />
       <Td>{pinyin}</Td>
     </Tr>
   );

@@ -16,7 +16,6 @@ import match from "./routes/match";
 import migration from "./routes/migration";
 import map from "./routes/map";
 import mentorBookings from "./routes/mentorBookings";
-import merge from "./routes/merge";
 import kudos from "./routes/kudos";
 import mentorSelections from "./routes/mentorSelections";
 import tasks from "./routes/tasks";
@@ -45,7 +44,6 @@ export const apiRouter = router({
   map,
   migration,
   mentorBookings,
-  merge,
   kudos,
   mentorSelections,
   tasks,
