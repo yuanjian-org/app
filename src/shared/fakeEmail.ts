@@ -4,12 +4,12 @@
  * fake email addresses that are guaranteed to be unique and fake.
  */
 import crypto from "crypto";
-import invariant from "tiny-invariant";
+import invariant from "./invariant";
 
 export const fakeEmailDomain = "@f.ml";
 
 export function isFakeEmail(email: string) {
-  invariant(email);
+  invariant(email, "email must non-null");
   return email.endsWith(fakeEmailDomain);
 }
 

@@ -42,8 +42,12 @@ export default function PostLoginModels() {
   return state === undefined ? (
     <></>
 
-  // Ask for marge token first because information accessed later (name, cell,
-  // roles, etc) may have been already filled in the merge's target account.
+  // Ask for phone number first because this step may cause the current user to
+  // be merged with another user. Information required later (name, cell,
+  // roles, etc) may have been already filled in the merged account.
+  ) : me.phone === null ? (
+    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
+
   ) : canAcceptMergeToken(me.email) && !state?.declinedMergeModal ? (
     <MergeModals userState={state} refetchUserState={refetch} />
 
@@ -58,9 +62,6 @@ export default function PostLoginModels() {
 
   ) : !me.name ? (
     <SetNameModal />
-
-  ) : me.phone === null ? (
-    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
   ) : (
     <></>
@@ -105,6 +106,10 @@ export function SetPhoneModal({
     setLoading(true);
     try {
       await trpc.phones.set.mutate({ phone, token });
+
+      // As soon as the session is updated, all affected page components should
+      // be refreshed including the caller to this modal, so we don't need to
+      // manually close this modal.
       await update();
     } finally {
       setLoading(false);

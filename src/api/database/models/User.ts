@@ -51,28 +51,35 @@ class User extends Model {
   @Column(UUID)
   id: CreationOptional<string>;
 
-  // Always use `formatUserName` to display user names.
-  @Column(STRING)
-  name: string | null;
-
-  // Only uesrs with the Volutneer role can set up urls. A user doesn't lose
-  // the url after they are no longer a volunteer.
+  // Standard E.164 phone number format such as "+8613800138000".
+  // This field uniquely identifies a person. See /s/why-phone.
+  // It is also the key to merge accounts. See phones.ts.
   @Unique
   @Column(STRING)
-  url: string | null;
-
-  @Column(STRING)
-  pinyin: string | null;
+  phone: string | null;
 
   @Unique
   @AllowNull(false)
   @Column(STRING)
   email: string;
 
-  // Standard E.164 phone number format such as "+8613800138000".
+  // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
   @Unique
   @Column(STRING)
-  phone: string | null;
+  wechatUnionId: string | null;
+
+  // Always use `formatUserName` to display user names.
+  @Column(STRING)
+  name: string | null;
+
+  @Column(STRING)
+  pinyin: string | null;
+
+  // Only uesrs with the Volutneer role can set up urls. A user doesn't lose
+  // the url after they are no longer a volunteer.
+  @Unique
+  @Column(STRING)
+  url: string | null;
 
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.
@@ -88,11 +95,6 @@ class User extends Model {
   @Default([])
   @ZodColumn(ARRAY(STRING), zRoles)
   roles: Role[];
-
-  // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
-  @Unique
-  @Column(STRING)
-  wechatUnionId: string | null;
 
   @ZodColumn(JSONB, z.record(z.string(), z.any()).nullish())
   menteeApplication: Record<string, any> | null;
