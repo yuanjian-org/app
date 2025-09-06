@@ -23,7 +23,6 @@ import {
   compareChinese,
   formatUserName,
   isValidChineseName,
-  toChineseNumber,
   toPinyin,
 } from "../../shared/strings";
 import invariant from "tiny-invariant";
@@ -48,13 +47,6 @@ import { fakeEmailDomain } from "../../shared/fakeEmail";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
-import {
-  phoneTokenMaxAgeInMins,
-  phoneTokenMinSendIntervalInSeconds,
-  generateShortLivedToken,
-} from "../../shared/token";
-import { sms } from "../sms";
-import moment from "moment";
 
 const create = procedure
   .use(authUser("UserManager"))
@@ -400,79 +392,6 @@ export function redactEmail(email: string): string {
     return `${first}${"*".repeat(rest.length)}${domain}`;
   });
 }
-
-const sendPhoneVerificationToken = procedure
-  .use(authUser())
-  .input(z.object({ phone: z.string() }))
-  .mutation(async ({ input: { phone }, ctx: { user } }) => {
-    await sequelize.transaction(async (transaction) => {
-      const existing = await db.PhoneVerificationToken.findByPk(user.id, {
-        attributes: ["updatedAt"],
-        transaction,
-      });
-      if (
-        existing &&
-        moment().diff(existing.updatedAt, "seconds") <
-          phoneTokenMinSendIntervalInSeconds
-      ) {
-        throw generalBadRequestError("手机验证码发送过于频繁。");
-      }
-
-      const token = await generateShortLivedToken();
-      await db.PhoneVerificationToken.upsert(
-        { userId: user.id, phone, token },
-        { transaction },
-      );
-
-      await sms("yaD264", "0Rr8G", [
-        {
-          to: phone,
-          vars: {
-            token: token.toString(),
-            tokenMaxAgeInMins: toChineseNumber(phoneTokenMaxAgeInMins),
-          },
-        },
-      ]);
-    });
-  });
-
-const setPhone = procedure
-  .use(authUser())
-  .input(
-    z.object({
-      phone: z.string(),
-      token: z.string(),
-    }),
-  )
-  .mutation(async ({ input: { phone, token }, ctx: { user } }) => {
-    await sequelize.transaction(async (transaction) => {
-      const tocken = await db.PhoneVerificationToken.findOne({
-        where: { userId: user.id, phone, token },
-        attributes: ["userId", "updatedAt"],
-        transaction,
-      });
-
-      if (!tocken) {
-        throw generalBadRequestError("手机验证码错误。");
-      } else if (
-        moment().diff(tocken.updatedAt, "minutes") > phoneTokenMaxAgeInMins
-      ) {
-        throw generalBadRequestError("手机验证码已过期，请重新验证。");
-      }
-
-      const existing = await db.User.count({
-        where: { phone, id: { [Op.ne]: user.id } },
-        transaction,
-      });
-      if (existing > 0) {
-        throw generalBadRequestError("手机号已被其他账号使用。");
-      }
-
-      await tocken.destroy({ transaction });
-      await user.update({ phone }, { transaction });
-      invalidateUserCache(user.id);
-    });
-  });
 
 /**
  * Only selected fields in the User object are respected. See code for details.
@@ -1060,9 +979,6 @@ export default router({
   update,
   setMenteeStatus,
   destroy,
-
-  sendPhoneVerificationToken,
-  setPhone,
 
   getApplicant,
   setApplication,
