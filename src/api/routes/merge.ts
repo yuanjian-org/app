@@ -56,7 +56,7 @@ const emailMergeToken = procedure
           name: formatUserName(u.name, "friendly"),
           token,
           userManagerRole: RoleProfiles.UserManager.displayName,
-          senderName: formatUserName(ctx.user.name, "formal"),
+          senderName: formatUserName(ctx.me.name, "formal"),
           tokenMaxAgeInHours: toChineseNumber(mergeTokenMaxAgeInHours),
         },
         getBaseUrl(),
@@ -67,7 +67,7 @@ const emailMergeToken = procedure
 const merge = procedure
   .use(authUser())
   .input(z.object({ token: z.string() }))
-  .mutation(async ({ ctx: { user }, input: { token } }) => {
+  .mutation(async ({ ctx: { me: user }, input: { token } }) => {
     const exception = await sequelize.transaction(async (transaction) => {
       /**
        * Limit rate

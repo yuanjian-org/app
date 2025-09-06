@@ -163,12 +163,12 @@ const listMine = procedure
     }),
   )
   .output(z.array(zGroup))
-  .query(async ({ ctx, input }) => {
+  .query(async ({ ctx: { me }, input }) => {
     return (
       (
         await db.GroupUser.findAll({
           where: {
-            userId: ctx.user.id,
+            userId: me.id,
           },
           include: [
             {
@@ -226,13 +226,13 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zGroup)
-  .query(async ({ input: id, ctx }) => {
+  .query(async ({ input: id, ctx: { me } }) => {
     const g = await db.Group.findByPk(id, {
       attributes: groupAttributes,
       include: groupInclude,
     });
     if (!g) throw notFoundError("分组", id);
-    checkPermissionForGroup(ctx.user, g);
+    checkPermissionForGroup(me, g);
     return g;
   });
 

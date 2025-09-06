@@ -31,14 +31,14 @@ export const gracePeriodMinutes = 5;
 const join = procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
-  .mutation(async ({ ctx: { user, baseUrl }, input: { groupId } }) => {
+  .mutation(async ({ ctx: { me, baseUrl }, input: { groupId } }) => {
     const g = await db.Group.findByPk(groupId, {
       attributes: groupAttributes,
       include: groupInclude,
     });
     if (!g) throw notFoundError("分组", groupId);
 
-    checkPermissionForGroup(user, g);
+    checkPermissionForGroup(me, g);
 
     if (!apiEnv.hasTencentMeeting()) {
       await sleep(2000);
@@ -116,11 +116,11 @@ const join = procedure
  */
 const decline = procedure
   .use(authUser())
-  .mutation(async ({ ctx: { user, baseUrl } }) => {
+  .mutation(async ({ ctx: { me, baseUrl } }) => {
     await emailRole(
       "MentorshipManager",
       "用户拒绝使用会议功能",
-      `${formatUserName(user.name)}（用户ID: ${user.id}）拒绝使用会议功能。请与其取得联系，
+      `${formatUserName(me.name)}（用户ID: ${me.id}）拒绝使用会议功能。请与其取得联系，
     商量解决方案。`,
       baseUrl,
     );

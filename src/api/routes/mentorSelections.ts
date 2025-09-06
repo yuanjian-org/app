@@ -27,11 +27,11 @@ const createDraft = procedure
       reason: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { mentorId, reason } }) => {
+  .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
       let batch = await db.MentorSelectionBatch.findOne({
         where: {
-          userId: user.id,
+          userId: me.id,
           finalizedAt: null,
         },
         attributes: ["id"],
@@ -51,7 +51,7 @@ const createDraft = procedure
       } else {
         batch = await db.MentorSelectionBatch.create(
           {
-            userId: user.id,
+            userId: me.id,
           },
           { transaction },
         );
@@ -77,11 +77,11 @@ const destroyDraft = procedure
       mentorId: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { mentorId } }) => {
+  .mutation(async ({ ctx: { me }, input: { mentorId } }) => {
     await sequelize.transaction(async (transaction) => {
       const batch = await db.MentorSelectionBatch.findOne({
         where: {
-          userId: user.id,
+          userId: me.id,
           finalizedAt: null,
         },
         attributes: ["id"],
@@ -117,9 +117,9 @@ const updateDraft = procedure
       reason: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { mentorId, reason } }) => {
+  .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(user.id, mentorId, transaction);
+      const batch = await getDraftBatch(me.id, mentorId, transaction);
       invariant(batch && batch.selections.length === 1);
       if (!batch) {
         throw notFoundError("导师选择", mentorId);
@@ -137,9 +137,9 @@ const getDraft = procedure
     }),
   )
   .output(zMentorSelection.nullable())
-  .query(async ({ ctx: { user }, input: { mentorId } }) => {
+  .query(async ({ ctx: { me }, input: { mentorId } }) => {
     return await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(user.id, mentorId, transaction);
+      const batch = await getDraftBatch(me.id, mentorId, transaction);
       invariant(!batch || batch.selections.length === 1);
       return batch ? batch.selections[0] : null;
     });
@@ -148,9 +148,9 @@ const getDraft = procedure
 const listDrafts = procedure
   .use(authUser())
   .output(z.array(zMentorSelection))
-  .query(async ({ ctx: { user } }) => {
+  .query(async ({ ctx: { me } }) => {
     return await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(user.id, undefined, transaction);
+      const batch = await getDraftBatch(me.id, undefined, transaction);
       return batch?.selections ?? [];
     });
   });
@@ -191,9 +191,9 @@ const reorderDraft = procedure
       }),
     ),
   )
-  .mutation(async ({ ctx: { user }, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(user.id, undefined, transaction);
+      const batch = await getDraftBatch(me.id, undefined, transaction);
       if (!batch || batch.selections.length !== input.length) {
         throw generalBadRequestError("导师选择数量不匹配，请刷新页面重试");
       }
@@ -226,12 +226,12 @@ const reorderDraft = procedure
 
 const finalizeDraft = procedure
   .use(authUser())
-  .mutation(async ({ ctx: { user } }) => {
+  .mutation(async ({ ctx: { me } }) => {
     const [cnt] = await db.MentorSelectionBatch.update(
       {
         finalizedAt: moment(),
       },
-      { where: { userId: user.id, finalizedAt: null } },
+      { where: { userId: me.id, finalizedAt: null } },
     );
     invariant(cnt <= 1);
     if (cnt === 0) {
@@ -242,10 +242,10 @@ const finalizeDraft = procedure
 const listFinalizedBatches = procedure
   .use(authUser())
   .output(z.array(zMentorSelectionBatch))
-  .query(async ({ ctx: { user } }) => {
+  .query(async ({ ctx: { me } }) => {
     return await db.MentorSelectionBatch.findAll({
       where: {
-        userId: user.id,
+        userId: me.id,
         finalizedAt: { [Op.ne]: null },
       },
       attributes: mentorSelectionBatchAttributes,

@@ -178,11 +178,8 @@ const listMentorshipsForMentee = procedure
   )
   .output(z.array(zMentorship))
   .query(
-    async ({
-      ctx: { user },
-      input: { menteeId, includeEndedTransactional },
-    }) => {
-      const isPrivileged = isPermitted(user.roles, [
+    async ({ ctx: { me }, input: { menteeId, includeEndedTransactional } }) => {
+      const isPrivileged = isPermitted(me.roles, [
         "MentorshipManager",
         "MentorshipOperator",
       ]);
@@ -191,7 +188,7 @@ const listMentorshipsForMentee = procedure
         await db.Mentorship.findAll({
           where: {
             menteeId,
-            ...(isPrivileged ? {} : { mentorId: user.id }),
+            ...(isPrivileged ? {} : { mentorId: me.id }),
           },
           attributes: mentorshipAttributes,
           include: mentorshipInclude,
@@ -277,11 +274,11 @@ const listMyMentorships = procedure
     }),
   )
   .output(z.array(zMentorship))
-  .query(async ({ ctx, input: { as } }) => {
+  .query(async ({ ctx: { me }, input: { as } }) => {
     return (
       await db.Mentorship.findAll({
         where: {
-          [as === "Mentor" ? "mentorId" : "menteeId"]: ctx.user.id,
+          [as === "Mentor" ? "mentorId" : "menteeId"]: me.id,
         },
         attributes: mentorshipAttributes,
         include: mentorshipInclude,
@@ -311,7 +308,7 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMentorship)
-  .query(async ({ ctx, input: id }) => {
+  .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (transaction) => {
       const res = await db.Mentorship.findByPk(id, {
         attributes: mentorshipAttributes,
@@ -320,7 +317,7 @@ const get = procedure
       });
       if (
         !res ||
-        !(await isPermittedtoAccessMentee(ctx.user, res.mentee.id, transaction))
+        !(await isPermittedtoAccessMentee(me, res.mentee.id, transaction))
       ) {
         throw noPermissionError("一对一匹配", id);
       }

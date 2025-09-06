@@ -39,7 +39,7 @@ const list = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zSummary))
-  .query(async ({ ctx, input: transcriptId }) => {
+  .query(async ({ ctx: { me }, input: transcriptId }) => {
     const t = await db.Transcript.findByPk(transcriptId, {
       attributes: ["transcriptId"],
       include: [
@@ -53,7 +53,7 @@ const list = procedure
 
     if (!t) throw notFoundError("会议纪要", transcriptId);
 
-    checkPermissionForGroupHistory(ctx.user, t.group);
+    checkPermissionForGroupHistory(me, t.group);
 
     return db.Summary.findAll({
       where: { transcriptId },

@@ -57,9 +57,9 @@ const create = procedure
       roles: zRoles,
     }),
   )
-  .mutation(async ({ ctx, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
-      checkPermissionToManageRoles(ctx.user.roles, input.roles);
+      checkPermissionToManageRoles(me.roles, input.roles);
       await createUser(
         {
           name: input.name,
@@ -116,10 +116,10 @@ const list = procedure
   )
   .input(zUserFilter)
   .output(z.array(zUserWithMergeInfo))
-  .query(async ({ ctx: { user }, input: filter }) => {
+  .query(async ({ ctx: { me }, input: filter }) => {
     if (
       (filter.includeBanned === true || filter.includeMerged === true) &&
-      !isPermitted(user.roles, "UserManager")
+      !isPermitted(me.roles, "UserManager")
     ) {
       throw noPermissionError(
         "数据",
@@ -129,7 +129,7 @@ const list = procedure
 
     if (
       filter.returnMergeInfo === true &&
-      !isPermitted(user.roles, [
+      !isPermitted(me.roles, [
         "UserManager",
         "MentorshipManager",
         "MentorshipOperator",
@@ -239,7 +239,7 @@ export type ListMentorsOutput = z.infer<typeof zListMentorsOutput>;
 const listMentorsRoute = procedure
   .use(authUser())
   .output(zListMentorsOutput)
-  .query(async ({ ctx: { user: me } }) => {
+  .query(async ({ ctx: { me } }) => {
     if (
       !isAcceptedMentee(me.roles, me.menteeStatus, true) &&
       !isPermitted(me.roles, [
@@ -359,14 +359,14 @@ const listVolunteers = procedure
 const listRedactedEmailsWithSameName = procedure
   .use(authUser())
   .output(z.array(z.string()))
-  .query(async ({ ctx: { user } }) => {
+  .query(async ({ ctx: { me } }) => {
     // Force type check
     const banned: Role = "Banned";
     return (
       await db.User.findAll({
         where: {
-          name: user.name,
-          id: { [Op.ne]: user.id },
+          name: me.name,
+          id: { [Op.ne]: me.id },
           [Op.and]: [
             { [Op.not]: { roles: { [Op.contains]: [banned] } } },
 
@@ -399,13 +399,13 @@ export function redactEmail(email: string): string {
 const update = procedure
   .use(authUser())
   .input(zUser)
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
       // Validate user input
       validateUserInput(input.email, input.url);
 
-      const isUserManager = isPermitted(ctx.user.roles, "UserManager");
-      const isSelf = ctx.user.id === input.id;
+      const isUserManager = isPermitted(me.roles, "UserManager");
+      const isSelf = me.id === input.id;
 
       // Non-UserManagers can only update their own profile.
       if (!isUserManager && !isSelf) {
@@ -428,10 +428,7 @@ const update = procedure
 
       const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
       const rolesToRemove = user.roles.filter((r) => !input.roles.includes(r));
-      checkPermissionToManageRoles(ctx.user.roles, [
-        ...rolesToAdd,
-        ...rolesToRemove,
-      ]);
+      checkPermissionToManageRoles(me.roles, [...rolesToAdd, ...rolesToRemove]);
 
       await user.update(
         {
@@ -469,8 +466,8 @@ const setUserPreference = procedure
       preference: zUserPreference,
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { userId, preference } }) => {
-    if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
+  .mutation(async ({ ctx: { me }, input: { userId, preference } }) => {
+    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -526,7 +523,7 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zMinUser)
-  .query(async ({ ctx: { user: me }, input: userId }) => {
+  .query(async ({ ctx: { me }, input: userId }) => {
     return await sequelize.transaction(async (transaction) => {
       if (
         me.id !== userId &&
@@ -560,7 +557,7 @@ const getFull = procedure
   .use(authUser())
   .input(z.string())
   .output(zUser)
-  .query(async ({ ctx: { user: me }, input: userId }) => {
+  .query(async ({ ctx: { me }, input: userId }) => {
     if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
       throw noPermissionError("用户", userId);
     }
@@ -582,7 +579,7 @@ const getUserPreference = procedure
     }),
   )
   .output(zUserPreference)
-  .query(async ({ ctx: { user: me }, input: { userId } }) => {
+  .query(async ({ ctx: { me }, input: { userId } }) => {
     if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
       throw noPermissionError("用户", userId);
     }
@@ -632,7 +629,7 @@ const getUserProfile = procedure
       }),
     ),
   )
-  .query(async ({ ctx: { user: me }, input: { userId, userUrl } }) => {
+  .query(async ({ ctx: { me }, input: { userId, userUrl } }) => {
     if (!!userId === !!userUrl) {
       throw generalBadRequestError(
         "Must provide either userId or userUrl and not both.",
@@ -692,8 +689,8 @@ const setUserProfile = procedure
       profile: zUserProfile,
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { userId, profile } }) => {
-    if (user.id !== userId && !isPermitted(user.roles, "UserManager")) {
+  .mutation(async ({ ctx: { me }, input: { userId, profile } }) => {
+    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -711,7 +708,7 @@ const getUserState = procedure
       .optional(),
   )
   .output(zUserState)
-  .query(async ({ ctx: { user: me }, input }) => {
+  .query(async ({ ctx: { me }, input }) => {
     const userId = input?.userId ?? me.id;
     if (
       userId !== me.id &&
@@ -738,13 +735,13 @@ const getUserState = procedure
 const setUserState = procedure
   .use(authUser())
   .input(zUserState.partial())
-  .mutation(async ({ ctx: { user }, input: state }) => {
+  .mutation(async ({ ctx: { me }, input: state }) => {
     await sequelize.transaction(async (transaction) => {
-      const u = await db.User.findByPk(user.id, {
+      const u = await db.User.findByPk(me.id, {
         attributes: ["id", "state"],
         transaction,
       });
-      if (!u) throw notFoundError("用户", user.id);
+      if (!u) throw notFoundError("用户", me.id);
 
       await u.update(
         {
@@ -807,7 +804,7 @@ const getApplicant = procedure
       application: z.record(z.string(), z.any()).nullable(),
     }),
   )
-  .query(async ({ ctx: { user: me }, input: { userId, type } }) => {
+  .query(async ({ ctx: { me }, input: { userId, type } }) => {
     return await sequelize.transaction(async (transaction) => {
       const isMentee = type == "MenteeInterview";
 

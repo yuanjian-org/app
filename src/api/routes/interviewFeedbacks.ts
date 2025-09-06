@@ -31,11 +31,11 @@ const get = procedure
       etag: z.number(),
     }),
   )
-  .query(async ({ ctx, input: id }) => {
+  .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (t) => {
       const f = await getInterviewFeedback(
         id,
-        ctx.user,
+        me,
         /*allowOnlyInterviewer=*/ false,
         t,
       );
@@ -127,11 +127,11 @@ const update = procedure
     }),
   )
   .output(z.number())
-  .mutation(async ({ ctx, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     return await sequelize.transaction(async (transaction) => {
       const f = await getInterviewFeedback(
         input.id,
-        ctx.user,
+        me,
         /*allowOnlyInterviewer=*/ true,
         transaction,
       );
@@ -167,9 +167,9 @@ const logUpdateAttempt = procedure
       etag: z.number(),
     }),
   )
-  .mutation(async ({ ctx, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     await db.InterviewFeedbackUpdateAttempt.create({
-      userId: ctx.user.id,
+      userId: me.id,
       interviewFeedbackId: input.id,
       feedback: input.feedback,
       etag: input.etag,
