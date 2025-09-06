@@ -152,16 +152,8 @@ const list = procedure
         ...(filter.returnMergeInfo === true
           ? [
               {
-                association: "mergedFrom",
-                attributes: minUserAttributes,
-              },
-              {
                 association: "mergedToUser",
                 attributes: minUserAttributes,
-              },
-              {
-                association: "mergeToken",
-                attributes: ["expiresAt"],
               },
             ]
           : []),
@@ -354,34 +346,6 @@ const listVolunteers = procedure
       likes: u.likes ?? 0,
       kudos: u.kudos ?? 0,
     }));
-  });
-
-const listRedactedEmailsWithSameName = procedure
-  .use(authUser())
-  .output(z.array(z.string()))
-  .query(async ({ ctx: { me } }) => {
-    // Force type check
-    const banned: Role = "Banned";
-    return (
-      await db.User.findAll({
-        where: {
-          name: me.name,
-          id: { [Op.ne]: me.id },
-          [Op.and]: [
-            { [Op.not]: { roles: { [Op.contains]: [banned] } } },
-
-            // Exclude fake emails because non-email-binding accounts are the ones
-            // that were created using WeChat sign-in and haven't merged with an
-            // email-bound accounts. Admins can only set up functions for
-            // email-bound accounts, and therefore the missing function warning that
-            // is displayed in the frontend don't need to show for these accounts.
-            //
-            { [Op.not]: { email: { [Op.like]: `%${fakeEmailDomain}` } } },
-          ],
-        },
-        attributes: ["email"],
-      })
-    ).map((u) => redactEmail(u.email));
   });
 
 /**
@@ -967,7 +931,6 @@ export default router({
   getFull,
   list,
   listPriviledgedUserDataAccess,
-  listRedactedEmailsWithSameName,
   listVolunteers,
   listMentors: listMentorsRoute,
   listMentorStats: listMentorStatsRoute,

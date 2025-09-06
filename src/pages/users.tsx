@@ -40,7 +40,6 @@ import { TbSpy } from "react-icons/tb";
 import { useSession } from "next-auth/react";
 import { ImpersonationRequest } from "./api/auth/[...nextauth]";
 import { useRouter } from "next/router";
-import MergeTokenCell from "components/MergeTokenCell";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
@@ -107,11 +106,7 @@ export default widePage(() => {
           <Loader />
         ) : (
           <TableContainer>
-            <UserTable
-              users={users}
-              setUserBeingEdited={setUserBeingEdited}
-              refetch={refetch}
-            />
+            <UserTable users={users} setUserBeingEdited={setUserBeingEdited} />
           </TableContainer>
         )}
       </Flex>
@@ -122,11 +117,9 @@ export default widePage(() => {
 function UserTable({
   users,
   setUserBeingEdited,
-  refetch,
 }: {
   users: UserWithMergeInfo[];
   setUserBeingEdited: (u: User | null) => void;
-  refetch: () => void;
 }) {
   const me = useMe();
   const { update: updateSession } = useSession();
@@ -226,9 +219,6 @@ function UserTable({
                 </Link>
               )}
             </Td>
-
-            {/* Send merge token */}
-            <MergeTokenCell user={u} refetch={refetch} />
 
             {/* ID */}
             <Td>{u.id}</Td>

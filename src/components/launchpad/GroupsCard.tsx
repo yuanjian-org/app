@@ -2,12 +2,6 @@ import {
   Text,
   VStack,
   Link,
-  Alert,
-  HStack,
-  AlertIcon,
-  AlertDescription,
-  UnorderedList,
-  ListItem,
   Heading,
   CardHeader,
   CardBody,
@@ -17,9 +11,10 @@ import { useMyRoles } from "../../useMe";
 import { trpcNext } from "../../trpc";
 import Loader from "components/Loader";
 import { isPermitted } from "shared/Role";
-import { componentSpacing, paragraphSpacing } from "theme/metrics";
+import { componentSpacing } from "theme/metrics";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import GroupBar from "components/GroupBar";
+import { SmallGrayText } from "components/SmallGrayText";
 
 export default function GroupsCard() {
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
@@ -56,34 +51,9 @@ export default function GroupsCard() {
 }
 
 function NoGroup() {
-  const { data } = trpcNext.users.listRedactedEmailsWithSameName.useQuery();
-
   return (
     <VStack spacing={componentSpacing} align="start">
-      {data?.length ? (
-        <Alert status="warning">
-          <HStack>
-            <AlertIcon />
-            <AlertDescription>
-              系统发现有与您同名但使用不同电子邮箱的账号。如果您在当前账号下未找到所需功能，
-              {}请尝试退出当前账号，使用以下可能属于您的邮箱账号重新登录：
-              <UnorderedList mt={paragraphSpacing}>
-                {data.map((d, idx) => (
-                  <ListItem key={idx}>
-                    <b>{d}</b>
-                  </ListItem>
-                ))}
-              </UnorderedList>
-            </AlertDescription>
-          </HStack>
-        </Alert>
-      ) : (
-        <Text color="gray">
-          平台提供的功能会根据用户角色不同而有所差异。如果您未找到所需功能，请与管理员联系。
-        </Text>
-      )}
-
-      <Text mt={componentSpacing}>在使用会议功能前请确保：</Text>
+      <Text>在使用会议功能前请确保：</Text>
       <Text>
         🇨🇳 国内用户安装腾讯会议（
         <Link isExternal href="https://meeting.tencent.com/download/">
@@ -98,6 +68,17 @@ function NoGroup() {
         </Link>
         ）
       </Text>
+
+      <SmallGrayText>
+        本网站提供的功能会根据用户角色不同而有所差异。如果您未找到所需功能，
+        <Link
+          href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+          target="_blank"
+        >
+          请联系客服
+        </Link>
+        。
+      </SmallGrayText>
     </VStack>
   );
 }
