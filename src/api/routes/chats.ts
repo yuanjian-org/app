@@ -29,9 +29,9 @@ const getRoom = procedure
     }),
   )
   .output(zChatRoom)
-  .query(async ({ ctx, input: { menteeId } }) => {
+  .query(async ({ ctx: { me }, input: { menteeId } }) => {
     return await sequelize.transaction(async (transaction) => {
-      return await findOrCreateRoom(ctx.user, menteeId, "read", transaction);
+      return await findOrCreateRoom(me, menteeId, "read", transaction);
     });
   });
 
@@ -47,9 +47,9 @@ const getLastMessageCreatedAt = procedure
     }),
   )
   .output(zNullableDateColumn)
-  .query(async ({ ctx: { user }, input: { menteeId, prefix } }) => {
+  .query(async ({ ctx: { me }, input: { menteeId, prefix } }) => {
     return await sequelize.transaction(async (transaction) => {
-      await checkRoomPermission(user, menteeId, "readMetadata", transaction);
+      await checkRoomPermission(me, menteeId, "readMetadata", transaction);
       return await getLastMessageCreatedAtImpl(menteeId, prefix, transaction);
     });
   });
@@ -85,16 +85,16 @@ const getLastMessageUpdatedAt = procedure
     }),
   )
   .output(zNullableDateColumn)
-  .query(async ({ ctx: { user }, input: { menteeId } }) => {
+  .query(async ({ ctx: { me }, input: { menteeId } }) => {
     return await sequelize.transaction(async (transaction) => {
-      await checkRoomPermission(user, menteeId, "read", transaction);
+      await checkRoomPermission(me, menteeId, "read", transaction);
       const room = await findRoom(menteeId, transaction);
       if (!room) return null;
 
       return await db.ChatMessage.max("updatedAt", {
         where: {
           roomId: room.id,
-          userId: { [Op.ne]: user.id },
+          userId: { [Op.ne]: me.id },
         },
         transaction,
       });
@@ -110,7 +110,7 @@ const getLastReadAt = procedure
     }),
   )
   .output(zDateColumn)
-  .query(async ({ ctx: { user }, input: { menteeId } }) => {
+  .query(async ({ ctx: { me }, input: { menteeId } }) => {
     return await sequelize.transaction(async (transaction) => {
       const room = await findRoom(menteeId, transaction);
       if (!room) return moment(0);
@@ -118,7 +118,7 @@ const getLastReadAt = procedure
       const l = await db.LastReadChatRoom.findOne({
         where: {
           roomId: room.id,
-          userId: user.id,
+          userId: me.id,
         },
         attributes: ["lastReadAt"],
         transaction,
@@ -136,14 +136,14 @@ const setLastReadAt = procedure
       lastReadAt: zDateColumn,
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { menteeId, lastReadAt } }) => {
+  .mutation(async ({ ctx: { me }, input: { menteeId, lastReadAt } }) => {
     await sequelize.transaction(async (transaction) => {
       const room = await findRoom(menteeId, transaction);
       if (!room) throw notFoundError("讨论空间", menteeId);
       await db.LastReadChatRoom.upsert(
         {
           roomId: room.id,
-          userId: user.id,
+          userId: me.id,
           lastReadAt,
         },
         { transaction },
@@ -163,9 +163,9 @@ const createMessage = procedure
       markdown: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { roomId, markdown } }) => {
+  .mutation(async ({ ctx: { me }, input: { roomId, markdown } }) => {
     await sequelize.transaction(async (transaction) => {
-      await createMessageAndScheduleEmail(user, roomId, markdown, transaction);
+      await createMessageAndScheduleEmail(me, roomId, markdown, transaction);
     });
   });
 
@@ -190,7 +190,7 @@ const updateMessage = procedure
       markdown: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user }, input: { messageId, markdown } }) => {
+  .mutation(async ({ ctx: { me }, input: { messageId, markdown } }) => {
     if (!markdown) throw generalBadRequestError("消息内容不能为空");
 
     await sequelize.transaction(async (transaction) => {
@@ -199,12 +199,12 @@ const updateMessage = procedure
         transaction,
       });
       if (!m) throw notFoundError("讨论消息", messageId);
-      if (m.userId !== user.id) throw noPermissionError("讨论消息", messageId);
+      if (m.userId !== me.id) throw noPermissionError("讨论消息", messageId);
 
       await m.update({ markdown }, { transaction });
 
       await db.DraftChatMessage.destroy({
-        where: { messageId, authorId: user.id },
+        where: { messageId, authorId: me.id },
         transaction,
       });
 
@@ -222,43 +222,41 @@ const saveDraftMessage = procedure
       markdown: z.string(),
     }),
   )
-  .mutation(
-    async ({ ctx: { user }, input: { roomId, messageId, markdown } }) => {
-      checkDraftMessageInput(roomId, messageId);
+  .mutation(async ({ ctx: { me }, input: { roomId, messageId, markdown } }) => {
+    checkDraftMessageInput(roomId, messageId);
 
-      // Sequelize's upsert() doesn't work well when there are multiple unique
-      // constraints. So we do upsert manually.
+    // Sequelize's upsert() doesn't work well when there are multiple unique
+    // constraints. So we do upsert manually.
 
-      await sequelize.transaction(async (transaction) => {
-        const condition = roomId === undefined ? { messageId } : { roomId };
-        const cnt = await db.DraftChatMessage.count({
-          where: {
-            authorId: user.id,
-            ...condition,
-          },
-          transaction,
-        });
-        if (cnt > 0) {
-          await db.DraftChatMessage.update(
-            { markdown },
-            {
-              where: condition,
-              transaction,
-            },
-          );
-        } else {
-          await db.DraftChatMessage.create(
-            {
-              authorId: user.id,
-              ...condition,
-              markdown,
-            },
-            { transaction },
-          );
-        }
+    await sequelize.transaction(async (transaction) => {
+      const condition = roomId === undefined ? { messageId } : { roomId };
+      const cnt = await db.DraftChatMessage.count({
+        where: {
+          authorId: me.id,
+          ...condition,
+        },
+        transaction,
       });
-    },
-  );
+      if (cnt > 0) {
+        await db.DraftChatMessage.update(
+          { markdown },
+          {
+            where: condition,
+            transaction,
+          },
+        );
+      } else {
+        await db.DraftChatMessage.create(
+          {
+            authorId: me.id,
+            ...condition,
+            markdown,
+          },
+          { transaction },
+        );
+      }
+    });
+  });
 
 // No need for permission check because there isn't harmful side effect.
 const getDraftMessage = procedure
@@ -270,14 +268,14 @@ const getDraftMessage = procedure
     }),
   )
   .output(z.string().nullable())
-  .query(async ({ ctx: { user }, input: { roomId, messageId } }) => {
+  .query(async ({ ctx: { me }, input: { roomId, messageId } }) => {
     checkDraftMessageInput(roomId, messageId);
 
     return (
       (
         await db.DraftChatMessage.findOne({
           where: {
-            authorId: user.id,
+            authorId: me.id,
             ...(roomId === undefined ? { messageId } : { roomId }),
           },
           attributes: ["markdown"],

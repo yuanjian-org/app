@@ -21,9 +21,9 @@ import sequelize from "api/database/sequelize";
 const list = procedure
   .use(authUser())
   .output(z.array(zMatchFeedbackAndCreatedAt))
-  .query(async ({ ctx: { user } }) => {
+  .query(async ({ ctx: { me } }) => {
     const feedbacks = await db.MatchFeedback.findAll({
-      where: { userId: user.id },
+      where: { userId: me.id },
       attributes: ["feedback", "createdAt"],
     });
 
@@ -76,10 +76,10 @@ const list = procedure
 const updateLast = procedure
   .use(authUser())
   .input(zMatchFeedback)
-  .mutation(async ({ ctx: { user }, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
       const last = await db.MatchFeedback.findOne({
-        where: { userId: user.id },
+        where: { userId: me.id },
         order: [["createdAt", "DESC"]],
         limit: 1,
         attributes: ["id"],

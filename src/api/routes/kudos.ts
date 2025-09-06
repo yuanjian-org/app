@@ -43,7 +43,7 @@ const list = procedure
 const getLastKudosCreatedAt = procedure
   .use(authUser("Volunteer"))
   .output(zDateColumn)
-  .query(async ({ ctx: { user: me } }) => {
+  .query(async ({ ctx: { me } }) => {
     const ret = await db.Kudos.max("createdAt", {
       where: { giverId: { [Op.ne]: me.id } },
     });
@@ -61,7 +61,7 @@ const create = procedure
       text: z.string().nullable(),
     }),
   )
-  .mutation(async ({ ctx: { user: me }, input: { userId, text } }) => {
+  .mutation(async ({ ctx: { me }, input: { userId, text } }) => {
     await sequelize.transaction(async (t) => {
       await createKudos(me.id, userId, text, t);
       await scheduleEmail("Kudos", userId, t);

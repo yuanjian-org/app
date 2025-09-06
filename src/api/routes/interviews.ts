@@ -58,7 +58,7 @@ const get = procedure
       etag: z.number(),
     }),
   )
-  .query(async ({ ctx, input: { interviewId } }) => {
+  .query(async ({ ctx: { me }, input: { interviewId } }) => {
     return await sequelize.transaction(async (transaction) => {
       const i = await db.Interview.findByPk(interviewId, {
         attributes: [
@@ -83,7 +83,6 @@ const get = procedure
         etag: date2etag(i.decisionUpdatedAt),
       };
 
-      const me = ctx.user;
       if (isPermitted(me.roles, "MentorshipManager")) return ret;
 
       if (i.feedbacks.some((f) => f.interviewer.id === me.id)) return ret;
@@ -159,11 +158,11 @@ const list = procedure
 const listMine = procedure
   .use(authUser())
   .output(z.array(zInterview))
-  .query(async ({ ctx }) => {
+  .query(async ({ ctx: { me } }) => {
     return (
       (
         await db.InterviewFeedback.findAll({
-          where: { interviewerId: ctx.user.id },
+          where: { interviewerId: me.id },
           attributes: [],
           include: [
             {

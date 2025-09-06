@@ -41,9 +41,6 @@ export const authUser = (permitted?: Role | Role[]) =>
         me: session.user,
         baseUrl: ctx.baseUrl,
         session,
-
-        /** @deprecated Use `me` instead */
-        user: session.user,
       },
     });
   });

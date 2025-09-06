@@ -25,7 +25,7 @@ const create = procedure
       topic: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { user: me, baseUrl }, input }) => {
+  .mutation(async ({ ctx: { me, baseUrl }, input }) => {
     await sequelize.transaction(async (transaction) => {
       await createMentorBooking(
         me,
@@ -101,19 +101,17 @@ const update = procedure
       assignedMentorId: z.string().nullable(),
     }),
   )
-  .mutation(
-    async ({ ctx: { user: me }, input: { id, notes, assignedMentorId } }) => {
-      const [cnt] = await db.MentorBooking.update(
-        {
-          assignedMentorId,
-          notes,
-          updaterId: me.id,
-        },
-        { where: { id } },
-      );
-      if (!cnt) throw notFoundError("数据", id);
-    },
-  );
+  .mutation(async ({ ctx: { me }, input: { id, notes, assignedMentorId } }) => {
+    const [cnt] = await db.MentorBooking.update(
+      {
+        assignedMentorId,
+        notes,
+        updaterId: me.id,
+      },
+      { where: { id } },
+    );
+    if (!cnt) throw notFoundError("数据", id);
+  });
 
 export default router({
   create,

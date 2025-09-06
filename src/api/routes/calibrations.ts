@@ -114,7 +114,7 @@ const list = procedure
 const listMine = procedure
   .use(authUser())
   .output(z.array(zCalibration))
-  .query(async ({ ctx }) => {
+  .query(async ({ ctx: { me } }) => {
     return await sequelize.transaction(async (transaction) => {
       const cids = (
         await db.Calibration.findAll({
@@ -127,7 +127,7 @@ const listMine = procedure
       const cs: Calibration[] = [];
       for (const cid of cids) {
         const c = await getCalibrationAndCheckPermissionSafe(
-          ctx.user,
+          me,
           cid,
           transaction,
         );
@@ -146,9 +146,9 @@ const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zCalibration)
-  .query(async ({ ctx, input: id }) => {
+  .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (transaction) => {
-      return await getCalibrationAndCheckPermission(ctx.user, id, transaction);
+      return await getCalibrationAndCheckPermission(me, id, transaction);
     });
   });
 
@@ -163,13 +163,9 @@ const getInterviews = procedure
   .use(authUser())
   .input(z.string())
   .output(z.array(zInterview))
-  .query(async ({ ctx, input: calibrationId }) => {
+  .query(async ({ ctx: { me }, input: calibrationId }) => {
     return await sequelize.transaction(async (transaction) => {
-      await getCalibrationAndCheckPermission(
-        ctx.user,
-        calibrationId,
-        transaction,
-      );
+      await getCalibrationAndCheckPermission(me, calibrationId, transaction);
 
       return await db.Interview.findAll({
         where: { calibrationId },

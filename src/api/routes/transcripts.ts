@@ -21,7 +21,7 @@ const list = procedure
     }),
   )
   .output(z.array(zTranscript))
-  .query(async ({ input: { groupId }, ctx }) => {
+  .query(async ({ input: { groupId }, ctx: { me } }) => {
     const g = await db.Group.findByPk(groupId, {
       attributes: groupAttributes,
       include: [
@@ -35,7 +35,7 @@ const list = procedure
 
     if (!g) throw notFoundError("分组", groupId);
 
-    checkPermissionForGroupHistory(ctx.user, g);
+    checkPermissionForGroupHistory(me, g);
 
     return g.transcripts;
   });

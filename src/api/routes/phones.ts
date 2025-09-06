@@ -19,9 +19,9 @@ import { isFakeEmail, newFakeEmail } from "../../shared/fakeEmail";
 const sendVerificationToken = procedure
   .use(authUser())
   .input(z.object({ phone: z.string() }))
-  .mutation(async ({ input: { phone }, ctx: { user } }) => {
+  .mutation(async ({ input: { phone }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      const existing = await db.PhoneVerificationToken.findByPk(user.id, {
+      const existing = await db.PhoneVerificationToken.findByPk(me.id, {
         attributes: ["updatedAt"],
         transaction,
       });
@@ -35,7 +35,7 @@ const sendVerificationToken = procedure
 
       const token = await generateShortLivedToken();
       await db.PhoneVerificationToken.upsert(
-        { userId: user.id, phone, token },
+        { userId: me.id, phone, token },
         { transaction },
       );
 
