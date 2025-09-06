@@ -14,6 +14,7 @@ import {
 } from "../../shared/token";
 import { sms } from "../sms";
 import moment from "moment";
+import { isFakeEmail, newFakeEmail } from "../../shared/fakeEmail";
 
 const sendVerificationToken = procedure
   .use(authUser())
@@ -50,6 +51,11 @@ const sendVerificationToken = procedure
     });
   });
 
+/**
+ * The frontend should call `update` in `useSession()` to update the session as
+ * soon as this route returns, because this route may merge the current user
+ * with another user.
+ */
 const set = procedure
   .use(authUser())
   .input(
@@ -58,10 +64,10 @@ const set = procedure
       token: z.string(),
     }),
   )
-  .mutation(async ({ input: { phone, token }, ctx: { user } }) => {
+  .mutation(async ({ input: { phone, token }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
       const tocken = await db.PhoneVerificationToken.findOne({
-        where: { userId: user.id, phone, token },
+        where: { userId: me.id, phone, token },
         attributes: ["userId", "updatedAt"],
         transaction,
       });
@@ -73,18 +79,65 @@ const set = procedure
       ) {
         throw generalBadRequestError("手机验证码已过期，请重新验证。");
       }
+      await tocken.destroy({ transaction });
 
-      const existing = await db.User.count({
-        where: { phone, id: { [Op.ne]: user.id } },
+      const existing = await db.User.findOne({
+        attributes: ["id"],
+        where: { phone, id: { [Op.ne]: me.id } },
         transaction,
       });
-      if (existing > 0) {
-        throw generalBadRequestError("手机号已被其他账号使用。");
-      }
 
-      await tocken.destroy({ transaction });
-      await user.update({ phone }, { transaction });
-      invalidateUserCache(user.id);
+      if (!existing) {
+        await me.update({ phone }, { transaction });
+        invalidateUserCache(me.id);
+      } else {
+        if (me.phone) {
+          // If the current user already has a phone number, account merge would
+          // cause data loss or inconsistency if we don't carefully merge all
+          // the data associated with the two accounts. So we disallow it.
+          throw generalBadRequestError("手机号已被其他账号使用。");
+        } else {
+          // Merge accounts.
+          //
+          // Overwrite email and wechat of `existing`. These fields are used by
+          // next-auth for user authentication.
+          //
+          // Ignore other data associated with the current user. This is because
+          // the user is expected to set the phone number during initial setup.
+          // At this stage, no useful data has been provided.
+          //
+          // A: Why the `mergeTo` field? Why not delete the current user right
+          //    away?
+          // Q: The current user's id is encoded in the JWT token. The backend
+          //    cannot initiate an immediate update to the JWT token. Deleting
+          //    the current user would cause the system unable to find the user
+          //    in the session and in turn the user to be immediately logged
+          //    out. See the `session` callback in [...nextauth].ts. Instead of
+          //    disrupting the user experience during the initial setup, we
+          //    periodically garbage collect merged users, forcing them to
+          //    re-login at a much later time.
+          //
+          const email = me.email;
+          const wechatUnionId = me.wechatUnionId;
+          await me.update(
+            {
+              email: newFakeEmail(), // TODO: set to null
+              wechatUnionId: null,
+              mergedTo: existing.id,
+            },
+            { transaction },
+          );
+          await existing.update(
+            {
+              ...(email && !isFakeEmail(email) && { email }),
+              ...(wechatUnionId && { wechatUnionId }),
+            },
+            { transaction },
+          );
+          invalidateUserCache(me.id);
+          invalidateUserCache(existing.id);
+        }
+      }
     });
   });
 

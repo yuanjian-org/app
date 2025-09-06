@@ -122,6 +122,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       error: "/auth/login",
     },
 
+    // https://next-auth.js.org/configuration/callbacks
     callbacks: {
       signIn: ({ account }) => {
         // https://github.com/nextauthjs/next-auth/discussions/469
