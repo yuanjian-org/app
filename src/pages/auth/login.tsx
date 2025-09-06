@@ -27,7 +27,6 @@ import { useRouter } from "next/router";
 import { parseQueryString } from "shared/strings";
 import { toast } from "react-toastify";
 import trpc from "trpc";
-import { RoleProfiles } from "shared/Role";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -195,8 +194,6 @@ function PasswordPanel() {
   const submit = async () => {
     setIsLoading(true);
     try {
-      if (await testAndHandleBannedUser(email)) return;
-
       const res = await signIn("credentials", {
         email,
         password,
@@ -268,8 +265,6 @@ function VerificationCodePanel() {
   const submit = async () => {
     setIsLoading(true);
     try {
-      if (await testAndHandleBannedUser(email)) return;
-
       const res = await signIn("sendgrid", {
         email,
         callbackUrl,
@@ -313,21 +308,6 @@ function VerificationCodePanel() {
       </Button>
     </>
   );
-}
-
-/**
- * @returns true if the user is banned.
- */
-async function testAndHandleBannedUser(email: string) {
-  if (await trpc.users.isBanned.query({ email })) {
-    toast.error(
-      "此邮箱已被停用，请使用其他邮箱登录。有问题请联系" +
-        `${RoleProfiles.UserManager.displayName}。`,
-    );
-    return true;
-  } else {
-    return false;
-  }
 }
 
 function handleSignInException(err: any) {

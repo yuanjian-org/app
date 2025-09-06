@@ -25,7 +25,6 @@ import {
   isValidChineseName,
   toPinyin,
 } from "../../shared/strings";
-import invariant from "tiny-invariant";
 import {
   generalBadRequestError,
   noPermissionError,
@@ -118,12 +117,12 @@ const list = procedure
   .output(z.array(zUserWithMergeInfo))
   .query(async ({ ctx: { me }, input: filter }) => {
     if (
-      (filter.includeBanned === true || filter.includeMerged === true) &&
+      filter.includeMerged === true &&
       !isPermitted(me.roles, "UserManager")
     ) {
       throw noPermissionError(
         "数据",
-        "`includeBanned, includeMerged or returnMergeInfo user filter",
+        "`includeMerged` or `returnMergeInfo` user filter",
       );
     }
 
@@ -139,7 +138,6 @@ const list = procedure
     }
 
     // Force type checking.
-    const banned: Role = "Banned";
     const volunteer: Role = "Volunteer";
 
     return await db.User.findAll({
@@ -164,12 +162,6 @@ const list = procedure
           ? {}
           : {
               mergedTo: { [Op.eq]: null },
-            }),
-
-        ...(filter.includeBanned === true
-          ? {}
-          : {
-              [Op.not]: { roles: { [Op.contains]: [banned] } },
             }),
 
         ...(filter.includeNonVolunteers === true
@@ -461,26 +453,6 @@ const setMenteeStatus = procedure
     );
     if (cnt == 0) throw notFoundError("用户", userId);
     invalidateUserCache(userId);
-  });
-
-const isBanned = procedure
-  .input(
-    z.object({
-      email: z.string(),
-    }),
-  )
-  .output(z.boolean())
-  .query(async ({ input: { email } }) => {
-    // Declare a variable to force type checking
-    const banned: Role = "Banned";
-    const count = await db.User.count({
-      where: {
-        email,
-        roles: { [Op.contains]: [banned] },
-      },
-    });
-    invariant(count <= 1);
-    return count != 0;
   });
 
 const get = procedure
@@ -925,7 +897,6 @@ const destroy = procedure
   });
 
 export default router({
-  isBanned,
   create,
   get,
   getFull,

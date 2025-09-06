@@ -45,11 +45,9 @@ import { widePage } from "AppPage";
 
 export default widePage(() => {
   const [includeMerged, setIncludeMerged] = useState(false);
-  const [includeBanned, setIncludeBanned] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
     includeMerged,
-    includeBanned,
     includeNonVolunteers: true,
     returnMergeInfo: true,
   });
@@ -89,15 +87,6 @@ export default widePage(() => {
               onChange={(e) => setIncludeMerged(e.target.checked)}
             >
               显示已迁移账号
-            </Checkbox>
-          </WrapItem>
-
-          <WrapItem>
-            <Checkbox
-              isChecked={includeBanned}
-              onChange={(e) => setIncludeBanned(e.target.checked)}
-            >
-              显示已停用账号
             </Checkbox>
           </WrapItem>
         </Wrap>
@@ -149,7 +138,6 @@ function UserTable({
           <Th>拼音</Th>
           <Th>角色</Th>
           <Th>假扮</Th>
-          <Th>微信激活码</Th>
           <Th>ID</Th>
         </Tr>
       </Thead>
@@ -188,11 +176,7 @@ function UserTable({
                       <Tag
                         color="white"
                         bgColor={
-                          r == "Banned"
-                            ? "gray"
-                            : rp.privilegedUserDataAccess
-                              ? "orange"
-                              : "brand.c"
+                          rp.privilegedUserDataAccess ? "orange" : "brand.c"
                         }
                       >
                         {rp.displayName}
