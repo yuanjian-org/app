@@ -33,7 +33,7 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
-import { Cell, UserPreference, zUserPreference } from "../../../shared/User";
+import { UserPreference, zUserPreference } from "../../../shared/User";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
 import MergeToken from "./MergeToken";
@@ -69,10 +69,10 @@ class User extends Model {
   @Column(STRING)
   email: string;
 
-  // Cell phone number. See shared/User.ts for information about this field.
+  // Standard E.164 phone number format such as "+8613800138000".
   @Unique
   @Column(STRING)
-  cell: Cell;
+  phone: string | null;
 
   // User defined WeChat ID, which is different from WeChat OpenID and UnionID
   // and is not provided by WeChat auth API.

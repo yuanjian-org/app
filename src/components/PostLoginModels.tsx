@@ -20,18 +20,19 @@ import { useState } from "react";
 import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { isValidChineseCellNumber, isValidChineseName } from "shared/strings";
+import { isValidPhoneNumber, isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
 import { canAcceptMergeToken } from "shared/merge";
 import { MergeModals } from "./MergeModals";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
 import { canValidatePearlStudent } from "shared/pearlStudent";
-import { cellTokenMinSendIntervalInSeconds } from "shared/token";
-import { isCellDeclined, isCellRequired, isCellSet } from "shared/User";
+import { phoneTokenMinSendIntervalInSeconds } from "shared/token";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
+import PhoneNumberInput from "./PhoneNumberInput";
+import { staticUrlPrefix } from "static";
 
 // prettier-ignore
 export default function PostLoginModels() {
@@ -58,25 +59,23 @@ export default function PostLoginModels() {
   ) : !me.name ? (
     <SetNameModal />
 
-  ) : me.cell === null || isCellRequired(me.cell) ? (
-    <SetCellModal cancel={() => undefined} cancelLabel="跳过" />
+  ) : me.phone === null ? (
+    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
   ) : (
     <></>
   );
 }
 
-export function SetCellModal({
+export function SetPhoneModal({
   cancel,
   cancelLabel,
 }: {
   cancel: () => void;
   cancelLabel: string;
 }) {
-  const me = useMe();
   const { update } = useSession();
-  const required = isCellRequired(me.cell);
-  const [cell, setCell] = useState("");
+  const [phone, setPhone] = useState("");
   const [token, setToken] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -84,8 +83,8 @@ export function SetCellModal({
   const sendToken = async () => {
     setLoading(true);
     try {
-      await trpc.users.sendCellToken.mutate({ cell });
-      setCountdown(cellTokenMinSendIntervalInSeconds);
+      await trpc.users.sendPhoneVerificationToken.mutate({ phone });
+      setCountdown(phoneTokenMinSendIntervalInSeconds);
 
       // Start countdown timer
       const timer = setInterval(() => {
@@ -105,76 +104,63 @@ export function SetCellModal({
   const submit = async () => {
     setLoading(true);
     try {
-      await trpc.users.setCell.mutate({ cell, token });
+      await trpc.users.setPhone.mutate({ phone, token });
       await update();
     } finally {
       setLoading(false);
     }
   };
 
-  const decline = async () => {
-    if (isCellSet(me.cell) || isCellDeclined(me.cell)) {
-      cancel();
-      return;
-    }
+  const isValidPhone = isValidPhoneNumber(phone);
+  const isValidInput = isValidPhone && token;
 
-    setLoading(true);
-    try {
-      await trpc.users.declineCell.mutate();
-      await update();
-      cancel();
-    } finally {
-      setLoading(false);
-    }
-  };
+  console.log("phone", phone);
+  console.log("isValidPhone", isValidPhone);
 
-  const isValidCell = isValidChineseCellNumber(cell);
-  const isValidInput = isValidCell && token;
-
-  const rightButtonWidth = "120px";
+  const buttonWidth = "120px";
 
   return (
     // Set onClose to undefined to prevent user from closing the modal without
     // entering name.
-    <ModalWithBackdrop isOpen onClose={cancel}>
+    <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
         <ModalHeader>手机号验证</ModalHeader>
         <ModalBody>
-          <FormControl>
-            <FormLabel>请填写手机号</FormLabel>
-            <Input
-              isRequired={true}
-              value={cell}
-              onChange={(e) => setCell(e.target.value)}
-              placeholder="仅支持中国大陆手机号"
-              mb="24px"
-            />
-          </FormControl>
-          <FormControl>
-            <InputGroup size="md">
-              <Input
-                isRequired={true}
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                isDisabled={!isValidCell}
-                mb="24px"
-              />
-              <InputRightElement w={rightButtonWidth}>
-                <Button
-                  w={rightButtonWidth}
-                  isDisabled={!isValidCell || countdown > 0}
-                  onClick={sendToken}
-                  isLoading={loading}
-                >
-                  {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
-                </Button>
-              </InputRightElement>
-            </InputGroup>
+          <VStack spacing={componentSpacing} w="full">
+            <FormControl>
+              <FormLabel>请填写手机号</FormLabel>
+              <PhoneNumberInput value={phone} onChange={setPhone} />
+            </FormControl>
+            <FormControl>
+              <InputGroup>
+                <Input
+                  isRequired={true}
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  isDisabled={!isValidPhone}
+                />
+                <InputRightElement w={buttonWidth}>
+                  <Button
+                    w={buttonWidth}
+                    isDisabled={!isValidPhone || countdown > 0}
+                    onClick={sendToken}
+                    isLoading={loading}
+                  >
+                    {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
 
-            <HStack spacing={componentSpacing} w="full">
-              <RiCustomerServiceFill color="gray" />
+            <HStack spacing={2} w="full">
               <SmallGrayText>
-                若验证有问题，
+                <Link href={`${staticUrlPrefix}/why-phone`} target="_blank">
+                  为什么要填手机号？
+                </Link>
+              </SmallGrayText>
+              <Spacer />
+              <SmallGrayText>
+                若有问题，
                 <Link
                   href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                   target="_blank"
@@ -182,22 +168,19 @@ export function SetCellModal({
                   联系客服
                 </Link>
               </SmallGrayText>
+              <RiCustomerServiceFill color="gray" />
             </HStack>
-          </FormControl>
+          </VStack>
         </ModalBody>
         <ModalFooter>
-          <HStack w="100%">
-            {!required && (
-              <>
-                <Button onClick={decline}>
-                  我没有中国大陆手机号，{cancelLabel}
-                </Button>
-                <Spacer />
-              </>
-            )}
+          <HStack w="full">
+            <Button onClick={cancel} w={buttonWidth}>
+              {cancelLabel}
+            </Button>
+            <Spacer />
             <Button
               variant="brand"
-              w={required ? "100%" : rightButtonWidth}
+              w={buttonWidth}
               isDisabled={!isValidInput}
               onClick={submit}
               isLoading={loading}

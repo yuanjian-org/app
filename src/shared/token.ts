@@ -1,10 +1,10 @@
 import randomNumber from "random-number-csprng";
 
 /**
- * Tokens for cell phone number verification.
+ * Tokens for mobile phone number verification.
  */
-export const cellTokenMaxAgeInMins = 5;
-export const cellTokenMinSendIntervalInSeconds = 60;
+export const phoneTokenMaxAgeInMins = 5;
+export const phoneTokenMinSendIntervalInSeconds = 60;
 
 /**
  * These tokens are weaker than long-lived tokens. Apply short expiration.

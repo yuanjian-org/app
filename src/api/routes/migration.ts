@@ -41,6 +41,33 @@ async function purgeOldData() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'CellTokens' AND column_name = 'cell') THEN
+        ALTER TABLE "CellTokens" RENAME COLUMN "cell" TO "phone";
+      END IF;
+    END $$;
+  `);
+
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'CellTokens') THEN
+        ALTER TABLE "CellTokens" RENAME TO "PhoneVerificationTokens";
+      END IF;
+    END $$;
+  `);
+
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'cell') THEN
+        ALTER TABLE "users" RENAME COLUMN "cell" TO "phone";
+      END IF;
+    END $$;
+  `);
+
   await Promise.resolve();
 }
 
@@ -48,9 +75,9 @@ async function migrateData() {
   console.log("Migrating DB data...");
 
   await sequelize.query(`
-    UPDATE "Summaries" 
-    SET markdown = REPLACE(markdown, '（注：文档部分内容可能由 AI 生成）', '')
-    WHERE markdown LIKE '%（注：文档部分内容可能由 AI 生成）%';
+    UPDATE "users" SET "phone" = null WHERE "phone" LIKE 'declined-%';
+    UPDATE "users" SET "phone" = null WHERE "phone" LIKE 'required-%';
+    UPDATE "users" SET "phone" = '+86' || "phone" WHERE "phone" NOT LIKE '+%';
   `);
 
   await Promise.resolve();

@@ -10,7 +10,6 @@ import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
 import { emailRoleIgnoreError } from "api/email";
 import getBaseUrl from "shared/getBaseUrl";
 import { toPinyin } from "shared/strings";
-import { cellRequiredPrefix, isCellSet } from "shared/User";
 import invariant from "shared/invariant";
 import { menteeSourceField } from "shared/applicationFields";
 
@@ -96,14 +95,6 @@ const validate = procedure
         },
         { transaction },
       );
-
-      // Require students to set cell number.
-      if (!isCellSet(user.cell)) {
-        await user.update(
-          { cell: cellRequiredPrefix + crypto.randomUUID() },
-          { transaction },
-        );
-      }
 
       invalidateUserCache(me.id);
     });
