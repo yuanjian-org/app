@@ -9,7 +9,7 @@ import {
   Link,
   Button,
 } from "@chakra-ui/react";
-import { parseQueryString } from "shared/strings";
+import { chinaPhonePrefix, parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
 import { RoleProfiles } from "shared/Role";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -74,7 +74,16 @@ export default function Page() {
 
       <FormControl>
         <FormLabel>手机号</FormLabel>
-        <Input value={user.phone ?? "未提供"} readOnly />
+        <Input
+          readOnly
+          value={
+            !user.phone
+              ? "未提供"
+              : user.phone.startsWith(chinaPhonePrefix)
+                ? user.phone.slice(chinaPhonePrefix.length)
+                : user.phone
+          }
+        />
       </FormControl>
       <FormControl>
         <Button variant="brand" onClick={() => setIsSettingCell(true)}>

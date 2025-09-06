@@ -38,7 +38,7 @@ function getCountryAreaCodes(): CountryAreaCode[] {
   // Repeat frequently used countries at the beginning of the list.
   const china = all.find((country) => country.name === "中国");
   const usa = all.find((country) => country.name === "美国");
-  return [china, usa, ...all].filter((c) => c !== undefined);
+  return [china!, usa!, ...all];
 }
 
 /**
