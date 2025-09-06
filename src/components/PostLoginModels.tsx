@@ -83,7 +83,7 @@ export function SetPhoneModal({
   const sendToken = async () => {
     setLoading(true);
     try {
-      await trpc.users.sendPhoneVerificationToken.mutate({ phone });
+      await trpc.phones.sendVerificationToken.mutate({ phone });
       setCountdown(phoneTokenMinSendIntervalInSeconds);
 
       // Start countdown timer
@@ -104,7 +104,7 @@ export function SetPhoneModal({
   const submit = async () => {
     setLoading(true);
     try {
-      await trpc.users.setPhone.mutate({ phone, token });
+      await trpc.phones.set.mutate({ phone, token });
       await update();
     } finally {
       setLoading(false);

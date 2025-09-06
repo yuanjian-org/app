@@ -130,7 +130,9 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
           const csrf =
             req?.cookies?.["__Host-next-auth.csrf-token"]?.split("|")[0];
           const state = req?.query?.state;
-          if (csrf !== state) {
+          if (csrf === state) {
+            return true;
+          } else {
             console.error(
               "WeChat QR OAuth state is illegal, csrf:",
               csrf,
@@ -139,8 +141,9 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
             );
             return false;
           }
+        } else {
+          return true;
         }
-        return true;
       },
 
       async jwt({ token, trigger, session }) {
@@ -167,8 +170,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
 
       async session({ token, session }) {
-        const impersonate = token[impersonateTokenKey];
-        const id = (impersonate as string | undefined) ?? token.sub;
+        const impersonate = token[impersonateTokenKey] as string | undefined;
+        const id = impersonate ?? token.sub;
         invariant(id, "id not found");
 
         const original = await userCache.fetch(id);
