@@ -47,7 +47,6 @@ export const zUserFilter = z.object({
   menteeStatus: zMenteeStatus.nullable().optional(),
   pointOfContactId: z.string().optional(),
 
-  includeBanned: z.boolean().optional(),
   includeNonVolunteers: z.boolean().optional(),
   includeMerged: z.boolean().optional(),
 

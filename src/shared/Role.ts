@@ -15,10 +15,6 @@ export const AllRoles = [
   "Mentee",
   "Interviewer",
   "Volunteer",
-
-  // Banned users can't sign in. Mostly to prevent users from repeatedly using
-  // different email addresses than their main sign-in address.
-  "Banned",
 ] as const;
 
 export const RoleProfiles: {
@@ -88,11 +84,6 @@ export const RoleProfiles: {
   Volunteer: {
     displayName: "志愿者",
     actions: "可以浏览其他志愿者信息",
-  },
-
-  Banned: {
-    displayName: "停用账号",
-    actions: "停用账号无法登录系统。主要为防止用户使用非主登录邮箱",
   },
 };
 

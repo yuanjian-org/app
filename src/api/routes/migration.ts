@@ -41,10 +41,6 @@ async function purgeOldData() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await sequelize.query(`
-    DROP TABLE IF EXISTS "MergeTokens";
-  `);
-
   await Promise.resolve();
 }
 

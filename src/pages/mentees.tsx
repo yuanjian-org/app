@@ -304,7 +304,6 @@ function MenteeTable({
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
-          <Th>微信激活码</Th>
           <Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
