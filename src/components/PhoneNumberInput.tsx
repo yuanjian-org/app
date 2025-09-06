@@ -20,7 +20,7 @@ export interface CountryAreaCode {
 }
 
 function getCountryAreaCodes(): CountryAreaCode[] {
-  const list: CountryAreaCode[] = countries
+  const all: CountryAreaCode[] = countries
     .filter(
       (country) =>
         country.translations?.zho?.common && country.idd?.suffixes?.length > 0,
@@ -32,19 +32,13 @@ function getCountryAreaCodes(): CountryAreaCode[] {
         country.idd.suffixes.length === 1
           ? `${country.idd.root}${country.idd.suffixes[0]}`
           : country.idd.root,
-    }));
+    }))
+    .sort((a, b) => compareChinese(a.name, b.name));
 
-  const china = list.find((country) => country.name === "中国");
-  const usa = list.find((country) => country.name === "美国");
-  const others = list.filter(
-    (country) => country.name !== "中国" && country.name !== "美国",
-  );
-
-  others.sort((a, b) => compareChinese(a.name, b.name));
-
-  return [china, usa, ...others].filter(
-    (country): country is CountryAreaCode => country !== undefined,
-  );
+  // Repeat frequently used countries at the beginning of the list.
+  const china = all.find((country) => country.name === "中国");
+  const usa = all.find((country) => country.name === "美国");
+  return [china, usa, ...all].filter((c) => c !== undefined);
 }
 
 /**
