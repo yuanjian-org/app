@@ -74,8 +74,9 @@ function InitialModal({
         <ModalHeader>珍珠生验证</ModalHeader>
         <ModalBody>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</ModalBody>
         <ModalFooter>
-          <HStack spacing={componentSpacing}>
+          <HStack spacing={componentSpacing} w="full">
             <Button onClick={decline}>我不是珍珠生，或跳过此步</Button>
+            <Spacer />
             <Button variant="brand" onClick={confirm}>
               我是珍珠生
             </Button>
@@ -190,7 +191,6 @@ export function PearlStudentValidationModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <RiCustomerServiceFill color="gray" />
             <SmallGrayText>
               若有问题，
               <Link
@@ -200,6 +200,7 @@ export function PearlStudentValidationModal({
                 联系客服
               </Link>
             </SmallGrayText>
+            <RiCustomerServiceFill color="gray" />
 
             <Spacer />
             <Button onClick={cancel}>{cancelLabel}</Button>
