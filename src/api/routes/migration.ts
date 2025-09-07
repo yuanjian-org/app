@@ -40,31 +40,7 @@ async function purgeOldData() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
-  // Make email column nullable in users table
-  await sequelize.query(`
-    ALTER TABLE "users" 
-    ALTER COLUMN "email" DROP NOT NULL;
-  `);
-  // Set email to null for users with fake emails ending with "@f.ml"
-  await sequelize.query(`
-    UPDATE "users" 
-    SET "email" = NULL 
-    WHERE "email" LIKE '%@f.ml';
-  `);
-  await sequelize.query(`
-    DO $$
-    BEGIN
-        IF EXISTS (
-            SELECT 1 
-            FROM information_schema.columns 
-            WHERE table_name = 'users' 
-            AND column_name = 'image'
-        ) THEN
-            ALTER TABLE "users" 
-            DROP COLUMN "image";
-        END IF;
-    END $$;
-  `);
+
   await Promise.resolve();
 }
 
