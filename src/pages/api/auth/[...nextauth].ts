@@ -38,7 +38,8 @@ const impersonateTokenKey = "imp";
 export const authTokenMaxAgeInMins = 5;
 
 export const adapter = SequelizeAdapter(sequelize, {
-  models: { User: db.User },
+  // `as any` is because SequelizeAdapter requires user.email to be non-nullable
+  models: { User: db.User as any },
 });
 
 export function authOptions(req?: NextApiRequest): NextAuthOptions {
@@ -156,6 +157,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
             delete token[impersonateTokenKey];
           } else {
             // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
+            // TODO: Trace to the actual user if this user is merged.
             const me = await db.User.findByPk(token.sub, {
               attributes: ["roles"],
             });
@@ -194,7 +196,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         emailRoleIgnoreError(
           "UserManager",
           "新用户注册",
-          `${message.user.email} 注册新用户 。`,
+          `邮箱：${message.user.email}`,
           "",
         ),
     },

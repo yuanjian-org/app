@@ -20,7 +20,7 @@ export const zUser = zMinUser.merge(
     // TODO: Consider moving roles to MinUser to avoid retrieving the whole User
     // object just for permission checking.
     roles: zRoles,
-    email: z.string().email(),
+    email: z.string().nullable(),
     phone: z.string().nullable(),
     wechat: z.string().nullable(),
     menteeStatus: zMenteeStatus.nullable(),

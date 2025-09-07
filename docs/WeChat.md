@@ -41,8 +41,8 @@
 2. 除了 `AUTH_WECHAT_*` 之外，也需要在 `.env` 文件中添加域名相关的配置：
 
    ```
-   AUTH_TRUSTED_HOST=acme.com
-   NEXTAUTH_URL=https://acme.com
+   AUTH_TRUSTED_HOST=mentors.org.cn
+   NEXTAUTH_URL=https://mentors.org.cn
    ```
 
    注意，设置NEXTAUTH_URL会影响在本地测试email登录。因此在测试完微信登录后，请清除此值。

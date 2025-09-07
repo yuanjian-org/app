@@ -27,12 +27,12 @@ export async function emailRole(
   baseUrl: string,
 ) {
   const users = await User.findAll({
-    where: { roles: { [Op.contains]: [role] } },
+    where: { roles: { [Op.contains]: [role] }, email: { [Op.not]: null } },
     attributes: ["email"],
   });
 
   await email(
-    users.map((u) => u.email),
+    users.map((u) => u.email!),
     "E_114706970517",
     {
       subject,

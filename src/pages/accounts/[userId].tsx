@@ -11,9 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { chinaPhonePrefix, parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
-import { RoleProfiles } from "shared/Role";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
-import { isFakeEmail } from "shared/fakeEmail";
 import { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
@@ -58,16 +56,20 @@ export default function Page() {
     >
       <SectionHeading>账号信息</SectionHeading>
 
-      {!isFakeEmail(user.email) && (
-        <FormControl>
-          <FormLabel>邮箱</FormLabel>
-          <Input value={user.email} readOnly />
-          <FormHelperTextWithMargin>
-            如需更改，请联系
-            {RoleProfiles.UserManager.displayName}。
-          </FormHelperTextWithMargin>
-        </FormControl>
-      )}
+      <FormControl>
+        <FormLabel>邮箱</FormLabel>
+        <Input value={user.email || "无"} readOnly />
+        <FormHelperTextWithMargin>
+          如需更改，
+          <Link
+            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+            target="_blank"
+          >
+            请联系客服
+          </Link>
+          。
+        </FormHelperTextWithMargin>
+      </FormControl>
 
       <FormControl>
         <FormLabel>手机号</FormLabel>

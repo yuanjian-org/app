@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
 import { MinUser } from "shared/User";
@@ -37,7 +37,7 @@ export default function UserSelector(props: {
         callback(
           users.map((u) => {
             return {
-              label: `${u.name} (${u.email})`,
+              label: `${u.name} (${u.email ?? "无邮箱"})`,
               value: u.id,
             };
           }),
