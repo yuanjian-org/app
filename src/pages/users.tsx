@@ -29,7 +29,12 @@ import { useState } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
-import { formatUserName, isValidChineseName, toPinyin } from "shared/strings";
+import {
+  formatUserName,
+  isValidChineseName,
+  isValidPhoneNumber,
+  toPinyin,
+} from "shared/strings";
 import Role, { AllRoles, RoleProfiles, isPermitted } from "shared/Role";
 import trpc from "trpc";
 import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
@@ -132,6 +137,8 @@ function UserTable({
     <Table size="sm">
       <Thead>
         <Tr>
+          <Th>手机号（唯一标识）</Th>
+          <Th>微信UID</Th>
           <Th>电子邮箱</Th>
           <Th>姓名</Th>
           <Th>偏好</Th>
@@ -144,6 +151,10 @@ function UserTable({
       <Tbody>
         {users.map((u) => (
           <Tr key={u.id} cursor="pointer" _hover={{ bg: "white" }}>
+            <Td onClick={() => setUserBeingEdited(u)}>{u.phone}</Td>
+            <Td onClick={() => setUserBeingEdited(u)}>
+              {u.wechatUnionId && "已设置"}
+            </Td>
             <Td onClick={() => setUserBeingEdited(u)}>{u.email}</Td>
 
             <Td>
@@ -217,23 +228,29 @@ function UserEditor({
   user,
   onClose,
 }: {
-  user?: User; // When absent, create a new user.
+  user?: UserWithMergeInfo; // When absent, create a new user.
   onClose: () => void;
 }) {
   const u = user ?? {
+    phone: "",
     email: "",
+    wechatUnionId: "",
     name: "",
     roles: [],
   };
 
   const myRoles = useMyRoles();
+  const [phone, setPhone] = useState(u.phone || "");
   const [email, setEmail] = useState(u.email || "");
+  const [unionId, setUnionId] = useState(u.wechatUnionId || "");
   const [name, setName] = useState(u.name || "");
   const [roles, setRoles] = useState(u.roles);
   const [isSaving, setIsSaving] = useState(false);
-  const validName = isValidChineseName(name);
+
+  const validPhone = phone === "" || isValidPhoneNumber(phone);
   const validEmail =
     email === "" || z.string().email().safeParse(email).success;
+  const validName = isValidChineseName(name);
 
   const setRole = (e: any) => {
     if (e.target.checked) setRoles([...roles, e.target.value]);
@@ -246,9 +263,13 @@ function UserEditor({
       if (user) {
         await trpc.users.update.mutate({
           ...user,
-          email: email || null, // null if empty
           name,
           roles,
+
+          // Set to null if empty
+          email: email || null,
+          phone: phone || null,
+          wechatUnionId: unionId || null,
         });
       } else {
         await trpc.users.create.mutate({ name, email, roles });
@@ -273,6 +294,26 @@ function UserEditor({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
+            <FormControl isRequired isInvalid={!validName}>
+              <FormLabel>姓名</FormLabel>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isInvalid={!validPhone}>
+              <FormLabel>
+                <Link href="/s/why-phone" target="_blank">
+                  手机号（唯一标识用户）
+                </Link>
+              </FormLabel>
+              <Input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              <FormErrorMessage>需要填写有效手机号。</FormErrorMessage>
+            </FormControl>
+
             <FormControl isInvalid={!validEmail}>
               <FormLabel>Email</FormLabel>
               <Input
@@ -282,10 +323,13 @@ function UserEditor({
               />
               <FormErrorMessage>需要填写有效Email地址。</FormErrorMessage>
             </FormControl>
-            <FormControl isRequired isInvalid={!validName}>
-              <FormLabel>姓名</FormLabel>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-              <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
+
+            <FormControl>
+              <FormLabel>微信UnionID</FormLabel>
+              <Input
+                value={unionId}
+                onChange={(e) => setUnionId(e.target.value)}
+              />
             </FormControl>
 
             {isPermitted(myRoles, "UserManager") && (

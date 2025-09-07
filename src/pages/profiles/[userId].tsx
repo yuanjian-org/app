@@ -243,20 +243,6 @@ function Basic({
         />
       </FormControl>
 
-      <FormControl>
-        <FormLabel>微信</FormLabel>
-        <Input
-          bg="white"
-          value={user.wechat ?? ""}
-          onChange={(e) =>
-            setUser({
-              ...user,
-              wechat: e.target.value,
-            })
-          }
-        />
-      </FormControl>
-
       <FormControl display="flex" gap={componentSpacing}>
         <FormLabel>性别</FormLabel>
         <RadioGroup
