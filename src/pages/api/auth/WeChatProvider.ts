@@ -1,10 +1,11 @@
 /**
  * See docs/WeChat.md for details.
  */
-import db from "../../../api/database/db";
 import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
-import { newFakeEmail } from "../../../shared/fakeEmail";
 
+/**
+ * See docs/WeChat.md for unionid vs openid
+ */
 export interface WeChatProfile {
   openid: string;
   nickname: string;
@@ -85,28 +86,15 @@ export default function WeChatProvider(
       },
     },
 
-    async profile(profile) {
-      // Create an unbound email if the user doesn't exist.
-      const user = await db.User.findOne({
-        where: { wechatUnionId: profile.unionid },
-        attributes: ["email"],
-      });
-      const email = user?.email ?? newFakeEmail();
-
+    profile(profile) {
       return {
-        // next-auth saves this id to the `accounts` table.
+        // next-auth saves it to the `provider_account_id` column of the
+        // `accounts` table.
         id: profile.unionid,
 
-        // see docs/WeChat.md for unionid vs openid
+        // Used to create a user if the user doesn't exist. See
+        // sequelize-adapter's createUser method.
         wechatUnionId: profile.unionid,
-
-        name: profile.nickname,
-
-        // next-auth uses email to identify the account.
-        email,
-
-        // We don't need the image for now
-        // image: profile.headimgurl,
       };
     },
 

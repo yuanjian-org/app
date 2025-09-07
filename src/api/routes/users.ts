@@ -42,7 +42,6 @@ import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
 import { getUser2MentorshipCount } from "./mentorships";
-import { fakeEmailDomain } from "../../shared/fakeEmail";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
@@ -196,12 +195,7 @@ const list = procedure
               [Op.or]: [
                 { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
                 { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-                {
-                  [Op.and]: [
-                    { email: { [Op.notLike]: `%${fakeEmailDomain}` } },
-                    { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-                  ],
-                },
+                { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
               ],
             }),
       },
@@ -926,8 +920,11 @@ export default router({
   setPointOfContactAndNote,
 });
 
-function validateUserInput(email: string, url: string | null | undefined) {
-  if (!z.string().email().safeParse(email).success) {
+function validateUserInput(
+  email: string | null,
+  url: string | null | undefined,
+) {
+  if (email !== null && !z.string().email().safeParse(email).success) {
     throw generalBadRequestError("Email地址无效。");
   }
 

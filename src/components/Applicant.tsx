@@ -118,7 +118,7 @@ function LoadedApplicant({
         redacted={isMentee}
         copyable={!isMentee || imPrivileged}
         name="邮箱"
-        value={user.email}
+        value={user.email || "（未提供邮箱）"}
       />
 
       {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(

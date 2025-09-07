@@ -227,12 +227,13 @@ function UserEditor({
   };
 
   const myRoles = useMyRoles();
-  const [email, setEmail] = useState(u.email);
+  const [email, setEmail] = useState(u.email || "");
   const [name, setName] = useState(u.name || "");
   const [roles, setRoles] = useState(u.roles);
   const [isSaving, setIsSaving] = useState(false);
   const validName = isValidChineseName(name);
-  const validEmail = z.string().email().safeParse(email).success;
+  const validEmail =
+    email === "" || z.string().email().safeParse(email).success;
 
   const setRole = (e: any) => {
     if (e.target.checked) setRoles([...roles, e.target.value]);
@@ -245,7 +246,7 @@ function UserEditor({
       if (user) {
         await trpc.users.update.mutate({
           ...user,
-          email,
+          email: email || null, // null if empty
           name,
           roles,
         });
@@ -272,7 +273,7 @@ function UserEditor({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
-            <FormControl isRequired isInvalid={!validEmail}>
+            <FormControl isInvalid={!validEmail}>
               <FormLabel>Email</FormLabel>
               <Input
                 type="email"

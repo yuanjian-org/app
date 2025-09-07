@@ -57,9 +57,8 @@ class User extends Model {
   phone: string | null;
 
   @Unique
-  @AllowNull(false)
   @Column(STRING)
-  email: string;
+  email: string | null;
 
   // Used by WeChat auth. See WeChatProvider.ts and docs/WeChat.md.
   @Unique
@@ -133,10 +132,6 @@ class User extends Model {
   // Managed by next-auth
   @Column(DATE)
   emailVerified: Date | null;
-
-  // Managed by next-auth
-  @Column(STRING)
-  image: string | null;
 
   // Password hash for email/password login, nullable for users who use other
   // providers.

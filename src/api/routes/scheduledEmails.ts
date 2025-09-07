@@ -105,6 +105,10 @@ async function sendTaskEmail(
     transaction,
   });
   if (!assignee) throw Error(`Assignee not found: ${assigneeId}`);
+  if (!assignee.email) {
+    console.log(`Task assignee ${assigneeId} has no email, skipping email`);
+    return;
+  }
 
   const name = formatUserName(assignee.name, "friendly");
   const htmls = await Promise.all(
@@ -163,6 +167,10 @@ async function sendKudosEmail(
     transaction,
   });
   if (!receiver) throw Error(`User not found: ${receiverId}`);
+  if (!receiver.email) {
+    console.log(`Kudos receiver ${receiverId} has no email, skipping email`);
+    return;
+  }
 
   const delta = await db.Kudos.findAll({
     where: {
@@ -287,6 +295,11 @@ async function sendChatEmail(
 
   await Promise.all(
     Object.values(userId2receipients).map(async (u) => {
+      if (!u.email) {
+        console.log(`Chat receipient ${u.id} has no email, skipping email`);
+        return;
+      }
+
       // Skip messages authored by the receipient themselves.
       const filtered = delta.filter((m) => m.user.id !== u.id);
       if (filtered.length === 0) return;

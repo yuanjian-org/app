@@ -14,7 +14,6 @@ import {
 } from "../../shared/token";
 import { sms } from "../sms";
 import moment from "moment";
-import { isFakeEmail, newFakeEmail } from "../../shared/fakeEmail";
 
 const sendVerificationToken = procedure
   .use(authUser())
@@ -121,7 +120,7 @@ const set = procedure
           const wechatUnionId = me.wechatUnionId;
           await me.update(
             {
-              email: newFakeEmail(), // TODO: set to null
+              email: null,
               wechatUnionId: null,
               mergedTo: existing.id,
             },
@@ -129,7 +128,7 @@ const set = procedure
           );
           await existing.update(
             {
-              ...(email && !isFakeEmail(email) && { email }),
+              ...(email && { email }),
               ...(wechatUnionId && { wechatUnionId }),
             },
             { transaction },
