@@ -2,7 +2,6 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import crypto from "crypto";
 import sequelize from "api/database/sequelize";
-import { createUser } from "./users";
 import { authTokenMaxAgeInMins } from "pages/api/auth/[...nextauth]";
 import { isValidPassword, toChineseNumber } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
@@ -19,20 +18,25 @@ const requestReset = procedure
     }),
   )
   .mutation(async ({ input: { email } }) => {
-    const token = crypto.randomBytes(32).toString("base64url");
+    const resetToken = crypto.randomBytes(32).toString("base64url");
+    const fields = {
+      resetToken,
+      resetTokenExpiresAt: new Date(
+        Date.now() + 1000 * 60 * authTokenMaxAgeInMins,
+      ),
+    };
 
     await sequelize.transaction(async (transaction) => {
-      await createUser(
-        {
-          email,
-          resetToken: token,
-          resetTokenExpiresAt: new Date(
-            Date.now() + 1000 * 60 * authTokenMaxAgeInMins,
-          ),
-        },
+      const existing = await db.User.findOne({
+        where: { email },
+        attributes: ["id"],
         transaction,
-        "upsert",
-      );
+      });
+      if (existing) {
+        await existing.update(fields, { transaction });
+      } else {
+        await db.User.create({ email, ...fields }, { transaction });
+      }
 
       await sendEmail(
         [email],
@@ -40,8 +44,8 @@ const requestReset = procedure
         {
           // No need to use URL encoding because the code above guarantees URL
           // safety of both token and email.
-          url: `${getBaseUrl()}/auth/password?token=${token}&email=${email}`,
-          token,
+          url: `${getBaseUrl()}/auth/password?token=${resetToken}&email=${email}`,
+          resetToken,
           tokenMaxAgeInMins: toChineseNumber(authTokenMaxAgeInMins),
         },
         getBaseUrl(),

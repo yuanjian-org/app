@@ -23,10 +23,7 @@ import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
 import { diffInMinutes, formatUserName } from "../../shared/strings";
 import Group from "../database/models/Group";
-import {
-  getCalibrationAndCheckPermissionSafe,
-  syncCalibrationGroup,
-} from "./calibrations";
+import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
@@ -313,8 +310,6 @@ export async function createInterview(
     transaction,
   );
 
-  if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
-
   return i.id;
 }
 
@@ -461,7 +456,6 @@ export async function updateInterview(
     }
 
     // Update interviwee
-    const oldCalibrationId = i.calibrationId;
     await i.update({ intervieweeId, calibrationId }, { transaction });
     // Remove interviwers
     for (const f of i.feedbacks) {
@@ -497,11 +491,6 @@ export async function updateInterview(
       [intervieweeId, ...interviewerIds],
       transaction,
     );
-    // Update calibration. When the interviwer list is updated, the calibration group needs an update, too.
-    if (calibrationId) await syncCalibrationGroup(calibrationId, transaction);
-    if (oldCalibrationId && oldCalibrationId !== calibrationId) {
-      await syncCalibrationGroup(oldCalibrationId, transaction);
-    }
   });
 }
 

@@ -3,7 +3,6 @@ import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import { AutoTaskId } from "../../../shared/Task";
 import submitExam from "./exam";
-import { createUser } from "../../routes/users";
 
 describe("exam webhook", () => {
   let userId: string;
@@ -12,13 +11,13 @@ describe("exam webhook", () => {
   beforeEach(async () => {
     // Create a test user
     await sequelize.transaction(async (transaction) => {
-      await createUser(
+      await db.User.create(
         {
           email: "test2@example.com",
           name: "Test User",
           roles: [],
         },
-        transaction,
+        { transaction },
       );
     });
 

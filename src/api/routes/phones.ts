@@ -14,6 +14,7 @@ import {
 } from "../../shared/token";
 import { sms } from "../sms";
 import moment from "moment";
+import invariant from "shared/invariant";
 
 const sendVerificationToken = procedure
   .use(authUser())
@@ -115,13 +116,25 @@ const set = procedure
           //    disrupting the user experience during the initial setup, we
           //    periodically garbage collect merged users, forcing them to
           //    re-login at a much later time.
-          //
-          const email = me.email;
-          const wechatUnionId = me.wechatUnionId;
+
+          // Get user password. A user may have a password prior to setting up
+          // an account. Also get fresh email and wechatUnionId becaue why not.
+          const me2 = await db.User.findByPk(me.id, {
+            attributes: ["email", "wechatUnionId", "password"],
+            transaction,
+          });
+          invariant(me2, "User not found");
+          const email = me2.email;
+          const wechatUnionId = me2.wechatUnionId;
+          const password = me2.password;
+
           await me.update(
             {
               email: null,
               wechatUnionId: null,
+              password: null,
+              resetToken: null,
+              resetTokenExpiresAt: null,
               mergedTo: existing.id,
             },
             { transaction },
@@ -130,6 +143,7 @@ const set = procedure
             {
               ...(email && { email }),
               ...(wechatUnionId && { wechatUnionId }),
+              ...(password && { password }),
             },
             { transaction },
           );

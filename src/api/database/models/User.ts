@@ -56,6 +56,8 @@ class User extends Model {
   @Column(STRING)
   phone: string | null;
 
+  // Must be lower case. Otherwise next-auth may not recognize the user when
+  // the user uses emails in different case.
   @Unique
   @Column(STRING)
   email: string | null;

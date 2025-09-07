@@ -23,7 +23,6 @@ const inputMenteeApp = {
     field_169: 2009,
     field_120: "",
     field_158: "",
-    field_124: "",
     field_111: "",
     field_168: "省份 城市 小学名称\n省份 城市 初中名称\n省份 城市 高中名称",
     field_156: "简历文字",
@@ -104,6 +103,7 @@ const inputMenteeApp = {
     field_159: [
       "我保证填写信息的真实性，并已阅读及同意以上《隐私政策与条款》。",
     ],
+    field_124: "15010000000",
     x_field_1: "",
     color_mark: "",
     x_field_weixin_nickname: "",
@@ -230,6 +230,7 @@ const inputProxiedMenteeApp = {
     field_167: 2022,
     field_170: ["foo", "bar"],
     field_171: ["baz", "qux", "noz"],
+    field_175: "15010000001",
   },
 };
 
@@ -253,7 +254,7 @@ describe("submitApplication", () => {
 
   it("should submit mentee application", async () => {
     await submit(inputMenteeApp);
-    const u = await User.findOne({ where: { email: "test1@email.com" } });
+    const u = await User.findOne({ where: { phone: "+8615010000000" } });
     void expect(u).is.not.null;
     void expect(u?.pinyin).is.equal("dingyi");
     void expect(u?.profile?.性别).is.equal("女");
@@ -263,7 +264,7 @@ describe("submitApplication", () => {
 
   it("should submit proxied mentee application", async () => {
     await submit(inputProxiedMenteeApp);
-    const u = await User.findOne({ where: { email: "test2@email.com" } });
+    const u = await User.findOne({ where: { phone: "+8615010000001" } });
     void expect(u).is.not.null;
     void expect(u?.pinyin).is.equal("wangxiaohan");
     void expect(u?.profile?.性别).is.equal("男");
