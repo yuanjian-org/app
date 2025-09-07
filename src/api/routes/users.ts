@@ -116,7 +116,7 @@ const list = procedure
   .output(z.array(zUserWithMergeInfo))
   .query(async ({ ctx: { me }, input: filter }) => {
     if (
-      filter.includeMerged === true &&
+      (filter.includeMerged === true || filter.returnMergeInfo === true) &&
       !isPermitted(me.roles, "UserManager")
     ) {
       throw noPermissionError(
@@ -125,24 +125,16 @@ const list = procedure
       );
     }
 
-    if (
-      filter.returnMergeInfo === true &&
-      !isPermitted(me.roles, [
-        "UserManager",
-        "MentorshipManager",
-        "MentorshipOperator",
-      ])
-    ) {
-      throw noPermissionError("数据", "`returnMergeInfo` user filter");
-    }
-
     // Force type checking.
     const volunteer: Role = "Volunteer";
 
     return await db.User.findAll({
       order: [["pinyin", "ASC"]],
 
-      attributes: userAttributes,
+      attributes: [
+        ...userAttributes,
+        ...(filter.returnMergeInfo === true ? ["wechatUnionId"] : []),
+      ],
 
       include: [
         ...userInclude,
@@ -348,7 +340,13 @@ export function redactEmail(email: string): string {
  */
 const update = procedure
   .use(authUser())
-  .input(zUser)
+  .input(
+    zUser.merge(
+      z.object({
+        wechatUnionId: z.string().nullish(),
+      }),
+    ),
+  )
   .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
       // Validate user input
@@ -398,6 +396,8 @@ const update = procedure
             ? {
                 roles: input.roles,
                 email: input.email,
+                phone: input.phone,
+                wechatUnionId: input.wechatUnionId,
               }
             : {}),
         },

@@ -29,7 +29,7 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import trpc, { trpcNext } from "../trpc";
-import { MinUser, UserFilter, UserWithMergeInfo } from "shared/User";
+import User, { MinUser, UserFilter } from "shared/User";
 import {
   compareChinese,
   compareDate,
@@ -105,7 +105,6 @@ export default fullPage(() => {
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
-    returnMergeInfo: true,
   };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
@@ -160,7 +159,7 @@ function MenteeTable({
   refetch,
   showMatchState,
 }: {
-  users: UserWithMergeInfo[];
+  users: User[];
   refetch: () => void;
   showMatchState: boolean;
 }) {
@@ -368,7 +367,7 @@ function MenteeRow({
   setLastMeetingStartedAt,
   showMatchState,
 }: {
-  user: UserWithMergeInfo;
+  user: User;
   refetch: () => void;
   setMetadata: SetMetadata;
   setLastMentorMeetingDate: (userId: string, date: string) => void;

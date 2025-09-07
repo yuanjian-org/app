@@ -12,17 +12,18 @@ import {
 import { chinaPhonePrefix, parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
-import { trpcNext } from "trpc";
+import trpc, { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
 import { sectionSpacing } from "theme/metrics";
 import { LockIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMyId } from "useMe";
 import { canValidatePearlStudent } from "shared/pearlStudent";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
 import { SetPhoneModal } from "components/PostLoginModels";
+import { toast } from "react-toastify";
 
 export const accountPageTitle = "账号与安全";
 
@@ -35,15 +36,35 @@ export default function Page() {
     enabled: !!userId,
   });
 
+  const [wechat, setWechat] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [isSettingPhone, setIsSettingPhone] = useState(false);
   const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
     useState(false);
+
+  useEffect(() => {
+    setWechat(user?.wechat ?? "");
+  }, [user]);
 
   const SectionHeading = ({ children }: { children: React.ReactNode }) => (
     <Heading mt={sectionSpacing} size="md">
       {children}
     </Heading>
   );
+
+  const saveWechat = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      await trpc.users.update.mutate({
+        ...user,
+        wechat: wechat || null,
+      });
+      toast.success("保存成功。");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return !user ? (
     <Loader />
@@ -87,6 +108,20 @@ export default function Page() {
       <FormControl>
         <Button variant="brand" onClick={() => setIsSettingPhone(true)}>
           修改
+        </Button>
+      </FormControl>
+
+      <FormControl>
+        <FormLabel>微信号</FormLabel>
+        <Input
+          bg="white"
+          value={wechat}
+          onChange={(e) => setWechat(e.target.value)}
+        />
+      </FormControl>
+      <FormControl>
+        <Button variant="brand" onClick={saveWechat} isLoading={isSaving}>
+          保存
         </Button>
       </FormControl>
 

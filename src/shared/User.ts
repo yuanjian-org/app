@@ -36,6 +36,7 @@ export default User;
 // UserFilter.includeMerged is true.
 export const zUserWithMergeInfo = zUser.merge(
   z.object({
+    wechatUnionId: z.string().nullish(),
     mergedToUser: zMinUser.nullish(),
   }),
 );
