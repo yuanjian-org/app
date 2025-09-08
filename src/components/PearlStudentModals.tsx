@@ -12,6 +12,7 @@ import {
   VStack,
   Spacer,
   Link,
+  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
@@ -33,29 +34,23 @@ export function PearlStudentModals({
   userState: UserState | null;
   refetchUserState: () => void;
 }) {
-  const [state, setState] = useState<"Initial" | "Input" | "Declined">(
-    "Initial",
-  );
+  const [isInitial, setIsInitial] = useState<boolean>(true);
 
   const decline = async () => {
     await trpc.users.setUserState.mutate({
       ...userState,
       declinedPearlStudentModal: true,
     });
-    setState("Declined");
+    refetchUserState();
   };
 
-  return state === "Initial" ? (
-    <InitialModal confirm={() => setState("Input")} decline={decline} />
-  ) : state === "Input" ? (
+  return isInitial ? (
+    <InitialModal confirm={() => setIsInitial(false)} decline={decline} />
+  ) : (
     <PearlStudentValidationModal
       cancelLabel="返回"
-      cancel={() => setState("Initial")}
+      cancel={() => setIsInitial(true)}
     />
-  ) : state === "Declined" ? (
-    <DeclinedModal close={refetchUserState} />
-  ) : (
-    <></>
   );
 }
 
@@ -72,36 +67,20 @@ function InitialModal({
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
         <ModalHeader>珍珠生验证</ModalHeader>
-        <ModalBody>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</ModalBody>
+        <ModalBody>
+          <Text>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</Text>
+          <Text mt={componentSpacing}>
+            如果选择跳过，之后可以前往用户菜单的【
+            {accountPageTitle}
+            】页进行验证。
+          </Text>
+        </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <Button onClick={decline}>我不是珍珠生，或跳过此步</Button>
             <Spacer />
             <Button variant="brand" onClick={confirm}>
               我是珍珠生
-            </Button>
-          </HStack>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
-  );
-}
-
-function DeclinedModal({ close }: { close: () => void }) {
-  return (
-    <ModalWithBackdrop isOpen onClose={close}>
-      <ModalContent>
-        <ModalHeader>珍珠生验证</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          您日后可随时前往用户菜单的【
-          {accountPageTitle}
-          】页面进行珍珠生验证。
-        </ModalBody>
-        <ModalFooter>
-          <HStack spacing={componentSpacing}>
-            <Button variant="brand" onClick={close}>
-              知道了
             </Button>
           </HStack>
         </ModalFooter>

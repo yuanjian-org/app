@@ -258,21 +258,21 @@ function UserEditor({
   };
 
   const save = async () => {
+    const fields = {
+      name,
+      roles,
+      // Set to null if empty
+      email: email || null,
+      phone: phone || null,
+      wechatUnionId: unionId || null,
+    };
+
     setIsSaving(true);
     try {
       if (user) {
-        await trpc.users.update.mutate({
-          ...user,
-          name,
-          roles,
-
-          // Set to null if empty
-          email: email || null,
-          phone: phone || null,
-          wechatUnionId: unionId || null,
-        });
+        await trpc.users.update.mutate({ ...user, ...fields });
       } else {
-        await trpc.users.create.mutate({ name, email, roles });
+        await trpc.users.create.mutate(fields);
       }
       onClose();
     } finally {
@@ -309,6 +309,7 @@ function UserEditor({
               <Input
                 type="tel"
                 value={phone}
+                placeholder="填写 +86138... +1650... 等国际号码格式"
                 onChange={(e) => setPhone(e.target.value)}
               />
               <FormErrorMessage>需要填写有效手机号。</FormErrorMessage>
