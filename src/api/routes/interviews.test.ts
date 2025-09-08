@@ -2,7 +2,6 @@ import { expect } from "chai";
 import db from "../database/db";
 import { createInterview, updateInterview } from "./interviews";
 import { findGroups } from "./groups";
-import { createUser } from "./users";
 import invariant from "tiny-invariant";
 import sequelize from "../database/sequelize";
 
@@ -26,7 +25,7 @@ async function createUserIfNotFound(email: string) {
   const id = await findUserId(email);
   if (!id) {
     await sequelize.transaction(async (transaction) => {
-      await createUser({ email: email, name: "测试", roles: [] }, transaction);
+      await db.User.create({ email, name: "测试", roles: [] }, { transaction });
     });
   }
 }

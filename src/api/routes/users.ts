@@ -55,50 +55,23 @@ const create = procedure
       roles: zRoles,
     }),
   )
-  .mutation(async ({ ctx: { me }, input }) => {
+  .mutation(async ({ input }) => {
     await sequelize.transaction(async (transaction) => {
-      checkPermissionToManageRoles(me.roles, input.roles);
-      await createUser(
+      await db.User.create(
         {
-          name: input.name,
-          email: input.email,
           roles: input.roles,
+          ...checkAndComputeUserFields({
+            email: input.email,
+            name: input.name,
+            isVolunteer: isPermitted(input.roles, "Volunteer"),
+            oldUrl: null,
+            transaction,
+          }),
         },
-        transaction,
+        { transaction },
       );
     });
   });
-
-export async function createUser(
-  input: Record<string, any>,
-  transaction: Transaction,
-  mode: "create" | "upsert" = "create",
-): Promise<User> {
-  /**
-   * We don't check Chinese name validity when creating a user, because the user
-   * may be automatically created via WeChat sign-in or application form
-   * submission. We simply can't enforce Chinese names in these cases without
-   * breaking the flow.
-   */
-  validateUserInput(input.email, input.url);
-
-  const f = {
-    ...input,
-    ...{ email: input.email.toLowerCase() },
-    pinyin: toPinyin(input.name ?? ""),
-    ...(await checkAndPopulateUrl(
-      input.name,
-      input.roles,
-      null,
-      input.url,
-      transaction,
-    )),
-  };
-
-  return mode == "create"
-    ? await db.User.create(f, { transaction })
-    : (await db.User.upsert(f, { transaction }))[0];
-}
 
 /**
  * Returned users are ordered by Pinyin.
@@ -349,17 +322,6 @@ const update = procedure
   )
   .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      // Validate user input
-      validateUserInput(input.email, input.url);
-
-      const isUserManager = isPermitted(me.roles, "UserManager");
-      const isSelf = me.id === input.id;
-
-      // Non-UserManagers can only update their own profile.
-      if (!isUserManager && !isSelf) {
-        throw noPermissionError("用户", input.id);
-      }
-
       const user = await db.User.findByPk(input.id, {
         attributes: ["id", "roles", "url", "name"],
         transaction,
@@ -368,38 +330,48 @@ const update = procedure
         throw notFoundError("用户", input.id);
       }
 
+      const isUserManager = isPermitted(me.roles, "UserManager");
+      if (!isUserManager) {
+        // Non-UserManagers can only update their own profile.
+        if (me.id !== input.id) {
+          throw noPermissionError("用户", input.id);
+        }
+
+        const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
+        const rolesToRemove = user.roles.filter(
+          (r) => !input.roles.includes(r),
+        );
+        if ([...rolesToAdd, ...rolesToRemove].length) {
+          throw noPermissionError("用户", input.id);
+        }
+      }
+
       // Only check Chinese name when updating name. Allow invalid names created
       // during sign-in to be carried over. See createUser.
       if (user.name !== input.name && !isValidChineseName(input.name)) {
         throw generalBadRequestError("中文姓名无效。");
       }
 
-      const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
-      const rolesToRemove = user.roles.filter((r) => !input.roles.includes(r));
-      checkPermissionToManageRoles(me.roles, [...rolesToAdd, ...rolesToRemove]);
-
       await user.update(
         {
-          name: input.name,
           wechat: input.wechat,
-          pinyin: toPinyin(input.name ?? ""),
-          ...(await checkAndPopulateUrl(
-            input.name,
-            input.roles,
-            user.url,
-            input.url,
+
+          ...(await checkAndComputeUserFields({
+            email: input.email,
+            name: input.name,
+            isVolunteer: isPermitted(input.roles, "Volunteer"),
+            oldUrl: user.url,
+            url: input.url,
             transaction,
-          )),
+          })),
 
           // fields that only UserManagers can change
-          ...(isUserManager
-            ? {
-                roles: input.roles,
-                email: input.email,
-                phone: input.phone,
-                wechatUnionId: input.wechatUnionId,
-              }
-            : {}),
+          ...(isUserManager && {
+            roles: input.roles,
+            email: input.email,
+            phone: input.phone,
+            wechatUnionId: input.wechatUnionId,
+          }),
         },
         { transaction },
       );
@@ -920,83 +892,112 @@ export default router({
   setPointOfContactAndNote,
 });
 
-function validateUserInput(
-  email: string | null,
-  url: string | null | undefined,
-) {
-  if (email !== null && !z.string().email().safeParse(email).success) {
-    throw generalBadRequestError("Email地址无效。");
-  }
-
-  if (url !== null && url !== undefined && !isValidUserUrl(url)) {
-    throw generalBadRequestError("用户URL格式无效。只允许小写英文字母和数字。");
-  }
-}
-
 function isValidUserUrl(url: string) {
   return /^[a-z0-9]+$/.test(url);
 }
 
 /**
- * This function assumes all input has been validated (via validateUserInput())
+ * @param email Set to undefined to omit it in the output.
+ * @param name Set to undefined to omit it in the output.
+ * @param url Set to null or undefined to auto generate the url or inherit the
+ * old url if `oldUrl` is not null.
  */
-async function checkAndPopulateUrl(
-  newName: string | null | undefined,
-  newRoles: Role[] | undefined,
-  oldUrl: string | null,
-  newUrl: string | null | undefined,
-  transaction: Transaction,
-): Promise<{
+export async function checkAndComputeUserFields({
+  email,
+  name,
+  isVolunteer,
+  url,
+  oldUrl,
+  transaction,
+}: {
+  email?: string | null;
+  name?: string | null;
+  isVolunteer: boolean;
+  url?: string | null;
+  oldUrl: string | null;
+  transaction: Transaction;
+}): Promise<{
+  email?: string | null;
+  name?: string | null;
+  pinyin?: string | null;
   url?: string | null;
 }> {
-  const isVolunteer = newRoles && isPermitted(newRoles, "Volunteer");
+  /**
+   * We don't check Chinese name validity here, because the user
+   * may be automatically created via WeChat sign-in or application form
+   * submission. We simply can't enforce Chinese names in these cases without
+   * breaking the flow.
+   */
 
-  if (newUrl !== undefined && newUrl !== null) {
-    if (newUrl === oldUrl) {
-      // Nothing is changing
+  if (email && !z.string().email().safeParse(email).success) {
+    throw generalBadRequestError("Email地址无效。");
+  }
+
+  return {
+    ...(name !== undefined && {
+      name,
+      pinyin: name === null ? null : toPinyin(name),
+    }),
+    ...(email !== undefined && { email: email?.toLowerCase() ?? null }),
+    ...(await checkAndComputeUrl(name, isVolunteer, oldUrl, url, transaction)),
+  };
+
+  async function checkAndComputeUrl(
+    name: string | null | undefined,
+    isVolunteer: boolean,
+    oldUrl: string | null,
+    url: string | null | undefined,
+    transaction: Transaction,
+  ): Promise<{
+    url?: string | null;
+  }> {
+    if (url !== undefined && url !== null) {
+      if (!isValidUserUrl(url)) {
+        throw generalBadRequestError(
+          "用户URL格式无效。只允许小写英文字母和数字。",
+        );
+      }
+
+      if (url === oldUrl) {
+        // Nothing is changing
+        return {};
+      } else if (!isVolunteer) {
+        // Only volunteers are allowed to set urls
+        throw generalBadRequestError(
+          `非${RoleProfiles.Volunteer.displayName}` + "没有设置URL的权限。",
+        );
+      } else {
+        if (await db.User.count({ where: { url: url }, transaction })) {
+          throw generalBadRequestError("此用户URL已被注册。");
+        }
+        return { url: url };
+      }
+    } else if (oldUrl !== null) {
+      // Retain the old url if it's already set
       return {};
     } else if (!isVolunteer) {
-      // Only volunteers are allowed to set urls
-      throw generalBadRequestError(
-        `非${RoleProfiles.Volunteer.displayName}` + "没有设置URL的权限。",
-      );
+      // Only populate urls for volutneers
+      return {};
     } else {
-      if (await db.User.count({ where: { url: newUrl }, transaction })) {
-        throw generalBadRequestError("此用户URL已被注册。");
-      }
-      return { url: newUrl };
-    }
-  } else if (oldUrl !== null) {
-    // Retain the old url if it's already set
-    return {};
-  } else if (!isVolunteer) {
-    // Only populate urls for volutneers
-    return {};
-  } else {
-    // Auto generate an url
-    const base = newName
-      ? toPinyin(formatUserName(newName, "friendly"))
-      : "anonymous";
+      // Auto generate an url
+      const base = name
+        ? toPinyin(formatUserName(name, "friendly"))
+        : "anonymous";
 
-    let suffix = 1;
-    const getNextUrl = () => {
-      const ret = base + (suffix == 1 ? "" : `${suffix}`);
-      suffix++;
-      return ret;
-    };
+      let suffix = 1;
+      const getNextUrl = () => {
+        const ret = base + (suffix == 1 ? "" : `${suffix}`);
+        suffix++;
+        return ret;
+      };
 
-    while (true) {
-      const url = getNextUrl();
-      if ((await db.User.count({ where: { url }, transaction })) === 0) {
-        return { url };
+      while (true) {
+        const url = getNextUrl();
+        if ((await db.User.count({ where: { url }, transaction })) === 0) {
+          return { url };
+        }
       }
     }
-  }
-}
-
-function checkPermissionToManageRoles(myRoles: Role[], subjectRoles: Role[]) {
-  if (subjectRoles.length && !isPermitted(myRoles, "UserManager")) {
-    throw noPermissionError("用户");
   }
 }
 

@@ -3,7 +3,6 @@ import sequelize from "../src/api/database/sequelize";
 import { createGroup, findGroups } from "../src/api/routes/groups";
 import invariant from "tiny-invariant";
 import moment from "moment";
-import { createUser } from "../src/api/routes/users";
 import demoData, { DemoUser } from "./demoData";
 import { createMentorship } from "../src/api/routes/mentorships";
 import { DateColumn } from "../src/shared/DateColumn";
@@ -20,6 +19,8 @@ import {
 } from "../src/api/routes/interviews";
 import { createAutoTask } from "../src/api/routes/tasks";
 import { createMentorBooking } from "../src/api/routes/mentorBookings";
+import { checkAndComputeUserFields } from "../src/api/routes/users";
+import { isPermitted } from "../src/shared/Role";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -92,7 +93,15 @@ async function generateUsersAndAssingIds(transaction: Transaction) {
       u.id = existing.id;
     } else {
       console.log(`Creating user "${u.name}"...`);
-      const created = await createUser(u, transaction);
+      const created = await db.User.create({
+        ...u,
+        ...(await checkAndComputeUserFields({
+          ...u,
+          isVolunteer: isPermitted(u.roles ?? [], "Volunteer"),
+          oldUrl: null,
+          transaction,
+        })),
+      }, { transaction });
       u.id = created.id;
     }
   }
@@ -222,7 +231,6 @@ async function findGroupsByType(
     return await findGroups(userIds, 'exclusive', undefined, {
       interviewId: { [Op.ne]: null },
       partnershipId: { [Op.is]: null },
-      calibrationId: { [Op.is]: null }
     });
   }
 
@@ -230,7 +238,6 @@ async function findGroupsByType(
     return await findGroups(userIds, 'exclusive', undefined, {
       interviewId: { [Op.is]: null },
       partnershipId: { [Op.ne]: null },
-      calibrationId: { [Op.is]: null }
     });
   }
 
@@ -238,7 +245,6 @@ async function findGroupsByType(
   return await findGroups(userIds, 'exclusive', undefined, {
     interviewId: { [Op.is]: null },
     partnershipId: { [Op.is]: null },
-    calibrationId: { [Op.is]: null }
   });
 }
 

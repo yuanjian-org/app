@@ -15,7 +15,6 @@ import {
   interviewInclude,
   interviewAttributes,
   calibrationInclude,
-  groupAttributes,
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import invariant from "tiny-invariant";
@@ -243,34 +242,4 @@ export async function getCalibrationAndCheckPermissionSafe(
   if (!participant) return null;
 
   return c;
-}
-
-export async function syncCalibrationGroup(
-  calibrationId: string,
-  transaction: Transaction,
-) {
-  const c = await db.Calibration.findByPk(calibrationId, {
-    include: [
-      {
-        model: db.Group,
-        attributes: groupAttributes,
-      },
-      {
-        model: db.Interview,
-        attributes: interviewAttributes,
-        include: interviewInclude,
-      },
-    ],
-    transaction,
-  });
-
-  if (!c) throw notFoundError("面试讨论", calibrationId);
-  invariant(c.interviews.every((i) => i.type == c.type));
-
-  const userIds: string[] = [];
-  for (const i of c.interviews) {
-    for (const f of i.feedbacks) {
-      if (!userIds.includes(f.interviewer.id)) userIds.push(f.interviewer.id);
-    }
-  }
 }

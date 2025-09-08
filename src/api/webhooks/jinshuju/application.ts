@@ -1,16 +1,17 @@
-import { generalBadRequestError } from "../../errors";
-import { createUser } from "../../routes/users";
 import {
   menteeApplicationFields,
   menteeSourceField,
   volunteerApplicationFields,
-  volutneerNationalityField,
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes,
 } from "../../../shared/applicationFields";
-import { UserProfile } from "shared/UserProfile";
+import { UserProfile } from "../../../shared/UserProfile";
 import sequelize from "../../database/sequelize";
 import db from "../../database/db";
+import { checkAndComputeUserFields } from "../../routes/users";
+import Role, { isPermitted } from "../../../shared/Role";
+import { generalBadRequestError } from "../../errors";
+import { chinaPhonePrefix, isValidPhoneNumber } from "../../../shared/strings";
 
 /**
  * The Webhook for three 金数据 forms:
@@ -30,20 +31,40 @@ export async function submitMenteeApp(
     }
   }
 
-  if (formId == "Z82u8w") {
-    application[menteeSourceField] = "馒头工坊";
-  }
-
   /**
    * All three forms share the same field names for the following fields.
    * Update code if/when they diverge.
    */
   const name = entry.field_104;
-  const email = entry.field_113;
   const wechat = entry.field_106;
   const sex = entry.field_57;
 
-  await save("Mentee", email, name, wechat, sex, undefined, application);
+  let phone: string | undefined;
+  if (formId == "Z82u8w") {
+    // 馒头工坊
+    application[menteeSourceField] = "馒头工坊";
+    phone = entry.field_173;
+  } else if (formId == "S74k0V") {
+    // Proxied mentee application
+    phone = entry.field_175;
+  } else if (formId == "FBTWTe") {
+    // Mentee application
+    phone = entry.field_124;
+  } else {
+    throw generalBadRequestError(`Unsupported form id: ${formId}`);
+  }
+  phone = phone ? chinaPhonePrefix + phone : phone;
+
+  await save(
+    "Mentee",
+    phone,
+    undefined,
+    name,
+    wechat,
+    sex,
+    undefined,
+    application,
+  );
 }
 
 /**
@@ -64,19 +85,15 @@ export async function submitVolunteerApp(entry: Record<string, any>) {
       volunteerApplyingforMentorFieldYes;
   }
 
-  // For Chinese citizens, the field contains national ID number which we should
-  // redact: "中国：110102...."
-  application[volutneerNationalityField] = entry.field_22.startsWith("中国")
-    ? "中国"
-    : entry.field_22;
-
   const name = entry.field_4;
   const email = entry.field_8;
   const wechat = entry.field_9;
   const location = entry.field_23;
+  const phone = entry.field_26;
 
   await save(
     "Volunteer",
+    phone,
     email,
     name,
     wechat,
@@ -86,49 +103,88 @@ export async function submitVolunteerApp(entry: Record<string, any>) {
   );
 }
 
+/**
+ * Phone number and name are required.
+ */
 async function save(
   type: "Mentee" | "Volunteer",
-  email: string,
-  name: string,
-  wechat: string,
+  phone: string | undefined,
+  email: string | undefined,
+  name: string | undefined,
+  wechat: string | undefined,
   sex: string | undefined,
   location: string | undefined,
   application: Record<string, any>,
 ) {
+  if (!phone) {
+    throw generalBadRequestError("Phone number is required.");
+  }
+  if (!isValidPhoneNumber(phone)) {
+    throw generalBadRequestError("Invalid phone number.");
+  }
+  if (!name) {
+    throw generalBadRequestError("Name is required.");
+  }
+
   const column =
     type == "Mentee" ? "menteeApplication" : "volunteerApplication";
 
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findOne({
-      where: { email },
-      attributes: ["id", column, "profile"],
+      where: { phone },
+      attributes: ["id", "roles", "profile", "url"],
       transaction,
     });
 
-    if (user) {
-      // Do not allow overwriting existing application
-      if (user[column]) {
-        throw generalBadRequestError(`申请表已存在。用户 ${user.id}`);
-      }
+    // Force type check
+    const sexKey: keyof UserProfile = "性别";
+    const locationKey: keyof UserProfile = "现居住地";
+    const profile = {
+      ...(sex && { [sexKey]: sex }),
+      ...(location && { [locationKey]: location }),
+    };
+    const addtionalRoles: Role[] = type == "Mentee" ? ["Mentee"] : [];
 
-      await user.update({ [column]: application }, { transaction });
-    } else {
-      // Force type check
-      const sexKey: keyof UserProfile = "性别";
-      const locationKey: keyof UserProfile = "现居住地";
-      await createUser(
+    if (user) {
+      // Overwrite existing application
+      await user.update(
         {
-          name,
-          email,
+          phone,
           wechat,
+          roles: user.roles
+            .filter((role) => !addtionalRoles.includes(role))
+            .concat(addtionalRoles),
+          profile: { ...user.profile, ...profile },
           [column]: application,
-          ...(type == "Mentee" ? { roles: ["Mentee"] } : {}),
-          profile: {
-            ...(sex ? { [sexKey]: sex } : {}),
-            ...(location ? { [locationKey]: location } : {}),
-          },
+
+          ...(await checkAndComputeUserFields({
+            email,
+            name,
+            isVolunteer: isPermitted(user.roles, "Volunteer"),
+            oldUrl: user.url,
+            transaction,
+          })),
         },
-        transaction,
+        { transaction },
+      );
+    } else {
+      await db.User.create(
+        {
+          phone,
+          wechat,
+          roles: addtionalRoles,
+          profile,
+          [column]: application,
+
+          ...(await checkAndComputeUserFields({
+            email,
+            name,
+            isVolunteer: false,
+            oldUrl: null,
+            transaction,
+          })),
+        },
+        { transaction },
       );
     }
   });

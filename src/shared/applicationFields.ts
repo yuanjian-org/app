@@ -129,7 +129,6 @@ export const menteeApplicationFields: ApplicationField[] = [
 
 export const volunteerApplyingforMentorField = "申请导师";
 export const volunteerApplyingforMentorFieldYes = "是";
-export const volutneerNationalityField = "国籍";
 
 /**
  * Field order dictates the order the fields are displayed.
@@ -144,5 +143,5 @@ export const volunteerApplicationFields: ApplicationField[] = [
   { jsjField: "field_16", name: "推荐人或了解渠道" },
   { jsjField: "field_15", name: "希望收获" },
   { jsjField: "field_17", name: "反馈或问题" },
-  { name: volutneerNationalityField, showForEdits: true },
+  { jsjField: "field_22", name: "国籍", showForEdits: true },
 ];
