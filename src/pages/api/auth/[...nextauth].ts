@@ -52,7 +52,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
     providers: [
       {
-        id: "credentials",
+        id: "email-password",
         name: "密码登录",
         type: "credentials",
 
@@ -74,7 +74,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
       // @ts-expect-error
       {
-        id: "sendgrid",
+        id: "email-token",
         type: "email",
         maxAge: authTokenMaxAgeInMins * 60, // For verification token expiry
         sendVerificationRequest,
