@@ -51,22 +51,30 @@ const create = procedure
   .input(
     z.object({
       name: z.string(),
-      email: z.string(),
+      phone: z.string().nullable(),
+      email: z.string().nullable(),
+      wechatUnionId: z.string().nullable(),
       roles: zRoles,
     }),
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input: { name, phone, email, wechatUnionId, roles } }) => {
+    if (!phone && !email) {
+      throw generalBadRequestError("手机号或邮箱是必填的。");
+    }
+
     await sequelize.transaction(async (transaction) => {
       await db.User.create(
         {
-          roles: input.roles,
-          ...checkAndComputeUserFields({
-            email: input.email,
-            name: input.name,
-            isVolunteer: isPermitted(input.roles, "Volunteer"),
+          roles,
+          phone,
+          wechatUnionId,
+          ...(await checkAndComputeUserFields({
+            email,
+            name,
+            isVolunteer: isPermitted(roles, "Volunteer"),
             oldUrl: null,
             transaction,
-          }),
+          })),
         },
         { transaction },
       );
@@ -926,7 +934,7 @@ export async function checkAndComputeUserFields({
    * We don't check Chinese name validity here, because the user
    * may be automatically created via WeChat sign-in or application form
    * submission. We simply can't enforce Chinese names in these cases without
-   * breaking the flow.
+   * breaking the workflow.
    */
 
   if (email && !z.string().email().safeParse(email).success) {
