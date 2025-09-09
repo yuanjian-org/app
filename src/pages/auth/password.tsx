@@ -46,6 +46,7 @@ export default function Page() {
   };
 
   return (
+    // See AuthPageContainer.tsx for the parent container
     <>
       <PageBreadcrumb
         current="设置密码"

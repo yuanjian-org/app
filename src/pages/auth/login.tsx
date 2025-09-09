@@ -83,6 +83,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
 
   return (
+    // See AuthPageContainer.tsx for the parent container
     <>
       <PageBreadcrumb
         current="登录"
@@ -92,7 +93,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       <Tabs
         isFitted
         isLazy
-        size="sm"
+        // size="sm"
         // If the user is on mobile and not using WeChat browser, show the
         // verification code tab as default, because the only WeChat option on
         // non-WeChat mobile browser is QR code which is often impossible to scan.
@@ -100,8 +101,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       >
         <TabList>
           <Tab>微信</Tab>
-          <Tab>验证码</Tab>
-          <Tab>密码</Tab>
+          <Tab>邮箱</Tab>
         </TabList>
 
         <TabPanels>
@@ -116,19 +116,14 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
           </TabPanel>
 
           <TabPanel>
-            <VerificationCodePanel />
-          </TabPanel>
-
-          <TabPanel>
-            <PasswordPanel />
+            <EmailPanel />
           </TabPanel>
         </TabPanels>
       </Tabs>
 
       <HStack justify="center" spacing={2}>
-        <RiCustomerServiceFill color="gray" />
         <SmallGrayText>
-          若登录有问题，
+          若登录遇到问题，
           <Link
             href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
             target="_blank"
@@ -136,8 +131,29 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
             联系客服
           </Link>
         </SmallGrayText>
+        <RiCustomerServiceFill color="gray" />
       </HStack>
     </>
+  );
+}
+
+function EmailPanel() {
+  return (
+    <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
+      <TabList mt={componentSpacing}>
+        <Tab>验证码</Tab>
+        <Tab>密码</Tab>
+      </TabList>
+
+      <TabPanels>
+        <TabPanel>
+          <EmailTokenPanel />
+        </TabPanel>
+        <TabPanel>
+          <EmailPasswordPanel />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   );
 }
 
@@ -180,7 +196,7 @@ function isValidEmail(email: string) {
   return z.string().email().safeParse(email).success;
 }
 
-function PasswordPanel() {
+function EmailPasswordPanel() {
   const callbackUrl = useCallbackUrl();
 
   const [email, setEmail] = useState<string>("");
@@ -194,7 +210,7 @@ function PasswordPanel() {
   const submit = async () => {
     setIsLoading(true);
     try {
-      const res = await signIn("credentials", {
+      const res = await signIn("email-password", {
         email,
         password,
         callbackUrl,
@@ -255,7 +271,7 @@ function PasswordPanel() {
   );
 }
 
-function VerificationCodePanel() {
+function EmailTokenPanel() {
   const router = useRouter();
   const callbackUrl = useCallbackUrl();
 
@@ -265,7 +281,7 @@ function VerificationCodePanel() {
   const submit = async () => {
     setIsLoading(true);
     try {
-      const res = await signIn("sendgrid", {
+      const res = await signIn("email-token", {
         email,
         callbackUrl,
         // Display errors on the same page
@@ -395,7 +411,6 @@ export function EmailInput({
       <Input
         type="email"
         name="email"
-        minWidth={80}
         placeholder={"邮箱"}
         isDisabled={isDisabled}
         autoFocus={autoFocus}
@@ -435,7 +450,6 @@ export function PasswordInput({
       <Input
         type="password"
         name="password"
-        minWidth={80}
         placeholder={placeholder ?? "密码"}
         autoFocus={autoFocus}
         value={password}

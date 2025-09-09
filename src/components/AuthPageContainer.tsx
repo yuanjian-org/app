@@ -13,7 +13,7 @@ export default function AuthPageContainer({ children }: PropsWithChildren) {
       <VStack
         align="left"
         spacing={componentSpacing}
-        width={350}
+        width={382}
         marginTop={40}
       >
         <NextLink href={staticUrlPrefix}>

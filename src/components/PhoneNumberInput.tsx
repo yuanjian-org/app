@@ -116,7 +116,7 @@ export default function PhoneNumberInput({
           ))}
         </MenuList>
       </Menu>
-      <Input value={number} onChange={changeNumber} type="tel" />
+      <Input autoFocus value={number} onChange={changeNumber} type="tel" />
     </HStack>
   );
 }

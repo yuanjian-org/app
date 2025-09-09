@@ -128,7 +128,6 @@ export function SetPhoneModal({
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
             <FormControl>
-              <FormLabel>请填写手机号</FormLabel>
               <PhoneNumberInput value={phone} onChange={setPhone} />
             </FormControl>
             <FormControl>
