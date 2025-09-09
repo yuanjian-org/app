@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { useMyId } from "useMe";
 import { canValidatePearlStudent } from "shared/pearlStudent";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
-import { SetPhoneModal } from "components/PostLoginModels";
+import { SetPhoneNumberModal } from "components/PostLoginModels";
 import { toast } from "react-toastify";
 
 export const accountPageTitle = "账号与安全";
@@ -126,7 +126,7 @@ export default function Page() {
       </FormControl>
 
       {isSettingPhone && (
-        <SetPhoneModal
+        <SetPhoneNumberModal
           cancelLabel="取消"
           cancel={() => setIsSettingPhone(false)}
         />

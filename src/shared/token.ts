@@ -13,6 +13,7 @@ export async function generateShortLivedToken() {
   return (await randomNumber(100000, 999999)).toString();
 }
 
+export const shortLivedTokenLength = 6;
 export const longLivedTokenLength = 9;
 
 /**

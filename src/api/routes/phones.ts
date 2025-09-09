@@ -14,7 +14,8 @@ import {
 } from "../../shared/token";
 import { sms } from "../sms";
 import moment from "moment";
-import invariant from "shared/invariant";
+import invariant from "../../shared/invariant";
+import { checkAndDeletePhoneToken } from "../phoneAndEmailToken";
 
 const sendToken = procedure
   .use(ip())
@@ -69,20 +70,7 @@ const set = procedure
   )
   .mutation(async ({ input: { phone, token }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      const dbToken = await db.PhoneAndEmailToken.findOne({
-        where: { phone, token },
-        attributes: ["id", "updatedAt"],
-        transaction,
-      });
-
-      if (!dbToken) {
-        throw generalBadRequestError("手机验证码错误。");
-      } else if (
-        moment().diff(dbToken.updatedAt, "minutes") > phoneTokenMaxAgeInMins
-      ) {
-        throw generalBadRequestError("手机验证码已过期，请重新验证。");
-      }
-      await dbToken.destroy({ transaction });
+      await checkAndDeletePhoneToken(phone, token, transaction);
 
       const existing = await db.User.findOne({
         attributes: ["id"],

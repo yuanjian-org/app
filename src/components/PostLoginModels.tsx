@@ -11,8 +11,6 @@ import {
   VStack,
   ModalFooter,
   Spacer,
-  InputGroup,
-  InputRightElement,
   HStack,
   Link,
 } from "@chakra-ui/react";
@@ -20,18 +18,19 @@ import { useState } from "react";
 import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { isValidPhoneNumber, isValidChineseName } from "shared/strings";
+import { isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
 import { canValidatePearlStudent } from "shared/pearlStudent";
-import { phoneTokenMinSendIntervalInSeconds } from "shared/token";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import PhoneNumberInput from "./PhoneNumberInput";
 import { staticUrlPrefix } from "static";
-import { toast } from "react-toastify";
+import PhoneVerificationControls, {
+  PhoneVerificationControlsState,
+} from "./PhoneVerificationControls";
+import invariant from "shared/invariant";
 
 // prettier-ignore
 export default function PostLoginModels() {
@@ -45,7 +44,7 @@ export default function PostLoginModels() {
   // be merged with another user. Information required later (name, cell,
   // roles, etc) may have been already filled in the merged account.
   ) : me.phone === null ? (
-    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
+    <SetPhoneNumberModal cancel={signOut} cancelLabel="退出登录" />
 
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
@@ -64,7 +63,7 @@ export default function PostLoginModels() {
   );
 }
 
-export function SetPhoneModal({
+export function SetPhoneNumberModal({
   cancel,
   cancelLabel,
 }: {
@@ -72,38 +71,14 @@ export function SetPhoneModal({
   cancelLabel: string;
 }) {
   const { update } = useSession();
-  const [phone, setPhone] = useState("");
-  const [token, setToken] = useState("");
-  const [countdown, setCountdown] = useState(0);
+  const [state, setState] = useState<PhoneVerificationControlsState>();
   const [loading, setLoading] = useState(false);
 
-  const sendToken = async () => {
-    setLoading(true);
-    try {
-      await trpc.phones.sendToken.mutate({ phone });
-      toast.success("验证码已发送，请注意查收。");
-
-      setCountdown(phoneTokenMinSendIntervalInSeconds);
-
-      // Start countdown timer
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const submit = async () => {
+    invariant(state?.isValid, "state is invalid");
     setLoading(true);
     try {
-      await trpc.phones.set.mutate({ phone, token });
+      await trpc.phones.set.mutate({ phone: state.phone, token: state.token });
 
       // As soon as the session is updated, all affected page components should
       // be refreshed including the caller to this modal, so we don't need to
@@ -113,12 +88,6 @@ export function SetPhoneModal({
       setLoading(false);
     }
   };
-
-  const isValidPhone = isValidPhoneNumber(phone);
-  const isValidInput = isValidPhone && token;
-
-  console.log("phone", phone);
-  console.log("isValidPhone", isValidPhone);
 
   const buttonWidth = "120px";
 
@@ -130,29 +99,10 @@ export function SetPhoneModal({
         <ModalHeader>手机号验证</ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
-            <FormControl>
-              <PhoneNumberInput value={phone} onChange={setPhone} />
-            </FormControl>
-            <FormControl>
-              <InputGroup>
-                <Input
-                  isRequired={true}
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  isDisabled={!isValidPhone}
-                />
-                <InputRightElement w={buttonWidth}>
-                  <Button
-                    w={buttonWidth}
-                    isDisabled={!isValidPhone || countdown > 0}
-                    onClick={sendToken}
-                    isLoading={loading}
-                  >
-                    {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </FormControl>
+            <PhoneVerificationControls
+              onStateChange={setState}
+              buttonWidth={buttonWidth}
+            />
 
             <HStack spacing={2} w="full">
               <SmallGrayText>
@@ -183,7 +133,7 @@ export function SetPhoneModal({
             <Button
               variant="brand"
               w={buttonWidth}
-              isDisabled={!isValidInput}
+              isDisabled={!state?.isValid}
               onClick={submit}
               isLoading={loading}
             >
