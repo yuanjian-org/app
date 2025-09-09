@@ -2,7 +2,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import db from "../database/db";
 import { Op } from "sequelize";
-import { authUser } from "../auth";
+import { ip, authUser } from "../auth";
 import { toChineseNumber } from "../../shared/strings";
 import { generalBadRequestError } from "../errors";
 import sequelize from "../database/sequelize";
@@ -16,28 +16,31 @@ import { sms } from "../sms";
 import moment from "moment";
 import invariant from "shared/invariant";
 
-const sendVerificationToken = procedure
-  .use(authUser())
+const sendToken = procedure
+  .use(ip())
   .input(z.object({ phone: z.string() }))
-  .mutation(async ({ input: { phone }, ctx: { me } }) => {
+  .mutation(async ({ input: { phone }, ctx: { ip } }) => {
     await sequelize.transaction(async (transaction) => {
-      const existing = await db.PhoneVerificationToken.findByPk(me.id, {
+      /**
+       * Rate limit. Note that once the user successfully consume a token, the
+       * rate limit will be reset.
+       */
+      const last = await db.PhoneAndEmailToken.findOne({
+        where: { ip, phone: { [Op.ne]: null } },
         attributes: ["updatedAt"],
+        order: [["updatedAt", "DESC"]],
         transaction,
       });
       if (
-        existing &&
-        moment().diff(existing.updatedAt, "seconds") <
+        last &&
+        moment().diff(last.updatedAt, "seconds") <
           phoneTokenMinSendIntervalInSeconds
       ) {
         throw generalBadRequestError("手机验证码发送过于频繁。");
       }
 
       const token = await generateShortLivedToken();
-      await db.PhoneVerificationToken.upsert(
-        { userId: me.id, phone, token },
-        { transaction },
-      );
+      await db.PhoneAndEmailToken.upsert({ ip, phone, token }, { transaction });
 
       await sms("yaD264", "0Rr8G", [
         {
@@ -66,20 +69,20 @@ const set = procedure
   )
   .mutation(async ({ input: { phone, token }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      const tocken = await db.PhoneVerificationToken.findOne({
-        where: { userId: me.id, phone, token },
-        attributes: ["userId", "updatedAt"],
+      const dbToken = await db.PhoneAndEmailToken.findOne({
+        where: { phone, token },
+        attributes: ["id", "updatedAt"],
         transaction,
       });
 
-      if (!tocken) {
+      if (!dbToken) {
         throw generalBadRequestError("手机验证码错误。");
       } else if (
-        moment().diff(tocken.updatedAt, "minutes") > phoneTokenMaxAgeInMins
+        moment().diff(dbToken.updatedAt, "minutes") > phoneTokenMaxAgeInMins
       ) {
         throw generalBadRequestError("手机验证码已过期，请重新验证。");
       }
-      await tocken.destroy({ transaction });
+      await dbToken.destroy({ transaction });
 
       const existing = await db.User.findOne({
         attributes: ["id"],
@@ -155,6 +158,6 @@ const set = procedure
   });
 
 export default router({
-  sendVerificationToken,
+  sendToken,
   set,
 });

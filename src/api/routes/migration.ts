@@ -41,6 +41,10 @@ async function purgeOldData() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
+  await sequelize.query(`
+    DROP TABLE IF EXISTS "PhoneVerificationTokens";
+  `);
+
   await Promise.resolve();
 }
 
