@@ -37,6 +37,9 @@ import { headingColor } from "theme/colors";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import invariant from "shared/invariant";
 import { RiCustomerServiceFill } from "react-icons/ri";
+import PhoneVerificationControls, {
+  PhoneVerificationControlsState,
+} from "components/PhoneVerificationControls";
 
 export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
 export const localStorageKeyForLoginEmail = "loginEmail";
@@ -102,6 +105,7 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
         <TabList>
           <Tab>微信</Tab>
           <Tab>邮箱</Tab>
+          <Tab>手机</Tab>
         </TabList>
 
         <TabPanels>
@@ -114,9 +118,11 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
               <WechatQRPanel wechatQRAppId={wechatQRAppId} />
             )}
           </TabPanel>
-
           <TabPanel>
             <EmailPanel />
+          </TabPanel>
+          <TabPanel>
+            <PhonePanel />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -144,13 +150,31 @@ function EmailPanel() {
         <Tab>验证码</Tab>
         <Tab>密码</Tab>
       </TabList>
-
       <TabPanels>
         <TabPanel>
           <EmailTokenPanel />
         </TabPanel>
         <TabPanel>
           <EmailPasswordPanel />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+  );
+}
+
+function PhonePanel() {
+  return (
+    <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
+      <TabList mt={componentSpacing}>
+        <Tab>验证码</Tab>
+        <Tab isDisabled>密码（开发中）</Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel>
+          <PhoneTokenPanel />
+        </TabPanel>
+        <TabPanel>
+          <PhonePasswordPanel />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -214,6 +238,7 @@ function EmailPasswordPanel() {
         email,
         password,
         callbackUrl,
+        // Display errors on the same page
         redirect: false,
       });
       if (!res || res.error) {
@@ -463,6 +488,55 @@ export function PasswordInput({
 }
 
 const inputIconColor = "gray.400";
+
+function PhoneTokenPanel() {
+  const callbackUrl = useCallbackUrl();
+
+  const [state, setState] = useState<PhoneVerificationControlsState>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const submit = async () => {
+    invariant(state?.isValid, "state is invalid");
+    setIsLoading(true);
+    try {
+      const res = await signIn("phone-token", {
+        phone: state.phone,
+        token: state.token,
+        callbackUrl,
+        // Display errors on the same page
+        redirect: false,
+      });
+      if (!res || res.error) {
+        toast.error("登录失败，请检查手机号和验证码。");
+      }
+    } catch (err) {
+      handleSignInException(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <VStack spacing={sectionSpacing} my={sectionSpacing}>
+        <PhoneVerificationControls onStateChange={setState} />
+        <Button
+          variant="brand"
+          width="full"
+          isDisabled={!state?.isValid}
+          isLoading={isLoading}
+          onClick={submit}
+        >
+          登录
+        </Button>
+      </VStack>
+    </>
+  );
+}
+
+function PhonePasswordPanel() {
+  return <></>;
+}
 
 export function getServerSideProps(): { props: ServerSideProps } {
   return {

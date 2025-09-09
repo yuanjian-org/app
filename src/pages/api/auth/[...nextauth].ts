@@ -9,7 +9,7 @@ import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
-import invariant from "tiny-invariant";
+import invariant from "../../../shared/invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import getBaseUrl from "../../../shared/getBaseUrl";
@@ -19,6 +19,7 @@ import WeChatProvider from "./WeChatProvider";
 import { generateShortLivedToken } from "../../../shared/token";
 import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcryptjs";
+import { checkAndDeletePhoneToken } from "../../../api/phoneAndEmailToken";
 
 declare module "next-auth" {
   interface Session {
@@ -53,21 +54,21 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     providers: [
       {
         id: "email-password",
-        name: "密码登录",
+        name: "邮箱密码登录",
         type: "credentials",
-
         // We don't use this field but it's required by NextAuth.
         credentials: {},
 
         async authorize(credentials) {
-          if (!credentials?.email || !credentials?.password) return null;
+          const { email, password } = credentials ?? {};
+          if (!email || !password) return null;
           const user = await db.User.findOne({
-            where: { email: credentials.email },
+            where: { email },
             attributes: [...userAttributes, "password"],
             include: userInclude,
           });
           if (!user || !user.password) return null;
-          const match = await compare(credentials.password, user.password);
+          const match = await compare(password, user.password);
           return match ? user : null;
         },
       },
@@ -79,6 +80,37 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         maxAge: authTokenMaxAgeInMins * 60, // For verification token expiry
         sendVerificationRequest,
         generateVerificationToken: generateShortLivedToken,
+      },
+
+      {
+        id: "phone-token",
+        name: "手机号验证码登录",
+        type: "credentials",
+        // We don't use this field but it's required by NextAuth.
+        credentials: {},
+
+        async authorize(credentials) {
+          const { phone, token } = credentials ?? {};
+          if (!phone || !token) return null;
+          return await sequelize.transaction(async (transaction) => {
+            try {
+              await checkAndDeletePhoneToken(phone, token, transaction);
+              const u = await db.User.findOne({
+                where: { phone },
+                attributes: userAttributes,
+                include: userInclude,
+                transaction,
+              });
+              // Do not throw so that verifyAndDeleteToken() can complete the
+              // deletion.
+              if (!u) console.error(`User not found for phone: ${phone}`);
+              return u;
+            } catch (error) {
+              console.error(error);
+              return null;
+            }
+          });
+        },
       },
 
       WeChatProvider({
@@ -241,7 +273,7 @@ const userCache = new LRUCache<string, User>({
       include: userInclude,
     });
     // next-auth must have already created the user.
-    invariant(user);
+    invariant(user, `user not found: ${id}`);
     return user;
   },
 });
