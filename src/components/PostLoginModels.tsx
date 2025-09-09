@@ -31,6 +31,7 @@ import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import PhoneNumberInput from "./PhoneNumberInput";
 import { staticUrlPrefix } from "static";
+import { toast } from "react-toastify";
 
 // prettier-ignore
 export default function PostLoginModels() {
@@ -79,7 +80,9 @@ export function SetPhoneModal({
   const sendToken = async () => {
     setLoading(true);
     try {
-      await trpc.phones.sendVerificationToken.mutate({ phone });
+      await trpc.phones.sendToken.mutate({ phone });
+      toast.success("验证码已发送，请注意查收。");
+
       setCountdown(phoneTokenMinSendIntervalInSeconds);
 
       // Start countdown timer

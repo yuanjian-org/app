@@ -45,6 +45,22 @@ export const authUser = (permitted?: Role | Role[]) =>
     });
   });
 
+/**
+ * Attach client IP address to the context. Cannot be used in combination with
+ * auth*().
+ */
+export const ip = () =>
+  middleware(async ({ ctx, next }) => {
+    return await next({
+      ctx: {
+        ...ctx,
+        ip:
+          ctx.req.headers["x-forwarded-for"] ||
+          ctx.req.connection.remoteAddress,
+      },
+    });
+  });
+
 const unauthorizedError = () =>
   new TRPCError({
     code: "UNAUTHORIZED",
