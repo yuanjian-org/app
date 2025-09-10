@@ -23,7 +23,7 @@ import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { isValidEmail, parseQueryString } from "shared/strings";
+import { isValidEmail, isValidPhone, parseQueryString } from "shared/strings";
 import { toast } from "react-toastify";
 import trpc from "trpc";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
@@ -40,6 +40,7 @@ import IdTokenControls, {
   IdTokenControlsState,
 } from "components/IdTokenControls";
 import { IdType } from "shared/IdType";
+import PhoneInput from "components/PhoneInput";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -115,10 +116,10 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
               <WechatQRPanel wechatQRAppId={wechatQRAppId} />
             )}
           </TabPanel>
-          <TabPanel>
+          <TabPanel px={0}>
             <EmailPanel />
           </TabPanel>
-          <TabPanel>
+          <TabPanel px={0}>
             <PhonePanel />
           </TabPanel>
         </TabPanels>
@@ -152,7 +153,7 @@ function EmailPanel() {
           <IdTokenPanel idType="email" />
         </TabPanel>
         <TabPanel>
-          <EmailPasswordPanel />
+          <IdPasswordPanel idType="email" />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -164,14 +165,14 @@ function PhonePanel() {
     <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
       <TabList mt={componentSpacing}>
         <Tab>验证码</Tab>
-        <Tab isDisabled>密码（开发中）</Tab>
+        <Tab>密码</Tab>
       </TabList>
       <TabPanels>
         <TabPanel>
           <IdTokenPanel idType="phone" />
         </TabPanel>
         <TabPanel>
-          <PhonePasswordPanel />
+          <IdPasswordPanel idType="phone" />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -213,22 +214,24 @@ function WechatAccountPanel() {
   );
 }
 
-function EmailPasswordPanel() {
+function IdPasswordPanel({ idType }: { idType: IdType }) {
   const callbackUrl = useCallbackUrl();
 
-  const [email, setEmail] = useState<string>("");
+  const [id, setId] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] =
     useState<boolean>(false);
 
-  const isValidInput = isValidEmail(email) && !!password;
+  const isValidInput =
+    !!password && (idType === "email" ? isValidEmail(id) : isValidPhone(id));
 
   const submit = async () => {
     setIsLoading(true);
     try {
-      const res = await signIn("email-password", {
-        email,
+      const res = await signIn("id-password", {
+        idType,
+        id,
         password,
         callbackUrl,
         // Display errors on the same page
@@ -245,15 +248,18 @@ function EmailPasswordPanel() {
   };
 
   return (
-    <>
-      <EmailInput email={email} setEmail={setEmail} my={sectionSpacing} />
+    <VStack spacing={sectionSpacing} my={sectionSpacing}>
+      {idType === "email" ? (
+        <EmailInput value={id} onChange={setId} />
+      ) : (
+        <PhoneInput value={id} onChange={setId} />
+      )}
 
       <PasswordInput
         password={password}
         setPassword={setPassword}
         isValidInput={isValidInput}
         submit={submit}
-        my={sectionSpacing}
       />
 
       <HStack w="full" spacing={4}>
@@ -263,7 +269,7 @@ function EmailPasswordPanel() {
           isLoading={isLoading}
           onClick={() => setIsPasswordResetModalOpen(true)}
         >
-          注册或找回密码
+          注册或重置密码
         </Button>
         <Button
           w="50%"
@@ -278,12 +284,12 @@ function EmailPasswordPanel() {
 
       {isPasswordResetModalOpen && (
         <PasswordResetModal
-          email={email}
-          setEmail={setEmail}
+          email={id}
+          setEmail={setId}
           close={() => setIsPasswordResetModalOpen(false)}
         />
       )}
-    </>
+    </VStack>
   );
 }
 
@@ -322,8 +328,8 @@ function PasswordResetModal({
         <ModalCloseButton />
         <ModalBody>
           <EmailInput
-            email={email}
-            setEmail={setEmail}
+            value={email}
+            onChange={setEmail}
             submit={handleSubmit}
             autoFocus
           />
@@ -347,21 +353,20 @@ function PasswordResetModal({
 }
 
 export function EmailInput({
-  email,
-  setEmail,
+  value,
+  onChange,
   submit,
   isDisabled,
   autoFocus,
-  ...inputGroupProps
 }: {
-  email: string;
-  setEmail: (email: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   submit?: () => any;
   isDisabled?: boolean;
   autoFocus?: boolean;
-} & InputGroupProps) {
+}) {
   return (
-    <InputGroup {...inputGroupProps}>
+    <InputGroup>
       <InputLeftElement pointerEvents="none">
         <EmailIcon color={inputIconColor} />
       </InputLeftElement>
@@ -371,10 +376,10 @@ export function EmailInput({
         placeholder={"邮箱"}
         isDisabled={isDisabled}
         autoFocus={autoFocus}
-        value={email}
-        onChange={(ev) => setEmail(ev.target.value)}
+        value={value}
+        onChange={(ev) => onChange(ev.target.value)}
         onKeyDown={async (ev) => {
-          if (submit && ev.key == "Enter" && isValidEmail(email)) {
+          if (submit && ev.key == "Enter" && isValidEmail(value)) {
             await submit();
           }
         }}
@@ -467,10 +472,6 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
       </VStack>
     </>
   );
-}
-
-function PhonePasswordPanel() {
-  return <></>;
 }
 
 export function getServerSideProps(): { props: ServerSideProps } {

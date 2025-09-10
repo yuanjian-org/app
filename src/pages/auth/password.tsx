@@ -53,7 +53,7 @@ export default function Page() {
         parents={[{ name: "远图", link: staticUrlPrefix }]}
       />
 
-      {email && <EmailInput email={email} setEmail={() => {}} isDisabled />}
+      {email && <EmailInput value={email} onChange={() => {}} isDisabled />}
 
       <PasswordInput
         password={password}

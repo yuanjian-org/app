@@ -48,17 +48,18 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
     providers: [
       {
-        id: "email-password",
-        name: "邮箱密码登录",
+        id: "id-password",
+        name: "手机/邮箱密码登录",
         type: "credentials",
         // We don't use this field but it's required by NextAuth.
         credentials: {},
 
         async authorize(credentials) {
-          const { email, password } = credentials ?? {};
-          if (!email || !password) return null;
+          const { idType, id, password } = credentials ?? {};
+          if (!idType || !id || !password) return null;
+          const idField = idType === "phone" ? "phone" : "email";
           const user = await db.User.findOne({
-            where: { email },
+            where: { [idField]: id },
             attributes: [...userAttributes, "password"],
             include: userInclude,
           });
@@ -70,7 +71,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
       {
         id: "id-token",
-        name: "手机号/邮箱验证码登录",
+        name: "手机/邮箱验证码登录",
         type: "credentials",
         // We don't use this field but it's required by NextAuth.
         credentials: {},
