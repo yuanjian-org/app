@@ -6,6 +6,7 @@ import stringifyStable from "json-stable-stringify";
 
 import { NextRouter } from "next/router";
 import { DateColumn } from "./DateColumn";
+import z from "zod";
 
 export function isValidChineseName(s: string | null): boolean {
   return (
@@ -182,4 +183,8 @@ export function isValidPhoneNumber(v: string): boolean {
     // the phone number via SMS.
     return v.length >= 8;
   }
+}
+
+export function isValidEmail(email: string) {
+  return z.string().email().safeParse(email).success;
 }

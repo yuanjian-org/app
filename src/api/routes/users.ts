@@ -23,6 +23,7 @@ import {
   compareChinese,
   formatUserName,
   isValidChineseName,
+  isValidEmail,
   toPinyin,
 } from "../../shared/strings";
 import {
@@ -937,7 +938,7 @@ export async function checkAndComputeUserFields({
    * breaking the workflow.
    */
 
-  if (email && !z.string().email().safeParse(email).success) {
+  if (email && !isValidEmail(email)) {
     throw generalBadRequestError("Email地址无效。");
   }
 

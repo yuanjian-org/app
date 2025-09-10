@@ -27,9 +27,7 @@ import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { staticUrlPrefix } from "static";
-import PhoneVerificationControls, {
-  PhoneVerificationControlsState,
-} from "./PhoneVerificationControls";
+import IdTokenControls, { IdTokenControlsState } from "./IdTokenControls";
 import invariant from "shared/invariant";
 
 // prettier-ignore
@@ -71,14 +69,17 @@ export function SetPhoneNumberModal({
   cancelLabel: string;
 }) {
   const { update } = useSession();
-  const [state, setState] = useState<PhoneVerificationControlsState>();
+  const [state, setState] = useState<IdTokenControlsState>();
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
     invariant(state?.isValid, "state is invalid");
     setLoading(true);
     try {
-      await trpc.phones.set.mutate({ phone: state.phone, token: state.token });
+      await trpc.idTokens.setPhone.mutate({
+        phone: state.id,
+        token: state.token,
+      });
 
       // As soon as the session is updated, all affected page components should
       // be refreshed including the caller to this modal, so we don't need to
@@ -99,7 +100,8 @@ export function SetPhoneNumberModal({
         <ModalHeader>手机号验证</ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
-            <PhoneVerificationControls
+            <IdTokenControls
+              idType="phone"
               onStateChange={setState}
               buttonWidth={buttonWidth}
             />

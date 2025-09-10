@@ -1,29 +1,13 @@
+// TODO: Merge with IdToken.ts?
 import randomNumber from "random-number-csprng";
 
 /**
- * Tokens for mobile phone number verification.
+ * Tokens for various security verification purposes.
  */
-export const phoneTokenMaxAgeInMins = 5;
-export const phoneTokenMinSendIntervalInSeconds = 60;
+export const tokenLength = 6;
+export const tokenMaxAgeInMins = 5;
+export const tokenMinSendIntervalInSeconds = 30;
 
-/**
- * These tokens are weaker than long-lived tokens. Apply short expiration.
- */
-export async function generateShortLivedToken() {
+export async function generateToken() {
   return (await randomNumber(100000, 999999)).toString();
-}
-
-export const shortLivedTokenLength = 6;
-export const longLivedTokenLength = 9;
-
-/**
- * Stronger tokens are more secure but harder to remember and type.
- */
-export async function generateLongLivedToken() {
-  const a = "a".charCodeAt(0);
-  const chars = [];
-  for (let i = 0; i < longLivedTokenLength; i++) {
-    chars.push(String.fromCharCode(a + (await randomNumber(0, 25))));
-  }
-  return chars.join("").toUpperCase();
 }

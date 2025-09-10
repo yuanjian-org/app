@@ -22,9 +22,8 @@ import {
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
-import z from "zod";
 import { useRouter } from "next/router";
-import { parseQueryString } from "shared/strings";
+import { isValidEmail, parseQueryString } from "shared/strings";
 import { toast } from "react-toastify";
 import trpc from "trpc";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
@@ -37,12 +36,10 @@ import { headingColor } from "theme/colors";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import invariant from "shared/invariant";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import PhoneVerificationControls, {
-  PhoneVerificationControlsState,
-} from "components/PhoneVerificationControls";
-
-export const localStorageKeyForLoginCallbackUrl = "loginCallbackUrl";
-export const localStorageKeyForLoginEmail = "loginEmail";
+import IdTokenControls, {
+  IdTokenControlsState,
+} from "components/IdTokenControls";
+import { IdType } from "shared/IdType";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -152,7 +149,7 @@ function EmailPanel() {
       </TabList>
       <TabPanels>
         <TabPanel>
-          <EmailTokenPanel />
+          <IdTokenPanel idType="email" />
         </TabPanel>
         <TabPanel>
           <EmailPasswordPanel />
@@ -171,7 +168,7 @@ function PhonePanel() {
       </TabList>
       <TabPanels>
         <TabPanel>
-          <PhoneTokenPanel />
+          <IdTokenPanel idType="phone" />
         </TabPanel>
         <TabPanel>
           <PhonePasswordPanel />
@@ -216,10 +213,6 @@ function WechatAccountPanel() {
   );
 }
 
-function isValidEmail(email: string) {
-  return z.string().email().safeParse(email).success;
-}
-
 function EmailPasswordPanel() {
   const callbackUrl = useCallbackUrl();
 
@@ -243,8 +236,6 @@ function EmailPasswordPanel() {
       });
       if (!res || res.error) {
         toast.error("登录失败，请检查邮箱和密码。");
-      } else {
-        localStorage.setItem(localStorageKeyForLoginEmail, email);
       }
     } catch (err) {
       handleSignInException(err);
@@ -292,61 +283,6 @@ function EmailPasswordPanel() {
           close={() => setIsPasswordResetModalOpen(false)}
         />
       )}
-    </>
-  );
-}
-
-function EmailTokenPanel() {
-  const router = useRouter();
-  const callbackUrl = useCallbackUrl();
-
-  const [email, setEmail] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const submit = async () => {
-    setIsLoading(true);
-    try {
-      const res = await signIn("email-token", {
-        email,
-        callbackUrl,
-        // Display errors on the same page
-        redirect: false,
-      });
-
-      if (!res || res.error) {
-        toast.error(
-          `糟糕，signIn()错误，请联系管理员：${res?.error ?? "返回空值"}`,
-        );
-      } else {
-        localStorage.setItem(localStorageKeyForLoginCallbackUrl, callbackUrl);
-        localStorage.setItem(localStorageKeyForLoginEmail, email);
-        await router.push(`/auth/verify`);
-      }
-    } catch (err) {
-      handleSignInException(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <EmailInput
-        email={email}
-        setEmail={setEmail}
-        submit={submit}
-        my={sectionSpacing}
-      />
-
-      <Button
-        variant="brand"
-        width="full"
-        isDisabled={!isValidEmail(email)}
-        isLoading={isLoading}
-        onClick={submit}
-      >
-        获取验证码
-      </Button>
     </>
   );
 }
@@ -424,10 +360,6 @@ export function EmailInput({
   isDisabled?: boolean;
   autoFocus?: boolean;
 } & InputGroupProps) {
-  useEffect(() => {
-    setEmail(localStorage.getItem(localStorageKeyForLoginEmail) ?? "");
-  }, [setEmail]);
-
   return (
     <InputGroup {...inputGroupProps}>
       <InputLeftElement pointerEvents="none">
@@ -489,25 +421,28 @@ export function PasswordInput({
 
 const inputIconColor = "gray.400";
 
-function PhoneTokenPanel() {
+function IdTokenPanel({ idType }: { idType: IdType }) {
   const callbackUrl = useCallbackUrl();
 
-  const [state, setState] = useState<PhoneVerificationControlsState>();
+  const [state, setState] = useState<IdTokenControlsState>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const submit = async () => {
     invariant(state?.isValid, "state is invalid");
     setIsLoading(true);
     try {
-      const res = await signIn("phone-token", {
-        phone: state.phone,
+      const res = await signIn("id-token", {
+        idType,
+        id: state.id,
         token: state.token,
         callbackUrl,
         // Display errors on the same page
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error("登录失败，请检查手机号和验证码。");
+        toast.error(
+          `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
+        );
       }
     } catch (err) {
       handleSignInException(err);
@@ -519,7 +454,7 @@ function PhoneTokenPanel() {
   return (
     <>
       <VStack spacing={sectionSpacing} my={sectionSpacing}>
-        <PhoneVerificationControls onStateChange={setState} />
+        <IdTokenControls idType={idType} onStateChange={setState} />
         <Button
           variant="brand"
           width="full"
@@ -527,7 +462,7 @@ function PhoneTokenPanel() {
           isLoading={isLoading}
           onClick={submit}
         >
-          登录
+          登录 / 注册
         </Button>
       </VStack>
     </>
