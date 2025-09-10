@@ -3,7 +3,8 @@ import { z } from "zod";
 import db from "../database/db";
 import { Op } from "sequelize";
 import { ip, authUser } from "../auth";
-import { toChineseNumber } from "../../shared/strings";
+import { isValidPassword, toChineseNumber } from "../../shared/strings";
+import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
 import sequelize from "../database/sequelize";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
@@ -15,10 +16,11 @@ import {
 import { sms } from "../sms";
 import moment from "moment";
 import invariant from "../../shared/invariant";
-import { zIdType } from "shared/IdType";
-import getBaseUrl from "shared/getBaseUrl";
-import { email } from "api/email";
-import { checkAndDeleteIdToken } from "api/checkAndDeleteIdToken";
+import { IdType, zIdType } from "../../shared/IdType";
+import getBaseUrl from "../../shared/getBaseUrl";
+import { email } from "../../api/email";
+import { checkAndDeleteIdToken } from "../../api/checkAndDeleteIdToken";
+import { RoleProfiles } from "../../shared/Role";
 
 /**
  * Send verfication token to the specified phone or email.
@@ -163,7 +165,57 @@ const setPhone = procedure
     });
   });
 
+const resetPassword = procedure
+  .input(
+    z.object({
+      idType: zIdType,
+      id: z.string(),
+      token: z.string(),
+      password: z.string(),
+    }),
+  )
+  .mutation(async ({ input: { idType, id, token, password } }) => {
+    await resetPasswordImpl(idType, id, token, password);
+  });
+
+export async function resetPasswordImpl(
+  idType: IdType,
+  id: string,
+  token: string,
+  password: string,
+) {
+  if (!isValidPassword(password)) {
+    throw generalBadRequestError("密码不合要求。");
+  }
+
+  const idField = idType === "phone" ? "phone" : "email";
+  const hashed = await hash(password, 10);
+
+  await sequelize.transaction(async (transaction) => {
+    await checkAndDeleteIdToken(idType, id, token, transaction);
+    let user = await db.User.findOne({
+      where: { [idField]: id },
+      attributes: ["id", "roles"],
+      transaction,
+    });
+
+    if (user) {
+      if (
+        user.roles &&
+        user.roles.some((role) => RoleProfiles[role].privilegedUserDataAccess)
+      ) {
+        throw generalBadRequestError("特权用户禁止使用密码登录。");
+      }
+    } else {
+      user = await db.User.create({ [idField]: id }, { transaction });
+    }
+
+    await user.update({ password: hashed }, { transaction });
+  });
+}
+
 export default router({
   send,
   setPhone,
+  resetPassword,
 });

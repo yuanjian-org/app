@@ -14,19 +14,19 @@ import { toast } from "react-toastify";
 import { IdType } from "shared/IdType";
 import { EmailInput } from "pages/auth/login";
 
-export type IdTokenControlsState = {
+export type IdTokenInputsState = {
   id: string;
   token: string;
   isValid: boolean;
 };
 
-export default function IdTokenControls({
+export default function IdTokenInputs({
   idType,
   onStateChange,
   buttonWidth = "120px",
 }: {
   idType: IdType;
-  onStateChange: (state: IdTokenControlsState) => void;
+  onStateChange: (state: IdTokenInputsState) => void;
   buttonWidth?: string;
 }) {
   const [id, setId] = useState("");

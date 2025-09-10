@@ -27,7 +27,7 @@ import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { staticUrlPrefix } from "static";
-import IdTokenControls, { IdTokenControlsState } from "./IdTokenControls";
+import IdTokenInputs, { IdTokenInputsState } from "./IdTokenInputs";
 import invariant from "shared/invariant";
 
 // prettier-ignore
@@ -69,7 +69,7 @@ export function SetPhoneModal({
   cancelLabel: string;
 }) {
   const { update } = useSession();
-  const [state, setState] = useState<IdTokenControlsState>();
+  const [state, setState] = useState<IdTokenInputsState>();
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
@@ -100,7 +100,7 @@ export function SetPhoneModal({
         <ModalHeader>手机号验证</ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
-            <IdTokenControls
+            <IdTokenInputs
               idType="phone"
               onStateChange={setState}
               buttonWidth={buttonWidth}

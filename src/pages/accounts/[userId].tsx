@@ -66,6 +66,8 @@ export default function Page() {
     }
   };
 
+  const notProvided = "未提供";
+
   return !user ? (
     <Loader />
   ) : (
@@ -79,7 +81,7 @@ export default function Page() {
 
       <FormControl>
         <FormLabel>邮箱</FormLabel>
-        <Input value={user.email || "无"} readOnly />
+        <Input value={user.email || notProvided} readOnly />
         <FormHelperTextWithMargin>
           如需更改，
           <Link
@@ -98,7 +100,7 @@ export default function Page() {
           readOnly
           value={
             !user.phone
-              ? "未提供"
+              ? notProvided
               : user.phone.startsWith(chinaPhonePrefix)
                 ? user.phone.slice(chinaPhonePrefix.length)
                 : user.phone

@@ -6,12 +6,14 @@ import sequelize from "../database/sequelize";
 import { authUser } from "../auth";
 import { generalBadRequestError } from "../errors";
 import { MenteeStatus } from "../../shared/MenteeStatus";
-import { invalidateUserCache } from "pages/api/auth/[...nextauth]";
-import { emailRoleIgnoreError } from "api/email";
-import getBaseUrl from "shared/getBaseUrl";
-import { toPinyin } from "shared/strings";
-import invariant from "shared/invariant";
-import { menteeSourceField } from "shared/applicationFields";
+import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
+import { emailRoleIgnoreError } from "../../api/email";
+import getBaseUrl from "../../shared/getBaseUrl";
+import { toPinyin } from "../../shared/strings";
+import invariant from "../../shared/invariant";
+import { menteeSourceField } from "../../shared/applicationFields";
+import { Transaction } from "sequelize";
+import User from "../../shared/User";
 
 const validate = procedure
   .use(authUser())
@@ -24,81 +26,97 @@ const validate = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    const { name, pearlId, nationalIdLastFour, wechat } = input;
-
     await sequelize.transaction(async (transaction) => {
-      const student = await db.PearlStudent.findOne({
-        where: {
-          pearlId,
-          name,
-          lowerCaseNationalIdLastFour: nationalIdLastFour.toLowerCase(),
-        },
-        attributes: ["pearlId", "userId"],
-        lock: true,
+      await validatePearlStudent(
+        me,
+        input.name,
+        input.pearlId,
+        input.nationalIdLastFour,
+        input.wechat,
         transaction,
-      });
-
-      if (!student) {
-        emailRoleIgnoreError(
-          "UserManager",
-          "珍珠生验证失败",
-          `用户 ${me.id} 认证珍珠生失败："${name}"、"${pearlId}"、"${nationalIdLastFour}"`,
-          getBaseUrl(),
-        );
-
-        throw generalBadRequestError("珍珠生信息不匹配。");
-      }
-
-      if (student.userId) {
-        emailRoleIgnoreError(
-          "UserManager",
-          "珍珠生重复验证",
-          `用户 ${me.id} （${name}）试图用已被验证的珍珠生号 ${pearlId} 进行验证。请联系学生管理员。`,
-          getBaseUrl(),
-        );
-
-        throw generalBadRequestError(
-          `此珍珠生号已被验证。请联系${RoleProfiles.UserManager.displayName}。`,
-        );
-      }
-
-      // Force type checks
-      const menteeRole: Role = "Mentee";
-      const accepted: MenteeStatus = "现届学子";
-      const transactionalOnly: MenteeStatus = "仅不定期";
-
-      const menteeStatus =
-        me.menteeStatus === accepted ? accepted : transactionalOnly;
-
-      await student.update({ userId: me.id }, { transaction });
-
-      const user = await db.User.findByPk(me.id, {
-        attributes: ["id", "menteeApplication"],
-        transaction,
-      });
-      invariant(user, `User not found: ${me.id}`);
-
-      const menteeApplication = {
-        ...user.menteeApplication,
-        [menteeSourceField]: "珍珠生：" + pearlId,
-      };
-
-      // TODO: Consolidate with users.ts:createUser.
-      await user.update(
-        {
-          name,
-          pinyin: toPinyin(name),
-          wechat,
-          roles: [...me.roles.filter((r) => r !== menteeRole), menteeRole],
-          menteeStatus,
-          menteeApplication,
-        },
-        { transaction },
       );
-
-      invalidateUserCache(me.id);
     });
   });
+
+export async function validatePearlStudent(
+  me: User,
+  name: string,
+  pearlId: string,
+  nationalIdLastFour: string,
+  wechat: string,
+  transaction: Transaction,
+) {
+  const student = await db.PearlStudent.findOne({
+    where: {
+      pearlId,
+      name,
+      lowerCaseNationalIdLastFour: nationalIdLastFour.toLowerCase(),
+    },
+    attributes: ["pearlId", "userId"],
+    lock: true,
+    transaction,
+  });
+
+  if (!student) {
+    emailRoleIgnoreError(
+      "UserManager",
+      "珍珠生验证失败",
+      `用户 ${me.id} 认证珍珠生失败："${name}"、"${pearlId}"、"${nationalIdLastFour}"`,
+      getBaseUrl(),
+    );
+
+    throw generalBadRequestError("珍珠生信息不匹配。");
+  }
+
+  if (student.userId) {
+    emailRoleIgnoreError(
+      "UserManager",
+      "珍珠生重复验证",
+      `用户 ${me.id} （${name}）试图用已被验证的珍珠生号 ${pearlId} 进行验证。请联系学生管理员。`,
+      getBaseUrl(),
+    );
+
+    throw generalBadRequestError(
+      `此珍珠生号已被验证。请联系${RoleProfiles.UserManager.displayName}。`,
+    );
+  }
+
+  // Force type checks
+  const menteeRole: Role = "Mentee";
+  const accepted: MenteeStatus = "现届学子";
+  const transactionalOnly: MenteeStatus = "仅不定期";
+
+  const menteeStatus =
+    me.menteeStatus === accepted ? accepted : transactionalOnly;
+
+  await student.update({ userId: me.id }, { transaction });
+
+  const user = await db.User.findByPk(me.id, {
+    attributes: ["id", "menteeApplication"],
+    transaction,
+  });
+  invariant(user, `User not found: ${me.id}`);
+
+  const menteeApplication = {
+    ...user.menteeApplication,
+    [menteeSourceField]: "珍珠生：" + pearlId,
+  };
+
+  // TODO: Consolidate with users.ts:createUser.
+  await user.update(
+    {
+      name,
+      pinyin: toPinyin(name),
+      wechat,
+      roles: [...me.roles.filter((r) => r !== menteeRole), menteeRole],
+      menteeStatus,
+      menteeApplication,
+    },
+    { transaction },
+  );
+
+  invalidateUserCache(me.id);
+}
 
 const upload = procedure
   .use(authUser())
