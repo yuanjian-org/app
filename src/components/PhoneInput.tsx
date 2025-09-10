@@ -44,7 +44,7 @@ function getCountryAreaCodes(): CountryAreaCode[] {
 /**
  * Use standard E.164 phone number format such as "+8613800138000".
  */
-export default function PhoneNumberInput({
+export default function PhoneInput({
   value,
   onChange,
 }: {

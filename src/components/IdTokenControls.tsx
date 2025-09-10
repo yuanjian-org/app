@@ -7,9 +7,9 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
-import { isValidEmail, isValidPhoneNumber } from "shared/strings";
+import { isValidEmail, isValidPhone } from "shared/strings";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
-import PhoneNumberInput from "./PhoneNumberInput";
+import PhoneInput from "./PhoneInput";
 import { toast } from "react-toastify";
 import { IdType } from "shared/IdType";
 import { EmailInput } from "pages/auth/login";
@@ -58,7 +58,7 @@ export default function IdTokenControls({
   };
 
   const isValidId = (id: string) =>
-    idType === "phone" ? isValidPhoneNumber(id) : isValidEmail(id);
+    idType === "phone" ? isValidPhone(id) : isValidEmail(id);
   const isValidState = (id: string, token: string) =>
     isValidId(id) && token.length === tokenLength;
 
@@ -66,7 +66,7 @@ export default function IdTokenControls({
     <>
       <FormControl>
         {idType === "phone" ? (
-          <PhoneNumberInput
+          <PhoneInput
             value={id}
             onChange={(v) => {
               const id = v.trim();
@@ -80,8 +80,8 @@ export default function IdTokenControls({
           />
         ) : (
           <EmailInput
-            email={id}
-            setEmail={(v) => {
+            value={id}
+            onChange={(v) => {
               const id = v.trim();
               setId(id);
               onStateChange({

@@ -11,7 +11,7 @@ import db from "../../database/db";
 import { checkAndComputeUserFields } from "../../routes/users";
 import Role, { isPermitted } from "../../../shared/Role";
 import { generalBadRequestError } from "../../errors";
-import { chinaPhonePrefix, isValidPhoneNumber } from "../../../shared/strings";
+import { chinaPhonePrefix, isValidPhone } from "../../../shared/strings";
 
 /**
  * The Webhook for three 金数据 forms:
@@ -119,7 +119,7 @@ async function save(
   if (!phone) {
     throw generalBadRequestError("Phone number is required.");
   }
-  if (!isValidPhoneNumber(phone)) {
+  if (!isValidPhone(phone)) {
     throw generalBadRequestError("Invalid phone number.");
   }
   if (!name) {

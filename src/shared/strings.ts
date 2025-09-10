@@ -173,7 +173,7 @@ export function getColorFromText(text: string): string {
 
 export const chinaPhonePrefix = "+86";
 
-export function isValidPhoneNumber(v: string): boolean {
+export function isValidPhone(v: string): boolean {
   if (v.startsWith(chinaPhonePrefix)) {
     return /^1[3-9]\d{9}$/.test(v.slice(chinaPhonePrefix.length));
   } else if (!v.startsWith("+")) {

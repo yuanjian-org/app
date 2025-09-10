@@ -42,7 +42,7 @@ export default function PostLoginModels() {
   // be merged with another user. Information required later (name, cell,
   // roles, etc) may have been already filled in the merged account.
   ) : me.phone === null ? (
-    <SetPhoneNumberModal cancel={signOut} cancelLabel="退出登录" />
+    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
@@ -61,7 +61,7 @@ export default function PostLoginModels() {
   );
 }
 
-export function SetPhoneNumberModal({
+export function SetPhoneModal({
   cancel,
   cancelLabel,
 }: {

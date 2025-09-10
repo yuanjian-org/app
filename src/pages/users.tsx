@@ -32,7 +32,7 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import {
   formatUserName,
   isValidChineseName,
-  isValidPhoneNumber,
+  isValidPhone,
   toPinyin,
 } from "shared/strings";
 import Role, { AllRoles, RoleProfiles, isPermitted } from "shared/Role";
@@ -247,7 +247,7 @@ function UserEditor({
   const [roles, setRoles] = useState(u.roles);
   const [isSaving, setIsSaving] = useState(false);
 
-  const validPhone = phone === "" || isValidPhoneNumber(phone);
+  const validPhone = phone === "" || isValidPhone(phone);
   const validEmail =
     email === "" || z.string().email().safeParse(email).success;
   const validName = isValidChineseName(name);
