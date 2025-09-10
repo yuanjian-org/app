@@ -184,7 +184,7 @@ function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
   return (
     <VStack spacing={componentSpacing}>
       <Text fontSize="sm" color="gray">
-        二维码若无法加载，
+        若二维码无法加载，
         <Link onClick={() => signIn("wechat-qr", { callbackUrl })}>
           点击此处
         </Link>

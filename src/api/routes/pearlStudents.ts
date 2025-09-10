@@ -73,7 +73,7 @@ const validate = procedure
       await student.update({ userId: me.id }, { transaction });
 
       const user = await db.User.findByPk(me.id, {
-        attributes: ["id", "cell", "menteeApplication"],
+        attributes: ["id", "menteeApplication"],
         transaction,
       });
       invariant(user, `User not found: ${me.id}`);
