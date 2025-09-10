@@ -39,6 +39,7 @@ export const authUser = (permitted?: Role | Role[]) =>
     return await next({
       ctx: {
         me: session.user,
+        // TODO: remove this field. Use getBaseUrl() instead.
         baseUrl: ctx.baseUrl,
         session,
       },

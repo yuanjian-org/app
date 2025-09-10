@@ -8,50 +8,68 @@ import { generalBadRequestError } from "../errors";
 import sequelize from "../database/sequelize";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import {
-  phoneTokenMaxAgeInMins,
-  phoneTokenMinSendIntervalInSeconds,
-  generateShortLivedToken,
+  tokenMaxAgeInMins,
+  tokenMinSendIntervalInSeconds,
+  generateToken,
 } from "../../shared/token";
 import { sms } from "../sms";
 import moment from "moment";
 import invariant from "../../shared/invariant";
-import { checkAndDeletePhoneToken } from "../phoneAndEmailToken";
+import { zIdType } from "shared/IdType";
+import getBaseUrl from "shared/getBaseUrl";
+import { email } from "api/email";
+import { checkAndDeleteIdToken } from "api/checkAndDeleteIdToken";
 
-const sendToken = procedure
+/**
+ * Send verfication token to the specified phone or email.
+ */
+const send = procedure
   .use(ip())
-  .input(z.object({ phone: z.string() }))
-  .mutation(async ({ input: { phone }, ctx: { ip } }) => {
+  .input(z.object({ idType: zIdType, id: z.string() }))
+  .mutation(async ({ input: { idType, id }, ctx: { ip } }) => {
     await sequelize.transaction(async (transaction) => {
+      const idField = idType === "phone" ? "phone" : "email";
       /**
        * Rate limit. Note that once the user successfully consume a token, the
        * rate limit will be reset.
        */
-      const last = await db.PhoneAndEmailToken.findOne({
-        where: { ip, phone: { [Op.ne]: null } },
+      const last = await db.IdToken.findOne({
+        where: { ip, [idField]: { [Op.ne]: null } },
         attributes: ["updatedAt"],
         order: [["updatedAt", "DESC"]],
         transaction,
       });
       if (
         last &&
-        moment().diff(last.updatedAt, "seconds") <
-          phoneTokenMinSendIntervalInSeconds
+        moment().diff(last.updatedAt, "seconds") < tokenMinSendIntervalInSeconds
       ) {
-        throw generalBadRequestError("手机验证码发送过于频繁。");
+        throw generalBadRequestError("验证码发送过于频繁，请稍后再试。");
       }
 
-      const token = await generateShortLivedToken();
-      await db.PhoneAndEmailToken.upsert({ ip, phone, token }, { transaction });
+      const token = await generateToken();
+      await db.IdToken.upsert({ ip, [idField]: id, token }, { transaction });
 
-      await sms("yaD264", "0Rr8G", [
-        {
-          to: phone,
-          vars: {
-            token: token.toString(),
-            tokenMaxAgeInMins: toChineseNumber(phoneTokenMaxAgeInMins),
+      if (idType === "phone") {
+        await sms("yaD264", "0Rr8G", [
+          {
+            to: id,
+            vars: {
+              token: token.toString(),
+              tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+            },
           },
-        },
-      ]);
+        ]);
+      } else {
+        await email(
+          [id],
+          "E_114709011649",
+          {
+            token,
+            tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
+          },
+          getBaseUrl(),
+        );
+      }
     });
   });
 
@@ -60,7 +78,7 @@ const sendToken = procedure
  * soon as this route returns, because this route may merge the current user
  * with another user.
  */
-const set = procedure
+const setPhone = procedure
   .use(authUser())
   .input(
     z.object({
@@ -70,7 +88,7 @@ const set = procedure
   )
   .mutation(async ({ input: { phone, token }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      await checkAndDeletePhoneToken(phone, token, transaction);
+      await checkAndDeleteIdToken("phone", phone, token, transaction);
 
       const existing = await db.User.findOne({
         attributes: ["id"],
@@ -146,6 +164,6 @@ const set = procedure
   });
 
 export default router({
-  sendToken,
-  set,
+  send,
+  setPhone,
 });

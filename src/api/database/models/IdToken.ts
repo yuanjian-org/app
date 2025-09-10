@@ -2,7 +2,7 @@ import { Column, Table, Model, AllowNull, Unique } from "sequelize-typescript";
 import { STRING } from "sequelize";
 
 @Table
-export default class PhoneAndEmailToken extends Model {
+export default class IdToken extends Model {
   // Client IP address for rate limiting.
   @AllowNull(false)
   @Column(STRING)

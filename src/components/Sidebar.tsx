@@ -448,9 +448,9 @@ function DropdownMenuIfPermitted({
                   onClose();
                 }}
               >
-                {item.icon}
-                {!!item.icon && <>&nbsp;</>}
                 {item.name}
+                {!!item.icon && <>&nbsp;</>}
+                {item.icon}
               </MenuItem>
             );
           })}

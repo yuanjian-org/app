@@ -31,7 +31,7 @@ import MatchFeedback from "./models/MatchFeedback";
 import GlobalConfig from "./models/GlobalConfig";
 import DeletedSummary from "./models/DeletedSummary";
 import PearlStudent from "./models/PearlStudent";
-import PhoneAndEmailToken from "./models/PhoneAndEmailToken";
+import IdToken from "./models/IdToken";
 
 const db = {
   Mentorship,
@@ -63,7 +63,7 @@ const db = {
   GlobalConfig,
   DeletedSummary,
   PearlStudent,
-  PhoneAndEmailToken,
+  IdToken,
 };
 
 export default db;

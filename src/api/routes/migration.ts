@@ -42,7 +42,12 @@ async function migrateSchema() {
   console.log("Migrating DB schema...");
 
   await sequelize.query(`
-    DROP TABLE IF EXISTS "PhoneVerificationTokens";
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'PhoneAndEmailTokens') THEN
+        ALTER TABLE "PhoneAndEmailTokens" RENAME TO "IdTokens";
+      END IF;
+    END $$;
   `);
 
   await Promise.resolve();

@@ -2,9 +2,7 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
 import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
-import { SendVerificationRequestParams } from "next-auth/providers";
-import { emailRoleIgnoreError, email } from "../../../api/email";
-import { toChineseNumber } from "../../../shared/strings";
+import { emailRoleIgnoreError } from "../../../api/email";
 import {
   userAttributes,
   userInclude,
@@ -12,14 +10,13 @@ import {
 import invariant from "../../../shared/invariant";
 import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
-import getBaseUrl from "../../../shared/getBaseUrl";
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
 import WeChatProvider from "./WeChatProvider";
-import { generateShortLivedToken } from "../../../shared/token";
 import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcryptjs";
-import { checkAndDeletePhoneToken } from "../../../api/phoneAndEmailToken";
+import { checkAndDeleteIdToken } from "../../../api/checkAndDeleteIdToken";
+import { IdType } from "../../../shared/IdType";
 
 declare module "next-auth" {
   interface Session {
@@ -35,8 +32,6 @@ export type ImpersonationRequest = {
 };
 
 const impersonateTokenKey = "imp";
-
-export const authTokenMaxAgeInMins = 5;
 
 export const adapter = SequelizeAdapter(sequelize, {
   // `as any` is because SequelizeAdapter requires user.email to be non-nullable
@@ -73,37 +68,35 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         },
       },
 
-      // @ts-expect-error
       {
-        id: "email-token",
-        type: "email",
-        maxAge: authTokenMaxAgeInMins * 60, // For verification token expiry
-        sendVerificationRequest,
-        generateVerificationToken: generateShortLivedToken,
-      },
-
-      {
-        id: "phone-token",
-        name: "手机号验证码登录",
+        id: "id-token",
+        name: "手机号/邮箱验证码登录",
         type: "credentials",
         // We don't use this field but it's required by NextAuth.
         credentials: {},
 
         async authorize(credentials) {
-          const { phone, token } = credentials ?? {};
-          if (!phone || !token) return null;
+          const { idType, id, token } = credentials ?? {};
+          if (!idType || !id || !token) return null;
+          const idField = idType === "phone" ? "phone" : "email";
           return await sequelize.transaction(async (transaction) => {
             try {
-              await checkAndDeletePhoneToken(phone, token, transaction);
-              const u = await db.User.findOne({
-                where: { phone },
+              await checkAndDeleteIdToken(
+                idType as IdType,
+                id,
+                token,
+                transaction,
+              );
+              let u = await db.User.findOne({
+                where: { [idField]: id },
                 attributes: userAttributes,
                 include: userInclude,
                 transaction,
               });
-              // Do not throw so that verifyAndDeleteToken() can complete the
-              // deletion.
-              if (!u) console.error(`User not found for phone: ${phone}`);
+              if (!u) {
+                u = await db.User.create({ [idField]: id }, { transaction });
+                emailRoleIgnoreError("UserManager", "新用户注册", id, "");
+              }
               return u;
             } catch (error) {
               console.error(error);
@@ -224,13 +217,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     },
 
     events: {
-      createUser: (message) =>
-        emailRoleIgnoreError(
-          "UserManager",
-          "新用户注册",
-          `邮箱：${message.user.email}`,
-          "",
-        ),
+      createUser: () =>
+        emailRoleIgnoreError("UserManager", "新微信用户注册", "", ""),
     },
   };
 }
@@ -238,23 +226,6 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 // https://next-auth.js.org/configuration/initialization#advanced-initialization
 export default async function auth(req: NextApiRequest, res: NextApiResponse) {
   return await NextAuth(req, res, authOptions(req));
-}
-
-async function sendVerificationRequest({
-  identifier,
-  url,
-  token,
-}: SendVerificationRequestParams) {
-  await email(
-    [identifier],
-    "E_114709011649",
-    {
-      url,
-      token,
-      tokenMaxAgeInMins: toChineseNumber(authTokenMaxAgeInMins),
-    },
-    getBaseUrl(),
-  );
 }
 
 const userCache = new LRUCache<string, User>({

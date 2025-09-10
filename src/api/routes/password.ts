@@ -2,7 +2,6 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import crypto from "crypto";
 import sequelize from "api/database/sequelize";
-import { authTokenMaxAgeInMins } from "pages/api/auth/[...nextauth]";
 import { isValidPassword, toChineseNumber } from "shared/strings";
 import getBaseUrl from "shared/getBaseUrl";
 import { email as sendEmail } from "api/email";
@@ -10,6 +9,7 @@ import db from "api/database/db";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "api/errors";
 import { Op } from "sequelize";
+import { tokenMaxAgeInMins } from "shared/token";
 
 const requestReset = procedure
   .input(
@@ -21,9 +21,7 @@ const requestReset = procedure
     const resetToken = crypto.randomBytes(32).toString("base64url");
     const fields = {
       resetToken,
-      resetTokenExpiresAt: new Date(
-        Date.now() + 1000 * 60 * authTokenMaxAgeInMins,
-      ),
+      resetTokenExpiresAt: new Date(Date.now() + 1000 * 60 * tokenMaxAgeInMins),
     };
 
     await sequelize.transaction(async (transaction) => {
@@ -46,7 +44,7 @@ const requestReset = procedure
           // safety of both token and email.
           url: `${getBaseUrl()}/auth/password?token=${resetToken}&email=${email}`,
           resetToken,
-          tokenMaxAgeInMins: toChineseNumber(authTokenMaxAgeInMins),
+          tokenMaxAgeInMins: toChineseNumber(tokenMaxAgeInMins),
         },
         getBaseUrl(),
       );
