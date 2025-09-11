@@ -49,7 +49,7 @@ export async function submitMenteeApp(
     phone = entry.field_175;
   } else if (formId == "FBTWTe") {
     // Mentee application
-    phone = entry.field_124;
+    phone = entry.field_171;
   } else {
     throw generalBadRequestError(`Unsupported form id: ${formId}`);
   }
