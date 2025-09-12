@@ -135,17 +135,9 @@ class User extends Model {
   @Column(DATE)
   emailVerified: Date | null;
 
-  // Password hash for email/password login, nullable for users who use other
-  // providers.
+  // bcrypt password hash for password-based login
   @Column(STRING)
   password: string | null;
-
-  // Password reset token
-  @Column(STRING)
-  resetToken: string | null;
-
-  @Column(DATE)
-  resetTokenExpiresAt: Date | null;
 
   /**
    * Associations

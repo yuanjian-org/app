@@ -21,12 +21,10 @@ import mentorSelections from "./routes/mentorSelections";
 import tasks from "./routes/tasks";
 import matchFeedback from "./routes/matchFeedback";
 import globalConfigs from "./routes/globalConfigs";
-import password from "./routes/password";
 import pearlStudents from "./routes/pearlStudents";
 import idTokens from "./routes/idTokens";
 
 export const apiRouter = router({
-  password,
   users,
   groups,
   meetings,

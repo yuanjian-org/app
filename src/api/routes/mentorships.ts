@@ -34,7 +34,7 @@ import {
   oneOnOneMessagePrefix,
 } from "../../shared/ChatMessage";
 import moment from "moment";
-import { emailRole } from "../email";
+import { emailRoles } from "../email";
 import getBaseUrl from "../../shared/getBaseUrl";
 
 export const whereMentorshipIsOngoing = {
@@ -388,8 +388,11 @@ export async function auditLastMentorshipMeetings() {
     </a>
   `;
 
+  const limit = 10;
+
   const oneOnOneTooOldText = oneOnOneTooOld
     .sort((a, b) => compareDate(a.last, b.last))
+    .slice(0, limit)
     .map(
       (p) => `
         ${formatMentorship(p.mentorship)}：
@@ -400,6 +403,7 @@ export async function auditLastMentorshipMeetings() {
 
   const mentorDiscussionTooOldText = mentorDiscussionTooOld
     .sort((a, b) => compareDate(a.last, b.last))
+    .slice(0, limit)
     .map(
       (p) => `
         ${formatMentorship(p.mentorship)}：
@@ -409,17 +413,17 @@ export async function auditLastMentorshipMeetings() {
     .join("<br />");
 
   const message = `
-    <b>以下师生长期未通话，请了解情况：</b>
+    <b>以下师生长期未通话，请了解情况（仅前十名）：</b>
     <br /><br />
     ${oneOnOneTooOldText}
     <br /><br />
-    <b>以下导师长期未交流，请尽快预约交流：</b>
+    <b>以下导师长期未交流，请尽快预约交流（仅前十名）：</b>
     <br /><br />
     ${mentorDiscussionTooOldText}
   `;
 
-  await emailRole(
-    "MentorshipManager",
+  await emailRoles(
+    ["MentorshipManager", "MentorshipOperator"],
     "导师长期未通话",
     // Shrink message. Otherwise mail server may complain about message size.
     message.replace(/\n/g, "").replace(/\s+/g, " "),

@@ -153,7 +153,7 @@ export const passwordMinLength = 8;
 
 // TODO check against common passwords
 export function isValidPassword(password: string): boolean {
-  return password.length >= passwordMinLength && password.length < 100;
+  return password.length >= passwordMinLength && password.length < 80;
 }
 
 export function getColorFromText(text: string): string {

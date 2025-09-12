@@ -13,34 +13,33 @@ import {
   Link,
   InputGroupProps,
   HStack,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
+  UnorderedList,
+  ListItem,
 } from "@chakra-ui/react";
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { isValidEmail, isValidPhone, parseQueryString } from "shared/strings";
+import {
+  isValidEmail,
+  isValidPassword,
+  isValidPhone,
+  parseQueryString,
+  passwordMinLength,
+} from "shared/strings";
 import { toast } from "react-toastify";
-import trpc from "trpc";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { staticUrlPrefix } from "static";
 import { IoLogoWechat } from "react-icons/io5";
 import { SmallGrayText } from "components/SmallGrayText";
-import { headingColor } from "theme/colors";
-import ModalWithBackdrop from "components/ModalWithBackdrop";
 import invariant from "shared/invariant";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import IdTokenControls, {
-  IdTokenControlsState,
-} from "components/IdTokenControls";
+import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
+import trpc from "trpc";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -102,8 +101,8 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
       >
         <TabList>
           <Tab>微信</Tab>
-          <Tab>邮箱</Tab>
           <Tab>手机</Tab>
+          <Tab>邮箱</Tab>
         </TabList>
 
         <TabPanels>
@@ -117,10 +116,10 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
             )}
           </TabPanel>
           <TabPanel px={0}>
-            <EmailPanel />
+            <PhonePanel />
           </TabPanel>
           <TabPanel px={0}>
-            <PhonePanel />
+            <EmailPanel />
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -218,16 +217,43 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
   const callbackUrl = useCallbackUrl();
 
   const [id, setId] = useState<string>("");
+  const [reset, setReset] = useState<boolean>(false);
+  const [resetState, setResetState] = useState<IdTokenInputsState>();
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] =
-    useState<boolean>(false);
 
   const isValidInput =
-    !!password && (idType === "email" ? isValidEmail(id) : isValidPhone(id));
+    isValidPassword(password) &&
+    (reset
+      ? !!resetState?.isValid
+      : idType === "email"
+        ? isValidEmail(id)
+        : isValidPhone(id));
 
   const submit = async () => {
     setIsLoading(true);
+    try {
+      if (reset) await doReset();
+      else await doSignIn();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const doReset = async () => {
+    invariant(resetState?.isValid, "resetState is invalid");
+    await trpc.idTokens.resetPassword.mutate({
+      idType,
+      id: resetState.id,
+      token: resetState.token,
+      password,
+    });
+    setReset(false);
+    setPassword("");
+    toast.success("密码重置成功，请使用新密码登录。");
+  };
+
+  const doSignIn = async () => {
     try {
       const res = await signIn("id-password", {
         idType,
@@ -242,20 +268,31 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
       }
     } catch (err) {
       handleSignInException(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <VStack spacing={sectionSpacing} my={sectionSpacing}>
-      {idType === "email" ? (
+      {reset ? (
+        <IdTokenInputs idType={idType} onStateChange={setResetState} />
+      ) : idType === "email" ? (
         <EmailInput value={id} onChange={setId} />
       ) : (
         <PhoneInput value={id} onChange={setId} />
       )}
 
+      {reset && (
+        <SmallGrayText>
+          密码长度至少{passwordMinLength}位。强烈建议：
+          <UnorderedList>
+            <ListItem>不要重复使用其他网站或应用的密码。</ListItem>
+            <ListItem>使用密码工具生成并保存密码。不要试图记忆。</ListItem>
+          </UnorderedList>
+        </SmallGrayText>
+      )}
+
       <PasswordInput
+        placeholder={reset ? "设置密码" : "密码"}
         password={password}
         setPassword={setPassword}
         isValidInput={isValidInput}
@@ -263,14 +300,15 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
       />
 
       <HStack w="full" spacing={4}>
-        <Button
+        <Link
           w="50%"
-          color={headingColor}
-          isLoading={isLoading}
-          onClick={() => setIsPasswordResetModalOpen(true)}
+          onClick={() => {
+            setReset(!reset);
+            setPassword("");
+          }}
         >
-          注册或重置密码
-        </Button>
+          {reset ? "‹ 返回" : "注册或重置密码"}
+        </Link>
         <Button
           w="50%"
           variant="brand"
@@ -278,17 +316,9 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
           isLoading={isLoading}
           onClick={submit}
         >
-          登录
+          {reset ? "确认" : "登录"}
         </Button>
       </HStack>
-
-      {isPasswordResetModalOpen && (
-        <PasswordResetModal
-          email={id}
-          setEmail={setId}
-          close={() => setIsPasswordResetModalOpen(false)}
-        />
-      )}
     </VStack>
   );
 }
@@ -296,60 +326,6 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
 function handleSignInException(err: any) {
   const msg = `糟糕，系统错误，请联系管理员：${err}`;
   toast.error(msg);
-}
-
-function PasswordResetModal({
-  email,
-  setEmail,
-  close,
-}: {
-  email: string;
-  setEmail: (email: string) => void;
-  close: () => void;
-}) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    try {
-      invariant(isValidEmail(email), "Invalid email");
-      await trpc.password.requestReset.mutate({ email });
-      toast.success("密码链接已发至您的邮箱。请查收邮件，完成余下的步骤。");
-      close();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <ModalWithBackdrop isOpen onClose={close} isCentered>
-      <ModalContent>
-        <ModalHeader>输入邮箱，设置新密码</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <EmailInput
-            value={email}
-            onChange={setEmail}
-            submit={handleSubmit}
-            autoFocus
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={close}>
-            取消
-          </Button>
-          <Button
-            variant="brand"
-            isDisabled={!isValidEmail(email)}
-            isLoading={isLoading}
-            onClick={handleSubmit}
-          >
-            确认
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
-  );
 }
 
 export function EmailInput({
@@ -429,7 +405,7 @@ const inputIconColor = "gray.400";
 function IdTokenPanel({ idType }: { idType: IdType }) {
   const callbackUrl = useCallbackUrl();
 
-  const [state, setState] = useState<IdTokenControlsState>();
+  const [state, setState] = useState<IdTokenInputsState>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const submit = async () => {
@@ -459,7 +435,7 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
   return (
     <>
       <VStack spacing={sectionSpacing} my={sectionSpacing}>
-        <IdTokenControls idType={idType} onStateChange={setState} />
+        <IdTokenInputs idType={idType} onStateChange={setState} />
         <Button
           variant="brand"
           width="full"

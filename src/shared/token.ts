@@ -1,4 +1,3 @@
-// TODO: Merge with IdToken.ts?
 import randomNumber from "random-number-csprng";
 
 /**
