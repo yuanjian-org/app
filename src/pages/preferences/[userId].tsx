@@ -29,7 +29,7 @@ import {
   InterviewerPreference,
   MentorPreference,
   UserPreference,
-} from "shared/User";
+} from "shared/UserPreference";
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
 import { parseQueryString } from "shared/strings";

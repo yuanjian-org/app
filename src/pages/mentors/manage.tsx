@@ -22,11 +22,7 @@ import { trpcNext } from "trpc";
 import { componentSpacing, pageMarginX } from "theme/metrics";
 import Role, { isPermitted, RoleProfiles } from "shared/Role";
 import NextLink from "next/link";
-import User, {
-  defaultMentorCapacity,
-  getUserUrl,
-  MentorPreference,
-} from "shared/User";
+import User, { getUserUrl } from "shared/User";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { UserProfile } from "shared/UserProfile";
 import { fullPage } from "AppPage";
@@ -35,6 +31,7 @@ import TruncatedTextWithTooltip from "components/TruncatedTextWithTooltip";
 import ExamPassDateText from "components/ExamPassDateText";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { okTextColor, warningTextColor } from "theme/colors";
+import { defaultMentorCapacity, MentorPreference } from "shared/UserPreference";
 
 const title = "导师档案";
 

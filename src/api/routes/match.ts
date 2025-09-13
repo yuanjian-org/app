@@ -37,7 +37,8 @@ import {
   updateMentorship,
   whereMentorshipIsOngoing,
 } from "./mentorships";
-import { defaultMentorCapacity, MinUser } from "shared/User";
+import { MinUser } from "shared/User";
+import { defaultMentorCapacity } from "shared/UserPreference";
 import { loadGoogleSpreadsheet, SpreadsheetInputData } from "api/gsheets";
 import { updateGoogleSpreadsheet } from "api/gsheets";
 import { Op, Transaction } from "sequelize";
