@@ -59,17 +59,20 @@ import { LuChevronsUpDown } from "react-icons/lu";
 import { topBarPaddings } from "components/TopBar";
 import TopBar from "components/TopBar";
 import UserSelector from "components/UserSelector";
-import { mentorDiscussionMessagePrefix } from "shared/ChatMessage";
+import {
+  menteeReviewMessagePrefix,
+  mentorReviewMessagePrefix,
+} from "shared/ChatMessage";
 import { TbClockOff, TbClock } from "react-icons/tb";
 import { MenteeStatus } from "shared/MenteeStatus";
 import {
   Mentorship,
   isOngoingRelationalMentorship,
-  mentorDiscussionRedThreshold,
-  mentorDiscussionYellowThreshold,
+  reviewRedThreshold,
+  reviewYellowThreshold,
   newTransactionalMentorshipEndsAt,
-  oneOnOneMeetingRedThreshold,
-  oneOnOneMeetingYellowThreshold,
+  oneOnOneRedThreshold,
+  oneOnOneYellowThreshold,
 } from "shared/Mentorship";
 import {
   menteeAcceptanceYearField,
@@ -91,7 +94,13 @@ type Metadata = {
 
 type SetMetadata = (menteeId: string, metadata: Metadata) => void;
 
-type SortOrderKey = "year" | "source" | "name" | "mentorMeeting" | "transcript";
+type SortOrderKey =
+  | "year"
+  | "source"
+  | "name"
+  | "mentorReview"
+  | "menteeReview"
+  | "transcript";
 type SortOrderDir = "asc" | "desc";
 
 type SortOrder = {
@@ -173,11 +182,12 @@ function MenteeTable({
     }));
   }, []);
 
-  const [mentee2lastMentorMeetingDate, setMentee2lastMentorMeetingDate] =
-    useState<Record<string, string>>({});
-  const setLastMentorMeetingDate = useCallback(
+  const [mentee2mentorReview, setMentee2mentorReview] = useState<
+    Record<string, string>
+  >({});
+  const setLastMentorReviewDate = useCallback(
     (userId: string, date: string) => {
-      setMentee2lastMentorMeetingDate((current) => ({
+      setMentee2mentorReview((current) => ({
         ...current,
         [userId]: date,
       }));
@@ -185,12 +195,25 @@ function MenteeTable({
     [],
   );
 
-  const [mentee2lastTranscriptDate, setMentee2lastTranscriptDate] = useState<
+  const [mentee2menteeReview, setMentee2menteeReview] = useState<
+    Record<string, string>
+  >({});
+  const setLastMenteeReviewDate = useCallback(
+    (userId: string, date: string) => {
+      setMentee2menteeReview((current) => ({
+        ...current,
+        [userId]: date,
+      }));
+    },
+    [],
+  );
+
+  const [mentee2lastMeeting, setMentee2lastMeeting] = useState<
     Record<string, string>
   >({});
   const setLastMeetingStartedAt = useCallback(
     (userId: string, date: string) => {
-      setMentee2lastTranscriptDate((current) => ({
+      setMentee2lastMeeting((current) => ({
         ...current,
         [userId]: date,
       }));
@@ -243,18 +266,26 @@ function MenteeTable({
             if (comp !== 0) return sign * comp;
             break;
 
-          case "mentorMeeting":
+          case "mentorReview":
             comp = compareDate(
-              mentee2lastMentorMeetingDate[a.id],
-              mentee2lastMentorMeetingDate[b.id],
+              mentee2mentorReview[a.id],
+              mentee2mentorReview[b.id],
+            );
+            if (comp !== 0) return sign * comp;
+            break;
+
+          case "menteeReview":
+            comp = compareDate(
+              mentee2menteeReview[a.id],
+              mentee2menteeReview[b.id],
             );
             if (comp !== 0) return sign * comp;
             break;
 
           case "transcript":
             comp = compareDate(
-              mentee2lastTranscriptDate[a.id],
-              mentee2lastTranscriptDate[b.id],
+              mentee2lastMeeting[a.id],
+              mentee2lastMeeting[b.id],
             );
             if (comp !== 0) return sign * comp;
             break;
@@ -264,8 +295,9 @@ function MenteeTable({
       return a.id.localeCompare(b.id);
     },
     [
-      mentee2lastMentorMeetingDate,
-      mentee2lastTranscriptDate,
+      mentee2mentorReview,
+      mentee2menteeReview,
+      mentee2lastMeeting,
       mentee2meta,
       sortOrder,
     ],
@@ -293,19 +325,29 @@ function MenteeTable({
             </>
           )}
 
-          <MentorshipHeaderCells
+          <Th>导师</Th>
+          <SortableHeaderCell
+            label="最近一对一"
+            sortOrderKey="transcript"
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
           <SortableHeaderCell
-            label="最近导师交流"
-            sortOrderKey="mentorMeeting"
+            label="最近学生访谈"
+            sortOrderKey="menteeReview"
+            sortOrder={sortOrder}
+            addSortOrder={addSortOrder}
+          />
+          <SortableHeaderCell
+            label="最近导师访谈"
+            sortOrderKey="mentorReview"
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
           <Th>拼音（便于查找）</Th>
         </Tr>
       </Thead>
+
       <Tbody>
         {sortedUsers.map((u) => (
           <MenteeRow
@@ -313,7 +355,8 @@ function MenteeTable({
             user={u}
             refetch={refetch}
             setMetadata={setMetadata}
-            setLastMentorMeetingDate={setLastMentorMeetingDate}
+            setLastMenteeReviewDate={setLastMenteeReviewDate}
+            setLastMentorReviewDate={setLastMentorReviewDate}
             setLastMeetingStartedAt={setLastMeetingStartedAt}
             showMatchState={showMatchState}
           />
@@ -363,14 +406,16 @@ function MenteeRow({
   user: u,
   refetch,
   setMetadata,
-  setLastMentorMeetingDate,
+  setLastMenteeReviewDate,
+  setLastMentorReviewDate,
   setLastMeetingStartedAt,
   showMatchState,
 }: {
   user: User;
   refetch: () => void;
   setMetadata: SetMetadata;
-  setLastMentorMeetingDate: (userId: string, date: string) => void;
+  setLastMenteeReviewDate: (userId: string, date: string) => void;
+  setLastMentorReviewDate: (userId: string, date: string) => void;
   setLastMeetingStartedAt: (userId: string, date: string) => void;
   showMatchState: boolean;
 }) {
@@ -412,9 +457,15 @@ function MenteeRow({
         addPinyin={addPinyin}
         setLastMeetingStartedAt={setLastMeetingStartedAt}
       />
-      <LastMentorMeetingDateCell
+      <LastReviewDateCell
         menteeId={u.id}
-        setData={setLastMentorMeetingDate}
+        prefix={menteeReviewMessagePrefix}
+        setData={setLastMenteeReviewDate}
+      />
+      <LastReviewDateCell
+        menteeId={u.id}
+        prefix={mentorReviewMessagePrefix}
+        setData={setLastMentorReviewDate}
       />
       <Td>{pinyin}</Td>
     </Tr>
@@ -539,26 +590,6 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
   );
 }
 
-function MentorshipHeaderCells({
-  sortOrder,
-  addSortOrder,
-}: {
-  sortOrder: SortOrder;
-  addSortOrder: (key: SortOrderKey, dir: SortOrderDir) => void;
-}) {
-  return (
-    <>
-      <Th>导师</Th>
-      <SortableHeaderCell
-        label="最近一对一通话或笔记"
-        sortOrderKey="transcript"
-        sortOrder={sortOrder}
-        addSortOrder={addSortOrder}
-      />
-    </>
-  );
-}
-
 export function MentorshipCells({
   mentee,
   addPinyin,
@@ -643,8 +674,8 @@ function LoadedMentorsCells({
   const transcriptTextAndColors = lastMeetingsData.map((t) =>
     getDateTextAndColor(
       t,
-      oneOnOneMeetingYellowThreshold,
-      oneOnOneMeetingRedThreshold,
+      oneOnOneYellowThreshold,
+      oneOnOneRedThreshold,
       "尚未通话",
     ),
   );
@@ -707,16 +738,18 @@ function LoadedMentorsCells({
   );
 }
 
-function LastMentorMeetingDateCell({
+function LastReviewDateCell({
   menteeId,
+  prefix,
   setData,
 }: {
   menteeId: string;
+  prefix: typeof menteeReviewMessagePrefix | typeof mentorReviewMessagePrefix;
   setData?: (userId: string, date: string) => void;
 }) {
   const { data: date } = trpcNext.chat.getLastMessageCreatedAt.useQuery({
     menteeId,
-    prefix: mentorDiscussionMessagePrefix,
+    prefix,
   });
 
   useEffect(() => {
@@ -725,9 +758,9 @@ function LastMentorMeetingDateCell({
 
   const textAndColor = getDateTextAndColor(
     date,
-    mentorDiscussionYellowThreshold,
-    mentorDiscussionRedThreshold,
-    "尚未交流",
+    reviewYellowThreshold,
+    reviewRedThreshold,
+    "尚未访谈",
   );
   return <Td color={textAndColor[1]}>{textAndColor[0]}</Td>;
 }
