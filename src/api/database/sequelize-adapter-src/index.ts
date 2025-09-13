@@ -195,6 +195,7 @@ export default function SequelizeAdapter(
 
   return {
     async createUser(user) {
+      console.log(">>> createUser", user)
       await sync()
 
       return await User.create(user)
