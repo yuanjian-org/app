@@ -2,7 +2,7 @@
  * See docs/WeChat.md for details.
  */
 import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
-import invariant from "shared/invariant";
+import invariant from "../../../shared/invariant";
 
 /**
  * See docs/WeChat.md for unionid vs openid
