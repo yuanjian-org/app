@@ -19,7 +19,8 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import {
   ChatMessage,
-  mentorDiscussionMessagePrefix,
+  menteeReviewMessagePrefix,
+  mentorReviewMessagePrefix,
   oneOnOneMessagePrefix,
   transactionalMessagePrefix,
 } from "shared/ChatMessage";
@@ -264,9 +265,10 @@ function Editor({
   const prefixes = [
     oneOnOneMessagePrefix,
     transactionalMessagePrefix,
-    "【分享会】",
+    menteeReviewMessagePrefix,
+    mentorReviewMessagePrefix,
     "【读书会】",
-    mentorDiscussionMessagePrefix,
+    "【分享会】",
     "【情况报备】",
   ];
 

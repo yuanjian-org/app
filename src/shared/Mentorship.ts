@@ -80,7 +80,7 @@ export function formatMentorshipSchedule(s: MentorshipSchedule) {
   );
 }
 
-export const oneOnOneMeetingYellowThreshold = 45;
-export const oneOnOneMeetingRedThreshold = 60;
-export const mentorDiscussionYellowThreshold = 60;
-export const mentorDiscussionRedThreshold = 90;
+export const oneOnOneYellowThreshold = 45;
+export const oneOnOneRedThreshold = 60;
+export const reviewYellowThreshold = 60;
+export const reviewRedThreshold = 90;

@@ -3,9 +3,9 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import {
   isEndedTransactionalMentorship,
-  mentorDiscussionYellowThreshold,
+  reviewYellowThreshold,
   Mentorship,
-  oneOnOneMeetingYellowThreshold,
+  oneOnOneYellowThreshold,
   zMentorship,
   zMentorshipSchedule,
 } from "../../shared/Mentorship";
@@ -30,7 +30,7 @@ import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import { getLastMessageCreatedAtImpl } from "./chats";
 import { compareDate, formatUserName } from "../../shared/strings";
 import {
-  mentorDiscussionMessagePrefix,
+  mentorReviewMessagePrefix,
   oneOnOneMessagePrefix,
 } from "../../shared/ChatMessage";
 import moment from "moment";
@@ -355,20 +355,20 @@ export async function auditLastMentorshipMeetings() {
 
       if (
         last1v1 === null ||
-        moment().diff(last1v1, "days") > oneOnOneMeetingYellowThreshold
+        moment().diff(last1v1, "days") > oneOnOneYellowThreshold
       ) {
         oneOnOneTooOld.push({ mentorship: m, last: last1v1 });
       }
 
       const lastDiscussion = await getLastMessageCreatedAtImpl(
         m.mentee.id,
-        mentorDiscussionMessagePrefix,
+        mentorReviewMessagePrefix,
         transaction,
       );
 
       if (
         lastDiscussion === null ||
-        moment().diff(lastDiscussion, "days") > mentorDiscussionYellowThreshold
+        moment().diff(lastDiscussion, "days") > reviewYellowThreshold
       ) {
         mentorDiscussionTooOld.push({ mentorship: m, last: lastDiscussion });
       }
@@ -407,7 +407,7 @@ export async function auditLastMentorshipMeetings() {
     .map(
       (p) => `
         ${formatMentorship(p.mentorship)}：
-        ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未交流"}
+        ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未访谈"}
       `,
     )
     .join("<br />");
