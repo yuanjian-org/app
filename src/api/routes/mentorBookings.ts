@@ -9,13 +9,13 @@ import {
   mentorBookingInclude,
 } from "../database/models/attributesAndIncludes";
 import sequelize from "../database/sequelize";
-import { emailRoles } from "../email";
 import { findOrCreateRoom } from "./chatsInternal";
 import { createMessageAndScheduleEmail } from "./chats";
 import { transactionalMessagePrefix } from "../../shared/ChatMessage";
 import { formatUserName } from "../../shared/strings";
 import { Transaction } from "sequelize";
 import User from "../../shared/User";
+import { notifyRoles } from "api/notify";
 
 const create = procedure
   .use(authUser())
@@ -74,11 +74,11 @@ export async function createMentorBooking(
     transaction,
   );
 
-  await emailRoles(
+  await notifyRoles(
     ["MentorshipManager", "MentorshipOperator"],
     "不定期导师预约请求",
     `请访问 ${baseUrl}/mentors/bookings 查看详情，并尽快为学生安排沟通`,
-    baseUrl,
+    transaction,
   );
 }
 

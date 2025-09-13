@@ -1,7 +1,12 @@
+import { isProd } from "shared/isProd";
+
 let fundebug: any = null;
 
-// Initialize Fundebug also in development mode to ensure it the module loads.
-if (typeof window !== "undefined") {
+export function isFundebugEnabled() {
+  return typeof window !== "undefined" && isProd();
+}
+
+if (isFundebugEnabled()) {
   void import("fundebug-javascript").then((module) => {
     fundebug = module.default;
     initFundebug();
@@ -11,17 +16,12 @@ if (typeof window !== "undefined") {
 export default fundebug;
 
 export function initFundebug(userId?: string) {
+  if (!isFundebugEnabled()) return;
   fundebug.init({
     apikey: "724912ab5a0339527a4745dbb8c0192e0e5dfbf82ae6c324a5f31ea8554ae98e",
     releasestage: process.env.NODE_ENV,
     user: { name: userId ?? "(not logged in)", email: "" },
   });
-}
-
-export function isFundebugEnabled() {
-  return (
-    typeof window !== "undefined" && process.env.NODE_ENV !== "development"
-  );
 }
 /**
  * Manually report an error to Fundebug

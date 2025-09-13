@@ -34,8 +34,8 @@ import {
   oneOnOneMessagePrefix,
 } from "../../shared/ChatMessage";
 import moment from "moment";
-import { emailRoles } from "../email";
 import getBaseUrl from "../../shared/getBaseUrl";
+import { notifyRoles } from "api/notify";
 
 export const whereMentorshipIsOngoing = {
   [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
@@ -336,7 +336,7 @@ export async function auditLastMentorshipMeetings() {
   };
 
   const oneOnOneTooOld: Pair[] = [];
-  const mentorDiscussionTooOld: Pair[] = [];
+  const mentorReviewTooOld: Pair[] = [];
 
   await sequelize.transaction(async (transaction) => {
     // List all ongoing relational mentorships.
@@ -360,75 +360,75 @@ export async function auditLastMentorshipMeetings() {
         oneOnOneTooOld.push({ mentorship: m, last: last1v1 });
       }
 
-      const lastDiscussion = await getLastMessageCreatedAtImpl(
+      const lastMentorReview = await getLastMessageCreatedAtImpl(
         m.mentee.id,
         mentorReviewMessagePrefix,
         transaction,
       );
 
       if (
-        lastDiscussion === null ||
-        moment().diff(lastDiscussion, "days") > reviewYellowThreshold
+        lastMentorReview === null ||
+        moment().diff(lastMentorReview, "days") > reviewYellowThreshold
       ) {
-        mentorDiscussionTooOld.push({ mentorship: m, last: lastDiscussion });
+        mentorReviewTooOld.push({ mentorship: m, last: lastMentorReview });
       }
     }
+
+    if (oneOnOneTooOld.length === 0 && mentorReviewTooOld.length === 0) {
+      console.log("auditLastMentorshipMeetings found no violations");
+      return;
+    }
+
+    const formatMentorship = (m: Mentorship) => `
+      <a href="${getBaseUrl()}/mentees/${m.mentee.id}">
+        ${formatUserName(m.mentor.name)} 
+        =>
+        ${formatUserName(m.mentee.name)} 
+      </a>
+    `;
+
+    const limit = 10;
+
+    const oneOnOneTooOldText = oneOnOneTooOld
+      .sort((a, b) => compareDate(a.last, b.last))
+      .slice(0, limit)
+      .map(
+        (p) => `
+          ${formatMentorship(p.mentorship)}：
+          ${p.last ? moment().diff(p.last, "days") + " 天前通话" : "尚未通话"}
+        `,
+      )
+      .join("<br />");
+
+    const mentorReviewTooOldText = mentorReviewTooOld
+      .sort((a, b) => compareDate(a.last, b.last))
+      .slice(0, limit)
+      .map(
+        (p) => `
+          ${formatMentorship(p.mentorship)}：
+          ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未访谈"}
+        `,
+      )
+      .join("<br />");
+
+    const message = `
+      <b>以下师生长期未通话，请了解情况（仅显示十名）：</b>
+      <br /><br />
+      ${oneOnOneTooOldText}
+      <br /><br />
+      <b>以下导师长期未交流，请尽快预约交流（仅显示十名）：</b>
+      <br /><br />
+      ${mentorReviewTooOldText}
+    `;
+
+    await notifyRoles(
+      ["MentorshipManager", "MentorshipOperator"],
+      "师生长期未通话提醒",
+      // Shrink message. Otherwise mail server may complain about message size.
+      message.replace(/\n/g, "").replace(/\s+/g, " "),
+      transaction,
+    );
   });
-
-  if (oneOnOneTooOld.length === 0 && mentorDiscussionTooOld.length === 0) {
-    console.log("auditLastMentorshipMeetings found no violations");
-    return;
-  }
-
-  const formatMentorship = (m: Mentorship) => `
-    <a href="${getBaseUrl()}/mentees/${m.mentee.id}">
-      ${formatUserName(m.mentor.name)} 
-      =>
-      ${formatUserName(m.mentee.name)} 
-    </a>
-  `;
-
-  const limit = 10;
-
-  const oneOnOneTooOldText = oneOnOneTooOld
-    .sort((a, b) => compareDate(a.last, b.last))
-    .slice(0, limit)
-    .map(
-      (p) => `
-        ${formatMentorship(p.mentorship)}：
-        ${p.last ? moment().diff(p.last, "days") + " 天前通话" : "尚未通话"}
-      `,
-    )
-    .join("<br />");
-
-  const mentorDiscussionTooOldText = mentorDiscussionTooOld
-    .sort((a, b) => compareDate(a.last, b.last))
-    .slice(0, limit)
-    .map(
-      (p) => `
-        ${formatMentorship(p.mentorship)}：
-        ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未访谈"}
-      `,
-    )
-    .join("<br />");
-
-  const message = `
-    <b>以下师生长期未通话，请了解情况（仅前十名）：</b>
-    <br /><br />
-    ${oneOnOneTooOldText}
-    <br /><br />
-    <b>以下导师长期未交流，请尽快预约交流（仅前十名）：</b>
-    <br /><br />
-    ${mentorDiscussionTooOldText}
-  `;
-
-  await emailRoles(
-    ["MentorshipManager", "MentorshipOperator"],
-    "导师长期未通话",
-    // Shrink message. Otherwise mail server may complain about message size.
-    message.replace(/\n/g, "").replace(/\s+/g, " "),
-    getBaseUrl(),
-  );
 }
 
 export default router({

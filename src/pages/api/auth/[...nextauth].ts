@@ -2,7 +2,6 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import SequelizeAdapter from "../../../api/database/sequelize-adapter-src";
 import sequelize from "../../../api/database/sequelize";
 import db from "../../../api/database/db";
-import { emailRoleIgnoreError } from "../../../api/email";
 import {
   userAttributes,
   userInclude,
@@ -114,7 +113,6 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
             });
             if (!u) {
               u = await db.User.create({ [idField]: id }, { transaction });
-              emailRoleIgnoreError("UserManager", "新用户注册", id, "");
             }
             return u;
           });

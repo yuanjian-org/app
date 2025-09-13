@@ -1,11 +1,12 @@
+/**
+ * Low-level API for sending transactional SMS. Use higher level API notify*()
+ * when possible.
+ */
 import z from "zod";
 import axios from "axios";
 import { internalServerError } from "./errors";
 import { chinaPhonePrefix } from "../shared/strings";
 
-/**
- * Send SMS messages via Submail.com
- */
 export async function sms(
   domesticTemplateId: string,
   internationalTemplateId: string,

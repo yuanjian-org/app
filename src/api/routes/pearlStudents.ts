@@ -7,13 +7,12 @@ import { authUser } from "../auth";
 import { generalBadRequestError } from "../errors";
 import { MenteeStatus } from "../../shared/MenteeStatus";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
-import { emailRoleIgnoreError } from "../../api/email";
-import getBaseUrl from "../../shared/getBaseUrl";
 import { toPinyin } from "../../shared/strings";
 import invariant from "../../shared/invariant";
 import { menteeSourceField } from "../../shared/applicationFields";
 import { Transaction } from "sequelize";
 import User from "../../shared/User";
+import { notifyRolesIgnoreError } from "api/notify";
 
 const validate = procedure
   .use(authUser())
@@ -58,22 +57,20 @@ export async function validatePearlStudent(
   });
 
   if (!student) {
-    emailRoleIgnoreError(
-      "UserManager",
+    notifyRolesIgnoreError(
+      ["UserManager"],
       "珍珠生验证失败",
       `用户 ${me.id} 认证珍珠生失败："${name}"、"${pearlId}"、"${nationalIdLastFour}"`,
-      getBaseUrl(),
     );
 
     throw generalBadRequestError("珍珠生信息不匹配。");
   }
 
   if (student.userId) {
-    emailRoleIgnoreError(
-      "UserManager",
+    notifyRolesIgnoreError(
+      ["UserManager"],
       "珍珠生重复验证",
       `用户 ${me.id} （${name}）试图用已被验证的珍珠生号 ${pearlId} 进行验证。请联系学生管理员。`,
-      getBaseUrl(),
     );
 
     throw generalBadRequestError(

@@ -6,7 +6,6 @@ import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
 import apiEnv from "api/apiEnv";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
-import { emailRole, emailRoleIgnoreError } from "api/email";
 import sequelize from "api/database/sequelize";
 import { checkPermissionForGroup } from "./groups";
 import {
@@ -18,7 +17,7 @@ import moment from "moment";
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
-import getBaseUrl from "shared/getBaseUrl";
+import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
 
 export const gracePeriodMinutes = 5;
 
@@ -98,11 +97,10 @@ const join = procedure
             会议进行中的分组：` +
               slots.map((s) => `${baseUrl}/groups/${s.groupId}`).join("、");
 
-            emailRoleIgnoreError(
-              "SystemAlertSubscriber",
+            notifyRolesIgnoreError(
+              ["SystemAlertSubscriber"],
               "超过并发会议上限",
               content,
-              baseUrl,
             );
             return null;
           }
@@ -114,17 +112,17 @@ const join = procedure
 /**
  * Decline the meeting feature.
  */
-const decline = procedure
-  .use(authUser())
-  .mutation(async ({ ctx: { me, baseUrl } }) => {
-    await emailRole(
-      "MentorshipManager",
+const decline = procedure.use(authUser()).mutation(async ({ ctx: { me } }) => {
+  await sequelize.transaction(async (transaction) => {
+    await notifyRoles(
+      ["MentorshipManager"],
       "用户拒绝使用会议功能",
       `${formatUserName(me.name)}（用户ID: ${me.id}）拒绝使用会议功能。请与其取得联系，
-    商量解决方案。`,
-      baseUrl,
+      商量解决方案。`,
+      transaction,
     );
   });
+});
 
 export default router({
   join,
@@ -297,11 +295,10 @@ async function create(tmUserId: string) {
     };
   } catch (e) {
     if (!`${e}`.includes("每月总接口调用次数超过限制")) {
-      emailRoleIgnoreError(
-        "SystemAlertSubscriber",
+      notifyRolesIgnoreError(
+        ["SystemAlertSubscriber"],
         "会议创建失败",
-        `会议创建失败：${e}`,
-        getBaseUrl(),
+        `错误：${e}`,
       );
     }
     throw e;
