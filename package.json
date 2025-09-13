@@ -67,8 +67,9 @@
   },
   "scripts": {
     "migrate-db": "ts-node --require tsconfig-paths/register tools/migrateDatabase.ts",
-    "gen-demo-data": "ts-node tools/generateDemoData.ts",
+    "gen-demo-data": "ts-node --require tsconfig-paths/register tools/generateDemoData.ts",
     "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register 'src/**/*.test.ts' --recursive",
+    "test:file": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

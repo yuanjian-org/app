@@ -71,7 +71,8 @@ NEXTAUTH_SECRET=your-secret-here
 ```
 
 ### Commands
-- `yarn test` - Run unit tests
+- `yarn test` - Run all unit tests
+- `yarn test:file` - Run specific unit test file
 - `yarn prepare` - Setup project and Git hooks
 - `yarn cypress-open` - Interactive E2E testing
 - `yarn cypress-run` - Background E2E tests
@@ -131,6 +132,13 @@ The project includes a sophisticated mentor-mentee matching system:
 - **Integration Tests**: API endpoints and database operations
 - **E2E Tests**: Complete user workflows with Cypress
 - **Manual Testing**: Role-based scenarios and edge cases
+
+### How to Write Unit Tests
+- **Running Unit Tests**: Use `yarn test:file` to run a single test file. Use `yarn test` to run all tests.
+- **Mocking**: Always use real database and objects. Do not use mocks.
+- **Simplicity**: Prioritize simple test constructs. The simpler the better.
+- **Number of test cases**: Generate a small number of test cases. Focus only on the basic functionality and essential corner cases.
+- **Errors**: Fix all build and linting errors.
 
 ## Database Architecture
 

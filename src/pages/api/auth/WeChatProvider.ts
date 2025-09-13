@@ -27,8 +27,11 @@ export const fakeEmailDomain = "@f.ml";
  * `wechatAdapter.getUserByEmail`, but UnionID is case sensitive. So we encode
  * cases using plus signs.
  */
-function unionId2Email(unionid: string): string {
-  invariant(!unionid.includes("+"), `unionid "${unionid}" contains '+'`);
+export function unionId2Email(unionid: string): string {
+  if (!unionid || unionid.includes("+")) {
+    console.error(`unionid "${unionid}" is invalid`);
+    throw new Error(`尚未支持的微信账号ID格式`);
+  }
   return unionid.replace(/[A-Z]/g, "+$&") + fakeEmailDomain;
 }
 
