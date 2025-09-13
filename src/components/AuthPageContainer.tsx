@@ -6,6 +6,7 @@ import { PropsWithChildren } from "react";
 import Footer from "./Footer";
 import NextLink from "next/link";
 import { staticUrlPrefix } from "static";
+import { breakpoint } from "theme/metrics";
 
 export default function AuthPageContainer({ children }: PropsWithChildren) {
   return (
@@ -13,8 +14,8 @@ export default function AuthPageContainer({ children }: PropsWithChildren) {
       <VStack
         align="left"
         spacing={componentSpacing}
-        width={350}
-        marginTop={40}
+        w={350}
+        mt={{ base: 10, [breakpoint]: 40 }}
       >
         <NextLink href={staticUrlPrefix}>
           <Image alt="图标" width={60} src={yuanjianLogo80x80} />

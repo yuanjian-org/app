@@ -47,7 +47,7 @@ export function loginUrl(callbackUrl?: string) {
 
 const callbackUrlKey = "callbackUrl";
 
-export function callbackUrlParam(url: string | undefined) {
+function callbackUrlParam(url: string | undefined) {
   return url ? `${callbackUrlKey}=${encodeURIComponent(url)}` : "";
 }
 

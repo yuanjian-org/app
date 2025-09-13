@@ -52,7 +52,7 @@ export default function PhoneInput({
   onChange: (value: string) => void;
 }) {
   const [country, setCountry] = useState<CountryAreaCode>();
-  const [number, setNumber] = useState<string>();
+  const [number, setNumber] = useState<string>("");
   const list = useMemo(() => getCountryAreaCodes(), []);
 
   useEffect(() => {
@@ -99,11 +99,8 @@ export default function PhoneInput({
           </HStack>
         </MenuButton>
         <MenuList maxHeight="100px" overflowY="auto">
-          {list.map((country) => (
-            <MenuItem
-              key={`${country.name}-${country.code}`}
-              onClick={() => changeCountry(country)}
-            >
+          {list.map((country, index) => (
+            <MenuItem key={`${index}`} onClick={() => changeCountry(country)}>
               <HStack w="full">
                 <Text flex={1}>
                   {country.flag} {country.name}
