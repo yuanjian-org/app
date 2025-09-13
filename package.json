@@ -75,7 +75,7 @@
     "lint": "next lint",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node tools/migrateDatabase.ts; fi"
+    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node --require tsconfig-paths/register tools/migrateDatabase.ts; fi"
   },
   "browserslist": {
     "production": [
