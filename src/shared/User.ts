@@ -1,8 +1,6 @@
 import { z } from "zod";
 import Role, { isPermitted, zRoles } from "./Role";
 import { MenteeStatus, zMenteeStatus } from "./MenteeStatus";
-import { zDateColumn } from "./DateColumn";
-import { zTraitsPreference } from "./Traits";
 
 export const zMinUser = z.object({
   id: z.string(),
@@ -41,45 +39,6 @@ export const zUserWithMergeInfo = zUser.merge(
   }),
 );
 export type UserWithMergeInfo = z.TypeOf<typeof zUserWithMergeInfo>;
-
-export const zUserFilter = z.object({
-  matchesNameOrEmail: z.string().optional(),
-  containsRoles: zRoles.optional(),
-  menteeStatus: zMenteeStatus.nullable().optional(),
-  pointOfContactId: z.string().optional(),
-
-  includeNonVolunteers: z.boolean().optional(),
-  includeMerged: z.boolean().optional(),
-
-  returnMergeInfo: z.boolean().optional(),
-});
-export type UserFilter = z.TypeOf<typeof zUserFilter>;
-
-export const zMentorPreference = z.object({
-  最多匹配学生: z.number().optional(),
-  不参加就业辅导: z.boolean().optional(),
-  学生特质: zTraitsPreference.optional(),
-});
-export type MentorPreference = z.TypeOf<typeof zMentorPreference>;
-
-export const defaultMentorCapacity = 2;
-
-export const zInterviewerPreference = z.object({
-  optIn: z.boolean().optional(),
-  limit: z
-    .object({
-      noMoreThan: z.number(),
-      until: zDateColumn,
-    })
-    .optional(),
-});
-export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
-
-export const zUserPreference = z.object({
-  interviewer: zInterviewerPreference.optional(),
-  mentor: zMentorPreference.optional(),
-});
-export type UserPreference = z.TypeOf<typeof zUserPreference>;
 
 export function isAcceptedMentee(
   roles: Role[],

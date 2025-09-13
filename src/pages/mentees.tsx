@@ -29,7 +29,8 @@ import {
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import trpc, { trpcNext } from "../trpc";
-import User, { MinUser, UserFilter } from "shared/User";
+import User, { MinUser } from "shared/User";
+import { UserFilter } from "shared/UserFilter";
 import {
   compareChinese,
   compareDate,

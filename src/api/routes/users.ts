@@ -10,15 +10,17 @@ import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { authUser } from "../auth";
 import User, {
-  defaultMentorCapacity,
   isAcceptedMentee,
-  zMentorPreference,
   zMinUser,
   zUser,
-  zUserFilter,
-  zUserPreference,
   zUserWithMergeInfo,
 } from "../../shared/User";
+import { zUserFilter } from "../../shared/UserFilter";
+import {
+  defaultMentorCapacity,
+  zMentorPreference,
+  zUserPreference,
+} from "../../shared/UserPreference";
 import {
   compareChinese,
   formatUserName,

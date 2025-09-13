@@ -29,7 +29,8 @@ import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
 import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
 import { isPermittedtoAccessMentee } from "./users";
-import User, { zInterviewerPreference, zUser } from "../../shared/User";
+import User, { zUser } from "../../shared/User";
+import { zInterviewerPreference } from "../../shared/UserPreference";
 import { zUserProfile } from "../../shared/UserProfile";
 import { Op, Transaction } from "sequelize";
 import {

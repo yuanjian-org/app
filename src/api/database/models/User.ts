@@ -32,7 +32,10 @@ import Interview from "./Interview";
 import GroupUser from "./GroupUser";
 import Mentorship from "./Mentorship";
 import { MenteeStatus, zMenteeStatus } from "../../../shared/MenteeStatus";
-import { UserPreference, zUserPreference } from "../../../shared/User";
+import {
+  UserPreference,
+  zUserPreference,
+} from "../../../shared/UserPreference";
 import { UserProfile, zUserProfile } from "../../../shared/UserProfile";
 import { zUserState, UserState } from "../../../shared/UserState";
 

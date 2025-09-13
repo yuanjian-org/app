@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { UserFilter } from "shared/User";
+import { UserFilter } from "shared/UserFilter";
 import { Wrap, WrapItem } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import _ from "lodash";
