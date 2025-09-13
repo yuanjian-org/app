@@ -41,34 +41,6 @@ async function purgeOldData() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = 'users' 
-        AND column_name = 'resetToken'
-      ) THEN
-        ALTER TABLE "users" DROP COLUMN "resetToken";
-      END IF;
-    END $$;
-  `);
-
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = 'users' 
-        AND column_name = 'resetTokenExpiresAt'
-      ) THEN
-        ALTER TABLE "users" DROP COLUMN "resetTokenExpiresAt";
-      END IF;
-    END $$;
-  `);
-
   await Promise.resolve();
 }
 
