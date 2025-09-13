@@ -20,6 +20,8 @@ import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import { loginUrl } from "./auth/login";
 import getBaseUrl from "shared/getBaseUrl";
+import ErrorBoundary from "fundebug/ErrorBoundary";
+import "fundebug"; // Initialize Fundebug
 
 function App({
   Component,
@@ -68,29 +70,31 @@ function App({
         <meta name="theme-color" content="#000000" />
       </Head>
 
-      {isStaticPage(router.route) ? (
-        <StaticPageContainer>
-          <Component {...pageProps} />
-        </StaticPageContainer>
-      ) : (
-        <SessionProvider session={session}>
-          <SwitchBoard pageType={Component.type}>
+      <ErrorBoundary>
+        {isStaticPage(router.route) ? (
+          <StaticPageContainer>
             <Component {...pageProps} />
-            <ToastContainer
-              position="bottom-center"
-              autoClose={5000}
-              hideProgressBar
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-          </SwitchBoard>
-        </SessionProvider>
-      )}
+          </StaticPageContainer>
+        ) : (
+          <SessionProvider session={session}>
+            <SwitchBoard pageType={Component.type}>
+              <Component {...pageProps} />
+              <ToastContainer
+                position="bottom-center"
+                autoClose={5000}
+                hideProgressBar
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+              />
+            </SwitchBoard>
+          </SessionProvider>
+        )}
+      </ErrorBoundary>
     </ChakraProvider>
   );
 }

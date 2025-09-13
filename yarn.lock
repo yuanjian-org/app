@@ -251,6 +251,11 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
 
+"@bugsnag/safe-json-stringify@^6.0.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@bugsnag/safe-json-stringify/-/safe-json-stringify-6.1.0.tgz#b5d1659134704210a1e8fcecdc66ea2f52ce2a6d"
+  integrity sha512-ImA35rnM7bGr+J30R979FQ95BhRB4UO1KfJA0J2sVqc8nwnrS9hhE5mkTmQWMs8Vh1Da+hkLKs5jJB4JjNZp4A==
+
 "@chakra-ui/accordion@2.2.0":
   version "2.2.0"
   resolved "https://registry.npmjs.org/@chakra-ui/accordion/-/accordion-2.2.0.tgz"
@@ -4609,6 +4614,13 @@ functions-have-names@^1.2.3:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
+
+fundebug-javascript@^2.8.8:
+  version "2.8.8"
+  resolved "https://registry.yarnpkg.com/fundebug-javascript/-/fundebug-javascript-2.8.8.tgz#08b5ff0f305552c42a5201223f9584d4babcf04b"
+  integrity sha512-7F8usYnRfwIkYHDC2RGAyXQ/muE3+NRLjT9CxXUQH6JUSjewRPVqj9Eb7/McTc4ZtAGAdMlLk08vYK04uNyEEQ==
+  dependencies:
+    "@bugsnag/safe-json-stringify" "^6.0.0"
 
 gaxios@^6.0.0, gaxios@^6.1.1:
   version "6.7.1"
