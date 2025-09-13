@@ -235,11 +235,6 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         return session;
       },
     },
-
-    events: {
-      createUser: () =>
-        emailRoleIgnoreError("UserManager", "新微信用户注册", "", ""),
-    },
   };
 }
 
