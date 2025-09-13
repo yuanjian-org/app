@@ -12,7 +12,7 @@ import User from "../../../api/database/models/User";
 import { LRUCache } from "lru-cache";
 import { isPermitted } from "../../../shared/Role";
 import { noPermissionError } from "../../../api/errors";
-import WeChatProvider from "./WeChatProvider";
+import WeChatProvider, { email2UnionId } from "./WeChatProvider";
 import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcryptjs";
 import { checkAndDeleteIdToken } from "../../../api/checkAndDeleteIdToken";
@@ -33,14 +33,33 @@ export type ImpersonationRequest = {
 
 const impersonateTokenKey = "imp";
 
-export const adapter = SequelizeAdapter(sequelize, {
-  // `as any` is because SequelizeAdapter requires user.email to be non-nullable
-  models: { User: db.User as any },
-});
+export const wechatAdapter = {
+  ...SequelizeAdapter(sequelize, {
+    // `as any` is because SequelizeAdapter requires user.email to be non-nullable
+    models: { User: db.User as any },
+  }),
+
+  // Do not use the default `createUser` because we need to throw away the email.
+  async createUser({ wechatUnionId }: { wechatUnionId: string }) {
+    console.log("wechatAdapter.createUser():", wechatUnionId);
+    return await db.User.create({ wechatUnionId });
+  },
+
+  async getUserByEmail(email: string) {
+    const wechatUnionId = email2UnionId(email);
+    console.log(`wechatAdapter.getUserByEmail(): ${wechatUnionId}`);
+    return await db.User.findOne({
+      where: { wechatUnionId },
+      attributes: userAttributes,
+      include: userInclude,
+    });
+  },
+};
 
 export function authOptions(req?: NextApiRequest): NextAuthOptions {
   return {
-    adapter,
+    // @ts-expect-error
+    adapter: wechatAdapter,
 
     session: {
       strategy: "jwt",
