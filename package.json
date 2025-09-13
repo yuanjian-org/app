@@ -66,9 +66,9 @@
     "zod": "^3.22.3"
   },
   "scripts": {
-    "migrate-db": "ts-node tools/migrateDatabase.ts",
+    "migrate-db": "ts-node --require tsconfig-paths/register tools/migrateDatabase.ts",
     "gen-demo-data": "ts-node tools/generateDemoData.ts",
-    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register 'src/**/*.test.ts' --recursive",
+    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register 'src/**/*.test.ts' --recursive",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

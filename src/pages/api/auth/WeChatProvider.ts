@@ -2,11 +2,12 @@
  * See docs/WeChat.md for details.
  */
 import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
+import invariant from "shared/invariant";
 
 /**
  * See docs/WeChat.md for unionid vs openid
  */
-export interface WeChatProfile {
+interface WeChatProfile {
   openid: string;
   nickname: string;
   sex: number;
@@ -17,6 +18,28 @@ export interface WeChatProfile {
   privilege: string[];
   unionid: string;
   [claim: string]: unknown;
+}
+
+export const fakeEmailDomain = "@f.ml";
+
+/**
+ * next-auth very annoyingly lower case emails when passing it to
+ * `wechatAdapter.getUserByEmail`, but UnionID is case sensitive. So we encode
+ * cases using plus signs.
+ */
+function unionId2Email(unionid: string): string {
+  invariant(!unionid.includes("+"), `unionid "${unionid}" contains '+'`);
+  return unionid.replace(/[A-Z]/g, "+$&") + fakeEmailDomain;
+}
+
+export function email2UnionId(email: string): string {
+  invariant(
+    email.endsWith(fakeEmailDomain),
+    `email "${email}" doesn't end with ${fakeEmailDomain}`,
+  );
+  return email
+    .slice(0, -fakeEmailDomain.length)
+    .replace(/\+(.)/g, (_, char) => char.toUpperCase());
 }
 
 export default function WeChatProvider(
@@ -93,8 +116,12 @@ export default function WeChatProvider(
         id: profile.unionid,
 
         // Used to create a user if the user doesn't exist. See
-        // sequelize-adapter's createUser method.
+        // `wechatAdapter.createUser`.
         wechatUnionId: profile.unionid,
+
+        // next-auth rely on email to search for existing users. We don't store
+        // the email in the database. See `wechatAdapter.getUserByEmail`.
+        email: unionId2Email(profile.unionid),
       };
     },
 

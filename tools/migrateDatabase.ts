@@ -1,11 +1,11 @@
 import sequelize from "../src/api/database/sequelize";
 import { migrateDatabase } from "../src/api/routes/migration";
-import { adapter } from "../src/pages/api/auth/[...nextauth]";
+import { wechatAdapter } from "../src/pages/api/auth/[...nextauth]";
 
 async function sync() {
   // Register the next-auth adapter so sequelize.sync() will create tables for
   // next-auth.
-  void adapter;
+  void wechatAdapter;
 
   await migrateDatabase();
 
