@@ -27,6 +27,7 @@
     "easymde": "^2.18.0",
     "fast-deep-equal": "^3.1.3",
     "framer-motion": "^11.15.0",
+    "fundebug-javascript": "^2.8.8",
     "google-auth-library": "^9.15.0",
     "google-spreadsheet": "^4.1.4",
     "inquirer": "^12.9.1",

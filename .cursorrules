@@ -110,6 +110,8 @@ The project includes a sophisticated mentor-mentee matching system:
 
 ## Development Workflows
 
+Important: When generating code, proactively fix build and eslint errors in the generated code.
+
 ### Code Organization Principles
 - **Separation of Concerns**: Clear boundaries between client, server, and shared code
 - **Type Safety**: Leverage TypeScript throughout the application
