@@ -100,28 +100,23 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
           if (!idType || !id || !token) return null;
           const idField = idType === "phone" ? "phone" : "email";
           return await sequelize.transaction(async (transaction) => {
-            try {
-              await checkAndDeleteIdToken(
-                idType as IdType,
-                id,
-                token,
-                transaction,
-              );
-              let u = await db.User.findOne({
-                where: { [idField]: id },
-                attributes: userAttributes,
-                include: userInclude,
-                transaction,
-              });
-              if (!u) {
-                u = await db.User.create({ [idField]: id }, { transaction });
-                emailRoleIgnoreError("UserManager", "新用户注册", id, "");
-              }
-              return u;
-            } catch (error) {
-              console.error(error);
-              return null;
+            await checkAndDeleteIdToken(
+              idType as IdType,
+              id,
+              token,
+              transaction,
+            );
+            let u = await db.User.findOne({
+              where: { [idField]: id },
+              attributes: userAttributes,
+              include: userInclude,
+              transaction,
+            });
+            if (!u) {
+              u = await db.User.create({ [idField]: id }, { transaction });
+              emailRoleIgnoreError("UserManager", "新用户注册", id, "");
             }
+            return u;
           });
         },
       },
