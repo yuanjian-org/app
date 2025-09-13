@@ -70,12 +70,8 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
     const err = parseQueryString(router, "error");
-    if (err == "Verification") {
-      toast.error("验证码无效，可能已经过期或者被使用。请重新登录。");
-    } else if (err) {
-      // See https://next-auth.js.org/configuration/pages#error-page
-      toast.error(`糟糕，系统错误，请联系管理员：${err}`);
-    }
+    // See https://next-auth.js.org/configuration/pages#error-page
+    if (err) handleSignInException(err);
   }, [router]);
 
   // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
@@ -264,7 +260,15 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error("登录失败，请检查邮箱和密码。");
+        console.log("Login failed. res:", res);
+        if (res?.error === "CredentialsSignin") {
+          toast.error("登录失败，请检查邮箱和密码。");
+        } else {
+          handleSignInException(res?.error);
+        }
+      } else {
+        // Redirect manually as we disabled next-auth redirect above.
+        if (callbackUrl !== "/") window.location.href = callbackUrl;
       }
     } catch (err) {
       handleSignInException(err);
@@ -324,7 +328,7 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
 }
 
 function handleSignInException(err: any) {
-  const msg = `糟糕，系统错误，请联系管理员：${err}`;
+  const msg = `糟糕，系统错误，请联系客服：${err}`;
   toast.error(msg);
 }
 
@@ -421,9 +425,17 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error(
-          `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
-        );
+        console.log("Login failed. res:", res);
+        if (res?.error === "CredentialsSignin") {
+          toast.error(
+            `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
+          );
+        } else {
+          handleSignInException(res?.error);
+        }
+      } else {
+        // Redirect manually as we disabled next-auth redirect above.
+        if (callbackUrl !== "/") window.location.href = callbackUrl;
       }
     } catch (err) {
       handleSignInException(err);
