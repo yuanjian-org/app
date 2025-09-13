@@ -264,7 +264,14 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error("登录失败，请检查邮箱和密码。");
+        if (res?.error === "CredentialsSignin") {
+          toast.error("用户名或密码错误，请重新输入。");
+        } else {
+          toast.error("登录失败，请检查邮箱和密码。");
+        }
+      } else {
+        // Success - redirect manually
+        window.location.href = res.url || callbackUrl;
       }
     } catch (err) {
       handleSignInException(err);
@@ -421,9 +428,18 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error(
-          `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
-        );
+        if (res?.error === "CredentialsSignin") {
+          toast.error(
+            `验证码无效或已过期，请重新获取验证码。`,
+          );
+        } else {
+          toast.error(
+            `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
+          );
+        }
+      } else {
+        // Success - redirect manually
+        window.location.href = res.url || callbackUrl;
       }
     } catch (err) {
       handleSignInException(err);
