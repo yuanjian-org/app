@@ -1,60 +1,10 @@
 /**
- * API for sending transactionalemails
+ * Low-level API for sending transactional emails. Use higher level API
+ * notify*() when possible.
  */
-
-import User from "./database/models/User";
-import { Op } from "sequelize";
-import Role, { RoleProfiles } from "../shared/Role";
 import z from "zod";
 import axios from "axios";
 import { internalServerError } from "./errors";
-
-export async function emailRoles(
-  roles: Role[],
-  subject: string,
-  content: string,
-  baseUrl: string,
-) {
-  for (const role of roles) {
-    await emailRole(role, subject, content, baseUrl);
-  }
-}
-
-export async function emailRole(
-  role: Role,
-  subject: string,
-  content: string,
-  baseUrl: string,
-) {
-  const users = await User.findAll({
-    where: { roles: { [Op.contains]: [role] }, email: { [Op.not]: null } },
-    attributes: ["email"],
-  });
-
-  await email(
-    users.map((u) => u.email!),
-    "E_114706970517",
-    {
-      subject,
-      content,
-      roleDisplayName: RoleProfiles[role].displayName,
-    },
-    baseUrl,
-  );
-}
-
-export function emailRoleIgnoreError(
-  role: Role,
-  subject: string,
-  content: string,
-  baseUrl: string,
-) {
-  try {
-    void emailRole(role, subject, content, baseUrl);
-  } catch (e) {
-    console.log(`emailRoleIgnoreError() ignored error:`, e);
-  }
-}
 
 /**
  * Send email via AoKSend.com

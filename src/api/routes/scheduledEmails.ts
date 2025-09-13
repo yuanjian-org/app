@@ -5,7 +5,7 @@ import invariant from "../../shared/invariant";
 import User, { getUserUrl, MinUser } from "../../shared/User";
 import { formatUserName, prettifyDate } from "../../shared/strings";
 import getBaseUrl from "../../shared/getBaseUrl";
-import { email, emailRoleIgnoreError } from "../email";
+import { email } from "../email";
 import {
   chatMessageAttributes,
   chatMessageInclude,
@@ -22,6 +22,7 @@ import { ScheduledEmailType } from "../../shared/ScheduledEmailType";
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
 import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
+import { notifyRolesIgnoreError } from "api/notify";
 
 export async function scheduleEmail(
   type: ScheduledEmailType,
@@ -137,11 +138,10 @@ async function sendTaskEmail(
 
   await email([assignee.email], "E_114706042504", templateData, getBaseUrl());
 
-  emailRoleIgnoreError(
-    "SystemAlertSubscriber",
+  notifyRolesIgnoreError(
+    ["SystemAlertSubscriber"],
     "发送待办事项邮件",
     JSON.stringify(templateData),
-    getBaseUrl(),
   );
 }
 
@@ -215,11 +215,10 @@ async function sendKudosEmail(
 
   await email([receiver.email], "E_114706274956", templateData, getBaseUrl());
 
-  emailRoleIgnoreError(
-    "SystemAlertSubscriber",
+  notifyRolesIgnoreError(
+    ["SystemAlertSubscriber"],
     "发送点赞邮件",
     JSON.stringify(templateData),
-    getBaseUrl(),
   );
 }
 

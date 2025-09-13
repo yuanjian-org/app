@@ -22,8 +22,24 @@ export const zInterviewerPreference = z.object({
 });
 export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
 
+export const allNotificationTypes = [
+  // When 基础 is false, all notifications will be disabled.
+  "基础",
+  "点赞",
+  "待办事项",
+  // 仅导师可用
+  "内部笔记",
+  "树洞",
+] as const;
+
+export type NotificationType = (typeof allNotificationTypes)[number];
+export const zNotificationTypes = z.array(z.enum(allNotificationTypes));
+
 export const zUserPreference = z.object({
   interviewer: zInterviewerPreference.optional(),
   mentor: zMentorPreference.optional(),
+  // When absent, all notifications are enabled.
+  smsDisabled: zNotificationTypes.optional(),
+  emailDisabled: zNotificationTypes.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
