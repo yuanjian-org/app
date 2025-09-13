@@ -40,6 +40,7 @@ import RedDot, { redDotTransitionProps } from "./RedDot";
 import Autosaver from "./Autosaver";
 import { ResponsiveCard } from "./ResponsiveCard";
 import { useMyId } from "useMe";
+import { RoleProfiles } from "shared/Role";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
@@ -333,7 +334,14 @@ function Editor({
           maxWidth="150px"
         >
           {prefixes.map((p) => (
-            <option key={p} value={p}>
+            <option
+              key={p}
+              value={
+                p == menteeReviewMessagePrefix
+                  ? p + `仅${RoleProfiles.MentorshipManager.displayName}可见：`
+                  : p
+              }
+            >
               {p}
             </option>
           ))}
