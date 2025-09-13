@@ -1,3 +1,6 @@
+// Make this file a module
+export {};
+
 describe("Homepage test", () => {
 	beforeEach(() => {
 		// TODO: Add database seeding for e2e test user instead of using local profiles.
@@ -7,7 +10,7 @@ describe("Homepage test", () => {
 	});
 
 	it("can render home page", () => {
-		cy.findAllByText("我的桌面").should("be.visible");
+		cy.findByText("我的桌面").should("be.visible");
 	});
 
 	it("can join meeting", () => {
