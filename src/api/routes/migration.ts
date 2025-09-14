@@ -1,6 +1,10 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
+import db from "api/database/db";
+import { Op } from "sequelize";
+import { chinaPhonePrefix } from "shared/strings";
+import _ from "lodash";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -40,10 +44,6 @@ async function purgeOldData() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
-  // Rename ScheduledEmails table to ScheduledNotifications if it exists
-  await sequelize.query(`
-    ALTER TABLE IF EXISTS "ScheduledEmails" RENAME TO "ScheduledNotifications";
-  `);
 
   await Promise.resolve();
 }
@@ -51,11 +51,19 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await sequelize.query(`
-    UPDATE "ChatMessages"
-    SET "markdown" = REPLACE("markdown", '【导师交流会】', '【导师访谈】')
-    WHERE "markdown" LIKE '%【导师交流会】%';
-  `);
+  const users = await db.User.findAll({
+    where: {
+      phone: {
+        [Op.and]: [{ [Op.ne]: null }, { [Op.notLike]: `${chinaPhonePrefix}%` }],
+      },
+    },
+  });
+
+  console.log(`Found ${users.length} users with non-China phone numbers`);
+  for (const user of users) {
+    const smsDisabled = _.union(user.preference?.smsDisabled ?? [], ["基础"]);
+    await user.update({ preference: { ...user.preference, smsDisabled } });
+  }
 
   await Promise.resolve();
 }

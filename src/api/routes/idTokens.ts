@@ -1,9 +1,13 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import db from "../database/db";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { ip, authUser } from "../auth";
-import { isValidPassword, toChineseNumber } from "../../shared/strings";
+import {
+  chinaPhonePrefix,
+  isValidPassword,
+  toChineseNumber,
+} from "../../shared/strings";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
 import sequelize from "../database/sequelize";
@@ -21,6 +25,7 @@ import getBaseUrl from "../../shared/getBaseUrl";
 import { email } from "../../api/email";
 import { checkAndDeleteIdToken } from "../../api/checkAndDeleteIdToken";
 import { RoleProfiles } from "../../shared/Role";
+import _ from "lodash";
 
 /**
  * Send verfication token to the specified phone or email.
@@ -99,14 +104,16 @@ const setPhone = procedure
       });
 
       if (!existing) {
-        await me.update({ phone }, { transaction });
+        await updateMyPhoneAndPreference(me.id, me.phone, phone, transaction);
         invalidateUserCache(me.id);
       } else {
         if (me.phone) {
           // If the current user already has a phone number, account merge would
           // cause data loss or inconsistency if we don't carefully merge all
           // the data associated with the two accounts. So we disallow it.
-          throw generalBadRequestError("手机号已被其他账号使用。");
+          // Note that the user's new phone number may be the same as their
+          // existing number. We throw the same error in this case.
+          throw generalBadRequestError("手机号已经被使用。");
         } else {
           // Merge accounts.
           //
@@ -165,6 +172,35 @@ const setPhone = procedure
     });
   });
 
+export async function updateMyPhoneAndPreference(
+  myId: string,
+  oldPhone: string | null,
+  phone: string,
+  transaction: Transaction,
+) {
+  // Disable SMS notifications by default for non-Chinese phone numbers becuase
+  // people outside mainland China are more likely to use email as their primary
+  // communication channel.
+  //
+  // If the user already has a phone number, do not disable SMS notifications
+  // to maintain the existing behavior.
+  if (phone.startsWith(chinaPhonePrefix) || oldPhone) {
+    await db.User.update({ phone }, { where: { id: myId }, transaction });
+  } else {
+    const me = await db.User.findByPk(myId, {
+      attributes: ["id", "preference"],
+      transaction,
+    });
+    invariant(me, `User not found: ${myId}`);
+    const smsDisabled = _.union(me.preference?.smsDisabled ?? [], ["基础"]);
+
+    await me.update(
+      { phone, preference: { ...me.preference, smsDisabled } },
+      { transaction },
+    );
+  }
+}
+
 const resetPassword = procedure
   .input(
     z.object({
@@ -175,7 +211,9 @@ const resetPassword = procedure
     }),
   )
   .mutation(async ({ input: { idType, id, token, password } }) => {
-    await resetPasswordImpl(idType, id, token, password);
+    await sequelize.transaction(async (transaction) => {
+      await resetPasswordImpl(idType, id, token, password, transaction);
+    });
   });
 
 export async function resetPasswordImpl(
@@ -183,6 +221,7 @@ export async function resetPasswordImpl(
   id: string,
   token: string,
   password: string,
+  transaction: Transaction,
 ) {
   if (!isValidPassword(password)) {
     throw generalBadRequestError("密码不合要求。");
@@ -191,27 +230,25 @@ export async function resetPasswordImpl(
   const idField = idType === "phone" ? "phone" : "email";
   const hashed = await hash(password, 10);
 
-  await sequelize.transaction(async (transaction) => {
-    await checkAndDeleteIdToken(idType, id, token, transaction);
-    let user = await db.User.findOne({
-      where: { [idField]: id },
-      attributes: ["id", "roles"],
-      transaction,
-    });
-
-    if (user) {
-      if (
-        user.roles &&
-        user.roles.some((role) => RoleProfiles[role].privilegedUserDataAccess)
-      ) {
-        throw generalBadRequestError("特权用户禁止使用密码登录。");
-      }
-    } else {
-      user = await db.User.create({ [idField]: id }, { transaction });
-    }
-
-    await user.update({ password: hashed }, { transaction });
+  await checkAndDeleteIdToken(idType, id, token, transaction);
+  let user = await db.User.findOne({
+    where: { [idField]: id },
+    attributes: ["id", "roles"],
+    transaction,
   });
+
+  if (user) {
+    if (
+      user.roles &&
+      user.roles.some((role) => RoleProfiles[role].privilegedUserDataAccess)
+    ) {
+      throw generalBadRequestError("特权用户禁止使用密码登录。");
+    }
+  } else {
+    user = await db.User.create({ [idField]: id }, { transaction });
+  }
+
+  await user.update({ password: hashed }, { transaction });
 }
 
 export default router({

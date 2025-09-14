@@ -22,6 +22,9 @@ export const zInterviewerPreference = z.object({
 });
 export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
 
+/**
+ * The order of the types dictates the order of display in the preferences page.
+ */
 export const allNotificationTypes = [
   // When 基础 is false, all notifications will be disabled.
   "基础",

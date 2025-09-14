@@ -17,6 +17,8 @@ import {
   SimpleGrid,
   GridItem,
   Wrap,
+  Grid,
+  Divider,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -25,9 +27,11 @@ import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import {
+  allNotificationTypes,
   defaultMentorCapacity,
   InterviewerPreference,
   MentorPreference,
+  NotificationType,
   UserPreference,
 } from "shared/UserPreference";
 import datePicker from "theme/datePicker";
@@ -42,7 +46,8 @@ import {
   traitsPrefProfiles,
   TraitTag,
 } from "components/Traits";
-import { useMyId } from "useMe";
+import { useMyId, useMyRoles } from "useMe";
+import SwitchAndLabel from "components/SwitchAndLabel";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -60,29 +65,35 @@ export default function Page() {
   const [pref, setPref] = useState<UserPreference>();
   useEffect(() => setPref(oldPref), [oldPref]);
 
-  const update = async (p: UserPreference) => {
-    setPref(p);
-    // Auto save
-    invariant(userId);
-    await trpc.users.setUserPreference.mutate({
-      userId,
-      preference: p,
-    });
-  };
-
-  // TODO: Refactor updateInterviewerPref and updateMentorPref to follow the
-  // same pattern.
-  const updateInterviewerPref = (data: InterviewerPreference) =>
-    update({
-      ...pref,
-      interviewer: data,
-    });
+  const updateInterviewerPref = (k: keyof InterviewerPreference, v: any) =>
+    update({ ...pref, interviewer: { ...pref?.interviewer, [k]: v } });
 
   const updateMentorPref = (k: keyof MentorPreference, v: any) =>
-    update({
-      ...pref,
-      mentor: { ...pref?.mentor, [k]: v },
+    update({ ...pref, mentor: { ...pref?.mentor, [k]: v } });
+
+  const setDisabled = (
+    arr: NotificationType[] | undefined,
+    k: NotificationType,
+    v: "enable" | "disable",
+  ) => {
+    const cleaned = (arr ?? []).filter((i) => i !== k);
+    return v === "disable" ? [...cleaned, k] : cleaned;
+  };
+
+  const updateSmsDisabled = (k: NotificationType, v: "enable" | "disable") =>
+    update({ ...pref, smsDisabled: setDisabled(pref?.smsDisabled, k, v) });
+
+  const updateEmailDisabled = (k: NotificationType, v: "enable" | "disable") =>
+    update({ ...pref, emailDisabled: setDisabled(pref?.emailDisabled, k, v) });
+
+  const update = async (pref: UserPreference) => {
+    invariant(userId);
+    setPref(pref);
+    await trpc.users.setUserPreference.mutate({
+      userId,
+      preference: pref,
     });
+  };
 
   const [isSaving, setIsSaving] = useState(false);
   const handleSubmit = async () => {
@@ -104,36 +115,43 @@ export default function Page() {
   const isMentor = isPermitted(user.roles, "Mentor");
   const isMentee = isPermitted(user.roles, "Mentee");
 
+  const PrefDivider = () => <Divider my={componentSpacing} />;
+
   return (
-    <VStack
-      spacing={componentSpacing}
-      margin={sectionSpacing}
-      maxWidth="lg"
-      align="start"
-    >
+    <VStack spacing={sectionSpacing} m={sectionSpacing} maxW="lg" align="start">
       {/* Do not show interview options to non-mentor mentees */}
-      {isMentor || !isMentee ? (
+      {(isMentor || !isMentee) && (
         <>
           <InterviewerPreferences
             data={pref.interviewer}
             update={updateInterviewerPref}
             isMentor={isMentor}
           />
-
-          {isMentor && (
-            <MentorPreferences data={pref.mentor} update={updateMentorPref} />
-          )}
-
-          <Button isLoading={isSaving} onClick={handleSubmit} variant="brand">
-            保存
-          </Button>
-        </>
-      ) : (
-        <>
-          <Heading size="md">偏好设置</Heading>
-          <Text>您的角色尚无可设置的偏好。</Text>
+          <PrefDivider />
         </>
       )}
+
+      {isMentor && (
+        <>
+          <MentorPreferences data={pref.mentor} update={updateMentorPref} />
+          <PrefDivider />
+        </>
+      )}
+
+      <NotificationPreferences
+        data={pref}
+        updateSmsDisabled={updateSmsDisabled}
+        updateEmailDisabled={updateEmailDisabled}
+      />
+
+      <Button
+        variant="brand"
+        mt={sectionSpacing}
+        isLoading={isSaving}
+        onClick={handleSubmit}
+      >
+        保存
+      </Button>
     </VStack>
   );
 }
@@ -146,7 +164,7 @@ function InterviewerPreferences({
   isMentor,
 }: {
   data?: InterviewerPreference;
-  update: (data: InterviewerPreference) => void;
+  update: (k: keyof InterviewerPreference, v: any) => void;
   isMentor: boolean;
 }) {
   const oneMonthDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
@@ -156,29 +174,13 @@ function InterviewerPreferences({
   const until = data?.limit?.until ? new Date(data.limit.until) : oneMonthDate;
   const noMoreThan = data?.limit?.noMoreThan || 0;
 
-  const setLimit = (noMoreThan: number, until: Date) => {
-    update({
-      ...data,
-      limit: {
-        noMoreThan,
-        until: until.toISOString(),
-      },
-    });
-  };
+  const setLimit = (noMoreThan: number, until: Date) =>
+    update("limit", { noMoreThan, until: until.toISOString() });
 
-  const removeLimit = () => {
-    update({
-      ...data,
-      limit: undefined,
-    });
-  };
+  const removeLimit = () => update("limit", undefined);
 
-  const toggleOptIn = (optIn: boolean) => {
-    update({
-      ...data,
-      optIn: optIn ? true : undefined,
-    });
-  };
+  const toggleOptIn = (optIn: boolean) =>
+    update("optIn", optIn ? true : undefined);
 
   return (
     <>
@@ -190,12 +192,12 @@ function InterviewerPreferences({
             isChecked={data?.optIn}
             onChange={(e) => toggleOptIn(e.target.checked)}
           >
-            我可以帮助面试学员。
+            我可以帮助面试学生。
           </Checkbox>
         </FormControl>
       )}
 
-      <FormControl mb={sectionSpacing}>
+      <FormControl>
         <Flex wrap="wrap" alignItems="center">
           <Checkbox
             isChecked={!!data?.limit}
@@ -285,7 +287,7 @@ function MentorPreferences({
         update={(v) => update("学生特质", v)}
       />
 
-      <FormControl my={sectionSpacing}>
+      <FormControl>
         <Checkbox
           isChecked={data?.不参加就业辅导 ?? false}
           onChange={(e) => update("不参加就业辅导", e.target.checked)}
@@ -313,7 +315,7 @@ function MenteeTraitsPreferences({
 
   return (
     <>
-      <Text mt={sectionSpacing}>对学生的偏好：</Text>
+      <Text>对学生的偏好：</Text>
 
       <SimpleGrid
         columns={2}
@@ -386,6 +388,65 @@ function TraitPreference({
           ))}
         </Wrap>
       </GridItem>
+    </>
+  );
+}
+
+function NotificationPreferences({
+  data,
+  updateSmsDisabled,
+  updateEmailDisabled,
+}: {
+  data: UserPreference;
+  updateSmsDisabled: (k: NotificationType, v: "enable" | "disable") => void;
+  updateEmailDisabled: (k: NotificationType, v: "enable" | "disable") => void;
+}) {
+  const myRoles = useMyRoles();
+
+  const Row = ({ type }: { type: NotificationType }) => (
+    <>
+      <GridItem>
+        <Text>{type === "基础" ? "所有通知" : type}</Text>
+      </GridItem>
+      <GridItem>
+        <SwitchAndLabel
+          isDisabled={type !== "基础" && data.smsDisabled?.includes("基础")}
+          isChecked={!data.smsDisabled?.includes(type)}
+          onChange={(v) => updateSmsDisabled(type, v ? "enable" : "disable")}
+        />
+      </GridItem>
+      <GridItem>
+        <SwitchAndLabel
+          isDisabled={type !== "基础" && data.emailDisabled?.includes("基础")}
+          isChecked={!data.emailDisabled?.includes(type)}
+          onChange={(v) => updateEmailDisabled(type, v ? "enable" : "disable")}
+        />
+      </GridItem>
+    </>
+  );
+
+  return (
+    <>
+      <Heading size="md">通知偏好</Heading>
+
+      <Grid templateColumns="1fr 1fr 1fr" gap={sectionSpacing}>
+        <GridItem />
+        <GridItem>
+          <Text>短信通知</Text>
+        </GridItem>
+        <GridItem>
+          <Text>邮件通知</Text>
+        </GridItem>
+
+        {allNotificationTypes
+          .filter(
+            // Only show "内部笔记" to mentors
+            (type) => type !== "内部笔记" || isPermitted(myRoles, "Mentor"),
+          )
+          .map((type) => (
+            <Row key={type} type={type} />
+          ))}
+      </Grid>
     </>
   );
 }

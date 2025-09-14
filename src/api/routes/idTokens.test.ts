@@ -1,7 +1,7 @@
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import { resetPasswordImpl } from "./idTokens";
-import { Op } from "sequelize";
+import { resetPasswordImpl, updateMyPhoneAndPreference } from "./idTokens";
+import { Transaction } from "sequelize";
 import { compare } from "bcryptjs";
 import { expect } from "chai";
 
@@ -10,6 +10,7 @@ describe("resetPasswordImpl", () => {
   const testEmail = "test@example.com";
   const validPassword = "validpassword123";
   const testToken = "test-token-123";
+  let transaction: Transaction;
 
   // Helper function to create a test user
   async function createTestUser(
@@ -18,56 +19,53 @@ describe("resetPasswordImpl", () => {
     roles: string[] = [],
   ) {
     const userData = idType === "phone" ? { phone: id } : { email: id };
-    return await db.User.create({
-      ...userData,
-      name: "Test User",
-      roles,
-    });
+    return await db.User.create(
+      {
+        ...userData,
+        name: "Test User",
+        roles,
+      },
+      { transaction },
+    );
   }
 
   // Helper function to create a test ID token
   async function createTestIdToken(idType: string, id: string, token: string) {
     const tokenData = idType === "phone" ? { phone: id } : { email: id };
-    return await db.IdToken.create({
-      ...tokenData,
-      token,
-      ip: "127.0.0.1",
-    });
-  }
-
-  // Helper function to clean up test data
-  async function cleanupTestData() {
-    await sequelize.transaction(async (transaction: any) => {
-      await db.User.destroy({
-        where: {
-          [Op.or]: [{ phone: testPhone }, { email: testEmail }],
-        },
-        transaction,
-      });
-      await db.IdToken.destroy({
-        where: {
-          [Op.or]: [{ phone: testPhone }, { email: testEmail }],
-        },
-        transaction,
-      });
-    });
+    return await db.IdToken.create(
+      {
+        ...tokenData,
+        token,
+        ip: "127.0.0.1",
+      },
+      { transaction },
+    );
   }
 
   beforeEach(async () => {
-    await cleanupTestData();
+    transaction = await sequelize.transaction();
   });
 
-  after(async () => {
-    await cleanupTestData();
+  afterEach(async () => {
+    await transaction.rollback();
   });
 
   describe("phone number password reset", () => {
     it("should create new user if user does not exist", async () => {
       await createTestIdToken("phone", testPhone, testToken);
 
-      await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+      await resetPasswordImpl(
+        "phone",
+        testPhone,
+        testToken,
+        validPassword,
+        transaction,
+      );
 
-      const user = await db.User.findOne({ where: { phone: testPhone } });
+      const user = await db.User.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
       void expect(user).to.not.be.null;
       void expect(user!.phone).to.equal(testPhone);
       void expect(user!.password).to.not.be.null;
@@ -81,9 +79,15 @@ describe("resetPasswordImpl", () => {
       const user = await createTestUser("phone", testPhone);
       await createTestIdToken("phone", testPhone, testToken);
 
-      await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+      await resetPasswordImpl(
+        "phone",
+        testPhone,
+        testToken,
+        validPassword,
+        transaction,
+      );
 
-      await user.reload();
+      await user.reload({ transaction });
       void expect(user.password).to.not.be.null;
 
       // Verify password is hashed
@@ -96,9 +100,18 @@ describe("resetPasswordImpl", () => {
     it("should create new user if user does not exist", async () => {
       await createTestIdToken("email", testEmail, testToken);
 
-      await resetPasswordImpl("email", testEmail, testToken, validPassword);
+      await resetPasswordImpl(
+        "email",
+        testEmail,
+        testToken,
+        validPassword,
+        transaction,
+      );
 
-      const user = await db.User.findOne({ where: { email: testEmail } });
+      const user = await db.User.findOne({
+        where: { email: testEmail },
+        transaction,
+      });
       void expect(user).to.not.be.null;
       void expect(user!.email).to.equal(testEmail);
       void expect(user!.password).to.not.be.null;
@@ -112,9 +125,15 @@ describe("resetPasswordImpl", () => {
       const user = await createTestUser("email", testEmail);
       await createTestIdToken("email", testEmail, testToken);
 
-      await resetPasswordImpl("email", testEmail, testToken, validPassword);
+      await resetPasswordImpl(
+        "email",
+        testEmail,
+        testToken,
+        validPassword,
+        transaction,
+      );
 
-      await user.reload();
+      await user.reload({ transaction });
       void expect(user.password).to.not.be.null;
 
       // Verify password is hashed
@@ -129,7 +148,13 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("phone", testPhone, testToken);
 
       try {
-        await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error).to.be.instanceOf(Error);
@@ -142,7 +167,13 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("phone", testPhone, testToken);
 
       try {
-        await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error).to.be.instanceOf(Error);
@@ -156,7 +187,13 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("phone", testPhone, "different-token");
 
       try {
-        await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error).to.be.instanceOf(Error);
@@ -166,7 +203,13 @@ describe("resetPasswordImpl", () => {
 
     it("should throw error for non-existent token", async () => {
       try {
-        await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error).to.be.instanceOf(Error);
@@ -177,10 +220,17 @@ describe("resetPasswordImpl", () => {
     it("should delete token after successful reset", async () => {
       await createTestIdToken("phone", testPhone, testToken);
 
-      await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+      await resetPasswordImpl(
+        "phone",
+        testPhone,
+        testToken,
+        validPassword,
+        transaction,
+      );
 
       const token = await db.IdToken.findOne({
         where: { phone: testPhone, token: testToken },
+        transaction,
       });
       void expect(token).to.be.null;
     });
@@ -189,7 +239,13 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("email", testEmail, "different-token");
 
       try {
-        await resetPasswordImpl("email", testEmail, testToken, validPassword);
+        await resetPasswordImpl(
+          "email",
+          testEmail,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error).to.be.instanceOf(Error);
@@ -205,17 +261,127 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("phone", testPhone, testToken);
 
       try {
-        await resetPasswordImpl("phone", testPhone, testToken, validPassword);
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          validPassword,
+          transaction,
+        );
         expect.fail("Expected error to be thrown");
       } catch {
         // Expected error
       }
-
-      // Verify token is still there (transaction rolled back)
-      const token = await db.IdToken.findOne({
-        where: { phone: testPhone, token: testToken },
-      });
-      void expect(token).to.not.be.null;
     });
+  });
+});
+
+describe("updateMyPhoneAndPreference", () => {
+  const chinaPhone = "+8613800138000";
+  const nonChinaPhone = "+12345678901";
+  let transaction: Transaction;
+
+  // Helper function to create a test user
+  async function createTestUser(
+    phone: string | null = null,
+    preference: any = null,
+  ) {
+    const userData = phone ? { phone } : {};
+    return await db.User.create(
+      {
+        ...userData,
+        name: "Test User",
+        preference,
+      },
+      { transaction },
+    );
+  }
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should update phone for China phone numbers without disabling SMS", async () => {
+    const user = await createTestUser(null, { smsDisabled: [] });
+
+    // Function should update phone but not disable SMS
+    await updateMyPhoneAndPreference(user.id, null, chinaPhone, transaction);
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(chinaPhone);
+    void expect(user.preference?.smsDisabled).to.deep.equal([]);
+  });
+
+  it("should update phone when user already has phone number without disabling SMS", async () => {
+    const user = await createTestUser("+12345678901", {
+      smsDisabled: [],
+    });
+
+    // Function should update phone but not disable SMS
+    await updateMyPhoneAndPreference(
+      user.id,
+      "+12345678901",
+      nonChinaPhone,
+      transaction,
+    );
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(nonChinaPhone);
+    void expect(user.preference?.smsDisabled).to.deep.equal([]);
+  });
+
+  it("should update phone to China number when user already has phone without disabling SMS", async () => {
+    const user = await createTestUser("+12345678901", {
+      smsDisabled: [],
+    });
+
+    // Function should update phone but not disable SMS
+    await updateMyPhoneAndPreference(
+      user.id,
+      "+12345678901",
+      chinaPhone,
+      transaction,
+    );
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(chinaPhone);
+    void expect(user.preference?.smsDisabled).to.deep.equal([]);
+  });
+
+  it("should disable SMS for non-China phone with no existing phone", async () => {
+    const user = await createTestUser(null, { smsDisabled: [] });
+
+    await updateMyPhoneAndPreference(user.id, null, nonChinaPhone, transaction);
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(nonChinaPhone);
+    void expect(user.preference?.smsDisabled).to.include("基础");
+  });
+
+  it("should preserve existing smsDisabled preferences", async () => {
+    const existingPreferences = { smsDisabled: ["点赞", "待办事项"] };
+    const user = await createTestUser(null, existingPreferences);
+
+    await updateMyPhoneAndPreference(user.id, null, nonChinaPhone, transaction);
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(nonChinaPhone);
+    void expect(user.preference?.smsDisabled).to.include("基础");
+    void expect(user.preference?.smsDisabled).to.include("点赞");
+    void expect(user.preference?.smsDisabled).to.include("待办事项");
+  });
+
+  it("should handle user with no existing preferences", async () => {
+    const user = await createTestUser(null, null);
+
+    await updateMyPhoneAndPreference(user.id, null, nonChinaPhone, transaction);
+
+    await user.reload({ transaction });
+    void expect(user.phone).to.equal(nonChinaPhone);
+    void expect(user.preference?.smsDisabled).to.deep.equal(["基础"]);
   });
 });
