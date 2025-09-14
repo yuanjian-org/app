@@ -28,9 +28,10 @@ export type InterviewerPreference = z.TypeOf<typeof zInterviewerPreference>;
 export const allNotificationTypes = [
   // When 基础 is false, all notifications will be disabled.
   "基础",
+  // Only for Volunteer roles
   "点赞",
   "待办事项",
-  // 仅导师可用
+  // Only for Mentor roles
   "内部笔记",
   "树洞",
 ] as const;

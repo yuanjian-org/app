@@ -1,7 +1,7 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
-  AllRoles,
+  allRoles,
   RoleProfiles,
   isPermitted,
   zRoles,
@@ -847,11 +847,11 @@ const listPriviledgedUserDataAccess = procedure
     return await db.User.findAll({
       // TODO: Optimize with postgres `?|` operator
       where: {
-        [Op.or]: AllRoles.filter(
-          (r) => RoleProfiles[r].privilegedUserDataAccess,
-        ).map((r) => ({
-          roles: { [Op.contains]: [r] },
-        })),
+        [Op.or]: allRoles
+          .filter((r) => RoleProfiles[r].privilegedUserDataAccess)
+          .map((r) => ({
+            roles: { [Op.contains]: [r] },
+          })),
       },
       attributes: ["name", "roles"],
     });

@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const AllRoles = [
+export const allRoles = [
   "SystemAlertSubscriber",
   "UserManager",
   "GroupManager",
@@ -87,11 +87,11 @@ export const RoleProfiles: {
   },
 };
 
-type Role = (typeof AllRoles)[number];
+type Role = (typeof allRoles)[number];
 
 export default Role;
 
-export const zRoles = z.array(z.enum(AllRoles));
+export const zRoles = z.array(z.enum(allRoles));
 
 /**
  * @param permitted When absent, this function always returns true.

@@ -440,8 +440,10 @@ function NotificationPreferences({
 
         {allNotificationTypes
           .filter(
-            // Only show "内部笔记" to mentors
             (type) => type !== "内部笔记" || isPermitted(myRoles, "Mentor"),
+          )
+          .filter(
+            (type) => type !== "点赞" || isPermitted(myRoles, "Volunteer"),
           )
           .map((type) => (
             <Row key={type} type={type} />

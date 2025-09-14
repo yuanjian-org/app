@@ -16,7 +16,7 @@ import {
 import { trpcNext } from "../trpc";
 import Loader from "components/Loader";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import Role, { AllRoles, RoleProfiles } from "../shared/Role";
+import Role, { allRoles, RoleProfiles } from "../shared/Role";
 import { staticUrlPrefix } from "static";
 import NextLink from "next/link";
 import { getUserUrl } from "shared/User";
@@ -153,8 +153,9 @@ function Privileged({
           </Tr>
         </Thead>
         <Tbody>
-          {AllRoles.filter((r) => RoleProfiles[r].privilegedUserDataAccess).map(
-            (r) => (
+          {allRoles
+            .filter((r) => RoleProfiles[r].privilegedUserDataAccess)
+            .map((r) => (
               <Tr key={r}>
                 <Td>{dp(r)}</Td>
                 <Td>{RoleProfiles[r].actions}</Td>
@@ -165,8 +166,7 @@ function Privileged({
                     .join("、")}
                 </Td>
               </Tr>
-            ),
-          )}
+            ))}
         </Tbody>
       </Table>
     </TableContainer>

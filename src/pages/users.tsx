@@ -35,7 +35,7 @@ import {
   isValidPhone,
   toPinyin,
 } from "shared/strings";
-import Role, { AllRoles, RoleProfiles, isPermitted } from "shared/Role";
+import Role, { allRoles, RoleProfiles, isPermitted } from "shared/Role";
 import trpc from "trpc";
 import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import Loader from "components/Loader";
@@ -337,7 +337,7 @@ function UserEditor({
               <FormControl>
                 <FormLabel>角色</FormLabel>
                 <Stack>
-                  {AllRoles.map((r) => {
+                  {allRoles.map((r) => {
                     const rp = RoleProfiles[r];
                     return (
                       <Checkbox

@@ -8,7 +8,7 @@ import {
   menteeSourceField,
 } from "../src/shared/applicationFields";
 import { MenteeStatus } from "../src/shared/MenteeStatus";
-import Role, { AllRoles } from "../src/shared/Role";
+import Role, { allRoles } from "../src/shared/Role";
 import moment from "moment";
 
 export type DemoUser = {
@@ -64,7 +64,7 @@ const users: Record<string, DemoUser> = {
   admin: {
     name: '管理员',
     email: 'admin@de.mo',
-    roles: AllRoles.filter(role => !["Banned", "Mentee", "TransactionalMentor"]
+    roles: allRoles.filter(role => !["Banned", "Mentee", "TransactionalMentor"]
       .includes(role)),
     profile: adminProfile,
   },
