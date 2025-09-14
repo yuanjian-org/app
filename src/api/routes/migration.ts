@@ -1,10 +1,6 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
-import db from "api/database/db";
-import { Op } from "sequelize";
-import { chinaPhonePrefix } from "shared/strings";
-import _ from "lodash";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -50,20 +46,6 @@ async function migrateSchema() {
 
 async function migrateData() {
   console.log("Migrating DB data...");
-
-  const users = await db.User.findAll({
-    where: {
-      phone: {
-        [Op.and]: [{ [Op.ne]: null }, { [Op.notLike]: `${chinaPhonePrefix}%` }],
-      },
-    },
-  });
-
-  console.log(`Found ${users.length} users with non-China phone numbers`);
-  for (const user of users) {
-    const smsDisabled = _.union(user.preference?.smsDisabled ?? [], ["基础"]);
-    await user.update({ preference: { ...user.preference, smsDisabled } });
-  }
 
   await Promise.resolve();
 }
