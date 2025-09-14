@@ -17,7 +17,7 @@ import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
-import { scheduleEmail } from "./scheduledEmails";
+import { scheduleNotification } from "./scheduledNotifications";
 import { whereMentorshipIsOngoing } from "./mentorships";
 import { isPermittedtoAccessMentee } from "./users";
 import { isPermitted } from "../../shared/Role";
@@ -101,7 +101,7 @@ const create = procedure
         { transaction },
       );
 
-      await scheduleEmail("Task", assigneeId, transaction);
+      await scheduleNotification("Task", assigneeId, transaction);
     });
   });
 
@@ -138,7 +138,7 @@ const update = procedure
         },
       );
 
-      await scheduleEmail("Task", assigneeId, transaction);
+      await scheduleNotification("Task", assigneeId, transaction);
     });
   });
 
@@ -272,5 +272,5 @@ export async function createAutoTask(
     );
   }
 
-  await scheduleEmail("Task", assigneeId, transaction);
+  await scheduleNotification("Task", assigneeId, transaction);
 }

@@ -12,7 +12,7 @@ import { zChatRoom } from "../../shared/ChatRoom";
 import { Op, Transaction } from "sequelize";
 import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
-import { scheduleEmail } from "./scheduledEmails";
+import { scheduleNotification } from "./scheduledNotifications";
 import {
   checkRoomPermission,
   createChatMessage,
@@ -176,7 +176,7 @@ export async function createMessageAndScheduleEmail(
   transaction: Transaction,
 ) {
   await createChatMessage(author, roomId, markdown, transaction);
-  await scheduleEmail("Chat", roomId, transaction);
+  await scheduleNotification("Chat", roomId, transaction);
 }
 
 /**
@@ -208,7 +208,7 @@ const updateMessage = procedure
         transaction,
       });
 
-      await scheduleEmail("Chat", m.roomId, transaction);
+      await scheduleNotification("Chat", m.roomId, transaction);
     });
   });
 

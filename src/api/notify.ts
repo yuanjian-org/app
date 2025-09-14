@@ -8,7 +8,7 @@ import Role from "shared/Role";
 import sequelize from "./database/sequelize";
 import { isProd } from "shared/isProd";
 
-type TemplateSet = {
+type Templates = {
   // AokSend email template id.
   email: string;
   // Submail SMS template ids.
@@ -76,7 +76,7 @@ export async function notifyRoles(
 export async function notify(
   type: NotificationType,
   userIds: string[],
-  templateSet: TemplateSet,
+  templates: Templates,
   templateVariables: Record<string, string>,
   transaction: Transaction,
 ) {
@@ -96,8 +96,8 @@ export async function notify(
   const smsPromise = isProd()
     ? Promise.resolve()
     : sms(
-        templateSet.domesticSms,
-        templateSet.internationalSms,
+        templates.domesticSms,
+        templates.internationalSms,
         smsUsers.map((u) => ({
           to: u.phone!,
           vars: templateVariables,
@@ -112,7 +112,7 @@ export async function notify(
   );
   const emailPromise = email(
     emailUsers.map((u) => u.email!),
-    templateSet.email,
+    templates.email,
     templateVariables,
     getBaseUrl(),
   );

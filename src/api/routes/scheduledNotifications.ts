@@ -5,7 +5,6 @@ import invariant from "../../shared/invariant";
 import User, { getUserUrl, MinUser } from "../../shared/User";
 import { formatUserName, prettifyDate } from "../../shared/strings";
 import getBaseUrl from "../../shared/getBaseUrl";
-import { email } from "../email";
 import {
   chatMessageAttributes,
   chatMessageInclude,
@@ -18,44 +17,44 @@ import {
 } from "../database/models/attributesAndIncludes";
 import moment, { Moment } from "moment";
 import Role from "../../shared/Role";
-import { ScheduledEmailType } from "../../shared/ScheduledEmailType";
+import { ScheduledNotificationType } from "../../shared/ScheduledNotificationType";
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
 import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
-import { notifyRolesIgnoreError } from "api/notify";
+import { notify, notifyRolesIgnoreError } from "api/notify";
 
-export async function scheduleEmail(
-  type: ScheduledEmailType,
+export async function scheduleNotification(
+  type: ScheduledNotificationType,
   subjectId: string,
   transaction: Transaction,
 ) {
-  const count = await db.ScheduledEmail.count({
+  const count = await db.ScheduledNotification.count({
     where: { type, subjectId },
     transaction,
   });
 
   if (count > 0) {
-    console.log(`${type} email already scheduled for ${subjectId}`);
+    console.log(`${type} notification already scheduled for ${subjectId}`);
   } else {
-    console.log(`scheduling ${type} email for ${subjectId}`);
-    await db.ScheduledEmail.create({ type, subjectId }, { transaction });
+    console.log(`scheduling ${type} notification for ${subjectId}`);
+    await db.ScheduledNotification.create({ type, subjectId }, { transaction });
   }
 }
 
 const minDelayInMinutes = 5;
 
-export async function sendScheduledEmails() {
+export async function sendScheduledNotifications() {
   await sequelize.transaction(async (transaction) => {
-    const all = await db.ScheduledEmail.findAll({
+    const all = await db.ScheduledNotification.findAll({
       attributes: ["id", "type", "subjectId", "createdAt"],
       transaction,
     });
-    console.log(`Found ${all.length} scheduled emails`);
+    console.log(`Found ${all.length} scheduled notification`);
 
     for (const row of all) {
       const delayed = moment(row.createdAt).add(minDelayInMinutes, "minutes");
       if (delayed.isAfter(moment())) {
-        console.log(`Delaying email with row id ${row.id}`);
+        console.log(`Delaying notification with row id ${row.id}`);
         continue;
       }
 
@@ -64,19 +63,19 @@ export async function sendScheduledEmails() {
 
       switch (row.type) {
         case "Kudos":
-          await sendKudosEmail(row.subjectId, timestamp, transaction);
+          await notifyKudos(row.subjectId, timestamp, transaction);
           break;
         case "Chat":
-          await sendChatEmail(row.subjectId, timestamp, transaction);
+          await notifyChats(row.subjectId, timestamp, transaction);
           break;
         case "Task":
-          await sendTaskEmail(row.subjectId, timestamp, transaction);
+          await notifyTasks(row.subjectId, timestamp, transaction);
           break;
         default:
-          invariant(false, `Unknown scheduled email type: ${row.type}`);
+          invariant(false, `Unknown scheduled notification type: ${row.type}`);
       }
 
-      await db.ScheduledEmail.destroy({
+      await db.ScheduledNotification.destroy({
         where: { id: row.id },
         transaction,
       });
@@ -84,7 +83,7 @@ export async function sendScheduledEmails() {
   });
 }
 
-async function sendTaskEmail(
+async function notifyTasks(
   assigneeId: string,
   timestamp: Moment,
   transaction: Transaction,
@@ -102,14 +101,10 @@ async function sendTaskEmail(
   });
 
   const assignee = await db.User.findByPk(assigneeId, {
-    attributes: ["email", "name", "state"],
+    attributes: ["name", "state"],
     transaction,
   });
   if (!assignee) throw Error(`Assignee not found: ${assigneeId}`);
-  if (!assignee.email) {
-    console.log(`Task assignee ${assigneeId} has no email, skipping email`);
-    return;
-  }
 
   const name = formatUserName(assignee.name, "friendly");
   const htmls = await Promise.all(
@@ -125,8 +120,8 @@ async function sendTaskEmail(
 
   if (htmls.length === 0) {
     console.log(
-      `No tasks to send to assignee ${assigneeId}, assuming ` +
-        `assignee has completed the tasks that triggered this scheduled email.`,
+      `No tasks to send to assignee ${assigneeId}, assuming assignee ` +
+        `has completed the tasks that triggered this scheduled notification.`,
     );
     return;
   }
@@ -136,7 +131,17 @@ async function sendTaskEmail(
     delta: `<ul><li>${htmls.join("</li><li>")}</li></ul>`,
   };
 
-  await email([assignee.email], "E_114706042504", templateData, getBaseUrl());
+  await notify(
+    "待办事项",
+    [assigneeId],
+    {
+      email: "E_114706042504",
+      domesticSms: "rw7iV2",
+      internationalSms: "iodG74",
+    },
+    templateData,
+    transaction,
+  );
 
   notifyRolesIgnoreError(
     ["SystemAlertSubscriber"],
@@ -157,20 +162,16 @@ function formatUserlink(u: MinUser) {
   );
 }
 
-async function sendKudosEmail(
+async function notifyKudos(
   receiverId: string,
   timestamp: Moment,
   transaction: Transaction,
 ) {
   const receiver = await db.User.findByPk(receiverId, {
-    attributes: ["email", "name", "likes", "kudos"],
+    attributes: ["name", "likes", "kudos"],
     transaction,
   });
   if (!receiver) throw Error(`User not found: ${receiverId}`);
-  if (!receiver.email) {
-    console.log(`Kudos receiver ${receiverId} has no email, skipping email`);
-    return;
-  }
 
   const delta = await db.Kudos.findAll({
     where: {
@@ -213,7 +214,17 @@ async function sendKudosEmail(
     total: String((receiver.likes ?? 0) + (receiver.kudos ?? 0)),
   };
 
-  await email([receiver.email], "E_114706274956", templateData, getBaseUrl());
+  await notify(
+    "点赞",
+    [receiverId],
+    {
+      email: "E_114706274956",
+      domesticSms: "lQbr42",
+      internationalSms: "GYEm92",
+    },
+    templateData,
+    transaction,
+  );
 
   notifyRolesIgnoreError(
     ["SystemAlertSubscriber"],
@@ -222,7 +233,7 @@ async function sendKudosEmail(
   );
 }
 
-async function sendChatEmail(
+async function notifyChats(
   roomId: string,
   timestamp: Moment,
   transaction: Transaction,
@@ -294,11 +305,6 @@ async function sendChatEmail(
 
   await Promise.all(
     Object.values(userId2receipients).map(async (u) => {
-      if (!u.email) {
-        console.log(`Chat receipient ${u.id} has no email, skipping email`);
-        return;
-      }
-
       // Skip messages authored by the receipient themselves.
       const filtered = delta.filter((m) => m.user.id !== u.id);
       if (filtered.length === 0) return;
@@ -314,9 +320,14 @@ async function sendChatEmail(
 
       invariant(room.mentee, "Only mentee rooms are supported for now");
 
-      await email(
-        [u.email],
-        "E_114702895735",
+      await notify(
+        "内部笔记",
+        [u.id],
+        {
+          email: "E_114702895735",
+          domesticSms: "mUMBp2",
+          internationalSms: "G9qHA3",
+        },
         {
           menteeName,
           authors,
@@ -340,7 +351,7 @@ async function sendChatEmail(
             })
             .join("<br /><br />"),
         },
-        getBaseUrl(),
+        transaction,
       );
     }),
   );

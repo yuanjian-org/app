@@ -17,7 +17,7 @@ import ChatRoom from "./models/ChatRoom";
 import ChatMessage from "./models/ChatMessage";
 import LandmarkAssessment from "./models/map/LandmarkAssessment";
 import MentorBooking from "./models/MentorBooking";
-import ScheduledEmail from "./models/ScheduledEmail";
+import ScheduledNotification from "./models/ScheduledNotification";
 import EventLog from "./models/EventLog";
 import Kudos from "./models/Kudos";
 import LastReadChatRoom from "./models/LastReadChatRoom";
@@ -51,7 +51,7 @@ const db = {
   ChatMessage,
   LandmarkAssessment,
   MentorBooking,
-  ScheduledEmail,
+  ScheduledNotification,
   EventLog,
   Kudos,
   LastReadChatRoom,

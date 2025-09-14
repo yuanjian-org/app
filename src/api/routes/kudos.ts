@@ -11,7 +11,7 @@ import {
 import { zKudos } from "../../shared/Kudos";
 import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
-import { scheduleEmail } from "./scheduledEmails";
+import { scheduleNotification } from "./scheduledNotifications";
 import createKudos from "./kudosInternal";
 
 /**
@@ -64,7 +64,7 @@ const create = procedure
   .mutation(async ({ ctx: { me }, input: { userId, text } }) => {
     await sequelize.transaction(async (t) => {
       await createKudos(me.id, userId, text, t);
-      await scheduleEmail("Kudos", userId, t);
+      await scheduleNotification("Kudos", userId, t);
     });
   });
 
