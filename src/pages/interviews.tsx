@@ -25,13 +25,12 @@ import {
   Tab,
   TabPanels,
   TabPanel,
-  Switch,
   Box,
   UnorderedList,
   ListItem,
   Link,
 } from "@chakra-ui/react";
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { trpcNext } from "../trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
@@ -75,6 +74,7 @@ import {
   MenteeSourceHeaderCell,
 } from "components/MenteeSourceCell";
 import NextLink from "next/link";
+import SwitchAndLabel from "components/SwitchAndLabel";
 
 export default widePage(() => {
   const type: InterviewType =
@@ -499,11 +499,10 @@ function Calibrations({
                     </TdLink>
 
                     <Td>
-                      <Switch
+                      <SwitchAndLabel
                         isChecked={c.active}
-                        onChange={(e) => update(c, c.name, e.target.checked)}
-                      />{" "}
-                      {c.active ? "开启" : "关闭"}
+                        onChange={(v) => update(c, c.name, v)}
+                      />
                     </Td>
 
                     <CalibrationManagerCells
