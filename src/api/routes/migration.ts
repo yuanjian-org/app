@@ -40,6 +40,10 @@ async function purgeOldData() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
+  // Rename ScheduledEmails table to ScheduledNotifications if it exists
+  await sequelize.query(`
+    ALTER TABLE IF EXISTS "ScheduledEmails" RENAME TO "ScheduledNotifications";
+  `);
 
   await Promise.resolve();
 }

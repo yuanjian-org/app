@@ -9,7 +9,7 @@ import { internalServerError } from "./errors";
 /**
  * Send email via AoKSend.com
  */
-export async function emailOne(
+async function emailOne(
   toEmail: string,
   templateId: string,
   templateData: Record<string, string>,

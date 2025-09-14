@@ -2,9 +2,9 @@ import { Table, Model, AllowNull } from "sequelize-typescript";
 import { TEXT, UUID } from "sequelize";
 import ZodColumn from "../modelHelpers/ZodColumn";
 import {
-  zScheduledEmailType,
-  ScheduledEmailType,
-} from "../../../shared/ScheduledEmailType";
+  zScheduledNotificationType,
+  ScheduledNotificationType,
+} from "../../../shared/ScheduledNotificationType";
 import { z } from "zod";
 
 @Table({
@@ -15,10 +15,10 @@ import { z } from "zod";
     },
   ],
 })
-export default class ScheduledEmail extends Model {
+export default class ScheduledNotification extends Model {
   @AllowNull(false)
-  @ZodColumn(TEXT, zScheduledEmailType)
-  type: ScheduledEmailType;
+  @ZodColumn(TEXT, zScheduledNotificationType)
+  type: ScheduledNotificationType;
 
   @AllowNull(false)
   @ZodColumn(UUID, z.string().uuid())
