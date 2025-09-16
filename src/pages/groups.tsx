@@ -293,9 +293,9 @@ function GroupEditor({
       {confirmingDeletion && (
         <ConfirmationModal
           message="确定永久删除此分组？删除后，相关数据包括通话记录将无法恢复。"
-          confirm={destroy}
-          red
-          close={() => setConfirmingDeletion(false)}
+          confirmButtonInRed
+          onConfirm={destroy}
+          onClose={() => setConfirmingDeletion(false)}
         />
       )}
     </>

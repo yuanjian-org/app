@@ -3,9 +3,11 @@
  * when possible.
  */
 import z from "zod";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { internalServerError } from "./errors";
 import { chinaPhonePrefix } from "../shared/strings";
+
+export const idTokenInternationalSmsTemplateId = "0Rr8G";
 
 export async function sms(
   domesticTemplateId: string,
@@ -23,8 +25,6 @@ export async function sms(
     `["${domesticTemplateId}", "${internationalTemplateId}"],`,
     `data: ${JSON.stringify(templateData, null, 2)}`,
   );
-
-  const responses = [];
 
   const domestic = templateData
     .filter((t) => t.to.startsWith(chinaPhonePrefix))
@@ -47,12 +47,11 @@ export async function sms(
     form.append("multi", JSON.stringify(domestic));
 
     // https://www.mysubmail.com/documents/eM4rY2
-    const response = await axios.post(
-      "https://api-v4.mysubmail.com/sms/multixsend",
-      form,
-      { headers: { "Content-Type": "multipart/form-data" } },
+    handleResponse(
+      await axios.post("https://api-v4.mysubmail.com/sms/multixsend", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
     );
-    responses.push(response);
   }
 
   const international = templateData.filter(
@@ -78,29 +77,44 @@ export async function sms(
       form,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
-    responses.push(response);
+
+    /**
+     * Ignore errors for international SMS that is not for phone verification.
+     * This is because Submail.com doesn't guarantee the delivery of these SMS.
+     * For each country, Submail.com may need the service provider to obtain
+     * permits from that country's mobile operators first to send
+     * non-verification SMS to that country.
+     */
+    handleResponse(
+      response,
+      internationalTemplateId !== idTokenInternationalSmsTemplateId,
+    );
+  }
+}
+
+function handleResponse(response: AxiosResponse, ignoreError: boolean = false) {
+  if (response.status !== 200) {
+    console.log(
+      `部分短信发送失败（忽略错误=${ignoreError}）：`,
+      response.status,
+      response.data,
+    );
+    if (!ignoreError) throw internalServerError("短信发送失败。请联系客服。");
   }
 
-  for (const response of responses) {
-    if (response.status !== 200) {
-      console.log("部分短信发送失败：", response.status, response.data);
-      throw internalServerError("短信发送失败。");
-    }
+  const zResult = z.object({
+    status: z.string(),
+    code: z.number().optional(),
+    msg: z.string().optional(),
+  });
 
-    const result = z
-      .array(
-        z.object({
-          status: z.string(),
-          code: z.number().optional(),
-          msg: z.string().optional(),
-        }),
-      )
-      .parse(response.data);
+  // Handle either a single result or an array of multiple results
+  const result = z.union([zResult, z.array(zResult)]).parse(response.data);
+  const results = Array.isArray(result) ? result : [result];
 
-    if (result.some((r) => r.status !== "success")) {
-      console.log("部分短信发送失败：", result);
-      throw internalServerError("短信发送失败。");
-    }
+  if (results.some((r) => r.status !== "success")) {
+    console.log(`部分短信发送失败（忽略错误=${ignoreError}）：`, results);
+    if (!ignoreError) throw internalServerError("短信发送失败。请联系客服。");
   }
 }
 

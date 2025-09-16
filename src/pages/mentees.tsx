@@ -54,7 +54,9 @@ import {
   PointOfContactHeaderCells,
 } from "components/pointOfContactCells";
 import { fullPage } from "AppPage";
-import ConfirmationModal from "components/ConfirmationModal";
+import ConfirmationModal, {
+  ConfirmationModelProps,
+} from "components/ConfirmationModal";
 import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
 import { LuChevronsUpDown } from "react-icons/lu";
 import { topBarPaddings } from "components/TopBar";
@@ -810,10 +812,7 @@ export function MentorshipStatusIcon({ m }: { m: Mentorship }) {
   return type ? <Icon as={type} /> : <></>;
 }
 
-type ConfirmationModelProps = {
-  message: string;
-  confirm: () => void;
-};
+type PartialConfirmationModelProps = Omit<ConfirmationModelProps, "onClose">;
 
 function MentorshipsEditor({
   mentee,
@@ -828,7 +827,7 @@ function MentorshipsEditor({
 }) {
   const [creating, setCreating] = useState<boolean>(false);
   const [confirmationModelProps, setConfirmationModelProps] =
-    useState<ConfirmationModelProps>();
+    useState<PartialConfirmationModelProps>();
 
   const updateMentorship = async (
     mentorshipId: string,
@@ -908,7 +907,7 @@ function MentorshipsEditor({
                                   onClick={() =>
                                     setConfirmationModelProps({
                                       message: "确定重新开始吗？",
-                                      confirm: () =>
+                                      onConfirm: () =>
                                         updateMentorship(
                                           m.id,
                                           true,
@@ -925,7 +924,7 @@ function MentorshipsEditor({
                                     onClick={() =>
                                       setConfirmationModelProps({
                                         message: "确定立即结束吗？",
-                                        confirm: () =>
+                                        onConfirm: () =>
                                           updateMentorship(
                                             m.id,
                                             true,
@@ -943,7 +942,7 @@ function MentorshipsEditor({
                                     onClick={() =>
                                       setConfirmationModelProps({
                                         message: "确定延期结束吗？",
-                                        confirm: () =>
+                                        onConfirm: () =>
                                           updateMentorship(
                                             m.id,
                                             true,
@@ -962,7 +961,7 @@ function MentorshipsEditor({
                                   setConfirmationModelProps({
                                     message:
                                       "确定转成一对一吗？【注意】导师无法从一对一转回不定期。",
-                                    confirm: () =>
+                                    onConfirm: () =>
                                       updateMentorship(m.id, false, null),
                                   })
                                 }
@@ -979,7 +978,7 @@ function MentorshipsEditor({
                                   onClick={() =>
                                     setConfirmationModelProps({
                                       message: "确定重新开始吗？",
-                                      confirm: () =>
+                                      onConfirm: () =>
                                         updateMentorship(m.id, false, null),
                                     })
                                   }
@@ -991,7 +990,7 @@ function MentorshipsEditor({
                                   onClick={() =>
                                     setConfirmationModelProps({
                                       message: "确定立即结束吗？",
-                                      confirm: () =>
+                                      onConfirm: () =>
                                         updateMentorship(
                                           m.id,
                                           false,
@@ -1020,7 +1019,7 @@ function MentorshipsEditor({
         {confirmationModelProps && (
           <ConfirmationModal
             {...confirmationModelProps}
-            close={() => setConfirmationModelProps(undefined)}
+            onClose={() => setConfirmationModelProps(undefined)}
           />
         )}
 

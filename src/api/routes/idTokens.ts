@@ -17,7 +17,7 @@ import {
   tokenMinSendIntervalInSeconds,
   generateToken,
 } from "../../shared/token";
-import { sms } from "../sms";
+import { idTokenInternationalSmsTemplateId, sms } from "../sms";
 import moment from "moment";
 import invariant from "../../shared/invariant";
 import { IdType, zIdType } from "../../shared/IdType";
@@ -57,7 +57,7 @@ const send = procedure
       await db.IdToken.upsert({ ip, [idField]: id, token }, { transaction });
 
       if (idType === "phone") {
-        await sms("yaD264", "0Rr8G", [
+        await sms("yaD264", idTokenInternationalSmsTemplateId, [
           {
             to: id,
             vars: {
@@ -211,8 +211,14 @@ const resetPassword = procedure
     }),
   )
   .mutation(async ({ input: { idType, id, token, password } }) => {
+    if (!isValidPassword(password)) {
+      throw generalBadRequestError("密码不合要求。");
+    }
+    // Keep this slow function outside the transaction.
+    const hashed = await hash(password, 10);
+
     await sequelize.transaction(async (transaction) => {
-      await resetPasswordImpl(idType, id, token, password, transaction);
+      await resetPasswordImpl(idType, id, token, hashed, transaction);
     });
   });
 
@@ -220,15 +226,10 @@ export async function resetPasswordImpl(
   idType: IdType,
   id: string,
   token: string,
-  password: string,
+  hashedPassword: string,
   transaction: Transaction,
 ) {
-  if (!isValidPassword(password)) {
-    throw generalBadRequestError("密码不合要求。");
-  }
-
   const idField = idType === "phone" ? "phone" : "email";
-  const hashed = await hash(password, 10);
 
   await checkAndDeleteIdToken(idType, id, token, transaction);
   let user = await db.User.findOne({
@@ -248,7 +249,7 @@ export async function resetPasswordImpl(
     user = await db.User.create({ [idField]: id }, { transaction });
   }
 
-  await user.update({ password: hashed }, { transaction });
+  await user.update({ password: hashedPassword }, { transaction });
 }
 
 export default router({
