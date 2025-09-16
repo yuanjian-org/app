@@ -48,6 +48,7 @@ import { getUser2MentorshipCount } from "./mentorships";
 import { zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
+import invariant from "../../shared/invariant";
 
 const create = procedure
   .use(authUser("UserManager"))
@@ -355,6 +356,13 @@ const update = procedure
         if ([...rolesToAdd, ...rolesToRemove].length) {
           throw noPermissionError("用户", input.id);
         }
+      } else {
+        await updateWechatUnionId(
+          me.roles,
+          user.id,
+          input.wechatUnionId,
+          transaction,
+        );
       }
 
       // Only check Chinese name when updating name. Allow invalid names created
@@ -363,6 +371,7 @@ const update = procedure
         throw generalBadRequestError("中文姓名无效。");
       }
 
+      // TODO: For cleaner code, separate self updates from admin updates.
       await user.update(
         {
           wechat: input.wechat,
@@ -381,7 +390,6 @@ const update = procedure
             roles: input.roles,
             email: input.email,
             phone: input.phone,
-            wechatUnionId: input.wechatUnionId,
           }),
         },
         { transaction },
@@ -390,6 +398,55 @@ const update = procedure
       invalidateUserCache(user.id);
     });
   });
+
+/**
+ * Remove obsolete entries from next-auth's accounts table if the wechatUnionId
+ * is changed. This is needed because next-auth would overwise map the
+ * wechatUnionId to the wrong row in the users table next time the user logs in.
+ */
+export async function updateWechatUnionId(
+  myRoles: Role[],
+  userId: string,
+  wechatUnionId: string | null | undefined,
+  transaction: Transaction,
+) {
+  invariant(isPermitted(myRoles, "UserManager"), `role violation`);
+
+  if (!wechatUnionId) return;
+
+  const existing = await db.User.findByPk(userId, {
+    attributes: ["id", "wechatUnionId"],
+    transaction,
+  });
+  invariant(existing, `User not found: ${userId}`);
+
+  if (existing.wechatUnionId === wechatUnionId) return;
+
+  if (existing.wechatUnionId) {
+    await sequelize.query(
+      `DELETE FROM accounts WHERE provider_account_id = :wechatUnionId`,
+      {
+        replacements: { wechatUnionId: existing.wechatUnionId },
+        transaction,
+      },
+    );
+  }
+
+  if (wechatUnionId) {
+    await sequelize.query(
+      `DELETE FROM accounts WHERE provider_account_id = :wechatUnionId`,
+      {
+        replacements: { wechatUnionId },
+        transaction,
+      },
+    );
+  }
+
+  await existing.update(
+    { wechatUnionId },
+    { where: { id: userId }, transaction },
+  );
+}
 
 const setUserPreference = procedure
   .use(authUser())
