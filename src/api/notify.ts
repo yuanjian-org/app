@@ -6,7 +6,6 @@ import { email } from "./email";
 import getBaseUrl from "shared/getBaseUrl";
 import Role from "shared/Role";
 import sequelize from "./database/sequelize";
-import { isProd } from "shared/isProd";
 
 type Templates = {
   // AokSend email template id.
@@ -94,17 +93,14 @@ export async function notify(
       !u.preference?.smsDisabled?.includes("基础") &&
       !u.preference?.smsDisabled?.includes(type),
   );
-  // Do not send SMS in production yet
-  const smsPromise = isProd()
-    ? Promise.resolve()
-    : sms(
-        templates.domesticSms,
-        templates.internationalSms,
-        smsUsers.map((u) => ({
-          to: u.phone!,
-          vars: templateVariables,
-        })),
-      );
+  const smsPromise = sms(
+    templates.domesticSms,
+    templates.internationalSms,
+    smsUsers.map((u) => ({
+      to: u.phone!,
+      vars: templateVariables,
+    })),
+  );
 
   const emailUsers = users.filter(
     (u) =>
