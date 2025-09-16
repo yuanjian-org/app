@@ -2,13 +2,12 @@ import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { resetPasswordImpl, updateMyPhoneAndPreference } from "./idTokens";
 import { Transaction } from "sequelize";
-import { compare } from "bcryptjs";
 import { expect } from "chai";
 
 describe("resetPasswordImpl", () => {
   const testPhone = "+8613800138000";
   const testEmail = "test@example.com";
-  const validPassword = "validpassword123";
+  const hashedPassword = "abcdef";
   const testToken = "test-token-123";
   let transaction: Transaction;
 
@@ -58,7 +57,7 @@ describe("resetPasswordImpl", () => {
         "phone",
         testPhone,
         testToken,
-        validPassword,
+        hashedPassword,
         transaction,
       );
 
@@ -70,9 +69,8 @@ describe("resetPasswordImpl", () => {
       void expect(user!.phone).to.equal(testPhone);
       void expect(user!.password).to.not.be.null;
 
-      // Verify password is hashed
-      const isPasswordValid = await compare(validPassword, user!.password!);
-      void expect(isPasswordValid).to.be.true;
+      // Verify password is stored as provided (already hashed)
+      void expect(user!.password).to.equal(hashedPassword);
     });
 
     it("should update existing user password", async () => {
@@ -83,16 +81,15 @@ describe("resetPasswordImpl", () => {
         "phone",
         testPhone,
         testToken,
-        validPassword,
+        hashedPassword,
         transaction,
       );
 
       await user.reload({ transaction });
       void expect(user.password).to.not.be.null;
 
-      // Verify password is hashed
-      const isPasswordValid = await compare(validPassword, user.password!);
-      void expect(isPasswordValid).to.be.true;
+      // Verify password is stored as provided (already hashed)
+      void expect(user.password).to.equal(hashedPassword);
     });
   });
 
@@ -104,7 +101,7 @@ describe("resetPasswordImpl", () => {
         "email",
         testEmail,
         testToken,
-        validPassword,
+        hashedPassword,
         transaction,
       );
 
@@ -116,9 +113,8 @@ describe("resetPasswordImpl", () => {
       void expect(user!.email).to.equal(testEmail);
       void expect(user!.password).to.not.be.null;
 
-      // Verify password is hashed
-      const isPasswordValid = await compare(validPassword, user!.password!);
-      void expect(isPasswordValid).to.be.true;
+      // Verify password is stored as provided (already hashed)
+      void expect(user!.password).to.equal(hashedPassword);
     });
 
     it("should update existing user password", async () => {
@@ -129,16 +125,15 @@ describe("resetPasswordImpl", () => {
         "email",
         testEmail,
         testToken,
-        validPassword,
+        hashedPassword,
         transaction,
       );
 
       await user.reload({ transaction });
       void expect(user.password).to.not.be.null;
 
-      // Verify password is hashed
-      const isPasswordValid = await compare(validPassword, user.password!);
-      void expect(isPasswordValid).to.be.true;
+      // Verify password is stored as provided (already hashed)
+      void expect(user.password).to.equal(hashedPassword);
     });
   });
 
@@ -152,7 +147,7 @@ describe("resetPasswordImpl", () => {
           "phone",
           testPhone,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");
@@ -171,7 +166,7 @@ describe("resetPasswordImpl", () => {
           "phone",
           testPhone,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");
@@ -191,7 +186,7 @@ describe("resetPasswordImpl", () => {
           "phone",
           testPhone,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");
@@ -207,7 +202,7 @@ describe("resetPasswordImpl", () => {
           "phone",
           testPhone,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");
@@ -224,7 +219,7 @@ describe("resetPasswordImpl", () => {
         "phone",
         testPhone,
         testToken,
-        validPassword,
+        hashedPassword,
         transaction,
       );
 
@@ -243,7 +238,7 @@ describe("resetPasswordImpl", () => {
           "email",
           testEmail,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");
@@ -265,7 +260,7 @@ describe("resetPasswordImpl", () => {
           "phone",
           testPhone,
           testToken,
-          validPassword,
+          hashedPassword,
           transaction,
         );
         expect.fail("Expected error to be thrown");

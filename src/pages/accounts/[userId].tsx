@@ -134,7 +134,7 @@ export default function Page() {
         />
       )}
 
-      {canValidatePearlStudent(user.roles) && (
+      {canValidatePearlStudent(user.roles, user.menteeStatus) && (
         <>
           <SectionHeading>珍珠生验证</SectionHeading>
           <Text>

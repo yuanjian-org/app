@@ -7,38 +7,45 @@ import {
   ModalCloseButton,
   HStack,
 } from "@chakra-ui/react";
-import React from "react";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import { componentSpacing } from "theme/metrics";
 
+export type ConfirmationModelProps = {
+  message: string;
+  onConfirm: () => void;
+  onClose: () => void;
+  confirmButtonText?: string;
+  confirmButtonInRed?: boolean;
+  hasCancelButton?: boolean;
+};
+
 export default function ConfirmationModal({
   message,
-  confirm,
-  close,
-  red,
-}: {
-  message: string;
-  confirm: () => void;
-  close: () => void;
-  red?: boolean;
-}) {
+  onConfirm,
+  onClose,
+  confirmButtonText,
+  confirmButtonInRed,
+  hasCancelButton,
+}: ConfirmationModelProps) {
   return (
-    <ModalWithBackdrop isOpen onClose={close}>
+    <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>确认</ModalHeader>
         <ModalCloseButton />
         <ModalBody>{message}</ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing}>
-            <Button onClick={close}>取消</Button>
+            {hasCancelButton && <Button onClick={onClose}>取消</Button>}
             <Button
-              {...(red ? { colorScheme: "red" } : { variant: "brand" })}
+              {...(confirmButtonInRed
+                ? { colorScheme: "red" }
+                : { variant: "brand" })}
               onClick={() => {
-                confirm();
-                close();
+                onConfirm();
+                onClose();
               }}
             >
-              确认
+              {confirmButtonText || "确认"}
             </Button>
           </HStack>
         </ModalFooter>

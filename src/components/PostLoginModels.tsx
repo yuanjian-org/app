@@ -50,7 +50,10 @@ export default function PostLoginModels() {
   // Validate pearl student before setting name because the former also sets 
   // name. Do it before setting cell because the system will require cell for
   // all pearl students.
-  ) : canValidatePearlStudent(me.roles) && !state?.declinedPearlStudentModal ? (
+  ) : canValidatePearlStudent(
+    me.roles,
+    me.menteeStatus,
+  ) && !state?.declinedPearlStudentModal ? (
     <PearlStudentModals userState={state} refetchUserState={refetch} />
 
   ) : !me.name ? (

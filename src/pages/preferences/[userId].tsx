@@ -36,7 +36,7 @@ import {
 } from "shared/UserPreference";
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
-import { parseQueryString } from "shared/strings";
+import { chinaPhonePrefix, parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
 import invariant from "tiny-invariant";
 import Loader from "components/Loader";
@@ -46,8 +46,9 @@ import {
   traitsPrefProfiles,
   TraitTag,
 } from "components/Traits";
-import { useMyId, useMyRoles } from "useMe";
+import useMe, { useMyId } from "useMe";
 import SwitchAndLabel from "components/SwitchAndLabel";
+import ConfirmationModal from "components/ConfirmationModal";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -401,7 +402,9 @@ function NotificationPreferences({
   updateSmsDisabled: (k: NotificationType, v: "enable" | "disable") => void;
   updateEmailDisabled: (k: NotificationType, v: "enable" | "disable") => void;
 }) {
-  const myRoles = useMyRoles();
+  const me = useMe();
+  const [confirmingInternationalSms, setConfirmingInternationalSms] =
+    useState<boolean>(false);
 
   const Row = ({ type }: { type: NotificationType }) => (
     <>
@@ -409,11 +412,24 @@ function NotificationPreferences({
         <Text>{type === "基础" ? "所有通知" : type}</Text>
       </GridItem>
       <GridItem>
-        <SwitchAndLabel
-          isDisabled={type !== "基础" && data.smsDisabled?.includes("基础")}
-          isChecked={!data.smsDisabled?.includes(type)}
-          onChange={(v) => updateSmsDisabled(type, v ? "enable" : "disable")}
-        />
+        {type === "基础" ? (
+          <SwitchAndLabel
+            isChecked={!data.smsDisabled?.includes(type)}
+            onChange={(v) => {
+              if (v && me.phone && !me.phone.startsWith(chinaPhonePrefix)) {
+                setConfirmingInternationalSms(true);
+              } else {
+                updateSmsDisabled(type, v ? "enable" : "disable");
+              }
+            }}
+          />
+        ) : (
+          <SwitchAndLabel
+            isDisabled={data.smsDisabled?.includes("基础")}
+            isChecked={!data.smsDisabled?.includes(type)}
+            onChange={(v) => updateSmsDisabled(type, v ? "enable" : "disable")}
+          />
+        )}
       </GridItem>
       <GridItem>
         <SwitchAndLabel
@@ -440,15 +456,24 @@ function NotificationPreferences({
 
         {allNotificationTypes
           .filter(
-            (type) => type !== "内部笔记" || isPermitted(myRoles, "Mentor"),
+            (type) => type !== "内部笔记" || isPermitted(me.roles, "Mentor"),
           )
           .filter(
-            (type) => type !== "点赞" || isPermitted(myRoles, "Volunteer"),
+            (type) => type !== "点赞" || isPermitted(me.roles, "Volunteer"),
           )
           .map((type) => (
             <Row key={type} type={type} />
           ))}
       </Grid>
+
+      {confirmingInternationalSms && (
+        <ConfirmationModal
+          message="您使用的是国际手机号，可能无法收到来自远图的短信。"
+          confirmButtonText="知道了，继续开启短信通知"
+          onConfirm={() => updateSmsDisabled("基础", "enable")}
+          onClose={() => setConfirmingInternationalSms(false)}
+        />
+      )}
     </>
   );
 }

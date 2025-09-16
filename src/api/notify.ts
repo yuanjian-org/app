@@ -22,7 +22,9 @@ export function notifyRolesIgnoreError(
   content: string,
 ) {
   const logError = (e: any) => {
-    console.log(`notifyRolesIgnoreError() ignored error:`, roles, subject, e);
+    console.log(
+      `notifyRolesIgnoreError() ignored error: ${roles}, ${subject}, ${e}`,
+    );
   };
   try {
     // Do not use the transaction from the caller so the caller can proceed
