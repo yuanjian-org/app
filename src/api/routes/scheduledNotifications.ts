@@ -228,7 +228,7 @@ async function notifyKudos(
 
   notifyRolesIgnoreError(
     ["SystemAlertSubscriber"],
-    "发送点赞邮件",
+    "发送点赞通知",
     JSON.stringify(templateData),
   );
 }

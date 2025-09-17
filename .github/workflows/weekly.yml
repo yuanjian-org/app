@@ -6,6 +6,7 @@ on:
   schedule:
     # Runs at 2:42 AM China Standard Time every Friday.
     - cron: "42 18 * * 4"
+  workflow_dispatch:
 
 jobs:
   run_scheduled_task:
