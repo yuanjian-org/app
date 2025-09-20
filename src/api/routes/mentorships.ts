@@ -35,7 +35,7 @@ import {
 } from "../../shared/ChatMessage";
 import moment from "moment";
 import getBaseUrl from "../../shared/getBaseUrl";
-import { notifyRoles } from "api/notify";
+import { notify, notifyRoles } from "api/notify";
 
 export const whereMentorshipIsOngoing = {
   [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
@@ -329,7 +329,7 @@ const get = procedure
  * Send admin emails that list mentors who haven't had meetings with their
  * mentees for a while.
  */
-export async function auditLastMentorshipMeetings() {
+export async function auditLastMentorshipMeetings(transaction: Transaction) {
   type Pair = {
     mentorship: Mentorship;
     last: DateColumn | null;
@@ -338,97 +338,118 @@ export async function auditLastMentorshipMeetings() {
   const oneOnOneTooOld: Pair[] = [];
   const mentorReviewTooOld: Pair[] = [];
 
-  await sequelize.transaction(async (transaction) => {
-    // List all ongoing relational mentorships.
-    const ms = await db.Mentorship.findAll({
-      attributes: mentorshipAttributes,
-      include: mentorshipInclude,
-      where: {
-        ...whereMentorshipIsOngoing,
-        transactional: false,
-      },
-      transaction,
-    });
+  // List all ongoing relational mentorships.
+  const ms = await db.Mentorship.findAll({
+    attributes: mentorshipAttributes,
+    include: mentorshipInclude,
+    where: {
+      ...whereMentorshipIsOngoing,
+      transactional: false,
+    },
+    transaction,
+  });
 
-    for (const m of ms) {
-      const last1v1 = await getLastMeetingStartedAtImpl(m.id, transaction);
+  for (const m of ms) {
+    const last1v1 = await getLastMeetingStartedAtImpl(m.id, transaction);
 
-      if (
-        last1v1 === null ||
-        moment().diff(last1v1, "days") > oneOnOneYellowThreshold
-      ) {
-        oneOnOneTooOld.push({ mentorship: m, last: last1v1 });
-      }
-
-      const lastMentorReview = await getLastMessageCreatedAtImpl(
-        m.mentee.id,
-        mentorReviewMessagePrefix,
-        transaction,
-      );
-
-      if (
-        lastMentorReview === null ||
-        moment().diff(lastMentorReview, "days") > reviewYellowThreshold
-      ) {
-        mentorReviewTooOld.push({ mentorship: m, last: lastMentorReview });
-      }
+    if (
+      last1v1 === null ||
+      moment().diff(last1v1, "days") > oneOnOneYellowThreshold
+    ) {
+      oneOnOneTooOld.push({ mentorship: m, last: last1v1 });
     }
 
-    if (oneOnOneTooOld.length === 0 && mentorReviewTooOld.length === 0) {
-      console.log("auditLastMentorshipMeetings found no violations");
-      return;
-    }
-
-    const formatMentorship = (m: Mentorship) => `
-      <a href="${getBaseUrl()}/mentees/${m.mentee.id}">
-        ${formatUserName(m.mentor.name)} 
-        =>
-        ${formatUserName(m.mentee.name)} 
-      </a>
-    `;
-
-    const limit = 10;
-
-    const oneOnOneTooOldText = oneOnOneTooOld
-      .sort((a, b) => compareDate(a.last, b.last))
-      .slice(0, limit)
-      .map(
-        (p) => `
-          ${formatMentorship(p.mentorship)}：
-          ${p.last ? moment().diff(p.last, "days") + " 天前通话" : "尚未通话"}
-        `,
-      )
-      .join("<br />");
-
-    const mentorReviewTooOldText = mentorReviewTooOld
-      .sort((a, b) => compareDate(a.last, b.last))
-      .slice(0, limit)
-      .map(
-        (p) => `
-          ${formatMentorship(p.mentorship)}：
-          ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未访谈"}
-        `,
-      )
-      .join("<br />");
-
-    const message = `
-      <b>以下师生长期未通话，请了解情况（仅显示十名）：</b>
-      <br /><br />
-      ${oneOnOneTooOldText}
-      <br /><br />
-      <b>以下导师长期未交流，请尽快预约交流（仅显示十名）：</b>
-      <br /><br />
-      ${mentorReviewTooOldText}
-    `;
-
-    await notifyRoles(
-      ["MentorshipManager", "MentorshipOperator"],
-      "师生长期未通话提醒",
-      // Shrink message. Otherwise mail server may complain about message size.
-      message.replace(/\n/g, "").replace(/\s+/g, " "),
+    const lastMentorReview = await getLastMessageCreatedAtImpl(
+      m.mentee.id,
+      mentorReviewMessagePrefix,
       transaction,
     );
-  });
+
+    if (
+      lastMentorReview === null ||
+      moment().diff(lastMentorReview, "days") > reviewYellowThreshold
+    ) {
+      mentorReviewTooOld.push({ mentorship: m, last: lastMentorReview });
+    }
+  }
+
+  if (oneOnOneTooOld.length === 0 && mentorReviewTooOld.length === 0) {
+    console.log("auditLastMentorshipMeetings found no violations");
+    return;
+  }
+
+  for (const { mentorship: m, last } of oneOnOneTooOld.filter(
+    (p) => p.last !== null,
+  )) {
+    // Sequentialize notify() to avoid flooding the server and getting
+    // throttled. As a result, the current transaction may take a long time.
+    await notify(
+      "一对一通话提醒",
+      [m.mentor.id],
+      {
+        email: "E_114703414835",
+        domesticSms: "0Th9T4",
+        internationalSms: "DUPBs3",
+      },
+      {
+        mentorFriendlyName: formatUserName(m.mentor.name, "friendly"),
+        menteeFormalName: formatUserName(m.mentee.name, "formal"),
+        menteeFormalNameAndLink: `<a href="${getBaseUrl()}/mentees/${m.mentee.id}">${formatUserName(m.mentee.name, "formal")}</a>`,
+        days: String(moment().diff(last, "days")),
+      },
+      transaction,
+    );
+  }
+
+  const formatMentorship = (m: Mentorship) => `
+    <a href="${getBaseUrl()}/mentees/${m.mentee.id}">
+      ${formatUserName(m.mentor.name)} 
+      =>
+      ${formatUserName(m.mentee.name)} 
+    </a>
+  `;
+
+  const limit = 10;
+
+  const oneOnOneTooOldText = oneOnOneTooOld
+    .sort((a, b) => compareDate(a.last, b.last))
+    .slice(0, limit)
+    .map(
+      (p) => `
+        ${formatMentorship(p.mentorship)}：
+        ${p.last ? moment().diff(p.last, "days") + " 天前通话" : "尚未通话"}
+      `,
+    )
+    .join("<br />");
+
+  const mentorReviewTooOldText = mentorReviewTooOld
+    .sort((a, b) => compareDate(a.last, b.last))
+    .slice(0, limit)
+    .map(
+      (p) => `
+        ${formatMentorship(p.mentorship)}：
+        ${p.last ? moment().diff(p.last, "days") + " 天前交流" : "尚未访谈"}
+      `,
+    )
+    .join("<br />");
+
+  const message = `
+    <b>以下师生长期未通话，请了解情况（仅显示十名）：</b>
+    <br /><br />
+    ${oneOnOneTooOldText}
+    <br /><br />
+    <b>以下导师长期未交流，请尽快预约交流（仅显示十名）：</b>
+    <br /><br />
+    ${mentorReviewTooOldText}
+  `;
+
+  await notifyRoles(
+    ["MentorshipManager", "MentorshipOperator"],
+    "师生长期未通话提醒",
+    // Shrink message. Otherwise mail server may complain about message size.
+    message.replace(/\n/g, "").replace(/\s+/g, " "),
+    transaction,
+  );
 }
 
 export default router({

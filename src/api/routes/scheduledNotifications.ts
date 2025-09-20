@@ -315,7 +315,7 @@ async function notifyChats(
         filtered
           .map((m) => m.user.id)
           .filter((id, i, arr) => arr.indexOf(id) === i).length === 1
-          ? formatUserName(filtered[0].user.name, "friendly")
+          ? formatUserName(filtered[0].user.name)
           : "多人";
 
       invariant(room.mentee, "Only mentee rooms are supported for now");

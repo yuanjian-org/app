@@ -459,6 +459,10 @@ function NotificationPreferences({
             (type) => type !== "内部笔记" || isPermitted(me.roles, "Mentor"),
           )
           .filter(
+            (type) =>
+              type !== "一对一通话提醒" || isPermitted(me.roles, "Mentor"),
+          )
+          .filter(
             (type) => type !== "点赞" || isPermitted(me.roles, "Volunteer"),
           )
           .map((type) => (
