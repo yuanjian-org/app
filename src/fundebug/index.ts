@@ -6,6 +6,11 @@ export function isFundebugEnabled() {
   return typeof window !== "undefined" && isProd();
 }
 
+console.log(">>>1", typeof window !== "undefined");
+console.log(">>>2", isProd());
+console.log(">>>3", isFundebugEnabled());
+console.log(">>>4", process.env.NODE_ENV);
+
 if (isFundebugEnabled()) {
   void import("fundebug-javascript").then((module) => {
     fundebug = module.default;
