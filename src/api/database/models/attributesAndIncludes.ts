@@ -16,6 +16,7 @@ export const minUserAttributes = ["id", "name", "url"];
 export const extraUserAttributesForInterviews = [
   "roles",
   "menteeStatus",
+  "menteeApplication",
   "volunteerApplication",
 ];
 
