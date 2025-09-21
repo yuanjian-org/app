@@ -88,6 +88,7 @@ import {
 } from "theme/colors";
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import { MatchFeedbackStateCell } from "./mentors/manage";
+import { SmallGrayText } from "components/SmallGrayText";
 
 type Metadata = {
   // The year the mentee was accepted
@@ -124,6 +125,9 @@ export default fullPage(() => {
 
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
+  // For type checking
+  const pendingPearlStudent: MenteeStatus = "未审珍珠生";
+
   return (
     <>
       <TopBar {...topBarPaddings()}>
@@ -142,6 +146,12 @@ export default fullPage(() => {
             >
               显示师生匹配状态
             </Checkbox>
+          </WrapItem>
+          <WrapItem>
+            <SmallGrayText>
+              “{pendingPearlStudent}
+              ”仅能访问不定期导师服务。若已提交学生申请表，则会在学生面试页会列出。
+            </SmallGrayText>
           </WrapItem>
         </Wrap>
       </TopBar>

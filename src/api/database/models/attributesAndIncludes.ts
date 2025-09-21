@@ -12,7 +12,7 @@ import User from "./User";
 export const minUserAttributes = ["id", "name", "url"];
 
 // These attributes are used to determine if the person has pending interviews.
-// See isCandidatePending().
+// Must be consistent with isCandidatePending().
 export const extraUserAttributesForInterviews = [
   "roles",
   "menteeStatus",

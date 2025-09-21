@@ -50,7 +50,11 @@ import {
   mentorInterviewDimensions,
 } from "shared/interviewDimentions";
 import { InterviewType } from "shared/InterviewType";
-import { listMentors, ListMentorsOutput, listMentorStats } from "./users";
+import {
+  listMentorsImpl,
+  ListMentorsOutput,
+  listMentorStatsImpl,
+} from "./users";
 import invariant from "shared/invariant";
 import {
   computeTraitsMatchingScore,
@@ -548,7 +552,7 @@ async function listEligibleMentees(): Promise<MinUser[]> {
 }
 
 async function listEligibleMentors(): Promise<ListMentorsOutput> {
-  return (await listMentors()).filter((m) => m.relational);
+  return (await listMentorsImpl()).filter((m) => m.relational);
 }
 
 /**
@@ -702,7 +706,7 @@ const generateFinalSolverInput = procedure
   });
 
 async function listMentorCapacities(): Promise<Record<string, number>> {
-  const stats = await listMentorStats();
+  const stats = await listMentorStatsImpl();
   return stats.reduce(
     (acc, m) => {
       acc[m.user.id] = Math.max(

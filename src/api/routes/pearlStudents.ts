@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import Role, { RoleProfiles } from "../../shared/Role";
+import { addRole, RoleProfiles } from "../../shared/Role";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { authUser } from "../auth";
@@ -78,13 +78,9 @@ export async function validatePearlStudent(
     );
   }
 
-  // Force type checks
-  const menteeRole: Role = "Mentee";
-  const accepted: MenteeStatus = "现届学子";
-  const transactionalOnly: MenteeStatus = "仅不定期";
-
-  const menteeStatus =
-    me.menteeStatus === accepted ? accepted : transactionalOnly;
+  // Update mentee status only if it is null.
+  const menteeStatus: MenteeStatus =
+    me.menteeStatus === null ? "未审珍珠生" : me.menteeStatus;
 
   await student.update({ userId: me.id }, { transaction });
 
@@ -105,7 +101,7 @@ export async function validatePearlStudent(
       name,
       pinyin: toPinyin(name),
       wechat,
-      roles: [...me.roles.filter((r) => r !== menteeRole), menteeRole],
+      roles: addRole(me.roles, "Mentee"),
       menteeStatus,
       menteeApplication,
     },

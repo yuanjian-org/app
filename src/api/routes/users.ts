@@ -191,12 +191,16 @@ const zListMentorsOutput = z.array(
 );
 export type ListMentorsOutput = z.infer<typeof zListMentorsOutput>;
 
-const listMentorsRoute = procedure
+const listMentors = procedure
   .use(authUser())
   .output(zListMentorsOutput)
   .query(async ({ ctx: { me } }) => {
     if (
-      !isAcceptedMentee(me.roles, me.menteeStatus, true) &&
+      !isAcceptedMentee(
+        me.roles,
+        me.menteeStatus,
+        "includeTransactionalOnly",
+      ) &&
       !isPermitted(me.roles, [
         "Mentor",
         "MentorshipManager",
@@ -205,10 +209,10 @@ const listMentorsRoute = procedure
     ) {
       throw noPermissionError("导师");
     }
-    return await listMentors();
+    return await listMentorsImpl();
   });
 
-export async function listMentors(): Promise<ListMentorsOutput> {
+export async function listMentorsImpl(): Promise<ListMentorsOutput> {
   // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
@@ -248,12 +252,12 @@ export type ListMentorStatsOutput = z.infer<typeof zListMentorStatsOutput>;
  * Compared to listMentorsRoute, this route is restricted to MentorshipManager
  * access.
  */
-const listMentorStatsRoute = procedure
+const listMentorStats = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .output(zListMentorStatsOutput)
-  .query(listMentorStats);
+  .query(listMentorStatsImpl);
 
-export async function listMentorStats(): Promise<ListMentorStatsOutput> {
+export async function listMentorStatsImpl(): Promise<ListMentorStatsOutput> {
   // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
@@ -633,10 +637,13 @@ const getUserProfile = procedure
       !(
         isPermitted(me.roles, "Volunteer") && isPermitted(u.roles, "Volunteer")
       ) &&
-      // Accepted mentoees can only access mentor profiles
+      // Accepted mentees can only access mentor profiles
       !(
-        isAcceptedMentee(me.roles, me.menteeStatus, true) &&
-        isPermitted(u.roles, "Mentor")
+        isAcceptedMentee(
+          me.roles,
+          me.menteeStatus,
+          "includeTransactionalOnly",
+        ) && isPermitted(u.roles, "Mentor")
       )
     ) {
       throw noPermissionError("用户", u.id);
@@ -937,8 +944,8 @@ export default router({
   list,
   listPriviledgedUserDataAccess,
   listVolunteers,
-  listMentors: listMentorsRoute,
-  listMentorStats: listMentorStatsRoute,
+  listMentors,
+  listMentorStats,
   getMentorTraitsPref,
 
   update,

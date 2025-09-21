@@ -34,6 +34,7 @@ import { zInterviewerPreference } from "../../shared/UserPreference";
 import { zUserProfile } from "../../shared/UserProfile";
 import { Op, Transaction } from "sequelize";
 import {
+  menteeSourceField,
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes,
 } from "../../shared/applicationFields";
@@ -216,12 +217,26 @@ const listPendingCandidates = procedure
 
 function isCandidatePending(
   type: InterviewType,
-  candidate: User & { volunteerApplication: Record<string, any> | null },
-  createdAt: Date[],
+  candidate: User & {
+    menteeApplication: Record<string, any> | null;
+    volunteerApplication: Record<string, any> | null;
+  },
+  interviewsCreatedAt: Date[],
 ) {
   if (type == "MenteeInterview") {
-    // A interview decision hasn't been made
-    return candidate.menteeStatus === null;
+    if (candidate.menteeStatus === null) {
+      return true;
+    } else if (candidate.menteeStatus === "未审珍珠生") {
+      // Assume the mentee has submitted the application if the application has
+      // more than the menteeSourceField, which is always present for Pearl
+      // students. See validatePearlStudent().
+      const keys = Object.keys(candidate.menteeApplication ?? {}).filter(
+        (k) => k !== menteeSourceField,
+      );
+      return keys.length > 0;
+    } else {
+      return false;
+    }
   } else if (
     candidate.volunteerApplication?.[volunteerApplyingforMentorField] !==
     volunteerApplyingforMentorFieldYes
@@ -231,12 +246,14 @@ function isCandidatePending(
   } else if (isPermitted(candidate.roles, "Mentor")) {
     // The user has been accepted as a mentor
     return false;
-  } else if (createdAt.length == 0) {
+  } else if (interviewsCreatedAt.length == 0) {
     // The mentor candidate is pending if there isn't any interview
     return true;
   } else {
     // Treat a mentor interview as done after 60 days of creation
-    return createdAt.some((d) => diffInMinutes(d, new Date()) < 60 * 24 * 60);
+    return interviewsCreatedAt.some(
+      (d) => diffInMinutes(d, new Date()) < 60 * 24 * 60,
+    );
   }
 }
 
