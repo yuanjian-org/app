@@ -1,4 +1,3 @@
-import React from "react";
 import { Select, Td, Wrap, WrapItem } from "@chakra-ui/react";
 import {
   AllMenteeStatuses,
@@ -13,8 +12,9 @@ const status2color: Record<MenteeStatus, string> = {
   初拒: "red",
   面拒: "red",
   现届学子: "green",
-  仅奖学金: "orange",
   仅不定期: "orange",
+  未审珍珠生: "orange",
+  仅奖学金: "orange",
   活跃校友: "green.800",
   学友: "green.800",
   退出校友: "gray",

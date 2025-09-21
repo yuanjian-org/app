@@ -43,19 +43,14 @@ export type UserWithMergeInfo = z.TypeOf<typeof zUserWithMergeInfo>;
 export function isAcceptedMentee(
   roles: Role[],
   menteeStatus: MenteeStatus | null,
-  includeTransactionalOnly?: boolean,
+  scope: "includeTransactionalOnly" | "excludeTransactionalOnly",
 ) {
-  // Force type check
-  const transactionalOnly: MenteeStatus[] = ["仅不定期", "仅奖学金"];
-  const s: MenteeStatus[] = [
-    "现届学子",
-    "活跃校友",
-    "学友",
-    ...(includeTransactionalOnly ? transactionalOnly : []),
-  ];
-  return (
-    isPermitted(roles, "Mentee") && menteeStatus && s.includes(menteeStatus)
-  );
+  if (!menteeStatus || !isPermitted(roles, "Mentee")) return false;
+  let s: MenteeStatus[] = ["现届学子", "活跃校友", "学友"];
+  if (scope === "includeTransactionalOnly") {
+    s = [...s, "仅不定期", "未审珍珠生"];
+  }
+  return s.includes(menteeStatus);
 }
 
 export function getUserUrl(u: MinUser) {

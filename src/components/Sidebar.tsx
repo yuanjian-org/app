@@ -191,7 +191,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoMdCalendar,
     regex: /^\/mentors$/,
     permission: (me: User) =>
-      isAcceptedMentee(me.roles, me.menteeStatus, true) ||
+      isAcceptedMentee(me.roles, me.menteeStatus, "includeTransactionalOnly") ||
       isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
   },
   {
@@ -200,7 +200,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/relational.*/,
     permission: (me: User) =>
-      isAcceptedMentee(me.roles, me.menteeStatus) ||
+      isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly") ||
       isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
   },
   {

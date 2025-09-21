@@ -101,3 +101,18 @@ export function isPermitted(userRoles: Role[], permitted?: Role | Role[]) {
   if (typeof permitted === "string") return userRoles.includes(permitted);
   return userRoles.some((r) => permitted.includes(r));
 }
+
+/**
+ * TODO update codebase to use this function instead of manually removing roles
+ */
+export function removeRole(roles: Role[], role: Role) {
+  return roles.filter((r) => r !== role);
+}
+
+/**
+ * TODO update codebase to use this function instead of manually adding roles
+ */
+export function addRole(roles: Role[], role: Role) {
+  // Remove the role if it already exists to avoid duplicates
+  return [...removeRole(roles, role), role];
+}
