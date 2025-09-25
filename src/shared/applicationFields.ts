@@ -116,6 +116,9 @@ export const menteeApplicationFields: ApplicationField[] = [
     jsjField: "field_145",
     name: menteeExpectationField,
   },
+  { jsjField: "field_132", name: "目前已有的经济支持" },
+
+  /* 
   { jsjField: "field_121", name: "户口所在地" },
   { jsjField: "field_119", name: "户口类型" },
   { jsjField: "field_112", name: "家庭成员" },
@@ -124,7 +127,7 @@ export const menteeApplicationFields: ApplicationField[] = [
   { jsjField: "field_151", name: "减免后的每年住宿费（元）" },
   { jsjField: "field_152", name: "减免后的每年其他学杂费及生活费估计（元）" },
   { jsjField: "field_128", name: "经济困难的原因" },
-  { jsjField: "field_132", name: "目前已有的经济支持" },
+  */
 ];
 
 export const volunteerApplyingforMentorField = "申请导师";
