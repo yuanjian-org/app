@@ -394,7 +394,8 @@ function InterviewEditor({
                 value={calibrationId}
               >
                 {calibrations
-                  ?.sort((c1, c2) => compareChinese(c1.name, c2.name))
+                  // Sort in descending order
+                  ?.sort((c2, c1) => compareChinese(c1.name, c2.name))
                   .map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}

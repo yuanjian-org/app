@@ -172,7 +172,6 @@ export function getColorFromText(text: string): string {
 }
 
 export const chinaPhonePrefix = "+86";
-export const usPhonePrefix = "+1";
 
 export function isValidPhone(v: string): boolean {
   if (v.startsWith(chinaPhonePrefix)) {

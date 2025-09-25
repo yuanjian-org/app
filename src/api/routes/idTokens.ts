@@ -7,7 +7,6 @@ import {
   chinaPhonePrefix,
   isValidPassword,
   toChineseNumber,
-  usPhonePrefix,
 } from "../../shared/strings";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
@@ -38,10 +37,11 @@ const send = procedure
     if (
       idType === "phone" &&
       !id.startsWith(chinaPhonePrefix) &&
-      !id.startsWith(usPhonePrefix)
+      !id.startsWith("+1") &&
+      !id.startsWith("+39")
     ) {
       throw generalBadRequestError(
-        "目前仅支持中国和美国手机号。如需使用其他国家手机号，请联系客服。",
+        "目前尚不支持您所在地区的手机号。如需使用，请联系客服。",
       );
     }
 
