@@ -393,11 +393,13 @@ function InterviewEditor({
                 onChange={(e) => setCalibrationId(e.target.value)}
                 value={calibrationId}
               >
-                {calibrations?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
+                {calibrations
+                  ?.sort((c1, c2) => compareChinese(c1.name, c2.name))
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
               </Select>
             </FormControl>
           </VStack>

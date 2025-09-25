@@ -7,6 +7,7 @@ import {
   chinaPhonePrefix,
   isValidPassword,
   toChineseNumber,
+  usPhonePrefix,
 } from "../../shared/strings";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
@@ -34,6 +35,16 @@ const send = procedure
   .use(ip())
   .input(z.object({ idType: zIdType, id: z.string() }))
   .mutation(async ({ input: { idType, id }, ctx: { ip } }) => {
+    if (
+      idType === "phone" &&
+      !id.startsWith(chinaPhonePrefix) &&
+      !id.startsWith(usPhonePrefix)
+    ) {
+      throw generalBadRequestError(
+        "目前仅支持中国和美国手机号。如需使用其他国家手机号，请联系客服。",
+      );
+    }
+
     await sequelize.transaction(async (transaction) => {
       const idField = idType === "phone" ? "phone" : "email";
       /**
