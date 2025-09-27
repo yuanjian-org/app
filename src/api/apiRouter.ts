@@ -21,7 +21,6 @@ import mentorSelections from "./routes/mentorSelections";
 import tasks from "./routes/tasks";
 import matchFeedback from "./routes/matchFeedback";
 import globalConfigs from "./routes/globalConfigs";
-import pearlStudents from "./routes/pearlStudents";
 import idTokens from "./routes/idTokens";
 
 export const apiRouter = router({
@@ -47,7 +46,6 @@ export const apiRouter = router({
   tasks,
   matchFeedback,
   globalConfigs,
-  pearlStudents,
   idTokens,
 });
 

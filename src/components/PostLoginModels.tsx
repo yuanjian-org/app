@@ -21,8 +21,6 @@ import ModalWithBackdrop from "./ModalWithBackdrop";
 import { isValidChineseName } from "shared/strings";
 import { signOut, useSession } from "next-auth/react";
 import { DateColumn } from "shared/DateColumn";
-import { PearlStudentModals } from "./PearlStudentModals";
-import { canValidatePearlStudent } from "shared/pearlStudent";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
@@ -46,15 +44,6 @@ export default function PostLoginModels() {
 
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
-
-  // Validate pearl student before setting name because the former also sets 
-  // name. Do it before setting cell because the system will require cell for
-  // all pearl students.
-  ) : canValidatePearlStudent(
-    me.roles,
-    me.menteeStatus,
-  ) && !state?.declinedPearlStudentModal ? (
-    <PearlStudentModals userState={state} refetchUserState={refetch} />
 
   ) : !me.name ? (
     <SetNameModal />

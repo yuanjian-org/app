@@ -7,7 +7,6 @@ export const AllMenteeStatuses = [
   "初拒",
   "面拒",
 
-  "未审珍珠生",
   "现届学子",
   "仅不定期",
   "仅奖学金",

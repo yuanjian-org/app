@@ -47,5 +47,12 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
+  // Set menteeStatus to null for users with "未审珍珠生" status
+  await sequelize.query(`
+    UPDATE "users"
+    SET "menteeStatus" = NULL
+    WHERE "menteeStatus" = '未审珍珠生';
+  `);
+
   await Promise.resolve();
 }
