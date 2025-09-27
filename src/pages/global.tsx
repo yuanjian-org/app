@@ -4,10 +4,6 @@ import {
   FormLabel,
   Input,
   Button,
-  Textarea,
-  Text,
-  Heading,
-  Code,
 } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -59,67 +55,6 @@ export default function Page() {
       <Button variant="brand" onClick={save} isLoading={saving}>
         保存
       </Button>
-
-      <UploadPearlStudentsForm />
     </VStack>
-  );
-}
-
-function UploadPearlStudentsForm() {
-  const [csvData, setCsvData] = useState("");
-  const [uploading, setUploading] = useState(false);
-
-  const handleUpload = async () => {
-    if (!csvData.trim()) {
-      toast.error("请输入CSV数据");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const result = await trpc.pearlStudents.upload.mutate({ csvData });
-      toast.success(
-        `成功处理 ${result.total} 条记录：更新 ${result.updated} 条，` +
-          `新增 ${result.inserted} 条`,
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <>
-      <Heading size="md" mt={componentSpacing}>
-        珍珠生数据上传
-      </Heading>
-
-      <Text>
-        请将以下格式的珍珠生数据粘贴到下面的文本框中：
-        <br />
-        <br />
-        <Code>姓名,珍珠生编号,身份证号最后四位</Code>
-        <br />
-        <br />• 身份证号最后四位可以为空
-        <br />• 系统将更新现有记录或插入新记录（基于珍珠生编号）
-      </Text>
-
-      <FormControl>
-        <Textarea
-          value={csvData}
-          onChange={(e) => setCsvData(e.target.value)}
-          rows={10}
-          bg="white"
-        />
-      </FormControl>
-
-      <Button
-        variant="brand"
-        onClick={handleUpload}
-        isLoading={uploading}
-        isDisabled={!csvData.trim()}
-      >
-        上传珍珠生数据
-      </Button>
-    </>
   );
 }

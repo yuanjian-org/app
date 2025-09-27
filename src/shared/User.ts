@@ -47,9 +47,7 @@ export function isAcceptedMentee(
 ) {
   if (!menteeStatus || !isPermitted(roles, "Mentee")) return false;
   let s: MenteeStatus[] = ["现届学子", "活跃校友", "学友"];
-  if (scope === "includeTransactionalOnly") {
-    s = [...s, "仅不定期", "未审珍珠生"];
-  }
+  if (scope === "includeTransactionalOnly") s = [...s, "仅不定期"];
   return s.includes(menteeStatus);
 }
 

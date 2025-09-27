@@ -75,7 +75,8 @@ export const menteeApplicationFields: ApplicationField[] = [
   },
   { jsjField: "field_169", name: "预计毕业年份", showForEdits: true },
 
-  { jsjField: "field_170", name: "国籍" }, // Only in 馒头工坊 application form
+  // 国籍 for 馒头工坊 application form, 同学推荐 for 远见 application form
+  { jsjField: "field_170", name: "国籍或同学推荐" },
 
   { jsjField: "field_168", name: "小学、初中、高中" },
   { jsjField: "field_156", name: "简历" },

@@ -13,7 +13,6 @@ const status2color: Record<MenteeStatus, string> = {
   面拒: "red",
   现届学子: "green",
   仅不定期: "orange",
-  未审珍珠生: "orange",
   仅奖学金: "orange",
   活跃校友: "green.800",
   学友: "green.800",

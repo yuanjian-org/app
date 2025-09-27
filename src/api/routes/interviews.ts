@@ -34,7 +34,6 @@ import { zInterviewerPreference } from "../../shared/UserPreference";
 import { zUserProfile } from "../../shared/UserProfile";
 import { Op, Transaction } from "sequelize";
 import {
-  menteeSourceField,
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes,
 } from "../../shared/applicationFields";
@@ -224,19 +223,7 @@ function isCandidatePending(
   interviewsCreatedAt: Date[],
 ) {
   if (type == "MenteeInterview") {
-    if (candidate.menteeStatus === null) {
-      return true;
-    } else if (candidate.menteeStatus === "未审珍珠生") {
-      // Assume the mentee has submitted the application if the application has
-      // more than the menteeSourceField, which is always present for Pearl
-      // students. See validatePearlStudent().
-      const keys = Object.keys(candidate.menteeApplication ?? {}).filter(
-        (k) => k !== menteeSourceField,
-      );
-      return keys.length > 0;
-    } else {
-      return false;
-    }
+    return candidate.menteeStatus === null;
   } else if (
     candidate.volunteerApplication?.[volunteerApplyingforMentorField] !==
     volunteerApplyingforMentorFieldYes

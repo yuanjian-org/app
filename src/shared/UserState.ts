@@ -4,8 +4,6 @@ import { zDateColumn } from "./DateColumn";
 export const zUserState = z.object({
   consentedAt: zDateColumn.optional(),
 
-  declinedPearlStudentModal: z.boolean().optional(),
-
   lastKudosReadAt: zDateColumn.optional(),
 
   lastTasksReadAt: zDateColumn.optional(),
