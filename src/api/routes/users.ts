@@ -818,6 +818,7 @@ const getApplicant = procedure
       // Redact
       user.email = "redacted@redacted.com";
       user.wechat = "redacted";
+      user.phone = "redacted";
 
       // Check if the user is a mentor of the mentee
       if (

@@ -5,7 +5,6 @@ import {
   UnorderedList,
   ListItem,
   Heading,
-  Text,
   useClipboard,
   Tooltip,
 } from "@chakra-ui/react";
@@ -19,7 +18,11 @@ import {
 } from "shared/applicationFields";
 import z from "zod";
 import { sectionSpacing } from "theme/metrics";
-import { formatUserName } from "shared/strings";
+import {
+  formatUserName,
+  notSetText,
+  removeChinaPhonePrefix,
+} from "shared/strings";
 import invariant from "tiny-invariant";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from "shared/User";
@@ -28,6 +31,7 @@ import NextLink from "next/link";
 import { toast } from "react-toastify";
 import { InterviewType } from "shared/InterviewType";
 import { useMyRoles } from "useMe";
+import { SmallGrayText } from "./SmallGrayText";
 
 export default function Applicant({
   userId,
@@ -108,17 +112,17 @@ function LoadedApplicant({
 
       {/* It's okay to have mentors' contact information visible to peers */}
       <ContactFieldRow
-        redacted={isMentee}
+        mask={isMentee}
         copyable={!isMentee || imPrivileged}
         name="微信"
-        value={user.wechat || "（未提供微信）"}
+        value={user.wechat}
       />
 
       <ContactFieldRow
-        redacted={isMentee}
+        mask={isMentee}
         copyable={!isMentee || imPrivileged}
-        name="邮箱"
-        value={user.email || "（未提供邮箱）"}
+        name="手机"
+        value={removeChinaPhonePrefix(user.phone)}
       />
 
       {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(
@@ -150,20 +154,21 @@ function LoadedApplicant({
   );
 }
 
+/**
+ * @param value null if the value is not set
+ */
 function ContactFieldRow({
-  redacted,
+  mask,
   copyable,
   name,
   value,
 }: {
-  redacted: boolean;
+  mask: boolean;
   copyable: boolean;
   name: string;
-  value: string;
+  value: string | null;
 }) {
-  // clipboard doesn't support copying of empty strings
-  invariant(value !== "");
-  const { onCopy, hasCopied } = useClipboard(value);
+  const { onCopy, hasCopied } = useClipboard(value || "");
 
   useEffect(() => {
     if (hasCopied) toast.success("内容已经拷贝到剪贴板。");
@@ -171,24 +176,24 @@ function ContactFieldRow({
 
   return (
     <Flex direction="column">
-      <Flex>
-        <b>{name} </b>
+      <b>{name} </b>
+      <Box>
         {!copyable && (
-          <Text color="gray">
-            （请联系
+          <SmallGrayText>
+            请联系
             <Link as={NextLink} href="/who-can-see-my-data">
               {displayName("MentorshipOperator")}
             </Link>
-            ）
-          </Text>
+          </SmallGrayText>
         )}
-      </Flex>
-      <Box>
-        {redacted ? "••••••••••••" : value}{" "}
-        {copyable && (
-          <Tooltip label="拷贝内容到剪贴板">
-            <CopyIcon onClick={onCopy} cursor="pointer" />
-          </Tooltip>
+        {copyable && !value && <SmallGrayText>{notSetText}</SmallGrayText>}
+        {copyable && value && (
+          <>
+            {mask ? "••••••••••••" : value}{" "}
+            <Tooltip label="拷贝内容到剪贴板">
+              <CopyIcon onClick={onCopy} cursor="pointer" />
+            </Tooltip>
+          </>
         )}
       </Box>
     </Flex>

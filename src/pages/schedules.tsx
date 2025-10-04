@@ -10,7 +10,7 @@ import {
   Link,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
-import { formatUserName } from "shared/strings";
+import { formatUserName, notSetText } from "shared/strings";
 import { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
 import NextLink from "next/link";
@@ -140,7 +140,7 @@ function Row({
       {/* 通话时间 */}
       <Td>
         <Link as={NextLink} href={`/mentees/${m.mentee.id}`}>
-          {s ? formatMentorshipSchedule(s) : "未设置"}
+          {s ? formatMentorshipSchedule(s) : notSetText}
         </Link>
       </Td>
 
