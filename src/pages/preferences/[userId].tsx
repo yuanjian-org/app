@@ -159,6 +159,8 @@ export default function Page() {
 
 Page.title = "偏好设置";
 
+export const optInInterviewerText = "我可以帮助面试学生";
+
 function InterviewerPreferences({
   data,
   update,
@@ -193,7 +195,7 @@ function InterviewerPreferences({
             isChecked={data?.optIn}
             onChange={(e) => toggleOptIn(e.target.checked)}
           >
-            我可以帮助面试学生。
+            {optInInterviewerText}。
           </Checkbox>
         </FormControl>
       )}

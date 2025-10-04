@@ -9,12 +9,13 @@ import {
   Text,
   Tag,
   Link,
+  Flex,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
 import { formatUserName, toPinyin } from "shared/strings";
 import { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
-import Role, { isPermitted, RoleProfiles } from "shared/Role";
+import Role, { displayName, isPermitted } from "shared/Role";
 import User, { getUserUrl } from "shared/User";
 import { InterviewerPreference } from "shared/UserPreference";
 import { UserProfile } from "shared/UserProfile";
@@ -24,6 +25,7 @@ import { widePage } from "AppPage";
 import moment from "moment";
 import TruncatedTextWithTooltip from "components/TruncatedTextWithTooltip";
 import ExamPassDateText from "components/ExamPassDateText";
+import { optInInterviewerText } from "./preferences/[userId]";
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -34,40 +36,47 @@ export default widePage(() => {
   return !stats ? (
     <Loader />
   ) : (
-    <TableContainer>
-      <Table size="sm">
-        <Thead>
-          <Tr>
-            <Th>面试官</Th>
-            <Th>角色</Th>
-            <Th>面试总量</Th>
-            <Th>面试限制</Th>
-            <Th>性别</Th>
-            <Th>坐标</Th>
-            <Th>通讯原则评测</Th>
-            <Th>面试标准评测</Th>
-            <Th>微信</Th>
-            <Th>拼音（便于查找）</Th>
-          </Tr>
-        </Thead>
-
-        <Tbody>
-          {stats.map((s) => (
-            <Row
-              key={s.user.id}
-              user={s.user}
-              interviews={s.interviews}
-              preference={s.preference}
-              profile={s.profile}
-            />
-          ))}
-        </Tbody>
-      </Table>
-
-      <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-        共 <b>{stats.length}</b> 名
+    <Flex direction="column" gap={sectionSpacing}>
+      <Text>
+        以下列表包括所有{displayName("Mentor")}
+        和在偏好设置中勾选了“{optInInterviewerText}”的
+        {displayName("Volunteer")}。
       </Text>
-    </TableContainer>
+      <TableContainer>
+        <Table size="sm">
+          <Thead>
+            <Tr>
+              <Th>面试官</Th>
+              <Th>角色</Th>
+              <Th>面试总量</Th>
+              <Th>面试限制</Th>
+              <Th>性别</Th>
+              <Th>坐标</Th>
+              <Th>通讯原则评测</Th>
+              <Th>面试标准评测</Th>
+              <Th>微信</Th>
+              <Th>拼音（便于查找）</Th>
+            </Tr>
+          </Thead>
+
+          <Tbody>
+            {stats.map((s) => (
+              <Row
+                key={s.user.id}
+                user={s.user}
+                interviews={s.interviews}
+                preference={s.preference}
+                profile={s.profile}
+              />
+            ))}
+          </Tbody>
+        </Table>
+
+        <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
+          共 <b>{stats.length}</b> 名
+        </Text>
+      </TableContainer>
+    </Flex>
   );
 }, "面试官");
 
@@ -99,9 +108,7 @@ function Row({
       </Td>
 
       {/* 角色 */}
-      <Td>
-        {role && <Tag colorScheme="teal">{RoleProfiles[role].displayName}</Tag>}
-      </Td>
+      <Td>{role && <Tag colorScheme="teal">{displayName(role)}</Tag>}</Td>
 
       {/* 面试总量 */}
       <Td>{interviews}</Td>

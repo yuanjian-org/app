@@ -24,9 +24,8 @@ import { IdType, zIdType } from "../../shared/IdType";
 import getBaseUrl from "../../shared/getBaseUrl";
 import { email } from "../../api/email";
 import { checkAndDeleteIdToken } from "../../api/checkAndDeleteIdToken";
-import { RoleProfiles } from "../../shared/Role";
 import _ from "lodash";
-
+import { roleProfile } from "shared/Role";
 /**
  * Send verfication token to the specified phone or email.
  */
@@ -252,7 +251,7 @@ export async function resetPasswordImpl(
   if (user) {
     if (
       user.roles &&
-      user.roles.some((role) => RoleProfiles[role].privilegedUserDataAccess)
+      user.roles.some((role) => roleProfile(role).privilegedUserDataAccess)
     ) {
       throw generalBadRequestError("特权用户禁止使用密码登录。");
     }

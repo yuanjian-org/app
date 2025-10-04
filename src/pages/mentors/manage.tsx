@@ -20,7 +20,7 @@ import Loader from "components/Loader";
 import { formatUserName, toPinyin } from "shared/strings";
 import { trpcNext } from "trpc";
 import { componentSpacing, pageMarginX } from "theme/metrics";
-import Role, { isPermitted, RoleProfiles } from "shared/Role";
+import Role, { displayName, isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import User, { getUserUrl } from "shared/User";
 import { ChevronRightIcon } from "@chakra-ui/icons";
@@ -207,9 +207,7 @@ function MentorRow({
     <Tr _hover={{ bg: "white" }}>
       {/* 角色 */}
       <Td>
-        <Tag colorScheme={roleColorScheme}>
-          {RoleProfiles[role].displayName}
-        </Tag>
+        <Tag colorScheme={roleColorScheme}>{displayName(role)}</Tag>
       </Td>
 
       {/* 导师 */}

@@ -32,7 +32,7 @@ import { useRouter } from "next/router";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
-import { isPermitted, RoleProfiles } from "shared/Role";
+import { displayName, isPermitted } from "shared/Role";
 import { encodeUploadTokenUrlSafe } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
@@ -189,7 +189,7 @@ function Basic({
         <FormControl>
           <FormLabel>自定义URL</FormLabel>
           <FormHelperTextWithMargin>
-            {RoleProfiles.Volunteer.displayName}
+            {displayName("Volunteer")}
             可以自定义
             <Link href={getUserUrl(user)} target="_blank">
               个人资料展示页
@@ -343,7 +343,7 @@ function Picture({
             <FormHelperTextWithMargin>
               <Text color="red.700">
                 以下链接仅
-                {RoleProfiles.UserManager.displayName}
+                {displayName("UserManager")}
                 可见，用于在个别情况下直接引用其他网站的图像：
               </Text>
             </FormHelperTextWithMargin>
