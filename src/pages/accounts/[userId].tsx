@@ -9,7 +9,11 @@ import {
   Link,
   Button,
 } from "@chakra-ui/react";
-import { chinaPhonePrefix, parseQueryString } from "shared/strings";
+import {
+  notSetText,
+  parseQueryString,
+  removeChinaPhonePrefix,
+} from "shared/strings";
 import { useRouter } from "next/router";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
 import trpc, { trpcNext } from "trpc";
@@ -62,8 +66,6 @@ export default function Page() {
     }
   };
 
-  const notProvided = "未提供";
-
   return !user ? (
     <Loader />
   ) : (
@@ -77,7 +79,7 @@ export default function Page() {
 
       <FormControl>
         <FormLabel>邮箱</FormLabel>
-        <Input value={user.email || notProvided} readOnly />
+        <Input value={user.email || notSetText} readOnly />
         <FormHelperTextWithMargin>
           如需更改，
           <Link
@@ -94,13 +96,7 @@ export default function Page() {
         <FormLabel>手机号</FormLabel>
         <Input
           readOnly
-          value={
-            !user.phone
-              ? notProvided
-              : user.phone.startsWith(chinaPhonePrefix)
-                ? user.phone.slice(chinaPhonePrefix.length)
-                : user.phone
-          }
+          value={!user.phone ? notSetText : removeChinaPhonePrefix(user.phone)!}
         />
       </FormControl>
       <FormControl>

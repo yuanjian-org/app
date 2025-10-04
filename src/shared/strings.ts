@@ -8,6 +8,8 @@ import { NextRouter } from "next/router";
 import { DateColumn } from "./DateColumn";
 import z from "zod";
 
+export const notSetText = "未设置";
+
 export function isValidChineseName(s: string | null): boolean {
   return (
     !!s && s.length >= 2 && pinyin.parse(s).every((token) => token.type === 2)
@@ -172,6 +174,14 @@ export function getColorFromText(text: string): string {
 }
 
 export const chinaPhonePrefix = "+86";
+
+export function removeChinaPhonePrefix(v: string | null) {
+  if (v && v.startsWith(chinaPhonePrefix)) {
+    return v.slice(chinaPhonePrefix.length);
+  } else {
+    return v;
+  }
+}
 
 export function isValidPhone(v: string): boolean {
   if (v.startsWith(chinaPhonePrefix)) {
