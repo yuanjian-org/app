@@ -52,7 +52,7 @@ import {
 import Transcripts from "components/Transcripts";
 import Interview from "components/Interview";
 import { MentorshipStatusIcon } from "pages/mentees";
-import { isPermitted, RoleProfiles } from "shared/Role";
+import { displayName, isPermitted } from "shared/Role";
 import useMe, { useMyId } from "useMe";
 import { useMemo, useState } from "react";
 import NextLink from "next/link";
@@ -272,7 +272,7 @@ function MentorshipSummaryCard({ m }: { m: Mentorship }) {
 
               <Text>
                 此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
-                {RoleProfiles.MentorshipManager.displayName}。
+                {displayName("MentorshipManager")}。
               </Text>
             </HStack>
           )}

@@ -2,8 +2,9 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
   allRoles,
-  RoleProfiles,
+  displayName,
   isPermitted,
+  roleProfile,
   zRoles,
 } from "../../shared/Role";
 import db from "../database/db";
@@ -912,7 +913,7 @@ const listPriviledgedUserDataAccess = procedure
       // TODO: Optimize with postgres `?|` operator
       where: {
         [Op.or]: allRoles
-          .filter((r) => RoleProfiles[r].privilegedUserDataAccess)
+          .filter((r) => roleProfile(r).privilegedUserDataAccess)
           .map((r) => ({
             roles: { [Op.contains]: [r] },
           })),
@@ -1039,7 +1040,7 @@ export async function checkAndComputeUserFields({
       } else if (!isVolunteer) {
         // Only volunteers are allowed to set urls
         throw generalBadRequestError(
-          `非${RoleProfiles.Volunteer.displayName}` + "没有设置URL的权限。",
+          `非${displayName("Volunteer")}` + "没有设置URL的权限。",
         );
       } else {
         if (await db.User.count({ where: { url: url }, transaction })) {

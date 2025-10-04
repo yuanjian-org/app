@@ -16,7 +16,7 @@ import {
 import { trpcNext } from "../trpc";
 import Loader from "components/Loader";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import Role, { allRoles, RoleProfiles } from "../shared/Role";
+import Role, { allRoles, displayName, roleProfile } from "../shared/Role";
 import { staticUrlPrefix } from "static";
 import NextLink from "next/link";
 import { getUserUrl } from "shared/User";
@@ -57,7 +57,7 @@ export default function Page() {
   );
 }
 
-const dp = (r: Role) => <>{RoleProfiles[r].displayName}</>;
+const dp = (r: Role) => <>{displayName(r)}</>;
 
 function DataTable() {
   const me = useMe();
@@ -154,11 +154,11 @@ function Privileged({
         </Thead>
         <Tbody>
           {allRoles
-            .filter((r) => RoleProfiles[r].privilegedUserDataAccess)
+            .filter((r) => roleProfile(r).privilegedUserDataAccess)
             .map((r) => (
               <Tr key={r}>
                 <Td>{dp(r)}</Td>
-                <Td>{RoleProfiles[r].actions}</Td>
+                <Td>{roleProfile(r).actions}</Td>
                 <Td>
                   {privileged
                     .filter((u: any) => u.roles.includes(r))

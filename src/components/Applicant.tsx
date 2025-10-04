@@ -23,7 +23,7 @@ import { formatUserName } from "shared/strings";
 import invariant from "tiny-invariant";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from "shared/User";
-import { isPermitted, RoleProfiles } from "shared/Role";
+import { displayName, isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { toast } from "react-toastify";
 import { InterviewType } from "shared/InterviewType";
@@ -177,7 +177,7 @@ function ContactFieldRow({
           <Text color="gray">
             （请联系
             <Link as={NextLink} href="/who-can-see-my-data">
-              {RoleProfiles["MentorshipOperator"].displayName}
+              {displayName("MentorshipOperator")}
             </Link>
             ）
           </Text>

@@ -17,7 +17,16 @@ export const allRoles = [
   "Volunteer",
 ] as const;
 
-export const RoleProfiles: {
+type Role = (typeof allRoles)[number];
+
+export default Role;
+
+export const zRoles = z.array(z.enum(allRoles));
+
+/**
+ * Use `rp()` to access this object for type safety.
+ */
+const RoleProfiles: {
   [key: string]: {
     // Why not simply use displayName as the role key? We're too lazy to type
     // Chinese characters everywhere.
@@ -87,11 +96,13 @@ export const RoleProfiles: {
   },
 };
 
-type Role = (typeof allRoles)[number];
+export function roleProfile(role: Role) {
+  return RoleProfiles[role];
+}
 
-export default Role;
-
-export const zRoles = z.array(z.enum(allRoles));
+export function displayName(role: Role) {
+  return RoleProfiles[role].displayName;
+}
 
 /**
  * @param permitted When absent, this function always returns true.
