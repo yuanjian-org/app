@@ -4,7 +4,7 @@
 import React from "react";
 import { signOut, useSession } from "next-auth/react";
 import { FiChevronRight } from "react-icons/fi";
-import { IoIosCog, IoMdCalendar } from "react-icons/io";
+import { IoIosCog, IoMdBookmark, IoMdCalendar } from "react-icons/io";
 import { IoStar } from "react-icons/io5";
 import {
   Avatar,
@@ -170,6 +170,16 @@ const mainMenuItems: MainMenuItem[] = [
     iconColor: colors.brand.b,
   },
   {
+    name: "资源推荐",
+    path: "/resources",
+    icon: IoMdBookmark,
+    iconColor: colors.brand.b,
+    regex: /^\/resources$/,
+    permission: (me: User) =>
+      isAcceptedMentee(me.roles, me.menteeStatus, "includeTransactionalOnly") ||
+      isPermitted(me.roles, ["Mentor", "Volunteer"]),
+  },
+  {
     name: "个人空间",
     path: "/",
     icon: FaStreetView,
@@ -184,7 +194,6 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/interviews\/mine/,
     permission: "Interviewer",
   },
-
   {
     name: "预约不定期导师",
     path: "/mentors",
