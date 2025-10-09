@@ -183,8 +183,7 @@ const mainMenuItems: MainMenuItem[] = [
     name: "个人空间",
     path: "/",
     icon: FaStreetView,
-    // match "/" and "/groups/.*"
-    regex: /^\/$|\/groups\/.*/,
+    regex: /^\/$/,
     redDot: UnreadTasksRedDot,
   },
   {
