@@ -318,6 +318,17 @@ export async function createInterview(
   return i.id;
 }
 
+const avoidAsInterviewer = procedure
+  .use(authUser("MentorshipManager"))
+  .input(z.object({ userId: z.string(), avoid: z.boolean() }))
+  .mutation(async ({ input: { userId, avoid } }) => {
+    const [cnt] = await db.User.update(
+      { avoidAsInterviewer: avoid || null },
+      { where: { id: userId } },
+    );
+    if (cnt == 0) throw notFoundError("用户", userId);
+  });
+
 const listInterviewerStats = procedure
   .use(authUser("MentorshipManager"))
   .output(
@@ -327,12 +338,18 @@ const listInterviewerStats = procedure
         interviews: z.number(),
         preference: zInterviewerPreference,
         profile: zUserProfile,
+        avoid: z.boolean(),
       }),
     ),
   )
   .query(async () => {
     const users = await db.User.findAll({
-      attributes: [...userAttributes, "profile", "preference"],
+      attributes: [
+        ...userAttributes,
+        "profile",
+        "preference",
+        "avoidAsInterviewer",
+      ],
       include: userInclude,
     });
 
@@ -350,7 +367,7 @@ const listInterviewerStats = procedure
       return acc;
     }, {});
 
-    const stats = users
+    return users
       .filter(
         (user) =>
           user2interviews[user.id] ||
@@ -362,10 +379,8 @@ const listInterviewerStats = procedure
         interviews: user2interviews[user.id] ?? 0,
         preference: user.preference?.interviewer ?? {},
         profile: user.profile ?? {},
+        avoid: user.avoidAsInterviewer ?? false,
       }));
-
-    stats.sort((a, b) => a.interviews - b.interviews);
-    return stats;
   });
 
 const update = procedure
@@ -515,4 +530,5 @@ export default router({
   create,
   update,
   updateDecision,
+  avoidAsInterviewer,
 });

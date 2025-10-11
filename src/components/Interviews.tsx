@@ -65,7 +65,7 @@ export default function Interviews({
     <Loader />
   ) : (
     <TableContainer>
-      <Table>
+      <Table size={forCalibration ? "sm" : "md"}>
         <Thead>
           <Tr>
             {showStatus && <Th>状态</Th>}
