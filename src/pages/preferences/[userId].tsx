@@ -114,14 +114,13 @@ export default function Page() {
   if (!user || !pref) return <Loader />;
 
   const isMentor = isPermitted(user.roles, "Mentor");
-  const isMentee = isPermitted(user.roles, "Mentee");
 
   const PrefDivider = () => <Divider my={componentSpacing} />;
 
   return (
     <VStack spacing={sectionSpacing} m={sectionSpacing} maxW="lg" align="start">
       {/* Do not show interview options to non-mentor mentees */}
-      {(isMentor || !isMentee) && (
+      {isPermitted(user.roles, "Volunteer") && (
         <>
           <InterviewerPreferences
             data={pref.interviewer}
