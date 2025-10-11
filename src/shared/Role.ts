@@ -15,6 +15,7 @@ export const allRoles = [
   "Mentee",
   "Interviewer",
   "Volunteer",
+  "SeniorMentor",
 ] as const;
 
 type Role = (typeof allRoles)[number];
@@ -73,8 +74,12 @@ const RoleProfiles: {
   },
   Mentor: {
     displayName: "导师",
-    actions: "帮助年轻学子成长",
+    actions: "辅助学子成长",
     automatic: true,
+  },
+  SeniorMentor: {
+    displayName: "资深导师",
+    actions: "辅助学子成长，指导其他导师",
   },
   TransactionalMentor: {
     displayName: "仅不定期导师",
@@ -124,6 +129,5 @@ export function removeRole(roles: Role[], role: Role) {
  * TODO update codebase to use this function instead of manually adding roles
  */
 export function addRole(roles: Role[], role: Role) {
-  // Remove the role if it already exists to avoid duplicates
-  return [...removeRole(roles, role), role];
+  return roles.includes(role) ? roles : [...roles, role];
 }
