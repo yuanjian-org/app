@@ -7,7 +7,6 @@ import {
   Thead,
   Tbody,
   Text,
-  Tag,
   Link,
   Flex,
 } from "@chakra-ui/react";
@@ -15,7 +14,7 @@ import Loader from "components/Loader";
 import { formatUserName, toPinyin } from "shared/strings";
 import { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
-import Role, { displayName, isPermitted } from "shared/Role";
+import { displayName } from "shared/Role";
 import User, { getUserUrl } from "shared/User";
 import { InterviewerPreference } from "shared/UserPreference";
 import { UserProfile } from "shared/UserProfile";
@@ -26,6 +25,7 @@ import moment from "moment";
 import TruncatedTextWithTooltip from "components/TruncatedTextWithTooltip";
 import ExamPassDateText from "components/ExamPassDateText";
 import { optInInterviewerText } from "./preferences/[userId]";
+import { RoleTag } from "./mentors/manage";
 
 /**
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
@@ -95,7 +95,6 @@ function Row({
     userId: user.id,
   });
 
-  const role: Role | null = isPermitted(user.roles, "Mentor") ? "Mentor" : null;
   const limit = preference.limit;
 
   return (
@@ -108,7 +107,9 @@ function Row({
       </Td>
 
       {/* 角色 */}
-      <Td>{role && <Tag colorScheme="teal">{displayName(role)}</Tag>}</Td>
+      <Td>
+        <RoleTag roles={user.roles} />
+      </Td>
 
       {/* 面试总量 */}
       <Td>{interviews}</Td>

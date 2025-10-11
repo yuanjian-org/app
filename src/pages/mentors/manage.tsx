@@ -94,8 +94,8 @@ function Mentors({
       <Table size="sm">
         <Thead>
           <Tr>
-            <Th>角色</Th>
             <Th>导师</Th>
+            <Th>角色</Th>
             {showMatchState && <Th color="brand.c">交流反馈状态</Th>}
             <Th>学生容量</Th>
             <Th>学生数量</Th>
@@ -176,6 +176,21 @@ function cap(pref: MentorPreference): number {
   return pref.最多匹配学生 ?? defaultMentorCapacity;
 }
 
+export function RoleTag({ roles }: { roles: Role[] }) {
+  const { r, c }: { r: Role | null; c: string } = isPermitted(
+    roles,
+    "TransactionalMentor",
+  )
+    ? { r: "TransactionalMentor", c: "red" }
+    : isPermitted(roles, "Mentor")
+      ? { r: "Mentor", c: "teal" }
+      : isPermitted(roles, "Volunteer")
+        ? { r: "Volunteer", c: "orange" }
+        : { r: null, c: "grey" };
+
+  return r && <Tag colorScheme={c}>{displayName(r)}</Tag>;
+}
+
 function MentorRow({
   user,
   profile,
@@ -193,28 +208,21 @@ function MentorRow({
     userId: user.id,
   });
 
-  const role: Role = isPermitted(user.roles, "TransactionalMentor")
-    ? "TransactionalMentor"
-    : "Mentor";
-  const roleColorScheme = isPermitted(user.roles, "TransactionalMentor")
-    ? "red"
-    : "teal";
-
   const capacity = cap(preference);
   const isDefaultCapacity = preference.最多匹配学生 === undefined;
 
   return (
     <Tr _hover={{ bg: "white" }}>
-      {/* 角色 */}
-      <Td>
-        <Tag colorScheme={roleColorScheme}>{displayName(role)}</Tag>
-      </Td>
-
       {/* 导师 */}
       <Td>
         <Link as={NextLink} href={getUserUrl(user)}>
           <b>{formatUserName(user.name, "formal")}</b> <ChevronRightIcon />
         </Link>
+      </Td>
+
+      {/* 角色 */}
+      <Td>
+        <RoleTag roles={user.roles} />
       </Td>
 
       {/* 师生匹配状态 */}
