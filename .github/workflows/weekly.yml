@@ -20,3 +20,7 @@ jobs:
       - name: Recycle meetings
         run: |
           curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings
+
+      - name: Purge old data
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.purgeOldData
