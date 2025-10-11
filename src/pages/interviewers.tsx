@@ -9,10 +9,11 @@ import {
   Text,
   Link,
   Flex,
+  Switch,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
 import { formatUserName, toPinyin } from "shared/strings";
-import { trpcNext } from "trpc";
+import trpc, { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
 import { displayName } from "shared/Role";
 import User, { getUserUrl } from "shared/User";
@@ -31,7 +32,8 @@ import { RoleTag } from "./mentors/manage";
  * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
  */
 export default widePage(() => {
-  const { data: stats } = trpcNext.interviews.listInterviewerStats.useQuery();
+  const { data: stats, refetch } =
+    trpcNext.interviews.listInterviewerStats.useQuery();
 
   return !stats ? (
     <Loader />
@@ -46,6 +48,7 @@ export default widePage(() => {
         <Table size="sm">
           <Thead>
             <Tr>
+              <Th>避免</Th>
               <Th>面试官</Th>
               <Th>角色</Th>
               <Th>面试总量</Th>
@@ -60,15 +63,24 @@ export default widePage(() => {
           </Thead>
 
           <Tbody>
-            {stats.map((s) => (
-              <Row
-                key={s.user.id}
-                user={s.user}
-                interviews={s.interviews}
-                preference={s.preference}
-                profile={s.profile}
-              />
-            ))}
+            {stats
+              .sort((a, b) => {
+                const diff = a.interviews - b.interviews;
+                if (diff !== 0) return diff;
+                // Compare ID to semi-randomize the order.
+                return a.user.id.localeCompare(b.user.id);
+              })
+              .map((s) => (
+                <Row
+                  key={s.user.id}
+                  user={s.user}
+                  interviews={s.interviews}
+                  preference={s.preference}
+                  profile={s.profile}
+                  avoid={s.avoid}
+                  refetch={refetch}
+                />
+              ))}
           </Tbody>
         </Table>
 
@@ -85,11 +97,15 @@ function Row({
   interviews,
   preference,
   profile,
+  avoid,
+  refetch,
 }: {
   user: User;
   interviews: number;
   preference: InterviewerPreference;
   profile: UserProfile;
+  avoid: boolean;
+  refetch: () => void;
 }) {
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
@@ -97,12 +113,32 @@ function Row({
 
   const limit = preference.limit;
 
+  const saveAvoid = async (avoid: boolean) => {
+    await trpc.interviews.avoidAsInterviewer.mutate({ userId: user.id, avoid });
+    refetch();
+  };
+
   return (
     <Tr _hover={{ bg: "white" }}>
+      {/* 避免 */}
+      <Td>
+        <Switch
+          isChecked={avoid}
+          onChange={(e) => saveAvoid(e.target.checked)}
+        />
+      </Td>
       {/* 面试官 */}
       <Td>
         <Link as={NextLink} href={getUserUrl(user)}>
-          <b>{formatUserName(user.name)}</b> <ChevronRightIcon />
+          <Text
+            style={
+              avoid
+                ? { textDecoration: "line-through", color: "gray" }
+                : { fontWeight: "bold" }
+            }
+          >
+            {formatUserName(user.name)} <ChevronRightIcon />
+          </Text>
         </Link>
       </Td>
 

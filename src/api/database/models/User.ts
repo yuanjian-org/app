@@ -17,6 +17,7 @@ import {
 import Fix from "../modelHelpers/Fix";
 import {
   ARRAY,
+  BOOLEAN,
   DATE,
   INTEGER,
   JSONB,
@@ -141,6 +142,9 @@ class User extends Model {
   // bcrypt password hash for password-based login
   @Column(STRING)
   password: string | null;
+
+  @Column(BOOLEAN)
+  avoidAsInterviewer: boolean | null;
 
   /**
    * Associations
