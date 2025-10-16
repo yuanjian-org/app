@@ -200,7 +200,11 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/mentors$/,
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, "includeTransactionalOnly") ||
-      isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
+      isPermitted(me.roles, [
+        "Mentor",
+        "MentorshipOperator",
+        "MentorshipManager",
+      ]),
   },
   {
     name: "选择一对一导师",
@@ -209,7 +213,10 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/mentors\/relational.*/,
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly") ||
-      isPermitted(me.roles, ["Mentor", "MentorshipOperator"]),
+      // Do not show this menu to mentors -- some mentors are marked as
+      // transactional only. It may be surprising when they don't see themselves
+      // on this page.
+      isPermitted(me.roles, "MentorshipManager"),
   },
   {
     name: "志愿者档案",
