@@ -23,6 +23,7 @@ import {
   mentorReviewMessagePrefix,
   oneOnOneMessagePrefix,
   transactionalMessagePrefix,
+  typedMessagePrefix,
 } from "shared/ChatMessage";
 import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
@@ -39,8 +40,8 @@ import moment, { Moment } from "moment";
 import RedDot, { redDotTransitionProps } from "./RedDot";
 import Autosaver from "./Autosaver";
 import { ResponsiveCard } from "./ResponsiveCard";
-import { useMyId } from "useMe";
-import { displayName } from "shared/Role";
+import useMe from "useMe";
+import { displayName, isPermitted } from "shared/Role";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
@@ -50,7 +51,7 @@ export default function Room({ menteeId }: { menteeId: string }) {
     menteeId,
   });
 
-  const [editing, setEditing] = useState<boolean>(false);
+  const [adding, setAdding] = useState<boolean>(false);
   const [hasUnread, setHasUnread] = useState<boolean>(false);
 
   const markAsRead = useCallback(async () => {
@@ -82,11 +83,11 @@ export default function Room({ menteeId }: { menteeId: string }) {
               全部已读
             </Link>
 
-            {!editing && (
+            {!adding && (
               <Button
                 size="sm"
                 leftIcon={<AddIcon />}
-                onClick={() => setEditing(true)}
+                onClick={() => setAdding(true)}
               >
                 新建
               </Button>
@@ -97,8 +98,8 @@ export default function Room({ menteeId }: { menteeId: string }) {
 
       <CardBody>
         <VStack spacing={paragraphSpacing * 1.5} align="start">
-          {editing && (
-            <Editor roomId={room.id} onClose={() => setEditing(false)} />
+          {adding && (
+            <Editor roomId={room.id} onClose={() => setAdding(false)} />
           )}
 
           {room.messages
@@ -130,9 +131,10 @@ function Message({
   lastReadAt: Moment;
   setHasUnread: () => void;
 }) {
-  const myId = useMyId();
+  const me = useMe();
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
+  const utils = trpcNext.useContext();
 
   const createdAt = m.createdAt ? prettifyDate(m.createdAt) : "";
   const updatedAt = m.updatedAt ? prettifyDate(m.updatedAt) : "";
@@ -151,10 +153,15 @@ function Message({
     [breakpoint]: updatedAt !== createdAt ? <> ｜ {updatedAt}更新</> : <></>,
   });
 
-  const unread = m.user.id !== myId && moment(m.updatedAt).isAfter(lastReadAt);
+  const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);
   useEffect(() => {
     if (unread) setHasUnread();
   }, [setHasUnread, unread]);
+
+  const insertOneOnOneMessagePrefix = async () => {
+    await trpc.chat.insertOneOnOneMessagePrefix.mutate({ messageId: m.id });
+    await utils.chat.getRoom.invalidate();
+  };
 
   return (
     <HStack align="top" spacing={componentSpacing} width="100%">
@@ -164,13 +171,15 @@ function Message({
           {/* flexShrink is to prevent the name from being squished */}
           <Text flexShrink={0}>{name}</Text>
 
+          {/* Timestamps & red dot */}
           <SmallGrayText position="relative">
             {createdAt}创建
             {updatedAtText}
             <RedDot show={unread} />
           </SmallGrayText>
 
-          {!editing && myId == m.user.id && (
+          {/* The pencil icon */}
+          {!editing && me.id == m.user.id && (
             <>
               <Spacer />
               <Link color="gray" onClick={() => setEditing(true)}>
@@ -178,6 +187,18 @@ function Message({
               </Link>
             </>
           )}
+
+          {/* The Add 1:1 icon */}
+          {!editing &&
+            !m.markdown.startsWith(typedMessagePrefix) &&
+            isPermitted(me.roles, "MentorshipManager") && (
+              <>
+                <Spacer />
+                <Link onClick={insertOneOnOneMessagePrefix} fontSize="sm">
+                  增加{oneOnOneMessagePrefix}前缀
+                </Link>
+              </>
+            )}
         </HStack>
 
         {editing ? (
