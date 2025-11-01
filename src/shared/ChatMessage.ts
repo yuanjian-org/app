@@ -11,6 +11,7 @@ export const zChatMessage = z.object({
 });
 export type ChatMessage = z.TypeOf<typeof zChatMessage>;
 
+export const typedMessagePrefix = "【";
 export const oneOnOneMessagePrefix = "【一对一】";
 export const transactionalMessagePrefix = "【不定期】";
 export const mentorReviewMessagePrefix = "【导师访谈】";

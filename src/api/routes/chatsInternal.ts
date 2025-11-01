@@ -4,7 +4,7 @@
  */
 
 import db from "../database/db";
-import { notFoundError } from "../errors";
+import { generalBadRequestError, notFoundError } from "../errors";
 import { Includeable, Transaction } from "sequelize";
 import User from "../../shared/User";
 import { checkPermissionToAccessMentee } from "./users";
@@ -14,6 +14,7 @@ import {
   chatRoomInclude,
 } from "../database/models/attributesAndIncludes";
 import { zChatRoom, ChatRoom } from "../../shared/ChatRoom";
+import { typedMessagePrefix, oneOnOneMessagePrefix } from "shared/ChatMessage";
 
 export async function findOrCreateRoom(
   me: User,
@@ -66,8 +67,11 @@ export async function createChatMessage(
 
   await checkRoomPermission(author, r.menteeId, "write", transaction);
 
+  const trimmed = markdown.trim();
+  if (!trimmed) throw generalBadRequestError("内容不能为空");
+
   await db.ChatMessage.create(
-    { roomId, markdown, userId: author.id },
+    { roomId, markdown: trimmed, userId: author.id },
     { transaction },
   );
 
@@ -93,4 +97,29 @@ export async function checkRoomPermission(
       action == "readMetadata" ? "readMetadata" : "any",
     );
   } else invariant(false, "Unexpectedchat room type");
+}
+
+export async function insertOneOnOneMessagePrefixImpl(
+  messageId: string,
+  transaction: Transaction,
+) {
+  const m = await db.ChatMessage.findByPk(messageId, {
+    attributes: ["id", "markdown"],
+    include: [
+      {
+        association: "room",
+        attributes: ["menteeId"],
+      },
+    ],
+    transaction,
+  });
+  if (!m) throw notFoundError("讨论消息", messageId);
+  if (!m.room.menteeId) throw generalBadRequestError("非导师内部讨论空间");
+  if (m.markdown.startsWith(typedMessagePrefix)) {
+    throw generalBadRequestError("消息已包含前缀");
+  }
+  await m.update(
+    { markdown: oneOnOneMessagePrefix + m.markdown },
+    { transaction },
+  );
 }
