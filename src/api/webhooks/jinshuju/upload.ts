@@ -8,7 +8,7 @@ import {
 import sequelize from "../../database/sequelize";
 
 /**
- * The Webhook for 金数据 form https://jsj.top/f/Bz3uSO
+ * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
  */
 export default async function submit(entry: Record<string, any>) {
   const urls: string[] = entry.field_1;
@@ -31,16 +31,19 @@ export default async function submit(entry: Record<string, any>) {
   }
 
   if (target === "UserProfilePicture") {
-    await uploadUserProfilePicture(id, opaque, urls[0]);
+    await uploadUserProfileMedia(id, opaque, urls[0], "照片");
+  } else if (target === "UserProfileVideo") {
+    await uploadUserProfileMedia(id, opaque, urls[0], "视频");
   } else {
     throw generalBadRequestError(`Unknown upload target: ${target}`);
   }
 }
 
-async function uploadUserProfilePicture(
+async function uploadUserProfileMedia(
   userId: string,
   sha: string,
   url: string,
+  mediaType: "照片" | "视频",
 ) {
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findByPk(userId, {
@@ -64,7 +67,7 @@ async function uploadUserProfilePicture(
       {
         profile: {
           ...profile,
-          照片链接: url,
+          [mediaType + "链接"]: url,
         },
       },
       { transaction },

@@ -32,7 +32,10 @@ import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
-import { visibleUserProfileFields } from "components/UserCards";
+import {
+  UserProfilePictureLink,
+  visibleUserProfileFields,
+} from "components/UserCards";
 import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
@@ -69,6 +72,7 @@ export default function UserPanel({
   hideKudosControl,
 }: UserPanelProps) {
   const myRoles = useMyRoles();
+  const profile = data.profile;
 
   return (
     <>
@@ -85,9 +89,26 @@ export default function UserPanel({
       >
         <VStack spacing={sectionSpacing}>
           <VStack spacing={componentSpacing}>
-            {data.profile?.照片链接 && (
-              <Image maxW="300px" src={data.profile.照片链接} alt="照片" />
+            {profile.视频链接 ? (
+              <video
+                src={profile.视频链接}
+                poster={UserProfilePictureLink(profile)}
+                style={{ maxWidth: "300px" }}
+                controls
+                controlsList="nodownload"
+                disablePictureInPicture
+                // To set 'autoPlay', we need to also set 'muted'
+              >
+                您的浏览器不支持视频播放。
+              </video>
+            ) : (
+              <Image
+                maxW="300px"
+                src={UserProfilePictureLink(profile)}
+                alt="照片"
+              />
             )}
+
             <UserUrl u={data.user} />
           </VStack>
 

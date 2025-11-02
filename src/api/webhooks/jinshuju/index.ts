@@ -25,6 +25,7 @@ export async function submit({ form, entry }: Record<string, any>) {
       break;
 
     case "Bz3uSO":
+    case "nhFsf1":
       await submitUpload(entry);
       break;
 

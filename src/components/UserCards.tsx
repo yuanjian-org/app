@@ -22,7 +22,7 @@ import {
   GridProps,
 } from "@chakra-ui/react";
 import { formatUserName, toPinyin } from "shared/strings";
-import { componentSpacing, paragraphSpacing } from "theme/metrics";
+import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
 import { UserProfile, StringUserProfile } from "shared/UserProfile";
 import { CardHeader, CardBody, CardFooter } from "@chakra-ui/react";
@@ -451,6 +451,14 @@ function TruncatedText({
   return <Text noOfLines={noOfLines}>{children}</Text>;
 }
 
+export function UserProfilePictureLink(profile: UserProfile | null) {
+  return profile?.照片链接
+    ? profile.照片链接
+    : profile?.性别 == "男"
+      ? "/img/placeholder-male.png"
+      : "/img/placeholder-female.png";
+}
+
 /**
  * This component ensures the image fill the container's width and is cropped
  * into a square.
@@ -478,15 +486,31 @@ function FullWidthImageSquare({
         width="100%"
         height="100%"
         objectFit="cover"
-        src={
-          profile?.照片链接
-            ? profile.照片链接
-            : profile?.性别 == "男"
-              ? "/img/placeholder-male.png"
-              : "/img/placeholder-female.png"
-        }
+        src={UserProfilePictureLink(profile)}
         alt="照片"
       />
+
+      {/* The overlaying triangle icon indicating a video profile. */}
+      {profile?.视频链接 && (
+        <Box
+          position="absolute"
+          bottom={{ base: "0.5rem", [breakpoint]: "1rem" }}
+          right={{ base: "0.5rem", [breakpoint]: "1rem" }}
+          pointerEvents="none"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          bg="rgba(0,0,0,0.35)"
+          borderRadius="full"
+          w={{ base: "2rem", [breakpoint]: "3rem" }}
+          h={{ base: "2rem", [breakpoint]: "3rem" }}
+        >
+          <svg width="3.6rem" height="3.6rem" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.15)" />
+            <polygon points="20,16 34,24 20,32" fill="#fff" />
+          </svg>
+        </Box>
+      )}
     </Box>
   );
 }
