@@ -25,5 +25,12 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
+  // Trim whitespace of all ChatMessages.markdown in a single SQL statement.
+  await sequelize.query(`
+    UPDATE "ChatMessages"
+    SET "markdown" = TRIM(BOTH FROM "markdown")
+    WHERE "markdown" IS NOT NULL AND "markdown" != TRIM(BOTH FROM "markdown")
+  `);
+
   await Promise.resolve();
 }

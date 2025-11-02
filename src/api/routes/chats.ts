@@ -18,6 +18,7 @@ import {
   createChatMessage,
   findOrCreateRoom,
   findRoom,
+  insertOneOnOneMessagePrefixImpl,
 } from "./chatsInternal";
 import User from "shared/User";
 
@@ -191,7 +192,8 @@ const updateMessage = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { messageId, markdown } }) => {
-    if (!markdown) throw generalBadRequestError("消息内容不能为空");
+    const trimmed = markdown.trim();
+    if (!trimmed) throw generalBadRequestError("内容不能为空");
 
     await sequelize.transaction(async (transaction) => {
       const m = await db.ChatMessage.findByPk(messageId, {
@@ -201,7 +203,7 @@ const updateMessage = procedure
       if (!m) throw notFoundError("讨论消息", messageId);
       if (m.userId !== me.id) throw noPermissionError("讨论消息", messageId);
 
-      await m.update({ markdown }, { transaction });
+      await m.update({ markdown: trimmed }, { transaction });
 
       await db.DraftChatMessage.destroy({
         where: { messageId, authorId: me.id },
@@ -209,6 +211,25 @@ const updateMessage = procedure
       });
 
       await scheduleNotification("Chat", m.roomId, transaction);
+    });
+  });
+
+/**
+ * Insert one-on-one message prefix to the message. Only allowed if:
+ * 1. The user is a MentorshipManager,
+ * 2. The room is owneed by a mentee for mentorship, and:
+ * 2. The message must not already have any prefix.
+ */
+const insertOneOnOneMessagePrefix = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      messageId: z.string(),
+    }),
+  )
+  .mutation(async ({ input: { messageId } }) => {
+    await sequelize.transaction(async (transaction) => {
+      await insertOneOnOneMessagePrefixImpl(messageId, transaction);
     });
   });
 
@@ -300,6 +321,7 @@ export default router({
   getRoom,
   createMessage,
   updateMessage,
+  insertOneOnOneMessagePrefix,
   getLastMessageCreatedAt,
   getLastMessageUpdatedAt,
   getLastReadAt,
