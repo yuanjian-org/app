@@ -18,6 +18,7 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
+  Box,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -304,14 +305,57 @@ function Picture({
     <>
       <Heading size="md">生活照</Heading>
       <FormControl>
-        {profile.照片链接 && (
-          <Image
-            src={profile.照片链接}
-            alt="照片"
-            maxW="300px"
-            my={componentSpacing}
-          />
-        )}
+        {profile.照片链接 &&
+          (/\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(profile.照片链接) ? (
+            <video
+              src={profile.照片链接}
+              poster="https://user-assets.sxlcdn.com/images/937504/FqrY3ykviBotL-y4ckfgMZ1I783Q.png?imageMogr2/strip/auto-orient/thumbnail/500x1000%3E/quality/90!/format/png"
+              style={{
+                maxWidth: "300px",
+                marginTop: componentSpacing,
+                marginBottom: componentSpacing,
+              }}
+              controls
+              controlsList="nodownload"
+              disablePictureInPicture
+              autoPlay
+            >
+              您的浏览器不支持视频播放。
+            </video>
+          ) : (
+            <Box
+              position="relative"
+              display="inline-block"
+              maxW="300px"
+              my={componentSpacing}
+            >
+              <Image src={profile.照片链接} alt="照片" maxW="300px" my={0} />
+              <Box
+                position="absolute"
+                top="50%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                pointerEvents="none"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                bg="rgba(0,0,0,0.35)"
+                borderRadius="full"
+                w="3rem"
+                h="3rem"
+              >
+                <svg
+                  width="3.6rem"
+                  height="3.6rem"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                >
+                  <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.15)" />
+                  <polygon points="20,16 34,24 20,32" fill="#fff" />
+                </svg>
+              </Box>
+            </Box>
+          ))}
 
         {uploadToken && (
           <>
