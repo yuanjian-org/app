@@ -21,6 +21,7 @@ export const zStringUserProfile = z.object({
   擅长话题: zStr,
 
   照片链接: zStr,
+  视频链接: zStr,
 
   // Unused / deprecated
   擅长辅导领域: zStr,

@@ -26,14 +26,14 @@ import { componentSpacing } from "theme/metrics";
 import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { parseQueryString, shaChecksum } from "shared/strings";
 import { useRouter } from "next/router";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
 import { displayName, isPermitted } from "shared/Role";
-import { encodeUploadTokenUrlSafe } from "shared/jinshuju";
+import { encodeUploadTokenUrlSafe, UploadTarget } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -71,7 +71,7 @@ export default function Page() {
   useEffect(() => setProfile(old?.profile), [old]);
 
   const save = async () => {
-    invariant(user && profile);
+    invariant(user && profile, "!user || !profile on save");
     if (!_.isEqual(oldUser, user)) {
       await trpc.users.update.mutate(user);
       await updateSession();
@@ -101,7 +101,6 @@ export default function Page() {
   const [isSaving, setIsSaving] = useState(false);
 
   const onSave = async () => {
-    invariant(user && profile);
     setIsSaving(true);
     try {
       await save();
@@ -146,7 +145,7 @@ export default function Page() {
       <Divider my={componentSpacing} />
 
       {isPermitted(user.roles, "Mentor") ? (
-        <Mentor profile={profile} updateProfile={updateProfile} />
+        <Mentor user={user} profile={profile} updateProfile={updateProfile} />
       ) : (
         <NonMentor profile={profile} updateProfile={updateProfile} />
       )}
@@ -268,6 +267,24 @@ function Basic({
   );
 }
 
+/**
+ * We use the checksum not only as a security measure but also an e-tag to
+ * prevent concurrent writes.
+ *
+ * TODO: It's a weak security measure because anyone who has access to the
+ * mentor's profile can compute the hash. Use a stronger method.
+ */
+function encodeJinshujuXField(
+  user: MinUser,
+  profile: UserProfile,
+  target: UploadTarget,
+) {
+  return encodeXField(
+    user,
+    encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
+  );
+}
+
 function Picture({
   user,
   profile,
@@ -279,24 +296,11 @@ function Picture({
   updateProfile: (k: keyof UserProfile, v: string) => void;
   SaveButton: React.ComponentType;
 }) {
+  invariant(profile, "!profile");
   const myRoles = useMyRoles();
 
-  // We use the checksum not only as a security measure but also an e-tag to
-  // prevent concurrent writes.
-  // TODO: It's a weak security measure because anyone who has access to the
-  // mentor's profile can compute the hash. Use a stronger method.
   const uploadToken = useMemo(
-    () =>
-      profile
-        ? encodeXField(
-            user,
-            encodeUploadTokenUrlSafe(
-              "UserProfilePicture",
-              user.id,
-              shaChecksum(profile),
-            ),
-          )
-        : null,
+    () => encodeJinshujuXField(user, profile, "UserProfilePicture"),
     [user, profile],
   );
 
@@ -313,26 +317,19 @@ function Picture({
           />
         )}
 
-        {uploadToken && (
-          <>
-            <Link
-              as={NextLink}
-              href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}
-            >
-              {profile.照片链接 ? (
-                <HStack>
-                  <MdChangeCircle />
-                  <Text>更换照片</Text>
-                </HStack>
-              ) : (
-                <HStack>
-                  <MdCloudUpload />
-                  <Text>上传照片</Text>
-                </HStack>
-              )}
-            </Link>
-          </>
-        )}
+        <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
+          {profile.照片链接 ? (
+            <HStack>
+              <MdChangeCircle />
+              <Text>更换照片</Text>
+            </HStack>
+          ) : (
+            <HStack>
+              <MdCloudUpload />
+              <Text>上传照片</Text>
+            </HStack>
+          )}
+        </Link>
 
         <FormHelperTextWithMargin>
           建议选择面部清晰、不戴墨镜的近照
@@ -357,6 +354,46 @@ function Picture({
           </>
         )}
       </FormControl>
+    </>
+  );
+}
+
+function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
+  invariant(profile, "!profile");
+
+  const uploadToken = useMemo(
+    () => encodeJinshujuXField(user, profile, "UserProfileVideo"),
+    [user, profile],
+  );
+
+  return (
+    <>
+      {profile.视频链接 && (
+        // Allows user to download their own video.
+        <video
+          src={profile.视频链接}
+          controls
+          style={{
+            maxWidth: "300px",
+            marginTop: `${componentSpacing * 4}px`,
+            marginBottom: `${componentSpacing * 4}px`,
+          }}
+        />
+      )}
+
+      <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
+        {profile.视频链接 ? (
+          <HStack>
+            <MdChangeCircle />
+            <Text>更换视频</Text>
+          </HStack>
+        ) : (
+          <HStack>
+            <MdCloudUpload />
+            <Text>上传视频</Text>
+          </HStack>
+        )}
+      </Link>
     </>
   );
 }
@@ -517,9 +554,11 @@ function DailyLifeFormControl({
 }
 
 function Mentor({
+  user,
   profile,
   updateProfile,
 }: {
+  user: MinUser;
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
 }) {
@@ -527,13 +566,32 @@ function Mentor({
     <>
       <Heading size="md">导师信息</Heading>
       <Text>
-        这些信息是学生了解导师的重要渠道，是他们
+        这些信息是学生了解导师的重要渠道，是他们了解并选择
         <Link target="_blank" href="/s/match">
-          初次匹配
+          与你匹配
         </Link>
-        时的唯一参考。请详尽填写，并展现出最真实的你。
+        的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
         <MarkdownSupported />
       </Text>
+
+      <FormControl>
+        <FormLabel>
+          视频介绍 <Highlight />
+        </FormLabel>
+        <FormHelperTextWithMargin>
+          <Text style={{ display: "inline" }} color="red.700">
+            强烈建议
+          </Text>
+          上传长度约1-2分钟的视频，以便学生直观感受你的沟通方式。
+          这将很大程度提高匹配的成功率和满意度。
+          内容可包括坐标、职业、性格、擅长聊的话题等等。
+          <Link target="_blank" href="/weihan">
+            参考示例
+          </Link>
+          。
+        </FormHelperTextWithMargin>
+        <Video user={user} profile={profile} />
+      </FormControl>
 
       <PositionFormControl
         profile={profile}

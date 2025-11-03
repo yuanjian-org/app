@@ -20,7 +20,7 @@ export function decodeXField(
   return formEntry.x_field_1?.split(",")[1];
 }
 
-export type UploadTarget = "UserProfilePicture";
+export type UploadTarget = "UserProfilePicture" | "UserProfileVideo";
 
 /**
  * @param id uniquely identifies the upload
