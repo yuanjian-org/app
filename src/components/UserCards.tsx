@@ -502,10 +502,10 @@ function FullWidthImageSquare({
           justifyContent="center"
           bg="rgba(0,0,0,0.35)"
           borderRadius="full"
-          w={{ base: "2rem", [breakpoint]: "3rem" }}
-          h={{ base: "2rem", [breakpoint]: "3rem" }}
+          w={{ base: "2.5rem", [breakpoint]: "5.6rem" }}
+          h={{ base: "2.5rem", [breakpoint]: "5.6rem" }}
         >
-          <svg width="3.6rem" height="3.6rem" viewBox="0 0 48 48" fill="none">
+          <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none">
             <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.15)" />
             <polygon points="20,16 34,24 20,32" fill="#fff" />
           </svg>
