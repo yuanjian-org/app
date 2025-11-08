@@ -1,3 +1,4 @@
+import consoleStamp from "console-stamp";
 import { router } from "./trpc";
 import users from "./routes/users";
 import meetings from "./routes/meetings";
@@ -22,6 +23,11 @@ import tasks from "./routes/tasks";
 import matchFeedback from "./routes/matchFeedback";
 import globalConfigs from "./routes/globalConfigs";
 import idTokens from "./routes/idTokens";
+
+// Initialize console-stamp to add timestamps to all console logs
+consoleStamp(console, {
+  format: ":date(yy-mm-dd HH:MM:ss.l)",
+});
 
 export const apiRouter = router({
   users,
