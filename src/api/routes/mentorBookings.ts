@@ -11,7 +11,7 @@ import {
 import sequelize from "../database/sequelize";
 import { findOrCreateRoom } from "./chatsInternal";
 import { createMessageAndScheduleEmail } from "./chats";
-import { transactionalMessagePrefix } from "../../shared/ChatMessage";
+import { transactionalRequestMessagePrefix } from "../../shared/ChatMessage";
 import { formatUserName } from "../../shared/strings";
 import { Transaction } from "sequelize";
 import User from "../../shared/User";
@@ -58,8 +58,8 @@ export async function createMentorBooking(
   );
 
   const markdown =
-    transactionalMessagePrefix +
-    `预约请求：导师：${mentor ? formatUserName(mentor.name) : "无"}，` +
+    transactionalRequestMessagePrefix +
+    `导师：${mentor ? formatUserName(mentor.name) : "无"}，` +
     `主题：${topic}，`;
   const room = await findOrCreateRoom(
     requester,

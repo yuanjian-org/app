@@ -13,6 +13,6 @@ export type ChatMessage = z.TypeOf<typeof zChatMessage>;
 
 export const typedMessagePrefix = "【";
 export const oneOnOneMessagePrefix = "【一对一】";
-export const transactionalMessagePrefix = "【不定期】";
+export const transactionalRequestMessagePrefix = "【不定期请求】";
 export const mentorReviewMessagePrefix = "【导师访谈】";
 export const menteeReviewMessagePrefix = "【学生访谈】";

@@ -41,7 +41,7 @@ export async function submit({ form, entry }: Record<string, any>) {
 
     // /exams/comms
     case "nsnx4G":
-      await submitExam(entry, "commsExam", 90);
+      await submitExam(entry, "commsExam", 115);
       break;
 
     default:

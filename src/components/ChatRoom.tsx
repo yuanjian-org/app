@@ -23,7 +23,6 @@ import {
   menteeReviewMessagePrefix,
   mentorReviewMessagePrefix,
   oneOnOneMessagePrefix,
-  transactionalMessagePrefix,
   typedMessagePrefix,
 } from "shared/ChatMessage";
 import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
@@ -301,7 +300,6 @@ function Editor({
 
   const prefixes = [
     oneOnOneMessagePrefix,
-    transactionalMessagePrefix,
     menteeReviewMessagePrefix,
     mentorReviewMessagePrefix,
     "【读书会】",
