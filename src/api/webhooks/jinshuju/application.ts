@@ -132,7 +132,7 @@ async function save(
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findOne({
       where: { phone },
-      attributes: ["id", "roles", "profile", "url"],
+      attributes: ["id", "roles", "profile", "url", "menteeStatus"],
       transaction,
     });
 
@@ -156,6 +156,10 @@ async function save(
             .concat(addtionalRoles),
           profile: { ...user.profile, ...profile },
           [column]: application,
+
+          // If a previously rejected or graduated mentee applies again, reset
+          // their mentee status..
+          menteeStatus: user.menteeStatus == "现届学子" ? "现届学子" : null,
 
           ...(await checkAndComputeUserFields({
             email,

@@ -217,4 +217,20 @@ describe("submitApplication", () => {
     void expect(u?.wechat).is.equal("微信号2");
     void expect(u?.menteeApplication).is.deep.equal(outputProxiedMenteeApp);
   });
+
+  it("should reset menteeStatus for rejected students", async () => {
+    const u = await User.findOne({ where: { phone: "+8615010000000" } });
+    await u?.update({ menteeStatus: "面拒" });
+    await submit(inputMenteeApp);
+    const updated = await User.findOne({ where: { phone: "+8615010000000" } });
+    void expect(updated?.menteeStatus).is.null;
+  });
+
+  it("should keep menteeStatus for current students", async () => {
+    const u = await User.findOne({ where: { phone: "+8615010000000" } });
+    await u?.update({ menteeStatus: "现届学子" });
+    await submit(inputMenteeApp);
+    const updated = await User.findOne({ where: { phone: "+8615010000000" } });
+    void expect(updated?.menteeStatus).is.equal("现届学子");
+  });
 });
