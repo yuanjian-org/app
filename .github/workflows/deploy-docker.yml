@@ -83,11 +83,12 @@ jobs:
           cd ~/app
 
           echo ">>> Pulling app image. Only pulling app because pulling nginx from aliyun may get stuck."
-          docker compose pull app
+          docker pull ${{ vars.APP_DOCKER_IMAGE }}:latest
 
-          echo ">>> Extracting docker-compose.yml"
+          echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker create --name temp_extract ${{ vars.APP_DOCKER_IMAGE }}:latest
           docker cp temp_extract:/app/docker-compose.yml ./docker-compose.yml
+          docker cp temp_extract:/app/nginx.conf ./nginx.conf
           docker rm temp_extract
 
           echo ">>> Restarting Docker containers"

@@ -63,8 +63,9 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Include docker-compose.yml in the image for deployment
+# Include files needed for deployment in the image
 COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.yml ./
+COPY --from=builder --chown=nextjs:nodejs /app/nginx.conf ./
 
 USER nextjs
 
