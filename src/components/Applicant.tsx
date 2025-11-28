@@ -276,6 +276,16 @@ function FieldValueCell({
 
     // Other types. Display as is.
   } else {
-    return value;
+    const v = value.toString();
+    return readonly ? (
+      v
+    ) : (
+      <EditableWithIconOrLink
+        editor="input"
+        decorator="icon"
+        defaultValue={v}
+        onSubmit={update}
+      />
+    );
   }
 }
