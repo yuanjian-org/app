@@ -6,6 +6,7 @@ import {
   getFileAddresses,
   listRecords,
   getSpeakerStats,
+  MeetingFileAddresses,
 } from "../TencentMeeting";
 import apiEnv from "../apiEnv";
 import {
@@ -24,6 +25,11 @@ import moment from "moment";
 import sequelize from "../database/sequelize";
 
 export const AI_MINUTES_SUMMARY_KEY = "智能纪要";
+export const AI_MEETING_TRANSCRIPT_KEY = "AI Transcript";
+export const MEETING_SUMMARY_KEY = "Meeting Summary";
+export const AI_TOPIC_MINUTES_KEY = "AI Topic Minutes";
+export const AI_SPEAKER_MINUTES_KEY = "AI Speaker Minutes";
+export const AI_DS_MINUTES_KEY = "AI DS Minutes";
 
 export interface SummaryDescriptor {
   groupId: string;
@@ -56,7 +62,7 @@ const list = procedure
     checkPermissionForGroupHistory(me, t.group);
 
     return db.Summary.findAll({
-      where: { transcriptId },
+      where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
       attributes: summaryAttributes,
     });
   });
@@ -138,7 +144,9 @@ export async function downloadSummaries() {
   const summaries = await findMissingSummaries();
   await Promise.all(
     summaries.map(async (summary) => {
-      console.log(`Downloading ${summary.transcriptId}...`);
+      console.log(
+        `Downloading transcript ${summary.transcriptId} key ${summary.key}...`,
+      );
       const res = await axios.get(summary.url);
       await formatAndSaveSummary(summary, res.data);
     }),
@@ -300,19 +308,34 @@ async function findMissingSummariesforTmUser(
                 tmUserId,
               );
 
-              addrs.ai_minutes
-                .filter((addr) => addr.file_type == "txt")
-                .map((addr) =>
-                  descs.push({
-                    groupId: history.groupId,
-                    transcriptId,
-                    key: AI_MINUTES_SUMMARY_KEY,
-                    speakerStats,
-                    url: addr.download_address,
-                    startedAt,
-                    endedAt,
-                  }),
+              const push = (addrs: MeetingFileAddresses, key: string) => {
+                if (!addrs) return;
+
+                console.log(
+                  `Pushing transcript ${transcriptId} for key ${key}`,
                 );
+                addrs
+                  .filter((addr) => addr.file_type == "txt")
+                  .map((addr) =>
+                    descs.push({
+                      groupId: history.groupId,
+                      transcriptId,
+                      key,
+                      speakerStats,
+                      url: addr.download_address,
+                      startedAt,
+                      endedAt,
+                    }),
+                  );
+              };
+
+              push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
+              // These files are saved but inaccessible to users.
+              push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
+              push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
+              push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
+              push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
+              push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
             }
           }),
         );

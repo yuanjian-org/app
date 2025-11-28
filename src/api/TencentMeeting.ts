@@ -291,6 +291,16 @@ export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
   return ret;
 }
 
+const zOptionalMeetingFileAddresses = z
+  .array(
+    z.object({
+      download_address: z.string().url(),
+      file_type: z.string(),
+    }),
+  )
+  .optional();
+export type MeetingFileAddresses = TypeOf<typeof zOptionalMeetingFileAddresses>;
+
 /**
  * Get record file download URLs given a meeting record id retrieved from
  * listRecords().
@@ -300,20 +310,17 @@ export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
 export async function getFileAddresses(recordFileId: string, tmUserId: string) {
   console.log(LOG_HEADER, `getFileAddresses("${recordFileId}")`);
 
-  const zURL = z.object({
-    download_address: z.string().url(),
-    file_type: z.string(),
-  });
-
   const zRes = z.object({
-    // Raw transcript
-    // meeting_summary: z.array(zFile).optional(),
-
-    // AI processed transcript
-    ai_meeting_transcripts: z.array(zURL).optional(),
-
     // Meeting minutes and TODOs
-    ai_minutes: z.array(zURL).optional(),
+    ai_minutes: zOptionalMeetingFileAddresses,
+
+    // Transcripts, summaries, minutes saved in the database but inaccessible
+    // to users.
+    ai_meeting_transcripts: zOptionalMeetingFileAddresses,
+    meeting_summary: zOptionalMeetingFileAddresses,
+    ai_topic_minutes: zOptionalMeetingFileAddresses,
+    ai_speaker_minutes: zOptionalMeetingFileAddresses,
+    ai_ds_minutes: zOptionalMeetingFileAddresses,
   });
 
   const res = zRes.parse(
@@ -382,5 +389,7 @@ function millisecondsToMinutes(milliseconds: number): number {
  *
  *  $ npx ts-node src/api/TencentMeeting.ts
  */
-// void updateMeeting("2100486146236013614", "wwh", "1234567890")
-//   .then((res) => console.log("done"));
+
+// void getFileAddresses("1984469546266210305", "h1").then((res) => {
+//   console.log(res);
+// });
