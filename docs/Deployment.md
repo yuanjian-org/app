@@ -25,9 +25,9 @@ setting up environmental variables:
 
 ## SSL certification setup, renewal, and monitoring
 
-1. Install the initial cert on the host machine by following certbot instructions at https://certbot.eff.org/instructions?ws=nginx&os=pip.
-1. Modify `/etc/cron.d/certbot` and append `--webroot -w $ROOT/certbot docker compose --project-directory $REPO restart` to certbot's command line. Replace `$ROOT` with the root folder of the deployment, for example, `/alice/app`. This allows the certbot to renew the certificate without requiring to stop the running server.
-1. Create an empty folder `$ROOT/certbot`.
+1. Create an empty folder `$APP_ROOT/certbot`, where `$APP_ROOT` is the root folder of the deployment, for example, `/alice/app`.
+1. Install the initial certs on the host machine by running `certbot certonly` for each domain name. When asked about the webroot, See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
+1. Modify `/etc/cron.d/certbot` and append `--webroot -w $APP_ROOT/certbot docker compose --project-directory $APP_ROOT restart` to certbot's command line. Replace `$APP_ROOT` with actual folder path. This allows the certbot to renew the certificate without requiring to stop the running server.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
 
 ## Redirect yuanjian.org
