@@ -298,45 +298,38 @@ async function findMissingSummariesforTmUser(
           record.record_files.map(async (file) => {
             const transcriptId = file.record_file_id;
             const addrs = await getFileAddresses(file.record_file_id, tmUserId);
+            const speakerStats = await getSpeakerStats(
+              file.record_file_id,
+              tmUserId,
+            );
 
-            if (
-              !(await hasSummary(transcriptId, AI_MINUTES_SUMMARY_KEY)) &&
-              addrs.ai_minutes
-            ) {
-              const speakerStats = await getSpeakerStats(
-                file.record_file_id,
-                tmUserId,
-              );
+            const push = async (addrs: MeetingFileAddresses, key: string) => {
+              if (!addrs || addrs.length == 0) return;
+              if (await hasSummary(transcriptId, key)) return;
 
-              const push = (addrs: MeetingFileAddresses, key: string) => {
-                if (!addrs) return;
-
-                console.log(
-                  `Pushing transcript ${transcriptId} for key ${key}`,
+              console.log(`Pushing transcript ${transcriptId} for key ${key}`);
+              addrs
+                .filter((addr) => addr.file_type == "txt")
+                .map((addr) =>
+                  descs.push({
+                    groupId: history.groupId,
+                    transcriptId,
+                    key,
+                    speakerStats,
+                    url: addr.download_address,
+                    startedAt,
+                    endedAt,
+                  }),
                 );
-                addrs
-                  .filter((addr) => addr.file_type == "txt")
-                  .map((addr) =>
-                    descs.push({
-                      groupId: history.groupId,
-                      transcriptId,
-                      key,
-                      speakerStats,
-                      url: addr.download_address,
-                      startedAt,
-                      endedAt,
-                    }),
-                  );
-              };
+            };
 
-              push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
-              // These files are saved but inaccessible to users.
-              push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
-              push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
-              push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
-              push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
-              push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
-            }
+            await push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
+            // These files are saved but inaccessible to users.
+            await push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
+            await push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
+            await push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
+            await push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
+            await push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
           }),
         );
       }),
