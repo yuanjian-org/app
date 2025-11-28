@@ -1,12 +1,12 @@
 # 远图社会导师服务平台
 
 This is a web app that supports mentorship programs at [Visionary Education
-Foundation (远见教育基金会)](http://yuanjian.org) developed by VEF volunteers.
+Foundation (远见教育基金会)](https://yuanjian.org) developed by VEF volunteers.
 
 ## Getting Started
 
 1. Install `node.js` and `yarn`.
-1. Install `postgresql`, start it locally, and create a database called `yuanjian`. Aternatively, use a hosted Postgres solution such as [Neon](http://neon.tech).
+1. Install `postgresql`, start it locally, and create a database called `yuanjian`. Aternatively, use a hosted Postgres solution such as [Neon](https://neon.com).
 1. Create file `.env` in the repository root with the following content:
    ```
    DATABASE_URI=postgres://localhost/yuanjian

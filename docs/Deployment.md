@@ -29,7 +29,3 @@ setting up environmental variables:
 1. Install the initial certs on the host machine by running `certbot certonly` for each domain name. When asked about the webroot, See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
 1. Modify `/etc/cron.d/certbot` and append `--webroot -w $APP_ROOT/certbot docker compose --project-directory $APP_ROOT restart` to certbot's command line. Replace `$APP_ROOT` with actual folder path. This allows the certbot to renew the certificate without requiring to stop the running server.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
-
-## Redirect yuanjian.org
-
-1. To wildcard redirect yuanjian.org to yjjxj.cn, point yuanjian.org & www.yuanjian.org to a vercel.com deployment. See details in _app.ts.

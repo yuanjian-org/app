@@ -19,7 +19,6 @@ import AppPage, { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import { loginUrl } from "./auth/login";
-import getBaseUrl from "shared/getBaseUrl";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
 
@@ -30,30 +29,6 @@ function App({
   Component: AppPage;
 } & AppProps) {
   const router = useRouter();
-
-  // Application-level URL redirection. Sometimes it's just easier to redirect
-  // at the application level than at lower levels.
-  if (typeof window !== "undefined" && process.env.NODE_ENV == "production") {
-    const base = getBaseUrl();
-
-    // We configured yuanjian.org to point to a free-tier vercel.com instance to
-    // redirect this domain to yjjxj.cn for free. It accepts "www.yunajian.org"
-    // and anything that ends with "yuanjian.org" like "hackingyuanjian.org".
-    // Being over zealous here isn't a security risk.
-    if (base.endsWith("yuanjian.org")) {
-      void router.replace(`https://www.yjjxj.cn${router.asPath}`);
-      return <></>;
-
-      // Always direct to mentors.org.cn if it's a production environment and
-      // is not hosted on mentors.org.cn or vercel.com (for testing purposes).
-    } else if (
-      base !== "https://mentors.org.cn" &&
-      !base.endsWith(".vercel.app")
-    ) {
-      void router.replace(`https://mentors.org.cn/${router.asPath}`);
-      return <></>;
-    }
-  }
 
   const subtitle =
     typeof Component.title === "function"
