@@ -16,6 +16,7 @@ import partner_3 from "../../../public/img/partner_3.png";
 import partner_4 from "../../../public/img/partner_4.png";
 import partner_5 from "../../../public/img/partner_5.png";
 import partner_6 from "../../../public/img/partner_6.png";
+import partner_7 from "../../../public/img/partner_7.jpg";
 import { breakpoint } from "theme/metrics";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -126,6 +127,10 @@ function PartnersSection() {
     {
       name: "中国科学技术大学",
       image: partner_4,
+    },
+    {
+      name: "山东科技大学",
+      image: partner_7,
     },
     {
       name: "新华爱心教育基金会",

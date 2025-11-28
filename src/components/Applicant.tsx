@@ -7,6 +7,7 @@ import {
   Heading,
   useClipboard,
   Tooltip,
+  Text,
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { CopyIcon, DownloadIcon } from "@chakra-ui/icons";
@@ -186,7 +187,7 @@ function ContactFieldRow({
             </Link>
           </SmallGrayText>
         )}
-        {copyable && !value && <SmallGrayText>{notSetText}</SmallGrayText>}
+        {copyable && !value && <Text color="gray">{notSetText}</Text>}
         {copyable && value && (
           <>
             {mask ? "••••••••••••" : value}{" "}
