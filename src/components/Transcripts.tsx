@@ -125,7 +125,7 @@ function LoadedTranscripts({
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary
-    invariant(summaries.length, "No summaries");
+    invariant(summaries.length, `No summaries for ${transcript.transcriptId}`);
     const key = parseQueryString(router, "summaryKey");
     const match = summaries.filter((s) => s.key == key);
     summary = match.length ? match[0] : summaries[0];

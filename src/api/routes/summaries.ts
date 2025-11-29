@@ -14,7 +14,7 @@ import {
   groupInclude,
   summaryAttributes,
 } from "../database/models/attributesAndIncludes";
-import { computeDeletion, zSummary } from "../../shared/Summary";
+import { computeDeletion, Summary, zSummary } from "../../shared/Summary";
 import { SpeakerStats } from "../TencentMeeting";
 import { generalBadRequestError, notFoundError } from "../errors";
 import { checkPermissionForGroupHistory } from "./groups";
@@ -23,6 +23,8 @@ import formatMeetingMinutes from "./formatMeetingMinutes";
 import { Op, Transaction } from "sequelize";
 import moment from "moment";
 import sequelize from "../database/sequelize";
+import invariant from "shared/invariant";
+import User from "shared/User";
 
 export const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 export const AI_MEETING_TRANSCRIPT_KEY = "AI Transcript";
@@ -46,26 +48,51 @@ const list = procedure
   .input(z.string())
   .output(z.array(zSummary))
   .query(async ({ ctx: { me }, input: transcriptId }) => {
-    const t = await db.Transcript.findByPk(transcriptId, {
-      attributes: ["transcriptId"],
-      include: [
-        {
-          model: db.Group,
-          attributes: groupAttributes,
-          include: groupInclude,
-        },
-      ],
-    });
-
-    if (!t) throw notFoundError("会议纪要", transcriptId);
-
-    checkPermissionForGroupHistory(me, t.group);
-
-    return db.Summary.findAll({
-      where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
-      attributes: summaryAttributes,
+    return await sequelize.transaction(async (transaction) => {
+      return await listImpl(me, transcriptId, transaction);
     });
   });
+
+export async function listImpl(
+  me: User,
+  transcriptId: string,
+  transaction: Transaction,
+): Promise<Summary[]> {
+  const t = await db.Transcript.findByPk(transcriptId, {
+    attributes: ["transcriptId"],
+    include: [
+      {
+        model: db.Group,
+        attributes: groupAttributes,
+        include: groupInclude,
+      },
+    ],
+    transaction,
+  });
+
+  if (!t) throw notFoundError("会议纪要", transcriptId);
+
+  checkPermissionForGroupHistory(me, t.group);
+
+  const findOne = async (key?: string) => {
+    const s = await db.Summary.findOne({
+      where: { transcriptId, ...(key ? { key } : {}) },
+      attributes: summaryAttributes,
+      transaction,
+    });
+    return s;
+  };
+
+  // Retrieve only one summary that is most suitable for display.
+  let ret = await findOne(AI_MINUTES_SUMMARY_KEY);
+  if (!ret) ret = await findOne(AI_DS_MINUTES_KEY);
+  if (!ret) ret = await findOne(MEETING_SUMMARY_KEY);
+  if (!ret) ret = await findOne(AI_TOPIC_MINUTES_KEY);
+  // Use any summary if no preferred summary is found.
+  if (!ret) ret = await findOne();
+  invariant(ret, `No summaries for transcript ${transcriptId}`);
+  return [ret];
+}
 
 const update = procedure
   .use(authUser())
