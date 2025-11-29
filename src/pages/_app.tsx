@@ -40,7 +40,9 @@ function App({
   return (
     <ChakraProvider theme={theme}>
       <Head>
-        <title>{(subtitle ? subtitle + " | " : "") + "远图"}</title>
+        <title>
+          {(subtitle ? subtitle + " | " : "") + "远图 - 社会导师服务平台"}
+        </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
       </Head>
