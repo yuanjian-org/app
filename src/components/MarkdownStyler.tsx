@@ -31,7 +31,6 @@ export default function MarkdownStyler({
        * inline code blocks (`...` or ```...```):
        * https://github.com/remarkjs/remark-gfm/issues/57
        */}
-      {/* @ts-expect-error for "Types of property 'rehypePlugins' are incompatible" */}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         {...(allowHtml ? { rehypePlugins: [rehypeRaw] } : {})}
