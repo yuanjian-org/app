@@ -19,11 +19,7 @@ import {
 } from "shared/applicationFields";
 import z from "zod";
 import { sectionSpacing } from "theme/metrics";
-import {
-  formatUserName,
-  notSetText,
-  removeChinaPhonePrefix,
-} from "shared/strings";
+import { formatUserName, notSetText } from "shared/strings";
 import invariant from "tiny-invariant";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import User from "shared/User";
@@ -119,12 +115,13 @@ function LoadedApplicant({
         value={user.wechat}
       />
 
-      <ContactFieldRow
+      {/* There isn't a need to expose phone numbers yet */}
+      {/* <ContactFieldRow
         mask={isMentee}
         copyable={!isMentee || imPrivileged}
         name="手机"
         value={removeChinaPhonePrefix(user.phone)}
-      />
+      /> */}
 
       {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(
         (f) => {
