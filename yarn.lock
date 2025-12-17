@@ -2133,10 +2133,10 @@
   resolved "https://registry.npmjs.org/@trpc/react-query/-/react-query-10.29.1.tgz"
   integrity sha512-yWsce8euPSVtn3SeBKXxLmq607/sqyIez7pgMOhMBKehRNdZzrGp3MhjmRwim+IUKLrw71kUgsw7w6uT5FPB0g==
 
-"@trpc/server@^10.25.0":
-  version "10.29.1"
-  resolved "https://registry.npmjs.org/@trpc/server/-/server-10.29.1.tgz"
-  integrity sha512-kNXgMh5ya+awuz2tB4eIyVrRs7nVtqGXwSGabzH3l5ZLWz7rbKJquOJ7h6bjvIfWUpaFG62HJNWxxGUtXCRgRw==
+"@trpc/server@^10.45.3":
+  version "10.45.3"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-10.45.3.tgz#4f9fc58c5aafeca1f041ffd39113517f16eef2f6"
+  integrity sha512-CVZM42FdGwqYQxV7vSRwb//AF8REfV60S/fUnwx7xqCnnSDus0FW/UuAOW4eQJ30RQlOPy4MYU8B3dbTAx85Ew==
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
