@@ -42,7 +42,7 @@ function App({
     return (
       <ChakraProvider theme={theme}>
         <Head>
-          <title>社会导师</title>
+          <title>远见社会导师</title>
         </Head>
         <Component {...pageProps} />
       </ChakraProvider>
