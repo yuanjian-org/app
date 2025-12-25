@@ -42,7 +42,7 @@ export default function Page() {
 
   return (
     <>
-      <PageBreadcrumb current="导师预约记录" />
+      <PageBreadcrumb current="不定期导师预约记录" />
 
       {isLoading ? (
         <Loader />
