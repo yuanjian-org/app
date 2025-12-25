@@ -37,6 +37,17 @@ function App({
         ? Component.title
         : null;
 
+  if (window.location.origin.includes("yuanjian.net")) {
+    return (
+      <ChakraProvider theme={theme}>
+        <Head>
+          <title>社会导师</title>
+        </Head>
+        <Component {...pageProps} />
+      </ChakraProvider>
+    );
+  }
+
   return (
     <ChakraProvider theme={theme}>
       <Head>
