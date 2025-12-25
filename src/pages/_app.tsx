@@ -21,7 +21,6 @@ import StaticPageContainer from "components/StaticPageContainer";
 import { loginUrl } from "./auth/login";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
-import getBaseUrl from "shared/getBaseUrl";
 
 function App({
   Component,
@@ -38,7 +37,7 @@ function App({
         ? Component.title
         : null;
 
-  if (getBaseUrl().includes("yuanjian.net")) {
+  if (router.pathname === "/s/yuanjian") {
     return (
       <ChakraProvider theme={theme}>
         <Head>
