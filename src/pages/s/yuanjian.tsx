@@ -88,8 +88,8 @@ export default function Page() {
                 什么是社会导师？
               </Heading>
               <Text fontSize="lg" maxW="3xl" color="gray.600">
-                社会导师是拥有丰富职业经验和社会阅历的&ldquo;过来人&rdquo;，他们为年轻人，
-                特别是在校大学生，提供长期的一对一陪伴与指导
+                社会导师是拥有丰富职业经验和社会阅历的&ldquo;过来人&rdquo;，他们为年轻人
+                提供长期的一对一陪伴与指导
               </Text>
             </VStack>
 
@@ -241,7 +241,7 @@ export default function Page() {
                     公众服务
                   </Heading>
                   <Text>
-                    我们向所有有需要的人士开放社会导师服务。无论您是在校学生还是职场新人，
+                    我们向所有有需要的人士开放社会导师服务。无论您是否已经走入职场，
                     只要您渴望成长，都欢迎申请。
                   </Text>
                   <Text>
