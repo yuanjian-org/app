@@ -23,7 +23,6 @@ import formatMeetingMinutes from "./formatMeetingMinutes";
 import { Op, Transaction } from "sequelize";
 import moment from "moment";
 import sequelize from "../database/sequelize";
-import invariant from "shared/invariant";
 import User from "shared/User";
 
 export const AI_MINUTES_SUMMARY_KEY = "智能纪要";
@@ -74,24 +73,25 @@ export async function listImpl(
 
   checkPermissionForGroupHistory(me, t.group);
 
-  const findOne = async (key?: string) => {
-    const s = await db.Summary.findOne({
-      where: { transcriptId, ...(key ? { key } : {}) },
-      attributes: summaryAttributes,
-      transaction,
-    });
-    return s;
-  };
+  const s = await db.Summary.findOne({
+    where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
+    attributes: summaryAttributes,
+    transaction,
+  });
 
-  // Retrieve only one summary that is most suitable for display.
-  let ret = await findOne(AI_MINUTES_SUMMARY_KEY);
-  if (!ret) ret = await findOne(AI_DS_MINUTES_KEY);
-  if (!ret) ret = await findOne(MEETING_SUMMARY_KEY);
-  if (!ret) ret = await findOne(AI_TOPIC_MINUTES_KEY);
-  // Use any summary if no preferred summary is found.
-  if (!ret) ret = await findOne();
-  invariant(ret, `No summaries for transcript ${transcriptId}`);
-  return [ret];
+  // If no AI minutes summary is found, return a dummy summary.
+  const dummyMarkdown = "无会议纪要";
+  return s
+    ? [s]
+    : [
+        {
+          transcriptId,
+          key: "dummySummaryKey",
+          markdown: dummyMarkdown,
+          initialLength: dummyMarkdown.length,
+          deletedLength: 0,
+        },
+      ];
 }
 
 const update = procedure
