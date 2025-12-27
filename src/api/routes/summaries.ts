@@ -3,10 +3,10 @@ import { authUser } from "../auth";
 import { z } from "zod";
 import db from "../database/db";
 import {
-  getFileAddresses,
+  getKey2FileAddresses,
   listRecords,
   getSpeakerStats,
-  MeetingFileAddresses,
+  FileAddresses,
   MeetingRecord,
 } from "../TencentMeeting";
 import apiEnv from "../apiEnv";
@@ -25,6 +25,7 @@ import { Op, Transaction } from "sequelize";
 import moment from "moment";
 import sequelize from "../database/sequelize";
 import User from "shared/User";
+import invariant from "shared/invariant";
 
 export const AI_MINUTES_SUMMARY_KEY = "智能纪要";
 export const AI_MEETING_TRANSCRIPT_KEY = "AI Transcript";
@@ -169,48 +170,55 @@ export default router({
  * Download summaries from Tencent Meeting and save them locally.
  */
 export async function downloadSummaries() {
-  const summaries = await findMissingSummaries();
+  const descs = await findMissingSummaries();
   await Promise.all(
-    summaries.map(async (summary) => {
-      console.log(
-        `Downloading transcript ${summary.transcriptId} key ${summary.key}...`,
+    descs.map(async (desc) => {
+      // processRecord() should have already handled AI minutes summary.
+      invariant(
+        desc.key != AI_MINUTES_SUMMARY_KEY,
+        `Key must not be AI minutes summary for ${desc.transcriptId}.`,
       );
-      const res = await axios.get(summary.url);
-      await formatAndSaveSummary(summary, res.data);
+      console.log(
+        `Downloading transcript ${desc.transcriptId} key ${desc.key}...`,
+      );
+      await saveSummary(desc, await downloadUrl(desc.url));
     }),
   );
 }
 
-async function formatAndSaveSummary(desc: SummaryDescriptor, summary: string) {
-  let formatted: string;
-  if (desc.key != AI_MINUTES_SUMMARY_KEY) {
-    formatted = summary;
-  } else {
-    const minutes = formatMeetingMinutes(summary);
-    if (minutes.length == 0) {
-      console.log(
-        `Empty minutes for tarnscript ${desc.transcriptId}. Transcript not saved.`,
-      );
-      return;
-    } else {
-      formatted = formatSpeakerStats(desc.speakerStats) + minutes;
-    }
-  }
+async function downloadUrl(url: string) {
+  return (await axios.get(url)).data;
+}
 
+/**
+ * @returns null if the summary is empty.
+ */
+function formatAiMinutesSummary(
+  summary: string,
+  speakerStats: SpeakerStats,
+): string | null {
+  const minutes = formatMeetingMinutes(summary);
+  return minutes.length == 0
+    ? null
+    : formatSpeakerStats(speakerStats) + minutes;
+}
+
+async function saveSummary(desc: SummaryDescriptor, summary: string) {
+  console.log(`Save transcript ${desc.transcriptId} key ${desc.key}`);
   await sequelize.transaction(async (transaction) => {
-    await saveSummary(
+    await saveSummaryImpl(
       desc.transcriptId,
       desc.groupId,
       desc.startedAt,
       desc.endedAt,
       desc.key,
-      formatted,
+      summary,
       transaction,
     );
   });
 }
 
-export async function saveSummary(
+export async function saveSummaryImpl(
   transcriptId: string,
   groupId: string,
   startedAt: number,
@@ -335,36 +343,73 @@ async function processRecord(
   await Promise.all(
     record.record_files.map(async (file) => {
       const transcriptId = file.record_file_id;
-      const addrs = await getFileAddresses(file.record_file_id, tmUserId);
       const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
+      const key2addrs = await getKey2FileAddresses(
+        file.record_file_id,
+        tmUserId,
+      );
 
-      const push = async (addrs: MeetingFileAddresses, key: string) => {
-        if (!addrs || addrs.length == 0) return;
-        if (await hasSummary(transcriptId, key)) return;
-
-        console.log(`Pushing transcript ${transcriptId} for key ${key}`);
-        addrs
+      // @returns null if no valid addresses are found.
+      const newDesc = (addrs: FileAddresses, key: string) => {
+        if (!addrs) return null;
+        const ret: SummaryDescriptor[] = addrs
           .filter((addr) => addr.file_type == "txt")
-          .map((addr) =>
-            descs.push({
-              groupId: history.groupId,
-              transcriptId,
-              key,
-              speakerStats,
-              url: addr.download_address,
-              startedAt,
-              endedAt,
-            }),
+          .map((addr) => ({
+            groupId: history.groupId,
+            transcriptId,
+            key,
+            speakerStats,
+            url: addr.download_address,
+            startedAt,
+            endedAt,
+          }));
+        if (ret.length == 0) {
+          console.log(
+            `No valid addresses for transcript ${transcriptId} key ${key} ` +
+              `(which is unexpected).`,
           );
+          return null;
+        } else {
+          return ret[0];
+        }
       };
 
-      await push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
-      // These files are saved but inaccessible to users.
-      await push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
-      await push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
-      await push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
-      await push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
-      await push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
+      // Prefetch AI minutes summary so that we can test and ignore transcripts
+      // that has empty AI minutes, which indicates the meeting was too short
+      // and no meaningful content was recorded at all.
+      const desc = newDesc(key2addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
+      if (!desc) return;
+      console.log(`Downloading transcript ${transcriptId} key ${desc.key}...`);
+      const summary = await downloadUrl(desc.url);
+      const formatted = formatAiMinutesSummary(summary, desc.speakerStats);
+      if (!formatted) {
+        console.log(`Empty AI minutes summary for transcript ${transcriptId}`);
+        return;
+      }
+      if (!(await hasSummary(transcriptId, desc.key))) {
+        await saveSummary(desc, formatted);
+      }
+
+      /**
+       * Enqueue download of remaining summaries. These files are saved but
+       * inaccessible to users. Note that even if the AI minutes summary is
+       * already saved, other summaries may still be missing. It may happen if
+       * the process was aborted after AI minutes summary was saved.
+       */
+
+      const push = async (addrs: FileAddresses, key: string) => {
+        const desc = newDesc(addrs, key);
+        if (desc && !(await hasSummary(transcriptId, key))) {
+          console.log(`Push transcript ${transcriptId} key ${key}`);
+          descs.push(desc);
+        }
+      };
+
+      await push(key2addrs.meeting_summary, MEETING_SUMMARY_KEY);
+      await push(key2addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
+      await push(key2addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
+      await push(key2addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
+      await push(key2addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
     }),
   );
 }

@@ -291,7 +291,7 @@ export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
   return ret;
 }
 
-const zOptionalMeetingFileAddresses = z
+const zOptionalFileAddresses = z
   .array(
     z.object({
       download_address: z.string().url(),
@@ -299,7 +299,7 @@ const zOptionalMeetingFileAddresses = z
     }),
   )
   .optional();
-export type MeetingFileAddresses = TypeOf<typeof zOptionalMeetingFileAddresses>;
+export type FileAddresses = TypeOf<typeof zOptionalFileAddresses>;
 
 /**
  * Get record file download URLs given a meeting record id retrieved from
@@ -307,20 +307,23 @@ export type MeetingFileAddresses = TypeOf<typeof zOptionalMeetingFileAddresses>;
  *
  * https://cloud.tencent.com/document/product/1095/51180
  */
-export async function getFileAddresses(recordFileId: string, tmUserId: string) {
+export async function getKey2FileAddresses(
+  recordFileId: string,
+  tmUserId: string,
+) {
   console.log(LOG_HEADER, `getFileAddresses("${recordFileId}")`);
 
   const zRes = z.object({
     // Meeting minutes and TODOs
-    ai_minutes: zOptionalMeetingFileAddresses,
+    ai_minutes: zOptionalFileAddresses,
 
     // Transcripts, summaries, minutes saved in the database but inaccessible
     // to users.
-    ai_meeting_transcripts: zOptionalMeetingFileAddresses,
-    meeting_summary: zOptionalMeetingFileAddresses,
-    ai_topic_minutes: zOptionalMeetingFileAddresses,
-    ai_speaker_minutes: zOptionalMeetingFileAddresses,
-    ai_ds_minutes: zOptionalMeetingFileAddresses,
+    ai_meeting_transcripts: zOptionalFileAddresses,
+    meeting_summary: zOptionalFileAddresses,
+    ai_topic_minutes: zOptionalFileAddresses,
+    ai_speaker_minutes: zOptionalFileAddresses,
+    ai_ds_minutes: zOptionalFileAddresses,
   });
 
   const res = zRes.parse(

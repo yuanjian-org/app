@@ -8,14 +8,14 @@ import { createMentorship } from "../src/api/routes/mentorships";
 import { DateColumn } from "../src/shared/DateColumn";
 import db from "../src/api/database/db";
 import createKudos from "../src/api/routes/kudosInternal";
-import { AI_MINUTES_SUMMARY_KEY, saveSummary } from "../src/api/routes/summaries";
+import { AI_MINUTES_SUMMARY_KEY, saveSummaryImpl } from "../src/api/routes/summaries";
 import { createChatMessage, findOrCreateRoom } from "../src/api/routes/chatsInternal";
 import User from "../src/shared/User";
 import { createCalibration } from "../src/api/routes/calibrations";
 import _ from "lodash";
 import {
-  createInterview,
-  getInterviewIdForMentee
+    createInterview,
+    getInterviewIdForMentee
 } from "../src/api/routes/interviews";
 import { createAutoTask } from "../src/api/routes/tasks";
 import { createMentorBooking } from "../src/api/routes/mentorBookings";
@@ -146,7 +146,7 @@ async function generateSummaries(groupId: string, t: Transaction) {
 
   for (const [idx, summary] of demo.summaries.entries()) {
     console.log(`Creating summary ${idx} for group ${groupId}...`);
-    await saveSummary(
+    await saveSummaryImpl(
       `transcript-${groupId}-${idx}`,
       groupId, 
       summary.startedAt, 
