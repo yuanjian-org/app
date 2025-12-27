@@ -7,6 +7,7 @@ import {
   listRecords,
   getSpeakerStats,
   MeetingFileAddresses,
+  MeetingRecord,
 } from "../TencentMeeting";
 import apiEnv from "../apiEnv";
 import {
@@ -263,103 +264,108 @@ async function findMissingSummariesforTmUser(
       // Only interested in meetings that are ready to download.
       .filter((record) => record.state === 3)
       .map(async (record) => {
-        if (!record.record_files) return;
-
-        // Have start and end times cover all record files.
-        let startedAt = Number.MAX_VALUE;
-        let endedAt = Number.MIN_VALUE;
-        for (const file of record.record_files) {
-          startedAt = Math.min(startedAt, file.record_start_time);
-          endedAt = Math.max(endedAt, file.record_end_time);
-        }
-
-        console.log(
-          "meeting_id",
-          record.meeting_id,
-          "record_id",
-          record.meeting_record_id,
-          "mins",
-          moment(endedAt).diff(moment(startedAt), "minutes"),
-          "start",
-          moment(startedAt).utcOffset(8).format(),
-          "end",
-          moment(endedAt).utcOffset(8).format(),
-        );
-
-        const history = await db.MeetingHistory.findOne({
-          /**
-           * We are only interested in records that fall into the time range
-           * [meeting start time, meeting end time upper bound]. `createdAt`
-           * indicates meeting start time.
-           *
-           * This is needed to exclude records that are accidentally created
-           * outside of the platform. For example, one may copy the Tencent
-           * meeting URL and reuse it later, bypassing the platform.
-           *
-           * Since we don't know the exact end time of meetings, this filtering
-           * method doesn't guarantee accuracy. It is better than nothing never
-           * the less.
-           *
-           * Note: We don't look at entries with null endedBefore only for
-           * simplicity.
-           */
-          where: {
-            [Op.and]: [
-              { meetingId: record.meeting_id },
-              { createdAt: { [Op.lte]: new Date(startedAt) } },
-              { endedBefore: { [Op.gte]: new Date(endedAt) } },
-            ],
-          },
-          attributes: ["groupId"],
-        });
-
-        if (!history) {
-          console.log(
-            `History not found for meeting_id ${record.meeting_id} ` +
-              `record_id ${record.meeting_record_id}`,
-          );
-          return;
-        }
-
-        await Promise.all(
-          record.record_files.map(async (file) => {
-            const transcriptId = file.record_file_id;
-            const addrs = await getFileAddresses(file.record_file_id, tmUserId);
-            const speakerStats = await getSpeakerStats(
-              file.record_file_id,
-              tmUserId,
-            );
-
-            const push = async (addrs: MeetingFileAddresses, key: string) => {
-              if (!addrs || addrs.length == 0) return;
-              if (await hasSummary(transcriptId, key)) return;
-
-              console.log(`Pushing transcript ${transcriptId} for key ${key}`);
-              addrs
-                .filter((addr) => addr.file_type == "txt")
-                .map((addr) =>
-                  descs.push({
-                    groupId: history.groupId,
-                    transcriptId,
-                    key,
-                    speakerStats,
-                    url: addr.download_address,
-                    startedAt,
-                    endedAt,
-                  }),
-                );
-            };
-
-            await push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
-            // These files are saved but inaccessible to users.
-            await push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
-            await push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
-            await push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
-            await push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
-            await push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
-          }),
-        );
+        await processRecord(record, tmUserId, descs);
       }),
+  );
+}
+
+async function processRecord(
+  record: MeetingRecord,
+  tmUserId: string,
+  descs: SummaryDescriptor[],
+) {
+  if (!record.record_files) return;
+
+  // Have start and end times cover all record files.
+  let startedAt = Number.MAX_VALUE;
+  let endedAt = Number.MIN_VALUE;
+  for (const file of record.record_files) {
+    startedAt = Math.min(startedAt, file.record_start_time);
+    endedAt = Math.max(endedAt, file.record_end_time);
+  }
+
+  console.log(
+    "meeting_id",
+    record.meeting_id,
+    "record_id",
+    record.meeting_record_id,
+    "mins",
+    moment(endedAt).diff(moment(startedAt), "minutes"),
+    "start",
+    moment(startedAt).utcOffset(8).format(),
+    "end",
+    moment(endedAt).utcOffset(8).format(),
+  );
+
+  const history = await db.MeetingHistory.findOne({
+    /**
+     * We are only interested in records that fall into the time range
+     * [meeting start time, meeting end time upper bound]. `createdAt`
+     * indicates meeting start time.
+     *
+     * This is needed to exclude records that are accidentally created
+     * outside of the platform. For example, one may copy the Tencent
+     * meeting URL and reuse it later, bypassing the platform.
+     *
+     * Since we don't know the exact end time of meetings, this filtering
+     * method doesn't guarantee accuracy. It is better than nothing never
+     * the less.
+     *
+     * Note: We don't look at entries with null endedBefore only for
+     * simplicity.
+     */
+    where: {
+      [Op.and]: [
+        { meetingId: record.meeting_id },
+        { createdAt: { [Op.lte]: new Date(startedAt) } },
+        { endedBefore: { [Op.gte]: new Date(endedAt) } },
+      ],
+    },
+    attributes: ["groupId"],
+  });
+
+  if (!history) {
+    console.log(
+      `History not found for meeting_id ${record.meeting_id} ` +
+        `record_id ${record.meeting_record_id}`,
+    );
+    return;
+  }
+
+  await Promise.all(
+    record.record_files.map(async (file) => {
+      const transcriptId = file.record_file_id;
+      const addrs = await getFileAddresses(file.record_file_id, tmUserId);
+      const speakerStats = await getSpeakerStats(file.record_file_id, tmUserId);
+
+      const push = async (addrs: MeetingFileAddresses, key: string) => {
+        if (!addrs || addrs.length == 0) return;
+        if (await hasSummary(transcriptId, key)) return;
+
+        console.log(`Pushing transcript ${transcriptId} for key ${key}`);
+        addrs
+          .filter((addr) => addr.file_type == "txt")
+          .map((addr) =>
+            descs.push({
+              groupId: history.groupId,
+              transcriptId,
+              key,
+              speakerStats,
+              url: addr.download_address,
+              startedAt,
+              endedAt,
+            }),
+          );
+      };
+
+      await push(addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
+      // These files are saved but inaccessible to users.
+      await push(addrs.meeting_summary, MEETING_SUMMARY_KEY);
+      await push(addrs.ai_topic_minutes, AI_TOPIC_MINUTES_KEY);
+      await push(addrs.ai_speaker_minutes, AI_SPEAKER_MINUTES_KEY);
+      await push(addrs.ai_ds_minutes, AI_DS_MINUTES_KEY);
+      await push(addrs.ai_meeting_transcripts, AI_MEETING_TRANSCRIPT_KEY);
+    }),
   );
 }
 

@@ -254,7 +254,7 @@ const zMeetingRecord = z.object({
     )
     .optional(),
 });
-type MeetingRecord = TypeOf<typeof zMeetingRecord>;
+export type MeetingRecord = TypeOf<typeof zMeetingRecord>;
 
 /**
  * List meeting recordings since 31 days ago (max allowed date range).
