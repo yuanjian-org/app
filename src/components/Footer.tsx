@@ -2,7 +2,14 @@ import { Link, Wrap, WrapItem, WrapProps } from "@chakra-ui/react";
 import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
 
-export default function Footer({ ...rest }: WrapProps) {
+export default function Footer({
+  icpIndex = 2,
+  beianNo = "33010802013665",
+  ...rest
+}: {
+  icpIndex?: number;
+  beianNo?: string;
+} & WrapProps) {
   const color = "gray.400";
 
   return (
@@ -23,15 +30,15 @@ export default function Footer({ ...rest }: WrapProps) {
         <Link
           color={color}
           isExternal
-          href="https://beian.mps.gov.cn/#/query/webSearch?code=33010802013665"
+          href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beianNo}`}
           rel="noreferrer"
         >
-          浙公网安备33010802013665
+          浙公网安备{beianNo}
         </Link>
       </WrapItem>
       <WrapItem>
         <Link color={color} isExternal href="http://beian.miit.gov.cn/">
-          浙ICP备2024117465号-2
+          浙ICP备2024117465号-{icpIndex}
         </Link>
       </WrapItem>
     </Wrap>

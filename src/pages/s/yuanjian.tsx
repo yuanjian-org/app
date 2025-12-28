@@ -27,6 +27,7 @@ import {
 } from "react-icons/fa";
 import { paragraphSpacing } from "theme/metrics";
 import NextLink from "next/link";
+import Footer from "components/Footer";
 
 export default function Page() {
   const bgGradient = useColorModeValue(
@@ -343,6 +344,7 @@ export default function Page() {
               </Button>
             </HStack>
           </VStack>
+          <Footer icpIndex={3} beianNo="33010802014206" />
         </Container>
       </Box>
     </VStack>
