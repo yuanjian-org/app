@@ -19,6 +19,8 @@ services:
       - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/certs/mentors.org.cn/privkey.pem:ro
       - /etc/letsencrypt/live/yuanjian.net/fullchain.pem:/certs/yuanjian.net/fullchain.pem:ro
       - /etc/letsencrypt/live/yuanjian.net/privkey.pem:/certs/yuanjian.net/privkey.pem:ro
+      - /etc/letsencrypt/live/yuantuapp.com/fullchain.pem:/certs/yuantuapp.com/fullchain.pem:ro
+      - /etc/letsencrypt/live/yuantuapp.com/privkey.pem:/certs/yuantuapp.com/privkey.pem:ro
     ports:
       - "443:443"
       - "80:80"

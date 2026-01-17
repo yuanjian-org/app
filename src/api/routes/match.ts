@@ -370,7 +370,7 @@ function formatMenteeWorksheet(
 
   const otherMentors = mentors
     .filter((m) => m.relational)
-    .filter((m) => !preferredMentors.some((pm) => pm.user.id === m.user.id))
+    .filter((m) => !preferredMentors.some((pm) => pm?.user.id === m.user.id))
     // Sort stably so mentor positions don't change between synces
     .sort((a, b) => compareChinese(a.user.name, b.user.name))
     .map((m) => ({

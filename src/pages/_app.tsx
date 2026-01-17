@@ -48,6 +48,17 @@ function App({
     );
   }
 
+  if (router.pathname === "/s/yuantu") {
+    return (
+      <ChakraProvider theme={theme}>
+        <Head>
+          <title>远图网</title>
+        </Head>
+        <Component {...pageProps} />
+      </ChakraProvider>
+    );
+  }
+
   return (
     <ChakraProvider theme={theme}>
       <Head>
