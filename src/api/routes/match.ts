@@ -168,14 +168,24 @@ function formatInstructionsWorksheet(
         // colHeader('匹配负责人', true),
         // colHeader('已完成', true),
       ],
-      ...sorted.map((m) => [
-        formatUserName(m.name),
-        !batches[m.id]
-          ? "无"
-          : batches[m.id].finalizedAt
-            ? moment(batches[m.id].finalizedAt).format("YYYY-MM-DD")
-            : "草稿",
-      ]),
+      ...sorted.map((m) => {
+        const f = batches[m.id]?.finalizedAt;
+        return [
+          formatUserName(m.name),
+          !batches[m.id]
+            ? "无"
+            : f
+              ? {
+                  value: moment(f).format("YYYY-MM-DD"),
+                  textFormat: {
+                    foregroundColor: {
+                      red: moment().diff(moment(f), "days") > 30 ? 1 : 0,
+                    },
+                  },
+                }
+              : "草稿",
+        ];
+      }),
     ],
   };
 }
@@ -337,16 +347,26 @@ function formatMenteeWorksheet(
 
   const preferredMentors = (batch?.selections ?? [])
     .sort((a, b) => a.order - b.order)
-    .map((s) => ({
-      user: id2mentor[s.mentor.id].user,
-      profile: id2mentor[s.mentor.id].profile,
-      pref: id2mentor[s.mentor.id].traitsPreference,
-      fnd: mentorFnDs[s.mentor.id],
-      order: s.order,
-      reason: s.reason,
-      // UI doesn't allow mentees to select hard mismatching mentors at all
-      hardMismatch: false,
-    }));
+    .map((s) => {
+      if (!id2mentor[s.mentor.id]) {
+        console.error(
+          `${mentee.name}：导师${s.mentor.name}不在可匹配导师列表，可能因为导师状态在学生选择后被更新`,
+        );
+        return null;
+      } else {
+        return {
+          user: id2mentor[s.mentor.id].user,
+          profile: id2mentor[s.mentor.id].profile,
+          pref: id2mentor[s.mentor.id].traitsPreference,
+          fnd: mentorFnDs[s.mentor.id],
+          order: s.order,
+          reason: s.reason,
+          // UI doesn't allow mentees to select hard mismatching mentors at all
+          hardMismatch: false,
+        };
+      }
+    })
+    .filter((m) => m !== null);
 
   const otherMentors = mentors
     .filter((m) => m.relational)
