@@ -347,30 +347,30 @@ function formatMenteeWorksheet(
 
   const preferredMentors = (batch?.selections ?? [])
     .sort((a, b) => a.order - b.order)
-    .map((s) => {
+    .filter((s) => {
       if (!id2mentor[s.mentor.id]) {
         console.error(
           `${mentee.name}：导师${s.mentor.name}不在可匹配导师列表，可能因为导师状态在学生选择后被更新`,
         );
-        return null;
+        return false;
       } else {
-        return {
-          user: id2mentor[s.mentor.id].user,
-          profile: id2mentor[s.mentor.id].profile,
-          pref: id2mentor[s.mentor.id].traitsPreference,
-          fnd: mentorFnDs[s.mentor.id],
-          order: s.order,
-          reason: s.reason,
-          // UI doesn't allow mentees to select hard mismatching mentors at all
-          hardMismatch: false,
-        };
+        return true;
       }
     })
-    .filter((m) => m !== null);
+    .map((s) => ({
+      user: id2mentor[s.mentor.id].user,
+      profile: id2mentor[s.mentor.id].profile,
+      pref: id2mentor[s.mentor.id].traitsPreference,
+      fnd: mentorFnDs[s.mentor.id],
+      order: s.order,
+      reason: s.reason,
+      // UI doesn't allow mentees to select hard mismatching mentors at all
+      hardMismatch: false,
+    }));
 
   const otherMentors = mentors
     .filter((m) => m.relational)
-    .filter((m) => !preferredMentors.some((pm) => pm?.user.id === m.user.id))
+    .filter((m) => !preferredMentors.some((pm) => pm.user.id === m.user.id))
     // Sort stably so mentor positions don't change between synces
     .sort((a, b) => compareChinese(a.user.name, b.user.name))
     .map((m) => ({
