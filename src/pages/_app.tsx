@@ -48,23 +48,10 @@ function App({
     );
   }
 
-  if (router.pathname === "/s/yuantu") {
-    return (
-      <ChakraProvider theme={theme}>
-        <Head>
-          <title>远图网</title>
-        </Head>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    );
-  }
-
   return (
     <ChakraProvider theme={theme}>
       <Head>
-        <title>
-          {(subtitle ? subtitle + " | " : "") + "远图 - 社会导师服务平台"}
-        </title>
+        <title>{(subtitle ? subtitle + " | " : "") + "远图网"}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
       </Head>

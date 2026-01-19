@@ -31,7 +31,7 @@
 
 # 本地开发
 
-1. 配置微信 OAuth 可信回调域名后，本地开发时如果使用生产 app id/secret，需要访问 https 域名，如 `https://mentors.org.cn`，否则无法通过鉴权。因此需要将本地开发环境配置为 https 环境。
+1. 配置微信 OAuth 可信回调域名后，本地开发时如果使用生产 app id/secret，需要访问 https 域名，如 `https://yuantuapp.com`，否则无法通过鉴权。因此需要将本地开发环境配置为 https 环境。
 
    解决方式：
 
@@ -41,8 +41,8 @@
 2. 除了 `AUTH_WECHAT_*` 之外，也需要在 `.env` 文件中添加域名相关的配置：
 
    ```
-   AUTH_TRUSTED_HOST=mentors.org.cn
-   NEXTAUTH_URL=https://mentors.org.cn
+   AUTH_TRUSTED_HOST=yuantuapp.com
+   NEXTAUTH_URL=https://yuantuapp.com
    ```
 
    注意，设置NEXTAUTH_URL会影响在本地测试email登录。因此在测试完微信登录后，请清除此值。
