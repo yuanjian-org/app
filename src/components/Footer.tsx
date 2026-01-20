@@ -3,8 +3,8 @@ import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
 
 export default function Footer({
-  icpIndex = 2,
-  beianNo = "33010802013665",
+  icpIndex = 4,
+  beianNo = "33010802014263",
   ...rest
 }: {
   icpIndex?: number;

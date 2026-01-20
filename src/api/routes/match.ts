@@ -85,7 +85,7 @@ const bannedScore = -10;
 
 // Because servers in China has no access to Google APIs, we have to run the
 // Spreadsheet export on a dev server.
-const baseUrl = "https://mentors.org.cn";
+const baseUrl = "https://yuantuapp.com";
 
 // Export spreadsheet for initial match
 const exportInitialSpreadsheet = procedure
