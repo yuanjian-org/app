@@ -1,0 +1,49 @@
+name: Cypress Prober Tests
+on: 
+    schedule:
+        - cron: "45 22 * * *"
+    # used to test the action only
+    push:
+        branches:
+            - yifanle_cypress_ghaction
+
+jobs:
+    install:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - run: sudo apt-get install language-pack-zh*
+            - run: sudo apt-get install chinese*
+
+            - name: Cypress run
+              uses: cypress-io/github-action@v6
+              with:
+                runTests: false
+
+    chrome-prober-tests:
+        runs-on: ubuntu-latest
+        needs: install
+        strategy:
+            fail-fast: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            
+            - name: "Chrome Prober Tests"
+              uses: cypress-io/github-action@v6
+              with:
+                build: yarn cypress info
+                browser: chrome
+                spec: cypress/e2e/*
+                config-file: cypress.config.ts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  DEBUG: "cypress:server:args"
+            - name: Upload screenshots on failure
+              uses: actions/upload-artifact@v4
+              if: failure()
+              with:
+                name: cypress-screenshots
+                path: cypress/screenshots
