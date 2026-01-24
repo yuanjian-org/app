@@ -240,10 +240,10 @@ describe("downloadMenteeDataImpl", () => {
     // Generate the ZIP package
     const result = await downloadMenteeDataImpl(mentee.id, transaction);
 
-    // Verify filename format
-    expect(result.filename).to.include(mentee.name);
-    expect(result.filename).to.include(mentee.id);
-    expect(result.filename).to.include(".zip");
+    // Verify filename format uses anonymous ID (YY-NNN format)
+    expect(result.filename).to.match(/^mentee_data_\d{2}-\d{3}\.zip$/);
+    expect(result.filename).to.not.include(mentee.name);
+    expect(result.filename).to.not.include(mentee.id);
 
     // Decode base64 and extract ZIP
     const zipBuffer = Buffer.from(result.data, "base64");
@@ -264,11 +264,11 @@ describe("downloadMenteeDataImpl", () => {
       true,
     );
 
-    // Verify metadata.json
+    // Verify metadata.json - userName should not be present
     const metadataEntry = zip.getEntry("metadata.json");
     const metadata = JSON.parse(metadataEntry!.getData().toString("utf8"));
     expect(metadata.userId).to.equal(mentee.id);
-    expect(metadata.userName).to.equal(mentee.name);
+    expect("userName" in metadata).to.equal(false); // userName should not be in metadata
     expect(metadata.generatedAt).to.be.a("string");
     expect(metadata.files).to.be.an("array");
     expect(metadata.files.length).to.be.greaterThan(0);
@@ -292,10 +292,14 @@ describe("downloadMenteeDataImpl", () => {
     expect(appTxt).to.include("【保护】");
     expect(appTxt).to.include("计算机科学");
     expect(appTxt).to.include("2024");
+    // Verify name anonymization - mentee name should be replaced with "学生"
+    expect(appTxt).to.not.include(mentee.name);
+    expect(appTxt).to.not.include("学生: "); // Should not add "学生: " field
 
     // Verify interviewResults.json contains interview and feedback
     const interviewEntry = zip.getEntry("interviewResults.json");
-    const interviews = JSON.parse(interviewEntry!.getData().toString("utf8"));
+    const interviewsJson = interviewEntry!.getData().toString("utf8");
+    const interviews = JSON.parse(interviewsJson);
     expect(interviews).to.be.an("array");
     expect(interviews.length).to.equal(1);
     expect(interviews[0].type).to.equal("MenteeInterview");
@@ -304,6 +308,8 @@ describe("downloadMenteeDataImpl", () => {
     expect(interviews[0].feedbacks.length).to.equal(1);
     expect(interviews[0].feedbacks[0].interviewer.name).to.equal("测试面试官");
     expect(interviews[0].feedbacks[0].feedback.rating).to.equal(5);
+    // Verify name anonymization in JSON
+    expect(interviewsJson).to.not.include(mentee.name);
 
     // Verify interviewResults.txt formatting
     const interviewTxt = zip
@@ -317,6 +323,9 @@ describe("downloadMenteeDataImpl", () => {
     expect(interviewTxt).to.include("Line 1");
     expect(interviewTxt).to.include("Line 2");
     expect(interviewTxt).to.include("Line 3");
+    // Verify name anonymization
+    expect(interviewTxt).to.not.include(mentee.name);
+    expect(interviewTxt).to.not.include("学生: "); // Should not add "学生: " field
     // Verify dimensions formatting (without array indices)
     expect(interviewTxt).to.include("dimensions:");
     expect(interviewTxt).to.include("name: 能力");
@@ -337,6 +346,9 @@ describe("downloadMenteeDataImpl", () => {
       .toString("utf8");
     expect(notesTxt).to.include("First note");
     expect(notesTxt).to.include("Second note");
+    // Verify name anonymization
+    expect(notesTxt).to.not.include(mentee.name);
+    expect(notesTxt).to.not.include("学生: "); // Should not add "学生: " field
 
     // Verify mentorships.json chronological order
     const mentorshipsEntry = zip.getEntry("mentorships.json");
@@ -365,5 +377,7 @@ describe("downloadMenteeDataImpl", () => {
     expect(mentorshipTxt).to.include("测试导师");
     expect(mentorshipTxt).to.include("First meeting summary");
     expect(mentorshipTxt).to.include("Second meeting summary");
+    // Verify name anonymization
+    expect(mentorshipTxt).to.not.include(mentee.name);
   });
 });
