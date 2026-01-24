@@ -23,6 +23,7 @@ import tasks from "./routes/tasks";
 import matchFeedback from "./routes/matchFeedback";
 import globalConfigs from "./routes/globalConfigs";
 import idTokens from "./routes/idTokens";
+import menteeData from "./routes/menteeData";
 
 // Initialize console-stamp to add timestamps to all console logs
 consoleStamp(console, {
@@ -53,6 +54,7 @@ export const apiRouter = router({
   matchFeedback,
   globalConfigs,
   idTokens,
+  menteeData,
 });
 
 export type ApiRouter = typeof apiRouter;

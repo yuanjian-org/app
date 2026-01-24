@@ -24,6 +24,7 @@ export const menteeCollegeField = "就读学校";
 export const menteeMajorField = "就读专业";
 export const menteeDegreeField = "就读种类";
 export const menteeFirstYearInCollegeField = "大学一年级入学年份";
+export const menteeExpectedGraduationYearField = "预计毕业年份";
 export const menteeExpectationField =
   "你希望导师和社区对你的学业、生活、或未来产生什么样的影响？请例举一个希望导师帮助或指导的具体问题或领域。";
 
@@ -73,7 +74,11 @@ export const menteeApplicationFields: ApplicationField[] = [
     name: menteeFirstYearInCollegeField,
     showForEdits: true,
   },
-  { jsjField: "field_169", name: "预计毕业年份", showForEdits: true },
+  {
+    jsjField: "field_169",
+    name: menteeExpectedGraduationYearField,
+    showForEdits: true,
+  },
 
   // 国籍 for 馒头工坊 application form, 同学推荐 for 远见 application form
   { jsjField: "field_170", name: "国籍或同学推荐" },
