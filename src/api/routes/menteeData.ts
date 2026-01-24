@@ -22,8 +22,6 @@ import {
  * - YY: Last 2 digits of acceptance year (录取届)
  * - NNN: 3-digit hash derived from userId (000-999)
  *
- * This allows humans to regenerate the ID knowing the acceptance year and userId.
- *
  * @param userId - The user's UUID
  * @param acceptanceYear - The acceptance year (e.g., "2024")
  * @returns A 6-character string (e.g., "24-437")
@@ -46,6 +44,29 @@ export function getAnonymousId(
   const userSuffix = hash.toString().padStart(3, "0");
 
   return yearSuffix + "-" + userSuffix;
+}
+
+/**
+ * Anonymize user names by replacing all occurrences with "学生".
+ * Replaces both the full name and the last two characters of the name.
+ *
+ * @param content - The content to anonymize (string)
+ * @param userName - The user's full name (nullable)
+ * @returns Anonymized content
+ */
+function anonymizeUserName(content: string, userName: string | null): string {
+  if (!userName) return content;
+
+  // Replace full name
+  let result = content.replace(new RegExp(userName, "g"), "学生");
+
+  // Also replace last two characters of the name if length > 2
+  if (userName.length > 2) {
+    const lastTwoChars = userName.slice(-2);
+    result = result.replace(new RegExp(lastTwoChars, "g"), "学生");
+  }
+
+  return result;
 }
 
 /**
@@ -337,7 +358,7 @@ export async function downloadMenteeDataImpl(
 
     let textContent = `导师: ${mentorship.mentor.name}\n`;
     textContent += `小组: ${mentorship.group.name || "未命名"}\n`;
-    textContent += `师徒关系ID: ${mentorship.id}\n`;
+    textContent += `师生关系ID: ${mentorship.id}\n`;
     textContent += `生成时间: ${new Date().toISOString()}\n`;
     textContent += `\n${"=".repeat(80)}\n\n`;
 
@@ -357,8 +378,6 @@ export async function downloadMenteeDataImpl(
 
   // Create plain text version of mentee application
   let menteeApplicationText = `学生申请表\n`;
-  menteeApplicationText += `学生: ${user.name}\n`;
-  menteeApplicationText += `学生ID: ${userId}\n`;
   menteeApplicationText += `生成时间: ${new Date().toISOString()}\n`;
   menteeApplicationText += `\n${"=".repeat(80)}\n\n`;
 
@@ -366,8 +385,6 @@ export async function downloadMenteeDataImpl(
 
   // Create plain text version of interview results
   let interviewResultsText = `面试结果\n`;
-  interviewResultsText += `学生: ${user.name}\n`;
-  interviewResultsText += `学生ID: ${userId}\n`;
   interviewResultsText += `生成时间: ${new Date().toISOString()}\n`;
   interviewResultsText += `\n${"=".repeat(80)}\n\n`;
 
@@ -423,8 +440,6 @@ export async function downloadMenteeDataImpl(
 
   // Create plain text version of internal notes
   let internalNotesText = `内部笔记\n`;
-  internalNotesText += `学生: ${user.name}\n`;
-  internalNotesText += `学生ID: ${userId}\n`;
   internalNotesText += `生成时间: ${new Date().toISOString()}\n`;
   internalNotesText += `\n${"=".repeat(80)}\n\n`;
 
@@ -445,7 +460,6 @@ export async function downloadMenteeDataImpl(
   // Create metadata
   const metadata = {
     userId,
-    userName: user.name,
     generatedAt: new Date().toISOString(),
     files: [
       "menteeApplication.json",
@@ -481,35 +495,50 @@ export async function downloadMenteeDataImpl(
     });
   });
 
-  // Add files to archive
-  archive.append(JSON.stringify(metadata, null, 2), {
-    name: "metadata.json",
-  });
-  archive.append(JSON.stringify(menteeApplication, null, 2), {
-    name: "menteeApplication.json",
-  });
-  archive.append(menteeApplicationText, {
+  // Add files to archive with anonymized content
+  archive.append(
+    anonymizeUserName(JSON.stringify(metadata, null, 2), user.name),
+    {
+      name: "metadata.json",
+    },
+  );
+  archive.append(
+    anonymizeUserName(JSON.stringify(menteeApplication, null, 2), user.name),
+    {
+      name: "menteeApplication.json",
+    },
+  );
+  archive.append(anonymizeUserName(menteeApplicationText, user.name), {
     name: "menteeApplication.txt",
   });
-  archive.append(JSON.stringify(interviewResults, null, 2), {
-    name: "interviewResults.json",
-  });
-  archive.append(interviewResultsText, {
+  archive.append(
+    anonymizeUserName(JSON.stringify(interviewResults, null, 2), user.name),
+    {
+      name: "interviewResults.json",
+    },
+  );
+  archive.append(anonymizeUserName(interviewResultsText, user.name), {
     name: "interviewResults.txt",
   });
-  archive.append(JSON.stringify(internalNotes, null, 2), {
-    name: "internalNotes.json",
-  });
-  archive.append(internalNotesText, {
+  archive.append(
+    anonymizeUserName(JSON.stringify(internalNotes, null, 2), user.name),
+    {
+      name: "internalNotes.json",
+    },
+  );
+  archive.append(anonymizeUserName(internalNotesText, user.name), {
     name: "internalNotes.txt",
   });
-  archive.append(JSON.stringify(transcriptSummaries, null, 2), {
-    name: "mentorships.json",
-  });
+  archive.append(
+    anonymizeUserName(JSON.stringify(transcriptSummaries, null, 2), user.name),
+    {
+      name: "mentorships.json",
+    },
+  );
 
   // Add plain text files for each mentorship
   for (const { filename, content } of mentorshipTextFiles) {
-    archive.append(content, { name: filename });
+    archive.append(anonymizeUserName(content, user.name), { name: filename });
   }
 
   // Finalize the archive
@@ -521,8 +550,13 @@ export async function downloadMenteeDataImpl(
   // Convert to base64
   const base64Data = zipBuffer.toString("base64");
 
+  // Generate anonymous ID for filename
+  const acceptanceYear =
+    user.menteeApplication?.[menteeAcceptanceYearField] || null;
+  const anonymousId = getAnonymousId(userId, acceptanceYear);
+
   return {
-    filename: `mentee_data_${user.name}_${userId}.zip`,
+    filename: `mentee_data_${anonymousId}.zip`,
     data: base64Data,
   };
 }
