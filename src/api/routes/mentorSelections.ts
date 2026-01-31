@@ -258,7 +258,7 @@ const listFinalizedBatches = procedure
  * (i.e. unfinalized) batch, the returned value is null.
  */
 const listLastBatchFinalizedAt = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .output(
     z.array(
       z.object({
