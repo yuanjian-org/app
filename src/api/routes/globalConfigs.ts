@@ -22,15 +22,28 @@ const update = procedure
         transaction,
         lock: true,
       });
+
+      const existingData = row ? zGlobalConfig.parse(row.data) : {};
+      const newData = { ...existingData };
+
+      // Update fields based on input
+      for (const [key, value] of Object.entries(input)) {
+        if (value === undefined) {
+          // Skip undefined values - don't change existing
+          continue;
+        } else if (value === false && key === "showEditMessageTimeButton") {
+          // Remove the field when explicitly set to false
+          delete newData[key as keyof typeof newData];
+        } else {
+          // Set the value for all other cases
+          (newData as any)[key] = value;
+        }
+      }
+
       if (!row) {
-        await db.GlobalConfig.create({ data: input }, { transaction });
+        await db.GlobalConfig.create({ data: newData }, { transaction });
       } else {
-        await row.update(
-          {
-            data: { ...zGlobalConfig.parse(row.data), ...input },
-          },
-          { transaction },
-        );
+        await row.update({ data: newData }, { transaction });
       }
     });
   });
