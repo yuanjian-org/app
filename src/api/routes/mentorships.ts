@@ -413,7 +413,7 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
 
   const oneOnOneTooOldText = oneOnOneTooOld
     .sort((a, b) => compareDate(a.last, b.last))
-    .slice(0, limit)
+    // .slice(0, limit)
     .map(
       (p) => `
         ${formatMentorship(p.mentorship)}：
@@ -434,7 +434,7 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
     .join("<br />");
 
   const message = `
-    <b>以下师生长期未通话，请了解情况（仅显示十名）：</b>
+    <b>以下师生长期未通话，请了解情况：</b>
     <br /><br />
     ${oneOnOneTooOldText}
     <br /><br />

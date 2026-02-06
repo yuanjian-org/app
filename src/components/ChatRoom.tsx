@@ -21,6 +21,7 @@ import {
   ModalFooter,
   Input,
   FormControl,
+  FormLabel,
   ModalContent,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
@@ -50,8 +51,6 @@ import useMe from "useMe";
 import { displayName, isPermitted } from "shared/Role";
 import ConfirmationModal from "./ConfirmationModal";
 import { IoMdPeople } from "react-icons/io";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 
@@ -271,17 +270,25 @@ function EditCreationTimeModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [selectedDate, setSelectedDate] = useState<Date>(
-    message.createdAt ? new Date(message.createdAt) : new Date(),
+  const [dateTimeInput, setDateTimeInput] = useState<string>(
+    message.createdAt
+      ? moment(message.createdAt).format("YYYY-MM-DD HH:mm:ss")
+      : "",
   );
   const [saving, setSaving] = useState<boolean>(false);
 
   const handleSave = async () => {
+    const parsedDate = moment(dateTimeInput);
+    if (!parsedDate.isValid()) {
+      toast.error("日期格式错误，请使用格式：YYYY-MM-DD HH:mm:ss");
+      return;
+    }
+
     setSaving(true);
     try {
       await trpc.chat.updateMessageCreationTime.mutate({
         messageId: message.id,
-        createdAt: moment(selectedDate),
+        createdAt: parsedDate,
       });
       onSuccess();
       toast.success("更新成功");
@@ -296,18 +303,11 @@ function EditCreationTimeModal({
         <ModalHeader>编辑创建时间</ModalHeader>
         <ModalBody>
           <FormControl>
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => date && setSelectedDate(date)}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="yyyy-MM-dd HH:mm"
-              customInput={<Input />}
-              popperProps={{
-                strategy: "fixed",
-              }}
-              popperPlacement="bottom-start"
+            <FormLabel>创建时间（格式：YYYY-MM-DD HH:mm:ss）</FormLabel>
+            <Input
+              value={dateTimeInput}
+              onChange={(e) => setDateTimeInput(e.target.value)}
+              placeholder="2024-01-15 10:30:00"
             />
           </FormControl>
         </ModalBody>
