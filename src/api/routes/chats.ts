@@ -233,6 +233,34 @@ const insertOneOnOneMessagePrefix = procedure
     });
   });
 
+/**
+ * Update the creation time of a message. Only allowed for MentorshipManagers.
+ */
+const updateMessageCreationTime = procedure
+  .use(authUser("MentorshipManager"))
+  .input(
+    z.object({
+      messageId: z.string(),
+      createdAt: zDateColumn,
+    }),
+  )
+  .mutation(async ({ input: { messageId, createdAt } }) => {
+    await sequelize.transaction(async (transaction) => {
+      const m = await db.ChatMessage.findByPk(messageId, {
+        attributes: ["id"],
+        transaction,
+      });
+      if (!m) throw notFoundError("讨论消息", messageId);
+
+      // Can't use m.update() because it doesn't support updating the createdAt
+      // column.
+      await db.ChatMessage.update(
+        { createdAt },
+        { where: { id: messageId }, transaction },
+      );
+    });
+  });
+
 // No need for permission check because there isn't harmful side effect.
 const saveDraftMessage = procedure
   .use(authUser())
@@ -322,6 +350,7 @@ export default router({
   createMessage,
   updateMessage,
   insertOneOnOneMessagePrefix,
+  updateMessageCreationTime,
   getLastMessageCreatedAt,
   getLastMessageUpdatedAt,
   getLastReadAt,

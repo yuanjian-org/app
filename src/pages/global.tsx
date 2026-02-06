@@ -4,6 +4,7 @@ import {
   FormLabel,
   Input,
   Button,
+  Checkbox,
 } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -17,10 +18,16 @@ export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
+  const [showEditMessageTimeButton, setShowEditMessageTimeButton] = useState<
+    boolean | undefined
+  >(undefined);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if (!moment(matchFeedbackEditableUntil).isValid()) {
+    if (
+      matchFeedbackEditableUntil &&
+      !moment(matchFeedbackEditableUntil).isValid()
+    ) {
       toast.error("初次交流反馈表截止时间格式错误");
       return;
     }
@@ -30,6 +37,9 @@ export default function Page() {
       await trpc.globalConfigs.update.mutate({
         ...(matchFeedbackEditableUntil && {
           matchFeedbackEditableUntil,
+        }),
+        ...(showEditMessageTimeButton !== undefined && {
+          showEditMessageTimeButton,
         }),
       });
       toast.success("保存成功");
@@ -50,6 +60,15 @@ export default function Page() {
           defaultValue={data?.matchFeedbackEditableUntil}
           onChange={(e) => setMatchFeedbackEditableUntil(e.target.value)}
         />
+      </FormControl>
+
+      <FormControl>
+        <Checkbox
+          defaultChecked={data?.showEditMessageTimeButton}
+          onChange={(e) => setShowEditMessageTimeButton(e.target.checked)}
+        >
+          显示 &quot;编辑消息创建时间&quot; 按钮
+        </Checkbox>
       </FormControl>
 
       <Button variant="brand" onClick={save} isLoading={saving}>

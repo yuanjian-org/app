@@ -16,6 +16,12 @@ import {
   CardBody,
   Flex,
   Tooltip,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Input,
+  FormControl,
+  ModalContent,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -28,7 +34,7 @@ import {
 import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { formatUserName, prettifyDate } from "shared/strings";
-import { MdEdit, MdSend } from "react-icons/md";
+import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";
 import { AddIcon } from "@chakra-ui/icons";
 import invariant from "tiny-invariant";
 import Loader from "./Loader";
@@ -44,6 +50,10 @@ import useMe from "useMe";
 import { displayName, isPermitted } from "shared/Role";
 import ConfirmationModal from "./ConfirmationModal";
 import { IoMdPeople } from "react-icons/io";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { toast } from "react-toastify";
+import ModalWithBackdrop from "./ModalWithBackdrop";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
@@ -134,9 +144,11 @@ function Message({
   setHasUnread: () => void;
 }) {
   const me = useMe();
+  const { data: globalConfig } = trpcNext.globalConfigs.get.useQuery();
   const name = formatUserName(m.user.name);
   const [editing, setEditing] = useState<boolean>(false);
   const [confirming, setConfirming] = useState<boolean>(false);
+  const [editingTime, setEditingTime] = useState<boolean>(false);
   const utils = trpcNext.useContext();
 
   const createdAt = m.createdAt ? prettifyDate(m.createdAt) : "";
@@ -204,6 +216,20 @@ function Message({
                 </Tooltip>
               </>
             )}
+
+          {/* The Edit Time icon */}
+          {!editing &&
+            isPermitted(me.roles, "MentorshipManager") &&
+            globalConfig?.showEditMessageTimeButton && (
+              <>
+                <Spacer />
+                <Tooltip label="编辑创建时间">
+                  <Link color="gray" onClick={() => setEditingTime(true)}>
+                    <MdAccessTime />
+                  </Link>
+                </Tooltip>
+              </>
+            )}
         </HStack>
 
         {editing ? (
@@ -221,7 +247,80 @@ function Message({
           hasCancelButton
         />
       )}
+
+      {editingTime && (
+        <EditCreationTimeModal
+          message={m}
+          onClose={() => setEditingTime(false)}
+          onSuccess={async () => {
+            await utils.chat.getRoom.invalidate();
+            setEditingTime(false);
+          }}
+        />
+      )}
     </HStack>
+  );
+}
+
+function EditCreationTimeModal({
+  message,
+  onClose,
+  onSuccess,
+}: {
+  message: ChatMessage;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    message.createdAt ? new Date(message.createdAt) : new Date(),
+  );
+  const [saving, setSaving] = useState<boolean>(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await trpc.chat.updateMessageCreationTime.mutate({
+        messageId: message.id,
+        createdAt: moment(selectedDate),
+      });
+      onSuccess();
+      toast.success("更新成功");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ModalWithBackdrop isOpen onClose={onClose}>
+      <ModalContent>
+        <ModalHeader>编辑创建时间</ModalHeader>
+        <ModalBody>
+          <FormControl>
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => date && setSelectedDate(date)}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              dateFormat="yyyy-MM-dd HH:mm"
+              customInput={<Input />}
+              popperProps={{
+                strategy: "fixed",
+              }}
+              popperPlacement="bottom-start"
+            />
+          </FormControl>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="brand" onClick={handleSave} isLoading={saving}>
+            确认
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            取消
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
   );
 }
 
