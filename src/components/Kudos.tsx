@@ -450,7 +450,7 @@ function getLastKudosReadAt(state: UserState): Moment {
  */
 export function UnreadKudosRedDot() {
   const show = useUnreadKudos();
-  return <RedDot show={show} />;
+  return <RedDot show={show} blue />;
 }
 
 /**

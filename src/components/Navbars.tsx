@@ -126,13 +126,18 @@ function SidbarIconRedDot() {
       .map((m) => m.mentee.id) ?? [],
   );
 
+  const showDot = hasUnreadKudos || hasUnreadChatMessages || hasUnreadTasks;
+  // Show blue dot if only kudos has unread messages, otherwise red
+  const isBlue = hasUnreadKudos && !hasUnreadChatMessages && !hasUnreadTasks;
+
   return (
     <RedDot
       position="fixed"
       zIndex={3}
       top="22px"
       right="20px"
-      show={hasUnreadKudos || hasUnreadChatMessages || hasUnreadTasks}
+      show={showDot}
+      blue={isBlue}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Box, BoxProps } from "@chakra-ui/react";
+import colors from "theme/colors";
 
 export const redDotRightOffset = -4;
 export const redDotTopOffset = 0;
@@ -9,9 +10,11 @@ export const redDotTopOffset = 0;
  */
 export default function RedDot({
   show,
+  blue = false,
   ...rest
 }: {
   show: boolean;
+  blue?: boolean;
 } & BoxProps) {
   return (
     <Box
@@ -20,7 +23,7 @@ export default function RedDot({
       w="8px"
       h="8px"
       borderRadius="full"
-      bg="red.400"
+      bg={blue ? colors.brand.b : "red.400"}
       position="absolute"
       top={redDotTopOffset}
       right={redDotRightOffset}

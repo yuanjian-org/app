@@ -5,7 +5,7 @@ export default barePage(() => {
   return (
     <Box width="100%" height="100vh" position="relative">
       <iframe
-        src="https://yuanjian.notion.site/ebd/3aff2d84173f46f09dd25ea339f2cd8d"
+        src="https://yuanjian.notion.site/ebd//3aff2d84173f46f09dd25ea339f2cd8d"
         width="100%"
         height="100%"
       />
