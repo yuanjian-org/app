@@ -37,11 +37,11 @@ export const zTask = z.object({
 export type Task = z.TypeOf<typeof zTask>;
 
 /**
- * @param state undefined if the user state is not loaded in the frontend.
+ * @param assigneeState undefined if the user state is not loaded in frontend
  */
 export function getTaskMarkdown(
   t: Task,
-  state: UserState | undefined,
+  assigneeState: UserState | undefined,
   baseUrl: string,
 ): string {
   if (t.autoTaskId === null) {
@@ -57,9 +57,11 @@ export function getTaskMarkdown(
         : `[《社会导师手册》](${baseUrl}/study/handbook)`;
     const base = `${link}自学与评测`;
     const examPassedAt =
-      t.autoTaskId === "study-comms" ? state?.commsExam : state?.handbookExam;
+      t.autoTaskId === "study-comms"
+        ? assigneeState?.commsExam
+        : assigneeState?.handbookExam;
 
-    if (t.done || !state) {
+    if (t.done || !assigneeState) {
       return `请完成${base}。`;
     } else if (!examPassedAt) {
       // The user has never passed the exam.

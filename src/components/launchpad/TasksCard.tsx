@@ -236,9 +236,14 @@ function TaskItem({
   getAllowedAssigneeIds: () => Promise<string[]>;
 }) {
   const myId = useMyId();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const lastTasksReadAt = state ? getLastTasksReadAt(state) : moment();
-  const markdown = getTaskMarkdown(t, state, getBaseUrl());
+
+  const { data: myState } = trpcNext.users.getUserState.useQuery();
+  const lastTasksReadAt = myState ? getLastTasksReadAt(myState) : moment();
+  const { data: assigneeState } = trpcNext.users.getUserState.useQuery({
+    userId: t.assignee.id,
+    returnEmptyStateIfNoPermission: true,
+  });
+  const markdown = getTaskMarkdown(t, assigneeState, getBaseUrl());
 
   const [done, setDone] = useState(t.done);
   const [editing, setEditing] = useState<Task>();

@@ -681,7 +681,8 @@ const getUserState = procedure
   .input(
     z
       .object({
-        userId: z.string(),
+        userId: z.string().optional(),
+        returnEmptyStateIfNoPermission: z.boolean().optional(),
       })
       .optional(),
   )
@@ -696,6 +697,7 @@ const getUserState = procedure
         "MentorshipOperator",
       ])
     ) {
+      if (input?.returnEmptyStateIfNoPermission) return {};
       throw noPermissionError("用户", userId);
     }
 
