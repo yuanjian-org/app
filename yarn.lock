@@ -8443,9 +8443,9 @@ synckit@^0.11.7:
     "@pkgr/core" "^0.2.4"
 
 systeminformation@^5.27.14:
-  version "5.30.0"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.30.0.tgz#4b01de9595091441e4fb7afa8b91e1ed73a714c1"
-  integrity sha512-LO5pyDw5wQHy5jnNJVMYhBJ9fSO6slGZEzdPkQaRUB5HV7S61Y576hFeQZwBvj3wEoqh8CWkZX+b+PCL3IU3eQ==
+  version "5.31.1"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.31.1.tgz#5f88aa1db7470af87b6288baf1738603cafd1c4a"
+  integrity sha512-6pRwxoGeV/roJYpsfcP6tN9mep6pPeCtXbUOCdVa0nme05Brwcwdge/fVNhIZn2wuUitAKZm4IYa7QjnRIa9zA==
 
 tabbable@^6.0.0:
   version "6.2.0"
