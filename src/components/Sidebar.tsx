@@ -118,7 +118,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "一对一通话时间",
     action: "/schedules",
-    roles: "MentorshipManager",
+    roles: ["MentorshipManager", "MentorshipOperator"],
   },
   {
     name: "不定期导师预约记录",
