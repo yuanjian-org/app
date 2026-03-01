@@ -287,7 +287,7 @@ const listMyMentorships = procedure
   });
 
 const listOngoingRelationalMentorships = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .output(z.array(zMentorship))
   .query(async () => {
     return await db.Mentorship.findAll({
