@@ -14,6 +14,7 @@ import moment from "moment";
 export type DemoUser = {
   name: string;
   email: string;
+  phone?: string;
   id?: string;
   roles?: Role[];
   volunteerApplication?: Record<string, any> | null;
@@ -72,6 +73,7 @@ const users: Record<string, DemoUser> = {
   admin: {
     name: "管理员",
     email: "admin@de.mo",
+    phone: "13800138000",
     password: "yuanjian",
     roles: allRoles.filter(
       (role) => !["Banned", "Mentee", "TransactionalMentor"].includes(role),
