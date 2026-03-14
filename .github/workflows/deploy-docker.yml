@@ -88,6 +88,8 @@ jobs:
           docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
           docker cp temp_extract:/app/docker-compose.yml ./docker-compose.yml
           docker cp temp_extract:/app/nginx.conf ./nginx.conf
+          docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
+          docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
           docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
