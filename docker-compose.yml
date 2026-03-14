@@ -15,6 +15,8 @@ services:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx.proxy.conf:/etc/nginx/proxy_params.conf:ro
+      - ./nginx.ssl.conf:/etc/nginx/ssl_params.conf:ro
       - ./certbot:/var/www/certbot:ro
       # Due to file permission issues on the host machine, we cannot mount the entire directory.
       - /etc/letsencrypt/live/yuantuapp.com/fullchain.pem:/certs/yuantuapp.com/fullchain.pem:ro
