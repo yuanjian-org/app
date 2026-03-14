@@ -1,9 +1,12 @@
 import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
+import { trpcNext } from "trpc";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 
 export default function VolunteerStudyCard() {
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+
   return (
     <ResponsiveCard>
       <CardHeader>
@@ -11,7 +14,9 @@ export default function VolunteerStudyCard() {
       </CardHeader>
       <CardBody>
         <Flex direction="column" gap={componentSpacing}>
-          <LaunchpadCardItem title="《学生通讯原则》" href="/study/comms" />
+          {!isDemo && (
+            <LaunchpadCardItem title="《学生通讯原则》" href="/study/comms" />
+          )}
           <LaunchpadCardItem title="《社会导师手册》" href="/study/handbook" />
           <LaunchpadCardItem
             title="《招生流程》与《面试标准》"
