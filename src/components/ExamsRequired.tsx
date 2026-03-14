@@ -10,18 +10,20 @@ import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
+  // Get isDemo state from server
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
 
   const commsExamRequired = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined) return undefined;
+    if (state === undefined || isDemo === undefined) return undefined;
+    if (!isProd() || isDemo) return false;
     return isExamExpired(state.commsExam);
-  }, [state]);
+  }, [isDemo, state]);
 
   const interviewExamRequired = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined) return undefined;
+    if (state === undefined || isDemo === undefined) return undefined;
+    if (!isProd() || isDemo) return false;
     return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
-  }, [state]);
+  }, [isDemo, state]);
 
   return {
     commsExamRequired,
