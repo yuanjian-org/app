@@ -4,8 +4,7 @@
  */
 import z from "zod";
 import axios from "axios";
-import { internalServerError, generalBadRequestError } from "./errors";
-import { isDemo } from "../shared/isDemo";
+import { internalServerError } from "./errors";
 
 /**
  * Send email via AoKSend.com
@@ -89,10 +88,6 @@ export async function email(
   templateData: Record<string, string>,
   baseUrl: string,
 ) {
-  if (isDemo()) {
-    throw generalBadRequestError("演示模式不支持发送邮件。");
-  }
-
   await Promise.all(
     toEmails.map((to) => emailOne(to, templateId, templateData, baseUrl)),
   );

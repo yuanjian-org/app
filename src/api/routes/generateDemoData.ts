@@ -323,6 +323,5 @@ async function generateMentorBookings(t: Transaction) {
     "希望交流目前医药行业的现状和未来职业规划",
     "http://localhost:3000",
     t,
-    "demo",
   );
 }
