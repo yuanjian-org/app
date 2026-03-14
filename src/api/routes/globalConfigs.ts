@@ -3,6 +3,11 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zGlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
+import { isDemo as isDemoFlag } from "../../shared/isDemo";
+
+const isDemo = procedure.query(() => {
+  return isDemoFlag();
+});
 
 const get = procedure
   .use(authUser())
@@ -49,6 +54,7 @@ const update = procedure
   });
 
 export default router({
+  isDemo,
   get,
   update,
 });
