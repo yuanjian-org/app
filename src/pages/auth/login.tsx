@@ -41,7 +41,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
-import { isDemo as checkIsDemo } from "shared/isDemo";
+import { isDemo } from "shared/isDemo";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -81,46 +81,40 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
   const isMobileBrowser = /Mobile/i.test(navigator.userAgent);
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
 
-  const tabs = [
-    {
-      name: "微信",
-      panel: (
-        <TabPanel>
-          {/* Only WeChat browser supports logging in with WeChat accounts. See
-            docs/WeChat.md for more information. */}
-          {isWechatBrowser ? (
-            <WechatAccountPanel />
-          ) : (
-            <WechatQRPanel wechatQRAppId={wechatQRAppId} />
-          )}
-        </TabPanel>
-      ),
-    },
-    {
-      name: "手机",
-      panel: (
-        <TabPanel px={0}>
-          <PhonePanel />
-        </TabPanel>
-      ),
-    },
-    {
-      name: "邮箱",
-      panel: (
-        <TabPanel px={0}>
-          <EmailPanel />
-        </TabPanel>
-      ),
-    },
-  ];
+  const wechatTab = {
+    name: "微信",
+    panel: (
+      <TabPanel key="微信">
+        {/* Only WeChat browser supports logging in with WeChat accounts. See
+          docs/WeChat.md for more information. */}
+        {isWechatBrowser ? (
+          <WechatAccountPanel />
+        ) : (
+          <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+        )}
+      </TabPanel>
+    ),
+  };
+  const phoneTab = {
+    name: "手机",
+    panel: (
+      <TabPanel px={0} key="手机">
+        <PhonePanel />
+      </TabPanel>
+    ),
+  };
+  const emailTab = {
+    name: "邮箱",
+    panel: (
+      <TabPanel px={0} key="邮箱">
+        <EmailPanel />
+      </TabPanel>
+    ),
+  };
 
-  if (isDemo) {
-    // Demo mode: 邮箱 -> 手机 -> 微信
-    tabs.sort((a, b) => {
-      const order = ["邮箱", "手机", "微信"];
-      return order.indexOf(a.name) - order.indexOf(b.name);
-    });
-  }
+  const tabs = isDemo
+    ? [emailTab, phoneTab, wechatTab]
+    : [wechatTab, phoneTab, emailTab];
 
   return (
     // See AuthPageContainer.tsx for the parent container
@@ -490,18 +484,11 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<
-  ServerSideProps
-> = async () => {
-  const isDemo = checkIsDemo();
-
-  // Dummy await to satisfy lint
-  await Promise.resolve();
-
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = () => {
   return {
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
-      isDemo,
+      isDemo: isDemo(),
     },
   };
 };
