@@ -1,0 +1,14 @@
+yarn run v1.22.22
+$ next dev
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Environments: .env
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+ ✓ Starting...
+ ✓ Ready in 9.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 65.5s (3570 modules)
+ HEAD / 200 in 77090ms
