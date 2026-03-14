@@ -10,6 +10,7 @@ import {
 import { MenteeStatus } from "../../shared/MenteeStatus";
 import Role, { allRoles } from "../../shared/Role";
 import moment from "moment";
+import { UserPreference } from "../../shared/UserPreference";
 
 export type DemoUser = {
   name: string;
@@ -21,6 +22,7 @@ export type DemoUser = {
   menteeApplication?: Record<string, any> | null;
   menteeStatus?: MenteeStatus | null;
   profile?: UserProfile | null;
+  preference?: UserPreference | null;
   password?: string;
 };
 
@@ -222,30 +224,85 @@ const users: Record<string, DemoUser> = {
     email: "mentor1@de.mo",
     roles: ["Mentor", "Volunteer"] as Role[],
     profile: mentorProfile1,
+    preference: {
+      mentor: {
+        学生特质: {
+          男vs女: 1,
+          农村vs城市: -1,
+          内敛vs外向: -1,
+          慢热vs快热: -1,
+          安逸vs奋斗: -1,
+        },
+      },
+    },
   },
   mentor2: {
     name: "丁导师",
     email: "mentor2@de.mo",
     roles: ["Mentor", "Volunteer"] as Role[],
     profile: mentorProfile2,
+    preference: {
+      mentor: {
+        学生特质: {
+          男vs女: -1,
+          农村vs城市: 1,
+          内敛vs外向: 1,
+          慢热vs快热: 1,
+          安逸vs奋斗: 1,
+        },
+      },
+    },
   },
   mentor3: {
     name: "戊导师",
     email: "mentor3@de.mo",
     roles: ["Mentor", "Volunteer"] as Role[],
     profile: mentorProfile3,
+    preference: {
+      mentor: {
+        学生特质: {
+          男vs女: 1,
+          顺从vs独立: -1,
+          思考者vs实干家: -1,
+          创业vs大厂: -1,
+          科研vs非科研: -1,
+          低年级vs高年级: -1,
+        },
+      },
+    },
   },
   mentor4: {
     name: "己导师",
     email: "mentor4@de.mo",
     roles: ["Mentor", "Volunteer"] as Role[],
     profile: mentorProfile4,
+    preference: {
+      mentor: {
+        学生特质: {
+          顺从vs独立: 1,
+          思考者vs实干家: 1,
+          创业vs大厂: 1,
+          科研vs非科研: 1,
+          低年级vs高年级: 1,
+        },
+      },
+    },
   },
   mentor5: {
     name: "庚导师",
     email: "mentor5@de.mo",
     roles: ["Mentor", "Volunteer"] as Role[],
     profile: mentorProfile5,
+    preference: {
+      mentor: {
+        学生特质: {
+          农村vs城市: 1,
+          内敛vs外向: -1,
+          慢热vs快热: 1,
+          科研vs非科研: -1,
+        },
+      },
+    },
   },
 };
 
