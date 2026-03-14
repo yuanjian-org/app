@@ -7,6 +7,10 @@ const nextConfig = {
   experimental: {
     serverMinification: false,
   },
+
+  env: {
+    IS_DEMO: process.env.IS_DEMO,
+  },
 };
 
 module.exports = nextConfig;

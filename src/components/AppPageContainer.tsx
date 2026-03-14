@@ -1,4 +1,4 @@
-import { Spacer, VStack } from "@chakra-ui/react";
+import { Alert, AlertIcon, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
 import { PropsWithChildren, useEffect } from "react";
 
@@ -25,6 +25,12 @@ export default function AppPageContainer({
 
   return (
     <>
+      {process.env.IS_DEMO === "true" && (
+        <Alert status="warning" variant="solid" justifyContent="center">
+          <AlertIcon />
+          演示模式。数据每天重置一次。
+        </Alert>
+      )}
       <NavBars>
         {pageType === "bare" ? (
           children
