@@ -47,6 +47,9 @@ jobs:
     - name: Create .env file
       run: echo "APP_DOCKER_IMAGE=${{ vars.REMOTE_APP_DOCKER_IMAGE }}" > .env
 
+    - name: Create .env.demo file
+      run: cp .env .env.demo
+
     - name: Build Docker image
       run: docker compose build
 
