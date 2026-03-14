@@ -4,8 +4,9 @@
  */
 import z from "zod";
 import axios, { AxiosResponse } from "axios";
-import { internalServerError } from "./errors";
+import { internalServerError, generalBadRequestError } from "./errors";
 import { chinaPhonePrefix } from "../shared/strings";
+import { isDemo } from "../shared/isDemo";
 
 export const idTokenInternationalSmsTemplateId = "0Rr8G";
 
@@ -17,6 +18,10 @@ export async function sms(
     vars: Record<string, string>;
   }[],
 ) {
+  if (isDemo()) {
+    throw generalBadRequestError("演示模式不支持发送短信。");
+  }
+
   // Skip everything in unittest. https://stackoverflow.com/a/29183140
   if (typeof global.it === "function") return;
 
