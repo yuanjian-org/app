@@ -107,7 +107,7 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
     name: "邮箱",
     panel: (
       <TabPanel px={0} key="邮箱">
-        <EmailPanel />
+        <EmailPanel isDemo={isDemo} />
       </TabPanel>
     ),
   };
@@ -158,9 +158,15 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
   );
 }
 
-function EmailPanel() {
+function EmailPanel({ isDemo }: { isDemo?: boolean }) {
   return (
-    <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
+    <Tabs
+      variant="enclosed-colored"
+      isFitted
+      isLazy
+      size="sm"
+      defaultIndex={isDemo ? 1 : 0}
+    >
       <TabList mt={componentSpacing}>
         <Tab>验证码</Tab>
         <Tab>密码</Tab>
