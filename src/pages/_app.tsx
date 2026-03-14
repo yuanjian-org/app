@@ -62,7 +62,7 @@ function App({
 
       <ErrorBoundary>
         {isStaticPage(router.route) ? (
-          <StaticPageContainer isDemo={isDemo}>
+          <StaticPageContainer>
             <Component {...pageProps} />
           </StaticPageContainer>
         ) : (
@@ -110,9 +110,7 @@ function SwitchBoard({
     return <PageLoader />;
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
-      return (
-        <AuthPageContainer isDemo={isDemo}>{children}</AuthPageContainer>
-      );
+      return <AuthPageContainer>{children}</AuthPageContainer>;
 
       // Redirect to static page if the user attempts to access the home page, ...
     } else if (router.asPath === "/") {

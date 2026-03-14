@@ -21,7 +21,6 @@ import { createAutoTask } from "../src/api/routes/tasks";
 import { createMentorBooking } from "../src/api/routes/mentorBookings";
 import { checkAndComputeUserFields } from "../src/api/routes/users";
 import { isPermitted } from "../src/shared/Role";
-import { hash } from "bcryptjs";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -90,21 +89,12 @@ async function generateUsersAndAssingIds(transaction: Transaction) {
       transaction,
     });
 
-    const hashedPassword = u.password ? await hash(u.password, 10) : undefined;
-
     if (existing) {
       u.id = existing.id;
-      if (hashedPassword) {
-        await db.User.update(
-          { password: hashedPassword },
-          { where: { id: u.id }, transaction }
-        );
-      }
     } else {
       console.log(`Creating user "${u.name}"...`);
       const created = await db.User.create({
         ...u,
-        password: hashedPassword,
         ...(await checkAndComputeUserFields({
           ...u,
           isVolunteer: isPermitted(u.roles ?? [], "Volunteer"),

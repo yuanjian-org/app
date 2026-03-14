@@ -8,6 +8,8 @@ import { PropsWithChildren } from "react";
 import { isPermitted } from "shared/Role";
 import { breakpoint, sectionSpacing } from "theme/metrics";
 import { useMyId, useMyRoles } from "useMe";
+import { GetServerSideProps } from "next";
+import { isDemo } from "shared/isDemo";
 
 const title = "个人空间";
 
@@ -51,3 +53,11 @@ function Column({ children }: PropsWithChildren) {
 }
 
 Page.title = title;
+
+export const getServerSideProps: GetServerSideProps = () => {
+  return Promise.resolve({
+    props: {
+      isDemo: isDemo(),
+    },
+  });
+};

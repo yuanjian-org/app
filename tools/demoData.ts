@@ -20,7 +20,6 @@ export type DemoUser = {
   menteeApplication?: Record<string, any> | null;
   menteeStatus?: MenteeStatus | null,
   profile?: UserProfile | null,
-  password?: string,
 };
 
 const menteeApplication: Record<string, any> = {
@@ -65,7 +64,6 @@ const users: Record<string, DemoUser> = {
   admin: {
     name: '管理员',
     email: 'admin@de.mo',
-    password: 'yuanjian',
     roles: allRoles.filter(role => !["Banned", "Mentee", "TransactionalMentor"]
       .includes(role)),
     profile: adminProfile,
