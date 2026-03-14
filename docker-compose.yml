@@ -7,10 +7,6 @@ services:
       platforms:
         - linux/amd64
       target: runner
-  app-demo:
-    image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: app-demo
-    env_file: .env.demo
   nginx:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
@@ -19,8 +15,6 @@ services:
       # Due to file permission issues on the host machine, we cannot mount the entire directory.
       - /etc/letsencrypt/live/yuantuapp.com/fullchain.pem:/certs/yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/yuantuapp.com/privkey.pem:/certs/yuantuapp.com/privkey.pem:ro
-      - /etc/letsencrypt/live/demo.yuantuapp.com/fullchain.pem:/certs/demo.yuantuapp.com/fullchain.pem:ro
-      - /etc/letsencrypt/live/demo.yuantuapp.com/privkey.pem:/certs/demo.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/mentors.org.cn/fullchain.pem:/certs/mentors.org.cn/fullchain.pem:ro
       - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/certs/mentors.org.cn/privkey.pem:ro
       - /etc/letsencrypt/live/yuanjian.net/fullchain.pem:/certs/yuanjian.net/fullchain.pem:ro
@@ -30,4 +24,3 @@ services:
       - "80:80"
     depends_on:
       - app
-      - app-demo
