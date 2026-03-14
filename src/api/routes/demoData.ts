@@ -169,7 +169,9 @@ const users: Record<string, DemoUser> = {
   },
   mentee1: {
     name: "甲学生",
-    email: "mentee1@de.mo",
+    email: "mentee@de.mo",
+    password: "yuanjian",
+    phone: "13800138001",
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
