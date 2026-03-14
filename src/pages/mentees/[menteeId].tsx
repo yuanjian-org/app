@@ -84,16 +84,19 @@ export default widePage(() => {
 
   const myId = useMyId();
   const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
 
   const needCommsExam = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined) return undefined;
+    if (state === undefined || isDemo === undefined) return undefined;
+    if (!isProd() || isDemo) return false;
     return isExamExpired(state.commsExam);
-  }, [state]);
+  }, [isDemo, state]);
 
   const needHandbookExam = useMemo(() => {
-    if (!isProd()) return false;
-    if (state === undefined || !mentorships) return undefined;
+    if (state === undefined || isDemo === undefined || !mentorships) {
+      return undefined;
+    }
+    if (!isProd() || isDemo) return false;
 
     // Exam is needed only if the current user has relational mentorship with
     // the mentee.
@@ -103,7 +106,7 @@ export default widePage(() => {
     if (myRelational.length == 0) return false;
 
     return isExamExpired(state.handbookExam);
-  }, [state, mentorships, myId]);
+  }, [state, isDemo, mentorships, myId]);
 
   return !mentee ||
     !mentorships ||

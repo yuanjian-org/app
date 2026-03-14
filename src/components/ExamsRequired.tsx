@@ -10,7 +10,6 @@ import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  // Get isDemo state from server
   const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
 
   const commsExamRequired = useMemo(() => {
