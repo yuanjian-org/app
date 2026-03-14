@@ -36,6 +36,7 @@ import {
   MdSupervisorAccount,
   MdMic,
   MdHome,
+  MdBusiness,
 } from "react-icons/md";
 import Role from "../shared/Role";
 import { compareChinese, compareDate, formatUserName } from "shared/strings";
@@ -232,6 +233,12 @@ const mainMenuItems: MainMenuItem[] = [
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, "includeTransactionalOnly") ||
       isPermitted(me.roles, ["Mentor", "Volunteer"]),
+  },
+  {
+    name: "入驻机构",
+    path: "/organizations",
+    icon: MdBusiness,
+    regex: /^\/organizations/,
   },
 ];
 
