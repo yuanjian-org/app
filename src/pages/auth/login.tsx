@@ -85,12 +85,20 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
     name: "微信",
     panel: (
       <TabPanel key="微信">
-        {/* Only WeChat browser supports logging in with WeChat accounts. See
-          docs/WeChat.md for more information. */}
-        {isWechatBrowser ? (
-          <WechatAccountPanel />
+        {isDemo ? (
+          <Text color="gray.500" textAlign="center" my={sectionSpacing}>
+            微信登录在演示模式中不可用
+          </Text>
         ) : (
-          <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+          <>
+            {/* Only WeChat browser supports logging in with WeChat accounts. See
+              docs/WeChat.md for more information. */}
+            {isWechatBrowser ? (
+              <WechatAccountPanel />
+            ) : (
+              <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+            )}
+          </>
         )}
       </TabPanel>
     ),
