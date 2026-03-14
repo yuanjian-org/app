@@ -90,7 +90,7 @@ export async function email(
   baseUrl: string,
 ) {
   if (isDemo()) {
-    throw generalBadRequestError("演示模式下禁止发送邮件。");
+    throw generalBadRequestError("演示模式不支持发送邮件。");
   }
 
   await Promise.all(

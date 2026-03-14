@@ -19,7 +19,7 @@ export async function sms(
   }[],
 ) {
   if (isDemo()) {
-    throw generalBadRequestError("演示模式下禁止发送短信。");
+    throw generalBadRequestError("演示模式不支持发送短信。");
   }
 
   // Skip everything in unittest. https://stackoverflow.com/a/29183140
