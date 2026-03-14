@@ -63,6 +63,8 @@ const mentorProfile1: UserProfile = {
   性别: "女",
   照片链接:
     "https://gd-pri.jinshujufiles.com/en/Bz3uSO/Fn8IYiNdMlIW811y23f7OccFx2iJ_field_1_1773523164.jpg?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:fdmfZmxfoosmbes9hc5LxgRu5nU=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL0J6M3VTTy9GbjhJWWlOZE1sSVc4MTF5MjNmN09jY0Z4MmlKX2ZpZWxkXzFfMTc3MzUyMzE2NC5qcGcqIiwiRSI6MjA4OTA5MjY4OH0=&download&attname=f1.jpg",
+  视频链接:
+    "https://gd-pri.jinshujufiles.com/en/nhFsf1/Fi1S5UKbZWBCLWeRY7vje_9bqsFN_field_1_1773526788.mp4?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:oxw_C6aCd3Q4NUj6PQKB7AIjdCU=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9GaTFTNVVLYlpXQkNMV2VSWTd2amVfOWJxc0ZOX2ZpZWxkXzFfMTc3MzUyNjc4OC5tcDQqIiwiRSI6MjA4OTA5NjMxMX0=&download&attname=2.mp4",
   专业领域: "互联网与信息技术、人工智能",
   个性特点: "充满热情、同理心强、善于倾听、好奇心旺盛、真诚幽默",
   喜爱读物:
@@ -136,6 +138,8 @@ const mentorProfile4: UserProfile = {
   性别: "男",
   照片链接:
     "https://gd-pri.jinshujufiles.com/en/Bz3uSO/Fqa7lIYDCaJdlaOCGnQL8kg-NYFQ_field_1_1773523360.jpg?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:nUkSN3DaHCSYwPbFa176UvMiFSw=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL0J6M3VTTy9GcWE3bElZRENhSmRsYU9DR25RTDhrZy1OWUZRX2ZpZWxkXzFfMTc3MzUyMzM2MC5qcGcqIiwiRSI6MjA4OTA5Mjg4Mn0=&download&attname=m2.jpg",
+  视频链接:
+    "https://gd-pri.jinshujufiles.com/en/nhFsf1/FvumgcyL_scwlslfkle1fNsLJ_OR_field_1_1773526981.mp4?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:CIpC3KAgX0v6axiD1RpNn2GeMNk=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9GdnVtZ2N5TF9zY3dsc2xma2xlMWZOc0xKX09SX2ZpZWxkXzFfMTc3MzUyNjk4MS5tcDQqIiwiRSI6MjA4OTA5NjUwNH0=&download&attname=3.mp4",
   专业领域: "医疗健康、生物科技",
   个性特点: "严谨细致、热爱探索、平易近人、乐于分享、长期主义",
   喜爱读物:
@@ -160,6 +164,8 @@ const mentorProfile5: UserProfile = {
   性别: "女",
   照片链接:
     "https://gd-pri.jinshujufiles.com/en/Bz3uSO/FqXFnuOlqjhKCHH702ZKCBckgfXB_field_1_1773523225.jpg?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:N-Ku3DBsDITRlObj9YtIBvhs4Gc=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL0J6M3VTTy9GcVhGbnVPbHFqaEtDSEg3MDJaS0NCY2tnZlhCX2ZpZWxkXzFfMTc3MzUyMzIyNS5qcGcqIiwiRSI6MjA4OTA5Mjc0OH0=&download&attname=f3.jpg",
+  视频链接:
+    "https://gd-pri.jinshujufiles.com/en/nhFsf1/FsC8T9hI_yFkE6ym5SecthCxs2u7_field_1_1773526356.mp4?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:QW8G6VFZhgaSHN0RpUN7R2A-pMo=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9Gc0M4VDloSV95RmtFNnltNVNlY3RoQ3hzMnU3X2ZpZWxkXzFfMTc3MzUyNjM1Ni5tcDQqIiwiRSI6MjA4OTA5NTg3OX0=&download&attname=1.mp4",
   专业领域: "文化创意产业、品牌营销",
   个性特点: "创意无限、雷厉风行、审美在线、独立自信、热爱生活",
   喜爱读物:
@@ -174,7 +180,7 @@ const mentorProfile5: UserProfile = {
     "资深探店达人和美术馆常客，对一切美的事物毫无抵抗力。喜欢研究各类小众香水和独立设计师品牌。业余时间学习陶艺，享受手作带来的平静。\n",
   职业经历:
     "现任某新锐国潮消费品牌CMO（首席营销官），成功打造过多个现象级营销战役，对年轻代消费心理有深刻洞察。曾在国际知名4A广告公司担任创意总监。致力于推广中国本土原创设计。",
-  英文别名: "Serena",
+  英文别名: "Mendy",
   身份头衔: "新锐国潮消费品牌CMO",
   爱好与特长: "看展、探店、陶艺、瑜伽",
   擅长辅导领域:
