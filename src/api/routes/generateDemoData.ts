@@ -64,7 +64,7 @@ export async function generateDemoData(t: Transaction) {
   await createKudos(
     id(admin),
     id(mentor2),
-    "感谢大乙一直以个人名义继续支持已经毕业的学生 💖",
+    "感谢大丁一对困难学生丁二一如既往的支持 💖",
     t,
   );
   await createKudos(
@@ -285,7 +285,6 @@ async function findGroupsByType(
 
 async function createAutoTasks(t: Transaction) {
   console.log("Creating auto tasks...");
-  await createAutoTask(id(admin), "study-comms", t);
   await createAutoTask(id(admin), "study-handbook", t);
 }
 
