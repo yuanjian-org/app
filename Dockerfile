@@ -66,6 +66,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Include files needed for deployment in the image
 COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.yml ./
 COPY --from=builder --chown=nextjs:nodejs /app/nginx.conf ./
+COPY --from=builder --chown=nextjs:nodejs /app/nginx.proxy.conf ./
+COPY --from=builder --chown=nextjs:nodejs /app/nginx.ssl.conf ./
 
 USER nextjs
 
