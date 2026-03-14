@@ -20,6 +20,7 @@ import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { GetServerSideProps } from "next";
 import {
   isValidEmail,
   isValidPassword,
@@ -40,6 +41,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
+import { isDemo } from "shared/isDemo";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -58,13 +60,14 @@ function useCallbackUrl() {
 
 type ServerSideProps = {
   wechatQRAppId: string;
+  isDemo: boolean;
 };
 
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
  * logging in.
  */
-export default function Page({ wechatQRAppId }: ServerSideProps) {
+export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
   const router = useRouter();
 
   // Show the error passed in by next-auth.js if any.
@@ -77,6 +80,41 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
   const isMobileBrowser = /Mobile/i.test(navigator.userAgent);
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
+
+  const wechatTab = {
+    name: "微信",
+    panel: (
+      <TabPanel key="微信">
+        {/* Only WeChat browser supports logging in with WeChat accounts. See
+          docs/WeChat.md for more information. */}
+        {isWechatBrowser ? (
+          <WechatAccountPanel />
+        ) : (
+          <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+        )}
+      </TabPanel>
+    ),
+  };
+  const phoneTab = {
+    name: "手机",
+    panel: (
+      <TabPanel px={0} key="手机">
+        <PhonePanel />
+      </TabPanel>
+    ),
+  };
+  const emailTab = {
+    name: "邮箱",
+    panel: (
+      <TabPanel px={0} key="邮箱">
+        <EmailPanel />
+      </TabPanel>
+    ),
+  };
+
+  const tabs = isDemo
+    ? [emailTab, phoneTab, wechatTab]
+    : [wechatTab, phoneTab, emailTab];
 
   return (
     // See AuthPageContainer.tsx for the parent container
@@ -93,31 +131,15 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
         // If the user is on mobile and not using WeChat browser, show the
         // verification code tab as default, because the only WeChat option on
         // non-WeChat mobile browser is QR code which is often impossible to scan.
-        defaultIndex={isMobileBrowser && !isWechatBrowser ? 1 : 0}
+        defaultIndex={isDemo ? 0 : isMobileBrowser && !isWechatBrowser ? 1 : 0}
       >
         <TabList>
-          <Tab>微信</Tab>
-          <Tab>手机</Tab>
-          <Tab>邮箱</Tab>
+          {tabs.map((t) => (
+            <Tab key={t.name}>{t.name}</Tab>
+          ))}
         </TabList>
 
-        <TabPanels>
-          <TabPanel>
-            {/* Only WeChat browser supports logging in with WeChat accounts. See
-              docs/WeChat.md for more information. */}
-            {isWechatBrowser ? (
-              <WechatAccountPanel />
-            ) : (
-              <WechatQRPanel wechatQRAppId={wechatQRAppId} />
-            )}
-          </TabPanel>
-          <TabPanel px={0}>
-            <PhonePanel />
-          </TabPanel>
-          <TabPanel px={0}>
-            <EmailPanel />
-          </TabPanel>
-        </TabPanels>
+        <TabPanels>{tabs.map((t) => t.panel)}</TabPanels>
       </Tabs>
 
       <HStack justify="center" spacing={2}>
@@ -462,10 +484,11 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
   );
 }
 
-export function getServerSideProps(): { props: ServerSideProps } {
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = () => {
   return {
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
+      isDemo: isDemo(),
     },
   };
-}
+};
