@@ -1,6 +1,8 @@
 import sequelize from "../database/sequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
+import { generateDemoDataImpl } from "./demoDataInternal";
+import { TRPCError } from "@trpc/server";
 
 export default router({
   // TODO: Should we require an Admin auth token separate from integration
@@ -8,6 +10,21 @@ export default router({
   migrateDatabase: procedure
     .use(authIntegration())
     .mutation(async () => await migrateDatabase()),
+
+  resetDemoDatabase: procedure
+    .use(authIntegration())
+    .mutation(async () => {
+      if (process.env.IS_DEMO !== "true") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This operation is only allowed in demo mode.",
+        });
+      }
+      await sequelize.transaction(async (t) => {
+        await sequelize.sync({ force: true, transaction: t });
+        await generateDemoDataImpl(t);
+      });
+    }),
 });
 
 export async function migrateDatabase() {

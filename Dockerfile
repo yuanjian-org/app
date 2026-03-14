@@ -10,7 +10,7 @@ FROM node:22-alpine AS base
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -45,6 +45,9 @@ RUN \
 FROM base AS runner
 WORKDIR /app
 
+# Install curl for the cron script
+RUN apk add --no-cache curl
+
 ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED=1
@@ -58,6 +61,9 @@ COPY --from=builder /app/public ./public
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
+# Create a place for env vars for cron
+RUN touch /app/.env.cron && chown nextjs:nodejs /app/.env.cron
+
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -66,6 +72,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Include files needed for deployment in the image
 COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.yml ./
 COPY --from=builder --chown=nextjs:nodejs /app/nginx.conf ./
+COPY --from=builder --chown=nextjs:nodejs /app/tools/cronResetDemo.sh ./tools/cronResetDemo.sh
+
+# Set up cron job. We run crond as root, and it will execute the script.
+# The script itself will check if it's in demo mode.
+# We redirect output to stdout of process 1 so it appears in docker logs.
+RUN echo "0 4 * * * . /app/.env.cron; /app/tools/cronResetDemo.sh > /proc/1/fd/1 2>&1" > /var/spool/cron/crontabs/root
 
 USER nextjs
 
@@ -76,7 +88,9 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+
+# Run both crond and the node server. We use a script to capture env vars for cron.
+CMD ["sh", "-c", "env | grep -E 'IS_DEMO|INTEGRATION_AUTH_TOKEN' | sed 's/^/export /' > /app/.env.cron && crond && node server.js"]
 
 #############################
 # END BIOLTERPLATE          #
