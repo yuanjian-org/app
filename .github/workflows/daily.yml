@@ -15,4 +15,4 @@ jobs:
     steps:
       - name: Reset demo data
         run: |
-          curl -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.resetDemoData
+          curl -X POST -H "Authorization: Bearer ${{ secrets.DEMO_INTEGRATION_AUTH_TOKEN }}" https://${{ vars.DEMO_SERVER_HOSTNAME }}/api/v1/cron.resetDemoData
