@@ -137,7 +137,10 @@ export function fromBase64UrlSafe(base64: string): string {
 }
 
 export function shaChecksum(obj: Record<string, any>): string {
-  return crypto.createHash("sha256").update(stringifyStable(obj)).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(stringifyStable(obj)!)
+    .digest("hex");
 }
 
 // Simple hash function to generate a number from a string
