@@ -85,7 +85,7 @@ const tmRequest = async (
   // authentication docs location
   // https://cloud.tencent.com/document/product/1095/42413
   const url = "https://api.meeting.qq.com" + pathWithQuery;
-  const nonce = Math.floor(Math.random() * 100000);
+  const nonce = crypto.randomInt(0, 100000);
   const bodyText = method === "GET" ? "" : JSON.stringify(body);
 
   const signature = sign(
