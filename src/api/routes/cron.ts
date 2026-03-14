@@ -9,6 +9,7 @@ import { purgeOldData } from "./purgeOldData";
 import { generateDemoData } from "./generateDemoData";
 import { isDemo } from "../../shared/isDemo";
 import { noPermissionError } from "../errors";
+import { migrateDatabase } from "./migration";
 
 export default router({
   /**
@@ -31,8 +32,13 @@ export default router({
   ),
   recycleMeetings: procedure.use(authIntegration()).mutation(recycleMeetings),
   purgeOldData: procedure.use(authIntegration()).mutation(purgeOldData),
-  generateDemoData: procedure.use(authIntegration()).mutation(async () => {
+  resetDemoData: procedure.use(authIntegration()).mutation(async () => {
     if (!isDemo()) throw noPermissionError("数据");
+
+    console.log("Dropping DB schema...");
+    await sequelize.drop();
+
+    await migrateDatabase();
 
     await sequelize.transaction(async (transaction) => {
       await generateDemoData(transaction);
