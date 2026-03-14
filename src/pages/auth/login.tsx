@@ -41,6 +41,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
+import { isDemo as checkIsDemo } from "shared/isDemo";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -80,6 +81,47 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
   const isMobileBrowser = /Mobile/i.test(navigator.userAgent);
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
 
+  const tabs = [
+    {
+      name: "微信",
+      panel: (
+        <TabPanel>
+          {/* Only WeChat browser supports logging in with WeChat accounts. See
+            docs/WeChat.md for more information. */}
+          {isWechatBrowser ? (
+            <WechatAccountPanel />
+          ) : (
+            <WechatQRPanel wechatQRAppId={wechatQRAppId} />
+          )}
+        </TabPanel>
+      ),
+    },
+    {
+      name: "手机",
+      panel: (
+        <TabPanel px={0}>
+          <PhonePanel />
+        </TabPanel>
+      ),
+    },
+    {
+      name: "邮箱",
+      panel: (
+        <TabPanel px={0}>
+          <EmailPanel />
+        </TabPanel>
+      ),
+    },
+  ];
+
+  if (isDemo) {
+    // Demo mode: 邮箱 -> 手机 -> 微信
+    tabs.sort((a, b) => {
+      const order = ["邮箱", "手机", "微信"];
+      return order.indexOf(a.name) - order.indexOf(b.name);
+    });
+  }
+
   return (
     // See AuthPageContainer.tsx for the parent container
     <>
@@ -98,60 +140,12 @@ export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
         defaultIndex={isDemo ? 0 : isMobileBrowser && !isWechatBrowser ? 1 : 0}
       >
         <TabList>
-          {isDemo ? (
-            <>
-              <Tab>邮箱</Tab>
-              <Tab>微信</Tab>
-              <Tab>手机</Tab>
-            </>
-          ) : (
-            <>
-              <Tab>微信</Tab>
-              <Tab>手机</Tab>
-              <Tab>邮箱</Tab>
-            </>
-          )}
+          {tabs.map((t) => (
+            <Tab key={t.name}>{t.name}</Tab>
+          ))}
         </TabList>
 
-        <TabPanels>
-          {isDemo ? (
-            <>
-              <TabPanel px={0}>
-                <EmailPanel />
-              </TabPanel>
-              <TabPanel>
-                {/* Only WeChat browser supports logging in with WeChat accounts. See
-                  docs/WeChat.md for more information. */}
-                {isWechatBrowser ? (
-                  <WechatAccountPanel />
-                ) : (
-                  <WechatQRPanel wechatQRAppId={wechatQRAppId} />
-                )}
-              </TabPanel>
-              <TabPanel px={0}>
-                <PhonePanel />
-              </TabPanel>
-            </>
-          ) : (
-            <>
-              <TabPanel>
-                {/* Only WeChat browser supports logging in with WeChat accounts. See
-                  docs/WeChat.md for more information. */}
-                {isWechatBrowser ? (
-                  <WechatAccountPanel />
-                ) : (
-                  <WechatQRPanel wechatQRAppId={wechatQRAppId} />
-                )}
-              </TabPanel>
-              <TabPanel px={0}>
-                <PhonePanel />
-              </TabPanel>
-              <TabPanel px={0}>
-                <EmailPanel />
-              </TabPanel>
-            </>
-          )}
-        </TabPanels>
+        <TabPanels>{tabs.map((t) => t.panel)}</TabPanels>
       </Tabs>
 
       <HStack justify="center" spacing={2}>
@@ -499,7 +493,7 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
 export const getServerSideProps: GetServerSideProps<
   ServerSideProps
 > = async () => {
-  const isDemo = process.env.IS_DEMO === "true";
+  const isDemo = checkIsDemo();
 
   // Dummy await to satisfy lint
   await Promise.resolve();
