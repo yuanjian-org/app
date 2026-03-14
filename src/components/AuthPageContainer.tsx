@@ -1,5 +1,6 @@
 import { Flex, Spacer, VStack } from "@chakra-ui/react";
 import Image from "next/image";
+import DemoBanner from "./DemoBanner";
 import { componentSpacing } from "theme/metrics";
 import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
 import { PropsWithChildren } from "react";
@@ -8,9 +9,13 @@ import NextLink from "next/link";
 import { staticUrlPrefix } from "static";
 import { breakpoint } from "theme/metrics";
 
-export default function AuthPageContainer({ children }: PropsWithChildren) {
+export default function AuthPageContainer({
+  children,
+  isDemo,
+}: PropsWithChildren<{ isDemo?: boolean }>) {
   return (
     <Flex direction="column" alignItems="center" minHeight="100vh">
+      <DemoBanner isDemo={isDemo} />
       <VStack
         align="left"
         spacing={componentSpacing}

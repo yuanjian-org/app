@@ -3,6 +3,7 @@ import Footer from "components/Footer";
 import { PropsWithChildren, useEffect } from "react";
 
 import NavBars from "components/Navbars";
+import DemoBanner from "./DemoBanner";
 import { breakpoint, pageMarginTop } from "theme/metrics";
 import { AppPageType } from "AppPage";
 import { pageMarginX } from "theme/metrics";
@@ -12,9 +13,11 @@ import { initFundebug } from "fundebug";
 
 export default function AppPageContainer({
   pageType,
+  isDemo,
   children,
 }: {
   pageType?: AppPageType;
+  isDemo?: boolean;
 } & PropsWithChildren) {
   const myId = useMyId();
 
@@ -25,6 +28,7 @@ export default function AppPageContainer({
 
   return (
     <>
+      <DemoBanner isDemo={isDemo} />
       <NavBars>
         {pageType === "bare" ? (
           children

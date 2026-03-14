@@ -24,7 +24,7 @@ import "fundebug"; // Initialize Fundebug
 
 function App({
   Component,
-  pageProps: { session, ...pageProps },
+  pageProps: { session, isDemo, ...pageProps },
 }: {
   Component: AppPage;
 } & AppProps) {
@@ -62,12 +62,12 @@ function App({
 
       <ErrorBoundary>
         {isStaticPage(router.route) ? (
-          <StaticPageContainer>
+          <StaticPageContainer isDemo={isDemo}>
             <Component {...pageProps} />
           </StaticPageContainer>
         ) : (
           <SessionProvider session={session}>
-            <SwitchBoard pageType={Component.type}>
+            <SwitchBoard pageType={Component.type} isDemo={isDemo}>
               <Component {...pageProps} />
               <ToastContainer
                 position="bottom-center"
@@ -94,8 +94,10 @@ export default trpcNext.withTRPC(App);
 function SwitchBoard({
   children,
   pageType,
+  isDemo,
 }: {
   pageType?: AppPageType;
+  isDemo?: boolean;
 } & PropsWithChildren) {
   const { status } = useSession();
   const router = useRouter();
@@ -108,7 +110,9 @@ function SwitchBoard({
     return <PageLoader />;
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
-      return <AuthPageContainer>{children}</AuthPageContainer>;
+      return (
+        <AuthPageContainer isDemo={isDemo}>{children}</AuthPageContainer>
+      );
 
       // Redirect to static page if the user attempts to access the home page, ...
     } else if (router.asPath === "/") {
@@ -127,7 +131,9 @@ function SwitchBoard({
       return null;
     } else {
       return (
-        <AppPageContainer pageType={pageType}>{children}</AppPageContainer>
+        <AppPageContainer pageType={pageType} isDemo={isDemo}>
+          {children}
+        </AppPageContainer>
       );
     }
   }
