@@ -7,6 +7,10 @@ services:
       platforms:
         - linux/amd64
       target: runner
+  app-demo-0:
+    image: ${APP_DOCKER_IMAGE:?}:latest
+    container_name: app-demo-0
+    env_file: .env.demo
   nginx:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
@@ -24,3 +28,4 @@ services:
       - "80:80"
     depends_on:
       - app
+      - app-demo-0

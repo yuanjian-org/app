@@ -79,6 +79,7 @@ jobs:
 
           echo ">>> Pulling app image. Only pulling app because pulling nginx from aliyun may get stuck."
           docker compose pull app
+          docker compose pull app-demo-0
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
@@ -96,6 +97,12 @@ jobs:
           echo ">>> Migrating database"
           source .env
           curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/migration.migrateDatabase
+
+          echo ">>> Migrating demo database"
+          if [ -f .env.demo ]; then
+            source .env.demo
+            curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://demo.yuantuapp.com/api/v1/migration.migrateDatabase
+          fi
 
           echo ">>> Prune Docker images"
           docker image prune -f
