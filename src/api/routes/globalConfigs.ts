@@ -4,8 +4,9 @@ import db from "../database/db";
 import { zGlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
 import { isDemo as isDemoFlag } from "../../shared/isDemo";
+import { z } from "zod";
 
-const isDemo = procedure.query(() => {
+const isDemo = procedure.output(z.boolean()).query(() => {
   return isDemoFlag();
 });
 
