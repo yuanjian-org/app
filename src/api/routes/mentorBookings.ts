@@ -43,6 +43,7 @@ export async function createMentorBooking(
   topic: string,
   baseUrl: string,
   transaction: Transaction,
+  mode: "demo" | "production" = "production",
 ) {
   const mentor = requestedMentorId
     ? await db.User.findByPk(requestedMentorId, { transaction })
@@ -74,12 +75,14 @@ export async function createMentorBooking(
     transaction,
   );
 
-  await notifyRoles(
-    ["MentorshipManager", "MentorshipOperator"],
-    "不定期导师预约请求",
-    `请访问 ${baseUrl}/mentors/bookings 查看详情，并尽快为学生安排沟通`,
-    transaction,
-  );
+  if (mode === "production") {
+    await notifyRoles(
+      ["MentorshipManager", "MentorshipOperator"],
+      "不定期导师预约请求",
+      `请访问 ${baseUrl}/mentors/bookings 查看详情，并尽快为学生安排沟通`,
+      transaction,
+    );
+  }
 }
 
 const list = procedure
