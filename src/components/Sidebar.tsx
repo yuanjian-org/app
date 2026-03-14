@@ -348,6 +348,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
     >
       <Box>
         <ImpersonationBanner />
+        <DemoBanner />
 
         {/* White spacing */}
         <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
@@ -419,6 +420,27 @@ function ImpersonationBanner() {
       >
         退出
       </Link>
+    </Box>
+  );
+}
+
+function DemoBanner() {
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+
+  return !isDemo ? (
+    <></>
+  ) : (
+    <Box
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      bg="orange.100"
+      color="orange.800"
+      py={2}
+      px={4}
+      fontSize="sm"
+    >
+      <Text>演示模式。数据每天重置一次。</Text>
     </Box>
   );
 }
