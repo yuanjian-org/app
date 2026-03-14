@@ -484,11 +484,10 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<ServerSideProps> = () => {
-  return {
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = () =>
+  Promise.resolve({
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
       isDemo: isDemo(),
     },
-  };
-};
+  });
