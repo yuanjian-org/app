@@ -79,6 +79,7 @@ export async function generateDemoData(t: Transaction) {
   await generateCalibrationAndInterviews(t);
 
   await createAutoTasks(t);
+  await createManualTasks(t);
 
   await generateMentorBookings(t);
 }
@@ -287,6 +288,32 @@ async function createAutoTasks(t: Transaction) {
   console.log("Creating auto tasks...");
   await createAutoTask(id(admin), "study-comms", t);
   await createAutoTask(id(admin), "study-handbook", t);
+}
+
+async function createManualTasks(t: Transaction) {
+  console.log("Creating manual tasks...");
+  for (const task of demo.tasks) {
+    const existing = await db.Task.findOne({
+      where: {
+        creatorId: id(task.creator),
+        assigneeId: id(task.assignee),
+        markdown: task.markdown,
+      },
+      transaction: t,
+    });
+
+    if (!existing) {
+      await db.Task.create(
+        {
+          creatorId: id(task.creator),
+          assigneeId: id(task.assignee),
+          markdown: task.markdown,
+          done: false,
+        },
+        { transaction: t },
+      );
+    }
+  }
 }
 
 async function generateMentorBookings(t: Transaction) {

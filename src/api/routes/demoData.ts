@@ -573,8 +573,22 @@ const decision = {
   ],
 };
 
+const tasks = [
+  {
+    creator: users.mentee1,
+    assignee: users.mentee1,
+    markdown: "师生共读：下次通话前读完 *《你当像鸟飞往你的山》*",
+  },
+  {
+    creator: users.mentee1,
+    assignee: users.admin,
+    markdown: "师生共读：下次通话前读完 *《你当像鸟飞往你的山》*",
+  },
+];
+
 const demoData = {
   users,
+  tasks,
   summaries: [
     {
       md: summary1md,
