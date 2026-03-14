@@ -50,8 +50,18 @@ import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 import { toast } from "react-toastify";
+import { GetServerSideProps } from "next";
+import { isDemo } from "shared/isDemo";
 
-export default widePage(() => {
+export const getServerSideProps: GetServerSideProps<{
+  isDemo: boolean;
+}> = () =>
+  Promise.resolve({
+    props: { isDemo: isDemo() },
+  });
+
+export default widePage((props: any) => {
+  const { isDemo } = props;
   const [includeMerged, setIncludeMerged] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
@@ -103,7 +113,11 @@ export default widePage(() => {
           <Loader />
         ) : (
           <TableContainer>
-            <UserTable users={users} setUserBeingEdited={setUserBeingEdited} />
+            <UserTable
+              users={users}
+              setUserBeingEdited={setUserBeingEdited}
+              isDemo={isDemo}
+            />
           </TableContainer>
         )}
       </Flex>
@@ -114,9 +128,11 @@ export default widePage(() => {
 function UserTable({
   users,
   setUserBeingEdited,
+  isDemo,
 }: {
   users: UserWithMergeInfo[];
   setUserBeingEdited: (u: User | null) => void;
+  isDemo: boolean;
 }) {
   const me = useMe();
   const { update: updateSession } = useSession();
@@ -172,8 +188,8 @@ function UserTable({
           <Th>偏好</Th>
           <Th>拼音</Th>
           <Th>角色</Th>
-          <Th>假扮</Th>
-          <Th>下载</Th>
+          {!isDemo && <Th>假扮</Th>}
+          {!isDemo && <Th>下载</Th>}
           <Th>ID</Th>
         </Tr>
       </Thead>
@@ -236,32 +252,36 @@ function UserTable({
             </Td>
 
             {/* Impersonate */}
-            <Td>
-              {me.id !== u.id && (
-                <Tooltip label="假扮用户">
-                  <IconButton
-                    aria-label="假扮用户"
-                    icon={<TbSpy />}
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => startImpersonation(u.id)}
-                  />
-                </Tooltip>
-              )}
-            </Td>
+            {!isDemo && (
+              <Td>
+                {me.id !== u.id && (
+                  <Tooltip label="假扮用户">
+                    <IconButton
+                      aria-label="假扮用户"
+                      icon={<TbSpy />}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => startImpersonation(u.id)}
+                    />
+                  </Tooltip>
+                )}
+              </Td>
+            )}
 
             {/* Download */}
-            <Td>
-              <Tooltip label="下载学生数据">
-                <IconButton
-                  aria-label="下载学生数据"
-                  icon={<DownloadIcon />}
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => downloadMenteeData(u.id)}
-                />
-              </Tooltip>
-            </Td>
+            {!isDemo && (
+              <Td>
+                <Tooltip label="下载学生数据">
+                  <IconButton
+                    aria-label="下载学生数据"
+                    icon={<DownloadIcon />}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => downloadMenteeData(u.id)}
+                  />
+                </Tooltip>
+              </Td>
+            )}
 
             {/* ID */}
             <Td>{u.id}</Td>
