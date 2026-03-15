@@ -69,17 +69,17 @@
     "zod": "^3.22.3"
   },
   "scripts": {
-    "migrate-db": "ts-node --require tsconfig-paths/register tools/migrateDatabase.ts",
-    "gen-demo-data": "ts-node --require tsconfig-paths/register tools/generateDemoData.ts",
-    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register 'src/**/*.test.ts' --recursive",
-    "test:file": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register",
+    "migrate-db": "ts-node --require tsconfig-paths/register --require ./mocha.setup.js tools/migrateDatabase.ts",
+    "gen-demo-data": "ts-node --require tsconfig-paths/register --require ./mocha.setup.js tools/generateDemoData.ts",
+    "test": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register --require ./mocha.setup.js 'src/**/*.test.ts' 'src/**/*.test.tsx' --recursive",
+    "test:file": "TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register --require ./mocha.setup.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "cypress-run": "cypress run",
     "cypress-open": "cypress open",
-    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node --require tsconfig-paths/register tools/migrateDatabase.ts; fi"
+    "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node --require tsconfig-paths/register --require ./mocha.setup.js tools/migrateDatabase.ts; fi"
   },
   "browserslist": {
     "production": [
@@ -99,6 +99,7 @@
     "@testing-library/cypress": "^10.1.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
+    "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/user-event": "^12.8.3",
     "@types/adm-zip": "^0.5.7",
     "@types/archiver": "^7.0.0",
@@ -126,6 +127,8 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
     "husky": "^8.0.3",
+    "jsdom": "^28.1.0",
+    "jsdom-global": "^3.0.2",
     "mocha": "^11.7.1",
     "prettier": "^3.6.2",
     "regenerator-runtime": "^0.13.11",
