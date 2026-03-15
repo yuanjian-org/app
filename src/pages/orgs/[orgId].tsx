@@ -39,6 +39,7 @@ import { DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import UserDrawer from "components/UserDrawer";
 import { formatUserName } from "shared/strings";
 import { toast } from "react-toastify";
+import { OrgMentor } from "shared/Org";
 
 export default widePage(() => {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default widePage(() => {
     enabled: !!orgId,
   });
 
-  const [selectedMentor, setSelectedMentor] = useState<any>(null);
+  const [selectedMentor, setSelectedMentor] = useState<OrgMentor | null>(null);
 
   const updateDescMutation = trpcNext.orgs.updateDescription.useMutation();
   const joinMutation = trpcNext.orgs.join.useMutation();
@@ -182,7 +183,7 @@ export default widePage(() => {
               columns={{ base: 1, md: 2, lg: 3 }}
               spacing={componentSpacing}
             >
-              {org.mentors.map((mentor: any) => (
+              {org.mentors.map((mentor: OrgMentor) => (
                 <Box
                   key={mentor.id}
                   p={componentSpacing}
@@ -195,7 +196,7 @@ export default widePage(() => {
                 >
                   <HStack>
                     <Image
-                      src={UserProfilePictureLink(mentor.profile)}
+                      src={UserProfilePictureLink(mentor.profile || null)}
                       boxSize="50px"
                       rounded="full"
                       objectFit="cover"
