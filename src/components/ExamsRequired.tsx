@@ -24,44 +24,80 @@ export function useExamsRequired() {
     return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
   }, [isDemo, state]);
 
+  const handbookExamRequired = useMemo(() => {
+    if (state === undefined || isDemo === undefined) return undefined;
+    if (!isProd() || isDemo) return false;
+    return isExamExpired(state.handbookExam);
+  }, [isDemo, state]);
+
   return {
     commsExamRequired,
     interviewExamRequired,
+    handbookExamRequired,
   };
 }
 
 export function ExamsRequired({
   interviewExamRequired,
   commsExamRequired,
+  handbookExamRequired,
+  actionText = "即可看到面试信息",
+  roleText = "面试官",
 }: {
-  interviewExamRequired: boolean;
-  commsExamRequired: boolean;
+  interviewExamRequired?: boolean;
+  commsExamRequired?: boolean;
+  handbookExamRequired?: boolean;
+  actionText?: string;
+  roleText?: string;
 }) {
-  invariant(commsExamRequired || interviewExamRequired, "需要完成评测");
+  invariant(
+    commsExamRequired || interviewExamRequired || handbookExamRequired,
+    "需要完成评测",
+  );
+
+  const links = [];
+  if (commsExamRequired) {
+    links.push(
+      <Link as={NextLink} href="/study/comms" key="comms">
+        《学生通信原则》自学与评测
+      </Link>,
+    );
+  }
+  if (interviewExamRequired) {
+    links.push(
+      <Link as={NextLink} href="/study/interview" key="interview">
+        面试官自学与评测
+      </Link>,
+    );
+  }
+  if (handbookExamRequired) {
+    links.push(
+      <Link as={NextLink} href="/study/handbook" key="handbook">
+        《社会导师手册》自学与评测
+      </Link>,
+    );
+  }
 
   return (
     <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
       <p>
         请首先完成
-        {commsExamRequired && (
-          <Link as={NextLink} href="/study/comms">
-            《学生通信原则》自学与评测
-          </Link>
-        )}
-        {commsExamRequired && interviewExamRequired && " 以及 "}
-        {interviewExamRequired && (
-          <Link as={NextLink} href="/study/interview">
-            面试官自学与评测
-          </Link>
-        )}
-        ，即可看到面试信息。
+        {links.map((link, index) => (
+          <span key={link.key}>
+            {index > 0 && " 以及 "}
+            {link}
+          </span>
+        ))}
+        ，{actionText}。
       </p>
 
-      <p>我们邀请面试官每年重新评测一次，感谢你的理解与支持。</p>
+      <p>我们邀请{roleText}每年重新评测一次，感谢你的理解与支持。</p>
 
-      <p>
-        导师面试与学生面试的原则一致，因此导师和学生面试官使用同一套测试题目。
-      </p>
+      {interviewExamRequired && (
+        <p>
+          导师面试与学生面试的原则一致，因此导师和学生面试官使用同一套测试题目。
+        </p>
+      )}
     </Flex>
   );
 }

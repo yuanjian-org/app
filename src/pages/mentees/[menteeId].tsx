@@ -42,29 +42,20 @@ import {
   MentorshipSchedule,
 } from "shared/Mentorship";
 import GroupBar from "components/GroupBar";
-import {
-  breakpoint,
-  paragraphSpacing,
-  sectionSpacing,
-  maxTextWidth,
-  componentSpacing,
-} from "theme/metrics";
+import { breakpoint, sectionSpacing, componentSpacing } from "theme/metrics";
 import Transcripts from "components/Transcripts";
 import Interview from "components/Interview";
 import { MentorshipStatusIcon } from "pages/mentees";
 import { displayName, isPermitted } from "shared/Role";
 import useMe, { useMyId } from "useMe";
 import { useMemo, useState } from "react";
-import NextLink from "next/link";
-import invariant from "tiny-invariant";
-import { isExamExpired } from "shared/exams";
-import { isProd } from "shared/isProd";
 import { MdEdit } from "react-icons/md";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import _ from "lodash";
 import { IoMdCalendar } from "react-icons/io";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import TasksCard from "components/launchpad/TasksCard";
+import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), "menteeId");
@@ -83,20 +74,13 @@ export default widePage(() => {
     );
 
   const myId = useMyId();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
-
-  const needCommsExam = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.commsExam);
-  }, [isDemo, state]);
+  const { commsExamRequired, handbookExamRequired } = useExamsRequired();
 
   const needHandbookExam = useMemo(() => {
-    if (state === undefined || isDemo === undefined || !mentorships) {
+    if (handbookExamRequired === undefined || !mentorships) {
       return undefined;
     }
-    if (!isProd() || isDemo) return false;
+    if (!handbookExamRequired) return false;
 
     // Exam is needed only if the current user has relational mentorship with
     // the mentee.
@@ -105,16 +89,21 @@ export default widePage(() => {
     );
     if (myRelational.length == 0) return false;
 
-    return isExamExpired(state.handbookExam);
-  }, [state, isDemo, mentorships, myId]);
+    return true;
+  }, [handbookExamRequired, mentorships, myId]);
 
   return !mentee ||
     !mentorships ||
-    needCommsExam === undefined ||
+    commsExamRequired === undefined ||
     needHandbookExam === undefined ? (
     <Loader />
-  ) : needCommsExam || needHandbookExam ? (
-    <NeedExams comms={needCommsExam} handbook={needHandbookExam} />
+  ) : commsExamRequired || needHandbookExam ? (
+    <ExamsRequired
+      commsExamRequired={commsExamRequired}
+      handbookExamRequired={needHandbookExam}
+      actionText="即可看到学生页面，开始一对一通话"
+      roleText="导师"
+    />
   ) : (
     <>
       <PageBreadcrumb current={`${formatUserName(mentee.name)}`} />
@@ -122,32 +111,6 @@ export default widePage(() => {
     </>
   );
 });
-
-function NeedExams({ comms, handbook }: { comms: boolean; handbook: boolean }) {
-  invariant(comms || handbook);
-
-  return (
-    <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
-      <p>
-        请首先完成
-        {comms && (
-          <Link as={NextLink} href="/study/comms">
-            《学生通信原则》自学与评测
-          </Link>
-        )}
-        {comms && handbook && " 以及"}
-        {handbook && (
-          <Link as={NextLink} href="/study/handbook">
-            《社会导师手册》自学与评测
-          </Link>
-        )}
-        ，即可看到学生页面，开始一对一通话。
-      </p>
-
-      <p>我们邀请导师每年重新评测一次，感谢你的理解与支持。</p>
-    </Flex>
-  );
-}
 
 function MenteeTabs({
   mentee,
