@@ -36,7 +36,7 @@ export default router({
     if (!isDemo()) throw noPermissionError("数据");
 
     console.log("Dropping DB schema...");
-    await sequelize.drop();
+    await sequelize.drop({ cascade: true });
 
     await migrateDatabase();
 
