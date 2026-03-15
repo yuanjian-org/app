@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createGroup, updateGroup, findGroups } from "./groups";
+import { createGroup, updateGroup } from "./groups";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
@@ -20,7 +20,7 @@ describe("Groups API Internal Functions", () => {
         name: "Test User 1",
         roles: [],
       },
-      { transaction }
+      { transaction },
     );
 
     user2 = await db.User.create(
@@ -29,7 +29,7 @@ describe("Groups API Internal Functions", () => {
         name: "Test User 2",
         roles: [],
       },
-      { transaction }
+      { transaction },
     );
 
     user3 = await db.User.create(
@@ -38,7 +38,7 @@ describe("Groups API Internal Functions", () => {
         name: "Test User 3",
         roles: [],
       },
-      { transaction }
+      { transaction },
     );
   });
 
@@ -56,14 +56,14 @@ describe("Groups API Internal Functions", () => {
         userIds,
         null,
         null,
-        transaction
+        transaction,
       );
 
       const group = await db.Group.findByPk(groupId, { transaction });
-      expect(group).to.exist;
+      expect(group).to.not.equal(null);
       expect(group?.name).to.equal(groupName);
-      expect(group?.partnershipId).to.be.null;
-      expect(group?.interviewId).to.be.null;
+      expect(group?.partnershipId).to.equal(null);
+      expect(group?.interviewId).to.equal(null);
 
       const groupUsers = await db.GroupUser.findAll({
         where: { groupId },
@@ -85,7 +85,7 @@ describe("Groups API Internal Functions", () => {
         [user1.id, user2.id],
         null,
         null,
-        transaction
+        transaction,
       );
 
       // Verify initial setup
@@ -104,7 +104,7 @@ describe("Groups API Internal Functions", () => {
         updatedGroupName,
         true, // isPublic
         newUserIds,
-        transaction
+        transaction,
       );
 
       // Verify added users returned
@@ -113,7 +113,7 @@ describe("Groups API Internal Functions", () => {
       // Verify group properties updated
       const group = await db.Group.findByPk(groupId, { transaction });
       expect(group?.name).to.equal(updatedGroupName);
-      expect(group?.public).to.be.true;
+      expect(group?.public).to.equal(true);
 
       // Verify members updated
       groupUsers = await db.GroupUser.findAll({
