@@ -267,6 +267,7 @@ export async function findGroups(
   mode: "inclusive" | "exclusive",
   includes?: Includeable[],
   additionalWhere?: { [k: string]: any },
+  transaction?: Transaction,
 ): Promise<Group[]> {
   invariant(userIds.length > 0);
 
@@ -282,6 +283,7 @@ export async function findGroups(
         where: additionalWhere,
       },
     ],
+    transaction,
   });
 
   const res = gus
