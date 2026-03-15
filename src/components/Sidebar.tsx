@@ -37,6 +37,7 @@ import {
   MdSupervisorAccount,
   MdMic,
   MdHome,
+  MdBusiness,
 } from "react-icons/md";
 import Role from "../shared/Role";
 import { compareChinese, compareDate, formatUserName } from "shared/strings";
@@ -216,6 +217,12 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/volunteers/,
     permission: "Volunteer",
     redDot: UnreadKudosRedDot,
+  },
+  {
+    name: "入驻机构",
+    path: "/orgs",
+    icon: MdBusiness,
+    regex: /^\/orgs/,
   },
   {
     name: "学生档案",

@@ -190,6 +190,7 @@ export default widePage(() => {
                   borderWidth="1px"
                   rounded="md"
                   position="relative"
+                  background="white"
                   _hover={{ shadow: "sm" }}
                   cursor="pointer"
                   onClick={() => setSelectedMentor(mentor)}
