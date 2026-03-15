@@ -11,8 +11,18 @@ export const zOrg = z.object({
 
 export type Org = z.infer<typeof zOrg>;
 
+import { zRoles } from "./Role";
+import { zUserProfile } from "./UserProfile";
+
 export const zOrgWithMembers = zOrg.extend({
-  mentors: z.array(zMinUser),
+  mentors: z.array(
+    zMinUser.and(
+      z.object({
+        profile: zUserProfile.optional().nullable(),
+        roles: zRoles.optional(),
+      }),
+    ),
+  ),
   owners: z.array(zMinUser),
 });
 
