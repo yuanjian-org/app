@@ -93,15 +93,10 @@ describe("updateWechatUnionId", () => {
   });
 
   it("should set wechatUnionId to null if null is provided", async () => {
-    await updateWechatUnionId(
-      ["UserManager"],
-      testUser.id,
-      null,
-      transaction,
-    );
+    await updateWechatUnionId(["UserManager"], testUser.id, null, transaction);
 
     const updatedUser = await db.User.findByPk(testUser.id, { transaction });
-    expect(updatedUser?.wechatUnionId).to.be.null;
+    expect(updatedUser?.wechatUnionId).to.equal(null);
   });
 
   it("should do nothing if undefined is provided", async () => {
