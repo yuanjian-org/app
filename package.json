@@ -126,7 +126,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
     "husky": "^8.0.3",
-    "mocha": "^11.7.1",
+    "mocha": "^11.7.5",
     "prettier": "^3.6.2",
     "regenerator-runtime": "^0.13.11",
     "sinon": "^21.0.0",
