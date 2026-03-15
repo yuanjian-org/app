@@ -365,7 +365,7 @@ const update = procedure
         await updateWechatUnionId(
           me.roles,
           user.id,
-          input.wechatUnionId,
+          input.wechatUnionId === "" ? null : input.wechatUnionId,
           transaction,
         );
       }
@@ -376,25 +376,31 @@ const update = procedure
         throw generalBadRequestError("中文姓名无效。");
       }
 
+      // Normalize empty strings to null for fields that should be nullable
+      const email = input.email === "" ? null : input.email;
+      const phone = input.phone === "" ? null : input.phone;
+      const wechat = input.wechat === "" ? null : input.wechat;
+      const url = input.url === "" ? null : input.url;
+
       // TODO: For cleaner code, separate self updates from admin updates.
       await user.update(
         {
-          wechat: input.wechat,
+          wechat,
 
           ...(await checkAndComputeUserFields({
-            email: input.email,
+            email,
             name: input.name,
             isVolunteer: isPermitted(input.roles, "Volunteer"),
             oldUrl: user.url,
-            url: input.url,
+            url,
             transaction,
           })),
 
           // fields that only UserManagers can change
           ...(isUserManager && {
             roles: input.roles,
-            email: input.email,
-            phone: input.phone,
+            email,
+            phone,
           }),
         },
         { transaction },
@@ -408,6 +414,7 @@ const update = procedure
  * Remove obsolete entries from next-auth's accounts table if the wechatUnionId
  * is changed. This is needed because next-auth would overwise map the
  * wechatUnionId to the wrong row in the users table next time the user logs in.
+ * Dp nothing if wechatUnionId === undefined.
  */
 export async function updateWechatUnionId(
   myRoles: Role[],
@@ -417,7 +424,7 @@ export async function updateWechatUnionId(
 ) {
   invariant(isPermitted(myRoles, "UserManager"), `role violation`);
 
-  if (!wechatUnionId) return;
+  if (wechatUnionId === undefined) return;
 
   const existing = await db.User.findByPk(userId, {
     attributes: ["id", "wechatUnionId"],
