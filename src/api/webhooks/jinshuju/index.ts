@@ -5,17 +5,23 @@ import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 import submitExam from "./exam";
 import { Transaction } from "sequelize";
+import sequelize from "../../database/sequelize";
 
 /**
  * The Webhook for all 金数据 forms.
  */
 export default procedure
   .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input }) => await submit(input));
+  .mutation(
+    async ({ input }) =>
+      await sequelize.transaction(async (transaction) => {
+        await submit(input, transaction);
+      }),
+  );
 
 export async function submit(
   { form, entry }: Record<string, any>,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   switch (form) {
     case "FBTWTe":

@@ -23,7 +23,7 @@ import { Transaction } from "sequelize";
 export async function submitMenteeApp(
   formId: string,
   entry: Record<string, any>,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const application: Record<string, any> = {};
   for (const field of menteeApplicationFields) {
@@ -75,7 +75,7 @@ export async function submitMenteeApp(
  */
 export async function submitVolunteerApp(
   entry: Record<string, any>,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const application: Record<string, any> = {};
   for (const field of volunteerApplicationFields) {
@@ -122,7 +122,7 @@ async function save(
   sex: string | undefined,
   location: string | undefined,
   application: Record<string, any>,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   if (!phone) {
     throw generalBadRequestError("Phone number is required.");
@@ -137,73 +137,65 @@ async function save(
   const column =
     type == "Mentee" ? "menteeApplication" : "volunteerApplication";
 
-  const run = async (tx: Transaction) => {
-    const user = await db.User.findOne({
-      where: { phone },
-      attributes: ["id", "roles", "profile", "url", "menteeStatus"],
-      transaction: tx,
-    });
+  const user = await db.User.findOne({
+    where: { phone },
+    attributes: ["id", "roles", "profile", "url", "menteeStatus"],
+    transaction,
+  });
 
-    // Force type check
-    const sexKey: keyof UserProfile = "性别";
-    const locationKey: keyof UserProfile = "现居住地";
-    const profile = {
-      ...(sex && { [sexKey]: sex }),
-      ...(location && { [locationKey]: location }),
-    };
-    const addtionalRoles: Role[] = type == "Mentee" ? ["Mentee"] : [];
-
-    if (user) {
-      // Overwrite existing application
-      await user.update(
-        {
-          phone,
-          wechat,
-          roles: user.roles
-            .filter((role) => !addtionalRoles.includes(role))
-            .concat(addtionalRoles),
-          profile: { ...user.profile, ...profile },
-          [column]: application,
-
-          // If a previously rejected or graduated mentee applies again, reset
-          // their mentee status..
-          menteeStatus: user.menteeStatus == "现届学子" ? "现届学子" : null,
-
-          ...(await checkAndComputeUserFields({
-            email,
-            name,
-            isVolunteer: isPermitted(user.roles, "Volunteer"),
-            oldUrl: user.url,
-            transaction: tx,
-          })),
-        },
-        { transaction: tx },
-      );
-    } else {
-      await db.User.create(
-        {
-          phone,
-          wechat,
-          roles: addtionalRoles,
-          profile,
-          [column]: application,
-
-          ...(await checkAndComputeUserFields({
-            email,
-            name,
-            isVolunteer: false,
-            oldUrl: null,
-            transaction: tx,
-          })),
-        },
-        { transaction: tx },
-      );
-    }
+  // Force type check
+  const sexKey: keyof UserProfile = "性别";
+  const locationKey: keyof UserProfile = "现居住地";
+  const profile = {
+    ...(sex && { [sexKey]: sex }),
+    ...(location && { [locationKey]: location }),
   };
+  const addtionalRoles: Role[] = type == "Mentee" ? ["Mentee"] : [];
 
-  if (transaction) {
-    await run(transaction);
+  if (user) {
+    // Overwrite existing application
+    await user.update(
+      {
+        phone,
+        wechat,
+        roles: user.roles
+          .filter((role) => !addtionalRoles.includes(role))
+          .concat(addtionalRoles),
+        profile: { ...user.profile, ...profile },
+        [column]: application,
+
+        // If a previously rejected or graduated mentee applies again, reset
+        // their mentee status..
+        menteeStatus: user.menteeStatus == "现届学子" ? "现届学子" : null,
+
+        ...(await checkAndComputeUserFields({
+          email,
+          name,
+          isVolunteer: isPermitted(user.roles, "Volunteer"),
+          oldUrl: user.url,
+          transaction,
+        })),
+      },
+      { transaction },
+    );
   } else {
-    await sequelize.transaction(run);
+    await db.User.create(
+      {
+        phone,
+        wechat,
+        roles: addtionalRoles,
+        profile,
+        [column]: application,
+
+        ...(await checkAndComputeUserFields({
+          email,
+          name,
+          isVolunteer: false,
+          oldUrl: null,
+          transaction,
+        })),
+      },
+      { transaction },
+    );
   }
 }
