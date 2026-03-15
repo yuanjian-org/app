@@ -9,14 +9,16 @@ import { minUserAttributes } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
 import User from "../database/models/User";
 
-export async function listOrgsImpl(transaction?: Transaction) {
+import sequelize from "../database/sequelize";
+
+export async function listOrgsImpl(transaction: Transaction) {
   return await db.Org.findAll({
     order: [["name", "ASC"]],
     transaction,
   });
 }
 
-export async function getOrgImpl(id: string, transaction?: Transaction) {
+export async function getOrgImpl(id: string, transaction: Transaction) {
   const org = await db.Org.findByPk(id, {
     include: [
       {
@@ -42,12 +44,12 @@ export async function getOrgImpl(id: string, transaction?: Transaction) {
 
 export async function createOrgImpl(
   input: { name: string; description: string | null },
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   return await db.Org.create(input, { transaction });
 }
 
-export async function removeOrgImpl(id: string, transaction?: Transaction) {
+export async function removeOrgImpl(id: string, transaction: Transaction) {
   const org = await db.Org.findByPk(id, { transaction });
   if (!org) {
     throw notFoundError("机构", id);
@@ -58,7 +60,7 @@ export async function removeOrgImpl(id: string, transaction?: Transaction) {
 export async function updateOrgDescriptionImpl(
   me: User,
   input: { id: string; description: string | null },
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const { id, description } = input;
   const org = await db.Org.findByPk(id, { transaction });
@@ -82,7 +84,7 @@ export async function updateOrgDescriptionImpl(
 export async function joinOrgImpl(
   me: User,
   orgId: string,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId: me.id },
@@ -93,7 +95,7 @@ export async function joinOrgImpl(
 export async function leaveOrgImpl(
   me: User,
   orgId: string,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   await db.OrgMentor.destroy({
     where: { orgId, mentorId: me.id },
@@ -104,7 +106,7 @@ export async function leaveOrgImpl(
 export async function removeMentorImpl(
   me: User,
   input: { orgId: string; mentorId: string },
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const { orgId, mentorId } = input;
   const isOwner =
@@ -125,7 +127,7 @@ export async function removeMentorImpl(
 
 export async function addOwnerImpl(
   input: { orgId: string; ownerId: string },
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const { orgId, ownerId } = input;
   await db.OrgOwner.findOrCreate({
@@ -136,7 +138,7 @@ export async function addOwnerImpl(
 
 export async function removeOwnerImpl(
   input: { orgId: string; ownerId: string },
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const { orgId, ownerId } = input;
   await db.OrgOwner.destroy({
@@ -149,7 +151,9 @@ const list = procedure
   .use(authUser())
   .output(z.array(zOrg))
   .query(async () => {
-    return await listOrgsImpl();
+    return await sequelize.transaction(async (transaction) => {
+      return await listOrgsImpl(transaction);
+    });
   });
 
 const get = procedure
@@ -157,7 +161,9 @@ const get = procedure
   .input(z.string().uuid())
   .output(zOrgWithMembers)
   .query(async ({ input: id }) => {
-    return await getOrgImpl(id);
+    return await sequelize.transaction(async (transaction) => {
+      return await getOrgImpl(id, transaction);
+    });
   });
 
 const create = procedure
@@ -170,14 +176,18 @@ const create = procedure
   )
   .output(zOrg)
   .mutation(async ({ input }) => {
-    return await createOrgImpl(input);
+    return await sequelize.transaction(async (transaction) => {
+      return await createOrgImpl(input, transaction);
+    });
   });
 
 const remove = procedure
   .use(authUser("OrgAdmin"))
   .input(z.string().uuid())
   .mutation(async ({ input: id }) => {
-    await removeOrgImpl(id);
+    await sequelize.transaction(async (transaction) => {
+      await removeOrgImpl(id, transaction);
+    });
   });
 
 const updateDescription = procedure
@@ -189,21 +199,27 @@ const updateDescription = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    await updateOrgDescriptionImpl(me, input);
+    await sequelize.transaction(async (transaction) => {
+      await updateOrgDescriptionImpl(me, input, transaction);
+    });
   });
 
 const join = procedure
   .use(authUser("Mentor"))
   .input(z.string().uuid())
   .mutation(async ({ ctx: { me }, input: orgId }) => {
-    await joinOrgImpl(me, orgId);
+    await sequelize.transaction(async (transaction) => {
+      await joinOrgImpl(me, orgId, transaction);
+    });
   });
 
 const leave = procedure
   .use(authUser("Mentor"))
   .input(z.string().uuid())
   .mutation(async ({ ctx: { me }, input: orgId }) => {
-    await leaveOrgImpl(me, orgId);
+    await sequelize.transaction(async (transaction) => {
+      await leaveOrgImpl(me, orgId, transaction);
+    });
   });
 
 const removeMentor = procedure
@@ -215,7 +231,9 @@ const removeMentor = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    await removeMentorImpl(me, input);
+    await sequelize.transaction(async (transaction) => {
+      await removeMentorImpl(me, input, transaction);
+    });
   });
 
 const addOwner = procedure
@@ -227,7 +245,9 @@ const addOwner = procedure
     }),
   )
   .mutation(async ({ input }) => {
-    await addOwnerImpl(input);
+    await sequelize.transaction(async (transaction) => {
+      await addOwnerImpl(input, transaction);
+    });
   });
 
 const removeOwner = procedure
@@ -239,7 +259,9 @@ const removeOwner = procedure
     }),
   )
   .mutation(async ({ input }) => {
-    await removeOwnerImpl(input);
+    await sequelize.transaction(async (transaction) => {
+      await removeOwnerImpl(input, transaction);
+    });
   });
 
 export default router({
