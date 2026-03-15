@@ -586,9 +586,25 @@ const tasks = [
   },
 ];
 
+const orgs = [
+  {
+    name: "微软",
+    description: "微软就是硬。",
+    mentors: [users.mentor1, users.mentor2],
+    owners: [users.admin],
+  },
+  {
+    name: "阿里巴巴",
+    description: "阿里巴巴与四十大盗。",
+    mentors: [users.mentor3, users.mentor4],
+    owners: [],
+  },
+];
+
 const demoData = {
   users,
   tasks,
+  orgs,
   summaries: [
     {
       md: summary1md,
