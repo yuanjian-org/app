@@ -31,8 +31,14 @@ import MatchFeedback from "./models/MatchFeedback";
 import GlobalConfig from "./models/GlobalConfig";
 import DeletedSummary from "./models/DeletedSummary";
 import IdToken from "./models/IdToken";
+import Org from "./models/Org";
+import OrgMentor from "./models/OrgMentor";
+import OrgOwner from "./models/OrgOwner";
 
 const db = {
+  Org,
+  OrgMentor,
+  OrgOwner,
   Mentorship,
   User,
   Group,

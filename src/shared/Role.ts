@@ -16,6 +16,7 @@ export const allRoles = [
   "Interviewer",
   "Volunteer",
   "SeniorMentor",
+  "OrgAdmin",
 ] as const;
 
 type Role = (typeof allRoles)[number];
@@ -98,6 +99,10 @@ const RoleProfiles: {
   Volunteer: {
     displayName: "志愿者",
     actions: "可以浏览其他志愿者信息",
+  },
+  OrgAdmin: {
+    displayName: "机构管理员",
+    actions: "管理机构信息、成员和所有者",
   },
 };
 
