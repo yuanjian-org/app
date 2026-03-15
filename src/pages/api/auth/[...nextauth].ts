@@ -191,28 +191,29 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         // https://next-auth.js.org/getting-started/client#updating-the-session
         if (trigger == "update" && session) {
           const impersonate = (session as ImpersonationRequest).impersonate;
-          if (impersonate !== undefined) {
-            if (impersonate === null) {
-              delete token[impersonateTokenKey];
-            } else {
-              // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
-              const original = await db.User.findByPk(token.sub, {
-                attributes: ["roles", "mergedTo"],
-              });
-              invariant(original, "original not found");
+          if (impersonate === undefined) {
+            return token;
+          }
+          if (impersonate === null) {
+            delete token[impersonateTokenKey];
+          } else {
+            // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
+            const original = await db.User.findByPk(token.sub, {
+              attributes: ["roles", "mergedTo"],
+            });
+            invariant(original, "original not found");
 
-              const me = !original.mergedTo
-                ? original
-                : await db.User.findByPk(original.mergedTo, {
-                    attributes: ["roles"],
-                  });
-              invariant(me, "me not found");
+            const me = !original.mergedTo
+              ? original
+              : await db.User.findByPk(original.mergedTo, {
+                  attributes: ["roles"],
+                });
+            invariant(me, "me not found");
 
-              if (!isPermitted(me.roles, "UserManager")) {
-                throw noPermissionError("用户", impersonate);
-              }
-              token[impersonateTokenKey] = impersonate;
+            if (!isPermitted(me.roles, "UserManager")) {
+              throw noPermissionError("用户", impersonate);
             }
+            token[impersonateTokenKey] = impersonate;
           }
         }
 
