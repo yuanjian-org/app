@@ -1,14 +1,17 @@
 {
   "extends": "./tsconfig.json",
   "ts-node": {
+    "experimentalResolver": true,
+    "transpileOnly": true,
     "compilerOptions": {
       "module": "commonjs",
-      "isolatedModules": false
+      "isolatedModules": false,
+      "jsx": "react-jsx"
     }
   },
   "compilerOptions": {
     "module": "commonjs",
-    "jsx": "react"
+    "jsx": "react-jsx"
   },
   "exclude": ["node_modules"],
   "include": ["**/*.test.ts", "**/*.test.tsx"]
