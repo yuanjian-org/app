@@ -12,29 +12,30 @@ export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
 
-  const commsExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.commsExam);
+  return useMemo(() => {
+    if (state === undefined || isDemo === undefined) {
+      return {
+        commsExamRequired: undefined,
+        interviewExamRequired: undefined,
+        handbookExamRequired: undefined,
+      };
+    }
+    if (!isProd() || isDemo) {
+      return {
+        commsExamRequired: false,
+        interviewExamRequired: false,
+        handbookExamRequired: false,
+      };
+    }
+    return {
+      commsExamRequired: isExamExpired(state.commsExam),
+      interviewExamRequired: isExamExpired(
+        state.menteeInterviewerExam,
+        interviewExamExpiryDays,
+      ),
+      handbookExamRequired: isExamExpired(state.handbookExam),
+    };
   }, [isDemo, state]);
-
-  const interviewExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
-  }, [isDemo, state]);
-
-  const handbookExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.handbookExam);
-  }, [isDemo, state]);
-
-  return {
-    commsExamRequired,
-    interviewExamRequired,
-    handbookExamRequired,
-  };
 }
 
 export function ExamsRequired({
