@@ -1,13 +1,18 @@
 {
   "extends": "./tsconfig.json",
   "ts-node": {
-    // these options are overrides used only by ts-node
-    // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
+    "experimentalResolver": true,
+    "transpileOnly": true,
     "compilerOptions": {
       "module": "commonjs",
-      "isolatedModules": false
+      "isolatedModules": false,
+      "jsx": "react-jsx"
     }
   },
+  "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "react-jsx"
+  },
   "exclude": ["node_modules"],
-  "include": ["**/*.test.ts"],
+  "include": ["**/*.test.ts", "**/*.test.tsx"]
 }
