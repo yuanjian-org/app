@@ -365,7 +365,7 @@ const update = procedure
         await updateWechatUnionId(
           me.roles,
           user.id,
-          input.wechatUnionId,
+          input.wechatUnionId === "" ? null : input.wechatUnionId,
           transaction,
         );
       }
@@ -376,25 +376,31 @@ const update = procedure
         throw generalBadRequestError("中文姓名无效。");
       }
 
+      // Normalize empty strings to null for fields that should be nullable
+      const normalizedEmail = input.email === "" ? null : input.email;
+      const normalizedPhone = input.phone === "" ? null : input.phone;
+      const normalizedWechat = input.wechat === "" ? null : input.wechat;
+      const normalizedUrl = input.url === "" ? null : input.url;
+
       // TODO: For cleaner code, separate self updates from admin updates.
       await user.update(
         {
-          wechat: input.wechat,
+          wechat: normalizedWechat,
 
           ...(await checkAndComputeUserFields({
-            email: input.email,
+            email: normalizedEmail,
             name: input.name,
             isVolunteer: isPermitted(input.roles, "Volunteer"),
             oldUrl: user.url,
-            url: input.url,
+            url: normalizedUrl,
             transaction,
           })),
 
           // fields that only UserManagers can change
           ...(isUserManager && {
             roles: input.roles,
-            email: input.email,
-            phone: input.phone,
+            email: normalizedEmail,
+            phone: normalizedPhone,
           }),
         },
         { transaction },
@@ -417,7 +423,7 @@ export async function updateWechatUnionId(
 ) {
   invariant(isPermitted(myRoles, "UserManager"), `role violation`);
 
-  if (!wechatUnionId) return;
+  if (wechatUnionId === undefined) return;
 
   const existing = await db.User.findByPk(userId, {
     attributes: ["id", "wechatUnionId"],
