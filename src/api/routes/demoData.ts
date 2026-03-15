@@ -595,7 +595,7 @@ const orgs = [
   },
   {
     name: "阿里巴巴",
-    description: "阿里巴巴与四十大盗“",
+    description: "阿里巴巴与四十大盗。",
     mentors: [users.mentor3, users.mentor4],
     owners: [],
   },
