@@ -12,6 +12,7 @@ import { checkAndComputeUserFields } from "../../routes/users";
 import Role, { isPermitted } from "../../../shared/Role";
 import { generalBadRequestError } from "../../errors";
 import { chinaPhonePrefix, isValidPhone } from "../../../shared/strings";
+import { Transaction } from "sequelize";
 
 /**
  * The Webhook for three 金数据 forms:
@@ -22,6 +23,7 @@ import { chinaPhonePrefix, isValidPhone } from "../../../shared/strings";
 export async function submitMenteeApp(
   formId: string,
   entry: Record<string, any>,
+  transaction?: Transaction,
 ) {
   const application: Record<string, any> = {};
   for (const field of menteeApplicationFields) {
@@ -64,13 +66,17 @@ export async function submitMenteeApp(
     sex,
     undefined,
     application,
+    transaction,
   );
 }
 
 /**
  * The Webhook for volunteer application: https://jsj.top/f/OzuvWD
  */
-export async function submitVolunteerApp(entry: Record<string, any>) {
+export async function submitVolunteerApp(
+  entry: Record<string, any>,
+  transaction?: Transaction,
+) {
   const application: Record<string, any> = {};
   for (const field of volunteerApplicationFields) {
     const jn = field.jsjField;
@@ -100,6 +106,7 @@ export async function submitVolunteerApp(entry: Record<string, any>) {
     undefined,
     location,
     application,
+    transaction,
   );
 }
 
@@ -115,6 +122,7 @@ async function save(
   sex: string | undefined,
   location: string | undefined,
   application: Record<string, any>,
+  transaction?: Transaction,
 ) {
   if (!phone) {
     throw generalBadRequestError("Phone number is required.");
@@ -129,11 +137,11 @@ async function save(
   const column =
     type == "Mentee" ? "menteeApplication" : "volunteerApplication";
 
-  await sequelize.transaction(async (transaction) => {
+  const run = async (tx: Transaction) => {
     const user = await db.User.findOne({
       where: { phone },
       attributes: ["id", "roles", "profile", "url", "menteeStatus"],
-      transaction,
+      transaction: tx,
     });
 
     // Force type check
@@ -166,10 +174,10 @@ async function save(
             name,
             isVolunteer: isPermitted(user.roles, "Volunteer"),
             oldUrl: user.url,
-            transaction,
+            transaction: tx,
           })),
         },
-        { transaction },
+        { transaction: tx },
       );
     } else {
       await db.User.create(
@@ -185,11 +193,17 @@ async function save(
             name,
             isVolunteer: false,
             oldUrl: null,
-            transaction,
+            transaction: tx,
           })),
         },
-        { transaction },
+        { transaction: tx },
       );
     }
-  });
+  };
+
+  if (transaction) {
+    await run(transaction);
+  } else {
+    await sequelize.transaction(run);
+  }
 }
