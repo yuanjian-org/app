@@ -6,7 +6,6 @@ import {
   volunteerApplyingforMentorFieldYes,
 } from "../../../shared/applicationFields";
 import { UserProfile } from "../../../shared/UserProfile";
-import sequelize from "../../database/sequelize";
 import db from "../../database/db";
 import { checkAndComputeUserFields } from "../../routes/users";
 import Role, { isPermitted } from "../../../shared/Role";

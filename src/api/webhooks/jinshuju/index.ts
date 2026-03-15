@@ -10,14 +10,12 @@ import sequelize from "../../database/sequelize";
 /**
  * The Webhook for all 金数据 forms.
  */
-export default procedure
-  .input(z.record(z.string(), z.any()))
-  .mutation(
-    async ({ input }) =>
-      await sequelize.transaction(async (transaction) => {
-        await submit(input, transaction);
-      }),
-  );
+export default procedure.input(z.record(z.string(), z.any())).mutation(
+  async ({ input }) =>
+    await sequelize.transaction(async (transaction) => {
+      await submit(input, transaction);
+    }),
+);
 
 export async function submit(
   { form, entry }: Record<string, any>,
