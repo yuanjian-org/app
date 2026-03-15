@@ -43,14 +43,12 @@ export function ExamsRequired({
   handbookExamRequired,
   actionText = "即可看到面试信息",
   roleText = "面试官",
-  children,
 }: {
   interviewExamRequired?: boolean;
   commsExamRequired?: boolean;
   handbookExamRequired?: boolean;
   actionText?: string;
   roleText?: string;
-  children?: React.ReactNode;
 }) {
   invariant(
     commsExamRequired || interviewExamRequired || handbookExamRequired,
@@ -95,9 +93,7 @@ export function ExamsRequired({
 
       <p>我们邀请{roleText}每年重新评测一次，感谢你的理解与支持。</p>
 
-      {children}
-
-      {!children && interviewExamRequired && (
+      {interviewExamRequired && (
         <p>
           导师面试与学生面试的原则一致，因此导师和学生面试官使用同一套测试题目。
         </p>
