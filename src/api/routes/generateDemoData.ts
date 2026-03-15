@@ -89,42 +89,28 @@ export async function generateDemoData(t: Transaction) {
 async function generateOrgs(t: Transaction) {
   console.log("Creating orgs...");
 
-  const org1 = await db.Org.findOrCreate({
-    where: { name: "微软" },
-    defaults: { description: "微软就是硬。" },
-    transaction: t,
-  });
-  const org1Id = org1[0].id;
+  for (const org of demo.orgs) {
+    const [createdOrg] = await db.Org.findOrCreate({
+      where: { name: org.name },
+      defaults: { description: org.description },
+      transaction: t,
+    });
+    const orgId = createdOrg.id;
 
-  const org2 = await db.Org.findOrCreate({
-    where: { name: "阿里巴巴" },
-    defaults: { description: "阿里巴巴与四十大盗“" },
-    transaction: t,
-  });
-  const org2Id = org2[0].id;
+    for (const mentor of org.mentors) {
+      await db.OrgMentor.findOrCreate({
+        where: { orgId, mentorId: id(mentor) },
+        transaction: t,
+      });
+    }
 
-  await db.OrgMentor.findOrCreate({
-    where: { orgId: org1Id, mentorId: id(mentor1) },
-    transaction: t,
-  });
-  await db.OrgMentor.findOrCreate({
-    where: { orgId: org1Id, mentorId: id(mentor2) },
-    transaction: t,
-  });
-
-  await db.OrgOwner.findOrCreate({
-    where: { orgId: org1Id, ownerId: id(admin) },
-    transaction: t,
-  });
-
-  await db.OrgMentor.findOrCreate({
-    where: { orgId: org2Id, mentorId: id(mentor3) },
-    transaction: t,
-  });
-  await db.OrgMentor.findOrCreate({
-    where: { orgId: org2Id, mentorId: id(mentor4) },
-    transaction: t,
-  });
+    for (const owner of org.owners) {
+      await db.OrgOwner.findOrCreate({
+        where: { orgId, ownerId: id(owner) },
+        transaction: t,
+      });
+    }
+  }
 }
 
 async function generateUsersAndAssingIds(transaction: Transaction) {
