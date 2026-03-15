@@ -33,17 +33,13 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { useEffect, useState } from "react";
-import { inferRouterOutputs } from "@trpc/server";
-import { ApiRouter } from "api/apiRouter";
-
-type RouterOutput = inferRouterOutputs<ApiRouter>;
-type OrgMentor = RouterOutput["orgs"]["get"]["mentors"][0];
 import { pageMarginX, componentSpacing, sectionSpacing } from "theme/metrics";
 import { UserProfilePictureLink } from "components/UserCards";
 import { DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import UserDrawer from "components/UserDrawer";
 import { formatUserName } from "shared/strings";
 import { toast } from "react-toastify";
+import { OrgMentor } from "shared/Org";
 
 export default widePage(() => {
   const router = useRouter();
