@@ -103,7 +103,7 @@
     "@testing-library/user-event": "^12.8.3",
     "@types/adm-zip": "^0.5.7",
     "@types/archiver": "^7.0.0",
-    "@types/chai": "^4.3.4",
+    "@types/chai": "^5.2.3",
     "@types/diff": "^7.0.1",
     "@types/inquirer": "^9.0.9",
     "@types/jest": "^25.2.3",
