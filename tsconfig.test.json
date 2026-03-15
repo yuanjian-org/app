@@ -3,12 +3,12 @@
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs",
-      "jsx": "react-jsx"
+      "isolatedModules": false
     }
   },
   "compilerOptions": {
     "module": "commonjs",
-    "jsx": "react-jsx"
+    "jsx": "react"
   },
   "exclude": ["node_modules"],
   "include": ["**/*.test.ts", "**/*.test.tsx"]
