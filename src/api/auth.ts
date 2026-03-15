@@ -56,6 +56,7 @@ export const ip = () =>
       ctx: {
         ...ctx,
         ip:
+          ctx.req.headers["x-real-ip"] ||
           ctx.req.headers["x-forwarded-for"] ||
           ctx.req.connection.remoteAddress,
       },
