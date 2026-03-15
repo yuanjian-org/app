@@ -446,10 +446,11 @@ export async function updateInterview(
   calibrationId: string | null,
   intervieweeId: string,
   interviewerIds: string[],
+  transactionArg?: Transaction,
 ) {
   validate(intervieweeId, interviewerIds);
 
-  await sequelize.transaction(async (transaction) => {
+  const performUpdate = async (transaction: Transaction) => {
     const i = await db.Interview.findByPk(id, {
       include: [...interviewInclude, Group],
       transaction,
@@ -511,7 +512,13 @@ export async function updateInterview(
       [intervieweeId, ...interviewerIds],
       transaction,
     );
-  });
+  };
+
+  if (transactionArg) {
+    await performUpdate(transactionArg);
+  } else {
+    await sequelize.transaction(performUpdate);
+  }
 }
 
 function validate(intervieweeId: string, interviewerIds: string[]) {
