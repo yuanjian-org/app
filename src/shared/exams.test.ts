@@ -62,7 +62,10 @@ describe("calculateExamsRequired", () => {
 
   it("should return true for exams that are older than expiry days", () => {
     const commsDate = moment().subtract(366, "days").toDate().toISOString();
-    const interviewDate = moment().subtract(interviewExamExpiryDays + 1, "days").toDate().toISOString();
+    const interviewDate = moment()
+      .subtract(interviewExamExpiryDays + 1, "days")
+      .toDate()
+      .toISOString();
     const handbookDate = moment().subtract(366, "days").toDate().toISOString();
 
     const state = {
@@ -80,7 +83,10 @@ describe("calculateExamsRequired", () => {
 
   it("should return false for exams that are not expired", () => {
     const commsDate = moment().subtract(364, "days").toDate().toISOString();
-    const interviewDate = moment().subtract(interviewExamExpiryDays - 1, "days").toDate().toISOString();
+    const interviewDate = moment()
+      .subtract(interviewExamExpiryDays - 1, "days")
+      .toDate()
+      .toISOString();
     const handbookDate = moment().subtract(364, "days").toDate().toISOString();
 
     const state = {

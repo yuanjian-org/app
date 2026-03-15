@@ -14,7 +14,7 @@ export function useExamsRequired() {
 
   return useMemo(
     () => calculateExamsRequired(state, isDemo, isProd()),
-    [state, isDemo]
+    [state, isDemo],
   );
 }
 
