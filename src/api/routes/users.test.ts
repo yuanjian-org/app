@@ -33,7 +33,7 @@ describe("updateWechatUnionId", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    if (transaction) await transaction.rollback();
   });
 
   it("should delete accounts table rows for both old and new wechatUnionIds", async () => {
@@ -90,5 +90,24 @@ describe("updateWechatUnionId", () => {
     // Verify user's wechatUnionId was updated
     const updatedUser = await db.User.findByPk(testUser.id, { transaction });
     expect(updatedUser?.wechatUnionId).to.equal(newWechatUnionId);
+  });
+
+  it("should set wechatUnionId to null if null is provided", async () => {
+    await updateWechatUnionId(["UserManager"], testUser.id, null, transaction);
+
+    const updatedUser = await db.User.findByPk(testUser.id, { transaction });
+    expect(updatedUser?.wechatUnionId).to.equal(null);
+  });
+
+  it("should do nothing if undefined is provided", async () => {
+    await updateWechatUnionId(
+      ["UserManager"],
+      testUser.id,
+      undefined,
+      transaction,
+    );
+
+    const updatedUser = await db.User.findByPk(testUser.id, { transaction });
+    expect(updatedUser?.wechatUnionId).to.equal(oldWechatUnionId);
   });
 });
