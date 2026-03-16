@@ -68,6 +68,10 @@ export const ip = () =>
       clientIp = ctx.req.connection.remoteAddress;
     }
 
+    console.log(
+      `ip() middleware resolved client IP: ${clientIp} | X-Forwarded-For: ${ctx.req.headers["x-forwarded-for"]} | remoteAddress: ${ctx.req.connection?.remoteAddress}`,
+    );
+
     return await next({
       ctx: {
         ...ctx,
