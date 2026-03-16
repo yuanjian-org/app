@@ -4,6 +4,7 @@ import Role, { isPermitted } from "../shared/Role";
 import apiEnv from "./apiEnv";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
+import crypto from "crypto";
 
 /**
  * Authenticate for APIs used by applications as opposed to end users. Usage:
@@ -17,7 +18,16 @@ export const authIntegration = () =>
       ctx.req.headers["authorization"]?.split(" ")[1];
 
     if (!token) throw unauthorizedError();
-    if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
+
+    const expected = apiEnv.INTEGRATION_AUTH_TOKEN;
+    if (
+      !expected ||
+      token.length !== expected.length ||
+      !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+    ) {
+      throw invalidTokenError();
+    }
+
     return await next({ ctx: { baseUrl: ctx.baseUrl } });
   });
 
@@ -52,12 +62,22 @@ export const authUser = (permitted?: Role | Role[]) =>
  */
 export const ip = () =>
   middleware(async ({ ctx, next }) => {
+    const xForwardedFor = ctx.req.headers["x-forwarded-for"];
+    let clientIp: string | undefined;
+
+    if (typeof xForwardedFor === "string") {
+      // The last IP in X-Forwarded-For is the one added by our trusted proxy
+      // (Nginx). This prevents IP spoofing by clients who might provide their
+      // own X-Forwarded-For header.
+      clientIp = xForwardedFor.split(",").pop()?.trim();
+    } else if (Array.isArray(xForwardedFor)) {
+      clientIp = xForwardedFor[xForwardedFor.length - 1]?.trim();
+    }
+
     return await next({
       ctx: {
         ...ctx,
-        ip:
-          ctx.req.headers["x-forwarded-for"] ||
-          ctx.req.connection.remoteAddress,
+        ip: clientIp || ctx.req.socket.remoteAddress,
       },
     });
   });
