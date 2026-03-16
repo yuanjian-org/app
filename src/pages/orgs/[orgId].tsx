@@ -60,7 +60,6 @@ export default widePage(() => {
   const leaveMutation = trpcNext.orgs.leave.useMutation();
   const removeMentorMutation = trpcNext.orgs.removeMentor.useMutation();
 
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [description, setDescription] = useState("");
 
@@ -108,8 +107,6 @@ export default widePage(() => {
     }
   };
 
-
-
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <VStack align="stretch" spacing={sectionSpacing}>
@@ -148,7 +145,6 @@ export default widePage(() => {
                       编辑介绍
                     </MenuItem>
                   )}
-
                 </MenuList>
               </Menu>
             )}
