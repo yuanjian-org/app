@@ -4,24 +4,32 @@ import { generalBadRequestError } from "../../errors";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 import submitExam from "./exam";
+import { Transaction } from "sequelize";
+import sequelize from "../../database/sequelize";
 
 /**
  * The Webhook for all 金数据 forms.
  */
-export default procedure
-  .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input }) => await submit(input));
+export default procedure.input(z.record(z.string(), z.any())).mutation(
+  async ({ input }) =>
+    await sequelize.transaction(async (transaction) => {
+      await submit(input, transaction);
+    }),
+);
 
-export async function submit({ form, entry }: Record<string, any>) {
+export async function submit(
+  { form, entry }: Record<string, any>,
+  transaction: Transaction,
+) {
   switch (form) {
     case "FBTWTe":
     case "S74k0V":
     case "Z82u8w":
-      await submitMenteeApp(form, entry);
+      await submitMenteeApp(form, entry, transaction);
       break;
 
     case "OzuvWD":
-      await submitVolunteerApp(entry);
+      await submitVolunteerApp(entry, transaction);
       break;
 
     case "Bz3uSO":
