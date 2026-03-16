@@ -5,7 +5,10 @@ import { trpcNext } from "trpc";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 
 export default function VolunteerStudyCard() {
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery(undefined, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   return (
     <ResponsiveCard>

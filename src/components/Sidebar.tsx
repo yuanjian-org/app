@@ -425,7 +425,10 @@ function ImpersonationBanner() {
 }
 
 function DemoBanner() {
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery(undefined, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   return !isDemo ? (
     <></>

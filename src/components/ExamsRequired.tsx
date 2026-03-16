@@ -10,7 +10,10 @@ import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery(undefined, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   const commsExamRequired = useMemo(() => {
     if (state === undefined || isDemo === undefined) return undefined;
