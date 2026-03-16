@@ -23,6 +23,7 @@ export const authIntegration = () =>
     if (
       !expected ||
       token.length !== expected.length ||
+      // Use timingSafeEqual to prevent timing attacks.
       !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
     ) {
       throw invalidTokenError();
@@ -62,22 +63,12 @@ export const authUser = (permitted?: Role | Role[]) =>
  */
 export const ip = () =>
   middleware(async ({ ctx, next }) => {
-    const xForwardedFor = ctx.req.headers["x-forwarded-for"];
-    let clientIp: string | undefined;
-
-    if (typeof xForwardedFor === "string") {
-      // The last IP in X-Forwarded-For is the one added by our trusted proxy
-      // (Nginx). This prevents IP spoofing by clients who might provide their
-      // own X-Forwarded-For header.
-      clientIp = xForwardedFor.split(",").pop()?.trim();
-    } else if (Array.isArray(xForwardedFor)) {
-      clientIp = xForwardedFor[xForwardedFor.length - 1]?.trim();
-    }
-
     return await next({
       ctx: {
         ...ctx,
-        ip: clientIp || ctx.req.socket.remoteAddress,
+        ip:
+          ctx.req.headers["x-forwarded-for"] ||
+          ctx.req.connection.remoteAddress,
       },
     });
   });
