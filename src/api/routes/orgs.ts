@@ -2,7 +2,7 @@ import { z } from "zod";
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { zOrg, zOrgWithMembers } from "../../shared/Org";
+import { zOrg, zOrgWithMembers, OrgWithMembers } from "../../shared/Org";
 import { isPermitted } from "../../shared/Role";
 import { noPermissionError, notFoundError } from "../errors";
 import { minUserAttributes } from "../database/models/attributesAndIncludes";
@@ -18,7 +18,10 @@ export async function listOrgsImpl(transaction: Transaction) {
   });
 }
 
-export async function getOrgImpl(id: string, transaction: Transaction) {
+export async function getOrgImpl(
+  id: string,
+  transaction: Transaction,
+): Promise<OrgWithMembers> {
   const org = await db.Org.findByPk(id, {
     include: [
       {
@@ -39,7 +42,7 @@ export async function getOrgImpl(id: string, transaction: Transaction) {
     throw notFoundError("机构", id);
   }
 
-  return org as unknown as z.infer<typeof zOrgWithMembers>;
+  return org as unknown as OrgWithMembers;
 }
 
 export async function createOrgImpl(
