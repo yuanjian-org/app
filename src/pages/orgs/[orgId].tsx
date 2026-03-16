@@ -59,7 +59,6 @@ export default widePage(() => {
   const joinMutation = trpcNext.orgs.join.useMutation();
   const leaveMutation = trpcNext.orgs.leave.useMutation();
   const removeMentorMutation = trpcNext.orgs.removeMentor.useMutation();
-  const removeOrgMutation = trpcNext.orgs.remove.useMutation();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [description, setDescription] = useState("");
@@ -108,14 +107,6 @@ export default widePage(() => {
     }
   };
 
-  const handleRemoveOrg = async () => {
-    if (confirm("确定要删除该机构吗？此操作不可撤销。")) {
-      await removeOrgMutation.mutateAsync(orgId);
-      void router.push("/orgs");
-      toast.success("机构已删除");
-    }
-  };
-
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <VStack align="stretch" spacing={sectionSpacing}>
@@ -152,15 +143,6 @@ export default widePage(() => {
                   {canEdit && (
                     <MenuItem icon={<EditIcon />} onClick={onOpen}>
                       编辑介绍
-                    </MenuItem>
-                  )}
-                  {isGlobalAdmin && (
-                    <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={handleRemoveOrg}
-                      color="red.500"
-                    >
-                      删除机构
                     </MenuItem>
                   )}
                 </MenuList>
