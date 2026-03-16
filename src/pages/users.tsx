@@ -50,18 +50,10 @@ import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 import { toast } from "react-toastify";
-import { GetServerSideProps } from "next";
-import { isDemo } from "shared/isDemo";
+import useIsDemo from "components/useIsDemo";
 
-export const getServerSideProps: GetServerSideProps<{
-  isDemo: boolean;
-}> = () =>
-  Promise.resolve({
-    props: { isDemo: isDemo() },
-  });
-
-export default widePage((props: any) => {
-  const { isDemo } = props;
+export default widePage(() => {
+  const { data: isDemo } = useIsDemo();
   const [includeMerged, setIncludeMerged] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
@@ -109,7 +101,7 @@ export default widePage((props: any) => {
           </WrapItem>
         </Wrap>
 
-        {!users ? (
+        {!users || isDemo === undefined ? (
           <Loader />
         ) : (
           <TableContainer>

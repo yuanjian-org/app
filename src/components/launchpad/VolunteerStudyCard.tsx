@@ -1,14 +1,11 @@
 import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
-import { trpcNext } from "trpc";
 import LaunchpadCardItem from "./LaunchpadCardItem";
+import useIsDemo from "components/useIsDemo";
 
 export default function VolunteerStudyCard() {
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery(undefined, {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-  });
+  const { data: isDemo } = useIsDemo();
 
   return (
     <ResponsiveCard>
