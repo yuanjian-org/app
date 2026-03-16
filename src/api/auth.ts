@@ -2,7 +2,6 @@ import { ip } from "./ip";
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import Role, { isPermitted } from "../shared/Role";
-import apiEnv from "./apiEnv";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import crypto from "crypto";
@@ -20,7 +19,7 @@ export const authIntegration = () =>
 
     if (!token) throw unauthorizedError();
 
-    const expected = apiEnv.INTEGRATION_AUTH_TOKEN;
+    const expected = process.env.INTEGRATION_AUTH_TOKEN;
     if (
       !expected ||
       token.length !== expected.length ||

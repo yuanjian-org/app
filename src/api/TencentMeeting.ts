@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import qs from "qs";
-import apiEnv from "./apiEnv";
 import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
@@ -89,8 +88,8 @@ const tmRequest = async (
   const bodyText = method === "GET" ? "" : JSON.stringify(body);
 
   const signature = sign(
-    apiEnv.TM_SECRET_ID,
-    apiEnv.TM_SECRET_KEY,
+    process.env.TM_SECRET_ID || "",
+    process.env.TM_SECRET_KEY || "",
     method,
     nonce,
     now,
@@ -102,9 +101,9 @@ const tmRequest = async (
     // "Accept": "*/*",
     // "Accept-Encoding": "gzip, deflate",
     "Content-Type": "application/json",
-    "X-TC-Key": apiEnv.TM_SECRET_ID,
-    AppId: apiEnv.TM_ENTERPRISE_ID,
-    SdkId: apiEnv.TM_APP_ID,
+    "X-TC-Key": process.env.TM_SECRET_ID || "",
+    AppId: process.env.TM_ENTERPRISE_ID || "",
+    SdkId: process.env.TM_APP_ID || "",
     "X-TC-Timestamp": "" + now,
     "X-TC-Nonce": "" + nonce,
     "X-TC-Signature": signature,

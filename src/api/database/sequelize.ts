@@ -1,10 +1,9 @@
 import { Sequelize } from "sequelize-typescript";
 import pg from "pg";
-import apiEnv from "../apiEnv";
 import { hookIsPartialAfterSequelizeInit } from "./modelHelpers/ZodColumn";
 import db from "./db";
 
-const sequelize = new Sequelize(apiEnv.DATABASE_URI, {
+const sequelize = new Sequelize(process.env.DATABASE_URI || "", {
   models: Object.values(db),
   logging: false,
   dialectModule: pg,
