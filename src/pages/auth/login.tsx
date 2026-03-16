@@ -42,7 +42,6 @@ import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
 import useIsDemo from "components/useIsDemo";
-import PageLoader from "components/PageLoader";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -81,10 +80,6 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
   const isMobileBrowser = /Mobile/i.test(navigator.userAgent);
   const isWechatBrowser = /MicroMessenger/i.test(navigator.userAgent);
-
-  if (isDemo === undefined) {
-    return <PageLoader />;
-  }
 
   const wechatTab = {
     name: "微信",
