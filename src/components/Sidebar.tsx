@@ -29,6 +29,7 @@ import useMe, { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
+import useIsDemo from "./useIsDemo";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -425,7 +426,7 @@ function ImpersonationBanner() {
 }
 
 function DemoBanner() {
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = useIsDemo();
 
   return !isDemo ? (
     <></>

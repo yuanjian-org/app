@@ -41,7 +41,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
-import { isDemo } from "shared/isDemo";
+import useIsDemo from "components/useIsDemo";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -60,15 +60,15 @@ function useCallbackUrl() {
 
 type ServerSideProps = {
   wechatQRAppId: string;
-  isDemo: boolean;
 };
 
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
  * logging in.
  */
-export default function Page({ wechatQRAppId, isDemo }: ServerSideProps) {
+export default function Page({ wechatQRAppId }: ServerSideProps) {
   const router = useRouter();
+  const { data: isDemo } = useIsDemo();
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
@@ -502,6 +502,5 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = () =>
   Promise.resolve({
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
-      isDemo: isDemo(),
     },
   });

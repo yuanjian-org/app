@@ -1,4 +1,5 @@
 import { trpcNext } from "trpc";
+import useIsDemo from "./useIsDemo";
 import { Flex, Link } from "@chakra-ui/react";
 import { maxTextWidth } from "theme/metrics";
 import invariant from "shared/invariant";
@@ -10,7 +11,7 @@ import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = useIsDemo();
 
   const commsExamRequired = useMemo(() => {
     if (state === undefined || isDemo === undefined) return undefined;
