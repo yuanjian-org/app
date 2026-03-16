@@ -39,7 +39,7 @@ export async function getOrgImpl(id: string, transaction: Transaction) {
     throw notFoundError("机构", id);
   }
 
-  return org as any;
+  return org as unknown as z.infer<typeof zOrgWithMembers>;
 }
 
 export async function createOrgImpl(
