@@ -5,6 +5,7 @@ import Role, { isPermitted } from "../shared/Role";
 import apiEnv from "./apiEnv";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
+import crypto from "crypto";
 
 /**
  * Authenticate for APIs used by applications as opposed to end users. Usage:
@@ -18,7 +19,17 @@ export const authIntegration = () =>
       ctx.req.headers["authorization"]?.split(" ")[1];
 
     if (!token) throw unauthorizedError();
-    if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
+
+    const expected = apiEnv.INTEGRATION_AUTH_TOKEN;
+    if (
+      !expected ||
+      token.length !== expected.length ||
+      // Use timingSafeEqual to prevent timing attacks.
+      !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+    ) {
+      throw invalidTokenError();
+    }
+
     return await next({ ctx: { baseUrl: ctx.baseUrl } });
   });
 
