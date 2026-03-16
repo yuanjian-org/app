@@ -42,7 +42,7 @@ export async function getOrgImpl(
     throw notFoundError("机构", id);
   }
 
-  return org as unknown as OrgWithMembers;
+  return org;
 }
 
 export async function createOrgImpl(
