@@ -132,14 +132,14 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: "MentorshipManager",
   },
   {
-    name: "全局设置",
-    action: "/global",
-    roles: "MentorshipManager",
-  },
-  {
     name: "入驻机构",
     action: "/orgs/manage",
     roles: "OrgAdmin",
+  },
+  {
+    name: "全局设置",
+    action: "/global",
+    roles: "MentorshipManager",
   },
 ];
 
