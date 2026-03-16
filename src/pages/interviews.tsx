@@ -303,7 +303,9 @@ function Applicant({
         <TdEditLink>{interview && interview.calibration?.name}</TdEditLink>
 
         {/* 拼音 */}
-        <TdEditLink>{toPinyin(applicant.name ?? "")}</TdEditLink>
+        <TdEditLink translate="no" className="notranslate">
+          {toPinyin(applicant.name ?? "")}
+        </TdEditLink>
       </Tr>
     </>
   );
