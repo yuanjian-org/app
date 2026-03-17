@@ -83,6 +83,9 @@
     "cypress-open": "cypress open",
     "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node --require tsconfig-paths/register tools/migrateDatabase.ts; fi"
   },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
