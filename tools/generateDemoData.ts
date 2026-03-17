@@ -1,3 +1,4 @@
+import "dotenv/config";
 import sequelize from "../src/api/database/sequelize";
 import { generateDemoData } from "../src/api/routes/generateDemoData";
 

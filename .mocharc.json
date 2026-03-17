@@ -1,6 +1,7 @@
 {
   "require": [
     "@babel/register",
-    "regenerator-runtime/runtime"
+    "regenerator-runtime/runtime",
+    "dotenv/config"
   ]
 }
