@@ -1,7 +1,6 @@
 import { middleware, procedure } from "../../trpc";
 import z from "zod";
-import { generalBadRequestError } from "../../errors";
-import { TRPCError } from "@trpc/server";
+import { generalBadRequestError, internalServerError } from "../../errors";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 import submitExam from "./exam";
@@ -10,10 +9,7 @@ import sequelize from "../../database/sequelize";
 
 const webhookAuth = middleware(async ({ next }) => {
   if (!process.env.WEBHOOK_TOKEN) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "WEBHOOK_TOKEN is required but not set.",
-    });
+    throw internalServerError("WEBHOOK_TOKEN is required but not set.");
   }
   return await next();
 });

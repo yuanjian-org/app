@@ -5,6 +5,7 @@ import Role, { isPermitted } from "../shared/Role";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import crypto from "crypto";
+import { internalServerError } from "./errors";
 
 /**
  * Authenticate for APIs used by applications as opposed to end users. Usage:
@@ -20,8 +21,11 @@ export const authIntegration = () =>
     if (!token) throw unauthorizedError();
 
     const expected = process.env.INTEGRATION_AUTH_TOKEN;
+    if (!expected) {
+      throw internalServerError("INTEGRATION_AUTH_TOKEN is not set.");
+    }
+
     if (
-      !expected ||
       token.length !== expected.length ||
       // Use timingSafeEqual to prevent timing attacks.
       !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
