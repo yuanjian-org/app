@@ -18,6 +18,7 @@ import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
 import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
+import getBaseUrl from "../../shared/getBaseUrl";
 
 export const gracePeriodMinutes = 5;
 
@@ -30,7 +31,7 @@ export const gracePeriodMinutes = 5;
 const join = procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
-  .mutation(async ({ ctx: { me, baseUrl }, input: { groupId } }) => {
+  .mutation(async ({ ctx: { me }, input: { groupId } }) => {
     const g = await db.Group.findByPk(groupId, {
       attributes: groupAttributes,
       include: groupInclude,
@@ -92,6 +93,7 @@ const join = procedure
               attributes: ["groupId"],
               transaction,
             });
+            const baseUrl = getBaseUrl();
             const content =
               `试图发起会议的分组：${baseUrl}/groups/${groupId}。
             会议进行中的分组：` +

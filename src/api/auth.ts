@@ -30,7 +30,7 @@ export const authIntegration = () =>
       throw invalidTokenError();
     }
 
-    return await next({ ctx: { baseUrl: ctx.baseUrl } });
+    return await next({ ctx: {} });
   });
 
 /**
@@ -51,8 +51,6 @@ export const authUser = (permitted?: Role | Role[]) =>
     return await next({
       ctx: {
         me: session.user,
-        // TODO: remove this field. Use getBaseUrl() instead.
-        baseUrl: ctx.baseUrl,
         session,
       },
     });
