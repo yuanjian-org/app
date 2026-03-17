@@ -7,6 +7,10 @@ import { internalServerError } from "./errors";
 
 const LOG_HEADER = "[TecentMeeting]";
 
+export function getTmUserIds(): string[] {
+  return (process.env.TM_USER_IDS || "").split(",").filter(Boolean);
+}
+
 const splitFirst = (s: string, separator: string) => {
   const idx = s.indexOf(separator);
   if (idx < 0) return [s];

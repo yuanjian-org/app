@@ -2,7 +2,11 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
+import {
+  createRecurringMeeting,
+  getMeeting,
+  getTmUserIds,
+} from "../TencentMeeting";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
 import sequelize from "api/database/sequelize";
@@ -38,7 +42,7 @@ const join = procedure
 
     checkPermissionForGroup(me, g);
 
-    if (!(process.env.TM_SECRET_KEY && process.env.TM_SECRET_KEY !== "DUMMY")) {
+    if (!process.env.TM_SECRET_KEY) {
       await sleep(2000);
       return "/fake-meeting";
     }
@@ -215,8 +219,7 @@ export async function syncMeetings() {
  * low.
  */
 export async function recycleMeetings() {
-  const tmUserIds = (process.env.TM_USER_IDS || "").split(",").filter(Boolean);
-  for (const tmUserId of tmUserIds) {
+  for (const tmUserId of getTmUserIds()) {
     await sequelize.transaction(async (transaction) => {
       const slot = await db.MeetingSlot.findOne({
         where: { tmUserId },
