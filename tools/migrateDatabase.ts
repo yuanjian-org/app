@@ -1,3 +1,4 @@
+import "dotenv/config";
 import sequelize from "../src/api/database/sequelize";
 import { migrateDatabase } from "../src/api/routes/migration";
 import { wechatAdapter } from "../src/pages/api/auth/[...nextauth]";
