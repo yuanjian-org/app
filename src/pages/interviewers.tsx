@@ -180,7 +180,9 @@ function Row({
       <Td>{user.wechat}</Td>
 
       {/* 拼音 */}
-      <Td>{toPinyin(user.name ?? "")}</Td>
+      <Td translate="no" className="notranslate">
+        {toPinyin(user.name ?? "")}
+      </Td>
     </Tr>
   );
 }

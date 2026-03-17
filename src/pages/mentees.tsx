@@ -435,7 +435,7 @@ function MenteeRow({
     (names: string[]) => {
       if (names.length) {
         setPinyins(
-          `${menteePinyin},${names.map((n) => toPinyin(n)).join(",")}`,
+          `${menteePinyin}, ${names.map((n) => toPinyin(n)).join(", ")}`,
         );
       }
     },
@@ -470,7 +470,9 @@ function MenteeRow({
         prefix={mentorReviewMessagePrefix}
         setData={setLastMentorReviewDate}
       />
-      <Td>{pinyin}</Td>
+      <Td translate="no" className="notranslate">
+        {pinyin}
+      </Td>
     </Tr>
   );
 }

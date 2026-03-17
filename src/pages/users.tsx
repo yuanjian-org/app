@@ -210,7 +210,11 @@ function UserTable({
               </Link>
             </Td>
 
-            <Td onClick={() => setUserBeingEdited(u)}>
+            <Td
+              onClick={() => setUserBeingEdited(u)}
+              translate="no"
+              className="notranslate"
+            >
               {toPinyin(u.name ?? "")}
             </Td>
 
