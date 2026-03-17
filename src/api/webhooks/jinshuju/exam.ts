@@ -5,11 +5,13 @@ import { generalBadRequestError, notFoundError } from "../../errors";
 import sequelize from "../../database/sequelize";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
+import { Transaction } from "sequelize";
 
 export default async function submit(
   formEntry: Record<string, any>,
   exam: keyof UserState,
   passingScore: number,
+  parentTransaction?: Transaction,
 ) {
   const userId = decodeXField(formEntry);
   if (!userId) {
@@ -22,7 +24,7 @@ export default async function submit(
     return;
   }
 
-  await sequelize.transaction(async (transaction) => {
+  const execute = async (transaction: Transaction) => {
     const u = await db.User.findByPk(userId, {
       attributes: ["id", "state"],
       transaction,
@@ -52,5 +54,11 @@ export default async function submit(
         { where: { assigneeId: userId, autoTaskId }, transaction },
       );
     }
-  });
+  };
+
+  if (parentTransaction) {
+    await execute(parentTransaction);
+  } else {
+    await sequelize.transaction(execute);
+  }
 }
