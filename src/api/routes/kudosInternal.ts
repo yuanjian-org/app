@@ -20,6 +20,26 @@ export default async function createKudos(
     throw generalBadRequestError("User cannot send kudos to themselves");
   }
 
+  // Can't use db.User.increment because it doesn't support incrementing a
+  // null field.
+  let user;
+  try {
+    user = await db.User.findByPk(receiverId, {
+      attributes: ["id", "likes", "kudos"],
+      transaction,
+    });
+  } catch (error: any) {
+    if (
+      error.name === "SequelizeDatabaseError" &&
+      error.parent?.code === "22P02"
+    ) {
+      // invalid input syntax for type uuid
+      throw notFoundError("用户", receiverId);
+    }
+    throw error;
+  }
+  if (!user) throw notFoundError("用户", receiverId);
+
   await db.Kudos.create(
     {
       receiverId,
@@ -28,14 +48,6 @@ export default async function createKudos(
     },
     { transaction },
   );
-
-  // Can't use db.User.increment because it doesn't support incrementing a
-  // null field.
-  const user = await db.User.findByPk(receiverId, {
-    attributes: ["id", "likes", "kudos"],
-    transaction,
-  });
-  if (!user) throw notFoundError("用户", receiverId);
 
   await user.update(
     {
