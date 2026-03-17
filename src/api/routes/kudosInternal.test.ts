@@ -99,7 +99,7 @@ describe("Kudos Internal Functions", () => {
       } catch (err: any) {
         expect(err.name).to.equal("TRPCError");
         expect(err.code).to.equal("NOT_FOUND");
-        expect(err.message).to.equal("找不到目标：用户 non-existent-id");
+        expect(err.message).to.equal("用户 non-existent-id 不存在。");
       }
     });
   });
