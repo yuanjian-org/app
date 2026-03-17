@@ -562,9 +562,79 @@ function Mentor({
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
 }) {
+  const { data: orgs } = trpcNext.orgs.list.useQuery();
+  const { data: mentorOrgs, refetch: refetchMentorOrgs } =
+    trpcNext.orgs.getMentorOrgs.useQuery(user.id);
+  const joinMutation = trpcNext.orgs.join.useMutation();
+  const leaveMutation = trpcNext.orgs.leave.useMutation();
+  const myId = useMyId();
+  const isMe = myId === user.id;
+
+  const handleOrgChange = async (orgId: string, isJoined: boolean) => {
+    try {
+      if (isJoined) {
+        await leaveMutation.mutateAsync(orgId);
+      } else {
+        await joinMutation.mutateAsync(orgId);
+      }
+      void refetchMentorOrgs();
+      toast.success("机构更新成功");
+    } catch {
+      toast.error("机构更新失败");
+    }
+  };
+
   return (
     <>
       <Heading size="md">导师信息</Heading>
+      <FormControl>
+        <FormLabel>所属机构</FormLabel>
+        {isMe ? (
+          <>
+            <FormHelperTextWithMargin>
+              请选择你所在的机构，机构将显示在你的个人资料中。
+            </FormHelperTextWithMargin>
+            <Stack spacing={2} direction="column">
+              {orgs?.map((org) => {
+                const isJoined =
+                  mentorOrgs?.some((o) => o.id === org.id) ?? false;
+                return (
+                  <Button
+                    key={org.id}
+                    size="sm"
+                    variant={isJoined ? "solid" : "outline"}
+                    colorScheme={isJoined ? "brand" : "gray"}
+                    justifyContent="flex-start"
+                    onClick={() => handleOrgChange(org.id, isJoined)}
+                    isLoading={
+                      joinMutation.isLoading || leaveMutation.isLoading
+                    }
+                  >
+                    {org.name}
+                  </Button>
+                );
+              })}
+            </Stack>
+          </>
+        ) : (
+          <Stack spacing={2} direction="row" flexWrap="wrap">
+            {mentorOrgs && mentorOrgs.length > 0 ? (
+              mentorOrgs.map((org) => (
+                <Tag
+                  key={org.id}
+                  size="md"
+                  colorScheme="brand"
+                  borderRadius="full"
+                >
+                  {org.name}
+                </Tag>
+              ))
+            ) : (
+              <Text color="gray.500">暂无机构</Text>
+            )}
+          </Stack>
+        )}
+      </FormControl>
       <Text>
         这些信息是学生了解导师的重要渠道，是他们了解并选择
         <Link target="_blank" href="/s/match">

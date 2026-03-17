@@ -56,8 +56,6 @@ export default widePage(() => {
   const [selectedMentor, setSelectedMentor] = useState<OrgMentor | null>(null);
 
   const updateDescMutation = trpcNext.orgs.updateDescription.useMutation();
-  const joinMutation = trpcNext.orgs.join.useMutation();
-  const leaveMutation = trpcNext.orgs.leave.useMutation();
   const removeMentorMutation = trpcNext.orgs.removeMentor.useMutation();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -74,26 +72,12 @@ export default widePage(() => {
   const isOwner = org.owners.some((o) => o.id === me.id);
   const isGlobalAdmin = isPermitted(me.roles, "OrgAdmin");
   const canEdit = isGlobalAdmin || isOwner;
-  const isMentor = isPermitted(me.roles, "Mentor");
-  const isMember = org.mentors.some((m) => m.id === me.id);
 
   const handleUpdateDescription = async () => {
     await updateDescMutation.mutateAsync({ id: orgId, description });
     void refetch();
     onClose();
     toast.success("介绍已更新");
-  };
-
-  const handleJoin = async () => {
-    await joinMutation.mutateAsync(orgId);
-    void refetch();
-    toast.success("已加入机构");
-  };
-
-  const handleLeave = async () => {
-    await leaveMutation.mutateAsync(orgId);
-    void refetch();
-    toast.success("已离开机构");
   };
 
   const handleRemoveMentor = async (mentorId: string) => {
@@ -121,16 +105,6 @@ export default widePage(() => {
           </VStack>
 
           <HStack>
-            {isMentor && (
-              <Button
-                colorScheme={isMember ? "gray" : "brand"}
-                onClick={isMember ? handleLeave : handleJoin}
-                isLoading={joinMutation.isLoading || leaveMutation.isLoading}
-              >
-                {isMember ? "离开机构" : "加入机构"}
-              </Button>
-            )}
-
             {(canEdit || isGlobalAdmin) && (
               <Menu>
                 <MenuButton
