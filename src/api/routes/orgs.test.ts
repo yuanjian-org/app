@@ -4,6 +4,7 @@ import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
   listOrgsImpl,
+  listUserOrgsImpl,
   getOrgImpl,
   createOrgImpl,
   removeOrgImpl,
@@ -24,6 +25,32 @@ describe("orgs API routes", () => {
 
   afterEach(async () => {
     await transaction.rollback();
+  });
+
+  describe("listUserOrgsImpl", () => {
+    it("should list all orgs the user is a mentor of in alphabetical order", async () => {
+      const mentor = await db.User.create(
+        { email: "user@test.com", name: "User" },
+        { transaction },
+      );
+
+      const org1 = await db.Org.create({ name: "Z Org" }, { transaction });
+      const org2 = await db.Org.create({ name: "A Org" }, { transaction });
+
+      await db.OrgMentor.create(
+        { orgId: org1.id, mentorId: mentor.id },
+        { transaction },
+      );
+      await db.OrgMentor.create(
+        { orgId: org2.id, mentorId: mentor.id },
+        { transaction },
+      );
+
+      const userOrgs = await listUserOrgsImpl(mentor.id, transaction);
+      void expect(userOrgs.length).to.equal(2);
+      void expect(userOrgs[0].name).to.equal("A Org");
+      void expect(userOrgs[1].name).to.equal("Z Org");
+    });
   });
 
   describe("listOrgsImpl", () => {
