@@ -14,6 +14,12 @@ import {
   menteeExpectedGraduationYearField,
   menteeFirstYearInCollegeField,
   menteeExpectationField,
+  menteeUniqueQualityField,
+  menteeIsFirstTierField,
+  menteeCoopRecommendField,
+  menteeProudExperienceField,
+  menteeCommunityExperienceField,
+  menteeIdealField,
 } from "../../shared/applicationFields";
 
 /**
@@ -169,12 +175,12 @@ function redactMenteeApplication(application: any): {
     menteeDegreeField,
     menteeExpectedGraduationYearField,
     menteeFirstYearInCollegeField,
-    "你最与众不同的品质是什么？",
-    "本科是否是第一批次（一本）？",
-    "合作机构推荐文字",
-    "请例举一到三个最让你为自己感到骄傲的经历或成果。",
-    "请例举并概述你组织或参加社团工作、社会活动、社区服务等的经历和体会。",
-    "你的理想是什么？为什么？如何实现？有可能遇到什么样的困难？如何降低这些困难带来的风险？建议五百字以上：",
+    menteeUniqueQualityField,
+    menteeIsFirstTierField,
+    menteeCoopRecommendField,
+    menteeProudExperienceField,
+    menteeCommunityExperienceField,
+    menteeIdealField,
     menteeExpectationField,
   ];
 

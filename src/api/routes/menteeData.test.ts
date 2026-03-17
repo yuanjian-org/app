@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import AdmZip from "adm-zip";
+import {
+  menteeUniqueQualityField,
+  menteeIsFirstTierField,
+} from "../../shared/applicationFields";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { AI_MINUTES_SUMMARY_KEY } from "./summaries";
@@ -98,8 +102,8 @@ describe("downloadMenteeDataImpl", () => {
           就读种类: "本科",
           预计毕业年份: "2028",
           大学一年级入学年份: "2024",
-          "你最与众不同的品质是什么？": "坚韧不拔",
-          "本科是否是第一批次（一本）？": "是",
+          [menteeUniqueQualityField]: "坚韧不拔",
+          [menteeIsFirstTierField]: "是",
         },
         menteeStatus: "现届学子",
       },
@@ -287,8 +291,8 @@ describe("downloadMenteeDataImpl", () => {
     expect(appData["就读种类"]).to.equal("本科");
     expect(appData["预计毕业年份"]).to.equal("2028");
     expect(appData["大学一年级入学年份"]).to.equal("2024");
-    expect(appData["你最与众不同的品质是什么？"]).to.equal("坚韧不拔");
-    expect(appData["本科是否是第一批次（一本）？"]).to.equal("是");
+    expect(appData[menteeUniqueQualityField]).to.equal("坚韧不拔");
+    expect(appData[menteeIsFirstTierField]).to.equal("是");
 
     // Verify menteeApplication.txt also has redaction
     const appTxtEntry = zip.getEntry("menteeApplication.txt");
