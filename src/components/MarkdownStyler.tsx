@@ -34,6 +34,10 @@ export default function MarkdownStyler({
        */}
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        /*
+         * rehypeRaw allows rendering raw HTML, but it's dangerous for XSS.
+         * rehypeSanitize is added to mitigate this by restricting HTML to a safe subset.
+         */
         {...(allowHtml ? { rehypePlugins: [rehypeRaw, rehypeSanitize] } : {})}
         // Avoid the propagation of clicking on a link to parent components.
         components={{
