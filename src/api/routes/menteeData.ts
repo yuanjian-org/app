@@ -13,6 +13,13 @@ import {
   menteeDegreeField,
   menteeExpectedGraduationYearField,
   menteeFirstYearInCollegeField,
+  menteeExpectationField,
+  menteeUniqueQualityField,
+  menteeIsFirstTierField,
+  menteeCoopRecommendField,
+  menteeProudExperienceField,
+  menteeCommunityExperienceField,
+  menteeIdealField,
 } from "../../shared/applicationFields";
 
 /**
@@ -168,6 +175,13 @@ function redactMenteeApplication(application: any): {
     menteeDegreeField,
     menteeExpectedGraduationYearField,
     menteeFirstYearInCollegeField,
+    menteeUniqueQualityField,
+    menteeIsFirstTierField,
+    menteeCoopRecommendField,
+    menteeProudExperienceField,
+    menteeCommunityExperienceField,
+    menteeIdealField,
+    menteeExpectationField,
   ];
 
   const redacted: any = {};
