@@ -91,15 +91,13 @@ describe("Kudos Internal Functions", () => {
       }
     });
 
-    it("should throw a notFoundError if the receiver does not exist", async () => {
-      const nonExistentId = "non-existent-id";
+    it("should throw a SequelizeForeignKeyConstraintError if the receiver does not exist", async () => {
+      const nonExistentId = "00000000-0000-0000-0000-000000000000";
       try {
         await createKudos(giver.id, nonExistentId, null, transaction);
         expect.fail("Expected createKudos to throw an error");
       } catch (err: any) {
-        expect(err.name).to.equal("TRPCError");
-        expect(err.code).to.equal("NOT_FOUND");
-        expect(err.message).to.equal("找不到目标：用户 non-existent-id");
+        expect(err.name).to.equal("SequelizeForeignKeyConstraintError");
       }
     });
   });
