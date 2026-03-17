@@ -72,6 +72,9 @@ jobs:
     - name: Run Tests
       run: yarn test
 
+    - name: Generate Demo Data
+      run: yarn gen-demo-data
+
   build:
     runs-on: ubuntu-latest
     needs: test
