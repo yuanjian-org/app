@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import AdmZip from "adm-zip";
+import {
+  menteeUniqueQualityField,
+  menteeIsFirstTierField,
+} from "../../shared/applicationFields";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { AI_MINUTES_SUMMARY_KEY } from "./summaries";
@@ -98,6 +102,8 @@ describe("downloadMenteeDataImpl", () => {
           就读种类: "本科",
           预计毕业年份: "2028",
           大学一年级入学年份: "2024",
+          [menteeUniqueQualityField]: "坚韧不拔",
+          [menteeIsFirstTierField]: "是",
         },
         menteeStatus: "现届学子",
       },
@@ -285,6 +291,8 @@ describe("downloadMenteeDataImpl", () => {
     expect(appData["就读种类"]).to.equal("本科");
     expect(appData["预计毕业年份"]).to.equal("2028");
     expect(appData["大学一年级入学年份"]).to.equal("2024");
+    expect(appData[menteeUniqueQualityField]).to.equal("坚韧不拔");
+    expect(appData[menteeIsFirstTierField]).to.equal("是");
 
     // Verify menteeApplication.txt also has redaction
     const appTxtEntry = zip.getEntry("menteeApplication.txt");
@@ -292,6 +300,7 @@ describe("downloadMenteeDataImpl", () => {
     expect(appTxt).to.include("【保护】");
     expect(appTxt).to.include("计算机科学");
     expect(appTxt).to.include("2024");
+    expect(appTxt).to.include("坚韧不拔");
     // Verify name anonymization - mentee name should be replaced with "学生"
     expect(appTxt).to.not.include(mentee.name);
     expect(appTxt).to.not.include("学生: "); // Should not add "学生: " field

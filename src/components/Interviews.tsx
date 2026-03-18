@@ -192,12 +192,12 @@ function InterviewRow({
       )}
 
       {forCalibration && (
-        <TdLink href={url}>
-          {toPinyin(i.interviewee.name ?? "")},
+        <TdLink href={url} translate="no" className="notranslate">
+          {toPinyin(i.interviewee.name ?? "")},{" "}
           {i.feedbacks
             .filter((f) => forCalibration || f.interviewer.id !== myId)
             .map((f) => toPinyin(f.interviewer.name ?? ""))
-            .join(",")}
+            .join(", ")}
         </TdLink>
       )}
     </Tr>

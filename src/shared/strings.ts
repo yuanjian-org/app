@@ -1,4 +1,4 @@
-import pinyin from "tiny-pinyin";
+import { pinyin } from "pinyin-pro";
 import nzh from "nzh";
 import moment from "moment";
 import crypto from "crypto";
@@ -11,13 +11,14 @@ import z from "zod";
 export const notSetText = "未设置";
 
 export function isValidChineseName(s: string | null): boolean {
-  return (
-    !!s && s.length >= 2 && pinyin.parse(s).every((token) => token.type === 2)
-  );
+  return !!s && s.length >= 2 && /^[\u4e00-\u9fa5]+$/.test(s);
 }
 
 export function toPinyin(s: string) {
-  return pinyin.convertToPinyin(s, /*separator=*/ "", /*lowerCase=*/ true);
+  return pinyin(s, { toneType: "none", type: "string", v: true }).replace(
+    /\s/g,
+    "",
+  );
 }
 
 /**

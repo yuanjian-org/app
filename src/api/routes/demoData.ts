@@ -64,7 +64,7 @@ const mentorProfile1: UserProfile = {
   照片链接:
     "https://gd-pri.jinshujufiles.com/en/Bz3uSO/Fn8IYiNdMlIW811y23f7OccFx2iJ_field_1_1773523164.jpg?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:fdmfZmxfoosmbes9hc5LxgRu5nU=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL0J6M3VTTy9GbjhJWWlOZE1sSVc4MTF5MjNmN09jY0Z4MmlKX2ZpZWxkXzFfMTc3MzUyMzE2NC5qcGcqIiwiRSI6MjA4OTA5MjY4OH0=&download&attname=f1.jpg",
   视频链接:
-    "https://gd-pri.jinshujufiles.com/en/nhFsf1/Fi1S5UKbZWBCLWeRY7vje_9bqsFN_field_1_1773526788.mp4?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:oxw_C6aCd3Q4NUj6PQKB7AIjdCU=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9GaTFTNVVLYlpXQkNMV2VSWTd2amVfOWJxc0ZOX2ZpZWxkXzFfMTc3MzUyNjc4OC5tcDQqIiwiRSI6MjA4OTA5NjMxMX0=&download&attname=2.mp4",
+    "https://gd-pri.jinshujufiles.com/en/nhFsf1/Fr6-6lc3HarEUh-QLM59dCLRd3vN_field_1_1773633989.mp4?token=7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:roeu_b2WcvhhqgV163NzqGSr0GI=:eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9GcjYtNmxjM0hhckVVaC1RTE01OWRDTFJkM3ZOX2ZpZWxkXzFfMTc3MzYzMzk4OS5tcDQqIiwiRSI6MjA4OTIwMzUxMn0=&download&attname=f1.mp4",
   专业领域: "互联网与信息技术、人工智能",
   个性特点: "充满热情、同理心强、善于倾听、好奇心旺盛、真诚幽默",
   喜爱读物:
