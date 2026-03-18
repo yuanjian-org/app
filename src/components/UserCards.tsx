@@ -259,9 +259,11 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
 
   return (
     <MyCard>
-      <CardBody onClick={markAsRead}>
+      <CardBody onClick={markAsRead} display="flex" flexDirection="column">
         <Flex
           direction="column"
+          flex={1}
+          minH={0}
           gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
         >
           <Flex justify="space-between">
@@ -278,8 +280,8 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           </Flex>
 
           <Box
-            // Force scrolling by setting maxH. Its value is empirically set.
-            maxH={type == "desktop" ? "600px" : "220px"}
+            flex={1}
+            minH={0}
             overflowY="auto"
             onScroll={markAsRead}
             // On mobile, the scroll event is not triggered by touch or drag.
