@@ -113,7 +113,7 @@ export default function Page() {
         )}
       </VStack>
 
-      <Autosaver data={editableFeedback} onSave={save} />
+      {editableFeedback && <Autosaver data={editableFeedback} onSave={save} />}
     </>
   );
 }

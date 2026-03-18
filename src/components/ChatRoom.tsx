@@ -423,7 +423,9 @@ function Editor({
         {...rest}
       />
 
-      <Autosaver data={markdown} onSave={saveDraft} />
+      {markdown !== undefined && (
+        <Autosaver data={markdown} onSave={saveDraft} />
+      )}
 
       <HStack width="100%" spacing={componentSpacing}>
         <Button
