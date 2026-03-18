@@ -2,7 +2,6 @@ import { decodeXField } from "../../../shared/jinshuju";
 import db from "../../database/db";
 import moment from "moment";
 import { generalBadRequestError, notFoundError } from "../../errors";
-import sequelize from "../../database/sequelize";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
 import { Transaction } from "sequelize";
@@ -11,7 +10,7 @@ export default async function submit(
   formEntry: Record<string, any>,
   exam: keyof UserState,
   passingScore: number,
-  parentTransaction?: Transaction,
+  transaction: Transaction,
 ) {
   const userId = decodeXField(formEntry);
   if (!userId) {
@@ -24,41 +23,33 @@ export default async function submit(
     return;
   }
 
-  const execute = async (transaction: Transaction) => {
-    const u = await db.User.findByPk(userId, {
-      attributes: ["id", "state"],
-      transaction,
-    });
-    if (!u) throw notFoundError("用户", userId);
+  const u = await db.User.findByPk(userId, {
+    attributes: ["id", "state"],
+    transaction,
+  });
+  if (!u) throw notFoundError("用户", userId);
 
-    // Update user state
-    await u.update(
-      {
-        state: {
-          ...u.state,
-          [exam]: moment().toISOString(),
-        },
+  // Update user state
+  await u.update(
+    {
+      state: {
+        ...u.state,
+        [exam]: moment().toISOString(),
       },
-      { transaction },
+    },
+    { transaction },
+  );
+
+  // Update task state
+  if (exam === "commsExam" || exam === "handbookExam") {
+    // Force type check
+    const autoTaskId: AutoTaskId =
+      exam === "commsExam" ? "study-comms" : "study-handbook";
+    await db.Task.update(
+      {
+        done: true,
+      },
+      { where: { assigneeId: userId, autoTaskId }, transaction },
     );
-
-    // Update task state
-    if (exam === "commsExam" || exam === "handbookExam") {
-      // Force type check
-      const autoTaskId: AutoTaskId =
-        exam === "commsExam" ? "study-comms" : "study-handbook";
-      await db.Task.update(
-        {
-          done: true,
-        },
-        { where: { assigneeId: userId, autoTaskId }, transaction },
-      );
-    }
-  };
-
-  if (parentTransaction) {
-    await execute(parentTransaction);
-  } else {
-    await sequelize.transaction(execute);
   }
 }
