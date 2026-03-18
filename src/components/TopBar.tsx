@@ -1,7 +1,8 @@
 import { Box, BoxProps, useDimensions } from "@chakra-ui/react";
 import { desktopSidebarWidth, sideBarBorderColor } from "components/Sidebar";
 import { useRef } from "react";
-import { breakpoint, pageMarginTop, componentSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { pageMarginTop, componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
 import { mobileSidbarIconLeftWithMargin, mobileSidbarIconTop } from "./Navbars";
 

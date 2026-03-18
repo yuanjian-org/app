@@ -22,7 +22,8 @@ import {
   GridProps,
 } from "@chakra-ui/react";
 import { formatUserName, toPinyin } from "shared/strings";
-import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
 import { UserProfile, StringUserProfile } from "shared/UserProfile";
 import { CardHeader, CardBody, CardFooter } from "@chakra-ui/react";

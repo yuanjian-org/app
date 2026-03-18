@@ -32,7 +32,8 @@ import {
   oneOnOneMessagePrefix,
   typedMessagePrefix,
 } from "shared/ChatMessage";
-import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { formatUserName, prettifyDate } from "shared/strings";
 import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";

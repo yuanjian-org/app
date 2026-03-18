@@ -27,7 +27,8 @@ import {
   UserProfile,
   StringUserProfile,
 } from "shared/UserProfile";
-import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
 import { useEffect, useMemo, useState } from "react";

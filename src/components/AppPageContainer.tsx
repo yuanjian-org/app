@@ -3,7 +3,8 @@ import Footer from "components/Footer";
 import { PropsWithChildren, useEffect } from "react";
 
 import NavBars from "components/Navbars";
-import { breakpoint, pageMarginTop } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { pageMarginTop } from "theme/metrics";
 import { AppPageType } from "AppPage";
 import { pageMarginX } from "theme/metrics";
 import PostLoginModels from "./PostLoginModels";
