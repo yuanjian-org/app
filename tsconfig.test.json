@@ -7,6 +7,8 @@
       "module": "commonjs",
       "isolatedModules": false
     },
+    // experimentalResolver and transpileOnly bypass strict ESM/CommonJS module resolution conflicts
+    // when running ts-node tests on Node >= 20, avoiding "Unknown file extension '.tsx'" and "ERR_MODULE_NOT_FOUND" errors.
     "experimentalResolver": true,
     "transpileOnly": true
   },
