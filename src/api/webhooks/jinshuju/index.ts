@@ -49,17 +49,17 @@ export async function submit(
 
     // /exams/interview
     case "w02l95":
-      await submitExam(entry, "menteeInterviewerExam", 110);
+      await submitExam(entry, "menteeInterviewerExam", 110, transaction);
       break;
 
     // /exams/handbook
     case "wqPdKE":
-      await submitExam(entry, "handbookExam", 100);
+      await submitExam(entry, "handbookExam", 100, transaction);
       break;
 
     // /exams/comms
     case "nsnx4G":
-      await submitExam(entry, "commsExam", 115);
+      await submitExam(entry, "commsExam", 115, transaction);
       break;
 
     default:
