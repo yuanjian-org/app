@@ -6,7 +6,9 @@
     "compilerOptions": {
       "module": "commonjs",
       "isolatedModules": false
-    }
+    },
+    "experimentalResolver": true,
+    "transpileOnly": true
   },
   "exclude": ["node_modules"],
   "include": ["**/*.test.ts"],
