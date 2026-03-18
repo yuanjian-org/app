@@ -138,5 +138,9 @@
     "sinon": "^21.0.0",
     "ts-node": "^10.9.1",
     "typescript-eslint": "^8.35.1"
+  },
+  "resolutions": {
+    "//": "To fix dependabot vulnerability #96. Cannot upgrade mocha beyond v10 due to ts-node ESM breaking changes.",
+    "serialize-javascript": "^7.0.3"
   }
 }
