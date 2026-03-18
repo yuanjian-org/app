@@ -259,9 +259,15 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
 
   return (
     <MyCard>
+      {/*
+        The CardBody is made a flex column container so its children can fill the
+        available vertical space.
+      */}
       <CardBody onClick={markAsRead} display="flex" flexDirection="column">
         <Flex
           direction="column"
+          // flex=1 and minH=0 allow the container to stretch and shrink properly
+          // within the parent flex column, enabling the inner list to scroll.
           flex={1}
           minH={0}
           gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
@@ -280,6 +286,7 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           </Flex>
 
           <Box
+            // Let the scrolling box take up the remaining vertical space.
             flex={1}
             minH={0}
             overflowY="auto"
