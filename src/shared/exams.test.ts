@@ -33,10 +33,14 @@ describe("Exams Requirements", () => {
     it("should work correctly with custom expiryDays", () => {
       const customExpiryDays = 300;
 
-      const expiredDate = new Date(Date.now() - (customExpiryDays + 1) * 86400000);
+      const expiredDate = new Date(
+        Date.now() - (customExpiryDays + 1) * 86400000,
+      );
       void expect(isExamExpired(expiredDate, customExpiryDays)).to.be.true;
 
-      const validDate = new Date(Date.now() - (customExpiryDays - 1) * 86400000);
+      const validDate = new Date(
+        Date.now() - (customExpiryDays - 1) * 86400000,
+      );
       void expect(isExamExpired(validDate, customExpiryDays)).to.be.false;
     });
   });
@@ -78,18 +82,18 @@ describe("calculateExamsRequired", () => {
       isDemo: false,
       isProdEnv: true,
     });
-    expect(res1.commsExamRequired).to.be.undefined;
-    expect(res1.interviewExamRequired).to.be.undefined;
-    expect(res1.handbookExamRequired).to.be.undefined;
+    void expect(res1.commsExamRequired).to.be.undefined;
+    void expect(res1.interviewExamRequired).to.be.undefined;
+    void expect(res1.handbookExamRequired).to.be.undefined;
 
     const res2 = calculateExamsRequired({
       state: {},
       isDemo: undefined,
       isProdEnv: true,
     });
-    expect(res2.commsExamRequired).to.be.undefined;
-    expect(res2.interviewExamRequired).to.be.undefined;
-    expect(res2.handbookExamRequired).to.be.undefined;
+    void expect(res2.commsExamRequired).to.be.undefined;
+    void expect(res2.interviewExamRequired).to.be.undefined;
+    void expect(res2.handbookExamRequired).to.be.undefined;
   });
 
   it("should return false for all if isProdEnv is false or isDemo is true", () => {
@@ -98,18 +102,18 @@ describe("calculateExamsRequired", () => {
       isDemo: false,
       isProdEnv: false,
     });
-    expect(res1.commsExamRequired).to.be.false;
-    expect(res1.interviewExamRequired).to.be.false;
-    expect(res1.handbookExamRequired).to.be.false;
+    void expect(res1.commsExamRequired).to.be.false;
+    void expect(res1.interviewExamRequired).to.be.false;
+    void expect(res1.handbookExamRequired).to.be.false;
 
     const res2 = calculateExamsRequired({
       state: {},
       isDemo: true,
       isProdEnv: true,
     });
-    expect(res2.commsExamRequired).to.be.false;
-    expect(res2.interviewExamRequired).to.be.false;
-    expect(res2.handbookExamRequired).to.be.false;
+    void expect(res2.commsExamRequired).to.be.false;
+    void expect(res2.interviewExamRequired).to.be.false;
+    void expect(res2.handbookExamRequired).to.be.false;
   });
 
   it("should require exams if state is empty (exams not passed) in prod and not demo", () => {
@@ -118,53 +122,63 @@ describe("calculateExamsRequired", () => {
       isDemo: false,
       isProdEnv: true,
     });
-    expect(res.commsExamRequired).to.be.true;
-    expect(res.interviewExamRequired).to.be.true;
-    expect(res.handbookExamRequired).to.be.true;
+    void expect(res.commsExamRequired).to.be.true;
+    void expect(res.interviewExamRequired).to.be.true;
+    void expect(res.handbookExamRequired).to.be.true;
   });
 
   it("should not require exams if passed recently in prod and not demo", () => {
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(Date.now() - 100 * 86400000).toISOString(),
-        menteeInterviewerExam: new Date(Date.now() - 100 * 86400000).toISOString(),
+        menteeInterviewerExam: new Date(
+          Date.now() - 100 * 86400000,
+        ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
       isDemo: false,
       isProdEnv: true,
     });
-    expect(res.commsExamRequired).to.be.false;
-    expect(res.interviewExamRequired).to.be.false;
-    expect(res.handbookExamRequired).to.be.false;
+    void expect(res.commsExamRequired).to.be.false;
+    void expect(res.interviewExamRequired).to.be.false;
+    void expect(res.handbookExamRequired).to.be.false;
   });
 
   it("should require comms and handbook exams after default expiry days", () => {
     const res = calculateExamsRequired({
       state: {
-        commsExam: new Date(Date.now() - (defaultExamExpiryDays + 1) * 86400000).toISOString(),
-        menteeInterviewerExam: new Date(Date.now() - 100 * 86400000).toISOString(),
-        handbookExam: new Date(Date.now() - (defaultExamExpiryDays + 1) * 86400000).toISOString(),
+        commsExam: new Date(
+          Date.now() - (defaultExamExpiryDays + 1) * 86400000,
+        ).toISOString(),
+        menteeInterviewerExam: new Date(
+          Date.now() - 100 * 86400000,
+        ).toISOString(),
+        handbookExam: new Date(
+          Date.now() - (defaultExamExpiryDays + 1) * 86400000,
+        ).toISOString(),
       },
       isDemo: false,
       isProdEnv: true,
     });
-    expect(res.commsExamRequired).to.be.true;
-    expect(res.interviewExamRequired).to.be.false;
-    expect(res.handbookExamRequired).to.be.true;
+    void expect(res.commsExamRequired).to.be.true;
+    void expect(res.interviewExamRequired).to.be.false;
+    void expect(res.handbookExamRequired).to.be.true;
   });
 
   it("should require interview exam after interview expiry days", () => {
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(Date.now() - 100 * 86400000).toISOString(),
-        menteeInterviewerExam: new Date(Date.now() - (interviewExamExpiryDays + 1) * 86400000).toISOString(),
+        menteeInterviewerExam: new Date(
+          Date.now() - (interviewExamExpiryDays + 1) * 86400000,
+        ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
       isDemo: false,
       isProdEnv: true,
     });
-    expect(res.commsExamRequired).to.be.false;
-    expect(res.interviewExamRequired).to.be.true;
-    expect(res.handbookExamRequired).to.be.false;
+    void expect(res.commsExamRequired).to.be.false;
+    void expect(res.interviewExamRequired).to.be.true;
+    void expect(res.handbookExamRequired).to.be.false;
   });
 });
