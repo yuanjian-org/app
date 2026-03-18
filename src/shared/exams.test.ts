@@ -3,6 +3,8 @@ import {
   isExamExpired,
   isExamAboutToExpire,
   defaultExamExpiryDays,
+  calculateExamsRequired,
+  interviewExamExpiryDays,
 } from "./exams";
 
 describe("Exams Requirements", () => {
@@ -66,7 +68,8 @@ describe("Exams Requirements", () => {
       const result = isExamAboutToExpire(lastPassed);
       void expect(result).to.be.true;
     });
-import { calculateExamsRequired, defaultExamExpiryDays, interviewExamExpiryDays } from "./exams";
+  });
+});
 
 describe("calculateExamsRequired", () => {
   it("should return undefined for all if state or isDemo is undefined", () => {
