@@ -1,5 +1,8 @@
 import { expect } from "chai";
-import { createGroup, updateGroup } from "./groups";
+import { createGroup, updateGroup, checkPermissionForGroup } from "./groups";
+import User from "../../shared/User";
+import { Group } from "../../shared/Group";
+import { TRPCError } from "@trpc/server";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
@@ -124,6 +127,69 @@ describe("Groups API Internal Functions", () => {
       const associatedUserIds = groupUsers.map((gu: any) => gu.userId);
       expect(associatedUserIds).to.include.members(newUserIds);
       expect(associatedUserIds).to.not.include(user1.id);
+    });
+  });
+  describe("checkPermissionForGroup", () => {
+    let mockUser: User;
+    let mockGroup: Group;
+
+    beforeEach(() => {
+      mockUser = {
+        id: "user-1",
+        email: "test@example.com",
+        name: "Test User",
+        roles: [],
+        phone: null,
+        profileFilled: true,
+        wechatUnionId: null,
+        wechatProviderId: null,
+        url: null,
+        profile: {},
+        banned: false,
+        onboarded: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      mockGroup = {
+        id: "group-1",
+        name: "Test Group",
+        public: false,
+        archived: false,
+        users: [],
+        partnershipId: null,
+        interviewId: null,
+      };
+    });
+
+    it("should allow access if user has GroupManager role", () => {
+      mockUser.roles = ["GroupManager"];
+      expect(() => checkPermissionForGroup(mockUser, mockGroup)).to.not.throw();
+    });
+
+    it("should allow access if group is public", () => {
+      mockGroup.public = true;
+      expect(() => checkPermissionForGroup(mockUser, mockGroup)).to.not.throw();
+    });
+
+    it("should allow access if user is a member of the group", () => {
+      mockGroup.users = [
+        {
+          id: "user-1",
+          name: "Test User",
+          email: "test@example.com",
+          profile: {},
+          roles: [],
+        },
+      ];
+      expect(() => checkPermissionForGroup(mockUser, mockGroup)).to.not.throw();
+    });
+
+    it("should throw a TRPCError if user is not a member, group is private, and user lacks GroupManager role", () => {
+      expect(() => checkPermissionForGroup(mockUser, mockGroup)).to.throw(
+        TRPCError,
+        /没有权限访问分组 group-1/,
+      );
     });
   });
 });
