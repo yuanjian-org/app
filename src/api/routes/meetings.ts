@@ -221,17 +221,31 @@ export async function syncMeetings() {
  * low.
  */
 export async function recycleMeetings() {
-  for (const tmUserId of getTmUserIds()) {
+  const tmUserIds = getTmUserIds();
+  const existingSlots = await db.MeetingSlot.findAll({
+    where: { tmUserId: tmUserIds },
+    attributes: ["id", "groupId", "tmUserId"],
+  });
+
+  const slotMap = new Map(existingSlots.map((s) => [s.tmUserId, s]));
+
+  for (const tmUserId of tmUserIds) {
+    const slot = slotMap.get(tmUserId);
+
+    // Skip ongoing meetings before acquiring a lock and transaction
+    if (slot && slot.groupId) continue;
+
     await sequelize.transaction(async (transaction) => {
-      const slot = await db.MeetingSlot.findOne({
+      // Re-fetch the slot with lock inside the transaction to avoid race conditions.
+      const lockedSlot = await db.MeetingSlot.findOne({
         where: { tmUserId },
         attributes: ["id", "groupId"],
         lock: true,
         transaction,
       });
 
-      // Skip ongoing meetings.
-      if (slot && slot.groupId) return;
+      // Skip ongoing meetings inside the lock
+      if (lockedSlot && lockedSlot.groupId) return;
 
       try {
         const { meetingId, meetingLink } = await create(tmUserId);
@@ -240,8 +254,8 @@ export async function recycleMeetings() {
             `${meetingId}, ${meetingLink}`,
         );
 
-        if (slot) {
-          await slot.update(
+        if (lockedSlot) {
+          await lockedSlot.update(
             {
               meetingId,
               meetingLink,
