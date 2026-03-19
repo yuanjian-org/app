@@ -43,6 +43,7 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
+import { Checkbox, CheckboxGroup } from "@chakra-ui/react";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -148,6 +149,13 @@ export default function Page() {
         <Mentor user={user} profile={profile} updateProfile={updateProfile} />
       ) : (
         <NonMentor profile={profile} updateProfile={updateProfile} />
+      )}
+
+      {isPermitted(user.roles, "Mentor") && myId === user.id && (
+        <>
+          <Divider my={componentSpacing} />
+          <Orgs user={user} />
+        </>
       )}
 
       <SaveButton />
@@ -550,6 +558,52 @@ function DailyLifeFormControl({
         onChange={(ev) => updateProfile("生活日常", ev.target.value)}
       />
     </FormControl>
+  );
+}
+
+function Orgs({ user }: { user: MinUser }) {
+  const { data: allOrgs } = trpcNext.orgs.list.useQuery();
+  const { data: myOrgs, refetch } = trpcNext.orgs.listUserOrgs.useQuery(
+    user.id,
+  );
+  const joinMutation = trpcNext.orgs.join.useMutation();
+  const leaveMutation = trpcNext.orgs.leave.useMutation();
+
+  if (!allOrgs || !myOrgs) return <Loader />;
+
+  const myOrgIds = myOrgs.map((o) => o.id);
+
+  const handleToggle = async (orgId: string, isJoining: boolean) => {
+    if (isJoining) {
+      await joinMutation.mutateAsync(orgId);
+    } else {
+      await leaveMutation.mutateAsync(orgId);
+    }
+    void refetch();
+    toast.success(isJoining ? "已加入机构" : "已离开机构");
+  };
+
+  return (
+    <>
+      <Heading size="md">所属机构</Heading>
+      <Text>你可以选择加入或离开以下机构：</Text>
+      <FormControl>
+        <CheckboxGroup value={myOrgIds}>
+          <Stack direction="column" spacing={2} mt={2}>
+            {allOrgs.map((org) => (
+              <Checkbox
+                key={org.id}
+                value={org.id}
+                onChange={(e) => handleToggle(org.id, e.target.checked)}
+                isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
+              >
+                {org.name}
+              </Checkbox>
+            ))}
+          </Stack>
+        </CheckboxGroup>
+      </FormControl>
+    </>
   );
 }
 
