@@ -30,7 +30,7 @@ import {
 import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
 import {
   UserProfilePictureLink,
@@ -352,13 +352,35 @@ function ProfileTable({
   profile: UserProfile;
 }) {
   const me = useMe();
+  const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id);
 
   return (
     <TableContainer maxW="700px">
       <Table variant="unstyled">
         <Tbody>
           {visibleUserProfileFields.map((fl, idx) => (
-            <ProfileRow key={idx} profile={p} k={fl.field} label={fl.label} />
+            <React.Fragment key={idx}>
+              <ProfileRow profile={p} k={fl.field} label={fl.label} />
+              {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
+                <Tr>
+                  <Td
+                    verticalAlign="top"
+                    py={0.5}
+                    px={0}
+                    textAlign="end"
+                    minW="80px"
+                    whiteSpace="normal"
+                  >
+                    <MarkdownStyler content="**所属机构**" />
+                  </Td>
+                  <Td verticalAlign="top" py={0.5} pe={0} whiteSpace="normal">
+                    <MarkdownStyler
+                      content={orgs.map((org) => org.name).join("，")}
+                    />
+                  </Td>
+                </Tr>
+              )}
+            </React.Fragment>
           ))}
 
           {(me.id == user.id || isPermitted(me.roles, "UserManager")) && (
