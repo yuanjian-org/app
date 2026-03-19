@@ -50,10 +50,11 @@ import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 import { toast } from "react-toastify";
-import useIsDemo from "components/useIsDemo";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 export default widePage(() => {
-  const { data: isDemo } = useIsDemo();
+  const { data } = useStaticGlobalConfigs();
+  const isDemo = data?.isDemo;
   const [includeMerged, setIncludeMerged] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({

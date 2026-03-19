@@ -6,9 +6,19 @@ import sequelize from "../database/sequelize";
 import { isDemo as isDemoFlag } from "../../shared/isDemo";
 import { z } from "zod";
 
-const isDemo = procedure.output(z.boolean()).query(() => {
-  return isDemoFlag();
-});
+const getStatic = procedure
+  .output(
+    z.object({
+      isDemo: z.boolean(),
+      enableOrgs: z.boolean(),
+    }),
+  )
+  .query(() => {
+    return {
+      isDemo: isDemoFlag(),
+      enableOrgs: process.env.ENABLE_ORGS === "true",
+    };
+  });
 
 const get = procedure
   .use(authUser())
@@ -55,7 +65,7 @@ const update = procedure
   });
 
 export default router({
-  isDemo,
+  getStatic,
   get,
   update,
 });
