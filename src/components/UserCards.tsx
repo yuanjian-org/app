@@ -259,17 +259,10 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
 
   return (
     <MyCard>
-      {/*
-        The CardBody is made a flex column container so its children can fill the
-        available vertical space.
-      */}
       <CardBody onClick={markAsRead} display="flex" flexDirection="column">
         <Flex
           direction="column"
-          // flex=1 and minH=0 allow the container to stretch and shrink properly
-          // within the parent flex column, enabling the inner list to scroll.
           flex={1}
-          minH={0}
           gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
         >
           <Flex justify="space-between">
@@ -286,26 +279,35 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           </Flex>
 
           <Box
-            // Let the scrolling box take up the remaining vertical space.
             flex={1}
-            minH={0}
-            overflowY="auto"
-            onScroll={markAsRead}
-            // On mobile, the scroll event is not triggered by touch or drag.
-            onTouchMove={markAsRead}
-            onDragEnd={markAsRead}
+            position="relative"
+            minH={type == "desktop" ? "300px" : undefined}
           >
-            {!kudos ? (
-              <Loader />
-            ) : (
-              <KudosHistory
-                kudos={kudos}
-                type={type}
-                showReceiver
-                showPseudoRows
-                showLimit={limit}
-              />
-            )}
+            <Box
+              position={type == "desktop" ? "absolute" : "relative"}
+              top={0}
+              left={0}
+              right={0}
+              bottom={0}
+              maxH={type == "mobile" ? "220px" : undefined}
+              overflowY="auto"
+              onScroll={markAsRead}
+              // On mobile, the scroll event is not triggered by touch or drag.
+              onTouchMove={markAsRead}
+              onDragEnd={markAsRead}
+            >
+              {!kudos ? (
+                <Loader />
+              ) : (
+                <KudosHistory
+                  kudos={kudos}
+                  type={type}
+                  showReceiver
+                  showPseudoRows
+                  showLimit={limit}
+                />
+              )}
+            </Box>
           </Box>
         </Flex>
       </CardBody>
