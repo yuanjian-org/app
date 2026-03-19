@@ -278,6 +278,15 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             </HStack>
           </Flex>
 
+          {/*
+            On desktop, we wrap the scrollable list in a relative container
+            with flex=1 and a minH so it takes up available vertical space.
+            The inner box uses absolute positioning (inset=0). This removes
+            the list content from the grid item's intrinsic height flow,
+            allowing the card to simply respect the row height of adjacent
+            cards instead of expanding infinitely as content grows.
+            On mobile, we retain the fixed relative positioning and max height.
+          */}
           <Box
             flex={1}
             position="relative"
