@@ -10,6 +10,7 @@ import { Transaction } from "sequelize";
 import User from "../database/models/User";
 
 import sequelize from "../database/sequelize";
+import { compareChinese } from "shared/strings";
 
 export async function listOrgsImpl(transaction: Transaction) {
   return await db.Org.findAll({
@@ -29,7 +30,7 @@ export async function listUserOrgsImpl(
   });
   return orgMentors
     .map((om) => om.org)
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => compareChinese(a.name, b.name));
 }
 
 export async function getOrgImpl(
