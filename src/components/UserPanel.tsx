@@ -22,15 +22,11 @@ import {
   FormErrorMessage,
   SimpleGrid,
 } from "@chakra-ui/react";
-import {
-  MinUserAndProfile,
-  UserProfile,
-  StringUserProfile,
-} from "shared/UserProfile";
+import { MinUserAndProfile, UserProfile } from "shared/UserProfile";
 import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import MentorBookingModal from "components/MentorBookingModal";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getUserUrl, MinUser } from "shared/User";
 import {
   UserProfilePictureLink,
@@ -352,13 +348,22 @@ function ProfileTable({
   profile: UserProfile;
 }) {
   const me = useMe();
+  const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id);
 
   return (
     <TableContainer maxW="700px">
       <Table variant="unstyled">
         <Tbody>
           {visibleUserProfileFields.map((fl, idx) => (
-            <ProfileRow key={idx} profile={p} k={fl.field} label={fl.label} />
+            <React.Fragment key={idx}>
+              <ProfileRow value={p[fl.field]} label={fl.label ?? fl.field} />
+              {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
+                <ProfileRow
+                  label="所属机构"
+                  value={orgs.map((org) => org.name).join("，")}
+                />
+              )}
+            </React.Fragment>
           ))}
 
           {(me.id == user.id || isPermitted(me.roles, "UserManager")) && (
@@ -378,15 +383,13 @@ function ProfileTable({
 }
 
 function ProfileRow({
-  profile: p,
-  k,
+  value,
   label,
 }: {
-  profile: UserProfile;
-  k: keyof StringUserProfile;
-  label?: string;
+  value?: string | null;
+  label: string;
 }) {
-  return !p[k] ? (
+  return !value ? (
     <></>
   ) : (
     <Tr>
@@ -401,7 +404,7 @@ function ProfileRow({
       >
         {/* Use also sytler in this cell for text's vertical alignment with the
          * other cell */}
-        <MarkdownStyler content={`**${label === undefined ? k : label}**`} />
+        <MarkdownStyler content={`**${label}**`} />
       </Td>
       <Td
         verticalAlign="top"
@@ -410,7 +413,7 @@ function ProfileRow({
         // To force wrap long lines
         whiteSpace="normal"
       >
-        <MarkdownStyler content={p[k] ?? ""} />
+        <MarkdownStyler content={value} />
       </Td>
     </Tr>
   );

@@ -1,0 +1,174 @@
+<<<<<<< SEARCH
+function ProfileTable({
+  user,
+  profile: p,
+}: {
+  user: MinUser;
+  profile: UserProfile;
+}) {
+  const me = useMe();
+  const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id);
+
+  return (
+    <TableContainer maxW="700px">
+      <Table variant="unstyled">
+        <Tbody>
+          {visibleUserProfileFields.map((fl, idx) => (
+            <React.Fragment key={idx}>
+              <ProfileRow profile={p} k={fl.field} label={fl.label} />
+              {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
+                <Tr>
+                  <Td
+                    verticalAlign="top"
+                    py={0.5}
+                    px={0}
+                    textAlign="end"
+                    minW="80px"
+                    whiteSpace="normal"
+                  >
+                    <MarkdownStyler content="**所属机构**" />
+                  </Td>
+                  <Td verticalAlign="top" py={0.5} pe={0} whiteSpace="normal">
+                    <MarkdownStyler
+                      content={orgs.map((org) => org.name).join("，")}
+                    />
+                  </Td>
+                </Tr>
+              )}
+            </React.Fragment>
+          ))}
+
+          {(me.id == user.id || isPermitted(me.roles, "UserManager")) && (
+            <Tr>
+              <Td></Td>
+              <Td>
+                <Link as={NextLink} href={`/profiles/${user.id}`}>
+                  <EditIcon /> 修改资料
+                </Link>
+              </Td>
+            </Tr>
+          )}
+        </Tbody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function ProfileRow({
+  profile: p,
+  k,
+  label,
+}: {
+  profile: UserProfile;
+  k: keyof StringUserProfile;
+  label?: string;
+}) {
+  return !p[k] ? (
+    <></>
+  ) : (
+    <Tr>
+      <Td
+        verticalAlign="top"
+        py={0.5}
+        px={0}
+        textAlign="end"
+        // To force wrap long labels
+        minW="80px"
+        whiteSpace="normal"
+      >
+        {/* Use also sytler in this cell for text's vertical alignment with the
+         * other cell */}
+        <MarkdownStyler content={`**${label === undefined ? k : label}**`} />
+      </Td>
+      <Td
+        verticalAlign="top"
+        py={0.5}
+        pe={0}
+        // To force wrap long lines
+        whiteSpace="normal"
+      >
+        <MarkdownStyler content={p[k] ?? ""} />
+      </Td>
+    </Tr>
+  );
+}
+=======
+function ProfileTable({
+  user,
+  profile: p,
+}: {
+  user: MinUser;
+  profile: UserProfile;
+}) {
+  const me = useMe();
+  const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id);
+
+  return (
+    <TableContainer maxW="700px">
+      <Table variant="unstyled">
+        <Tbody>
+          {visibleUserProfileFields.map((fl, idx) => (
+            <React.Fragment key={idx}>
+              <ProfileRow value={p[fl.field]} label={fl.label ?? fl.field} />
+              {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
+                <ProfileRow
+                  label="所属机构"
+                  value={orgs.map((org) => org.name).join("，")}
+                />
+              )}
+            </React.Fragment>
+          ))}
+
+          {(me.id == user.id || isPermitted(me.roles, "UserManager")) && (
+            <Tr>
+              <Td></Td>
+              <Td>
+                <Link as={NextLink} href={`/profiles/${user.id}`}>
+                  <EditIcon /> 修改资料
+                </Link>
+              </Td>
+            </Tr>
+          )}
+        </Tbody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function ProfileRow({
+  value,
+  label,
+}: {
+  value?: string | null;
+  label: string;
+}) {
+  return !value ? (
+    <></>
+  ) : (
+    <Tr>
+      <Td
+        verticalAlign="top"
+        py={0.5}
+        px={0}
+        textAlign="end"
+        // To force wrap long labels
+        minW="80px"
+        whiteSpace="normal"
+      >
+        {/* Use also sytler in this cell for text's vertical alignment with the
+         * other cell */}
+        <MarkdownStyler content={`**${label}**`} />
+      </Td>
+      <Td
+        verticalAlign="top"
+        py={0.5}
+        pe={0}
+        // To force wrap long lines
+        whiteSpace="normal"
+      >
+        <MarkdownStyler content={value} />
+      </Td>
+    </Tr>
+  );
+}
+>>>>>>> REPLACE
