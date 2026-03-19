@@ -7,7 +7,7 @@ import { Transaction, QueryTypes } from "sequelize";
 describe("redactEmail", () => {
   it("should redact normal email", () => {
     expect(redactEmail("foo.BAR+123@Gmail.Yahoo98_")).equals(
-      "fo***@Gmail.Yahoo98_",
+      "f***@Gmail.Yahoo98_",
     );
   });
 
@@ -16,7 +16,7 @@ describe("redactEmail", () => {
   });
 
   it("should handle short names (2 characters)", () => {
-    expect(redactEmail("ab@gmail.com")).equals("ab***@gmail.com");
+    expect(redactEmail("ab@gmail.com")).equals("a***@gmail.com");
   });
 
   it("should handle missing domain", () => {
