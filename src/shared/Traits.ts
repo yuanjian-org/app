@@ -46,12 +46,10 @@ export const softTraitPrefAbsValue = 1;
 export const hardMismatchScore = -666;
 
 export function isTraitsComplete(traits: Traits | undefined) {
-  return (
-    traits &&
-    Object.keys(zTraits.shape)
-      .filter((k) => k !== "其他")
-      .every((k) => k in traits)
-  );
+  if (!traits) return false;
+  return Object.keys(zTraits.shape)
+    .filter((k) => k !== "其他")
+    .every((k) => k in traits);
 }
 
 function isHardTraitPref(pv: number) {
