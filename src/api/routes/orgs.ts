@@ -18,6 +18,20 @@ export async function listOrgsImpl(transaction: Transaction) {
   });
 }
 
+export async function listUserOrgsImpl(
+  userId: string,
+  transaction: Transaction,
+) {
+  const orgMentors = await db.OrgMentor.findAll({
+    where: { mentorId: userId },
+    include: [{ model: db.Org, as: "org" }],
+    transaction,
+  });
+  return orgMentors
+    .map((om) => om.org)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export async function getOrgImpl(
   id: string,
   transaction: Transaction,
@@ -159,6 +173,16 @@ const list = procedure
     });
   });
 
+const listUserOrgs = procedure
+  .use(authUser())
+  .input(z.string().uuid())
+  .output(z.array(zOrg))
+  .query(async ({ input: userId }) => {
+    return await sequelize.transaction(async (transaction) => {
+      return await listUserOrgsImpl(userId, transaction);
+    });
+  });
+
 const get = procedure
   .use(authUser())
   .input(z.string().uuid())
@@ -269,6 +293,7 @@ const removeOwner = procedure
 
 export default router({
   list,
+  listUserOrgs,
   get,
   create,
   remove,
