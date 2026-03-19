@@ -43,7 +43,7 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
-import { Checkbox, CheckboxGroup } from "@chakra-ui/react";
+import Select from "react-select";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -132,6 +132,9 @@ export default function Page() {
         setUser={updateUser}
         setProfile={setProfile}
       />
+      {isPermitted(user.roles, "Mentor") && myId === user.id && (
+        <Orgs user={user} />
+      )}
       <SaveButton />
 
       <Divider my={componentSpacing} />
@@ -149,13 +152,6 @@ export default function Page() {
         <Mentor user={user} profile={profile} updateProfile={updateProfile} />
       ) : (
         <NonMentor profile={profile} updateProfile={updateProfile} />
-      )}
-
-      {isPermitted(user.roles, "Mentor") && myId === user.id && (
-        <>
-          <Divider my={componentSpacing} />
-          <Orgs user={user} />
-        </>
       )}
 
       <SaveButton />
@@ -571,37 +567,57 @@ function Orgs({ user }: { user: MinUser }) {
 
   if (!allOrgs || !myOrgs) return <Loader />;
 
-  const myOrgIds = myOrgs.map((o) => o.id);
+  const options = allOrgs.map((org) => ({
+    value: org.id,
+    label: org.name,
+  }));
 
-  const handleToggle = async (orgId: string, isJoining: boolean) => {
-    if (isJoining) {
+  const value = myOrgs.map((org) => ({
+    value: org.id,
+    label: org.name,
+  }));
+
+  const handleChange = async (selected: any) => {
+    const selectedIds = new Set<string>(
+      selected.map((s: any) => s.value as string),
+    );
+    const currentIds = new Set<string>(myOrgs.map((o) => o.id));
+
+    const toJoin = [...selectedIds].filter((id) => !currentIds.has(id));
+    const toLeave = [...currentIds].filter((id) => !selectedIds.has(id));
+
+    let updated = false;
+
+    for (const orgId of toJoin) {
       await joinMutation.mutateAsync(orgId);
-    } else {
-      await leaveMutation.mutateAsync(orgId);
+      updated = true;
     }
-    void refetch();
-    toast.success(isJoining ? "已加入机构" : "已离开机构");
+
+    for (const orgId of toLeave) {
+      await leaveMutation.mutateAsync(orgId);
+      updated = true;
+    }
+
+    if (updated) {
+      void refetch();
+      toast.success("机构信息已更新");
+    }
   };
 
   return (
     <>
       <Heading size="md">所属机构</Heading>
-      <Text>你可以选择加入或离开以下机构：</Text>
       <FormControl>
-        <CheckboxGroup value={myOrgIds}>
-          <Stack direction="column" spacing={2} mt={2}>
-            {allOrgs.map((org) => (
-              <Checkbox
-                key={org.id}
-                value={org.id}
-                onChange={(e) => handleToggle(org.id, e.target.checked)}
-                isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
-              >
-                {org.name}
-              </Checkbox>
-            ))}
-          </Stack>
-        </CheckboxGroup>
+        <FormLabel>选择或修改机构</FormLabel>
+        <Select
+          isMulti
+          options={options}
+          value={value}
+          onChange={handleChange}
+          isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
+          placeholder="搜索机构..."
+          noOptionsMessage={() => "没有找到相关机构"}
+        />
       </FormControl>
     </>
   );
