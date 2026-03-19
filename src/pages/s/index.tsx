@@ -17,7 +17,7 @@ import partner_4 from "../../../public/img/partner_4.png";
 import partner_5 from "../../../public/img/partner_5.png";
 import partner_6 from "../../../public/img/partner_6.png";
 import partner_7 from "../../../public/img/partner_7.jpg";
-import { breakpoint } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";

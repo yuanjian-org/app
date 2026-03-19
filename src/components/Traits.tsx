@@ -25,7 +25,8 @@ import {
   Tag,
   ModalCloseButton,
 } from "@chakra-ui/react";
-import { breakpoint, componentSpacing, sectionSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { componentSpacing, sectionSpacing } from "theme/metrics";
 import invariant from "tiny-invariant";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "trpc";
