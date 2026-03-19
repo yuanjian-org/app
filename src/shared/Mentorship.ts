@@ -57,7 +57,8 @@ export function isValidMentorshipIds(
 }
 
 export function isEnded(endsAt: DateColumn | null) {
-  return endsAt && compareDate(endsAt, new Date()) < 0;
+  if (!endsAt) return false;
+  return compareDate(endsAt, new Date()) < 0;
 }
 
 export function isEndedTransactionalMentorship(m: Mentorship) {
