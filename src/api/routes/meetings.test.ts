@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
-import db from "../database/db";
 import sequelize from "../database/sequelize";
 import * as notifyModule from "../notify";
 import * as tencentMeetingModule from "../TencentMeeting";
