@@ -564,7 +564,7 @@ function Mentor({
 }) {
   const { data: orgs } = trpcNext.orgs.list.useQuery();
   const { data: mentorOrgs, refetch: refetchMentorOrgs } =
-    trpcNext.orgs.getMentorOrgs.useQuery(user.id);
+    trpcNext.orgs.listUserOrgs.useQuery(user.id);
   const joinMutation = trpcNext.orgs.join.useMutation();
   const leaveMutation = trpcNext.orgs.leave.useMutation();
   const myId = useMyId();

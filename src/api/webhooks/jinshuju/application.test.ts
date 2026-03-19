@@ -1,6 +1,8 @@
 import { expect } from "chai";
-import User from "../../database/models/User";
-import { submit } from ".";
+import db from "../../database/db";
+import { submit } from "./index";
+import { Transaction } from "sequelize";
+import sequelize from "../../database/sequelize";
 
 const inputMenteeApp = {
   form: "FBTWTe",
@@ -191,16 +193,22 @@ const outputProxiedMenteeApp = {
 };
 
 describe("submitApplication", () => {
-  after(async () => {
-    const u1 = await User.findOne({ where: { email: "test1@email.com" } });
-    if (u1) await u1.destroy({ force: true });
-    const u2 = await User.findOne({ where: { email: "test2@email.com" } });
-    if (u2) await u2.destroy({ force: true });
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    if (transaction) await transaction.rollback();
   });
 
   it("should submit mentee application", async () => {
-    await submit(inputMenteeApp);
-    const u = await User.findOne({ where: { phone: "+8615010000000" } });
+    await submit(inputMenteeApp, transaction);
+    const u = await db.User.findOne({
+      where: { phone: "+8615010000000" },
+      transaction,
+    });
     void expect(u).is.not.null;
     void expect(u?.pinyin).is.equal("dingyi");
     void expect(u?.profile?.性别).is.equal("女");
@@ -209,8 +217,11 @@ describe("submitApplication", () => {
   });
 
   it("should submit proxied mentee application", async () => {
-    await submit(inputProxiedMenteeApp);
-    const u = await User.findOne({ where: { phone: "+8615010000001" } });
+    await submit(inputProxiedMenteeApp, transaction);
+    const u = await db.User.findOne({
+      where: { phone: "+8615010000001" },
+      transaction,
+    });
     void expect(u).is.not.null;
     void expect(u?.pinyin).is.equal("wangxiaohan");
     void expect(u?.profile?.性别).is.equal("男");
@@ -219,18 +230,35 @@ describe("submitApplication", () => {
   });
 
   it("should reset menteeStatus for rejected students", async () => {
-    const u = await User.findOne({ where: { phone: "+8615010000000" } });
-    await u?.update({ menteeStatus: "面拒" });
-    await submit(inputMenteeApp);
-    const updated = await User.findOne({ where: { phone: "+8615010000000" } });
+    // Wait, let's ensure the user exists first.
+    await submit(inputMenteeApp, transaction);
+    const createdUser = await db.User.findOne({
+      where: { phone: "+8615010000000" },
+      transaction,
+    });
+    await createdUser?.update({ menteeStatus: "面拒" }, { transaction });
+
+    await submit(inputMenteeApp, transaction);
+    const updated = await db.User.findOne({
+      where: { phone: "+8615010000000" },
+      transaction,
+    });
     void expect(updated?.menteeStatus).is.null;
   });
 
   it("should keep menteeStatus for current students", async () => {
-    const u = await User.findOne({ where: { phone: "+8615010000000" } });
-    await u?.update({ menteeStatus: "现届学子" });
-    await submit(inputMenteeApp);
-    const updated = await User.findOne({ where: { phone: "+8615010000000" } });
+    await submit(inputMenteeApp, transaction);
+    const createdUser = await db.User.findOne({
+      where: { phone: "+8615010000000" },
+      transaction,
+    });
+    await createdUser?.update({ menteeStatus: "现届学子" }, { transaction });
+
+    await submit(inputMenteeApp, transaction);
+    const updated = await db.User.findOne({
+      where: { phone: "+8615010000000" },
+      transaction,
+    });
     void expect(updated?.menteeStatus).is.equal("现届学子");
   });
 });

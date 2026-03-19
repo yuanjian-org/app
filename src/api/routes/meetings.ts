@@ -2,8 +2,11 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
-import { createRecurringMeeting, getMeeting } from "../TencentMeeting";
-import apiEnv from "api/apiEnv";
+import {
+  createRecurringMeeting,
+  getMeeting,
+  getTmUserIds,
+} from "../TencentMeeting";
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
 import sequelize from "api/database/sequelize";
@@ -18,6 +21,7 @@ import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
 import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
+import getBaseUrl from "../../shared/getBaseUrl";
 
 export const gracePeriodMinutes = 5;
 
@@ -30,7 +34,7 @@ export const gracePeriodMinutes = 5;
 const join = procedure
   .use(authUser())
   .input(z.object({ groupId: z.string() }))
-  .mutation(async ({ ctx: { me, baseUrl }, input: { groupId } }) => {
+  .mutation(async ({ ctx: { me }, input: { groupId } }) => {
     const g = await db.Group.findByPk(groupId, {
       attributes: groupAttributes,
       include: groupInclude,
@@ -39,7 +43,7 @@ const join = procedure
 
     checkPermissionForGroup(me, g);
 
-    if (!apiEnv.hasTencentMeeting()) {
+    if (!process.env.TM_SECRET_KEY) {
       await sleep(2000);
       return "/fake-meeting";
     }
@@ -92,6 +96,7 @@ const join = procedure
               attributes: ["groupId"],
               transaction,
             });
+            const baseUrl = getBaseUrl();
             const content =
               `试图发起会议的分组：${baseUrl}/groups/${groupId}。
             会议进行中的分组：` +
@@ -216,7 +221,7 @@ export async function syncMeetings() {
  * low.
  */
 export async function recycleMeetings() {
-  for (const tmUserId of apiEnv.TM_USER_IDS) {
+  for (const tmUserId of getTmUserIds()) {
     await sequelize.transaction(async (transaction) => {
       const slot = await db.MeetingSlot.findOne({
         where: { tmUserId },

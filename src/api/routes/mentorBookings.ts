@@ -16,6 +16,7 @@ import { formatUserName } from "../../shared/strings";
 import { Transaction } from "sequelize";
 import User from "../../shared/User";
 import { notifyRoles } from "api/notify";
+import getBaseUrl from "../../shared/getBaseUrl";
 
 const create = procedure
   .use(authUser())
@@ -25,13 +26,12 @@ const create = procedure
       topic: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { me, baseUrl }, input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
       await createMentorBooking(
         me,
         input.requestedMentorId,
         input.topic,
-        baseUrl,
         transaction,
       );
     });
@@ -41,7 +41,6 @@ export async function createMentorBooking(
   requester: User,
   requestedMentorId: string | null,
   topic: string,
-  baseUrl: string,
   transaction: Transaction,
 ) {
   const mentor = requestedMentorId
@@ -74,6 +73,7 @@ export async function createMentorBooking(
     transaction,
   );
 
+  const baseUrl = getBaseUrl();
   await notifyRoles(
     ["MentorshipManager", "MentorshipOperator"],
     "不定期导师预约请求",

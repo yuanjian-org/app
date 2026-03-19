@@ -8,8 +8,8 @@ import {
   getSpeakerStats,
   FileAddresses,
   MeetingRecord,
+  getTmUserIds,
 } from "../TencentMeeting";
-import apiEnv from "../apiEnv";
 import {
   groupAttributes,
   groupInclude,
@@ -257,7 +257,7 @@ export async function saveSummaryImpl(
 async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   console.log("findMissingSummaries()...");
   const descs: SummaryDescriptor[] = [];
-  for (const tmUserId of apiEnv.TM_USER_IDS) {
+  for (const tmUserId of getTmUserIds()) {
     await findMissingSummariesforTmUser(tmUserId, descs);
   }
   return descs;

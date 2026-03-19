@@ -28,3 +28,41 @@ export function isExamAboutToExpire(
 ) {
   return isExamExpired(lastPassed, expiryDays - 30);
 }
+
+export function calculateExamsRequired({
+  state,
+  isDemo,
+  isProdEnv,
+}: {
+  state?: {
+    commsExam?: DateColumn;
+    menteeInterviewerExam?: DateColumn;
+    handbookExam?: DateColumn;
+  };
+  isDemo?: boolean;
+  isProdEnv: boolean;
+}) {
+  if (state === undefined || isDemo === undefined) {
+    return {
+      commsExamRequired: undefined,
+      interviewExamRequired: undefined,
+      handbookExamRequired: undefined,
+    };
+  }
+  if (!isProdEnv || isDemo) {
+    return {
+      commsExamRequired: false,
+      interviewExamRequired: false,
+      handbookExamRequired: false,
+    };
+  }
+
+  return {
+    commsExamRequired: isExamExpired(state.commsExam),
+    interviewExamRequired: isExamExpired(
+      state.menteeInterviewerExam,
+      interviewExamExpiryDays,
+    ),
+    handbookExamRequired: isExamExpired(state.handbookExam),
+  };
+}

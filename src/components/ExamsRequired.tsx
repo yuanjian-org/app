@@ -1,40 +1,27 @@
 import { trpcNext } from "trpc";
+import useIsDemo from "./useIsDemo";
 import { Flex, Link } from "@chakra-ui/react";
 import { maxTextWidth } from "theme/metrics";
 import invariant from "shared/invariant";
 import { paragraphSpacing } from "theme/metrics";
 import { useMemo } from "react";
 import NextLink from "next/link";
-import { interviewExamExpiryDays, isExamExpired } from "shared/exams";
+import { calculateExamsRequired } from "shared/exams";
 import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: isDemo } = trpcNext.globalConfigs.isDemo.useQuery();
+  const { data: isDemo } = useIsDemo();
 
-  const commsExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.commsExam);
-  }, [isDemo, state]);
-
-  const interviewExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.menteeInterviewerExam, interviewExamExpiryDays);
-  }, [isDemo, state]);
-
-  const handbookExamRequired = useMemo(() => {
-    if (state === undefined || isDemo === undefined) return undefined;
-    if (!isProd() || isDemo) return false;
-    return isExamExpired(state.handbookExam);
-  }, [isDemo, state]);
-
-  return {
-    commsExamRequired,
-    interviewExamRequired,
-    handbookExamRequired,
-  };
+  return useMemo(
+    () =>
+      calculateExamsRequired({
+        state,
+        isDemo,
+        isProdEnv: isProd(),
+      }),
+    [state, isDemo],
+  );
 }
 
 export function ExamsRequired({

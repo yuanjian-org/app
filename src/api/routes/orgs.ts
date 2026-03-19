@@ -10,6 +10,7 @@ import { Transaction } from "sequelize";
 import User from "../database/models/User";
 
 import sequelize from "../database/sequelize";
+import { compareChinese } from "shared/strings";
 
 export async function listOrgsImpl(transaction: Transaction) {
   return await db.Org.findAll({
@@ -18,22 +19,18 @@ export async function listOrgsImpl(transaction: Transaction) {
   });
 }
 
-export async function getMentorOrgsImpl(
+export async function listUserOrgsImpl(
   userId: string,
   transaction: Transaction,
 ) {
-  return await db.Org.findAll({
-    include: [
-      {
-        model: db.User,
-        as: "mentors",
-        where: { id: userId },
-        attributes: [],
-      },
-    ],
-    order: [["name", "ASC"]],
+  const orgMentors = await db.OrgMentor.findAll({
+    where: { mentorId: userId },
+    include: [{ model: db.Org, as: "org" }],
     transaction,
   });
+  return orgMentors
+    .map((om) => om.org)
+    .sort((a, b) => compareChinese(a.name, b.name));
 }
 
 export async function getOrgImpl(
@@ -177,13 +174,13 @@ const list = procedure
     });
   });
 
-const getMentorOrgs = procedure
+const listUserOrgs = procedure
   .use(authUser())
   .input(z.string().uuid())
   .output(z.array(zOrg))
   .query(async ({ input: userId }) => {
     return await sequelize.transaction(async (transaction) => {
-      return await getMentorOrgsImpl(userId, transaction);
+      return await listUserOrgsImpl(userId, transaction);
     });
   });
 
@@ -297,7 +294,7 @@ const removeOwner = procedure
 
 export default router({
   list,
-  getMentorOrgs,
+  listUserOrgs,
   get,
   create,
   remove,

@@ -1,9 +1,11 @@
+import { ip } from "./ip";
 import { middleware } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import Role, { isPermitted } from "../shared/Role";
-import apiEnv from "./apiEnv";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
+import crypto from "crypto";
+import { internalServerError } from "./errors";
 
 /**
  * Authenticate for APIs used by applications as opposed to end users. Usage:
@@ -17,8 +19,21 @@ export const authIntegration = () =>
       ctx.req.headers["authorization"]?.split(" ")[1];
 
     if (!token) throw unauthorizedError();
-    if (token !== apiEnv.INTEGRATION_AUTH_TOKEN) throw invalidTokenError();
-    return await next({ ctx: { baseUrl: ctx.baseUrl } });
+
+    const expected = process.env.INTEGRATION_AUTH_TOKEN;
+    if (!expected) {
+      throw internalServerError("INTEGRATION_AUTH_TOKEN is not set.");
+    }
+
+    if (
+      token.length !== expected.length ||
+      // Use timingSafeEqual to prevent timing attacks.
+      !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+    ) {
+      throw invalidTokenError();
+    }
+
+    return await next({ ctx: {} });
   });
 
 /**
@@ -39,25 +54,7 @@ export const authUser = (permitted?: Role | Role[]) =>
     return await next({
       ctx: {
         me: session.user,
-        // TODO: remove this field. Use getBaseUrl() instead.
-        baseUrl: ctx.baseUrl,
         session,
-      },
-    });
-  });
-
-/**
- * Attach client IP address to the context. Cannot be used in combination with
- * auth*().
- */
-export const ip = () =>
-  middleware(async ({ ctx, next }) => {
-    return await next({
-      ctx: {
-        ...ctx,
-        ip:
-          ctx.req.headers["x-forwarded-for"] ||
-          ctx.req.connection.remoteAddress,
       },
     });
   });
@@ -79,3 +76,5 @@ const forbiddenError = () =>
     code: "FORBIDDEN",
     message: "禁止访问。",
   });
+
+export { ip };

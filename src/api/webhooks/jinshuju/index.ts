@@ -1,27 +1,45 @@
-import { procedure } from "../../trpc";
+import { middleware, procedure } from "../../trpc";
 import z from "zod";
-import { generalBadRequestError } from "../../errors";
+import { generalBadRequestError, internalServerError } from "../../errors";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 import submitExam from "./exam";
+import { Transaction } from "sequelize";
+import sequelize from "../../database/sequelize";
+
+const webhookAuth = middleware(async ({ next }) => {
+  if (!process.env.WEBHOOK_TOKEN) {
+    throw internalServerError("WEBHOOK_TOKEN is required but not set.");
+  }
+  return await next();
+});
 
 /**
  * The Webhook for all 金数据 forms.
  */
 export default procedure
+  .use(webhookAuth)
   .input(z.record(z.string(), z.any()))
-  .mutation(async ({ input }) => await submit(input));
+  .mutation(
+    async ({ input }) =>
+      await sequelize.transaction(async (transaction) => {
+        await submit(input, transaction);
+      }),
+  );
 
-export async function submit({ form, entry }: Record<string, any>) {
+export async function submit(
+  { form, entry }: Record<string, any>,
+  transaction: Transaction,
+) {
   switch (form) {
     case "FBTWTe":
     case "S74k0V":
     case "Z82u8w":
-      await submitMenteeApp(form, entry);
+      await submitMenteeApp(form, entry, transaction);
       break;
 
     case "OzuvWD":
-      await submitVolunteerApp(entry);
+      await submitVolunteerApp(entry, transaction);
       break;
 
     case "Bz3uSO":
@@ -31,17 +49,17 @@ export async function submit({ form, entry }: Record<string, any>) {
 
     // /exams/interview
     case "w02l95":
-      await submitExam(entry, "menteeInterviewerExam", 110);
+      await submitExam(entry, "menteeInterviewerExam", 110, transaction);
       break;
 
     // /exams/handbook
     case "wqPdKE":
-      await submitExam(entry, "handbookExam", 100);
+      await submitExam(entry, "handbookExam", 100, transaction);
       break;
 
     // /exams/comms
     case "nsnx4G":
-      await submitExam(entry, "commsExam", 115);
+      await submitExam(entry, "commsExam", 115, transaction);
       break;
 
     default:
