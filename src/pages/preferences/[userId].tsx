@@ -212,7 +212,7 @@ function InterviewerPreferences({
           在
           <DatePicker
             selected={until}
-            onChange={(date) => {
+            onChange={(date: Date | null) => {
               const newDate = date || oneMonthDate;
               setLimit(noMoreThan, newDate);
             }}
