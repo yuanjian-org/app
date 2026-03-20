@@ -83,9 +83,10 @@ export function prettifyDate(str: Date | DateColumn) {
 
 // TODO: Sort out this Date-is-not-actually-string nonsense
 export function diffInMinutes(from: Date | DateColumn, to: Date | DateColumn) {
-  return Math.floor(
-    (new Date(to).getTime() - new Date(from).getTime()) / 1000 / 60,
-  );
+  const fromMs =
+    from instanceof Date ? from.getTime() : new Date(from).getTime();
+  const toMs = to instanceof Date ? to.getTime() : new Date(to).getTime();
+  return Math.round((toMs - fromMs) / 60000);
 }
 
 /**
