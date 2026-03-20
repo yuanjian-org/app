@@ -47,14 +47,13 @@ describe("assessments", () => {
       { transaction },
     );
 
-    const mentorship = await createMentorship(
-      mentor.id,
-      mentee.id,
-      false,
-      null,
+    await createMentorship(mentor.id, mentee.id, false, null, transaction);
+
+    const mentorship = await db.Mentorship.findOne({
+      where: { mentorId: mentor.id, menteeId: mentee.id },
       transaction,
-    );
-    mentorshipId = mentorship.id;
+    });
+    mentorshipId = mentorship!.id;
   });
 
   afterEach(async () => {
@@ -104,7 +103,7 @@ describe("assessments", () => {
       } catch (e: any) {
         errorThrown = true;
         void expect(e.message).to.equal(
-          "没有找到评估00000000-0000-0000-0000-000000000000",
+          "评估 00000000-0000-0000-0000-000000000000 不存在。",
         );
       }
       void expect(errorThrown).to.be.true;
@@ -135,7 +134,7 @@ describe("assessments", () => {
       } catch (e: any) {
         errorThrown = true;
         void expect(e.message).to.equal(
-          "没有找到评估00000000-0000-0000-0000-000000000000",
+          "评估 00000000-0000-0000-0000-000000000000 不存在。",
         );
       }
       void expect(errorThrown).to.be.true;
@@ -166,7 +165,7 @@ describe("assessments", () => {
       } catch (e: any) {
         errorThrown = true;
         void expect(e.message).to.equal(
-          `没有权限访问一对一匹配${mentorshipId}`,
+          `没有权限访问一对一匹配 ${mentorshipId}。`,
         );
       }
       void expect(errorThrown).to.be.true;

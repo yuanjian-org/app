@@ -16,6 +16,7 @@ export async function createAssessmentImpl(
   const assessment = await db.Assessment.create(
     {
       partnershipId: mentorshipId,
+      summary: "",
     },
     { transaction },
   );
