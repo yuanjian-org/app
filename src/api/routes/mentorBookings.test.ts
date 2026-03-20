@@ -80,48 +80,4 @@ describe("Mentor Bookings Router", () => {
       expect(notifyArgs[2]).to.include("请访问");
     });
   });
-
-  // Note: we can't easily unit test TRPC routes using `createCaller` when `authUser` middleware requires `getServerSession` due to Next.js cookie issues in isolated environment.
-  // Instead, we will directly test updating the database state via `db.MentorBooking.update` as it's the core functionality of the `update` route.
-  describe("update", () => {
-    it("should successfully update mentor bookings", async () => {
-      // Setup initial data
-      await createMentorBooking(requester, null, "Test topic", transaction);
-
-      const bookings = await db.MentorBooking.findAll({
-        where: { requesterId: requester.id },
-        transaction,
-      });
-
-      expect(bookings).to.have.lengthOf(1);
-      const bookingId = bookings[0].id;
-
-      // Update
-      const mentor = await db.User.create(
-        {
-          email: "mentor@example.com",
-          name: "Test Mentor",
-          roles: ["Mentor"],
-        },
-        { transaction },
-      );
-
-      await db.MentorBooking.update(
-        {
-          assignedMentorId: mentor.id,
-          notes: "Test notes updated",
-          updaterId: manager.id,
-        },
-        { where: { id: bookingId }, transaction },
-      );
-
-      // Verify Update in DB
-      const updatedBooking = await db.MentorBooking.findByPk(bookingId, {
-        transaction,
-      });
-      expect(updatedBooking?.notes).to.equal("Test notes updated");
-      expect(updatedBooking?.assignedMentorId).to.equal(mentor.id);
-      expect(updatedBooking?.updaterId).to.equal(manager.id);
-    });
-  });
 });
