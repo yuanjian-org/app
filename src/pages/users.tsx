@@ -39,7 +39,7 @@ import {
 } from "shared/strings";
 import Role, { allRoles, isPermitted, roleProfile } from "shared/Role";
 import trpc from "trpc";
-import { AddIcon, ChevronRightIcon, DownloadIcon } from "@chakra-ui/icons";
+import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import Loader from "components/Loader";
 import z from "zod";
 import NextLink from "next/link";
@@ -49,7 +49,7 @@ import { ImpersonationRequest } from "./api/auth/[...nextauth]";
 import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
-import { toast } from "react-toastify";
+
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 export default widePage(() => {
@@ -145,31 +145,6 @@ function UserTable({
     await updateSession(req);
   };
 
-  const downloadMenteeData = async (userId: string) => {
-    const result = await trpc.menteeData.downloadMenteeData.query(userId);
-
-    // Decode base64 and create a blob
-    const byteCharacters = atob(result.data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: "application/zip" });
-
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = result.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    toast.success("学生数据下载成功");
-  };
-
   return (
     <Table size="sm">
       <Thead>
@@ -182,7 +157,6 @@ function UserTable({
           <Th>拼音</Th>
           <Th>角色</Th>
           {!isDemo && <Th>假扮</Th>}
-          {!isDemo && <Th>下载</Th>}
           <Th>ID</Th>
         </Tr>
       </Thead>
@@ -262,21 +236,6 @@ function UserTable({
                     />
                   </Tooltip>
                 )}
-              </Td>
-            )}
-
-            {/* Download */}
-            {!isDemo && (
-              <Td>
-                <Tooltip label="下载学生数据">
-                  <IconButton
-                    aria-label="下载学生数据"
-                    icon={<DownloadIcon />}
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => downloadMenteeData(u.id)}
-                  />
-                </Tooltip>
               </Td>
             )}
 

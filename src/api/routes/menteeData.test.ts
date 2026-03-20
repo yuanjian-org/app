@@ -8,7 +8,8 @@ import {
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { AI_MINUTES_SUMMARY_KEY } from "./summaries";
-import { downloadMenteeDataImpl, getAnonymousId } from "./menteeData";
+import { downloadMenteeDataImpl } from "./menteeData";
+import { getAnonymousId } from "../../shared/getAnonymousId";
 
 describe("generateAnonymousId", () => {
   it("should generate a 6-character ID with acceptance year prefix and hyphen", () => {
