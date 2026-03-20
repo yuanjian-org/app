@@ -257,6 +257,41 @@ describe("orgs API routes", () => {
       });
       void expect(mentorAssoc).to.be.null;
     });
+
+    it("should allow a non-mentor user to leave an org", async () => {
+      const org = await db.Org.create(
+        { name: "Join Leave Org 2" },
+        { transaction },
+      );
+      // Simulate a user who used to be a mentor but lost the role
+      const user = await db.User.create(
+        { email: "former_mentor@test.com", name: "Former Mentor", roles: [] },
+        { transaction },
+      );
+
+      // Manually create the association since joinOrg requires "Mentor" role
+      await db.OrgMentor.create(
+        {
+          orgId: org.id,
+          mentorId: user.id,
+        },
+        { transaction },
+      );
+
+      let mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: user.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.not.be.null;
+
+      await leaveOrgImpl(user, org.id, transaction);
+
+      mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: user.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.be.null;
+    });
   });
 
   describe("removeMentorImpl", () => {

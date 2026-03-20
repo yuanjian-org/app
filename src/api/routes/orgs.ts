@@ -242,7 +242,7 @@ const join = procedure
   });
 
 const leave = procedure
-  .use(authUser("Mentor"))
+  .use(authUser())
   .input(z.string().uuid())
   .mutation(async ({ ctx: { me }, input: orgId }) => {
     await sequelize.transaction(async (transaction) => {
