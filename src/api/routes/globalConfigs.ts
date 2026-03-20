@@ -6,6 +6,10 @@ import sequelize from "../database/sequelize";
 import { isDemo as isDemoFlag } from "../../shared/isDemo";
 import { z } from "zod";
 
+/**
+ * This route only includes configs that never change during runtime,
+ * allowing clients to cache query results aggressively.
+ */
 const getStatic = procedure
   .output(
     z.object({
