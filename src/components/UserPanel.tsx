@@ -410,9 +410,10 @@ function ProfileRow({
         minW="80px"
         whiteSpace="normal"
       >
-        {/* Use also sytler in this cell for text's vertical alignment with the
-         * other cell */}
-        <MarkdownStyler content={`**${label}**`} />
+        {/* Keep `my` synced with `.markdownStyler p` margin in MarkdownStyler.module.css */}
+        <Text fontWeight="bold" my="0.75em">
+          {label}
+        </Text>
       </Td>
       <Td
         verticalAlign="top"

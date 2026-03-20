@@ -24,6 +24,7 @@
 }
 
 .markdownStyler p {
+  /* Keep this synced with ProfileRow label's `my` margin in UserPanel.tsx */
   margin: 0.75em 0;
 }
 
