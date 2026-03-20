@@ -105,7 +105,9 @@ describe("orgs API routes", () => {
         await getOrgImpl("00000000-0000-0000-0000-000000000000", transaction);
       } catch (e: any) {
         errorThrown = true;
-        void expect(e.message).to.equal("没有找到指定的机构");
+        void expect(e.message).to.equal(
+          "机构 00000000-0000-0000-0000-000000000000 不存在。",
+        );
       }
       void expect(errorThrown).to.be.true;
     });
@@ -129,7 +131,9 @@ describe("orgs API routes", () => {
         );
       } catch (e: any) {
         errorThrown = true;
-        void expect(e.message).to.equal("没有找到指定的机构");
+        void expect(e.message).to.equal(
+          "机构 00000000-0000-0000-0000-000000000000 不存在。",
+        );
       }
       void expect(errorThrown).to.be.true;
     });
@@ -199,7 +203,7 @@ describe("orgs API routes", () => {
         );
       } catch (e: any) {
         errorThrown = true;
-        void expect(e.message).to.equal("你没有权限进行机构相关操作");
+        void expect(e.message).to.equal(`没有权限访问机构 ${org.id}。`);
       }
       void expect(errorThrown).to.be.true;
     });
@@ -218,7 +222,9 @@ describe("orgs API routes", () => {
         );
       } catch (e: any) {
         errorThrown = true;
-        void expect(e.message).to.equal("没有找到指定的机构");
+        void expect(e.message).to.equal(
+          "机构 00000000-0000-0000-0000-000000000000 不存在。",
+        );
       }
       void expect(errorThrown).to.be.true;
     });
@@ -350,7 +356,7 @@ describe("orgs API routes", () => {
         );
       } catch (e: any) {
         errorThrown = true;
-        void expect(e.message).to.equal("你没有权限进行机构相关操作");
+        void expect(e.message).to.equal(`没有权限访问机构 ${org.id}。`);
       }
       void expect(errorThrown).to.be.true;
     });
