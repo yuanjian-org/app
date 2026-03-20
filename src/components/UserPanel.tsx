@@ -381,7 +381,9 @@ function ProfileTable({
                   </Td>
                   <Td verticalAlign="top" py={0.5} pe={0} whiteSpace="normal">
                     <MarkdownStyler
-                      content={orgs.map((org) => org.name).join("，")}
+                      content={orgs
+                        .map((org) => `[${org.name}](/orgs/${org.id})`)
+                        .join("，")}
                     />
                   </Td>
                 </Tr>
