@@ -20,7 +20,7 @@ import {
   SidebarForMobile,
   useMyMentorshipsAsMentor,
 } from "./Sidebar";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 import RedDot from "./RedDot";
 import { useUnreadKudos } from "./Kudos";
 import { useUnreadChatMessages } from "./ChatRoom";

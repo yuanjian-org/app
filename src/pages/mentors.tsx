@@ -1,8 +1,12 @@
 import { Text, Button, VStack } from "@chakra-ui/react";
 import { hash } from "shared/strings";
 import { trpcNext } from "trpc";
-import { breakpoint } from "theme/breakpoints";
-import { componentSpacing, pageMarginX, sectionSpacing } from "theme/metrics";
+import {
+  breakpoint,
+  componentSpacing,
+  pageMarginX,
+  sectionSpacing,
+} from "theme/metrics";
 import { fullPage } from "AppPage";
 import { useMemo, useState } from "react";
 import MentorBookingModal from "components/MentorBookingModal";

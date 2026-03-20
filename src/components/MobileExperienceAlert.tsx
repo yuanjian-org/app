@@ -5,7 +5,7 @@ import {
   HStack,
   AlertProps,
 } from "@chakra-ui/react";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 
 export default function MobileExperienceAlert(props: AlertProps) {
   return (

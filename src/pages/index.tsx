@@ -6,8 +6,7 @@ import MentorCard from "components/launchpad/MentorCard";
 import TasksCard from "components/launchpad/TasksCard";
 import { PropsWithChildren } from "react";
 import { isPermitted } from "shared/Role";
-import { breakpoint } from "theme/breakpoints";
-import { sectionSpacing } from "theme/metrics";
+import { breakpoint, sectionSpacing } from "theme/metrics";
 import { useMyId, useMyRoles } from "useMe";
 
 const title = "个人空间";

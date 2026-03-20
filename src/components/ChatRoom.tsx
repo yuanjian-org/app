@@ -32,8 +32,7 @@ import {
   oneOnOneMessagePrefix,
   typedMessagePrefix,
 } from "shared/ChatMessage";
-import { breakpoint } from "theme/breakpoints";
-import { componentSpacing, paragraphSpacing } from "theme/metrics";
+import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { formatUserName, prettifyDate } from "shared/strings";
 import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";
@@ -424,9 +423,7 @@ function Editor({
         {...rest}
       />
 
-      {markdown !== undefined && (
-        <Autosaver data={markdown} onSave={saveDraft} />
-      )}
+      <Autosaver data={markdown} onSave={saveDraft} />
 
       <HStack width="100%" spacing={componentSpacing}>
         <Button

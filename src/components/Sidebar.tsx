@@ -29,7 +29,7 @@ import useMe, { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
-import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
+import useIsDemo from "./useIsDemo";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -37,7 +37,6 @@ import {
   MdSupervisorAccount,
   MdMic,
   MdHome,
-  MdBusiness,
 } from "react-icons/md";
 import Role from "../shared/Role";
 import { compareChinese, compareDate, formatUserName } from "shared/strings";
@@ -133,11 +132,6 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: "MentorshipManager",
   },
   {
-    name: "入驻机构",
-    action: "/orgs/manage",
-    roles: "OrgAdmin",
-  },
-  {
     name: "全局设置",
     action: "/global",
     roles: "MentorshipManager",
@@ -222,12 +216,6 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/volunteers/,
     permission: "Volunteer",
     redDot: UnreadKudosRedDot,
-  },
-  {
-    name: "入驻机构",
-    path: "/orgs",
-    icon: MdBusiness,
-    regex: /^\/orgs/,
   },
   {
     name: "学生档案",
@@ -350,8 +338,6 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
-  const { data } = useStaticGlobalConfigs();
-  const enableOrgs = data?.enableOrgs;
 
   return (
     <Flex
@@ -369,7 +355,6 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
 
         {mainMenuItems
-          .filter((item) => enableOrgs || item.path !== "/orgs")
           .filter((item) =>
             typeof item.permission === "function"
               ? item.permission(me)
@@ -382,9 +367,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <DropdownMenuIfPermitted
           title="管理功能"
           icon={<Icon as={IoIosCog} marginRight="2" />}
-          menuItems={managerDropdownMenuItems.filter(
-            (item) => enableOrgs || item.action !== "/orgs/manage",
-          )}
+          menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
 
@@ -443,8 +426,7 @@ function ImpersonationBanner() {
 }
 
 function DemoBanner() {
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const { data: isDemo } = useIsDemo();
 
   return !isDemo ? (
     <></>

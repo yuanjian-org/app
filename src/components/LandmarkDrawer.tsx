@@ -30,7 +30,7 @@ import { componentSpacing } from "theme/metrics";
 import MarkdownSupport from "./MarkdownSupport";
 import trpc, { trpcNext } from "trpc";
 import { prettifyDate } from "shared/strings";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import { formatUserName } from "shared/strings";
 import invariant from "tiny-invariant";

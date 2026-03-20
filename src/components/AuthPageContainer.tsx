@@ -6,7 +6,7 @@ import { PropsWithChildren } from "react";
 import Footer from "./Footer";
 import NextLink from "next/link";
 import { staticUrlPrefix } from "static";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 
 export default function AuthPageContainer({ children }: PropsWithChildren) {
   return (

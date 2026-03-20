@@ -1,5 +1,5 @@
 import { useBreakpointValue } from "@chakra-ui/react";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 
 /**
  * This is preferred over <ShowOnDesktop> and <ShowOnMobile> because it avoids

@@ -11,9 +11,4 @@ const breakpoints = createBreakpoints({
   "3xl": "1920px",
 });
 
-/**
- * The mobile-vs-desktop breakpoint.
- */
-export const breakpoint = "lg";
-
 export default breakpoints;

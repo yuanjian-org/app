@@ -89,6 +89,14 @@ import {
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import { MatchFeedbackStateCell } from "./mentors/manage";
 
+type Metadata = {
+  // The year the mentee was accepted
+  year: string;
+  source: string;
+};
+
+type SetMetadata = (menteeId: string, metadata: Metadata) => void;
+
 type SortOrderKey =
   | "year"
   | "source"
@@ -167,16 +175,14 @@ function MenteeTable({
   refetch: () => void;
   showMatchState: boolean;
 }) {
-  const [mentee2year, setMentee2year] = useState<Record<string, string>>({});
-  const setYear = useCallback((userId: string, year: string) => {
-    setMentee2year((current) => ({ ...current, [userId]: year }));
-  }, []);
-
-  const [mentee2source, setMentee2source] = useState<Record<string, string>>(
-    {},
-  );
-  const setSource = useCallback((userId: string, source: string) => {
-    setMentee2source((current) => ({ ...current, [userId]: source }));
+  // TODO: Break out into two variables and remove `Metadata` type
+  const [mentee2meta, setMentee2meta] = useState<Record<string, Metadata>>({});
+  // Use callback to avoid infinite re-rendering when mentee2meta is changed.
+  const setMetadata = useCallback((userId: string, metadata: Metadata) => {
+    setMentee2meta((current) => ({
+      ...current,
+      [userId]: metadata,
+    }));
   }, []);
 
   const [mentee2mentorReview, setMentee2mentorReview] = useState<
@@ -244,16 +250,16 @@ function MenteeTable({
         const sign = order.dir === "asc" ? 1 : -1;
         switch (order.key) {
           case "year":
-            comp = (mentee2year[a.id] ?? "").localeCompare(
-              mentee2year[b.id] ?? "",
+            comp = (mentee2meta[a.id]?.year ?? "").localeCompare(
+              mentee2meta[b.id]?.year ?? "",
             );
             if (comp !== 0) return sign * comp;
             break;
 
           case "source":
             comp = compareChinese(
-              mentee2source[a.id] ?? "",
-              mentee2source[b.id] ?? "",
+              mentee2meta[a.id]?.source ?? "",
+              mentee2meta[b.id]?.source ?? "",
             );
             if (comp !== 0) return sign * comp;
             break;
@@ -295,8 +301,7 @@ function MenteeTable({
       mentee2mentorReview,
       mentee2menteeReview,
       mentee2lastMeeting,
-      mentee2year,
-      mentee2source,
+      mentee2meta,
       sortOrder,
     ],
   );
@@ -352,8 +357,7 @@ function MenteeTable({
             key={u.id}
             user={u}
             refetch={refetch}
-            setYear={setYear}
-            setSource={setSource}
+            setMetadata={setMetadata}
             setLastMenteeReviewDate={setLastMenteeReviewDate}
             setLastMentorReviewDate={setLastMentorReviewDate}
             setLastMeetingStartedAt={setLastMeetingStartedAt}
@@ -404,8 +408,7 @@ function SortableHeaderCell({
 function MenteeRow({
   user: u,
   refetch,
-  setYear,
-  setSource,
+  setMetadata,
   setLastMenteeReviewDate,
   setLastMentorReviewDate,
   setLastMeetingStartedAt,
@@ -413,8 +416,7 @@ function MenteeRow({
 }: {
   user: User;
   refetch: () => void;
-  setYear: (userId: string, year: string) => void;
-  setSource: (userId: string, source: string) => void;
+  setMetadata: SetMetadata;
   setLastMenteeReviewDate: (userId: string, date: string) => void;
   setLastMentorReviewDate: (userId: string, date: string) => void;
   setLastMeetingStartedAt: (userId: string, date: string) => void;
@@ -444,7 +446,7 @@ function MenteeRow({
     <Tr key={u.id} _hover={{ bg: "white" }}>
       <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
       <PointOfContactCells user={u} refetch={refetch} />
-      <MenteeCells mentee={u} setYear={setYear} setSource={setSource} />
+      <MenteeCells mentee={u} setMetadata={setMetadata} />
 
       {showMatchState && (
         <>
@@ -533,12 +535,10 @@ function MenteeHeaderCells({
 
 export function MenteeCells({
   mentee,
-  setYear,
-  setSource,
+  setMetadata,
 }: {
   mentee: MinUser;
-  setYear?: (menteeId: string, year: string) => void;
-  setSource?: (menteeId: string, source: string) => void;
+  setMetadata?: SetMetadata;
 }) {
   const { data } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
@@ -553,10 +553,10 @@ export function MenteeCells({
     menteeSourceField
   ];
 
-  useEffect(() => {
-    if (year) setYear?.(mentee.id, year);
-    if (source) setSource?.(mentee.id, source);
-  }, [mentee.id, year, source, setYear, setSource]);
+  useEffect(
+    () => setMetadata?.(mentee.id, { year, source }),
+    [mentee.id, year, source, setMetadata],
+  );
 
   return (
     <>

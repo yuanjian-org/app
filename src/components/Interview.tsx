@@ -1,7 +1,7 @@
 import { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { Flex, Grid, GridItem, Heading, Link, Box } from "@chakra-ui/react";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 import Applicant from "components/Applicant";
 import { sectionSpacing } from "theme/metrics";
 import {

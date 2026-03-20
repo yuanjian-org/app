@@ -42,8 +42,7 @@ import {
   MentorshipSchedule,
 } from "shared/Mentorship";
 import GroupBar from "components/GroupBar";
-import { breakpoint } from "theme/breakpoints";
-import { sectionSpacing, componentSpacing } from "theme/metrics";
+import { breakpoint, sectionSpacing, componentSpacing } from "theme/metrics";
 import Transcripts from "components/Transcripts";
 import Interview from "components/Interview";
 import { MentorshipStatusIcon } from "pages/mentees";

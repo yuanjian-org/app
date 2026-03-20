@@ -41,7 +41,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useIsDemo from "components/useIsDemo";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -68,8 +68,7 @@ type ServerSideProps = {
  */
 export default function Page({ wechatQRAppId }: ServerSideProps) {
   const router = useRouter();
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const { data: isDemo } = useIsDemo();
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {

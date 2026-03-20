@@ -317,12 +317,12 @@ const listVolunteers = procedure
   });
 
 /**
- * Given foo.bar@gmail.com, return f***@gmail.com
+ * Given foo.bar@gmail.com, return f******@gmail.com
  */
 export function redactEmail(email: string): string {
-  const [name, domain] = email.split("@");
-  if (!domain) return email;
-  return `${name.slice(0, 1)}***@${domain}`;
+  return email.replace(/^(.)(.+)(@.*)$/, (match, first, rest, domain) => {
+    return `${first}${"*".repeat(rest.length)}${domain}`;
+  });
 }
 
 /**

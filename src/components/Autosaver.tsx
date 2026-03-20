@@ -6,12 +6,15 @@ import _ from "lodash";
 const autosaveDelayMs = 500;
 const retryIntervalSec = 8;
 
-export default function Autosaver<T>({
+/**
+ * TODO: use type template
+ */
+export default function Autosaver({
   data,
   onSave,
 }: {
-  data: T;
-  onSave: (data: T) => Promise<void>;
+  data: any;
+  onSave: (data: any) => Promise<void>;
 }) {
   const { addPendingSaver, removePendingSaver, setPendingSaverError } =
     useAutosaveContext();
@@ -20,10 +23,10 @@ export default function Autosaver<T>({
   const memo = useMemo(
     () => ({
       id: crypto.randomUUID(),
-      pendingData: null as T | null,
+      pendingData: null,
       lastSavedData: initialData,
       saving: false,
-      timeout: null as NodeJS.Timeout | null | number,
+      timeout: null,
     }),
     [initialData],
   );
@@ -71,9 +74,9 @@ export default function Autosaver<T>({
   return null;
 }
 
-async function saveWithRetry<T>(
-  save: (data: T) => Promise<void>,
-  data: T,
+async function saveWithRetry(
+  save: (data: any) => Promise<void>,
+  data: any,
   setError: (e?: any) => void,
 ) {
   while (true) {
@@ -94,14 +97,12 @@ async function saveWithRetry<T>(
 }
 
 function debounce(
-  memo: { timeout: NodeJS.Timeout | null | number },
+  memo: any,
   func: (...args: any[]) => void,
   delayInMs: number,
 ): (...args: any[]) => void {
   return (...args: any[]) => {
-    if (memo.timeout !== null) {
-      clearTimeout(memo.timeout);
-    }
+    clearTimeout(memo.timeout);
     memo.timeout = setTimeout(() => {
       func(...args);
     }, delayInMs);

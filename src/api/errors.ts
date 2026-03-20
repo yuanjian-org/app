@@ -19,7 +19,6 @@ type Kind =
   | "导师"
   | "导师选择"
   | "待办事项"
-  | "机构"
   | "数据"; // A general kind
 
 export const notFoundError = (kind: Kind, id?: string) =>

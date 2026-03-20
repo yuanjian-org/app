@@ -31,7 +31,7 @@ import { MdVideocam } from "react-icons/md";
 import Link from "next/link";
 import { formatGroupName } from "shared/strings";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 import UserChip from "./UserChip";
 import { MinUser } from "shared/User";
 import { Group, isOwned } from "shared/Group";

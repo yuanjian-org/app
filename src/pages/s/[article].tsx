@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import MarkdownStyler from "components/MarkdownStyler";
 import { Box, Heading, Stack, VStack, Text, Link } from "@chakra-ui/react";
-import { breakpoint } from "theme/breakpoints";
+import { breakpoint } from "theme/metrics";
 import NextLink from "next/link";
 
 const articlesFolder = path.join(process.cwd(), "/public/articles");

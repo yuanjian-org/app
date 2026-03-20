@@ -6,23 +6,9 @@ import sequelize from "../database/sequelize";
 import { isDemo as isDemoFlag } from "../../shared/isDemo";
 import { z } from "zod";
 
-/**
- * This route only includes configs that never change during runtime,
- * allowing clients to cache query results aggressively.
- */
-const getStatic = procedure
-  .output(
-    z.object({
-      isDemo: z.boolean(),
-      enableOrgs: z.boolean(),
-    }),
-  )
-  .query(() => {
-    return {
-      isDemo: isDemoFlag(),
-      enableOrgs: process.env.ENABLE_ORGS === "true",
-    };
-  });
+const isDemo = procedure.output(z.boolean()).query(() => {
+  return isDemoFlag();
+});
 
 const get = procedure
   .use(authUser())
@@ -69,7 +55,7 @@ const update = procedure
   });
 
 export default router({
-  getStatic,
+  isDemo,
   get,
   update,
 });

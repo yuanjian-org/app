@@ -82,35 +82,6 @@ export async function generateDemoData(t: Transaction) {
   await createManualTasks(t);
 
   await generateMentorBookings(t);
-
-  await generateOrgs(t);
-}
-
-async function generateOrgs(t: Transaction) {
-  console.log("Creating orgs...");
-
-  for (const org of demo.orgs) {
-    const [createdOrg] = await db.Org.findOrCreate({
-      where: { name: org.name },
-      defaults: { description: org.description },
-      transaction: t,
-    });
-    const orgId = createdOrg.id;
-
-    for (const mentor of org.mentors) {
-      await db.OrgMentor.findOrCreate({
-        where: { orgId, mentorId: id(mentor) },
-        transaction: t,
-      });
-    }
-
-    for (const owner of org.owners) {
-      await db.OrgOwner.findOrCreate({
-        where: { orgId, ownerId: id(owner) },
-        transaction: t,
-      });
-    }
-  }
 }
 
 async function generateUsersAndAssingIds(transaction: Transaction) {
