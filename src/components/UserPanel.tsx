@@ -366,25 +366,15 @@ function ProfileTable({
         <Tbody>
           {visibleUserProfileFields.map((fl, idx) => (
             <React.Fragment key={idx}>
-              <ProfileRow profile={p} k={fl.field} label={fl.label} />
+              <ProfileRow
+                label={fl.label ?? fl.field}
+                value={p[fl.field as keyof StringUserProfile]}
+              />
               {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
-                <Tr>
-                  <Td
-                    verticalAlign="top"
-                    py={0.5}
-                    px={0}
-                    textAlign="end"
-                    minW="80px"
-                    whiteSpace="normal"
-                  >
-                    <MarkdownStyler content="**所属机构**" />
-                  </Td>
-                  <Td verticalAlign="top" py={0.5} pe={0} whiteSpace="normal">
-                    <MarkdownStyler
-                      content={orgs.map((org) => org.name).join("，")}
-                    />
-                  </Td>
-                </Tr>
+                <ProfileRow
+                  label="所属机构"
+                  value={orgs.map((org) => org.name).join("，")}
+                />
               )}
             </React.Fragment>
           ))}
@@ -406,15 +396,13 @@ function ProfileTable({
 }
 
 function ProfileRow({
-  profile: p,
-  k,
   label,
+  value,
 }: {
-  profile: UserProfile;
-  k: keyof StringUserProfile;
-  label?: string;
+  label: string;
+  value: string | undefined | null;
 }) {
-  return !p[k] ? (
+  return !value ? (
     <></>
   ) : (
     <Tr>
@@ -429,7 +417,7 @@ function ProfileRow({
       >
         {/* Use also sytler in this cell for text's vertical alignment with the
          * other cell */}
-        <MarkdownStyler content={`**${label === undefined ? k : label}**`} />
+        <MarkdownStyler content={`**${label}**`} />
       </Td>
       <Td
         verticalAlign="top"
@@ -438,7 +426,7 @@ function ProfileRow({
         // To force wrap long lines
         whiteSpace="normal"
       >
-        <MarkdownStyler content={p[k] ?? ""} />
+        <MarkdownStyler content={value} />
       </Td>
     </Tr>
   );

@@ -1,0 +1,1 @@
+yarn build passed, and unit tests are failing solely due to the database connection being refused (test environment lacks a postgres database). Since the modification only touched React components, the successful yarn build serves as adequate validation of types.
