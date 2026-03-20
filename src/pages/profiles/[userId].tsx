@@ -43,12 +43,16 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
+import Select from "react-select";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
   const myId = useMyId();
   const userId = queryUserId === "me" ? myId : queryUserId;
   const { update: updateSession } = useSession();
+  const { data: staticData } = useStaticGlobalConfigs();
+  const enableOrgs = staticData?.enableOrgs;
 
   const queryOpts = {
     // Avoid accidental override when switching between windows
@@ -131,6 +135,9 @@ export default function Page() {
         setUser={updateUser}
         setProfile={setProfile}
       />
+      {enableOrgs && isPermitted(user.roles, "Mentor") && myId === user.id && (
+        <Orgs user={user} />
+      )}
       <SaveButton />
 
       <Divider my={componentSpacing} />
@@ -550,6 +557,72 @@ function DailyLifeFormControl({
         onChange={(ev) => updateProfile("生活日常", ev.target.value)}
       />
     </FormControl>
+  );
+}
+
+function Orgs({ user }: { user: MinUser }) {
+  const { data: allOrgs } = trpcNext.orgs.list.useQuery();
+  const { data: myOrgs, refetch } = trpcNext.orgs.listUserOrgs.useQuery(
+    user.id,
+  );
+  const joinMutation = trpcNext.orgs.join.useMutation();
+  const leaveMutation = trpcNext.orgs.leave.useMutation();
+
+  if (!allOrgs || !myOrgs) return <Loader />;
+
+  const options = allOrgs.map((org) => ({
+    value: org.id,
+    label: org.name,
+  }));
+
+  const value = myOrgs.map((org) => ({
+    value: org.id,
+    label: org.name,
+  }));
+
+  const handleChange = async (selected: any) => {
+    const selectedIds = new Set<string>(
+      selected.map((s: any) => s.value as string),
+    );
+    const currentIds = new Set<string>(myOrgs.map((o) => o.id));
+
+    const toJoin = [...selectedIds].filter((id) => !currentIds.has(id));
+    const toLeave = [...currentIds].filter((id) => !selectedIds.has(id));
+
+    let updated = false;
+
+    for (const orgId of toJoin) {
+      await joinMutation.mutateAsync(orgId);
+      updated = true;
+    }
+
+    for (const orgId of toLeave) {
+      await leaveMutation.mutateAsync(orgId);
+      updated = true;
+    }
+
+    if (updated) {
+      void refetch();
+      toast.success("机构信息已更新");
+    }
+  };
+
+  return (
+    <>
+      <Heading size="md">所属机构</Heading>
+      <FormControl>
+        <FormLabel>选择或修改机构</FormLabel>
+        <Select
+          isMulti
+          options={options}
+          value={value}
+          onChange={handleChange}
+          isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
+          placeholder="搜索机构..."
+          noOptionsMessage={() => "没有找到相关机构"}
+        />
+      </FormControl>
+    </>
   );
 }
 

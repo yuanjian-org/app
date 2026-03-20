@@ -1,4 +1,4 @@
-import { breakpoint } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
 import { Show, ShowProps } from "@chakra-ui/react";
 
 /**

@@ -11,7 +11,7 @@ import {
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
-import { breakpoint } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
 import invariant from "shared/invariant";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { formatUserName } from "shared/strings";

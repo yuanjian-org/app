@@ -24,8 +24,8 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { trpcNext } from "trpc";
+import { breakpoint } from "theme/breakpoints";
 import {
-  breakpoint,
   componentSpacing,
   pageMarginX,
   sectionSpacing,

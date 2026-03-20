@@ -22,7 +22,8 @@ import {
   GridProps,
 } from "@chakra-ui/react";
 import { formatUserName, toPinyin } from "shared/strings";
-import { breakpoint, componentSpacing, paragraphSpacing } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
 import { UserProfile, StringUserProfile } from "shared/UserProfile";
 import { CardHeader, CardBody, CardFooter } from "@chakra-ui/react";
@@ -259,9 +260,10 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
 
   return (
     <MyCard>
-      <CardBody onClick={markAsRead}>
+      <CardBody onClick={markAsRead} display="flex" flexDirection="column">
         <Flex
           direction="column"
+          flex={1}
           gap={type == "desktop" ? componentSpacing * 2 : componentSpacing}
         >
           <Flex justify="space-between">
@@ -277,26 +279,45 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             </HStack>
           </Flex>
 
+          {/*
+            On desktop, we wrap the scrollable list in a relative container
+            with flex=1 and a minH so it takes up available vertical space.
+            The inner box uses absolute positioning (inset=0). This removes
+            the list content from the grid item's intrinsic height flow,
+            allowing the card to simply respect the row height of adjacent
+            cards instead of expanding infinitely as content grows.
+            On mobile, we retain the fixed relative positioning and max height.
+          */}
           <Box
-            // Force scrolling by setting maxH. Its value is empirically set.
-            maxH={type == "desktop" ? "600px" : "220px"}
-            overflowY="auto"
-            onScroll={markAsRead}
-            // On mobile, the scroll event is not triggered by touch or drag.
-            onTouchMove={markAsRead}
-            onDragEnd={markAsRead}
+            flex={1}
+            position="relative"
+            minH={type == "desktop" ? "300px" : undefined}
           >
-            {!kudos ? (
-              <Loader />
-            ) : (
-              <KudosHistory
-                kudos={kudos}
-                type={type}
-                showReceiver
-                showPseudoRows
-                showLimit={limit}
-              />
-            )}
+            <Box
+              position={type == "desktop" ? "absolute" : "relative"}
+              top={0}
+              left={0}
+              right={0}
+              bottom={0}
+              maxH={type == "mobile" ? "220px" : undefined}
+              overflowY="auto"
+              onScroll={markAsRead}
+              // On mobile, the scroll event is not triggered by touch or drag.
+              onTouchMove={markAsRead}
+              onDragEnd={markAsRead}
+            >
+              {!kudos ? (
+                <Loader />
+              ) : (
+                <KudosHistory
+                  kudos={kudos}
+                  type={type}
+                  showReceiver
+                  showPseudoRows
+                  showLimit={limit}
+                />
+              )}
+            </Box>
           </Box>
         </Flex>
       </CardBody>
