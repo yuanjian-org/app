@@ -19,8 +19,7 @@ import { IdType } from "../../../shared/IdType";
 
 declare module "next-auth" {
   interface Session {
-    // TODO: Remove `user` and use `me` instead.
-    user: User;
+    me: User;
     impersonated: true | undefined;
   }
 }
@@ -233,7 +232,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
           : await userCache.fetch(original.mergedTo);
         invariant(actual, "actual not found");
 
-        session.user = actual;
+        session.me = actual;
         if (impersonate) session.impersonated = true;
         return session;
       },

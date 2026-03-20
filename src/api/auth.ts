@@ -49,11 +49,11 @@ export const authUser = (permitted?: Role | Role[]) =>
     );
     if (!session) throw unauthorizedError();
 
-    if (!isPermitted(session.user.roles, permitted)) throw forbiddenError();
+    if (!isPermitted(session.me.roles, permitted)) throw forbiddenError();
 
     return await next({
       ctx: {
-        me: session.user,
+        me: session.me,
         session,
       },
     });
