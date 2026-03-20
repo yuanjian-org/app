@@ -105,7 +105,7 @@ describe("summaries", () => {
         await listImpl(me, transcript.transcriptId, transaction);
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
-        expect(error.message).to.contain("没有访问数据");
+        expect(error.message).to.contain("没有权限访问分组");
       }
     });
   });
@@ -130,7 +130,7 @@ describe("summaries", () => {
         );
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
-        expect(error.message).to.contain("没有访问数据");
+        expect(error.message).to.contain("没有权限访问分组");
       }
     });
 
@@ -141,7 +141,7 @@ describe("summaries", () => {
       const originalMarkdown = "Original summary text";
       await createTestSummary(transcript.transcriptId, originalMarkdown);
 
-      const newMarkdown = "Updated summary text";
+      const newMarkdown = "Original summary text.";
 
       await updateImpl(
         me,
