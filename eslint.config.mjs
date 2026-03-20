@@ -76,4 +76,14 @@ export default defineConfig([
       },
     },
   },
+
+  {
+    files: ["cypress/**/*.ts"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: ["./cypress/tsconfig.json"],
+      },
+    },
+  },
 ]);
