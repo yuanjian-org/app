@@ -1,0 +1,34 @@
+yarn run v1.22.22
+$ next dev
+   ▲ Next.js 15.5.13
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 1959ms
+ ○ Compiling /mentees ...
+ ✓ Compiled /mentees in 43.2s (3553 modules)
+ GET /mentees 200 in 48931ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1414ms (416 modules)
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+[next-auth][warn][NO_SECRET]
+https://next-auth.js.org/warnings#no_secret
+ GET /api/auth/session 200 in 1934ms
+ GET /api/auth/session 200 in 10ms
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 2.2s (3654 modules)
+ GET /_next/data/development/auth/login.json?callbackUrl=%2Fmentees 200 in 2939ms
+ ○ Compiling /api/v1/[trpc] ...
+ ✓ Compiled /api/v1/[trpc] in 1646ms (503 modules)
+ GET /api/auth/csrf 200 in 1664ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 2239ms
+ GET /api/auth/csrf 200 in 7ms
