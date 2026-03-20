@@ -2,15 +2,25 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { authOptions, ImpersonationRequest } from "./[...nextauth]";
 import db from "../../../api/database/db";
+import sequelize from "../../../api/database/sequelize";
+import { Transaction } from "sequelize";
 
 describe("nextauth jwt callback", () => {
   let findByPkStub: sinon.SinonStub;
+  let transaction: Transaction;
 
-  beforeEach(() => {
-    findByPkStub = sinon.stub(db.User, "findByPk");
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    const originalFindByPk = db.User.findByPk.bind(db.User);
+    findByPkStub = sinon.stub(db.User, "findByPk").callsFake((id, options) => {
+      return originalFindByPk(id, { ...options, transaction });
+    });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (transaction) {
+      await transaction.rollback();
+    }
     sinon.restore();
   });
 
@@ -42,25 +52,30 @@ describe("nextauth jwt callback", () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
-    const token = { sub: "user-123" };
-    const session: ImpersonationRequest = { impersonate: "target-user" };
 
-    findByPkStub.resolves({ roles: ["UserManager"], mergedTo: null });
+    const user = await db.User.create(
+      { name: "Test User", email: "test1@test.com", roles: ["UserManager"] },
+      { transaction },
+    );
+    const token = { sub: user.id };
+    const session: ImpersonationRequest = { impersonate: "target-user" };
 
     const result = await jwtCallback({ token, trigger: "update", session });
 
     expect(result.imp).to.equal("target-user");
-    void expect(findByPkStub.calledOnceWith("user-123")).to.be.true;
+    void expect(findByPkStub.calledOnceWith(user.id)).to.be.true;
   });
 
   it("should throw error if user is not UserManager", async () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
-    const token = { sub: "user-123" };
+    const user = await db.User.create(
+      { name: "Test User", email: "test2@test.com", roles: ["Mentee"] },
+      { transaction },
+    );
+    const token = { sub: user.id };
     const session: ImpersonationRequest = { impersonate: "target-user" };
-
-    findByPkStub.resolves({ roles: ["Mentee"], mergedTo: null });
 
     try {
       await jwtCallback({ token, trigger: "update", session });
@@ -74,13 +89,21 @@ describe("nextauth jwt callback", () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
-    const token = { sub: "user-123" };
+    const actualUser = await db.User.create(
+      { name: "Test User 456", email: "test456@test.com", roles: ["Mentee"] },
+      { transaction },
+    );
+    const mergedUser = await db.User.create(
+      {
+        name: "Test User 123",
+        email: "test1234@test.com",
+        roles: ["UserManager"],
+        mergedTo: actualUser.id,
+      },
+      { transaction },
+    );
+    const token = { sub: mergedUser.id };
     const session: ImpersonationRequest = { impersonate: "target-user" };
-
-    findByPkStub
-      .onFirstCall()
-      .resolves({ roles: ["UserManager"], mergedTo: "user-456" });
-    findByPkStub.onSecondCall().resolves({ roles: ["Mentee"] });
 
     try {
       await jwtCallback({ token, trigger: "update", session });
@@ -90,21 +113,33 @@ describe("nextauth jwt callback", () => {
     }
 
     expect(findByPkStub.callCount).to.equal(2);
-    expect(findByPkStub.firstCall.args[0]).to.equal("user-123");
-    expect(findByPkStub.secondCall.args[0]).to.equal("user-456");
+    expect(findByPkStub.firstCall.args[0]).to.equal(mergedUser.id);
+    expect(findByPkStub.secondCall.args[0]).to.equal(actualUser.id);
   });
 
   it("should allow impersonation if mergedTo actual user is UserManager", async () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
-    const token = { sub: "user-123" };
+    const actualUser = await db.User.create(
+      {
+        name: "Test User 456",
+        email: "test4567@test.com",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+    const mergedUser = await db.User.create(
+      {
+        name: "Test User 123",
+        email: "test12345@test.com",
+        roles: ["Mentee"],
+        mergedTo: actualUser.id,
+      },
+      { transaction },
+    );
+    const token = { sub: mergedUser.id };
     const session: ImpersonationRequest = { impersonate: "target-user" };
-
-    findByPkStub
-      .onFirstCall()
-      .resolves({ roles: ["Mentee"], mergedTo: "user-456" });
-    findByPkStub.onSecondCall().resolves({ roles: ["UserManager"] });
 
     const result = await jwtCallback({ token, trigger: "update", session });
 
