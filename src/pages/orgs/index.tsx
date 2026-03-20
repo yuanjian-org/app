@@ -28,6 +28,7 @@ export default widePage(() => {
         {orgs.map((org) => (
           <LinkBox
             key={org.id}
+            bg="white"
             p="5"
             borderWidth="1px"
             rounded="md"
