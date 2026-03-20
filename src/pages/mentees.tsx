@@ -339,13 +339,6 @@ function MenteeTable({
             </>
           )}
 
-          {!isDemo && isUserManager && (
-            <>
-              <Th>下载</Th>
-              <Th>匿名 ID</Th>
-            </>
-          )}
-
           <Th>导师</Th>
           <SortableHeaderCell
             label="最近一对一"
@@ -366,6 +359,13 @@ function MenteeTable({
             addSortOrder={addSortOrder}
           />
           <Th>拼音（便于查找）</Th>
+
+          {!isDemo && isUserManager && (
+            <>
+              <Th>下载</Th>
+              <Th>匿名 ID</Th>
+            </>
+          )}
         </Tr>
       </Thead>
 
@@ -510,23 +510,6 @@ function MenteeRow({
         </>
       )}
 
-      {!isDemo && isUserManager && (
-        <>
-          <Td>
-            <Tooltip label="下载学生数据">
-              <IconButton
-                aria-label="下载学生数据"
-                icon={<DownloadIcon />}
-                size="sm"
-                variant="ghost"
-                onClick={() => downloadMenteeData(u.id)}
-              />
-            </Tooltip>
-          </Td>
-          <Td>{getAnonymousId(u.id, year || null)}</Td>
-        </>
-      )}
-
       <MentorshipCells
         mentee={u}
         addPinyin={addPinyin}
@@ -545,6 +528,23 @@ function MenteeRow({
       <Td translate="no" className="notranslate">
         {pinyin}
       </Td>
+
+      {!isDemo && isUserManager && (
+        <>
+          <Td>
+            <Tooltip label="下载学生数据">
+              <IconButton
+                aria-label="下载学生数据"
+                icon={<DownloadIcon />}
+                size="sm"
+                variant="ghost"
+                onClick={() => downloadMenteeData(u.id)}
+              />
+            </Tooltip>
+          </Td>
+          <Td>{getAnonymousId(u.id, year || null)}</Td>
+        </>
+      )}
     </Tr>
   );
 }
