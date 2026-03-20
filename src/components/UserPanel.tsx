@@ -410,6 +410,7 @@ function ProfileRow({
         minW="80px"
         whiteSpace="normal"
       >
+        {/* Keep `my` synced with `.markdownStyler p` margin in MarkdownStyler.module.css */}
         <Text fontWeight="bold" my="0.75em">
           {label}
         </Text>
