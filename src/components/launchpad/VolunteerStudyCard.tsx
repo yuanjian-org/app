@@ -2,10 +2,11 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import useIsDemo from "components/useIsDemo";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 export default function VolunteerStudyCard() {
-  const { data: isDemo } = useIsDemo();
+  const { data } = useStaticGlobalConfigs();
+  const isDemo = data?.isDemo;
 
   return (
     <ResponsiveCard>
