@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
-import { notify } from "./notify";
+import { notify, notifyRolesIgnoreError } from "./notify";
 import db from "./database/db";
 import { NotificationType } from "shared/UserPreference";
 import sequelize from "./database/sequelize";
@@ -9,6 +9,92 @@ import * as emailModule from "./email";
 import sinon from "sinon";
 
 describe("notify()", () => {
+  describe("notifyRolesIgnoreError()", () => {
+    let consoleLogStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      consoleLogStub = sinon.stub(console, "log");
+    });
+
+    afterEach(() => {
+      consoleLogStub.restore();
+    });
+
+    it("should catch and log synchronous errors from sequelize.transaction without throwing", () => {
+      // Force sequelize.transaction to throw synchronously
+      const transactionStub = sinon
+        .stub(sequelize, "transaction")
+        .throws(new Error("Sync transaction error"));
+
+      // It should not throw
+      expect(() =>
+        notifyRolesIgnoreError(["Mentee"], "Test Subject", "Test Content"),
+      ).to.not.throw();
+
+      // Ensure error was logged
+      void expect(consoleLogStub.calledOnce).to.be.true;
+      expect(consoleLogStub.firstCall.args[0]).to.include(
+        "notifyRolesIgnoreError() ignored error",
+      );
+      expect(consoleLogStub.firstCall.args[0]).to.include(
+        "Sync transaction error",
+      );
+
+      transactionStub.restore();
+    });
+
+    it("should catch and log asynchronous errors from notifyRoles without throwing", async () => {
+      // We need to wait for the inner promise to resolve to check the log,
+      // since the promise inside notifyRolesIgnoreError is unawaited.
+      // We can use a Promise to track when the transaction callback finishes.
+      let resolveCallbackComplete: () => void;
+      const callbackCompletePromise = new Promise<void>((resolve) => {
+        resolveCallbackComplete = resolve;
+      });
+
+      // Stub transaction to immediately execute the callback and then resolve our promise
+      const transactionStub = sinon
+        .stub(sequelize, "transaction")
+        .callsFake(async (callback: any) => {
+          try {
+            await callback({} as Transaction); // pass dummy transaction
+          } catch (e) {
+            throw e; // rethrow to simulate transaction failure
+          } finally {
+            resolveCallbackComplete();
+          }
+        });
+
+      // Stub db.User.findAll to throw an error inside notifyRoles
+      const findAllStub = sinon
+        .stub(db.User, "findAll")
+        .rejects(new Error("Async findAll error"));
+
+      // It should not throw
+      expect(() =>
+        notifyRolesIgnoreError(["Mentee"], "Test Subject", "Test Content"),
+      ).to.not.throw();
+
+      // Wait for the async callback to finish
+      await callbackCompletePromise;
+
+      // Allow the unawaited catch block in notifyRolesIgnoreError to execute
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Ensure error was logged
+      void expect(consoleLogStub.calledOnce).to.be.true;
+      expect(consoleLogStub.firstCall.args[0]).to.include(
+        "notifyRolesIgnoreError() ignored error",
+      );
+      expect(consoleLogStub.firstCall.args[0]).to.include(
+        "Async findAll error",
+      );
+
+      transactionStub.restore();
+      findAllStub.restore();
+    });
+  });
+
   let transaction: Transaction;
   let smsStub: sinon.SinonStub;
   let emailStub: sinon.SinonStub;
