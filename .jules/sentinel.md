@@ -1,0 +1,4 @@
+## 2025-05-22 - [Fix Missing Authorization in Meeting Summary Updates]
+**Vulnerability:** IDOR (Insecure Direct Object Reference) in `summaries.update` tRPC mutation. Any authenticated user could update meeting summaries for any meeting, regardless of whether they belonged to the meeting's group.
+**Learning:** The `update` route was implemented with `authUser()` which only verifies authentication, not authorization. Business logic lacked the necessary check to link the transcript back to its group and verify the requester's membership or managerial roles.
+**Prevention:** Always verify ownership or membership when updating resources. Extract business logic into testable implementation functions (e.g., `updateImpl`) that accept a user object and a database transaction, and ensure these functions explicitly call authorization helpers like `checkPermissionForGroupHistory`.

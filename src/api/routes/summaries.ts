@@ -105,39 +105,60 @@ const update = procedure
       markdown: z.string(),
     }),
   )
-  .mutation(async ({ input: { transcriptId, key, markdown } }) => {
-    // TODO: Check permission
-
+  .mutation(async ({ ctx: { me }, input: { transcriptId, key, markdown } }) => {
     await sequelize.transaction(async (transaction) => {
-      const s = await db.Summary.findOne({
-        where: { transcriptId, key },
-        attributes: summaryAttributes,
-        transaction,
-      });
-      if (!s) throw notFoundError("会议纪要", `${transcriptId}, ${key}`);
-
-      const { deleted, totalDeletedLength, allowed } = computeDeletion(
-        s,
-        markdown,
-      );
-      if (!allowed) throw generalBadRequestError(`累计删除字数过多。`);
-
-      s.markdown = markdown;
-      s.deletedLength = totalDeletedLength;
-      await s.save({ transaction });
-
-      // Use a fixed date to avoid deanonymization.
-      const fixed = new Date("2000-01-01");
-      await db.DeletedSummary.bulkCreate(
-        deleted.map((d) => ({
-          text: d,
-          createdAt: fixed,
-          updatedAt: fixed,
-        })),
-        { transaction },
-      );
+      await updateImpl(me, transcriptId, key, markdown, transaction);
     });
   });
+
+export async function updateImpl(
+  me: User,
+  transcriptId: string,
+  key: string,
+  markdown: string,
+  transaction: Transaction,
+) {
+  const t = await db.Transcript.findByPk(transcriptId, {
+    attributes: ["transcriptId"],
+    include: [
+      {
+        model: db.Group,
+        attributes: groupAttributes,
+        include: groupInclude,
+      },
+    ],
+    transaction,
+  });
+
+  if (!t) throw notFoundError("会议纪要", transcriptId);
+
+  checkPermissionForGroupHistory(me, t.group);
+
+  const s = await db.Summary.findOne({
+    where: { transcriptId, key },
+    attributes: summaryAttributes,
+    transaction,
+  });
+  if (!s) throw notFoundError("会议纪要", `${transcriptId}, ${key}`);
+
+  const { deleted, totalDeletedLength, allowed } = computeDeletion(s, markdown);
+  if (!allowed) throw generalBadRequestError(`累计删除字数过多。`);
+
+  s.markdown = markdown;
+  s.deletedLength = totalDeletedLength;
+  await s.save({ transaction });
+
+  // Use a fixed date to avoid deanonymization.
+  const fixed = new Date("2000-01-01");
+  await db.DeletedSummary.bulkCreate(
+    deleted.map((d) => ({
+      text: d,
+      createdAt: fixed,
+      updatedAt: fixed,
+    })),
+    { transaction },
+  );
+}
 
 const listDeleted = procedure
   .use(authUser("MentorshipManager"))

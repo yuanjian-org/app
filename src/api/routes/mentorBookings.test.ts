@@ -10,7 +10,6 @@ import * as notify from "../notify";
 describe("Mentor Bookings Router", () => {
   let transaction: Transaction;
   let requester: any;
-  let manager: any;
   let findOrCreateRoomStub: sinon.SinonStub;
   let createMessageAndScheduleEmailStub: sinon.SinonStub;
   let notifyRolesStub: sinon.SinonStub;
@@ -23,15 +22,6 @@ describe("Mentor Bookings Router", () => {
         email: "requester@example.com",
         name: "Test Requester",
         roles: [],
-      },
-      { transaction },
-    );
-
-    manager = await db.User.create(
-      {
-        email: "manager@example.com",
-        name: "Test Manager",
-        roles: ["MentorshipManager"],
       },
       { transaction },
     );
