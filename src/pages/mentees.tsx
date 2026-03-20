@@ -88,6 +88,13 @@ import {
 } from "theme/colors";
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import { MatchFeedbackStateCell } from "./mentors/manage";
+import { DownloadIcon } from "@chakra-ui/icons";
+import { IconButton, Tooltip } from "@chakra-ui/react";
+import { toast } from "react-toastify";
+import useMe from "useMe";
+import { isPermitted } from "shared/Role";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import { getAnonymousId } from "shared/getAnonymousId";
 
 type SortOrderKey =
   | "year"
@@ -106,6 +113,8 @@ type SortOrder = {
 const title = "学生档案";
 
 export default fullPage(() => {
+  const { data: config } = useStaticGlobalConfigs();
+  const isDemo = config?.isDemo;
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
@@ -113,6 +122,7 @@ export default fullPage(() => {
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const [showMatchState, setShowMatchState] = useState(false);
+  const me = useMe();
 
   const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
 
@@ -147,6 +157,8 @@ export default fullPage(() => {
               users={users}
               showMatchState={showMatchState}
               refetch={refetch}
+              isDemo={isDemo}
+              isUserManager={isPermitted(me.roles, "UserManager")}
             />
             <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
               共 <b>{users.length}</b> 名
@@ -162,10 +174,14 @@ function MenteeTable({
   users,
   refetch,
   showMatchState,
+  isDemo,
+  isUserManager,
 }: {
   users: User[];
   refetch: () => void;
   showMatchState: boolean;
+  isDemo?: boolean;
+  isUserManager: boolean;
 }) {
   const [mentee2year, setMentee2year] = useState<Record<string, string>>({});
   const setYear = useCallback((userId: string, year: string) => {
@@ -323,6 +339,13 @@ function MenteeTable({
             </>
           )}
 
+          {!isDemo && isUserManager && (
+            <>
+              <Th>下载</Th>
+              <Th>匿名 ID</Th>
+            </>
+          )}
+
           <Th>导师</Th>
           <SortableHeaderCell
             label="最近一对一"
@@ -358,6 +381,9 @@ function MenteeTable({
             setLastMentorReviewDate={setLastMentorReviewDate}
             setLastMeetingStartedAt={setLastMeetingStartedAt}
             showMatchState={showMatchState}
+            isDemo={isDemo}
+            isUserManager={isUserManager}
+            year={mentee2year[u.id]}
           />
         ))}
       </Tbody>
@@ -410,6 +436,9 @@ function MenteeRow({
   setLastMentorReviewDate,
   setLastMeetingStartedAt,
   showMatchState,
+  isDemo,
+  isUserManager,
+  year,
 }: {
   user: User;
   refetch: () => void;
@@ -419,6 +448,9 @@ function MenteeRow({
   setLastMentorReviewDate: (userId: string, date: string) => void;
   setLastMeetingStartedAt: (userId: string, date: string) => void;
   showMatchState: boolean;
+  isDemo?: boolean;
+  isUserManager: boolean;
+  year?: string;
 }) {
   const menteePinyin = toPinyin(u.name ?? "");
   const [pinyin, setPinyins] = useState(menteePinyin);
@@ -440,6 +472,31 @@ function MenteeRow({
     [menteePinyin],
   );
 
+  const downloadMenteeData = async (userId: string) => {
+    const result = await trpc.menteeData.downloadMenteeData.query(userId);
+
+    // Decode base64 and create a blob
+    const byteCharacters = atob(result.data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/zip" });
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = result.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("学生数据下载成功");
+  };
+
   return (
     <Tr key={u.id} _hover={{ bg: "white" }}>
       <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
@@ -450,6 +507,23 @@ function MenteeRow({
         <>
           <MentorSelectionStateCell menteeId={u.id} />
           <MenteeMatchFeedbackStateCell menteeId={u.id} />
+        </>
+      )}
+
+      {!isDemo && isUserManager && (
+        <>
+          <Td>
+            <Tooltip label="下载学生数据">
+              <IconButton
+                aria-label="下载学生数据"
+                icon={<DownloadIcon />}
+                size="sm"
+                variant="ghost"
+                onClick={() => downloadMenteeData(u.id)}
+              />
+            </Tooltip>
+          </Td>
+          <Td>{getAnonymousId(u.id, year || null)}</Td>
         </>
       )}
 
