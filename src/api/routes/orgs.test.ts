@@ -257,6 +257,36 @@ describe("orgs API routes", () => {
       });
       void expect(mentorAssoc).to.be.null;
     });
+
+    it("should allow a regular user to leave an org", async () => {
+      const org = await db.Org.create(
+        { name: "Leave Org User" },
+        { transaction },
+      );
+      const user = await db.User.create(
+        { email: "user_leave@test.com", name: "User", roles: [] },
+        { transaction },
+      );
+
+      await db.OrgMentor.create(
+        { orgId: org.id, mentorId: user.id },
+        { transaction },
+      );
+
+      let mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: user.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.not.be.null;
+
+      await leaveOrgImpl(user, org.id, transaction);
+
+      mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: user.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.be.null;
+    });
   });
 
   describe("removeMentorImpl", () => {

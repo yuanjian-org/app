@@ -10,7 +10,6 @@ import * as notify from "../notify";
 describe("Mentor Bookings Router", () => {
   let transaction: Transaction;
   let requester: any;
-  let manager: any;
   let findOrCreateRoomStub: sinon.SinonStub;
   let createMessageAndScheduleEmailStub: sinon.SinonStub;
   let notifyRolesStub: sinon.SinonStub;
