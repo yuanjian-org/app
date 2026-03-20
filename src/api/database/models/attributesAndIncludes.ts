@@ -28,6 +28,7 @@ export const userAttributes = [
   "roles",
   "menteeStatus",
   "pointOfContactNote",
+  "menteeApplication",
 ];
 
 export const userInclude = [

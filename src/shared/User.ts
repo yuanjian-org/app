@@ -24,6 +24,7 @@ export const zUser = zMinUser.merge(
     menteeStatus: zMenteeStatus.nullable(),
     pointOfContact: zMinUser.nullable(),
     pointOfContactNote: z.string().nullable(),
+    menteeApplication: z.record(z.string(), z.any()).nullable().optional(),
   }),
 );
 type User = z.TypeOf<typeof zUser>;

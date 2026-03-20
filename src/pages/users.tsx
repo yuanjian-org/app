@@ -51,6 +51,8 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 import { toast } from "react-toastify";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import { getAnonymousId } from "shared/getAnonymousId";
+import { menteeAcceptanceYearField } from "shared/applicationFields";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
@@ -183,6 +185,7 @@ function UserTable({
           <Th>角色</Th>
           {!isDemo && <Th>假扮</Th>}
           {!isDemo && <Th>下载</Th>}
+          <Th>匿名ID</Th>
           <Th>ID</Th>
         </Tr>
       </Thead>
@@ -279,6 +282,14 @@ function UserTable({
                 </Tooltip>
               </Td>
             )}
+
+            {/* Anonymous ID */}
+            <Td>
+              {getAnonymousId(
+                u.id,
+                u.menteeApplication?.[menteeAcceptanceYearField] || null,
+              )}
+            </Td>
 
             {/* ID */}
             <Td>{u.id}</Td>
