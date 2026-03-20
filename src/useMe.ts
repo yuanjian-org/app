@@ -4,17 +4,17 @@ import invariant from "tiny-invariant";
 export default function useMe() {
   const { data } = useSession();
   invariant(data);
-  return data.user;
+  return data.me;
 }
 
 export function useMyRoles() {
   const { data } = useSession();
   invariant(data);
-  return data.user.roles;
+  return data.me.roles;
 }
 
 export function useMyId() {
   const { data } = useSession();
   invariant(data);
-  return data.user.id;
+  return data.me.id;
 }
