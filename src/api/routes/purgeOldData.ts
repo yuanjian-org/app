@@ -1,22 +1,34 @@
-import sequelize from "../database/sequelize";
+import { Op } from "sequelize";
+import db from "../database/db";
 
 export async function purgeOldData() {
   console.log("Purge old data...");
-  await sequelize.query(`
-    DELETE FROM "EventLogs"
-    WHERE "updatedAt" < NOW() - INTERVAL '1 year';
-  `);
+  const now = Date.now();
 
-  await sequelize.query(`
-    DELETE FROM "InterviewFeedbackUpdateAttempts"
-    WHERE "updatedAt" < NOW() - INTERVAL '30 days';
-  `);
+  await db.EventLog.destroy({
+    where: {
+      updatedAt: {
+        [Op.lt]: new Date(now - 365 * 86400000), // 1 year
+      },
+    },
+  });
+
+  await db.InterviewFeedbackUpdateAttempt.destroy({
+    where: {
+      updatedAt: {
+        [Op.lt]: new Date(now - 30 * 86400000), // 30 days
+      },
+    },
+  });
 
   // MeetingHistories table is used to retrieve meeting summaries from Tencent
   // Meeting API. Tencent retains meeting records only for 30 days. Keep the
   // history here a bit longer for debugging purposes.
-  await sequelize.query(`
-    DELETE FROM "MeetingHistories"
-    WHERE "updatedAt" < NOW() - INTERVAL '60 days';
-  `);
+  await db.MeetingHistory.destroy({
+    where: {
+      updatedAt: {
+        [Op.lt]: new Date(now - 60 * 86400000), // 60 days
+      },
+    },
+  });
 }
