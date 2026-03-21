@@ -434,24 +434,21 @@ export async function updateWechatUnionId(
 
   if (existing.wechatUnionId === wechatUnionId) return;
 
+  const Account = sequelize.models.account;
+  invariant(Account, "Account model is not initialized");
+
   if (existing.wechatUnionId) {
-    await sequelize.query(
-      `DELETE FROM accounts WHERE provider_account_id = :wechatUnionId`,
-      {
-        replacements: { wechatUnionId: existing.wechatUnionId },
-        transaction,
-      },
-    );
+    await Account.destroy({
+      where: { providerAccountId: existing.wechatUnionId },
+      transaction,
+    });
   }
 
   if (wechatUnionId) {
-    await sequelize.query(
-      `DELETE FROM accounts WHERE provider_account_id = :wechatUnionId`,
-      {
-        replacements: { wechatUnionId },
-        transaction,
-      },
-    );
+    await Account.destroy({
+      where: { providerAccountId: wechatUnionId },
+      transaction,
+    });
   }
 
   await existing.update(
