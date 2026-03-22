@@ -28,14 +28,11 @@ describe("Global Configs Internal Functions", () => {
 
   describe("getImpl", () => {
     it("should return an empty object when no config exists in the database", async () => {
-      // Ensure no rows exist for isolated testing
-      await db.GlobalConfig.destroy({ where: {}, transaction });
       const result = await getImpl(transaction);
       expect(result).to.deep.equal({});
     });
 
     it("should return the stored configuration data when it exists", async () => {
-      await db.GlobalConfig.destroy({ where: {}, transaction });
       const testData = { showEditMessageTimeButton: true };
       await db.GlobalConfig.create({ data: testData }, { transaction });
 
@@ -46,8 +43,6 @@ describe("Global Configs Internal Functions", () => {
 
   describe("updateImpl", () => {
     it("should create a new row if one doesn't exist and save the correct input", async () => {
-      await db.GlobalConfig.destroy({ where: {}, transaction });
-
       const input = { showEditMessageTimeButton: true };
       await updateImpl(input, transaction);
 
@@ -59,7 +54,6 @@ describe("Global Configs Internal Functions", () => {
     });
 
     it("should merge with existing configuration data and ignore undefined fields", async () => {
-      await db.GlobalConfig.destroy({ where: {}, transaction });
       const initialData = { showEditMessageTimeButton: true };
       await db.GlobalConfig.create({ data: initialData }, { transaction });
 
@@ -80,7 +74,6 @@ describe("Global Configs Internal Functions", () => {
     });
 
     it("should remove showEditMessageTimeButton key entirely when explicitly set to false", async () => {
-      await db.GlobalConfig.destroy({ where: {}, transaction });
       const initialData = { showEditMessageTimeButton: true };
       await db.GlobalConfig.create({ data: initialData }, { transaction });
 
