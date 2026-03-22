@@ -99,10 +99,12 @@ const send = procedure
     });
   });
 
+import User from "../database/models/User";
+
 export async function setPhoneImpl(
   phone: string,
   token: string,
-  me: any,
+  me: User,
   transaction: Transaction,
 ) {
   await checkAndDeleteIdToken("phone", phone, token, transaction);
