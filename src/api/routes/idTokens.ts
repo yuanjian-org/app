@@ -150,7 +150,7 @@ export async function setPhoneImpl(
       // Get user password. A user may have a password prior to setting up
       // an account. Also get fresh email and wechatUnionId becaue why not.
       const me2 = await db.User.findByPk(me.id, {
-        attributes: ["email", "wechatUnionId", "password"],
+        attributes: ["id", "email", "wechatUnionId", "password"],
         transaction,
       });
       invariant(me2, "User not found");
