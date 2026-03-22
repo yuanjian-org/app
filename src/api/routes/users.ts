@@ -388,7 +388,6 @@ const update = procedure
           wechat,
 
           ...(await checkAndComputeUserFields({
-            email,
             name: input.name,
             isVolunteer: isPermitted(input.roles, "Volunteer"),
             oldUrl: user.url,
