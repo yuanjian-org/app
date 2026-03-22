@@ -4,7 +4,6 @@ import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
 import {
   createDraftImpl,
-  destroyDraftImpl,
   updateDraftImpl,
   reorderDraftImpl,
 } from "./mentorSelections";
@@ -83,8 +82,12 @@ describe("mentorSelections routes", () => {
       void expect(batch).to.not.be.null;
       expect(batch?.selections.length).to.equal(2);
 
-      const selection1 = batch?.selections.find((s: any) => s.mentorId === mentor1.id);
-      const selection2 = batch?.selections.find((s: any) => s.mentorId === mentor2.id);
+      const selection1 = batch?.selections.find(
+        (s: any) => s.mentorId === mentor1.id,
+      );
+      const selection2 = batch?.selections.find(
+        (s: any) => s.mentorId === mentor2.id,
+      );
 
       expect(selection1?.order).to.equal(0);
       expect(selection2?.order).to.equal(1);
@@ -93,7 +96,12 @@ describe("mentorSelections routes", () => {
 
   describe("updateDraftImpl", () => {
     it("should successfully update the reason for an existing draft selection", async () => {
-      await createDraftImpl(mentee.id, mentor1.id, "Initial reason", transaction);
+      await createDraftImpl(
+        mentee.id,
+        mentor1.id,
+        "Initial reason",
+        transaction,
+      );
 
       const newReason = "Updated reason";
       await updateDraftImpl(mentee.id, mentor1.id, newReason, transaction);
@@ -140,8 +148,12 @@ describe("mentorSelections routes", () => {
         transaction,
       });
 
-      const selection1 = batch?.selections.find((s: any) => s.mentorId === mentor1.id);
-      const selection2 = batch?.selections.find((s: any) => s.mentorId === mentor2.id);
+      const selection1 = batch?.selections.find(
+        (s: any) => s.mentorId === mentor1.id,
+      );
+      const selection2 = batch?.selections.find(
+        (s: any) => s.mentorId === mentor2.id,
+      );
 
       expect(selection1?.order).to.equal(1);
       expect(selection2?.order).to.equal(0);
