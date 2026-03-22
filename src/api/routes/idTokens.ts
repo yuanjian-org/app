@@ -99,7 +99,7 @@ const send = procedure
     });
   });
 
-import User from "../database/models/User";
+import User from "../../shared/User";
 
 export async function setPhoneImpl(
   phone: string,
@@ -158,7 +158,7 @@ export async function setPhoneImpl(
       const wechatUnionId = me2.wechatUnionId;
       const password = me2.password;
 
-      await me.update(
+      await me2.update(
         {
           email: null,
           wechatUnionId: null,
