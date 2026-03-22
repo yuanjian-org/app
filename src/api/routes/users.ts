@@ -51,6 +51,7 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 
+// Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
 
 const create = procedure
@@ -347,7 +348,7 @@ const update = procedure
 
 export async function updateImpl(
   me: User,
-  input: z.infer<typeof zUser> & { wechatUnionId?: string | null },
+  input: User & { wechatUnionId?: string | null },
   transaction: Transaction,
 ) {
   const user = await db.User.findByPk(input.id, {
