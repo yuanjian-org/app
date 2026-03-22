@@ -17,15 +17,15 @@ export default async function userinfoHandler(
 
   // 1. Verify the access token.
   const authHeader = req.headers.authorization;
-  const BEARER_PREFIX = "Bearer ";
-  if (!authHeader || !authHeader.startsWith(BEARER_PREFIX)) {
+  const bearerPrefix = "Bearer ";
+  if (!authHeader || !authHeader.startsWith(bearerPrefix)) {
     return res.status(401).json({
       error: "invalid_request",
       error_description: "Missing or invalid Authorization header",
     });
   }
 
-  const accessToken = authHeader.substring(BEARER_PREFIX.length);
+  const accessToken = authHeader.substring(bearerPrefix.length);
 
   let payload: jwt.JwtPayload;
   try {

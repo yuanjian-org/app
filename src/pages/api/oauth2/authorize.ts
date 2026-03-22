@@ -5,7 +5,7 @@ import { URL } from "url";
 import jwt from "jsonwebtoken";
 import getBaseUrl from "../../../shared/getBaseUrl";
 
-export const OAUTH2_AUTHORIZATION_CODE_EXPIRY_SECONDS = 10 * 60; // 10 minutes
+export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
 // We use stateless JWT tokens as the authorization code and access token to simplify deployment.
 // This avoids needing a separate database table for codes and tokens. Single-use enforcement
@@ -105,8 +105,7 @@ export default async function authorizeHandler(
     redirectUri: finalRedirectUri,
     codeChallenge: code_challenge,
     codeChallengeMethod: code_challenge_method,
-    exp:
-      Math.floor(Date.now() / 1000) + OAUTH2_AUTHORIZATION_CODE_EXPIRY_SECONDS,
+    exp: Math.floor(Date.now() / 1000) + authCodeExpiryInSec,
   };
 
   // Create a JWT signed code
