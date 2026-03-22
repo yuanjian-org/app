@@ -19,6 +19,51 @@ import moment from "moment";
 import { Op, Transaction, literal } from "sequelize";
 import { zDateColumn } from "shared/DateColumn";
 
+export async function createDraftImpl(
+  userId: string,
+  mentorId: string,
+  reason: string,
+  transaction: Transaction,
+) {
+  let batch = await db.MentorSelectionBatch.findOne({
+    where: {
+      userId,
+      finalizedAt: null,
+    },
+    attributes: ["id"],
+    include: [
+      {
+        association: "selections",
+        attributes: ["order"],
+      },
+    ],
+    transaction,
+  });
+
+  let order: number;
+  if (batch) {
+    order = batch.selections.reduce((max, s) => Math.max(max, s.order), 0) + 1;
+  } else {
+    batch = await db.MentorSelectionBatch.create(
+      {
+        userId,
+      },
+      { transaction },
+    );
+    order = 0;
+  }
+
+  await db.MentorSelection.create(
+    {
+      batchId: batch.id,
+      mentorId,
+      reason,
+      order,
+    },
+    { transaction },
+  );
+}
+
 const createDraft = procedure
   .use(authUser())
   .input(
@@ -29,46 +74,43 @@ const createDraft = procedure
   )
   .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
-      let batch = await db.MentorSelectionBatch.findOne({
-        where: {
-          userId: me.id,
-          finalizedAt: null,
-        },
-        attributes: ["id"],
-        include: [
-          {
-            association: "selections",
-            attributes: ["order"],
-          },
-        ],
-        transaction,
-      });
-
-      let order: number;
-      if (batch) {
-        order =
-          batch.selections.reduce((max, s) => Math.max(max, s.order), 0) + 1;
-      } else {
-        batch = await db.MentorSelectionBatch.create(
-          {
-            userId: me.id,
-          },
-          { transaction },
-        );
-        order = 0;
-      }
-
-      await db.MentorSelection.create(
-        {
-          batchId: batch.id,
-          mentorId,
-          reason,
-          order,
-        },
-        { transaction },
-      );
+      await createDraftImpl(me.id, mentorId, reason, transaction);
     });
   });
+
+export async function destroyDraftImpl(
+  userId: string,
+  mentorId: string,
+  transaction: Transaction,
+) {
+  const batch = await db.MentorSelectionBatch.findOne({
+    where: {
+      userId,
+      finalizedAt: null,
+    },
+    attributes: ["id"],
+    include: [
+      {
+        association: "selections",
+        attributes: ["id"],
+        where: { mentorId },
+      },
+    ],
+    transaction,
+  });
+
+  if (!batch || batch.selections.length === 0) {
+    throw notFoundError("导师选择", mentorId);
+  }
+
+  invariant(batch.selections.length === 1);
+  await db.MentorSelection.destroy({
+    where: {
+      id: batch.selections[0].id,
+    },
+    transaction,
+  });
+}
 
 const destroyDraft = procedure
   .use(authUser())
@@ -79,35 +121,23 @@ const destroyDraft = procedure
   )
   .mutation(async ({ ctx: { me }, input: { mentorId } }) => {
     await sequelize.transaction(async (transaction) => {
-      const batch = await db.MentorSelectionBatch.findOne({
-        where: {
-          userId: me.id,
-          finalizedAt: null,
-        },
-        attributes: ["id"],
-        include: [
-          {
-            association: "selections",
-            attributes: ["id"],
-            where: { mentorId },
-          },
-        ],
-        transaction,
-      });
-
-      if (!batch || batch.selections.length === 0) {
-        throw notFoundError("导师选择", mentorId);
-      }
-
-      invariant(batch.selections.length === 1);
-      await db.MentorSelection.destroy({
-        where: {
-          id: batch.selections[0].id,
-        },
-        transaction,
-      });
+      await destroyDraftImpl(me.id, mentorId, transaction);
     });
   });
+
+export async function updateDraftImpl(
+  userId: string,
+  mentorId: string,
+  reason: string,
+  transaction: Transaction,
+) {
+  const batch = await getDraftBatch(userId, mentorId, transaction);
+  invariant(batch && batch.selections.length === 1);
+  if (!batch) {
+    throw notFoundError("导师选择", mentorId);
+  }
+  await batch.selections[0].update({ reason }, { transaction });
+}
 
 const updateDraft = procedure
   .use(authUser())
@@ -119,12 +149,7 @@ const updateDraft = procedure
   )
   .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(me.id, mentorId, transaction);
-      invariant(batch && batch.selections.length === 1);
-      if (!batch) {
-        throw notFoundError("导师选择", mentorId);
-      }
-      await batch.selections[0].update({ reason }, { transaction });
+      await updateDraftImpl(me.id, mentorId, reason, transaction);
     });
   });
 
@@ -181,6 +206,41 @@ async function getDraftBatch(
   });
 }
 
+export async function reorderDraftImpl(
+  userId: string,
+  input: { mentorId: string; order: number }[],
+  transaction: Transaction,
+) {
+  const batch = await getDraftBatch(userId, undefined, transaction);
+  if (!batch || batch.selections.length !== input.length) {
+    throw generalBadRequestError("导师选择数量不匹配，请刷新页面重试");
+  }
+
+  // To avoid unique key constraint violation, update all orders first.
+  let max = batch.selections.reduce((max, s) => Math.max(max, s.order), 0);
+  for (const selection of batch.selections) {
+    max++;
+    await selection.update({ order: max }, { transaction });
+  }
+
+  for (const { mentorId, order } of input) {
+    const [cnt] = await db.MentorSelection.update(
+      { order },
+      {
+        where: {
+          batchId: batch.id,
+          mentorId,
+        },
+        transaction,
+      },
+    );
+    invariant(cnt <= 1);
+    if (cnt === 0) {
+      throw generalBadRequestError("导师选择不存在，请刷新页面重试");
+    }
+  }
+}
+
 const reorderDraft = procedure
   .use(authUser())
   .input(
@@ -193,34 +253,7 @@ const reorderDraft = procedure
   )
   .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(me.id, undefined, transaction);
-      if (!batch || batch.selections.length !== input.length) {
-        throw generalBadRequestError("导师选择数量不匹配，请刷新页面重试");
-      }
-
-      // To avoid unique key constraint violation, update all orders first.
-      let max = batch.selections.reduce((max, s) => Math.max(max, s.order), 0);
-      for (const selection of batch.selections) {
-        max++;
-        await selection.update({ order: max }, { transaction });
-      }
-
-      for (const { mentorId, order } of input) {
-        const [cnt] = await db.MentorSelection.update(
-          { order },
-          {
-            where: {
-              batchId: batch.id,
-              mentorId,
-            },
-            transaction,
-          },
-        );
-        invariant(cnt <= 1);
-        if (cnt === 0) {
-          throw generalBadRequestError("导师选择不存在，请刷新页面重试");
-        }
-      }
+      await reorderDraftImpl(me.id, input, transaction);
     });
   });
 
