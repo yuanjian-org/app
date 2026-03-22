@@ -46,6 +46,9 @@ export default function MarkdownStyler({
                   rehypeSanitize,
                   {
                     ...defaultSchema,
+                    // By default, rehype-sanitize only strips tags but leaves their text content behind.
+                    // This could lead to CSS injection if a <style> tag's text content is retained.
+                    // Thus, we explicitly instruct it to completely remove script and style tags and their contents.
                     strip: ["script", "style"],
                   },
                 ],
