@@ -8,16 +8,9 @@
     }
   },
   "compilerOptions": {
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "typeRoots": ["node_modules/@types"],
     "target": "es2016",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "es2015.iterable"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext", "es2015.iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -39,9 +32,7 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false /* relax on model properties */,
     "paths": {
-      "@assets/*": [
-        "./src/assetsassets/*"
-      ]
+      "@assets/*": ["./src/assetsassets/*"]
     },
     "incremental": true
   },
@@ -51,6 +42,8 @@
   ],
   "include": [
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    /* Required because ts ignores hidden folders by default */
+    "src/pages/api/.well-known/*.ts"
   ]
 }
