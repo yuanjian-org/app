@@ -1,8 +1,262 @@
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import { resetPasswordImpl, updateMyPhoneAndPreference } from "./idTokens";
+import {
+  resetPasswordImpl,
+  updateMyPhoneAndPreference,
+  sendImpl,
+  setPhoneImpl,
+} from "./idTokens";
 import { Transaction } from "sequelize";
 import { expect } from "chai";
+import * as smsModule from "../sms";
+import * as emailModule from "../../api/email";
+import * as tokenModule from "../../shared/token";
+import sinon from "sinon";
+import moment from "moment";
+import { TRPCError } from "@trpc/server";
+
+describe("sendImpl", () => {
+  let transaction: Transaction;
+  let smsStub: sinon.SinonStub;
+  let emailStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    smsStub = sinon.stub(smsModule, "sms").resolves();
+    emailStub = sinon.stub(emailModule, "email").resolves();
+    sinon.stub(tokenModule, "generateToken").resolves(123456);
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+    sinon.restore();
+  });
+
+  it("should throw error for unsupported phone regions", async () => {
+    try {
+      await sendImpl("phone", "+441234567890", "127.0.0.1", transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("目前尚不支持您所在地区的手机号");
+    }
+  });
+
+  it("should send SMS for supported China phone number", async () => {
+    const phone = "+8613800138000";
+    await sendImpl("phone", phone, "127.0.0.1", transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone, ip: "127.0.0.1" },
+      transaction,
+    });
+
+    void expect(tokenRecord).to.not.be.null;
+    void expect(tokenRecord!.token).to.equal("123456");
+    void expect(smsStub.calledOnce).to.be.true;
+    void expect(smsStub.firstCall.args[2][0].to).to.equal(phone);
+  });
+
+  it("should send SMS for supported US phone number", async () => {
+    const phone = "+12025550171";
+    await sendImpl("phone", phone, "127.0.0.1", transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone, ip: "127.0.0.1" },
+      transaction,
+    });
+
+    void expect(tokenRecord).to.not.be.null;
+    void expect(smsStub.calledOnce).to.be.true;
+    void expect(smsStub.firstCall.args[2][0].to).to.equal(phone);
+  });
+
+  it("should send SMS for supported Italy phone number", async () => {
+    const phone = "+393123456789";
+    await sendImpl("phone", phone, "127.0.0.1", transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone, ip: "127.0.0.1" },
+      transaction,
+    });
+
+    void expect(tokenRecord).to.not.be.null;
+    void expect(smsStub.calledOnce).to.be.true;
+    void expect(smsStub.firstCall.args[2][0].to).to.equal(phone);
+  });
+
+  it("should send email for email idType", async () => {
+    const userEmail = "test@example.com";
+    await sendImpl("email", userEmail, "127.0.0.1", transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { email: userEmail, ip: "127.0.0.1" },
+      transaction,
+    });
+
+    void expect(tokenRecord).to.not.be.null;
+    void expect(tokenRecord!.token).to.equal("123456");
+    void expect(emailStub.calledOnce).to.be.true;
+    void expect(emailStub.firstCall.args[0][0]).to.equal(userEmail);
+  });
+
+  it("should throw rate limit error if requested too frequently", async () => {
+    const phone = "+8613800138000";
+    const ip = "127.0.0.1";
+
+    // Create a recent token record
+    await db.IdToken.create(
+      { ip, phone, token: "654321", updatedAt: new Date() },
+      { transaction },
+    );
+
+    try {
+      await sendImpl("phone", phone, ip, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("验证码发送过于频繁，请稍后再试");
+    }
+  });
+
+  it("should succeed if rate limit is passed", async () => {
+    const phone = "+8613800138000";
+    const ip = "127.0.0.1";
+
+    // Create an old token record (older than min send interval, e.g., 65 seconds ago)
+    await db.IdToken.create(
+      {
+        ip,
+        phone,
+        token: "654321",
+      },
+      { transaction },
+    );
+
+    // Sequelize automatically updates updatedAt on creation, so we need to manually update it here
+    // But silent: true will not skip timestamp updates if they are globally defined. Instead use direct query
+    await sequelize.query(
+      `UPDATE "IdTokens" SET "updatedAt" = :updatedAt WHERE ip = :ip AND phone = :phone AND token = :token`,
+      {
+        replacements: {
+          updatedAt: moment().subtract(65, "seconds").toDate(),
+          ip,
+          phone,
+          token: "654321",
+        },
+        transaction,
+      }
+    );
+
+    await sendImpl("phone", phone, ip, transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone, ip },
+      transaction,
+    });
+
+    void expect(tokenRecord).to.not.be.null;
+    void expect(tokenRecord!.token).to.equal("123456");
+    void expect(smsStub.calledOnce).to.be.true;
+  });
+});
+
+describe("setPhoneImpl", () => {
+  let transaction: Transaction;
+  const token = "123456";
+  const phone = "+8613800138000";
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    await db.IdToken.create({ ip: "127.0.0.1", phone, token }, { transaction });
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should update phone when existing user is not found", async () => {
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await me.reload({ transaction });
+    void expect(me.phone).to.equal(phone);
+  });
+
+  it("should throw error when existing user is found and current user already has phone", async () => {
+    await db.User.create({ phone, name: "existing user" }, { transaction });
+    const me = await db.User.create(
+      { phone: "+8613900139000", name: "me user" },
+      { transaction },
+    );
+
+    try {
+      await setPhoneImpl(phone, token, me, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("手机号已经被使用。");
+    }
+  });
+
+  it("should merge accounts when existing user is found and current user has NO phone (all fields present)", async () => {
+    const existingUser = await db.User.create(
+      { phone, name: "existing user" },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me user",
+        email: "me@example.com",
+        wechatUnionId: "wechat-id-123",
+        password: "hashed-password",
+      },
+      { transaction },
+    );
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await me.reload({ transaction });
+    void expect(me.email).to.be.null;
+    void expect(me.wechatUnionId).to.be.null;
+    void expect(me.password).to.be.null;
+    void expect(me.mergedTo).to.equal(existingUser.id);
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).to.equal("me@example.com");
+    void expect(existingUser.wechatUnionId).to.equal("wechat-id-123");
+    void expect(existingUser.password).to.equal("hashed-password");
+  });
+
+  it("should merge accounts when existing user is found and current user has NO phone (some fields missing)", async () => {
+    const existingUser = await db.User.create(
+      {
+        phone,
+        name: "existing user",
+        email: "existing@example.com",
+        wechatUnionId: "existing-wechat",
+        password: "existing-password",
+      },
+      { transaction },
+    );
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await me.reload({ transaction });
+    void expect(me.email).to.be.null;
+    void expect(me.wechatUnionId).to.be.null;
+    void expect(me.password).to.be.null;
+    void expect(me.mergedTo).to.equal(existingUser.id);
+
+    await existingUser.reload({ transaction });
+    // existing user keeps its own fields if `me` doesn't have them
+    void expect(existingUser.email).to.equal("existing@example.com");
+    void expect(existingUser.wechatUnionId).to.equal("existing-wechat");
+    void expect(existingUser.password).to.equal("existing-password");
+  });
+});
 
 describe("resetPasswordImpl", () => {
   const testPhone = "+8613800138000";
