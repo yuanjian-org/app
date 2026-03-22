@@ -340,12 +340,18 @@ const update = procedure
   .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
       const user = await db.User.findByPk(input.id, {
-        attributes: ["id", "roles", "url", "name"],
+        attributes: ["id", "roles", "url", "name", "email", "phone"],
         transaction,
       });
       if (!user) {
         throw notFoundError("用户", input.id);
       }
+
+      // Normalize empty strings to null for fields that should be nullable
+      const email = input.email === "" ? null : input.email;
+      const phone = input.phone === "" ? null : input.phone;
+      const wechat = input.wechat === "" ? null : input.wechat;
+      const url = input.url === "" ? null : input.url;
 
       const isUserManager = isPermitted(me.roles, "UserManager");
       if (!isUserManager) {
@@ -359,6 +365,15 @@ const update = procedure
           (r) => !input.roles.includes(r),
         );
         if ([...rolesToAdd, ...rolesToRemove].length) {
+          throw noPermissionError("用户", input.id);
+        }
+
+        const emailChanged =
+          email !== undefined &&
+          (email?.toLowerCase() ?? null) !==
+            (user.email?.toLowerCase() ?? null);
+        const phoneChanged = phone !== undefined && phone !== user.phone;
+        if (emailChanged || phoneChanged) {
           throw noPermissionError("用户", input.id);
         }
       } else {
@@ -376,19 +391,13 @@ const update = procedure
         throw generalBadRequestError("中文姓名无效。");
       }
 
-      // Normalize empty strings to null for fields that should be nullable
-      const email = input.email === "" ? null : input.email;
-      const phone = input.phone === "" ? null : input.phone;
-      const wechat = input.wechat === "" ? null : input.wechat;
-      const url = input.url === "" ? null : input.url;
-
       // TODO: For cleaner code, separate self updates from admin updates.
       await user.update(
         {
           wechat,
 
           ...(await checkAndComputeUserFields({
-            email,
+            email: isUserManager ? email : undefined,
             name: input.name,
             isVolunteer: isPermitted(input.roles, "Volunteer"),
             oldUrl: user.url,
@@ -399,7 +408,6 @@ const update = procedure
           // fields that only UserManagers can change
           ...(isUserManager && {
             roles: input.roles,
-            email,
             phone,
           }),
         },
