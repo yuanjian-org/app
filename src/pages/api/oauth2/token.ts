@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { LRUCache } from "lru-cache";
 
 // Simple in-memory cache to prevent authorization code reuse.
@@ -76,41 +77,15 @@ export default function tokenHandler(
   }
 
   // 2. Decode and verify the authorization code.
-  const [payloadStr, signature] = code.split(".");
-
-  if (!payloadStr || !signature) {
-    return res.status(400).json({
-      error: "invalid_grant",
-      error_description: "Invalid code format",
-    });
-  }
-
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.NEXTAUTH_SECRET!)
-    .update(payloadStr)
-    .digest("base64url");
-
-  if (signature !== expectedSignature) {
-    return res.status(400).json({
-      error: "invalid_grant",
-      error_description: "Invalid code signature",
-    });
-  }
-
-  let payload;
+  let payload: any;
   try {
-    payload = JSON.parse(Buffer.from(payloadStr, "base64url").toString());
+    payload = jwt.verify(code, process.env.NEXTAUTH_SECRET!, {
+      algorithms: ["HS256"],
+    });
   } catch {
     return res.status(400).json({
       error: "invalid_grant",
-      error_description: "Invalid code payload",
-    });
-  }
-
-  if (payload.exp < Math.floor(Date.now() / 1000)) {
-    return res.status(400).json({
-      error: "invalid_grant",
-      error_description: "Authorization code expired",
+      error_description: "Invalid or expired authorization code",
     });
   }
 
@@ -162,21 +137,16 @@ export default function tokenHandler(
     exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
   };
 
-  const atPayloadStr = Buffer.from(JSON.stringify(accessTokenPayload)).toString(
-    "base64url",
+  const accessToken = jwt.sign(
+    accessTokenPayload,
+    process.env.NEXTAUTH_SECRET!,
+    {
+      algorithm: "HS256",
+    },
   );
-  const atSignature = crypto
-    .createHmac("sha256", process.env.NEXTAUTH_SECRET!)
-    .update(atPayloadStr)
-    .digest("base64url");
-  const accessToken = `${atPayloadStr}.${atSignature}`;
 
   // We could also issue an id_token (OIDC) which is a standard JWT.
   // For simplicity and since we don't have a private/public key pair, we'll use HMAC (HS256) for the id_token as well, using NEXTAUTH_SECRET.
-  const headerStr = Buffer.from(
-    JSON.stringify({ alg: "HS256", typ: "JWT" }),
-  ).toString("base64url");
-
   // Need the actual server URL for the issuer
   const protocol = req.headers["x-forwarded-proto"] || "http";
   const host = req.headers.host;
@@ -190,14 +160,9 @@ export default function tokenHandler(
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
   };
 
-  const idTokenPayloadStr = Buffer.from(
-    JSON.stringify(idTokenPayload),
-  ).toString("base64url");
-  const idTokenSignature = crypto
-    .createHmac("sha256", expectedClientSecret)
-    .update(`${headerStr}.${idTokenPayloadStr}`)
-    .digest("base64url");
-  const idToken = `${headerStr}.${idTokenPayloadStr}.${idTokenSignature}`;
+  const idToken = jwt.sign(idTokenPayload, expectedClientSecret, {
+    algorithm: "HS256",
+  });
 
   return res.status(200).json({
     access_token: accessToken,

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import db from "../../../api/database/db";
 import {
   userAttributes,
@@ -25,41 +25,17 @@ export default async function userinfoHandler(
   }
 
   const accessToken = authHeader.substring(7);
-  const [payloadStr, signature] = accessToken.split(".");
 
-  if (!payloadStr || !signature) {
-    return res.status(401).json({
-      error: "invalid_token",
-      error_description: "Invalid token format",
-    });
-  }
-
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.NEXTAUTH_SECRET!)
-    .update(payloadStr)
-    .digest("base64url");
-
-  if (signature !== expectedSignature) {
-    return res.status(401).json({
-      error: "invalid_token",
-      error_description: "Invalid token signature",
-    });
-  }
-
-  let payload;
+  let payload: any;
   try {
-    payload = JSON.parse(Buffer.from(payloadStr, "base64url").toString());
+    payload = jwt.verify(accessToken, process.env.NEXTAUTH_SECRET!, {
+      algorithms: ["HS256"],
+    });
   } catch {
     return res.status(401).json({
       error: "invalid_token",
-      error_description: "Invalid token payload",
+      error_description: "Invalid or expired token",
     });
-  }
-
-  if (payload.exp < Math.floor(Date.now() / 1000)) {
-    return res
-      .status(401)
-      .json({ error: "invalid_token", error_description: "Token expired" });
   }
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;

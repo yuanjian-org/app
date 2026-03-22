@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 // Temporary storage for authorization codes.
 // In a production environment, this should be stored in a database or Redis with an expiration time.
 // Since the environment is expected to use simple env variables for the client, we can use a simple cache or DB table.
@@ -114,15 +114,10 @@ export default async function authorizeHandler(
     exp: Math.floor(Date.now() / 1000) + 10 * 60, // 10 minutes expiry
   };
 
-  // Create a base64 encoded and HMAC signed code
-  const payloadStr = Buffer.from(JSON.stringify(codePayload)).toString(
-    "base64url",
-  );
-  const signature = crypto
-    .createHmac("sha256", process.env.NEXTAUTH_SECRET!)
-    .update(payloadStr)
-    .digest("base64url");
-  const code = `${payloadStr}.${signature}`;
+  // Create a JWT signed code
+  const code = jwt.sign(codePayload, process.env.NEXTAUTH_SECRET!, {
+    algorithm: "HS256",
+  });
 
   // 4. Redirect back to the client's redirect_uri with the code and state.
   const redirectUrl = new URL(finalRedirectUri);
