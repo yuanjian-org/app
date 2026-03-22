@@ -2,13 +2,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { LRUCache } from "lru-cache";
+import { OAUTH2_AUTHORIZATION_CODE_EXPIRY_SECONDS } from "./authorize";
 
 // Simple in-memory cache to prevent authorization code reuse.
 // It stores the code string as the key and a boolean as the value.
-// Entries expire after 10 minutes (the validity of the code).
+// Entries expire after OAUTH2_AUTHORIZATION_CODE_EXPIRY_SECONDS.
 const usedCodesCache = new LRUCache<string, boolean>({
   max: 10000,
-  ttl: 10 * 60 * 1000, // 10 minutes
+  ttl: OAUTH2_AUTHORIZATION_CODE_EXPIRY_SECONDS * 1000,
 });
 
 export default function tokenHandler(
