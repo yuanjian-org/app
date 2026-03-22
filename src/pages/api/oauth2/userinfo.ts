@@ -24,13 +24,13 @@ export default async function userinfoHandler(
     });
   }
 
-  const accessToken = authHeader.substring(7);
+  const accessToken = authHeader.substring("Bearer ".length);
 
-  let payload: any;
+  let payload: jwt.JwtPayload;
   try {
     payload = jwt.verify(accessToken, process.env.NEXTAUTH_SECRET!, {
       algorithms: ["HS256"],
-    });
+    }) as jwt.JwtPayload;
   } catch {
     return res.status(401).json({
       error: "invalid_token",
@@ -61,7 +61,5 @@ export default async function userinfoHandler(
     name: user.name,
     email: user.email,
     phone_number: user.phone,
-    // Include custom claims as needed
-    roles: user.roles,
   });
 }

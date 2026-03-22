@@ -3,18 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
 import jwt from "jsonwebtoken";
-// Temporary storage for authorization codes.
-// In a production environment, this should be stored in a database or Redis with an expiration time.
-// Since the environment is expected to use simple env variables for the client, we can use a simple cache or DB table.
-// However, the application uses PostgreSQL, so we should create a simple model or use the LRU cache if we want a quick implementation.
-// Actually, it's better to use the database to ensure it works across serverless functions or multiple instances.
-// Let's use a simple global Map for now or a DB table if needed.
-// Given the simplicity, we'll use a global Map for codes and tokens, but note that this won't work in serverless/multi-instance without a central store.
-// Alternatively, we can just create a `OAuthCode` and `OAuthToken` model in `db.ts` or use existing tables.
-// The user asked for simple env vars for the client configuration, not necessarily the tokens.
-// Let's create simple models or use an existing one. Wait, adding a model requires DB migration.
-// Let's see if we can use a JWT token as the authorization code and access token to make it stateless!
-// That way we don't need a database table for codes and tokens.
+import getBaseUrl from "../../../shared/getBaseUrl";
+
+// We use stateless JWT tokens as the authorization code and access token to simplify deployment.
+// This avoids needing a separate database table for codes and tokens. Single-use enforcement
+// for codes is handled via an LRU cache in the token exchange endpoint.
 
 export default async function authorizeHandler(
   req: NextApiRequest,
@@ -91,12 +84,11 @@ export default async function authorizeHandler(
   // 2. If the user is not logged in, redirect them to the login page with a callbackUrl pointing back to this endpoint.
   if (!session?.me) {
     // Construct the URL to return to this authorization endpoint after login
-    const protocol = req.headers["x-forwarded-proto"] || "http";
-    const host = req.headers.host;
-    const currentUrl = new URL(req.url!, `${protocol}://${host}`);
+    const baseUrl = getBaseUrl();
+    const currentUrl = new URL(req.url!, baseUrl);
 
     // Redirect to the login page
-    const loginUrl = new URL("/auth/login", `${protocol}://${host}`);
+    const loginUrl = new URL("/auth/login", baseUrl);
     loginUrl.searchParams.set("callbackUrl", currentUrl.toString());
 
     return res.redirect(302, loginUrl.toString());

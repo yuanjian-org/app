@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import getBaseUrl from "../../../shared/getBaseUrl";
 
 export default function openidConfigurationHandler(
   req: NextApiRequest,
@@ -9,9 +10,7 @@ export default function openidConfigurationHandler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers.host;
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = getBaseUrl();
 
   return res.status(200).json({
     issuer: baseUrl,
