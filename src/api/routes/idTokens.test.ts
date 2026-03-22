@@ -145,7 +145,7 @@ describe("sendImpl", () => {
           token: "654321",
         },
         transaction,
-      }
+      },
     );
 
     await sendImpl("phone", phone, ip, transaction);
