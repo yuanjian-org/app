@@ -51,6 +51,8 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 
+import * as selfModule from "./users";
+
 const create = procedure
   .use(authUser("UserManager"))
   .input(
@@ -339,75 +341,81 @@ const update = procedure
   )
   .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      const user = await db.User.findByPk(input.id, {
-        attributes: ["id", "roles", "url", "name"],
-        transaction,
-      });
-      if (!user) {
-        throw notFoundError("用户", input.id);
-      }
-
-      const isUserManager = isPermitted(me.roles, "UserManager");
-      if (!isUserManager) {
-        // Non-UserManagers can only update their own profile.
-        if (me.id !== input.id) {
-          throw noPermissionError("用户", input.id);
-        }
-
-        const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
-        const rolesToRemove = user.roles.filter(
-          (r) => !input.roles.includes(r),
-        );
-        if ([...rolesToAdd, ...rolesToRemove].length) {
-          throw noPermissionError("用户", input.id);
-        }
-      } else {
-        await updateWechatUnionId(
-          me.roles,
-          user.id,
-          input.wechatUnionId === "" ? null : input.wechatUnionId,
-          transaction,
-        );
-      }
-
-      // Only check Chinese name when updating name. Allow invalid names created
-      // during sign-in to be carried over. See createUser.
-      if (user.name !== input.name && !isValidChineseName(input.name)) {
-        throw generalBadRequestError("中文姓名无效。");
-      }
-
-      // Normalize empty strings to null for fields that should be nullable
-      const email = input.email === "" ? null : input.email;
-      const phone = input.phone === "" ? null : input.phone;
-      const wechat = input.wechat === "" ? null : input.wechat;
-      const url = input.url === "" ? null : input.url;
-
-      // TODO: For cleaner code, separate self updates from admin updates.
-      await user.update(
-        {
-          wechat,
-
-          ...(await checkAndComputeUserFields({
-            name: input.name,
-            isVolunteer: isPermitted(input.roles, "Volunteer"),
-            oldUrl: user.url,
-            url,
-            transaction,
-          })),
-
-          // fields that only UserManagers can change
-          ...(isUserManager && {
-            roles: input.roles,
-            email,
-            phone,
-          }),
-        },
-        { transaction },
-      );
-
-      invalidateUserCache(user.id);
+      await updateImpl(me, input, transaction);
     });
   });
+
+export async function updateImpl(
+  me: User,
+  input: z.infer<typeof zUser> & { wechatUnionId?: string | null },
+  transaction: Transaction,
+) {
+  const user = await db.User.findByPk(input.id, {
+    attributes: ["id", "roles", "url", "name"],
+    transaction,
+  });
+  if (!user) {
+    throw notFoundError("用户", input.id);
+  }
+
+  const isUserManager = isPermitted(me.roles, "UserManager");
+  if (!isUserManager) {
+    // Non-UserManagers can only update their own profile.
+    if (me.id !== input.id) {
+      throw noPermissionError("用户", input.id);
+    }
+
+    const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
+    const rolesToRemove = user.roles.filter((r) => !input.roles.includes(r));
+    if ([...rolesToAdd, ...rolesToRemove].length) {
+      throw noPermissionError("用户", input.id);
+    }
+  } else {
+    await selfModule.updateWechatUnionId(
+      me.roles,
+      user.id,
+      input.wechatUnionId === "" ? null : input.wechatUnionId,
+      transaction,
+    );
+  }
+
+  // Only check Chinese name when updating name. Allow invalid names created
+  // during sign-in to be carried over. See createUser.
+  if (user.name !== input.name && !isValidChineseName(input.name)) {
+    throw generalBadRequestError("中文姓名无效。");
+  }
+
+  // Normalize empty strings to null for fields that should be nullable
+  const email = input.email === "" ? null : input.email;
+  const phone = input.phone === "" ? null : input.phone;
+  const wechat = input.wechat === "" ? null : input.wechat;
+  const url = input.url === "" ? null : input.url;
+
+  // TODO: For cleaner code, separate self updates from admin updates.
+  await user.update(
+    {
+      wechat,
+
+      ...(await checkAndComputeUserFields({
+        name: input.name,
+        isVolunteer: isPermitted(input.roles, "Volunteer"),
+        oldUrl: user.url,
+        url,
+        transaction,
+      })),
+
+      // fields that only UserManagers can change
+      ...(isUserManager && {
+        roles: input.roles,
+        email,
+        phone,
+      }),
+    },
+    { transaction },
+  );
+
+  invalidateUserCache(user.id);
+}
 
 /**
  * Remove obsolete entries from next-auth's accounts table if the wechatUnionId
