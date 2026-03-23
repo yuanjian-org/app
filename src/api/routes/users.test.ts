@@ -1,5 +1,10 @@
 import { expect } from "chai";
-import { redactEmail, updateWechatUnionId, updateImpl } from "./users";
+import {
+  redactEmail,
+  updateWechatUnionId,
+  updateImpl,
+  setUserStateImpl,
+} from "./users";
 import * as usersModule from "./users";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -374,5 +379,82 @@ describe("updateImpl", () => {
 
     void expect(updateWechatUnionIdStub.calledOnce).to.be.true;
     expect(updateWechatUnionIdStub.firstCall.args[2]).to.equal("new_union_id");
+  });
+});
+
+describe("setUserStateImpl", () => {
+  let transaction: Transaction;
+  let meNormal: any;
+  let meManager: any;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+
+    meNormal = await db.User.create(
+      {
+        email: `normal-${Date.now()}-${Math.random()}@example.com`,
+        name: "张三",
+        roles: ["Volunteer"],
+      },
+      { transaction },
+    );
+
+    meManager = await db.User.create(
+      {
+        email: `manager-${Date.now()}-${Math.random()}@example.com`,
+        name: "李经理",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should restrict exam field updates for normal users", async () => {
+    const examDate = new Date("2023-01-01").toISOString();
+    const lastKudosReadAt = new Date("2023-02-01").toISOString();
+
+    await setUserStateImpl(
+      meNormal,
+      {
+        commsExam: examDate,
+        handbookExam: examDate,
+        menteeInterviewerExam: examDate,
+        lastKudosReadAt,
+      } as any,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(meNormal.id, { transaction });
+    const state = updated?.state || {};
+
+    void expect(state.commsExam).to.be.undefined;
+    void expect(state.handbookExam).to.be.undefined;
+    void expect(state.menteeInterviewerExam).to.be.undefined;
+    expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
+  });
+
+  it("should allow exam field updates for UserManagers", async () => {
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      meManager,
+      {
+        commsExam: examDate,
+        handbookExam: examDate,
+        menteeInterviewerExam: examDate,
+      } as any,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(meManager.id, { transaction });
+    const state = updated?.state || {};
+
+    expect(state.commsExam).to.equal(examDate);
+    expect(state.handbookExam).to.equal(examDate);
+    expect(state.menteeInterviewerExam).to.equal(examDate);
   });
 });
