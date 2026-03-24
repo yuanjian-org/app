@@ -744,22 +744,19 @@ export async function setUserStateImpl(
   });
   if (!u) throw notFoundError("用户", me.id);
 
-  let filteredState = state;
-  if (!isPermitted(me.roles, "UserManager")) {
-    // Use a whitelist approach for security: only certain fields are allowed
-    // to be updated by non-admin users to ensure new sensitive fields are
-    // secure by default.
-    const allowed: (keyof UserState)[] = [
-      "consentedAt",
-      "lastKudosReadAt",
-      "lastTasksReadAt",
-      "meetingConsentedAt",
-    ];
-    filteredState = {};
-    for (const key of allowed) {
-      if (state[key] !== undefined) {
-        filteredState[key] = state[key] as any;
-      }
+  // Use a whitelist approach for security: only certain fields are allowed
+  // to be updated through this endpoint to ensure sensitive fields (like exam
+  // completion dates) are protected and new fields are secure by default.
+  const allowed: (keyof UserState)[] = [
+    "consentedAt",
+    "lastKudosReadAt",
+    "lastTasksReadAt",
+    "meetingConsentedAt",
+  ];
+  const filteredState: Partial<UserState> = {};
+  for (const key of allowed) {
+    if (state[key] !== undefined) {
+      filteredState[key] = state[key] as any;
     }
   }
 

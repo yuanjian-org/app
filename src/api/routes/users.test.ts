@@ -437,7 +437,7 @@ describe("setUserStateImpl", () => {
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
   });
 
-  it("should allow exam field updates for UserManagers", async () => {
+  it("should restrict exam field updates even for UserManagers", async () => {
     const examDate = new Date("2023-01-01").toISOString();
 
     await setUserStateImpl(
@@ -453,8 +453,8 @@ describe("setUserStateImpl", () => {
     const updated = await db.User.findByPk(meManager.id, { transaction });
     const state = updated?.state || {};
 
-    expect(state.commsExam).to.equal(examDate);
-    expect(state.handbookExam).to.equal(examDate);
-    expect(state.menteeInterviewerExam).to.equal(examDate);
+    void expect(state.commsExam).to.be.undefined;
+    void expect(state.handbookExam).to.be.undefined;
+    void expect(state.menteeInterviewerExam).to.be.undefined;
   });
 });
