@@ -39,6 +39,15 @@ export default async function userinfoHandler(
     });
   }
 
+  // Prevent JWT Type Confusion. Only tokens explicitly marked as 'access' are valid here.
+  // This ensures an attacker cannot use an authorization 'code' (stolen via open redirect) as an access token.
+  if (payload.type !== "access") {
+    return res.status(401).json({
+      error: "invalid_token",
+      error_description: "Invalid token type, expected access token",
+    });
+  }
+
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   if (payload.clientId !== expectedClientId) {
     return res
