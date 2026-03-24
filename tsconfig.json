@@ -42,8 +42,6 @@
   ],
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    /* Required because ts ignores hidden folders by default */
-    "src/pages/api/.well-known/*.ts"
+    "**/*.tsx"
   ]
 }
