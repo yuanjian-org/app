@@ -3,6 +3,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
+import { getPairwiseUserId } from "./utils";
 
 // Simple in-memory cache to prevent authorization code reuse.
 // It stores the code string as the key and a boolean as the value.
@@ -155,10 +156,7 @@ export default function tokenHandler(
 
   const idTokenPayload = {
     iss: issuer,
-    sub: crypto
-      .createHash("sha256")
-      .update(`${clientId}${payload.userId}`)
-      .digest("hex"),
+    sub: getPairwiseUserId(clientId, payload.userId),
     aud: clientId,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 60 * 60,

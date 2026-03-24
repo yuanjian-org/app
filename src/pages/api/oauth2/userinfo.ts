@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import db from "../../../api/database/db";
+import { getPairwiseUserId } from "./utils";
 import {
   userAttributes,
   userInclude,
@@ -59,10 +59,7 @@ export default async function userinfoHandler(
 
   // 3. Return the standard OIDC userinfo response.
   return res.status(200).json({
-    sub: crypto
-      .createHash("sha256")
-      .update(`${payload.clientId}${user.id}`)
-      .digest("hex"),
+    sub: getPairwiseUserId(payload.clientId, user.id),
     name: user.name,
     email: user.email,
     phone_number: user.phone,
