@@ -39,7 +39,7 @@ export default async function userinfoHandler(
     });
   }
 
-  // SECURITY: Prevent JWT Type Confusion. Only tokens explicitly marked as 'access' are valid here.
+  // Prevent JWT Type Confusion. Only tokens explicitly marked as 'access' are valid here.
   // This ensures an attacker cannot use an authorization 'code' (stolen via open redirect) as an access token.
   if (payload.type !== "access") {
     return res.status(401).json({

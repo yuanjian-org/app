@@ -48,7 +48,7 @@ export default async function authorizeHandler(
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
 
-  // STRICT ENFORCEMENT: Provider must be fully configured.
+  // Provider must be fully configured.
   if (!expectedClientId || !expectedRedirectUri) {
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
@@ -67,7 +67,7 @@ export default async function authorizeHandler(
     });
   }
 
-  // STRICT ENFORCEMENT: Client MUST provide a redirect_uri and it MUST exactly match the configured URI.
+  // Client MUST provide a redirect_uri and it MUST exactly match the configured URI.
   // This prevents Open Redirect vulnerabilities where an attacker could steal authorization codes.
   if (!redirect_uri || redirect_uri !== expectedRedirectUri) {
     return res.status(400).json({
@@ -76,7 +76,7 @@ export default async function authorizeHandler(
     });
   }
 
-  // STRICT ENFORCEMENT: If a PKCE code challenge is provided, the method MUST be S256.
+  // If a PKCE code challenge is provided, the method MUST be S256.
   // 'plain' is inherently insecure and should not be used in modern OAuth2 implementations.
   if (code_challenge && code_challenge_method !== "S256") {
     return res.status(400).json({
@@ -102,9 +102,9 @@ export default async function authorizeHandler(
   // We will encode the user ID and code_challenge into a JWT-like string or just sign it, so we don't need database state.
   // The secret for signing this code will be NEXTAUTH_SECRET.
   const codePayload = {
-    // SECURITY: Add a distinct type to prevent an authorization code from being directly used as an access token (JWT Type Confusion).
+    // Add a distinct type to prevent an authorization code from being directly used as an access token (JWT Type Confusion).
     type: "code",
-    // SECURITY: Add a unique identifier (JWT ID) to prevent collision of identical requests within the same second,
+    // Add a unique identifier (JWT ID) to prevent collision of identical requests within the same second,
     // which would otherwise generate the exact same JWT signature and falsely fail single-use enforcement.
     jti: crypto.randomUUID(),
     userId: session.me.id,

@@ -47,7 +47,7 @@ export default function tokenHandler(
   const expectedClientSecret = process.env.OAUTH2_CLIENT_SECRET;
   const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
 
-  // STRICT ENFORCEMENT: Provider must be fully configured.
+  // Provider must be fully configured.
   if (!expectedClientId || !expectedClientSecret || !expectedRedirectUri) {
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
@@ -59,7 +59,7 @@ export default function tokenHandler(
     });
   }
 
-  // STRICT ENFORCEMENT: The redirect_uri provided in the token request must strictly match the pre-configured URI,
+  // The redirect_uri provided in the token request must strictly match the pre-configured URI,
   // just as it did in the authorization request. This mitigates Open Redirect and token theft.
   if (redirect_uri !== expectedRedirectUri) {
     return res.status(400).json({
@@ -101,7 +101,7 @@ export default function tokenHandler(
     });
   }
 
-  // SECURITY: Prevent JWT Type Confusion. Only tokens explicitly marked as 'code' are valid here.
+  // Prevent JWT Type Confusion. Only tokens explicitly marked as 'code' are valid here.
   // This ensures an attacker cannot use an 'access' token generated for the API as an authorization code.
   if (payload.type !== "code") {
     return res.status(400).json({
@@ -143,9 +143,9 @@ export default function tokenHandler(
   // 3. Issue the access token and id_token.
   // We encode the user ID into the access token. It's valid for 1 hour.
   const accessTokenPayload = {
-    // SECURITY: Add a distinct type to prevent an access token from being used as an authorization code (JWT Type Confusion).
+    // Add a distinct type to prevent an access token from being used as an authorization code (JWT Type Confusion).
     type: "access",
-    // SECURITY: Add a unique identifier (JWT ID) to ensure each generated access token is distinct.
+    // Add a unique identifier (JWT ID) to ensure each generated access token is distinct.
     jti: crypto.randomUUID(),
     userId: payload.userId,
     clientId: clientId,
@@ -168,9 +168,9 @@ export default function tokenHandler(
   const issuer = `${protocol}://${host}`;
 
   const idTokenPayload: any = {
-    // SECURITY: Add a distinct type for the OIDC token.
+    // Add a distinct type for the OIDC token.
     type: "id",
-    // SECURITY: Add a unique identifier (JWT ID) to ensure each generated id token is distinct.
+    // Add a unique identifier (JWT ID) to ensure each generated id token is distinct.
     jti: crypto.randomUUID(),
     iss: issuer,
     sub: payload.userId,
