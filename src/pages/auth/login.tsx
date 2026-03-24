@@ -60,16 +60,24 @@ function useCallbackUrl() {
 
 type ServerSideProps = {
   wechatQRAppId: string;
+  ssoEnabled: boolean;
 };
 
 /**
  * Use `?callbackUrl=...` in the URL to specify the URL to redirect to after
  * logging in.
  */
-export default function Page({ wechatQRAppId }: ServerSideProps) {
+export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   const router = useRouter();
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.isDemo;
+  const callbackUrl = useCallbackUrl();
+
+  useEffect(() => {
+    if (ssoEnabled) {
+      void signIn("yuantu", { callbackUrl });
+    }
+  }, [ssoEnabled, callbackUrl]);
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
@@ -124,6 +132,14 @@ export default function Page({ wechatQRAppId }: ServerSideProps) {
   const tabs = isDemo
     ? [emailTab, phoneTab, wechatTab]
     : [wechatTab, phoneTab, emailTab];
+
+  if (ssoEnabled) {
+    return (
+      <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
+        <Text color="gray.500">正在跳转到登录页面...</Text>
+      </VStack>
+    );
+  }
 
   return (
     // See AuthPageContainer.tsx for the parent container
@@ -503,5 +519,6 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = () =>
   Promise.resolve({
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
+      ssoEnabled: !!process.env.YUANTU_SSO_CLIENT_ID,
     },
   });
