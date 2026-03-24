@@ -729,23 +729,41 @@ const setUserState = procedure
   .input(zUserState.partial())
   .mutation(async ({ ctx: { me }, input: state }) => {
     await sequelize.transaction(async (transaction) => {
-      const u = await db.User.findByPk(me.id, {
-        attributes: ["id", "state"],
-        transaction,
-      });
-      if (!u) throw notFoundError("用户", me.id);
-
-      await u.update(
-        {
-          state: {
-            ...u.state,
-            ...state,
-          },
-        },
-        { transaction },
-      );
+      await setUserStateImpl(me, state, transaction);
     });
   });
+
+export async function setUserStateImpl(
+  me: User,
+  state: Partial<z.infer<typeof zUserState>>,
+  transaction: Transaction,
+) {
+  const u = await db.User.findByPk(me.id, {
+    attributes: ["id", "state", "roles"],
+    transaction,
+  });
+  if (!u) throw notFoundError("用户", me.id);
+
+  // Users can update their own state, but only UserManagers can modify
+  // sensitive exam-related fields.
+  const isUserManager = isPermitted(u.roles, "UserManager");
+  const filteredState = { ...state };
+  if (!isUserManager) {
+    delete filteredState.commsExam;
+    delete filteredState.handbookExam;
+    delete filteredState.menteeInterviewerExam;
+  }
+
+  await u.update(
+    {
+      state: {
+        ...u.state,
+        ...filteredState,
+      },
+    },
+    { transaction },
+  );
+}
 
 const setPointOfContactAndNote = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
