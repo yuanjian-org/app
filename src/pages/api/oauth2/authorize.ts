@@ -96,7 +96,20 @@ export default async function authorizeHandler(
     return res.redirect(302, loginUrl.toString());
   }
 
-  // 3. The user is logged in and authorized. Generate an authorization code.
+  // 3. If the user is logged in but hasn't set their phone number, redirect them
+  // to a profile setup page before proceeding.
+  if (!session.me.phone) {
+    const baseUrl = getBaseUrl();
+    const currentUrl = new URL(req.url!, baseUrl);
+
+    // Redirect to the profile setup page, passing the current authorize URL as the callback
+    const setupUrl = new URL("/auth/set-profile", baseUrl);
+    setupUrl.searchParams.set("callbackUrl", currentUrl.toString());
+
+    return res.redirect(302, setupUrl.toString());
+  }
+
+  // 4. The user is logged in and authorized. Generate an authorization code.
   // We will encode the user ID and code_challenge into a JWT-like string or just sign it, so we don't need database state.
   // The secret for signing this code will be NEXTAUTH_SECRET.
   const codePayload = {
@@ -113,7 +126,7 @@ export default async function authorizeHandler(
     algorithm: "HS256",
   });
 
-  // 4. Redirect back to the client's redirect_uri with the code and state.
+  // 5. Redirect back to the client's redirect_uri with the code and state.
   const redirectUrl = new URL(finalRedirectUri);
   redirectUrl.searchParams.set("code", code);
   if (state) {
