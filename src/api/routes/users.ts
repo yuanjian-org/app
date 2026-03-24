@@ -46,7 +46,7 @@ import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
 import { getUser2MentorshipCount } from "./mentorships";
-import { zUserState } from "../../shared/UserState";
+import { UserState, zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
@@ -729,23 +729,47 @@ const setUserState = procedure
   .input(zUserState.partial())
   .mutation(async ({ ctx: { me }, input: state }) => {
     await sequelize.transaction(async (transaction) => {
-      const u = await db.User.findByPk(me.id, {
-        attributes: ["id", "state"],
-        transaction,
-      });
-      if (!u) throw notFoundError("用户", me.id);
-
-      await u.update(
-        {
-          state: {
-            ...u.state,
-            ...state,
-          },
-        },
-        { transaction },
-      );
+      await setUserStateImpl(me, state, transaction);
     });
   });
+
+export async function setUserStateImpl(
+  me: User,
+  state: Partial<UserState>,
+  transaction: Transaction,
+) {
+  const u = await db.User.findByPk(me.id, {
+    attributes: ["id", "state"],
+    transaction,
+  });
+  if (!u) throw notFoundError("用户", me.id);
+
+  // Use a whitelist approach for security: only certain fields are allowed
+  // to be updated through this endpoint to ensure sensitive fields (like exam
+  // completion dates) are protected and new fields are secure by default.
+  const allowed: (keyof UserState)[] = [
+    "consentedAt",
+    "lastKudosReadAt",
+    "lastTasksReadAt",
+    "meetingConsentedAt",
+  ];
+  const filteredState: Partial<UserState> = {};
+  for (const key of allowed) {
+    if (state[key] !== undefined) {
+      filteredState[key] = state[key] as any;
+    }
+  }
+
+  await u.update(
+    {
+      state: {
+        ...u.state,
+        ...filteredState,
+      },
+    },
+    { transaction },
+  );
+}
 
 const setPointOfContactAndNote = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
