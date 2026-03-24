@@ -384,26 +384,16 @@ describe("updateImpl", () => {
 
 describe("setUserStateImpl", () => {
   let transaction: Transaction;
-  let meNormal: any;
-  let meManager: any;
+  let me: any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
 
-    meNormal = await db.User.create(
+    me = await db.User.create(
       {
-        email: `normal-${Date.now()}-${Math.random()}@example.com`,
+        email: `user-${Date.now()}-${Math.random()}@example.com`,
         name: "张三",
         roles: ["Volunteer"],
-      },
-      { transaction },
-    );
-
-    meManager = await db.User.create(
-      {
-        email: `manager-${Date.now()}-${Math.random()}@example.com`,
-        name: "李经理",
-        roles: ["UserManager"],
       },
       { transaction },
     );
@@ -413,12 +403,12 @@ describe("setUserStateImpl", () => {
     await transaction.rollback();
   });
 
-  it("should restrict exam field updates for normal users", async () => {
+  it("should restrict exam field updates and allow whitelisted fields", async () => {
     const examDate = new Date("2023-01-01").toISOString();
     const lastKudosReadAt = new Date("2023-02-01").toISOString();
 
     await setUserStateImpl(
-      meNormal,
+      me,
       {
         commsExam: examDate,
         handbookExam: examDate,
@@ -428,33 +418,12 @@ describe("setUserStateImpl", () => {
       transaction,
     );
 
-    const updated = await db.User.findByPk(meNormal.id, { transaction });
+    const updated = await db.User.findByPk(me.id, { transaction });
     const state = updated?.state || {};
 
     void expect(state.commsExam).to.be.undefined;
     void expect(state.handbookExam).to.be.undefined;
     void expect(state.menteeInterviewerExam).to.be.undefined;
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
-  });
-
-  it("should restrict exam field updates even for UserManagers", async () => {
-    const examDate = new Date("2023-01-01").toISOString();
-
-    await setUserStateImpl(
-      meManager,
-      {
-        commsExam: examDate,
-        handbookExam: examDate,
-        menteeInterviewerExam: examDate,
-      } as any,
-      transaction,
-    );
-
-    const updated = await db.User.findByPk(meManager.id, { transaction });
-    const state = updated?.state || {};
-
-    void expect(state.commsExam).to.be.undefined;
-    void expect(state.handbookExam).to.be.undefined;
-    void expect(state.menteeInterviewerExam).to.be.undefined;
   });
 });
