@@ -155,7 +155,10 @@ export default function tokenHandler(
 
   const idTokenPayload = {
     iss: issuer,
-    sub: payload.userId,
+    sub: crypto
+      .createHash("sha256")
+      .update(`${clientId}${payload.userId}`)
+      .digest("hex"),
     aud: clientId,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
