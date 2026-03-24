@@ -746,12 +746,21 @@ export async function setUserStateImpl(
 
   let filteredState = state;
   if (!isPermitted(me.roles, "UserManager")) {
-    // Only UserManagers can update exam-related fields directly.
-    // We filter out these fields for other users.
-    filteredState = { ...state };
-    delete filteredState.commsExam;
-    delete filteredState.handbookExam;
-    delete filteredState.menteeInterviewerExam;
+    // Use a whitelist approach for security: only certain fields are allowed
+    // to be updated by non-admin users to ensure new sensitive fields are
+    // secure by default.
+    const allowed: (keyof UserState)[] = [
+      "consentedAt",
+      "lastKudosReadAt",
+      "lastTasksReadAt",
+      "meetingConsentedAt",
+    ];
+    filteredState = {};
+    for (const key of allowed) {
+      if (state[key] !== undefined) {
+        filteredState[key] = state[key] as any;
+      }
+    }
   }
 
   await u.update(
