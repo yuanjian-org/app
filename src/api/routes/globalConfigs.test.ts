@@ -10,8 +10,6 @@ describe("Global Configs Internal Functions", () => {
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
-    // Ensure no rows exist for isolated testing
-    await db.GlobalConfig.destroy({ where: {}, transaction });
   });
 
   afterEach(async () => {
