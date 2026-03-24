@@ -113,7 +113,7 @@ export default async function authorizeHandler(
     codeChallenge: code_challenge,
     codeChallengeMethod: code_challenge_method,
     // OIDC: Pass the nonce through to be included in the final id_token.
-    nonce: nonce,
+    nonce,
     exp: Math.floor(Date.now() / 1000) + authCodeExpiryInSec,
   };
 
