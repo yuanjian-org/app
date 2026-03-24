@@ -5,6 +5,7 @@ import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
+import { decryptPayload, hashUserIdForClient } from "./utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,
@@ -29,9 +30,11 @@ export default async function userinfoHandler(
 
   let payload: jwt.JwtPayload;
   try {
-    payload = jwt.verify(accessToken, process.env.NEXTAUTH_SECRET!, {
-      algorithms: ["HS256"],
-    }) as jwt.JwtPayload;
+    payload = await decryptPayload(accessToken);
+
+    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+      throw new Error("Token expired");
+    }
   } catch {
     return res.status(401).json({
       error: "invalid_token",
@@ -56,9 +59,11 @@ export default async function userinfoHandler(
     return res.status(404).json({ error: "user_not_found" });
   }
 
+  const hashedUserId = hashUserIdForClient(payload.clientId as string, user.id);
+
   // 3. Return the standard OIDC userinfo response.
   return res.status(200).json({
-    sub: user.id,
+    sub: hashedUserId,
     name: user.name,
     email: user.email,
     phone_number: user.phone,

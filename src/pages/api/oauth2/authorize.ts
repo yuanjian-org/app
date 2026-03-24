@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
-import jwt from "jsonwebtoken";
 import getBaseUrl from "../../../shared/getBaseUrl";
+import { encryptPayload } from "./utils";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
@@ -97,8 +97,8 @@ export default async function authorizeHandler(
   }
 
   // 3. The user is logged in and authorized. Generate an authorization code.
-  // We will encode the user ID and code_challenge into a JWT-like string or just sign it, so we don't need database state.
-  // The secret for signing this code will be NEXTAUTH_SECRET.
+  // We will encrypt the user ID and code_challenge into a JWE string, so we don't need database state
+  // and the client cannot read the plain userId.
   const codePayload = {
     userId: session.me.id,
     clientId: client_id,
@@ -108,10 +108,8 @@ export default async function authorizeHandler(
     exp: Math.floor(Date.now() / 1000) + authCodeExpiryInSec,
   };
 
-  // Create a JWT signed code
-  const code = jwt.sign(codePayload, process.env.NEXTAUTH_SECRET!, {
-    algorithm: "HS256",
-  });
+  // Create an encrypted JWE string
+  const code = await encryptPayload(codePayload);
 
   // 4. Redirect back to the client's redirect_uri with the code and state.
   const redirectUrl = new URL(finalRedirectUri);
