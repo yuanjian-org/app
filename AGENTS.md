@@ -3,3 +3,5 @@ Read .cursorrules. It has important information about folder structure, system a
 Also fetch latest documentation at https://deepwiki.com/yuanjian-org/app to deeply understand the codebase.
 
 ALWAYS make sure `yarn build` and `yarn test` pass when submitting changes.
+
+ALWAYS avoid using `any` types.
