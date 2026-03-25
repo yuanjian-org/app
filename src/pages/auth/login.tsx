@@ -68,9 +68,6 @@ type ServerSideProps = {
  * logging in.
  */
 export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
-  const router = useRouter();
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
   const callbackUrl = useCallbackUrl();
 
   useEffect(() => {
@@ -78,6 +75,22 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
       void signIn("yuantu-sso", { callbackUrl });
     }
   }, [ssoEnabled, callbackUrl]);
+
+  if (ssoEnabled) {
+    return (
+      <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
+        <Text color="gray.500">正在跳转到登录页面...</Text>
+      </VStack>
+    );
+  }
+
+  return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
+}
+
+function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
+  const router = useRouter();
+  const { data } = useStaticGlobalConfigs();
+  const isDemo = data?.isDemo;
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
@@ -132,14 +145,6 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   const tabs = isDemo
     ? [emailTab, phoneTab, wechatTab]
     : [wechatTab, phoneTab, emailTab];
-
-  if (ssoEnabled) {
-    return (
-      <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
-        <Text color="gray.500">正在跳转到登录页面...</Text>
-      </VStack>
-    );
-  }
 
   return (
     // See AuthPageContainer.tsx for the parent container
