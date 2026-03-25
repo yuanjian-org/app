@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
+import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
 
 // Simple in-memory cache to prevent authorization code reuse.
 // It stores the code string as the key and a boolean as the value.
@@ -12,7 +13,7 @@ const usedCodesCache = new LRUCache<string, boolean>({
   ttl: authCodeExpiryInSec * 1000,
 });
 
-export default function tokenHandler(
+export default async function tokenHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -91,9 +92,11 @@ export default function tokenHandler(
   // 2. Decode and verify the authorization code.
   let payload: any;
   try {
-    payload = jwt.verify(code, process.env.NEXTAUTH_SECRET!, {
-      algorithms: ["HS256"],
-    });
+    payload = await decryptPayload(code);
+
+    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+      throw new Error("Token expired");
+    }
   } catch {
     return res.status(400).json({
       error: "invalid_grant",
@@ -141,7 +144,7 @@ export default function tokenHandler(
   usedCodesCache.set(code, true);
 
   // 3. Issue the access token and id_token.
-  // We encode the user ID into the access token. It's valid for 1 hour.
+  // We encode the plain user ID into the access token, but we encrypt the access token. It's valid for 1 hour.
   const accessTokenPayload = {
     // Add a distinct type to prevent an access token from being used as an authorization code (JWT Type Confusion).
     type: "access",
@@ -152,13 +155,7 @@ export default function tokenHandler(
     exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
   };
 
-  const accessToken = jwt.sign(
-    accessTokenPayload,
-    process.env.NEXTAUTH_SECRET!,
-    {
-      algorithm: "HS256",
-    },
-  );
+  const accessToken = await encryptPayload(accessTokenPayload);
 
   // We could also issue an id_token (OIDC) which is a standard JWT.
   // For simplicity and since we don't have a private/public key pair, we'll use HMAC (HS256) for the id_token as well, using NEXTAUTH_SECRET.
@@ -167,13 +164,16 @@ export default function tokenHandler(
   const host = req.headers.host;
   const issuer = `${protocol}://${host}`;
 
+  // Generate the hashed user ID for the client.
+  const hashedUserId = hashUserIdForClient(clientId, payload.userId as string);
+
   const idTokenPayload: any = {
     // Add a distinct type for the OIDC token.
     type: "id",
     // Add a unique identifier (JWT ID) to ensure each generated id token is distinct.
     jti: crypto.randomUUID(),
     iss: issuer,
-    sub: payload.userId,
+    sub: hashedUserId,
     aud: clientId,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
@@ -184,9 +184,11 @@ export default function tokenHandler(
     idTokenPayload.nonce = payload.nonce;
   }
 
-  const idToken = jwt.sign(idTokenPayload, expectedClientSecret, {
-    algorithm: "HS256",
-  });
+  // Create an HMAC SHA-256 signed ID Token using jose
+  const secret = new TextEncoder().encode(expectedClientSecret);
+  const idToken = await new jose.SignJWT(idTokenPayload)
+    .setProtectedHeader({ alg: "HS256" })
+    .sign(secret);
 
   return res.status(200).json({
     access_token: accessToken,
