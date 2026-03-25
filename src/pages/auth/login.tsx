@@ -524,6 +524,6 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = () =>
   Promise.resolve({
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
-      ssoEnabled: !!process.env.YUANTU_SSO_CLIENT_ID,
+      ssoEnabled: !!process.env.AUTH_YUANTU_SSO_CLIENT_ID,
     },
   });
