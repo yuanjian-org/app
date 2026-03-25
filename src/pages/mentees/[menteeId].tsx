@@ -210,7 +210,7 @@ function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
       <VStack align="stretch" gap={sectionSpacing}>
         <MentorshipSummaryCard m={m} />
         <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
-        <Tabs isLazy variant="enclosed">
+        <Tabs isLazy>
           <TabList>
             <Tab>内部笔记</Tab>
             <Tab>智能会议纪要</Tab>
