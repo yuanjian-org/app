@@ -189,8 +189,6 @@ if (process.env.YUANTU_SSO_CLIENT_ID) {
     token: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/token` },
     userinfo: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/userinfo` },
     checks: ["state"],
-    // Default is false, which correctly prevents SSO account linking for identical emails
-    allowDangerousEmailAccountLinking: false,
     profile(profile) {
       // For more information on why we encode the ssoUserId into the email,
       // see WeChatProvider.profile() function.
@@ -208,7 +206,7 @@ if (process.env.YUANTU_SSO_CLIENT_ID) {
 export function authOptions(req?: NextApiRequest): NextAuthOptions {
   return {
     // @ts-expect-error
-    adapter: adapter,
+    adapter,
 
     session: {
       strategy: "jwt",

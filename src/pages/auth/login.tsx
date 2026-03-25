@@ -82,9 +82,9 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
         <Text color="gray.500">正在跳转到登录页面...</Text>
       </VStack>
     );
+  } else {
+    return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }
-
-  return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
 }
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
