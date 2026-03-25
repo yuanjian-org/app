@@ -46,8 +46,10 @@ export default async function tokenHandler(
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   const expectedClientSecret = process.env.OAUTH2_CLIENT_SECRET;
+  const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
 
-  if (!expectedClientId || !expectedClientSecret) {
+  // Provider must be fully configured.
+  if (!expectedClientId || !expectedClientSecret || !expectedRedirectUri) {
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
 
@@ -55,6 +57,15 @@ export default async function tokenHandler(
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id or client_secret",
+    });
+  }
+
+  // The redirect_uri provided in the token request must strictly match the pre-configured URI,
+  // just as it did in the authorization request. This mitigates Open Redirect and token theft.
+  if (redirect_uri !== expectedRedirectUri) {
+    return res.status(400).json({
+      error: "invalid_grant",
+      error_description: "Mismatching redirect_uri",
     });
   }
 
@@ -93,20 +104,19 @@ export default async function tokenHandler(
     });
   }
 
+  // Prevent JWT Type Confusion. Only tokens explicitly marked as 'code' are valid here.
+  // This ensures an attacker cannot use an 'access' token generated for the API as an authorization code.
+  if (payload.type !== "code") {
+    return res.status(400).json({
+      error: "invalid_grant",
+      error_description: "Invalid token type, expected authorization code",
+    });
+  }
+
   if (payload.clientId !== clientId) {
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Code issued for a different client",
-    });
-  }
-
-  if (
-    payload.redirectUri !== redirect_uri &&
-    payload.redirectUri !== undefined
-  ) {
-    return res.status(400).json({
-      error: "invalid_grant",
-      error_description: "Mismatching redirect_uri",
     });
   }
 
@@ -136,6 +146,10 @@ export default async function tokenHandler(
   // 3. Issue the access token and id_token.
   // We encode the plain user ID into the access token, but we encrypt the access token. It's valid for 1 hour.
   const accessTokenPayload = {
+    // Add a distinct type to prevent an access token from being used as an authorization code (JWT Type Confusion).
+    type: "access",
+    // Add a unique identifier (JWT ID) to ensure each generated access token is distinct.
+    jti: crypto.randomUUID(),
     userId: payload.userId,
     clientId: clientId,
     exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour expiry
@@ -153,13 +167,22 @@ export default async function tokenHandler(
   // Generate the hashed user ID for the client.
   const hashedUserId = hashUserIdForClient(clientId, payload.userId as string);
 
-  const idTokenPayload = {
+  const idTokenPayload: any = {
+    // Add a distinct type for the OIDC token.
+    type: "id",
+    // Add a unique identifier (JWT ID) to ensure each generated id token is distinct.
+    jti: crypto.randomUUID(),
     iss: issuer,
     sub: hashedUserId,
     aud: clientId,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
   };
+
+  // OIDC: Include the nonce from the authorization request if one was provided to mitigate replay attacks.
+  if (payload.nonce) {
+    idTokenPayload.nonce = payload.nonce;
+  }
 
   // Create an HMAC SHA-256 signed ID Token using jose
   const secret = new TextEncoder().encode(expectedClientSecret);

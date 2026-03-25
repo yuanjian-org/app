@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
+import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
 import { encryptPayload } from "./utils";
 
@@ -29,6 +30,7 @@ export default async function authorizeHandler(
     client_id,
     redirect_uri,
     state,
+    nonce,
     code_challenge,
     code_challenge_method,
   } = req.query as {
@@ -37,6 +39,7 @@ export default async function authorizeHandler(
     redirect_uri?: string;
     scope?: string;
     state?: string;
+    nonce?: string;
     code_challenge?: string;
     code_challenge_method?: string;
   };
@@ -45,7 +48,8 @@ export default async function authorizeHandler(
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
 
-  if (!expectedClientId) {
+  // Provider must be fully configured.
+  if (!expectedClientId || !expectedRedirectUri) {
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
 
@@ -63,23 +67,21 @@ export default async function authorizeHandler(
     });
   }
 
-  // Allow empty redirect_uri if OAUTH2_REDIRECT_URI is set, or enforce matching
-  if (
-    expectedRedirectUri &&
-    redirect_uri &&
-    redirect_uri !== expectedRedirectUri
-  ) {
+  // Client MUST provide a redirect_uri and it MUST exactly match the configured URI.
+  // This prevents Open Redirect vulnerabilities where an attacker could steal authorization codes.
+  if (!redirect_uri || redirect_uri !== expectedRedirectUri) {
     return res.status(400).json({
       error: "invalid_request",
-      error_description: "Invalid redirect_uri",
+      error_description: "Missing or invalid redirect_uri",
     });
   }
-  const finalRedirectUri = redirect_uri || expectedRedirectUri;
 
-  if (!finalRedirectUri) {
+  // If a PKCE code challenge is provided, the method MUST be S256.
+  // 'plain' is inherently insecure and should not be used in modern OAuth2 implementations.
+  if (code_challenge && code_challenge_method !== "S256") {
     return res.status(400).json({
       error: "invalid_request",
-      error_description: "Missing redirect_uri",
+      error_description: "PKCE code_challenge_method must be S256",
     });
   }
 
@@ -100,11 +102,18 @@ export default async function authorizeHandler(
   // We will encrypt the user ID and code_challenge into a JWE string, so we don't need database state
   // and the client cannot read the plain userId.
   const codePayload = {
+    // Add a distinct type to prevent an authorization code from being directly used as an access token (JWT Type Confusion).
+    type: "code",
+    // Add a unique identifier (JWT ID) to prevent collision of identical requests within the same second,
+    // which would otherwise generate the exact same JWT signature and falsely fail single-use enforcement.
+    jti: crypto.randomUUID(),
     userId: session.me.id,
     clientId: client_id,
-    redirectUri: finalRedirectUri,
+    redirectUri: redirect_uri,
     codeChallenge: code_challenge,
     codeChallengeMethod: code_challenge_method,
+    // OIDC: Pass the nonce through to be included in the final id_token.
+    nonce,
     exp: Math.floor(Date.now() / 1000) + authCodeExpiryInSec,
   };
 
@@ -112,7 +121,7 @@ export default async function authorizeHandler(
   const code = await encryptPayload(codePayload);
 
   // 4. Redirect back to the client's redirect_uri with the code and state.
-  const redirectUrl = new URL(finalRedirectUri);
+  const redirectUrl = new URL(redirect_uri);
   redirectUrl.searchParams.set("code", code);
   if (state) {
     redirectUrl.searchParams.set("state", state);
