@@ -175,19 +175,21 @@ const providers: NextAuthOptions["providers"] = [
   }),
 ];
 
-if (process.env.YUANTU_SSO_CLIENT_ID) {
+if (process.env.AUTH_YUANTU_SSO_CLIENT_ID) {
   providers.push({
     id: "yuantu-sso",
     name: "YuanTu SSO",
     type: "oauth",
-    clientId: process.env.YUANTU_SSO_CLIENT_ID,
-    clientSecret: process.env.YUANTU_SSO_CLIENT_SECRET,
+    clientId: process.env.AUTH_YUANTU_SSO_CLIENT_ID,
+    clientSecret: process.env.AUTH_YUANTU_SSO_CLIENT_SECRET,
     authorization: {
-      url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/authorize`,
+      url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/authorize`,
       params: { scope: "openid profile email phone" },
     },
-    token: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/token` },
-    userinfo: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/userinfo` },
+    token: { url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/token` },
+    userinfo: {
+      url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/userinfo`,
+    },
     checks: ["state"],
     profile(profile) {
       // For more information on why we encode the ssoUserId into the email,
