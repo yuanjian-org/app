@@ -57,7 +57,8 @@ async function getInterviewFeedback(
     include: [
       ...interviewFeedbackInclude,
       {
-        // Include interview.interviewee.id for `isPermittedtoAccessMentee` below.
+        // Include interview.interviewee.id for `isPermittedtoAccessMentee`
+        // below.
         model: db.Interview,
         attributes: ["id"],
         include: [

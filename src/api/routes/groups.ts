@@ -54,7 +54,8 @@ export async function updateGroup(
 ) {
   const addUserIds: string[] = [];
   const group = await db.Group.findByPk(id, {
-    // SQL complains that "FOR UPDATE cannot be applied to the nullable side of an outer join" if GroupUser is included.
+    // SQL complains that "FOR UPDATE cannot be applied to the nullable side
+    // of an outer join" if GroupUser is included.
     // include: db.GroupUser,
     transaction,
     lock: true,
@@ -184,7 +185,8 @@ const listMine = procedure
         })
       )
         .map((groupUser) => groupUser.group)
-        // Filter out groups owned by interviews. We currently ask users to conduct
+        // Filter out groups owned by interviews. We currently ask users to
+        // conduct
         // interviews using WeChat calls.
         .filter((g) => !g.interviewId)
     );

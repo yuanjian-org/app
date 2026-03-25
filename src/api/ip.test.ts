@@ -63,7 +63,8 @@ describe("ip() middleware", () => {
     await mwFunc({ ctx, next } as any);
 
     void expect(next.calledOnce).to.be.true;
-    // 10.0.0.5 is not trusted, so proxy-addr rejects the header and fallback kicks in
+    // 10.0.0.5 is not trusted, so proxy-addr rejects the header and fallback
+    // kicks in
     expect(next.firstCall.args[0].ctx.ip).to.equal("10.0.0.5");
   });
 });

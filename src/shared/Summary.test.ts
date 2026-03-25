@@ -36,7 +36,8 @@ describe("Summary computeDeletion", () => {
   });
 
   it("should detect deletions and allow if within maxDeletionRatio (<= 20%)", () => {
-    // 20 characters length. 20% is 4 chars. Note: diffWords matches word boundaries and symbols.
+    // 20 characters length. 20% is 4 chars. Note: diffWords matches word
+    // boundaries and symbols.
     // So we use words to ensure diffWords works properly.
     // Let's use:
     // old = "one two three four five " (24 chars) -> 24 * 0.2 = 4.8.
@@ -51,8 +52,10 @@ describe("Summary computeDeletion", () => {
 
   it("should detect deletions and disallow if exceeding maxDeletionRatio (> 20%)", () => {
     // 25 characters length. 20% is 5 chars. Delete "one two " (8 chars).
-    const old = createSummary("one two three four five", 23, 0); // 23 * 0.2 = 4.6
-    const result = computeDeletion(old, "three four five"); // deleted "one two " (8 chars)
+    // 23 * 0.2 = 4.6
+    const old = createSummary("one two three four five", 23, 0);
+    // deleted "one two " (8 chars)
+    const result = computeDeletion(old, "three four five");
 
     expect(result.deleted).to.deep.equal(["one two "]);
     expect(result.totalDeletedLength).to.equal(8);
@@ -70,9 +73,11 @@ describe("Summary computeDeletion", () => {
 
   it("should accumulate deletedLength properly and disallow if total exceeds ratio", () => {
     // 25 characters initial length. 20% is 5 chars.
-    // If deletedLength is already 3, and we delete "one " (4 chars), total deleted = 7 (> 5)
+    // If deletedLength is already 3, and we delete "one " (4 chars), total
+    // deleted = 7 (> 5)
     const old = createSummary("one two three four five", 25, 3);
-    const result = computeDeletion(old, "two three four five"); // deleted "one " (4 chars)
+    const result = computeDeletion(old, "two three four five");
+    // deleted "one " (4 chars)
 
     expect(result.deleted).to.deep.equal(["one "]);
     expect(result.totalDeletedLength).to.equal(7);
@@ -81,9 +86,11 @@ describe("Summary computeDeletion", () => {
 
   it("should allow accumulated deletions if total is within ratio", () => {
     // 25 characters initial length. 20% is 5 chars.
-    // If deletedLength is already 1, and we delete "one " (4 chars), total deleted = 5 (<= 5)
+    // If deletedLength is already 1, and we delete "one " (4 chars), total
+    // deleted = 5 (<= 5)
     const old = createSummary("one two three four five", 25, 1);
-    const result = computeDeletion(old, "two three four five"); // deleted "one " (4 chars)
+    const result = computeDeletion(old, "two three four five");
+    // deleted "one " (4 chars)
 
     expect(result.deleted).to.deep.equal(["one "]);
     expect(result.totalDeletedLength).to.equal(5);

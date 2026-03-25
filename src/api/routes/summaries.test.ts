@@ -112,7 +112,8 @@ describe("summaries", () => {
 
   describe("updateImpl", () => {
     it("should throw error if user has no permission to update summary", async () => {
-      const me = await createTestUser(["Volunteer"]); // Not a manager, not in group
+      const me = await createTestUser(["Volunteer"]); // Not a manager, not in
+      // group
       const group = await createTestGroup(false);
       const transcript = await createTestTranscript(group.id);
       const originalMarkdown = "Original summary text";

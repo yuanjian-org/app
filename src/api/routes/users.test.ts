@@ -167,7 +167,8 @@ describe("updateWechatUnionId", () => {
   });
 
   it("should do nothing if wechatUnionId is the same as existing", async () => {
-    // If it does nothing, no queries will be executed. We can verify it completes successfully.
+    // If it does nothing, no queries will be executed. We can verify it
+    // completes successfully.
     // An indirect way is to ensure no accounts are deleted
     await updateWechatUnionId(
       ["UserManager"],
@@ -185,7 +186,8 @@ describe("updateWechatUnionId", () => {
         type: QueryTypes.SELECT,
       },
     );
-    expect(accountsAfter).to.have.length(0); // as it was in the beforeEach of that suite
+    expect(accountsAfter).to.have.length(0); // as it was in the beforeEach of
+    // that suite
   });
 });
 
@@ -202,7 +204,8 @@ describe("updateImpl", () => {
       .stub(usersModule, "updateWechatUnionId")
       .resolves();
 
-    // Stub updateWechatUnionId to isolate updateImpl tests from its side effects
+    // Stub updateWechatUnionId to isolate updateImpl tests from its side
+    // effects
 
     meManager = await db.User.create(
       {
@@ -305,7 +308,8 @@ describe("updateImpl", () => {
     await updateImpl(meNormal, input, transaction);
 
     const updated = await db.User.findByPk(meNormal.id, { transaction });
-    // Should successfully update (e.g., name/wechat) but ignore email/phone changes
+    // Should successfully update (e.g., name/wechat) but ignore email/phone
+    // changes
     expect(updated?.email).to.equal(meNormal.email);
     expect(updated?.phone).to.equal(meNormal.phone);
   });

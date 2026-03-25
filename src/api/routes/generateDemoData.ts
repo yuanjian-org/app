@@ -45,7 +45,8 @@ export async function generateDemoData(t: Transaction) {
   if (group1) {
     await generateSummaries(group1, t);
     // TODO: Add transaction to isPermittedtoAccessMentee() and move this line
-    // to after group2 is created and use mentor1 instead of admin as the author.
+    // to after group2 is created and use mentor1 instead of admin as the
+    // author.
     await generateMenteeNotes(admin, mentee1, t);
   }
   const group2 = await generateMentorship(mentor1, mentee1, false, null, t);

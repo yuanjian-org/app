@@ -32,7 +32,8 @@ describe("generateAnonymousId", () => {
     const id2 = getAnonymousId(userId2, acceptanceYear);
 
     expect(id1).to.not.equal(id2);
-    expect(id1.substring(0, 3)).to.equal(id2.substring(0, 3)); // Same year prefix with hyphen
+    expect(id1.substring(0, 3)).to.equal(id2.substring(0, 3));
+    // Same year prefix with hyphen
   });
 
   it("should handle null acceptance year with default 00", () => {

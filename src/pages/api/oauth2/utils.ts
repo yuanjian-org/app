@@ -35,8 +35,10 @@ export async function encryptPayload(
   payload: jose.JWTPayload,
 ): Promise<string> {
   const secretKey = getEncryptionKey();
-  // Using direct encryption (alg: "dir") with A256GCM since we have a shared symmetric secret
-  // and do not need to wrap/encrypt the key itself. A256GCM provides authenticated encryption.
+  // Using direct encryption (alg: "dir") with A256GCM since we have a shared
+  // symmetric secret
+  // and do not need to wrap/encrypt the key itself. A256GCM provides
+  // authenticated encryption.
   const jwt = await new jose.EncryptJWT(payload)
     .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
     .encrypt(secretKey);

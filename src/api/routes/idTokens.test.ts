@@ -123,7 +123,8 @@ describe("sendImpl", () => {
     const phone = "+8613800138000";
     const ip = "127.0.0.1";
 
-    // Create an old token record (older than min send interval, e.g., 65 seconds ago)
+    // Create an old token record (older than min send interval, e.g.,
+    // 65 seconds ago)
     await db.IdToken.create(
       {
         ip,
@@ -133,8 +134,10 @@ describe("sendImpl", () => {
       { transaction },
     );
 
-    // Sequelize automatically updates updatedAt on creation, so we need to manually update it here
-    // But silent: true will not skip timestamp updates if they are globally defined. Instead use direct query
+    // Sequelize automatically updates updatedAt on creation, so we need to
+    // manually update it here
+    // But silent: true will not skip timestamp updates if they are globally
+    // defined. Instead use direct query
     await sequelize.query(
       `UPDATE "IdTokens" SET "updatedAt" = :updatedAt WHERE ip = :ip AND phone = :phone AND token = :token`,
       {

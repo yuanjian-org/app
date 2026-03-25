@@ -7,15 +7,17 @@ import proxyaddr from "proxy-addr";
  */
 export const ip = () =>
   middleware(async ({ ctx, next }) => {
-    // Determine the trusted proxies from the environment, defaulting to local loopback and local networks
+    // Determine the trusted proxies from the environment, defaulting to local
+    // loopback and local networks
     const trustedProxies = process.env.TRUSTED_PROXIES
       ? process.env.TRUSTED_PROXIES.split(",").map((s) => s.trim())
       : ["loopback", "linklocal", "uniquelocal"];
     let clientIp: string | undefined;
 
     try {
-      // Use proxy-addr to securely parse X-Forwarded-For by validating against trusted proxies.
-      // NOTE: proxy-addr works with standard node IncomingMessage request objects.
+      // Use proxy-addr to securely parse X-Forwarded-For by validating against
+      // trusted proxies. NOTE: proxy-addr works with standard node
+      // IncomingMessage request objects.
       clientIp = proxyaddr(ctx.req, trustedProxies);
     } catch {
       // Fallback in case of parse error

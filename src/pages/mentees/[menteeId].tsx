@@ -234,8 +234,9 @@ function MentorshipSummaryCard({ m }: { m: Mentorship }) {
             <HStack>
               <MentorshipStatusIcon m={m} />
 
-              {/* After endsAt expires, listMentorshipsForMentee should not return
-          this mentorship anymore, so we don't need to handle this case. */}
+              {/* After endsAt expires, listMentorshipsForMentee should not
+               * return this mentorship anymore, so we don't need to handle
+               * this case. */}
 
               <Text>
                 此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
@@ -300,8 +301,8 @@ function MentorshipScheduleControl({
       {editing && (
         <MentorshipScheduleEditor
           mentorship={m}
-          // Directly set the state. To properly refetch we need plumbing which I
-          // am too lazy to do.
+          // Directly set the state. To properly refetch we need plumbing
+          // which I am too lazy to do.
           setSchedule={setS}
           onClose={() => setEditing(false)}
         />
@@ -439,17 +440,24 @@ function MentorshipScheduleEditor({
 //   mentorshipId: string,
 // }) {
 //   const router = useRouter();
-//   const { data: assessments } = trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
+//   const { data: assessments } =
+//     trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
 
 //   const createAndGo = async () => {
-//     const id = await trpc.assessments.create.mutate({ mentorshipId: mentorshipId });
+//     const id = await trpc.assessments.create.mutate({
+//       mentorshipId: mentorshipId
+//     });
 //     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
 //   };
 
-//   return !assessments ? <Loader /> : !assessments.length ? <Text color="gray">无反馈内容。</Text> : <Table>
+//   return !assessments ? <Loader /> : !assessments.length ? (
+//     <Text color="gray">无反馈内容。</Text>
+//   ) : <Table>
 //     <Tbody>
-//       {assessments.map(a => <TrLink key={a.id} href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
-//         {/* Weird that Asseessment.createdAt must have optional() to suppress ts's complaint */}
+//       {assessments.map(a => <TrLink key={a.id}
+//         href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
+//         {/* Weird that Asseessment.createdAt must have optional() to suppress
+//         ts's complaint */}
 //         <Td>{a.createdAt && prettifyDate(a.createdAt)}</Td>
 //         <Td>{a.summary ?? ""}</Td>
 //       </TrLink>)}

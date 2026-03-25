@@ -82,7 +82,8 @@ describe("auditLastMentorshipMeetings", () => {
     await auditLastMentorshipMeetings(transaction);
 
     // Verify notify was called with correct parameters
-    // The function processes all mentorships with old meetings, so we expect multiple calls
+    // The function processes all mentorships with old meetings, so we
+    // expect multiple calls
     void expect(notifyStub.called).to.be.true;
 
     // Find the call for our specific mentorship

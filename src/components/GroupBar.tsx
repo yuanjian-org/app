@@ -338,7 +338,8 @@ function UserChips({
     <>
       {/* Abbreviated mode */}
       <AvatarGroup
-        max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1" avatar.
+        max={displayUsers.length > 4 ? 3 : 4} // No reason to display a "+1"
+        // avatar.
         display={{
           base: abbrOnMobile ? "flex" : "none",
           [breakpoint]: abbrOnDesktop ? "flex" : "none",

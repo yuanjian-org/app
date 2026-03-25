@@ -10,7 +10,8 @@ export const zInterviewer = z.object({
 
 // TODO: Replace with zInterviewFeedback
 export const zFeedbackDeprecated = z.record(z.string(), z.any());
-// z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets typescript.
+// z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets
+// typescript.
 export type FeedbackDeprecated = object;
 
 export const zFeedbackDimension = z.object({

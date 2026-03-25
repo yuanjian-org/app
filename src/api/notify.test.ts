@@ -52,7 +52,8 @@ describe("notify()", () => {
         resolveCallbackComplete = resolve;
       });
 
-      // Stub transaction to immediately execute the callback and then resolve our promise
+      // Stub transaction to immediately execute the callback and then resolve
+      // our promise
       const transactionStub = sinon
         .stub(sequelize, "transaction")
         .callsFake(async (callback: any) => {
@@ -103,7 +104,8 @@ describe("notify()", () => {
     transaction = await sequelize.transaction();
 
     // Stub the SMS and email functions to capture their calls
-    // We need to stub them to always call our mock, bypassing the test detection
+    // We need to stub them to always call our mock, bypassing the test
+    // detection
     smsStub = sinon.stub(smsModule, "sms").callsFake(() => {
       // Mock implementation that always executes
       return Promise.resolve();
@@ -153,7 +155,8 @@ describe("notify()", () => {
 
       // Verify SMS was called with empty template data
       const smsCall = smsStub.getCall(0);
-      void expect(smsCall.args[2]).to.have.length(0); // Empty template data array
+      void expect(smsCall.args[2]).to.have.length(0); // Empty template data
+      // array
 
       // Verify email was called with empty email list
       const emailCall = emailStub.getCall(0);
@@ -214,7 +217,8 @@ describe("notify()", () => {
         transaction,
       );
 
-      // Verify SMS was called with only users 2 and 3 (user1 has SMS disabled for 基础)
+      // Verify SMS was called with only users 2 and 3 (user1 has SMS
+      // disabled for 基础)
       void expect(smsStub.calledOnce).to.be.true;
       const smsCall = smsStub.getCall(0);
       expect(smsCall.args[0]).to.equal("yaD264"); // domesticSms template
@@ -283,7 +287,8 @@ describe("notify()", () => {
         transaction,
       );
 
-      // Verify email was called with only users 2 and 3 (user1 has email disabled for 基础)
+      // Verify email was called with only users 2 and 3 (user1 has email
+      // disabled for 基础)
       void expect(emailStub.calledOnce).to.be.true;
       const emailCall = emailStub.getCall(0);
       expect(emailCall.args[0]).to.deep.equal([
@@ -452,7 +457,8 @@ describe("notify()", () => {
         transaction,
       );
 
-      // Verify SMS was called with user data and email was called with empty array
+      // Verify SMS was called with user data and email was called with empty
+      // array
       void expect(smsStub.calledOnce).to.be.true;
       void expect(emailStub.calledOnce).to.be.true;
 
@@ -527,7 +533,8 @@ describe("notify()", () => {
         transaction,
       );
 
-      // Verify notifications were called but with empty arrays (no valid users found)
+      // Verify notifications were called but with empty arrays (no valid users
+      // found)
       void expect(smsStub.calledOnce).to.be.true;
       void expect(emailStub.calledOnce).to.be.true;
 
@@ -661,7 +668,8 @@ describe("notify()", () => {
         transaction,
       );
 
-      // Verify notifications were called but with empty arrays (both disabled for 基础)
+      // Verify notifications were called but with empty arrays (both disabled
+      // for 基础)
       void expect(smsStub.calledOnce).to.be.true;
       void expect(emailStub.calledOnce).to.be.true;
 
