@@ -14,31 +14,30 @@ import moment from "moment";
 import { scheduleNotification } from "./scheduledNotifications";
 import createKudos from "./kudosInternal";
 import { Transaction } from "sequelize";
-import { Kudos } from "../../shared/Kudos";
 
 export async function listKudosImpl(
   userId?: string,
   limit?: number,
   transaction?: Transaction,
-): Promise<Kudos[]> {
-  return (await db.Kudos.findAll({
+) {
+  return await db.Kudos.findAll({
     where: userId ? { receiverId: userId } : undefined,
     attributes: kudosAttributes,
     include: kudosInclude,
     order: [["createdAt", "DESC"]],
     ...(limit ? { limit } : {}),
     transaction,
-  })) as Kudos[];
+  });
 }
 
 export async function getLastKudosCreatedAtImpl(
   meId: string,
   transaction?: Transaction,
-): Promise<Date | moment.Moment | null> {
-  const ret = (await db.Kudos.max("createdAt", {
+) {
+  const ret = await db.Kudos.max("createdAt", {
     where: { giverId: { [Op.ne]: meId } },
     transaction,
-  })) as Date | null;
+  });
   return ret ?? moment(0);
 }
 
