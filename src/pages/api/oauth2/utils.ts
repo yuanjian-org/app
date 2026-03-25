@@ -7,24 +7,10 @@ import * as jose from "jose";
  * and prevents clients from guessing user IDs in other clients.
  */
 export function hashUserIdForClient(clientId: string, userId: string): string {
-  // Use a secure key derivation function to hash the ID securely, preventing rainbow table attacks
-  // using a fixed client_id if exposed. We use NEXTAUTH_SECRET as the salt.
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not set");
-  }
-
-  // pbkdf2Sync requires a salt and iterations. Using 100k iterations and SHA-256
-  // is a standard secure way to hash sensitive strings like client_id + user_id.
-  const derivedKey = crypto.pbkdf2Sync(
-    clientId + userId,
-    secret,
-    100000,
-    32,
-    "sha256"
-  );
-
-  return derivedKey.toString("hex");
+  return crypto
+    .createHash("sha256")
+    .update(clientId + userId)
+    .digest("base64url");
 }
 
 /**
