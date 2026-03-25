@@ -20,11 +20,11 @@ interface WeChatProfile {
   [claim: string]: unknown;
 }
 
-export const fakeEmailDomain = "@f.ml";
+export const wechatFakeEmailDomain = "@wechat.fe";
 
 /**
  * next-auth very annoyingly lower case emails when passing it to
- * `wechatAdapter.getUserByEmail`, but UnionID is case sensitive. So we encode
+ * `adapter.getUserByEmail`, but UnionID is case sensitive. So we encode
  * cases using plus signs.
  */
 export function unionId2Email(unionid: string): string {
@@ -32,16 +32,36 @@ export function unionId2Email(unionid: string): string {
     console.error(`unionid "${unionid}" is invalid`);
     throw new Error(`尚未支持的微信账号ID格式`);
   }
-  return unionid.replace(/[A-Z]/g, "+$&") + fakeEmailDomain;
+  return unionid.replace(/[A-Z]/g, "+$&") + wechatFakeEmailDomain;
 }
 
 export function email2UnionId(email: string): string {
   invariant(
-    email.endsWith(fakeEmailDomain),
-    `email "${email}" doesn't end with ${fakeEmailDomain}`,
+    email.endsWith(wechatFakeEmailDomain),
+    `email "${email}" doesn't end with ${wechatFakeEmailDomain}`,
   );
   return email
-    .slice(0, -fakeEmailDomain.length)
+    .slice(0, -wechatFakeEmailDomain.length)
+    .replace(/\+(.)/g, (_, char) => char.toUpperCase());
+}
+
+export const ssoFakeEmailDomain = "@sso.fe";
+
+export function ssoUserId2Email(ssoUserId: string): string {
+  if (!ssoUserId || ssoUserId.includes("+")) {
+    console.error(`ssoUserId "${ssoUserId}" is invalid`);
+    throw new Error(`尚未支持的SSO账号ID格式`);
+  }
+  return ssoUserId.replace(/[A-Z]/g, "+$&") + ssoFakeEmailDomain;
+}
+
+export function email2SsoUserId(email: string): string {
+  invariant(
+    email.endsWith(ssoFakeEmailDomain),
+    `email "${email}" doesn't end with ${ssoFakeEmailDomain}`,
+  );
+  return email
+    .slice(0, -ssoFakeEmailDomain.length)
     .replace(/\+(.)/g, (_, char) => char.toUpperCase());
 }
 
@@ -119,11 +139,11 @@ export default function WeChatProvider(
         id: profile.unionid,
 
         // Used to create a user if the user doesn't exist. See
-        // `wechatAdapter.createUser`.
+        // `adapter.createUser`.
         wechatUnionId: profile.unionid,
 
         // next-auth rely on email to search for existing users. We don't store
-        // the email in the database. See `wechatAdapter.getUserByEmail`.
+        // the email in the database. See `adapter.getUserByEmail`.
         email: unionId2Email(profile.unionid),
       };
     },
