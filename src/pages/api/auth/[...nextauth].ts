@@ -14,8 +14,8 @@ import { noPermissionError } from "../../../api/errors";
 import WeChatProvider, {
   email2UnionId,
   email2SsoUserId,
-  fakeEmailDomain,
-  ssoEmailDomain,
+  wechatFakeEmailDomain,
+  ssoFakeEmailDomain,
   ssoUserId2Email,
 } from "./WeChatProvider";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -43,12 +43,20 @@ export const adapter = {
     models: { User: db.User as any },
   }),
 
-  // Do not use the default `createUser` because we need to throw away the email.
-  async createUser(user: any) {
-    if (user.email.endsWith(fakeEmailDomain)) {
+  // We use custom `createUser` logic because we process sign-ups differently
+  // depending on the fake email domain. For WeChat, we only care about `wechatUnionId`.
+  // For SSO, we create the user with `ssoUserId` along with their standard profile.
+  async createUser(user: {
+    email: string;
+    wechatUnionId?: string;
+    ssoUserId?: string;
+    phone?: string;
+    name?: string;
+  }) {
+    if (user.email.endsWith(wechatFakeEmailDomain)) {
       console.log("adapter.createUser(wechat):", user.wechatUnionId);
       return await db.User.create({ wechatUnionId: user.wechatUnionId });
-    } else if (user.email.endsWith(ssoEmailDomain)) {
+    } else if (user.email.endsWith(ssoFakeEmailDomain)) {
       console.log("adapter.createUser(sso):", user.ssoUserId);
       return await db.User.create({
         ssoUserId: user.ssoUserId,
@@ -60,7 +68,7 @@ export const adapter = {
   },
 
   async getUserByEmail(email: string) {
-    if (email.endsWith(fakeEmailDomain)) {
+    if (email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(email);
       console.log(`adapter.getUserByEmail(wechat): ${wechatUnionId}`);
       return await db.User.findOne({
@@ -68,7 +76,7 @@ export const adapter = {
         attributes: userAttributes,
         include: userInclude,
       });
-    } else if (email.endsWith(ssoEmailDomain)) {
+    } else if (email.endsWith(ssoFakeEmailDomain)) {
       const ssoUserId = email2SsoUserId(email);
       console.log(`adapter.getUserByEmail(sso): ${ssoUserId}`);
       return await db.User.findOne({
@@ -81,120 +89,123 @@ export const adapter = {
   },
 };
 
-export function authOptions(req?: NextApiRequest): NextAuthOptions {
-  const providers: NextAuthOptions["providers"] = [
-    {
-      id: "id-password",
-      name: "手机/邮箱密码登录",
-      type: "credentials",
-      // We don't use this field but it's required by NextAuth.
-      credentials: {},
+const providers: NextAuthOptions["providers"] = [
+  {
+    id: "id-password",
+    name: "手机/邮箱密码登录",
+    type: "credentials",
+    // We don't use this field but it's required by NextAuth.
+    credentials: {},
 
-      async authorize(credentials) {
-        const { idType, id, password } = credentials ?? {};
-        if (!idType || !id || !password) return null;
-        const idField = idType === "phone" ? "phone" : "email";
-        const user = await db.User.findOne({
+    async authorize(credentials) {
+      const { idType, id, password } = credentials ?? {};
+      if (!idType || !id || !password) return null;
+      const idField = idType === "phone" ? "phone" : "email";
+      const user = await db.User.findOne({
+        where: { [idField]: id },
+        attributes: [...userAttributes, "password"],
+        include: userInclude,
+      });
+      if (!user || !user.password) return null;
+      const match = await compare(password, user.password);
+      return match ? user : null;
+    },
+  },
+
+  {
+    id: "id-token",
+    name: "手机/邮箱验证码登录",
+    type: "credentials",
+    // We don't use this field but it's required by NextAuth.
+    credentials: {},
+
+    async authorize(credentials) {
+      const { idType, id, token } = credentials ?? {};
+      if (!idType || !id || !token) return null;
+      const idField = idType === "phone" ? "phone" : "email";
+      return await sequelize.transaction(async (transaction) => {
+        await checkAndDeleteIdToken(idType as IdType, id, token, transaction);
+        let u = await db.User.findOne({
           where: { [idField]: id },
-          attributes: [...userAttributes, "password"],
+          attributes: userAttributes,
           include: userInclude,
+          transaction,
         });
-        if (!user || !user.password) return null;
-        const match = await compare(password, user.password);
-        return match ? user : null;
-      },
+        if (!u) {
+          u = await db.User.create({ [idField]: id }, { transaction });
+        }
+        return u;
+      });
     },
+  },
 
-    {
-      id: "id-token",
-      name: "手机/邮箱验证码登录",
-      type: "credentials",
-      // We don't use this field but it's required by NextAuth.
-      credentials: {},
+  WeChatProvider({
+    id: "embedded-wechat-qr",
+    name: "嵌入式微信扫码登陆",
 
-      async authorize(credentials) {
-        const { idType, id, token } = credentials ?? {};
-        if (!idType || !id || !token) return null;
-        const idField = idType === "phone" ? "phone" : "email";
-        return await sequelize.transaction(async (transaction) => {
-          await checkAndDeleteIdToken(idType as IdType, id, token, transaction);
-          let u = await db.User.findOne({
-            where: { [idField]: id },
-            attributes: userAttributes,
-            include: userInclude,
-            transaction,
-          });
-          if (!u) {
-            u = await db.User.create({ [idField]: id }, { transaction });
-          }
-          return u;
-        });
-      },
+    /**
+     * This line is necessary because the current QR code login does not
+     * follow the full next-auth auth flow, and the backend does not
+     * generate a state. Removing this would cause the check to fail
+     * preventing login.
+     *
+     * We do manual checks in the signIn callback handler below.
+     */
+    checks: ["none"],
+
+    clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+    clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+    platformType: "WebsiteApp",
+  }),
+
+  WeChatProvider({
+    id: "wechat-qr",
+    name: "微信扫码登陆",
+    clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
+    clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
+    platformType: "WebsiteApp",
+  }),
+
+  WeChatProvider({
+    id: "wechat",
+    name: "微信内登陆",
+    clientId: process.env.AUTH_WECHAT_APP_ID!,
+    clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
+    platformType: "OfficialAccount",
+  }),
+];
+
+if (process.env.YUANTU_SSO_CLIENT_ID) {
+  providers.push({
+    id: "yuantu-sso",
+    name: "YuanTu SSO",
+    type: "oauth",
+    clientId: process.env.YUANTU_SSO_CLIENT_ID,
+    clientSecret: process.env.YUANTU_SSO_CLIENT_SECRET,
+    authorization: {
+      url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/authorize`,
+      params: { scope: "openid profile email phone" },
     },
+    token: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/token` },
+    userinfo: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/userinfo` },
+    checks: ["state"],
+    // Default is false, which correctly prevents SSO account linking for identical emails
+    allowDangerousEmailAccountLinking: false,
+    profile(profile) {
+      // For more information on why we encode the ssoUserId into the email,
+      // see WeChatProvider.profile() function.
+      return {
+        id: profile.sub,
+        ssoUserId: profile.sub,
+        email: ssoUserId2Email(profile.sub),
+        name: profile.name,
+        phone: profile.phone_number,
+      };
+    },
+  });
+}
 
-    WeChatProvider({
-      id: "embedded-wechat-qr",
-      name: "嵌入式微信扫码登陆",
-
-      /**
-       * This line is necessary because the current QR code login does not
-       * follow the full next-auth auth flow, and the backend does not
-       * generate a state. Removing this would cause the check to fail
-       * preventing login.
-       *
-       * We do manual checks in the signIn callback handler below.
-       */
-      checks: ["none"],
-
-      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
-      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
-      platformType: "WebsiteApp",
-    }),
-
-    WeChatProvider({
-      id: "wechat-qr",
-      name: "微信扫码登陆",
-      clientId: process.env.AUTH_WECHAT_QR_APP_ID!,
-      clientSecret: process.env.AUTH_WECHAT_QR_APP_SECRET!,
-      platformType: "WebsiteApp",
-    }),
-
-    WeChatProvider({
-      id: "wechat",
-      name: "微信内登陆",
-      clientId: process.env.AUTH_WECHAT_APP_ID!,
-      clientSecret: process.env.AUTH_WECHAT_APP_SECRET!,
-      platformType: "OfficialAccount",
-    }),
-  ];
-
-  if (process.env.YUANTU_SSO_CLIENT_ID) {
-    providers.push({
-      id: "yuantu",
-      name: "YuanTu SSO",
-      type: "oauth",
-      clientId: process.env.YUANTU_SSO_CLIENT_ID,
-      clientSecret: process.env.YUANTU_SSO_CLIENT_SECRET,
-      authorization: {
-        url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/authorize`,
-        params: { scope: "openid profile email phone" },
-      },
-      token: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/token` },
-      userinfo: { url: `${process.env.YUANTU_SSO_ISSUER}/api/oauth2/userinfo` },
-      checks: ["state"],
-      allowDangerousEmailAccountLinking: true,
-      profile(profile) {
-        return {
-          id: profile.sub,
-          ssoUserId: profile.sub,
-          email: ssoUserId2Email(profile.sub),
-          name: profile.name,
-          phone: profile.phone_number,
-        };
-      },
-    });
-  }
-
+export function authOptions(req?: NextApiRequest): NextAuthOptions {
   return {
     // @ts-expect-error
     adapter: adapter,
