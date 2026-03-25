@@ -226,28 +226,28 @@ function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
         </Tabs>
       </VStack>
     );
+  } else {
+    return (
+      <SimpleGrid
+        templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
+        spacing={sectionSpacing}
+      >
+        <GridItem>
+          <VStack align="stretch" gap={sectionSpacing}>
+            <MentorshipSummaryCard m={m} />
+
+            <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
+
+            <ChatRoom menteeId={m.mentee.id} />
+          </VStack>
+        </GridItem>
+
+        <GridItem>
+          <Transcripts group={m.group} />
+        </GridItem>
+      </SimpleGrid>
+    );
   }
-
-  return (
-    <SimpleGrid
-      templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
-      spacing={sectionSpacing}
-    >
-      <GridItem>
-        <VStack align="stretch" gap={sectionSpacing}>
-          <MentorshipSummaryCard m={m} />
-
-          <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
-
-          <ChatRoom menteeId={m.mentee.id} />
-        </VStack>
-      </GridItem>
-
-      <GridItem>
-        <Transcripts group={m.group} />
-      </GridItem>
-    </SimpleGrid>
-  );
 }
 
 function MentorshipSummaryCard({ m }: { m: Mentorship }) {
