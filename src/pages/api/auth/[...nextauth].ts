@@ -175,20 +175,34 @@ const providers: NextAuthOptions["providers"] = [
   }),
 ];
 
-if (process.env.AUTH_YUANTU_SSO_CLIENT_ID) {
+// Remove trailing slash
+const yuantuSsoIssuer = process.env.AUTH_YUANTU_SSO_ISSUER?.replace(/\/+$/, "");
+
+if (
+  process.env.AUTH_YUANTU_SSO_CLIENT_ID &&
+  process.env.AUTH_YUANTU_SSO_CLIENT_SECRET &&
+  yuantuSsoIssuer
+) {
   providers.push({
     id: "yuantu-sso",
     name: "YuanTu SSO",
     type: "oauth",
+    // Our in-house OAuth2 provider signs id_token with HS256 (shared client secret),
+    // so we must override openid-client's RS256 default expectation.
+    client: { id_token_signed_response_alg: "HS256" },
     clientId: process.env.AUTH_YUANTU_SSO_CLIENT_ID,
     clientSecret: process.env.AUTH_YUANTU_SSO_CLIENT_SECRET,
+    issuer: yuantuSsoIssuer,
+    // We need this option to allow next-auth to link  accounts that share the
+    // same user id on the sso server.
+    allowDangerousEmailAccountLinking: true,
     authorization: {
-      url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/authorize`,
+      url: `${yuantuSsoIssuer}/api/oauth2/authorize`,
       params: { scope: "openid profile email phone" },
     },
-    token: { url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/token` },
+    token: { url: `${yuantuSsoIssuer}/api/oauth2/token` },
     userinfo: {
-      url: `${process.env.AUTH_YUANTU_SSO_ISSUER}/api/oauth2/userinfo`,
+      url: `${yuantuSsoIssuer}/api/oauth2/userinfo`,
     },
     checks: ["state"],
     profile(profile) {
