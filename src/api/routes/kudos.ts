@@ -13,6 +13,33 @@ import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { scheduleNotification } from "./scheduledNotifications";
 import createKudos from "./kudosInternal";
+import { Transaction } from "sequelize";
+
+export async function listKudosImpl(
+  userId?: string,
+  limit?: number,
+  transaction?: Transaction,
+) {
+  return await db.Kudos.findAll({
+    where: userId ? { receiverId: userId } : undefined,
+    attributes: kudosAttributes,
+    include: kudosInclude,
+    order: [["createdAt", "DESC"]],
+    ...(limit ? { limit } : {}),
+    transaction,
+  });
+}
+
+export async function getLastKudosCreatedAtImpl(
+  meId: string,
+  transaction?: Transaction,
+) {
+  const ret = await db.Kudos.max("createdAt", {
+    where: { giverId: { [Op.ne]: meId } },
+    transaction,
+  });
+  return ret ?? moment(0);
+}
 
 /**
  * List kudos for a user. If userId is not provided, list all kudos.
@@ -28,13 +55,7 @@ const list = procedure
   )
   .output(z.array(zKudos))
   .query(async ({ input: { userId, limit } }) => {
-    return await db.Kudos.findAll({
-      where: userId ? { receiverId: userId } : undefined,
-      attributes: kudosAttributes,
-      include: kudosInclude,
-      order: [["createdAt", "DESC"]],
-      ...(limit ? { limit } : {}),
-    });
+    return await listKudosImpl(userId, limit);
   });
 
 /**
@@ -44,10 +65,7 @@ const getLastKudosCreatedAt = procedure
   .use(authUser("Volunteer"))
   .output(zDateColumn)
   .query(async ({ ctx: { me } }) => {
-    const ret = await db.Kudos.max("createdAt", {
-      where: { giverId: { [Op.ne]: me.id } },
-    });
-    return ret ?? moment(0);
+    return await getLastKudosCreatedAtImpl(me.id);
   });
 
 /**

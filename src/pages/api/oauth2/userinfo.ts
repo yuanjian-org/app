@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import jwt from "jsonwebtoken";
+import type { JWTPayload } from "jose";
 import db from "../../../api/database/db";
 import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
+import { decryptPayload, hashUserIdForClient } from "./utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,
@@ -27,15 +28,26 @@ export default async function userinfoHandler(
 
   const accessToken = authHeader.substring(bearerPrefix.length);
 
-  let payload: jwt.JwtPayload;
+  let payload: JWTPayload;
   try {
-    payload = jwt.verify(accessToken, process.env.NEXTAUTH_SECRET!, {
-      algorithms: ["HS256"],
-    }) as jwt.JwtPayload;
+    payload = await decryptPayload(accessToken);
+
+    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+      throw new Error("Token expired");
+    }
   } catch {
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid or expired token",
+    });
+  }
+
+  // Prevent JWT Type Confusion. Only tokens explicitly marked as 'access' are valid here.
+  // This ensures an attacker cannot use an authorization 'code' (stolen via open redirect) as an access token.
+  if (payload.type !== "access") {
+    return res.status(401).json({
+      error: "invalid_token",
+      error_description: "Invalid token type, expected access token",
     });
   }
 
@@ -47,7 +59,7 @@ export default async function userinfoHandler(
   }
 
   // 2. Fetch the user profile.
-  const user = await db.User.findByPk(payload.userId, {
+  const user = await db.User.findByPk(payload.userId as string, {
     attributes: userAttributes,
     include: userInclude,
   });
@@ -56,9 +68,11 @@ export default async function userinfoHandler(
     return res.status(404).json({ error: "user_not_found" });
   }
 
+  const hashedUserId = hashUserIdForClient(payload.clientId as string, user.id);
+
   // 3. Return the standard OIDC userinfo response.
   return res.status(200).json({
-    sub: user.id,
+    sub: hashedUserId,
     name: user.name,
     email: user.email,
     phone_number: user.phone,
