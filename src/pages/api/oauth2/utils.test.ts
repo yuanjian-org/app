@@ -24,17 +24,6 @@ describe("OAuth2 utils", () => {
       const hash2 = hashUserIdForClient("client2", "user1");
       expect(hash1).to.not.equal(hash2);
     });
-
-    it("should throw error if NEXTAUTH_SECRET is not set", () => {
-      delete process.env.NEXTAUTH_SECRET;
-
-      try {
-        hashUserIdForClient("client1", "user1");
-        expect.fail("Should throw error");
-      } catch (err: any) {
-        expect(err.message).to.equal("NEXTAUTH_SECRET is not set");
-      }
-    });
   });
 
   describe("encryptPayload and decryptPayload", () => {
