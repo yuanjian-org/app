@@ -7,8 +7,14 @@ import * as jose from "jose";
  * and prevents clients from guessing user IDs in other clients.
  */
 export function hashUserIdForClient(clientId: string, userId: string): string {
+  // Use HMAC with a secret to hash the ID securely, preventing rainbow table attacks
+  // using a fixed client_id if exposed. We use NEXTAUTH_SECRET as the HMAC key.
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    throw new Error("NEXTAUTH_SECRET is not set");
+  }
   return crypto
-    .createHash("sha256")
+    .createHmac("sha256", secret)
     .update(clientId + userId)
     .digest("hex");
 }
