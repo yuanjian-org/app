@@ -19,7 +19,17 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await Promise.resolve();
+  // Next-auth accounts: OAuth access tokens (e.g. JWE) exceed varchar(255).
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF to_regclass('public.accounts') IS NOT NULL THEN
+        ALTER TABLE public.accounts
+          ALTER COLUMN access_token TYPE TEXT,
+          ALTER COLUMN refresh_token TYPE TEXT;
+      END IF;
+    END $$
+  `);
 }
 
 async function migrateData() {

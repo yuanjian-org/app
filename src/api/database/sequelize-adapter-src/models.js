@@ -8,8 +8,9 @@ export const Account = {
     type: { type: DataTypes.STRING, allowNull: false },
     provider: { type: DataTypes.STRING, allowNull: false },
     providerAccountId: { type: DataTypes.STRING, allowNull: false },
-    refresh_token: { type: DataTypes.STRING },
-    access_token: { type: DataTypes.STRING },
+    // OAuth access/refresh tokens are often JWTs or JWEs and exceed 255 chars.
+    refresh_token: { type: DataTypes.TEXT },
+    access_token: { type: DataTypes.TEXT },
     expires_at: { type: DataTypes.INTEGER },
     token_type: { type: DataTypes.STRING },
     scope: { type: DataTypes.STRING },

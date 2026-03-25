@@ -29,6 +29,7 @@ import {
   Wrap,
   WrapItem,
   CardBody,
+  Tabs,
 } from "@chakra-ui/react";
 import Applicant from "components/Applicant";
 import TabsWithUrlParam from "components/TabsWithUrlParam";
@@ -49,6 +50,7 @@ import Interview from "components/Interview";
 import { MentorshipStatusIcon } from "pages/mentees";
 import { displayName, isPermitted } from "shared/Role";
 import useMe, { useMyId } from "useMe";
+import useMobile from "useMobile";
 import { useMemo, useState } from "react";
 import { MdEdit } from "react-icons/md";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -201,26 +203,51 @@ function formatMentorshipTabSuffix(m: Mentorship, myUserId: string): string {
 }
 
 function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
-  return (
-    <SimpleGrid
-      templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
-      spacing={sectionSpacing}
-    >
-      <GridItem>
-        <VStack align="stretch" gap={sectionSpacing}>
-          <MentorshipSummaryCard m={m} />
+  const isMobile = useMobile();
 
-          <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
+  if (isMobile) {
+    return (
+      <VStack align="stretch" gap={sectionSpacing}>
+        <MentorshipSummaryCard m={m} />
+        <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
+        <Tabs isLazy>
+          <TabList>
+            <Tab>内部笔记</Tab>
+            <Tab>智能会议纪要</Tab>
+          </TabList>
+          <TabPanels>
+            <TabPanel px={0} pt={componentSpacing}>
+              <ChatRoom menteeId={m.mentee.id} />
+            </TabPanel>
+            <TabPanel px={0} pt={componentSpacing}>
+              <Transcripts group={m.group} />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </VStack>
+    );
+  } else {
+    return (
+      <SimpleGrid
+        templateColumns={{ base: "1fr", [breakpoint]: "1fr 1fr" }}
+        spacing={sectionSpacing}
+      >
+        <GridItem>
+          <VStack align="stretch" gap={sectionSpacing}>
+            <MentorshipSummaryCard m={m} />
 
-          <ChatRoom menteeId={m.mentee.id} />
-        </VStack>
-      </GridItem>
+            <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
 
-      <GridItem>
-        <Transcripts group={m.group} />
-      </GridItem>
-    </SimpleGrid>
-  );
+            <ChatRoom menteeId={m.mentee.id} />
+          </VStack>
+        </GridItem>
+
+        <GridItem>
+          <Transcripts group={m.group} />
+        </GridItem>
+      </SimpleGrid>
+    );
+  }
 }
 
 function MentorshipSummaryCard({ m }: { m: Mentorship }) {
