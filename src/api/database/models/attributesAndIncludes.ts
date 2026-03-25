@@ -25,7 +25,6 @@ export const userAttributes = [
   "wechat",
   "email",
   "phone",
-  "ssoUserId",
   "roles",
   "menteeStatus",
   "pointOfContactNote",

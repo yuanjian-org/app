@@ -75,7 +75,7 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
 
   useEffect(() => {
     if (ssoEnabled) {
-      void signIn("yuantu", { callbackUrl });
+      void signIn("yuantu-sso", { callbackUrl });
     }
   }, [ssoEnabled, callbackUrl]);
 

@@ -20,7 +20,7 @@ interface WeChatProfile {
   [claim: string]: unknown;
 }
 
-export const fakeEmailDomain = "@wechat.fe";
+export const wechatFakeEmailDomain = "@wechat.fe";
 
 /**
  * next-auth very annoyingly lower case emails when passing it to
@@ -32,36 +32,36 @@ export function unionId2Email(unionid: string): string {
     console.error(`unionid "${unionid}" is invalid`);
     throw new Error(`尚未支持的微信账号ID格式`);
   }
-  return unionid.replace(/[A-Z]/g, "+$&") + fakeEmailDomain;
+  return unionid.replace(/[A-Z]/g, "+$&") + wechatFakeEmailDomain;
 }
 
 export function email2UnionId(email: string): string {
   invariant(
-    email.endsWith(fakeEmailDomain),
-    `email "${email}" doesn't end with ${fakeEmailDomain}`,
+    email.endsWith(wechatFakeEmailDomain),
+    `email "${email}" doesn't end with ${wechatFakeEmailDomain}`,
   );
   return email
-    .slice(0, -fakeEmailDomain.length)
+    .slice(0, -wechatFakeEmailDomain.length)
     .replace(/\+(.)/g, (_, char) => char.toUpperCase());
 }
 
-export const ssoEmailDomain = "@sso.fe";
+export const ssoFakeEmailDomain = "@sso.fe";
 
 export function ssoUserId2Email(ssoUserId: string): string {
   if (!ssoUserId || ssoUserId.includes("+")) {
     console.error(`ssoUserId "${ssoUserId}" is invalid`);
     throw new Error(`尚未支持的SSO账号ID格式`);
   }
-  return ssoUserId.replace(/[A-Z]/g, "+$&") + ssoEmailDomain;
+  return ssoUserId.replace(/[A-Z]/g, "+$&") + ssoFakeEmailDomain;
 }
 
 export function email2SsoUserId(email: string): string {
   invariant(
-    email.endsWith(ssoEmailDomain),
-    `email "${email}" doesn't end with ${ssoEmailDomain}`,
+    email.endsWith(ssoFakeEmailDomain),
+    `email "${email}" doesn't end with ${ssoFakeEmailDomain}`,
   );
   return email
-    .slice(0, -ssoEmailDomain.length)
+    .slice(0, -ssoFakeEmailDomain.length)
     .replace(/\+(.)/g, (_, char) => char.toUpperCase());
 }
 
