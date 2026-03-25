@@ -22,6 +22,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { compare } from "bcryptjs";
 import { checkAndDeleteIdToken } from "../../../api/checkAndDeleteIdToken";
 import { IdType } from "../../../shared/IdType";
+import { TokenSet } from "openid-client";
 
 declare module "next-auth" {
   interface Session {
@@ -203,6 +204,15 @@ if (
     token: { url: `${yuantuSsoIssuer}/api/oauth2/token` },
     userinfo: {
       url: `${yuantuSsoIssuer}/api/oauth2/userinfo`,
+      // NextAuth otherwise uses only id_token claims for the profile when
+      // `idToken` is enabled. Our id_token carries `sub` only; additional
+      // fields such as name and phone number come from the OIDC userinfo
+      // response (see `oauth2/userinfo.ts`).
+      request({ client, tokens }) {
+        return client.userinfo(
+          tokens instanceof TokenSet ? tokens : new TokenSet(tokens),
+        );
+      },
     },
     checks: ["state"],
     profile(profile) {
@@ -212,8 +222,8 @@ if (
         id: profile.sub,
         ssoUserId: profile.sub,
         email: ssoUserId2Email(profile.sub),
-        name: profile.name,
-        phone: profile.phone_number,
+        name: profile.name ?? undefined,
+        phone: profile.phone_number ?? undefined,
       };
     },
   });
