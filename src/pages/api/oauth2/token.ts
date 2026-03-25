@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
 import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
@@ -83,7 +83,6 @@ export default async function tokenHandler(
   try {
     payload = await decryptPayload(code);
 
-    // Check expiration since JWE decrypt doesn't automatically validate 'exp' claim in the same way as jwt.verify
     if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
       throw new Error("Token expired");
     }
@@ -162,9 +161,11 @@ export default async function tokenHandler(
     exp: Math.floor(Date.now() / 1000) + 60 * 60,
   };
 
-  const idToken = jwt.sign(idTokenPayload, expectedClientSecret, {
-    algorithm: "HS256",
-  });
+  // Create an HMAC SHA-256 signed ID Token using jose
+  const secret = new TextEncoder().encode(expectedClientSecret);
+  const idToken = await new jose.SignJWT(idTokenPayload)
+    .setProtectedHeader({ alg: "HS256" })
+    .sign(secret);
 
   return res.status(200).json({
     access_token: accessToken,

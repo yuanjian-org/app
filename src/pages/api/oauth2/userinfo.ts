@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import jwt from "jsonwebtoken";
+import type { JWTPayload } from "jose";
 import db from "../../../api/database/db";
 import {
   userAttributes,
@@ -28,7 +28,7 @@ export default async function userinfoHandler(
 
   const accessToken = authHeader.substring(bearerPrefix.length);
 
-  let payload: jwt.JwtPayload;
+  let payload: JWTPayload;
   try {
     payload = await decryptPayload(accessToken);
 
@@ -50,7 +50,7 @@ export default async function userinfoHandler(
   }
 
   // 2. Fetch the user profile.
-  const user = await db.User.findByPk(payload.userId, {
+  const user = await db.User.findByPk(payload.userId as string, {
     attributes: userAttributes,
     include: userInclude,
   });
