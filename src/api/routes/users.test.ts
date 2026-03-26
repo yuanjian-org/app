@@ -384,16 +384,36 @@ describe("updateImpl", () => {
 
 describe("setUserStateImpl", () => {
   let transaction: Transaction;
-  let me: any;
+  let meManager: any;
+  let meNormal: any;
+  let targetUser: any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
 
-    me = await db.User.create(
+    meManager = await db.User.create(
+      {
+        email: `manager-${Date.now()}-${Math.random()}@example.com`,
+        name: "李经理",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+
+    meNormal = await db.User.create(
       {
         email: `user-${Date.now()}-${Math.random()}@example.com`,
         name: "张三",
         roles: ["Volunteer"],
+      },
+      { transaction },
+    );
+
+    targetUser = await db.User.create(
+      {
+        email: `target-${Date.now()}-${Math.random()}@example.com`,
+        name: "李四",
+        roles: ["Mentee"],
       },
       { transaction },
     );
@@ -403,12 +423,13 @@ describe("setUserStateImpl", () => {
     await transaction.rollback();
   });
 
-  it("should restrict exam field updates and allow whitelisted fields", async () => {
+  it("should restrict exam field updates and allow whitelisted fields for non-UserManager", async () => {
     const examDate = new Date("2023-01-01").toISOString();
     const lastKudosReadAt = new Date("2023-02-01").toISOString();
 
     await setUserStateImpl(
-      me,
+      meNormal,
+      meNormal.id,
       {
         commsExam: examDate,
         handbookExam: examDate,
@@ -418,12 +439,48 @@ describe("setUserStateImpl", () => {
       transaction,
     );
 
-    const updated = await db.User.findByPk(me.id, { transaction });
+    const updated = await db.User.findByPk(meNormal.id, { transaction });
     const state = updated?.state || {};
 
     void expect(state.commsExam).to.be.undefined;
     void expect(state.handbookExam).to.be.undefined;
     void expect(state.menteeInterviewerExam).to.be.undefined;
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
+  });
+
+  it("should allow UserManager to update sensitive fields of another user", async () => {
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      meManager,
+      targetUser.id,
+      {
+        commsExam: examDate,
+      } as any,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    const state = updated?.state || {};
+
+    expect(state.commsExam).to.equal(examDate);
+  });
+
+  it("should allow UserManager to update their own sensitive fields", async () => {
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      meManager,
+      meManager.id,
+      {
+        handbookExam: examDate,
+      } as any,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(meManager.id, { transaction });
+    const state = updated?.state || {};
+
+    expect(state.handbookExam).to.equal(examDate);
   });
 });
