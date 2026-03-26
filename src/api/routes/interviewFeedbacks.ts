@@ -33,7 +33,7 @@ const get = procedure
   )
   .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (t) => {
-      const f = await getInterviewFeedback(
+      const f = await getInterviewFeedbackImpl(
         id,
         me,
         /*allowOnlyInterviewer=*/ false,
@@ -46,7 +46,7 @@ const get = procedure
     });
   });
 
-async function getInterviewFeedback(
+export async function getInterviewFeedbackImpl(
   id: string,
   me: User,
   allowOnlyInterviewer: boolean,
@@ -129,29 +129,45 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx: { me }, input }) => {
     return await sequelize.transaction(async (transaction) => {
-      const f = await getInterviewFeedback(
+      return await updateInterviewFeedbackImpl(
         input.id,
         me,
-        /*allowOnlyInterviewer=*/ true,
+        input.feedback,
+        input.etag,
         transaction,
       );
-
-      if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
-        throw conflictError();
-      }
-
-      const now = new Date();
-      await f.update(
-        {
-          feedback: input.feedback,
-          feedbackUpdatedAt: now,
-        },
-        { transaction },
-      );
-
-      return date2etag(now);
     });
   });
+
+export async function updateInterviewFeedbackImpl(
+  id: string,
+  me: User,
+  feedback: z.infer<typeof zFeedbackDeprecated>,
+  etag: number,
+  transaction: Transaction,
+) {
+  const f = await getInterviewFeedbackImpl(
+    id,
+    me,
+    /*allowOnlyInterviewer=*/ true,
+    transaction,
+  );
+
+  if (date2etag(f.feedbackUpdatedAt) !== etag) {
+    throw conflictError();
+  }
+
+  const now = new Date();
+  await f.update(
+    {
+      feedback,
+      feedbackUpdatedAt: now,
+    },
+    { transaction },
+  );
+
+  return date2etag(now);
+}
 
 /**
  * Changelogging for auditing and data loss prevention.
