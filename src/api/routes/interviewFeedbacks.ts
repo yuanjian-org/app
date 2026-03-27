@@ -46,7 +46,7 @@ const get = procedure
     });
   });
 
-async function getInterviewFeedback(
+export async function getInterviewFeedback(
   id: string,
   me: User,
   allowOnlyInterviewer: boolean,
@@ -129,29 +129,41 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx: { me }, input }) => {
     return await sequelize.transaction(async (transaction) => {
-      const f = await getInterviewFeedback(
-        input.id,
-        me,
-        /*allowOnlyInterviewer=*/ true,
-        transaction,
-      );
-
-      if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
-        throw conflictError();
-      }
-
-      const now = new Date();
-      await f.update(
-        {
-          feedback: input.feedback,
-          feedbackUpdatedAt: now,
-        },
-        { transaction },
-      );
-
-      return date2etag(now);
+      return await updateInterviewFeedback(me, input, transaction);
     });
   });
+
+export async function updateInterviewFeedback(
+  me: User,
+  input: {
+    id: string;
+    feedback: z.infer<typeof zFeedbackDeprecated>;
+    etag: number;
+  },
+  transaction: Transaction,
+) {
+  const f = await getInterviewFeedback(
+    input.id,
+    me,
+    /*allowOnlyInterviewer=*/ true,
+    transaction,
+  );
+
+  if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
+    throw conflictError();
+  }
+
+  const now = new Date();
+  await f.update(
+    {
+      feedback: input.feedback,
+      feedbackUpdatedAt: now,
+    },
+    { transaction },
+  );
+
+  return date2etag(now);
+}
 
 /**
  * Changelogging for auditing and data loss prevention.
