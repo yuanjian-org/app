@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function logoutHandler(
+export default function logoutHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
@@ -26,7 +26,7 @@ export default async function logoutHandler(
       if (allowedOrigin === requestedOrigin) {
         callbackUrl = post_logout_redirect_uri;
       }
-    } catch (e) {
+    } catch {
       // Ignore invalid URLs and fallback to "/"
     }
   }
