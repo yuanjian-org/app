@@ -63,11 +63,9 @@ export const links = [
   ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
   httpBatchLink({
     url: getBaseUrl() + "/api/v1",
-    headers: () => {
-      return {
-        Authorization: `Bearer ${localStorage.getItem("_authing_token")}`,
-      };
-    },
+    // Standard cookie-based authentication via NextAuth.
+    // httpBatchLink uses fetch under the hood, and by default, it includes
+    // cookies for same-origin requests.
     maxURLLength: 2083, // a suitable size
   }),
 ];
