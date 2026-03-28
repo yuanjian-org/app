@@ -63,11 +63,6 @@ export const links = [
   ...(process.env.NODE_ENV === "production" ? [] : [loggerLink()]),
   httpBatchLink({
     url: getBaseUrl() + "/api/v1",
-    headers: () => {
-      return {
-        Authorization: `Bearer ${localStorage.getItem("_authing_token")}`,
-      };
-    },
     maxURLLength: 2083, // a suitable size
   }),
 ];
