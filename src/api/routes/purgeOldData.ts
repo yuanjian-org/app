@@ -1,7 +1,7 @@
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import db from "../database/db";
 
-export async function purgeOldData() {
+export async function purgeOldData(transaction?: Transaction) {
   console.log("Purge old data...");
   const now = Date.now();
 
@@ -11,6 +11,7 @@ export async function purgeOldData() {
         [Op.lt]: new Date(now - 365 * 86400000), // 1 year
       },
     },
+    transaction,
   });
 
   await db.InterviewFeedbackUpdateAttempt.destroy({
@@ -19,6 +20,7 @@ export async function purgeOldData() {
         [Op.lt]: new Date(now - 30 * 86400000), // 30 days
       },
     },
+    transaction,
   });
 
   // MeetingHistories table is used to retrieve meeting summaries from Tencent
@@ -30,5 +32,6 @@ export async function purgeOldData() {
         [Op.lt]: new Date(now - 60 * 86400000), // 60 days
       },
     },
+    transaction,
   });
 }
