@@ -33,7 +33,7 @@ const get = procedure
   )
   .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (t) => {
-      const f = await getInterviewFeedback(
+      const f = await getInterviewFeedbackImpl(
         id,
         me,
         /*allowOnlyInterviewer=*/ false,
@@ -46,7 +46,7 @@ const get = procedure
     });
   });
 
-async function getInterviewFeedback(
+export async function getInterviewFeedbackImpl(
   id: string,
   me: User,
   allowOnlyInterviewer: boolean,
@@ -118,6 +118,41 @@ export function date2etag(feedbackUpdatedAt: string | Date | null) {
  *
  * @return etag
  */
+export async function updateInterviewFeedbackImpl(
+  id: string,
+  feedback: any,
+  etag: number,
+  me: User,
+  transaction: Transaction,
+) {
+  const f = await getInterviewFeedbackImpl(
+    id,
+    me,
+    /*allowOnlyInterviewer=*/ true,
+    transaction,
+  );
+
+  if (date2etag(f.feedbackUpdatedAt) !== etag) {
+    throw conflictError();
+  }
+
+  const now = new Date();
+  await f.update(
+    {
+      feedback,
+      feedbackUpdatedAt: now,
+    },
+    { transaction },
+  );
+
+  return date2etag(now);
+}
+
+/**
+ * Only the interviewer of the feedback are allowed to call this route.
+ *
+ * @return etag
+ */
 const update = procedure
   .use(authUser())
   .input(
@@ -130,27 +165,13 @@ const update = procedure
   .output(z.number())
   .mutation(async ({ ctx: { me }, input }) => {
     return await sequelize.transaction(async (transaction) => {
-      const f = await getInterviewFeedback(
+      return await updateInterviewFeedbackImpl(
         input.id,
+        input.feedback,
+        input.etag,
         me,
-        /*allowOnlyInterviewer=*/ true,
         transaction,
       );
-
-      if (date2etag(f.feedbackUpdatedAt) !== input.etag) {
-        throw conflictError();
-      }
-
-      const now = new Date();
-      await f.update(
-        {
-          feedback: input.feedback,
-          feedbackUpdatedAt: now,
-        },
-        { transaction },
-      );
-
-      return date2etag(now);
     });
   });
 
