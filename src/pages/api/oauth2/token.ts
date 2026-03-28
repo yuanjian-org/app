@@ -124,6 +124,13 @@ export default async function tokenHandler(
     });
   }
 
+  if (payload.redirectUri !== redirect_uri) {
+    return res.status(400).json({
+      error: "invalid_grant",
+      error_description: "Mismatching redirect_uri",
+    });
+  }
+
   // PKCE verification if present
   if (payload.codeChallenge) {
     if (!code_verifier) {

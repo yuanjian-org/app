@@ -218,7 +218,7 @@ if (
         );
       },
     },
-    checks: ["state"],
+    checks: ["pkce", "state"],
     profile(profile) {
       // For more information on why we encode the ssoUserId into the email,
       // see WeChatProvider.profile() function.
