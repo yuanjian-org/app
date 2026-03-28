@@ -403,7 +403,7 @@ describe("setUserStateImpl", () => {
     await transaction.rollback();
   });
 
-  it("should restrict exam field updates and allow whitelisted fields", async () => {
+  it("should restrict exam field updates and allow whitelisted fields for regular users", async () => {
     const examDate = new Date("2023-01-01").toISOString();
     const lastKudosReadAt = new Date("2023-02-01").toISOString();
 
@@ -425,5 +425,79 @@ describe("setUserStateImpl", () => {
     void expect(state.handbookExam).to.be.undefined;
     void expect(state.menteeInterviewerExam).to.be.undefined;
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
+  });
+
+  it("should allow UserManager to update any user's state without whitelist", async () => {
+    const manager = await db.User.create(
+      {
+        email: `manager-${Date.now()}@example.com`,
+        name: "Manager",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      manager,
+      {
+        commsExam: examDate,
+      } as any,
+      transaction,
+      me.id,
+    );
+
+    const updated = await db.User.findByPk(me.id, { transaction });
+    const state = updated?.state || {};
+    expect(state.commsExam).to.equal(examDate);
+  });
+
+  it("should allow UserManager to update their own state without whitelist", async () => {
+    const manager = await db.User.create(
+      {
+        email: `manager-self-${Date.now()}@example.com`,
+        name: "Manager Self",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      manager,
+      {
+        commsExam: examDate,
+      } as any,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(manager.id, { transaction });
+    const state = updated?.state || {};
+    expect(state.commsExam).to.equal(examDate);
+  });
+
+  it("should throw noPermissionError when regular user attempts to update another user's state", async () => {
+    const anotherUser = await db.User.create(
+      {
+        email: `another-${Date.now()}@example.com`,
+        name: "Another",
+        roles: ["Volunteer"],
+      },
+      { transaction },
+    );
+
+    try {
+      await setUserStateImpl(
+        me,
+        { consentedAt: new Date().toISOString() },
+        transaction,
+        anotherUser.id,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("没有权限访问");
+    }
   });
 });
