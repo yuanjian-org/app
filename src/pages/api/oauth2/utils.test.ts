@@ -67,5 +67,40 @@ describe("OAuth2 Utils", () => {
       }
       expect(error).to.not.equal(null);
     });
+
+    it("should fail to decrypt a token encrypted with a different key", async () => {
+      const payload = { userId: "user-abc" };
+      const encrypted = await encryptPayload(payload);
+
+      // Switch to a different secret to simulate a key mismatch
+      process.env.NEXTAUTH_SECRET = "completely-different-secret-xyz";
+
+      let error = null;
+      try {
+        await decryptPayload(encrypted);
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.not.equal(null);
+
+      // Restore secret for subsequent tests
+      process.env.NEXTAUTH_SECRET = "test-secret-1234567890";
+    });
+
+    it("should throw if NEXTAUTH_SECRET is not set", async () => {
+      const savedSecret = process.env.NEXTAUTH_SECRET;
+      delete process.env.NEXTAUTH_SECRET;
+
+      let error: Error | null = null;
+      try {
+        await encryptPayload({ test: true });
+      } catch (e) {
+        error = e as Error;
+      }
+      expect(error).to.not.equal(null);
+      expect(error!.message).to.equal("NEXTAUTH_SECRET is not set");
+
+      process.env.NEXTAUTH_SECRET = savedSecret;
+    });
   });
 });

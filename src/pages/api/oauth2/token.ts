@@ -4,6 +4,7 @@ import * as jose from "jose";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
 import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
+import getBaseUrl from "../../../shared/getBaseUrl";
 
 // Simple in-memory cache to prevent authorization code reuse.
 // It stores the code string as the key and a boolean as the value.
@@ -39,9 +40,11 @@ export default async function tokenHandler(
   if (authHeader?.startsWith("Basic ")) {
     const encodedStr = authHeader.substring(6);
     const decodedStr = Buffer.from(encodedStr, "base64").toString("utf-8");
-    const [id, secret] = decodedStr.split(":");
-    clientId = id;
-    clientSecret = secret;
+    // RFC 6749: only the first colon separates the client_id from the secret.
+    // Using split(":") would silently truncate secrets that contain colons.
+    const colonIndex = decodedStr.indexOf(":");
+    clientId = decodedStr.substring(0, colonIndex);
+    clientSecret = decodedStr.substring(colonIndex + 1);
   }
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
@@ -53,7 +56,19 @@ export default async function tokenHandler(
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
 
-  if (clientId !== expectedClientId || clientSecret !== expectedClientSecret) {
+  // Use timing-safe comparison to prevent timing attacks that could be used
+  // to guess the client secret character by character.
+  const clientIdBuf = Buffer.from(clientId ?? "");
+  const secretBuf = Buffer.from(clientSecret ?? "");
+  const expectedIdBuf = Buffer.from(expectedClientId);
+  const expectedSecretBuf = Buffer.from(expectedClientSecret);
+  const validClientId =
+    clientIdBuf.length === expectedIdBuf.length &&
+    crypto.timingSafeEqual(clientIdBuf, expectedIdBuf);
+  const validClientSecret =
+    secretBuf.length === expectedSecretBuf.length &&
+    crypto.timingSafeEqual(secretBuf, expectedSecretBuf);
+  if (!validClientId || !validClientSecret) {
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id or client_secret",
@@ -174,10 +189,9 @@ export default async function tokenHandler(
   // We could also issue an id_token (OIDC) which is a standard JWT.
   // For simplicity and since we don't have a private/public key pair, we'll use
   // HMAC (HS256) for the id_token as well, using NEXTAUTH_SECRET.
-  // Need the actual server URL for the issuer
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers.host;
-  const issuer = `${protocol}://${host}`;
+  // Use the configured base URL for the issuer rather than trusting the
+  // untrusted x-forwarded-proto / host request headers.
+  const issuer = getBaseUrl();
 
   // Generate the hashed user ID for the client.
   const hashedUserId = hashUserIdForClient(clientId, payload.userId as string);

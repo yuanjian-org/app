@@ -112,4 +112,47 @@ describe("OAuth2 authorizeHandler", () => {
       /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/,
     );
   });
+
+  it("should accept POST method and redirect back with code", async () => {
+    mockSession = { me: { id: "user-456" } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const res = await request(server).post(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback`,
+    );
+
+    expect(res.status).to.equal(302);
+    if (res.header.location?.includes("/auth/login")) {
+      expect.fail(
+        `Redirected to login instead of callback. Session mock failed.`,
+      );
+    }
+    expect(res.header.location).to.match(
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+$/,
+    );
+  });
+
+  it("should redirect back with code when PKCE S256 challenge is provided", async () => {
+    mockSession = { me: { id: "user-123" } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
+
+    const res = await request(server).get(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=${codeChallenge}&code_challenge_method=S256`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.match(
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+$/,
+    );
+  });
+
+  it("should return 400 for code_challenge without code_challenge_method", async () => {
+    const res = await request(server).get(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=somechallenge`,
+    );
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_request");
+  });
 });

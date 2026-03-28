@@ -7,9 +7,11 @@ import * as jose from "jose";
  * and prevents clients from guessing user IDs in other clients.
  */
 export function hashUserIdForClient(clientId: string, userId: string): string {
+  // Use a null-byte separator to prevent length-extension collisions:
+  // e.g. ("ab", "cd") vs ("a", "bcd") would otherwise hash identically.
   return crypto
     .createHash("sha256")
-    .update(clientId + userId)
+    .update(`${clientId}\0${userId}`)
     .digest("base64url");
 }
 

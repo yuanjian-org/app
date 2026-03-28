@@ -143,4 +143,48 @@ describe("OAuth2 userinfoHandler", () => {
     expect(res.body.email).to.equal(mockUser.email);
     expect(res.body.phone_number).to.equal(mockUser.phone);
   });
+
+  it("should accept POST method with a valid access token", async () => {
+    const mockUser = {
+      id: "user-123",
+      name: "Test User",
+      email: "test@example.com",
+      phone: null,
+    };
+    findByPkStub.resolves(mockUser);
+
+    const accessTokenPayload = {
+      type: "access",
+      jti: crypto.randomUUID(),
+      userId: mockUser.id,
+      clientId: "test-client",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    };
+    const token = await encryptPayload(accessTokenPayload);
+
+    const res = await request(server)
+      .post("/")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.email).to.equal(mockUser.email);
+  });
+
+  it("should return 401 for an expired access token", async () => {
+    const accessTokenPayload = {
+      type: "access",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      exp: Math.floor(Date.now() / 1000) - 1, // already expired
+    };
+    const token = await encryptPayload(accessTokenPayload);
+
+    const res = await request(server)
+      .get("/")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_token");
+  });
 });
