@@ -154,7 +154,8 @@ const setLastReadAt = procedure
 
 /**
  * Use mentorshipId etc to query instaed of using roomId, so that much logic of
- * this function can be deduped with `getRoom` and `getMostRecentMessageUpdatedAt`.
+ * this function can be deduped with `getRoom` and
+ * `getMostRecentMessageUpdatedAt`.
  */
 const createMessage = procedure
   .use(authUser())

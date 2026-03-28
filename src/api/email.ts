@@ -100,7 +100,7 @@ export async function email(
  */
 // async function main() {
 //   for (let i = 0; i < 2; i++) {
-//     await email(["test1@yopmail.com", "test2@yopmail.com", "test3@yopmail.com",
+// await email(["test1@yopmail.com", "test2@yopmail.com", "test3@yopmail.com",
 //       "test4@yopmail.com", "test5@yopmail.com"], "E_114706970517", {
 //       subject: "test",
 //       content: "test_batch",

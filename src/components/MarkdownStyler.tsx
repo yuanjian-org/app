@@ -3,7 +3,8 @@ import remarkGfm from "remark-gfm";
 import styles from "../theme/MarkdownStyler.module.css";
 
 // Note that this library increases bundle size significantly:
-// https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-a-html-in-markdown
+// https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-a-
+// html-in-markdown
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 
@@ -36,7 +37,8 @@ export default function MarkdownStyler({
         remarkPlugins={[remarkGfm]}
         /*
          * rehypeRaw allows rendering raw HTML, but it's dangerous for XSS.
-         * rehypeSanitize is added to mitigate this by restricting HTML to a safe subset.
+         * rehypeSanitize is added to mitigate this by restricting HTML to a
+         * safe subset.
          */
         {...(allowHtml
           ? {

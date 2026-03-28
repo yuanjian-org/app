@@ -274,7 +274,8 @@ export async function saveSummaryImpl(
  * Returns summaries that 1) were created in the last 31 days (max query
  * range allowed by Tencent), and 2) don't exist locally.
  *
- * Note: URLs returned from Tencent API are valid only for a short period of time.
+ * Note: URLs returned from Tencent API are valid only for a short period of
+ * time.
  */
 async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   console.log("findMissingSummaries()...");

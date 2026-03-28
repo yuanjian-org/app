@@ -1,7 +1,8 @@
 /**
  * A decorator that must be applied to every model definition to workaround
  * babel <> typescript incompatibility. See the following issue:
- * https://github.com/RobinBuschmann/sequelize-typescript/issues/612#issuecomment-491890977
+ * https://github.com/RobinBuschmann/sequelize-
+ * typescript/issues/612#issuecomment-491890977
  *
  * @param target model class
  */
@@ -10,7 +11,9 @@ export default function Fix(target: any): void {
   return class extends target {
     constructor(...args: any[]) {
       // suppresses warning from here which is not applicable in our typescript
-      // environment: https://github.com/sequelize/sequelize/blob/00ced18c2cb2a8b99ae0ebf5669c124abb4c673d/src/model.js#L99
+      // environment:
+      // https://github.com/sequelize/sequelize/blob/
+      // 00ced18c2cb2a8b99ae0ebf5669c124abb4c673d/src/model.js#L99
       target._overwrittenAttributesChecked = true;
 
       super(...args);

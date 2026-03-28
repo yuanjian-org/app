@@ -60,7 +60,8 @@ function anonymizeUserName(content: string, userName: string | null): string {
 
 /**
  * Download mentee data as a ZIP package containing:
- * 1. metadata.json - Metadata including userId, userName, generatedAt, and file list
+ * 1. metadata.json - Metadata including userId, userName, generatedAt, and file
+ * list
  * 2. menteeApplication.json - Mentee application data from Users table
  * 3. menteeApplication.txt - Human-readable version of mentee application
  * 4. interviewResults.json - Interview results with all interviewer feedback
@@ -68,7 +69,8 @@ function anonymizeUserName(content: string, userName: string | null): string {
  * 6. internalNotes.json - All messages from the internal notes chat room (内部笔记)
  * 7. internalNotes.txt - Human-readable version of internal notes
  * 8. mentorships.json - All AI meeting summaries (智能纪要) from mentorships
- * 9. mentorship_[mentorName]_[mentorshipId].txt - Plain text file for each mentorship
+ * 9. mentorship_[mentorName]_[mentorshipId].txt - Plain text file for each
+ * mentorship
  *    containing all transcript summaries with key 智能纪要
  *
  * Returns a base64-encoded ZIP file containing all data as separate files.

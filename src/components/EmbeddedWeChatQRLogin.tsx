@@ -21,7 +21,8 @@ export default function EmbeddedWeChatQRLogin({
 
   useEffect(() => {
     // 动态加载微信登录JS
-    // https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+    // https://developers.weixin.qq.com/doc/oplatform/Website_App/
+    // WeChat_Login/Wechat_Login.html
     const script = document.createElement("script");
     script.src =
       "https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js";

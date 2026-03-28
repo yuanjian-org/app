@@ -129,7 +129,9 @@ export function KudosControl({
       </Tooltip>
 
       {/**
-       * See https://v2.chakra-ui.com/docs/components/popover#trapping-focus-within-popover
+       * See
+       * https://v2.chakra-ui.com/docs/components/
+       * popover#trapping-focus-within-popover
        * for the use of initialFocusRef, FocusLock, etc.
        */}
       <Popover

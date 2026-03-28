@@ -193,8 +193,10 @@ const listMine = procedure
   });
 
 /**
- * @param userIds Return all the groups if `userIds` is empty, otherwise groups that contains the given users.
- * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
+ * @param userIds Return all the groups if `userIds` is empty, otherwise groups
+ * that contains the given users.
+ * @param includeUnowned Whether to include unowned groups. A group is unowned
+ * iff. its partnershipId is null.
  */
 const list = procedure
   .use(authUser(["GroupManager"]))
@@ -260,7 +262,8 @@ export function checkPermissionForGroupHistory(u: User, g: Group) {
 
 /**
  * @returns groups that contain all the given users.
- * @param mode if `exclusive`, return the singleton group that contains no more other users, or an empty array if no
+ * @param mode if `exclusive`, return the singleton group that contains no more
+ * other users, or an empty array if no
  * such group exists.
  * @param includes Optional `include`s in the returned group.
  */

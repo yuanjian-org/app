@@ -22,7 +22,8 @@ import Mentorship from "./Mentorship";
 import Interview from "./Interview";
 
 /**
- * A group is said to be "owned" if the mentorship or interview field is non-null.
+ * A group is said to be "owned" if the mentorship or interview field is non-
+ * null.
  * Otherwise the group is said to be "unowned".
  *
  * TODO: Add an index on `achived`

@@ -2,7 +2,8 @@ import { TableRowProps, Tr } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
 /**
- * This component is similar to `<LinkBox as={Tr}>...<LinkOverlay />...</LinkBox>`.
+ * This component is similar to `<LinkBox as={Tr}>...<LinkOverlay
+ * />...</LinkBox>`.
  * For some reason the latter doesn't work well on Safari.
  *
  * To define custom click behavior, use `<TrLink onClick={...}>`.

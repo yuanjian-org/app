@@ -286,7 +286,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
           if (impersonate === null) {
             delete token[impersonateTokenKey];
           } else {
-            // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
+            // https://www.ietf.org/id/draft-knauer-secure-webhook-
+            // token-00.html#name-jwt-structure
             const original = await db.User.findByPk(token.sub, {
               attributes: ["roles", "mergedTo"],
             });

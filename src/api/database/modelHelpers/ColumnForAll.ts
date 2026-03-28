@@ -4,7 +4,8 @@ import { addAttribute } from "sequelize-typescript/dist/model/column/attribute-s
 import { getSequelizeTypeByDesignType } from "sequelize-typescript/dist/model/shared/model-service";
 import { isDataType } from "sequelize-typescript/dist/sequelize/data-type/data-type-service";
 
-// from https://github.com/sequelize/sequelize-typescript/blob/master/src/model/column/column.ts
+// from https://github.com/sequelize/sequelize-
+// typescript/blob/master/src/model/column/column.ts
 export function ColumnForAll(dataType: sequelize.DataType) {
   return (
     target: any,

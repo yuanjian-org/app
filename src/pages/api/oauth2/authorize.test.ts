@@ -11,7 +11,8 @@ describe("OAuth2 authorizeHandler", () => {
   before(function () {
     this.timeout(10000); // Sometimes proxyquire takes a bit to load in Next.js tests
     originalEnv = { ...process.env };
-    // Provide a dummy DATABASE_URI so that modules that accidentally trigger DB initialization won't throw
+    // Provide a dummy DATABASE_URI so that modules that accidentally trigger DB
+    // initialization won't throw
     if (!process.env.DATABASE_URI) {
       process.env.DATABASE_URI =
         "postgres://postgres:postgres@localhost:5432/yuanjian";
@@ -91,7 +92,8 @@ describe("OAuth2 authorizeHandler", () => {
 
   it("should redirect back with code if user is logged in", async () => {
     mockSession = { me: { id: "user-123" } };
-    // getBaseUrl expects NEXT_PUBLIC_BASE_URL to be set, or it falls back to something else. Let's explicitly set it.
+    // getBaseUrl expects NEXT_PUBLIC_BASE_URL to be set, or it falls back to
+    // something else. Let's explicitly set it.
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const res = await request(server).get(
@@ -100,14 +102,16 @@ describe("OAuth2 authorizeHandler", () => {
 
     expect(res.status).to.equal(302);
 
-    // Check if it's redirecting to login first so we get a better error message if it's failing to pick up the mock session
+    // Check if it's redirecting to login first so we get a better error message
+    // if it's failing to pick up the mock session
     if (res.header.location?.includes("/auth/login")) {
       expect.fail(
         `Redirected to login instead of callback. Session mock failed. Location: ${res.header.location}`,
       );
     }
 
-    // Because encryptPayload creates a long base64 string (JWE), we should use a looser regex.
+    // Because encryptPayload creates a long base64 string (JWE), we should use
+    // a looser regex.
     expect(res.header.location).to.match(
       /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/,
     );

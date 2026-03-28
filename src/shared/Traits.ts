@@ -14,7 +14,7 @@ const zNum = z.number().optional();
  * 1. For a person, the values are the strengths of the traits,
  *    ranging from [-maxTraitAbsValue, maxTraitAbsValue].
  * 2. For a mentor, the values are the preference scores of the traits. It can
- *    be one of the four values: (-hardTraitPrefAbsValue, -softTraitPrefAbsValue,
+ * be one of the four values: (-hardTraitPrefAbsValue, -softTraitPrefAbsValue,
  *    softTraitPrefAbsValue, hardTraitPrefAbsValue).
  */
 export const zTraits = z.object({

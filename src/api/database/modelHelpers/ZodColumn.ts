@@ -24,7 +24,8 @@ export class ZodColumnSetError extends Error {
   }
 }
 
-// from https://github.com/sequelize/sequelize-typescript/blob/master/src/model/column/column.ts
+// from https://github.com/sequelize/sequelize-
+// typescript/blob/master/src/model/column/column.ts
 export default function ZodColumn(
   optionsOrDataType: OptionsOrDataType,
   zodType: ZodTypeAny,

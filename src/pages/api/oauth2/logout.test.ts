@@ -23,7 +23,8 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
 
   const requestListener = async (req: any, res: any) => {
     try {
-      // supertest does not automatically parse the query string, but apiResolver requires it
+      // supertest does not automatically parse the query string, but
+      // apiResolver requires it
       req.query = url.parse(req.url, true).query;
 
       await apiResolver(

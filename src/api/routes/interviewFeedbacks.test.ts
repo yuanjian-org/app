@@ -123,7 +123,8 @@ describe("interviewFeedbacks routes", () => {
         true,
         transaction,
       );
-      // feedbackUpdatedAt is initially null for create without it, so date2etag gives 0.
+      // feedbackUpdatedAt is initially null for create without it, so date2etag
+      // gives 0.
       const initialEtag = 0;
 
       const newEtag = await updateInterviewFeedbackImpl(

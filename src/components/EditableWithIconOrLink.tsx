@@ -33,7 +33,8 @@ export default function EditableWithIconOrLink({
   };
 
   // Show the edit icon when not in editing mode. See
-  // https://chakra-ui.com/docs/components/editable#with-custom-input-and-controls
+  // https://chakra-ui.com/docs/components/editable#with-custom-input-and-
+  // controls
   const EditableControls = () => {
     const {
       isEditing,

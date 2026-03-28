@@ -166,7 +166,8 @@ function GroupTagOrName({ group }: { group: Group }) {
       )}
 
       {/*
-       * Don't display the tag if the group is for mentorship. It used to display
+       * Don't display the tag if the group is for mentorship. It used to
+       * display
        * "一对一导师" but we want to weaken mentees' impression of being mentored.
        */}
       {isOwned(group) && !group.partnershipId ? (

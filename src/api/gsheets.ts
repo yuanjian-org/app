@@ -5,7 +5,8 @@ import {
 import { JWT } from "google-auth-library";
 
 /**
- * See https://theoephraim.github.io/node-google-spreadsheet/#/guides/authentication
+ * See https://theoephraim.github.io/node-google-
+ * spreadsheet/#/guides/authentication
  * for setup instructions.
  */
 export async function loadGoogleSpreadsheet(
@@ -25,7 +26,8 @@ export async function loadGoogleSpreadsheet(
 
 /**
  * Each array element represents a worksheet. Each cell can be a value or
- * [cell properties](https://theoephraim.github.io/node-google-spreadsheet/#/classes/google-spreadsheet-cell?id=properties).
+ * [cell properties](https://theoephraim.github.io/node-google-
+ * spreadsheet/#/classes/google-spreadsheet-cell?id=properties).
  *
  * Example:
  *

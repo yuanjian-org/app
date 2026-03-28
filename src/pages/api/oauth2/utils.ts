@@ -29,7 +29,8 @@ function getEncryptionKey(): Uint8Array {
 
 /**
  * Encrypts a payload into a JWE string.
- * This hides the contents of the payload (like the plain userId) from the client.
+ * This hides the contents of the payload (like the plain userId) from the
+ * client.
  */
 export async function encryptPayload(
   payload: jose.JWTPayload,

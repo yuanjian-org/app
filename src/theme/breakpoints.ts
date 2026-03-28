@@ -1,6 +1,8 @@
 import { createBreakpoints } from "@chakra-ui/theme-tools";
 
-// Copied from https://github.com/horizon-ui/horizon-ui-chakra/blob/bf44338c30b7a3d07770f424dfe2ec036c0033ab/src/theme/foundations/breakpoints.js
+// Copied from https://github.com/horizon-ui/horizon-ui-
+// chakra/blob/bf44338c30b7a3d07770f424dfe2ec036c0033ab/src/
+// theme/foundations/breakpoints.js
 const breakpoints = createBreakpoints({
   sm: "320px",
   "2sm": "380px",

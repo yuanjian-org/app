@@ -1,5 +1,6 @@
 /**
- * TODO move rename folder `database` to `db`, rename this file to `db/index.ts`.
+ * TODO move rename folder `database` to `db`, rename this file to
+ * `db/index.ts`.
  * Register all the models in this file.
  */
 import User from "./models/User";

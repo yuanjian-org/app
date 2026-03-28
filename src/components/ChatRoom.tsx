@@ -489,7 +489,8 @@ function Editor({
 }
 
 /**
- * @returns whether there are unread messages in any of the specified chat rooms.
+ * @returns whether there are unread messages in any of the specified chat
+ * rooms.
  */
 export function useUnreadChatMessages(menteeIds: string[]) {
   const lastReads = trpcNext.useQueries((t) => {

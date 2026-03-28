@@ -16,7 +16,8 @@ export default function logoutHandler(
   const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
   let callbackUrl = "/";
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URI.
+  // Validate the post_logout_redirect_uri against the configured
+  // OAUTH2_REDIRECT_URI.
   // We allow redirects to the same origin as the client application.
   if (post_logout_redirect_uri && expectedRedirectUri) {
     try {

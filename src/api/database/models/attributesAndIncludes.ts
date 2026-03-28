@@ -1,5 +1,6 @@
 /**
- * Collect things in this file as opposed to model files to avoid cyclic dependencies.
+ * Collect things in this file as opposed to model files to avoid cyclic
+ * dependencies.
  */
 import Calibration from "./Calibration";
 import InterviewFeedback from "./InterviewFeedback";

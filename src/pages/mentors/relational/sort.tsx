@@ -159,8 +159,13 @@ function Sorter({
 
 /**
  * Account for varying heights of cards:
- * Code: https://github.com/clauderic/dnd-kit/blob/e9215e820798459ae036896fce7fd9a6fe855772/stories/2%20-%20Presets/Sortable/1-Vertical.story.tsx#L85
- * Demo: https://master--5fc05e08a4a65d0021ae0bf2.chromatic.com/?path=/story/presets-sortable-vertical--variable-heights
+ * Code: https://github.com/clauderic/dnd-
+ *
+ * kit/blob/e9215e820798459ae036896fce7fd9a6fe855772/
+ * stories/2%20-%20Presets/Sortable/1-Vertical.story.tsx#L85
+ * Demo: https://master--
+ * 5fc05e08a4a65d0021ae0bf2.chromatic.com/?path=/story/presets-sortable-vertical
+ * --variable-heights
  */
 const SortableCard = ({
   ms,
