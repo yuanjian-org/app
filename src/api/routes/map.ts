@@ -82,7 +82,8 @@ const listLandmarkAssessments = procedure
   .output(z.array(zLandmarkAssessment))
   .query(async ({ input: { userId, landmark } }) => {
     // Missing 'as' type casting will cause an error due to
-    // 'createdAt' is optional in 'LandmarkAssessment' but required in return type
+    // 'createdAt' is optional in 'LandmarkAssessment' but required in
+    // return type
     return (await db.LandmarkAssessment.findAll({
       where: { userId, landmark },
       attributes: landmarkAssessmentAttributes,

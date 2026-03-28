@@ -44,7 +44,8 @@ const list = procedure
             assigneeId !== me.id &&
             // For mentors, only mentorship managers can see their tasks.
             !isPermitted(me.roles, "MentorshipManager") &&
-            // For mentees, only mentorship managers and mentors can see their tasks.
+            // For mentees, only mentorship managers and mentors can see their
+            // tasks.
             !(await isPermittedtoAccessMentee(me, assigneeId, transaction))
           ) {
             throw noPermissionError("待办事项");

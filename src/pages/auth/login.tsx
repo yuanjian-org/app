@@ -113,7 +113,8 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
           </Text>
         ) : (
           <>
-            {/* Only WeChat browser supports logging in with WeChat accounts. See
+            {/* Only WeChat browser supports logging in with WeChat accounts.
+             * See
               docs/WeChat.md for more information. */}
             {isWechatBrowser ? (
               <WechatAccountPanel />
@@ -160,7 +161,8 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
         // size="sm"
         // If the user is on mobile and not using WeChat browser, show the
         // verification code tab as default, because the only WeChat option on
-        // non-WeChat mobile browser is QR code which is often impossible to scan.
+        // non-WeChat mobile browser is QR code which is often impossible to
+        // scan.
         defaultIndex={isDemo ? 0 : isMobileBrowser && !isWechatBrowser ? 1 : 0}
       >
         <TabList>

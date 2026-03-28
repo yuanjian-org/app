@@ -13,9 +13,10 @@ export function getAnonymousId(
   userId: string,
   acceptanceYear: string | null,
 ): string {
-  // First 2 digits: last 2 digits of acceptance year
-  const yearSuffix = acceptanceYear ? acceptanceYear.slice(-2) : "00"; // Default to "00" if no acceptance year
-
+  // First 2 digits: last 2 digits of acceptance year.
+  // Default to "00" if no acceptance year.
+  const yearSuffix = acceptanceYear ? acceptanceYear.slice(-2) : "00";
+  
   // Last 3 digits: deterministic hash of userId
   // Use a simple hash: sum of character codes mod 1000
   let hash = 0;

@@ -53,7 +53,8 @@ const join = procedure
     // simultaneously: https://stackoverflow.com/a/48297781
     // If the group is already present in MeetingSlot, return the meeting link.
     return await sequelize.transaction(async (transaction) => {
-      // Find an existing slot for the group. TencentMeeting's status is ignored.
+      // Find an existing slot for the group. TencentMeeting's status is
+      // ignored.
       // It means that even if the meeting is ended, it will still be reused for
       // the group.
       const existing = await db.MeetingSlot.findOne({
@@ -68,7 +69,8 @@ const join = procedure
       while (true) {
         const free = await db.MeetingSlot.findOne({
           where: { groupId: null },
-          // To ease troubleshooting, always pick the smallest available tmUserId.
+          // To ease troubleshooting, always pick the smallest available
+          // tmUserId.
           order: [["tmUserId", "ASC"]],
           attributes: ["id", "meetingId", "meetingLink"],
           lock: true,

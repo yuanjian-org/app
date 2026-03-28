@@ -94,7 +94,8 @@ function formatValue(value: any, indent: string = ""): string {
     return "null";
   }
   if (typeof value === "string") {
-    // Handle multi-line strings by putting all lines on new lines with extra indentation
+    // Handle multi-line strings by putting all lines on new lines with
+    // extra indentation
     const lines = value.split("\n");
     if (lines.length > 1) {
       return "\n" + lines.map((line) => `${indent}  ${line}`).join("\n");

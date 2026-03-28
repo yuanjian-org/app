@@ -110,7 +110,8 @@ function SwitchBoard({
     if (isAuthPage) {
       return <AuthPageContainer>{children}</AuthPageContainer>;
 
-      // Redirect to static page if the user attempts to access the home page, ...
+      // Redirect to static page if the user attempts to access the home page,
+      // ...
     } else if (router.asPath === "/") {
       void router.push(staticUrlPrefix);
       return null;

@@ -465,7 +465,8 @@ function Editor({
         <Select
           placeholder="笔记分类"
           onChange={(e) => insertPrefix(e.target.value)}
-          // if maxWidth is not specified, it will take up all the remaining width.
+          // if maxWidth is not specified, it will take up all the remaining
+          // width.
           // this must work with Spacer to create a gap.
           maxWidth="150px"
         >

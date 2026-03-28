@@ -208,12 +208,14 @@ describe("downloadMenteeDataImpl", () => {
     const metadataEntry = zip.getEntry("metadata.json");
     const metadata = JSON.parse(metadataEntry!.getData().toString("utf8"));
     expect(metadata.userId).to.equal(mentee.id);
-    expect("userName" in metadata).to.equal(false); // userName should not be in metadata
+    expect("userName" in metadata).to.equal(false); // userName should not be in
+    // metadata
     expect(metadata.generatedAt).to.be.a("string");
     expect(metadata.files).to.be.an("array");
     expect(metadata.files.length).to.be.greaterThan(0);
 
-    // Verify menteeApplication.json - private fields redacted, allowed fields kept
+    // Verify menteeApplication.json - private fields redacted, allowed
+    // fields kept
     const appEntry = zip.getEntry("menteeApplication.json");
     const appData = JSON.parse(appEntry!.getData().toString("utf8"));
     // Private fields should be redacted

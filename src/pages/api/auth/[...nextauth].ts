@@ -40,13 +40,16 @@ const impersonateTokenKey = "imp";
 
 export const adapter = {
   ...SequelizeAdapter(sequelize, {
-    // `as any` is because SequelizeAdapter requires user.email to be non-nullable
+    // `as any` is because SequelizeAdapter requires user.email to be
+    // non-nullable
     models: { User: db.User as any },
   }),
 
   // We use custom `createUser` logic because we process sign-ups differently
-  // depending on the fake email domain. For WeChat, we only care about `wechatUnionId`.
-  // For SSO, we create the user with `ssoUserId` along with their standard profile.
+  // depending on the fake email domain. For WeChat, we only care about
+  // `wechatUnionId`.
+  // For SSO, we create the user with `ssoUserId` along with their standard
+  // profile.
   async createUser(user: {
     email: string;
     wechatUnionId?: string;
@@ -188,7 +191,8 @@ if (
     id: "yuantu-sso",
     name: "YuanTu SSO",
     type: "oauth",
-    // Our in-house OAuth2 provider signs id_token with HS256 (shared client secret),
+    // Our in-house OAuth2 provider signs id_token with HS256 (shared client
+    // secret),
     // so we must override openid-client's RS256 default expectation.
     client: { id_token_signed_response_alg: "HS256" },
     clientId: process.env.AUTH_YUANTU_SSO_CLIENT_ID,

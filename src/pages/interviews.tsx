@@ -121,7 +121,8 @@ export default widePage(() => {
                 calibrations={calibrations}
                 refetch={() => {
                   void refetchCalibrations();
-                  // When calibration name changes, interviews may need a refetch as well.
+                  // When calibration name changes, interviews may need a
+                  // refetch as well.
                   void refetchInterview();
                 }}
               />

@@ -154,7 +154,8 @@ function Row({
       <Td>
         {limit && (
           <Text as={moment().isAfter(moment(limit.until)) ? "s" : undefined}>
-            {/* slice() to trim a full date-time string to just the date string */}
+            {/* slice() to trim a full date-time string to just the date string
+             */}
             {`${limit.noMoreThan} 直到 ${limit.until.slice(0, 10)}`}
           </Text>
         )}

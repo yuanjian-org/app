@@ -8,8 +8,10 @@ import { encryptPayload } from "./utils";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
-// We use stateless JWT tokens as the authorization code and access token to simplify deployment.
-// This avoids needing a separate database table for codes and tokens. Single-use enforcement
+// We use stateless JWT tokens as the authorization code and access token to
+// simplify deployment.
+// This avoids needing a separate database table for codes and tokens.
+// Single-use enforcement
 // for codes is handled via an LRU cache in the token exchange endpoint.
 
 export default async function authorizeHandler(
@@ -67,8 +69,10 @@ export default async function authorizeHandler(
     });
   }
 
-  // Client MUST provide a redirect_uri and it MUST exactly match the configured URI.
-  // This prevents Open Redirect vulnerabilities where an attacker could steal authorization codes.
+  // Client MUST provide a redirect_uri and it MUST exactly match the configured
+  // URI.
+  // This prevents Open Redirect vulnerabilities where an attacker could steal
+  // authorization codes.
   if (!redirect_uri || redirect_uri !== expectedRedirectUri) {
     return res.status(400).json({
       error: "invalid_request",
@@ -77,7 +81,8 @@ export default async function authorizeHandler(
   }
 
   // If a PKCE code challenge is provided, the method MUST be S256.
-  // 'plain' is inherently insecure and should not be used in modern OAuth2 implementations.
+  // 'plain' is inherently insecure and should not be used in modern OAuth2
+  // implementations.
   if (code_challenge && code_challenge_method !== "S256") {
     return res.status(400).json({
       error: "invalid_request",
@@ -85,7 +90,8 @@ export default async function authorizeHandler(
     });
   }
 
-  // 2. If the user is not logged in, redirect them to the login page with a callbackUrl pointing back to this endpoint.
+  // 2. If the user is not logged in, redirect them to the login page with a
+  // callbackUrl pointing back to this endpoint.
   if (!session?.me) {
     // Construct the URL to return to this authorization endpoint after login
     const baseUrl = getBaseUrl();
@@ -99,13 +105,17 @@ export default async function authorizeHandler(
   }
 
   // 3. The user is logged in and authorized. Generate an authorization code.
-  // We will encrypt the user ID and code_challenge into a JWE string, so we don't need database state
+  // We will encrypt the user ID and code_challenge into a JWE string, so we
+  // don't need database state
   // and the client cannot read the plain userId.
   const codePayload = {
-    // Add a distinct type to prevent an authorization code from being directly used as an access token (JWT Type Confusion).
+    // Add a distinct type to prevent an authorization code from being directly
+    // used as an access token (JWT Type Confusion).
     type: "code",
-    // Add a unique identifier (JWT ID) to prevent collision of identical requests within the same second,
-    // which would otherwise generate the exact same JWT signature and falsely fail single-use enforcement.
+    // Add a unique identifier (JWT ID) to prevent collision of identical
+    // requests within the same second,
+    // which would otherwise generate the exact same JWT signature and falsely
+    // fail single-use enforcement.
     jti: crypto.randomUUID(),
     userId: session.me.id,
     clientId: client_id,
