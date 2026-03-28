@@ -5,3 +5,5 @@ Also fetch latest documentation at https://deepwiki.com/yuanjian-org/app to deep
 ALWAYS make sure `yarn build` and `yarn test` pass when submitting changes.
 
 ALWAYS avoid using `any` types.
+
+Keep all lines including comments within 80 characters limit.
