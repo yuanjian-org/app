@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import request from "supertest";
 import proxyquire from "proxyquire";
-import sinon from "sinon";
 import { createTestServer } from "./testUtils";
 
 describe("OAuth2 authorizeHandler", () => {
@@ -14,7 +13,8 @@ describe("OAuth2 authorizeHandler", () => {
     originalEnv = { ...process.env };
     // Provide a dummy DATABASE_URI so that modules that accidentally trigger DB initialization won't throw
     if (!process.env.DATABASE_URI) {
-      process.env.DATABASE_URI = "postgres://postgres:postgres@localhost:5432/yuanjian";
+      process.env.DATABASE_URI =
+        "postgres://postgres:postgres@localhost:5432/yuanjian";
     }
 
     // Use proxyquire to mock next-auth
@@ -58,7 +58,7 @@ describe("OAuth2 authorizeHandler", () => {
 
   it("should return 400 for invalid response_type", async () => {
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=token`
+      `/?client_id=test-client&response_type=token`,
     );
     expect(res.status).to.equal(400);
     expect(res.body.error).to.equal("unsupported_response_type");
@@ -66,7 +66,7 @@ describe("OAuth2 authorizeHandler", () => {
 
   it("should return 400 for mismatching redirect_uri", async () => {
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://evil.com`
+      `/?client_id=test-client&response_type=code&redirect_uri=https://evil.com`,
     );
     expect(res.status).to.equal(400);
     expect(res.body.error).to.equal("invalid_request");
@@ -74,7 +74,7 @@ describe("OAuth2 authorizeHandler", () => {
 
   it("should return 400 for invalid code_challenge_method", async () => {
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=xyz&code_challenge_method=plain`
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=xyz&code_challenge_method=plain`,
     );
     expect(res.status).to.equal(400);
     expect(res.body.error).to.equal("invalid_request");
@@ -95,17 +95,21 @@ describe("OAuth2 authorizeHandler", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&state=state123`
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&state=state123`,
     );
 
     expect(res.status).to.equal(302);
 
     // Check if it's redirecting to login first so we get a better error message if it's failing to pick up the mock session
     if (res.header.location?.includes("/auth/login")) {
-      expect.fail(`Redirected to login instead of callback. Session mock failed. Location: ${res.header.location}`);
+      expect.fail(
+        `Redirected to login instead of callback. Session mock failed. Location: ${res.header.location}`,
+      );
     }
 
     // Because encryptPayload creates a long base64 string (JWE), we should use a looser regex.
-    expect(res.header.location).to.match(/^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/);
+    expect(res.header.location).to.match(
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/,
+    );
   });
 });

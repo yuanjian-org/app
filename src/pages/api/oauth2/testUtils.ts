@@ -18,10 +18,8 @@ export function createTestServer(handler: any) {
       query,
       handler,
       {
-        previewModeEncryptionKey: "",
-        previewModeId: "",
-        previewModeSigningKey: "",
-      },
+        dev: true,
+      } as any, // Cast to any because the internal types of ApiContext change frequently across Next.js versions
       true, // Disable resolving the request body again if already parsed
     );
   });

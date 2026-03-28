@@ -44,7 +44,9 @@ describe("OAuth2 userinfoHandler", () => {
   });
 
   it("should return 401 if Authorization header is invalid", async () => {
-    const res = await request(server).get("/").set("Authorization", "Basic xyz");
+    const res = await request(server)
+      .get("/")
+      .set("Authorization", "Basic xyz");
     expect(res.status).to.equal(401);
     expect(res.body.error).to.equal("invalid_request");
   });

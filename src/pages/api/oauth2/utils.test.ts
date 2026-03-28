@@ -1,9 +1,5 @@
 import { expect } from "chai";
-import {
-  hashUserIdForClient,
-  encryptPayload,
-  decryptPayload,
-} from "./utils";
+import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
 
 describe("OAuth2 Utils", () => {
   describe("hashUserIdForClient", () => {
@@ -60,7 +56,8 @@ describe("OAuth2 Utils", () => {
       const encrypted = await encryptPayload(payload);
 
       // Tamper with the token (modifying a character in the middle)
-      const tampered = encrypted.substring(0, 10) + "A" + encrypted.substring(11);
+      const tampered =
+        encrypted.substring(0, 10) + "A" + encrypted.substring(11);
 
       let error = null;
       try {
@@ -68,7 +65,7 @@ describe("OAuth2 Utils", () => {
       } catch (e) {
         error = e;
       }
-      expect(error).to.not.be.null;
+      expect(error).to.not.equal(null);
     });
   });
 });

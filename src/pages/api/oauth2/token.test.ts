@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import request from "supertest";
 import crypto from "crypto";
-import * as jose from "jose";
 import { createTestServer } from "./testUtils";
 import tokenHandler from "./token";
 import { encryptPayload } from "./utils";
@@ -48,7 +47,9 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should authenticate client via Basic Auth header", async () => {
-    const authString = Buffer.from("wrong-client:wrong-secret").toString("base64");
+    const authString = Buffer.from("wrong-client:wrong-secret").toString(
+      "base64",
+    );
     const res = await request(server)
       .post("/")
       .set("Authorization", `Basic ${authString}`)
@@ -144,12 +145,17 @@ describe("OAuth2 tokenHandler", () => {
       code,
     });
     expect(res2.status).to.equal(400);
-    expect(res2.body.error_description).to.equal("Authorization code already used");
+    expect(res2.body.error_description).to.equal(
+      "Authorization code already used",
+    );
   });
 
   it("should successfully exchange code with PKCE", async () => {
     const codeVerifier = "this-is-a-long-random-string-for-code-verifier-123";
-    const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
+    const codeChallenge = crypto
+      .createHash("sha256")
+      .update(codeVerifier)
+      .digest("base64url");
 
     const codePayload = {
       type: "code",
@@ -176,7 +182,10 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should fail exchange if PKCE verifier is wrong", async () => {
-    const codeChallenge = crypto.createHash("sha256").update("correct-verifier").digest("base64url");
+    const codeChallenge = crypto
+      .createHash("sha256")
+      .update("correct-verifier")
+      .digest("base64url");
 
     const codePayload = {
       type: "code",
