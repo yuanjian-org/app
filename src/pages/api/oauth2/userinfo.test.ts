@@ -112,6 +112,24 @@ describe("OAuth2 userinfoHandler", () => {
     expect(res.body.error).to.equal("user_not_found");
   });
 
+  it("should return 401 for an expired access token", async () => {
+    const expiredPayload = {
+      type: "access",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      exp: Math.floor(Date.now() / 1000) - 100, // Expired in the past
+    };
+    const token = await encryptPayload(expiredPayload);
+
+    const res = await request(server)
+      .get("/")
+      .set("Authorization", `Bearer ${token}`);
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_token");
+    expect(res.body.error_description).to.include("Invalid or expired token");
+  });
+
   it("should return correct userinfo for valid access token", async () => {
     const mockUser = {
       id: "user-123",

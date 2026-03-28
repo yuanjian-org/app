@@ -234,4 +234,121 @@ describe("OAuth2 tokenHandler", () => {
     expect(res.status).to.equal(400);
     expect(res.body.error_description).to.include("Invalid token type");
   });
+
+  it("should return 400 if clientId in code payload does not match authenticated client", async () => {
+    const wrongClientCode = await encryptPayload({
+      type: "code",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "wrong-client",
+      redirectUri: "https://app.example.com/callback",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    const res = await request(server)
+      .post("/")
+      .send({
+        grant_type: "authorization_code",
+        code: wrongClientCode,
+        redirect_uri: "https://app.example.com/callback",
+        client_id: "test-client",
+        client_secret: "test-client-secret",
+      });
+
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_grant");
+    expect(res.body.error_description).to.include(
+      "Code issued for a different client",
+    );
+  });
+
+  it("should return 400 if redirect_uri in request does not match code payload", async () => {
+    const wrongRedirectCode = await encryptPayload({
+      type: "code",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      redirectUri: "https://different.example.com/callback",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    const res = await request(server)
+      .post("/")
+      .send({
+        grant_type: "authorization_code",
+        code: wrongRedirectCode,
+        redirect_uri: "https://app.example.com/callback",
+        client_id: "test-client",
+        client_secret: "test-client-secret",
+      });
+
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_grant");
+    expect(res.body.error_description).to.include(
+      "Mismatching redirect_uri",
+    );
+  });
+
+  it("should return 400 if code has a code_challenge but request is missing code_verifier", async () => {
+    const pkceCode = await encryptPayload({
+      type: "code",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      redirectUri: "https://app.example.com/callback",
+      codeChallenge: "xyz123",
+      codeChallengeMethod: "S256",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    const res = await request(server)
+      .post("/")
+      .send({
+        grant_type: "authorization_code",
+        code: pkceCode,
+        redirect_uri: "https://app.example.com/callback",
+        client_id: "test-client",
+        client_secret: "test-client-secret",
+      });
+
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_request");
+    expect(res.body.error_description).to.include(
+      "Missing code_verifier for PKCE",
+    );
+  });
+
+  it("should include nonce in id_token if code payload includes it", async () => {
+    const nonceCode = await encryptPayload({
+      type: "code",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      redirectUri: "https://app.example.com/callback",
+      nonce: "custom-nonce-xyz",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    const res = await request(server)
+      .post("/")
+      .send({
+        grant_type: "authorization_code",
+        code: nonceCode,
+        redirect_uri: "https://app.example.com/callback",
+        client_id: "test-client",
+        client_secret: "test-client-secret",
+      });
+
+    expect(res.status).to.equal(200);
+    const { id_token } = res.body;
+    expect(id_token).to.be.a("string");
+
+    // Decode JWT payload (base64url)
+    const payloadBase64 = id_token.split(".")[1];
+    const decodedPayload = JSON.parse(
+      Buffer.from(payloadBase64, "base64url").toString("utf-8"),
+    );
+
+    expect(decodedPayload.nonce).to.equal("custom-nonce-xyz");
+  });
 });

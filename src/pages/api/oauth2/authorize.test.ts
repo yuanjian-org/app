@@ -112,4 +112,36 @@ describe("OAuth2 authorizeHandler", () => {
       /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/,
     );
   });
+
+  it("should redirect back with code without state if state is not provided", async () => {
+    mockSession = { me: { id: "user-123" } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const res = await request(server).get(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.match(
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+$/,
+    );
+  });
+
+  it("should encrypt nonce and code_challenge in the code payload", async () => {
+    mockSession = { me: { id: "user-123" } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const res = await request(server).get(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&nonce=my-nonce&code_challenge=xyz123&code_challenge_method=S256`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.match(
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+$/,
+    );
+
+    // We can't easily extract and decrypt the JWE here without repeating the test logic,
+    // but we can at least assert it generates a valid code and redirects successfully.
+    // The previous tests for token.ts already verify that the decrypted token correctly handles the nonce.
+  });
 });

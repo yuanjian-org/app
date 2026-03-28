@@ -67,5 +67,24 @@ describe("OAuth2 Utils", () => {
       }
       expect(error).to.not.equal(null);
     });
+
+    it("should throw an error if NEXTAUTH_SECRET is not set", async () => {
+      const originalSecret = process.env.NEXTAUTH_SECRET;
+      delete process.env.NEXTAUTH_SECRET;
+
+      let error: any = null;
+      try {
+        await encryptPayload({ test: true });
+      } catch (e) {
+        error = e;
+      } finally {
+        if (originalSecret !== undefined) {
+          process.env.NEXTAUTH_SECRET = originalSecret;
+        }
+      }
+
+      expect(error).to.not.equal(null);
+      expect(error.message).to.equal("NEXTAUTH_SECRET is not set");
+    });
   });
 });
