@@ -104,11 +104,9 @@ function PoCEditor({
   onClose: () => void;
 }) {
   const savePoC = async (pocIds: string[]) => {
-    // TODO: allow removing PoC
-    if (pocIds.length == 0) return;
     await trpc.users.setPointOfContactAndNote.mutate({
       userId: user.id,
-      pocId: pocIds[0],
+      pocId: pocIds.length === 0 ? null : pocIds[0],
     });
     refetch();
   };
