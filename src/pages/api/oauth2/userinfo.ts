@@ -31,10 +31,6 @@ export default async function userinfoHandler(
   let payload: JWTPayload;
   try {
     payload = await decryptPayload(accessToken);
-
-    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
-      throw new Error("Token expired");
-    }
   } catch {
     return res.status(401).json({
       error: "invalid_token",
