@@ -38,7 +38,7 @@ export default async function userinfoHandler(
   try {
     payload = await decryptPayload(accessToken);
   } catch (e) {
-    logError("Invalid or expired token", { error: e });
+    logError("Invalid or expired token", e);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid or expired token",
@@ -50,9 +50,7 @@ export default async function userinfoHandler(
   // This ensures an attacker cannot use an authorization 'code' (stolen via
   // open redirect) as an access token.
   if (payload.type !== "access") {
-    logError("Invalid token type, expected access token", {
-      type: payload.type,
-    });
+    logError("Invalid token type, expected access token", payload.type);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid token type, expected access token",
@@ -61,10 +59,7 @@ export default async function userinfoHandler(
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   if (payload.clientId !== expectedClientId) {
-    logError("Invalid client_id in token", {
-      payloadClientId: payload.clientId,
-      expectedClientId,
-    });
+    logError("Invalid client_id in token", payload.clientId, expectedClientId);
     return res
       .status(401)
       .json({ error: "invalid_token", error_description: "Invalid client_id" });
@@ -77,7 +72,7 @@ export default async function userinfoHandler(
   });
 
   if (!user) {
-    logError("User not found", { userId: payload.userId });
+    logError("User not found", payload.userId);
     return res.status(404).json({ error: "user_not_found" });
   }
 

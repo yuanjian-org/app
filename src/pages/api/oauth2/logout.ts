@@ -31,14 +31,16 @@ export default function logoutHandler(
       } else {
         logError(
           "post_logout_redirect_uri origin does not match allowed origin",
-          { requestedOrigin, allowedOrigin },
+          requestedOrigin,
+          allowedOrigin,
         );
       }
     } catch (e) {
-      logError("Invalid post_logout_redirect_uri URL", {
+      logError(
+        "Invalid post_logout_redirect_uri URL",
         post_logout_redirect_uri,
-        error: e,
-      });
+        e,
+      );
       // Ignore invalid URLs and fallback to "/"
     }
   }

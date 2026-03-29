@@ -76,10 +76,11 @@ export default async function tokenHandler(
     secretBuf.length === expectedSecretBuf.length &&
     crypto.timingSafeEqual(secretBuf, expectedSecretBuf);
   if (!validClientId || !validClientSecret) {
-    logError("Invalid client_id or client_secret", {
+    logError(
+      "Invalid client_id or client_secret",
       validClientId,
       validClientSecret,
-    });
+    );
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id or client_secret",
@@ -91,7 +92,7 @@ export default async function tokenHandler(
   // just as it did in the authorization request. This mitigates Open Redirect
   // and token theft.
   if (redirect_uri !== expectedRedirectUri) {
-    logError("Mismatching redirect_uri", { redirect_uri, expectedRedirectUri });
+    logError("Mismatching redirect_uri", redirect_uri, expectedRedirectUri);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Mismatching redirect_uri",
@@ -99,7 +100,7 @@ export default async function tokenHandler(
   }
 
   if (grant_type !== "authorization_code") {
-    logError("Only 'authorization_code' is supported", { grant_type });
+    logError("Only 'authorization_code' is supported", grant_type);
     return res.status(400).json({
       error: "unsupported_grant_type",
       error_description: "Only 'authorization_code' is supported",
@@ -114,7 +115,7 @@ export default async function tokenHandler(
   }
 
   if (usedCodesCache.has(code)) {
-    logError("Authorization code already used", { code });
+    logError("Authorization code already used", code);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Authorization code already used",
@@ -126,7 +127,7 @@ export default async function tokenHandler(
   try {
     payload = await decryptPayload(code);
   } catch (e) {
-    logError("Invalid or expired authorization code", { error: e });
+    logError("Invalid or expired authorization code", e);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Invalid or expired authorization code",
@@ -138,9 +139,7 @@ export default async function tokenHandler(
   // This ensures an attacker cannot use an 'access' token generated for the API
   // as an authorization code.
   if (payload.type !== "code") {
-    logError("Invalid token type, expected authorization code", {
-      type: payload.type,
-    });
+    logError("Invalid token type, expected authorization code", payload.type);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Invalid token type, expected authorization code",
@@ -148,10 +147,7 @@ export default async function tokenHandler(
   }
 
   if (payload.clientId !== clientId) {
-    logError("Code issued for a different client", {
-      payloadClientId: payload.clientId,
-      clientId,
-    });
+    logError("Code issued for a different client", payload.clientId, clientId);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Code issued for a different client",
@@ -159,10 +155,11 @@ export default async function tokenHandler(
   }
 
   if (payload.redirectUri !== redirect_uri) {
-    logError("Mismatching redirect_uri in payload", {
-      payloadRedirectUri: payload.redirectUri,
+    logError(
+      "Mismatching redirect_uri in payload",
+      payload.redirectUri,
       redirect_uri,
-    });
+    );
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Mismatching redirect_uri",
@@ -183,10 +180,7 @@ export default async function tokenHandler(
       .update(code_verifier)
       .digest("base64url");
     if (hash !== payload.codeChallenge) {
-      logError("Invalid code_verifier", {
-        hash,
-        codeChallenge: payload.codeChallenge,
-      });
+      logError("Invalid code_verifier", hash, payload.codeChallenge);
       return res.status(400).json({
         error: "invalid_grant",
         error_description: "Invalid code_verifier",

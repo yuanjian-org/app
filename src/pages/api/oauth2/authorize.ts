@@ -58,7 +58,7 @@ export default async function authorizeHandler(
   }
 
   if (!client_id || client_id !== expectedClientId) {
-    logError("Invalid client_id", { client_id, expectedClientId });
+    logError("Invalid client_id", client_id, expectedClientId);
     return res.status(400).json({
       error: "invalid_client",
       error_description: "Invalid client_id",
@@ -66,7 +66,7 @@ export default async function authorizeHandler(
   }
 
   if (response_type !== "code") {
-    logError("Only 'code' response_type is supported", { response_type });
+    logError("Only 'code' response_type is supported", response_type);
     return res.status(400).json({
       error: "unsupported_response_type",
       error_description: "Only 'code' response_type is supported",
@@ -78,10 +78,11 @@ export default async function authorizeHandler(
   // This prevents Open Redirect vulnerabilities where an attacker could steal
   // authorization codes.
   if (!redirect_uri || redirect_uri !== expectedRedirectUri) {
-    logError("Missing or invalid redirect_uri", {
+    logError(
+      "Missing or invalid redirect_uri",
       redirect_uri,
       expectedRedirectUri,
-    });
+    );
     return res.status(400).json({
       error: "invalid_request",
       error_description: "Missing or invalid redirect_uri",
@@ -92,9 +93,7 @@ export default async function authorizeHandler(
   // 'plain' is inherently insecure and should not be used in modern OAuth2
   // implementations.
   if (code_challenge && code_challenge_method !== "S256") {
-    logError("PKCE code_challenge_method must be S256", {
-      code_challenge_method,
-    });
+    logError("PKCE code_challenge_method must be S256", code_challenge_method);
     return res.status(400).json({
       error: "invalid_request",
       error_description: "PKCE code_challenge_method must be S256",
