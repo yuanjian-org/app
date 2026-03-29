@@ -21,5 +21,5 @@ export default function SetProfile() {
 
   // If phone is not set, <PostLoginModels /> will be rendered globally
   // by <AppPageContainer /> and will show the <SetPhoneModal /> automatically.
-  return <PageLoader />;
+  return <PageLoader loadingText="完成登录..." />;
 }
