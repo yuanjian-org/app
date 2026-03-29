@@ -12,6 +12,7 @@ export default async function userinfoHandler(
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
+    console.error(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -20,6 +21,9 @@ export default async function userinfoHandler(
   const authHeader = req.headers.authorization;
   const bearerPrefix = "Bearer ";
   if (!authHeader || !authHeader.startsWith(bearerPrefix)) {
+    console.error(
+      `Missing or invalid Authorization header: ${authHeader ? "present" : "missing"}`,
+    );
     return res.status(401).json({
       error: "invalid_request",
       error_description: "Missing or invalid Authorization header",
@@ -31,7 +35,8 @@ export default async function userinfoHandler(
   let payload: JWTPayload;
   try {
     payload = await decryptPayload(accessToken);
-  } catch {
+  } catch (error) {
+    console.error("Error decrypting access token:", error);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid or expired token",
@@ -43,6 +48,7 @@ export default async function userinfoHandler(
   // This ensures an attacker cannot use an authorization 'code' (stolen via
   // open redirect) as an access token.
   if (payload.type !== "access") {
+    console.error(`Invalid token type: ${payload.type}`);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid token type, expected access token",
@@ -51,6 +57,9 @@ export default async function userinfoHandler(
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   if (payload.clientId !== expectedClientId) {
+    console.error(
+      `Invalid client_id in payload: ${payload.clientId} != ${expectedClientId}`,
+    );
     return res
       .status(401)
       .json({ error: "invalid_token", error_description: "Invalid client_id" });
@@ -63,6 +72,7 @@ export default async function userinfoHandler(
   });
 
   if (!user) {
+    console.error(`User not found for userId: ${payload.userId}`);
     return res.status(404).json({ error: "user_not_found" });
   }
 

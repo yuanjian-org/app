@@ -6,6 +6,7 @@ export default function logoutHandler(
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
+    console.error(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -26,8 +27,16 @@ export default function logoutHandler(
 
       if (allowedOrigin === requestedOrigin) {
         callbackUrl = post_logout_redirect_uri;
+      } else {
+        console.error(
+          `Requested post_logout_redirect_uri origin ${requestedOrigin} does not match allowed origin ${allowedOrigin}`,
+        );
       }
-    } catch {
+    } catch (error) {
+      console.error(
+        `Error parsing post_logout_redirect_uri or expectedRedirectUri:`,
+        error,
+      );
       // Ignore invalid URLs and fallback to "/"
     }
   }
