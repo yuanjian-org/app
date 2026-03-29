@@ -90,13 +90,12 @@ export default async function authorizeHandler(
     });
   }
 
+  const baseUrl = getBaseUrl();
+  const currentUrl = new URL(req.url!, baseUrl);
+
   // 2. If the user is not logged in, redirect them to the login page with a
   // callbackUrl pointing back to this endpoint.
   if (!session?.me) {
-    // Construct the URL to return to this authorization endpoint after login
-    const baseUrl = getBaseUrl();
-    const currentUrl = new URL(req.url!, baseUrl);
-
     // Redirect to the login page
     const loginUrl = new URL("/auth/login", baseUrl);
     loginUrl.searchParams.set("callbackUrl", currentUrl.toString());
@@ -106,8 +105,6 @@ export default async function authorizeHandler(
 
   // 3. If the user hasn't set their phone number, redirect them to the set-profile page.
   if (!session.me.phone) {
-    const baseUrl = getBaseUrl();
-    const currentUrl = new URL(req.url!, baseUrl);
     const setProfileUrl = new URL("/auth/set-profile", baseUrl);
     setProfileUrl.searchParams.set(
       "callbackUrl",
