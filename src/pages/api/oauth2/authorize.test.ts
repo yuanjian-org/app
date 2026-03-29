@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import request from "supertest";
 import proxyquire from "proxyquire";
-import { createTestServer } from "./testUtils";
+import { createTestServer } from "../../../api/oauth2/testUtils";
 
 describe("OAuth2 authorizeHandler", () => {
   let server: ReturnType<typeof createTestServer>;

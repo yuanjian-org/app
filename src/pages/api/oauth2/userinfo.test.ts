@@ -2,9 +2,9 @@ import { expect } from "chai";
 import request from "supertest";
 import crypto from "crypto";
 import sinon from "sinon";
-import { createTestServer } from "./testUtils";
+import { createTestServer } from "../../../api/oauth2/testUtils";
 import userinfoHandler from "./userinfo";
-import { encryptPayload, hashUserIdForClient } from "./utils";
+import { encryptPayload, hashUserIdForClient } from "../../../api/oauth2/utils";
 import db from "../../../api/database/db";
 
 describe("OAuth2 userinfoHandler", () => {

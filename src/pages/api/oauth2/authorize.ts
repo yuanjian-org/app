@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
 import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { encryptPayload } from "./utils";
+import { encryptPayload } from "../../../api/oauth2/utils";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 

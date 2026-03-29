@@ -5,7 +5,7 @@ import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
-import { decryptPayload, hashUserIdForClient } from "./utils";
+import { decryptPayload, hashUserIdForClient } from "../../../api/oauth2/utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,

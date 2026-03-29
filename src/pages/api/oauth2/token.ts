@@ -3,7 +3,11 @@ import crypto from "crypto";
 import * as jose from "jose";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
-import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
+import {
+  hashUserIdForClient,
+  encryptPayload,
+  decryptPayload,
+} from "../../../api/oauth2/utils";
 import getBaseUrl from "../../../shared/getBaseUrl";
 
 // Simple in-memory cache to prevent authorization code reuse.

@@ -8,7 +8,8 @@ import { apiResolver } from "next/dist/server/api-utils/node/api-resolver";
  */
 export function createTestServer(handler: any) {
   return http.createServer((req, res) => {
-    // Manually parse query parameters since supertest does not do it automatically
+    // Manually parse query parameters since supertest does not do it
+    // automatically
     // and Next.js relies on them being populated.
     const query = url.parse(req.url!, true).query;
 
@@ -19,7 +20,8 @@ export function createTestServer(handler: any) {
       handler,
       {
         dev: true,
-      } as any, // Cast to any because the internal types of ApiContext change frequently across Next.js versions
+      } as any, // Cast to any because the internal types of ApiContext change
+      // frequently across Next.js versions
       true, // Disable resolving the request body again if already parsed
     );
   });

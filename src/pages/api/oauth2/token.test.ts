@@ -2,9 +2,9 @@ import { expect } from "chai";
 import request from "supertest";
 import crypto from "crypto";
 import * as jose from "jose";
-import { createTestServer } from "./testUtils";
+import { createTestServer } from "../../../api/oauth2/testUtils";
 import tokenHandler from "./token";
-import { encryptPayload } from "./utils";
+import { encryptPayload } from "../../../api/oauth2/utils";
 
 describe("OAuth2 tokenHandler", () => {
   let server: ReturnType<typeof createTestServer>;
