@@ -19,6 +19,16 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
+  // Rename Transcript primary key column from transcriptId to id
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Transcripts' AND column_name='transcriptId') THEN
+        ALTER TABLE "Transcripts" RENAME COLUMN "transcriptId" TO "id";
+      END IF;
+    END $$
+  `);
+
   // Next-auth accounts: OAuth access tokens (e.g. JWE) exceed varchar(255).
   await sequelize.query(`
     DO $$
