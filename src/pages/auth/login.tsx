@@ -93,7 +93,7 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   }, [ssoEnabled, callbackUrl, router]);
 
   if (ssoEnabled) {
-    return err ? null : <PageLoader loadingText="正在跳转到登录页面..." />;
+    return err ? null : <PageLoader loadingText="正在登录..." />;
   } else {
     return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }

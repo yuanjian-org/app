@@ -6,7 +6,7 @@ import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
 import { encryptPayload, logError } from "../../../api/oauth2/utils";
 import { loginCallbackUrlKey } from "shared/callbackUrl";
-import { setProfileCallbackUrlKey } from "shared/callbackUrl";
+import { profileCallbackUrlKey } from "shared/callbackUrl";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
@@ -115,11 +115,12 @@ export default async function authorizeHandler(
     return res.redirect(302, loginUrl.toString());
   }
 
-  // 3. If the user hasn't set their phone number, redirect them to the set-profile page.
+  // 3. If the user hasn't set their phone number, redirect them to the
+  // profile page.
   if (!session.me.phone) {
-    const setProfileUrl = new URL("/auth/set-profile", baseUrl);
+    const setProfileUrl = new URL("/oauth2/profile", baseUrl);
     setProfileUrl.searchParams.set(
-      setProfileCallbackUrlKey,
+      profileCallbackUrlKey,
       currentUrl.pathname + currentUrl.search,
     );
 

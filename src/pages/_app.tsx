@@ -11,7 +11,7 @@ import { trpcNext } from "../trpc";
 import { ToastContainer } from "react-toastify";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import PageLoader from "components/PageLoader";
 import AppPageContainer from "components/AppPageContainer";
 import AppPage, { AppPageType } from "AppPage";
@@ -100,7 +100,7 @@ function SwitchBoard({
   const router = useRouter();
 
   // Invariant guaranteed by the caller
-  invariant(!isStaticPage(router.route));
+  invariant(!isStaticPage(router.route), "non-static page");
   const isAuthPage = router.route.startsWith("/auth/");
 
   if (status == "loading") {
@@ -109,22 +109,21 @@ function SwitchBoard({
     if (isAuthPage) {
       return children;
     } else if (router.asPath === "/") {
-      // Redirect to static page if the user attempts to access the home page,
-      // ...
+      // Redirect to static page if the user attempts to access the home page.
       void router.push(staticUrlPrefix);
       return null;
     } else {
-      // ... and redirect to login if they attempt to access specific sub-pages.
+      // Redirect to login if they attempt to access specific sub-pages.
       void router.push(loginUrl(router.asPath));
       return null;
     }
   } else {
-    invariant(status == "authenticated");
-    if (router.route === "/auth/set-profile") {
-      return children;
-    } else if (isAuthPage) {
+    invariant(status == "authenticated", "session status");
+    if (isAuthPage) {
       void router.replace("/");
       return null;
+    } else if (router.route === "/oauth2/profile") {
+      return children;
     } else {
       return (
         <AppPageContainer pageType={pageType}>{children}</AppPageContainer>

@@ -1,2 +1,2 @@
 export const loginCallbackUrlKey = "callbackUrl";
-export const setProfileCallbackUrlKey = "spCallbackUrl";
+export const profileCallbackUrlKey = "profileCallbackUrl";

@@ -89,7 +89,7 @@ describe("OAuth2 authorizeHandler", () => {
     expect(res.header.location).to.include("callbackUrl=");
   });
 
-  it("should redirect to set-profile if user is logged in but hasn't set phone", async () => {
+  it("should redirect to /oauth2/profile if user is logged in but hasn't set phone", async () => {
     mockSession = { me: { id: "user-123", phone: null } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
@@ -97,8 +97,8 @@ describe("OAuth2 authorizeHandler", () => {
     const res = await request(server).get(currentUrl);
 
     expect(res.status).to.equal(302);
-    expect(res.header.location).to.include("/auth/set-profile");
-    expect(res.header.location).to.include("spCallbackUrl=");
+    expect(res.header.location).to.include("/oauth2/profile");
+    expect(res.header.location).to.include("profileCallbackUrl=");
   });
 
   it("should redirect back with code if user is logged in", async () => {
