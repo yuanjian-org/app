@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import _ from "lodash";
 
 export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
   const errors = [...state.id2state.values()].filter((v) => v !== null);
@@ -95,11 +94,10 @@ function LeavePagePrompt() {
  * @property virgin true if and only if any saves happened in the past.
  */
 export type AutosaveState = {
-  id2state: Map<string, null | any>;
+  id2state: ReadonlyMap<string, null | any>;
   virgin: boolean;
 };
 
-// TODO: make a read only map
 export const initialState: AutosaveState = {
   id2state: new Map<string, any>(),
   virgin: true,
@@ -118,10 +116,12 @@ function hasPendingSavers(s: AutosaveState): boolean {
  */
 export function addPendingSaver(s: AutosaveState, id: string): AutosaveState {
   if (hasPendingSaver(s, id)) return s;
-  const ret = _.cloneDeep(s);
-  ret.id2state.set(id, null);
-  ret.virgin = false;
-  return ret;
+  const newMap = new Map(s.id2state);
+  newMap.set(id, null);
+  return {
+    id2state: newMap,
+    virgin: false,
+  };
 }
 
 /**
@@ -132,9 +132,12 @@ export function removePendingSaver(
   id: string,
 ): AutosaveState {
   invariant(hasPendingSaver(s, id));
-  const ret = _.cloneDeep(s);
-  ret.id2state.delete(id);
-  return ret;
+  const newMap = new Map(s.id2state);
+  newMap.delete(id);
+  return {
+    id2state: newMap,
+    virgin: s.virgin,
+  };
 }
 
 /**
@@ -146,7 +149,10 @@ export function setPendingSaverError(
   error?: any,
 ): AutosaveState {
   invariant(hasPendingSaver(s, id));
-  const ret = _.cloneDeep(s);
-  ret.id2state.set(id, error ?? null);
-  return ret;
+  const newMap = new Map(s.id2state);
+  newMap.set(id, error ?? null);
+  return {
+    id2state: newMap,
+    virgin: s.virgin,
+  };
 }
