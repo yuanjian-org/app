@@ -12,6 +12,7 @@ import {
   email2SsoUserId,
 } from "./fakeEmail";
 import { checkAndComputeUserFields } from "api/routes/checkAndComputeUserFields";
+import { Transaction } from "sequelize";
 
 export const adapter = {
   ...SequelizeAdapter(sequelize, {
@@ -31,34 +32,52 @@ export const adapter = {
     phone?: string;
     name?: string;
   }) {
+    return await sequelize.transaction(async (transaction) => {
+      return await adapter.createUserImpl(user, transaction);
+    });
+  },
+
+  async createUserImpl(
+    user: {
+      email: string;
+      realEmail?: string;
+      phone?: string;
+      name?: string;
+    },
+    transaction: Transaction,
+  ) {
     if (user.email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(user.email);
       console.log("adapter.createUser(wechat):", wechatUnionId);
-      return await db.User.create({ wechatUnionId });
+      return await db.User.create({ wechatUnionId }, { transaction });
     } else if (user.email.endsWith(ssoFakeEmailDomain)) {
       const ssoUserId = email2SsoUserId(user.email);
       console.log("adapter.createUser(sso):", ssoUserId);
-      return await sequelize.transaction(async (transaction) => {
-        const fields = await checkAndComputeUserFields({
-          email: user.realEmail || undefined,
-          name: user.name || undefined,
-          isVolunteer: false,
-          oldUrl: null,
-          transaction,
-        });
-        return await db.User.create({
+      const fields = await checkAndComputeUserFields({
+        email: user.realEmail || undefined,
+        name: user.name || undefined,
+        isVolunteer: false,
+        oldUrl: null,
+        transaction,
+      });
+      return await db.User.create(
+        {
           ...fields,
           ssoUserId,
           phone: user.phone || null,
-          transaction,
-        });
-      });
+        },
+        { transaction },
+      );
     } else {
       throw new Error(`Invalid email domain for creation: ${user.email}`);
     }
   },
 
   async getUserByEmail(email: string) {
+    return await adapter.getUserByEmailImpl(email);
+  },
+
+  async getUserByEmailImpl(email: string, transaction?: Transaction) {
     if (email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(email);
       console.log(`adapter.getUserByEmail(wechat): ${wechatUnionId}`);
@@ -66,6 +85,7 @@ export const adapter = {
         where: { wechatUnionId },
         attributes: userAttributes,
         include: userInclude,
+        transaction,
       });
     } else if (email.endsWith(ssoFakeEmailDomain)) {
       const ssoUserId = email2SsoUserId(email);
@@ -74,6 +94,7 @@ export const adapter = {
         where: { ssoUserId },
         attributes: userAttributes,
         include: userInclude,
+        transaction,
       });
     }
     return null;
