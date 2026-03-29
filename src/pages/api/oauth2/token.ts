@@ -3,7 +3,12 @@ import crypto from "crypto";
 import * as jose from "jose";
 import { LRUCache } from "lru-cache";
 import { authCodeExpiryInSec } from "./authorize";
-import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
+import {
+  hashUserIdForClient,
+  encryptPayload,
+  decryptPayload,
+  logError,
+} from "./utils";
 import getBaseUrl from "../../../shared/getBaseUrl";
 
 // Simple in-memory cache to prevent authorization code reuse.
@@ -19,7 +24,7 @@ export default async function tokenHandler(
   res: NextApiResponse,
 ) {
   if (req.method !== "POST") {
-    console.error(`Method ${req.method} Not Allowed`);
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -54,7 +59,7 @@ export default async function tokenHandler(
 
   // Provider must be fully configured.
   if (!expectedClientId || !expectedClientSecret || !expectedRedirectUri) {
-    console.error("OAuth2 Provider not configured.");
+    logError("OAuth2 Provider not configured.");
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
 
@@ -71,7 +76,7 @@ export default async function tokenHandler(
     secretBuf.length === expectedSecretBuf.length &&
     crypto.timingSafeEqual(secretBuf, expectedSecretBuf);
   if (!validClientId || !validClientSecret) {
-    console.error(`Invalid client_id or client_secret: ${clientId}`);
+    logError(`Invalid client_id or client_secret: ${clientId}`);
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id or client_secret",
@@ -83,7 +88,7 @@ export default async function tokenHandler(
   // just as it did in the authorization request. This mitigates Open Redirect
   // and token theft.
   if (redirect_uri !== expectedRedirectUri) {
-    console.error(`Mismatching redirect_uri: ${redirect_uri}`);
+    logError(`Mismatching redirect_uri: ${redirect_uri}`);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Mismatching redirect_uri",
@@ -91,7 +96,7 @@ export default async function tokenHandler(
   }
 
   if (grant_type !== "authorization_code") {
-    console.error(`Unsupported grant_type: ${grant_type}`);
+    logError(`Unsupported grant_type: ${grant_type}`);
     return res.status(400).json({
       error: "unsupported_grant_type",
       error_description: "Only 'authorization_code' is supported",
@@ -99,14 +104,14 @@ export default async function tokenHandler(
   }
 
   if (!code) {
-    console.error("Missing authorization code");
+    logError("Missing authorization code");
     return res
       .status(400)
       .json({ error: "invalid_request", error_description: "Missing code" });
   }
 
   if (usedCodesCache.has(code)) {
-    console.error("Authorization code already used");
+    logError("Authorization code already used");
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Authorization code already used",
@@ -118,7 +123,7 @@ export default async function tokenHandler(
   try {
     payload = await decryptPayload(code);
   } catch (error) {
-    console.error("Error decrypting authorization code:", error);
+    logError("Error decrypting authorization code:", error);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Invalid or expired authorization code",
@@ -130,7 +135,7 @@ export default async function tokenHandler(
   // This ensures an attacker cannot use an 'access' token generated for the API
   // as an authorization code.
   if (payload.type !== "code") {
-    console.error(`Invalid token type: ${payload.type}`);
+    logError(`Invalid token type: ${payload.type}`);
     return res.status(400).json({
       error: "invalid_grant",
       error_description: "Invalid token type, expected authorization code",
@@ -138,7 +143,7 @@ export default async function tokenHandler(
   }
 
   if (payload.clientId !== clientId) {
-    console.error(
+    logError(
       `Code issued for a different client: ${payload.clientId} != ${clientId}`,
     );
     return res.status(400).json({
@@ -148,7 +153,7 @@ export default async function tokenHandler(
   }
 
   if (payload.redirectUri !== redirect_uri) {
-    console.error(
+    logError(
       `Mismatching redirectUri in payload: ${payload.redirectUri} != ${redirect_uri}`,
     );
     return res.status(400).json({
@@ -160,7 +165,7 @@ export default async function tokenHandler(
   // PKCE verification if present
   if (payload.codeChallenge) {
     if (!code_verifier) {
-      console.error("Missing code_verifier for PKCE");
+      logError("Missing code_verifier for PKCE");
       return res.status(400).json({
         error: "invalid_request",
         error_description: "Missing code_verifier for PKCE",
@@ -171,7 +176,7 @@ export default async function tokenHandler(
       .update(code_verifier)
       .digest("base64url");
     if (hash !== payload.codeChallenge) {
-      console.error(
+      logError(
         `Invalid code_verifier: hash ${hash} != ${payload.codeChallenge}`,
       );
       return res.status(400).json({

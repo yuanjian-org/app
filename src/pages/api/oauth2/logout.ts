@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
+import { logError } from "./utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
-    console.error(`Method ${req.method} Not Allowed`);
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -28,12 +29,12 @@ export default function logoutHandler(
       if (allowedOrigin === requestedOrigin) {
         callbackUrl = post_logout_redirect_uri;
       } else {
-        console.error(
+        logError(
           `Requested post_logout_redirect_uri origin ${requestedOrigin} does not match allowed origin ${allowedOrigin}`,
         );
       }
     } catch (error) {
-      console.error(
+      logError(
         `Error parsing post_logout_redirect_uri or expectedRedirectUri:`,
         error,
       );

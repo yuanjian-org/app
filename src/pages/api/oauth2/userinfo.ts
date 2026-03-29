@@ -5,14 +5,14 @@ import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
-import { decryptPayload, hashUserIdForClient } from "./utils";
+import { decryptPayload, hashUserIdForClient, logError } from "./utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
-    console.error(`Method ${req.method} Not Allowed`);
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -21,7 +21,7 @@ export default async function userinfoHandler(
   const authHeader = req.headers.authorization;
   const bearerPrefix = "Bearer ";
   if (!authHeader || !authHeader.startsWith(bearerPrefix)) {
-    console.error(
+    logError(
       `Missing or invalid Authorization header: ${authHeader ? "present" : "missing"}`,
     );
     return res.status(401).json({
@@ -36,7 +36,7 @@ export default async function userinfoHandler(
   try {
     payload = await decryptPayload(accessToken);
   } catch (error) {
-    console.error("Error decrypting access token:", error);
+    logError("Error decrypting access token:", error);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid or expired token",
@@ -48,7 +48,7 @@ export default async function userinfoHandler(
   // This ensures an attacker cannot use an authorization 'code' (stolen via
   // open redirect) as an access token.
   if (payload.type !== "access") {
-    console.error(`Invalid token type: ${payload.type}`);
+    logError(`Invalid token type: ${payload.type}`);
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid token type, expected access token",
@@ -57,7 +57,7 @@ export default async function userinfoHandler(
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   if (payload.clientId !== expectedClientId) {
-    console.error(
+    logError(
       `Invalid client_id in payload: ${payload.clientId} != ${expectedClientId}`,
     );
     return res
@@ -72,7 +72,7 @@ export default async function userinfoHandler(
   });
 
   if (!user) {
-    console.error(`User not found for userId: ${payload.userId}`);
+    logError(`User not found for userId: ${payload.userId}`);
     return res.status(404).json({ error: "user_not_found" });
   }
 

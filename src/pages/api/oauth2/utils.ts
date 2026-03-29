@@ -6,6 +6,13 @@ import * as jose from "jose";
  * This provides a unique ID per client for the same user,
  * and prevents clients from guessing user IDs in other clients.
  */
+/**
+ * Utility for logging OAuth2 IdP errors.
+ */
+export function logError(message: string, ...optionalParams: any[]) {
+  console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
+}
+
 export function hashUserIdForClient(clientId: string, userId: string): string {
   // Use a null-byte separator to prevent length-extension collisions:
   // e.g. ("ab", "cd") vs ("a", "bcd") would otherwise hash identically.
