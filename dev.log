@@ -30,3 +30,5 @@ https://next-auth.js.org/warnings#no_secret
  GET /api/auth/csrf 200 in 2098ms
  GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 2775ms
  GET /api/auth/csrf 200 in 6ms
+[26-03-29 16:51:45.968]  ✓ Compiled in 34.1s (3655 modules)
+[26-03-29 16:52:29.017]  ✓ Compiled in 43s (3655 modules)

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import useMe from "useMe";
 import PageLoader from "components/PageLoader";
 import { parseQueryString } from "shared/strings";
 import { setProfileCallbackUrlKey } from "shared/callbackUrl";
@@ -8,8 +8,7 @@ import { SetPhoneModal } from "components/PostLoginModels";
 import { signOut } from "components/signOut";
 
 export default function SetProfile() {
-  const { data: session } = useSession();
-  const me = session?.me;
+  const me = useMe();
   const router = useRouter();
 
   // Get the callback URL, defaulting to the root if not provided.
@@ -23,14 +22,9 @@ export default function SetProfile() {
     }
   }, [me?.phone, callbackUrl, router]);
 
-  if (!me) {
-    return <PageLoader />;
-  }
-
-  // If phone is not set, show the modal.
-  if (!me.phone) {
+  if (!me?.phone) {
     return <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />;
+  } else {
+    return <PageLoader loadingText="完成登录..." />;
   }
-
-  return <PageLoader loadingText="完成登录..." />;
 }
