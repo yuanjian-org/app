@@ -35,6 +35,7 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
           previewModeEncryptionKey: "",
           previewModeId: "",
           previewModeSigningKey: "",
+          dev: false,
         },
         true,
       );

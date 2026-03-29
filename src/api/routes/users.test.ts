@@ -250,6 +250,9 @@ describe("updateImpl", () => {
     wechat: user.wechat || "",
     url: user.url || "",
     wechatUnionId: null,
+    menteeStatus: "现届学子" as any,
+    pointOfContact: null,
+    pointOfContactNote: null,
   });
 
   it("should throw notFoundError when user doesn't exist", async () => {
@@ -323,7 +326,7 @@ describe("updateImpl", () => {
   });
 
   it("should successfully update roles (UserManager)", async () => {
-    const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] };
+    const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] as any };
     await updateImpl(meManager, input, transaction);
 
     const updated = await db.User.findByPk(targetUser.id, { transaction });

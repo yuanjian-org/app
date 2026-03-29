@@ -56,7 +56,7 @@ describe("notify()", () => {
       // our promise
       const transactionStub = sinon
         .stub(sequelize, "transaction")
-        .callsFake(async (callback: any) => {
+        .callsFake((async (callback: any) => {
           try {
             await callback({} as Transaction); // pass dummy transaction
           } catch (e) {
@@ -64,7 +64,7 @@ describe("notify()", () => {
           } finally {
             resolveCallbackComplete();
           }
-        });
+        }) as any);
 
       // Stub db.User.findAll to throw an error inside notifyRoles
       const findAllStub = sinon

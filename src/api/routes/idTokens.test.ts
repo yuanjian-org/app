@@ -24,7 +24,7 @@ describe("sendImpl", () => {
     transaction = await sequelize.transaction();
     smsStub = sinon.stub(smsModule, "sms").resolves();
     emailStub = sinon.stub(emailModule, "email").resolves();
-    sinon.stub(tokenModule, "generateToken").resolves(123456);
+    sinon.stub(tokenModule, "generateToken").resolves("123456");
   });
 
   afterEach(async () => {
