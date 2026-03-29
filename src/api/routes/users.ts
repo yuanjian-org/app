@@ -771,6 +771,22 @@ export async function setUserStateImpl(
   );
 }
 
+export async function setPointOfContactAndNoteImpl(
+  userId: string,
+  pocId: string | null | undefined,
+  pocNote: string | null | undefined,
+  transaction?: any,
+) {
+  const [cnt] = await db.User.update(
+    {
+      ...(pocId !== undefined ? { pointOfContactId: pocId } : {}),
+      ...(pocNote !== undefined ? { pointOfContactNote: pocNote } : {}),
+    },
+    { where: { id: userId }, transaction },
+  );
+  return cnt;
+}
+
 const setPointOfContactAndNote = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .input(
@@ -784,14 +800,7 @@ const setPointOfContactAndNote = procedure
     if (pocId === undefined && pocNote === undefined) {
       throw generalBadRequestError("One of pocId and pocNote must be set");
     }
-
-    const [cnt] = await db.User.update(
-      {
-        ...(pocId !== undefined ? { pointOfContactId: pocId } : {}),
-        ...(pocNote !== undefined ? { pointOfContactNote: pocNote } : {}),
-      },
-      { where: { id: userId } },
-    );
+    const cnt = await setPointOfContactAndNoteImpl(userId, pocId, pocNote);
     if (cnt == 0) throw notFoundError("用户", userId);
     invalidateUserCache(userId);
   });
