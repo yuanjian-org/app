@@ -120,7 +120,9 @@ function SwitchBoard({
     }
   } else {
     invariant(status == "authenticated");
-    if (isAuthPage) {
+    if (router.route === "/auth/set-profile") {
+      return children;
+    } else if (isAuthPage) {
       void router.replace("/");
       return null;
     } else {

@@ -4,6 +4,8 @@ import useMe from "useMe";
 import PageLoader from "components/PageLoader";
 import { parseQueryString } from "shared/strings";
 import { setProfileCallbackUrlKey } from "shared/callbackUrl";
+import { SetPhoneModal } from "components/PostLoginModels";
+import { signOut } from "components/signOut";
 
 export default function SetProfile() {
   const me = useMe();
@@ -15,12 +17,14 @@ export default function SetProfile() {
   useEffect(() => {
     // Check if the user's phone is set.
     // If it is, redirect to the callback URL.
-    if (me.phone) {
+    if (me?.phone) {
       void router.replace(callbackUrl);
     }
-  }, [me.phone, callbackUrl, router]);
+  }, [me?.phone, callbackUrl, router]);
 
-  // If phone is not set, <PostLoginModels /> will be rendered globally
-  // by <AppPageContainer /> and will show the <SetPhoneModal /> automatically.
-  return <PageLoader loadingText="完成登录..." />;
+  if (!me?.phone) {
+    return <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />;
+  } else {
+    return <PageLoader loadingText="完成登录..." />;
+  }
 }
