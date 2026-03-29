@@ -44,7 +44,7 @@ export const adapter = {
       phone?: string;
       name?: string;
     },
-    transaction: any
+    transaction: any,
   ) {
     if (user.email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(user.email);
@@ -66,7 +66,7 @@ export const adapter = {
           ssoUserId,
           phone: user.phone || null,
         },
-        { transaction }
+        { transaction },
       );
     } else {
       throw new Error(`Invalid email domain for creation: ${user.email}`);
