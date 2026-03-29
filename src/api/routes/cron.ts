@@ -31,7 +31,9 @@ export default router({
       }),
   ),
   recycleMeetings: procedure.use(authIntegration()).mutation(recycleMeetings),
-  purgeOldData: procedure.use(authIntegration()).mutation(purgeOldData),
+  purgeOldData: procedure.use(authIntegration()).mutation(async () => {
+    await purgeOldData();
+  }),
   resetDemoData: procedure.use(authIntegration()).mutation(async () => {
     if (!isDemo()) throw noPermissionError("数据");
 
