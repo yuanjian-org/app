@@ -14,6 +14,10 @@ export default function SetProfile() {
   useEffect(() => {
     // Check if the user's phone is set.
     // If it is, redirect to the callback URL.
+    // /oauth2/authorize explicitly redirects here regardless of whether
+    // the phone is set, so that the user receives <SetPhoneModal />
+    // on this clean page, rather than on the regular dashboard
+    // which might contain content the user shouldn't interact with.
     if (me.phone) {
       void router.replace(callbackUrl);
     }

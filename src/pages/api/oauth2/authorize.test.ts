@@ -89,7 +89,19 @@ describe("OAuth2 authorizeHandler", () => {
     expect(res.header.location).to.include("callbackUrl=");
   });
 
-  it("should redirect to set-profile if user is logged in but hasn't set phone", async () => {
+  it("should enforce phone number requirement with 403 if skip_profile=1 is present but phone is not set", async () => {
+    mockSession = { me: { id: "user-123", phone: null } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const res = await request(server).get(
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&skip_profile=1`,
+    );
+
+    expect(res.status).to.equal(403);
+    expect(res.body.error).to.equal("access_denied");
+  });
+
+  it("should explicitly redirect to set-profile if user is logged in (regardless of phone setting)", async () => {
     mockSession = { me: { id: "user-123", phone: null } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
@@ -99,38 +111,36 @@ describe("OAuth2 authorizeHandler", () => {
     expect(res.status).to.equal(302);
     expect(res.header.location).to.include("/auth/set-profile");
     expect(res.header.location).to.include("callbackUrl=");
+    expect(res.header.location).to.include("skip_profile%3D1"); // encoded
   });
 
-  it("should redirect back with code if user is logged in", async () => {
+  it("should redirect back with code if user is logged in and skip_profile=1 is present", async () => {
     mockSession = { me: { id: "user-123", phone: "1234567890" } };
-    // getBaseUrl expects NEXT_PUBLIC_BASE_URL to be set, or it falls back to something else. Let's explicitly set it.
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&state=state123`,
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&state=state123&skip_profile=1`,
     );
 
     expect(res.status).to.equal(302);
 
-    // Check if it's redirecting to login first so we get a better error message if it's failing to pick up the mock session
     if (res.header.location?.includes("/auth/login")) {
       expect.fail(
         `Redirected to login instead of callback. Session mock failed. Location: ${res.header.location}`,
       );
     }
 
-    // Because encryptPayload creates a long base64 string (JWE), we should use a looser regex.
     expect(res.header.location).to.match(
       /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9\-_\.]+&state=state123$/,
     );
   });
 
-  it("should accept POST method and redirect back with code", async () => {
+  it("should accept POST method and redirect back with code if skip_profile=1 is present", async () => {
     mockSession = { me: { id: "user-456", phone: "1234567890" } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const res = await request(server).post(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback`,
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&skip_profile=1`,
     );
 
     expect(res.status).to.equal(302);
@@ -144,14 +154,14 @@ describe("OAuth2 authorizeHandler", () => {
     );
   });
 
-  it("should redirect back with code when PKCE S256 challenge is provided", async () => {
+  it("should redirect back with code when PKCE S256 challenge is provided and skip_profile=1 is present", async () => {
     mockSession = { me: { id: "user-123", phone: "1234567890" } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
 
     const res = await request(server).get(
-      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=${codeChallenge}&code_challenge_method=S256`,
+      `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&code_challenge=${codeChallenge}&code_challenge_method=S256&skip_profile=1`,
     );
 
     expect(res.status).to.equal(302);

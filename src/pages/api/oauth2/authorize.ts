@@ -36,6 +36,7 @@ export default async function authorizeHandler(
     nonce,
     code_challenge,
     code_challenge_method,
+    skip_profile,
   } = req.query as {
     response_type?: string;
     client_id?: string;
@@ -45,6 +46,7 @@ export default async function authorizeHandler(
     nonce?: string;
     code_challenge?: string;
     code_challenge_method?: string;
+    skip_profile?: string;
   };
 
   // 1. Validate the client ID and redirect URI against the env variables.
@@ -113,18 +115,42 @@ export default async function authorizeHandler(
     return res.redirect(302, loginUrl.toString());
   }
 
-  // 3. If the user hasn't set their phone number, redirect them to the set-profile page.
-  if (!session.me.phone) {
+  // 3. Always redirect them to the set-profile page so the IdP's frontend page
+  // shows `SetProfile` which handles the missing phone scenario using
+  // `<SetPhoneModal />`, rather than showing the regular dashboard.
+  // SetProfile will redirect back here if the phone number is already set.
+  // We use `skip_profile=1` to prevent an infinite redirect loop when the user
+  // is redirected back from `/auth/set-profile`.
+  if (skip_profile !== "1") {
     const setProfileUrl = new URL("/auth/set-profile", baseUrl);
+
+    // Add skip_profile=1 to the callbackUrl so we don't redirect again
+    const callbackUrl = new URL(
+      currentUrl.pathname + currentUrl.search,
+      baseUrl,
+    );
+    callbackUrl.searchParams.set("skip_profile", "1");
+
     setProfileUrl.searchParams.set(
       "callbackUrl",
-      currentUrl.pathname + currentUrl.search,
+      callbackUrl.pathname + callbackUrl.search,
     );
 
     return res.redirect(302, setProfileUrl.toString());
   }
 
-  // 4. The user is logged in and authorized. Generate an authorization code.
+  // 4. Enforce phone number requirement server-side.
+  // This prevents malicious clients from bypassing the setup screen by
+  // manually appending skip_profile=1 to the authorization request.
+  if (!session.me.phone) {
+    logError("User attempted to bypass profile setup without a phone number.");
+    return res.status(403).json({
+      error: "access_denied",
+      error_description: "Phone number setup is required.",
+    });
+  }
+
+  // 5. The user is logged in and authorized. Generate an authorization code.
   // We will encrypt the user ID and code_challenge into a JWE string, so we
   // don't need database state
   // and the client cannot read the plain userId.
@@ -137,7 +163,7 @@ export default async function authorizeHandler(
     // which would otherwise generate the exact same JWT signature and falsely
     // fail single-use enforcement.
     jti: crypto.randomUUID(),
-    userId: session.me.id,
+    userId: session!.me!.id,
     clientId: client_id,
     redirectUri: redirect_uri,
     codeChallenge: code_challenge,
@@ -150,11 +176,11 @@ export default async function authorizeHandler(
   // Create an encrypted JWE string
   const code = await encryptPayload(codePayload);
 
-  // 5. Redirect back to the client's redirect_uri with the code and state.
-  const redirectUrl = new URL(redirect_uri);
+  // 6. Redirect back to the client's redirect_uri with the code and state.
+  const redirectUrl = new URL(redirect_uri!);
   redirectUrl.searchParams.set("code", code);
   if (state) {
-    redirectUrl.searchParams.set("state", state);
+    redirectUrl.searchParams.set("state", state!);
   }
 
   return res.redirect(302, redirectUrl.toString());
