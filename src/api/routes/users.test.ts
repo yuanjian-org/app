@@ -432,6 +432,7 @@ describe("setUserStateImpl", () => {
   });
 });
 
+
 describe("setPointOfContactAndNoteImpl", () => {
   let transaction: Transaction;
   let targetUser: any;
@@ -524,5 +525,33 @@ describe("setPointOfContactAndNoteImpl", () => {
     const updated = await db.User.findByPk(targetUser.id, { transaction });
     void expect(updated?.pointOfContactId).to.be.null;
     void expect(updated?.pointOfContactNote).to.be.null;
+  });
+
+  it("should throw generalBadRequestError if both are undefined", async () => {
+    try {
+      await usersModule.setPointOfContactAndNoteImpl(
+        targetUser.id,
+        undefined,
+        undefined,
+        transaction,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("One of pocId and pocNote must be set");
+    }
+  });
+
+  it("should throw notFoundError if user does not exist", async () => {
+    try {
+      await usersModule.setPointOfContactAndNoteImpl(
+        "00000000-0000-0000-0000-000000000000",
+        pocUser.id,
+        undefined,
+        transaction,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("用户");
+    }
   });
 });

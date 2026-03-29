@@ -777,6 +777,9 @@ export async function setPointOfContactAndNoteImpl(
   pocNote: string | null | undefined,
   transaction?: any,
 ) {
+  if (pocId === undefined && pocNote === undefined) {
+    throw generalBadRequestError("One of pocId and pocNote must be set");
+  }
   const [cnt] = await db.User.update(
     {
       ...(pocId !== undefined ? { pointOfContactId: pocId } : {}),
@@ -784,6 +787,8 @@ export async function setPointOfContactAndNoteImpl(
     },
     { where: { id: userId }, transaction },
   );
+  if (cnt == 0) throw notFoundError("用户", userId);
+  invalidateUserCache(userId);
   return cnt;
 }
 
@@ -797,13 +802,10 @@ const setPointOfContactAndNote = procedure
     }),
   )
   .mutation(async ({ input: { userId, pocId, pocNote } }) => {
-    if (pocId === undefined && pocNote === undefined) {
-      throw generalBadRequestError("One of pocId and pocNote must be set");
-    }
-    const cnt = await setPointOfContactAndNoteImpl(userId, pocId, pocNote);
-    if (cnt == 0) throw notFoundError("用户", userId);
-    invalidateUserCache(userId);
+    await setPointOfContactAndNoteImpl(userId, pocId, pocNote);
   });
+
+/**
 
 /**
  * Only MentorshipManager, MentorshipOperator, mentor of the applicant,
