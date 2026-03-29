@@ -107,24 +107,40 @@ function SwitchBoard({
     return <PageLoader />;
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
+      console.log("Unauthenticated user on auth page, rendering children");
       return children;
     } else if (router.asPath === "/") {
       // Redirect to static page if the user attempts to access the home page.
+      console.log(
+        "Unauthenticated user on /, redirecting to static page:",
+        staticUrlPrefix,
+      );
       void router.push(staticUrlPrefix);
       return null;
     } else {
       // Redirect to login if they attempt to access specific sub-pages.
+      console.log(
+        "Unauthenticated user on sub-page, redirecting to login:",
+        loginUrl(router.asPath),
+      );
       void router.push(loginUrl(router.asPath));
       return null;
     }
   } else {
     invariant(status == "authenticated", "session status");
     if (isAuthPage) {
+      console.log("Authenticated user on auth page, redirecting to /");
       void router.replace("/");
       return null;
     } else if (router.route === "/oauth2/profile") {
+      console.log("Authenticated user on /oauth2/profile, rendering children");
       return children;
     } else {
+      console.log(
+        "Authenticated user on normal page, rendering AppPageContainer",
+        router.route,
+        pageType,
+      );
       return (
         <AppPageContainer pageType={pageType}>{children}</AppPageContainer>
       );
