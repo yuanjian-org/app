@@ -84,24 +84,24 @@ describe("adapter", () => {
 
     it("should return user by wechat fake email", async () => {
       const wechatUnionId = "testWechat123";
-      await db.User.create({ id: uuidv4(), wechatUnionId }, { transaction });
+      const id = uuidv4();
+      await db.User.create({ id, wechatUnionId }, { transaction });
 
       const email = "test+wechat123@wechat.fe";
       const user = await adapter.getUserByEmailImpl(email, transaction);
       expect(user).to.not.equal(null);
-      expect(user?.id).to.not.equal(null);
-      expect((user as any).wechatUnionId).to.equal(wechatUnionId);
+      expect(user?.id).to.equal(id);
     });
 
     it("should return user by sso fake email", async () => {
       const ssoUserId = "testSso123";
-      await db.User.create({ id: uuidv4(), ssoUserId }, { transaction });
+      const id = uuidv4();
+      await db.User.create({ id, ssoUserId }, { transaction });
 
       const email = "test+sso123@sso.fe";
       const user = await adapter.getUserByEmailImpl(email, transaction);
       expect(user).to.not.equal(null);
-      expect(user?.id).to.not.equal(null);
-      expect((user as any).ssoUserId).to.equal(ssoUserId);
+      expect(user?.id).to.equal(id);
     });
 
     it("should return null if user doesn't exist", async () => {
