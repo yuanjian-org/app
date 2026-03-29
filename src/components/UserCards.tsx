@@ -491,15 +491,7 @@ function FullWidthImageSquare({
   profile: UserProfile | null;
 } & BoxProps) {
   return (
-    <Box
-      position="relative"
-      width="100%"
-      // This hack enforces a square aspect ratio for the container. The
-      // percentage is based on the width, so paddingBottom="100%" ensures the
-      // height equals the width.
-      paddingBottom="100%"
-      {...rest}
-    >
+    <Box position="relative" width="100%" aspectRatio={1} {...rest}>
       <Image
         position="absolute"
         top="0"
