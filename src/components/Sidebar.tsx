@@ -2,7 +2,8 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import React from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOut } from "./signOut";
 import { FiChevronRight } from "react-icons/fi";
 import { IoIosCog, IoMdBookmark, IoMdCalendar } from "react-icons/io";
 import { IoStar } from "react-icons/io5";
