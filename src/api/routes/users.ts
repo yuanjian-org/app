@@ -776,8 +776,8 @@ const setPointOfContactAndNote = procedure
   .input(
     z.object({
       userId: z.string(),
-      pocId: z.string().nullable().optional(),
-      pocNote: z.string().nullable().optional(),
+      pocId: z.string().nullish(),
+      pocNote: z.string().nullish(),
     }),
   )
   .mutation(async ({ input: { userId, pocId, pocNote } }) => {
