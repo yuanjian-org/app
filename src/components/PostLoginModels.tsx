@@ -31,7 +31,7 @@ import invariant from "shared/invariant";
 // prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
-  const { data: state, refetch } = trpcNext.users.getMyState.useQuery();
+  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
 
   return state === undefined ? (
     <></>

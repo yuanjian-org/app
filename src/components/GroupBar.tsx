@@ -191,7 +191,7 @@ function JoinButton({
   join: () => void;
   isLoading?: boolean;
 }) {
-  const { data: state, refetch } = trpcNext.users.getMyState.useQuery();
+  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const consented = !!state?.meetingConsentedAt;
   const [showConsentModal, setShowConsentModal] = useState(false);
 

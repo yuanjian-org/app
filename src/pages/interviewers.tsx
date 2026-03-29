@@ -107,7 +107,7 @@ function Row({
   avoid: boolean;
   refetch: () => void;
 }) {
-  const { data: state } = trpcNext.users.getMyState.useQuery({
+  const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
 

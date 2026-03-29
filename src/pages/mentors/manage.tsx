@@ -206,7 +206,7 @@ function MentorRow({
   profile: UserProfile;
   showMatchState: boolean;
 }) {
-  const { data: state } = trpcNext.users.getMyState.useQuery({
+  const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
 

@@ -688,7 +688,7 @@ const setUserProfile = procedure
     if (cnt == 0) throw notFoundError("用户", userId);
   });
 
-const getMyState = procedure
+const getUserState = procedure
   .use(authUser())
   .input(
     z
@@ -998,7 +998,7 @@ export default router({
   getUserProfile,
   setUserProfile,
 
-  getMyState,
+  getUserState,
   setMyState,
 
   setUserPreference,

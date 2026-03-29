@@ -12,7 +12,7 @@ const title = "《学生通讯原则》自学与评测";
 
 export default function Page() {
   const me = useMe();
-  const { data: state } = trpcNext.users.getMyState.useQuery();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
 
   return (
     <>

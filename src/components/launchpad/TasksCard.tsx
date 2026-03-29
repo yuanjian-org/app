@@ -237,9 +237,9 @@ function TaskItem({
 }) {
   const myId = useMyId();
 
-  const { data: myState } = trpcNext.users.getMyState.useQuery();
+  const { data: myState } = trpcNext.users.getUserState.useQuery();
   const lastTasksReadAt = myState ? getLastTasksReadAt(myState) : moment();
-  const { data: assigneeState } = trpcNext.users.getMyState.useQuery({
+  const { data: assigneeState } = trpcNext.users.getUserState.useQuery({
     userId: t.assignee.id,
     returnEmptyStateIfNoPermission: true,
   });
@@ -334,7 +334,7 @@ export function UnreadTasksRedDot() {
  * logic of this function.
  */
 export function useUnreadTasks() {
-  const { data: state } = trpcNext.users.getMyState.useQuery();
+  const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data: lastCreated } = trpcNext.tasks.getLastTasksUpdatedAt.useQuery();
 
   // Assume no unread tasks while the values are being fetched.
@@ -350,5 +350,5 @@ async function markTasksAsRead(
   lastTasksReadAt: DateColumn,
 ) {
   await trpc.users.setMyState.mutate({ lastTasksReadAt });
-  await utils.users.getMyState.invalidate();
+  await utils.users.getUserState.invalidate();
 }
