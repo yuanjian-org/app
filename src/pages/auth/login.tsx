@@ -21,7 +21,7 @@ import {
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import { GetServerSideProps } from "next";
 import {
   isValidEmail,
@@ -60,8 +60,12 @@ function callbackUrlParam(url: string | undefined) {
   return url ? `${loginCallbackUrlKey}=${encodeURIComponent(url)}` : "";
 }
 
-export function useCallbackUrl() {
+function useCallbackUrl() {
   const router = useRouter();
+  return getLoginCallbackUrl(router);
+}
+
+export function getLoginCallbackUrl(router: NextRouter) {
   return parseQueryString(router, loginCallbackUrlKey) ?? "/";
 }
 
