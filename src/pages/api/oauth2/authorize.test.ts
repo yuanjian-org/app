@@ -89,8 +89,20 @@ describe("OAuth2 authorizeHandler", () => {
     expect(res.header.location).to.include("callbackUrl=");
   });
 
+  it("should redirect to set-profile if user is logged in but hasn't set phone", async () => {
+    mockSession = { me: { id: "user-123", phone: null } };
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+
+    const currentUrl = `/?client_id=test-client&response_type=code&redirect_uri=https://app.example.com/callback&state=state123`;
+    const res = await request(server).get(currentUrl);
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.include("/auth/set-profile");
+    expect(res.header.location).to.include("callbackUrl=");
+  });
+
   it("should redirect back with code if user is logged in", async () => {
-    mockSession = { me: { id: "user-123" } };
+    mockSession = { me: { id: "user-123", phone: "1234567890" } };
     // getBaseUrl expects NEXT_PUBLIC_BASE_URL to be set, or it falls back to something else. Let's explicitly set it.
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
@@ -114,7 +126,7 @@ describe("OAuth2 authorizeHandler", () => {
   });
 
   it("should accept POST method and redirect back with code", async () => {
-    mockSession = { me: { id: "user-456" } };
+    mockSession = { me: { id: "user-456", phone: "1234567890" } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const res = await request(server).post(
@@ -133,7 +145,7 @@ describe("OAuth2 authorizeHandler", () => {
   });
 
   it("should redirect back with code when PKCE S256 challenge is provided", async () => {
-    mockSession = { me: { id: "user-123" } };
+    mockSession = { me: { id: "user-123", phone: "1234567890" } };
     process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
 
     const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
