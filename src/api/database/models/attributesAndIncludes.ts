@@ -61,7 +61,7 @@ export const groupInclude = [
  * Transcript
  */
 
-export const transcriptAttributes = ["transcriptId", "startedAt", "endedAt"];
+export const transcriptAttributes = ["id", "startedAt", "endedAt"];
 
 /**
  * Summary

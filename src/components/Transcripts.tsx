@@ -110,7 +110,7 @@ function LoadedTranscripts({
   const getTranscriptAndIndex = () => {
     const id = parseQueryString(router, "transcriptId");
     for (let i = 0; i < transcripts.length; i++) {
-      if (transcripts[i].transcriptId == id) {
+      if (transcripts[i].id == id) {
         return { transcript: transcripts[i], transcriptIndex: i };
       }
     }
@@ -118,14 +118,12 @@ function LoadedTranscripts({
   };
   const { transcript, transcriptIndex } = getTranscriptAndIndex();
 
-  const { data: summaries } = trpcNext.summaries.list.useQuery(
-    transcript.transcriptId,
-  );
+  const { data: summaries } = trpcNext.summaries.list.useQuery(transcript.id);
 
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary
-    invariant(summaries.length, `No summaries for ${transcript.transcriptId}`);
+    invariant(summaries.length, `No summaries for ${transcript.id}`);
     const key = parseQueryString(router, "summaryKey");
     const match = summaries.filter((s) => s.key == key);
     summary = match.length ? match[0] : summaries[0];
@@ -143,7 +141,7 @@ function LoadedTranscripts({
             replaceUrlParam(
               router,
               "transcriptId",
-              transcripts[transcriptIndex + 1].transcriptId,
+              transcripts[transcriptIndex + 1].id,
             )
           }
         >
@@ -158,14 +156,14 @@ function LoadedTranscripts({
         > */}
 
         <Select
-          value={transcript.transcriptId}
+          value={transcript.id}
           maxWidth="300px"
           onChange={(ev) =>
             replaceUrlParam(router, "transcriptId", ev.target.value)
           }
         >
           {transcripts.map((t, idx) => (
-            <option key={t.transcriptId} value={t.transcriptId}>
+            <option key={t.id} value={t.id}>
               {prettifyDate(t.startedAt)}，
               {prettifyDuration(t.startedAt, t.endedAt)}
               {!idx ? "（最近通话）" : ""}
@@ -196,7 +194,7 @@ function LoadedTranscripts({
             replaceUrlParam(
               router,
               "transcriptId",
-              transcripts[transcriptIndex - 1].transcriptId,
+              transcripts[transcriptIndex - 1].id,
             )
           }
         >

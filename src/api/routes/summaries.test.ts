@@ -50,10 +50,10 @@ describe("summaries", () => {
   }
 
   async function createTestTranscript(groupId: string) {
-    const transcriptId = `test-transcript-${Date.now()}-${Math.random()}`;
+    const id = `test-transcript-${Date.now()}-${Math.random()}`;
     return await db.Transcript.create(
       {
-        transcriptId,
+        id,
         groupId: groupId,
         startedAt: new Date(),
         endedAt: new Date(),
@@ -85,12 +85,12 @@ describe("summaries", () => {
       );
       const transcript = await createTestTranscript(group.id);
       const summaryMarkdown = "This is a test summary";
-      await createTestSummary(transcript.transcriptId, summaryMarkdown);
+      await createTestSummary(transcript.id, summaryMarkdown);
 
-      const result = await listImpl(me, transcript.transcriptId, transaction);
+      const result = await listImpl(me, transcript.id, transaction);
 
       expect(result).to.have.lengthOf(1);
-      expect(result[0].transcriptId).to.equal(transcript.transcriptId);
+      expect(result[0].transcriptId).to.equal(transcript.id);
       expect(result[0].key).to.equal(AI_MINUTES_SUMMARY_KEY);
       expect(result[0].markdown).to.equal(summaryMarkdown);
     });
@@ -102,7 +102,7 @@ describe("summaries", () => {
       const transcript = await createTestTranscript(group.id);
 
       try {
-        await listImpl(me, transcript.transcriptId, transaction);
+        await listImpl(me, transcript.id, transaction);
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         expect(error.message).to.contain("没有权限访问分组");
@@ -117,14 +117,14 @@ describe("summaries", () => {
       const group = await createTestGroup(false);
       const transcript = await createTestTranscript(group.id);
       const originalMarkdown = "Original summary text";
-      await createTestSummary(transcript.transcriptId, originalMarkdown);
+      await createTestSummary(transcript.id, originalMarkdown);
 
       const newMarkdown = "Updated summary text";
 
       try {
         await updateImpl(
           me,
-          transcript.transcriptId,
+          transcript.id,
           AI_MINUTES_SUMMARY_KEY,
           newMarkdown,
           transaction,
@@ -140,13 +140,13 @@ describe("summaries", () => {
       const group = await createTestGroup(false);
       const transcript = await createTestTranscript(group.id);
       const originalMarkdown = "Original summary text";
-      await createTestSummary(transcript.transcriptId, originalMarkdown);
+      await createTestSummary(transcript.id, originalMarkdown);
 
       const newMarkdown = "Original summary text.";
 
       await updateImpl(
         me,
-        transcript.transcriptId,
+        transcript.id,
         AI_MINUTES_SUMMARY_KEY,
         newMarkdown,
         transaction,
@@ -154,7 +154,7 @@ describe("summaries", () => {
 
       const updatedSummary = await db.Summary.findOne({
         where: {
-          transcriptId: transcript.transcriptId,
+          transcriptId: transcript.id,
           key: AI_MINUTES_SUMMARY_KEY,
         },
         transaction,

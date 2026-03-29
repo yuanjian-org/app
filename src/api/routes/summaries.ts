@@ -60,7 +60,7 @@ export async function listImpl(
   transaction: Transaction,
 ): Promise<Summary[]> {
   const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["transcriptId"],
+    attributes: ["id"],
     include: [
       {
         model: db.Group,
@@ -119,7 +119,7 @@ export async function updateImpl(
   transaction: Transaction,
 ) {
   const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["transcriptId"],
+    attributes: ["id"],
     include: [
       {
         model: db.Group,

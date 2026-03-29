@@ -136,7 +136,7 @@ describe("downloadMenteeDataImpl", () => {
     const transcript2Id = `transcript-2-${Date.now()}`;
     await db.Transcript.create(
       {
-        transcriptId: transcript2Id,
+        id: transcript2Id,
         groupId: group.id,
         startedAt: new Date("2024-03-15T10:00:00Z"),
         endedAt: new Date("2024-03-15T11:00:00Z"),
@@ -158,7 +158,7 @@ describe("downloadMenteeDataImpl", () => {
     const transcript1Id = `transcript-1-${Date.now()}`;
     await db.Transcript.create(
       {
-        transcriptId: transcript1Id,
+        id: transcript1Id,
         groupId: group.id,
         startedAt: new Date("2024-03-01T10:00:00Z"),
         endedAt: new Date("2024-03-01T11:00:00Z"),
