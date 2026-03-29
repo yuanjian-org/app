@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import getBaseUrl from "../../../shared/getBaseUrl";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -33,9 +34,7 @@ export default function logoutHandler(
 
   // Determine if we are using secure cookies.
   // In production, NEXTAUTH_URL is typically https://...
-  const isSecure =
-    process.env.NEXTAUTH_URL?.startsWith("https://") ||
-    req.headers["x-forwarded-proto"] === "https";
+  const isSecure = getBaseUrl().startsWith("https://");
 
   const cookiePrefix = isSecure ? "__Secure-" : "";
   const hostPrefix = isSecure ? "__Host-" : "";
