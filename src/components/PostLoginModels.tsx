@@ -218,7 +218,7 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
 
   const submit = async () => {
-    await trpc.users.setUserState.mutate({
+    await trpc.users.setMyState.mutate({
       consentedAt: new Date().toISOString(),
     });
     refetch();

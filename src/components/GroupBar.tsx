@@ -230,7 +230,7 @@ function MeetingConsentModal({
   const [declined, setDeclined] = useState<boolean>(false);
 
   const submit = async () => {
-    await trpc.users.setUserState.mutate({
+    await trpc.users.setMyState.mutate({
       meetingConsentedAt: new Date().toISOString(),
     });
     consent();

@@ -479,6 +479,6 @@ export async function markKudosAsRead(
   utils: ReturnType<typeof trpcNext.useContext>,
   lastKudosReadAt: DateColumn,
 ) {
-  await trpc.users.setUserState.mutate({ lastKudosReadAt });
+  await trpc.users.setMyState.mutate({ lastKudosReadAt });
   await utils.users.getUserState.invalidate();
 }

@@ -349,6 +349,6 @@ async function markTasksAsRead(
   utils: ReturnType<typeof trpcNext.useContext>,
   lastTasksReadAt: DateColumn,
 ) {
-  await trpc.users.setUserState.mutate({ lastTasksReadAt });
+  await trpc.users.setMyState.mutate({ lastTasksReadAt });
   await utils.users.getUserState.invalidate();
 }
