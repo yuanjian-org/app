@@ -389,6 +389,8 @@ describe("updateImpl", () => {
 describe("setUserStateImpl", () => {
   let transaction: Transaction;
   let me: any;
+  let otherUser: any;
+  let manager: any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
@@ -401,13 +403,31 @@ describe("setUserStateImpl", () => {
       },
       { transaction },
     );
+
+    otherUser = await db.User.create(
+      {
+        email: `other-${Date.now()}-${Math.random()}@example.com`,
+        name: "李四",
+        roles: ["Volunteer"],
+      },
+      { transaction },
+    );
+
+    manager = await db.User.create(
+      {
+        email: `manager-${Date.now()}-${Math.random()}@example.com`,
+        name: "王经理",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
   });
 
   afterEach(async () => {
     await transaction.rollback();
   });
 
-  it("should restrict exam field updates and allow whitelisted fields", async () => {
+  it("should restrict exam field updates and allow whitelisted fields for own state", async () => {
     const examDate = new Date("2023-01-01").toISOString();
     const lastKudosReadAt = new Date("2023-02-01").toISOString();
 
@@ -429,5 +449,58 @@ describe("setUserStateImpl", () => {
     void expect(state.handbookExam).to.be.undefined;
     void expect(state.menteeInterviewerExam).to.be.undefined;
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
+  });
+
+  it("should allow UserManager to update sensitive exam fields for other users", async () => {
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setUserStateImpl(
+      manager,
+      {
+        userId: otherUser.id,
+        commsExam: examDate,
+        handbookExam: examDate,
+      },
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(otherUser.id, { transaction });
+    const state = updated?.state || {};
+
+    expect(state.commsExam).to.equal(examDate);
+    expect(state.handbookExam).to.equal(examDate);
+  });
+
+  it("should throw noPermissionError when regular user tries to update others' state", async () => {
+    try {
+      await setUserStateImpl(
+        me,
+        {
+          userId: otherUser.id,
+          consentedAt: new Date().toISOString(),
+        },
+        transaction,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("没有权限访问用户");
+    }
+  });
+
+  it("should allow UserManager to update their own state with sensitive fields", async () => {
+    const examDate = new Date("2023-05-01").toISOString();
+
+    await setUserStateImpl(
+      manager,
+      {
+        menteeInterviewerExam: examDate,
+      },
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(manager.id, { transaction });
+    const state = updated?.state || {};
+
+    expect(state.menteeInterviewerExam).to.equal(examDate);
   });
 });

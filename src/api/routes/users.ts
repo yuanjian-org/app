@@ -722,11 +722,16 @@ const getUserState = procedure
   });
 
 /**
- * Fields absent from the input are not updated.
+ * Fields absent from the input are not updated. Specifying a `userId` other
+ * than the current user's requires `UserManager` permissions.
  */
 const setUserState = procedure
   .use(authUser())
-  .input(zUserState.partial())
+  .input(
+    zUserState.partial().extend({
+      userId: z.string().optional(),
+    }),
+  )
   .mutation(async ({ ctx: { me }, input: state }) => {
     await sequelize.transaction(async (transaction) => {
       await setUserStateImpl(me, state, transaction);
@@ -735,28 +740,45 @@ const setUserState = procedure
 
 export async function setUserStateImpl(
   me: User,
-  state: Partial<UserState>,
+  state: Partial<UserState> & { userId?: string },
   transaction: Transaction,
 ) {
-  const u = await db.User.findByPk(me.id, {
+  const targetUserId = state.userId ?? me.id;
+  const isUserManager = isPermitted(me.roles, "UserManager");
+
+  if (targetUserId !== me.id && !isUserManager) {
+    throw noPermissionError("用户", targetUserId);
+  }
+
+  const u = await db.User.findByPk(targetUserId, {
     attributes: ["id", "state"],
     transaction,
   });
-  if (!u) throw notFoundError("用户", me.id);
+  if (!u) throw notFoundError("用户", targetUserId);
 
-  // Use a whitelist approach for security: only certain fields are allowed
-  // to be updated through this endpoint to ensure sensitive fields (like exam
-  // completion dates) are protected and new fields are secure by default.
-  const allowed: (keyof UserState)[] = [
-    "consentedAt",
-    "lastKudosReadAt",
-    "lastTasksReadAt",
-    "meetingConsentedAt",
-  ];
-  const filteredState: Partial<UserState> = {};
-  for (const key of allowed) {
-    if (state[key] !== undefined) {
-      filteredState[key] = state[key] as any;
+  let stateToApply: Partial<UserState>;
+
+  if (isUserManager) {
+    // UserManagers can update all fields for any user.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { userId: _, ...rest } = state;
+    stateToApply = rest;
+  } else {
+    // For regular users updating their own state, use a whitelist approach
+    // for security: only certain fields are allowed to be updated through
+    // this endpoint to ensure sensitive fields (like exam completion dates)
+    // are protected and new fields are secure by default.
+    const allowed: (keyof UserState)[] = [
+      "consentedAt",
+      "lastKudosReadAt",
+      "lastTasksReadAt",
+      "meetingConsentedAt",
+    ];
+    stateToApply = {};
+    for (const key of allowed) {
+      if (state[key] !== undefined) {
+        stateToApply[key] = state[key] as any;
+      }
     }
   }
 
@@ -764,7 +786,7 @@ export async function setUserStateImpl(
     {
       state: {
         ...u.state,
-        ...filteredState,
+        ...stateToApply,
       },
     },
     { transaction },
