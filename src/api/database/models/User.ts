@@ -71,7 +71,7 @@ class User extends Model {
   @Column(STRING)
   wechatUnionId: string | null;
 
-  // Used by YuanTu SSO. See [...nextauth].ts.
+  // Used by Yuantu SSO. See YuantuSsoProvider.ts
   @Unique
   @Column(STRING)
   ssoUserId: string | null;
