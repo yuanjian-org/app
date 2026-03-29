@@ -93,12 +93,8 @@ export default function WeChatProvider(
         // `accounts` table.
         id: profile.unionid,
 
-        // Used to create a user if the user doesn't exist. See
-        // `adapter.createUser`.
-        wechatUnionId: profile.unionid,
-
         // next-auth rely on email to search for existing users. We don't store
-        // the email in the database. See `adapter.getUserByEmail`.
+        // the email in the database. See code in adapter.ts.
         email: unionId2Email(profile.unionid),
       };
     },

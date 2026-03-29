@@ -27,14 +27,14 @@ export const adapter = {
   // profile.
   async createUser(user: {
     email: string;
-    wechatUnionId?: string;
     realEmail?: string;
     phone?: string;
     name?: string;
   }) {
     if (user.email.endsWith(wechatFakeEmailDomain)) {
-      console.log("adapter.createUser(wechat):", user.wechatUnionId);
-      return await db.User.create({ wechatUnionId: user.wechatUnionId });
+      const wechatUnionId = email2UnionId(user.email);
+      console.log("adapter.createUser(wechat):", wechatUnionId);
+      return await db.User.create({ wechatUnionId });
     } else if (user.email.endsWith(ssoFakeEmailDomain)) {
       const ssoUserId = email2SsoUserId(user.email);
       console.log("adapter.createUser(sso):", ssoUserId);
