@@ -70,12 +70,14 @@ type ServerSideProps = {
 export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   const callbackUrl = useCallbackUrl();
   const router = useRouter();
+  const [err, setErr] = useState<string | undefined>();
 
   useEffect(() => {
     if (ssoEnabled) {
-      const err = parseQueryString(router, "error");
-      if (err) {
-        handleSignInException(err);
+      const errorStr = parseQueryString(router, "error");
+      if (errorStr) {
+        setErr(errorStr);
+        handleSignInException(errorStr);
         void router.push("/");
         return;
       }
@@ -83,19 +85,19 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
     }
   }, [ssoEnabled, callbackUrl, router]);
 
-  const err = parseQueryString(router, "error");
-  if (ssoEnabled && !err) {
-    return (
-      <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
-        <Text color="gray.500">正在跳转到登录页面...</Text>
-      </VStack>
-    );
-  } else {
-    // If there is an error during SSO, we redirect to "/" in useEffect and we don't
-    // want to flash the LocalSignIn component before the redirect happens.
-    if (ssoEnabled && err) {
+  if (ssoEnabled) {
+    if (err) {
+      // If there is an error during SSO, we redirect to "/" in useEffect and we don't
+      // want to flash the LocalSignIn component before the redirect happens.
       return null;
+    } else {
+      return (
+        <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
+          <Text color="gray.500">正在跳转到登录页面...</Text>
+        </VStack>
+      );
     }
+  } else {
     return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }
 }
