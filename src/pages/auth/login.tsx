@@ -69,22 +69,40 @@ type ServerSideProps = {
  */
 export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   const callbackUrl = useCallbackUrl();
+  const router = useRouter();
 
   useEffect(() => {
     if (ssoEnabled) {
+      const err = parseQueryString(router, "error");
+      if (err) {
+        handleSignInException(err);
+        void router.push("/");
+        return;
+      }
       void signIn("yuantu-sso", { callbackUrl });
     }
-  }, [ssoEnabled, callbackUrl]);
+  }, [ssoEnabled, callbackUrl, router]);
 
-  if (ssoEnabled) {
+  const err = parseQueryString(router, "error");
+  if (ssoEnabled && !err) {
     return (
       <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
         <Text color="gray.500">正在跳转到登录页面...</Text>
       </VStack>
     );
   } else {
+    // If there is an error during SSO, we redirect to "/" in useEffect and we don't
+    // want to flash the LocalSignIn component before the redirect happens.
+    if (ssoEnabled && err) {
+      return null;
+    }
     return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }
+}
+
+function handleSignInException(err: any) {
+  const msg = `糟糕，系统错误，请联系客服：${err}`;
+  toast.error(msg);
 }
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
@@ -385,11 +403,6 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
       </HStack>
     </VStack>
   );
-}
-
-function handleSignInException(err: any) {
-  const msg = `糟糕，系统错误，请联系客服：${err}`;
-  toast.error(msg);
 }
 
 export function EmailInput({
