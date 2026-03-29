@@ -19,8 +19,7 @@ class Transcript extends Model {
   @Unique
   @PrimaryKey
   @Column(STRING)
-  // TODO: rename to simply 'id'?
-  transcriptId: string;
+  id: string;
 
   @Column(UUID)
   @ForeignKey(() => Group)
@@ -42,7 +41,7 @@ class Transcript extends Model {
   static async cascadeDestroy(tr: Transcript, options: any) {
     const promises = (
       await Summary.findAll({
-        where: { transcriptId: tr.transcriptId },
+        where: { transcriptId: tr.id },
       })
     ).map(async (s) => {
       await s.destroy(options);

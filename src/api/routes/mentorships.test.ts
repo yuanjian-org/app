@@ -71,7 +71,7 @@ describe("auditLastMentorshipMeetings", () => {
       .toDate();
     await db.Transcript.create(
       {
-        transcriptId: `test-transcript-${Date.now()}`,
+        id: `test-transcript-${Date.now()}`,
         groupId: group.id,
         startedAt: oldMeetingDate,
         endedAt: moment(oldMeetingDate).add(1, "hour").toDate(),

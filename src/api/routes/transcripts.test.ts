@@ -51,10 +51,10 @@ describe("transcripts", () => {
   }
 
   async function createTestTranscript(groupId: string) {
-    const transcriptId = `test-transcript-${Date.now()}-${Math.random()}`;
+    const id = `test-transcript-${Date.now()}-${Math.random()}`;
     return await db.Transcript.create(
       {
-        transcriptId,
+        id,
         groupId: groupId,
         startedAt: new Date(),
         endedAt: new Date(),
@@ -77,9 +77,9 @@ describe("transcripts", () => {
       const result = await listImpl(me, group.id, transaction);
 
       expect(result).to.have.lengthOf(2);
-      const transcriptIds = result.map((t: any) => t.transcriptId);
-      expect(transcriptIds).to.include(transcript1.transcriptId);
-      expect(transcriptIds).to.include(transcript2.transcriptId);
+      const transcriptIds = result.map((t: any) => t.id);
+      expect(transcriptIds).to.include(transcript1.id);
+      expect(transcriptIds).to.include(transcript2.id);
     });
 
     it("should throw a notFoundError if the group does not exist", async () => {
@@ -114,7 +114,7 @@ describe("transcripts", () => {
       const transcript = await createTestTranscript(group.id);
       const summary1 = await db.Summary.create(
         {
-          transcriptId: transcript.transcriptId,
+          transcriptId: transcript.id,
           key: "test-summary-key-1",
           markdown: "summary 1",
           initialLength: "summary 1".length,
@@ -124,7 +124,7 @@ describe("transcripts", () => {
       );
       const summary2 = await db.Summary.create(
         {
-          transcriptId: transcript.transcriptId,
+          transcriptId: transcript.id,
           key: "test-summary-key-2",
           markdown: "summary 2",
           initialLength: "summary 2".length,
@@ -133,7 +133,7 @@ describe("transcripts", () => {
         { transaction },
       );
 
-      const result = await getSummaries(transcript.transcriptId, transaction);
+      const result = await getSummaries(transcript.id, transaction);
 
       expect(result).to.have.lengthOf(2);
       const summaryKeys = result.map((s: any) => s.key);
@@ -145,7 +145,7 @@ describe("transcripts", () => {
       const group = await createTestGroup();
       const transcript = await createTestTranscript(group.id);
 
-      const result = await getSummaries(transcript.transcriptId, transaction);
+      const result = await getSummaries(transcript.id, transaction);
       expect(result).to.have.lengthOf(0);
     });
   });

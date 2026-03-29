@@ -295,7 +295,7 @@ export async function downloadMenteeDataImpl(
         include: [
           {
             model: db.Transcript,
-            attributes: ["transcriptId", "startedAt", "endedAt"],
+            attributes: ["id", "startedAt", "endedAt"],
             include: [
               {
                 model: db.Summary,
@@ -331,7 +331,7 @@ export async function downloadMenteeDataImpl(
           name: mentorship.mentor.name,
         },
         groupName: mentorship.group.name,
-        transcriptId: transcript.transcriptId,
+        transcriptId: transcript.id,
         startedAt: transcript.startedAt,
         endedAt: transcript.endedAt,
         summary: transcript.summaries[0]?.markdown || null,
@@ -362,7 +362,7 @@ export async function downloadMenteeDataImpl(
     summariesWithContent.forEach((transcript, index) => {
       const summary = transcript.summaries[0];
       textContent += `会议 ${index + 1}\n`;
-      textContent += `会议ID: ${transcript.transcriptId}\n`;
+      textContent += `会议ID: ${transcript.id}\n`;
       textContent += `开始时间: ${transcript.startedAt}\n`;
       textContent += `结束时间: ${transcript.endedAt}\n`;
       textContent += `\n${summary.markdown}\n`;
