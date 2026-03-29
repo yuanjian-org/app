@@ -17,6 +17,8 @@ declare module "next-auth" {
   interface Session {
     me: User;
     impersonated: true | undefined;
+    // The logout URL for the identity provider if the user signed in via SSO.
+    federatedLogoutUrl?: string;
   }
 }
 
@@ -48,6 +50,18 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
     // https://next-auth.js.org/configuration/callbacks
     callbacks: {
+      redirect({ url, baseUrl }) {
+        if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+        if (new URL(url).origin === baseUrl) return url;
+        if (
+          process.env.AUTH_YUANTU_SSO_ISSUER &&
+          url.startsWith(process.env.AUTH_YUANTU_SSO_ISSUER)
+        ) {
+          return url;
+        }
+        return baseUrl;
+      },
+
       signIn: ({ account }) => {
         // https://github.com/nextauthjs/next-auth/discussions/469
         if (account?.provider === "embedded-wechat-qr") {
@@ -71,7 +85,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         }
       },
 
-      async jwt({ token, trigger, session }) {
+      async jwt({ token, trigger, session, account }) {
+        // The 'account' object is only present on the very first sign in.
+        // We persist the provider in the token so we can check it in subsequent requests.
+        if (account) {
+          token.provider = account.provider;
+        }
+
         // Handle session updates.
         // https://next-auth.js.org/getting-started/client#updating-the-session
         if (trigger == "update" && session) {
@@ -120,6 +140,16 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
         session.me = actual;
         if (impersonate) session.impersonated = true;
+        // If the user signed in with yuantu-sso, expose the IdP's logout endpoint
+        // so the frontend can redirect the user there upon logging out.
+        if (
+          token.provider === "yuantu-sso" &&
+          process.env.AUTH_YUANTU_SSO_ISSUER
+        ) {
+          const issuer = process.env.AUTH_YUANTU_SSO_ISSUER.replace(/\/+$/, "");
+          session.federatedLogoutUrl = `${issuer}/api/oauth2/logout`;
+        }
+
         return session;
       },
     },
