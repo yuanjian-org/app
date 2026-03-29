@@ -10,7 +10,7 @@ import { calculateExamsRequired } from "shared/exams";
 import { isProd } from "shared/isProd";
 
 export function useExamsRequired() {
-  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: state } = trpcNext.users.getMyState.useQuery();
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.isDemo;
 

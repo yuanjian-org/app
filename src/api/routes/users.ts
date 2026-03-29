@@ -688,7 +688,7 @@ const setUserProfile = procedure
     if (cnt == 0) throw notFoundError("用户", userId);
   });
 
-const getUserState = procedure
+const getMyState = procedure
   .use(authUser())
   .input(
     z
@@ -724,16 +724,16 @@ const getUserState = procedure
 /**
  * Fields absent from the input are not updated.
  */
-const setUserState = procedure
+const setMyState = procedure
   .use(authUser())
   .input(zUserState.partial())
   .mutation(async ({ ctx: { me }, input: state }) => {
     await sequelize.transaction(async (transaction) => {
-      await setUserStateImpl(me, state, transaction);
+      await setMyStateImpl(me, state, transaction);
     });
   });
 
-export async function setUserStateImpl(
+export async function setMyStateImpl(
   me: User,
   state: Partial<UserState>,
   transaction: Transaction,
@@ -998,8 +998,8 @@ export default router({
   getUserProfile,
   setUserProfile,
 
-  getUserState,
-  setUserState,
+  getMyState,
+  setMyState,
 
   setUserPreference,
   getUserPreference,

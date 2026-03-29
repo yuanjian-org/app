@@ -191,7 +191,7 @@ function JoinButton({
   join: () => void;
   isLoading?: boolean;
 }) {
-  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+  const { data: state, refetch } = trpcNext.users.getMyState.useQuery();
   const consented = !!state?.meetingConsentedAt;
   const [showConsentModal, setShowConsentModal] = useState(false);
 
@@ -230,7 +230,7 @@ function MeetingConsentModal({
   const [declined, setDeclined] = useState<boolean>(false);
 
   const submit = async () => {
-    await trpc.users.setUserState.mutate({
+    await trpc.users.setMyState.mutate({
       meetingConsentedAt: new Date().toISOString(),
     });
     consent();

@@ -3,7 +3,7 @@ import {
   redactEmail,
   updateWechatUnionId,
   updateImpl,
-  setUserStateImpl,
+  setMyStateImpl,
 } from "./users";
 import * as usersModule from "./users";
 import db from "../database/db";
@@ -386,7 +386,7 @@ describe("updateImpl", () => {
   });
 });
 
-describe("setUserStateImpl", () => {
+describe("setMyStateImpl", () => {
   let transaction: Transaction;
   let me: any;
 
@@ -411,7 +411,7 @@ describe("setUserStateImpl", () => {
     const examDate = new Date("2023-01-01").toISOString();
     const lastKudosReadAt = new Date("2023-02-01").toISOString();
 
-    await setUserStateImpl(
+    await setMyStateImpl(
       me,
       {
         commsExam: examDate,

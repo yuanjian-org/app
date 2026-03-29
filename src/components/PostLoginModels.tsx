@@ -31,7 +31,7 @@ import invariant from "shared/invariant";
 // prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
-  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+  const { data: state, refetch } = trpcNext.users.getMyState.useQuery();
 
   return state === undefined ? (
     <></>
@@ -218,7 +218,7 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
 
   const submit = async () => {
-    await trpc.users.setUserState.mutate({
+    await trpc.users.setMyState.mutate({
       consentedAt: new Date().toISOString(),
     });
     refetch();

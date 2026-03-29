@@ -12,7 +12,7 @@ const title = "《社会导师手册》自学与评测";
 
 export default function Page() {
   const me = useMe();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: state } = trpcNext.users.getMyState.useQuery();
 
   return (
     <>

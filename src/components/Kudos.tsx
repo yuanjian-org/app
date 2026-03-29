@@ -348,7 +348,7 @@ export function KudosHistory({
 }) {
   // Use a state variable to avoid updating it when `markKudosAsRead` is called.
   const [lastKudosReadAt, setLastKudosReadAt] = useState<Moment>();
-  trpcNext.users.getUserState.useQuery(undefined, {
+  trpcNext.users.getMyState.useQuery(undefined, {
     onSuccess: (state) => {
       if (!lastKudosReadAt) setLastKudosReadAt(getLastKudosReadAt(state));
     },
@@ -458,7 +458,7 @@ export function UnreadKudosRedDot() {
  */
 export function useUnreadKudos() {
   const myRoles = useMyRoles();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: state } = trpcNext.users.getMyState.useQuery();
   const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery(
     undefined,
     { enabled: isPermitted(myRoles, "Volunteer") },
@@ -479,6 +479,6 @@ export async function markKudosAsRead(
   utils: ReturnType<typeof trpcNext.useContext>,
   lastKudosReadAt: DateColumn,
 ) {
-  await trpc.users.setUserState.mutate({ lastKudosReadAt });
-  await utils.users.getUserState.invalidate();
+  await trpc.users.setMyState.mutate({ lastKudosReadAt });
+  await utils.users.getMyState.invalidate();
 }
