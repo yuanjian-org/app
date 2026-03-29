@@ -104,7 +104,20 @@ export default async function authorizeHandler(
     return res.redirect(302, loginUrl.toString());
   }
 
-  // 3. The user is logged in and authorized. Generate an authorization code.
+  // 3. If the user hasn't set their phone number, redirect them to the set-profile page.
+  if (!session.me.phone) {
+    const baseUrl = getBaseUrl();
+    const currentUrl = new URL(req.url!, baseUrl);
+    const setProfileUrl = new URL("/auth/set-profile", baseUrl);
+    setProfileUrl.searchParams.set(
+      "callbackUrl",
+      currentUrl.pathname + currentUrl.search,
+    );
+
+    return res.redirect(302, setProfileUrl.toString());
+  }
+
+  // 4. The user is logged in and authorized. Generate an authorization code.
   // We will encrypt the user ID and code_challenge into a JWE string, so we
   // don't need database state
   // and the client cannot read the plain userId.
@@ -130,7 +143,7 @@ export default async function authorizeHandler(
   // Create an encrypted JWE string
   const code = await encryptPayload(codePayload);
 
-  // 4. Redirect back to the client's redirect_uri with the code and state.
+  // 5. Redirect back to the client's redirect_uri with the code and state.
   const redirectUrl = new URL(redirect_uri);
   redirectUrl.searchParams.set("code", code);
   if (state) {
