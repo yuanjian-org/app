@@ -11,6 +11,7 @@ import {
   email2UnionId,
   email2SsoUserId,
 } from "./fakeEmail";
+import { checkAndComputeUserFields } from "api/routes/checkAndComputeUserFields";
 
 export const adapter = {
   ...SequelizeAdapter(sequelize, {
@@ -27,7 +28,7 @@ export const adapter = {
   async createUser(user: {
     email: string;
     wechatUnionId?: string;
-    ssoUserId?: string;
+    realEmail?: string;
     phone?: string;
     name?: string;
   }) {
@@ -35,14 +36,26 @@ export const adapter = {
       console.log("adapter.createUser(wechat):", user.wechatUnionId);
       return await db.User.create({ wechatUnionId: user.wechatUnionId });
     } else if (user.email.endsWith(ssoFakeEmailDomain)) {
-      console.log("adapter.createUser(sso):", user.ssoUserId);
-      return await db.User.create({
-        ssoUserId: user.ssoUserId,
-        phone: user.phone || null,
-        name: user.name || null,
+      const ssoUserId = email2SsoUserId(user.email);
+      console.log("adapter.createUser(sso):", ssoUserId);
+      return await sequelize.transaction(async (transaction) => {
+        const fields = await checkAndComputeUserFields({
+          email: user.realEmail || undefined,
+          name: user.name || undefined,
+          isVolunteer: false,
+          oldUrl: null,
+          transaction,
+        });
+        return await db.User.create({
+          ...fields,
+          ssoUserId,
+          phone: user.phone || null,
+          transaction,
+        });
       });
+    } else {
+      throw new Error(`Invalid email domain for creation: ${user.email}`);
     }
-    throw new Error(`Invalid email domain for creation: ${user.email}`);
   },
 
   async getUserByEmail(email: string) {

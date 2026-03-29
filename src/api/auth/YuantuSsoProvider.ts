@@ -44,8 +44,8 @@ export default function YuantuSsoProvider(
       // see WeChatProvider.profile() function.
       return {
         id: profile.sub,
-        ssoUserId: profile.sub,
         email: ssoUserId2Email(profile.sub),
+        realEmail: profile.email ?? undefined,
         name: profile.name ?? undefined,
         phone: profile.phone_number ?? undefined,
       };

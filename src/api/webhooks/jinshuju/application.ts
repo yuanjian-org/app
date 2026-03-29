@@ -7,7 +7,7 @@ import {
 } from "../../../shared/applicationFields";
 import { UserProfile } from "../../../shared/UserProfile";
 import db from "../../database/db";
-import { checkAndComputeUserFields } from "../../routes/users";
+import { checkAndComputeUserFields } from "../../routes/checkAndComputeUserFields";
 import Role, { isPermitted } from "../../../shared/Role";
 import { generalBadRequestError } from "../../errors";
 import { chinaPhonePrefix, isValidPhone } from "../../../shared/strings";

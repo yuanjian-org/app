@@ -15,7 +15,7 @@ import _ from "lodash";
 import { createInterview, getInterviewIdForMentee } from "./interviews";
 import { createAutoTask } from "./tasks";
 import { createMentorBooking } from "./mentorBookings";
-import { checkAndComputeUserFields } from "./users";
+import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 
