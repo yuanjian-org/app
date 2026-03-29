@@ -1,6 +1,10 @@
 import crypto from "crypto";
 import * as jose from "jose";
 
+export function logError(message: string, ...optionalParams: any[]) {
+  console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
+}
+
 /**
  * Hashes the combination of the client ID and the local user ID.
  * This provides a unique ID per client for the same user,
