@@ -28,6 +28,7 @@ declare module "next-auth" {
   interface Session {
     me: User;
     impersonated: true | undefined;
+    // The logout URL for the identity provider if the user signed in via SSO.
     federatedLogoutUrl?: string;
   }
 }
@@ -289,6 +290,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
 
       async jwt({ token, trigger, session, account }) {
+        // The 'account' object is only present on the very first sign in.
+        // We persist the provider in the token so we can check it in subsequent requests.
         if (account) {
           token.provider = account.provider;
         }
@@ -341,6 +344,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 
         session.me = actual;
         if (impersonate) session.impersonated = true;
+        // If the user signed in with yuantu-sso, expose the IdP's logout endpoint
+        // so the frontend can redirect the user there upon logging out.
         if (
           token.provider === "yuantu-sso" &&
           process.env.AUTH_YUANTU_SSO_ISSUER
