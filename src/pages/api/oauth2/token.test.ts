@@ -117,6 +117,45 @@ describe("OAuth2 tokenHandler", () => {
     expect(res.body.token_type).to.equal("Bearer");
   });
 
+  it("should fail if client_id or client_secret is undefined", async () => {
+    const res = await request(server).post("/").send({
+      grant_type: "authorization_code",
+      code: "some-code",
+      redirect_uri: "https://app.example.com/callback",
+      // Omit client credentials
+    });
+
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_client");
+  });
+
+  it("should return 400 for mismatching redirect_uri in code payload", async () => {
+    const codePayload = {
+      type: "code",
+      jti: crypto.randomUUID(),
+      userId: "user-123",
+      clientId: "test-client",
+      redirectUri: "https://another.example.com/callback", // Mismatch
+      exp: Math.floor(Date.now() / 1000) + 600,
+    };
+    const code = await encryptPayload(codePayload);
+
+    // Provide client credentials so validClientId passes, but mismatch redirect_uri inside payload.
+    // Wait, the request payload needs to match OAUTH2_REDIRECT_URI exactly or it fails before checking code!
+    const res = await request(server).post("/").send({
+      grant_type: "authorization_code",
+      code,
+      // This MUST match the pre-configured OAUTH2_REDIRECT_URI to pass the first check!
+      redirect_uri: "https://app.example.com/callback",
+      client_id: "test-client",
+      client_secret: "test-client-secret",
+    });
+
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_grant");
+    expect(res.body.error_description).to.equal("Mismatching redirect_uri");
+  });
+
   it("should fail to reuse the same code", async () => {
     const codePayload = {
       type: "code",

@@ -110,10 +110,6 @@ export default async function tokenHandler(
   let payload: any;
   try {
     payload = await decryptPayload(code);
-
-    if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
-      throw new Error("Token expired");
-    }
   } catch {
     return res.status(400).json({
       error: "invalid_grant",

@@ -98,6 +98,38 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(setCookie[0]).to.include("__Secure-next-auth.session-token=;");
   });
 
+  it("should use secure cookies if x-forwarded-proto is https even if NEXTAUTH_URL is http", async () => {
+    process.env.NEXTAUTH_URL = "http://localhost:3000";
+
+    const res = await request(app).get("/").set("x-forwarded-proto", "https");
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal("/");
+
+    const setCookie = res.header["set-cookie"];
+    expect(setCookie).to.be.an("array");
+    expect(setCookie[0]).to.include("__Secure-next-auth.session-token=;");
+    expect(setCookie[0]).to.include("Secure");
+  });
+
+  it("should clear non-secure cookies when protocol is HTTP and NEXTAUTH_URL is undefined", async () => {
+    delete process.env.NEXTAUTH_URL;
+
+    const res = await request(app).get("/");
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal("/");
+
+    const setCookie = res.header["set-cookie"];
+    expect(setCookie).to.be.an("array");
+    expect(setCookie).to.have.lengthOf(3);
+
+    // It should not use the __Secure- or __Host- prefixes
+    expect(setCookie[0]).to.include("next-auth.session-token=;");
+    expect(setCookie[0]).to.not.include("__Secure-");
+    expect(setCookie[0]).to.not.include("Secure");
+  });
+
   it("should clear non-secure cookies when protocol is HTTP", async () => {
     process.env.NEXTAUTH_URL = "http://localhost:3000";
 
