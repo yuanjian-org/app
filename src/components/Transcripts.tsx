@@ -118,9 +118,7 @@ function LoadedTranscripts({
   };
   const { transcript, transcriptIndex } = getTranscriptAndIndex();
 
-  const { data: summaries } = trpcNext.summaries.list.useQuery(
-    transcript.id,
-  );
+  const { data: summaries } = trpcNext.summaries.list.useQuery(transcript.id);
 
   let summary = null;
   if (summaries) {
