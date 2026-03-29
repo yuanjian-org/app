@@ -1,11 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
+import { logError } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -26,8 +28,17 @@ export default function logoutHandler(
 
       if (allowedOrigin === requestedOrigin) {
         callbackUrl = post_logout_redirect_uri;
+      } else {
+        logError(
+          "post_logout_redirect_uri origin does not match allowed origin",
+          { requestedOrigin, allowedOrigin },
+        );
       }
-    } catch {
+    } catch (e) {
+      logError("Invalid post_logout_redirect_uri URL", {
+        post_logout_redirect_uri,
+        error: e,
+      });
       // Ignore invalid URLs and fallback to "/"
     }
   }

@@ -5,13 +5,18 @@ import {
   userAttributes,
   userInclude,
 } from "../../../api/database/models/attributesAndIncludes";
-import { decryptPayload, hashUserIdForClient } from "../../../api/oauth2/utils";
+import {
+  decryptPayload,
+  hashUserIdForClient,
+  logError,
+} from "../../../api/oauth2/utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -20,6 +25,7 @@ export default async function userinfoHandler(
   const authHeader = req.headers.authorization;
   const bearerPrefix = "Bearer ";
   if (!authHeader || !authHeader.startsWith(bearerPrefix)) {
+    logError("Missing or invalid Authorization header");
     return res.status(401).json({
       error: "invalid_request",
       error_description: "Missing or invalid Authorization header",
@@ -31,7 +37,8 @@ export default async function userinfoHandler(
   let payload: JWTPayload;
   try {
     payload = await decryptPayload(accessToken);
-  } catch {
+  } catch (e) {
+    logError("Invalid or expired token", { error: e });
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid or expired token",
@@ -43,6 +50,9 @@ export default async function userinfoHandler(
   // This ensures an attacker cannot use an authorization 'code' (stolen via
   // open redirect) as an access token.
   if (payload.type !== "access") {
+    logError("Invalid token type, expected access token", {
+      type: payload.type,
+    });
     return res.status(401).json({
       error: "invalid_token",
       error_description: "Invalid token type, expected access token",
@@ -51,6 +61,10 @@ export default async function userinfoHandler(
 
   const expectedClientId = process.env.OAUTH2_CLIENT_ID;
   if (payload.clientId !== expectedClientId) {
+    logError("Invalid client_id in token", {
+      payloadClientId: payload.clientId,
+      expectedClientId,
+    });
     return res
       .status(401)
       .json({ error: "invalid_token", error_description: "Invalid client_id" });
@@ -63,6 +77,7 @@ export default async function userinfoHandler(
   });
 
   if (!user) {
+    logError("User not found", { userId: payload.userId });
     return res.status(404).json({ error: "user_not_found" });
   }
 

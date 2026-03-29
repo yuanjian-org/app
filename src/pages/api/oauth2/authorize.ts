@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
 import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { encryptPayload } from "../../../api/oauth2/utils";
+import { encryptPayload, logError } from "../../../api/oauth2/utils";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
@@ -19,6 +19,7 @@ export default async function authorizeHandler(
   res: NextApiResponse,
 ) {
   if (req.method !== "GET" && req.method !== "POST") {
+    logError(`Method ${req.method} Not Allowed`);
     res.setHeader("Allow", ["GET", "POST"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
@@ -52,10 +53,12 @@ export default async function authorizeHandler(
 
   // Provider must be fully configured.
   if (!expectedClientId || !expectedRedirectUri) {
+    logError("OAuth2 Provider not configured.");
     return res.status(500).json({ error: "OAuth2 Provider not configured." });
   }
 
   if (!client_id || client_id !== expectedClientId) {
+    logError("Invalid client_id", { client_id, expectedClientId });
     return res.status(400).json({
       error: "invalid_client",
       error_description: "Invalid client_id",
@@ -63,6 +66,7 @@ export default async function authorizeHandler(
   }
 
   if (response_type !== "code") {
+    logError("Only 'code' response_type is supported", { response_type });
     return res.status(400).json({
       error: "unsupported_response_type",
       error_description: "Only 'code' response_type is supported",
@@ -74,6 +78,10 @@ export default async function authorizeHandler(
   // This prevents Open Redirect vulnerabilities where an attacker could steal
   // authorization codes.
   if (!redirect_uri || redirect_uri !== expectedRedirectUri) {
+    logError("Missing or invalid redirect_uri", {
+      redirect_uri,
+      expectedRedirectUri,
+    });
     return res.status(400).json({
       error: "invalid_request",
       error_description: "Missing or invalid redirect_uri",
@@ -84,6 +92,9 @@ export default async function authorizeHandler(
   // 'plain' is inherently insecure and should not be used in modern OAuth2
   // implementations.
   if (code_challenge && code_challenge_method !== "S256") {
+    logError("PKCE code_challenge_method must be S256", {
+      code_challenge_method,
+    });
     return res.status(400).json({
       error: "invalid_request",
       error_description: "PKCE code_challenge_method must be S256",
