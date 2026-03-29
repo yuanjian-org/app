@@ -60,7 +60,7 @@ function callbackUrlParam(url: string | undefined) {
   return url ? `${loginCallbackUrlKey}=${encodeURIComponent(url)}` : "";
 }
 
-function useCallbackUrl() {
+export function useCallbackUrl() {
   const router = useRouter();
   return parseQueryString(router, loginCallbackUrlKey) ?? "/";
 }

@@ -17,7 +17,7 @@ import AppPageContainer from "components/AppPageContainer";
 import AppPage, { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
-import { loginUrl } from "./auth/login";
+import { loginUrl, useCallbackUrl } from "./auth/login";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
 
@@ -98,6 +98,7 @@ function SwitchBoard({
 } & PropsWithChildren) {
   const { status } = useSession();
   const router = useRouter();
+  const callbackUrl = useCallbackUrl();
 
   // Invariant guaranteed by the caller
   invariant(!isStaticPage(router.route), "non-static page");
@@ -129,10 +130,16 @@ function SwitchBoard({
   } else {
     invariant(status == "authenticated", "session status");
     if (isAuthPage) {
-      console.log("Authenticated user on auth page, redirecting to /");
-      void router.replace("/");
+      console.log(
+        "Authenticated user on auth page, redirecting to callbackUrl:",
+        router.route,
+        router.asPath,
+        callbackUrl,
+      );
+      void router.replace(callbackUrl);
       return null;
     } else if (router.route === "/oauth2/profile") {
+      // /oauth2/profile page doesn't need <AppPageContainer />
       console.log("Authenticated user on /oauth2/profile, rendering children");
       return children;
     } else {
