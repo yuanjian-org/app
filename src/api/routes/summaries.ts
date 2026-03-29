@@ -251,7 +251,7 @@ export async function saveSummaryImpl(
 ) {
   await db.Transcript.upsert(
     {
-      transcriptId,
+      id: transcriptId,
       groupId,
       startedAt,
       endedAt,
