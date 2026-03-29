@@ -12,6 +12,7 @@ import {
   email2SsoUserId,
 } from "./fakeEmail";
 import { checkAndComputeUserFields } from "api/routes/checkAndComputeUserFields";
+import { Transaction } from "sequelize";
 
 export const adapter = {
   ...SequelizeAdapter(sequelize, {
@@ -31,7 +32,6 @@ export const adapter = {
     phone?: string;
     name?: string;
   }) {
-    // Pass everything inside a transaction to ensure rollback on failure
     return await sequelize.transaction(async (transaction) => {
       return await adapter.createUserImpl(user, transaction);
     });
@@ -44,7 +44,7 @@ export const adapter = {
       phone?: string;
       name?: string;
     },
-    transaction: any,
+    transaction: Transaction,
   ) {
     if (user.email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(user.email);
@@ -77,7 +77,7 @@ export const adapter = {
     return await adapter.getUserByEmailImpl(email);
   },
 
-  async getUserByEmailImpl(email: string, transaction?: any) {
+  async getUserByEmailImpl(email: string, transaction?: Transaction) {
     if (email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(email);
       console.log(`adapter.getUserByEmail(wechat): ${wechatUnionId}`);
