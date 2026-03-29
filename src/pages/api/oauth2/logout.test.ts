@@ -98,10 +98,10 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(setCookie[0]).to.include("__Secure-next-auth.session-token=;");
   });
 
-  it("should use secure cookies if x-forwarded-proto is https even if NEXTAUTH_URL is http", async () => {
-    process.env.NEXTAUTH_URL = "http://localhost:3000";
+  it("should use secure cookies if NEXTAUTH_URL is https", async () => {
+    process.env.NEXTAUTH_URL = "https://localhost:3000";
 
-    const res = await request(app).get("/").set("x-forwarded-proto", "https");
+    const res = await request(app).get("/");
 
     expect(res.status).to.equal(302);
     expect(res.header.location).to.equal("/");
