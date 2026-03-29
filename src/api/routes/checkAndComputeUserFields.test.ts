@@ -57,8 +57,8 @@ describe("checkAndComputeUserFields", () => {
       oldUrl: null,
       transaction,
     });
-    expect(res.name).to.be.null;
-    expect(res.pinyin).to.be.null;
+    expect(res.name).to.equal(null);
+    expect(res.pinyin).to.equal(null);
   });
 
   it("should omit name/email/pinyin if undefined", async () => {
