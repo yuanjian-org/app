@@ -4,7 +4,7 @@ import Loader from "./Loader";
 /**
  * A loading indicator that can fill the whole page.
  */
-export default function PageLoader() {
+export default function PageLoader({ loadingText }: { loadingText?: string }) {
   return (
     <Flex
       justifyContent="center"
@@ -12,7 +12,7 @@ export default function PageLoader() {
       minHeight="100vh"
       color="gray"
     >
-      <Loader />
+      <Loader loadingText={loadingText} />
     </Flex>
   );
 }

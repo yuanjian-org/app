@@ -15,6 +15,8 @@ import {
   HStack,
   UnorderedList,
   ListItem,
+  Flex,
+  Spacer,
 } from "@chakra-ui/react";
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
@@ -42,6 +44,12 @@ import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import Image from "next/image";
+import NextLink from "next/link";
+import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
+import Footer from "components/Footer";
+import { breakpoint } from "theme/breakpoints";
+import PageLoader from "components/PageLoader";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -86,15 +94,7 @@ export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   }, [ssoEnabled, callbackUrl, router]);
 
   if (ssoEnabled) {
-    if (err) {
-      return null;
-    } else {
-      return (
-        <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
-          <Text color="gray.500">正在跳转到登录页面...</Text>
-        </VStack>
-      );
-    }
+    return err ? null : <PageLoader loadingText="正在跳转到登录页面..." />;
   } else {
     return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }
@@ -170,45 +170,59 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
     : [wechatTab, phoneTab, emailTab];
 
   return (
-    // See AuthPageContainer.tsx for the parent container
-    <>
-      <PageBreadcrumb
-        current="登录"
-        parents={[{ name: "远图", link: staticUrlPrefix }]}
-      />
-
-      <Tabs
-        isFitted
-        isLazy
-        // size="sm"
-        // If the user is on mobile and not using WeChat browser, show the
-        // verification code tab as default, because the only WeChat option on
-        // non-WeChat mobile browser is QR code which is often impossible to
-        // scan.
-        defaultIndex={isDemo ? 0 : isMobileBrowser && !isWechatBrowser ? 1 : 0}
+    <Flex direction="column" alignItems="center" minHeight="100vh">
+      <VStack
+        align="left"
+        spacing={componentSpacing}
+        w={350}
+        mt={{ base: 10, [breakpoint]: 40 }}
       >
-        <TabList>
-          {tabs.map((t) => (
-            <Tab key={t.name}>{t.name}</Tab>
-          ))}
-        </TabList>
+        <NextLink href={staticUrlPrefix}>
+          <Image alt="图标" width={60} src={yuanjianLogo80x80} />
+        </NextLink>
 
-        <TabPanels>{tabs.map((t) => t.panel)}</TabPanels>
-      </Tabs>
+        <PageBreadcrumb
+          current="登录"
+          parents={[{ name: "远图", link: staticUrlPrefix }]}
+        />
 
-      <HStack justify="center" spacing={2}>
-        <SmallGrayText>
-          若登录遇到问题，
-          <Link
-            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-            target="_blank"
-          >
-            联系客服
-          </Link>
-        </SmallGrayText>
-        <RiCustomerServiceFill color="gray" />
-      </HStack>
-    </>
+        <Tabs
+          isFitted
+          isLazy
+          // size="sm"
+          // If the user is on mobile and not using WeChat browser, show the
+          // verification code tab as default, because the only WeChat option on
+          // non-WeChat mobile browser is QR code which is often impossible to
+          // scan.
+          defaultIndex={
+            isDemo ? 0 : isMobileBrowser && !isWechatBrowser ? 1 : 0
+          }
+        >
+          <TabList>
+            {tabs.map((t) => (
+              <Tab key={t.name}>{t.name}</Tab>
+            ))}
+          </TabList>
+
+          <TabPanels>{tabs.map((t) => t.panel)}</TabPanels>
+        </Tabs>
+
+        <HStack justify="center" spacing={2}>
+          <SmallGrayText>
+            若登录遇到问题，
+            <Link
+              href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+              target="_blank"
+            >
+              联系客服
+            </Link>
+          </SmallGrayText>
+          <RiCustomerServiceFill color="gray" />
+        </HStack>
+      </VStack>
+      <Spacer />
+      <Footer />
+    </Flex>
   );
 }
 

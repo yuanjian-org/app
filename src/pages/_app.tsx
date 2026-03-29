@@ -14,7 +14,6 @@ import { useRouter } from "next/router";
 import invariant from "tiny-invariant";
 import PageLoader from "components/PageLoader";
 import AppPageContainer from "components/AppPageContainer";
-import AuthPageContainer from "components/AuthPageContainer";
 import AppPage, { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
@@ -108,16 +107,14 @@ function SwitchBoard({
     return <PageLoader />;
   } else if (status == "unauthenticated") {
     if (isAuthPage) {
-      return <AuthPageContainer>{children}</AuthPageContainer>;
-
+      return children;
+    } else if (router.asPath === "/") {
       // Redirect to static page if the user attempts to access the home page,
       // ...
-    } else if (router.asPath === "/") {
       void router.push(staticUrlPrefix);
       return null;
-
-      // ... and redirect to login if they attempt to access specific sub-pages.
     } else {
+      // ... and redirect to login if they attempt to access specific sub-pages.
       void router.push(loginUrl(router.asPath));
       return null;
     }
