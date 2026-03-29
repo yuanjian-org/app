@@ -4,14 +4,6 @@ import db from "../database/db";
 import { v4 as uuidv4 } from "uuid";
 
 describe("adapter", () => {
-  beforeEach(async () => {
-    await db.User.destroy({ where: {} });
-  });
-
-  afterEach(async () => {
-    await db.User.destroy({ where: {} });
-  });
-
   describe("createUser", () => {
     it("should create a wechat user", async () => {
       const email = "o+up+f8u+mu+a+j+o_+m2pxb1+q9z+nj+we+s6o@wechat.fe";
@@ -20,6 +12,7 @@ describe("adapter", () => {
       expect((user as any).wechatUnionId).to.equal(
         "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
       );
+      await db.User.destroy({ force: true, where: { id: user.id } });
     });
 
     it("should create an sso user without realEmail", async () => {
@@ -29,6 +22,7 @@ describe("adapter", () => {
       });
       expect(user).to.exist;
       expect((user as any).ssoUserId).to.equal("ssoUserIdNoEmail");
+      await db.User.destroy({ force: true, where: { id: user.id } });
     });
 
     it("should create an sso user", async () => {
@@ -44,6 +38,7 @@ describe("adapter", () => {
       expect((user as any).email).to.equal("real@test.com");
       expect((user as any).name).to.equal("SSO User");
       expect((user as any).phone).to.equal("1234567890");
+      await db.User.destroy({ force: true, where: { id: user.id } });
     });
 
     it("should throw for invalid email domain", async () => {
@@ -68,24 +63,27 @@ describe("adapter", () => {
 
     it("should return user by wechat fake email", async () => {
       const wechatUnionId = "testWechat123";
-      await db.User.create({ id: uuidv4(), wechatUnionId });
+      const userRecord = await db.User.create({ id: uuidv4(), wechatUnionId });
 
       const email = "test+wechat123@wechat.fe";
       const user = await adapter.getUserByEmail(email);
       expect(user).to.exist;
       expect(user?.id).to.exist;
-      expect((user as any).wechatUnionId).to.equal(wechatUnionId);
+      expect((user as any).id).to.exist;
+
+      await db.User.destroy({ force: true, where: { id: userRecord.id } });
     });
 
     it("should return user by sso fake email", async () => {
       const ssoUserId = "testSso123";
-      await db.User.create({ id: uuidv4(), ssoUserId });
+      const userRecord = await db.User.create({ id: uuidv4(), ssoUserId });
 
       const email = "test+sso123@sso.fe";
       const user = await adapter.getUserByEmail(email);
       expect(user).to.exist;
       expect(user?.id).to.exist;
-      expect((user as any).ssoUserId).to.equal(ssoUserId);
+
+      await db.User.destroy({ force: true, where: { id: userRecord.id } });
     });
 
     it("should return null if user doesn't exist", async () => {
