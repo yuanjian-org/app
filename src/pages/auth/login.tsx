@@ -50,20 +50,19 @@ import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
+import { loginCallbackUrlKey } from "shared/callbackUrl";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
 }
 
-const callbackUrlKey = "callbackUrl";
-
 function callbackUrlParam(url: string | undefined) {
-  return url ? `${callbackUrlKey}=${encodeURIComponent(url)}` : "";
+  return url ? `${loginCallbackUrlKey}=${encodeURIComponent(url)}` : "";
 }
 
 function useCallbackUrl() {
   const router = useRouter();
-  return parseQueryString(router, callbackUrlKey) ?? "/";
+  return parseQueryString(router, loginCallbackUrlKey) ?? "/";
 }
 
 type ServerSideProps = {

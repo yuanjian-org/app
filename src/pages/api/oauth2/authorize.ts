@@ -5,6 +5,8 @@ import { URL } from "url";
 import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
 import { encryptPayload, logError } from "../../../api/oauth2/utils";
+import { loginCallbackUrlKey } from "shared/callbackUrl";
+import { setProfileCallbackUrlKey } from "shared/callbackUrl";
 
 export const authCodeExpiryInSec = 10 * 60; // 10 minutes
 
@@ -108,7 +110,7 @@ export default async function authorizeHandler(
   if (!session?.me) {
     // Redirect to the login page
     const loginUrl = new URL("/auth/login", baseUrl);
-    loginUrl.searchParams.set("callbackUrl", currentUrl.toString());
+    loginUrl.searchParams.set(loginCallbackUrlKey, currentUrl.toString());
 
     return res.redirect(302, loginUrl.toString());
   }
@@ -117,7 +119,7 @@ export default async function authorizeHandler(
   if (!session.me.phone) {
     const setProfileUrl = new URL("/auth/set-profile", baseUrl);
     setProfileUrl.searchParams.set(
-      "callbackUrl",
+      setProfileCallbackUrlKey,
       currentUrl.pathname + currentUrl.search,
     );
 

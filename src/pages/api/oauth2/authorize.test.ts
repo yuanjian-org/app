@@ -98,7 +98,7 @@ describe("OAuth2 authorizeHandler", () => {
 
     expect(res.status).to.equal(302);
     expect(res.header.location).to.include("/auth/set-profile");
-    expect(res.header.location).to.include("callbackUrl=");
+    expect(res.header.location).to.include("spCallbackUrl=");
   });
 
   it("should redirect back with code if user is logged in", async () => {
