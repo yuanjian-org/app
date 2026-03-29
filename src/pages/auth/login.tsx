@@ -69,22 +69,44 @@ type ServerSideProps = {
  */
 export default function Page({ wechatQRAppId, ssoEnabled }: ServerSideProps) {
   const callbackUrl = useCallbackUrl();
+  const router = useRouter();
+  const [err, setErr] = useState<string | undefined>();
 
   useEffect(() => {
     if (ssoEnabled) {
-      void signIn("yuantu-sso", { callbackUrl });
+      const errStr = parseQueryString(router, "error");
+      if (errStr) {
+        setErr(errStr);
+        window.alert(formatSignInError(errStr));
+        void router.push("/");
+      } else {
+        void signIn("yuantu-sso", { callbackUrl });
+      }
     }
-  }, [ssoEnabled, callbackUrl]);
+  }, [ssoEnabled, callbackUrl, router]);
 
   if (ssoEnabled) {
-    return (
-      <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
-        <Text color="gray.500">正在跳转到登录页面...</Text>
-      </VStack>
-    );
+    if (err) {
+      return null;
+    } else {
+      return (
+        <VStack spacing={sectionSpacing} my={sectionSpacing * 2}>
+          <Text color="gray.500">正在跳转到登录页面...</Text>
+        </VStack>
+      );
+    }
   } else {
     return <LocalSignIn wechatQRAppId={wechatQRAppId} />;
   }
+}
+
+function formatSignInError(err: any) {
+  console.log("Error during sign-in", err);
+  return `糟糕，登录时发生系统错误，请联系客服：${err}`;
+}
+
+function toastSignInError(err: any) {
+  toast.error(formatSignInError(err));
 }
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
@@ -96,7 +118,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   useEffect(() => {
     const err = parseQueryString(router, "error");
     // See https://next-auth.js.org/configuration/pages#error-page
-    if (err) handleSignInException(err);
+    if (err) toastSignInError(err);
   }, [router]);
 
   // https://lzl124631x.github.io/2016/04/08/check-wechat-user-agent.html
@@ -324,14 +346,14 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
         if (res?.error === "CredentialsSignin") {
           toast.error("登录失败，请检查邮箱和密码。");
         } else {
-          handleSignInException(res?.error);
+          toastSignInError(res?.error);
         }
       } else {
         // Redirect manually as we disabled next-auth redirect above.
         if (callbackUrl !== "/") window.location.href = callbackUrl;
       }
     } catch (err) {
-      handleSignInException(err);
+      toastSignInError(err);
     }
   };
 
@@ -385,11 +407,6 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
       </HStack>
     </VStack>
   );
-}
-
-function handleSignInException(err: any) {
-  const msg = `糟糕，系统错误，请联系客服：${err}`;
-  toast.error(msg);
 }
 
 export function EmailInput({
@@ -491,14 +508,14 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
             `登录失败，请检查${idType === "phone" ? "手机号" : "邮箱"}和验证码。`,
           );
         } else {
-          handleSignInException(res?.error);
+          toastSignInError(res?.error);
         }
       } else {
         // Redirect manually as we disabled next-auth redirect above.
         if (callbackUrl !== "/") window.location.href = callbackUrl;
       }
     } catch (err) {
-      handleSignInException(err);
+      toastSignInError(err);
     } finally {
       setIsLoading(false);
     }
