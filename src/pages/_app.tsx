@@ -102,11 +102,12 @@ function SwitchBoard({
   // Invariant guaranteed by the caller
   invariant(!isStaticPage(router.route));
   const isAuthPage = router.route.startsWith("/auth/");
+  const isSetProfilePage = router.route === "/auth/set-profile";
 
   if (status == "loading") {
     return <PageLoader />;
   } else if (status == "unauthenticated") {
-    if (isAuthPage) {
+    if (isAuthPage && !isSetProfilePage) {
       return children;
     } else if (router.asPath === "/") {
       // Redirect to static page if the user attempts to access the home page,
@@ -120,9 +121,11 @@ function SwitchBoard({
     }
   } else {
     invariant(status == "authenticated");
-    if (isAuthPage) {
+    if (isAuthPage && !isSetProfilePage) {
       void router.replace("/");
       return null;
+    } else if (isSetProfilePage) {
+      return children;
     } else {
       return (
         <AppPageContainer pageType={pageType}>{children}</AppPageContainer>
