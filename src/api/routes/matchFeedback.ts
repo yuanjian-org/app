@@ -17,6 +17,7 @@ import invariant from "shared/invariant";
 import { zMinUser } from "shared/User";
 import { generalBadRequestError } from "api/errors";
 import sequelize from "api/database/sequelize";
+import { Transaction } from "sequelize";
 
 const list = procedure
   .use(authUser())
@@ -116,12 +117,14 @@ const getLastMentorMatchFeedback = procedure
 export async function getLastMatchFeedback(
   userId: string,
   type: "Mentee" | "Mentor",
+  transaction?: Transaction,
 ): Promise<MatchFeedback | null> {
   const row = await db.MatchFeedback.findOne({
     where: { userId },
     order: [["createdAt", "DESC"]],
     limit: 1,
     attributes: ["feedback"],
+    transaction,
   });
   const f = row?.feedback;
   return f && f.type == type ? zMatchFeedback.parse(f) : null;
