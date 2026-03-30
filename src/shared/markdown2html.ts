@@ -7,17 +7,32 @@
  * Instead change the require of index.js in ... to a dynamic import() which is
  * available in all CommonJS modules.
  */
+import { defaultSchema } from "rehype-sanitize";
+
+/**
+ * By default, rehype-sanitize strips tags but leaves
+ * their text content behind. This could lead to CSS
+ * injection if a <style> tag's text content is retained.
+ * We explicitly instruct it to completely remove script
+ * and style tags and their contents.
+ */
+export const sanitizeSchema = {
+  ...defaultSchema,
+  strip: ["script", "style"],
+};
 
 export default async function markdown2html(markdown: string) {
   const { unified } = await import("unified");
   const { default: remarkGfm } = await import("remark-gfm");
   const { default: remarkParse } = await import("remark-parse");
   const { default: remarkRehype } = await import("remark-rehype");
+  const { default: rehypeSanitize } = await import("rehype-sanitize");
   const { default: rehypeStringify } = await import("rehype-stringify");
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
+    .use(rehypeSanitize, sanitizeSchema)
     .use(rehypeStringify)
     .process(markdown);
   return file.toString();

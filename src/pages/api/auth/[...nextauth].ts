@@ -52,12 +52,17 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     callbacks: {
       redirect({ url, baseUrl }) {
         if (url.startsWith("/")) return new URL(url, baseUrl).toString();
-        if (new URL(url).origin === baseUrl) return url;
-        if (
-          process.env.AUTH_YUANTU_SSO_ISSUER &&
-          url.startsWith(process.env.AUTH_YUANTU_SSO_ISSUER)
-        ) {
-          return url;
+        try {
+          const urlOrigin = new URL(url).origin;
+          if (urlOrigin === baseUrl) return url;
+          if (
+            process.env.AUTH_YUANTU_SSO_ISSUER &&
+            urlOrigin === new URL(process.env.AUTH_YUANTU_SSO_ISSUER).origin
+          ) {
+            return url;
+          }
+        } catch {
+          // Invalid URL, fall through to default.
         }
         return baseUrl;
       },

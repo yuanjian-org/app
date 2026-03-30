@@ -1,24 +1,18 @@
-import { middleware, procedure } from "../../trpc";
+import { procedure } from "../../trpc";
 import z from "zod";
-import { generalBadRequestError, internalServerError } from "../../errors";
+import { generalBadRequestError } from "../../errors";
 import { submitMenteeApp, submitVolunteerApp } from "./application";
 import submitUpload from "./upload";
 import submitExam from "./exam";
 import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
-
-const webhookAuth = middleware(async ({ next }) => {
-  if (!process.env.WEBHOOK_TOKEN) {
-    throw internalServerError("WEBHOOK_TOKEN is required but not set.");
-  }
-  return await next();
-});
+import { authWebhook } from "../../auth";
 
 /**
  * The Webhook for all 金数据 forms.
  */
 export default procedure
-  .use(webhookAuth)
+  .use(authWebhook)
   .input(z.record(z.string(), z.any()))
   .mutation(
     async ({ input }) =>

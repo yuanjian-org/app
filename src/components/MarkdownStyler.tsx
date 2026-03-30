@@ -1,11 +1,12 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import styles from "../theme/MarkdownStyler.module.css";
+import { sanitizeSchema } from "../shared/markdown2html";
 
 // Note that this library increases bundle size significantly:
 // https://github.com/remarkjs/react-markdown?tab=readme-ov-file#appendix-a-html-in-markdown
 import rehypeRaw from "rehype-raw";
-import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeSanitize from "rehype-sanitize";
 
 /**
  * This component is to correctly render markdowns with Chakra UI.
@@ -40,21 +41,7 @@ export default function MarkdownStyler({
          */
         {...(allowHtml
           ? {
-              rehypePlugins: [
-                rehypeRaw,
-                [
-                  rehypeSanitize,
-                  {
-                    ...defaultSchema,
-                    // By default, rehype-sanitize only strips tags but leaves
-                    // their text content behind. This could lead to CSS
-                    // injection if a <style> tag's text content is retained.
-                    // Thus, we explicitly instruct it to completely remove
-                    // script and style tags and their contents.
-                    strip: ["script", "style"],
-                  },
-                ],
-              ],
+              rehypePlugins: [rehypeRaw, [rehypeSanitize, sanitizeSchema]],
             }
           : {})}
         // Avoid the propagation of clicking on a link to parent components.

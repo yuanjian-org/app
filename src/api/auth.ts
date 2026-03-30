@@ -59,6 +59,16 @@ export const authUser = (permitted?: Role | Role[]) =>
     });
   });
 
+/**
+ * Authenticate for webhooks.
+ */
+export const authWebhook = middleware(async ({ next }) => {
+  if (!process.env.WEBHOOK_TOKEN) {
+    throw internalServerError("WEBHOOK_TOKEN is required but not set.");
+  }
+  return await next();
+});
+
 const unauthorizedError = () =>
   new TRPCError({
     code: "UNAUTHORIZED",
