@@ -720,10 +720,16 @@ const getUserState = procedure
  */
 const setMyState = procedure
   .use(authUser())
-  .input(zUserState.partial())
-  .mutation(async ({ ctx: { me }, input: state }) => {
+  .input(
+    zUserState.partial().merge(
+      z.object({
+        userId: z.string().optional(),
+      }),
+    ),
+  )
+  .mutation(async ({ ctx: { me }, input: { userId, ...state } }) => {
     await sequelize.transaction(async (transaction) => {
-      await setMyStateImpl(me, state, transaction);
+      await setMyStateImpl(me, state, transaction, userId);
     });
   });
 
@@ -731,26 +737,42 @@ export async function setMyStateImpl(
   me: User,
   state: Partial<UserState>,
   transaction: Transaction,
+  userId?: string,
 ) {
-  const u = await db.User.findByPk(me.id, {
+  const targetUserId = userId ?? me.id;
+  const isUserManager = isPermitted(me.roles, "UserManager");
+
+  if (targetUserId !== me.id && !isUserManager) {
+    throw noPermissionError("用户", targetUserId);
+  }
+
+  const u = await db.User.findByPk(targetUserId, {
     attributes: ["id", "state"],
     transaction,
   });
-  if (!u) throw notFoundError("用户", me.id);
+  if (!u) throw notFoundError("用户", targetUserId);
 
   // Use a whitelist approach for security: only certain fields are allowed
   // to be updated through this endpoint to ensure sensitive fields (like exam
   // completion dates) are protected and new fields are secure by default.
+  //
+  // However, UserManagers are allowed to bypass the whitelist to update any
+  // fields for any user.
   const allowed: (keyof UserState)[] = [
     "consentedAt",
     "lastKudosReadAt",
     "lastTasksReadAt",
     "meetingConsentedAt",
   ];
+
   const filteredState: Partial<UserState> = {};
-  for (const key of allowed) {
-    if (state[key] !== undefined) {
-      filteredState[key] = state[key] as any;
+  if (isUserManager) {
+    Object.assign(filteredState, state);
+  } else {
+    for (const key of allowed) {
+      if (state[key] !== undefined) {
+        filteredState[key] = state[key] as any;
+      }
     }
   }
 

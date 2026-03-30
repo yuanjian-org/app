@@ -430,4 +430,51 @@ describe("setMyStateImpl", () => {
     void expect(state.menteeInterviewerExam).to.be.undefined;
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
   });
+
+  it("should allow UserManager to update any user's state and bypass whitelist", async () => {
+    const manager = await db.User.create(
+      {
+        email: `manager-${Date.now()}-${Math.random()}@example.com`,
+        name: "李经理",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+    const examDate = new Date("2023-01-01").toISOString();
+
+    await setMyStateImpl(
+      manager,
+      {
+        commsExam: examDate,
+      } as any,
+      transaction,
+      me.id,
+    );
+
+    const updated = await db.User.findByPk(me.id, { transaction });
+    expect(updated?.state?.commsExam).to.equal(examDate);
+  });
+
+  it("should throw noPermissionError when non-UserManager tries to update another user", async () => {
+    const anotherUser = await db.User.create(
+      {
+        email: `another-${Date.now()}-${Math.random()}@example.com`,
+        name: "李四",
+        roles: ["Volunteer"],
+      },
+      { transaction },
+    );
+
+    try {
+      await setMyStateImpl(
+        me,
+        { consentedAt: new Date().toISOString() },
+        transaction,
+        anotherUser.id,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("没有权限访问");
+    }
+  });
 });
