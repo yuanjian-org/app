@@ -18,6 +18,7 @@ import AppPage, { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import { getLoginCallbackUrl, loginUrl } from "./auth/login";
+import { getSafeCallbackUrl } from "shared/callbackUrl";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
 
@@ -114,7 +115,7 @@ function SwitchBoard({
       return null;
     } else {
       // Redirect to login if they attempt to access specific sub-pages.
-      void router.push(loginUrl(router.asPath));
+      void router.push(loginUrl(getSafeCallbackUrl(router.asPath)));
       return null;
     }
   } else {
