@@ -949,6 +949,72 @@ async function generateFinalScoresCSV(): Promise<CsvFormats> {
   return await formatScoresCSV(mentee2ScoreMap);
 }
 
+export function applyInitialSolverOutputImpl(
+  { output, dryrun }: { output: string; dryrun: boolean },
+  _transaction?: Transaction,
+): Promise<InitialMatchSolution> {
+  const run = async (transaction: Transaction) => {
+    const id2ids = parseSolverOutput(output);
+    const batches = await listMentorSelectionBatches(
+      Object.keys(id2ids),
+      transaction,
+    );
+
+    const ret: InitialMatchSolution = [];
+    for (const [menteeId, mentorIds] of Object.entries(id2ids)) {
+      const mentee = await db.User.findByPk(menteeId, {
+        attributes: [...minUserAttributes, "menteeApplication"],
+        include: {
+          association: "pointOfContact",
+          attributes: minUserAttributes,
+        },
+        transaction,
+      });
+      if (!mentee) throw notFoundError("学生", menteeId);
+
+      const mentors: MinUser[] = [];
+      for (const mentorId of mentorIds) {
+        const mentor = await db.User.findByPk(mentorId, {
+          attributes: minUserAttributes,
+          transaction,
+        });
+        if (!mentor) throw notFoundError("导师", mentorId);
+        mentors.push(mentor);
+      }
+
+      const selections =
+        batches[menteeId] && batches[menteeId].finalizedAt
+          ? batches[menteeId].selections
+          : [];
+
+      ret.push({
+        mentee,
+        pointOfContact: mentee.pointOfContact,
+        source: mentee.menteeApplication?.[menteeSourceField] ?? null,
+        preferredMentors: selections
+          .filter((s) => mentorIds.includes(s.mentor.id))
+          .map((s) => s.mentor),
+        excludedPreferredMentors: selections
+          .filter((s) => !mentorIds.includes(s.mentor.id))
+          .map((s) => s.mentor),
+        nonPreferredMentors: mentors.filter(
+          (m) => !selections.some((s) => s.mentor.id === m.id),
+        ),
+      });
+    }
+
+    if (!dryrun) {
+      await createTransactionalMentorships(id2ids, transaction);
+      await createMatchFeedback(id2ids, transaction);
+    }
+
+    return ret;
+  };
+
+  if (_transaction) return run(_transaction);
+  return sequelize.transaction(run);
+}
+
 // Apply the output of the initial match solver to the database.
 const applyInitialSolverOutput = procedure
   .use(authUser("MentorshipManager"))
@@ -959,64 +1025,8 @@ const applyInitialSolverOutput = procedure
     }),
   )
   .output(zInitialMatchSolution)
-  .mutation(async ({ input: { output, dryrun } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      const id2ids = parseSolverOutput(output);
-      const batches = await listMentorSelectionBatches(
-        Object.keys(id2ids),
-        transaction,
-      );
-
-      const ret: InitialMatchSolution = [];
-      for (const [menteeId, mentorIds] of Object.entries(id2ids)) {
-        const mentee = await db.User.findByPk(menteeId, {
-          attributes: [...minUserAttributes, "menteeApplication"],
-          include: {
-            association: "pointOfContact",
-            attributes: minUserAttributes,
-          },
-          transaction,
-        });
-        if (!mentee) throw notFoundError("学生", menteeId);
-
-        const mentors: MinUser[] = [];
-        for (const mentorId of mentorIds) {
-          const mentor = await db.User.findByPk(mentorId, {
-            attributes: minUserAttributes,
-            transaction,
-          });
-          if (!mentor) throw notFoundError("导师", mentorId);
-          mentors.push(mentor);
-        }
-
-        const selections =
-          batches[menteeId] && batches[menteeId].finalizedAt
-            ? batches[menteeId].selections
-            : [];
-
-        ret.push({
-          mentee,
-          pointOfContact: mentee.pointOfContact,
-          source: mentee.menteeApplication?.[menteeSourceField] ?? null,
-          preferredMentors: selections
-            .filter((s) => mentorIds.includes(s.mentor.id))
-            .map((s) => s.mentor),
-          excludedPreferredMentors: selections
-            .filter((s) => !mentorIds.includes(s.mentor.id))
-            .map((s) => s.mentor),
-          nonPreferredMentors: mentors.filter(
-            (m) => !selections.some((s) => s.mentor.id === m.id),
-          ),
-        });
-      }
-
-      if (!dryrun) {
-        await createTransactionalMentorships(id2ids, transaction);
-        await createMatchFeedback(id2ids, transaction);
-      }
-
-      return ret;
-    });
+  .mutation(async ({ input }) => {
+    return await applyInitialSolverOutputImpl(input);
   });
 
 /**
