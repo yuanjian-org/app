@@ -1,5 +1,6 @@
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
+import { Transaction } from "sequelize";
 import {
   MatchFeedback,
   MatchFeedbackAndCreatedAt,
@@ -116,12 +117,14 @@ const getLastMentorMatchFeedback = procedure
 export async function getLastMatchFeedback(
   userId: string,
   type: "Mentee" | "Mentor",
+  transaction?: Transaction,
 ): Promise<MatchFeedback | null> {
   const row = await db.MatchFeedback.findOne({
     where: { userId },
     order: [["createdAt", "DESC"]],
     limit: 1,
     attributes: ["feedback"],
+    transaction,
   });
   const f = row?.feedback;
   return f && f.type == type ? zMatchFeedback.parse(f) : null;
