@@ -110,7 +110,10 @@ export default async function authorizeHandler(
   if (!session?.me) {
     // Redirect to the login page
     const loginUrl = new URL("/auth/login", baseUrl);
-    loginUrl.searchParams.set(loginCallbackUrlKey, currentUrl.toString());
+    loginUrl.searchParams.set(
+      loginCallbackUrlKey,
+      currentUrl.pathname + currentUrl.search,
+    );
 
     return res.redirect(302, loginUrl.toString());
   }

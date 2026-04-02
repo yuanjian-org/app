@@ -1,4 +1,5 @@
 import { getSession, signOut as nextAuthSignOut } from "next-auth/react";
+import { getSafeCallbackUrl } from "shared/callbackUrl";
 
 /**
  * Custom wrapper for NextAuth's signOut method to support federated logout.
@@ -11,7 +12,7 @@ import { getSession, signOut as nextAuthSignOut } from "next-auth/react";
  */
 export async function signOut(options?: { callbackUrl?: string }) {
   const session = await getSession();
-  let callbackUrl = options?.callbackUrl ?? "/";
+  let callbackUrl = getSafeCallbackUrl(options?.callbackUrl);
   if (session?.federatedLogoutUrl) {
     // Construct the absolute URL of the callback to be sent to the IdP.
     const target = new URL(callbackUrl, window.location.origin).toString();

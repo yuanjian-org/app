@@ -50,7 +50,7 @@ import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
-import { loginCallbackUrlKey } from "shared/callbackUrl";
+import { getSafeCallbackUrl, loginCallbackUrlKey } from "shared/callbackUrl";
 
 export function loginUrl(callbackUrl?: string) {
   return `/auth/login?${callbackUrlParam(callbackUrl)}`;
@@ -66,7 +66,8 @@ function useCallbackUrl() {
 }
 
 export function getLoginCallbackUrl(router: NextRouter) {
-  return parseQueryString(router, loginCallbackUrlKey) ?? "/";
+  const url = parseQueryString(router, loginCallbackUrlKey);
+  return getSafeCallbackUrl(url);
 }
 
 type ServerSideProps = {
