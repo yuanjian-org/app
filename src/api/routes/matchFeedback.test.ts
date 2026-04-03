@@ -7,11 +7,7 @@ import {
   updateLastImpl,
   getLastMatchFeedback,
 } from "./matchFeedback";
-import {
-  MatchFeedback,
-  MenteeMatchFeedback,
-  MentorMatchFeedback,
-} from "shared/MatchFeedback";
+import { MenteeMatchFeedback, MentorMatchFeedback } from "shared/MatchFeedback";
 import moment from "moment";
 
 describe("matchFeedback routes", () => {
@@ -134,9 +130,7 @@ describe("matchFeedback routes", () => {
 
       const newFeedback: MenteeMatchFeedback = {
         type: "Mentee",
-        mentors: [
-          { id: mentor1.id, score: 5, reason: "Updated score" },
-        ],
+        mentors: [{ id: mentor1.id, score: 5, reason: "Updated score" }],
       };
 
       await updateLastImpl(mentee.id, newFeedback, transaction);
@@ -170,7 +164,7 @@ describe("matchFeedback routes", () => {
         errorThrown = true;
         expect(e.message).to.equal("没有找到反馈记录");
       }
-      expect(errorThrown).to.be.true;
+      void expect(errorThrown).to.be.true;
     });
   });
 
@@ -231,7 +225,7 @@ describe("matchFeedback routes", () => {
         "Mentee",
         transaction,
       );
-      expect(result).to.be.null;
+      void expect(result).to.be.null;
     });
 
     it("should return null if user has no feedbacks", async () => {
@@ -240,7 +234,7 @@ describe("matchFeedback routes", () => {
         "Mentee",
         transaction,
       );
-      expect(result).to.be.null;
+      void expect(result).to.be.null;
     });
   });
 });
