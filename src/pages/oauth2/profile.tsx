@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import useMe from "useMe";
 import PageLoader from "components/PageLoader";
 import { parseQueryString } from "shared/strings";
-import { profileCallbackUrlKey } from "shared/callbackUrl";
+import { getSafeCallbackUrl, profileCallbackUrlKey } from "shared/callbackUrl";
 import { SetPhoneModal } from "components/PostLoginModels";
 import { signOut } from "components/signOut";
 
@@ -12,7 +12,9 @@ export default function Page() {
   const router = useRouter();
 
   // Get the callback URL, defaulting to the root if not provided.
-  const callbackUrl = parseQueryString(router, profileCallbackUrlKey) ?? "/";
+  const callbackUrl = getSafeCallbackUrl(
+    parseQueryString(router, profileCallbackUrlKey),
+  );
 
   useEffect(() => {
     // Check if the user's phone is set.
