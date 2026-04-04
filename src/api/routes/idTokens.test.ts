@@ -119,6 +119,48 @@ describe("sendImpl", () => {
     }
   });
 
+  it("should throw rate limit error if requested too frequently by target phone (even from different IP)", async () => {
+    const phone = "+8613800138000";
+    const ip1 = "127.0.0.1";
+    const ip2 = "127.0.0.2";
+
+    // Create a recent token record for ip1 and phone
+    await db.IdToken.create(
+      { ip: ip1, phone, token: "654321", updatedAt: new Date() },
+      { transaction },
+    );
+
+    try {
+      // Requesting for same phone from different IP
+      await sendImpl("phone", phone, ip2, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("验证码发送过于频繁，请稍后再试");
+    }
+  });
+
+  it("should throw rate limit error if requested too frequently by IP (even for different phone)", async () => {
+    const phone1 = "+8613800138000";
+    const phone2 = "+8613800138001";
+    const ip = "127.0.0.1";
+
+    // Create a recent token record for ip and phone1
+    await db.IdToken.create(
+      { ip, phone: phone1, token: "654321", updatedAt: new Date() },
+      { transaction },
+    );
+
+    try {
+      // Requesting for different phone from same IP
+      await sendImpl("phone", phone2, ip, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("验证码发送过于频繁，请稍后再试");
+    }
+  });
+
   it("should succeed if rate limit is passed", async () => {
     const phone = "+8613800138000";
     const ip = "127.0.0.1";
@@ -467,6 +509,68 @@ describe("resetPasswordImpl", () => {
         void expect(error).to.be.instanceOf(Error);
         void expect(error.message).to.include("手机验证码错误");
       }
+    });
+
+    it("should increment failedAttempts on incorrect token", async () => {
+      await createTestIdToken("phone", testPhone, "correct-token");
+
+      try {
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          "wrong-token",
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误");
+      }
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
+      void expect(tokenRecord!.failedAttempts).to.equal(1);
+    });
+
+    it("should destroy token after 5 failed attempts", async () => {
+      await createTestIdToken("phone", testPhone, "correct-token");
+
+      // 4 failed attempts
+      for (let i = 0; i < 4; i++) {
+        try {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "wrong-token",
+            hashedPassword,
+            transaction,
+          );
+        } catch (error: any) {
+          void expect(error.message).to.equal("手机验证码错误。");
+        }
+      }
+
+      // 5th failed attempt
+      try {
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          "wrong-token",
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误次数过多");
+      }
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
+      void expect(tokenRecord).to.be.null;
     });
 
     it("should delete token after successful reset", async () => {
