@@ -10,7 +10,10 @@ import {
   insertOneOnOneMessagePrefixImpl,
 } from "./chatsInternal";
 import User from "../../shared/User";
-import { oneOnOneMessagePrefix, typedMessagePrefix } from "../../shared/ChatMessage";
+import {
+  oneOnOneMessagePrefix,
+  typedMessagePrefix,
+} from "../../shared/ChatMessage";
 
 describe("chatsInternal", () => {
   let transaction: Transaction;
@@ -23,7 +26,10 @@ describe("chatsInternal", () => {
     await transaction.rollback();
   });
 
-  async function createTestUser(roles: any[] = [], menteeStatus: string | null = null) {
+  async function createTestUser(
+    roles: any[] = [],
+    menteeStatus: string | null = null,
+  ) {
     const user = await db.User.create(
       {
         email: `test-user-${Date.now()}-${Math.random()}@test.com`,
@@ -51,17 +57,25 @@ describe("chatsInternal", () => {
     it("should successfully create a room if it does not exist", async () => {
       const mentee = await createTestUser([], "现届学子");
 
-      const room = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const room = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
-      expect(room).not.to.be.undefined;
+      void expect(room).not.to.be.undefined;
       // ChatRoom zChatRoom might just have `menteeId` if it's minimal, let's verify what `room` actually contains.
       // Actually we know `foundRoom` has `id`. We can just test `foundRoom`'s `menteeId`.
       // Let's print the structure if needed or just use foundRoom.menteeId.
 
       // findRoom with only attributes: ["id"] by default.
-      const foundRoom = await findRoom(mentee.id, transaction, ["id", "menteeId"]);
+      const foundRoom = await findRoom(mentee.id, transaction, [
+        "id",
+        "menteeId",
+      ]);
       expect(foundRoom?.menteeId).to.equal(mentee.id);
-      expect(foundRoom).not.to.be.null;
+      void expect(foundRoom).not.to.be.null;
       expect(foundRoom?.id).to.equal(room.id);
     });
 
@@ -75,9 +89,19 @@ describe("chatsInternal", () => {
       const mentee = await createTestUser([], "现届学子");
       const manager = await createTestUser(["MentorshipManager"]);
 
-      const createdRoom = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const createdRoom = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
-      const roomAgain = await findOrCreateRoom(manager, mentee.id, "read", transaction);
+      const roomAgain = await findOrCreateRoom(
+        manager,
+        mentee.id,
+        "read",
+        transaction,
+      );
 
       expect(roomAgain.id).to.equal(createdRoom.id);
     });
@@ -86,33 +110,46 @@ describe("chatsInternal", () => {
   describe("createChatMessage", () => {
     it("should successfully create a chat message and delete drafts", async () => {
       const mentee = await createTestUser([], "现届学子");
-      const room = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const room = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
       // Create a draft first
-      await db.DraftChatMessage.create({
-        roomId: room.id,
-        authorId: mentee.id,
-        markdown: "some draft",
-      }, { transaction });
+      await db.DraftChatMessage.create(
+        {
+          roomId: room.id,
+          authorId: mentee.id,
+          markdown: "some draft",
+        },
+        { transaction },
+      );
 
       await createChatMessage(mentee, room.id, "Hello world", transaction);
 
       const messageCount = await db.ChatMessage.count({
         where: { roomId: room.id, userId: mentee.id },
-        transaction
+        transaction,
       });
       expect(messageCount).to.equal(1);
 
       const draftCount = await db.DraftChatMessage.count({
         where: { roomId: room.id, authorId: mentee.id },
-        transaction
+        transaction,
       });
       expect(draftCount).to.equal(0);
     });
 
     it("should throw an error if the markdown is empty", async () => {
       const mentee = await createTestUser([], "现届学子");
-      const room = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const room = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
       try {
         await createChatMessage(mentee, room.id, "   \n  ", transaction);
@@ -125,7 +162,12 @@ describe("chatsInternal", () => {
     it("should throw an error if the room does not exist", async () => {
       const mentee = await createTestUser([], "现届学子");
       try {
-        await createChatMessage(mentee, "00000000-0000-0000-0000-000000000000", "hello", transaction);
+        await createChatMessage(
+          mentee,
+          "00000000-0000-0000-0000-000000000000",
+          "hello",
+          transaction,
+        );
         expect.fail("Should have thrown an error");
       } catch (err: any) {
         expect(err.message).to.contain("讨论空间");
@@ -156,30 +198,49 @@ describe("chatsInternal", () => {
   describe("insertOneOnOneMessagePrefixImpl", () => {
     it("should successfully insert the one-on-one prefix to a message", async () => {
       const mentee = await createTestUser([], "现届学子");
-      const room = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const room = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
       await createChatMessage(mentee, room.id, "Normal message", transaction);
 
       const message = await db.ChatMessage.findOne({
         where: { roomId: room.id },
-        transaction
+        transaction,
       });
 
       await insertOneOnOneMessagePrefixImpl(message!.id, transaction);
 
-      const updatedMessage = await db.ChatMessage.findByPk(message!.id, { transaction });
-      expect(updatedMessage?.markdown).to.equal(oneOnOneMessagePrefix + "Normal message");
+      const updatedMessage = await db.ChatMessage.findByPk(message!.id, {
+        transaction,
+      });
+      expect(updatedMessage?.markdown).to.equal(
+        oneOnOneMessagePrefix + "Normal message",
+      );
     });
 
     it("should throw an error if message already has a typed prefix", async () => {
       const mentee = await createTestUser([], "现届学子");
-      const room = await findOrCreateRoom(mentee, mentee.id, "write", transaction);
+      const room = await findOrCreateRoom(
+        mentee,
+        mentee.id,
+        "write",
+        transaction,
+      );
 
-      await createChatMessage(mentee, room.id, typedMessagePrefix + "Normal message", transaction);
+      await createChatMessage(
+        mentee,
+        room.id,
+        typedMessagePrefix + "Normal message",
+        transaction,
+      );
 
       const message = await db.ChatMessage.findOne({
         where: { roomId: room.id },
-        transaction
+        transaction,
       });
 
       try {
@@ -192,7 +253,10 @@ describe("chatsInternal", () => {
 
     it("should throw an error if message is not found", async () => {
       try {
-        await insertOneOnOneMessagePrefixImpl("00000000-0000-0000-0000-000000000000", transaction);
+        await insertOneOnOneMessagePrefixImpl(
+          "00000000-0000-0000-0000-000000000000",
+          transaction,
+        );
         expect.fail("Should have thrown an error");
       } catch (err: any) {
         expect(err.message).to.contain("讨论消息");
