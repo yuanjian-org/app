@@ -14,7 +14,6 @@ describe("matchFeedback routes", () => {
   let menteeUser: any;
   let mentorUser: any;
   let anotherMentorUser: any;
-  let anotherMenteeUser: any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
@@ -24,16 +23,6 @@ describe("matchFeedback routes", () => {
       {
         email: `mentee-${Date.now()}@example.com`,
         name: "Test Mentee",
-        roles: [],
-      },
-      { transaction },
-    );
-
-    // Create another mentee
-    anotherMenteeUser = await db.User.create(
-      {
-        email: `mentee-${Date.now()}-2@example.com`,
-        name: "Another Mentee",
         roles: [],
       },
       { transaction },
@@ -82,14 +71,18 @@ describe("matchFeedback routes", () => {
       // Wait a bit to ensure createdAt difference, or just trust Sequelize autoincrement ordering,
       // but creating sequentially usually puts the last one later or we can manually set createdAt if needed.
       // For precision, let's create it.
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       await db.MatchFeedback.create(
         { userId: menteeUser.id, feedback: secondFeedback },
         { transaction },
       );
 
-      const latest = await getLastMatchFeedback(menteeUser.id, "Mentee", transaction);
-      expect(latest).not.to.be.null;
+      const latest = await getLastMatchFeedback(
+        menteeUser.id,
+        "Mentee",
+        transaction,
+      );
+      expect(latest).not.to.equal(null);
       expect((latest as MenteeMatchFeedback).mentors[0].score).to.equal(4);
     });
 
@@ -103,18 +96,28 @@ describe("matchFeedback routes", () => {
         { transaction },
       );
 
-      const latest = await getLastMatchFeedback(mentorUser.id, "Mentor", transaction);
-      expect(latest).not.to.be.null;
-      expect((latest as MentorMatchFeedback).mentees[0].choice).to.equal("Prefer");
+      const latest = await getLastMatchFeedback(
+        mentorUser.id,
+        "Mentor",
+        transaction,
+      );
+      expect(latest).not.to.equal(null);
+      expect((latest as MentorMatchFeedback).mentees[0].choice).to.equal(
+        "Prefer",
+      );
     });
 
     it("should return null if there is no feedback of the requested type", async () => {
-      const latest = await getLastMatchFeedback(menteeUser.id, "Mentee", transaction);
-      expect(latest).to.be.null;
+      const latest = await getLastMatchFeedback(
+        menteeUser.id,
+        "Mentee",
+        transaction,
+      );
+      expect(latest).to.equal(null);
     });
 
     it("should return null if the latest feedback type does not match", async () => {
-       const menteeFeedback: MenteeMatchFeedback = {
+      const menteeFeedback: MenteeMatchFeedback = {
         type: "Mentee",
         mentors: [{ id: mentorUser.id, score: 3 }],
       };
@@ -124,8 +127,12 @@ describe("matchFeedback routes", () => {
       );
 
       // Ask for Mentor type for a user that only has Mentee feedback
-      const latest = await getLastMatchFeedback(menteeUser.id, "Mentor", transaction);
-      expect(latest).to.be.null;
+      const latest = await getLastMatchFeedback(
+        menteeUser.id,
+        "Mentor",
+        transaction,
+      );
+      expect(latest).to.equal(null);
     });
   });
 
@@ -146,7 +153,7 @@ describe("matchFeedback routes", () => {
       const returnedFeedback = list[0].feedback as MenteeMatchFeedback;
       expect(returnedFeedback.type).to.equal("Mentee");
       expect(returnedFeedback.mentors.length).to.equal(1);
-      expect(returnedFeedback.mentors[0].user).not.to.be.undefined;
+      expect(returnedFeedback.mentors[0].user).not.to.equal(undefined);
       expect(returnedFeedback.mentors[0].user?.id).to.equal(mentorUser.id);
       expect(returnedFeedback.mentors[0].user?.name).to.equal("Test Mentor");
     });
@@ -167,7 +174,7 @@ describe("matchFeedback routes", () => {
       const returnedFeedback = list[0].feedback as MentorMatchFeedback;
       expect(returnedFeedback.type).to.equal("Mentor");
       expect(returnedFeedback.mentees.length).to.equal(1);
-      expect(returnedFeedback.mentees[0].user).not.to.be.undefined;
+      expect(returnedFeedback.mentees[0].user).not.to.equal(undefined);
       expect(returnedFeedback.mentees[0].user?.id).to.equal(menteeUser.id);
       expect(returnedFeedback.mentees[0].user?.name).to.equal("Test Mentee");
     });
@@ -188,14 +195,18 @@ describe("matchFeedback routes", () => {
         type: "Mentee",
         mentors: [
           { id: mentorUser.id, score: 5 },
-          { id: anotherMentorUser.id, score: 4 }
+          { id: anotherMentorUser.id, score: 4 },
         ],
       };
 
       await updateLastImpl(menteeUser.id, updatedFeedback, transaction);
 
-      const latest = await getLastMatchFeedback(menteeUser.id, "Mentee", transaction);
-      expect(latest).not.to.be.null;
+      const latest = await getLastMatchFeedback(
+        menteeUser.id,
+        "Mentee",
+        transaction,
+      );
+      expect(latest).not.to.equal(null);
       const menteeLatest = latest as MenteeMatchFeedback;
       expect(menteeLatest.mentors.length).to.equal(2);
       expect(menteeLatest.mentors[0].score).to.equal(5);
