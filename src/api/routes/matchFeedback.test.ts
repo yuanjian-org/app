@@ -2,18 +2,13 @@ import { expect } from "chai";
 import db from "api/database/db";
 import sequelize from "api/database/sequelize";
 import { Transaction } from "sequelize";
-import {
-  getLastMatchFeedback,
-  updateLastImpl,
-} from "./matchFeedback";
+import { getLastMatchFeedback, updateLastImpl } from "./matchFeedback";
 import { MenteeMatchFeedback, MentorMatchFeedback } from "shared/MatchFeedback";
 
 describe("matchFeedback routes", () => {
   let transaction: Transaction;
   let mentee: any;
   let mentor: any;
-  let menteeFeedbackId: string;
-  let mentorFeedbackId: string;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
@@ -24,7 +19,7 @@ describe("matchFeedback routes", () => {
         name: "Mentee User",
         roles: ["Volunteer"],
       },
-      { transaction }
+      { transaction },
     );
 
     mentor = await db.User.create(
@@ -33,7 +28,7 @@ describe("matchFeedback routes", () => {
         name: "Mentor User",
         roles: ["Mentor"],
       },
-      { transaction }
+      { transaction },
     );
 
     const menteeFeedback: MenteeMatchFeedback = {
@@ -58,14 +53,13 @@ describe("matchFeedback routes", () => {
       ],
     };
 
-    const mf1 = await db.MatchFeedback.create(
+    await db.MatchFeedback.create(
       {
         userId: mentee.id,
         feedback: menteeFeedback,
       },
-      { transaction }
+      { transaction },
     );
-    menteeFeedbackId = mf1.id;
 
     // Simulate an older record to ensure it takes the latest one
     await db.MatchFeedback.create(
@@ -77,17 +71,16 @@ describe("matchFeedback routes", () => {
         },
         createdAt: new Date(Date.now() - 10000), // Older record
       },
-      { transaction }
+      { transaction },
     );
 
-    const mf2 = await db.MatchFeedback.create(
+    await db.MatchFeedback.create(
       {
         userId: mentor.id,
         feedback: mentorFeedback,
       },
-      { transaction }
+      { transaction },
     );
-    mentorFeedbackId = mf2.id;
   });
 
   afterEach(async () => {
@@ -96,8 +89,12 @@ describe("matchFeedback routes", () => {
 
   describe("getLastMatchFeedback", () => {
     it("should return the latest Mentee match feedback", async () => {
-      const feedback = await getLastMatchFeedback(mentee.id, "Mentee", transaction);
-      expect(feedback).not.to.be.null;
+      const feedback = await getLastMatchFeedback(
+        mentee.id,
+        "Mentee",
+        transaction,
+      );
+      expect(feedback).not.to.equal(null);
       if (feedback && feedback.type === "Mentee") {
         expect(feedback.mentors).to.have.lengthOf(1);
         expect(feedback.mentors[0].id).to.equal(mentor.id);
@@ -109,8 +106,12 @@ describe("matchFeedback routes", () => {
     });
 
     it("should return the latest Mentor match feedback", async () => {
-      const feedback = await getLastMatchFeedback(mentor.id, "Mentor", transaction);
-      expect(feedback).not.to.be.null;
+      const feedback = await getLastMatchFeedback(
+        mentor.id,
+        "Mentor",
+        transaction,
+      );
+      expect(feedback).not.to.equal(null);
       if (feedback && feedback.type === "Mentor") {
         expect(feedback.mentees).to.have.lengthOf(1);
         expect(feedback.mentees[0].id).to.equal(mentee.id);
@@ -128,16 +129,24 @@ describe("matchFeedback routes", () => {
           name: "New User",
           roles: ["Volunteer"],
         },
-        { transaction }
+        { transaction },
       );
-      const feedback = await getLastMatchFeedback(newUser.id, "Mentee", transaction);
-      void expect(feedback).to.be.null;
+      const feedback = await getLastMatchFeedback(
+        newUser.id,
+        "Mentee",
+        transaction,
+      );
+      expect(feedback).to.equal(null);
     });
 
     it("should return null if the type does not match", async () => {
       // Mentee has "Mentee" feedback, asking for "Mentor" feedback should return null
-      const feedback = await getLastMatchFeedback(mentee.id, "Mentor", transaction);
-      void expect(feedback).to.be.null;
+      const feedback = await getLastMatchFeedback(
+        mentee.id,
+        "Mentor",
+        transaction,
+      );
+      expect(feedback).to.equal(null);
     });
   });
 
@@ -156,8 +165,12 @@ describe("matchFeedback routes", () => {
 
       await updateLastImpl(mentee.id, updatedMenteeFeedback, transaction);
 
-      const feedback = await getLastMatchFeedback(mentee.id, "Mentee", transaction);
-      expect(feedback).not.to.be.null;
+      const feedback = await getLastMatchFeedback(
+        mentee.id,
+        "Mentee",
+        transaction,
+      );
+      expect(feedback).not.to.equal(null);
       if (feedback && feedback.type === "Mentee") {
         expect(feedback.mentors).to.have.lengthOf(1);
         expect(feedback.mentors[0].score).to.equal(4);
@@ -174,7 +187,7 @@ describe("matchFeedback routes", () => {
           name: "New User 2",
           roles: ["Volunteer"],
         },
-        { transaction }
+        { transaction },
       );
 
       const newFeedback: MenteeMatchFeedback = {
