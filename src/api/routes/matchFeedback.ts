@@ -17,6 +17,7 @@ import invariant from "shared/invariant";
 import { zMinUser } from "shared/User";
 import { generalBadRequestError } from "api/errors";
 import sequelize from "api/database/sequelize";
+import { Transaction } from "sequelize";
 
 const list = procedure
   .use(authUser())
@@ -73,21 +74,29 @@ const list = procedure
     return ret;
   });
 
+export async function updateLastImpl(
+  meId: string,
+  input: MatchFeedback,
+  transaction?: Transaction,
+) {
+  const last = await db.MatchFeedback.findOne({
+    where: { userId: meId },
+    order: [["createdAt", "DESC"]],
+    limit: 1,
+    attributes: ["id"],
+    transaction,
+    lock: true,
+  });
+  if (!last) throw generalBadRequestError("没有找到反馈记录");
+  await last.update({ feedback: input }, { transaction });
+}
+
 const updateLast = procedure
   .use(authUser())
   .input(zMatchFeedback)
   .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
-      const last = await db.MatchFeedback.findOne({
-        where: { userId: me.id },
-        order: [["createdAt", "DESC"]],
-        limit: 1,
-        attributes: ["id"],
-        transaction,
-        lock: true,
-      });
-      if (!last) throw generalBadRequestError("没有找到反馈记录");
-      await last.update({ feedback: input }, { transaction });
+      await updateLastImpl(me.id, input, transaction);
     });
   });
 
@@ -116,12 +125,14 @@ const getLastMentorMatchFeedback = procedure
 export async function getLastMatchFeedback(
   userId: string,
   type: "Mentee" | "Mentor",
+  transaction?: Transaction,
 ): Promise<MatchFeedback | null> {
   const row = await db.MatchFeedback.findOne({
     where: { userId },
     order: [["createdAt", "DESC"]],
     limit: 1,
     attributes: ["feedback"],
+    transaction,
   });
   const f = row?.feedback;
   return f && f.type == type ? zMatchFeedback.parse(f) : null;
