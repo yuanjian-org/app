@@ -19,38 +19,11 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  // Rename Transcript primary key column from transcriptId to id
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Transcripts' AND column_name='transcriptId') THEN
-        ALTER TABLE "Transcripts" RENAME COLUMN "transcriptId" TO "id";
-      END IF;
-    END $$
-  `);
-
-  // Next-auth accounts: OAuth access tokens (e.g. JWE) exceed varchar(255).
-  await sequelize.query(`
-    DO $$
-    BEGIN
-      IF to_regclass('public.accounts') IS NOT NULL THEN
-        ALTER TABLE public.accounts
-          ALTER COLUMN access_token TYPE TEXT,
-          ALTER COLUMN refresh_token TYPE TEXT;
-      END IF;
-    END $$
-  `);
+  await Promise.resolve();
 }
 
 async function migrateData() {
   console.log("Migrating DB data...");
-
-  // Trim whitespace of all ChatMessages.markdown in a single SQL statement.
-  await sequelize.query(`
-    UPDATE "ChatMessages"
-    SET "markdown" = TRIM(BOTH FROM "markdown")
-    WHERE "markdown" IS NOT NULL AND "markdown" != TRIM(BOTH FROM "markdown")
-  `);
 
   await Promise.resolve();
 }
