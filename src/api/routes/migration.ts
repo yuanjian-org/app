@@ -19,7 +19,17 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await Promise.resolve();
+  await sequelize.query(`
+    DO $$
+    BEGIN
+        IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'IdTokens') THEN
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='IdTokens' AND column_name='failedAttempts') THEN
+                ALTER TABLE "IdTokens" ADD COLUMN "failedAttempts" INTEGER DEFAULT 0;
+            END IF;
+        END IF;
+    END
+    $$;
+  `);
 }
 
 async function migrateData() {

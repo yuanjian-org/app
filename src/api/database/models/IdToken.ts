@@ -21,4 +21,8 @@ export default class IdToken extends Model {
   @AllowNull(false)
   @Column(STRING)
   token: string;
+
+  @AllowNull(false)
+  @Column({ type: "INTEGER", defaultValue: 0 })
+  failedAttempts: number;
 }
