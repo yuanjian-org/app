@@ -12,16 +12,30 @@ export async function checkAndDeleteIdToken(
   transaction: Transaction,
 ) {
   const dbToken = await db.IdToken.findOne({
-    where: { [idType === "phone" ? "phone" : "email"]: id, token },
-    attributes: ["id", "updatedAt"],
+    where: { [idType === "phone" ? "phone" : "email"]: id },
+    attributes: ["id", "createdAt", "token", "failedAttempts"],
     transaction,
   });
 
   const idText = idType === "phone" ? "手机" : "邮箱";
   if (!dbToken) {
     throw generalBadRequestError(`${idText}验证码错误。`);
-  } else if (moment().diff(dbToken.updatedAt, "minutes") > tokenMaxAgeInMins) {
+  }
+
+  if (moment().diff(dbToken.createdAt, "minutes") > tokenMaxAgeInMins) {
+    await dbToken.destroy({ transaction });
     throw generalBadRequestError(`${idText}验证码已过期，请重新验证。`);
   }
+
+  if (dbToken.token !== token) {
+    await dbToken.increment("failedAttempts", { transaction });
+    await dbToken.reload({ transaction });
+    if (dbToken.failedAttempts >= 5) {
+      await dbToken.destroy({ transaction });
+      throw generalBadRequestError(`${idText}验证码错误次数过多，已失效。`);
+    }
+    throw generalBadRequestError(`${idText}验证码错误。`);
+  }
+
   await dbToken.destroy({ transaction });
 }

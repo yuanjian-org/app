@@ -47,9 +47,14 @@ export async function sendImpl(
   /**
    * Rate limit. Note that once the user successfully consume a token, the
    * rate limit will be reset.
+   *
+   * Rate limit by both IP and the target identifier to prevent multi-IP attacks
+   * against a single account.
    */
   const last = await db.IdToken.findOne({
-    where: { ip, [idField]: { [Op.ne]: null } },
+    where: {
+      [Op.or]: [{ ip }, { [idField]: id }],
+    },
     attributes: ["updatedAt"],
     order: [["updatedAt", "DESC"]],
     transaction,
@@ -62,7 +67,10 @@ export async function sendImpl(
   }
 
   const token = await generateToken();
-  await db.IdToken.upsert({ ip, [idField]: id, token }, { transaction });
+  await db.IdToken.upsert(
+    { ip, [idField]: id, token, failedAttempts: 0 },
+    { transaction },
+  );
 
   if (idType === "phone") {
     await sms("yaD264", idTokenInternationalSmsTemplateId, [

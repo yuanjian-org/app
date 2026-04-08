@@ -19,7 +19,22 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await Promise.resolve();
+  // Add failedAttempts column to IdTokens table if it doesn't exist.
+  // Note: to_regclass('public."IdTokens"') check ensures the table exists
+  // (fresh environments may not have it yet before sync).
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF to_regclass('public."IdTokens"') IS NOT NULL THEN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='IdTokens' AND column_name='failedAttempts'
+        ) THEN
+          ALTER TABLE "IdTokens" ADD COLUMN "failedAttempts" INTEGER DEFAULT 0 NOT NULL;
+        END IF;
+      END IF;
+    END $$;
+  `);
 }
 
 async function migrateData() {
