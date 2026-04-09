@@ -1,5 +1,5 @@
-import { Column, Table, Model, AllowNull, Unique } from "sequelize-typescript";
-import { STRING } from "sequelize";
+import { Column, Table, Model, AllowNull, Unique, Default } from "sequelize-typescript";
+import { STRING, INTEGER } from "sequelize";
 
 @Table
 export default class IdToken extends Model {
@@ -21,4 +21,8 @@ export default class IdToken extends Model {
   @AllowNull(false)
   @Column(STRING)
   token: string;
+
+  @Default(0)
+  @Column(INTEGER)
+  failedAttempts: number;
 }

@@ -100,13 +100,32 @@ describe("sendImpl", () => {
     void expect(emailStub.firstCall.args[0][0]).to.equal(userEmail);
   });
 
-  it("should throw rate limit error if requested too frequently", async () => {
+  it("should throw rate limit error if requested too frequently by IP", async () => {
     const phone = "+8613800138000";
     const ip = "127.0.0.1";
 
-    // Create a recent token record
+    // Create a recent token record for this IP
     await db.IdToken.create(
-      { ip, phone, token: "654321", updatedAt: new Date() },
+      { ip, phone: "+8613800138001", token: "654321", updatedAt: new Date() },
+      { transaction },
+    );
+
+    try {
+      await sendImpl("phone", phone, ip, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("验证码发送过于频繁，请稍后再试");
+    }
+  });
+
+  it("should throw rate limit error if requested too frequently by identifier", async () => {
+    const phone = "+8613800138000";
+    const ip = "127.0.0.1";
+
+    // Create a recent token record for this identifier but different IP
+    await db.IdToken.create(
+      { ip: "127.0.0.2", phone, token: "654321", updatedAt: new Date() },
       { transaction },
     );
 
@@ -161,6 +180,59 @@ describe("sendImpl", () => {
     void expect(tokenRecord).to.not.be.null;
     void expect(tokenRecord!.token).to.equal("123456");
     void expect(smsStub.calledOnce).to.be.true;
+  });
+});
+
+describe("setPhoneImpl brute-force protection", () => {
+  let transaction: Transaction;
+  const token = "123456";
+  const phone = "+8613800138000";
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    await db.IdToken.create({ ip: "127.0.0.1", phone, token }, { transaction });
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should increment failedAttempts on wrong token", async () => {
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    try {
+      await setPhoneImpl(phone, "wrong", me, transaction);
+    } catch (e) {}
+
+    const idToken = await db.IdToken.findOne({
+      where: { phone },
+      transaction,
+    });
+    expect(idToken?.failedAttempts).to.equal(1);
+  });
+
+  it("should delete token after 5 failed attempts", async () => {
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    for (let i = 0; i < 4; i++) {
+      try {
+        await setPhoneImpl(phone, "wrong", me, transaction);
+      } catch (e) {
+        expect((e as any).message).to.equal("手机验证码错误。");
+      }
+    }
+
+    try {
+      await setPhoneImpl(phone, "wrong", me, transaction);
+    } catch (e) {
+      expect((e as any).message).to.equal("验证码错误次数过多，请重新发送。");
+    }
+
+    const idToken = await db.IdToken.findOne({
+      where: { phone },
+      transaction,
+    });
+    expect(idToken).to.be.null;
   });
 });
 
