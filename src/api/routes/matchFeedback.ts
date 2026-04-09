@@ -18,77 +18,99 @@ import { zMinUser } from "shared/User";
 import { generalBadRequestError } from "api/errors";
 import sequelize from "api/database/sequelize";
 
+export async function listImpl(
+  userId: string,
+  transaction?: import("sequelize").Transaction,
+): Promise<MatchFeedbackAndCreatedAt[]> {
+  const feedbacks = await db.MatchFeedback.findAll({
+    where: { userId },
+    attributes: ["feedback", "createdAt"],
+    transaction,
+  });
+
+  const getUser = async (id: string) => {
+    const u = await db.User.findByPk(id, {
+      attributes: minUserAttributes,
+      transaction,
+    });
+    if (u) {
+      return zMinUser.parse(u);
+    } else {
+      console.error(`User ${id} not found`);
+      return null;
+    }
+  };
+
+  const ret: MatchFeedbackAndCreatedAt[] = [];
+  for (const f of feedbacks) {
+    if (f.feedback.type == "Mentee") {
+      const feedback: MenteeMatchFeedback = zMenteeMatchFeedback.parse(
+        f.feedback,
+      );
+      for (const m of feedback.mentors) {
+        const u = await getUser(m.id);
+        if (!u) continue;
+        m.user = u;
+      }
+      ret.push({
+        feedback,
+        createdAt: f.createdAt,
+      });
+    } else {
+      invariant(f.feedback.type == "Mentor", "expect Mentor feedback");
+      const feedback: MentorMatchFeedback = zMentorMatchFeedback.parse(
+        f.feedback,
+      );
+      for (const m of feedback.mentees) {
+        const u = await getUser(m.id);
+        if (!u) continue;
+        m.user = u;
+      }
+      ret.push({
+        feedback,
+        createdAt: f.createdAt,
+      });
+    }
+  }
+  return ret;
+}
+
 const list = procedure
   .use(authUser())
   .output(z.array(zMatchFeedbackAndCreatedAt))
   .query(async ({ ctx: { me } }) => {
-    const feedbacks = await db.MatchFeedback.findAll({
-      where: { userId: me.id },
-      attributes: ["feedback", "createdAt"],
-    });
-
-    const getUser = async (id: string) => {
-      const u = await db.User.findByPk(id, {
-        attributes: minUserAttributes,
-      });
-      if (u) {
-        return zMinUser.parse(u);
-      } else {
-        console.error(`User ${id} not found`);
-        return null;
-      }
-    };
-
-    const ret: MatchFeedbackAndCreatedAt[] = [];
-    for (const f of feedbacks) {
-      if (f.feedback.type == "Mentee") {
-        const feedback: MenteeMatchFeedback = zMenteeMatchFeedback.parse(
-          f.feedback,
-        );
-        for (const m of feedback.mentors) {
-          const u = await getUser(m.id);
-          if (!u) continue;
-          m.user = u;
-        }
-        ret.push({
-          feedback,
-          createdAt: f.createdAt,
-        });
-      } else {
-        invariant(f.feedback.type == "Mentor", "expect Mentor feedback");
-        const feedback: MentorMatchFeedback = zMentorMatchFeedback.parse(
-          f.feedback,
-        );
-        for (const m of feedback.mentees) {
-          const u = await getUser(m.id);
-          if (!u) continue;
-          m.user = u;
-        }
-        ret.push({
-          feedback,
-          createdAt: f.createdAt,
-        });
-      }
-    }
-    return ret;
+    return await listImpl(me.id);
   });
+
+export async function updateLastImpl(
+  userId: string,
+  input: MatchFeedback,
+  transaction?: import("sequelize").Transaction,
+): Promise<void> {
+  const t = transaction || (await sequelize.transaction());
+  try {
+    const last = await db.MatchFeedback.findOne({
+      where: { userId },
+      order: [["createdAt", "DESC"]],
+      limit: 1,
+      attributes: ["id"],
+      transaction: t,
+      lock: true,
+    });
+    if (!last) throw generalBadRequestError("没有找到反馈记录");
+    await last.update({ feedback: input }, { transaction: t });
+    if (!transaction) await t.commit();
+  } catch (e) {
+    if (!transaction) await t.rollback();
+    throw e;
+  }
+}
 
 const updateLast = procedure
   .use(authUser())
   .input(zMatchFeedback)
   .mutation(async ({ ctx: { me }, input }) => {
-    await sequelize.transaction(async (transaction) => {
-      const last = await db.MatchFeedback.findOne({
-        where: { userId: me.id },
-        order: [["createdAt", "DESC"]],
-        limit: 1,
-        attributes: ["id"],
-        transaction,
-        lock: true,
-      });
-      if (!last) throw generalBadRequestError("没有找到反馈记录");
-      await last.update({ feedback: input }, { transaction });
-    });
+    await updateLastImpl(me.id, input);
   });
 
 const getLastMenteeMatchFeedback = procedure
@@ -116,12 +138,14 @@ const getLastMentorMatchFeedback = procedure
 export async function getLastMatchFeedback(
   userId: string,
   type: "Mentee" | "Mentor",
+  transaction?: import("sequelize").Transaction,
 ): Promise<MatchFeedback | null> {
   const row = await db.MatchFeedback.findOne({
     where: { userId },
     order: [["createdAt", "DESC"]],
     limit: 1,
     attributes: ["feedback"],
+    transaction,
   });
   const f = row?.feedback;
   return f && f.type == type ? zMatchFeedback.parse(f) : null;
