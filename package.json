@@ -34,7 +34,7 @@
     "google-spreadsheet": "^5.2.0",
     "inquirer": "^13.3.2",
     "json-stable-stringify": "^1.3.0",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "lru-cache": "^11.2.7",
     "moment": "^2.30.1",
     "next": "^15.5.14",
