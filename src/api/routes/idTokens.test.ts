@@ -487,6 +487,46 @@ describe("resetPasswordImpl", () => {
       void expect(token).to.be.null;
     });
 
+    it("should destroy token after 5 failed attempts", async () => {
+      await createTestIdToken("phone", testPhone, testToken);
+
+      // 4 failed attempts
+      for (let i = 0; i < 4; i++) {
+        try {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "wrong-token",
+            hashedPassword,
+            transaction,
+          );
+        } catch (error: any) {
+          void expect(error.message).to.include("手机验证码错误");
+        }
+      }
+
+      // The 5th failed attempt
+      try {
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          "wrong-token",
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误次数过多");
+      }
+
+      // Verify token is deleted
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
+      void expect(tokenRecord).to.be.null;
+    });
+
     it("should throw error for email with invalid token", async () => {
       await createTestIdToken("email", testEmail, "different-token");
 
