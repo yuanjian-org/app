@@ -19,7 +19,19 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await Promise.resolve();
+  // Add failedAttempts to IdTokens table.
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'IdTokens' AND column_name = 'failedAttempts'
+      ) THEN
+        ALTER TABLE "IdTokens" ADD COLUMN "failedAttempts" INTEGER NOT NULL DEFAULT 0;
+      END IF;
+    END $$;
+  `);
 }
 
 async function migrateData() {

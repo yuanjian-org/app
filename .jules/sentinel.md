@@ -1,0 +1,4 @@
+## 2026-04-11 - Brute-force protection for verification tokens
+**Vulnerability:** 6-digit verification codes used for phone/email verification and password reset were susceptible to brute-force attacks. There was no limit on failed attempts, allowing an attacker to guess the token within its 10-minute lifetime.
+**Learning:** High-entropy tokens (like UUIDs) are naturally resistant to brute-force, but low-entropy 6-digit codes require explicit server-side tracking of failed attempts to be secure.
+**Prevention:** Always implement a maximum attempt limit (e.g., 5) for short verification codes. Tracking failed attempts and destroying the token upon reaching the limit, while ensuring the token lifetime is not extended by failed attempts (using `createdAt` for expiration), provides defense in depth.

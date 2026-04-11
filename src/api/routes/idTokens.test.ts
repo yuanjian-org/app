@@ -487,6 +487,120 @@ describe("resetPasswordImpl", () => {
       void expect(token).to.be.null;
     });
 
+    it("should increment failedAttempts on wrong token and delete after 5 attempts", async () => {
+      await createTestIdToken("phone", testPhone, testToken);
+
+      // 4 failed attempts
+      for (let i = 0; i < 4; i++) {
+        try {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "wrong-token",
+            hashedPassword,
+            transaction,
+          );
+          expect.fail("Expected error to be thrown");
+        } catch (error: any) {
+          void expect(error.message).to.include("手机验证码错误");
+        }
+
+        const tokenRecord = await db.IdToken.findOne({
+          where: { phone: testPhone },
+          transaction,
+        });
+        void expect(tokenRecord).to.not.be.null;
+        void expect(tokenRecord!.failedAttempts).to.equal(i + 1);
+      }
+
+      // 5th failed attempt should delete the token
+      try {
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          "wrong-token",
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("验证码错误次数过多");
+      }
+
+      const tokenRecordAfter = await db.IdToken.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
+      void expect(tokenRecordAfter).to.be.null;
+    });
+
+    it("should reset failedAttempts on new token generation", async () => {
+      sinon.stub(tokenModule, "generateToken").resolves(123456);
+      const ip = "127.0.0.1";
+      // Create token with some failed attempts
+      await db.IdToken.create(
+        {
+          ip,
+          phone: testPhone,
+          token: "old-token",
+          failedAttempts: 3,
+        },
+        { transaction },
+      );
+
+      // Backdate updatedAt to avoid rate limit
+      await sequelize.query(
+        `UPDATE "IdTokens" SET "updatedAt" = :updatedAt WHERE phone = :phone`,
+        {
+          replacements: {
+            updatedAt: moment().subtract(65, "seconds").toDate(),
+            phone: testPhone,
+          },
+          transaction,
+        },
+      );
+
+      // Generate new token
+      await sendImpl("phone", testPhone, ip, transaction);
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+        transaction,
+      });
+      void expect(tokenRecord).to.not.be.null;
+      void expect(tokenRecord!.token).to.equal("123456");
+      void expect(tokenRecord!.failedAttempts).to.equal(0);
+    });
+
+    it("should throw error if token is expired based on createdAt", async () => {
+      await createTestIdToken("phone", testPhone, testToken);
+
+      // Manually update createdAt to be 11 minutes ago (expired)
+      await sequelize.query(
+        `UPDATE "IdTokens" SET "createdAt" = :createdAt WHERE phone = :phone`,
+        {
+          replacements: {
+            createdAt: moment().subtract(11, "minutes").toDate(),
+            phone: testPhone,
+          },
+          transaction,
+        },
+      );
+
+      try {
+        await resetPasswordImpl(
+          "phone",
+          testPhone,
+          testToken,
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("验证码已过期");
+      }
+    });
+
     it("should throw error for email with invalid token", async () => {
       await createTestIdToken("email", testEmail, "different-token");
 
