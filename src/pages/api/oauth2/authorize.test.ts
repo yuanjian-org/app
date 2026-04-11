@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import request from "supertest";
-import proxyquire from "proxyquire";
+import td from "testdouble";
 import { createTestServer } from "../../../api/oauth2/testUtils";
 
 describe("OAuth2 authorizeHandler", () => {
@@ -8,27 +8,31 @@ describe("OAuth2 authorizeHandler", () => {
   let mockSession: any = null;
   let originalEnv: NodeJS.ProcessEnv;
 
-  before(function () {
-    this.timeout(10000); // Sometimes proxyquire takes a bit to load in Next.js tests
+  before(async function () {
+    this.timeout(10000);
     originalEnv = { ...process.env };
+
     // Provide a dummy DATABASE_URI so that modules that accidentally trigger DB initialization won't throw
     if (!process.env.DATABASE_URI) {
       process.env.DATABASE_URI =
         "postgres://postgres:postgres@localhost:5432/yuanjian";
     }
 
-    // Use proxyquire to mock next-auth
-    const authorizeHandler = proxyquire("./authorize", {
-      "next-auth": {
-        getServerSession: () => Promise.resolve(mockSession),
-      },
-    }).default;
+    // Use testdouble to mock next-auth
+    td.replace("next-auth", {
+      getServerSession: () => Promise.resolve(mockSession),
+    });
+    td.replace("../auth/[...nextauth]", {
+      authOptions: () => ({}),
+    });
 
+    const authorizeHandler = (await import("./authorize")).default;
     server = createTestServer(authorizeHandler);
   });
 
   after(() => {
     process.env = originalEnv;
+    td.reset();
   });
 
   beforeEach(() => {
