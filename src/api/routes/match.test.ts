@@ -55,7 +55,9 @@ describe("match.ts", () => {
           expect(result.length).to.equal(1);
           expect(result[0].mentee.id).to.equal(mentee.id);
           expect(result[0].nonPreferredMentors).to.have.lengthOf(2);
-          const returnedMentorIds = result[0].nonPreferredMentors.map((m) => m.id);
+          const returnedMentorIds = result[0].nonPreferredMentors.map(
+            (m) => m.id,
+          );
           expect(returnedMentorIds).to.include(mentor1.id);
           expect(returnedMentorIds).to.include(mentor2.id);
 
@@ -69,7 +71,7 @@ describe("match.ts", () => {
           expect(mentorshipMentorIds).to.include(mentor1.id);
           expect(mentorshipMentorIds).to.include(mentor2.id);
           for (const m of mentorships) {
-            expect(m.transactional).to.be.true;
+            expect(m.transactional).to.equal(true);
           }
 
           // Assert database state: MatchFeedback for Mentee
@@ -77,7 +79,7 @@ describe("match.ts", () => {
             where: { userId: mentee.id },
             transaction,
           });
-          expect(menteeFeedback).to.not.be.null;
+          expect(menteeFeedback).to.not.equal(null);
           expect(menteeFeedback!.feedback.type).to.equal("Mentee");
           expect(menteeFeedback!.feedback.mentors).to.deep.equal([
             { id: mentor1.id },
@@ -89,7 +91,7 @@ describe("match.ts", () => {
             where: { userId: mentor1.id },
             transaction,
           });
-          expect(mentor1Feedback).to.not.be.null;
+          expect(mentor1Feedback).to.not.equal(null);
           expect(mentor1Feedback!.feedback.type).to.equal("Mentor");
           expect(mentor1Feedback!.feedback.mentees).to.deep.equal([
             { id: mentee.id },
@@ -99,7 +101,7 @@ describe("match.ts", () => {
             where: { userId: mentor2.id },
             transaction,
           });
-          expect(mentor2Feedback).to.not.be.null;
+          expect(mentor2Feedback).to.not.equal(null);
           expect(mentor2Feedback!.feedback.type).to.equal("Mentor");
           expect(mentor2Feedback!.feedback.mentees).to.deep.equal([
             { id: mentee.id },
