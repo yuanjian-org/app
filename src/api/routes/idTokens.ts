@@ -45,11 +45,14 @@ export async function sendImpl(
 
   const idField = idType === "phone" ? "phone" : "email";
   /**
-   * Rate limit. Note that once the user successfully consume a token, the
-   * rate limit will be reset.
+   * Rate limit by either client IP or the target phone/email.
+   * Note that once the user successfully consume a token, the rate limit will
+   * be reset.
    */
   const last = await db.IdToken.findOne({
-    where: { ip, [idField]: { [Op.ne]: null } },
+    where: {
+      [Op.or]: [{ ip }, { [idField]: id }],
+    },
     attributes: ["updatedAt"],
     order: [["updatedAt", "DESC"]],
     transaction,
