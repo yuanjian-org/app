@@ -31,6 +31,7 @@ import {
   CardBody,
   Tabs,
 } from "@chakra-ui/react";
+import Head from "next/head";
 import Applicant from "components/Applicant";
 import TabsWithUrlParam from "components/TabsWithUrlParam";
 import { widePage } from "AppPage";
@@ -109,6 +110,9 @@ export default widePage(() => {
     />
   ) : (
     <>
+      <Head>
+        <title>{`${formatUserName(mentee.name)} | 远图`}</title>
+      </Head>
       <PageBreadcrumb current={`${formatUserName(mentee.name)}`} />
       <MenteeTabs mentee={mentee} mentorships={mentorships} />
     </>
