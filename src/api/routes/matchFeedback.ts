@@ -86,33 +86,27 @@ const list = procedure
 export async function updateLastImpl(
   userId: string,
   input: MatchFeedback,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
-  const doUpdate = async (tx: Transaction) => {
-    const last = await db.MatchFeedback.findOne({
-      where: { userId },
-      order: [["createdAt", "DESC"]],
-      limit: 1,
-      attributes: ["id"],
-      transaction: tx,
-      lock: true,
-    });
-    if (!last) throw generalBadRequestError("没有找到反馈记录");
-    await last.update({ feedback: input }, { transaction: tx });
-  };
-
-  if (transaction) {
-    await doUpdate(transaction);
-  } else {
-    await sequelize.transaction(doUpdate);
-  }
+  const last = await db.MatchFeedback.findOne({
+    where: { userId },
+    order: [["createdAt", "DESC"]],
+    limit: 1,
+    attributes: ["id"],
+    transaction,
+    lock: true,
+  });
+  if (!last) throw generalBadRequestError("没有找到反馈记录");
+  await last.update({ feedback: input }, { transaction });
 }
 
 const updateLast = procedure
   .use(authUser())
   .input(zMatchFeedback)
   .mutation(async ({ ctx: { me }, input }) => {
-    await updateLastImpl(me.id, input);
+    await sequelize.transaction(async (transaction) => {
+      await updateLastImpl(me.id, input, transaction);
+    });
   });
 
 const getLastMenteeMatchFeedback = procedure
