@@ -6,12 +6,20 @@ import { v4 as uuidv4 } from "uuid";
 
 describe("match.ts", () => {
   describe("applyInitialSolverOutputImpl", () => {
+    let transaction: any;
+
+    beforeEach(async () => {
+      transaction = await sequelize.transaction();
+    });
+
+    afterEach(async () => {
+      await transaction.rollback();
+    });
+
     it("should create transactional mentorship and match feedback successfully", async () => {
-      try {
-        await sequelize.transaction(async (transaction) => {
-          // Create test users
-          const mentee = await db.User.create(
-            {
+      // Create test users
+      const mentee = await db.User.create(
+        {
               id: uuidv4(),
               email: `mentee-${uuidv4()}@example.com`,
               name: "Test Mentee",
@@ -106,15 +114,6 @@ describe("match.ts", () => {
           expect(mentor2Feedback!.feedback.mentees).to.deep.equal([
             { id: mentee.id },
           ]);
-
-          // Rollback to clean up the fixtures by throwing an error that will be caught outside
-          throw new Error("ROLLBACK_FOR_TEST");
-        });
-      } catch (e: any) {
-        if (e.message !== "ROLLBACK_FOR_TEST") {
-          throw e;
-        }
-      }
     });
   });
 });
