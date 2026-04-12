@@ -40,7 +40,7 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
       );
     } catch (err: any) {
       res.statusCode = 500;
-      res.end(err.message);
+      res.end("Internal Server Error");
     }
   };
 
