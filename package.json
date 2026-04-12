@@ -141,6 +141,9 @@
   },
   "resolutions": {
     "//": "To fix dependabot vulnerability #96. Cannot upgrade mocha beyond v10 due to ts-node ESM breaking changes.",
-    "serialize-javascript": "^7.0.3"
+    "serialize-javascript": "^7.0.5",
+    "@eslint/plugin-kit": "^0.3.4",
+    "brace-expansion": "^2.0.3",
+    "picomatch": "^2.3.2"
   }
 }
