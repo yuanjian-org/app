@@ -141,6 +141,8 @@
   },
   "resolutions": {
     "//": "To fix dependabot vulnerability #96. Cannot upgrade mocha beyond v10 due to ts-node ESM breaking changes.",
+    "//1": "To fix dependabot vulnerabilities: serialize-javascript (CPU Exhaustion), @eslint/plugin-kit (Arbitrary script execution)",
+    "//2": "brace-expansion (Zero-step sequence causes process hang), picomatch (ReDoS vulnerability)",
     "serialize-javascript": "^7.0.5",
     "@eslint/plugin-kit": "^0.3.4",
     "brace-expansion": "^2.0.3",
