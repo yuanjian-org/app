@@ -153,7 +153,7 @@ describe("checkAndDeleteIdToken", () => {
       {
         replacements: { updatedAt: expiredTime, id: token.id },
         transaction,
-      }
+      },
     );
 
     try {
