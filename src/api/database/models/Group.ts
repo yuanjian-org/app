@@ -9,6 +9,7 @@ import {
   HasMany,
   Table,
   Default,
+  Index,
   IsUUID,
   Unique,
   PrimaryKey,
@@ -24,8 +25,6 @@ import Interview from "./Interview";
 /**
  * A group is said to be "owned" if the mentorship or interview field is non-null.
  * Otherwise the group is said to be "unowned".
- *
- * TODO: Add an index on `achived`
  */
 @Table({
   tableName: "groups",
@@ -53,6 +52,7 @@ class Group extends Model {
 
   // Archived groups won't show up in the UI. Reveal them by toggling the "Show
   // Archived Groups" option in the group management page.
+  @Index
   @AllowNull(false)
   @Default(false)
   @Column(BOOLEAN)
