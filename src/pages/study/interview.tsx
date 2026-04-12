@@ -1,4 +1,4 @@
-import { VStack, Button, Text } from "@chakra-ui/react";
+import { VStack, Button, Link, Text } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { trpcNext } from "trpc";
@@ -30,8 +30,8 @@ export default function Page() {
 
         <Text>第一步：</Text>
         <Button
-          as="a"
-          target="_blank"
+          as={Link}
+          isExternal
           href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe"
           variant="outline"
           colorScheme="brand"
@@ -42,8 +42,8 @@ export default function Page() {
 
         <Text>第二步：</Text>
         <Button
-          as="a"
-          target="_blank"
+          as={Link}
+          isExternal
           href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064"
           variant="outline"
           colorScheme="brand"
@@ -54,8 +54,8 @@ export default function Page() {
 
         <Text>第三步：</Text>
         <Button
-          as="a"
-          target="_blank"
+          as={Link}
+          isExternal
           href={getStandaloneFormUrl("w02l95", encodeXField(me, me.id))}
           variant="brand"
         >
