@@ -1,4 +1,5 @@
-import { Avatar, HStack, Link, Text } from "@chakra-ui/react";
+import { ExternalLink } from "./ExternalLink";
+import { Avatar, HStack, Text } from "@chakra-ui/react";
 import { getUserUrl, MinUser } from "shared/User";
 import { formatUserName } from "shared/strings";
 import NextLink from "next/link";
@@ -19,14 +20,9 @@ export default function UserChip({ user }: { user: MinUser }) {
 
 export function UserLink({ user }: { user: MinUser }) {
   return (
-    <Link
-      as={NextLink}
-      href={getUserUrl(user)}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <ExternalLink as={NextLink} href={getUserUrl(user)}>
       <UserName user={user} />
-    </Link>
+    </ExternalLink>
   );
 }
 
@@ -37,13 +33,8 @@ export function UserName({ user }: { user: MinUser }) {
 
 export function MenteeLink({ user }: { user: MinUser }) {
   return (
-    <Link
-      as={NextLink}
-      href={`/mentees/${user.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <ExternalLink as={NextLink} href={`/mentees/${user.id}`}>
       {formatUserName(user.name, "formal")}
-    </Link>
+    </ExternalLink>
   );
 }

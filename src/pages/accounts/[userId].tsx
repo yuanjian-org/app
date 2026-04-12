@@ -1,3 +1,4 @@
+import { ExternalLink } from "../../components/ExternalLink";
 import {
   FormControl,
   FormLabel,
@@ -82,13 +83,9 @@ export default function Page() {
         <Input value={user.email || notSetText} readOnly />
         <FormHelperTextWithMargin>
           如需更改，
-          <Link
-            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <ExternalLink href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e">
             请联系客服
-          </Link>
+          </ExternalLink>
           。
         </FormHelperTextWithMargin>
       </FormControl>

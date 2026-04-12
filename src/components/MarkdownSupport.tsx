@@ -1,4 +1,5 @@
-import { Text, Link, HStack, Icon, LinkProps } from "@chakra-ui/react";
+import { ExternalLink } from "./ExternalLink";
+import { Text, HStack, Icon, LinkProps } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 export const markdownSyntaxUrl = "https://markdown.com.cn/basic-syntax";
@@ -10,16 +11,11 @@ export default function MarkdownSupport({
   prefix?: string;
 } & LinkProps) {
   return (
-    <Link
-      target="_blank"
-      rel="noopener noreferrer"
-      href={markdownSyntaxUrl}
-      {...rest}
-    >
+    <ExternalLink href={markdownSyntaxUrl} {...rest}>
       <HStack>
         <Text>{prefix && prefix}支持 Markdown</Text>
         <Icon as={ExternalLinkIcon} />
       </HStack>
-    </Link>
+    </ExternalLink>
   );
 }

@@ -1,3 +1,4 @@
+import { ExternalLink } from "../../components/ExternalLink";
 import { VStack, Button, Text } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -30,9 +31,7 @@ export default function Page() {
 
         <Text>第一步：</Text>
         <Button
-          as="a"
-          target="_blank"
-          rel="noopener noreferrer"
+          as={ExternalLink}
           href="https://www.notion.so/yuanjian/16d36363e907809aa464da12861db4d7"
           variant="outline"
           colorScheme="brand"
@@ -43,9 +42,7 @@ export default function Page() {
 
         <Text>第二步：</Text>
         <Button
-          as="a"
-          target="_blank"
-          rel="noopener noreferrer"
+          as={ExternalLink}
           href={getStandaloneFormUrl("wqPdKE", encodeXField(me, me.id))}
           variant="brand"
         >

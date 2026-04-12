@@ -1,3 +1,4 @@
+import { ExternalLink } from "./ExternalLink";
 import {
   Button,
   Box,
@@ -12,7 +13,6 @@ import {
   ModalFooter,
   Spacer,
   HStack,
-  Link,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import useMe from "../useMe";
@@ -101,24 +101,16 @@ export function SetPhoneModal({
 
             <HStack spacing={2} w="full">
               <SmallGrayText>
-                <Link
-                  href={`${staticUrlPrefix}/why-phone`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <ExternalLink href={`${staticUrlPrefix}/why-phone`}>
                   为什么要填手机号？
-                </Link>
+                </ExternalLink>
               </SmallGrayText>
               <Spacer />
               <SmallGrayText>
                 若有问题，
-                <Link
-                  href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <ExternalLink href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e">
                   联系客服
-                </Link>
+                </ExternalLink>
               </SmallGrayText>
               <RiCustomerServiceFill color="gray" />
             </HStack>

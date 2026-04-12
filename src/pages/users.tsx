@@ -1,3 +1,4 @@
+import { ExternalLink } from "../components/ExternalLink";
 import {
   Button,
   Table,
@@ -326,13 +327,9 @@ function UserEditor({
 
             <FormControl isInvalid={!validPhone}>
               <FormLabel>
-                <Link
-                  href="/s/why-phone"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <ExternalLink href="/s/why-phone">
                   手机号（唯一标识用户）
-                </Link>
+                </ExternalLink>
               </FormLabel>
               <Input
                 type="tel"

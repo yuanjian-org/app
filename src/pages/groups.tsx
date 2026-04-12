@@ -1,3 +1,4 @@
+import { ExternalLink } from "../components/ExternalLink";
 import {
   Button,
   StackDivider,
@@ -18,7 +19,6 @@ import {
   Flex,
   Spacer,
   Checkbox,
-  Link,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
@@ -206,13 +206,11 @@ function GroupEditor({
               <FormControl>
                 <FormLabel>
                   会议链接{" "}
-                  <Link
+                  <ExternalLink
                     href={`${window.location.origin}/groups/${group.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                   >
                     <ExternalLinkIcon />
-                  </Link>
+                  </ExternalLink>
                 </FormLabel>
                 <code>
                   {window.location.origin}/groups/{group.id}

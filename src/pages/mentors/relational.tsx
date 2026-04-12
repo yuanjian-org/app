@@ -1,3 +1,4 @@
+import { ExternalLink } from "../../components/ExternalLink";
 import {
   Text,
   VStack,
@@ -258,9 +259,7 @@ function InstructionsModal({ close }: { close: () => void }) {
               </ListItem>
               <ListItem>
                 无须担心在匹配完一对一导师后失去与其他导师沟通的机会，你随时可通过
-                <Link href="/mentors" target="_blank" rel="noopener noreferrer">
-                  预约不定期导师
-                </Link>
+                <ExternalLink href="/mentors">预约不定期导师</ExternalLink>
                 获得与社区内其他导师交流的机会。
               </ListItem>
             </OrderedList>

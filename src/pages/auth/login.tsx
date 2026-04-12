@@ -1,3 +1,4 @@
+import { ExternalLink } from "../../components/ExternalLink";
 import {
   Button,
   InputGroup,
@@ -213,13 +214,9 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
         <HStack justify="center" spacing={2}>
           <SmallGrayText>
             若登录遇到问题，
-            <Link
-              href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <ExternalLink href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e">
               联系客服
-            </Link>
+            </ExternalLink>
           </SmallGrayText>
           <RiCustomerServiceFill color="gray" />
         </HStack>
