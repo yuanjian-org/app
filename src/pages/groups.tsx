@@ -208,7 +208,7 @@ function GroupEditor({
                   会议链接{" "}
                   <Link
                     href={`${window.location.origin}/groups/${group.id}`}
-                    target="_blank"
+                    isExternal
                   >
                     <ExternalLinkIcon />
                   </Link>

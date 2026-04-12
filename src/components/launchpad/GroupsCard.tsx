@@ -73,7 +73,7 @@ function NoGroup() {
         本网站提供的功能会根据用户角色不同而有所差异。如果您未找到所需功能，
         <Link
           href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-          target="_blank"
+          isExternal
         >
           请联系客服
         </Link>

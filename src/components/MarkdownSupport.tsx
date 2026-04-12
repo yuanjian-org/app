@@ -10,7 +10,7 @@ export default function MarkdownSupport({
   prefix?: string;
 } & LinkProps) {
   return (
-    <Link target="_blank" href={markdownSyntaxUrl} {...rest}>
+    <Link isExternal href={markdownSyntaxUrl} {...rest}>
       <HStack>
         <Text>{prefix && prefix}支持 Markdown</Text>
         <Icon as={ExternalLinkIcon} />

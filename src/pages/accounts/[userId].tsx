@@ -84,7 +84,7 @@ export default function Page() {
           如需更改，
           <Link
             href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-            target="_blank"
+            isExternal
           >
             请联系客服
           </Link>

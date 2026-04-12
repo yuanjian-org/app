@@ -215,7 +215,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
             若登录遇到问题，
             <Link
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-              target="_blank"
+              isExternal
             >
               联系客服
             </Link>
