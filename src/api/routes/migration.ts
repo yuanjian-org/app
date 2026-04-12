@@ -19,6 +19,16 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
+  await sequelize.query(`
+    DO $$
+    BEGIN
+      IF to_regclass('public."groups"') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS groups_archived ON public."groups"("archived");
+      END IF;
+    END
+    $$;
+  `);
+
   await Promise.resolve();
 }
 
