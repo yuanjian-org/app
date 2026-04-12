@@ -1,0 +1,43 @@
+name: Demo Site Health Check
+
+# GitHub automatically sends failure notification emails
+# to repo watchers when a scheduled workflow fails.
+
+permissions: {}
+
+on:
+  schedule:
+    # Runs at the 38th minute of every hour to avoid
+    # collisions with hourly.yml (runs at :08).
+    - cron: "38 * * * *"
+  workflow_dispatch:
+
+jobs:
+  prober:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Cypress prober
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/prober.test.ts
+          config: >-
+            baseUrl=https://demo.yuantuapp.com,
+            defaultCommandTimeout=15000,
+            pageLoadTimeout=30000,
+            video=true
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prober-failure-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
+          retention-days: 7
