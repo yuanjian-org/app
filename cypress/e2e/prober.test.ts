@@ -28,7 +28,7 @@ describe("Demo site health check", () => {
   it(
     "can load student profiles (学生档案)",
     () => {
-      cy.visit("/mentees?menteeStatus=现届学子");
+      cy.visit(`/mentees?menteeStatus=${encodeURIComponent("现届学子")}`);
       cy.contains("学生档案", { timeout: 15000 })
         .should("be.visible");
       // The table should list at least one student.
@@ -38,7 +38,7 @@ describe("Demo site health check", () => {
 
   it("can load user management (用户)", () => {
     cy.visit("/users");
-    cy.contains("用户", { timeout: 15000 })
+    cy.contains("新建用户", { timeout: 15000 })
       .should("be.visible");
   });
 });
