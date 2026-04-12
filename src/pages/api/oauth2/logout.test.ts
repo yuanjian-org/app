@@ -1,9 +1,7 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
-import { createServer } from "http";
 import request from "supertest";
-import { apiResolver } from "next/dist/server/api-utils/node/api-resolver";
-import url from "url";
+import { createTestServer } from "../../../api/oauth2/testUtils";
 import handler from "./logout";
 
 describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
@@ -21,30 +19,7 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     sinon.restore();
   });
 
-  const requestListener = async (req: any, res: any) => {
-    try {
-      // supertest does not automatically parse the query string, but apiResolver requires it
-      req.query = url.parse(req.url, true).query;
-
-      await apiResolver(
-        req,
-        res,
-        req.query,
-        handler,
-        {
-          previewModeEncryptionKey: "",
-          previewModeId: "",
-          previewModeSigningKey: "",
-        },
-        true,
-      );
-    } catch (err: any) {
-      res.statusCode = 500;
-      res.end(err.message);
-    }
-  };
-
-  const app = createServer(requestListener);
+  const app = createTestServer(handler);
 
   it("should return 405 for methods other than GET or POST", async () => {
     const res = await request(app).put("/");
