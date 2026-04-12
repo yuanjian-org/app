@@ -1,4 +1,12 @@
-import { Box, Button, Flex, HStack, Text, Tooltip } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Link,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
@@ -58,12 +66,12 @@ export default function StaticNavBar() {
           </NextLink>
 
           <Tooltip label="联系客服">
-            <NextLink
+            <Link
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-              target="_blank"
+              isExternal
             >
               <RiCustomerServiceFill />
-            </NextLink>
+            </Link>
           </Tooltip>
 
           <Button variant="brand" as={NextLink} href={loginUrl()}>
