@@ -1,12 +1,14 @@
 /// <reference types="cypress" />
-/// <reference types="@testing-library/cypress" />
 
 declare namespace Cypress {
   interface Chainable {
     /**
-     * Custom command to login using session cookies
-     * @example cy.login()
+     * Log in via email + password UI flow.
+     * Defaults to demo admin account.
      */
-    login(): Chainable<void>;
+    login(
+      email?: string,
+      password?: string,
+    ): Chainable<void>;
   }
 }
