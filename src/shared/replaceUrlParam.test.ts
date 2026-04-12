@@ -14,7 +14,7 @@ describe("replaceUrlParam", () => {
 
     await replaceUrlParam(router, "newParam", "newValue");
 
-    expect(replaceStub.calledOnce).to.be.true;
+    expect(replaceStub.calledOnce).to.equal(true);
     expect(replaceStub.firstCall.args[0]).to.deep.equal({
       pathname: "/test",
       query: { existingParam: "oldValue", newParam: "newValue" },
@@ -31,7 +31,7 @@ describe("replaceUrlParam", () => {
 
     await replaceUrlParam(router, "targetParam", "newValue");
 
-    expect(replaceStub.calledOnce).to.be.true;
+    expect(replaceStub.calledOnce).to.equal(true);
     expect(replaceStub.firstCall.args[0]).to.deep.equal({
       pathname: "/test",
       query: { targetParam: "newValue", otherParam: "keep" },
@@ -48,7 +48,7 @@ describe("replaceUrlParam", () => {
 
     await replaceUrlParam(router, "firstParam", "123");
 
-    expect(replaceStub.calledOnce).to.be.true;
+    expect(replaceStub.calledOnce).to.equal(true);
     expect(replaceStub.firstCall.args[0]).to.deep.equal({
       pathname: "/empty",
       query: { firstParam: "123" },
