@@ -8,7 +8,7 @@
 export {};
 
 describe("Demo site health check", () => {
-  before(() => {
+  beforeEach(() => {
     cy.login();
   });
 
