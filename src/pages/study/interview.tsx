@@ -32,6 +32,7 @@ export default function Page() {
         <Button
           as="a"
           target="_blank"
+          rel="noopener noreferrer"
           href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe"
           variant="outline"
           colorScheme="brand"
@@ -44,6 +45,7 @@ export default function Page() {
         <Button
           as="a"
           target="_blank"
+          rel="noopener noreferrer"
           href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064"
           variant="outline"
           colorScheme="brand"
@@ -56,6 +58,7 @@ export default function Page() {
         <Button
           as="a"
           target="_blank"
+          rel="noopener noreferrer"
           href={getStandaloneFormUrl("w02l95", encodeXField(me, me.id))}
           variant="brand"
         >

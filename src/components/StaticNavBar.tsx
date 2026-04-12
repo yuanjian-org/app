@@ -61,6 +61,7 @@ export default function StaticNavBar() {
             <NextLink
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <RiCustomerServiceFill />
             </NextLink>

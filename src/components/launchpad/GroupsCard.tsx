@@ -74,6 +74,7 @@ function NoGroup() {
         <Link
           href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
           target="_blank"
+          rel="noopener noreferrer"
         >
           请联系客服
         </Link>

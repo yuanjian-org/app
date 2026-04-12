@@ -19,7 +19,12 @@ export default function UserChip({ user }: { user: MinUser }) {
 
 export function UserLink({ user }: { user: MinUser }) {
   return (
-    <Link as={NextLink} href={getUserUrl(user)} target="_blank">
+    <Link
+      as={NextLink}
+      href={getUserUrl(user)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <UserName user={user} />
     </Link>
   );
@@ -32,7 +37,12 @@ export function UserName({ user }: { user: MinUser }) {
 
 export function MenteeLink({ user }: { user: MinUser }) {
   return (
-    <Link as={NextLink} href={`/mentees/${user.id}`} target="_blank">
+    <Link
+      as={NextLink}
+      href={`/mentees/${user.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {formatUserName(user.name, "formal")}
     </Link>
   );

@@ -209,6 +209,7 @@ function GroupEditor({
                   <Link
                     href={`${window.location.origin}/groups/${group.id}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <ExternalLinkIcon />
                   </Link>

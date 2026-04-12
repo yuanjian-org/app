@@ -74,13 +74,18 @@ function IntroSection() {
           </Text>
           <Text>
             <b>任何人都可以接受社会导师服务么？</b>是的。
-            <Link href="/img/wechat-app-qrcode.jpg" target="_blank">
+            <Link
+              href="/img/wechat-app-qrcode.jpg"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               馒头工坊｜Mentor Workshop
             </Link>{" "}
             向公众提供社会导师服务，并为符合条件的大学生提供无偿服务。您可以点击链接申请，或
             <Link
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               target="_blank"
+              rel="noopener noreferrer"
             >
               联系客服
             </Link>

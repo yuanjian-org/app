@@ -101,7 +101,11 @@ export function SetPhoneModal({
 
             <HStack spacing={2} w="full">
               <SmallGrayText>
-                <Link href={`${staticUrlPrefix}/why-phone`} target="_blank">
+                <Link
+                  href={`${staticUrlPrefix}/why-phone`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   为什么要填手机号？
                 </Link>
               </SmallGrayText>
@@ -111,6 +115,7 @@ export function SetPhoneModal({
                 <Link
                   href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   联系客服
                 </Link>

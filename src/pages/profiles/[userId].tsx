@@ -159,13 +159,17 @@ export default function Page() {
 
       <SaveButton />
 
-      <Link href={getUserUrl(user)} target="_blank">
+      <Link href={getUserUrl(user)} target="_blank" rel="noopener noreferrer">
         <HStack>
           <Text>查看展示效果</Text> <ExternalLinkIcon />
         </HStack>
       </Link>
 
-      <Link href={`/who-can-see-my-data`} target="_blank">
+      <Link
+        href={`/who-can-see-my-data`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <HStack>
           <LockIcon /> <Text>谁能看到我的资料</Text>
         </HStack>
@@ -197,7 +201,11 @@ function Basic({
           <FormHelperTextWithMargin>
             {displayName("Volunteer")}
             可以自定义
-            <Link href={getUserUrl(user)} target="_blank">
+            <Link
+              href={getUserUrl(user)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               个人资料展示页
             </Link>
             的URL。URL只支持小写英文字母和数字。为了便于其他小伙伴记忆，建议使用中文真名的拼音
@@ -431,7 +439,7 @@ function MarkdownSupported() {
   return (
     <>
       所有文字均支持
-      <Link target="_blank" href={markdownSyntaxUrl}>
+      <Link target="_blank" rel="noopener noreferrer" href={markdownSyntaxUrl}>
         {" "}
         Markdown 格式
       </Link>
@@ -640,7 +648,7 @@ function Mentor({
       <Heading size="md">导师信息</Heading>
       <Text>
         这些信息是学生了解导师的重要渠道，是他们了解并选择
-        <Link target="_blank" href="/s/match">
+        <Link target="_blank" rel="noopener noreferrer" href="/s/match">
           与你匹配
         </Link>
         的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
@@ -658,7 +666,7 @@ function Mentor({
           上传长度约1-2分钟的视频，以便学生直观感受你的沟通方式。
           这将很大程度提高匹配的成功率和满意度。
           内容可包括坐标、职业、性格、擅长聊的话题等等。
-          <Link target="_blank" href="/weihan">
+          <Link target="_blank" rel="noopener noreferrer" href="/weihan">
             参考示例
           </Link>
           。
@@ -794,7 +802,7 @@ function ListAndMarkdownSupport() {
   return (
     <>
       可用以星号开头的列表格式或
-      <Link target="_blank" href={markdownSyntaxUrl}>
+      <Link target="_blank" rel="noopener noreferrer" href={markdownSyntaxUrl}>
         其他 Markdown 格式
       </Link>
     </>
