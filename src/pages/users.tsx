@@ -326,7 +326,7 @@ function UserEditor({
 
             <FormControl isInvalid={!validPhone}>
               <FormLabel>
-                <Link href="/s/why-phone" target="_blank">
+                <Link href="/s/why-phone" isExternal>
                   手机号（唯一标识用户）
                 </Link>
               </FormLabel>
