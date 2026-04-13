@@ -16,6 +16,7 @@ import {
   landmarkAssessmentInclude,
 } from "../database/models/map/attributesAndIncludes";
 import sequelize from "../database/sequelize";
+import { Transaction } from "sequelize";
 
 const listLandmarks = procedure
   .use(authUser())
@@ -45,6 +46,24 @@ const listLandmarks = procedure
     );
   });
 
+export async function createLandmarkAssessmentImpl(
+  userId: string,
+  landmark: string,
+  score: number,
+  markdown: string | null,
+  transaction: Transaction,
+) {
+  await db.LandmarkAssessment.create(
+    {
+      userId,
+      landmark,
+      score,
+      markdown,
+    },
+    { transaction },
+  );
+}
+
 const createLandmarkAssessment = procedure
   .use(authUser())
   .input(
@@ -57,19 +76,31 @@ const createLandmarkAssessment = procedure
   )
   .mutation(async ({ input }) => {
     return await sequelize.transaction(async (transaction) => {
-      const { userId, landmark, score, markdown } = input;
-
-      await db.LandmarkAssessment.create(
-        {
-          userId,
-          landmark,
-          score,
-          markdown,
-        },
-        { transaction },
+      await createLandmarkAssessmentImpl(
+        input.userId,
+        input.landmark,
+        input.score,
+        input.markdown,
+        transaction,
       );
     });
   });
+
+export async function listLandmarkAssessmentsImpl(
+  userId: string,
+  landmark: string,
+  transaction?: Transaction,
+) {
+  // Missing 'as' type casting will cause an error due to
+  // 'createdAt' is optional in 'LandmarkAssessment' but required in
+  // return type
+  return (await db.LandmarkAssessment.findAll({
+    where: { userId, landmark },
+    attributes: landmarkAssessmentAttributes,
+    include: landmarkAssessmentInclude,
+    transaction,
+  })) as LandmarkAssessment[];
+}
 
 const listLandmarkAssessments = procedure
   .use(authUser())
@@ -81,14 +112,7 @@ const listLandmarkAssessments = procedure
   )
   .output(z.array(zLandmarkAssessment))
   .query(async ({ input: { userId, landmark } }) => {
-    // Missing 'as' type casting will cause an error due to
-    // 'createdAt' is optional in 'LandmarkAssessment' but required in
-    // return type
-    return (await db.LandmarkAssessment.findAll({
-      where: { userId, landmark },
-      attributes: landmarkAssessmentAttributes,
-      include: landmarkAssessmentInclude,
-    })) as LandmarkAssessment[];
+    return await listLandmarkAssessmentsImpl(userId, landmark);
   });
 
 export default router({
