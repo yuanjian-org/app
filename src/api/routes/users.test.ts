@@ -431,3 +431,127 @@ describe("setMyStateImpl", () => {
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
   });
 });
+
+
+describe("setPointOfContactAndNoteImpl", () => {
+  let transaction: Transaction;
+  let targetUser: any;
+  let pocUser: any;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+
+    targetUser = await db.User.create(
+      {
+        email: `user-poc-target-${Date.now()}-${Math.random()}@example.com`,
+        name: "Test User",
+        roles: ["Volunteer"],
+        pointOfContactId: null,
+      },
+      { transaction },
+    );
+
+    pocUser = await db.User.create(
+      {
+        email: `poc-${Date.now()}-${Math.random()}@example.com`,
+        name: "Test POC",
+        roles: ["UserManager"],
+      },
+      { transaction },
+    );
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should update pointOfContactId correctly", async () => {
+    await usersModule.setPointOfContactAndNoteImpl(
+      targetUser.id,
+      pocUser.id,
+      undefined,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    expect(updated?.pointOfContactId).to.equal(pocUser.id);
+    void expect(updated?.pointOfContactNote).to.be.null;
+  });
+
+  it("should update pointOfContactNote correctly", async () => {
+    await usersModule.setPointOfContactAndNoteImpl(
+      targetUser.id,
+      undefined,
+      "Test Note",
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    void expect(updated?.pointOfContactId).to.be.null;
+    expect(updated?.pointOfContactNote).to.equal("Test Note");
+  });
+
+  it("should update both pointOfContactId and pointOfContactNote correctly", async () => {
+    await usersModule.setPointOfContactAndNoteImpl(
+      targetUser.id,
+      pocUser.id,
+      "Test Note 2",
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    expect(updated?.pointOfContactId).to.equal(pocUser.id);
+    expect(updated?.pointOfContactNote).to.equal("Test Note 2");
+  });
+
+  it("should set pointOfContactId and pointOfContactNote to null", async () => {
+    // first set them
+    await db.User.update(
+      {
+        pointOfContactId: pocUser.id,
+        pointOfContactNote: "Existing Note",
+      },
+      { where: { id: targetUser.id }, transaction },
+    );
+
+    // then set to null
+    await usersModule.setPointOfContactAndNoteImpl(
+      targetUser.id,
+      null,
+      null,
+      transaction,
+    );
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    void expect(updated?.pointOfContactId).to.be.null;
+    void expect(updated?.pointOfContactNote).to.be.null;
+  });
+
+  it("should throw generalBadRequestError if both are undefined", async () => {
+    try {
+      await usersModule.setPointOfContactAndNoteImpl(
+        targetUser.id,
+        undefined,
+        undefined,
+        transaction,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("One of pocId and pocNote must be set");
+    }
+  });
+
+  it("should throw notFoundError if user does not exist", async () => {
+    try {
+      await usersModule.setPointOfContactAndNoteImpl(
+        "00000000-0000-0000-0000-000000000000",
+        pocUser.id,
+        undefined,
+        transaction,
+      );
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("用户");
+    }
+  });
+});

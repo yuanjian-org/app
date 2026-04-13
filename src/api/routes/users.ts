@@ -765,30 +765,41 @@ export async function setMyStateImpl(
   );
 }
 
+export async function setPointOfContactAndNoteImpl(
+  userId: string,
+  pocId: string | null | undefined,
+  pocNote: string | null | undefined,
+  transaction?: any,
+) {
+  if (pocId === undefined && pocNote === undefined) {
+    throw generalBadRequestError("One of pocId and pocNote must be set");
+  }
+  const [cnt] = await db.User.update(
+    {
+      ...(pocId !== undefined ? { pointOfContactId: pocId } : {}),
+      ...(pocNote !== undefined ? { pointOfContactNote: pocNote } : {}),
+    },
+    { where: { id: userId }, transaction },
+  );
+  if (cnt == 0) throw notFoundError("用户", userId);
+  invalidateUserCache(userId);
+  return cnt;
+}
+
 const setPointOfContactAndNote = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .input(
     z.object({
       userId: z.string(),
-      pocId: z.string().optional(),
-      pocNote: z.string().optional(),
+      pocId: z.string().nullish(),
+      pocNote: z.string().nullish(),
     }),
   )
   .mutation(async ({ input: { userId, pocId, pocNote } }) => {
-    if (pocId === undefined && pocNote === undefined) {
-      throw generalBadRequestError("One of pocId and pocNote must be set");
-    }
-
-    const [cnt] = await db.User.update(
-      {
-        ...(pocId !== undefined ? { pointOfContactId: pocId } : {}),
-        ...(pocNote !== undefined ? { pointOfContactNote: pocNote } : {}),
-      },
-      { where: { id: userId } },
-    );
-    if (cnt == 0) throw notFoundError("用户", userId);
-    invalidateUserCache(userId);
+    await setPointOfContactAndNoteImpl(userId, pocId, pocNote);
   });
+
+/**
 
 /**
  * Only MentorshipManager, MentorshipOperator, mentor of the applicant,
