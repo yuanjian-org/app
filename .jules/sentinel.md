@@ -1,0 +1,4 @@
+## 2024-05-16 - [IDOR in Landmark Assessments]
+**Vulnerability:** TRPC endpoints `createLandmarkAssessment` and `listLandmarkAssessments` in `src/api/routes/map.ts` accepted a `userId` input parameter but lacked authorization checks, allowing any authenticated user to read or modify another user's assessments.
+**Learning:** TRPC endpoints relying on a target `userId` in their input must explicitly verify that this target matches the authenticated user's ID (`ctx.me.id`) or that the user has appropriate privileged roles, otherwise they are vulnerable to IDOR (Broken Object Level Authorization).
+**Prevention:** Always implement explicit role and ID-based authorization checks in API endpoints that access or mutate user-specific data, verifying `ctx.me.id === input.userId` or `isPermitted(ctx.me.roles, [...])`.

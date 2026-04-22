@@ -16,6 +16,8 @@ import {
   landmarkAssessmentInclude,
 } from "../database/models/map/attributesAndIncludes";
 import sequelize from "../database/sequelize";
+import { isPermitted } from "../../shared/Role";
+import { TRPCError } from "@trpc/server";
 
 const listLandmarks = procedure
   .use(authUser())
@@ -55,10 +57,24 @@ const createLandmarkAssessment = procedure
       markdown: z.string().nullable(),
     }),
   )
-  .mutation(async ({ input }) => {
-    return await sequelize.transaction(async (transaction) => {
-      const { userId, landmark, score, markdown } = input;
+  .mutation(async ({ ctx: { me }, input }) => {
+    const { userId, landmark, score, markdown } = input;
 
+    if (
+      me.id !== userId &&
+      !isPermitted(me.roles, [
+        "MentorshipAssessor",
+        "MentorshipManager",
+        "UserManager",
+      ])
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "无权修改其他用户的评估结果",
+      });
+    }
+
+    return await sequelize.transaction(async (transaction) => {
       await db.LandmarkAssessment.create(
         {
           userId,
@@ -80,7 +96,21 @@ const listLandmarkAssessments = procedure
     }),
   )
   .output(z.array(zLandmarkAssessment))
-  .query(async ({ input: { userId, landmark } }) => {
+  .query(async ({ ctx: { me }, input: { userId, landmark } }) => {
+    if (
+      me.id !== userId &&
+      !isPermitted(me.roles, [
+        "MentorshipAssessor",
+        "MentorshipManager",
+        "UserManager",
+      ])
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "无权访问其他用户的评估结果",
+      });
+    }
+
     // Missing 'as' type casting will cause an error due to
     // 'createdAt' is optional in 'LandmarkAssessment' but required in
     // return type
