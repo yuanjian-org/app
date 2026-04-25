@@ -73,8 +73,7 @@ export default function GroupBar({
         // Attempts to open the link in a new browser tab.
         // If blocked or unsuccessful, it opens the link in the current tab.
         // Ref: https://stackoverflow.com/a/2917
-        // Use noopener,noreferrer to prevent reverse tabnabbing vulnerability
-        const w = window.open(link, "_blank", "noopener,noreferrer");
+        const w = window.open(link, "_blank");
         if (!w || w.closed || typeof w.closed === "undefined") {
           window.location.href = link;
           // Time is needed for the meeting page to load.
