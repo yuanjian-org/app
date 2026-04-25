@@ -75,6 +75,7 @@ export default function GroupBar({
         // Ref: https://stackoverflow.com/a/2917
         const w = window.open(link, "_blank");
         if (w) {
+          // Prevent reverse tabnabbing vulnerability
           w.opener = null;
         }
         if (!w || w.closed || typeof w.closed === "undefined") {
