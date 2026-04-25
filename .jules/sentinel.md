@@ -1,4 +1,0 @@
-## 2025-04-21 - [Reverse Tabnabbing]
-**Vulnerability:** Reverse tabnabbing vulnerability found in `src/components/GroupBar.tsx` where `window.open(link, "_blank")` was called without clearing the `opener` reference.
-**Learning:** Even though Chakra UI handles external links safely, calling `window.open()` programmatically with `_blank` without explicitly setting `noopener` or clearing `w.opener` leaves the application vulnerable to reverse tabnabbing. This is because the newly opened tab retains a reference to the `window.opener` object, which it can use to manipulate the location of the original tab.
-**Prevention:** Always set `w.opener = null` immediately after `window.open(..., "_blank")` if you need to keep a reference to the newly opened window (since `noopener` feature flag causes `window.open` to return `null`).
