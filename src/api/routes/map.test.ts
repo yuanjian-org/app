@@ -10,7 +10,6 @@ import {
 describe("Map Router", () => {
   let transaction: Transaction;
   let user: any;
-  let assessor: any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
@@ -20,15 +19,6 @@ describe("Map Router", () => {
         email: "test-user@example.com",
         name: "Test User",
         roles: [],
-      },
-      { transaction },
-    );
-
-    assessor = await db.User.create(
-      {
-        email: "test-assessor@example.com",
-        name: "Test Assessor",
-        roles: ["Mentor"],
       },
       { transaction },
     );
