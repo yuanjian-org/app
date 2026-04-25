@@ -26,9 +26,9 @@ describe("generateDemoData", () => {
       errorCaught = e;
     }
 
-    expect(errorCaught).to.not.be.null;
+    expect(errorCaught).to.not.equal(null);
     if (errorCaught.message !== "ROLLBACK_FOR_TEST") {
-       console.error(errorCaught);
+      console.error(errorCaught);
     }
     expect(errorCaught.message).to.equal("ROLLBACK_FOR_TEST");
   });
