@@ -74,6 +74,10 @@ export default function GroupBar({
         // If blocked or unsuccessful, it opens the link in the current tab.
         // Ref: https://stackoverflow.com/a/2917
         const w = window.open(link, "_blank");
+        if (w) {
+          // Prevent reverse tabnabbing vulnerability
+          w.opener = null;
+        }
         if (!w || w.closed || typeof w.closed === "undefined") {
           window.location.href = link;
           // Time is needed for the meeting page to load.
