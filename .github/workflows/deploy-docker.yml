@@ -151,15 +151,15 @@ jobs:
 
           echo ">>> Migrating yuantu database"
           source .env
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+          curl -f -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
 
           echo ">>> Migrating ustc database"
           source .env.ustc
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+          curl -f -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
 
           echo ">>> Migrating demo database"
           source .env.demo
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+          curl -f -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
 
           echo ">>> Prune Docker images"
           docker image prune -f
