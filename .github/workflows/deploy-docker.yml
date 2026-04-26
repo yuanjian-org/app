@@ -95,6 +95,9 @@ jobs:
     - name: Create .env.demo file
       run: cp .env .env.demo
 
+    - name: Create .env.ustc file
+      run: cp .env .env.ustc
+
     - name: Build Docker image
       run: docker compose build
 
@@ -128,6 +131,7 @@ jobs:
           echo ">>> Pulling app image. Only pulling app because pulling nginx from aliyun may get stuck."
           docker compose pull app
           docker compose pull app-demo
+          docker compose pull app-ustc
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker rm temp_extract || true
