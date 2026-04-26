@@ -39,17 +39,17 @@ jobs:
           for env_file in .env*; do
             [ -e "$env_file" ] || continue
 
-            # Extract DATABASE_URL and DATABASE_BACKUP_KEY
-            DATABASE_URL=$(grep '^DATABASE_URL=' "$env_file" | sed -e 's/^DATABASE_URL=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            # Extract DATABASE_URI and DATABASE_BACKUP_KEY
+            DATABASE_URI=$(grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
             DATABASE_BACKUP_KEY=$(grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
 
-            if [ -n "$DATABASE_URL" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
+            if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
               echo "Backing up database for $env_file"
-              pg_dump "$DATABASE_URL" -F p -b -v -f backup.sql && gzip -f backup.sql
+              pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
               openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${env_file}.sql.gz.enc
               rm -f backup.sql backup.sql.gz
             else
-              echo "Skipping $env_file: DATABASE_URL or DATABASE_BACKUP_KEY not found."
+              echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
             fi
           done
 
