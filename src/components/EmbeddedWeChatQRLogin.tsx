@@ -67,7 +67,7 @@ export default function EmbeddedWeChatQRLogin({
   }, [callbackUrl, appid]);
 
   return (
-    <Box position="relative" height="170px" width="300px">
+    <Box position="relative" height="170px" width="300px" overflow="hidden">
       <Box
         position="absolute"
         display="flex"
