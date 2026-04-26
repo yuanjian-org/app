@@ -30,8 +30,10 @@ describe("OAuth2 authorizeHandler", () => {
 
   beforeEach(() => {
     mockSession = null;
-    process.env.OAUTH2_CLIENT_ID = "test-client";
-    process.env.OAUTH2_REDIRECT_URI = "https://app.example.com/callback";
+    process.env.OAUTH2_CLIENT_IDS = "test-client,test-client-2";
+    process.env.OAUTH2_CLIENT_SECRETS = "test-client-secret,secret2";
+    process.env.OAUTH2_REDIRECT_URIS =
+      "https://app.example.com/callback,https://app2.example.com/callback";
     process.env.NEXTAUTH_SECRET = "test-secret-1234567890";
   });
 
@@ -41,10 +43,16 @@ describe("OAuth2 authorizeHandler", () => {
   });
 
   it("should return 500 if provider is not configured", async () => {
-    delete process.env.OAUTH2_CLIENT_ID;
+    delete process.env.OAUTH2_CLIENT_IDS;
     const res = await request(server).get("/");
     expect(res.status).to.equal(500);
     expect(res.body.error).to.equal("OAuth2 Provider not configured.");
+  });
+
+  it("should return 400 for missing client_id but config is set", async () => {
+    const res = await request(server).get("/");
+    expect(res.status).to.equal(400);
+    expect(res.body.error).to.equal("invalid_client");
   });
 
   it("should return 400 for invalid client_id", async () => {

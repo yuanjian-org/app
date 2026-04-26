@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { logError } from "../../../api/oauth2/utils";
+import { logError, getAllOAuth2RedirectUris } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -16,23 +16,34 @@ export default function logoutHandler(
     post_logout_redirect_uri?: string;
   };
 
-  const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
+  const allRedirectUris = getAllOAuth2RedirectUris();
   let callbackUrl = "/";
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URI.
-  // We allow redirects to the same origin as the client application.
-  if (post_logout_redirect_uri && expectedRedirectUri) {
+  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
+  // We allow redirects to the same origin as any of the client applications.
+  if (post_logout_redirect_uri && allRedirectUris.length > 0) {
     try {
-      const allowedOrigin = new URL(expectedRedirectUri).origin;
       const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+      let isAllowed = false;
 
-      if (allowedOrigin === requestedOrigin) {
+      for (const uri of allRedirectUris) {
+        try {
+          const allowedOrigin = new URL(uri).origin;
+          if (allowedOrigin === requestedOrigin) {
+            isAllowed = true;
+            break;
+          }
+        } catch {
+          // Ignore invalid URIs in config
+        }
+      }
+
+      if (isAllowed) {
         callbackUrl = post_logout_redirect_uri;
       } else {
         logError(
-          "post_logout_redirect_uri origin does not match allowed origin",
+          "post_logout_redirect_uri origin does not match any allowed origin",
           requestedOrigin,
-          allowedOrigin,
         );
       }
     } catch (e) {

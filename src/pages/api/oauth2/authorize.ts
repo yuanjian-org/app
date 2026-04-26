@@ -4,7 +4,11 @@ import { authOptions } from "../auth/[...nextauth]";
 import { URL } from "url";
 import crypto from "crypto";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { encryptPayload, logError } from "../../../api/oauth2/utils";
+import {
+  encryptPayload,
+  logError,
+  getOAuth2ClientConfig,
+} from "../../../api/oauth2/utils";
 import { loginCallbackUrlKey } from "shared/callbackUrl";
 import { profileCallbackUrlKey } from "shared/callbackUrl";
 
@@ -50,22 +54,31 @@ export default async function authorizeHandler(
   };
 
   // 1. Validate the client ID and redirect URI against the env variables.
-  const expectedClientId = process.env.OAUTH2_CLIENT_ID;
-  const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
+  const clientConfig = getOAuth2ClientConfig(client_id);
 
   // Provider must be fully configured.
-  if (!expectedClientId || !expectedRedirectUri) {
-    logError("OAuth2 Provider not configured.");
-    return res.status(500).json({ error: "OAuth2 Provider not configured." });
+  if (!clientConfig) {
+    logError("OAuth2 Provider not configured or Invalid client_id.");
+    if (!client_id) {
+      return res.status(400).json({
+        error: "invalid_client",
+        error_description: "Missing client_id",
+      });
+    } else {
+      const hasIds = !!process.env.OAUTH2_CLIENT_IDS;
+      if (!hasIds) {
+        return res
+          .status(500)
+          .json({ error: "OAuth2 Provider not configured." });
+      }
+      return res.status(400).json({
+        error: "invalid_client",
+        error_description: "Invalid client_id",
+      });
+    }
   }
 
-  if (!client_id || client_id !== expectedClientId) {
-    logError("Invalid client_id", client_id, expectedClientId);
-    return res.status(400).json({
-      error: "invalid_client",
-      error_description: "Invalid client_id",
-    });
-  }
+  const { redirectUri: expectedRedirectUri } = clientConfig;
 
   if (response_type !== "code") {
     logError("Only 'code' response_type is supported", response_type);
