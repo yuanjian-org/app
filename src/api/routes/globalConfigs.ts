@@ -11,6 +11,7 @@ export function getStaticImpl() {
   return {
     isDemo: isDemoFlag(),
     enableOrgs: process.env.ENABLE_ORGS === "true",
+    whiteLabel: process.env.WHITE_LABEL,
   };
 }
 
@@ -65,6 +66,7 @@ const getStatic = procedure
     z.object({
       isDemo: z.boolean(),
       enableOrgs: z.boolean(),
+      whiteLabel: z.string().optional(),
     }),
   )
   .query(() => {

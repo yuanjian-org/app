@@ -21,10 +21,11 @@ describe("Global Configs Internal Functions", () => {
   });
 
   describe("getStaticImpl", () => {
-    it("should return static configuration values including isDemo and enableOrgs", () => {
+    it("should return static configuration values including isDemo, enableOrgs, and whiteLabel", () => {
       const result = getStaticImpl();
       expect(result.isDemo).to.equal(isDemoFlag());
       expect(result.enableOrgs).to.equal(process.env.ENABLE_ORGS === "true");
+      expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL);
     });
   });
 
