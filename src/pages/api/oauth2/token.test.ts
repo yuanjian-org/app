@@ -20,9 +20,9 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   beforeEach(() => {
-    process.env.OAUTH2_CLIENT_ID = "test-client";
-    process.env.OAUTH2_CLIENT_SECRET = "test-client-secret";
-    process.env.OAUTH2_REDIRECT_URI = "https://app.example.com/callback";
+    process.env.OAUTH2_CLIENT_IDS = "test-client";
+    process.env.OAUTH2_CLIENT_SECRETS = "test-client-secret";
+    process.env.OAUTH2_REDIRECT_URIS = "https://app.example.com/callback";
     process.env.NEXTAUTH_SECRET = "test-secret-1234567890";
     process.env.NEXTAUTH_URL = "https://provider.example.com";
   });
@@ -33,10 +33,23 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should return 500 if provider is not configured", async () => {
-    delete process.env.OAUTH2_CLIENT_ID;
+    delete process.env.OAUTH2_CLIENT_IDS;
     const res = await request(server).post("/").send({});
     expect(res.status).to.equal(500);
     expect(res.body.error).to.equal("OAuth2 Provider not configured.");
+  });
+
+  it("should return 401 if client is invalid but provider is configured", async () => {
+    const res = await request(server).post("/").send({
+      grant_type: "authorization_code",
+      code: "some-code",
+      redirect_uri: "https://app.example.com/callback",
+      client_id: "wrong-client",
+      client_secret: "wrong-secret",
+    });
+
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_client");
   });
 
   it("should authenticate client via body", async () => {

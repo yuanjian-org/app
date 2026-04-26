@@ -8,6 +8,7 @@ import {
   encryptPayload,
   decryptPayload,
   logError,
+  getOAuth2ClientConfig,
 } from "../../../api/oauth2/utils";
 import getBaseUrl from "../../../shared/getBaseUrl";
 
@@ -53,15 +54,25 @@ export default async function tokenHandler(
     clientSecret = decodedStr.substring(colonIndex + 1);
   }
 
-  const expectedClientId = process.env.OAUTH2_CLIENT_ID;
-  const expectedClientSecret = process.env.OAUTH2_CLIENT_SECRET;
-  const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
+  const clientConfig = getOAuth2ClientConfig(clientId);
 
-  // Provider must be fully configured.
-  if (!expectedClientId || !expectedClientSecret || !expectedRedirectUri) {
-    logError("OAuth2 Provider not configured.");
-    return res.status(500).json({ error: "OAuth2 Provider not configured." });
+  if (!clientConfig) {
+    logError("OAuth2 Provider not configured or invalid client_id");
+    const hasIds = !!process.env.OAUTH2_CLIENT_IDS;
+    if (!hasIds) {
+      return res.status(500).json({ error: "OAuth2 Provider not configured." });
+    }
+    return res.status(401).json({
+      error: "invalid_client",
+      error_description: "Invalid client_id",
+    });
   }
+
+  const {
+    clientId: expectedClientId,
+    clientSecret: expectedClientSecret,
+    redirectUri: expectedRedirectUri,
+  } = clientConfig;
 
   // Use timing-safe comparison to prevent timing attacks that could be used
   // to guess the client secret character by character.
