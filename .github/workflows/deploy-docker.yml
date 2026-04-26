@@ -149,9 +149,17 @@ jobs:
           echo ">>> Waiting for containers to boot up"
           sleep 5
 
-          echo ">>> Migrating database"
+          echo ">>> Migrating yuantu database"
           source .env
-          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/migration.migrateDatabase
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+
+          echo ">>> Migrating ustc database"
+          source .env.ustc
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+
+          echo ">>> Migrating demo database"
+          source .env.demo
+          curl -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
 
           echo ">>> Prune Docker images"
           docker image prune -f
