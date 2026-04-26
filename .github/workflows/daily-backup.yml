@@ -1,0 +1,73 @@
+name: Daily Database Backup
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # Runs at 1 AM Beijing Time (UTC+8) every day.
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client
+
+    - name: Add SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ vars.SERVER_HOSTNAME }}
+        config: |
+          Host ${{ vars.SERVER_HOSTNAME }}
+            User ${{ secrets.SERVER_SSH_USERNAME }}
+            StrictHostKeyChecking no
+
+    - name: Execute Backup on Server
+      run: |
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+          set -e
+          cd ~/app
+
+          mkdir -p backups
+          rm -rf backups/*
+
+          for env_file in .env*; do
+            [ -e "$env_file" ] || continue
+
+            # Extract DATABASE_URL and DATABASE_BACKUP_KEY
+            DATABASE_URL=$(grep '^DATABASE_URL=' "$env_file" | sed -e 's/^DATABASE_URL=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            DATABASE_BACKUP_KEY=$(grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+
+            if [ -n "$DATABASE_URL" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
+              echo "Backing up database for $env_file"
+              pg_dump "$DATABASE_URL" -F p -b -v -f backup.sql && gzip -f backup.sql
+              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${env_file}.sql.gz.enc
+              rm -f backup.sql backup.sql.gz
+            else
+              echo "Skipping $env_file: DATABASE_URL or DATABASE_BACKUP_KEY not found."
+            fi
+          done
+
+          tar -cvf all_backups.tar -C backups .
+          rm -rf backups
+        EOF
+
+    - name: Download Backup Archive
+      run: |
+        scp ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }}:~/app/all_backups.tar ./all_backups.tar
+
+    - name: Clean up remote backup archive
+      run: |
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} "rm -f ~/app/all_backups.tar"
+
+    - name: Upload Backup to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backups
+        path: all_backups.tar
+        retention-days: 30
