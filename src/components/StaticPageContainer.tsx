@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
 import UstcLandingPage from "./UstcLandingPage";
+import PageLoader from "./PageLoader";
 
 export default function StaticPageContainer({
   children,
@@ -12,6 +13,10 @@ export default function StaticPageContainer({
   children: ReactNode;
 }) {
   const { data } = useStaticGlobalConfigs();
+
+  if (!data) {
+    return <PageLoader />;
+  }
 
   if (data?.whiteLabel === "ustc") {
     return <UstcLandingPage />;
