@@ -14,7 +14,7 @@ export async function checkAndDeleteIdToken(
   const idField = idType === "phone" ? "phone" : "email";
   const dbToken = await db.IdToken.findOne({
     where: { [idField]: id },
-    attributes: ["id", "token", "updatedAt", "failedAttempts"],
+    attributes: ["id", "token", "createdAt", "failedAttempts"],
     transaction,
   });
 
@@ -38,7 +38,7 @@ export async function checkAndDeleteIdToken(
     }
   }
 
-  if (moment().diff(dbToken.updatedAt, "minutes") > tokenMaxAgeInMins) {
+  if (moment().diff(dbToken.createdAt, "minutes") > tokenMaxAgeInMins) {
     throw generalBadRequestError(`${idText}验证码已过期，请重新验证。`);
   }
 
