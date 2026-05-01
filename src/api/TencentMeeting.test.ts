@@ -2,7 +2,11 @@ import { expect } from "chai";
 import sinon from "sinon";
 import https from "https";
 import EventEmitter from "events";
-import { getTmUserIds, createRecurringMeeting, getMeeting } from "./TencentMeeting";
+import {
+  getTmUserIds,
+  createRecurringMeeting,
+  getMeeting,
+} from "./TencentMeeting";
 
 describe("TencentMeeting", () => {
   let requestStub: sinon.SinonStub;
@@ -62,16 +66,18 @@ describe("TencentMeeting", () => {
         "test-user",
         "Test Subject",
         1600000000,
-        1600003600
+        1600003600,
       );
 
       expect(result.meeting_info_list).to.have.lengthOf(1);
-      expect(result.meeting_info_list[0].meeting_id).to.equal("test-meeting-id");
+      expect(result.meeting_info_list[0].meeting_id).to.equal(
+        "test-meeting-id",
+      );
       expect(result.meeting_info_list[0].join_url).to.equal(
-        "https://meeting.tencent.com/p/123"
+        "https://meeting.tencent.com/p/123",
       );
 
-      expect(requestStub.calledOnce).to.be.true;
+      expect(requestStub.calledOnce).to.equal(true);
     });
   });
 
@@ -109,7 +115,7 @@ describe("TencentMeeting", () => {
       expect(result.meeting_id).to.equal("test-meeting-id");
       expect(result.join_url).to.equal("https://meeting.tencent.com/p/123");
 
-      expect(requestStub.calledOnce).to.be.true;
+      expect(requestStub.calledOnce).to.equal(true);
     });
 
     it("should throw internal server error if error_info is returned", async () => {
@@ -117,8 +123,8 @@ describe("TencentMeeting", () => {
         error_info: {
           message: "some error message",
           error_code: 1001,
-          new_error_code: 1002
-        }
+          new_error_code: 1002,
+        },
       };
 
       const mockReq = new EventEmitter() as any;
@@ -142,7 +148,7 @@ describe("TencentMeeting", () => {
         expect(e.message).to.include("1002");
         expect(e.message).to.include("1001");
       }
-      expect(errorThrown).to.be.true;
+      expect(errorThrown).to.equal(true);
     });
   });
 });

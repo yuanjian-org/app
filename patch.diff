@@ -1,0 +1,29 @@
+--- src/api/TencentMeeting.test.ts
++++ src/api/TencentMeeting.test.ts
+@@ -77,7 +77,7 @@
+         "https://meeting.tencent.com/p/123",
+       );
+
+-      expect(requestStub.calledOnce).to.be.true;
++      expect(requestStub.calledOnce).to.equal(true);
+     });
+   });
+
+@@ -115,7 +115,7 @@
+       expect(result.meeting_id).to.equal("test-meeting-id");
+       expect(result.join_url).to.equal("https://meeting.tencent.com/p/123");
+
+-      expect(requestStub.calledOnce).to.be.true;
++      expect(requestStub.calledOnce).to.equal(true);
+     });
+
+     it("should throw internal server error if error_info is returned", async () => {
+@@ -148,7 +148,7 @@
+         expect(e.message).to.include("1002");
+         expect(e.message).to.include("1001");
+       }
+-      expect(errorThrown).to.be.true;
++      expect(errorThrown).to.equal(true);
+     });
+   });
+ });
