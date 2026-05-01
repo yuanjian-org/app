@@ -146,12 +146,12 @@ describe("checkAndDeleteIdToken", () => {
       .toDate();
     const token = await createTestIdToken("phone", testPhone, testToken);
 
-    // Explicitly update updatedAt so Sequelize handles the database
+    // Explicitly update createdAt so Sequelize handles the database
     // update properly bypassing hooks.
     await sequelize.query(
-      `UPDATE "IdTokens" SET "updatedAt" = :updatedAt WHERE id = :id`,
+      `UPDATE "IdTokens" SET "createdAt" = :createdAt WHERE id = :id`,
       {
-        replacements: { updatedAt: expiredTime, id: token.id },
+        replacements: { createdAt: expiredTime, id: token.id },
         transaction,
       },
     );

@@ -65,7 +65,17 @@ export async function sendImpl(
   }
 
   const token = await generateToken();
-  await db.IdToken.upsert({ ip, [idField]: id, token }, { transaction });
+  const existingToken = await db.IdToken.findOne({
+    where: { [idField]: id },
+    transaction,
+  });
+  if (existingToken) {
+    await existingToken.destroy({ transaction });
+  }
+  await db.IdToken.create(
+    { ip, [idField]: id, token, failedAttempts: 0 },
+    { transaction },
+  );
 
   if (idType === "phone") {
     await sms("yaD264", idTokenInternationalSmsTemplateId, [
