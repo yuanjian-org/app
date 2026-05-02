@@ -1,4 +1,4 @@
-name: Daily Database Backup
+name: Daily Backup
 
 permissions:
   contents: read

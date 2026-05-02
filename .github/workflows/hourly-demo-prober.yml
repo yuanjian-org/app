@@ -1,4 +1,4 @@
-name: Demo Site Health Check
+name: Hourly Demo Prober
 
 # GitHub automatically sends failure notification emails
 # to repo watchers when a scheduled workflow fails.
