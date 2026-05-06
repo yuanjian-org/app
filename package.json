@@ -20,7 +20,7 @@
     "@trpc/server": "^10.45.3",
     "apexcharts": "^5.10.4",
     "archiver": "^7.0.1",
-    "axios": "^1.15.0",
+    "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "class-validator": "^0.15.1",
     "console-stamp": "^3.1.2",
