@@ -1,6 +1,45 @@
 import crypto from "crypto";
 import * as jose from "jose";
 
+export function getOAuth2ClientConfig(clientId: string | undefined): {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+} | null {
+  const clientIdsStr = process.env.OAUTH2_CLIENT_IDS;
+  const clientSecretsStr = process.env.OAUTH2_CLIENT_SECRETS;
+  const redirectUrisStr = process.env.OAUTH2_REDIRECT_URIS;
+
+  if (!clientIdsStr || !clientSecretsStr || !redirectUrisStr || !clientId) {
+    return null;
+  }
+
+  const clientIds = clientIdsStr.split(",").map((s) => s.trim());
+  const clientSecrets = clientSecretsStr.split(",").map((s) => s.trim());
+  const redirectUris = redirectUrisStr.split(",").map((s) => s.trim());
+
+  const index = clientIds.indexOf(clientId);
+  if (
+    index === -1 ||
+    index >= clientSecrets.length ||
+    index >= redirectUris.length
+  ) {
+    return null;
+  }
+
+  return {
+    clientId: clientIds[index],
+    clientSecret: clientSecrets[index],
+    redirectUri: redirectUris[index],
+  };
+}
+
+export function getAllOAuth2RedirectUris(): string[] {
+  const redirectUrisStr = process.env.OAUTH2_REDIRECT_URIS;
+  if (!redirectUrisStr) return [];
+  return redirectUrisStr.split(",").map((s) => s.trim());
+}
+
 export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
 }

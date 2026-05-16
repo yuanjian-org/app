@@ -9,8 +9,8 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
 
   beforeEach(() => {
     // Basic setup for tests
-    process.env.OAUTH2_REDIRECT_URI =
-      "https://demo.yuantuapp.com/api/auth/callback/yuantu-sso";
+    process.env.OAUTH2_REDIRECT_URIS =
+      "https://demo.yuantuapp.com/api/auth/callback/yuantu-sso,https://app.example.com/callback";
     process.env.NEXTAUTH_URL = "https://yuantuapp.com";
   });
 
@@ -50,7 +50,18 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(setCookie[2]).to.include("__Secure-next-auth.callback-url=;");
   });
 
-  it("should fallback to root path when post_logout_redirect_uri origin does not match OAUTH2_REDIRECT_URI", async () => {
+  it("should successfully log out and redirect to post_logout_redirect_uri for secondary valid origin", async () => {
+    const targetUrl = "https://app.example.com/post-logout";
+
+    const res = await request(app).get(
+      `/?post_logout_redirect_uri=${encodeURIComponent(targetUrl)}`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal(targetUrl);
+  });
+
+  it("should fallback to root path when post_logout_redirect_uri origin does not match any OAUTH2_REDIRECT_URIS", async () => {
     const maliciousUrl = "https://evil.com/post-logout";
 
     const res = await request(app).get(

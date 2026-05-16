@@ -9,6 +9,7 @@ import {
   decryptPayload,
   hashUserIdForClient,
   logError,
+  getOAuth2ClientConfig,
 } from "../../../api/oauth2/utils";
 
 export default async function userinfoHandler(
@@ -57,9 +58,9 @@ export default async function userinfoHandler(
     });
   }
 
-  const expectedClientId = process.env.OAUTH2_CLIENT_ID;
-  if (payload.clientId !== expectedClientId) {
-    logError("Invalid client_id in token", payload.clientId, expectedClientId);
+  const clientConfig = getOAuth2ClientConfig(payload.clientId as string);
+  if (!clientConfig) {
+    logError("Invalid client_id in token", payload.clientId);
     return res
       .status(401)
       .json({ error: "invalid_token", error_description: "Invalid client_id" });
