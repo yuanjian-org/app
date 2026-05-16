@@ -11,6 +11,8 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import db from "../database/db";
+import { isPermitted } from "../../shared/Role";
+import { noPermissionError } from "../errors";
 import {
   landmarkAssessmentAttributes,
   landmarkAssessmentInclude,
@@ -74,7 +76,10 @@ const createLandmarkAssessment = procedure
       markdown: z.string().nullable(),
     }),
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ ctx: { me }, input }) => {
+    if (me.id !== input.userId && !isPermitted(me.roles, "MentorshipManager")) {
+      throw noPermissionError("评估", input.userId);
+    }
     return await sequelize.transaction(async (transaction) => {
       await createLandmarkAssessmentImpl(
         input.userId,
@@ -111,7 +116,10 @@ const listLandmarkAssessments = procedure
     }),
   )
   .output(z.array(zLandmarkAssessment))
-  .query(async ({ input: { userId, landmark } }) => {
+  .query(async ({ ctx: { me }, input: { userId, landmark } }) => {
+    if (me.id !== userId && !isPermitted(me.roles, "MentorshipManager")) {
+      throw noPermissionError("评估", userId);
+    }
     return await listLandmarkAssessmentsImpl(userId, landmark);
   });
 
