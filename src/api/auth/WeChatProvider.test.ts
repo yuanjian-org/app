@@ -22,7 +22,7 @@ describe("WeChatProvider", () => {
 
     expect(config.id).to.equal("wechat");
     expect(config.authorization?.url).to.equal(
-      "https://open.weixin.qq.com/connect/oauth2/authorize"
+      "https://open.weixin.qq.com/connect/oauth2/authorize",
     );
     // @ts-ignore
     expect(config.authorization?.params?.scope).to.equal("snsapi_userinfo");
@@ -37,7 +37,7 @@ describe("WeChatProvider", () => {
 
     expect(config.id).to.equal("wechat");
     expect(config.authorization?.url).to.equal(
-      "https://open.weixin.qq.com/connect/qrconnect"
+      "https://open.weixin.qq.com/connect/qrconnect",
     );
     // @ts-ignore
     expect(config.authorization?.params?.scope).to.equal("snsapi_login");
@@ -75,7 +75,7 @@ describe("WeChatProvider", () => {
       expect(fetchStub.callCount).to.equal(1);
       const url = new URL(fetchStub.firstCall.args[0] as string);
       expect(url.origin + url.pathname).to.equal(
-        "https://api.weixin.qq.com/sns/oauth2/access_token"
+        "https://api.weixin.qq.com/sns/oauth2/access_token",
       );
       expect(url.searchParams.get("appid")).to.equal("my-client-id");
       expect(url.searchParams.get("secret")).to.equal("my-client-secret");
@@ -140,9 +140,11 @@ describe("WeChatProvider", () => {
       expect(fetchStub.callCount).to.equal(1);
       const url = new URL(fetchStub.firstCall.args[0] as string);
       expect(url.origin + url.pathname).to.equal(
-        "https://api.weixin.qq.com/sns/userinfo"
+        "https://api.weixin.qq.com/sns/userinfo",
       );
-      expect(url.searchParams.get("access_token")).to.equal("mock-access-token");
+      expect(url.searchParams.get("access_token")).to.equal(
+        "mock-access-token",
+      );
       expect(url.searchParams.get("openid")).to.equal("mock-openid");
       expect(url.searchParams.get("lang")).to.equal("zh_CN");
     });
