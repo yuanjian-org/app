@@ -19,12 +19,12 @@ describe("migration", () => {
   it("should call migrateSchema and sequelize.sync during migrateDatabase", async () => {
     await migrateDatabase();
 
-    expect(queryStub.calledOnce).to.be.true;
+    void expect(queryStub.calledOnce).to.be.true;
     expect(queryStub.firstCall.args[0]).to.include(
       "CREATE INDEX IF NOT EXISTS groups_archived",
     );
 
-    expect(syncStub.calledOnce).to.be.true;
+    void expect(syncStub.calledOnce).to.be.true;
     expect(syncStub.firstCall.args[0]).to.deep.equal({
       alter: { drop: false },
     });
