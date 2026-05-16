@@ -18,8 +18,12 @@ describe("jinshuju webhook index", () => {
   beforeEach(async () => {
     transaction = await sequelize.transaction();
 
-    submitMenteeAppStub = sinon.stub(applicationModule, "submitMenteeApp").resolves();
-    submitVolunteerAppStub = sinon.stub(applicationModule, "submitVolunteerApp").resolves();
+    submitMenteeAppStub = sinon
+      .stub(applicationModule, "submitMenteeApp")
+      .resolves();
+    submitVolunteerAppStub = sinon
+      .stub(applicationModule, "submitVolunteerApp")
+      .resolves();
     submitUploadStub = sinon.stub(uploadModule, "default").resolves();
     submitExamStub = sinon.stub(examModule, "default").resolves();
   });
@@ -34,15 +38,27 @@ describe("jinshuju webhook index", () => {
 
     await submit({ form: "FBTWTe", entry }, transaction);
     expect(submitMenteeAppStub.callCount).to.equal(1);
-    expect(submitMenteeAppStub.firstCall.args).to.deep.equal(["FBTWTe", entry, transaction]);
+    expect(submitMenteeAppStub.firstCall.args).to.deep.equal([
+      "FBTWTe",
+      entry,
+      transaction,
+    ]);
 
     await submit({ form: "S74k0V", entry }, transaction);
     expect(submitMenteeAppStub.callCount).to.equal(2);
-    expect(submitMenteeAppStub.secondCall.args).to.deep.equal(["S74k0V", entry, transaction]);
+    expect(submitMenteeAppStub.secondCall.args).to.deep.equal([
+      "S74k0V",
+      entry,
+      transaction,
+    ]);
 
     await submit({ form: "Z82u8w", entry }, transaction);
     expect(submitMenteeAppStub.callCount).to.equal(3);
-    expect(submitMenteeAppStub.thirdCall.args).to.deep.equal(["Z82u8w", entry, transaction]);
+    expect(submitMenteeAppStub.thirdCall.args).to.deep.equal([
+      "Z82u8w",
+      entry,
+      transaction,
+    ]);
   });
 
   it("should route VolunteerApp forms", async () => {
@@ -50,7 +66,10 @@ describe("jinshuju webhook index", () => {
 
     await submit({ form: "OzuvWD", entry }, transaction);
     expect(submitVolunteerAppStub.callCount).to.equal(1);
-    expect(submitVolunteerAppStub.firstCall.args).to.deep.equal([entry, transaction]);
+    expect(submitVolunteerAppStub.firstCall.args).to.deep.equal([
+      entry,
+      transaction,
+    ]);
   });
 
   it("should route upload forms", async () => {
@@ -70,7 +89,12 @@ describe("jinshuju webhook index", () => {
 
     await submit({ form: "w02l95", entry }, transaction);
     expect(submitExamStub.callCount).to.equal(1);
-    expect(submitExamStub.firstCall.args).to.deep.equal([entry, "menteeInterviewerExam", 110, transaction]);
+    expect(submitExamStub.firstCall.args).to.deep.equal([
+      entry,
+      "menteeInterviewerExam",
+      110,
+      transaction,
+    ]);
   });
 
   it("should route handbook exam form", async () => {
@@ -78,7 +102,12 @@ describe("jinshuju webhook index", () => {
 
     await submit({ form: "wqPdKE", entry }, transaction);
     expect(submitExamStub.callCount).to.equal(1);
-    expect(submitExamStub.firstCall.args).to.deep.equal([entry, "handbookExam", 100, transaction]);
+    expect(submitExamStub.firstCall.args).to.deep.equal([
+      entry,
+      "handbookExam",
+      100,
+      transaction,
+    ]);
   });
 
   it("should route comms exam form", async () => {
@@ -86,7 +115,12 @@ describe("jinshuju webhook index", () => {
 
     await submit({ form: "nsnx4G", entry }, transaction);
     expect(submitExamStub.callCount).to.equal(1);
-    expect(submitExamStub.firstCall.args).to.deep.equal([entry, "commsExam", 115, transaction]);
+    expect(submitExamStub.firstCall.args).to.deep.equal([
+      entry,
+      "commsExam",
+      115,
+      transaction,
+    ]);
   });
 
   it("should throw BAD_REQUEST on unknown form id", async () => {
@@ -97,7 +131,7 @@ describe("jinshuju webhook index", () => {
       error = e;
     }
 
-    expect(error).to.exist;
+    expect(error).to.not.equal(undefined);
     expect(error).to.be.instanceOf(TRPCError);
     expect(error.code).to.equal("BAD_REQUEST");
     expect(error.message).to.include("UnknownFormId");
