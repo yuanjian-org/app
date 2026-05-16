@@ -147,6 +147,7 @@
     "serialize-javascript": "^7.0.5",
     "@eslint/plugin-kit": "^0.3.4",
     "brace-expansion": "^2.0.3",
-    "picomatch": "^2.3.2"
+    "picomatch": "^2.3.2",
+    "postcss": "^8.5.10"
   }
 }
