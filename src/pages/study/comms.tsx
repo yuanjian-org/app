@@ -7,12 +7,14 @@ import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
 import useMe from "useMe";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 const title = "《学生通讯原则》自学与评测";
 
 export default function Page() {
   const me = useMe();
   const { data: state } = trpcNext.users.getUserState.useQuery();
+  const { data: staticData } = useStaticGlobalConfigs();
 
   return (
     <>
@@ -44,7 +46,10 @@ export default function Page() {
         <Button
           as={Link}
           isExternal
-          href={getStandaloneFormUrl("nsnx4G", encodeXField(me, me.id))}
+          href={getStandaloneFormUrl(
+            "nsnx4G",
+            encodeXField(me, me.id, staticData?.whiteLabel),
+          )}
           variant="brand"
         >
           开始评测&nbsp;&nbsp;&nbsp;✍️
