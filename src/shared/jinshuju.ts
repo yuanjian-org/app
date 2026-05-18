@@ -1,6 +1,10 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 import { MinUser } from "./User";
 
+function getTenantName(): string {
+  return process.env.AUTH_YUANTU_SSO_CLIENT_ID || "yuantu";
+}
+
 /**
  * Prefix the user's url in the x field to make it easier to identify the user
  * when examining raw data on Jinshuju's website.
@@ -8,16 +12,28 @@ import { MinUser } from "./User";
  * @param urlSafeValue must be a URL-safe string
  */
 export function encodeXField(user: MinUser, urlSafeValue: string) {
-  return (user.url ? user.url : "") + "," + urlSafeValue;
+  const tenant = getTenantName();
+  return tenant + "," + (user.url ? user.url : "") + "," + urlSafeValue;
 }
 
 /**
  * @returns undefined if the x_field_1 is empty or malformed
  */
-export function decodeXField(
+export function validateAndDecodeXField(
   formEntry: Record<string, any>,
 ): string | undefined {
-  return formEntry.x_field_1?.split(",")[1];
+  const xField = formEntry.x_field_1;
+  if (!xField) return undefined;
+
+  const parts = xField.split(",");
+  if (parts.length < 2) return undefined;
+
+  const expectedTenant = getTenantName();
+  if (parts[0] !== expectedTenant) {
+    throw new Error(`Invalid tenant name in x_field_1: ${parts[0]}`);
+  }
+
+  return parts.slice(2).join(",");
 }
 
 export type UploadTarget = "UserProfilePicture" | "UserProfileVideo";

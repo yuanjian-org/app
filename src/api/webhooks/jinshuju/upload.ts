@@ -3,7 +3,7 @@ import db from "../../database/db";
 import { shaChecksum } from "../../../shared/strings";
 import {
   decodeUploadTokenUrlSafe,
-  decodeXField,
+  validateAndDecodeXField,
 } from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
 
@@ -16,7 +16,7 @@ export default async function submit(entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
   }
 
-  const token = decodeXField(entry);
+  const token = validateAndDecodeXField(entry);
   if (!token) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }

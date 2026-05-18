@@ -1,4 +1,4 @@
-import { decodeXField } from "../../../shared/jinshuju";
+import { validateAndDecodeXField } from "../../../shared/jinshuju";
 import db from "../../database/db";
 import moment from "moment";
 import { generalBadRequestError, notFoundError } from "../../errors";
@@ -12,7 +12,7 @@ export default async function submit(
   passingScore: number,
   transaction: Transaction,
 ) {
-  const userId = decodeXField(formEntry);
+  const userId = validateAndDecodeXField(formEntry);
   if (!userId) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }

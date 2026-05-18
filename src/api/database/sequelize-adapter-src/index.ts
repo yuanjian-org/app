@@ -20,25 +20,23 @@ import type {
   AdapterAccount,
   AdapterSession,
   VerificationToken,
-} from "@auth/core/adapters"
-import { Sequelize, Model, ModelCtor } from "sequelize"
-import * as defaultModels from "./models.js"
+} from "@auth/core/adapters";
+import { Sequelize, Model, ModelCtor } from "sequelize";
+import * as defaultModels from "./models.js";
 
-export { defaultModels as models }
+export { defaultModels as models };
 
 // @see https://sequelize.org/master/manual/typescript.html
 //@ts-expect-error
 interface AccountInstance
-  extends Model<AdapterAccount, Partial<AdapterAccount>>,
-    AdapterAccount {}
+  extends Model<AdapterAccount, Partial<AdapterAccount>>, AdapterAccount {}
 interface UserInstance
-  extends Model<AdapterUser, Partial<AdapterUser>>,
-    AdapterUser {}
+  extends Model<AdapterUser, Partial<AdapterUser>>, AdapterUser {}
 interface SessionInstance
-  extends Model<AdapterSession, Partial<AdapterSession>>,
-    AdapterSession {}
+  extends Model<AdapterSession, Partial<AdapterSession>>, AdapterSession {}
 interface VerificationTokenInstance
-  extends Model<VerificationToken, Partial<VerificationToken>>,
+  extends
+    Model<VerificationToken, Partial<VerificationToken>>,
     VerificationToken {}
 
 /** This is the interface of the Sequelize adapter options. */
@@ -46,16 +44,16 @@ export interface SequelizeAdapterOptions {
   /**
    * Whether to {@link https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization synchronize} the models or not.
    */
-  synchronize?: boolean
+  synchronize?: boolean;
   /**
    * The {@link https://sequelize.org/docs/v6/core-concepts/model-basics/ Sequelize Models} related to Auth.js that will be created in your database.
    */
   models?: Partial<{
-    User: ModelCtor<UserInstance>
-    Account: ModelCtor<AccountInstance>
-    Session: ModelCtor<SessionInstance>
-    VerificationToken: ModelCtor<VerificationTokenInstance>
-  }>
+    User: ModelCtor<UserInstance>;
+    Account: ModelCtor<AccountInstance>;
+    Session: ModelCtor<SessionInstance>;
+    VerificationToken: ModelCtor<VerificationTokenInstance>;
+  }>;
 }
 
 /**
@@ -139,188 +137,188 @@ export interface SequelizeAdapterOptions {
  */
 export default function SequelizeAdapter(
   client: Sequelize,
-  options?: SequelizeAdapterOptions
+  options?: SequelizeAdapterOptions,
 ): Adapter {
-  const { models, synchronize = true } = options ?? {}
-  const defaultModelOptions = { underscored: true, timestamps: false }
+  const { models, synchronize = true } = options ?? {};
+  const defaultModelOptions = { underscored: true, timestamps: false };
   const { User, Account, Session, VerificationToken } = {
     User:
       models?.User ??
       client.define<UserInstance>(
         "user",
         defaultModels.User,
-        defaultModelOptions
+        defaultModelOptions,
       ),
     Account:
       models?.Account ??
       client.define<AccountInstance>(
         "account",
         defaultModels.Account,
-        defaultModelOptions
+        defaultModelOptions,
       ),
     Session:
       models?.Session ??
       client.define<SessionInstance>(
         "session",
         defaultModels.Session,
-        defaultModelOptions
+        defaultModelOptions,
       ),
     VerificationToken:
       models?.VerificationToken ??
       client.define<VerificationTokenInstance>(
         "verificationToken",
         defaultModels.VerificationToken,
-        defaultModelOptions
+        defaultModelOptions,
       ),
-  }
-  let _synced = false
+  };
+  let _synced = false;
   const sync = async () => {
     if (process.env.NODE_ENV !== "production" && synchronize && !_synced) {
       const syncOptions =
-        typeof synchronize === "object" ? synchronize : undefined
+        typeof synchronize === "object" ? synchronize : undefined;
 
       await Promise.all([
         User.sync(syncOptions),
         Account.sync(syncOptions),
         Session.sync(syncOptions),
         VerificationToken.sync(syncOptions),
-      ])
+      ]);
 
-      _synced = true
+      _synced = true;
     }
-  }
+  };
 
-  Account.belongsTo(User, { onDelete: "cascade" })
-  Session.belongsTo(User, { onDelete: "cascade" })
+  Account.belongsTo(User, { onDelete: "cascade" });
+  Session.belongsTo(User, { onDelete: "cascade" });
 
   return {
     async createUser(user) {
-      console.log(">>> createUser", user)
-      await sync()
+      console.log(">>> createUser", user);
+      await sync();
 
-      return await User.create(user)
+      return await User.create(user);
     },
     async getUser(id) {
-      await sync()
+      await sync();
 
-      const userInstance = await User.findByPk(id)
+      const userInstance = await User.findByPk(id);
 
-      return userInstance?.get({ plain: true }) ?? null
+      return userInstance?.get({ plain: true }) ?? null;
     },
     async getUserByEmail(email) {
-      await sync()
+      await sync();
 
       const userInstance = await User.findOne({
         where: { email },
-      })
+      });
 
-      return userInstance?.get({ plain: true }) ?? null
+      return userInstance?.get({ plain: true }) ?? null;
     },
     async getUserByAccount({ provider, providerAccountId }) {
-      await sync()
+      await sync();
 
       const accountInstance = await Account.findOne({
         // @ts-expect-error
         where: { provider, providerAccountId },
-      })
+      });
 
       if (!accountInstance) {
-        return null
+        return null;
       }
 
-      const userInstance = await User.findByPk(accountInstance.userId)
+      const userInstance = await User.findByPk(accountInstance.userId);
 
-      return userInstance?.get({ plain: true }) ?? null
+      return userInstance?.get({ plain: true }) ?? null;
     },
     async updateUser(user) {
-      await sync()
+      await sync();
 
-      await User.update(user, { where: { id: user.id } })
-      const userInstance = await User.findByPk(user.id)
+      await User.update(user, { where: { id: user.id } });
+      const userInstance = await User.findByPk(user.id);
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return userInstance!
+      return userInstance!;
     },
     async deleteUser(userId) {
-      await sync()
+      await sync();
 
-      const userInstance = await User.findByPk(userId)
+      const userInstance = await User.findByPk(userId);
 
-      await User.destroy({ where: { id: userId } })
+      await User.destroy({ where: { id: userId } });
 
-      return userInstance
+      return userInstance;
     },
     async linkAccount(account) {
-      await sync()
+      await sync();
 
-      await Account.create(account)
+      await Account.create(account);
     },
     async unlinkAccount({ provider, providerAccountId }) {
-      await sync()
+      await sync();
 
       await Account.destroy({
         where: { provider, providerAccountId },
-      })
+      });
     },
     async createSession(session) {
-      await sync()
+      await sync();
 
-      return await Session.create(session)
+      return await Session.create(session);
     },
     async getSessionAndUser(sessionToken) {
-      await sync()
+      await sync();
 
       const sessionInstance = await Session.findOne({
         where: { sessionToken },
-      })
+      });
 
       if (!sessionInstance) {
-        return null
+        return null;
       }
 
-      const userInstance = await User.findByPk(sessionInstance.userId)
+      const userInstance = await User.findByPk(sessionInstance.userId);
 
       if (!userInstance) {
-        return null
+        return null;
       }
 
       return {
         session: sessionInstance?.get({ plain: true }),
         user: userInstance?.get({ plain: true }),
-      }
+      };
     },
     async updateSession({ sessionToken, expires }) {
-      await sync()
+      await sync();
 
       await Session.update(
         { expires, sessionToken },
-        { where: { sessionToken } }
-      )
+        { where: { sessionToken } },
+      );
 
-      return await Session.findOne({ where: { sessionToken } })
+      return await Session.findOne({ where: { sessionToken } });
     },
     async deleteSession(sessionToken) {
-      await sync()
+      await sync();
 
-      const session = await Session.findOne({ where: { sessionToken } })
-      await Session.destroy({ where: { sessionToken } })
-      return session?.get({ plain: true })
+      const session = await Session.findOne({ where: { sessionToken } });
+      await Session.destroy({ where: { sessionToken } });
+      return session?.get({ plain: true });
     },
     async createVerificationToken(token) {
-      await sync()
+      await sync();
 
-      return await VerificationToken.create(token)
+      return await VerificationToken.create(token);
     },
     async useVerificationToken({ identifier, token }) {
-      await sync()
+      await sync();
 
       const tokenInstance = await VerificationToken.findOne({
         where: { identifier, token },
-      })
+      });
 
-      await VerificationToken.destroy({ where: { identifier } })
+      await VerificationToken.destroy({ where: { identifier } });
 
-      return tokenInstance?.get({ plain: true }) ?? null
+      return tokenInstance?.get({ plain: true }) ?? null;
     },
-  }
+  };
 }

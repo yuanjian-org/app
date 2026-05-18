@@ -7,6 +7,7 @@ import submitExam from "./exam";
 import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
 import { authWebhook } from "../../auth";
+import { validateAndDecodeXField } from "../../../shared/jinshuju";
 
 /**
  * The Webhook for all 金数据 forms.
@@ -17,6 +18,7 @@ export default procedure
   .mutation(
     async ({ input }) =>
       await sequelize.transaction(async (transaction) => {
+        validateAndDecodeXField(input.entry);
         await submit(input, transaction);
       }),
   );
