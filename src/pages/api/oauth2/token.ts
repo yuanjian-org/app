@@ -76,11 +76,7 @@ export default async function tokenHandler(
     secretBuf.length === expectedSecretBuf.length &&
     crypto.timingSafeEqual(secretBuf, expectedSecretBuf);
   if (!validClientId || !validClientSecret) {
-    logError(
-      "Invalid client_id or client_secret",
-      validClientId,
-      validClientSecret,
-    );
+    logError("Invalid client_id or client_secret");
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id or client_secret",
