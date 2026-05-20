@@ -3,15 +3,16 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zGlobalConfig, GlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
-import { isDemo as isDemoFlag } from "../../shared/isDemo";
+import { isDemo } from "../../shared/isDemo";
 import { z } from "zod";
 import { Transaction } from "sequelize";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export function getStaticImpl() {
   return {
-    isDemo: isDemoFlag(),
+    isDemo: isDemo(),
     enableOrgs: process.env.ENABLE_ORGS === "true",
-    whiteLabel: process.env.WHITE_LABEL,
+    whiteLabel: getWhiteLabel(),
   };
 }
 

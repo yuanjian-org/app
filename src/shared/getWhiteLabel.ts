@@ -4,6 +4,6 @@
  *
  * TODO: move to a server-only folder
  */
-export function isDemo() {
-  return process.env.IS_DEMO === "true";
+export function getWhiteLabel() {
+  return process.env.WHITE_LABEL || "yuantu";
 }

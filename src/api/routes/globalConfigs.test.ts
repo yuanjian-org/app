@@ -25,7 +25,7 @@ describe("Global Configs Internal Functions", () => {
       const result = getStaticImpl();
       expect(result.isDemo).to.equal(isDemoFlag());
       expect(result.enableOrgs).to.equal(process.env.ENABLE_ORGS === "true");
-      expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL);
+      expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL || "yuantu");
     });
   });
 
