@@ -1,8 +1,14 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 import { MinUser } from "./User";
 
-function getTenantName(): string {
-  return process.env.AUTH_YUANTU_SSO_CLIENT_ID || "yuantu";
+/**
+ * Gets the tenant name for the current environment.
+ * For frontend code, use `useStaticGlobalConfigs()` from `src/components/useStaticGlobalConfigs.ts`
+ * to get the `whiteLabel` and pass it to this function.
+ * For backend code, it relies on `process.env.WHITE_LABEL`.
+ */
+function getTenantName(whiteLabel?: string): string {
+  return whiteLabel || process.env.WHITE_LABEL || "yuantu";
 }
 
 /**
@@ -11,8 +17,12 @@ function getTenantName(): string {
  *
  * @param urlSafeValue must be a URL-safe string
  */
-export function encodeXField(user: MinUser, urlSafeValue: string) {
-  const tenant = getTenantName();
+export function encodeXField(
+  user: MinUser,
+  urlSafeValue: string,
+  whiteLabel?: string,
+) {
+  const tenant = getTenantName(whiteLabel);
   return tenant + "," + (user.url ? user.url : "") + "," + urlSafeValue;
 }
 

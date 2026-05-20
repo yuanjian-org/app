@@ -26,6 +26,28 @@ describe("jinshuju", () => {
       const result = encodeXField(user, "safe-val3");
       expect(result).to.equal("yuantu,,safe-val3");
     });
+
+    it("should encode correctly when whiteLabel is provided", () => {
+      const user: MinUser = { id: "4", url: "test-user4", name: "Test4" };
+      const result = encodeXField(user, "safe-val4", "custom-tenant");
+      expect(result).to.equal("custom-tenant,test-user4,safe-val4");
+    });
+
+    it("should fallback to process.env.WHITE_LABEL if whiteLabel is not provided", () => {
+      const originalWhiteLabel = process.env.WHITE_LABEL;
+      process.env.WHITE_LABEL = "env-tenant";
+      try {
+        const user: MinUser = { id: "5", url: "test-user5", name: "Test5" };
+        const result = encodeXField(user, "safe-val5");
+        expect(result).to.equal("env-tenant,test-user5,safe-val5");
+      } finally {
+        if (originalWhiteLabel === undefined) {
+          delete process.env.WHITE_LABEL;
+        } else {
+          process.env.WHITE_LABEL = originalWhiteLabel;
+        }
+      }
+    });
   });
 
   describe("validateAndDecodeXField", () => {

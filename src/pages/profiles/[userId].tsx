@@ -147,12 +147,18 @@ export default function Page() {
         profile={profile}
         updateProfile={updateProfile}
         SaveButton={SaveButton}
+        whiteLabel={staticData?.whiteLabel}
       />
 
       <Divider my={componentSpacing} />
 
       {isPermitted(user.roles, "Mentor") ? (
-        <Mentor user={user} profile={profile} updateProfile={updateProfile} />
+        <Mentor
+          user={user}
+          profile={profile}
+          updateProfile={updateProfile}
+          whiteLabel={staticData?.whiteLabel}
+        />
       ) : (
         <NonMentor profile={profile} updateProfile={updateProfile} />
       )}
@@ -285,10 +291,12 @@ function encodeJinshujuXField(
   user: MinUser,
   profile: UserProfile,
   target: UploadTarget,
+  whiteLabel?: string,
 ) {
   return encodeXField(
     user,
     encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
+    whiteLabel,
   );
 }
 
@@ -297,18 +305,20 @@ function Picture({
   profile,
   updateProfile,
   SaveButton,
+  whiteLabel,
 }: {
   user: MinUser;
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
   SaveButton: React.ComponentType;
+  whiteLabel?: string;
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfilePicture"),
-    [user, profile],
+    () => encodeJinshujuXField(user, profile, "UserProfilePicture", whiteLabel),
+    [user, profile, whiteLabel],
   );
 
   return (
@@ -365,12 +375,20 @@ function Picture({
   );
 }
 
-function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
+function Video({
+  user,
+  profile,
+  whiteLabel,
+}: {
+  user: MinUser;
+  profile: UserProfile;
+  whiteLabel?: string;
+}) {
   invariant(profile, "!profile");
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfileVideo"),
-    [user, profile],
+    () => encodeJinshujuXField(user, profile, "UserProfileVideo", whiteLabel),
+    [user, profile, whiteLabel],
   );
 
   return (
@@ -630,10 +648,12 @@ function Mentor({
   user,
   profile,
   updateProfile,
+  whiteLabel,
 }: {
   user: MinUser;
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
+  whiteLabel?: string;
 }) {
   return (
     <>
@@ -663,7 +683,7 @@ function Mentor({
           </Link>
           。
         </FormHelperTextWithMargin>
-        <Video user={user} profile={profile} />
+        <Video user={user} profile={profile} whiteLabel={whiteLabel} />
       </FormControl>
 
       <PositionFormControl
