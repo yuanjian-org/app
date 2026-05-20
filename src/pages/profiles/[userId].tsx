@@ -282,11 +282,13 @@ function Basic({
  * mentor's profile can compute the hash. Use a stronger method.
  */
 function encodeJinshujuXField(
+  whiteLabel: string,
   user: MinUser,
   profile: UserProfile,
   target: UploadTarget,
 ) {
   return encodeXField(
+    whiteLabel,
     user,
     encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
   );
@@ -305,10 +307,12 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
+  const { data: staticData } = useStaticGlobalConfigs();
+  const whiteLabel = staticData?.whiteLabel || "yuantu";
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfilePicture"),
-    [user, profile],
+    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfilePicture"),
+    [whiteLabel, user, profile],
   );
 
   return (
@@ -367,10 +371,12 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
+  const { data: staticData } = useStaticGlobalConfigs();
+  const whiteLabel = staticData?.whiteLabel || "yuantu";
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfileVideo"),
-    [user, profile],
+    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfileVideo"),
+    [whiteLabel, user, profile],
   );
 
   return (

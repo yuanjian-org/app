@@ -1,25 +1,25 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 import { MinUser } from "./User";
 
-function getTenantName(): string {
-  return process.env.AUTH_YUANTU_SSO_CLIENT_ID || "yuantu";
-}
-
 /**
  * Prefix the user's url in the x field to make it easier to identify the user
  * when examining raw data on Jinshuju's website.
  *
  * @param urlSafeValue must be a URL-safe string
  */
-export function encodeXField(user: MinUser, urlSafeValue: string) {
-  const tenant = getTenantName();
-  return tenant + "," + (user.url ? user.url : "") + "," + urlSafeValue;
+export function encodeXField(
+  whiteLabel: string,
+  user: MinUser,
+  urlSafeValue: string,
+) {
+  return whiteLabel + "," + (user.url ? user.url : "") + "," + urlSafeValue;
 }
 
 /**
  * @returns undefined if the x_field_1 is empty or malformed
  */
 export function validateAndDecodeXField(
+  whiteLabel: string,
   formEntry: Record<string, any>,
 ): string | undefined {
   const xField = formEntry.x_field_1;
@@ -28,8 +28,7 @@ export function validateAndDecodeXField(
   const parts = xField.split(",");
   if (parts.length < 2) return undefined;
 
-  const expectedTenant = getTenantName();
-  if (parts[0] !== expectedTenant) {
+  if (parts[0] !== whiteLabel) {
     throw new Error(`Invalid tenant name in x_field_1: ${parts[0]}`);
   }
 
