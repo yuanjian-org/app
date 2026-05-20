@@ -45,6 +45,7 @@ import { getEmbeddedFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
 import Select from "react-select";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -307,8 +308,7 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
-  const { data: staticData } = useStaticGlobalConfigs();
-  const whiteLabel = staticData?.whiteLabel || "yuantu";
+  const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
     () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfilePicture"),
@@ -371,8 +371,7 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
-  const { data: staticData } = useStaticGlobalConfigs();
-  const whiteLabel = staticData?.whiteLabel || "yuantu";
+  const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
     () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfileVideo"),

@@ -7,15 +7,14 @@ import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
 import useMe from "useMe";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 
 const title = "面试官自学与评测";
 
 export default function Page() {
   const me = useMe();
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data } = useStaticGlobalConfigs();
-  const whiteLabel = data?.whiteLabel || "yuantu";
+  const whiteLabel = useWhiteLabel();
 
   return (
     <>
