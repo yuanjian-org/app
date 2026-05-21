@@ -7,12 +7,14 @@ import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
 import useMe from "useMe";
+import useWhiteLabel from "components/useWhiteLabel";
 
 const title = "面试官自学与评测";
 
 export default function Page() {
   const me = useMe();
   const { data: state } = trpcNext.users.getUserState.useQuery();
+  const whiteLabel = useWhiteLabel();
 
   return (
     <>
@@ -56,7 +58,10 @@ export default function Page() {
         <Button
           as={Link}
           isExternal
-          href={getStandaloneFormUrl("w02l95", encodeXField(me, me.id))}
+          href={getStandaloneFormUrl(
+            "w02l95",
+            encodeXField(whiteLabel, me, me.id),
+          )}
           variant="brand"
         >
           开始评测&nbsp;&nbsp;&nbsp;✍️

@@ -6,6 +6,7 @@ import {
   validateAndDecodeXField,
 } from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
+import { getWhiteLabel } from "../../../shared/getWhiteLabel";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
@@ -16,7 +17,7 @@ export default async function submit(entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
   }
 
-  const token = validateAndDecodeXField(entry);
+  const token = validateAndDecodeXField(getWhiteLabel(), entry);
   if (!token) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }

@@ -45,6 +45,7 @@ import { getEmbeddedFormUrl } from "pages/form";
 import { encodeXField } from "shared/jinshuju";
 import Select from "react-select";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -282,11 +283,13 @@ function Basic({
  * mentor's profile can compute the hash. Use a stronger method.
  */
 function encodeJinshujuXField(
+  whiteLabel: string,
   user: MinUser,
   profile: UserProfile,
   target: UploadTarget,
 ) {
   return encodeXField(
+    whiteLabel,
     user,
     encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
   );
@@ -305,10 +308,11 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
+  const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfilePicture"),
-    [user, profile],
+    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfilePicture"),
+    [whiteLabel, user, profile],
   );
 
   return (
@@ -367,10 +371,11 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
+  const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(user, profile, "UserProfileVideo"),
-    [user, profile],
+    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfileVideo"),
+    [whiteLabel, user, profile],
   );
 
   return (
