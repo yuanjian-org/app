@@ -58,18 +58,35 @@ describe("kudos routes", () => {
       await createKudos(giver1.id, receiver1.id, "First kudos", transaction);
       await createKudos(giver2.id, receiver1.id, "Second kudos", transaction);
 
-      const receiverKudosList = await db.Kudos.findAll({
-        where: { receiverId: receiver1.id },
+      const firstKudos = await db.Kudos.findOne({
+        where: { receiverId: receiver1.id, text: "First kudos" },
+        transaction,
+      });
+      const secondKudos = await db.Kudos.findOne({
+        where: { receiverId: receiver1.id, text: "Second kudos" },
         transaction,
       });
 
-      await receiverKudosList[0].update(
-        { createdAt: moment().subtract(1, "days").toDate() },
-        { transaction },
+      await sequelize.query(
+        `UPDATE "Kudos" SET "createdAt" = :createdAt WHERE id = :id`,
+        {
+          replacements: {
+            createdAt: moment().subtract(1, "days").toDate(),
+            id: firstKudos!.id,
+          },
+          transaction,
+        },
       );
-      await receiverKudosList[1].update(
-        { createdAt: moment().toDate() },
-        { transaction },
+
+      await sequelize.query(
+        `UPDATE "Kudos" SET "createdAt" = :createdAt WHERE id = :id`,
+        {
+          replacements: {
+            createdAt: moment().toDate(),
+            id: secondKudos!.id,
+          },
+          transaction,
+        },
       );
 
       const result = await listKudosImpl(receiver1.id, undefined, transaction);
