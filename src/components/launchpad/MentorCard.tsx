@@ -2,8 +2,14 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
+import useWhiteLabel from "components/useWhiteLabel";
 
 export default function MentorCard() {
+  const whiteLabel = useWhiteLabel();
+  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
+
+  if (isUstcOrXhef) return null;
+
   return (
     <ResponsiveCard>
       <CardHeader>

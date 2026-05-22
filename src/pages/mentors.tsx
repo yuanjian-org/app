@@ -12,6 +12,9 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
+import useWhiteLabel from "components/useWhiteLabel";
+import Head from "next/head";
+import PageBreadcrumb from "components/PageBreadcrumb";
 
 export default fullPage(() => {
   const me = useMe();
@@ -23,9 +26,16 @@ export default fullPage(() => {
     () => (data ? dailyShuffle(data, me.id) : undefined),
     [data, me],
   );
+  const whiteLabel = useWhiteLabel();
+  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
+  const title = isUstcOrXhef ? "预约导师" : "预约不定期导师";
 
   return (
     <>
+      <Head>
+        <title>{title} | 远图</title>
+      </Head>
+
       <TopBar
         {...topBarPaddings()}
         pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
@@ -62,7 +72,7 @@ export default fullPage(() => {
       )}
     </>
   );
-}, "预约不定期导师");
+});
 
 /**
  * Returns an array sorted in a deterministic "random" order.

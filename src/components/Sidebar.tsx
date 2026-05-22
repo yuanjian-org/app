@@ -31,6 +31,7 @@ import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
 import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -353,6 +354,8 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const myName = formatUserName(me.name);
   const { data } = useStaticGlobalConfigs();
   const enableOrgs = data?.enableOrgs;
+  const whiteLabel = useWhiteLabel();
+  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
   return (
     <Flex
@@ -371,14 +374,27 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
 
         {mainMenuItems
           .filter((item) => enableOrgs || item.path !== "/orgs")
+          .filter(
+            (item) => !isUstcOrXhef || item.path !== "/mentors/relational",
+          )
           .filter((item) =>
             typeof item.permission === "function"
               ? item.permission(me)
               : isPermitted(me.roles, item.permission),
           )
-          .map((item) => (
-            <SidebarRow key={item.path} item={item} onClose={onClose} />
-          ))}
+          .map((item) => {
+            const displayItem = { ...item };
+            if (isUstcOrXhef && displayItem.path === "/mentors") {
+              displayItem.name = "预约导师";
+            }
+            return (
+              <SidebarRow
+                key={item.path}
+                item={displayItem}
+                onClose={onClose}
+              />
+            );
+          })}
 
         <DropdownMenuIfPermitted
           title="管理功能"
