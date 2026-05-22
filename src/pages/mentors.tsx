@@ -36,8 +36,6 @@ export default fullPage(() => {
         <title>{title} | 远图</title>
       </Head>
 
-      <PageBreadcrumb current={title} />
-
       <TopBar
         {...topBarPaddings()}
         pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
