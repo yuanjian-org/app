@@ -14,7 +14,6 @@ import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
 import useWhiteLabel from "components/useWhiteLabel";
 import Head from "next/head";
-import PageBreadcrumb from "components/PageBreadcrumb";
 
 export default fullPage(() => {
   const me = useMe();
