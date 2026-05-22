@@ -12,6 +12,9 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import Head from "next/head";
+import PageBreadcrumb from "components/PageBreadcrumb";
 
 export default fullPage(() => {
   const me = useMe();
@@ -23,9 +26,19 @@ export default fullPage(() => {
     () => (data ? dailyShuffle(data, me.id) : undefined),
     [data, me],
   );
+  const { data: configs } = useStaticGlobalConfigs();
+  const isUstcOrXhef =
+    configs?.whiteLabel === "ustc" || configs?.whiteLabel === "xhef";
+  const title = isUstcOrXhef ? "预约导师" : "预约不定期导师";
 
   return (
     <>
+      <Head>
+        <title>{title} | 远图</title>
+      </Head>
+
+      <PageBreadcrumb current={title} />
+
       <TopBar
         {...topBarPaddings()}
         pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
@@ -62,7 +75,7 @@ export default fullPage(() => {
       )}
     </>
   );
-}, "预约不定期导师");
+});
 
 /**
  * Returns an array sorted in a deterministic "random" order.

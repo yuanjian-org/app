@@ -7,6 +7,10 @@ import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 export default function VolunteerStudyCard() {
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.isDemo;
+  const isUstcOrXhef =
+    data?.whiteLabel === "ustc" || data?.whiteLabel === "xhef";
+
+  if (isUstcOrXhef) return null;
 
   return (
     <ResponsiveCard>

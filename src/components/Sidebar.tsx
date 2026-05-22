@@ -353,6 +353,8 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const myName = formatUserName(me.name);
   const { data } = useStaticGlobalConfigs();
   const enableOrgs = data?.enableOrgs;
+  const isUstcOrXhef =
+    data?.whiteLabel === "ustc" || data?.whiteLabel === "xhef";
 
   return (
     <Flex
@@ -371,14 +373,27 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
 
         {mainMenuItems
           .filter((item) => enableOrgs || item.path !== "/orgs")
+          .filter(
+            (item) => !isUstcOrXhef || item.path !== "/mentors/relational",
+          )
           .filter((item) =>
             typeof item.permission === "function"
               ? item.permission(me)
               : isPermitted(me.roles, item.permission),
           )
-          .map((item) => (
-            <SidebarRow key={item.path} item={item} onClose={onClose} />
-          ))}
+          .map((item) => {
+            const displayItem = { ...item };
+            if (isUstcOrXhef && displayItem.path === "/mentors") {
+              displayItem.name = "预约导师";
+            }
+            return (
+              <SidebarRow
+                key={item.path}
+                item={displayItem}
+                onClose={onClose}
+              />
+            );
+          })}
 
         <DropdownMenuIfPermitted
           title="管理功能"
