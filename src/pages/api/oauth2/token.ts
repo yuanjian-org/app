@@ -56,12 +56,13 @@ export default async function tokenHandler(
 
   const clientConfig = getOAuth2ClientConfig(clientId);
 
-  if (!clientConfig) {
-    logError("OAuth2 Provider not configured or invalid client_id");
-    const hasIds = !!process.env.OAUTH2_CLIENT_IDS;
-    if (!hasIds) {
-      return res.status(500).json({ error: "OAuth2 Provider not configured." });
-    }
+  if (!clientConfig.configured) {
+    logError("OAuth2 Provider not configured.");
+    return res.status(500).json({ error: "OAuth2 Provider not configured." });
+  }
+
+  if (!clientConfig.validClient) {
+    logError("Invalid client_id", clientId);
     return res.status(401).json({
       error: "invalid_client",
       error_description: "Invalid client_id",

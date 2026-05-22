@@ -59,7 +59,7 @@ export default async function userinfoHandler(
   }
 
   const clientConfig = getOAuth2ClientConfig(payload.clientId as string);
-  if (!clientConfig) {
+  if (!clientConfig.configured || !clientConfig.validClient) {
     logError("Invalid client_id in token", payload.clientId);
     return res
       .status(401)

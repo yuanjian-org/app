@@ -56,26 +56,17 @@ export default async function authorizeHandler(
   // 1. Validate the client ID and redirect URI against the env variables.
   const clientConfig = getOAuth2ClientConfig(client_id);
 
-  // Provider must be fully configured.
-  if (!clientConfig) {
-    logError("OAuth2 Provider not configured or Invalid client_id.");
-    if (!client_id) {
-      return res.status(400).json({
-        error: "invalid_client",
-        error_description: "Missing client_id",
-      });
-    } else {
-      const hasIds = !!process.env.OAUTH2_CLIENT_IDS;
-      if (!hasIds) {
-        return res
-          .status(500)
-          .json({ error: "OAuth2 Provider not configured." });
-      }
-      return res.status(400).json({
-        error: "invalid_client",
-        error_description: "Invalid client_id",
-      });
-    }
+  if (!clientConfig.configured) {
+    logError("OAuth2 Provider not configured.");
+    return res.status(500).json({ error: "OAuth2 Provider not configured." });
+  }
+
+  if (!clientConfig.validClient) {
+    logError("Invalid client_id", client_id);
+    return res.status(400).json({
+      error: "invalid_client",
+      error_description: client_id ? "Invalid client_id" : "Missing client_id",
+    });
   }
 
   const { redirectUri: expectedRedirectUri } = clientConfig;

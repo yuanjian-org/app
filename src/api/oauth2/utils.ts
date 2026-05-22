@@ -1,17 +1,30 @@
 import crypto from "crypto";
 import * as jose from "jose";
 
-export function getOAuth2ClientConfig(clientId: string | undefined): {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-} | null {
+export type OAuth2ClientConfigResult =
+  | { configured: false }
+  | { configured: true; validClient: false }
+  | {
+      configured: true;
+      validClient: true;
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+    };
+
+export function getOAuth2ClientConfig(
+  clientId: string | undefined,
+): OAuth2ClientConfigResult {
   const clientIdsStr = process.env.OAUTH2_CLIENT_IDS;
   const clientSecretsStr = process.env.OAUTH2_CLIENT_SECRETS;
   const redirectUrisStr = process.env.OAUTH2_REDIRECT_URIS;
 
-  if (!clientIdsStr || !clientSecretsStr || !redirectUrisStr || !clientId) {
-    return null;
+  if (!clientIdsStr || !clientSecretsStr || !redirectUrisStr) {
+    return { configured: false };
+  }
+
+  if (!clientId) {
+    return { configured: true, validClient: false };
   }
 
   const clientIds = clientIdsStr.split(",").map((s) => s.trim());
@@ -24,20 +37,16 @@ export function getOAuth2ClientConfig(clientId: string | undefined): {
     index >= clientSecrets.length ||
     index >= redirectUris.length
   ) {
-    return null;
+    return { configured: true, validClient: false };
   }
 
   return {
+    configured: true,
+    validClient: true,
     clientId: clientIds[index],
     clientSecret: clientSecrets[index],
     redirectUri: redirectUris[index],
   };
-}
-
-export function getAllOAuth2RedirectUris(): string[] {
-  const redirectUrisStr = process.env.OAUTH2_REDIRECT_URIS;
-  if (!redirectUrisStr) return [];
-  return redirectUrisStr.split(",").map((s) => s.trim());
 }
 
 export function logError(message: string, ...optionalParams: any[]) {

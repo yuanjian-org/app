@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { logError, getAllOAuth2RedirectUris } from "../../../api/oauth2/utils";
+import * as jose from "jose";
+import { logError, getOAuth2ClientConfig } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -12,37 +13,47 @@ export default function logoutHandler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { post_logout_redirect_uri } = req.query as {
+  const { post_logout_redirect_uri, client_id, id_token_hint } = req.query as {
     post_logout_redirect_uri?: string;
+    client_id?: string;
+    id_token_hint?: string;
   };
 
-  const allRedirectUris = getAllOAuth2RedirectUris();
   let callbackUrl = "/";
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
-  // We allow redirects to the same origin as any of the client applications.
-  if (post_logout_redirect_uri && allRedirectUris.length > 0) {
+  let extractedClientId: string | undefined = client_id;
+
+  if (!extractedClientId && id_token_hint) {
     try {
-      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
-      let isAllowed = false;
-
-      for (const uri of allRedirectUris) {
-        try {
-          const allowedOrigin = new URL(uri).origin;
-          if (allowedOrigin === requestedOrigin) {
-            isAllowed = true;
-            break;
-          }
-        } catch {
-          // Ignore invalid URIs in config
-        }
+      const decoded = jose.decodeJwt(id_token_hint);
+      if (typeof decoded.aud === "string") {
+        extractedClientId = decoded.aud;
+      } else if (Array.isArray(decoded.aud) && decoded.aud.length > 0) {
+        extractedClientId = decoded.aud[0];
       }
+    } catch (e) {
+      logError("Invalid id_token_hint", e);
+    }
+  }
 
-      if (isAllowed) {
+  const clientConfig = getOAuth2ClientConfig(extractedClientId);
+
+  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
+  // We allow redirects to the same origin as the client application.
+  if (
+    post_logout_redirect_uri &&
+    clientConfig.configured &&
+    clientConfig.validClient
+  ) {
+    try {
+      const allowedOrigin = new URL(clientConfig.redirectUri).origin;
+      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+
+      if (allowedOrigin === requestedOrigin) {
         callbackUrl = post_logout_redirect_uri;
       } else {
         logError(
-          "post_logout_redirect_uri origin does not match any allowed origin",
+          "post_logout_redirect_uri origin does not match allowed origin",
           requestedOrigin,
         );
       }
