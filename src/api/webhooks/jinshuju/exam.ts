@@ -5,7 +5,7 @@ import { generalBadRequestError, notFoundError } from "../../errors";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "../../../shared/getWhiteLabel";
+import { getWhiteLabel } from "../../utils/getWhiteLabel";
 
 export default async function submit(
   formEntry: Record<string, any>,

@@ -3,10 +3,10 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zGlobalConfig, GlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
-import { isDemo } from "../../shared/isDemo";
+import { isDemo } from "../utils/isDemo";
 import { z } from "zod";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { getWhiteLabel } from "../utils/getWhiteLabel";
 
 export function getStaticImpl() {
   return {

@@ -7,7 +7,7 @@ import { auditLastMentorshipMeetings } from "./mentorships";
 import sequelize from "api/database/sequelize";
 import { purgeOldData } from "./purgeOldData";
 import { generateDemoData } from "./generateDemoData";
-import { isDemo } from "../../shared/isDemo";
+import { isDemo } from "../utils/isDemo";
 import { noPermissionError } from "../errors";
 import { migrateDatabase } from "./migration";
 
