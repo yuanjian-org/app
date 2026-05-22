@@ -6,7 +6,7 @@ import {
   validateAndDecodeXField,
 } from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
-import { getWhiteLabel } from "../../../shared/getWhiteLabel";
+import { getWhiteLabel } from "../../getWhiteLabel";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.

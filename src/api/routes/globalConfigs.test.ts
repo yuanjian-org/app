@@ -3,7 +3,7 @@ import { getStaticImpl, getImpl, updateImpl } from "./globalConfigs";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
-import { isDemo as isDemoFlag } from "../../shared/isDemo";
+import { isDemo as isDemoFlag } from "../isDemo";
 
 describe("Global Configs Internal Functions", () => {
   let transaction: Transaction;
