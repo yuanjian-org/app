@@ -3,12 +3,13 @@ import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 
 export default function VolunteerStudyCard() {
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.isDemo;
-  const isUstcOrXhef =
-    data?.whiteLabel === "ustc" || data?.whiteLabel === "xhef";
+  const whiteLabel = useWhiteLabel();
+  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
   if (isUstcOrXhef) return null;
 

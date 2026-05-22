@@ -31,6 +31,7 @@ import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
 import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -353,8 +354,8 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const myName = formatUserName(me.name);
   const { data } = useStaticGlobalConfigs();
   const enableOrgs = data?.enableOrgs;
-  const isUstcOrXhef =
-    data?.whiteLabel === "ustc" || data?.whiteLabel === "xhef";
+  const whiteLabel = useWhiteLabel();
+  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
   return (
     <Flex
