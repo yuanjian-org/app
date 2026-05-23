@@ -25,7 +25,7 @@ export default function XhefLandingPage() {
   return (
     <VStack minHeight="100vh">
       <Head>
-        <title>远图：新华教育基金会</title>
+        <title>远图：珍珠生导师网络</title>
       </Head>
       <Box
         as="nav"
