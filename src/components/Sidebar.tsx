@@ -461,7 +461,7 @@ function ImpersonationBanner() {
 
 function DemoBanner() {
   const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const isDemo = data?.whiteLabel === "demo";
 
   return !isDemo ? (
     <></>

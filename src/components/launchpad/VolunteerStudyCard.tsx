@@ -2,13 +2,11 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 import useWhiteLabel from "components/useWhiteLabel";
 
 export default function VolunteerStudyCard() {
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
   const whiteLabel = useWhiteLabel();
+  const isDemo = whiteLabel === "demo";
   const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
   if (isUstcOrXhef) return null;

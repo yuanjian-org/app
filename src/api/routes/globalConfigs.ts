@@ -3,14 +3,12 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zGlobalConfig, GlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
-import { isDemo } from "../isDemo";
 import { z } from "zod";
 import { Transaction } from "sequelize";
 import { getWhiteLabel } from "../getWhiteLabel";
 
 export function getStaticImpl() {
   return {
-    isDemo: isDemo(),
     enableOrgs: process.env.ENABLE_ORGS === "true",
     whiteLabel: getWhiteLabel(),
   };
@@ -65,7 +63,6 @@ export async function updateImpl(
 const getStatic = procedure
   .output(
     z.object({
-      isDemo: z.boolean(),
       enableOrgs: z.boolean(),
       whiteLabel: z.string().optional(),
     }),

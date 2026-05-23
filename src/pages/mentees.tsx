@@ -114,7 +114,7 @@ const title = "学生档案";
 
 export default fullPage(() => {
   const { data: config } = useStaticGlobalConfigs();
-  const isDemo = config?.isDemo;
+  const isDemo = config?.whiteLabel === "demo";
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
@@ -149,7 +149,7 @@ export default fullPage(() => {
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
-        {!users ? (
+        {!users || !config ? (
           <Loader />
         ) : (
           <TableContainer>

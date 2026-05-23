@@ -115,7 +115,7 @@ function toastSignInError(err: any) {
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   const router = useRouter();
   const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const isDemo = data?.whiteLabel === "demo";
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {

@@ -3,7 +3,6 @@ import { getStaticImpl, getImpl, updateImpl } from "./globalConfigs";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
-import { isDemo as isDemoFlag } from "../isDemo";
 
 describe("Global Configs Internal Functions", () => {
   let transaction: Transaction;
@@ -21,9 +20,8 @@ describe("Global Configs Internal Functions", () => {
   });
 
   describe("getStaticImpl", () => {
-    it("should return static configuration values including isDemo, enableOrgs, and whiteLabel", () => {
+    it("should return static configuration values including enableOrgs, and whiteLabel", () => {
       const result = getStaticImpl();
-      expect(result.isDemo).to.equal(isDemoFlag());
       expect(result.enableOrgs).to.equal(process.env.ENABLE_ORGS === "true");
       expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL || "yuantu");
     });
