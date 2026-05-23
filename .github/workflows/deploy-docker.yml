@@ -131,11 +131,8 @@ jobs:
           set -e
           cd ~/app
 
-          echo ">>> Pulling app image. Only pulling app because pulling nginx from aliyun may get stuck."
-          docker compose pull app
-          docker compose pull app-demo
-          docker compose pull app-ustc
-          docker compose pull app-xhef
+          echo ">>> Pulling docker images"
+          docker compose pull
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker rm temp_extract || true

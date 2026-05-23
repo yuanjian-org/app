@@ -20,7 +20,7 @@ services:
     container_name: app-xhef
     env_file: .env.xhef
   nginx:
-    image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
+    image: m.daocloud.io/docker.io/library/nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx.proxy.conf:/etc/nginx/proxy_params.conf:ro
