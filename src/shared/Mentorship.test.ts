@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import { expect } from "chai";
 import moment from "moment";
 import { isEnded } from "./Mentorship";
@@ -32,8 +33,13 @@ describe("Mentorship", () => {
     });
 
     it("should handle current date edge case", () => {
-      const now = new Date();
-      void expect(isEnded(now.toISOString() as DateColumn)).to.be.false;
+      const clock = sinon.useFakeTimers();
+      try {
+        const now = new Date();
+        void expect(isEnded(now.toISOString() as DateColumn)).to.be.false;
+      } finally {
+        clock.restore();
+      }
     });
   });
 });
