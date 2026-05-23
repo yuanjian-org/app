@@ -45,7 +45,7 @@
     "pg": "^8.20.0",
     "pinyin-pro": "^3.28.0",
     "proxy-addr": "^2.0.7",
-    "qs": "^6.15.0",
+    "qs": "^6.15.2",
     "random-number-csprng": "^1.0.2",
     "react": "^18.2.0",
     "react-datepicker": "^9.1.0",
