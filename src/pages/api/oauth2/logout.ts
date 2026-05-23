@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import * as jose from "jose";
 import { logError, getOAuth2ClientConfig } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
@@ -13,30 +12,14 @@ export default function logoutHandler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { post_logout_redirect_uri, client_id, id_token_hint } = req.query as {
+  const { post_logout_redirect_uri, client_id } = req.query as {
     post_logout_redirect_uri?: string;
     client_id?: string;
-    id_token_hint?: string;
   };
 
   let callbackUrl = "/";
 
-  let extractedClientId: string | undefined = client_id;
-
-  if (!extractedClientId && id_token_hint) {
-    try {
-      const decoded = jose.decodeJwt(id_token_hint);
-      if (typeof decoded.aud === "string") {
-        extractedClientId = decoded.aud;
-      } else if (Array.isArray(decoded.aud) && decoded.aud.length > 0) {
-        extractedClientId = decoded.aud[0];
-      }
-    } catch (e) {
-      logError("Invalid id_token_hint", e);
-    }
-  }
-
-  const clientConfig = getOAuth2ClientConfig(extractedClientId);
+  const clientConfig = getOAuth2ClientConfig(client_id);
 
   // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
   // We allow redirects to the same origin as the client application.

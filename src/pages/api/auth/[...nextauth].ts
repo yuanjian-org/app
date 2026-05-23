@@ -149,10 +149,11 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         // so the frontend can redirect the user there upon logging out.
         if (
           token.provider === "yuantu-sso" &&
-          process.env.AUTH_YUANTU_SSO_ISSUER
+          process.env.AUTH_YUANTU_SSO_ISSUER &&
+          process.env.AUTH_YUANTU_SSO_CLIENT_ID
         ) {
           const issuer = process.env.AUTH_YUANTU_SSO_ISSUER.replace(/\/+$/, "");
-          session.federatedLogoutUrl = `${issuer}/api/oauth2/logout`;
+          session.federatedLogoutUrl = `${issuer}/api/oauth2/logout?client_id=${process.env.AUTH_YUANTU_SSO_CLIENT_ID}`;
         }
 
         return session;
