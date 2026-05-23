@@ -746,6 +746,7 @@ export async function setMyStateImpl(
     "lastKudosReadAt",
     "lastTasksReadAt",
     "meetingConsentedAt",
+    "declinedPearlStudentModal",
   ];
   const filteredState: Partial<UserState> = {};
   for (const key of allowed) {

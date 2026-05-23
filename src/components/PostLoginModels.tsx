@@ -22,29 +22,38 @@ import { isValidChineseName } from "shared/strings";
 import { useSession } from "next-auth/react";
 import { signOut } from "./signOut";
 import { DateColumn } from "shared/DateColumn";
+import { PearlStudentModals } from "./PearlStudentModals";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { staticUrlPrefix } from "static";
 import IdTokenInputs, { IdTokenInputsState } from "./IdTokenInputs";
 import invariant from "shared/invariant";
+import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
 
 // prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+  const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
 
   return state === undefined ? (
     <></>
 
-  // Ask for phone number first because this step may cause the current user to
-  // be merged with another user. Information required later (name, cell,
-  // roles, etc) may have been already filled in the merged account.
+    // Ask for phone number first because this step may cause the current user to
+    // be merged with another user. Information required later (name, cell,
+    // roles, etc) may have been already filled in the merged account.
   ) : me.phone === null ? (
     <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
   ) : !isConsented(state.consentedAt) ? (
     <ConsentModal refetch={refetch} />
+
+    // Validate pearl student before setting name because the former also sets
+    // name. Do it before setting cell because the system will require cell for
+    // all pearl students.
+  ) : canValidatePearlStudent && !state?.declinedPearlStudentModal ? (
+    <PearlStudentModals userState={state} refetchUserState={refetch} />
 
   ) : !me.name ? (
     <SetNameModal />
@@ -107,7 +116,7 @@ export function SetPhoneModal({
               </SmallGrayText>
               <Spacer />
               <SmallGrayText>
-                若有问题，
+                如有问题，
                 <Link
                   href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                   isExternal

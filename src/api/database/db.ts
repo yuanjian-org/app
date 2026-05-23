@@ -30,6 +30,7 @@ import MeetingHistory from "./models/MeetingHistory";
 import MatchFeedback from "./models/MatchFeedback";
 import GlobalConfig from "./models/GlobalConfig";
 import DeletedSummary from "./models/DeletedSummary";
+import PearlStudent from "./models/PearlStudent";
 import IdToken from "./models/IdToken";
 import Org from "./models/Org";
 import OrgMentor from "./models/OrgMentor";
@@ -67,6 +68,7 @@ const db = {
   MatchFeedback,
   GlobalConfig,
   DeletedSummary,
+  PearlStudent,
   IdToken,
 };
 

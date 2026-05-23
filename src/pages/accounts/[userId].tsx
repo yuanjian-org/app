@@ -24,8 +24,10 @@ import { LockIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { useEffect, useState } from "react";
 import { useMyId } from "useMe";
+import { PearlStudentValidationModal } from "components/PearlStudentModals";
 import { SetPhoneModal } from "components/PostLoginModels";
 import { toast } from "react-toastify";
+import { useCanValidatePearlStudent } from "components/useCanValidatePearlStudent";
 
 export const accountPageTitle = "账号与安全";
 
@@ -41,6 +43,10 @@ export default function Page() {
   const [wechat, setWechat] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSettingPhone, setIsSettingPhone] = useState(false);
+  const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
+    useState(false);
+
+  const canValidatePearlStudent = useCanValidatePearlStudent(user?.roles ?? []);
 
   useEffect(() => {
     setWechat(user?.wechat ?? "");
@@ -123,6 +129,28 @@ export default function Page() {
         <SetPhoneModal
           cancelLabel="取消"
           cancel={() => setIsSettingPhone(false)}
+        />
+      )}
+
+      {canValidatePearlStudent && (
+        <>
+          <SectionHeading>珍珠生验证</SectionHeading>
+          <Text>
+            如果您是新华爱心教育基金会曾经或正在资助的珍珠生，请点击按钮进行验证。
+          </Text>
+          <Button
+            variant="brand"
+            onClick={() => setIsValidatingPearlStudent(true)}
+          >
+            开始验证
+          </Button>
+        </>
+      )}
+
+      {isValidatingPearlStudent && (
+        <PearlStudentValidationModal
+          cancelLabel="取消"
+          cancel={() => setIsValidatingPearlStudent(false)}
         />
       )}
 
