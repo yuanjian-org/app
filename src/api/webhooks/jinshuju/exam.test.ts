@@ -2,6 +2,7 @@ import { expect } from "chai";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import { Transaction } from "sequelize";
+import { getWhiteLabel } from "../../getWhiteLabel";
 import { AutoTaskId } from "../../../shared/Task";
 import submitExam from "./exam";
 
@@ -49,7 +50,7 @@ describe("exam webhook", () => {
   describe("successful exam submission", () => {
     it("should update user state and mark comms exam task as done", async () => {
       const formEntry = {
-        x_field_1: "yuantu,tester," + userId,
+        x_field_1: getWhiteLabel() + ",tester," + userId,
         exam_score: 85,
       };
 

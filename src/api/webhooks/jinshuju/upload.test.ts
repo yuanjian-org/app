@@ -3,6 +3,7 @@ import sinon from "sinon";
 import { Transaction } from "sequelize";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
+import { getWhiteLabel } from "../../getWhiteLabel";
 import submit from "./upload";
 import { TRPCError } from "@trpc/server";
 import { encodeUploadTokenUrlSafe } from "../../../shared/jinshuju";
@@ -28,7 +29,7 @@ describe("upload webhook", () => {
   it("should fail if # urls isn't one", async () => {
     const entry = {
       field_1: ["url1", "url2"],
-      x_field_1: "yuantu,test,token",
+      x_field_1: `${getWhiteLabel()},test,token`,
     };
 
     let error: any;
@@ -64,7 +65,7 @@ describe("upload webhook", () => {
   it("should fail on invalid token data", async () => {
     const entry = {
       field_1: ["url1"],
-      x_field_1: "yuantu,test,invalidBase64",
+      x_field_1: `${getWhiteLabel()},test,invalidBase64`,
     };
 
     let error: any;
@@ -85,7 +86,7 @@ describe("upload webhook", () => {
     );
     const entry = {
       field_1: ["url1"],
-      x_field_1: `yuantu,test,${token}`,
+      x_field_1: `${getWhiteLabel()},test,${token}`,
     };
 
     let error: any;
@@ -108,7 +109,7 @@ describe("upload webhook", () => {
     );
     const entry = {
       field_1: ["url1"],
-      x_field_1: `yuantu,test,${token}`,
+      x_field_1: `${getWhiteLabel()},test,${token}`,
     };
 
     let error: any;
@@ -138,7 +139,7 @@ describe("upload webhook", () => {
     );
     const entry = {
       field_1: ["url1"],
-      x_field_1: `yuantu,test,${token}`,
+      x_field_1: `${getWhiteLabel()},test,${token}`,
     };
 
     let error: any;
@@ -171,7 +172,7 @@ describe("upload webhook", () => {
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
-      x_field_1: `yuantu,test,${token}`,
+      x_field_1: `${getWhiteLabel()},test,${token}`,
     };
 
     await submit(entry);
@@ -197,7 +198,7 @@ describe("upload webhook", () => {
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],
-      x_field_1: `yuantu,test,${token}`,
+      x_field_1: `${getWhiteLabel()},test,${token}`,
     };
 
     await submit(entry);
