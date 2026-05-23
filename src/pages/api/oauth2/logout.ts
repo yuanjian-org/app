@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { logError } from "../../../api/oauth2/utils";
+import { logError, getOAuth2ClientConfig } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -12,18 +12,24 @@ export default function logoutHandler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { post_logout_redirect_uri } = req.query as {
+  const { post_logout_redirect_uri, client_id } = req.query as {
     post_logout_redirect_uri?: string;
+    client_id?: string;
   };
 
-  const expectedRedirectUri = process.env.OAUTH2_REDIRECT_URI;
   let callbackUrl = "/";
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URI.
+  const clientConfig = getOAuth2ClientConfig(client_id);
+
+  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
   // We allow redirects to the same origin as the client application.
-  if (post_logout_redirect_uri && expectedRedirectUri) {
+  if (
+    post_logout_redirect_uri &&
+    clientConfig.configured &&
+    clientConfig.validClient
+  ) {
     try {
-      const allowedOrigin = new URL(expectedRedirectUri).origin;
+      const allowedOrigin = new URL(clientConfig.redirectUri).origin;
       const requestedOrigin = new URL(post_logout_redirect_uri).origin;
 
       if (allowedOrigin === requestedOrigin) {
@@ -32,7 +38,6 @@ export default function logoutHandler(
         logError(
           "post_logout_redirect_uri origin does not match allowed origin",
           requestedOrigin,
-          allowedOrigin,
         );
       }
     } catch (e) {

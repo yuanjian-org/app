@@ -22,7 +22,9 @@ describe("OAuth2 userinfoHandler", () => {
   });
 
   beforeEach(() => {
-    process.env.OAUTH2_CLIENT_ID = "test-client";
+    process.env.OAUTH2_CLIENT_IDS = "test-client";
+    process.env.OAUTH2_CLIENT_SECRETS = "test-secret";
+    process.env.OAUTH2_REDIRECT_URIS = "http://localhost/callback";
     process.env.NEXTAUTH_SECRET = "test-secret-1234567890";
 
     findByPkStub = sinon.stub(db.User, "findByPk");

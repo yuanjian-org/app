@@ -1,6 +1,54 @@
 import crypto from "crypto";
 import * as jose from "jose";
 
+export type OAuth2ClientConfigResult =
+  | { configured: false }
+  | { configured: true; validClient: false }
+  | {
+      configured: true;
+      validClient: true;
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+    };
+
+export function getOAuth2ClientConfig(
+  clientId: string | undefined,
+): OAuth2ClientConfigResult {
+  const clientIdsStr = process.env.OAUTH2_CLIENT_IDS;
+  const clientSecretsStr = process.env.OAUTH2_CLIENT_SECRETS;
+  const redirectUrisStr = process.env.OAUTH2_REDIRECT_URIS;
+
+  if (!clientIdsStr || !clientSecretsStr || !redirectUrisStr) {
+    return { configured: false };
+  }
+
+  if (!clientId) {
+    return { configured: true, validClient: false };
+  }
+
+  const clientIds = clientIdsStr.split(",").map((s) => s.trim());
+  const clientSecrets = clientSecretsStr.split(",").map((s) => s.trim());
+  const redirectUris = redirectUrisStr.split(",").map((s) => s.trim());
+
+  const index = clientIds.indexOf(clientId);
+  if (
+    index === -1 ||
+    index >= clientSecrets.length ||
+    index >= redirectUris.length
+  ) {
+    return { configured: true, validClient: false };
+  }
+
+  return {
+    configured: true,
+    validClient: true,
+    clientId: clientIds[index],
+    clientSecret: clientSecrets[index],
+    redirectUri: redirectUris[index],
+  };
+}
+
 export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
 }

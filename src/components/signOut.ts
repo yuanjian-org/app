@@ -15,7 +15,8 @@ export async function signOut(options?: { callbackUrl?: string }) {
   if (session?.federatedLogoutUrl) {
     // Construct the absolute URL of the callback to be sent to the IdP.
     const target = new URL(callbackUrl, window.location.origin).toString();
-    callbackUrl = `${session.federatedLogoutUrl}?post_logout_redirect_uri=${encodeURIComponent(target)}`;
+    const prefix = session.federatedLogoutUrl.includes("?") ? "&" : "?";
+    callbackUrl = `${session.federatedLogoutUrl}${prefix}post_logout_redirect_uri=${encodeURIComponent(target)}`;
   }
   // nextAuthSignOut automatically clears local cookies and then redirects to callbackUrl.
   return nextAuthSignOut({ callbackUrl });
