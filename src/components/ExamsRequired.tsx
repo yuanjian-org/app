@@ -12,16 +12,16 @@ import { isProd } from "shared/isProd";
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const whiteLabel = data?.whiteLabel;
 
   return useMemo(
     () =>
       calculateExamsRequired({
         state,
-        isDemo,
+        whiteLabel,
         isProdEnv: isProd(),
       }),
-    [state, isDemo],
+    [state, whiteLabel],
   );
 }
 

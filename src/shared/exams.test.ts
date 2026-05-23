@@ -86,10 +86,10 @@ describe("Exams Requirements", () => {
 });
 
 describe("calculateExamsRequired", () => {
-  it("should return undefined for all if state or isDemo is undefined", () => {
+  it("should return undefined for all if state or whiteLabel is undefined", () => {
     const res1 = calculateExamsRequired({
       state: undefined,
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: true,
     });
     void expect(res1.commsExamRequired).to.be.undefined;
@@ -98,7 +98,7 @@ describe("calculateExamsRequired", () => {
 
     const res2 = calculateExamsRequired({
       state: {},
-      isDemo: undefined,
+      whiteLabel: undefined,
       isProdEnv: true,
     });
     void expect(res2.commsExamRequired).to.be.undefined;
@@ -106,10 +106,10 @@ describe("calculateExamsRequired", () => {
     void expect(res2.handbookExamRequired).to.be.undefined;
   });
 
-  it("should return false for all if isProdEnv is false or isDemo is true", () => {
+  it("should return false for all if isProdEnv is false or whiteLabel is demo", () => {
     const res1 = calculateExamsRequired({
       state: {},
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: false,
     });
     void expect(res1.commsExamRequired).to.be.false;
@@ -118,7 +118,7 @@ describe("calculateExamsRequired", () => {
 
     const res2 = calculateExamsRequired({
       state: {},
-      isDemo: true,
+      whiteLabel: "demo",
       isProdEnv: true,
     });
     void expect(res2.commsExamRequired).to.be.false;
@@ -129,7 +129,7 @@ describe("calculateExamsRequired", () => {
   it("should require exams if state is empty (exams not passed) in prod and not demo", () => {
     const res = calculateExamsRequired({
       state: {},
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.true;
@@ -146,7 +146,7 @@ describe("calculateExamsRequired", () => {
         ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.false;
@@ -167,7 +167,7 @@ describe("calculateExamsRequired", () => {
           Date.now() - (defaultExamExpiryDays + 1) * 86400000,
         ).toISOString(),
       },
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.true;
@@ -184,7 +184,7 @@ describe("calculateExamsRequired", () => {
         ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
-      isDemo: false,
+      whiteLabel: "yuantu",
       isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.false;

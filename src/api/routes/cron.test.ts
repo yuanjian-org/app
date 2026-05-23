@@ -21,8 +21,8 @@ describe("cron", () => {
 
   describe("resetDemoData", () => {
     it("should throw if isDemo is false", async () => {
-      // isDemo reads process.env.IS_DEMO
-      process.env.IS_DEMO = "false";
+      // isDemo reads process.env.WHITE_LABEL
+      process.env.WHITE_LABEL = "yuantu";
 
       const caller = cronRouter.createCaller({
         req: {

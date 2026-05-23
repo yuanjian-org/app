@@ -54,7 +54,7 @@ import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.isDemo;
+  const isDemo = data?.whiteLabel === "demo";
   const [includeMerged, setIncludeMerged] = useState(false);
 
   const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
@@ -102,7 +102,7 @@ export default widePage(() => {
           </WrapItem>
         </Wrap>
 
-        {!users || isDemo === undefined ? (
+        {!users || !data ? (
           <Loader />
         ) : (
           <TableContainer>
