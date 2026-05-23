@@ -15,6 +15,10 @@ services:
     image: ${APP_DOCKER_IMAGE:?}:latest
     container_name: app-ustc
     env_file: .env.ustc
+  app-xhef:
+    image: ${APP_DOCKER_IMAGE:?}:latest
+    container_name: app-xhef
+    env_file: .env.xhef
   nginx:
     image: ${NGINX_DOCKER_IMAGE:-nginx}:latest
     volumes:
@@ -29,6 +33,8 @@ services:
       - /etc/letsencrypt/live/demo.yuantuapp.com/privkey.pem:/certs/demo.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/ustc.yuantuapp.com/fullchain.pem:/certs/ustc.yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/ustc.yuantuapp.com/privkey.pem:/certs/ustc.yuantuapp.com/privkey.pem:ro
+      - /etc/letsencrypt/live/xhef.yuantuapp.com/fullchain.pem:/certs/xhef.yuantuapp.com/fullchain.pem:ro
+      - /etc/letsencrypt/live/xhef.yuantuapp.com/privkey.pem:/certs/xhef.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/mentors.org.cn/fullchain.pem:/certs/mentors.org.cn/fullchain.pem:ro
       - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/certs/mentors.org.cn/privkey.pem:ro
     ports:
@@ -38,3 +44,4 @@ services:
       - app
       - app-demo
       - app-ustc
+      - app-xhef
