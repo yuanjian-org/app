@@ -98,6 +98,9 @@ jobs:
     - name: Create .env.ustc file
       run: cp .env .env.ustc
 
+    - name: Create .env.xhef file
+      run: cp .env .env.xhef
+
     - name: Build Docker image
       run: docker compose build
 
@@ -132,6 +135,7 @@ jobs:
           docker compose pull app
           docker compose pull app-demo
           docker compose pull app-ustc
+          docker compose pull app-xhef
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker rm temp_extract || true
@@ -155,6 +159,10 @@ jobs:
 
           echo ">>> Migrating ustc database"
           source .env.ustc
+          curl -f -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+
+          echo ">>> Migrating xhef database"
+          source .env.xhef
           curl -f -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
 
           echo ">>> Migrating demo database"

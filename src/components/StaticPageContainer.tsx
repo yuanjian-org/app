@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
 import UstcLandingPage from "./UstcLandingPage";
+import XhefLandingPage from "./XhefLandingPage";
 import PageLoader from "./PageLoader";
 
 export default function StaticPageContainer({
@@ -20,6 +21,10 @@ export default function StaticPageContainer({
 
   if (data?.whiteLabel === "ustc") {
     return <UstcLandingPage />;
+  }
+
+  if (data?.whiteLabel === "xhef") {
+    return <XhefLandingPage />;
   }
 
   return (
