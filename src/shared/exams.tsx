@@ -1,5 +1,6 @@
 import { DateColumn } from "./DateColumn";
 import moment from "moment";
+import { WhiteLabel } from "./WhiteLabel";
 
 export const defaultExamExpiryDays = 365;
 
@@ -39,7 +40,7 @@ export function calculateExamsRequired({
     menteeInterviewerExam?: DateColumn;
     handbookExam?: DateColumn;
   };
-  whiteLabel?: string;
+  whiteLabel?: WhiteLabel;
   isProdEnv: boolean;
 }) {
   if (state === undefined || whiteLabel === undefined) {

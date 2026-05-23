@@ -6,6 +6,7 @@ import sequelize from "../database/sequelize";
 import { z } from "zod";
 import { Transaction } from "sequelize";
 import { getWhiteLabel } from "../getWhiteLabel";
+import { zWhiteLabel } from "shared/WhiteLabel";
 
 export function getStaticImpl() {
   return {
@@ -64,7 +65,7 @@ const getStatic = procedure
   .output(
     z.object({
       enableOrgs: z.boolean(),
-      whiteLabel: z.string().optional(),
+      whiteLabel: zWhiteLabel.optional(),
     }),
   )
   .query(() => {

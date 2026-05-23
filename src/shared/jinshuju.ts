@@ -1,5 +1,6 @@
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 import { MinUser } from "./User";
+import { WhiteLabel } from "./WhiteLabel";
 
 /**
  * Prefix the user's url in the x field to make it easier to identify the user
@@ -8,7 +9,7 @@ import { MinUser } from "./User";
  * @param urlSafeValue must be a URL-safe string
  */
 export function encodeXField(
-  whiteLabel: string,
+  whiteLabel: WhiteLabel,
   user: MinUser,
   urlSafeValue: string,
 ) {
@@ -19,7 +20,7 @@ export function encodeXField(
  * @returns undefined if the x_field_1 is empty or malformed
  */
 export function validateAndDecodeXField(
-  whiteLabel: string,
+  whiteLabel: WhiteLabel,
   formEntry: Record<string, any>,
 ): string | undefined {
   const xField = formEntry.x_field_1;

@@ -29,6 +29,7 @@ import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
 import { parseQueryString, shaChecksum } from "shared/strings";
 import { useRouter } from "next/router";
+import { WhiteLabel } from "shared/WhiteLabel";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
@@ -283,7 +284,7 @@ function Basic({
  * mentor's profile can compute the hash. Use a stronger method.
  */
 function encodeJinshujuXField(
-  whiteLabel: string,
+  whiteLabel: WhiteLabel,
   user: MinUser,
   profile: UserProfile,
   target: UploadTarget,
