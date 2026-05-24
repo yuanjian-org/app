@@ -170,7 +170,7 @@ async function save(
         ...(await checkAndComputeUserFields({
           email,
           name,
-          isVolunteer: isPermitted(user.roles, "Volunteer"),
+          allowUrl: isPermitted(user.roles, ["Volunteer", "Mentor"]),
           oldUrl: user.url,
           transaction,
         })),
@@ -189,7 +189,7 @@ async function save(
         ...(await checkAndComputeUserFields({
           email,
           name,
-          isVolunteer: false,
+          allowUrl: false,
           oldUrl: null,
           transaction,
         })),

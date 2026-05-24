@@ -17,14 +17,14 @@ function isValidUserUrl(url: string) {
 export async function checkAndComputeUserFields({
   email,
   name,
-  isVolunteer,
+  allowUrl,
   url,
   oldUrl,
   transaction,
 }: {
   email?: string | null;
   name?: string | null;
-  isVolunteer: boolean;
+  allowUrl: boolean;
   url?: string | null;
   oldUrl: string | null;
   transaction: Transaction;
@@ -50,13 +50,13 @@ export async function checkAndComputeUserFields({
       pinyin: name === null ? null : toPinyin(name),
     }),
     ...(email !== undefined && { email: email?.toLowerCase() ?? null }),
-    ...(await checkAndComputeUrl(name, isVolunteer, oldUrl, url, transaction)),
+    ...(await checkAndComputeUrl(name, allowUrl, oldUrl, url, transaction)),
   };
 }
 
 async function checkAndComputeUrl(
   name: string | null | undefined,
-  isVolunteer: boolean,
+  allowUrl: boolean,
   oldUrl: string | null,
   url: string | null | undefined,
   transaction: Transaction,
@@ -73,10 +73,11 @@ async function checkAndComputeUrl(
     if (url === oldUrl) {
       // Nothing is changing
       return {};
-    } else if (!isVolunteer) {
-      // Only volunteers are allowed to set urls
+    } else if (!allowUrl) {
+      // Only volunteers and mentors are allowed to set urls
       throw generalBadRequestError(
-        `非${displayName("Volunteer")}` + "没有设置URL的权限。",
+        `非${displayName("Volunteer")}或${displayName("Mentor")}` +
+          "没有设置URL的权限。",
       );
     } else {
       if (await db.User.count({ where: { url }, transaction })) {
@@ -87,8 +88,8 @@ async function checkAndComputeUrl(
   } else if (oldUrl !== null) {
     // Retain the old url if it's already set
     return {};
-  } else if (!isVolunteer) {
-    // Only populate urls for volunteers
+  } else if (!allowUrl) {
+    // Only populate urls for users with allowUrl
     return {};
   } else {
     // Auto generate an url
