@@ -33,9 +33,9 @@ export default function UserSelector(props: {
       .query({
         matchesNameOrEmail: inputValue,
       })
-      .then((users) => {
+      .then((usersData) => {
         callback(
-          users.map((u) => {
+          usersData.items.map((u) => {
             return {
               label: `${u.name} (${u.email ?? "无邮箱"})`,
               value: u.id,

@@ -51,17 +51,38 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import UserSelector from "components/UserSelector";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.whiteLabel === "demo";
   const [includeMerged, setIncludeMerged] = useState(false);
 
-  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
-    includeMerged,
-    includeNonVolunteers: true,
-    returnMergeInfo: true,
-  });
+  const [filter, setFilter] = useState<{
+    matchesNameOrEmail?: string;
+    ids?: string[];
+  }>({});
+
+  const {
+    data: usersData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = trpcNext.users.list.useInfiniteQuery(
+    {
+      includeMerged,
+      includeNonVolunteers: true,
+      returnMergeInfo: true,
+      limit: 50,
+      ...filter,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+
+  const users = usersData?.pages.flatMap((page) => page.items);
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
@@ -100,6 +121,15 @@ export default widePage(() => {
               显示已迁移账号
             </Checkbox>
           </WrapItem>
+
+          <WrapItem minW="300px">
+            <UserSelector
+              placeholder="搜索用户..."
+              onSelect={(userIds) =>
+                setFilter(userIds.length > 0 ? { ids: userIds } : {})
+              }
+            />
+          </WrapItem>
         </Wrap>
 
         {!users || !data ? (
@@ -112,6 +142,17 @@ export default widePage(() => {
               isDemo={isDemo}
             />
           </TableContainer>
+        )}
+
+        {hasNextPage && (
+          <Button
+            onClick={() => fetchNextPage()}
+            isLoading={isFetchingNextPage}
+            variant="outline"
+            alignSelf="center"
+          >
+            加载更多
+          </Button>
         )}
       </Flex>
     </>
