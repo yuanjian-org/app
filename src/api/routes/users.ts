@@ -173,8 +173,135 @@ const list = procedure
                 { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
               ],
             }),
+
+        ...(filter.userIds === undefined || filter.userIds.length === 0
+          ? {}
+          : {
+              id: { [Op.in]: filter.userIds },
+            }),
       },
     });
+  });
+
+const listInfinite = procedure
+  .use(
+    authUser([
+      "UserManager",
+      "GroupManager",
+      "MentorshipManager",
+      "MentorshipOperator",
+    ]),
+  )
+  .input(
+    zUserFilter.extend({
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.number().nullish(), // Use offset as cursor
+    }),
+  )
+  .output(
+    z.object({
+      items: z.array(zUserWithMergeInfo),
+      nextCursor: z.number().nullish(),
+    }),
+  )
+  .query(async ({ ctx: { me }, input: filter }) => {
+    if (
+      (filter.includeMerged === true || filter.returnMergeInfo === true) &&
+      !isPermitted(me.roles, "UserManager")
+    ) {
+      throw noPermissionError(
+        "数据",
+        "`includeMerged` or `returnMergeInfo` user filter",
+      );
+    }
+
+    const limit = filter.limit ?? 50;
+    const offset = filter.cursor ?? 0;
+    const volunteer: Role = "Volunteer";
+
+    const items = await db.User.findAll({
+      order: [
+        ["pinyin", "ASC"],
+        ["id", "ASC"],
+      ],
+      limit: limit + 1,
+      offset,
+      attributes: [
+        ...userAttributes,
+        ...(filter.returnMergeInfo === true ? ["wechatUnionId"] : []),
+      ],
+      include: [
+        ...userInclude,
+        ...(filter.returnMergeInfo === true
+          ? [
+              {
+                association: "mergedToUser",
+                attributes: minUserAttributes,
+              },
+            ]
+          : []),
+      ],
+      where: {
+        ...(filter.includeMerged === true
+          ? {}
+          : {
+              mergedTo: { [Op.eq]: null },
+            }),
+
+        ...(filter.includeNonVolunteers === true
+          ? {}
+          : {
+              roles: { [Op.contains]: [volunteer] },
+            }),
+
+        ...(filter.containsRoles === undefined
+          ? {}
+          : {
+              [Op.and]: filter.containsRoles.map((r) => ({
+                roles: { [Op.contains]: [r] },
+              })),
+            }),
+
+        ...(filter.menteeStatus === undefined
+          ? {}
+          : {
+              menteeStatus: filter.menteeStatus,
+            }),
+
+        ...(filter.pointOfContactId === undefined
+          ? {}
+          : {
+              pointOfContactId: filter.pointOfContactId,
+            }),
+
+        ...(filter.matchesNameOrEmail === undefined
+          ? {}
+          : {
+              [Op.or]: [
+                { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+                { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+                { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+              ],
+            }),
+
+        ...(filter.userIds === undefined || filter.userIds.length === 0
+          ? {}
+          : {
+              id: { [Op.in]: filter.userIds },
+            }),
+      },
+    });
+
+    let nextCursor: typeof filter.cursor = undefined;
+    if (items.length > limit) {
+      items.pop();
+      nextCursor = offset + limit;
+    }
+
+    return {
+      items,
+      nextCursor,
+    };
   });
 
 const zListMentorsOutput = z.array(
@@ -977,6 +1104,7 @@ export default router({
   get,
   getFull,
   list,
+  listInfinite,
   listPriviledgedUserDataAccess,
   listVolunteers,
   listMentors,
