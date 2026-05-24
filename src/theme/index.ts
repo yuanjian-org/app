@@ -9,6 +9,7 @@ import radio from "./radio";
 import numberInput from "./numberInput";
 import dividers from "./dividers";
 import headings from "./headings";
+import code from "./code";
 
 const global = {
   colors,
@@ -32,4 +33,5 @@ export default extendTheme(
   avatars,
   dividers,
   headings,
+  code,
 );
