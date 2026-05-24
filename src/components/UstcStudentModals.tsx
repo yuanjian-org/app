@@ -67,9 +67,11 @@ function InitialModal({
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>中科大学生验证</ModalHeader>
+        <ModalHeader>科大邮箱验证</ModalHeader>
         <ModalBody>
-          <Text>您是正在中国科学技术大学就读的学生吗？</Text>
+          <Text>
+            本站的【导师预约】页面仅限中国科学技术大学的用户。您有科大的邮箱吗？
+          </Text>
           <Text mt={componentSpacing}>
             如果选择跳过，之后可以前往用户菜单的【
             {accountPageTitle}
@@ -78,10 +80,10 @@ function InitialModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>我不是中科大学生，或跳过此步</Button>
+            <Button onClick={decline}>我没有科大邮箱，或跳过此步</Button>
             <Spacer />
             <Button variant="brand" onClick={confirm}>
-              我是中科大学生
+              我有科大邮箱
             </Button>
           </HStack>
         </ModalFooter>
@@ -155,7 +157,7 @@ export function UstcStudentValidationModal({
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>中科大学生验证</ModalHeader>
+        <ModalHeader>科大邮箱验证</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
