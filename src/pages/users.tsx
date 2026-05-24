@@ -27,7 +27,7 @@ import {
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -51,20 +51,63 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import UserSelector from "components/UserSelector";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.whiteLabel === "demo";
   const [includeMerged, setIncludeMerged] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
-    includeMerged,
-    includeNonVolunteers: true,
-    returnMergeInfo: true,
-  });
+  const {
+    data: usersData,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = trpcNext.users.listInfinite.useInfiniteQuery(
+    {
+      includeMerged,
+      includeNonVolunteers: true,
+      returnMergeInfo: true,
+      userIds: selectedUserIds.length > 0 ? selectedUserIds : undefined,
+      limit: 50,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+
+  const users = useMemo(() => {
+    return usersData?.pages.flatMap((page) => page.items);
+  }, [usersData]);
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
+
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [observerTarget, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const closeUserEditor = () => {
     setUserBeingEdited(null);
@@ -100,6 +143,14 @@ export default widePage(() => {
               显示已迁移账号
             </Checkbox>
           </WrapItem>
+
+          <WrapItem w="300px">
+            <UserSelector
+              isMulti
+              placeholder="搜索用户..."
+              onSelect={(ids) => setSelectedUserIds(ids)}
+            />
+          </WrapItem>
         </Wrap>
 
         {!users || !data ? (
@@ -107,10 +158,12 @@ export default widePage(() => {
         ) : (
           <TableContainer>
             <UserTable
-              users={users}
+              users={users as UserWithMergeInfo[]}
               setUserBeingEdited={setUserBeingEdited}
               isDemo={isDemo}
             />
+            {isFetchingNextPage && <Loader />}
+            <div ref={observerTarget} style={{ height: "10px" }} />
           </TableContainer>
         )}
       </Flex>

@@ -7,6 +7,7 @@ export const zUserFilter = z.object({
   containsRoles: zRoles.optional(),
   menteeStatus: zMenteeStatus.nullable().optional(),
   pointOfContactId: z.string().optional(),
+  userIds: z.array(z.string()).optional(),
 
   includeNonVolunteers: z.boolean().optional(),
   includeMerged: z.boolean().optional(),
