@@ -17,6 +17,7 @@ describe("ustcStudents.validate", () => {
       .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
       .resolves();
 
+    // Use a real transaction, wait for it to finish, then assert from db.
     await sequelize.transaction(async (transaction) => {
       await validateImpl(user, "test@ustc.edu.cn", "123456", transaction);
     });

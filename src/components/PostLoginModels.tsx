@@ -38,7 +38,7 @@ export default function PostLoginModels() {
   const me = useMe();
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
-  const canValidateUstcStudent = useCanValidateUstcStudent(me.roles);
+  const canValidateUstcStudent = useCanValidateUstcStudent(me.roles, me.email);
 
   return state === undefined ? (
     <></>
