@@ -28,6 +28,8 @@ import { PearlStudentValidationModal } from "components/PearlStudentModals";
 import { SetPhoneModal } from "components/PostLoginModels";
 import { toast } from "react-toastify";
 import { useCanValidatePearlStudent } from "components/useCanValidatePearlStudent";
+import { useCanValidateUstcStudent } from "components/useCanValidateUstcStudent";
+import { UstcStudentValidationModal } from "components/UstcStudentModals";
 
 export const accountPageTitle = "账号与安全";
 
@@ -45,8 +47,13 @@ export default function Page() {
   const [isSettingPhone, setIsSettingPhone] = useState(false);
   const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
     useState(false);
+  const [isValidatingUstcStudent, setIsValidatingUstcStudent] = useState(false);
 
   const canValidatePearlStudent = useCanValidatePearlStudent(user?.roles ?? []);
+  const canValidateUstcStudent = useCanValidateUstcStudent(
+    user?.roles ?? [],
+    user?.email,
+  );
 
   useEffect(() => {
     setWechat(user?.wechat ?? "");
@@ -151,6 +158,26 @@ export default function Page() {
         <PearlStudentValidationModal
           cancelLabel="取消"
           cancel={() => setIsValidatingPearlStudent(false)}
+        />
+      )}
+
+      {canValidateUstcStudent && (
+        <>
+          <SectionHeading>中科大学生验证</SectionHeading>
+          <Text>如果您是中国科学技术大学的学生，请点击按钮进行验证。</Text>
+          <Button
+            variant="brand"
+            onClick={() => setIsValidatingUstcStudent(true)}
+          >
+            开始验证
+          </Button>
+        </>
+      )}
+
+      {isValidatingUstcStudent && (
+        <UstcStudentValidationModal
+          cancelLabel="取消"
+          cancel={() => setIsValidatingUstcStudent(false)}
         />
       )}
 

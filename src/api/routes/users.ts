@@ -747,6 +747,7 @@ export async function setMyStateImpl(
     "lastTasksReadAt",
     "meetingConsentedAt",
     "declinedPearlStudentModal",
+    "declinedUstcStudentModal",
   ];
   const filteredState: Partial<UserState> = {};
   for (const key of allowed) {
