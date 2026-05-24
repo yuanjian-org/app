@@ -43,18 +43,17 @@ export default function PostLoginModels() {
   return state === undefined ? (
     <></>
 
+  ) : !isConsented(state.consentedAt) ? (
+    <ConsentModal refetch={refetch} />
+
     // Ask for phone number first because this step may cause the current user to
-    // be merged with another user. Information required later (name, cell,
+    // be merged with another user. Information required later (name, phone,
     // roles, etc) may have been already filled in the merged account.
   ) : me.phone === null ? (
     <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
-  ) : !isConsented(state.consentedAt) ? (
-    <ConsentModal refetch={refetch} />
-
     // Validate pearl student before setting name because the former also sets
-    // name. Do it before setting cell because the system will require cell for
-    // all pearl students.
+    // name.
   ) : canValidatePearlStudent && !state?.declinedPearlStudentModal ? (
     <PearlStudentModals userState={state} refetchUserState={refetch} />
 
