@@ -73,7 +73,7 @@ const create = procedure
           ...(await checkAndComputeUserFields({
             email,
             name,
-            allowUrl: isPermitted(roles, ["Volunteer", "Mentor"]),
+            isVolunteerOrMentor: isPermitted(roles, ["Volunteer", "Mentor"]),
             oldUrl: null,
             transaction,
           })),
@@ -393,7 +393,7 @@ export async function updateImpl(
 
       ...(await checkAndComputeUserFields({
         name: input.name,
-        allowUrl: isPermitted(input.roles, ["Volunteer", "Mentor"]),
+        isVolunteerOrMentor: isPermitted(input.roles, ["Volunteer", "Mentor"]),
         oldUrl: user.url,
         url,
         transaction,

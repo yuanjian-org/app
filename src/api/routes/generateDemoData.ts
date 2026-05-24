@@ -140,7 +140,10 @@ async function generateUsersAndAssingIds(transaction: Transaction) {
           password: hashedPassword,
           ...(await checkAndComputeUserFields({
             ...u,
-            allowUrl: isPermitted(u.roles ?? [], ["Volunteer", "Mentor"]),
+            isVolunteerOrMentor: isPermitted(u.roles ?? [], [
+              "Volunteer",
+              "Mentor",
+            ]),
             oldUrl: null,
             transaction,
           })),
