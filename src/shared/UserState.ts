@@ -6,6 +6,8 @@ export const zUserState = z.object({
 
   declinedPearlStudentModal: z.boolean().optional(),
 
+  declinedUstcStudentModal: z.boolean().optional(),
+
   lastKudosReadAt: zDateColumn.optional(),
 
   lastTasksReadAt: zDateColumn.optional(),

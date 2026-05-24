@@ -30,12 +30,15 @@ import { staticUrlPrefix } from "static";
 import IdTokenInputs, { IdTokenInputsState } from "./IdTokenInputs";
 import invariant from "shared/invariant";
 import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
+import { useCanValidateUstcStudent } from "./useCanValidateUstcStudent";
+import { UstcStudentModals } from "./UstcStudentModals";
 
 // prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
+  const canValidateUstcStudent = useCanValidateUstcStudent(me.roles);
 
   return state === undefined ? (
     <></>
@@ -54,6 +57,9 @@ export default function PostLoginModels() {
     // all pearl students.
   ) : canValidatePearlStudent && !state?.declinedPearlStudentModal ? (
     <PearlStudentModals userState={state} refetchUserState={refetch} />
+
+  ) : canValidateUstcStudent && !state?.declinedUstcStudentModal ? (
+    <UstcStudentModals userState={state} refetchUserState={refetch} />
 
   ) : !me.name ? (
     <SetNameModal />
