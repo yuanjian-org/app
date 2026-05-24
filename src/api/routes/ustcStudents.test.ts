@@ -19,17 +19,17 @@ describe("ustcStudents.validate", () => {
 
     // Use a real transaction, wait for it to finish, then assert from db.
     await sequelize.transaction(async (transaction) => {
-      await validateImpl(user, "test@ustc.edu.cn", "123456", transaction);
+      await validateImpl(user, "test@mail.ustc.edu.cn", "123456", transaction);
     });
 
     const updatedUser = await db.User.findByPk(user.id);
-    expect(updatedUser?.email).to.equal("test@ustc.edu.cn");
+    expect(updatedUser?.email).to.equal("test@mail.ustc.edu.cn");
     expect(updatedUser?.roles).to.deep.equal(["Mentee"]);
     expect(updatedUser?.menteeStatus).to.equal("现届学子");
 
     expect(checkStub.callCount).to.equal(1);
     expect(checkStub.firstCall.args[0]).to.equal("email");
-    expect(checkStub.firstCall.args[1]).to.equal("test@ustc.edu.cn");
+    expect(checkStub.firstCall.args[1]).to.equal("test@mail.ustc.edu.cn");
     expect(checkStub.firstCall.args[2]).to.equal("123456");
 
     await db.User.destroy({ where: { id: user.id } });
