@@ -65,12 +65,12 @@ function InitialModal({
   return (
     // Set onClose to undefined to prevent user from closing the modal without
     // entering name.
-    <ModalWithBackdrop isOpen onClose={() => undefined}>
+    <ModalWithBackdrop isOpen size="lg" onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>科大邮箱验证</ModalHeader>
+        <ModalHeader>科大学生邮箱验证</ModalHeader>
         <ModalBody>
           <Text>
-            本站的【导师预约】页面仅限中国科学技术大学的用户。您有科大的邮箱吗？
+            本站的【导师预约】页面仅限中国科学技术大学的学生。您有科大学生邮箱吗？
           </Text>
           <Text mt={componentSpacing}>
             如果选择跳过，之后可以前往用户菜单的【
@@ -80,10 +80,10 @@ function InitialModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>我没有科大邮箱，或跳过此步</Button>
+            <Button onClick={decline}>我没有科大学生邮箱，或跳过此步</Button>
             <Spacer />
             <Button variant="brand" onClick={confirm}>
-              我有科大邮箱
+              我有科大学生邮箱
             </Button>
           </HStack>
         </ModalFooter>
@@ -106,7 +106,7 @@ export function UstcStudentValidationModal({
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { update } = useSession();
 
-  const domain = "@ustc.edu.cn";
+  const domain = "@mail.ustc.edu.cn";
   const email = emailPrefix.trim() + domain;
   const isEmailPrefixValid = emailPrefix.trim().length > 0;
   const isInputValid =
@@ -157,7 +157,7 @@ export function UstcStudentValidationModal({
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>科大邮箱验证</ModalHeader>
+        <ModalHeader>科大学生邮箱验证</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">

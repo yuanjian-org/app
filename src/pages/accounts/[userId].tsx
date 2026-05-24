@@ -160,8 +160,8 @@ export default function Page() {
 
       {canValidateUstcStudent && (
         <>
-          <SectionHeading>中科大邮箱验证</SectionHeading>
-          <Text>如果您有中国科学技术大学的邮箱，请点击按钮进行验证。</Text>
+          <SectionHeading>中科大学生邮箱验证</SectionHeading>
+          <Text>如果您有中国科学技术大学的学生邮箱，请点击按钮进行验证。</Text>
           <Button
             variant="brand"
             onClick={() => setIsValidatingUstcStudent(true)}
