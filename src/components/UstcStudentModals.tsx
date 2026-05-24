@@ -159,7 +159,6 @@ export function UstcStudentValidationModal({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
-            <SmallGrayText>请填写您的中科大邮箱获取验证码：</SmallGrayText>
             <FormControl>
               <InputGroup>
                 <Input
