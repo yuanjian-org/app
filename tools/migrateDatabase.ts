@@ -1,5 +1,6 @@
 import "dotenv/config";
 import sequelize from "../src/api/database/sequelize";
+import meetingSequelize from "../src/api/database/meetingSequelize";
 import { migrateDatabase } from "../src/api/routes/migration";
 import { adapter } from "../src/pages/api/auth/[...nextauth]";
 
@@ -10,8 +11,13 @@ async function sync() {
 
   await migrateDatabase();
 
+  // Need to sync MeetingSlot table explicitly since it's on a different db instance.
+  // In production, this table should be created manually or via migrations.
+  await meetingSequelize.sync({ alter: true });
+
   // This make sure the process doesn't hang waiting for connection closure.
   await sequelize.close();
+  await meetingSequelize.close();
 }
 
 void sync().then();

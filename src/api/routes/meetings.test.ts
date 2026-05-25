@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import sequelize from "../database/sequelize";
+import meetingSequelize from "../database/meetingSequelize";
 import * as notifyModule from "../notify";
 import * as tencentMeetingModule from "../TencentMeeting";
 import sinon from "sinon";
@@ -8,11 +9,21 @@ import { recycleMeetings } from "./meetings";
 
 describe("recycleMeetings", () => {
   let transaction: Transaction;
+  let meetingTransaction: Transaction;
   let notifyStub: sinon.SinonStub;
   let createMeetingStub: sinon.SinonStub;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
+    meetingTransaction = await meetingSequelize.transaction();
+
+    sinon.stub(sequelize, "transaction").callsFake(async (cb) => {
+      return await cb(transaction);
+    });
+
+    sinon.stub(meetingSequelize, "transaction").callsFake(async (cb) => {
+      return await cb(meetingTransaction);
+    });
 
     notifyStub = sinon.stub(notifyModule, "notifyRolesIgnoreError");
     sinon.stub(tencentMeetingModule, "getTmUserIds").returns(["test-user-id"]);
@@ -23,10 +34,13 @@ describe("recycleMeetings", () => {
   });
 
   afterEach(async () => {
+    sinon.restore();
+    if (meetingTransaction) {
+      await meetingTransaction.rollback();
+    }
     if (transaction) {
       await transaction.rollback();
     }
-    sinon.restore();
   });
 
   it("should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error", async () => {
