@@ -27,7 +27,7 @@ import {
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -51,17 +51,54 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import { FullTextSearchBox } from "components/UserCards";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
   const isDemo = data?.whiteLabel === "demo";
   const [includeMerged, setIncludeMerged] = useState(false);
 
-  const { data: users, refetch } = trpcNext.users.list.useQuery<User[]>({
-    includeMerged,
-    includeNonVolunteers: true,
-    returnMergeInfo: true,
-  });
+  const [filter, setFilter] = useState<{
+    matchesNameOrEmail?: string;
+    ids?: string[];
+  }>({});
+
+  const {
+    data: usersData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = trpcNext.users.list.useInfiniteQuery(
+    {
+      includeMerged,
+      includeNonVolunteers: true,
+      returnMergeInfo: true,
+      limit: 50,
+      ...filter,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+
+  const users = usersData?.pages.flatMap((page) => page.items);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 200
+      ) {
+        if (hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
@@ -100,6 +137,13 @@ export default widePage(() => {
               显示已迁移账号
             </Checkbox>
           </WrapItem>
+
+          <WrapItem minW="300px">
+            <FullTextSearchBox
+              value={filter.matchesNameOrEmail ?? ""}
+              setValue={(v) => setFilter(v ? { matchesNameOrEmail: v } : {})}
+            />
+          </WrapItem>
         </Wrap>
 
         {!users || !data ? (
@@ -113,6 +157,8 @@ export default widePage(() => {
             />
           </TableContainer>
         )}
+
+        {isFetchingNextPage && <Loader />}
       </Flex>
     </>
   );

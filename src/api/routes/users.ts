@@ -96,7 +96,12 @@ const list = procedure
     ]),
   )
   .input(zUserFilter)
-  .output(z.array(zUserWithMergeInfo))
+  .output(
+    z.object({
+      items: z.array(zUserWithMergeInfo),
+      nextCursor: z.number().nullish(),
+    }),
+  )
   .query(async ({ ctx: { me }, input: filter }) => {
     if (
       (filter.includeMerged === true || filter.returnMergeInfo === true) &&
@@ -111,7 +116,11 @@ const list = procedure
     // Force type checking.
     const volunteer: Role = "Volunteer";
 
-    return await db.User.findAll({
+    const limit = filter.limit;
+
+    const items = await db.User.findAll({
+      ...(limit !== undefined && limit !== null ? { limit: limit + 1 } : {}),
+      offset: filter.cursor ?? 0,
       order: [["pinyin", "ASC"]],
 
       attributes: [
@@ -173,8 +182,25 @@ const list = procedure
                 { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
               ],
             }),
+
+        ...(filter.ids === undefined
+          ? {}
+          : {
+              id: { [Op.in]: filter.ids },
+            }),
       },
     });
+
+    let nextCursor = undefined;
+    if (limit !== undefined && limit !== null && items.length > limit) {
+      items.pop();
+      nextCursor = (filter.cursor ?? 0) + limit;
+    }
+
+    return {
+      items,
+      nextCursor,
+    };
   });
 
 const zListMentorsOutput = z.array(

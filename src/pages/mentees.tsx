@@ -124,7 +124,8 @@ export default fullPage(() => {
   const [showMatchState, setShowMatchState] = useState(false);
   const me = useMe();
 
-  const { data: users, refetch } = trpcNext.users.list.useQuery(filter);
+  const { data: usersData, refetch } = trpcNext.users.list.useQuery(filter);
+  const users = usersData?.items;
 
   return (
     <>

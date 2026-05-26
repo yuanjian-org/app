@@ -8,9 +8,14 @@ export const zUserFilter = z.object({
   menteeStatus: zMenteeStatus.nullable().optional(),
   pointOfContactId: z.string().optional(),
 
+  ids: z.array(z.string()).optional(),
+
   includeNonVolunteers: z.boolean().optional(),
   includeMerged: z.boolean().optional(),
 
   returnMergeInfo: z.boolean().optional(),
+
+  cursor: z.number().nullish(),
+  limit: z.number().nullish(),
 });
 export type UserFilter = z.TypeOf<typeof zUserFilter>;
