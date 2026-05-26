@@ -466,32 +466,3 @@ function MentorshipScheduleEditor({
     </ModalWithBackdrop>
   );
 }
-
-// function AssessmentsTable({ mentorshipId }: {
-//   mentorshipId: string,
-// }) {
-//   const router = useRouter();
-//   const { data: assessments } =
-//     trpcNext.assessments.listAllForMentorship.useQuery({ mentorshipId });
-
-//   const createAndGo = async () => {
-//     const id = await trpc.assessments.create.mutate({
-//       mentorshipId: mentorshipId
-//     });
-//     router.push(`/mentorships/${mentorshipId}/assessments/${id}`);
-//   };
-
-//   return !assessments ? <Loader /> : !assessments.length ? (
-//     <Text color="gray">无反馈内容。</Text>
-//   ) : <Table>
-//     <Tbody>
-//       {assessments.map(a => <TrLink key={a.id}
-//         href={`/mentorships/${mentorshipId}/assessments/${a.id}`}>
-//         {/* Weird that Asseessment.createdAt must have optional() to suppress
-//         ts's complaint */}
-//         <Td>{a.createdAt && prettifyDate(a.createdAt)}</Td>
-//         <Td>{a.summary ?? ""}</Td>
-//       </TrLink>)}
-//     </Tbody>
-//   </Table>;
-// }
