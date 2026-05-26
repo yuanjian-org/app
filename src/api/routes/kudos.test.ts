@@ -137,7 +137,7 @@ describe("kudos routes", () => {
         where: { giverId: giver1.id },
         transaction,
       });
-      const expectedTime = moment().subtract(1, "hours").toDate();
+      const expectedTime = moment().add(1, "days").toDate();
       await sequelize.query(
         `UPDATE "Kudos" SET "createdAt" = :time WHERE id = :id`,
         {
