@@ -26,7 +26,7 @@ describe("recycleMeetings", () => {
     });
 
     notifyStub = sinon.stub(notifyModule, "notifyRolesIgnoreError");
-    sinon.stub(tencentMeetingModule, "getTmUserIds").returns(["test-user-id"]);
+    sinon.stub(tencentMeetingModule, "getTmUserIds").resolves(["test-user-id"]);
     createMeetingStub = sinon.stub(
       tencentMeetingModule,
       "createRecurringMeeting",
@@ -44,6 +44,10 @@ describe("recycleMeetings", () => {
   });
 
   it("should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error", async () => {
+    // Stub findOne to return a valid slot without a group, so it proceeds to create()
+    const mockSlot = { groupId: null, update: sinon.stub().resolves() };
+    sinon.stub(meetingSequelize.models.MeetingSlot, "findOne").resolves(mockSlot as any);
+
     const errorMsg = "some generic error";
     createMeetingStub.rejects(new Error(errorMsg));
 
@@ -58,6 +62,10 @@ describe("recycleMeetings", () => {
   });
 
   it("should not call notifyRolesIgnoreError when the error includes '每月总接口调用次数超过限制'", async () => {
+    // Stub findOne to return a valid slot without a group, so it proceeds to create()
+    const mockSlot = { groupId: null, update: sinon.stub().resolves() };
+    sinon.stub(meetingSequelize.models.MeetingSlot, "findOne").resolves(mockSlot as any);
+
     const errorMsg = "腾讯会议后台错误：每月总接口调用次数超过限制";
     createMeetingStub.rejects(new Error(errorMsg));
 

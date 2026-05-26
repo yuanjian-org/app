@@ -232,7 +232,7 @@ export async function syncMeetings() {
  * low.
  */
 export async function recycleMeetings() {
-  for (const tmUserId of getTmUserIds()) {
+  for (const tmUserId of await getTmUserIds()) {
     await meetingSequelize.transaction(async (meetingTransaction) => {
       const slot = await MeetingSlot.findOne({
         where: { tmUserId },
@@ -241,8 +241,8 @@ export async function recycleMeetings() {
         transaction: meetingTransaction,
       });
 
-      // Skip ongoing meetings.
-      if (slot && slot.groupId) return;
+      // Skip ongoing meetings or slots that don't exist
+      if (!slot || slot.groupId) return;
 
       try {
         const { meetingId, meetingLink } = await create(tmUserId);
@@ -251,24 +251,13 @@ export async function recycleMeetings() {
             `${meetingId}, ${meetingLink}`,
         );
 
-        if (slot) {
-          await slot.update(
-            {
-              meetingId,
-              meetingLink,
-            },
-            { transaction: meetingTransaction },
-          );
-        } else {
-          await MeetingSlot.create(
-            {
-              tmUserId,
-              meetingId,
-              meetingLink,
-            },
-            { transaction: meetingTransaction },
-          );
-        }
+        await slot.update(
+          {
+            meetingId,
+            meetingLink,
+          },
+          { transaction: meetingTransaction },
+        );
       } catch (e) {
         console.error(`(Expected) meeting creation failure for user ${tmUserId}:
           ${e}`);

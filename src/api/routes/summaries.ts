@@ -288,7 +288,7 @@ export async function saveSummaryImpl(
 async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   console.log("findMissingSummaries()...");
   const descs: SummaryDescriptor[] = [];
-  for (const tmUserId of getTmUserIds()) {
+  for (const tmUserId of await getTmUserIds()) {
     await findMissingSummariesforTmUser(tmUserId, descs);
   }
   return descs;
