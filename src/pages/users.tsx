@@ -27,7 +27,7 @@ import {
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -83,6 +83,22 @@ export default widePage(() => {
   );
 
   const users = usersData?.pages.flatMap((page) => page.items);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 200
+      ) {
+        if (hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
@@ -142,16 +158,7 @@ export default widePage(() => {
           </TableContainer>
         )}
 
-        {hasNextPage && (
-          <Button
-            onClick={() => fetchNextPage()}
-            isLoading={isFetchingNextPage}
-            variant="outline"
-            alignSelf="center"
-          >
-            加载更多
-          </Button>
-        )}
+        {isFetchingNextPage && <Loader />}
       </Flex>
     </>
   );
