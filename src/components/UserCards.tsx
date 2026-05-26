@@ -37,13 +37,12 @@ import {
 } from "react";
 import MentorBookingModal from "components/MentorBookingModal";
 import { CheckIcon, SearchIcon } from "@chakra-ui/icons";
+import { KudosControl, KudosHistory } from "./Kudos";
 import {
-  KudosControl,
-  KudosHistory,
   markKudosAsRead,
   UnreadKudosRedDot,
   useUnreadKudos,
-} from "./Kudos";
+} from "components/unread";
 import { CardForDesktop, CardForMobile } from "./ResponsiveCard";
 import { trpcNext } from "trpc";
 import Loader from "./Loader";

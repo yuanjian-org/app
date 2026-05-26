@@ -38,12 +38,9 @@ import Loader from "./Loader";
 import { UserLink } from "./UserChip";
 import moment, { Moment } from "moment";
 import { SmallGrayText } from "./SmallGrayText";
-import { DateColumn } from "shared/DateColumn";
-import { UserState } from "shared/UserState";
-import RedDot from "./RedDot";
+import { getLastKudosReadAt } from "components/unread";
 import { motion, AnimatePresence } from "framer-motion";
-import useMe, { useMyId, useMyRoles } from "useMe";
-import { isPermitted } from "shared/Role";
+import useMe, { useMyId } from "useMe";
 import ListItemDivider from "./ListItemDivider";
 
 export function KudosControl({
@@ -431,54 +428,4 @@ function KudosHistoryRow({
       </GridItem>
     </>
   );
-}
-
-/**
- * TODO: The following functions are very similar to the ones in TasksCard.tsx.
- * Consider refactoring them to be shared.
- */
-
-function getLastKudosReadAt(state: UserState): Moment {
-  // If lastKudosReadAt is absent, treat consentedAt as the last read time.
-  // If consentedAt is also absent, then use the current time.
-  // `moment(undefined)` returns the current time.
-  return moment(state.lastKudosReadAt ?? state.consentedAt);
-}
-
-/**
- * The parent element should have position="relative".
- */
-export function UnreadKudosRedDot() {
-  const show = useUnreadKudos();
-  return <RedDot show={show} blue />;
-}
-
-/**
- * @returns whether there are unread kudos.
- */
-export function useUnreadKudos() {
-  const myRoles = useMyRoles();
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: lastCreated } = trpcNext.kudos.getLastKudosCreatedAt.useQuery(
-    undefined,
-    { enabled: isPermitted(myRoles, "Volunteer") },
-  );
-
-  // Check permission after all hooks are called
-  if (!isPermitted(myRoles, "Volunteer")) return false;
-
-  // Assume no unread kudos while the values are being fetched.
-  return (
-    !!state &&
-    !!lastCreated &&
-    moment(lastCreated).isAfter(getLastKudosReadAt(state))
-  );
-}
-
-export async function markKudosAsRead(
-  utils: ReturnType<typeof trpcNext.useContext>,
-  lastKudosReadAt: DateColumn,
-) {
-  await trpc.users.setMyState.mutate({ lastKudosReadAt });
-  await utils.users.getUserState.invalidate();
 }
