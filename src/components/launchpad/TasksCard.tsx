@@ -19,19 +19,23 @@ import { compareChinese, compareDate, formatUserName } from "shared/strings";
 import MarkdownStyler from "components/MarkdownStyler";
 import { ReactNode, useCallback, useState } from "react";
 import { toast } from "react-toastify";
-import { DateColumn } from "shared/DateColumn";
-import moment, { Moment } from "moment";
+import moment from "moment";
 import RedDot, {
   redDotRightOffset,
   redDotTransitionProps,
 } from "components/RedDot";
-import { UserState } from "shared/UserState";
 import { componentSpacing } from "theme/metrics";
 import getBaseUrl from "shared/getBaseUrl";
 import { AddIcon } from "@chakra-ui/icons";
 import TaskEditor from "./TaskEditor";
 import ListItemDivider from "components/ListItemDivider";
 import { isEnded } from "shared/Mentorship";
+import {
+  getLastTasksReadAt,
+  markTasksAsRead,
+  UnreadTasksRedDot,
+  useUnreadTasks,
+} from "components/unread";
 
 /**
  * @param assigneeIds The assignees of the tasks to be listed on this card.
@@ -307,48 +311,4 @@ function TaskItem({
       )}
     </HStack>
   );
-}
-
-/**
- * TODO: The following functions are very similar to the ones in Kudos.tsx.
- * Consider refactoring them to be shared.
- */
-
-function getLastTasksReadAt(state: UserState): Moment {
-  return moment(state.lastTasksReadAt ?? 0);
-}
-
-/**
- * The parent element should have position="relative".
- */
-export function UnreadTasksRedDot() {
-  const show = useUnreadTasks();
-  return <RedDot show={show} />;
-}
-
-/**
- * @returns whether there are unread undone tasks that are not created by the
- * current user.
- *
- * N.B. The logic of `showRedDot` in <TaskItem> must be consistent with the
- * logic of this function.
- */
-export function useUnreadTasks() {
-  const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: lastCreated } = trpcNext.tasks.getLastTasksUpdatedAt.useQuery();
-
-  // Assume no unread tasks while the values are being fetched.
-  return (
-    !!state &&
-    !!lastCreated &&
-    moment(lastCreated).isAfter(getLastTasksReadAt(state))
-  );
-}
-
-async function markTasksAsRead(
-  utils: ReturnType<typeof trpcNext.useContext>,
-  lastTasksReadAt: DateColumn,
-) {
-  await trpc.users.setMyState.mutate({ lastTasksReadAt });
-  await utils.users.getUserState.invalidate();
 }

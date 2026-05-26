@@ -37,13 +37,12 @@ import {
 } from "react";
 import MentorBookingModal from "components/MentorBookingModal";
 import { CheckIcon, SearchIcon } from "@chakra-ui/icons";
+import { KudosControl, KudosHistory } from "./Kudos";
 import {
-  KudosControl,
-  KudosHistory,
   markKudosAsRead,
-  UnreadKudosRedDot,
+  UnreadKudosBlueDot,
   useUnreadKudos,
-} from "./Kudos";
+} from "components/unread";
 import { CardForDesktop, CardForMobile } from "./ResponsiveCard";
 import { trpcNext } from "trpc";
 import Loader from "./Loader";
@@ -269,7 +268,7 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           <Flex justify="space-between">
             <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
               最近的赞
-              <UnreadKudosRedDot />
+              <UnreadKudosBlueDot />
             </Heading>
 
             <HStack spacing={2} fontSize="sm">

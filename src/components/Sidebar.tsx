@@ -51,10 +51,9 @@ import User, { isAcceptedMentee } from "shared/User";
 import { mentorshipStatusIconType } from "pages/mentees";
 import { ImpersonationRequest } from "pages/api/auth/[...nextauth]";
 import { accountPageTitle } from "pages/accounts/[userId]";
-import { UnreadKudosRedDot } from "./Kudos";
 import { UnreadChatMessagesRedDot } from "./ChatRoom";
 import { FaStreetView } from "react-icons/fa";
-import { UnreadTasksRedDot } from "./launchpad/TasksCard";
+import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 
 export const desktopSidebarWidth = "240px";
@@ -223,7 +222,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: "Volunteer",
-    redDot: UnreadKudosRedDot,
+    redDot: UnreadKudosBlueDot,
   },
   {
     name: "入驻机构",

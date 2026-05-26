@@ -22,10 +22,9 @@ import {
 } from "./Sidebar";
 import { breakpoint } from "theme/breakpoints";
 import RedDot from "./RedDot";
-import { useUnreadKudos } from "./Kudos";
 import { useUnreadChatMessages } from "./ChatRoom";
 import useMobile from "useMobile";
-import { useUnreadTasks } from "./launchpad/TasksCard";
+import { useUnreadTasks, useUnreadKudos } from "./unread";
 
 export const mobileSidbarIconTop = 4;
 export const mobileSidbarIconLeftWithMargin = "70px";
