@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { UserFilter } from "shared/UserFilter";
+import { UserFilter, zUserFilter } from "shared/UserFilter";
 import { Wrap, WrapItem } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import _ from "lodash";
@@ -7,6 +7,7 @@ import { zMenteeStatus } from "shared/MenteeStatus";
 import MenteeStatusSelect, { nullMenteeStatus } from "./MenteeStatusSelect";
 import UserSelector from "./UserSelector";
 import { componentSpacing } from "theme/metrics";
+import { FullTextSearchBox } from "./UserCards";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
@@ -24,34 +25,69 @@ export default function UserFilterSelector({
 
   // Parse query parameters
   useEffect(() => {
-    const f: UserFilter = { ...fixedFilter };
-    for (const [k, v] of Object.entries(router.query)) {
-      // `typeof v == "string"` to ignore cases of null and string[].
-      if (k == "pointOfContactId" && typeof v == "string") f[k] = v;
-      if (k == "menteeStatus") {
-        f[k] = v == nullMenteeStatus ? null : zMenteeStatus.parse(v);
+    let f: UserFilter = { ...fixedFilter };
+
+    // Decode from a single 'filter' query param if it exists
+    if (typeof router.query.filter === "string") {
+      try {
+        const decoded = JSON.parse(router.query.filter);
+        const parsed = zUserFilter.safeParse(decoded);
+        if (parsed.success) {
+          f = { ...f, ...parsed.data };
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    } else {
+      // Backward compatibility for legacy individual query parameters
+      for (const [k, v] of Object.entries(router.query)) {
+        // `typeof v == "string"` to ignore cases of null and string[].
+        if (k == "pointOfContactId" && typeof v == "string")
+          f.pointOfContactId = v;
+        if (k == "menteeStatus") {
+          f.menteeStatus =
+            v == nullMenteeStatus ? null : zMenteeStatus.parse(v);
+        }
       }
     }
+
     if (!_.isEqual(f, filter)) onChange(f);
   }, [filter, fixedFilter, onChange, router.query]);
 
   // We rely on url parameter parsing (useEffect above) to invoke onChange().
-  // TODO: use JSON string to encode the entire filter.
-  const updateUrlParams = async (filter: UserFilter) => {
-    const query: Record<string, any> = {};
-    for (const key of Object.keys(filter)) {
-      if (filter[key as keyof UserFilter] !== undefined) {
-        query[key] = filter[key as keyof UserFilter];
+  const updateUrlParams = async (newFilter: UserFilter) => {
+    // Only stringify fields that differ from fixedFilter to minimize URL length
+    const diff: Partial<UserFilter> = {};
+    for (const key of Object.keys(newFilter) as (keyof UserFilter)[]) {
+      if (!_.isEqual(newFilter[key], fixedFilter?.[key])) {
+        // @ts-expect-error
+        diff[key] = newFilter[key];
       }
     }
-    // router.replace() ignores null-valued keys
-    if (query.menteeStatus === null) query.menteeStatus = nullMenteeStatus;
+
+    const query: Record<string, string> = {};
+    if (Object.keys(diff).length > 0) {
+      query.filter = JSON.stringify(diff);
+    }
+
     await router.replace({ pathname: router.pathname, query });
   };
 
   return (
     <Wrap spacing={componentSpacing} align="center">
       {/* <WrapItem><b>过滤条件：</b></WrapItem> */}
+
+      <WrapItem minW="300px">
+        <FullTextSearchBox
+          value={filter.matchesNameOrEmail ?? ""}
+          setValue={(v) =>
+            updateUrlParams({
+              ...filter,
+              matchesNameOrEmail: v ? v : undefined,
+            })
+          }
+        />
+      </WrapItem>
 
       <WrapItem>
         <b>状态：</b>
@@ -70,10 +106,8 @@ export default function UserFilterSelector({
       </WrapItem>
 
       <WrapItem>
-        <b>联络人：</b>
-      </WrapItem>
-      <WrapItem>
         <UserSelector
+          placeholder="搜索联络人..."
           onSelect={(userIds) =>
             updateUrlParams({
               ...filter,
