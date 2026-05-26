@@ -51,7 +51,7 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
-import UserSelector from "components/UserSelector";
+import { FullTextSearchBox } from "components/UserCards";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
@@ -123,11 +123,9 @@ export default widePage(() => {
           </WrapItem>
 
           <WrapItem minW="300px">
-            <UserSelector
-              placeholder="搜索用户..."
-              onSelect={(userIds) =>
-                setFilter(userIds.length > 0 ? { ids: userIds } : {})
-              }
+            <FullTextSearchBox
+              value={filter.matchesNameOrEmail ?? ""}
+              setValue={(v) => setFilter(v ? { matchesNameOrEmail: v } : {})}
             />
           </WrapItem>
         </Wrap>
