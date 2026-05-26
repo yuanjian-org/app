@@ -53,7 +53,7 @@ import { ImpersonationRequest } from "pages/api/auth/[...nextauth]";
 import { accountPageTitle } from "pages/accounts/[userId]";
 import { UnreadChatMessagesRedDot } from "./ChatRoom";
 import { FaStreetView } from "react-icons/fa";
-import { UnreadTasksRedDot, UnreadKudosRedDot } from "./unread";
+import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 
 export const desktopSidebarWidth = "240px";
@@ -222,7 +222,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: "Volunteer",
-    redDot: UnreadKudosRedDot,
+    redDot: UnreadKudosBlueDot,
   },
   {
     name: "入驻机构",

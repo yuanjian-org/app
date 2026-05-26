@@ -40,7 +40,7 @@ import { CheckIcon, SearchIcon } from "@chakra-ui/icons";
 import { KudosControl, KudosHistory } from "./Kudos";
 import {
   markKudosAsRead,
-  UnreadKudosRedDot,
+  UnreadKudosBlueDot,
   useUnreadKudos,
 } from "components/unread";
 import { CardForDesktop, CardForMobile } from "./ResponsiveCard";
@@ -268,7 +268,7 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
           <Flex justify="space-between">
             <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
               最近的赞
-              <UnreadKudosRedDot />
+              <UnreadKudosBlueDot />
             </Heading>
 
             <HStack spacing={2} fontSize="sm">

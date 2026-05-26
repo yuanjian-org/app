@@ -77,7 +77,7 @@ export function useUnreadKudos() {
 /**
  * The parent element should have position="relative".
  */
-export function UnreadKudosRedDot() {
+export function UnreadKudosBlueDot() {
   const show = useUnreadKudos();
   return <RedDot show={show} blue />;
 }
