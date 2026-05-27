@@ -1,137 +1,113 @@
 import { expect } from "chai";
-import { validateImpl } from "./pearlStudents";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import User from "../../shared/User";
-import PearlStudent from "../database/models/PearlStudent";
+import { Transaction } from "sequelize";
+import { validateImpl } from "./pearlStudents";
+import { menteeSourceField } from "../../shared/applicationFields";
+import { displayName } from "../../shared/Role";
 
-describe("validatePearlStudent", () => {
-  let testUser: User;
-  let testPearlStudent: PearlStudent;
+describe("pearlStudents API routes", () => {
+  describe("validateImpl", () => {
+    let transaction: Transaction;
+    let testUser: any;
 
-  before(async () => {
-    // Create a test user
-    testUser = await db.User.create({
-      id: "550e8400-e29b-41d4-a716-446655440001",
-      name: "Test Pearl User",
-      email: "testpearl@example.com",
-      roles: ["Mentee"],
-      menteeStatus: "现届学子",
-      menteeApplication: {},
+    beforeEach(async () => {
+      transaction = await sequelize.transaction();
+      testUser = await db.User.create(
+        {
+          email: "test@example.com",
+          name: "Old Name",
+          roles: [],
+          likes: 0,
+          kudos: 0,
+          menteeApplication: {},
+        },
+        { transaction },
+      );
+      await db.PearlStudent.create(
+        {
+          pearlId: "P123",
+          name: "Test Pearl",
+          lowerCaseNationalIdLastFour: "1234",
+        },
+        { transaction },
+      );
     });
 
-    // Create a test pearl student
-    testPearlStudent = await db.PearlStudent.create({
-      pearlId: "P123456",
-      name: "张三",
-      lowerCaseNationalIdLastFour: "1234",
-      userId: null,
+    afterEach(async () => {
+      if (transaction) await transaction.rollback();
     });
-  });
 
-  after(async () => {
-    // Clean up test data
-    if (testUser) {
-      await db.User.destroy({ where: { id: testUser.id } });
-    }
-    if (testPearlStudent) {
-      await db.PearlStudent.destroy({
-        where: { pearlId: testPearlStudent.pearlId },
-      });
-    }
-  });
-
-  it("should accept valid pearl student", async () => {
-    // Use a transaction for the test
-    await sequelize.transaction(async (transaction) => {
-      // Should not throw
+    it("should successfully validate a matching pearl student and update user fields", async () => {
       await validateImpl(
         testUser,
-        "张三",
-        "P123456",
+        "Test Pearl",
+        "P123",
         "1234",
         "wechat123",
         transaction,
       );
+      const student = await db.PearlStudent.findOne({
+        where: { pearlId: "P123" },
+        transaction,
+      });
+      expect(student!.userId).to.equal(testUser.id);
+      const user = await db.User.findByPk(testUser.id, { transaction });
+      expect(user!.roles).to.include("Mentee");
+      expect(user!.name).to.equal("Test Pearl");
+      expect(user!.wechat).to.equal("wechat123");
+      expect(user!.menteeApplication[menteeSourceField]).to.equal(
+        "珍珠生：P123",
+      );
     });
 
-    // Verify the pearl student was updated with userId
-    const updatedStudent = await db.PearlStudent.findByPk("P123456");
-    expect(updatedStudent?.userId).to.equal(testUser.id);
-
-    // Verify the user was updated
-    const updatedUser = await db.User.findByPk(testUser.id);
-    expect(updatedUser?.name).to.equal("张三");
-    expect(updatedUser?.wechat).to.equal("wechat123");
-    expect(updatedUser?.menteeApplication?.["合作机构来源"]).to.equal(
-      "珍珠生：P123456",
-    );
-  });
-
-  it("should reject non-pearl student", async () => {
-    // Use a transaction for the test
-    await sequelize.transaction(async (transaction) => {
-      // Should throw error
+    it("should throw error if student details do not match", async () => {
       try {
         await validateImpl(
           testUser,
-          "李四",
-          "P999999",
-          "5678",
-          "wechat456",
+          "Wrong Name",
+          "P123",
+          "1234",
+          "wechat123",
           transaction,
         );
-        expect.fail("Expected validatePearlStudent to throw an error");
-      } catch (error) {
-        const err = error as Error;
-        expect(err.message).to.include("珍珠生信息不匹配");
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.equal("珍珠生信息不匹配。");
       }
     });
-  });
 
-  it("should reject already validated pearl student", async () => {
-    // Create another test user and pearl student
-    const anotherUser = await db.User.create({
-      id: "550e8400-e29b-41d4-a716-446655440002",
-      name: "Another Test User",
-      email: "anothertest@example.com",
-      roles: ["Mentee"],
-      menteeStatus: "现届学子",
-      menteeApplication: {},
+    it("should throw error if pearl student is already verified", async () => {
+      const dummyUser = await db.User.create(
+        {
+          email: "dummy@example.com",
+          name: "Dummy",
+          roles: [],
+          likes: 0,
+          kudos: 0,
+          menteeApplication: {},
+        },
+        { transaction },
+      );
+      await db.PearlStudent.update(
+        { userId: dummyUser.id },
+        { where: { pearlId: "P123" }, transaction },
+      );
+      try {
+        await validateImpl(
+          testUser,
+          "Test Pearl",
+          "P123",
+          "1234",
+          "wechat123",
+          transaction,
+        );
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.equal(
+          "此珍珠生号已被验证。请联系" + displayName("UserManager") + "。",
+        );
+      }
     });
-
-    const anotherPearlStudent = await db.PearlStudent.create({
-      pearlId: "P789012",
-      name: "李四",
-      lowerCaseNationalIdLastFour: "5678",
-      userId: anotherUser.id, // Already validated
-    });
-
-    try {
-      // Use a transaction for the test
-      await sequelize.transaction(async (transaction) => {
-        // Should throw error for already validated student
-        try {
-          await validateImpl(
-            testUser,
-            "李四",
-            "P789012",
-            "5678",
-            "wechat789",
-            transaction,
-          );
-          expect.fail("Expected validatePearlStudent to throw an error");
-        } catch (error) {
-          const err = error as Error;
-          expect(err.message).to.include("此珍珠生号已被验证");
-        }
-      });
-    } finally {
-      // Clean up
-      await db.User.destroy({ where: { id: anotherUser.id } });
-      await db.PearlStudent.destroy({
-        where: { pearlId: anotherPearlStudent.pearlId },
-      });
-    }
   });
 });
