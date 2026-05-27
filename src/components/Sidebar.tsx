@@ -232,7 +232,7 @@ const mainMenuItems: MainMenuItem[] = [
   },
   {
     name: "学生档案",
-    path: "/mentees?menteeStatus=现届学子",
+    path: '/mentees?filter={"menteeStatus":"现届学子"}',
     icon: AttachmentIcon,
     regex: /^\/mentees[^/]/,
     permission: ["MentorshipManager", "MentorshipOperator"],
