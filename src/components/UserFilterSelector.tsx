@@ -3,8 +3,7 @@ import { UserFilter, zUserFilter } from "shared/UserFilter";
 import { Wrap, WrapItem } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import _ from "lodash";
-import { zMenteeStatus } from "shared/MenteeStatus";
-import MenteeStatusSelect, { nullMenteeStatus } from "./MenteeStatusSelect";
+import MenteeStatusSelect from "./MenteeStatusSelect";
 import UserSelector from "./UserSelector";
 import { componentSpacing } from "theme/metrics";
 import { FullTextSearchBox } from "./UserCards";
@@ -37,17 +36,6 @@ export default function UserFilterSelector({
         }
       } catch {
         // Ignore parse errors
-      }
-    } else {
-      // Backward compatibility for legacy individual query parameters
-      for (const [k, v] of Object.entries(router.query)) {
-        // `typeof v == "string"` to ignore cases of null and string[].
-        if (k == "pointOfContactId" && typeof v == "string")
-          f.pointOfContactId = v;
-        if (k == "menteeStatus") {
-          f.menteeStatus =
-            v == nullMenteeStatus ? null : zMenteeStatus.parse(v);
-        }
       }
     }
 
@@ -89,9 +77,6 @@ export default function UserFilterSelector({
         />
       </WrapItem>
 
-      <WrapItem>
-        <b>状态：</b>
-      </WrapItem>
       <WrapItem>
         <MenteeStatusSelect
           showAny
