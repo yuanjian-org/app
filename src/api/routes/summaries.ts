@@ -267,7 +267,7 @@ export async function saveSummaryImpl(
     },
     { transaction },
   );
-  await db.Summary.create(
+  await db.Summary.upsert(
     {
       transcriptId,
       key,
@@ -291,7 +291,17 @@ async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   for (const tmUserId of getTmUserIds()) {
     await findMissingSummariesforTmUser(tmUserId, descs);
   }
-  return descs;
+
+  // Deduplicate descriptors based on transcriptId and key
+  const uniqueDescsMap = new Map<string, SummaryDescriptor>();
+  for (const desc of descs) {
+    const uniqueKey = `${desc.transcriptId}-${desc.key}`;
+    if (!uniqueDescsMap.has(uniqueKey)) {
+      uniqueDescsMap.set(uniqueKey, desc);
+    }
+  }
+
+  return Array.from(uniqueDescsMap.values());
 }
 
 async function findMissingSummariesforTmUser(
@@ -414,18 +424,19 @@ async function processRecord(
         // meeting was too short and no meaningful content was recorded.
         const desc = newDesc(key2addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
         if (!desc) return;
-        console.log(
-          `Downloading transcript ${transcriptId} key ${desc.key}...`,
-        );
-        const summary = await downloadUrl(desc.url);
-        const formatted = formatAiMinutesSummary(summary, desc.speakerStats);
-        if (!formatted) {
-          console.log(
-            `Empty AI minutes summary for transcript ${transcriptId}`,
-          );
-          return;
-        }
+
         if (!(await hasSummary(transcriptId, desc.key))) {
+          console.log(
+            `Downloading transcript ${transcriptId} key ${desc.key}...`,
+          );
+          const summary = await downloadUrl(desc.url);
+          const formatted = formatAiMinutesSummary(summary, desc.speakerStats);
+          if (!formatted) {
+            console.log(
+              `Empty AI minutes summary for transcript ${transcriptId}`,
+            );
+            return;
+          }
           await saveSummary(desc, formatted);
         }
 
