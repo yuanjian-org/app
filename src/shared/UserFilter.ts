@@ -12,6 +12,7 @@ export const zUserFilter = z.object({
 
   includeNonVolunteers: z.boolean().optional(),
   includeMerged: z.boolean().optional(),
+  includeMentorSearch: z.boolean().optional(),
 
   returnMergeInfo: z.boolean().optional(),
 
