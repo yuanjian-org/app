@@ -431,3 +431,331 @@ describe("setMyStateImpl", () => {
     expect(state.lastKudosReadAt).to.equal(lastKudosReadAt);
   });
 });
+
+describe("listImpl", () => {
+  const userManager = { id: "um1", roles: ["UserManager"] } as any;
+  const menteeManager = { id: "mm1", roles: ["MentorshipManager"] } as any;
+
+  afterEach(async () => {
+    await db.Mentorship.destroy({ where: {} });
+    await db.User.destroy({ where: {} });
+  });
+
+  it("should enforce limit and return nextCursor", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "User 1",
+        roles: ["Volunteer"],
+        pinyin: "a",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "User 2",
+        roles: ["Volunteer"],
+        pinyin: "b",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000003",
+        name: "User 3",
+        roles: ["Volunteer"],
+        pinyin: "c",
+      },
+    ]);
+
+    const res = await usersModule.listImpl(userManager, {
+      limit: 2,
+      cursor: 0,
+    });
+    expect(res.items.length).equals(2);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
+    expect(res.items[1].id).equals("00000000-0000-0000-0000-000000000002");
+    expect(res.nextCursor).equals(2);
+
+    const res2 = await usersModule.listImpl(userManager, {
+      limit: 2,
+      cursor: res.nextCursor,
+    });
+    expect(res2.items.length).equals(1);
+    expect(res2.items[0].id).equals("00000000-0000-0000-0000-000000000003");
+    expect(res2.nextCursor).equals(undefined);
+  });
+
+  it("should restrict includeMerged and returnMergeInfo for non-UserManager", async () => {
+    try {
+      await usersModule.listImpl(menteeManager, { includeMerged: true });
+      expect.fail("Should throw no permission error");
+    } catch (e: any) {
+      expect(e.message).to.include("没有权限访问数据");
+    }
+
+    try {
+      await usersModule.listImpl(menteeManager, { returnMergeInfo: true });
+      expect.fail("Should throw no permission error");
+    } catch (e: any) {
+      expect(e.message).to.include("没有权限访问数据");
+    }
+  });
+
+  it("should filter includeNonVolunteers", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Vol",
+        roles: ["Volunteer"],
+        pinyin: "a",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "NonVol",
+        roles: ["Mentee"],
+        pinyin: "b",
+      },
+    ]);
+
+    let res = await usersModule.listImpl(userManager, {});
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
+
+    res = await usersModule.listImpl(userManager, {
+      includeNonVolunteers: true,
+    });
+    expect(res.items.length).equals(2);
+  });
+
+  it("should filter containsRoles", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Vol",
+        roles: ["Volunteer"],
+        pinyin: "a",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "Vol+Mentee",
+        roles: ["Volunteer", "Mentee"],
+        pinyin: "b",
+      },
+    ]);
+
+    const res = await usersModule.listImpl(userManager, {
+      containsRoles: ["Mentee"],
+    });
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
+  });
+
+  it("should filter menteeStatus and pointOfContactId", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Vol1",
+        roles: ["Volunteer"],
+        menteeStatus: "现届学子",
+        pointOfContactId: "00000000-0000-0000-0000-000000000001",
+        pinyin: "a",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "Vol2",
+        roles: ["Volunteer"],
+        menteeStatus: "初拒",
+        pointOfContactId: "00000000-0000-0000-0000-000000000002",
+        pinyin: "b",
+      },
+    ]);
+
+    let res = await usersModule.listImpl(userManager, {
+      menteeStatus: "现届学子",
+    });
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
+
+    res = await usersModule.listImpl(userManager, {
+      pointOfContactId: "00000000-0000-0000-0000-000000000002",
+    });
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
+  });
+
+  it("should filter matchesNameOrEmail correctly on name, pinyin, and email", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "Alice Zhang",
+        email: "foo@a.com",
+        roles: ["Volunteer"],
+        pinyin: "alice zhang",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "Bob Li",
+        email: "alice.l@a.com",
+        roles: ["Volunteer"],
+        pinyin: "bob li",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000003",
+        name: "Charlie Wang",
+        email: "bar@a.com",
+        roles: ["Volunteer"],
+        pinyin: "charlie wang alice",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000004",
+        name: "David Chen",
+        email: "baz@a.com",
+        roles: ["Volunteer"],
+        pinyin: "david chen",
+      },
+    ]);
+
+    const res = await usersModule.listImpl(userManager, {
+      matchesNameOrEmail: "alice",
+    });
+    expect(res.items.length).equals(3);
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000003",
+    ]);
+  });
+
+  it("should filter includeMentorSearch using mentor name/pinyin", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "10000000-0000-0000-0000-000000000001",
+        name: "Mentee One",
+        roles: ["Volunteer"],
+        pinyin: "mentee one",
+      },
+      {
+        id: "10000000-0000-0000-0000-000000000002",
+        name: "Mentee Two",
+        roles: ["Volunteer"],
+        pinyin: "mentee two",
+      },
+      {
+        id: "20000000-0000-0000-0000-000000000001",
+        name: "Mentor Master",
+        roles: ["Volunteer"],
+        pinyin: "mentor master",
+      },
+      {
+        id: "20000000-0000-0000-0000-000000000002",
+        name: "Mentor Guru",
+        roles: ["Volunteer"],
+        pinyin: "mentor guru",
+      },
+    ]);
+
+    await db.Mentorship.bulkCreate([
+      {
+        id: "30000000-0000-0000-0000-000000000001",
+        menteeId: "10000000-0000-0000-0000-000000000001",
+        mentorId: "20000000-0000-0000-0000-000000000001",
+        status: "Active",
+        transactional: false,
+      },
+      {
+        id: "30000000-0000-0000-0000-000000000002",
+        menteeId: "10000000-0000-0000-0000-000000000002",
+        mentorId: "20000000-0000-0000-0000-000000000002",
+        status: "Active",
+        transactional: false,
+      },
+    ]);
+
+    let res = await usersModule.listImpl(userManager, {
+      matchesNameOrEmail: "master",
+    });
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("20000000-0000-0000-0000-000000000001");
+
+    res = await usersModule.listImpl(userManager, {
+      matchesNameOrEmail: "master",
+      includeMentorSearch: true,
+    });
+    expect(res.items.length).equals(2);
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "10000000-0000-0000-0000-000000000001",
+      "20000000-0000-0000-0000-000000000001",
+    ]);
+  });
+
+  it("should filter by ids", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "User 1",
+        roles: ["Volunteer"],
+        pinyin: "a",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "User 2",
+        roles: ["Volunteer"],
+        pinyin: "b",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000003",
+        name: "User 3",
+        roles: ["Volunteer"],
+        pinyin: "c",
+      },
+    ]);
+
+    const res = await usersModule.listImpl(userManager, {
+      ids: [
+        "00000000-0000-0000-0000-000000000001",
+        "00000000-0000-0000-0000-000000000003",
+      ],
+    });
+    expect(res.items.length).equals(2);
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000003",
+    ]);
+  });
+
+  it("should fetch merged info when returnMergeInfo is true", async () => {
+    await db.User.bulkCreate([
+      {
+        id: "00000000-0000-0000-0000-000000000001",
+        name: "User 1",
+        roles: ["Volunteer"],
+        pinyin: "a",
+        wechatUnionId: "wx1",
+      },
+      {
+        id: "00000000-0000-0000-0000-000000000002",
+        name: "User 2",
+        roles: ["Volunteer"],
+        pinyin: "b",
+        wechatUnionId: "wx2",
+        mergedTo: "00000000-0000-0000-0000-000000000001",
+      },
+    ]);
+
+    const res = await usersModule.listImpl(userManager, {
+      includeMerged: true,
+      returnMergeInfo: true,
+    });
+
+    expect(res.items.length).equals(2);
+    const u1 = res.items.find(
+      (i) => i.id === "00000000-0000-0000-0000-000000000001",
+    );
+    const u2 = res.items.find(
+      (i) => i.id === "00000000-0000-0000-0000-000000000002",
+    );
+
+    expect(u1!.wechatUnionId).equals("wx1");
+    expect(u2!.wechatUnionId).equals("wx2");
+    expect(u2!.mergedToUser?.id).equals("00000000-0000-0000-0000-000000000001");
+  });
+});
