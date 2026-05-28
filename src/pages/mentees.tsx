@@ -118,6 +118,7 @@ export default fullPage(() => {
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
+    includeMentorSearch: true,
   };
 
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
