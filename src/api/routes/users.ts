@@ -185,8 +185,8 @@ const list = procedure
                       {
                         id: {
                           [Op.in]: sequelize.literal(`(
-                            SELECT "menteeId" FROM "mentorships"
-                            JOIN "users" AS "mentors" ON "mentorships"."mentorId" = "mentors"."id"
+                            SELECT "menteeId" FROM "Mentorships"
+                            JOIN "users" AS "mentors" ON "Mentorships"."mentorId" = "mentors"."id"
                             WHERE "mentors"."name" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
                             OR "mentors"."pinyin" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
                           )`),
