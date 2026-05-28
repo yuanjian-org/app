@@ -153,7 +153,7 @@ export default fullPage(() => {
         {!users || !config ? (
           <Loader />
         ) : (
-          <TableContainer>
+          <TableContainer overflowY="auto" maxHeight="calc(100vh - 150px)">
             <MenteeTable
               users={users}
               showMatchState={showMatchState}
@@ -324,7 +324,7 @@ function MenteeTable({
 
   return (
     <Table size="sm">
-      <Thead>
+      <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
         <Tr>
           <Th>状态</Th>
           <PointOfContactHeaderCells />
@@ -935,9 +935,15 @@ function MentorshipsEditor({
         <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <TableContainer>
+          <TableContainer overflowY="auto" maxHeight="calc(100vh - 170px)">
             <Table>
-              <Thead>
+              <Thead
+                position="sticky"
+                top={0}
+                bg="white"
+                zIndex={1}
+                boxShadow="sm"
+              >
                 <Tr>
                   <Th>导师</Th>
                   <Th>类型</Th>
