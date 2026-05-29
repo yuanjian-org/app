@@ -58,7 +58,9 @@ export default function UserFilterSelector({
       query.filter = JSON.stringify(diff);
     }
 
-    await router.replace({ pathname: router.pathname, query });
+    await router.replace({ pathname: router.pathname, query }, undefined, {
+      shallow: true,
+    });
   };
 
   return (

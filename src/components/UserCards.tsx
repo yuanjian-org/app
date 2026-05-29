@@ -37,6 +37,7 @@ import {
 } from "react";
 import MentorBookingModal from "components/MentorBookingModal";
 import { CheckIcon, SearchIcon } from "@chakra-ui/icons";
+import debounce from "lodash/debounce";
 import { KudosControl, KudosHistory } from "./Kudos";
 import {
   markKudosAsRead,
@@ -96,6 +97,30 @@ export function FullTextSearchBox({
   narrow?: boolean;
 } & InputGroupProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [innerValue, setInnerValue] = useState(value);
+  const setValueRef = useRef(setValue);
+
+  useEffect(() => {
+    setValueRef.current = setValue;
+  }, [setValue]);
+
+  // Sync prop to state when prop changes.
+  // This helps when the search term is cleared from outside or changed via URL
+  useEffect(() => {
+    setInnerValue(value);
+  }, [value]);
+
+  const debouncedSetValue = useMemo(
+    () => debounce((v: string) => setValueRef.current(v), 500),
+    [],
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSetValue.cancel();
+    };
+  }, [debouncedSetValue]);
 
   const hotKey = useBreakpointValue({
     base: "",
@@ -129,8 +154,11 @@ export function FullTextSearchBox({
         type="search"
         autoFocus
         placeholder={`${hotKey}搜索关键字，支持拼音`}
-        value={value}
-        onChange={(ev) => setValue(ev.target.value)}
+        value={innerValue}
+        onChange={(ev) => {
+          setInnerValue(ev.target.value);
+          debouncedSetValue(ev.target.value);
+        }}
       />
     </InputGroup>
   );
