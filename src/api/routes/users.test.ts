@@ -477,6 +477,11 @@ describe("listImpl", () => {
         {
           limit: 2,
           cursor: 0,
+          ids: [
+            "00000000-0000-0000-0000-000000000001",
+            "00000000-0000-0000-0000-000000000002",
+            "00000000-0000-0000-0000-000000000003",
+          ],
         },
         transaction,
       );
@@ -490,6 +495,11 @@ describe("listImpl", () => {
         {
           limit: 2,
           cursor: res.nextCursor,
+          ids: [
+            "00000000-0000-0000-0000-000000000001",
+            "00000000-0000-0000-0000-000000000002",
+            "00000000-0000-0000-0000-000000000003",
+          ],
         },
         transaction,
       );
@@ -545,7 +555,16 @@ describe("listImpl", () => {
         { transaction },
       );
 
-      let res = await usersModule.listImpl(userManager, {}, transaction);
+      let res = await usersModule.listImpl(
+        userManager,
+        {
+          ids: [
+            "00000000-0000-0000-0000-000000000001",
+            "00000000-0000-0000-0000-000000000002",
+          ],
+        },
+        transaction,
+      );
       expect(res.items.length).equals(1);
       expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
 
@@ -553,6 +572,10 @@ describe("listImpl", () => {
         userManager,
         {
           includeNonVolunteers: true,
+          ids: [
+            "00000000-0000-0000-0000-000000000001",
+            "00000000-0000-0000-0000-000000000002",
+          ],
         },
         transaction,
       );
@@ -910,6 +933,10 @@ describe("listImpl", () => {
         {
           includeMerged: true,
           returnMergeInfo: true,
+          ids: [
+            "00000000-0000-0000-0000-000000000001",
+            "00000000-0000-0000-0000-000000000002",
+          ],
         },
         transaction,
       );
