@@ -1,16 +1,9 @@
-1. **Update `src/shared/strings.ts`**
-   - Modify `shaChecksum` to accept `any` instead of `Record<string, any>`, or modify it to accept `unknown`. Actually, looking at `stringifyStable`, it is likely `fast-json-stable-stringify` which takes `any`.
+1. **Fix Build Error in `src/api/webhooks/jinshuju/upload.ts`**
+   - The TypeScript build fails because `profile` is typed as `UserProfile` which doesn't have an index signature for dynamic string keys. We need to cast `profile` to `any` or cast the key explicitly to `keyof UserProfile`.
+   - Update `profile[mediaType + "链接"]` to `(profile as any)[mediaType + "链接"]` or `profile[(mediaType + "链接") as keyof typeof profile]`. Since `mediaType` is constrained to `"照片" | "视频"`, `mediaType + "链接"` strictly evaluates to `"照片链接" | "视频链接"`, which are valid keys on `UserProfile`. However, TypeScript doesn't statically infer `mediaType + "链接"` as `"照片链接" | "视频链接"`. Let's use `profile[(mediaType + "链接") as keyof typeof profile]`.
 
-2. **Update Frontend (`src/pages/profiles/[userId].tsx`)**
-   - In `encodeJinshujuXField`, pass a third argument for the url, or compute the `shaChecksum` directly inside the component and pass the sha to the function. Let's just modify `encodeJinshujuXField` signature to take `urlToHash: string | undefined` instead of `profile: UserProfile`.
-   - Update `Picture` and `Video` components to use the new `encodeJinshujuXField` signature.
+2. **Verify Build**
+   - Run `yarn --ignore-engines build` to ensure the type error is resolved.
 
-3. **Update Backend (`src/api/webhooks/jinshuju/upload.ts`)**
-   - Inside `uploadUserProfileMedia`, instead of `const localSha = shaChecksum(profile);`, use `const localSha = shaChecksum(profile[mediaType + "链接"]);`.
-
-4. **Update Tests (`src/api/webhooks/jinshuju/upload.test.ts`)**
-   - Update the checksum computations to hash the specific url (`localProfile["照片链接"]` or `localProfile["视频链接"]`) rather than the entire `localProfile`.
-   - Verify tests pass.
-
-5. **Complete pre-commit steps**
-   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+3. **Reply to PR Comments**
+   - Reply to the comment indicating the build error has been fixed.
