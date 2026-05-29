@@ -1,5 +1,5 @@
 import { useAutosaveContext } from "AutosaveContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import sleep from "shared/sleep";
 import _ from "lodash";
 
@@ -16,6 +16,13 @@ export default function Autosaver<T>({
   const { addPendingSaver, removePendingSaver, setPendingSaverError } =
     useAutosaveContext();
 
+  const latestRef = useRef({
+    onSave,
+    removePendingSaver,
+    setPendingSaverError,
+  });
+  latestRef.current = { onSave, removePendingSaver, setPendingSaverError };
+
   const [initialData] = useState(data);
   const memo = useMemo(
     () => ({
@@ -23,24 +30,21 @@ export default function Autosaver<T>({
       pendingData: null as T | null,
       lastSavedData: initialData,
       saving: false,
-      timeout: null as NodeJS.Timeout | null | number,
     }),
     [initialData],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSave = useCallback(
-    debounce(
-      memo,
-      async () => {
+  const debouncedSave = useMemo(
+    () =>
+      _.debounce(async () => {
         memo.saving = true;
         try {
           while (memo.pendingData !== null) {
             const data = memo.pendingData;
             memo.pendingData = null;
             console.debug(`Autosaver ${memo.id}: Saving data.`);
-            await saveWithRetry(onSave, data, (e) =>
-              setPendingSaverError(memo.id, e),
+            await saveWithRetry(latestRef.current.onSave, data, (e) =>
+              latestRef.current.setPendingSaverError(memo.id, e),
             );
             memo.lastSavedData = data;
           }
@@ -48,12 +52,16 @@ export default function Autosaver<T>({
           memo.saving = false;
         }
         console.debug(`Autosaver ${memo.id}: Done all savings.`);
-        removePendingSaver(memo.id);
-      },
-      autosaveDelayMs,
-    ),
-    [memo, onSave, removePendingSaver],
+        latestRef.current.removePendingSaver(memo.id);
+      }, autosaveDelayMs),
+    [memo],
   );
+
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
 
   useEffect(() => {
     if (_.isEqual(memo.lastSavedData, data)) return;
@@ -63,7 +71,8 @@ export default function Autosaver<T>({
       console.debug(`Autosaver ${memo.id}: Enqueue data only.`);
     } else {
       console.debug(`Autosaver ${memo.id}: Enqueue data and schedule saving.`);
-      debouncedSave();
+      // Explicitly mark promise as ignored to satisfy @typescript-eslint/no-floating-promises
+      void debouncedSave();
     }
     addPendingSaver(memo.id);
   }, [memo, data, addPendingSaver, debouncedSave]);
@@ -91,19 +100,4 @@ async function saveWithRetry<T>(
       await sleep(retryIntervalSec * 1000);
     }
   }
-}
-
-function debounce(
-  memo: { timeout: NodeJS.Timeout | null | number },
-  func: (...args: any[]) => void,
-  delayInMs: number,
-): (...args: any[]) => void {
-  return (...args: any[]) => {
-    if (memo.timeout !== null) {
-      clearTimeout(memo.timeout);
-    }
-    memo.timeout = setTimeout(() => {
-      func(...args);
-    }, delayInMs);
-  };
 }
