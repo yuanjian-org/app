@@ -27,7 +27,7 @@ import {
   IconButton,
   Tooltip,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -52,6 +52,7 @@ import { widePage } from "AppPage";
 
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 import { FullTextSearchBox } from "components/UserCards";
+import { useInfiniteScroll } from "components/useInfiniteScroll";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
@@ -84,21 +85,7 @@ export default widePage(() => {
 
   const users = usersData?.pages.flatMap((page) => page.items);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 200
-      ) {
-        if (hasNextPage && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);

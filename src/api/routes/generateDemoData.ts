@@ -7,7 +7,7 @@ import { createMentorship } from "./mentorships";
 import { DateColumn } from "../../shared/DateColumn";
 import db from "../database/db";
 import createKudos from "./kudosInternal";
-import { AI_MINUTES_SUMMARY_KEY, saveSummaryImpl } from "./summaries";
+import { AI_MINUTES_SUMMARY_KEY, saveSummaryIfNotExistImpl } from "./summaries";
 import { createChatMessage, findOrCreateRoom } from "./chatsInternal";
 import User from "../../shared/User";
 import { createCalibration } from "./calibrations";
@@ -201,7 +201,7 @@ async function generateSummaries(groupId: string, t: Transaction) {
 
   for (const [idx, summary] of demo.summaries.entries()) {
     console.log(`Creating summary ${idx} for group ${groupId}...`);
-    await saveSummaryImpl(
+    await saveSummaryIfNotExistImpl(
       `transcript-${groupId}-${idx}`,
       groupId,
       summary.startedAt,

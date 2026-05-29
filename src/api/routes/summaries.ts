@@ -211,7 +211,7 @@ export async function downloadSummaries() {
         console.log(
           `Downloading transcript ${desc.transcriptId}` + ` key ${desc.key}...`,
         );
-        await saveSummary(desc, await downloadUrl(desc.url));
+        await saveSummaryIfNotExist(desc, await downloadUrl(desc.url));
       }),
     ),
   );
@@ -234,10 +234,10 @@ function formatAiMinutesSummary(
     : formatSpeakerStats(speakerStats) + minutes;
 }
 
-async function saveSummary(desc: SummaryDescriptor, summary: string) {
+async function saveSummaryIfNotExist(desc: SummaryDescriptor, summary: string) {
   console.log(`Save transcript ${desc.transcriptId} key ${desc.key}`);
   await sequelize.transaction(async (transaction) => {
-    await saveSummaryImpl(
+    await saveSummaryIfNotExistImpl(
       desc.transcriptId,
       desc.groupId,
       desc.startedAt,
@@ -249,7 +249,7 @@ async function saveSummary(desc: SummaryDescriptor, summary: string) {
   });
 }
 
-export async function saveSummaryImpl(
+export async function saveSummaryIfNotExistImpl(
   transcriptId: string,
   groupId: string,
   startedAt: number,
@@ -258,6 +258,8 @@ export async function saveSummaryImpl(
   markdown: string,
   transaction: Transaction,
 ) {
+  if (await hasSummary(transcriptId, key, transaction)) return;
+
   await db.Transcript.upsert(
     {
       id: transcriptId,
@@ -267,6 +269,9 @@ export async function saveSummaryImpl(
     },
     { transaction },
   );
+
+  // Do NOT use `upsert` because user may have edited the summary after it is
+  // first created.
   await db.Summary.create(
     {
       transcriptId,
@@ -425,9 +430,7 @@ async function processRecord(
           );
           return;
         }
-        if (!(await hasSummary(transcriptId, desc.key))) {
-          await saveSummary(desc, formatted);
-        }
+        await saveSummaryIfNotExist(desc, formatted);
 
         /**
          * Enqueue download of remaining summaries. These files are saved
@@ -455,10 +458,15 @@ async function processRecord(
   );
 }
 
-async function hasSummary(transcriptId: string, key: string) {
+async function hasSummary(
+  transcriptId: string,
+  key: string,
+  transaction?: Transaction,
+) {
   const ret =
     (await db.Summary.count({
       where: { transcriptId, key },
+      transaction,
     })) > 0;
   if (ret) {
     console.log(
