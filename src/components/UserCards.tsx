@@ -111,7 +111,7 @@ export function FullTextSearchBox({
   }, [value]);
 
   const debouncedSetValue = useMemo(
-    () => debounce((v: string) => setValueRef.current(v), 500),
+    () => debounce((v: string) => setValueRef.current(v), 200),
     [],
   );
 
