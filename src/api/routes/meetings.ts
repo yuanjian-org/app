@@ -275,7 +275,7 @@ async function create(tmUserId: string) {
   try {
     const res = await createRecurringMeeting(
       tmUserId,
-      "请勿分享会议链接，请通过 yuantuapp.com 进入会议",
+      "请用远图进入会议，请勿使用或分享腾讯会议链接",
       nextHour,
       nextHour + 3600,
     );
