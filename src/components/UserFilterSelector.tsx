@@ -58,6 +58,7 @@ export default function UserFilterSelector({
       query.filter = JSON.stringify(diff);
     }
 
+    // Use shallow routing to update URL parameters without re-running data fetching methods (like getServerSideProps)
     await router.replace({ pathname: router.pathname, query }, undefined, {
       shallow: true,
     });
