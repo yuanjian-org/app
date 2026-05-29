@@ -730,6 +730,30 @@ describe("listImpl", () => {
             roles: ["Volunteer"],
             pinyin: "mentor guru",
           },
+          {
+            id: "20000000-0000-0000-0000-000000000003",
+            name: "Mentor Master Ended",
+            roles: ["Volunteer"],
+            pinyin: "mentor master ended",
+          },
+          {
+            id: "10000000-0000-0000-0000-000000000003",
+            name: "Mentee Three",
+            roles: ["Volunteer"],
+            pinyin: "mentee three",
+          },
+          {
+            id: "20000000-0000-0000-0000-000000000004",
+            name: "Mentor Master Transactional",
+            roles: ["Volunteer"],
+            pinyin: "mentor master transactional",
+          },
+          {
+            id: "10000000-0000-0000-0000-000000000004",
+            name: "Mentee Four",
+            roles: ["Volunteer"],
+            pinyin: "mentee four",
+          },
         ],
         { transaction },
       );
@@ -750,6 +774,21 @@ describe("listImpl", () => {
             status: "Active",
             transactional: false,
           },
+          {
+            id: "30000000-0000-0000-0000-000000000003",
+            menteeId: "10000000-0000-0000-0000-000000000003",
+            mentorId: "20000000-0000-0000-0000-000000000003",
+            status: "Active",
+            endsAt: new Date(Date.now() - 10000), // Ended mentorship
+            transactional: false,
+          },
+          {
+            id: "30000000-0000-0000-0000-000000000004",
+            menteeId: "10000000-0000-0000-0000-000000000004",
+            mentorId: "20000000-0000-0000-0000-000000000004",
+            status: "Active",
+            transactional: true, // Transactional mentorship
+          },
         ],
         { transaction },
       );
@@ -761,8 +800,13 @@ describe("listImpl", () => {
         },
         transaction,
       );
-      expect(res.items.length).equals(1);
-      expect(res.items[0].id).equals("20000000-0000-0000-0000-000000000001");
+      expect(res.items.length).equals(3); // Mentor Master, Mentor Master Ended, and Mentor Master Transactional
+      const mentorIds = res.items.map((i) => i.id).sort();
+      expect(mentorIds).to.deep.equal([
+        "20000000-0000-0000-0000-000000000001",
+        "20000000-0000-0000-0000-000000000003",
+        "20000000-0000-0000-0000-000000000004",
+      ]);
 
       res = await usersModule.listImpl(
         userManager,
@@ -772,12 +816,14 @@ describe("listImpl", () => {
         },
         transaction,
       );
-      expect(res.items.length).equals(2);
+      expect(res.items.length).equals(4); // Mentee One (active), Mentor Master, Mentor Master Ended, Mentor Master Transactional. (Mentee Three and Mentee Four excluded)
       const ids = res.items.map((i) => i.id).sort();
       expect(ids).to.deep.equal(
         [
           "10000000-0000-0000-0000-000000000001",
           "20000000-0000-0000-0000-000000000001",
+          "20000000-0000-0000-0000-000000000003",
+          "20000000-0000-0000-0000-000000000004",
         ],
         { transaction },
       );
