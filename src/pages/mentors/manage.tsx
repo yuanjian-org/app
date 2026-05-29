@@ -68,7 +68,7 @@ export default fullPage(() => {
         </Wrap>
       </TopBar>
 
-      <Box mx={pageMarginX} mt={pageMarginX}>
+      <Box mx={pageMarginX} mt={0}>
         <Mentors
           showOnlyWithCapacity={showOnlyWithCapacity}
           showMatchState={showMatchState}
