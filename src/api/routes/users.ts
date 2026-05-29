@@ -39,7 +39,10 @@ import sequelize from "../database/sequelize";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
-import { getUser2MentorshipCount, whereMentorshipIsOngoing } from "./mentorships";
+import {
+  getUser2MentorshipCount,
+  whereMentorshipIsOngoing,
+} from "./mentorships";
 import { UserState, zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
