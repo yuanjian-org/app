@@ -10,12 +10,13 @@ import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { authUser } from "../auth";
 import User, {
+  UserWithMergeInfo,
   isAcceptedMentee,
   zMinUser,
   zUser,
   zUserWithMergeInfo,
 } from "../../shared/User";
-import { zUserFilter } from "../../shared/UserFilter";
+import { UserFilter, zUserFilter } from "../../shared/UserFilter";
 import {
   defaultMentorCapacity,
   zMentorPreference,
@@ -103,119 +104,131 @@ const list = procedure
     }),
   )
   .query(async ({ ctx: { me }, input: filter }) => {
-    if (
-      (filter.includeMerged === true || filter.returnMergeInfo === true) &&
-      !isPermitted(me.roles, "UserManager")
-    ) {
-      throw noPermissionError(
-        "数据",
-        "`includeMerged` or `returnMergeInfo` user filter",
-      );
-    }
-
-    // Force type checking.
-    const volunteer: Role = "Volunteer";
-
-    const limit = filter.limit;
-
-    const items = await db.User.findAll({
-      ...(limit !== undefined && limit !== null ? { limit: limit + 1 } : {}),
-      offset: filter.cursor ?? 0,
-      order: [["pinyin", "ASC"]],
-
-      attributes: [
-        ...userAttributes,
-        ...(filter.returnMergeInfo === true ? ["wechatUnionId"] : []),
-      ],
-
-      include: [
-        ...userInclude,
-        ...(filter.returnMergeInfo === true
-          ? [
-              {
-                association: "mergedToUser",
-                attributes: minUserAttributes,
-              },
-            ]
-          : []),
-      ],
-
-      where: {
-        ...(filter.includeMerged === true
-          ? {}
-          : {
-              mergedTo: { [Op.eq]: null },
-            }),
-
-        ...(filter.includeNonVolunteers === true
-          ? {}
-          : {
-              roles: { [Op.contains]: [volunteer] },
-            }),
-
-        ...(filter.containsRoles === undefined
-          ? {}
-          : {
-              [Op.and]: filter.containsRoles.map((r) => ({
-                roles: { [Op.contains]: [r] },
-              })),
-            }),
-
-        ...(filter.menteeStatus === undefined
-          ? {}
-          : {
-              menteeStatus: filter.menteeStatus,
-            }),
-
-        ...(filter.pointOfContactId === undefined
-          ? {}
-          : {
-              pointOfContactId: filter.pointOfContactId,
-            }),
-
-        ...(filter.matchesNameOrEmail === undefined
-          ? {}
-          : {
-              [Op.or]: [
-                { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-                { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-                { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-                ...(filter.includeMentorSearch === true
-                  ? [
-                      {
-                        id: {
-                          [Op.in]: sequelize.literal(`(
-                            SELECT "menteeId" FROM "Mentorships"
-                            JOIN "users" AS "mentors" ON "Mentorships"."mentorId" = "mentors"."id"
-                            WHERE "mentors"."name" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
-                            OR "mentors"."pinyin" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
-                          )`),
-                        },
-                      },
-                    ]
-                  : []),
-              ],
-            }),
-
-        ...(filter.ids === undefined
-          ? {}
-          : {
-              id: { [Op.in]: filter.ids },
-            }),
-      },
-    });
-
-    let nextCursor = undefined;
-    if (limit !== undefined && limit !== null && items.length > limit) {
-      items.pop();
-      nextCursor = (filter.cursor ?? 0) + limit;
-    }
-
-    return {
-      items,
-      nextCursor,
-    };
+    return await listImpl(me, filter);
   });
+
+export async function listImpl(
+  me: User,
+  filter: UserFilter,
+  transaction?: Transaction,
+): Promise<{
+  items: UserWithMergeInfo[];
+  nextCursor: number | null | undefined;
+}> {
+  if (
+    (filter.includeMerged === true || filter.returnMergeInfo === true) &&
+    !isPermitted(me.roles, "UserManager")
+  ) {
+    throw noPermissionError(
+      "数据",
+      "`includeMerged` or `returnMergeInfo` user filter",
+    );
+  }
+
+  // Force type checking.
+  const volunteer: Role = "Volunteer";
+
+  const limit = filter.limit;
+
+  const items = await db.User.findAll({
+    transaction,
+    ...(limit !== undefined && limit !== null ? { limit: limit + 1 } : {}),
+    offset: filter.cursor ?? 0,
+    order: [["pinyin", "ASC"]],
+
+    attributes: [
+      ...userAttributes,
+      ...(filter.returnMergeInfo === true ? ["wechatUnionId"] : []),
+    ],
+
+    include: [
+      ...userInclude,
+      ...(filter.returnMergeInfo === true
+        ? [
+            {
+              association: "mergedToUser",
+              attributes: minUserAttributes,
+            },
+          ]
+        : []),
+    ],
+
+    where: {
+      ...(filter.includeMerged === true
+        ? {}
+        : {
+            mergedTo: { [Op.eq]: null },
+          }),
+
+      ...(filter.includeNonVolunteers === true
+        ? {}
+        : {
+            roles: { [Op.contains]: [volunteer] },
+          }),
+
+      ...(filter.containsRoles === undefined
+        ? {}
+        : {
+            [Op.and]: filter.containsRoles.map((r) => ({
+              roles: { [Op.contains]: [r] },
+            })),
+          }),
+
+      ...(filter.menteeStatus === undefined
+        ? {}
+        : {
+            menteeStatus: filter.menteeStatus,
+          }),
+
+      ...(filter.pointOfContactId === undefined
+        ? {}
+        : {
+            pointOfContactId: filter.pointOfContactId,
+          }),
+
+      ...(filter.matchesNameOrEmail === undefined
+        ? {}
+        : {
+            [Op.or]: [
+              { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+              { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+              { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
+              ...(filter.includeMentorSearch === true
+                ? [
+                    {
+                      id: {
+                        [Op.in]: sequelize.literal(`(
+                          SELECT "menteeId" FROM "Mentorships"
+                          JOIN "users" AS "mentors" ON "Mentorships"."mentorId" = "mentors"."id"
+                          WHERE "mentors"."name" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
+                          OR "mentors"."pinyin" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
+                        )`),
+                      },
+                    },
+                  ]
+                : []),
+            ],
+          }),
+
+      ...(filter.ids === undefined
+        ? {}
+        : {
+            id: { [Op.in]: filter.ids },
+          }),
+    },
+  });
+
+  let nextCursor = undefined;
+  if (limit !== undefined && limit !== null && items.length > limit) {
+    items.pop();
+    nextCursor = (filter.cursor ?? 0) + limit;
+  }
+
+  return {
+    items: items as unknown as UserWithMergeInfo[],
+    nextCursor,
+  };
+}
 
 const zListMentorsOutput = z.array(
   zMinUserAndProfile.merge(
