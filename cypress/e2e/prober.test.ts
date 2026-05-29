@@ -14,31 +14,24 @@ describe("Demo site health check", () => {
 
   it("can load dashboard (个人空间)", () => {
     cy.visit("/");
-    cy.contains("我的会议", { timeout: 15000 })
-      .should("be.visible");
+    cy.contains("我的会议", { timeout: 15000 }).should("be.visible");
     cy.contains("待办事项").should("be.visible");
   });
 
   it("can load volunteer profiles (志愿者档案)", () => {
     cy.visit("/volunteers");
-    cy.contains("志愿者档案", { timeout: 15000 })
-      .should("be.visible");
+    cy.contains("志愿者档案", { timeout: 15000 }).should("be.visible");
   });
 
-  it(
-    "can load student profiles (学生档案)",
-    () => {
-      cy.visit(`/mentees?menteeStatus=${encodeURIComponent("现届学子")}`);
-      cy.contains("学生档案", { timeout: 15000 })
-        .should("be.visible");
-      // The table should list at least one student.
-      cy.get("table").should("exist");
-    },
-  );
+  it("can load student profiles (学生档案)", () => {
+    cy.visit(`/mentees?menteeStatus=${encodeURIComponent("现届学子")}`);
+    cy.contains("学生档案", { timeout: 15000 }).should("be.visible");
+    // The table should list at least one student.
+    cy.get("table").should("exist");
+  });
 
   it("can load user management (用户)", () => {
     cy.visit("/users");
-    cy.contains("新建用户", { timeout: 15000 })
-      .should("be.visible");
+    cy.contains("新建用户", { timeout: 15000 }).should("be.visible");
   });
 });
