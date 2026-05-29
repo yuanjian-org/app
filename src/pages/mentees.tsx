@@ -95,6 +95,7 @@ import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 import { getAnonymousId } from "shared/getAnonymousId";
+import { useInfiniteScroll } from "components/useInfiniteScroll";
 
 type SortOrderKey =
   | "year"
@@ -125,8 +126,25 @@ export default fullPage(() => {
   const [showMatchState, setShowMatchState] = useState(false);
   const me = useMe();
 
-  const { data: usersData, refetch } = trpcNext.users.list.useQuery(filter);
-  const users = usersData?.items;
+  const {
+    data: usersData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = trpcNext.users.list.useInfiniteQuery(
+    {
+      limit: 50,
+      ...filter,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
+
+  const users = usersData?.pages.flatMap((page) => page.items);
+
+  useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   return (
     <>
@@ -167,6 +185,7 @@ export default fullPage(() => {
             </Text>
           </TableContainer>
         )}
+        {isFetchingNextPage && <Loader />}
       </Box>
     </>
   );
