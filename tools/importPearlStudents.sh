@@ -26,12 +26,6 @@ if [ ! -f "$CSV_FILE" ]; then
   exit 1
 fi
 
-# Load variables from .env if it exists and DATABASE_URI is not set
-# (In this script we expect DATABASE_URI to be passed or exported already, but just in case)
-if [ -f .env ] && [ -z "${DATABASE_URI:-}" ]; then
-  export $(grep -v '^#' .env | xargs)
-fi
-
 if [ -z "$DATABASE_URI" ]; then
   echo "Error: DATABASE_URI environment variable is not set."
   exit 1
