@@ -10,6 +10,7 @@ import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { authUser } from "../auth";
 import User, {
+  UserWithMergeInfo,
   isAcceptedMentee,
   zMinUser,
   zUser,
@@ -109,8 +110,9 @@ const list = procedure
 export async function listImpl(
   me: User,
   filter: UserFilter,
+  transaction?: Transaction,
 ): Promise<{
-  items: z.infer<typeof zUserWithMergeInfo>[];
+  items: UserWithMergeInfo[];
   nextCursor: number | null | undefined;
 }> {
   if (
@@ -129,6 +131,7 @@ export async function listImpl(
   const limit = filter.limit;
 
   const items = await db.User.findAll({
+    transaction,
     ...(limit !== undefined && limit !== null ? { limit: limit + 1 } : {}),
     offset: filter.cursor ?? 0,
     order: [["pinyin", "ASC"]],
@@ -222,7 +225,7 @@ export async function listImpl(
   }
 
   return {
-    items: items as unknown as z.infer<typeof zUserWithMergeInfo>[],
+    items: items as unknown as UserWithMergeInfo[],
     nextCursor,
   };
 }
