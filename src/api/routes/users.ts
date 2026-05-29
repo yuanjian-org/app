@@ -38,7 +38,10 @@ import sequelize from "../database/sequelize";
 import { zMenteeStatus } from "../../shared/MenteeStatus";
 import { zMinUserAndProfile, zUserProfile } from "../../shared/UserProfile";
 import { zDateColumn } from "../../shared/DateColumn";
-import { getUser2MentorshipCount } from "./mentorships";
+import {
+  getUser2MentorshipCount,
+  whereMentorshipIsOngoing,
+} from "./mentorships";
 import { UserState, zUserState } from "../../shared/UserState";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
@@ -187,8 +190,10 @@ const list = procedure
                           [Op.in]: sequelize.literal(`(
                             SELECT "menteeId" FROM "Mentorships"
                             JOIN "users" AS "mentors" ON "Mentorships"."mentorId" = "mentors"."id"
-                            WHERE "mentors"."name" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
-                            OR "mentors"."pinyin" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
+                            WHERE ("mentors"."name" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)}
+                            OR "mentors"."pinyin" ILIKE ${sequelize.escape(`%${filter.matchesNameOrEmail}%`)})
+                            AND ${(sequelize as any).dialect.queryGenerator.getWhereConditions(whereMentorshipIsOngoing, "Mentorships", db.Mentorship, {})}
+                            AND "Mentorships"."transactional" = false
                           )`),
                         },
                       },
