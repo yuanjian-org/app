@@ -10,10 +10,22 @@ export const zUserFilter = z.object({
 
   ids: z.array(z.string()).optional(),
 
+  /**
+   * If true, includes users whose roles don't include "Volunteer". Defaults to false.
+   */
   includeNonVolunteers: z.boolean().optional(),
+  /**
+   * If true, includes users who have been merged into another account. Requires UserManager permission. Defaults to false.
+   */
   includeMerged: z.boolean().optional(),
+  /**
+   * If true, `matchesNameOrEmail` will also match mentees based on their assigned ongoing mentor's name or pinyin. Defaults to false.
+   */
   includeMentorSearch: z.boolean().optional(),
 
+  /**
+   * If true, returns additional information about merged users, such as `wechatUnionId` and the `mergedToUser` object. Requires UserManager permission. Defaults to false.
+   */
   returnMergeInfo: z.boolean().optional(),
 
   cursor: z.number().nullish(),
