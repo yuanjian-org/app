@@ -172,7 +172,9 @@ export default fullPage(() => {
         {!users || !config ? (
           <Loader />
         ) : (
-          <TableContainer>
+          // overflowY and maxHeight are to make the table header sticky.
+          // See also <Thead> in <MenteeTable>.
+          <TableContainer overflowY="auto" maxHeight="calc(100vh - 150px)">
             <MenteeTable
               users={users}
               showMatchState={showMatchState}
@@ -344,7 +346,7 @@ function MenteeTable({
 
   return (
     <Table size="sm">
-      <Thead>
+      <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
         <Tr>
           <Th>状态</Th>
           <PointOfContactHeaderCells />
