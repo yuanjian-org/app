@@ -166,7 +166,7 @@ describe("upload webhook", () => {
     // We get the actual local profile and sha from DB because create stringify might change it.
     const createdUser = await db.User.findByPk(user.id, { transaction });
     const localProfile = createdUser!.profile || {};
-    const sha = shaChecksum(localProfile);
+    const sha = shaChecksum(localProfile["照片链接"]);
 
     const token = encodeUploadTokenUrlSafe("UserProfilePicture", user.id, sha);
     const testUrl = "https://example.com/pic.jpg";
@@ -192,7 +192,7 @@ describe("upload webhook", () => {
 
     const createdUser = await db.User.findByPk(user.id, { transaction });
     const localProfile = createdUser!.profile || {};
-    const sha = shaChecksum(localProfile);
+    const sha = shaChecksum(localProfile["视频链接"]);
 
     const token = encodeUploadTokenUrlSafe("UserProfileVideo", user.id, sha);
     const testUrl = "https://example.com/video.mp4";

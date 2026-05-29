@@ -138,7 +138,7 @@ export function fromBase64UrlSafe(base64: string): string {
   return Buffer.from(base64, "base64").toString();
 }
 
-export function shaChecksum(obj: Record<string, any>): string {
+export function shaChecksum(obj: unknown): string {
   return crypto
     .createHash("sha256")
     .update(stringifyStable(obj) || "" || "")

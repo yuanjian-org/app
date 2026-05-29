@@ -55,7 +55,7 @@ async function uploadUserProfileMedia(
 
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
-    const localSha = shaChecksum(profile);
+    const localSha = shaChecksum(profile[mediaType + "链接"]);
 
     if (sha !== localSha) {
       throw generalBadRequestError(

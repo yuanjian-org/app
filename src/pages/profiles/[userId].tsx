@@ -286,13 +286,13 @@ function Basic({
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
-  profile: UserProfile,
+  urlToHash: string | undefined,
   target: UploadTarget,
 ) {
   return encodeXField(
     whiteLabel,
     user,
-    encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
+    encodeUploadTokenUrlSafe(target, user.id, shaChecksum(urlToHash)),
   );
 }
 
@@ -312,8 +312,14 @@ function Picture({
   const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfilePicture"),
-    [whiteLabel, user, profile],
+    () =>
+      encodeJinshujuXField(
+        whiteLabel,
+        user,
+        profile.照片链接,
+        "UserProfilePicture",
+      ),
+    [whiteLabel, user, profile.照片链接],
   );
 
   return (
@@ -375,8 +381,14 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   const whiteLabel = useWhiteLabel();
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfileVideo"),
-    [whiteLabel, user, profile],
+    () =>
+      encodeJinshujuXField(
+        whiteLabel,
+        user,
+        profile.视频链接,
+        "UserProfileVideo",
+      ),
+    [whiteLabel, user, profile.视频链接],
   );
 
   return (
