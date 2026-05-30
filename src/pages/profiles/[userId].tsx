@@ -279,10 +279,9 @@ function Basic({
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
-  hmac: string | undefined,
+  hmac: string,
   target: UploadTarget,
 ) {
-  if (!hmac) return "";
   return encodeXField(
     whiteLabel,
     user,
@@ -315,7 +314,14 @@ function Picture({
 
   const uploadToken = useMemo(
     () =>
-      encodeJinshujuXField(whiteLabel, user, pictureHmac, "UserProfilePicture"),
+      pictureHmac
+        ? encodeJinshujuXField(
+            whiteLabel,
+            user,
+            pictureHmac,
+            "UserProfilePicture",
+          )
+        : undefined,
     [whiteLabel, user, pictureHmac],
   );
 
@@ -332,19 +338,21 @@ function Picture({
           />
         )}
 
-        <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
-          {profile.照片链接 ? (
-            <HStack>
-              <MdChangeCircle />
-              <Text>更换照片</Text>
-            </HStack>
-          ) : (
-            <HStack>
-              <MdCloudUpload />
-              <Text>上传照片</Text>
-            </HStack>
-          )}
-        </Link>
+        {uploadToken && (
+          <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
+            {profile.照片链接 ? (
+              <HStack>
+                <MdChangeCircle />
+                <Text>更换照片</Text>
+              </HStack>
+            ) : (
+              <HStack>
+                <MdCloudUpload />
+                <Text>上传照片</Text>
+              </HStack>
+            )}
+          </Link>
+        )}
 
         <FormHelperTextWithMargin>
           建议选择面部清晰、不戴墨镜的近照
@@ -385,7 +393,10 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   );
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, videoHmac, "UserProfileVideo"),
+    () =>
+      videoHmac
+        ? encodeJinshujuXField(whiteLabel, user, videoHmac, "UserProfileVideo")
+        : undefined,
     [whiteLabel, user, videoHmac],
   );
 
@@ -404,19 +415,21 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
         />
       )}
 
-      <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
-        {profile.视频链接 ? (
-          <HStack>
-            <MdChangeCircle />
-            <Text>更换视频</Text>
-          </HStack>
-        ) : (
-          <HStack>
-            <MdCloudUpload />
-            <Text>上传视频</Text>
-          </HStack>
-        )}
-      </Link>
+      {uploadToken && (
+        <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
+          {profile.视频链接 ? (
+            <HStack>
+              <MdChangeCircle />
+              <Text>更换视频</Text>
+            </HStack>
+          ) : (
+            <HStack>
+              <MdCloudUpload />
+              <Text>上传视频</Text>
+            </HStack>
+          )}
+        </Link>
+      )}
     </>
   );
 }
