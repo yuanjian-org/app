@@ -285,11 +285,13 @@ function encodeJinshujuXField(
   hmac: string,
   target: UploadTarget,
 ) {
-  return encodeXField(
-    whiteLabel,
-    user,
-    encodeUploadTokenUrlSafe(target, user.id, hmac),
-  );
+  const token = encodeUploadTokenUrlSafe(target, user.id, hmac);
+  console.log("Encoding Jinshuju XField:");
+  console.log("  target:", target);
+  console.log("  userId:", user.id);
+  console.log("  hmac:  ", hmac);
+  console.log("  token: ", token);
+  return encodeXField(whiteLabel, user, token);
 }
 
 function Picture({
