@@ -32,6 +32,8 @@ export async function saveSummaryIfNotExistImpl(
 ) {
   if (await hasSummary(transcriptId, key, transaction)) return;
 
+  console.log(`Save transcript ${transcriptId} key ${key}`);
+
   await db.Transcript.upsert(
     {
       id: transcriptId,
@@ -42,6 +44,8 @@ export async function saveSummaryIfNotExistImpl(
     { transaction },
   );
 
+  // Do NOT use `upsert` because user may have edited the summary after it is
+  // first created.
   await db.Summary.create(
     {
       transcriptId,
@@ -58,7 +62,6 @@ export async function saveSummaryIfNotExist(
   desc: SummaryDescriptor,
   summary: string,
 ) {
-  console.log(`Save transcript ${desc.transcriptId} key ${desc.key}`);
   await sequelize.transaction(async (transaction: Transaction) => {
     await saveSummaryIfNotExistImpl(
       desc.transcriptId,
