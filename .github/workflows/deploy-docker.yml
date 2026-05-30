@@ -101,6 +101,9 @@ jobs:
     - name: Create .env.xhef file
       run: cp .env .env.xhef
 
+    # Build and push the Docker image.
+    # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
+    # Docker compile time by caching layers directly in the GHA cache backend.
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
