@@ -4,15 +4,11 @@ permissions: {}
 
 on:
   schedule:
-    # Runs at the 8th minute of every hour. Do not run close to 30m boundaries
-    # because there may be cases where users wait for a bit longer than
-    # `gracePeriodMinutes` to join a meeting after they have clicked the join
-    # button, and meetings are often scheduled at 30m boundaries.
+    # Stagger starts with +6 mins from Yuantu sync meeting to avoid API call
+    # over quota issue with Tencent Meeting. See hourly-sync-yuantu-meetings.yml
+    # for other important comments.
     #
-    # Note that Github have large scheduling delays which are often more than
-    # a few minutes.
-    #
-    - cron: "8 * * * *"
+    - cron: "14 * * * *"
   workflow_dispatch:
 
 jobs:
