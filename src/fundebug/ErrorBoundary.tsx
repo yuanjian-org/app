@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 import { Box, VStack, Heading, Text, Button } from "@chakra-ui/react";
-import fundebug, { isFundebugEnabled } from "fundebug";
+import { reportError } from "fundebug";
 
 interface Props {
   children: ReactNode;
@@ -22,8 +22,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (!isFundebugEnabled()) return;
-    fundebug.notifyError(error, { metaData: { info: errorInfo } });
+    reportError(error, { info: errorInfo });
   }
 
   render() {
