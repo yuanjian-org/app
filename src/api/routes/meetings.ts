@@ -82,6 +82,10 @@ const join = procedure
           });
 
           if (free) {
+            invariant(
+              free.whiteLabel === null,
+              "free slot white label is not null",
+            );
             await free.update(
               { groupId, whiteLabel: getWhiteLabel() },
               { transaction: meetingTransaction },
