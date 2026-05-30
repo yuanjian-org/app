@@ -48,7 +48,7 @@ export default function Page() {
           isExternal
           href={getStandaloneFormUrl(
             "nsnx4G",
-            encodeXField(whiteLabel, me, me.id),
+            encodeXField(whiteLabel, me.url, null, me.id, ""),
           )}
           variant="brand"
         >

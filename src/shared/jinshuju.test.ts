@@ -1,48 +1,82 @@
 import { expect } from "chai";
-import {
-  encodeXField,
-  validateAndDecodeXField,
-  encodeUploadTokenUrlSafe,
-  decodeUploadTokenUrlSafe,
-} from "./jinshuju";
-import { MinUser } from "./User";
+import { encodeXField, validateAndDecodeXField } from "./jinshuju";
 
 describe("jinshuju", () => {
   describe("encodeXField", () => {
-    it("should encode correctly when user has a url", () => {
-      const user: MinUser = { id: "1", url: "test-user", name: "Test" };
-      const result = encodeXField("yuantu", user, "safe-val");
-      expect(result).to.equal("yuantu,test-user,safe-val");
+    it("should encode correctly when user has a url and target", () => {
+      const result = encodeXField(
+        "yuantu",
+        "test-user",
+        "UserProfilePicture",
+        "user-id-1",
+        "hmac-val",
+      );
+      expect(result).to.equal(
+        "yuantu,test-user,UserProfilePicture,user-id-1,hmac-val",
+      );
     });
 
-    it("should encode correctly when user url is null", () => {
-      const user: MinUser = { id: "2", url: null, name: "Test2" };
-      const result = encodeXField("yuantu", user, "safe-val2");
-      expect(result).to.equal("yuantu,,safe-val2");
+    it("should encode correctly when user url is null and target is null", () => {
+      const result = encodeXField(
+        "yuantu",
+        null,
+        null,
+        "user-id-2",
+        "hmac-val2",
+      );
+      expect(result).to.equal("yuantu,,,user-id-2,hmac-val2");
     });
 
-    it("should encode correctly when user url is empty", () => {
-      const user: MinUser = { id: "3", url: "", name: "Test3" };
-      const result = encodeXField("yuantu", user, "safe-val3");
-      expect(result).to.equal("yuantu,,safe-val3");
+    it("should encode correctly when user url is empty and target is null", () => {
+      const result = encodeXField("yuantu", "", null, "user-id-3", "hmac-val3");
+      expect(result).to.equal("yuantu,,,user-id-3,hmac-val3");
     });
   });
 
   describe("validateAndDecodeXField", () => {
-    it("should decode correctly when x_field_1 has a valid tenant and comma", () => {
-      const formEntry = { x_field_1: "yuantu,test-user,safe-val" };
+    it("should decode correctly when x_field_1 has a valid tenant, target, userId, and hmac", () => {
+      const formEntry = {
+        x_field_1: "yuantu,test-user,UserProfilePicture,user-id-1,hmac-val",
+      };
       const result = validateAndDecodeXField("yuantu", formEntry);
-      expect(result).to.equal("safe-val");
+      expect(result).to.deep.equal({
+        userUrl: "test-user",
+        target: "UserProfilePicture",
+        userId: "user-id-1",
+        hmac: "hmac-val",
+      });
     });
 
-    it("should decode correctly when x_field_1 has a valid tenant and multiple commas", () => {
-      const formEntry = { x_field_1: "yuantu,test-user,safe-val,extra" };
+    it("should decode correctly when x_field_1 has a valid tenant, empty target, userId, and multiple commas in hmac", () => {
+      const formEntry = {
+        x_field_1: "yuantu,test-user,,user-id-2,hmac-val,extra",
+      };
       const result = validateAndDecodeXField("yuantu", formEntry);
-      expect(result).to.equal("safe-val,extra");
+      expect(result).to.deep.equal({
+        userUrl: "test-user",
+        target: undefined,
+        userId: "user-id-2",
+        hmac: "hmac-val,extra",
+      });
     });
 
-    it("should return undefined when x_field_1 has no comma", () => {
-      const formEntry = { x_field_1: "nocomma" };
+    it("should decode correctly when x_field_1 has an invalid target (fallback to undefined)", () => {
+      const formEntry = {
+        x_field_1: "yuantu,test-user,InvalidTarget,user-id-3,hmac-val",
+      };
+      const result = validateAndDecodeXField("yuantu", formEntry);
+      expect(result).to.deep.equal({
+        userUrl: "test-user",
+        target: undefined,
+        userId: "user-id-3",
+        hmac: "hmac-val",
+      });
+    });
+
+    it("should return undefined when x_field_1 does not have enough parts", () => {
+      const formEntry = {
+        x_field_1: "yuantu,test-user,UserProfilePicture,user-id-1",
+      };
       const result = validateAndDecodeXField("yuantu", formEntry);
       void expect(result).to.be.undefined;
     });
@@ -60,38 +94,13 @@ describe("jinshuju", () => {
     });
 
     it("should throw error when tenant does not match", () => {
-      const formEntry = { x_field_1: "wrongtenant,test-user,safe-val" };
+      const formEntry = {
+        x_field_1:
+          "wrongtenant,test-user,UserProfilePicture,user-id-1,hmac-val",
+      };
       expect(() => validateAndDecodeXField("yuantu", formEntry)).to.throw(
         "Invalid tenant name in x_field_1: wrongtenant",
       );
-    });
-  });
-
-  describe("Upload Token Encoding", () => {
-    it("should encode and decode token symmetrically", () => {
-      const target = "UserProfilePicture";
-      const id = "user-123";
-      const opaque = "secret-token-456";
-
-      const encoded = encodeUploadTokenUrlSafe(target, id, opaque);
-      const decoded = decodeUploadTokenUrlSafe(encoded);
-
-      expect(decoded.target).to.equal(target);
-      expect(decoded.id).to.equal(id);
-      expect(decoded.opaque).to.equal(opaque);
-    });
-
-    it("should be URL safe (no +, /, =)", () => {
-      const target = "UserProfileVideo";
-      // Using characters that might cause + / = in base64
-      const id = "id-with-special-chars-???!!!~~~";
-      const opaque = "opaque-with-special-chars-???!!!~~~";
-
-      const encoded = encodeUploadTokenUrlSafe(target, id, opaque);
-
-      expect(encoded).to.not.include("+");
-      expect(encoded).to.not.include("/");
-      expect(encoded).to.not.include("=");
     });
   });
 });

@@ -50,7 +50,7 @@ describe("exam webhook", () => {
   describe("successful exam submission", () => {
     it("should update user state and mark comms exam task as done", async () => {
       const formEntry = {
-        x_field_1: getWhiteLabel() + ",tester," + userId,
+        x_field_1: getWhiteLabel() + ",tester,," + userId + ",", // Added empty target and empty hmac
         exam_score: 85,
       };
 

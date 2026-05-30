@@ -1,20 +1,28 @@
 import z from "zod";
-import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
-import { MinUser } from "./User";
 import { WhiteLabel } from "./WhiteLabel";
 
 /**
  * Prefix the user's url in the x field to make it easier to identify the user
  * when examining raw data on Jinshuju's website.
- *
- * @param urlSafeValue must be a URL-safe string
  */
 export function encodeXField(
   whiteLabel: WhiteLabel,
-  user: MinUser,
-  urlSafeValue: string,
+  userUrl: string | null | undefined,
+  target: UploadTarget | null,
+  userId: string,
+  hmac: string,
 ) {
-  return whiteLabel + "," + (user.url ? user.url : "") + "," + urlSafeValue;
+  return (
+    whiteLabel +
+    "," +
+    (userUrl ? userUrl : "") +
+    "," +
+    (target ? target : "") +
+    "," +
+    userId +
+    "," +
+    hmac
+  );
 }
 
 /**
@@ -23,36 +31,39 @@ export function encodeXField(
 export function validateAndDecodeXField(
   whiteLabel: WhiteLabel,
   formEntry: Record<string, any>,
-): string | undefined {
+):
+  | {
+      userUrl: string;
+      target: UploadTarget | undefined;
+      userId: string;
+      hmac: string;
+    }
+  | undefined {
   const xField = formEntry.x_field_1;
   if (!xField) return undefined;
 
   const parts = xField.split(",");
-  if (parts.length < 2) return undefined;
+  if (parts.length < 5) return undefined;
 
   if (parts[0] !== whiteLabel) {
     throw new Error(`Invalid tenant name in x_field_1: ${parts[0]}`);
   }
 
-  return parts.slice(2).join(",");
+  const userUrl = parts[1];
+  const targetRaw = parts[2];
+  const userId = parts[3];
+  const hmac = parts.slice(4).join(",");
+
+  let target: UploadTarget | undefined = undefined;
+  if (targetRaw) {
+    const parsedTarget = zUploadTarget.safeParse(targetRaw);
+    if (parsedTarget.success) {
+      target = parsedTarget.data;
+    }
+  }
+
+  return { userUrl, target, userId, hmac };
 }
 
 export const zUploadTarget = z.enum(["UserProfilePicture", "UserProfileVideo"]);
 export type UploadTarget = z.infer<typeof zUploadTarget>;
-
-/**
- * @param id uniquely identifies the upload
- * @param opaque a security token against unauthorized uploads
- */
-export function encodeUploadTokenUrlSafe(
-  target: UploadTarget,
-  id: string,
-  opaque: string,
-) {
-  return toBase64UrlSafe(JSON.stringify({ target, id, opaque }));
-}
-
-export function decodeUploadTokenUrlSafe(encoded: string) {
-  const { target, id, opaque } = JSON.parse(fromBase64UrlSafe(encoded));
-  return { target, id, opaque };
-}
