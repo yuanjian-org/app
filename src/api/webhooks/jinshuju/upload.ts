@@ -55,9 +55,15 @@ async function uploadUserProfileMedia(
 
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
-    const localHmac = hmacChecksum(
-      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"],
-    );
+    const urlToHash =
+      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"];
+    const localHmac = hmacChecksum(urlToHash);
+
+    console.log("uploadUserProfileMedia verifying HMAC:");
+    console.log("  userId:    ", userId);
+    console.log("  urlToHash: ", urlToHash);
+    console.log("  localHmac: ", localHmac);
+    console.log("  hmac:      ", hmac);
 
     if (hmac !== localHmac) {
       throw generalBadRequestError(

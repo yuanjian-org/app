@@ -1065,7 +1065,15 @@ const getMediaChecksum = procedure
       target === "UserProfilePicture"
         ? profile["照片链接"]
         : profile["视频链接"];
-    return hmacChecksum(urlToHash);
+    const checksum = hmacChecksum(urlToHash);
+
+    console.log("getMediaChecksum called:");
+    console.log("  target:   ", target);
+    console.log("  userId:   ", me.id);
+    console.log("  urlToHash:", urlToHash);
+    console.log("  checksum: ", checksum);
+
+    return checksum;
   });
 
 export default router({
