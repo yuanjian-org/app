@@ -174,7 +174,14 @@ export default fullPage(() => {
         ) : (
           // overflowY and maxHeight are to make the table header sticky.
           // See also <Thead> in <MenteeTable>.
-          <TableContainer overflowY="auto" maxHeight="calc(100vh - 150px)">
+          <TableContainer
+            overflowY="auto"
+            maxHeight="calc(100vh - 150px)"
+            borderRadius="md"
+            border="1px solid"
+            borderColor="gray.200"
+            bg="white"
+          >
             <MenteeTable
               users={users}
               showMatchState={showMatchState}
@@ -182,7 +189,7 @@ export default fullPage(() => {
               isDemo={isDemo}
               isUserManager={isPermitted(me.roles, "UserManager")}
             />
-            <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
+            <Text fontSize="sm" color="gray" mt={4} mb={4} ml={4}>
               共 <b>{users.length}</b> 名
             </Text>
           </TableContainer>
@@ -345,7 +352,15 @@ function MenteeTable({
   }, [users, sortUser]);
 
   return (
-    <Table size="sm">
+    <Table
+      size="sm"
+      // Customize color for table stripe.
+      sx={{
+        "tbody tr:nth-of-type(odd) td": {
+          bg: "#fafafa",
+        },
+      }}
+    >
       <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
         <Tr>
           <Th>状态</Th>
@@ -521,7 +536,7 @@ function MenteeRow({
   };
 
   return (
-    <Tr key={u.id} _hover={{ bg: "white" }}>
+    <Tr key={u.id}>
       <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
       <PointOfContactCells user={u} refetch={refetch} />
       <MenteeCells mentee={u} setYear={setYear} setSource={setSource} />
