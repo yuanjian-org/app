@@ -189,7 +189,7 @@ export default fullPage(() => {
               isDemo={isDemo}
               isUserManager={isPermitted(me.roles, "UserManager")}
             />
-            <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
+            <Text fontSize="sm" color="gray" mt={4} mb={4} ml={4}>
               共 <b>{users.length}</b> 名
             </Text>
           </TableContainer>
@@ -352,7 +352,7 @@ function MenteeTable({
   }, [users, sortUser]);
 
   return (
-    <Table size="sm" variant="striped" colorScheme="gray">
+    <Table size="sm" variant="striped" colorScheme="brand">
       <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
         <Tr>
           <Th>状态</Th>
