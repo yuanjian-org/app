@@ -1068,10 +1068,10 @@ const getMediaChecksum = procedure
     const checksum = hmacChecksum(urlToHash);
 
     console.log("getMediaChecksum called:");
-    console.log("  target:   ", target);
-    console.log("  userId:   ", me.id);
-    console.log("  urlToHash:", urlToHash);
-    console.log("  checksum: ", checksum);
+    console.log("  target:   ", `"${target}"`);
+    console.log("  userId:   ", `"${me.id}"`);
+    console.log("  urlToHash:", `"${urlToHash}"`);
+    console.log("  checksum: ", `"${checksum}"`);
 
     return checksum;
   });

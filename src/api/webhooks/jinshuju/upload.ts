@@ -23,9 +23,9 @@ export default async function submit(entry: Record<string, any>) {
   }
 
   const { target, id, opaque } = decodeUploadTokenUrlSafe(token);
-  console.log("Upload target:", target);
-  console.log("Upload id:    ", id);
-  console.log("Upload opaque:", opaque);
+  console.log("Upload target:", `"${target}"`);
+  console.log("Upload id:    ", `"${id}"`);
+  console.log("Upload opaque:", `"${opaque}"`);
 
   if (!target || !id || !opaque) {
     throw generalBadRequestError(`Invalid target, id, or hmac`);
@@ -60,10 +60,10 @@ async function uploadUserProfileMedia(
     const localHmac = hmacChecksum(urlToHash);
 
     console.log("uploadUserProfileMedia verifying HMAC:");
-    console.log("  userId:    ", userId);
-    console.log("  urlToHash: ", urlToHash);
-    console.log("  localHmac: ", localHmac);
-    console.log("  hmac:      ", hmac);
+    console.log("  userId:    ", `"${userId}"`);
+    console.log("  urlToHash: ", `"${urlToHash}"`);
+    console.log("  localHmac: ", `"${localHmac}"`);
+    console.log("  hmac:      ", `"${hmac}"`);
 
     if (hmac !== localHmac) {
       throw generalBadRequestError(

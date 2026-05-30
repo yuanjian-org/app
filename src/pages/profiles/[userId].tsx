@@ -287,10 +287,10 @@ function encodeJinshujuXField(
 ) {
   const token = encodeUploadTokenUrlSafe(target, user.id, hmac);
   console.log("Encoding Jinshuju XField:");
-  console.log("  target:", target);
-  console.log("  userId:", user.id);
-  console.log("  hmac:  ", hmac);
-  console.log("  token: ", token);
+  console.log("  target:   ", `"${target}"`);
+  console.log("  userId:   ", `"${user.id}"`);
+  console.log("  hmac:     ", `"${hmac}"`);
+  console.log("  token:    ", `"${token}"`);
   return encodeXField(whiteLabel, user, token);
 }
 
