@@ -1,6 +1,6 @@
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
-import { shaChecksum } from "../../../shared/strings";
+import { hmacChecksum } from "../../../shared/strings";
 import {
   decodeUploadTokenUrlSafe,
   validateAndDecodeXField,
@@ -28,7 +28,7 @@ export default async function submit(entry: Record<string, any>) {
   console.log("Upload opaque:", opaque);
 
   if (!target || !id || !opaque) {
-    throw generalBadRequestError(`Invalid target, id, or sha`);
+    throw generalBadRequestError(`Invalid target, id, or hmac`);
   }
 
   if (target === "UserProfilePicture") {
@@ -42,7 +42,7 @@ export default async function submit(entry: Record<string, any>) {
 
 async function uploadUserProfileMedia(
   userId: string,
-  sha: string,
+  hmac: string,
   url: string,
   mediaType: "照片" | "视频",
 ) {
@@ -55,11 +55,13 @@ async function uploadUserProfileMedia(
 
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
-    const localSha = shaChecksum(profile);
+    const localHmac = hmacChecksum(
+      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"],
+    );
 
-    if (sha !== localSha) {
+    if (hmac !== localHmac) {
       throw generalBadRequestError(
-        `SHA checksum mismatch: provided "${sha}" vs local "${localSha}". ` +
+        `HMAC checksum mismatch: provided "${hmac}" vs local "${localHmac}". ` +
           `Update conflict?`,
       );
     }
