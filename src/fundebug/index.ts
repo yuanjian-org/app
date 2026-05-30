@@ -16,7 +16,7 @@ if (isFundebugEnabled()) {
 export default fundebug;
 
 export function initFundebug(userId?: string) {
-  if (!isFundebugEnabled()) return;
+  if (!isFundebugEnabled() || !fundebug) return;
   fundebug.init({
     apikey: "724912ab5a0339527a4745dbb8c0192e0e5dfbf82ae6c324a5f31ea8554ae98e",
     releasestage: process.env.NODE_ENV,
@@ -32,7 +32,7 @@ export function reportError(
   error: Error | string,
   metaData?: Record<string, any>,
 ) {
-  if (!isFundebugEnabled()) return;
+  if (!isFundebugEnabled() || !fundebug) return;
   if (typeof error === "string") {
     fundebug.notifyError(new Error(error), { metaData });
   } else {
@@ -46,7 +46,7 @@ export function reportError(
  * @param category - Category of the breadcrumb
  */
 export function addFundebugBreadcrumb(message: string, category?: string) {
-  if (!isFundebugEnabled()) return;
+  if (!isFundebugEnabled() || !fundebug) return;
   fundebug.leaveBreadcrumb({
     message,
     category: category || "user-action",
