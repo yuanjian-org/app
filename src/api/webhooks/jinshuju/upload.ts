@@ -56,7 +56,7 @@ async function uploadUserProfileMedia(
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
     const localHmac = hmacChecksum(
-      profile[(mediaType + "链接") as keyof typeof profile],
+      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"],
     );
 
     if (hmac !== localHmac) {
