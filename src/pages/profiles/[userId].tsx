@@ -276,6 +276,9 @@ function Basic({
   );
 }
 
+/**
+ * hmac is used both for acceess control and as an e-tag to prevent accidental data override
+ */
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
