@@ -7,8 +7,15 @@ if (!process.env.DATABASE_URI) {
   throw new Error("DATABASE_URI is not set.");
 }
 
+const minPoolSize = process.env.DATABASE_MIN_POOL_SIZE
+  ? parseInt(process.env.DATABASE_MIN_POOL_SIZE)
+  : undefined;
+const maxPoolSize = process.env.DATABASE_MAX_POOL_SIZE
+  ? parseInt(process.env.DATABASE_MAX_POOL_SIZE)
+  : undefined;
+
 const sequelize = new Sequelize(process.env.DATABASE_URI, {
-  ...commonSequelizeConfig,
+  ...commonSequelizeConfig(minPoolSize, maxPoolSize),
   models: Object.values(db),
 });
 
