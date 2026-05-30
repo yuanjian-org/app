@@ -17,6 +17,13 @@ export default defineConfig([
   globalIgnores([
     "src/api/database/sequelize-adapter-src",
     "**/next.config.js",
+    ".next/**",
+    "node_modules/**",
+    "dist/**",
+    "cypress.config.ts",
+    "next-env.d.ts",
+    "eslint.config.mjs",
+    "cypress/**/*.js"
   ]),
 
   {
@@ -68,22 +75,15 @@ export default defineConfig([
   },
 
   {
-    files: ["src/**/*.ts", "src/**/*.tsx"],
+    files: ["src/**/*.ts", "src/**/*.tsx", "cypress/**/*.ts", "tools/**/*.ts", "config/**/*.js"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: ["./tsconfig.json"],
+        projectService: {
+          allowDefaultProject: ["*.ts", "*.js", "config/*.js"]
+        },
+        tsconfigRootDir: __dirname,
       },
     },
-  },
-
-  {
-    files: ["cypress/**/*.ts"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ["./cypress/tsconfig.json"],
-      },
-    },
-  },
+  }
 ]);

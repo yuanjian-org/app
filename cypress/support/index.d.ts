@@ -6,9 +6,6 @@ declare namespace Cypress {
      * Log in via email + password UI flow.
      * Defaults to demo admin account.
      */
-    login(
-      email?: string,
-      password?: string,
-    ): Chainable<void>;
+    login(email?: string, password?: string): Chainable<void>;
   }
 }
