@@ -10,7 +10,7 @@ if (!uri) {
 }
 
 const meetingSequelize = new Sequelize(uri, {
-  ...commonSequelizeConfig,
+  ...commonSequelizeConfig(),
   models: [MeetingSlot],
 });
 
