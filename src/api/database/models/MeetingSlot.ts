@@ -1,13 +1,5 @@
-import {
-  AllowNull,
-  Column,
-  Table,
-  Model,
-  Unique,
-  ForeignKey,
-} from "sequelize-typescript";
+import { AllowNull, Column, Table, Model, Unique } from "sequelize-typescript";
 import { STRING, UUID } from "sequelize";
-import Group from "./Group";
 
 @Table
 class MeetingSlot extends Model {
@@ -31,7 +23,6 @@ class MeetingSlot extends Model {
   // TODO: Why didn't migration code add the foreign key constraint to SQL?
   @Unique
   @Column(UUID)
-  @ForeignKey(() => Group)
   groupId: string | null;
 }
 

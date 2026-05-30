@@ -1,4 +1,5 @@
 import sequelize from "../database/sequelize";
+import meetingSequelize from "../database/meetingSequelize";
 import { procedure, router } from "../trpc";
 import { authIntegration } from "../auth";
 
@@ -13,6 +14,7 @@ export default router({
 export async function migrateDatabase() {
   await migrateSchema();
   await sequelize.sync({ alter: { drop: false } });
+  await meetingSequelize.sync({ alter: { drop: false } });
   await migrateData();
 }
 

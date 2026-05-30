@@ -7,13 +7,13 @@ import {
   createRecurringMeeting,
   getMeeting,
 } from "./TencentMeeting";
+import MeetingSlot from "./database/models/MeetingSlot";
 
 describe("TencentMeeting", () => {
   let requestStub: sinon.SinonStub;
 
   beforeEach(() => {
     // Reset env vars before each test
-    process.env.TM_USER_IDS = "user1,user2";
     process.env.TM_SECRET_ID = "test-secret-id";
     process.env.TM_SECRET_KEY = "test-secret-key";
     process.env.TM_ENTERPRISE_ID = "test-enterprise-id";
@@ -28,14 +28,17 @@ describe("TencentMeeting", () => {
   });
 
   describe("getTmUserIds", () => {
-    it("should return parsed user ids from environment variable", () => {
-      const userIds = getTmUserIds();
+    it("should return parsed user ids from MeetingSlot", async () => {
+      sinon
+        .stub(MeetingSlot, "findAll")
+        .resolves([{ tmUserId: "user1" } as any, { tmUserId: "user2" } as any]);
+      const userIds = await getTmUserIds();
       expect(userIds).to.deep.equal(["user1", "user2"]);
     });
 
-    it("should return empty array if no user ids are set", () => {
-      process.env.TM_USER_IDS = "";
-      expect(getTmUserIds()).to.deep.equal([]);
+    it("should return empty array if no MeetingSlots are found", async () => {
+      sinon.stub(MeetingSlot, "findAll").resolves([]);
+      expect(await getTmUserIds()).to.deep.equal([]);
     });
   });
 

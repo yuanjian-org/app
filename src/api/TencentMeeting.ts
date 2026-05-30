@@ -4,11 +4,15 @@ import https from "https";
 import http from "http";
 import z, { TypeOf } from "zod";
 import { internalServerError } from "./errors";
+import MeetingSlot from "./database/models/MeetingSlot";
 
 const LOG_HEADER = "[TecentMeeting]";
 
-export function getTmUserIds(): string[] {
-  return (process.env.TM_USER_IDS || "").split(",").filter(Boolean);
+export async function getTmUserIds(): Promise<string[]> {
+  const slots = await MeetingSlot.findAll({
+    attributes: ["tmUserId"],
+  });
+  return slots.map((s) => s.tmUserId);
 }
 
 const splitFirst = (s: string, separator: string) => {

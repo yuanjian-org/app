@@ -14,8 +14,9 @@
 
 在远图后台：
 
-1. 设置 `.env` 中的 `TM_* ` 参数。其中，`TM_USER_IDS` 是以逗号分隔的腾讯会议主持人ID列表
-2. 调用 `/api/v1/cron.recycleMeetings` 创建相应的腾讯会议。详见 `.github/workflows/weekly.yml`
+1. 设置 `.env` 中的 `TM_* ` 参数。
+2. 在数据库的 `MeetingSlots` 表中添加行，`tmUserId` 为对应的腾讯会议主持人ID。
+3. 调用 `/api/v1/cron.recycleMeetings` 创建相应的腾讯会议。详见 `.github/workflows/weekly.yml`
 
 # 腾讯会议的定期刷新
 
@@ -39,5 +40,5 @@
 按以下步骤添加新的主持人账号，为系统扩容：
 
 1. 在腾讯会议网站购买主持人账号，并赋权给一个新创建的用户
-1. 把此用户ID添加到 `.env` 的 `TM_USER_IDS` 列表
+1. 在数据库的 `MeetingSlots` 表中添加行，`tmUserId` 为对应的主持人ID
 1. 调用服务器 API `/api/v1/cron.recycleMeetings`

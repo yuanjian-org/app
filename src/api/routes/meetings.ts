@@ -10,6 +10,8 @@ import {
 import sleep from "../../shared/sleep";
 import { notFoundError } from "api/errors";
 import sequelize from "api/database/sequelize";
+import meetingSequelize from "api/database/meetingSequelize";
+import MeetingSlot from "api/database/models/MeetingSlot";
 import { checkPermissionForGroup } from "./groups";
 import {
   groupAttributes,
@@ -53,66 +55,68 @@ const join = procedure
     // simultaneously: https://stackoverflow.com/a/48297781
     // If the group is already present in MeetingSlot, return the meeting link.
     return await sequelize.transaction(async (transaction) => {
-      // Find an existing slot for the group. TencentMeeting's status is
-      // ignored.
-      // It means that even if the meeting is ended, it will still be reused for
-      // the group.
-      const existing = await db.MeetingSlot.findOne({
-        where: { groupId },
-        lock: true,
-        transaction,
-      });
-      if (existing) return existing.meetingLink;
-
-      // No matching slot found. Find a free slot.
-      let refreshed = false;
-      while (true) {
-        const free = await db.MeetingSlot.findOne({
-          where: { groupId: null },
-          // To ease troubleshooting, always pick the smallest available
-          // tmUserId.
-          order: [["tmUserId", "ASC"]],
-          attributes: ["id", "meetingId", "meetingLink"],
+      return await meetingSequelize.transaction(async (meetingTransaction) => {
+        // Find an existing slot for the group. TencentMeeting's status is
+        // ignored.
+        // It means that even if the meeting is ended, it will still be reused for
+        // the group.
+        const existing = await MeetingSlot.findOne({
+          where: { groupId },
           lock: true,
-          transaction,
+          transaction: meetingTransaction,
         });
+        if (existing) return existing.meetingLink;
 
-        if (free) {
-          await free.update({ groupId }, { transaction });
-          await db.MeetingHistory.create(
-            {
-              meetingId: free.meetingId,
-              groupId,
-            },
-            { transaction },
-          );
-          return free.meetingLink;
-        } else {
-          if (!refreshed) {
-            // No slots available. Refresh them and try again.
-            await refreshMeetingSlots(transaction);
-            refreshed = true;
-            continue;
-          } else {
-            const slots = await db.MeetingSlot.findAll({
-              attributes: ["groupId"],
-              transaction,
-            });
-            const baseUrl = getBaseUrl();
-            const content =
-              `试图发起会议的分组：${baseUrl}/groups/${groupId}。
-            会议进行中的分组：` +
-              slots.map((s) => `${baseUrl}/groups/${s.groupId}`).join("、");
+        // No matching slot found. Find a free slot.
+        let refreshed = false;
+        while (true) {
+          const free = await MeetingSlot.findOne({
+            where: { groupId: null },
+            // To ease troubleshooting, always pick the smallest available
+            // tmUserId.
+            order: [["tmUserId", "ASC"]],
+            attributes: ["id", "meetingId", "meetingLink"],
+            lock: true,
+            transaction: meetingTransaction,
+          });
 
-            notifyRolesIgnoreError(
-              ["SystemAlertSubscriber"],
-              "超过并发会议上限",
-              content,
+          if (free) {
+            await free.update({ groupId }, { transaction: meetingTransaction });
+            await db.MeetingHistory.create(
+              {
+                meetingId: free.meetingId,
+                groupId,
+              },
+              { transaction },
             );
-            return null;
+            return free.meetingLink;
+          } else {
+            if (!refreshed) {
+              // No slots available. Refresh them and try again.
+              await refreshMeetingSlots(transaction, meetingTransaction);
+              refreshed = true;
+              continue;
+            } else {
+              const slots = await MeetingSlot.findAll({
+                attributes: ["groupId"],
+                transaction: meetingTransaction,
+              });
+              const baseUrl = getBaseUrl();
+              const content =
+                `试图发起会议的分组：${baseUrl}/groups/${groupId}。
+              会议进行中的分组：` +
+                slots.map((s) => `${baseUrl}/groups/${s.groupId}`).join("、");
+
+              notifyRolesIgnoreError(
+                ["SystemAlertSubscriber"],
+                "超过并发会议上限",
+                content,
+              );
+              return null;
+            }
           }
         }
-      }
+      });
     });
   });
 
@@ -136,12 +140,15 @@ export default router({
   decline,
 });
 
-export async function refreshMeetingSlots(transaction: Transaction) {
-  const slots = await db.MeetingSlot.findAll({
+export async function refreshMeetingSlots(
+  transaction: Transaction,
+  meetingTransaction: Transaction,
+) {
+  const slots = await MeetingSlot.findAll({
     where: { groupId: { [Op.ne]: null } },
     attributes: ["id", "tmUserId", "meetingId", "updatedAt", "groupId"],
     lock: true,
-    transaction,
+    transaction: meetingTransaction,
   });
   for (const slot of slots) {
     /**
@@ -187,7 +194,7 @@ export async function refreshMeetingSlots(transaction: Transaction) {
     );
 
     await histories[0].update({ endedBefore: new Date() }, { transaction });
-    await slot.update({ groupId: null }, { transaction });
+    await slot.update({ groupId: null }, { transaction: meetingTransaction });
   }
 }
 
@@ -199,7 +206,9 @@ export async function syncMeetings() {
    * that have ended.
    */
   await sequelize.transaction(async (transaction) => {
-    await refreshMeetingSlots(transaction);
+    await meetingSequelize.transaction(async (meetingTransaction) => {
+      await refreshMeetingSlots(transaction, meetingTransaction);
+    });
   });
 
   await downloadSummaries();
@@ -223,17 +232,17 @@ export async function syncMeetings() {
  * low.
  */
 export async function recycleMeetings() {
-  for (const tmUserId of getTmUserIds()) {
-    await sequelize.transaction(async (transaction) => {
-      const slot = await db.MeetingSlot.findOne({
+  for (const tmUserId of await getTmUserIds()) {
+    await meetingSequelize.transaction(async (meetingTransaction) => {
+      const slot = await MeetingSlot.findOne({
         where: { tmUserId },
         attributes: ["id", "groupId"],
         lock: true,
-        transaction,
+        transaction: meetingTransaction,
       });
 
-      // Skip ongoing meetings.
-      if (slot && slot.groupId) return;
+      // Skip ongoing meetings or slots that don't exist
+      if (!slot || slot.groupId) return;
 
       try {
         const { meetingId, meetingLink } = await create(tmUserId);
@@ -242,24 +251,13 @@ export async function recycleMeetings() {
             `${meetingId}, ${meetingLink}`,
         );
 
-        if (slot) {
-          await slot.update(
-            {
-              meetingId,
-              meetingLink,
-            },
-            { transaction },
-          );
-        } else {
-          await db.MeetingSlot.create(
-            {
-              tmUserId,
-              meetingId,
-              meetingLink,
-            },
-            { transaction },
-          );
-        }
+        await slot.update(
+          {
+            meetingId,
+            meetingLink,
+          },
+          { transaction: meetingTransaction },
+        );
       } catch (e) {
         console.error(`(Expected) meeting creation failure for user ${tmUserId}:
           ${e}`);

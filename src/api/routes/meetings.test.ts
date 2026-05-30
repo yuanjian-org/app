@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import sequelize from "../database/sequelize";
+import meetingSequelize from "../database/meetingSequelize";
 import * as notifyModule from "../notify";
 import * as tencentMeetingModule from "../TencentMeeting";
 import sinon from "sinon";
@@ -8,14 +9,24 @@ import { recycleMeetings } from "./meetings";
 
 describe("recycleMeetings", () => {
   let transaction: Transaction;
+  let meetingTransaction: Transaction;
   let notifyStub: sinon.SinonStub;
   let createMeetingStub: sinon.SinonStub;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
+    meetingTransaction = await meetingSequelize.transaction();
+
+    sinon.stub(sequelize, "transaction").callsFake(async (cb) => {
+      return await cb(transaction);
+    });
+
+    sinon.stub(meetingSequelize, "transaction").callsFake(async (cb) => {
+      return await cb(meetingTransaction);
+    });
 
     notifyStub = sinon.stub(notifyModule, "notifyRolesIgnoreError");
-    sinon.stub(tencentMeetingModule, "getTmUserIds").returns(["test-user-id"]);
+    sinon.stub(tencentMeetingModule, "getTmUserIds").resolves(["test-user-id"]);
     createMeetingStub = sinon.stub(
       tencentMeetingModule,
       "createRecurringMeeting",
@@ -23,13 +34,22 @@ describe("recycleMeetings", () => {
   });
 
   afterEach(async () => {
+    sinon.restore();
+    if (meetingTransaction) {
+      await meetingTransaction.rollback();
+    }
     if (transaction) {
       await transaction.rollback();
     }
-    sinon.restore();
   });
 
   it("should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error", async () => {
+    // Stub findOne to return a valid slot without a group, so it proceeds to create()
+    const mockSlot = { groupId: null, update: sinon.stub().resolves() };
+    sinon
+      .stub(meetingSequelize.models.MeetingSlot, "findOne")
+      .resolves(mockSlot as any);
+
     const errorMsg = "some generic error";
     createMeetingStub.rejects(new Error(errorMsg));
 
@@ -44,6 +64,12 @@ describe("recycleMeetings", () => {
   });
 
   it("should not call notifyRolesIgnoreError when the error includes '每月总接口调用次数超过限制'", async () => {
+    // Stub findOne to return a valid slot without a group, so it proceeds to create()
+    const mockSlot = { groupId: null, update: sinon.stub().resolves() };
+    sinon
+      .stub(meetingSequelize.models.MeetingSlot, "findOne")
+      .resolves(mockSlot as any);
+
     const errorMsg = "腾讯会议后台错误：每月总接口调用次数超过限制";
     createMeetingStub.rejects(new Error(errorMsg));
 
