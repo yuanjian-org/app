@@ -75,12 +75,12 @@ export default defineConfig([
   },
 
   {
-    files: ["src/**/*.ts", "src/**/*.tsx", "cypress/**/*.ts", "tools/**/*.ts", "config/**/*.js"],
+    files: ["src/**/*.ts", "src/**/*.tsx", "cypress/**/*.ts", "tools/**/*.ts"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.ts", "*.js", "config/*.js"]
+          allowDefaultProject: ["*.ts", "*.js"]
         },
         tsconfigRootDir: __dirname,
       },
