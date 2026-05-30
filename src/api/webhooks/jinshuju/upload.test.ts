@@ -12,8 +12,12 @@ import { v4 as uuidv4 } from "uuid";
 
 describe("upload webhook", () => {
   let transaction: Transaction;
+  let originalSecret: string | undefined;
 
   beforeEach(async () => {
+    originalSecret = process.env.NEXTAUTH_SECRET;
+    process.env.NEXTAUTH_SECRET = "test-secret";
+
     transaction = await sequelize.transaction();
     sinon.stub(sequelize, "transaction").callsFake((cb) => {
       // @ts-ignore
@@ -22,6 +26,7 @@ describe("upload webhook", () => {
   });
 
   afterEach(async () => {
+    process.env.NEXTAUTH_SECRET = originalSecret;
     sinon.restore();
     await transaction.rollback();
   });

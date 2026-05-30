@@ -27,14 +27,13 @@ import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
-import { parseQueryString, shaChecksum } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
 import { WhiteLabel } from "shared/WhiteLabel";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
 import { displayName, isPermitted } from "shared/Role";
-import { encodeUploadTokenUrlSafe, UploadTarget } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -276,24 +275,13 @@ function Basic({
   );
 }
 
-/**
- * We use the checksum not only as a security measure but also an e-tag to
- * prevent concurrent writes.
- *
- * TODO: It's a weak security measure because anyone who has access to the
- * mentor's profile can compute the hash. Use a stronger method.
- */
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
-  urlToHash: string | undefined,
-  target: UploadTarget,
+  uploadToken: string | undefined,
 ) {
-  return encodeXField(
-    whiteLabel,
-    user,
-    encodeUploadTokenUrlSafe(target, user.id, shaChecksum(urlToHash)),
-  );
+  if (!uploadToken) return "";
+  return encodeXField(whiteLabel, user, uploadToken);
 }
 
 function Picture({
@@ -311,15 +299,15 @@ function Picture({
   const myRoles = useMyRoles();
   const whiteLabel = useWhiteLabel();
 
+  const { data: pictureUploadToken } = trpcNext.users.getUploadToken.useQuery({
+    userId: user.id,
+    target: "UserProfilePicture",
+    urlToHash: profile.照片链接,
+  });
+
   const uploadToken = useMemo(
-    () =>
-      encodeJinshujuXField(
-        whiteLabel,
-        user,
-        profile.照片链接,
-        "UserProfilePicture",
-      ),
-    [whiteLabel, user, profile.照片链接],
+    () => encodeJinshujuXField(whiteLabel, user, pictureUploadToken),
+    [whiteLabel, user, pictureUploadToken],
   );
 
   return (
@@ -380,15 +368,15 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
   const whiteLabel = useWhiteLabel();
 
+  const { data: videoUploadToken } = trpcNext.users.getUploadToken.useQuery({
+    userId: user.id,
+    target: "UserProfileVideo",
+    urlToHash: profile.视频链接,
+  });
+
   const uploadToken = useMemo(
-    () =>
-      encodeJinshujuXField(
-        whiteLabel,
-        user,
-        profile.视频链接,
-        "UserProfileVideo",
-      ),
-    [whiteLabel, user, profile.视频链接],
+    () => encodeJinshujuXField(whiteLabel, user, videoUploadToken),
+    [whiteLabel, user, videoUploadToken],
   );
 
   return (

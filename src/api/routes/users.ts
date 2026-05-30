@@ -45,6 +45,8 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
+import { encodeUploadTokenUrlSafe } from "../../shared/jinshuju";
+import { shaChecksum } from "../../shared/strings";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
@@ -1026,6 +1028,19 @@ const destroy = procedure
     invalidateUserCache(input.id);
   });
 
+const getUploadToken = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      userId: z.string(),
+      target: z.enum(["UserProfilePicture", "UserProfileVideo"]),
+      urlToHash: z.string().optional(),
+    }),
+  )
+  .query(({ input: { userId, target, urlToHash } }) => {
+    return encodeUploadTokenUrlSafe(target, userId, shaChecksum(urlToHash));
+  });
+
 export default router({
   create,
   get,
@@ -1046,6 +1061,7 @@ export default router({
 
   getUserProfile,
   setUserProfile,
+  getUploadToken,
 
   getUserState,
   setMyState,
