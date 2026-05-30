@@ -2,6 +2,9 @@
 
 需要购买商业版账号，方可使用远图所需的 API 功能。
 
+付费的“高级账号”数量决定了最大并发会议数量。
+详情请参阅 https://meeting.tencent.com/v2/buy/meeting。
+
 # 腾讯会议的初始设置
 
 在腾讯企业管理员界面的 “企业管理 > 账户管理 > 账户设置 > [组织名称] > 录制设置" 页面中：
@@ -15,8 +18,8 @@
 在远图后台：
 
 1. 设置 `.env` 中的 `TM_* ` 参数。
-2. 在数据库的 `MeetingSlots` 表中添加行，`tmUserId` 为对应的腾讯会议主持人ID。
-3. 调用 `/api/v1/cron.recycleMeetings` 创建相应的腾讯会议。详见 `.github/workflows/weekly.yml`
+1. 在数据库的 `MeetingSlots` 表中添加行，`tmUserId` 列填写腾讯会议高级账号用户ID。
+1. 调用 `/api/v1/cron.recycleMeetings` 创建相应的腾讯会议。详见 `.github/workflows/weekly.yml`
 
 # 腾讯会议的定期刷新
 
