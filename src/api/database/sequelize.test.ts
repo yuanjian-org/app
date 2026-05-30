@@ -1,3 +1,4 @@
+import meetingSequelize from "./meetingSequelize";
 import sequelize from "./sequelize";
 
 /**
@@ -5,4 +6,5 @@ import sequelize from "./sequelize";
  */
 after(async () => {
   await sequelize.close();
+  await meetingSequelize.close();
 });
