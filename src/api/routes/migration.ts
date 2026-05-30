@@ -31,6 +31,16 @@ async function migrateSchema() {
     $$;
   `);
 
+  await meetingSequelize.query(`
+    DO $$
+    BEGIN
+      IF to_regclass('public."MeetingSlots"') IS NOT NULL THEN
+        ALTER TABLE "MeetingSlots" ADD COLUMN IF NOT EXISTS "whiteLabel" VARCHAR(255);
+      END IF;
+    END
+    $$;
+  `);
+
   await Promise.resolve();
 }
 
