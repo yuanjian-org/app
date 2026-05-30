@@ -352,7 +352,15 @@ function MenteeTable({
   }, [users, sortUser]);
 
   return (
-    <Table size="sm" variant="striped" colorScheme="brand">
+    <Table
+      size="sm"
+      // Customize color for table stripe.
+      sx={{
+        "tbody tr:nth-of-type(odd) td": {
+          bg: "#fafafa",
+        },
+      }}
+    >
       <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
         <Tr>
           <Th>状态</Th>
