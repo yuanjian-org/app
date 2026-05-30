@@ -24,6 +24,9 @@ class MeetingSlot extends Model {
   @Unique
   @Column(UUID)
   groupId: string | null;
+
+  @Column(STRING)
+  whiteLabel: string | null;
 }
 
 export default MeetingSlot;
