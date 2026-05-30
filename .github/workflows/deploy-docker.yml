@@ -89,18 +89,6 @@ jobs:
     - name: Log in to Docker
       run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
 
-    - name: Create .env file
-      run: echo "APP_DOCKER_IMAGE=${{ vars.REMOTE_APP_DOCKER_IMAGE }}" > .env
-
-    - name: Create .env.demo file
-      run: cp .env .env.demo
-
-    - name: Create .env.ustc file
-      run: cp .env .env.ustc
-
-    - name: Create .env.xhef file
-      run: cp .env .env.xhef
-
     # Build and push the Docker image.
     # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
     # Docker compile time by caching layers directly in the GHA cache backend.
