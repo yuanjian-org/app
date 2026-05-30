@@ -1,3 +1,5 @@
+import { hasSummary, saveSummaryIfNotExist } from "./saveSummary";
+
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
 import { z } from "zod";
@@ -217,14 +219,14 @@ export async function downloadSummaries() {
   );
 }
 
-async function downloadUrl(url: string) {
+export async function downloadUrl(url: string) {
   return (await axios.get(url)).data;
 }
 
 /**
  * @returns null if the summary is empty.
  */
-function formatAiMinutesSummary(
+export function formatAiMinutesSummary(
   summary: string,
   speakerStats: SpeakerStats,
 ): string | null {
@@ -234,63 +236,13 @@ function formatAiMinutesSummary(
     : formatSpeakerStats(speakerStats) + minutes;
 }
 
-async function saveSummaryIfNotExist(desc: SummaryDescriptor, summary: string) {
-  console.log(`Save transcript ${desc.transcriptId} key ${desc.key}`);
-  await sequelize.transaction(async (transaction) => {
-    await saveSummaryIfNotExistImpl(
-      desc.transcriptId,
-      desc.groupId,
-      desc.startedAt,
-      desc.endedAt,
-      desc.key,
-      summary,
-      transaction,
-    );
-  });
-}
-
-export async function saveSummaryIfNotExistImpl(
-  transcriptId: string,
-  groupId: string,
-  startedAt: number,
-  endedAt: number,
-  key: string,
-  markdown: string,
-  transaction: Transaction,
-) {
-  if (await hasSummary(transcriptId, key, transaction)) return;
-
-  await db.Transcript.upsert(
-    {
-      id: transcriptId,
-      groupId,
-      startedAt,
-      endedAt,
-    },
-    { transaction },
-  );
-
-  // Do NOT use `upsert` because user may have edited the summary after it is
-  // first created.
-  await db.Summary.create(
-    {
-      transcriptId,
-      key,
-      markdown,
-      initialLength: markdown.length,
-      deletedLength: 0,
-    },
-    { transaction },
-  );
-}
-
 /**
  * Returns summaries that 1) were created in the last 31 days (max query
  * range allowed by Tencent), and 2) don't exist locally.
  *
  * Note: URLs returned from Tencent API are valid only for a short period of time.
  */
-async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
+export async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   console.log("findMissingSummaries()...");
   const descs: SummaryDescriptor[] = [];
   for (const tmUserId of await getTmUserIds()) {
@@ -299,7 +251,7 @@ async function findMissingSummaries(): Promise<SummaryDescriptor[]> {
   return descs;
 }
 
-async function findMissingSummariesforTmUser(
+export async function findMissingSummariesforTmUser(
   tmUserId: string,
   descs: SummaryDescriptor[],
 ) {
@@ -312,7 +264,7 @@ async function findMissingSummariesforTmUser(
   );
 }
 
-async function processRecord(
+export async function processRecord(
   record: MeetingRecord,
   tmUserId: string,
   descs: SummaryDescriptor[],
@@ -456,24 +408,6 @@ async function processRecord(
       }),
     ),
   );
-}
-
-async function hasSummary(
-  transcriptId: string,
-  key: string,
-  transaction?: Transaction,
-) {
-  const ret =
-    (await db.Summary.count({
-      where: { transcriptId, key },
-      transaction,
-    })) > 0;
-  if (ret) {
-    console.log(
-      `Ignoring existing ${key} summary for transcript` + ` "${transcriptId}"`,
-    );
-  }
-  return ret;
 }
 
 function formatSpeakerStats(stats: SpeakerStats): string {

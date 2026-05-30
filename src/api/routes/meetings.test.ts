@@ -5,7 +5,7 @@ import meetingSequelize from "../database/meetingSequelize";
 import * as notifyModule from "../notify";
 import * as tencentMeetingModule from "../TencentMeeting";
 import sinon from "sinon";
-import { recycleMeetings } from "./meetings";
+import { recycleMeetings, refreshMeetingSlots } from "./meetings";
 
 describe("recycleMeetings", () => {
   let transaction: Transaction;
@@ -76,5 +76,123 @@ describe("recycleMeetings", () => {
     await recycleMeetings();
 
     void expect(notifyStub.called).to.be.false;
+  });
+});
+
+import db from "../database/db";
+
+describe("refreshMeetingSlots", () => {
+  let transaction: Transaction;
+  let meetingTransaction: Transaction;
+  let getMeetingStub: sinon.SinonStub;
+  let clock: sinon.SinonFakeTimers;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    meetingTransaction = await meetingSequelize.transaction();
+
+    getMeetingStub = sinon.stub(tencentMeetingModule, "getMeeting");
+    clock = sinon.useFakeTimers(new Date().getTime());
+  });
+
+  afterEach(async () => {
+    clock.restore();
+    sinon.restore();
+    await meetingTransaction.rollback();
+    await transaction.rollback();
+  });
+
+  it("should ignore meetings created within the grace period", async () => {
+    const groupId = "00000000-0000-0000-0000-000000000001";
+    await meetingSequelize.models.MeetingSlot.create(
+      {
+        tmUserId: "test-user-id",
+        meetingId: "meeting-1",
+        meetingLink: "link",
+        groupId,
+        whiteLabel: "yuantu",
+      },
+      { transaction: meetingTransaction },
+    );
+    // updatedAt will be now, so it falls in the grace period
+
+    await refreshMeetingSlots(transaction, meetingTransaction);
+
+    void expect(getMeetingStub.called).to.be.false;
+  });
+
+  it("should ignore ongoing meetings", async () => {
+    const groupId = "00000000-0000-0000-0000-000000000001";
+
+    const slot = await meetingSequelize.models.MeetingSlot.create(
+      {
+        tmUserId: "test-user-id",
+        meetingId: "meeting-2",
+        meetingLink: "link",
+        groupId,
+        whiteLabel: "yuantu",
+      },
+      { transaction: meetingTransaction },
+    );
+
+    // Bypass grace period
+    clock.tick(10 * 60 * 1000);
+
+    getMeetingStub.resolves({ status: "MEETING_STATE_STARTED" });
+
+    await refreshMeetingSlots(transaction, meetingTransaction);
+
+    void expect(getMeetingStub.called).to.be.true;
+    const updatedSlot = await meetingSequelize.models.MeetingSlot.findByPk(
+      slot.dataValues.id,
+      { transaction: meetingTransaction },
+    );
+    expect(updatedSlot?.dataValues.groupId).to.equal(groupId);
+  });
+
+  it("should end meetings that are not ongoing", async () => {
+    const groupId = "00000000-0000-0000-0000-000000000001";
+    const meetingId = "meeting-3";
+
+    const slot = await meetingSequelize.models.MeetingSlot.create(
+      {
+        tmUserId: "test-user-id",
+        meetingId,
+        meetingLink: "link",
+        groupId,
+        whiteLabel: "yuantu",
+      },
+      { transaction: meetingTransaction },
+    );
+
+    // Bypass grace period
+    clock.tick(10 * 60 * 1000);
+
+    await db.MeetingHistory.create(
+      {
+        meetingId,
+        groupId,
+        endedBefore: null,
+      },
+      { transaction },
+    );
+
+    getMeetingStub.resolves({ status: "MEETING_STATE_ENDED" });
+
+    await refreshMeetingSlots(transaction, meetingTransaction);
+
+    void expect(getMeetingStub.called).to.be.true;
+
+    const history = await db.MeetingHistory.findOne({
+      where: { meetingId },
+      transaction,
+    });
+    void expect(history?.endedBefore).to.not.be.null;
+
+    const updatedSlot = await meetingSequelize.models.MeetingSlot.findByPk(
+      slot.dataValues.id,
+      { transaction: meetingTransaction },
+    );
+    void expect(updatedSlot?.dataValues.groupId).to.be.null;
   });
 });
