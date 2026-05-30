@@ -1,13 +1,16 @@
+import * as tencentMeetingModule from "../TencentMeeting";
+import * as summariesModule from "./summaries";
+import axios from "axios";
+import sinon from "sinon";
+import { saveSummaryIfNotExistImpl } from "./saveSummary";
+import * as saveSummaryModule from "./saveSummary";
+
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import {
-  listImpl,
-  updateImpl,
-  saveSummaryIfNotExistImpl,
-  AI_MINUTES_SUMMARY_KEY,
-} from "./summaries";
+import { listImpl, updateImpl, AI_MINUTES_SUMMARY_KEY } from "./summaries";
+
 import User from "../../shared/User";
 
 describe("summaries", () => {
@@ -244,5 +247,157 @@ describe("summaries", () => {
       });
       expect(updatedSummary?.markdown).to.equal(newMarkdown);
     });
+  });
+});
+
+describe("downloadSummaries functions", () => {
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    sinon.restore();
+    await transaction.rollback();
+  });
+
+  it("findMissingSummariesforTmUser should filter ready records and map to descriptors", async () => {
+    const listRecordsStub = sinon.stub(tencentMeetingModule, "listRecords");
+    listRecordsStub.resolves([
+      {
+        meeting_id: "m1",
+        meeting_record_id: "mr1",
+        state: 3,
+        record_files: [
+          {
+            record_file_id: "f1",
+            record_start_time: Date.now() - 1000 * 60,
+            record_end_time: Date.now(),
+          },
+        ],
+      } as any, // ready
+      {
+        meeting_id: "m2",
+        meeting_record_id: "mr2",
+        state: 2,
+        record_files: [],
+      } as any, // not ready
+    ]);
+
+    const group = await db.Group.create(
+      { name: "Test Group", public: true },
+      { transaction },
+    );
+
+    sinon
+      .stub(db.MeetingHistory, "findOne")
+      .resolves({ groupId: group.id } as any);
+    sinon.stub(tencentMeetingModule, "getSpeakerStats").resolves([]);
+    sinon.stub(tencentMeetingModule, "getKey2FileAddresses").resolves({
+      ai_minutes: [
+        { file_type: "txt", download_address: "http://example.com/txt" },
+      ],
+    } as any);
+
+    sinon
+      .stub(axios, "get")
+      .resolves({ data: "会议摘要\n\nSome important points." });
+    sinon
+      .stub(saveSummaryModule, "saveSummaryIfNotExist")
+      .callsFake((desc: any) => {
+        descs.push(desc);
+      });
+    sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
+
+    const descs: any[] = [];
+    await summariesModule.findMissingSummariesforTmUser("tm-user", descs);
+
+    void expect(listRecordsStub.calledWith("tm-user")).to.be.true;
+    expect(descs.length).to.be.greaterThan(0);
+    expect(descs[0].transcriptId).to.equal("f1");
+    expect(descs[0].groupId).to.equal(group.id);
+  });
+
+  it("processRecord should generate summary descriptors correctly", async () => {
+    const meetingId = "m-process-1";
+    const group = await db.Group.create(
+      { name: "Test Group 2", public: true },
+      { transaction },
+    );
+    const groupId = group.id;
+    const tmUserId = "tm-user-1";
+    const transcriptId = "file-1";
+
+    const record = {
+      meeting_id: meetingId,
+      meeting_record_id: "mr-1",
+      state: 3,
+      record_files: [
+        {
+          record_file_id: transcriptId,
+          record_start_time: Date.now() - 1000 * 60 * 60, // 1 hour ago
+          record_end_time: Date.now(),
+        },
+      ],
+    };
+
+    sinon
+      .stub(tencentMeetingModule, "getSpeakerStats")
+      .resolves([{ speakerName: "Speaker 1", totalTime: 10 }] as any);
+
+    sinon.stub(tencentMeetingModule, "getKey2FileAddresses").resolves({
+      ai_minutes: [
+        { file_type: "txt", download_address: "http://example.com/txt" },
+      ],
+    } as any);
+
+    sinon
+      .stub(axios, "get")
+      .resolves({ data: "会议摘要\n\nSome important points." });
+
+    const descs: any[] = [];
+
+    const findOneStub = sinon
+      .stub(db.MeetingHistory, "findOne")
+      .resolves({ groupId } as any);
+
+    sinon
+      .stub(saveSummaryModule, "saveSummaryIfNotExist")
+      .callsFake((desc: any) => {
+        descs.push(desc);
+      });
+    sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
+
+    await summariesModule.processRecord(record as any, tmUserId, descs);
+
+    void expect(findOneStub.called).to.be.true;
+
+    expect(descs.length).to.be.greaterThan(0);
+    expect(descs[0].transcriptId).to.equal(transcriptId);
+    expect(descs[0].groupId).to.equal(groupId);
+  });
+
+  it("downloadUrl should return data", async () => {
+    const axiosGetStub = sinon
+      .stub(axios, "get")
+      .resolves({ data: "summary content" });
+    const content = await summariesModule.downloadUrl("http://example.com");
+    void expect(axiosGetStub.calledWith("http://example.com")).to.be.true;
+    expect(content).to.equal("summary content");
+  });
+
+  it("formatAiMinutesSummary should return null if summary is empty", () => {
+    void expect(summariesModule.formatAiMinutesSummary("", [])).to.be.null;
+  });
+
+  it("formatAiMinutesSummary should format correctly", () => {
+    const summary = "会议摘要\n\nSome important points.";
+    const res = summariesModule.formatAiMinutesSummary(summary, [
+      { speakerName: "Speaker 1", totalTime: 10 } as any,
+    ]);
+    void expect(res).to.not.be.null;
+    expect(res).to.include("Some important points.");
+    expect(res).to.include("Speaker 1");
   });
 });
