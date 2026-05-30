@@ -138,7 +138,7 @@
     "testdouble": "^3.20.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1"
+    "typescript-eslint": "^8.60.0"
   },
   "resolutions": {
     "//": "brace-expansion (Zero-step sequence causes process hang), picomatch (ReDoS vulnerability)",
