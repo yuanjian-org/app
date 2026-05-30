@@ -27,7 +27,7 @@ import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
-import { parseQueryString, shaChecksum } from "shared/strings";
+import { parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
 import { WhiteLabel } from "shared/WhiteLabel";
 import User, { getUserUrl, MinUser } from "shared/User";
@@ -277,22 +277,18 @@ function Basic({
 }
 
 /**
- * We use the checksum not only as a security measure but also an e-tag to
- * prevent concurrent writes.
- *
- * TODO: It's a weak security measure because anyone who has access to the
- * mentor's profile can compute the hash. Use a stronger method.
+ * hmac is used both for acceess control and as an e-tag to prevent accidental data override
  */
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
-  profile: UserProfile,
+  hmac: string,
   target: UploadTarget,
 ) {
   return encodeXField(
     whiteLabel,
     user,
-    encodeUploadTokenUrlSafe(target, user.id, shaChecksum(profile)),
+    encodeUploadTokenUrlSafe(target, user.id, hmac),
   );
 }
 
@@ -311,9 +307,25 @@ function Picture({
   const myRoles = useMyRoles();
   const whiteLabel = useWhiteLabel();
 
+  // Only query the checksum if this profile is for the current user (you can't upload for others)
+  const isMe = useMyId() === user.id;
+
+  const { data: pictureHmac } = trpcNext.users.getMediaChecksum.useQuery(
+    { target: "UserProfilePicture" },
+    { enabled: isMe },
+  );
+
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfilePicture"),
-    [whiteLabel, user, profile],
+    () =>
+      pictureHmac
+        ? encodeJinshujuXField(
+            whiteLabel,
+            user,
+            pictureHmac,
+            "UserProfilePicture",
+          )
+        : undefined,
+    [whiteLabel, user, pictureHmac],
   );
 
   return (
@@ -329,19 +341,21 @@ function Picture({
           />
         )}
 
-        <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
-          {profile.照片链接 ? (
-            <HStack>
-              <MdChangeCircle />
-              <Text>更换照片</Text>
-            </HStack>
-          ) : (
-            <HStack>
-              <MdCloudUpload />
-              <Text>上传照片</Text>
-            </HStack>
-          )}
-        </Link>
+        {uploadToken && (
+          <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
+            {profile.照片链接 ? (
+              <HStack>
+                <MdChangeCircle />
+                <Text>更换照片</Text>
+              </HStack>
+            ) : (
+              <HStack>
+                <MdCloudUpload />
+                <Text>上传照片</Text>
+              </HStack>
+            )}
+          </Link>
+        )}
 
         <FormHelperTextWithMargin>
           建议选择面部清晰、不戴墨镜的近照
@@ -374,9 +388,19 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
   const whiteLabel = useWhiteLabel();
 
+  const isMe = useMyId() === user.id;
+
+  const { data: videoHmac } = trpcNext.users.getMediaChecksum.useQuery(
+    { target: "UserProfileVideo" },
+    { enabled: isMe },
+  );
+
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, profile, "UserProfileVideo"),
-    [whiteLabel, user, profile],
+    () =>
+      videoHmac
+        ? encodeJinshujuXField(whiteLabel, user, videoHmac, "UserProfileVideo")
+        : undefined,
+    [whiteLabel, user, videoHmac],
   );
 
   return (
@@ -394,19 +418,21 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
         />
       )}
 
-      <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
-        {profile.视频链接 ? (
-          <HStack>
-            <MdChangeCircle />
-            <Text>更换视频</Text>
-          </HStack>
-        ) : (
-          <HStack>
-            <MdCloudUpload />
-            <Text>上传视频</Text>
-          </HStack>
-        )}
-      </Link>
+      {uploadToken && (
+        <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
+          {profile.视频链接 ? (
+            <HStack>
+              <MdChangeCircle />
+              <Text>更换视频</Text>
+            </HStack>
+          ) : (
+            <HStack>
+              <MdCloudUpload />
+              <Text>上传视频</Text>
+            </HStack>
+          )}
+        </Link>
+      )}
     </>
   );
 }
