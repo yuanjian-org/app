@@ -7,17 +7,13 @@ import { getWhiteLabel } from "../../getWhiteLabel";
 import submit from "./upload";
 import { TRPCError } from "@trpc/server";
 import { encodeUploadTokenUrlSafe } from "../../../shared/jinshuju";
-import { hmacChecksum } from "../../../shared/strings";
+import { shaChecksum } from "../../../shared/strings";
 import { v4 as uuidv4 } from "uuid";
 
 describe("upload webhook", () => {
   let transaction: Transaction;
-  let originalSecret: string | undefined;
 
   beforeEach(async () => {
-    originalSecret = process.env.NEXTAUTH_SECRET;
-    process.env.NEXTAUTH_SECRET = "test-secret";
-
     transaction = await sequelize.transaction();
     sinon.stub(sequelize, "transaction").callsFake((cb) => {
       // @ts-ignore
@@ -26,7 +22,6 @@ describe("upload webhook", () => {
   });
 
   afterEach(async () => {
-    process.env.NEXTAUTH_SECRET = originalSecret;
     sinon.restore();
     await transaction.rollback();
   });
@@ -140,7 +135,7 @@ describe("upload webhook", () => {
     const token = encodeUploadTokenUrlSafe(
       "UserProfilePicture",
       user.id,
-      "wrong-hmac",
+      "wrong-sha",
     );
     const entry = {
       field_1: ["url1"],
@@ -156,7 +151,7 @@ describe("upload webhook", () => {
 
     expect(error).to.be.instanceOf(TRPCError);
     expect(error.code).to.equal("BAD_REQUEST");
-    expect(error.message).to.include("HMAC checksum mismatch");
+    expect(error.message).to.include("SHA checksum mismatch");
   });
 
   it("should successfully update user profile picture", async () => {
@@ -168,12 +163,12 @@ describe("upload webhook", () => {
       { transaction },
     );
 
-    // We get the actual local profile and hmac from DB because create stringify might change it.
+    // We get the actual local profile and sha from DB because create stringify might change it.
     const createdUser = await db.User.findByPk(user.id, { transaction });
     const localProfile = createdUser!.profile || {};
-    const hmac = hmacChecksum(localProfile["照片链接"]);
+    const sha = shaChecksum(localProfile);
 
-    const token = encodeUploadTokenUrlSafe("UserProfilePicture", user.id, hmac);
+    const token = encodeUploadTokenUrlSafe("UserProfilePicture", user.id, sha);
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
@@ -197,9 +192,9 @@ describe("upload webhook", () => {
 
     const createdUser = await db.User.findByPk(user.id, { transaction });
     const localProfile = createdUser!.profile || {};
-    const hmac = hmacChecksum(localProfile["视频链接"]);
+    const sha = shaChecksum(localProfile);
 
-    const token = encodeUploadTokenUrlSafe("UserProfileVideo", user.id, hmac);
+    const token = encodeUploadTokenUrlSafe("UserProfileVideo", user.id, sha);
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],

@@ -138,13 +138,9 @@ export function fromBase64UrlSafe(base64: string): string {
   return Buffer.from(base64, "base64").toString();
 }
 
-export function hmacChecksum(obj: unknown): string {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not set");
-  }
+export function shaChecksum(obj: Record<string, any>): string {
   return crypto
-    .createHmac("sha256", secret)
+    .createHash("sha256")
     .update(stringifyStable(obj) || "" || "")
     .digest("hex");
 }
