@@ -1,3 +1,4 @@
+import z from "zod";
 import { fromBase64UrlSafe, toBase64UrlSafe } from "./strings";
 import { MinUser } from "./User";
 import { WhiteLabel } from "./WhiteLabel";
@@ -36,7 +37,8 @@ export function validateAndDecodeXField(
   return parts.slice(2).join(",");
 }
 
-export type UploadTarget = "UserProfilePicture" | "UserProfileVideo";
+export const zUploadTarget = z.enum(["UserProfilePicture", "UserProfileVideo"]);
+export type UploadTarget = z.infer<typeof zUploadTarget>;
 
 /**
  * @param id uniquely identifies the upload

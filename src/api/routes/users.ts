@@ -52,6 +52,7 @@ import { hmacChecksum } from "../../shared/strings";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
+import { zUploadTarget } from "shared/jinshuju";
 
 const create = procedure
   .use(authUser("UserManager"))
@@ -1054,7 +1055,7 @@ const getMediaChecksum = procedure
   .use(authUser())
   .input(
     z.object({
-      target: z.enum(["UserProfilePicture", "UserProfileVideo"]),
+      target: zUploadTarget,
     }),
   )
   .query(async ({ ctx: { me }, input: { target } }) => {
