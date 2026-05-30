@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { hash } from "bcryptjs";
+import { randomUUID } from "crypto";
 import providers from "./providers";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -33,9 +34,11 @@ describe("Auth Providers", () => {
           const password = "mysecretpassword";
           const hashedPassword = await hash(password, 10);
 
+          const testEmail = `${randomUUID()}@example.com`;
+
           const user = await db.User.create(
             {
-              email: "test-password@example.com",
+              email: testEmail,
               name: "Password User",
               password: hashedPassword,
               roles: [],
@@ -58,7 +61,7 @@ describe("Auth Providers", () => {
           const result = await idPasswordProvider.authorize!(
             {
               idType: "email",
-              id: "test-password@example.com",
+              id: testEmail,
               password: "mysecretpassword",
             },
             {} as any,
@@ -87,9 +90,11 @@ describe("Auth Providers", () => {
           const password = "mysecretpassword";
           const hashedPassword = await hash(password, 10);
 
+          const testEmailWrong = `${randomUUID()}@example.com`;
+
           await db.User.create(
             {
-              email: "test-password-wrong@example.com",
+              email: testEmailWrong,
               name: "Password Wrong User",
               password: hashedPassword,
               roles: [],
@@ -107,7 +112,7 @@ describe("Auth Providers", () => {
           const result = await idPasswordProvider.authorize!(
             {
               idType: "email",
-              id: "test-password-wrong@example.com",
+              id: testEmailWrong,
               password: "wrongpassword",
             },
             {} as any,
@@ -149,9 +154,11 @@ describe("Auth Providers", () => {
 
       try {
         await sequelize.transaction(async (transaction) => {
+          const testPhone = randomUUID();
+
           const user = await db.User.create(
             {
-              phone: "13800138000",
+              phone: testPhone,
               name: "Token User",
               roles: [],
             },
@@ -172,7 +179,7 @@ describe("Auth Providers", () => {
           const result = await idTokenProvider.authorize!(
             {
               idType: "phone",
-              id: "13800138000",
+              id: testPhone,
               token: "123456",
             },
             {} as any,
@@ -209,17 +216,19 @@ describe("Auth Providers", () => {
               return await callback(transaction);
             });
 
+          const testNewUserEmail = `new-user-token-${randomUUID()}@example.com`;
+
           const result = await idTokenProvider.authorize!(
             {
               idType: "email",
-              id: "new-user-token@example.com",
+              id: testNewUserEmail,
               token: "123456",
             },
             {} as any,
           );
 
           expect(result).to.not.equal(null);
-          expect(result?.email).to.equal("new-user-token@example.com");
+          expect(result?.email).to.equal(testNewUserEmail);
           expect(checkStub.callCount).to.equal(1);
 
           const createdUser = await db.User.findByPk(result?.id, {
