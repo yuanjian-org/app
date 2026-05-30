@@ -76,7 +76,7 @@ const join = procedure
             // To ease troubleshooting, always pick the smallest available
             // tmUserId.
             order: [["tmUserId", "ASC"]],
-            attributes: ["id", "meetingId", "meetingLink"],
+            attributes: ["id", "meetingId", "meetingLink", "whiteLabel"],
             lock: true,
             transaction: meetingTransaction,
           });
