@@ -212,3 +212,54 @@ describe("upload webhook", () => {
     expect(updatedUser!.profile!["视频链接"]).to.equal(testUrl);
   });
 });
+
+
+describe("upload webhook retry", () => {
+  let transaction: any;
+  let originalSecret: string | undefined;
+
+  beforeEach(async () => {
+    originalSecret = process.env.NEXTAUTH_SECRET;
+    process.env.NEXTAUTH_SECRET = "test-secret";
+    transaction = await sequelize.transaction();
+    sinon.stub(sequelize, "transaction").callsFake((cb) => {
+      // @ts-ignore
+      return cb(transaction);
+    });
+  });
+
+  afterEach(async () => {
+    process.env.NEXTAUTH_SECRET = originalSecret;
+    sinon.restore();
+    await transaction.rollback();
+  });
+
+  it("should succeed on retry with same url", async () => {
+    const user = await db.User.create(
+      {
+        id: uuidv4(),
+        profile: { 姓名: "Test User 3" },
+      },
+      { transaction },
+    );
+
+    const createdUser = await db.User.findByPk(user.id, { transaction });
+    const localProfile = createdUser!.profile || {};
+    const hmac = hmacChecksum(localProfile["照片链接"]);
+
+    const token = encodeUploadTokenUrlSafe("UserProfilePicture", user.id, hmac);
+    const testUrl = "https://example.com/pic-retry.jpg";
+    const entry = {
+      field_1: [testUrl],
+      x_field_1: `${getWhiteLabel()},test,${token}`,
+    };
+
+    await submit(entry);
+
+    const updatedUser = await db.User.findByPk(user.id, { transaction });
+    expect(updatedUser!.profile!["照片链接"]).to.equal(testUrl);
+
+    // Retry should succeed instead of throwing "HMAC checksum mismatch"
+    await submit(entry);
+  });
+});

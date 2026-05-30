@@ -65,6 +65,11 @@ async function uploadUserProfileMedia(
     console.log("  localHmac: ", localHmac);
     console.log("  hmac:      ", hmac);
 
+    if (urlToHash === url) {
+      console.log("  Already updated to the requested url. Ignoring.");
+      return;
+    }
+
     if (hmac !== localHmac) {
       throw generalBadRequestError(
         `HMAC checksum mismatch: provided "${hmac}" vs local "${localHmac}". ` +
