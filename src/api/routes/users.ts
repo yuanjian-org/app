@@ -45,8 +45,7 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
-import { encodeUploadTokenUrlSafe } from "../../shared/jinshuju";
-import { shaChecksum } from "../../shared/strings";
+import { hmacChecksum } from "../../shared/strings";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
@@ -1028,17 +1027,22 @@ const destroy = procedure
     invalidateUserCache(input.id);
   });
 
-const getUploadToken = procedure
+const getMediaChecksum = procedure
   .use(authUser())
   .input(
     z.object({
-      userId: z.string(),
       target: z.enum(["UserProfilePicture", "UserProfileVideo"]),
-      urlToHash: z.string().optional(),
     }),
   )
-  .query(({ input: { userId, target, urlToHash } }) => {
-    return encodeUploadTokenUrlSafe(target, userId, shaChecksum(urlToHash));
+  .query(async ({ ctx: { me }, input: { target } }) => {
+    const user = await db.User.findByPk(me.id);
+    if (!user) throw notFoundError("用户", me.id);
+    const profile = user.profile || {};
+    const urlToHash =
+      target === "UserProfilePicture"
+        ? profile["照片链接"]
+        : profile["视频链接"];
+    return hmacChecksum(urlToHash);
   });
 
 export default router({
@@ -1061,7 +1065,7 @@ export default router({
 
   getUserProfile,
   setUserProfile,
-  getUploadToken,
+  getMediaChecksum,
 
   getUserState,
   setMyState,

@@ -34,6 +34,7 @@ import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
 import { displayName, isPermitted } from "shared/Role";
+import { encodeUploadTokenUrlSafe, UploadTarget } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -278,10 +279,15 @@ function Basic({
 function encodeJinshujuXField(
   whiteLabel: WhiteLabel,
   user: MinUser,
-  uploadToken: string | undefined,
+  hmac: string | undefined,
+  target: UploadTarget,
 ) {
-  if (!uploadToken) return "";
-  return encodeXField(whiteLabel, user, uploadToken);
+  if (!hmac) return "";
+  return encodeXField(
+    whiteLabel,
+    user,
+    encodeUploadTokenUrlSafe(target, user.id, hmac),
+  );
 }
 
 function Picture({
@@ -299,15 +305,18 @@ function Picture({
   const myRoles = useMyRoles();
   const whiteLabel = useWhiteLabel();
 
-  const { data: pictureUploadToken } = trpcNext.users.getUploadToken.useQuery({
-    userId: user.id,
-    target: "UserProfilePicture",
-    urlToHash: profile.照片链接,
-  });
+  // Only query the checksum if this profile is for the current user (you can't upload for others)
+  const isMe = useMyId() === user.id;
+
+  const { data: pictureHmac } = trpcNext.users.getMediaChecksum.useQuery(
+    { target: "UserProfilePicture" },
+    { enabled: isMe },
+  );
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, pictureUploadToken),
-    [whiteLabel, user, pictureUploadToken],
+    () =>
+      encodeJinshujuXField(whiteLabel, user, pictureHmac, "UserProfilePicture"),
+    [whiteLabel, user, pictureHmac],
   );
 
   return (
@@ -368,15 +377,16 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
   const whiteLabel = useWhiteLabel();
 
-  const { data: videoUploadToken } = trpcNext.users.getUploadToken.useQuery({
-    userId: user.id,
-    target: "UserProfileVideo",
-    urlToHash: profile.视频链接,
-  });
+  const isMe = useMyId() === user.id;
+
+  const { data: videoHmac } = trpcNext.users.getMediaChecksum.useQuery(
+    { target: "UserProfileVideo" },
+    { enabled: isMe },
+  );
 
   const uploadToken = useMemo(
-    () => encodeJinshujuXField(whiteLabel, user, videoUploadToken),
-    [whiteLabel, user, videoUploadToken],
+    () => encodeJinshujuXField(whiteLabel, user, videoHmac, "UserProfileVideo"),
+    [whiteLabel, user, videoHmac],
   );
 
   return (

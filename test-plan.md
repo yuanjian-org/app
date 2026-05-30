@@ -1,1 +1,0 @@
-Great! Build works now! Let's commit and push. Wait, I should run `yarn --ignore-engines test` again just to be perfectly sure. The `NEXTAUTH_SECRET` mock in `upload.test.ts` was added, but does `strings.test.ts` or other tests fail?
