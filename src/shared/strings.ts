@@ -145,7 +145,7 @@ export function hmacChecksum(obj: unknown): string {
   }
   return crypto
     .createHmac("sha256", secret)
-    .update(stringifyStable(obj) || "" || "")
+    .update(stringifyStable(obj) || "")
     .digest("hex");
 }
 
