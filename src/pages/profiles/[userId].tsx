@@ -18,6 +18,7 @@ import {
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
+  Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -39,7 +40,6 @@ import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
 import getBaseUrl from "shared/getBaseUrl";
 import { useMyId, useMyRoles } from "useMe";
 import { useSession } from "next-auth/react";
-import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
@@ -286,14 +286,20 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
+  const router = useRouter();
 
-  // Only query the checksum if this profile is for the current user (you can't upload for others)
   const isMe = useMyId() === user.id;
+  const [loading, setLoading] = useState(false);
 
-  const { data: uploadToken } = trpcNext.users.getJinshujuXField.useQuery(
-    undefined,
-    { enabled: isMe },
-  );
+  const handleUpload = async () => {
+    setLoading(true);
+    try {
+      const uploadToken = await trpc.users.getJinshujuXField.query();
+      await router.push(getEmbeddedFormUrl("Bz3uSO", uploadToken));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -308,9 +314,14 @@ function Picture({
           />
         )}
 
-        {uploadToken && (
-          <Link as={NextLink} href={getEmbeddedFormUrl("Bz3uSO", uploadToken)}>
-            {profile.照片链接 ? (
+        {isMe && (
+          <Link onClick={handleUpload}>
+            {loading ? (
+              <HStack>
+                <Spinner size="sm" />
+                <Text>加载中...</Text>
+              </HStack>
+            ) : profile.照片链接 ? (
               <HStack>
                 <MdChangeCircle />
                 <Text>更换照片</Text>
@@ -353,13 +364,20 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
+  const router = useRouter();
 
   const isMe = useMyId() === user.id;
+  const [loading, setLoading] = useState(false);
 
-  const { data: uploadToken } = trpcNext.users.getJinshujuXField.useQuery(
-    undefined,
-    { enabled: isMe },
-  );
+  const handleUpload = async () => {
+    setLoading(true);
+    try {
+      const uploadToken = await trpc.users.getJinshujuXField.query();
+      await router.push(getEmbeddedFormUrl("nhFsf1", uploadToken));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -376,9 +394,14 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
         />
       )}
 
-      {uploadToken && (
-        <Link as={NextLink} href={getEmbeddedFormUrl("nhFsf1", uploadToken)}>
-          {profile.视频链接 ? (
+      {isMe && (
+        <Link onClick={handleUpload}>
+          {loading ? (
+            <HStack>
+              <Spinner size="sm" />
+              <Text>加载中...</Text>
+            </HStack>
+          ) : profile.视频链接 ? (
             <HStack>
               <MdChangeCircle />
               <Text>更换视频</Text>
