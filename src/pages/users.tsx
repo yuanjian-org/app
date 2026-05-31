@@ -411,6 +411,11 @@ function UserEditor({
                         onChange={setRole}
                       >
                         {rp.automatic ? "*" : ""} {rp.displayName}
+                        {rp.privilegedUserDataAccess && (
+                          <Tag size="sm" color="white" bgColor="orange" ml={2}>
+                            特权角色
+                          </Tag>
+                        )}
                       </Checkbox>
                     );
                   })}
@@ -420,6 +425,24 @@ function UserEditor({
 
             <FormControl>
               <small>* 是系统自动添加的角色。一般情况下请勿手工移除。</small>
+            </FormControl>
+
+            <FormControl>
+              <small>
+                <Tag size="sm" color="white" bgColor="orange" mr={1}>
+                  特权角色
+                </Tag>
+                访问
+                <Link
+                  as={NextLink}
+                  href="/who-can-see-my-data"
+                  color="brand.c"
+                  isExternal
+                >
+                  此页面
+                </Link>
+                了解这些角色的数据访问权限。
+              </small>
             </FormControl>
           </VStack>
         </ModalBody>
