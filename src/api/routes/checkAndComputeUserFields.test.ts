@@ -19,7 +19,7 @@ describe("checkAndComputeUserFields", () => {
     try {
       await checkAndComputeUserFields({
         email: "invalid-email",
-        isVolunteer: false,
+        hasUrlPrivilege: false,
         oldUrl: null,
         transaction,
       });
@@ -32,7 +32,7 @@ describe("checkAndComputeUserFields", () => {
   it("should lowercase valid email", async () => {
     const res = await checkAndComputeUserFields({
       email: "Test@EMAIL.com",
-      isVolunteer: false,
+      hasUrlPrivilege: false,
       oldUrl: null,
       transaction,
     });
@@ -42,7 +42,7 @@ describe("checkAndComputeUserFields", () => {
   it("should compute pinyin for name", async () => {
     const res = await checkAndComputeUserFields({
       name: "测试",
-      isVolunteer: false,
+      hasUrlPrivilege: false,
       oldUrl: null,
       transaction,
     });
@@ -53,7 +53,7 @@ describe("checkAndComputeUserFields", () => {
   it("should handle null name", async () => {
     const res = await checkAndComputeUserFields({
       name: null,
-      isVolunteer: false,
+      hasUrlPrivilege: false,
       oldUrl: null,
       transaction,
     });
@@ -63,7 +63,7 @@ describe("checkAndComputeUserFields", () => {
 
   it("should omit name/email/pinyin if undefined", async () => {
     const res = await checkAndComputeUserFields({
-      isVolunteer: false,
+      hasUrlPrivilege: false,
       oldUrl: null,
       transaction,
     });
@@ -77,7 +77,7 @@ describe("checkAndComputeUserFields", () => {
       try {
         await checkAndComputeUserFields({
           url: "Invalid-URL!",
-          isVolunteer: true,
+          hasUrlPrivilege: true,
           oldUrl: null,
           transaction,
         });
@@ -90,7 +90,7 @@ describe("checkAndComputeUserFields", () => {
     it("should return empty object if url equals oldUrl", async () => {
       const res = await checkAndComputeUserFields({
         url: "myurl",
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: "myurl",
         transaction,
       });
@@ -101,7 +101,7 @@ describe("checkAndComputeUserFields", () => {
       try {
         await checkAndComputeUserFields({
           url: "newurl",
-          isVolunteer: false,
+          hasUrlPrivilege: false,
           oldUrl: "oldurl",
           transaction,
         });
@@ -120,7 +120,7 @@ describe("checkAndComputeUserFields", () => {
       try {
         await checkAndComputeUserFields({
           url: "takenurl",
-          isVolunteer: true,
+          hasUrlPrivilege: true,
           oldUrl: null,
           transaction,
         });
@@ -133,7 +133,7 @@ describe("checkAndComputeUserFields", () => {
     it("should set url if valid and available for volunteer", async () => {
       const res = await checkAndComputeUserFields({
         url: "newurl",
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: null,
         transaction,
       });
@@ -142,7 +142,7 @@ describe("checkAndComputeUserFields", () => {
 
     it("should retain old url if oldUrl is not null and url is undefined", async () => {
       const res = await checkAndComputeUserFields({
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: "oldurl",
         transaction,
       });
@@ -151,7 +151,7 @@ describe("checkAndComputeUserFields", () => {
 
     it("should not auto-generate url for non-volunteers", async () => {
       const res = await checkAndComputeUserFields({
-        isVolunteer: false,
+        hasUrlPrivilege: false,
         oldUrl: null,
         transaction,
       });
@@ -161,7 +161,7 @@ describe("checkAndComputeUserFields", () => {
     it("should auto-generate url for volunteer with name", async () => {
       const res = await checkAndComputeUserFields({
         name: "测试",
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: null,
         transaction,
       });
@@ -170,7 +170,7 @@ describe("checkAndComputeUserFields", () => {
 
     it("should auto-generate url for volunteer without name", async () => {
       const res = await checkAndComputeUserFields({
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: null,
         transaction,
       });
@@ -185,7 +185,7 @@ describe("checkAndComputeUserFields", () => {
 
       const res = await checkAndComputeUserFields({
         name: "测试",
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: null,
         transaction,
       });
@@ -203,7 +203,7 @@ describe("checkAndComputeUserFields", () => {
       );
 
       const res = await checkAndComputeUserFields({
-        isVolunteer: true,
+        hasUrlPrivilege: true,
         oldUrl: null,
         transaction,
       });

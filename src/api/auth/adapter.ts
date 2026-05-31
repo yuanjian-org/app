@@ -56,7 +56,7 @@ export const adapter = {
       const fields = await checkAndComputeUserFields({
         email: user.realEmail || undefined,
         name: user.name || undefined,
-        isVolunteer: false,
+        hasUrlPrivilege: false,
         oldUrl: null,
         transaction,
       });
