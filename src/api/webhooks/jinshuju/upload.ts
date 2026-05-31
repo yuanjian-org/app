@@ -1,48 +1,34 @@
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
-import { hmacChecksum } from "../../../shared/strings";
-import {
-  decodeUploadTokenUrlSafe,
-  validateAndDecodeXField,
-} from "../../../shared/jinshuju";
+import { validateAndDecodeXField } from "../../jinshuju";
 import sequelize from "../../database/sequelize";
 import { getWhiteLabel } from "../../getWhiteLabel";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
  */
-export default async function submit(entry: Record<string, any>) {
+export default async function submit(form: string, entry: Record<string, any>) {
   const urls: string[] = entry.field_1;
   if (urls.length !== 1) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
   }
 
-  const token = validateAndDecodeXField(getWhiteLabel(), entry);
-  if (!token) {
-    throw generalBadRequestError(`Empty or malformed x_field_1`);
-  }
+  const userId = validateAndDecodeXField(getWhiteLabel(), entry);
 
-  const { target, id, opaque } = decodeUploadTokenUrlSafe(token);
-  console.log("Upload target:", target);
-  console.log("Upload id:    ", id);
-  console.log("Upload opaque:", opaque);
+  console.log("Upload form:  ", form);
+  console.log("Upload id:    ", userId);
 
-  if (!target || !id || !opaque) {
-    throw generalBadRequestError(`Invalid target, id, or hmac`);
-  }
-
-  if (target === "UserProfilePicture") {
-    await uploadUserProfileMedia(id, opaque, urls[0], "照片");
-  } else if (target === "UserProfileVideo") {
-    await uploadUserProfileMedia(id, opaque, urls[0], "视频");
+  if (form === "Bz3uSO") {
+    await uploadUserProfileMedia(userId, urls[0], "照片");
+  } else if (form === "nhFsf1") {
+    await uploadUserProfileMedia(userId, urls[0], "视频");
   } else {
-    throw generalBadRequestError(`Unknown upload target: ${target}`);
+    throw generalBadRequestError(`Unknown upload target form: ${form}`);
   }
 }
 
 async function uploadUserProfileMedia(
   userId: string,
-  hmac: string,
   url: string,
   mediaType: "照片" | "视频",
 ) {
@@ -55,22 +41,6 @@ async function uploadUserProfileMedia(
 
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
-    const urlToHash =
-      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"];
-    const localHmac = hmacChecksum(urlToHash);
-
-    console.log("uploadUserProfileMedia verifying HMAC:");
-    console.log("  userId:    ", userId);
-    console.log("  urlToHash: ", urlToHash);
-    console.log("  localHmac: ", localHmac);
-    console.log("  hmac:      ", hmac);
-
-    if (hmac !== localHmac) {
-      throw generalBadRequestError(
-        `HMAC checksum mismatch: provided "${hmac}" vs local "${localHmac}". ` +
-          `Update conflict?`,
-      );
-    }
 
     await user.update(
       {

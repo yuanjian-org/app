@@ -138,16 +138,6 @@ export function fromBase64UrlSafe(base64: string): string {
   return Buffer.from(base64, "base64").toString();
 }
 
-export function hmacChecksum(obj: unknown): string {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not set");
-  }
-  return crypto
-    .createHmac("sha256", secret)
-    .update(stringifyStable(obj) || "")
-    .digest("hex");
-}
 
 // Simple hash function to generate a number from a string
 export function hash(str: string): number {

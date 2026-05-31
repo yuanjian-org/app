@@ -5,13 +5,17 @@ import { Transaction } from "sequelize";
 import { getWhiteLabel } from "../../getWhiteLabel";
 import { AutoTaskId } from "../../../shared/Task";
 import submitExam from "./exam";
+import { encodeXField } from "../../jinshuju";
 
 describe("exam webhook", () => {
   let userId: string;
   let taskId: number;
   let transaction: Transaction;
 
+  let originalSecret: string | undefined;
   beforeEach(async () => {
+    originalSecret = process.env.NEXTAUTH_SECRET;
+    process.env.NEXTAUTH_SECRET = "test-secret";
     transaction = await sequelize.transaction();
 
     // Create a test user
@@ -50,7 +54,7 @@ describe("exam webhook", () => {
   describe("successful exam submission", () => {
     it("should update user state and mark comms exam task as done", async () => {
       const formEntry = {
-        x_field_1: getWhiteLabel() + ",tester," + userId,
+        x_field_1: encodeXField(getWhiteLabel(), "tester", userId),
         exam_score: 85,
       };
 

@@ -19,7 +19,7 @@ import {
   InputGroup,
   InputLeftAddon,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "../../trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
@@ -29,12 +29,10 @@ import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
 import { parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
-import { WhiteLabel } from "shared/WhiteLabel";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
 import { displayName, isPermitted } from "shared/Role";
-import { encodeUploadTokenUrlSafe, UploadTarget } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -43,10 +41,8 @@ import { useMyId, useMyRoles } from "useMe";
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
-import { encodeXField } from "shared/jinshuju";
 import Select from "react-select";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
-import useWhiteLabel from "components/useWhiteLabel";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -276,24 +272,6 @@ function Basic({
   );
 }
 
-/**
- * hmac is used both for acceess control and as an e-tag to prevent accidental data override
- */
-function encodeJinshujuXField(
-  whiteLabel: WhiteLabel,
-  user: MinUser,
-  hmac: string,
-  target: UploadTarget,
-) {
-  const token = encodeUploadTokenUrlSafe(target, user.id, hmac);
-  console.log("Encoding Jinshuju XField:");
-  console.log("  target:", target);
-  console.log("  userId:", user.id);
-  console.log("  hmac:  ", hmac);
-  console.log("  token: ", token);
-  return encodeXField(whiteLabel, user, token);
-}
-
 function Picture({
   user,
   profile,
@@ -307,27 +285,13 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
-  const whiteLabel = useWhiteLabel();
 
   // Only query the checksum if this profile is for the current user (you can't upload for others)
   const isMe = useMyId() === user.id;
 
-  const { data: pictureHmac } = trpcNext.users.getMediaChecksum.useQuery(
-    { target: "UserProfilePicture" },
+  const { data: uploadToken } = trpcNext.users.getJinshujuXField.useQuery(
+    undefined,
     { enabled: isMe },
-  );
-
-  const uploadToken = useMemo(
-    () =>
-      pictureHmac
-        ? encodeJinshujuXField(
-            whiteLabel,
-            user,
-            pictureHmac,
-            "UserProfilePicture",
-          )
-        : undefined,
-    [whiteLabel, user, pictureHmac],
   );
 
   return (
@@ -388,21 +352,12 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
-  const whiteLabel = useWhiteLabel();
 
   const isMe = useMyId() === user.id;
 
-  const { data: videoHmac } = trpcNext.users.getMediaChecksum.useQuery(
-    { target: "UserProfileVideo" },
+  const { data: uploadToken } = trpcNext.users.getJinshujuXField.useQuery(
+    undefined,
     { enabled: isMe },
-  );
-
-  const uploadToken = useMemo(
-    () =>
-      videoHmac
-        ? encodeJinshujuXField(whiteLabel, user, videoHmac, "UserProfileVideo")
-        : undefined,
-    [whiteLabel, user, videoHmac],
   );
 
   return (
