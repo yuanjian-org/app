@@ -6,6 +6,7 @@ import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
+import DemoLandingPage from "./DemoLandingPage";
 import PageLoader from "./PageLoader";
 
 export default function StaticPageContainer({
@@ -25,6 +26,10 @@ export default function StaticPageContainer({
 
   if (data?.whiteLabel === "xhef") {
     return <XhefLandingPage />;
+  }
+
+  if (data?.whiteLabel === "demo") {
+    return <DemoLandingPage />;
   }
 
   return (
