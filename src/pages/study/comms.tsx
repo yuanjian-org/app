@@ -5,16 +5,12 @@ import { trpcNext } from "trpc";
 import { prettifyDate } from "shared/strings";
 import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
-import { encodeXField } from "shared/jinshuju";
-import useMe from "useMe";
-import useWhiteLabel from "components/useWhiteLabel";
 
 const title = "《学生通讯原则》自学与评测";
 
 export default function Page() {
-  const me = useMe();
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const whiteLabel = useWhiteLabel();
+  const { data: xField } = trpcNext.users.getJinshujuXField.useQuery();
 
   return (
     <>
@@ -43,17 +39,16 @@ export default function Page() {
         </Button>
 
         <Text>第二步：</Text>
-        <Button
-          as={Link}
-          isExternal
-          href={getStandaloneFormUrl(
-            "nsnx4G",
-            encodeXField(whiteLabel, me, me.id),
-          )}
-          variant="brand"
-        >
-          开始评测&nbsp;&nbsp;&nbsp;✍️
-        </Button>
+        {xField && (
+          <Button
+            as={Link}
+            isExternal
+            href={getStandaloneFormUrl("nsnx4G", xField)}
+            variant="brand"
+          >
+            开始评测&nbsp;&nbsp;&nbsp;✍️
+          </Button>
+        )}
 
         {state && (
           <>

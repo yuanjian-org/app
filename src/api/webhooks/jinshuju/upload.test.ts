@@ -6,8 +6,7 @@ import sequelize from "../../database/sequelize";
 import { getWhiteLabel } from "../../getWhiteLabel";
 import submit from "./upload";
 import { TRPCError } from "@trpc/server";
-import { encodeUploadTokenUrlSafe } from "../../../shared/jinshuju";
-import { hmacChecksum } from "../../../shared/strings";
+import { encodeXField } from "../../jinshuju";
 import { v4 as uuidv4 } from "uuid";
 
 describe("upload webhook", () => {
@@ -39,7 +38,7 @@ describe("upload webhook", () => {
 
     let error: any;
     try {
-      await submit(entry);
+      await submit("Bz3uSO", entry);
     } catch (e) {
       error = e;
     }
@@ -57,156 +56,112 @@ describe("upload webhook", () => {
 
     let error: any;
     try {
-      await submit(entry);
+      await submit("Bz3uSO", entry);
     } catch (e) {
       error = e;
     }
 
     expect(error).to.be.instanceOf(TRPCError);
     expect(error.code).to.equal("BAD_REQUEST");
-    expect(error.message).to.include("Empty or malformed x_field_1");
+    expect(error.message).to.include("Malformed x_field_1");
   });
 
-  it("should fail on invalid token data", async () => {
+  it("should fail on invalid token HMAC", async () => {
+    const token = encodeXField(getWhiteLabel(), "url", uuidv4());
     const entry = {
       field_1: ["url1"],
-      x_field_1: `${getWhiteLabel()},test,invalidBase64`,
+      x_field_1: token + "tampered",
     };
 
     let error: any;
     try {
-      await submit(entry);
-    } catch (e) {
-      error = e;
-    }
-
-    expect(error).to.be.instanceOf(Error);
-  });
-
-  it("should fail on unknown upload target", async () => {
-    const token = encodeUploadTokenUrlSafe(
-      "UnknownTarget" as any,
-      uuidv4(),
-      "opaque1",
-    );
-    const entry = {
-      field_1: ["url1"],
-      x_field_1: `${getWhiteLabel()},test,${token}`,
-    };
-
-    let error: any;
-    try {
-      await submit(entry);
+      await submit("Bz3uSO", entry);
     } catch (e) {
       error = e;
     }
 
     expect(error).to.be.instanceOf(TRPCError);
     expect(error.code).to.equal("BAD_REQUEST");
-    expect(error.message).to.include("Unknown upload target");
+    expect(error.message).to.include("Invalid HMAC in x_field_1");
   });
 
-  it("should fail on non-existent user", async () => {
-    const token = encodeUploadTokenUrlSafe(
-      "UserProfilePicture",
-      uuidv4(),
-      "opaque1",
-    );
-    const entry = {
-      field_1: ["url1"],
-      x_field_1: `${getWhiteLabel()},test,${token}`,
-    };
-
-    let error: any;
-    try {
-      await submit(entry);
-    } catch (e) {
-      error = e;
-    }
-
-    expect(error).to.be.instanceOf(TRPCError);
-    expect(error.code).to.equal("NOT_FOUND");
-  });
-
-  it("should fail on checksum mismatch", async () => {
+  it("should fail for unknown form id", async () => {
     const user = await db.User.create(
       {
         id: uuidv4(),
-        profile: { 姓名: "Test User" },
+        name: "Test User",
+        email: `test-${uuidv4()}@example.com`,
       },
       { transaction },
     );
 
-    const token = encodeUploadTokenUrlSafe(
-      "UserProfilePicture",
-      user.id,
-      "wrong-hmac",
-    );
+    const token = encodeXField(getWhiteLabel(), "test", user.id);
     const entry = {
       field_1: ["url1"],
-      x_field_1: `${getWhiteLabel()},test,${token}`,
+      x_field_1: token,
     };
 
     let error: any;
     try {
-      await submit(entry);
+      await submit("UnknownForm", entry);
     } catch (e) {
       error = e;
     }
 
     expect(error).to.be.instanceOf(TRPCError);
     expect(error.code).to.equal("BAD_REQUEST");
-    expect(error.message).to.include("HMAC checksum mismatch");
+    expect(error.message).to.include("Unknown upload form");
   });
 
-  it("should successfully update user profile picture", async () => {
-    const user = await db.User.create(
+  it("should succeed for picture form", async () => {
+    const createdUser = await db.User.create(
       {
         id: uuidv4(),
-        profile: { 姓名: "Test User" },
+        name: "Test User",
+        email: `test-${uuidv4()}@example.com`,
+        profile: {
+          照片链接: "old-pic",
+        },
       },
       { transaction },
     );
+    const user = createdUser!;
 
-    // We get the actual local profile and hmac from DB because create stringify might change it.
-    const createdUser = await db.User.findByPk(user.id, { transaction });
-    const localProfile = createdUser!.profile || {};
-    const hmac = hmacChecksum(localProfile["照片链接"]);
-
-    const token = encodeUploadTokenUrlSafe("UserProfilePicture", user.id, hmac);
+    const token = encodeXField(getWhiteLabel(), "test", user.id);
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
-      x_field_1: `${getWhiteLabel()},test,${token}`,
+      x_field_1: token,
     };
 
-    await submit(entry);
+    await submit("Bz3uSO", entry);
 
     const updatedUser = await db.User.findByPk(user.id, { transaction });
     expect(updatedUser!.profile!["照片链接"]).to.equal(testUrl);
   });
 
-  it("should successfully update user profile video", async () => {
-    const user = await db.User.create(
+  it("should succeed for video form", async () => {
+    const createdUser = await db.User.create(
       {
         id: uuidv4(),
-        profile: { 姓名: "Test User 2" },
+        name: "Test User",
+        email: `test-${uuidv4()}@example.com`,
+        profile: {
+          视频链接: "old-video",
+        },
       },
       { transaction },
     );
+    const user = createdUser!;
 
-    const createdUser = await db.User.findByPk(user.id, { transaction });
-    const localProfile = createdUser!.profile || {};
-    const hmac = hmacChecksum(localProfile["视频链接"]);
-
-    const token = encodeUploadTokenUrlSafe("UserProfileVideo", user.id, hmac);
+    const token = encodeXField(getWhiteLabel(), "test", user.id);
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],
-      x_field_1: `${getWhiteLabel()},test,${token}`,
+      x_field_1: token,
     };
 
-    await submit(entry);
+    await submit("nhFsf1", entry);
 
     const updatedUser = await db.User.findByPk(user.id, { transaction });
     expect(updatedUser!.profile!["视频链接"]).to.equal(testUrl);

@@ -3,6 +3,8 @@ import sinon from "sinon";
 import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
 import { submit } from "./index";
+import { encodeXField } from "../../jinshuju";
+import { getWhiteLabel } from "../../getWhiteLabel";
 import * as applicationModule from "./application";
 import * as uploadModule from "./upload";
 import * as examModule from "./exam";
@@ -16,6 +18,7 @@ describe("jinshuju webhook index", () => {
   let submitExamStub: sinon.SinonStub;
 
   beforeEach(async () => {
+    process.env.NEXTAUTH_SECRET = "test-secret";
     transaction = await sequelize.transaction();
 
     submitMenteeAppStub = sinon
@@ -34,7 +37,10 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route MenteeApp forms", async () => {
-    const entry = { data: "test-mentee-app" };
+    const entry = {
+      data: "test-mentee-app",
+      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+    };
 
     await submit({ form: "FBTWTe", entry }, transaction);
     expect(submitMenteeAppStub.callCount).to.equal(1);
@@ -62,7 +68,10 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route VolunteerApp forms", async () => {
-    const entry = { data: "test-volunteer-app" };
+    const entry = {
+      data: "test-volunteer-app",
+      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+    };
 
     await submit({ form: "OzuvWD", entry }, transaction);
     expect(submitVolunteerAppStub.callCount).to.equal(1);
@@ -73,15 +82,18 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route upload forms", async () => {
-    const entry = { data: "test-upload" };
+    const entry = {
+      data: "test-upload",
+      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+    };
 
     await submit({ form: "Bz3uSO", entry }, transaction);
     expect(submitUploadStub.callCount).to.equal(1);
-    expect(submitUploadStub.firstCall.args).to.deep.equal([entry]);
+    expect(submitUploadStub.firstCall.args).to.deep.equal(["Bz3uSO", entry]);
 
     await submit({ form: "nhFsf1", entry }, transaction);
     expect(submitUploadStub.callCount).to.equal(2);
-    expect(submitUploadStub.secondCall.args).to.deep.equal([entry]);
+    expect(submitUploadStub.secondCall.args).to.deep.equal(["nhFsf1", entry]);
   });
 
   it("should route interview exam form", async () => {

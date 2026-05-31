@@ -1,7 +1,7 @@
-import { validateAndDecodeXField } from "../../../shared/jinshuju";
+import { validateAndDecodeXField } from "../../jinshuju";
 import db from "../../database/db";
 import moment from "moment";
-import { generalBadRequestError, notFoundError } from "../../errors";
+import { notFoundError } from "../../errors";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
 import { Transaction } from "sequelize";
@@ -14,9 +14,6 @@ export default async function submit(
   transaction: Transaction,
 ) {
   const userId = validateAndDecodeXField(getWhiteLabel(), formEntry);
-  if (!userId) {
-    throw generalBadRequestError(`Empty or malformed x_field_1`);
-  }
 
   const score = formEntry.exam_score;
   if (score < passingScore) {

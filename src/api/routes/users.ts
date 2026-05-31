@@ -48,11 +48,11 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
-import { hmacChecksum } from "../../shared/strings";
+import { encodeXField } from "../jinshuju";
+import { getWhiteLabel } from "../getWhiteLabel";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
-import { zUploadTarget } from "shared/jinshuju";
 
 const create = procedure
   .use(authUser("UserManager"))
@@ -1051,30 +1051,13 @@ const destroy = procedure
     invalidateUserCache(input.id);
   });
 
-const getMediaChecksum = procedure
+const getJinshujuXField = procedure
   .use(authUser())
-  .input(
-    z.object({
-      target: zUploadTarget,
-    }),
-  )
-  .query(async ({ ctx: { me }, input: { target } }) => {
-    const user = await db.User.findByPk(me.id);
+  .query(async ({ ctx: { me } }) => {
+    const user = await db.User.findByPk(me.id, { attributes: ["url"] });
     if (!user) throw notFoundError("用户", me.id);
-    const profile = user.profile || {};
-    const urlToHash =
-      target === "UserProfilePicture"
-        ? profile["照片链接"]
-        : profile["视频链接"];
-    const checksum = hmacChecksum(urlToHash);
 
-    console.log("getMediaChecksum called:");
-    console.log("  target:   ", target);
-    console.log("  userId:   ", me.id);
-    console.log("  urlToHash:", urlToHash);
-    console.log("  checksum: ", checksum);
-
-    return checksum;
+    return encodeXField(getWhiteLabel(), user.url, me.id);
   });
 
 export default router({
@@ -1097,7 +1080,7 @@ export default router({
 
   getUserProfile,
   setUserProfile,
-  getMediaChecksum,
+  getJinshujuXField,
 
   getUserState,
   setMyState,
