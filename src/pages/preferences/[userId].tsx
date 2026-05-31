@@ -294,7 +294,7 @@ function MentorPreferences({
           isChecked={data?.不参加就业辅导 ?? false}
           onChange={(e) => update("不参加就业辅导", e.target.checked)}
         >
-          我暂不参与简历诊断、模拟面试等就业类服务，仅参加长期一对一服务。
+          我暂不参与简历诊断、模拟面试等就业类服务，仅参加陪伴式一对一服务。
         </Checkbox>
       </FormControl>
     </>
