@@ -31,7 +31,7 @@ export default function Page() {
       <PageBreadcrumb current="谁能看到我的数据" />
       <Flex direction="column" gap={10}>
         <Text>
-          <Link isExternal href={staticUrlPrefix}>
+          <Link isExternal href={`https://yuantuapp.com${staticUrlPrefix}`}>
             远图社会导师服务平台
           </Link>
           （简称远图）致力保护个人隐私，仅收集供服务所需的最少信息。同时，我们严格控制数据的访问
