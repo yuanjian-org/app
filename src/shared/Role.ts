@@ -64,12 +64,12 @@ const RoleProfiles: {
     privilegedUserDataAccess: true,
   },
   MentorshipManager: {
-    displayName: "师生管理员",
+    displayName: "运营主管",
     actions: "管理学生信息、导师信息、面试信息、一对一学生导师匹配信息等",
     privilegedUserDataAccess: true,
   },
   MentorshipOperator: {
-    displayName: "师生运营员",
+    displayName: "运营专员",
     actions: "协助导师和学生活动的运营",
     privilegedUserDataAccess: true,
   },
