@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import axios from "axios";
+import https from "https";
+import EventEmitter from "events";
 import {
   getTmUserIds,
   createRecurringMeeting,
@@ -9,7 +10,7 @@ import {
 import MeetingSlot from "./database/models/MeetingSlot";
 
 describe("TencentMeeting", () => {
-  let axiosRequestStub: sinon.SinonStub;
+  let requestStub: sinon.SinonStub;
 
   beforeEach(() => {
     // Reset env vars before each test
@@ -18,8 +19,8 @@ describe("TencentMeeting", () => {
     process.env.TM_ENTERPRISE_ID = "test-enterprise-id";
     process.env.TM_APP_ID = "test-app-id";
 
-    // Stub axios.request
-    axiosRequestStub = sinon.stub(axios, "request");
+    // Stub https.request
+    requestStub = sinon.stub(https, "request");
   });
 
   afterEach(() => {
@@ -52,7 +53,17 @@ describe("TencentMeeting", () => {
         ],
       };
 
-      axiosRequestStub.resolves({ data: fakeResponseData });
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify(fakeResponseData));
+        mockRes.emit("end");
+        return mockReq;
+      });
 
       const result = await createRecurringMeeting(
         "test-user",
@@ -69,7 +80,7 @@ describe("TencentMeeting", () => {
         "https://meeting.tencent.com/p/123",
       );
 
-      expect(axiosRequestStub.calledOnce).to.equal(true);
+      expect(requestStub.calledOnce).to.equal(true);
     });
   });
 
@@ -89,7 +100,17 @@ describe("TencentMeeting", () => {
         ],
       };
 
-      axiosRequestStub.resolves({ data: fakeResponseData });
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify(fakeResponseData));
+        mockRes.emit("end");
+        return mockReq;
+      });
 
       const result = await getMeeting("test-meeting-id", "test-user");
 
@@ -97,7 +118,7 @@ describe("TencentMeeting", () => {
       expect(result.meeting_id).to.equal("test-meeting-id");
       expect(result.join_url).to.equal("https://meeting.tencent.com/p/123");
 
-      expect(axiosRequestStub.calledOnce).to.equal(true);
+      expect(requestStub.calledOnce).to.equal(true);
     });
 
     it("should throw internal server error if error_info is returned", async () => {
@@ -109,7 +130,17 @@ describe("TencentMeeting", () => {
         },
       };
 
-      axiosRequestStub.resolves({ data: fakeResponseData });
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify(fakeResponseData));
+        mockRes.emit("end");
+        return mockReq;
+      });
 
       let errorThrown = false;
       try {

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import qs from "qs";
-import axios from "axios";
+import https from "https";
+import http from "http";
 import z, { TypeOf } from "zod";
 import { internalServerError } from "./errors";
 import MeetingSlot from "./database/models/MeetingSlot";
@@ -13,6 +14,46 @@ export async function getTmUserIds(): Promise<string[]> {
   });
   return slots.map((s) => s.tmUserId);
 }
+
+const splitFirst = (s: string, separator: string) => {
+  const idx = s.indexOf(separator);
+  if (idx < 0) return [s];
+  return [s.slice(0, idx), s.slice(idx + separator.length)];
+};
+
+const requestWithBody = (
+  body: string,
+  options: {
+    host: string;
+    port: string;
+    protocol: string;
+    path: string;
+    method: "GET" | "POST" | "PUT";
+    headers: Record<string, string>;
+  },
+) => {
+  return new Promise<string>((resolve, reject) => {
+    const callback = function (response: any) {
+      let str = "";
+      response.on("data", function (chunk: any) {
+        str += chunk;
+      });
+      response.on("end", function () {
+        resolve(str);
+      });
+    };
+
+    const req = (options.protocol === "https:" ? https : http).request(
+      options,
+      callback,
+    );
+    req.on("error", (e: Error) => {
+      reject(e);
+    });
+    req.write(body);
+    req.end();
+  });
+};
 
 const sign = (
   secretId: string,
@@ -77,15 +118,22 @@ const tmRequest = async (
     "X-TC-Registered": "1",
   };
 
-  const response = await axios.request({
-    method,
-    url,
-    headers,
-    data: bodyText,
-    validateStatus: () => true, // resolve on any status
-  });
+  const [protocol, rest] = splitFirst(url, "//");
+  const [base, path] = splitFirst(rest, "/");
+  const [host, _port] = splitFirst(base, ":");
 
-  const res = response.data;
+  const port = _port ?? (protocol === "http:" ? "80" : "443");
+
+  const res = JSON.parse(
+    await requestWithBody(bodyText, {
+      host,
+      port,
+      path: "/" + path,
+      protocol,
+      method,
+      headers,
+    }),
+  );
 
   if ("error_info" in res) {
     const e = res.error_info;
