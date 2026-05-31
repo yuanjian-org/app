@@ -60,7 +60,7 @@ export default function Page() {
           isExternal
           href={getStandaloneFormUrl(
             "w02l95",
-            encodeXField(whiteLabel, me, me.id),
+            encodeXField(whiteLabel, me.url, null, me.id, ""),
           )}
           variant="brand"
         >
