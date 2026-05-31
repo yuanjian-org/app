@@ -361,7 +361,14 @@ function MenteeTable({
         },
       }}
     >
-      <Thead position="sticky" top={0} bg="white" zIndex={1} boxShadow="sm">
+      <Thead
+        position="sticky"
+        top={0}
+        bg="white"
+        zIndex={1}
+        boxShadow="sm"
+        sx={{ th: { py: 3 } }}
+      >
         <Tr>
           <Th>状态</Th>
           <PointOfContactHeaderCells />
