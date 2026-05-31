@@ -397,14 +397,14 @@ function UserCardForDesktop({
     <CardForDesktop {...(selected ? { bg: "green.50" } : {})}>
       <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
-      <CardHeader onClick={visitUser} cursor="pointer">
-        <Heading size="md">
+      <CardHeader onClick={visitUser} cursor="pointer" minW={0}>
+        <Heading size="md" noOfLines={1}>
           {formatUserName(data.user.name, "formal")}
           {recommended && <MentorStar ms={3} />}
         </Heading>
       </CardHeader>
       <CardBody pt={1} onClick={visitUser} cursor="pointer">
-        <Flex direction="column" gap={paragraphSpacing}>
+        <Flex direction="column" gap={paragraphSpacing} minW={0}>
           {p?.身份头衔 && (
             <Text>
               <b>{p.身份头衔}</b>
