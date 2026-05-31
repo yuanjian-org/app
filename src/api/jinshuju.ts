@@ -53,10 +53,7 @@ export function validateAndDecodeXField(
   const data = `${wl},${url},${userId},${timestampStr}`;
   const expectedHmac = hmacChecksumUrlSafe(data);
 
-  if (
-    hmac.length !== expectedHmac.length ||
-    !crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(expectedHmac))
-  ) {
+  if (hmac.length !== expectedHmac.length || !crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(expectedHmac))) {
     throw generalBadRequestError(`Invalid HMAC in x_field_1`);
   }
 

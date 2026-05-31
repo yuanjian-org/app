@@ -17,7 +17,9 @@ describe("jinshuju webhook index", () => {
   let submitUploadStub: sinon.SinonStub;
   let submitExamStub: sinon.SinonStub;
 
+  let originalSecret: string | undefined;
   beforeEach(async () => {
+    originalSecret = process.env.NEXTAUTH_SECRET;
     process.env.NEXTAUTH_SECRET = "test-secret";
     transaction = await sequelize.transaction();
 
@@ -37,10 +39,7 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route MenteeApp forms", async () => {
-    const entry = {
-      data: "test-mentee-app",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
-    };
+    const entry = { data: "test-mentee-app", x_field_1: encodeXField(getWhiteLabel(), "url", "user1") };
 
     await submit({ form: "FBTWTe", entry }, transaction);
     expect(submitMenteeAppStub.callCount).to.equal(1);
@@ -68,10 +67,7 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route VolunteerApp forms", async () => {
-    const entry = {
-      data: "test-volunteer-app",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
-    };
+    const entry = { data: "test-volunteer-app", x_field_1: encodeXField(getWhiteLabel(), "url", "user1") };
 
     await submit({ form: "OzuvWD", entry }, transaction);
     expect(submitVolunteerAppStub.callCount).to.equal(1);
@@ -82,10 +78,7 @@ describe("jinshuju webhook index", () => {
   });
 
   it("should route upload forms", async () => {
-    const entry = {
-      data: "test-upload",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
-    };
+    const entry = { data: "test-upload", x_field_1: encodeXField(getWhiteLabel(), "url", "user1") };
 
     await submit({ form: "Bz3uSO", entry }, transaction);
     expect(submitUploadStub.callCount).to.equal(1);

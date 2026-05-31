@@ -12,7 +12,9 @@ describe("exam webhook", () => {
   let taskId: number;
   let transaction: Transaction;
 
+  let originalSecret: string | undefined;
   beforeEach(async () => {
+    originalSecret = process.env.NEXTAUTH_SECRET;
     process.env.NEXTAUTH_SECRET = "test-secret";
     transaction = await sequelize.transaction();
 
