@@ -280,7 +280,7 @@ export async function processRecord(
   }
 
   console.log(
-    "meeting_id",
+    "Processing meeting_id",
     record.meeting_id,
     "record_id",
     record.meeting_record_id,
@@ -341,6 +341,10 @@ export async function processRecord(
           tmUserId,
         );
 
+        const logIds = (key: string) =>
+          `record_id ${record.meeting_record_id}` +
+          ` transcript/record_file_id ${transcriptId} key ${key}`;
+
         // @returns null if no valid addresses are found.
         const newDesc = (addrs: FileAddresses, key: string) => {
           if (!addrs) return null;
@@ -357,8 +361,7 @@ export async function processRecord(
             }));
           if (ret.length == 0) {
             console.log(
-              `No valid addresses for transcript ${transcriptId}` +
-                ` key ${key} (which is unexpected).`,
+              `No valid addresses for ${logIds(key)} (which is unexpected).`,
             );
             return null;
           } else {
@@ -371,15 +374,11 @@ export async function processRecord(
         // meeting was too short and no meaningful content was recorded.
         const desc = newDesc(key2addrs.ai_minutes, AI_MINUTES_SUMMARY_KEY);
         if (!desc) return;
-        console.log(
-          `Downloading transcript ${transcriptId} key ${desc.key}...`,
-        );
+        console.log(`Downloading ${logIds(desc.key)}`);
         const summary = await downloadUrl(desc.url);
         const formatted = formatAiMinutesSummary(summary, desc.speakerStats);
         if (!formatted) {
-          console.log(
-            `Empty AI minutes summary for transcript ${transcriptId}`,
-          );
+          console.log(`Empty AI minutes summary for ${logIds(desc.key)}`);
           return;
         }
         await saveSummaryIfNotExist(desc, formatted);
@@ -395,7 +394,7 @@ export async function processRecord(
         const push = async (addrs: FileAddresses, key: string) => {
           const desc = newDesc(addrs, key);
           if (desc && !(await hasSummary(transcriptId, key))) {
-            console.log(`Push transcript ${transcriptId} key ${key}`);
+            console.log(`Pushing ${logIds(key)}`);
             descs.push(desc);
           }
         };

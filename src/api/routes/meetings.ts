@@ -178,8 +178,9 @@ export async function refreshMeetingSlots(
     // Meeting is ongoing. Skip.
     if (m.status == "MEETING_STATE_STARTED") continue;
 
-    console.log(`Marking meeting ${slot.meetingId} as ended for group
-      ${slot.groupId}`);
+    console.log(
+      `Marking meeting_id ${slot.meetingId} as ended for group ${slot.groupId}`,
+    );
 
     const histories = await db.MeetingHistory.findAll({
       where: {
