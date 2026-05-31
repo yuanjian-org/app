@@ -413,7 +413,7 @@ function UserEditor({
                         {rp.automatic ? "*" : ""} {rp.displayName}
                         {rp.privilegedUserDataAccess && (
                           <Tag size="sm" color="white" bgColor="orange" ml={2}>
-                            特权角色
+                            特权
                           </Tag>
                         )}
                       </Checkbox>
@@ -430,13 +430,12 @@ function UserEditor({
             <FormControl>
               <small>
                 <Tag size="sm" color="white" bgColor="orange" mr={1}>
-                  特权角色
+                  特权
                 </Tag>
                 访问
                 <Link
                   as={NextLink}
                   href="/who-can-see-my-data"
-                  color="brand.c"
                   isExternal
                 >
                   此页面
