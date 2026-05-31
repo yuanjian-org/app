@@ -1,12 +1,12 @@
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
+import { hmacChecksum } from "../../../shared/strings";
 import {
-  UploadTarget,
+  decodeUploadTokenUrlSafe,
   validateAndDecodeXField,
 } from "../../../shared/jinshuju";
 import sequelize from "../../database/sequelize";
 import { getWhiteLabel } from "../../getWhiteLabel";
-import { calculateMediaHmac } from "../../utils/jinshujuHmac";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
@@ -17,22 +17,24 @@ export default async function submit(entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one: ${urls.length}`);
   }
 
-  const decoded = validateAndDecodeXField(getWhiteLabel(), entry);
-  if (!decoded) {
+  const token = validateAndDecodeXField(getWhiteLabel(), entry);
+  if (!token) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }
 
-  const { target, userId, hmac } = decoded;
+  const { target, id, opaque } = decodeUploadTokenUrlSafe(token);
   console.log("Upload target:", target);
-  console.log("Upload userId:    ", userId);
-  console.log("Upload hmac:", hmac);
+  console.log("Upload id:    ", id);
+  console.log("Upload opaque:", opaque);
 
-  if (!target || !userId || !hmac) {
-    throw generalBadRequestError(`Invalid target, userId, or hmac`);
+  if (!target || !id || !opaque) {
+    throw generalBadRequestError(`Invalid target, id, or hmac`);
   }
 
-  if (target === "UserProfilePicture" || target === "UserProfileVideo") {
-    await uploadUserProfileMedia(userId, hmac, urls[0], target);
+  if (target === "UserProfilePicture") {
+    await uploadUserProfileMedia(id, opaque, urls[0], "照片");
+  } else if (target === "UserProfileVideo") {
+    await uploadUserProfileMedia(id, opaque, urls[0], "视频");
   } else {
     throw generalBadRequestError(`Unknown upload target: ${target}`);
   }
@@ -42,7 +44,7 @@ async function uploadUserProfileMedia(
   userId: string,
   hmac: string,
   url: string,
-  target: UploadTarget,
+  mediaType: "照片" | "视频",
 ) {
   await sequelize.transaction(async (transaction) => {
     const user = await db.User.findByPk(userId, {
@@ -54,10 +56,8 @@ async function uploadUserProfileMedia(
     // The `|| {}` is to be consistent with the logic in getUserProfile route
     const profile = user.profile || {};
     const urlToHash =
-      target === "UserProfilePicture"
-        ? profile["照片链接"]
-        : profile["视频链接"];
-    const localHmac = calculateMediaHmac(userId, urlToHash);
+      mediaType === "照片" ? profile["照片链接"] : profile["视频链接"];
+    const localHmac = hmacChecksum(urlToHash);
 
     console.log("uploadUserProfileMedia verifying HMAC:");
     console.log("  userId:    ", userId);
@@ -71,8 +71,6 @@ async function uploadUserProfileMedia(
           `Update conflict?`,
       );
     }
-
-    const mediaType = target === "UserProfilePicture" ? "照片" : "视频";
 
     await user.update(
       {

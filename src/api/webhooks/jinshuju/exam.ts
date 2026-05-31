@@ -13,11 +13,10 @@ export default async function submit(
   passingScore: number,
   transaction: Transaction,
 ) {
-  const decoded = validateAndDecodeXField(getWhiteLabel(), formEntry);
-  if (!decoded) {
+  const userId = validateAndDecodeXField(getWhiteLabel(), formEntry);
+  if (!userId) {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }
-  const userId = decoded.userId;
 
   const score = formEntry.exam_score;
   if (score < passingScore) {

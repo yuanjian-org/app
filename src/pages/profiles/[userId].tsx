@@ -34,7 +34,7 @@ import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
 import { ExternalLinkIcon, LockIcon } from "@chakra-ui/icons";
 import { displayName, isPermitted } from "shared/Role";
-import { UploadTarget } from "shared/jinshuju";
+import { encodeUploadTokenUrlSafe, UploadTarget } from "shared/jinshuju";
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
@@ -285,12 +285,13 @@ function encodeJinshujuXField(
   hmac: string,
   target: UploadTarget,
 ) {
+  const token = encodeUploadTokenUrlSafe(target, user.id, hmac);
   console.log("Encoding Jinshuju XField:");
   console.log("  target:", target);
-  console.log("  userUrl:", user.url);
   console.log("  userId:", user.id);
   console.log("  hmac:  ", hmac);
-  return encodeXField(whiteLabel, user.url, target, user.id, hmac);
+  console.log("  token: ", token);
+  return encodeXField(whiteLabel, user, token);
 }
 
 function Picture({
