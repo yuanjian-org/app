@@ -589,6 +589,7 @@ function UserCardForMobile({
           // Align content to the left
           align="start"
           onClick={visitUser}
+          flexShrink={0}
         >
           <Box width="100px">
             <FullWidthImageSquare profile={p} />
@@ -617,6 +618,8 @@ function UserCardForMobile({
           // Preserve space for the <Link> below
           pb={3 + componentSpacing}
           onClick={visitUser}
+          flex={1}
+          minW={0}
         >
           {p?.身份头衔 && (
             <Text>
