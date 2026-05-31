@@ -1,0 +1,80 @@
+--- src/api/routes/users.test.ts
++++ src/api/routes/users.test.ts
+@@ -2,7 +2,8 @@
+ import { describe, it, beforeEach, afterEach } from "mocha";
+ import db from "../database/db";
+ import { Transaction } from "sequelize";
+-import usersModule, {
++import * as usersModule from "./users";
++import {
+   updateImpl,
++  adminUpdateImpl,
+   updateWechatUnionId,
+   listImpl,
+@@ -237,20 +238,10 @@
+   });
+
+-  it("should throw noPermissionError when a non-UserManager tries to modify roles", async () => {
+-    try {
+-      await updateImpl(
+-        meNormal,
+-        { ...baseInput(meNormal), roles: ["Volunteer", "UserManager"] },
+-        transaction,
+-      );
+-      expect.fail("Should have thrown");
+-    } catch (err: any) {
+-      expect(err.message).to.include("没有权限访问");
+-    }
+-  });
+-
+   it("should successfully update own profile (non-UserManager)", async () => {
+     const input = {
+       ...baseInput(meNormal),
+       wechat: "new_wechat",
+@@ -262,11 +253,11 @@
+     await updateImpl(meNormal, input, transaction);
+
+     const updatedUser = await db.User.findByPk(meNormal.id, { transaction });
+     expect(updatedUser!.wechat).to.equal("new_wechat");
+   });
+
+   it("should successfully update another user's profile (UserManager)", async () => {
+     const input = {
+       ...baseInput(targetUser),
+       wechat: "target_new_wechat",
+     };
+
+-    await updateImpl(meManager, input, transaction);
++    await adminUpdateImpl(meManager, input, transaction);
+
+     const updatedTargetUser = await db.User.findByPk(targetUser.id, {
+       transaction,
+@@ -279,7 +270,7 @@
+       ...baseInput(targetUser),
+       roles: ["Volunteer", "Mentee"],
+     };
+
+-    await updateImpl(meManager, input, transaction);
++    await adminUpdateImpl(meManager, input, transaction);
+
+     const updatedTargetUser = await db.User.findByPk(targetUser.id, {
+       transaction,
+@@ -319,7 +310,7 @@
+       phone: "",
+       wechat: "",
+     };
+
+-    await updateImpl(meManager, input, transaction);
++    await adminUpdateImpl(meManager, input, transaction);
+
+     const updatedTargetUser = await db.User.findByPk(targetUser.id, {
+       transaction,
+@@ -333,7 +324,7 @@
+       wechatUnionId: "new_union_id",
+     };
+
+-    await updateImpl(meManager, input, transaction);
++    await adminUpdateImpl(meManager, input, transaction);
+
+     expect(updateWechatUnionIdStub.calledOnce).to.be.true;
+     expect(

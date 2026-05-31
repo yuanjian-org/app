@@ -327,7 +327,7 @@ function UserEditor({
     setIsSaving(true);
     try {
       if (user) {
-        await trpc.users.update.mutate({ ...user, ...fields });
+        await trpc.users.adminUpdate.mutate({ ...user, ...fields });
       } else {
         await trpc.users.create.mutate(fields);
       }

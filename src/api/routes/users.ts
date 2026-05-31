@@ -405,6 +405,61 @@ export function redactEmail(email: string): string {
  */
 const update = procedure
   .use(authUser())
+  .input(zUser)
+  .mutation(async ({ input, ctx: { me } }) => {
+    await sequelize.transaction(async (transaction) => {
+      await updateImpl(me, input, transaction);
+    });
+  });
+
+export async function updateImpl(
+  me: User,
+  input: User,
+  transaction: Transaction,
+) {
+  const user = await db.User.findByPk(input.id, {
+    attributes: ["id", "roles", "url", "name"],
+    transaction,
+  });
+  if (!user) {
+    throw notFoundError("用户", input.id);
+  }
+
+  // Non-UserManagers can only update their own profile.
+  if (me.id !== input.id) {
+    throw noPermissionError("用户", input.id);
+  }
+
+  // Only check Chinese name when updating name. Allow invalid names created
+  // during sign-in to be carried over. See createUser.
+  if (user.name !== input.name && !isValidChineseName(input.name)) {
+    throw generalBadRequestError("中文姓名无效。");
+  }
+
+  // Normalize empty strings to null for fields that should be nullable
+  const wechat = input.wechat === "" ? null : input.wechat;
+  const url = input.url === "" ? null : input.url;
+
+  await user.update(
+    {
+      wechat,
+
+      ...(await checkAndComputeUserFields({
+        name: input.name,
+        isVolunteer: isPermitted(user.roles, "Volunteer"),
+        oldUrl: user.url,
+        url,
+        transaction,
+      })),
+    },
+    { transaction },
+  );
+
+  invalidateUserCache(user.id);
+}
+
+const adminUpdate = procedure
+  .use(authUser("UserManager"))
   .input(
     zUser.merge(
       z.object({
@@ -414,11 +469,11 @@ const update = procedure
   )
   .mutation(async ({ input, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      await updateImpl(me, input, transaction);
+      await adminUpdateImpl(me, input, transaction);
     });
   });
 
-export async function updateImpl(
+export async function adminUpdateImpl(
   me: User,
   input: User & { wechatUnionId?: string | null },
   transaction: Transaction,
@@ -431,26 +486,12 @@ export async function updateImpl(
     throw notFoundError("用户", input.id);
   }
 
-  const isUserManager = isPermitted(me.roles, "UserManager");
-  if (!isUserManager) {
-    // Non-UserManagers can only update their own profile.
-    if (me.id !== input.id) {
-      throw noPermissionError("用户", input.id);
-    }
-
-    const rolesToAdd = input.roles.filter((r) => !user.roles.includes(r));
-    const rolesToRemove = user.roles.filter((r) => !input.roles.includes(r));
-    if ([...rolesToAdd, ...rolesToRemove].length) {
-      throw noPermissionError("用户", input.id);
-    }
-  } else {
-    await selfModule.updateWechatUnionId(
-      me.roles,
-      user.id,
-      input.wechatUnionId === "" ? null : input.wechatUnionId,
-      transaction,
-    );
-  }
+  await selfModule.updateWechatUnionId(
+    me.roles,
+    user.id,
+    input.wechatUnionId === "" ? null : input.wechatUnionId,
+    transaction,
+  );
 
   // Only check Chinese name when updating name. Allow invalid names created
   // during sign-in to be carried over. See createUser.
@@ -464,10 +505,12 @@ export async function updateImpl(
   const wechat = input.wechat === "" ? null : input.wechat;
   const url = input.url === "" ? null : input.url;
 
-  // TODO: For cleaner code, separate self updates from admin updates.
   await user.update(
     {
       wechat,
+      roles: input.roles,
+      email,
+      phone,
 
       ...(await checkAndComputeUserFields({
         name: input.name,
@@ -476,13 +519,6 @@ export async function updateImpl(
         url,
         transaction,
       })),
-
-      // fields that only UserManagers can change
-      ...(isUserManager && {
-        roles: input.roles,
-        email,
-        phone,
-      }),
     },
     { transaction },
   );
@@ -1089,6 +1125,7 @@ export default router({
   getMentorTraitsPref,
 
   update,
+  adminUpdate,
   setMenteeStatus,
   destroy,
 

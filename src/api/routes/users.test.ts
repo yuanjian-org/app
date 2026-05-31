@@ -3,6 +3,7 @@ import {
   redactEmail,
   updateWechatUnionId,
   updateImpl,
+  adminUpdateImpl,
   setMyStateImpl,
 } from "./users";
 import * as usersModule from "./users";
@@ -254,7 +255,7 @@ describe("updateImpl", () => {
 
   it("should throw notFoundError when user doesn't exist", async () => {
     try {
-      await updateImpl(
+      await adminUpdateImpl(
         meManager,
         {
           ...baseInput(targetUser),
@@ -271,19 +272,6 @@ describe("updateImpl", () => {
   it("should throw noPermissionError when a non-UserManager tries to update someone else", async () => {
     try {
       await updateImpl(meNormal, baseInput(targetUser), transaction);
-      expect.fail("Should have thrown");
-    } catch (err: any) {
-      expect(err.message).to.include("没有权限访问");
-    }
-  });
-
-  it("should throw noPermissionError when a non-UserManager tries to modify roles", async () => {
-    try {
-      await updateImpl(
-        meNormal,
-        { ...baseInput(meNormal), roles: ["Volunteer", "UserManager"] },
-        transaction,
-      );
       expect.fail("Should have thrown");
     } catch (err: any) {
       expect(err.message).to.include("没有权限访问");
@@ -316,7 +304,7 @@ describe("updateImpl", () => {
 
   it("should successfully update another user's profile (UserManager)", async () => {
     const input = { ...baseInput(targetUser), wechat: "manager_set_wechat" };
-    await updateImpl(meManager, input, transaction);
+    await adminUpdateImpl(meManager, input, transaction);
 
     const updated = await db.User.findByPk(targetUser.id, { transaction });
     expect(updated?.wechat).to.equal("manager_set_wechat");
@@ -324,7 +312,7 @@ describe("updateImpl", () => {
 
   it("should successfully update roles (UserManager)", async () => {
     const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] };
-    await updateImpl(meManager, input, transaction);
+    await adminUpdateImpl(meManager, input, transaction);
 
     const updated = await db.User.findByPk(targetUser.id, { transaction });
     expect(updated?.roles).to.include("Mentor");
@@ -332,7 +320,7 @@ describe("updateImpl", () => {
 
   it("should throw generalBadRequestError for invalid Chinese name", async () => {
     try {
-      await updateImpl(
+      await adminUpdateImpl(
         meManager,
         { ...baseInput(targetUser), name: "John Doe" }, // English name
         transaction,
@@ -345,7 +333,7 @@ describe("updateImpl", () => {
 
   it("should normalize empty strings to null for email, phone, wechat, but retain url if cleared", async () => {
     // First, give the targetUser valid initial strings for everything
-    await updateImpl(
+    await adminUpdateImpl(
       meManager,
       {
         ...baseInput(targetUser),
@@ -368,7 +356,7 @@ describe("updateImpl", () => {
       url: "",
     };
 
-    await updateImpl(meManager, input, transaction);
+    await adminUpdateImpl(meManager, input, transaction);
 
     const updated = await db.User.findByPk(targetUser.id, { transaction });
     void expect(updated?.email).to.be.null;
@@ -379,7 +367,7 @@ describe("updateImpl", () => {
 
   it("should update wechatUnionId when UserManager updates", async () => {
     const input = { ...baseInput(targetUser), wechatUnionId: "new_union_id" };
-    await updateImpl(meManager, input, transaction);
+    await adminUpdateImpl(meManager, input, transaction);
 
     void expect(updateWechatUnionIdStub.calledOnce).to.be.true;
     expect(updateWechatUnionIdStub.firstCall.args[2]).to.equal("new_union_id");
