@@ -432,13 +432,8 @@ function UserEditor({
                 <Tag size="sm" color="white" bgColor="orange" mr={1}>
                   特权
                 </Tag>
-                访问
-                <Link
-                  as={NextLink}
-                  href="/who-can-see-my-data"
-                  isExternal
-                >
-                  此页面
+                <Link as={NextLink} href="/who-can-see-my-data" isExternal>
+                  访问此页面
                 </Link>
                 了解这些角色的数据访问权限。
               </small>
