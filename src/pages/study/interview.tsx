@@ -1,16 +1,35 @@
 import { VStack, Button, Link, Text } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { trpcNext } from "trpc";
+import trpc, { trpcNext } from "trpc";
 import { prettifyDate } from "shared/strings";
 import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
+import { useState } from "react";
 
 const title = "面试官自学与评测";
 
 export default function Page() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const { data: xField } = trpcNext.users.getJinshujuXField.useQuery();
+  const [loading, setLoading] = useState(false);
+
+  const handleStartExam = async () => {
+    const newWindow = window.open("", "_blank");
+    setLoading(true);
+    try {
+      const xField = await trpc.users.getJinshujuXField.query();
+      if (newWindow) {
+        newWindow.location.href = getStandaloneFormUrl("w02l95", xField);
+      } else {
+        window.location.href = getStandaloneFormUrl("w02l95", xField);
+      }
+    } catch (e) {
+      if (newWindow) newWindow.close();
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -51,16 +70,9 @@ export default function Page() {
         </Button>
 
         <Text>第三步：</Text>
-        {xField && (
-          <Button
-            as={Link}
-            isExternal
-            href={getStandaloneFormUrl("w02l95", xField)}
-            variant="brand"
-          >
-            开始评测&nbsp;&nbsp;&nbsp;✍️
-          </Button>
-        )}
+        <Button onClick={handleStartExam} isLoading={loading} variant="brand">
+          开始评测&nbsp;&nbsp;&nbsp;✍️
+        </Button>
 
         {state && (
           <>
