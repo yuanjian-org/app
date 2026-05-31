@@ -397,6 +397,11 @@ function UserEditor({
                   {allRoles.map((r) => {
                     // This role is not currently used.
                     if (r === "MentorshipAssessor") return null;
+
+                    // This role is curerntly only to display legacy senior
+                    // mentors on the /mentors/manage page.
+                    if (r === "SeniorMentor") return null;
+
                     const rp = roleProfile(r);
                     return (
                       <Checkbox

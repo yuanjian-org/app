@@ -2,8 +2,11 @@ import z from "zod";
 
 export const allRoles = [
   "SystemAlertSubscriber",
+
   "UserManager",
   "GroupManager",
+  "OrgAdmin",
+
   "MentorshipAssessor",
   "MentorshipManager",
   "MentorshipOperator",
@@ -15,8 +18,10 @@ export const allRoles = [
   "Mentee",
   "Interviewer",
   "Volunteer",
+
+  // Deprecated. Only to display legacy senior mentors on the
+  // /mentors/manage page.
   "SeniorMentor",
-  "OrgAdmin",
 ] as const;
 
 type Role = (typeof allRoles)[number];
@@ -58,6 +63,11 @@ const RoleProfiles: {
     actions: "管理会议分组和会议纪要",
     privilegedUserDataAccess: true,
   },
+  OrgAdmin: {
+    displayName: "机构管理员",
+    actions: "管理机构信息、成员和所有者",
+  },
+
   MentorshipAssessor: {
     displayName: "一对一导师评估员",
     actions: "跟踪评估一对一导师辅导效果",
@@ -70,9 +80,10 @@ const RoleProfiles: {
   },
   MentorshipOperator: {
     displayName: "运营专员",
-    actions: "协助导师和学生活动的运营",
+    actions: "负责导师和学生活动的运营",
     privilegedUserDataAccess: true,
   },
+
   Mentor: {
     displayName: "导师",
     actions: "辅助学子成长",
@@ -99,10 +110,6 @@ const RoleProfiles: {
   Volunteer: {
     displayName: "志愿者",
     actions: "可以浏览其他志愿者信息",
-  },
-  OrgAdmin: {
-    displayName: "机构管理员",
-    actions: "管理机构信息、成员和所有者",
   },
 };
 
