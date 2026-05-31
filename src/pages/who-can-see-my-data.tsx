@@ -120,8 +120,8 @@ function DataTable() {
           <Tr>
             <Td>一对一导师与学生通话的纪要文字</Td>
             <Td>
-              {dp("GroupManager")}、{dp("MentorshipManager")}、
-              {dp("MentorshipAssessor")}
+              {dp("GroupManager")}、{dp("MentorshipManager")}
+              {/* Removed dp("MentorshipAssessor") as the role is not currently used */}
             </Td>
           </Tr>
           <Tr>
