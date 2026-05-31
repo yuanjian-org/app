@@ -20,6 +20,7 @@ import StaticPageContainer from "components/StaticPageContainer";
 import { getLoginCallbackUrl, loginUrl } from "./auth/login";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
+import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 
 function App({
   Component,
@@ -98,6 +99,8 @@ function SwitchBoard({
 } & PropsWithChildren) {
   const { status } = useSession();
   const router = useRouter();
+  const { data } = useStaticGlobalConfigs();
+  const isDemo = data?.whiteLabel === "demo";
 
   // Invariant guaranteed by the caller
   invariant(!isStaticPage(router.route), "non-static page");
@@ -110,7 +113,11 @@ function SwitchBoard({
       return children;
     } else if (router.asPath === "/") {
       // Redirect to static page if the user attempts to access the home page.
-      void router.push(staticUrlPrefix);
+      if (isDemo) {
+        void router.push("/s/demo");
+      } else {
+        void router.push(staticUrlPrefix);
+      }
       return null;
     } else {
       // Redirect to login if they attempt to access specific sub-pages.
