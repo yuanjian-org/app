@@ -395,6 +395,7 @@ function UserEditor({
                 <FormLabel>角色</FormLabel>
                 <Stack>
                   {allRoles.map((r) => {
+                    if (r === "MentorshipAssessor") return null;
                     const rp = roleProfile(r);
                     return (
                       <Checkbox
