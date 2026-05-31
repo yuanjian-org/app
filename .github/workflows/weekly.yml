@@ -15,12 +15,12 @@ jobs:
     steps:
       - name: Audit last mentorship meetings
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.auditLastMentorshipMeetings
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.auditLastMentorshipMeetings
 
       - name: Recycle meetings
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings
 
       - name: Purge old data
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.purgeOldData
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.purgeOldData

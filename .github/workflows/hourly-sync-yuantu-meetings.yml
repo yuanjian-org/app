@@ -22,4 +22,4 @@ jobs:
     steps:
       - name: Sync meetings
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings

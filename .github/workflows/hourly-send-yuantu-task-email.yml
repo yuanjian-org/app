@@ -14,8 +14,8 @@ jobs:
     steps:
       - name: Create auto tasks
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.createAutoTasks
       
       - name: Send scheduled emails
         run: |
-          curl -f -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledNotifications
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.sendScheduledNotifications
