@@ -43,6 +43,7 @@ import NextLink from "next/link";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import useWhiteLabel from "components/useWhiteLabel";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -624,12 +625,24 @@ function Mentor({
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
 }) {
+  const label = useWhiteLabel();
+  const exampleVideoUrl =
+    label === "yuantu"
+      ? "/weihan"
+      : "https://gd-pri.jinshujufiles.com/en/nhFsf1/" +
+        "lqs7KDT_0-e1Qbav95cQO1y41jGl_field_1_1762145720.mp4?token=" +
+        "7NK_Z1IEoKaIY6I9RXzO4b9uQPwuwdvnlGbzHZmF:" +
+        "BcXOiypPSbIjSbrKtneqBhjIVGc=:" +
+        "eyJTIjoiZ2QtcHJpLmppbnNodWp1ZmlsZXMuY29tL2VuL25oRnNmMS9scXM3S0" +
+        "RUXzAtZTFRYmF2OTVjUU8xeTQxakdsX2ZpZWxkXzFfMTc2MjE0NTcyMC5tcDQq" +
+        "IiwiRSI6MjA3NzcxNTI1MX0=&download&attname=720p.mp4";
+
   return (
     <>
       <Heading size="md">导师信息</Heading>
       <Text>
         这些信息是学生了解导师的重要渠道，是他们了解并选择
-        <Link isExternal href="/s/match">
+        <Link isExternal href="https://yuantuapp.com/s/match">
           与你匹配
         </Link>
         的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
@@ -647,7 +660,7 @@ function Mentor({
           上传长度约1-2分钟的视频，以便学生直观感受你的沟通方式。
           这将很大程度提高匹配的成功率和满意度。
           内容可包括坐标、职业、性格、擅长聊的话题等等。
-          <Link isExternal href="/weihan">
+          <Link isExternal href={exampleVideoUrl}>
             参考示例
           </Link>
           。
