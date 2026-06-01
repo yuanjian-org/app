@@ -144,12 +144,89 @@ export function SetPhoneModal({
             <Spacer />
             <Button
               variant="brand"
-              w={buttonWidth}
-              isDisabled={!state?.isValid}
               onClick={submit}
+              isDisabled={!state?.isValid}
               isLoading={loading}
+              w={buttonWidth}
             >
               确认
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  );
+}
+
+export function SetEmailModal({
+  cancel,
+  cancelLabel,
+}: {
+  cancel: () => void;
+  cancelLabel: string;
+}) {
+  const { update } = useSession();
+  const [state, setState] = useState<IdTokenInputsState>();
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    invariant(state?.isValid, "state is invalid");
+    setLoading(true);
+    try {
+      await trpc.idTokens.setEmail.mutate({
+        email: state.id,
+        token: state.token,
+      });
+
+      await update();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buttonWidth = "120px";
+
+  return (
+    <ModalWithBackdrop isOpen onClose={() => undefined}>
+      <ModalContent>
+        <ModalHeader>邮箱验证</ModalHeader>
+        <ModalBody>
+          <VStack spacing={componentSpacing} w="full">
+            <IdTokenInputs
+              idType="email"
+              onStateChange={setState}
+              buttonWidth={buttonWidth}
+            />
+
+            <HStack spacing={2} w="full">
+              <Spacer />
+              <SmallGrayText>
+                如有问题，
+                <Link
+                  href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+                  isExternal
+                >
+                  联系客服
+                </Link>
+              </SmallGrayText>
+              <RiCustomerServiceFill color="gray" />
+            </HStack>
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <HStack w="full">
+            <Button onClick={cancel} w={buttonWidth}>
+              {cancelLabel}
+            </Button>
+            <Spacer />
+            <Button
+              variant="brand"
+              onClick={submit}
+              isDisabled={!state?.isValid}
+              isLoading={loading}
+              w={buttonWidth}
+            >
+              提交
             </Button>
           </HStack>
         </ModalFooter>

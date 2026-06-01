@@ -215,6 +215,75 @@ const setPhone = procedure
     });
   });
 
+export async function setEmailImpl(
+  email: string,
+  token: string,
+  me: User,
+  transaction: Transaction,
+) {
+  await checkAndDeleteIdToken("email", email, token, transaction);
+
+  const existing = await db.User.findOne({
+    attributes: ["id"],
+    where: { email, id: { [Op.ne]: me.id } },
+    transaction,
+  });
+
+  if (!existing) {
+    await db.User.update({ email }, { where: { id: me.id }, transaction });
+    invalidateUserCache(me.id);
+  } else {
+    if (me.email) {
+      throw generalBadRequestError("邮箱已经被使用。");
+    } else {
+      const me2 = await db.User.findByPk(me.id, {
+        attributes: ["id", "phone", "wechatUnionId", "password"],
+        transaction,
+      });
+      invariant(me2, "User not found");
+      const phone = me2.phone;
+      const wechatUnionId = me2.wechatUnionId;
+      const password = me2.password;
+
+      await me2.update(
+        {
+          phone: null,
+          wechatUnionId: null,
+          password: null,
+          resetToken: null,
+          resetTokenExpiresAt: null,
+          mergedTo: existing.id,
+        },
+        { transaction },
+      );
+      await existing.update(
+        {
+          ...(phone && { phone }),
+          ...(wechatUnionId && { wechatUnionId }),
+          ...(password && { password }),
+        },
+        { transaction },
+      );
+      invalidateUserCache(me.id);
+      invalidateUserCache(existing.id);
+    }
+  }
+}
+
+const setEmail = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      email: z.string(),
+      token: z.string(),
+    }),
+  )
+  .mutation(async ({ input: { email, token }, ctx: { me } }) => {
+    await sequelize.transaction(async (transaction) => {
+      await setEmailImpl(email, token, me, transaction);
+    });
+  });
+
 export async function updateMyPhoneAndPreference(
   myId: string,
   oldPhone: string | null,
@@ -298,5 +367,6 @@ export async function resetPasswordImpl(
 export default router({
   send,
   setPhone,
+  setEmail,
   resetPassword,
 });

@@ -15,7 +15,7 @@ import {
   removeChinaPhonePrefix,
 } from "shared/strings";
 import { useRouter } from "next/router";
-import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
+
 import trpc, { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
@@ -25,7 +25,7 @@ import NextLink from "next/link";
 import { useEffect, useState } from "react";
 import { useMyId } from "useMe";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
-import { SetPhoneModal } from "components/PostLoginModels";
+import { SetPhoneModal, SetEmailModal } from "components/PostLoginModels";
 import { toast } from "react-toastify";
 import { useCanValidatePearlStudent } from "components/useCanValidatePearlStudent";
 import { useCanValidateUstcStudent } from "components/useCanValidateUstcStudent";
@@ -45,6 +45,7 @@ export default function Page() {
   const [wechat, setWechat] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSettingPhone, setIsSettingPhone] = useState(false);
+  const [isSettingEmail, setIsSettingEmail] = useState(false);
   const [isValidatingPearlStudent, setIsValidatingPearlStudent] =
     useState(false);
   const [isValidatingUstcStudent, setIsValidatingUstcStudent] = useState(false);
@@ -90,16 +91,11 @@ export default function Page() {
       <FormControl>
         <FormLabel>邮箱</FormLabel>
         <Input value={user.email || notSetText} readOnly />
-        <FormHelperTextWithMargin>
-          如需更改，
-          <Link
-            href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-            isExternal
-          >
-            请联系客服
-          </Link>
-          。
-        </FormHelperTextWithMargin>
+      </FormControl>
+      <FormControl>
+        <Button variant="brand" onClick={() => setIsSettingEmail(true)}>
+          修改
+        </Button>
       </FormControl>
 
       <FormControl>
@@ -133,6 +129,13 @@ export default function Page() {
         <SetPhoneModal
           cancelLabel="取消"
           cancel={() => setIsSettingPhone(false)}
+        />
+      )}
+
+      {isSettingEmail && (
+        <SetEmailModal
+          cancelLabel="取消"
+          cancel={() => setIsSettingEmail(false)}
         />
       )}
 
