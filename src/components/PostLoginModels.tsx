@@ -115,7 +115,10 @@ export function SetPhoneModal({
 
             <HStack spacing={2} w="full">
               <SmallGrayText>
-                <Link href={`${staticUrlPrefix}/why-phone`} isExternal>
+                <Link
+                  href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
+                  isExternal
+                >
                   为什么要填手机号？
                 </Link>
               </SmallGrayText>

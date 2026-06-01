@@ -53,6 +53,7 @@ import { widePage } from "AppPage";
 import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 import { FullTextSearchBox } from "components/UserCards";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
+import { staticUrlPrefix } from "static";
 
 export default widePage(() => {
   const { data } = useStaticGlobalConfigs();
@@ -359,7 +360,10 @@ function UserEditor({
 
             <FormControl isInvalid={!validPhone}>
               <FormLabel>
-                <Link href="/s/why-phone" isExternal>
+                <Link
+                  href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
+                  isExternal
+                >
                   手机号（唯一标识用户）
                 </Link>
               </FormLabel>
