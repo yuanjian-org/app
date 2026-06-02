@@ -7,10 +7,12 @@ import { z } from "zod";
 import { Transaction } from "sequelize";
 import { getWhiteLabel } from "../getWhiteLabel";
 import { zWhiteLabel } from "shared/WhiteLabel";
+import { getFeatures } from "../getFeatures";
+import { zFeatures } from "shared/Features";
 
 export function getStaticImpl() {
   return {
-    enableOrgs: process.env.ENABLE_ORGS === "true",
+    features: getFeatures(),
     whiteLabel: getWhiteLabel(),
   };
 }
@@ -64,7 +66,7 @@ export async function updateImpl(
 const getStatic = procedure
   .output(
     z.object({
-      enableOrgs: z.boolean(),
+      features: zFeatures,
       whiteLabel: zWhiteLabel.optional(),
     }),
   )

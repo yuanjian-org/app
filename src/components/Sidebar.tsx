@@ -352,7 +352,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
   const { data } = useStaticGlobalConfigs();
-  const enableOrgs = data?.enableOrgs;
+  const enableOrgs = data?.features?.orgs;
   const whiteLabel = useWhiteLabel();
   const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 

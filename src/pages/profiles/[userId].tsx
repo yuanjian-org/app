@@ -51,7 +51,7 @@ export default function Page() {
   const userId = queryUserId === "me" ? myId : queryUserId;
   const { update: updateSession } = useSession();
   const { data: staticData } = useStaticGlobalConfigs();
-  const enableOrgs = staticData?.enableOrgs;
+  const enableOrgs = staticData?.features?.orgs;
 
   const queryOpts = {
     // Avoid accidental override when switching between windows

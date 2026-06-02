@@ -351,7 +351,7 @@ function ProfileTable({
 }) {
   const me = useMe();
   const { data: staticData } = useStaticGlobalConfigs();
-  const enableOrgs = staticData?.enableOrgs;
+  const enableOrgs = staticData?.features?.orgs;
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });
