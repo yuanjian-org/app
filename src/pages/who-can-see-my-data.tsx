@@ -155,6 +155,8 @@ function Privileged({
         <Tbody>
           {allRoles
             .filter((r) => roleProfile(r).privilegedUserDataAccess)
+            // This role is currently not used.
+            .filter((r) => r !== "MentorshipAssessor")
             .map((r) => (
               <Tr key={r}>
                 <Td>{dp(r)}</Td>
