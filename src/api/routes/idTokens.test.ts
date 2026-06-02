@@ -218,6 +218,7 @@ describe("setPhoneImpl", () => {
 
   afterEach(async () => {
     await transaction.rollback();
+    sinon.restore();
   });
 
   it("should update phone when existing user is not found", async () => {
@@ -346,6 +347,7 @@ describe("resetPasswordImpl", () => {
 
   afterEach(async () => {
     await transaction.rollback();
+    sinon.restore();
   });
 
   describe("phone number password reset", () => {
@@ -632,6 +634,94 @@ describe("resetPasswordImpl", () => {
   });
 });
 
+import * as notifyModule from "../../api/notify";
+import * as checkAndDeleteIdTokenModule from "../../api/checkAndDeleteIdToken";
+import { setEmailImpl } from "./idTokens";
+
+describe("setEmailImpl", () => {
+  let transaction: Transaction;
+
+  async function createTestUser(email: string | null = null) {
+    const userData = email ? { email } : {};
+    return await db.User.create(
+      {
+        ...userData,
+        name: "Test User",
+      },
+      { transaction },
+    );
+  }
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+    sinon.restore();
+  });
+
+  it("should set email for the current user when no existing user has this email", async () => {
+    const myUser = await createTestUser();
+
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    if (checkStub.restore) checkStub.restore();
+    checkStub = sinon
+      .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
+      .resolves();
+
+    const notifyStub = sinon
+      .stub(notifyModule, "notifyRolesIgnoreError")
+      .resolves();
+
+    await setEmailImpl(myUser.id, "new@example.com", "123456", transaction);
+
+    await myUser.reload({ transaction });
+    expect(myUser.email).to.equal("new@example.com");
+
+    expect(checkStub.callCount).to.equal(1);
+    expect(checkStub.firstCall.args[0]).to.equal("email");
+    expect(checkStub.firstCall.args[1]).to.equal("new@example.com");
+    expect(checkStub.firstCall.args[2]).to.equal("123456");
+
+    expect(notifyStub.callCount).to.equal(0);
+  });
+
+  it("should remove email from existing user and notify when another user has this email", async () => {
+    const existingUser = await createTestUser("shared@example.com");
+    const myUser = await createTestUser();
+
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    if (checkStub.restore) checkStub.restore();
+    checkStub = sinon
+      .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
+      .resolves();
+
+    const notifyStub = sinon
+      .stub(notifyModule, "notifyRolesIgnoreError")
+      .resolves();
+
+    await setEmailImpl(myUser.id, "shared@example.com", "123456", transaction);
+
+    await myUser.reload({ transaction });
+    expect(myUser.email).to.equal("shared@example.com");
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).to.be.null;
+
+    expect(checkStub.callCount).to.equal(1);
+
+    expect(notifyStub.callCount).to.equal(1);
+    expect(notifyStub.firstCall.args[0]).to.deep.equal([
+      "SystemAlertSubscriber",
+    ]);
+    expect(notifyStub.firstCall.args[1]).to.equal("邮箱转移通知");
+    expect(notifyStub.firstCall.args[2]).to.include(myUser.id);
+    expect(notifyStub.firstCall.args[2]).to.include("shared@example.com");
+    expect(notifyStub.firstCall.args[2]).to.include(existingUser.id);
+  });
+});
+
 describe("updateMyPhoneAndPreference", () => {
   const chinaPhone = "+8613800138000";
   const nonChinaPhone = "+12345678901";
@@ -659,6 +749,7 @@ describe("updateMyPhoneAndPreference", () => {
 
   afterEach(async () => {
     await transaction.rollback();
+    sinon.restore();
   });
 
   it("should update phone for China phone numbers without disabling SMS", async () => {
