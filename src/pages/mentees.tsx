@@ -46,7 +46,6 @@ import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import moment from "moment";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
-import { MdEdit } from "react-icons/md";
 import { pageMarginX, sectionSpacing } from "theme/metrics";
 import {
   PointOfContactCells,
@@ -69,7 +68,7 @@ import { TbClockOff, TbClock } from "react-icons/tb";
 import { MenteeStatus } from "shared/MenteeStatus";
 import {
   Mentorship,
-  isOngoingRelationalMentorship,
+  isEnded,
   reviewRedThreshold,
   reviewYellowThreshold,
   newTransactionalMentorshipEndsAt,
@@ -742,9 +741,12 @@ function LoadedMentorsCells({
   readonly?: boolean;
   setLastMeetingStartedAt?: (userId: string, date: string) => void;
 }) {
-  const visibleMentorships = mentorships.filter((m) =>
-    isOngoingRelationalMentorship(m),
-  );
+  const visibleMentorships = mentorships
+    .filter((m) => !isEnded(m.endsAt))
+    .sort((a, b) => {
+      if (a.transactional === b.transactional) return 0;
+      return a.transactional ? 1 : -1;
+    });
 
   const lastMeetingsRes = trpcNext.useQueries((t) => {
     return visibleMentorships.map((m) =>
@@ -801,14 +803,14 @@ function LoadedMentorsCells({
           {visibleMentorships.length ? (
             <VStack align="start">
               {visibleMentorships.map((m) => (
-                <Flex key={m.id} gap={1}>
-                  <MentorshipStatusIcon m={m} />
+                <Flex key={m.id} gap={1} align="center">
                   {formatUserName(m.mentor.name)}
+                  <MentorshipStatusIcon m={m} />
                 </Flex>
               ))}
             </VStack>
           ) : (
-            <MdEdit />
+            <AddIcon />
           )}
         </LinkToEditor>
       </Td>
