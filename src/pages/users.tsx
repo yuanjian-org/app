@@ -26,7 +26,12 @@ import {
   Link,
   IconButton,
   Tooltip,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
+import { MdEdit, MdMoreVert } from "react-icons/md";
 import { useState } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
@@ -35,11 +40,10 @@ import {
   formatUserName,
   isValidChineseName,
   isValidPhone,
-  toPinyin,
 } from "shared/strings";
 import Role, { allRoles, isPermitted, roleProfile } from "shared/Role";
 import trpc from "trpc";
-import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { AddIcon } from "@chakra-ui/icons";
 import Loader from "components/Loader";
 import z from "zod";
 import NextLink from "next/link";
@@ -183,48 +187,28 @@ function UserTable({
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>手机号（唯一标识）</Th>
-          <Th>微信UID</Th>
-          <Th>电子邮箱</Th>
           <Th>姓名</Th>
-          <Th>偏好</Th>
-          <Th>拼音</Th>
           <Th>角色</Th>
+          <Th>修改</Th>
+          <Th>更多</Th>
           {!isDemo && <Th>假扮</Th>}
+          <Th>手机号（唯一标识）</Th>
+          <Th>电子邮箱</Th>
+          <Th>微信UID</Th>
           <Th>ID</Th>
         </Tr>
       </Thead>
       <Tbody>
         {users.map((u) => (
           <Tr key={u.id} cursor="pointer" _hover={{ bg: "white" }}>
-            <Td onClick={() => setUserBeingEdited(u)}>{u.phone}</Td>
-            <Td onClick={() => setUserBeingEdited(u)}>
-              {u.wechatUnionId && "已设置"}
-            </Td>
-            <Td onClick={() => setUserBeingEdited(u)}>{u.email}</Td>
-
+            {/* Name */}
             <Td>
-              <Link as={NextLink} href={`/profiles/${u.id}`}>
+              <Link as={NextLink} href={`/users/${u.id}`}>
                 <b>
                   {formatUserName(u.name, "formal")}
                   {me.id === u.id ? "（我）" : ""}
-                </b>{" "}
-                <ChevronRightIcon />
+                </b>
               </Link>
-            </Td>
-
-            <Td>
-              <Link as={NextLink} href={`/preferences/${u.id}`}>
-                偏好
-              </Link>
-            </Td>
-
-            <Td
-              onClick={() => setUserBeingEdited(u)}
-              translate="no"
-              className="notranslate"
-            >
-              {toPinyin(u.name ?? "")}
             </Td>
 
             {/* Roles */}
@@ -256,6 +240,39 @@ function UserTable({
               </Wrap>
             </Td>
 
+            {/* Edit */}
+            <Td>
+              <IconButton
+                aria-label="编辑用户"
+                icon={<MdEdit />}
+                size="sm"
+                variant="ghost"
+                onClick={() => setUserBeingEdited(u)}
+              />
+            </Td>
+
+            {/* More */}
+            <Td>
+              <Menu isLazy>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="更多"
+                  icon={<MdMoreVert />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <MenuList zIndex={2}>
+                  <MenuItem as={NextLink} href={`/profiles/${u.id}`}>
+                    编辑个人资料
+                  </MenuItem>
+                  <MenuItem as={NextLink} href={`/preferences/${u.id}`}>
+                    编辑偏好设置
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Td>
+
             {/* Impersonate */}
             {!isDemo && (
               <Td>
@@ -273,6 +290,11 @@ function UserTable({
               </Td>
             )}
 
+            <Td onClick={() => setUserBeingEdited(u)}>{u.phone}</Td>
+            <Td onClick={() => setUserBeingEdited(u)}>{u.email}</Td>
+            <Td onClick={() => setUserBeingEdited(u)}>
+              {u.wechatUnionId && "已设置"}
+            </Td>
             {/* ID */}
             <Td>{u.id}</Td>
           </Tr>
