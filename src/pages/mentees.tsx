@@ -37,7 +37,6 @@ import {
   formatUserName,
   getColorFromText,
   prettifyDate,
-  toPinyin,
 } from "shared/strings";
 import Loader from "components/Loader";
 import UserFilterSelector from "components/UserFilterSelector";
@@ -403,7 +402,6 @@ function MenteeTable({
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
-          <Th>拼音（便于查找）</Th>
 
           {!isDemo && isUserManager && (
             <>
@@ -497,25 +495,11 @@ function MenteeRow({
   isUserManager: boolean;
   year?: string;
 }) {
-  const menteePinyin = toPinyin(u.name ?? "");
-  const [pinyin, setPinyins] = useState(menteePinyin);
-
   const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
     await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
-
-  const addPinyin = useCallback(
-    (names: string[]) => {
-      if (names.length) {
-        setPinyins(
-          `${menteePinyin}, ${names.map((n) => toPinyin(n)).join(", ")}`,
-        );
-      }
-    },
-    [menteePinyin],
-  );
 
   const downloadMenteeData = async (userId: string) => {
     const result = await trpc.menteeData.downloadMenteeData.query(userId);
@@ -557,7 +541,6 @@ function MenteeRow({
 
       <MentorshipCells
         mentee={u}
-        addPinyin={addPinyin}
         setLastMeetingStartedAt={setLastMeetingStartedAt}
       />
       <LastReviewDateCell
@@ -570,9 +553,6 @@ function MenteeRow({
         prefix={mentorReviewMessagePrefix}
         setData={setLastMentorReviewDate}
       />
-      <Td translate="no" className="notranslate">
-        {pinyin}
-      </Td>
 
       {!isDemo && isUserManager && (
         <>
@@ -716,12 +696,10 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
 
 export function MentorshipCells({
   mentee,
-  addPinyin,
   readonly,
   setLastMeetingStartedAt,
 }: {
   mentee: MinUser;
-  addPinyin?: (names: string[]) => void;
   readonly?: boolean;
   setLastMeetingStartedAt?: (userId: string, date: string) => void;
 }) {
@@ -744,7 +722,6 @@ export function MentorshipCells({
     <LoadedMentorsCells
       mentee={mentee}
       mentorships={data}
-      addPinyin={addPinyin}
       refetch={refetch}
       readonly={readonly}
       setLastMeetingStartedAt={setLastMeetingStartedAt}
@@ -755,14 +732,12 @@ export function MentorshipCells({
 function LoadedMentorsCells({
   mentee,
   mentorships,
-  addPinyin,
   refetch,
   readonly,
   setLastMeetingStartedAt,
 }: {
   mentee: MinUser;
   mentorships: Mentorship[];
-  addPinyin?: (names: string[]) => void;
   refetch: () => void;
   readonly?: boolean;
   setLastMeetingStartedAt?: (userId: string, date: string) => void;
@@ -808,16 +783,6 @@ function LoadedMentorsCells({
 
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
-
-  useEffect(() => {
-    if (addPinyin) {
-      addPinyin(
-        visibleMentorships
-          .map((m) => m.mentor.name)
-          .filter((n) => n !== null) as string[],
-      );
-    }
-  }, [visibleMentorships, addPinyin]);
 
   return (
     <>
