@@ -387,7 +387,7 @@ function UserEditor({
             </FormControl>
 
             <FormControl>
-              <FormLabel>微信UnionID</FormLabel>
+              <FormLabel>微信UID</FormLabel>
               <Input
                 value={unionId}
                 onChange={(e) => setUnionId(e.target.value)}
