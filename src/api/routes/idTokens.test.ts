@@ -4,7 +4,7 @@ import {
   resetPasswordImpl,
   updateMyPhoneAndPreference,
   sendImpl,
-  setPhoneImpl,
+  setIdImpl,
 } from "./idTokens";
 import { Transaction } from "sequelize";
 import { expect } from "chai";
@@ -24,7 +24,7 @@ describe("sendImpl", () => {
     transaction = await sequelize.transaction();
     smsStub = sinon.stub(smsModule, "sms").resolves();
     emailStub = sinon.stub(emailModule, "email").resolves();
-    sinon.stub(tokenModule, "generateToken").resolves(123456);
+    sinon.stub(tokenModule, "generateToken").resolves("123456");
   });
 
   afterEach(async () => {
@@ -206,14 +206,16 @@ describe("sendImpl", () => {
   });
 });
 
-describe("setPhoneImpl", () => {
+describe("setIdImpl", () => {
   let transaction: Transaction;
   const token = "123456";
   const phone = "+8613800138000";
+  const email = "test@example.com";
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
     await db.IdToken.create({ ip: "127.0.0.1", phone, token }, { transaction });
+    await db.IdToken.create({ ip: "127.0.0.1", email, token }, { transaction });
   });
 
   afterEach(async () => {
@@ -223,7 +225,7 @@ describe("setPhoneImpl", () => {
   it("should update phone when existing user is not found", async () => {
     const me = await db.User.create({ name: "me user" }, { transaction });
 
-    await setPhoneImpl(phone, token, me, transaction);
+    await setIdImpl("phone", phone, token, me, transaction);
 
     await me.reload({ transaction });
     void expect(me.phone).to.equal(phone);
@@ -237,7 +239,7 @@ describe("setPhoneImpl", () => {
     );
 
     try {
-      await setPhoneImpl(phone, token, me, transaction);
+      await setIdImpl("phone", phone, token, me, transaction);
       expect.fail("Expected error to be thrown");
     } catch (error: any) {
       void expect(error).to.be.instanceOf(TRPCError);
@@ -260,7 +262,7 @@ describe("setPhoneImpl", () => {
       { transaction },
     );
 
-    await setPhoneImpl(phone, token, me, transaction);
+    await setIdImpl("phone", phone, token, me, transaction);
 
     await me.reload({ transaction });
     void expect(me.email).to.be.null;
@@ -287,7 +289,7 @@ describe("setPhoneImpl", () => {
     );
     const me = await db.User.create({ name: "me user" }, { transaction });
 
-    await setPhoneImpl(phone, token, me, transaction);
+    await setIdImpl("phone", phone, token, me, transaction);
 
     await me.reload({ transaction });
     void expect(me.email).to.be.null;
@@ -300,6 +302,60 @@ describe("setPhoneImpl", () => {
     void expect(existingUser.email).to.equal("existing@example.com");
     void expect(existingUser.wechatUnionId).to.equal("existing-wechat");
     void expect(existingUser.password).to.equal("existing-password");
+  });
+
+  it("should update email when no existing user is found", async () => {
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    await setIdImpl("email", email, token, me, transaction);
+
+    await me.reload({ transaction });
+    void expect(me.email).to.equal(email);
+  });
+
+  it("should throw error if email already used by another user and current user already has email", async () => {
+    await db.User.create({ email, name: "existing user" }, { transaction });
+    const me = await db.User.create(
+      { email: "other@example.com", name: "me user" },
+      { transaction },
+    );
+
+    try {
+      await setIdImpl("email", email, token, me, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("邮箱已经被使用。");
+    }
+  });
+
+  it("should merge accounts if email already used and current user has NO email", async () => {
+    const existingUser = await db.User.create(
+      { email, name: "existing user" },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me user",
+        phone: "+8613912345678",
+        wechatUnionId: "wechat-id-456",
+        password: "hashed-password",
+      },
+      { transaction },
+    );
+
+    await setIdImpl("email", email, token, me, transaction);
+
+    await me.reload({ transaction });
+    void expect(me.phone).to.be.null;
+    void expect(me.wechatUnionId).to.be.null;
+    void expect(me.password).to.be.null;
+    void expect(me.mergedTo).to.equal(existingUser.id);
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.phone).to.equal("+8613912345678");
+    void expect(existingUser.wechatUnionId).to.equal("wechat-id-456");
+    void expect(existingUser.password).to.equal("hashed-password");
   });
 });
 

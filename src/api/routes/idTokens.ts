@@ -114,35 +114,46 @@ const send = procedure
 
 import User from "../../shared/User";
 
-export async function setPhoneImpl(
-  phone: string,
+export async function setIdImpl(
+  idType: IdType,
+  id: string,
   token: string,
   me: User,
   transaction: Transaction,
 ) {
-  await checkAndDeleteIdToken("phone", phone, token, transaction);
+  const idField = idType === "phone" ? "phone" : "email";
+  await checkAndDeleteIdToken(idType, id, token, transaction);
 
   const existing = await db.User.findOne({
     attributes: ["id"],
-    where: { phone, id: { [Op.ne]: me.id } },
+    where: { [idField]: id, id: { [Op.ne]: me.id } },
     transaction,
   });
 
   if (!existing) {
-    await updateMyPhoneAndPreference(me.id, me.phone, phone, transaction);
+    if (idType === "phone") {
+      await updateMyPhoneAndPreference(me.id, me.phone, id, transaction);
+    } else {
+      await db.User.update(
+        { email: id },
+        { where: { id: me.id }, transaction },
+      );
+    }
     invalidateUserCache(me.id);
   } else {
-    if (me.phone) {
-      // If the current user already has a phone number, account merge would
+    if (me[idField]) {
+      // If the current user already has a phone number/email, account merge would
       // cause data loss or inconsistency if we don't carefully merge all
       // the data associated with the two accounts. So we disallow it.
-      // Note that the user's new phone number may be the same as their
+      // Note that the user's new phone number/email may be the same as their
       // existing number. We throw the same error in this case.
-      throw generalBadRequestError("手机号已经被使用。");
+      const errorStr =
+        idType === "phone" ? "手机号已经被使用。" : "邮箱已经被使用。";
+      throw generalBadRequestError(errorStr);
     } else {
       // Merge accounts.
       //
-      // Overwrite email and wechat of `existing`. These fields are used by
+      // Overwrite email/phone and wechat of `existing`. These fields are used by
       // next-auth for user authentication.
       //
       // Ignore other data associated with the current user. This is because
@@ -161,19 +172,21 @@ export async function setPhoneImpl(
       //    re-login at a much later time.
 
       // Get user password. A user may have a password prior to setting up
-      // an account. Also get fresh email and wechatUnionId becaue why not.
+      // an account. Also get fresh email/phone and wechatUnionId becaue why not.
       const me2 = await db.User.findByPk(me.id, {
-        attributes: ["id", "email", "wechatUnionId", "password"],
+        attributes: ["id", "email", "phone", "wechatUnionId", "password"],
         transaction,
       });
       invariant(me2, "User not found");
-      const email = me2.email;
+      const emailToMerge = idType === "phone" ? me2.email : null;
+      const phoneToMerge = idType === "email" ? me2.phone : null;
       const wechatUnionId = me2.wechatUnionId;
       const password = me2.password;
 
       await me2.update(
         {
           email: null,
+          phone: null,
           wechatUnionId: null,
           password: null,
           resetToken: null,
@@ -184,7 +197,8 @@ export async function setPhoneImpl(
       );
       await existing.update(
         {
-          ...(email && { email }),
+          ...(emailToMerge && { email: emailToMerge }),
+          ...(phoneToMerge && { phone: phoneToMerge }),
           ...(wechatUnionId && { wechatUnionId }),
           ...(password && { password }),
         },
@@ -201,17 +215,18 @@ export async function setPhoneImpl(
  * soon as this route returns, because this route may merge the current user
  * with another user.
  */
-const setPhone = procedure
+const setId = procedure
   .use(authUser())
   .input(
     z.object({
-      phone: z.string(),
+      idType: zIdType,
+      id: z.string(),
       token: z.string(),
     }),
   )
-  .mutation(async ({ input: { phone, token }, ctx: { me } }) => {
+  .mutation(async ({ input: { idType, id, token }, ctx: { me } }) => {
     await sequelize.transaction(async (transaction) => {
-      await setPhoneImpl(phone, token, me, transaction);
+      await setIdImpl(idType, id, token, me, transaction);
     });
   });
 
@@ -297,6 +312,6 @@ export async function resetPasswordImpl(
 
 export default router({
   send,
-  setPhone,
+  setId,
   resetPassword,
 });
