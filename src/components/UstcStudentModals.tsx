@@ -92,6 +92,9 @@ function InitialModal({
   );
 }
 
+/**
+ * TODO: Reuse <IdTokenInputs />
+ */
 export function UstcStudentValidationModal({
   cancelLabel,
   cancel,

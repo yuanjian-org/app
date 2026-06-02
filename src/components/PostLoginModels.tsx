@@ -68,6 +68,70 @@ export default function PostLoginModels() {
   );
 }
 
+const buttonWidth = "120px";
+
+export function SetEmailModal({ cancel }: { cancel: () => void }) {
+  const [state, setState] = useState<IdTokenInputsState>();
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    invariant(state?.isValid, "state is invalid");
+    setLoading(true);
+    try {
+      await trpc.idTokens.setEmail.mutate({
+        email: state.id,
+        token: state.token,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ModalWithBackdrop isOpen onClose={cancel}>
+      <ModalContent>
+        <ModalHeader>邮箱验证</ModalHeader>
+        <ModalBody>
+          <VStack spacing={componentSpacing} w="full">
+            <IdTokenInputs
+              idType="email"
+              onStateChange={setState}
+              buttonWidth={buttonWidth}
+            />
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <HStack spacing={componentSpacing} w="full">
+            <SmallGrayText>
+              如有问题，
+              <Link
+                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
+                isExternal
+              >
+                联系客服
+              </Link>
+            </SmallGrayText>
+            <RiCustomerServiceFill color="gray" />
+
+            <Spacer />
+            <Button onClick={cancel} isDisabled={loading}>
+              取消
+            </Button>
+            <Button
+              onClick={submit}
+              variant="brand"
+              isDisabled={!state?.isValid}
+              isLoading={loading}
+            >
+              提交
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  );
+}
+
 export function SetPhoneModal({
   cancel,
   cancelLabel,
@@ -96,8 +160,6 @@ export function SetPhoneModal({
       setLoading(false);
     }
   };
-
-  const buttonWidth = "120px";
 
   return (
     // Set onClose to undefined to prevent user from closing the modal without

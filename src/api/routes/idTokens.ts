@@ -113,6 +113,7 @@ const send = procedure
   });
 
 import User from "../../shared/User";
+import { notifyRolesIgnoreError } from "api/notify";
 
 export async function setPhoneImpl(
   phone: string,
@@ -295,8 +296,53 @@ export async function resetPasswordImpl(
   await user.update({ password: hashedPassword }, { transaction });
 }
 
+const setEmail = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      email: z.string(),
+      token: z.string(),
+    }),
+  )
+  .mutation(async ({ input: { email, token }, ctx: { me } }) => {
+    await sequelize.transaction(async (transaction) => {
+      await setEmailImpl(me.id, email, token, transaction);
+    });
+
+    invalidateUserCache(me.id);
+  });
+
+export async function setEmailImpl(
+  myId: string,
+  email: string,
+  token: string,
+  transaction: Transaction,
+) {
+  await checkAndDeleteIdToken("email", email, token, transaction);
+
+  const existing = await db.User.findOne({
+    attributes: ["id"],
+    where: { email, id: { [Op.ne]: myId } },
+    transaction,
+  });
+
+  if (existing) {
+    // Remove email from existing user and assign it to the current user.
+    await existing.update({ email: null }, { transaction });
+
+    notifyRolesIgnoreError(
+      ["SystemAlertSubscriber"],
+      "邮箱转移通知",
+      `用户 ${myId} 将邮箱 ${email} 从用户 ${existing.id} 转移`,
+    );
+  }
+
+  await db.User.update({ email }, { where: { id: myId }, transaction });
+}
+
 export default router({
   send,
   setPhone,
+  setEmail,
   resetPassword,
 });

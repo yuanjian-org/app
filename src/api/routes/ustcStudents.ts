@@ -5,11 +5,12 @@ import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { authUser } from "../auth";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
-import { checkAndDeleteIdToken } from "../../api/checkAndDeleteIdToken";
 import { MenteeStatus } from "../../shared/MenteeStatus";
 import invariant from "shared/invariant";
 import User from "../../shared/User";
 import { Transaction } from "sequelize";
+import { setEmailImpl } from "./idTokens";
+import { generalBadRequestError } from "api/errors";
 
 export async function validateImpl(
   me: User,
@@ -17,25 +18,24 @@ export async function validateImpl(
   token: string,
   transaction: Transaction,
 ) {
-  // 1. Verify and consume the email verification token
-  await checkAndDeleteIdToken("email", email, token, transaction);
+  if (!email.endsWith("@mail.ustc.edu.cn")) {
+    throw generalBadRequestError("邮箱必须是中科大邮箱。");
+  }
 
-  // 2. Fetch current user
+  await setEmailImpl(me.id, email, token, transaction);
+
   const user = await db.User.findByPk(me.id, {
     attributes: ["id", "roles", "menteeStatus"],
     transaction,
   });
   invariant(user, `User not found: ${me.id}`);
 
-  // 3. Update the user
-  // Note: We're making them a Mentee and setting their status if it's null,
-  // similarly to pearl students.
+  // Set the user's mentee status if it's null, same as for pearl students.
   const menteeStatus: MenteeStatus =
     user.menteeStatus === null ? "现届学子" : user.menteeStatus;
 
   await user.update(
     {
-      email,
       roles: addRole(me.roles, "Mentee"),
       menteeStatus,
     },
