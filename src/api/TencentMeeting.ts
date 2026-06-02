@@ -92,6 +92,9 @@ const tmRequest = async (
   // authentication docs location
   // https://cloud.tencent.com/document/product/1095/42413
   const url = "https://api.meeting.qq.com" + pathWithQuery;
+  // Use maximum uint32 (4294967295) for nonce range to prevent collisions
+  // which cause 500 "请求重放错误" (Request replay error) from Tencent Meeting API
+  // within a 5-minute window for identical nonces and timestamps.
   const nonce = crypto.randomInt(0, 4294967295);
   const bodyText = method === "GET" ? "" : JSON.stringify(body);
 
