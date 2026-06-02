@@ -71,6 +71,7 @@ export default function PostLoginModels() {
 const buttonWidth = "120px";
 
 export function SetEmailModal({ cancel }: { cancel: () => void }) {
+  const { update } = useSession();
   const [state, setState] = useState<IdTokenInputsState>();
   const [loading, setLoading] = useState(false);
 
@@ -82,6 +83,11 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
         email: state.id,
         token: state.token,
       });
+
+      // As soon as the session is updated, all affected page components should
+      // be refreshed including the caller to this modal, so we don't need to
+      // manually close this modal.
+      await update();
     } finally {
       setLoading(false);
     }
