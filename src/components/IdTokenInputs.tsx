@@ -99,7 +99,7 @@ export default function IdTokenInputs({
             isRequired={true}
             value={token}
             placeholder="验证码"
-            isDisabled={!isValidId}
+            isDisabled={!isValidId(id)}
             onChange={(e) => {
               const token = e.target.value.trim();
               setToken(token);
