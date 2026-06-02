@@ -83,8 +83,9 @@ export function SetPhoneModal({
     invariant(state?.isValid, "state is invalid");
     setLoading(true);
     try {
-      await trpc.idTokens.setPhone.mutate({
-        phone: state.id,
+      await trpc.idTokens.setId.mutate({
+        idType: "phone",
+        id: state.id,
         token: state.token,
       });
 
@@ -150,6 +151,68 @@ export function SetPhoneModal({
               isLoading={loading}
             >
               确认
+            </Button>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
+    </ModalWithBackdrop>
+  );
+}
+
+export function SetEmailModal({
+  cancel,
+  cancelLabel,
+}: {
+  cancel: () => void;
+  cancelLabel: string;
+}) {
+  const { update } = useSession();
+  const [state, setState] = useState<IdTokenInputsState>();
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    invariant(state?.isValid, "state is invalid");
+    setLoading(true);
+    try {
+      await trpc.idTokens.setId.mutate({
+        idType: "email",
+        id: state.id,
+        token: state.token,
+      });
+      await update();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buttonWidth = "120px";
+
+  return (
+    <ModalWithBackdrop isOpen onClose={() => undefined}>
+      <ModalContent>
+        <ModalHeader>邮箱验证</ModalHeader>
+        <ModalBody>
+          <VStack spacing={componentSpacing} w="full">
+            <IdTokenInputs
+              idType="email"
+              onStateChange={setState}
+              buttonWidth={buttonWidth}
+            />
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Spacer />
+          <HStack spacing={componentSpacing}>
+            <Button onClick={cancel} isDisabled={loading}>
+              {cancelLabel}
+            </Button>
+            <Button
+              variant="brand"
+              onClick={submit}
+              isDisabled={!state?.isValid}
+              isLoading={loading}
+            >
+              提交
             </Button>
           </HStack>
         </ModalFooter>
