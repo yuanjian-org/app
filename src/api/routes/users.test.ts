@@ -322,6 +322,19 @@ describe("updateImpl", () => {
     expect(updated?.wechat).to.equal("manager_set_wechat");
   });
 
+  it("should successfully update another user's email and phone (UserManager)", async () => {
+    const input = {
+      ...baseInput(targetUser),
+      email: "new_email@example.com",
+      phone: "12345678901",
+    };
+    await updateImpl(meManager, input, transaction);
+
+    const updated = await db.User.findByPk(targetUser.id, { transaction });
+    expect(updated?.email).to.equal("new_email@example.com");
+    expect(updated?.phone).to.equal("12345678901");
+  });
+
   it("should successfully update roles (UserManager)", async () => {
     const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] };
     await updateImpl(meManager, input, transaction);
