@@ -49,10 +49,8 @@ export default function MentorBookingModal({
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>
-          预约
-          {mentor
-            ? `导师：${formatUserName(mentor.name, "formal")}`
-            : "不定期导师"}
+          预约导师
+          {mentor && `：${formatUserName(mentor.name, "formal")}`}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
