@@ -20,9 +20,14 @@ describe("Global Configs Internal Functions", () => {
   });
 
   describe("getStaticImpl", () => {
-    it("should return static configuration values including enableOrgs, and whiteLabel", () => {
+    it("should return static configuration values including features, and whiteLabel", () => {
       const result = getStaticImpl();
-      expect(result.enableOrgs).to.equal(process.env.ENABLE_ORGS === "true");
+      expect(result.features.orgs).to.equal(
+        process.env.ENABLE_ORGS === "true" ? true : undefined,
+      );
+      expect(result.features.relational).to.equal(
+        process.env.ENABLE_RELATIONAL === "true" ? true : undefined,
+      );
       expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL || "yuantu");
     });
   });
