@@ -58,6 +58,7 @@ import { FullTextSearchBox } from "components/UserCards";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 import { staticUrlPrefix } from "static";
 import {
+  useFeatures,
   useIsStaticConfigsReady,
   useWhiteLabel,
 } from "components/useStaticConfigs";
@@ -320,6 +321,7 @@ function UserEditor({
   };
 
   const myRoles = useMyRoles();
+  const features = useFeatures();
   const [phone, setPhone] = useState(u.phone || "");
   const [email, setEmail] = useState(u.email || "");
   const [unionId, setUnionId] = useState(u.wechatUnionId || "");
@@ -427,6 +429,14 @@ function UserEditor({
                     // This role is curerntly only to display legacy senior
                     // mentors on the /mentors/manage page.
                     if (r === "SeniorMentor") return null;
+
+                    if (r === "TransactionalMentor" && !features.relational) {
+                      return null;
+                    }
+
+                    if (r === "Volunteer" && !features.volunteers) {
+                      return null;
+                    }
 
                     const rp = roleProfile(r);
                     return (

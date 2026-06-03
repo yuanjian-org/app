@@ -8,5 +8,8 @@ export function getFeatures(): Features {
   if (process.env.ENABLE_RELATIONAL === "true") {
     features.relational = true;
   }
+  if (process.env.ENABLE_VOLUNTEERS === "true") {
+    features.volunteers = true;
+  }
   return features;
 }
