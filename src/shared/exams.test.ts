@@ -86,58 +86,37 @@ describe("Exams Requirements", () => {
 });
 
 describe("calculateExamsRequired", () => {
-  it("should return undefined for all if state or whiteLabel is undefined", () => {
+  it("should return undefined for all if state is undefined", () => {
     const res1 = calculateExamsRequired({
       state: undefined,
       whiteLabel: "yuantu",
-      isProdEnv: true,
     });
     void expect(res1.commsExamRequired).to.be.undefined;
     void expect(res1.interviewExamRequired).to.be.undefined;
     void expect(res1.handbookExamRequired).to.be.undefined;
-
-    const res2 = calculateExamsRequired({
-      state: {},
-      whiteLabel: undefined,
-      isProdEnv: true,
-    });
-    void expect(res2.commsExamRequired).to.be.undefined;
-    void expect(res2.interviewExamRequired).to.be.undefined;
-    void expect(res2.handbookExamRequired).to.be.undefined;
   });
 
-  it("should return false for all if isProdEnv is false or whiteLabel is demo", () => {
+  it("should return false for all if whiteLabel is not yuantu", () => {
     const res1 = calculateExamsRequired({
       state: {},
-      whiteLabel: "yuantu",
-      isProdEnv: false,
+      whiteLabel: "xhef",
     });
     void expect(res1.commsExamRequired).to.be.false;
     void expect(res1.interviewExamRequired).to.be.false;
     void expect(res1.handbookExamRequired).to.be.false;
-
-    const res2 = calculateExamsRequired({
-      state: {},
-      whiteLabel: "demo",
-      isProdEnv: true,
-    });
-    void expect(res2.commsExamRequired).to.be.false;
-    void expect(res2.interviewExamRequired).to.be.false;
-    void expect(res2.handbookExamRequired).to.be.false;
   });
 
-  it("should require exams if state is empty (exams not passed) in prod and not demo", () => {
+  it("should require exams if state is empty (exams not passed) and whiteLabel is yuantu", () => {
     const res = calculateExamsRequired({
       state: {},
       whiteLabel: "yuantu",
-      isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.true;
     void expect(res.interviewExamRequired).to.be.true;
     void expect(res.handbookExamRequired).to.be.true;
   });
 
-  it("should not require exams if passed recently in prod and not demo", () => {
+  it("should not require exams if passed recently and whiteLabel is yuantu", () => {
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(Date.now() - 100 * 86400000).toISOString(),
@@ -147,7 +126,6 @@ describe("calculateExamsRequired", () => {
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
       whiteLabel: "yuantu",
-      isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.false;
     void expect(res.interviewExamRequired).to.be.false;
@@ -168,7 +146,6 @@ describe("calculateExamsRequired", () => {
         ).toISOString(),
       },
       whiteLabel: "yuantu",
-      isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.true;
     void expect(res.interviewExamRequired).to.be.false;
@@ -185,7 +162,6 @@ describe("calculateExamsRequired", () => {
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
       whiteLabel: "yuantu",
-      isProdEnv: true,
     });
     void expect(res.commsExamRequired).to.be.false;
     void expect(res.interviewExamRequired).to.be.true;

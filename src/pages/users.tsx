@@ -54,14 +54,15 @@ import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
 import { FullTextSearchBox } from "components/UserCards";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 import { staticUrlPrefix } from "static";
+import {
+  useIsStaticConfigsReady,
+  useWhiteLabel,
+} from "components/useStaticConfigs";
 
 export default widePage(() => {
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.whiteLabel === "demo";
   const [includeMerged, setIncludeMerged] = useState(false);
 
   const [filter, setFilter] = useState<{
@@ -138,15 +139,11 @@ export default widePage(() => {
           </WrapItem>
         </Wrap>
 
-        {!users || !data ? (
+        {!users ? (
           <Loader />
         ) : (
           <TableContainer>
-            <UserTable
-              users={users}
-              setUserBeingEdited={setUserBeingEdited}
-              isDemo={isDemo}
-            />
+            <UserTable users={users} setUserBeingEdited={setUserBeingEdited} />
           </TableContainer>
         )}
 
@@ -159,16 +156,19 @@ export default widePage(() => {
 function UserTable({
   users,
   setUserBeingEdited,
-  isDemo,
 }: {
   users: UserWithMergeInfo[];
   setUserBeingEdited: (u: User | null) => void;
-  isDemo: boolean;
 }) {
+  const isDemo = useWhiteLabel() === "demo";
   const me = useMe();
   const { update: updateSession } = useSession();
   const router = useRouter();
   const utils = trpcNext.useContext();
+
+  if (!useIsStaticConfigsReady()) {
+    return <Loader />;
+  }
 
   const startImpersonation = async (userId: string) => {
     // Invalidate all queries before impersonation to ensure fresh data

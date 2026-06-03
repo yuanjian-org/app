@@ -30,8 +30,7 @@ import useMe, { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
-import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel, useFeatures } from "components/useStaticConfigs";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -351,8 +350,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
-  const { data } = useStaticGlobalConfigs();
-  const enableOrgs = data?.features?.orgs;
+  const enableOrgs = useFeatures().orgs;
   const whiteLabel = useWhiteLabel();
   const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
@@ -459,8 +457,7 @@ function ImpersonationBanner() {
 }
 
 function DemoBanner() {
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.whiteLabel === "demo";
+  const isDemo = useWhiteLabel() === "demo";
 
   return !isDemo ? (
     <></>

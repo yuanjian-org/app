@@ -42,16 +42,14 @@ import { useMyId, useMyRoles } from "useMe";
 import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
-import useWhiteLabel from "components/useWhiteLabel";
+import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
   const myId = useMyId();
   const userId = queryUserId === "me" ? myId : queryUserId;
   const { update: updateSession } = useSession();
-  const { data: staticData } = useStaticGlobalConfigs();
-  const enableOrgs = staticData?.features?.orgs;
+  const enableOrgs = useFeatures().orgs;
 
   const queryOpts = {
     // Avoid accidental override when switching between windows

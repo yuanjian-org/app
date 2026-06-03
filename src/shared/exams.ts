@@ -33,24 +33,22 @@ export function isExamAboutToExpire(
 export function calculateExamsRequired({
   state,
   whiteLabel,
-  isProdEnv,
 }: {
   state?: {
     commsExam?: DateColumn;
     menteeInterviewerExam?: DateColumn;
     handbookExam?: DateColumn;
   };
-  whiteLabel?: WhiteLabel;
-  isProdEnv: boolean;
+  whiteLabel: WhiteLabel;
 }) {
-  if (state === undefined || whiteLabel === undefined) {
+  if (state === undefined) {
     return {
       commsExamRequired: undefined,
       interviewExamRequired: undefined,
       handbookExamRequired: undefined,
     };
   }
-  if (!isProdEnv || whiteLabel === "demo") {
+  if (whiteLabel !== "yuantu") {
     return {
       commsExamRequired: false,
       interviewExamRequired: false,

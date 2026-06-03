@@ -2,7 +2,7 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function MentorCard() {
   const whiteLabel = useWhiteLabel();

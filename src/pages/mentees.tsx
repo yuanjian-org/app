@@ -91,7 +91,10 @@ import { IconButton, Tooltip } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import useMe from "useMe";
 import { isPermitted } from "shared/Role";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import {
+  useIsStaticConfigsReady,
+  useWhiteLabel,
+} from "components/useStaticConfigs";
 import { getAnonymousId } from "shared/getAnonymousId";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 
@@ -112,8 +115,8 @@ type SortOrder = {
 const title = "学生档案";
 
 export default fullPage(() => {
-  const { data: config } = useStaticGlobalConfigs();
-  const isDemo = config?.whiteLabel === "demo";
+  const isStaticConfigsReady = useIsStaticConfigsReady();
+  const isDemo = useWhiteLabel() === "demo";
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteers: true,
@@ -167,7 +170,7 @@ export default fullPage(() => {
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
-        {!users || !config ? (
+        {!users || !isStaticConfigsReady ? (
           <Loader />
         ) : (
           // overflowY and maxHeight are to make the table header sticky.

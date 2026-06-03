@@ -17,7 +17,7 @@ import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();

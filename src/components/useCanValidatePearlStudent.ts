@@ -1,4 +1,4 @@
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel } from "components/useStaticConfigs";
 import Role from "../shared/Role";
 
 export function useCanValidatePearlStudent(roles: Role[]) {

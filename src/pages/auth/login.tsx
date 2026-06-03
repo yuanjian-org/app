@@ -43,7 +43,7 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import { useWhiteLabel } from "components/useStaticConfigs";
 import Image from "next/image";
 import NextLink from "next/link";
 import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
@@ -114,8 +114,7 @@ function toastSignInError(err: any) {
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   const router = useRouter();
-  const { data } = useStaticGlobalConfigs();
-  const isDemo = data?.whiteLabel === "demo";
+  const isDemo = useWhiteLabel() === "demo";
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {

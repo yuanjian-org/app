@@ -67,7 +67,7 @@ const getStatic = procedure
   .output(
     z.object({
       features: zFeatures,
-      whiteLabel: zWhiteLabel.optional(),
+      whiteLabel: zWhiteLabel,
     }),
   )
   .query(() => {

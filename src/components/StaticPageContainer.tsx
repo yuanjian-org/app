@@ -3,7 +3,7 @@ import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
 import { ReactNode } from "react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
-import useStaticGlobalConfigs from "./useStaticGlobalConfigs";
+import { useIsStaticConfigsReady, useWhiteLabel } from "./useStaticConfigs";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
@@ -14,21 +14,21 @@ export default function StaticPageContainer({
 }: {
   children: ReactNode;
 }) {
-  const { data } = useStaticGlobalConfigs();
+  const whiteLabel = useWhiteLabel();
 
-  if (!data) {
+  if (!useIsStaticConfigsReady()) {
     return <PageLoader />;
   }
 
-  if (data?.whiteLabel === "ustc") {
+  if (whiteLabel === "ustc") {
     return <UstcLandingPage />;
   }
 
-  if (data?.whiteLabel === "xhef") {
+  if (whiteLabel === "xhef") {
     return <XhefLandingPage />;
   }
 
-  if (data?.whiteLabel === "demo") {
+  if (whiteLabel === "demo") {
     return <DemoLandingPage />;
   }
 

@@ -12,7 +12,7 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel } from "components/useStaticConfigs";
 import Head from "next/head";
 
 export default fullPage(() => {

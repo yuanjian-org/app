@@ -1,4 +1,4 @@
-import useWhiteLabel from "components/useWhiteLabel";
+import { useWhiteLabel } from "components/useStaticConfigs";
 
 /**
  * A user can validate themselves as a ustc student only if the white label is

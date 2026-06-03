@@ -1,5 +1,5 @@
 import trpc, { trpcNext } from "../trpc";
-import useStaticGlobalConfigs from "components/useStaticGlobalConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 import Loader from "components/Loader";
 import { formatUserName } from "shared/strings";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -350,8 +350,7 @@ function ProfileTable({
   profile: UserProfile;
 }) {
   const me = useMe();
-  const { data: staticData } = useStaticGlobalConfigs();
-  const enableOrgs = staticData?.features?.orgs;
+  const enableOrgs = useFeatures().orgs;
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });
