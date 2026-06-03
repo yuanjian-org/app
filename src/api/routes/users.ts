@@ -185,65 +185,95 @@ export async function listImpl(
     ],
 
     where: {
-      ...(filter.includeMerged === true
-        ? {}
-        : {
-            mergedTo: { [Op.eq]: null },
-          }),
+      // Use [Op.and] to connect sub-clauses to avoid potential key conflicts
+      // (like multiple [Op.or] conditions) when query options are merged.
+      [Op.and]: [
+        ...(filter.includeMerged === true
+          ? []
+          : [
+              {
+                mergedTo: { [Op.eq]: null },
+              },
+            ]),
 
-      ...(filter.includeNonVolunteersMentors === true
-        ? {}
-        : {
-            [Op.or]: [
-              { roles: { [Op.contains]: [volunteer] } },
-              { roles: { [Op.contains]: [mentor] } },
-            ],
-          }),
+        ...(filter.includeNonVolunteersMentors === true
+          ? []
+          : [
+              {
+                [Op.or]: [
+                  { roles: { [Op.contains]: [volunteer] } },
+                  { roles: { [Op.contains]: [mentor] } },
+                ],
+              },
+            ]),
 
-      ...(filter.containsRoles === undefined
-        ? {}
-        : {
-            [Op.and]: filter.containsRoles.map((r) => ({
-              roles: { [Op.contains]: [r] },
-            })),
-          }),
+        ...(filter.containsRoles === undefined
+          ? []
+          : [
+              {
+                [Op.and]: filter.containsRoles.map((r) => ({
+                  roles: { [Op.contains]: [r] },
+                })),
+              },
+            ]),
 
-      ...(filter.menteeStatus === undefined
-        ? {}
-        : {
-            menteeStatus: filter.menteeStatus,
-          }),
+        ...(filter.menteeStatus === undefined
+          ? []
+          : [
+              {
+                menteeStatus: filter.menteeStatus,
+              },
+            ]),
 
-      ...(filter.pointOfContactId === undefined
-        ? {}
-        : {
-            pointOfContactId: filter.pointOfContactId,
-          }),
+        ...(filter.pointOfContactId === undefined
+          ? []
+          : [
+              {
+                pointOfContactId: filter.pointOfContactId,
+              },
+            ]),
 
-      ...(filter.matchesNameOrEmail === undefined
-        ? {}
-        : {
-            [Op.or]: [
-              { pinyin: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-              { name: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-              { email: { [Op.iLike]: `%${filter.matchesNameOrEmail}%` } },
-              ...(menteeIdsFromMentorSearch !== undefined
-                ? [
-                    {
-                      id: {
-                        [Op.in]: menteeIdsFromMentorSearch,
-                      },
+        ...(filter.matchesNameOrEmail === undefined
+          ? []
+          : [
+              {
+                [Op.or]: [
+                  {
+                    pinyin: {
+                      [Op.iLike]: `%${filter.matchesNameOrEmail}%`,
                     },
-                  ]
-                : []),
-            ],
-          }),
+                  },
+                  {
+                    name: {
+                      [Op.iLike]: `%${filter.matchesNameOrEmail}%`,
+                    },
+                  },
+                  {
+                    email: {
+                      [Op.iLike]: `%${filter.matchesNameOrEmail}%`,
+                    },
+                  },
+                  ...(menteeIdsFromMentorSearch !== undefined
+                    ? [
+                        {
+                          id: {
+                            [Op.in]: menteeIdsFromMentorSearch,
+                          },
+                        },
+                      ]
+                    : []),
+                ],
+              },
+            ]),
 
-      ...(filter.ids === undefined
-        ? {}
-        : {
-            id: { [Op.in]: filter.ids },
-          }),
+        ...(filter.ids === undefined
+          ? []
+          : [
+              {
+                id: { [Op.in]: filter.ids },
+              },
+            ]),
+      ],
     },
   });
 
