@@ -6,9 +6,8 @@ import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function MentorCard() {
   const whiteLabel = useWhiteLabel();
-  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
 
-  if (isUstcOrXhef) return null;
+  if (whiteLabel !== "yuantu" && whiteLabel !== "demo") return null;
 
   return (
     <ResponsiveCard>

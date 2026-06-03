@@ -12,7 +12,7 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
-import { useWhiteLabel } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 import Head from "next/head";
 
 export default fullPage(() => {
@@ -25,9 +25,8 @@ export default fullPage(() => {
     () => (data ? dailyShuffle(data, me.id) : undefined),
     [data, me],
   );
-  const whiteLabel = useWhiteLabel();
-  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
-  const title = isUstcOrXhef ? "预约导师" : "预约不定期导师";
+  const features = useFeatures();
+  const title = features.relational ? "预约不定期导师" : "预约导师";
 
   return (
     <>

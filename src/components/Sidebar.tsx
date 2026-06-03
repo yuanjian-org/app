@@ -350,9 +350,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
-  const enableOrgs = useFeatures().orgs;
-  const whiteLabel = useWhiteLabel();
-  const isUstcOrXhef = whiteLabel === "ustc" || whiteLabel === "xhef";
+  const features = useFeatures();
 
   return (
     <Flex
@@ -370,9 +368,10 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
 
         {mainMenuItems
-          .filter((item) => enableOrgs || item.path !== "/orgs")
+          .filter((item) => features.orgs || item.path !== "/orgs")
           .filter(
-            (item) => !isUstcOrXhef || item.path !== "/mentors/relational",
+            (item) =>
+              features.relational || item.path !== "/mentors/relational",
           )
           .filter((item) =>
             typeof item.permission === "function"
@@ -381,7 +380,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           )
           .map((item) => {
             const displayItem = { ...item };
-            if (isUstcOrXhef && displayItem.path === "/mentors") {
+            if (!features.relational && displayItem.path === "/mentors") {
               displayItem.name = "预约导师";
             }
             return (
@@ -397,7 +396,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           title="管理功能"
           icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems.filter(
-            (item) => enableOrgs || item.action !== "/orgs/manage",
+            (item) => features.orgs || item.action !== "/orgs/manage",
           )}
           onClose={onClose}
         />
