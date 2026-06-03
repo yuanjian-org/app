@@ -132,6 +132,7 @@ export async function listImpl(
 
   // Force type checking.
   const volunteer: Role = "Volunteer";
+  const mentor: Role = "Mentor";
 
   const limit = filter.limit;
 
@@ -190,10 +191,13 @@ export async function listImpl(
             mergedTo: { [Op.eq]: null },
           }),
 
-      ...(filter.includeNonVolunteers === true
+      ...(filter.includeNonVolunteersMentors === true
         ? {}
         : {
-            roles: { [Op.contains]: [volunteer] },
+            [Op.or]: [
+              { roles: { [Op.contains]: [volunteer] } },
+              { roles: { [Op.contains]: [mentor] } },
+            ],
           }),
 
       ...(filter.containsRoles === undefined

@@ -548,7 +548,7 @@ describe("listImpl", () => {
   });
 
   it(
-    "should filter includeNonVolunteers",
+    "should filter includeNonVolunteersMentors",
     async () => {
       await db.User.bulkCreate(
         [
@@ -584,7 +584,7 @@ describe("listImpl", () => {
       res = await usersModule.listImpl(
         userManager,
         {
-          includeNonVolunteers: true,
+          includeNonVolunteersMentors: true,
           ids: [
             "00000000-0000-0000-0000-000000000001",
             "00000000-0000-0000-0000-000000000002",

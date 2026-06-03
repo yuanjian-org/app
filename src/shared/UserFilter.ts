@@ -11,9 +11,10 @@ export const zUserFilter = z.object({
   ids: z.array(z.string()).optional(),
 
   /**
-   * If true, includes users whose roles don't include "Volunteer". Defaults to false.
+   * If true, includes users whose roles don't include "Volunteer" or "Mentor".
+   * Defaults to false.
    */
-  includeNonVolunteers: z.boolean().optional(),
+  includeNonVolunteersMentors: z.boolean().optional(),
   /**
    * If true, includes users who have been merged into another account. Requires UserManager permission. Defaults to false.
    */

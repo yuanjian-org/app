@@ -119,7 +119,7 @@ export default fullPage(() => {
   const isDemo = useWhiteLabel() === "demo";
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
-    includeNonVolunteers: true,
+    includeNonVolunteersMentors: true,
     includeMentorSearch: true,
   };
 

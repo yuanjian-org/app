@@ -80,7 +80,7 @@ export default widePage(() => {
   } = trpcNext.users.list.useInfiniteQuery(
     {
       includeMerged,
-      includeNonVolunteers: true,
+      includeNonVolunteersMentors: true,
       returnMergeInfo: true,
       limit: 50,
       ...filter,
