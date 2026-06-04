@@ -221,11 +221,7 @@ const mainMenuItems: MainMenuItem[] = [
     regex: /^\/mentors\/relational.*/,
     feature: "relational",
     permission: (me: User) =>
-      isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly") ||
-      // Do not show this menu to mentors -- some mentors are marked as
-      // transactional only. It may be surprising when they don't see themselves
-      // on this page.
-      isPermitted(me.roles, "MentorshipManager"),
+      isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly"),
   },
   {
     name: "志愿者档案",
