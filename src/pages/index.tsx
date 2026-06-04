@@ -1,7 +1,6 @@
 import { Grid, VStack } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import GroupsCard from "components/launchpad/GroupsCard";
-import VolunteerStudyCard from "components/launchpad/VolunteerStudyCard";
 import MentorCard from "components/launchpad/MentorCard";
 import TasksCard from "components/launchpad/TasksCard";
 import { PropsWithChildren } from "react";
@@ -35,8 +34,6 @@ export default function Page() {
           />
 
           {isPermitted(myRoles, "Mentor") && <MentorCard />}
-
-          {isPermitted(myRoles, "Volunteer") && <VolunteerStudyCard />}
         </Column>
       </Grid>
     </>

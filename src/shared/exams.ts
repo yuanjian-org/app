@@ -1,6 +1,6 @@
 import { DateColumn } from "./DateColumn";
 import moment from "moment";
-import { WhiteLabel } from "./WhiteLabel";
+import { Features } from "./Features";
 
 export const defaultExamExpiryDays = 365;
 
@@ -32,14 +32,14 @@ export function isExamAboutToExpire(
 
 export function calculateExamsRequired({
   state,
-  whiteLabel,
+  features,
 }: {
   state?: {
     commsExam?: DateColumn;
     menteeInterviewerExam?: DateColumn;
     handbookExam?: DateColumn;
   };
-  whiteLabel: WhiteLabel;
+  features: Features;
 }) {
   if (state === undefined) {
     return {
@@ -48,7 +48,7 @@ export function calculateExamsRequired({
       handbookExamRequired: undefined,
     };
   }
-  if (whiteLabel !== "yuantu") {
+  if (!features.exams) {
     return {
       commsExamRequired: false,
       interviewExamRequired: false,

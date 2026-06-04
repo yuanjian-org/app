@@ -60,6 +60,7 @@ import { IoMdCalendar } from "react-icons/io";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import TasksCard from "components/launchpad/TasksCard";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
+import { useFeatures } from "components/useStaticConfigs";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), "menteeId");
@@ -127,6 +128,7 @@ function MenteeTabs({
   mentorships: Mentorship[];
 }) {
   const me = useMe();
+  const features = useFeatures();
   const filtered = filterAndSortMentorship(mentorships, me);
 
   return (
@@ -145,8 +147,13 @@ function MenteeTabs({
             </Tab>
           ))
         )}
-        <Tab>基本信息</Tab>
-        {!isPermitted(me.roles, "MentorshipOperator") && <Tab>面试页</Tab>}
+
+        {features.interviews && (
+          <>
+            <Tab>申请表信息</Tab>
+            {!isPermitted(me.roles, "MentorshipOperator") && <Tab>面试页</Tab>}
+          </>
+        )}
         {/* <Tab>年度反馈</Tab> */}
       </TabList>
 
@@ -156,12 +163,18 @@ function MenteeTabs({
             <MentorshipPanel mentorship={m} />
           </TabPanel>
         ))}
-        <TabPanel>
-          <Applicant type="MenteeInterview" userId={mentee.id} />
-        </TabPanel>
-        {!isPermitted(me.roles, "MentorshipOperator") && (
-          <InterviewTabPanel menteeId={mentee.id} />
+
+        {features.interviews && (
+          <>
+            <TabPanel>
+              <Applicant type="MenteeInterview" userId={mentee.id} />
+            </TabPanel>
+            {!isPermitted(me.roles, "MentorshipOperator") && (
+              <InterviewTabPanel menteeId={mentee.id} />
+            )}
+          </>
         )}
+
         {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
       </TabPanel> */}

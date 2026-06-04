@@ -54,6 +54,7 @@ import { UnreadChatMessagesRedDot } from "./ChatRoom";
 import { FaStreetView } from "react-icons/fa";
 import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
+import { Features } from "shared/Features";
 
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
@@ -68,6 +69,7 @@ interface MainMenuItem {
   path: string;
   regex?: RegExp;
   permission?: Role | Role[] | ((u: User) => boolean);
+  feature?: keyof Features;
   redDot?: React.ComponentType;
 }
 
@@ -78,6 +80,7 @@ interface DropdownMenuItem {
   // valid only if action is a string.
   target?: "_blank";
   roles?: Role | Role[];
+  feature?: keyof Features;
   icon?: React.ReactNode;
 }
 
@@ -86,16 +89,19 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     name: "学生面试",
     action: "/interviews?type=MenteeInterview",
     roles: "MentorshipManager",
+    feature: "interviews",
   },
   {
     name: "导师面试",
     action: "/interviews?type=MentorInterview",
     roles: "MentorshipManager",
+    feature: "interviews",
   },
   {
     name: "面试官",
     action: "/interviewers",
     roles: "MentorshipManager",
+    feature: "interviews",
   },
   {
     name: "导师",
@@ -116,11 +122,13 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     name: "一对一匹配",
     action: "/match",
     roles: "MentorshipManager",
+    feature: "relational",
   },
   {
     name: "一对一通话时间",
     action: "/schedules",
     roles: ["MentorshipManager", "MentorshipOperator"],
+    feature: "relational",
   },
   {
     name: "不定期导师预约记录",
@@ -136,6 +144,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     name: "入驻机构",
     action: "/orgs/manage",
     roles: "OrgAdmin",
+    feature: "orgs",
   },
   {
     name: "全局设置",
@@ -208,6 +217,7 @@ const mainMenuItems: MainMenuItem[] = [
     path: "/mentors/relational",
     icon: MdSupervisorAccount,
     regex: /^\/mentors\/relational.*/,
+    feature: "relational",
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly") ||
       // Do not show this menu to mentors -- some mentors are marked as
@@ -221,6 +231,7 @@ const mainMenuItems: MainMenuItem[] = [
     icon: IoStar,
     regex: /^\/volunteers/,
     permission: "Volunteer",
+    feature: "volunteers",
     redDot: UnreadKudosBlueDot,
   },
   {
@@ -228,6 +239,7 @@ const mainMenuItems: MainMenuItem[] = [
     path: "/orgs",
     icon: MdBusiness,
     regex: /^\/orgs/,
+    feature: "orgs",
   },
   {
     name: "学生档案",
@@ -368,11 +380,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
 
         {mainMenuItems
-          .filter((item) => features.orgs || item.path !== "/orgs")
-          .filter(
-            (item) =>
-              features.relational || item.path !== "/mentors/relational",
-          )
+          .filter((item) => !item.feature || !!features[item.feature])
           .filter((item) =>
             typeof item.permission === "function"
               ? item.permission(me)
@@ -392,12 +400,10 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
             );
           })}
 
-        <DropdownMenuIfPermitted
+        <DropdownMenu
           title="管理功能"
           icon={<Icon as={IoIosCog} marginRight="2" />}
-          menuItems={managerDropdownMenuItems.filter(
-            (item) => features.orgs || item.action !== "/orgs/manage",
-          )}
+          menuItems={managerDropdownMenuItems}
           onClose={onClose}
         />
 
@@ -408,7 +414,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       </Box>
 
       <Box>
-        <DropdownMenuIfPermitted
+        <DropdownMenu
           title={myName}
           icon={<Avatar size={"sm"} bg="brand.a" color="white" name={myName} />}
           menuItems={userDropdownMenuItems}
@@ -476,7 +482,7 @@ function DemoBanner() {
   );
 }
 
-function DropdownMenuIfPermitted({
+function DropdownMenu({
   title,
   icon,
   menuItems,
@@ -488,9 +494,11 @@ function DropdownMenuIfPermitted({
   onClose: () => void;
 }) {
   const myRoles = useMyRoles();
-  const filteredItems = menuItems.filter((item) =>
-    isPermitted(myRoles, item.roles),
-  );
+  const features = useFeatures();
+  const filteredItems = menuItems.filter((item) => {
+    if (item.feature) return !!features[item.feature];
+    return isPermitted(myRoles, item.roles);
+  });
 
   if (filteredItems.length === 0) {
     return <></>;

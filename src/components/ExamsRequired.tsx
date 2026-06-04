@@ -1,5 +1,4 @@
 import { trpcNext } from "trpc";
-import { useWhiteLabel } from "./useStaticConfigs";
 import { Flex, Link } from "@chakra-ui/react";
 import { maxTextWidth } from "theme/metrics";
 import invariant from "shared/invariant";
@@ -7,18 +6,19 @@ import { paragraphSpacing } from "theme/metrics";
 import { useMemo } from "react";
 import NextLink from "next/link";
 import { calculateExamsRequired } from "shared/exams";
+import { useFeatures } from "./useStaticConfigs";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
 
   return useMemo(
     () =>
       calculateExamsRequired({
         state,
-        whiteLabel,
+        features,
       }),
-    [state, whiteLabel],
+    [state, features],
   );
 }
 

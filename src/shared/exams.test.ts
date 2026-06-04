@@ -87,36 +87,42 @@ describe("Exams Requirements", () => {
 
 describe("calculateExamsRequired", () => {
   it("should return undefined for all if state is undefined", () => {
+    // Tests that if state is undefined, we return undefined regardless
+    // of whether the exams feature is enabled.
     const res1 = calculateExamsRequired({
       state: undefined,
-      whiteLabel: "yuantu",
+      features: { exams: true },
     });
     void expect(res1.commsExamRequired).to.be.undefined;
     void expect(res1.interviewExamRequired).to.be.undefined;
     void expect(res1.handbookExamRequired).to.be.undefined;
   });
 
-  it("should return false for all if whiteLabel is not yuantu", () => {
+  it("should return false for all if exams feature is disabled", () => {
+    // When features.exams is false, we should not require any exams.
     const res1 = calculateExamsRequired({
       state: {},
-      whiteLabel: "xhef",
+      features: { exams: false },
     });
     void expect(res1.commsExamRequired).to.be.false;
     void expect(res1.interviewExamRequired).to.be.false;
     void expect(res1.handbookExamRequired).to.be.false;
   });
 
-  it("should require exams if state is empty (exams not passed) and whiteLabel is yuantu", () => {
+  it("should require exams if state is empty and exams enabled", () => {
+    // If exams feature is active and user state is empty, they must pass.
     const res = calculateExamsRequired({
       state: {},
-      whiteLabel: "yuantu",
+      features: { exams: true },
     });
     void expect(res.commsExamRequired).to.be.true;
     void expect(res.interviewExamRequired).to.be.true;
     void expect(res.handbookExamRequired).to.be.true;
   });
 
-  it("should not require exams if passed recently and whiteLabel is yuantu", () => {
+  it("should not require exams if passed recently and exams enabled", () => {
+    // If all exams were passed within their respective validity window,
+    // none of them should be marked as required.
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(Date.now() - 100 * 86400000).toISOString(),
@@ -125,14 +131,15 @@ describe("calculateExamsRequired", () => {
         ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
-      whiteLabel: "yuantu",
+      features: { exams: true },
     });
     void expect(res.commsExamRequired).to.be.false;
     void expect(res.interviewExamRequired).to.be.false;
     void expect(res.handbookExamRequired).to.be.false;
   });
 
-  it("should require comms and handbook exams after default expiry days", () => {
+  it("should require comms/handbook exams after default expiry days", () => {
+    // If comms and handbook exams are expired, they should be required.
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(
@@ -145,7 +152,7 @@ describe("calculateExamsRequired", () => {
           Date.now() - (defaultExamExpiryDays + 1) * 86400000,
         ).toISOString(),
       },
-      whiteLabel: "yuantu",
+      features: { exams: true },
     });
     void expect(res.commsExamRequired).to.be.true;
     void expect(res.interviewExamRequired).to.be.false;
@@ -153,6 +160,7 @@ describe("calculateExamsRequired", () => {
   });
 
   it("should require interview exam after interview expiry days", () => {
+    // If the interviewer exam has expired, it should be required.
     const res = calculateExamsRequired({
       state: {
         commsExam: new Date(Date.now() - 100 * 86400000).toISOString(),
@@ -161,7 +169,7 @@ describe("calculateExamsRequired", () => {
         ).toISOString(),
         handbookExam: new Date(Date.now() - 100 * 86400000).toISOString(),
       },
-      whiteLabel: "yuantu",
+      features: { exams: true },
     });
     void expect(res.commsExamRequired).to.be.false;
     void expect(res.interviewExamRequired).to.be.true;

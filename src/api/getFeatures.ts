@@ -11,5 +11,11 @@ export function getFeatures(): Features {
   if (process.env.ENABLE_VOLUNTEERS === "true") {
     features.volunteers = true;
   }
+  if (process.env.ENABLE_INTERVIEWS === "true") {
+    features.interviews = true;
+  }
+  if (process.env.ENABLE_EXAMS === "true") {
+    features.exams = true;
+  }
   return features;
 }

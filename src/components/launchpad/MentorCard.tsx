@@ -2,12 +2,17 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import { useWhiteLabel } from "components/useStaticConfigs";
+import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
 
 export default function MentorCard() {
   const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
 
-  if (whiteLabel !== "yuantu" && whiteLabel !== "demo") return null;
+  if (whiteLabel === "demo") return null;
+
+  if (!features.relational && !features.exams && !features.interviews) {
+    return null;
+  }
 
   return (
     <ResponsiveCard>
@@ -16,17 +21,30 @@ export default function MentorCard() {
       </CardHeader>
       <CardBody>
         <Flex direction="column" gap={componentSpacing}>
-          <LaunchpadCardItem
-            padding
-            title="初次交流反馈"
-            href="/match/feedback"
-          />
-          <LaunchpadCardItem
-            padding
-            title="常见问题与案例分析"
-            href="https://www.notion.so/yuanjian/LLM-16d36363e907802fab75f10ce1d25537"
-            external
-          />
+          {features.relational && (
+            <LaunchpadCardItem
+              padding
+              title="初次交流反馈"
+              href="/match/feedback"
+            />
+          )}
+
+          {features.exams && (
+            <>
+              <LaunchpadCardItem title="《学生通讯原则》" href="/study/comms" />
+              <LaunchpadCardItem
+                title="《社会导师手册》"
+                href="/study/handbook"
+              />
+            </>
+          )}
+
+          {features.interviews && (
+            <LaunchpadCardItem
+              title="《招生流程》与《面试标准》"
+              href="/study/interview"
+            />
+          )}
         </Flex>
       </CardBody>
     </ResponsiveCard>

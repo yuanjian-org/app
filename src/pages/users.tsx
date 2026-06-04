@@ -430,11 +430,15 @@ function UserEditor({
                     // mentors on the /mentors/manage page.
                     if (r === "SeniorMentor") return null;
 
-                    if (r === "TransactionalMentor" && !features.relational) {
+                    if (!features.relational && r === "TransactionalMentor") {
                       return null;
                     }
 
-                    if (r === "Volunteer" && !features.volunteers) {
+                    if (!features.volunteers && r === "Volunteer") {
+                      return null;
+                    }
+
+                    if (!features.interviews && r === "Interviewer") {
                       return null;
                     }
 
