@@ -54,6 +54,8 @@ import useMobile from "useMobile";
 import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
 import { cmdOrCtrlChar, isBrowserOnMac } from "macOrWin";
+import { useMyRoles } from "useMe";
+import { isPermitted } from "shared/Role";
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -389,6 +391,7 @@ function UserCardForDesktop({
   selected?: boolean;
 }) {
   const p = data.profile;
+  const isMentee = isPermitted(useMyRoles(), "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
@@ -455,7 +458,7 @@ function UserCardForDesktop({
           </Text>
         )}
 
-        {type == "TransactionalMentor" && (
+        {type == "TransactionalMentor" && isMentee && (
           <>
             <Button
               variant="brand"
@@ -481,7 +484,7 @@ function UserCardForDesktop({
       {isDrawerOpen && (
         <UserDrawer
           data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={type == "TransactionalMentor"}
+          showBookingButton={type == "TransactionalMentor" && isMentee}
           showMatchingTraitsAndSelection={type == "RelationalMentor"}
           onClose={() => setIsDrawerOpen(false)}
         />
@@ -569,6 +572,7 @@ function UserCardForMobile({
   selected?: boolean;
 }) {
   const p = data.profile;
+  const isMentee = isPermitted(useMyRoles(), "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
@@ -674,7 +678,7 @@ function UserCardForMobile({
 
           <Link onClick={visitUser}>查看详情</Link>
 
-          {type == "TransactionalMentor" && (
+          {type == "TransactionalMentor" && isMentee && (
             <>
               <LinkDivider />
               <Link
@@ -704,7 +708,7 @@ function UserCardForMobile({
       {isDrawerOpen && (
         <UserDrawer
           data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={type == "TransactionalMentor"}
+          showBookingButton={type == "TransactionalMentor" && isMentee}
           showMatchingTraitsAndSelection={type == "RelationalMentor"}
           onClose={() => setIsDrawerOpen(false)}
         />

@@ -14,9 +14,22 @@ import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
 import { useFeatures } from "components/useStaticConfigs";
 import Head from "next/head";
+import { isPermitted } from "shared/Role";
+
+export function getTransactionalMentorsPageTitle(
+  isMentee: boolean,
+  enableRelational?: boolean,
+) {
+  return isMentee
+    ? enableRelational
+      ? "预约不定期导师"
+      : "预约导师"
+    : "导师一览";
+}
 
 export default fullPage(() => {
   const me = useMe();
+  const isMentee = isPermitted(me.roles, "Mentee");
   const [booking, setBooking] = useState<boolean>();
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -26,7 +39,7 @@ export default fullPage(() => {
     [data, me],
   );
   const features = useFeatures();
-  const title = features.relational ? "预约不定期导师" : "预约导师";
+  const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
 
   return (
     <>
@@ -39,15 +52,19 @@ export default fullPage(() => {
         pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
       >
         <VStack spacing={componentSpacing} align="start">
-          <Text>
-            欢迎你随时预约择业就业、面试辅导、情感困惑等任何你关心的话题：
-          </Text>
+          {isMentee && (
+            <>
+              <Text>
+                欢迎你随时预约择业就业、面试辅导、情感困惑等任何你关心的话题：
+              </Text>
 
-          <Button variant="brand" onClick={() => setBooking(true)}>
-            我有一个话题，请帮我预约适合的导师
-          </Button>
+              <Button variant="brand" onClick={() => setBooking(true)}>
+                我有一个话题，请帮我预约适合的导师
+              </Button>
 
-          <Text>或者预约任何一位指定的导师：</Text>
+              <Text>或者预约任何一位指定的导师：</Text>
+            </>
+          )}
 
           <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
         </VStack>

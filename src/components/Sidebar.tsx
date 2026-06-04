@@ -55,6 +55,7 @@ import { FaStreetView } from "react-icons/fa";
 import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { Features } from "shared/Features";
+import { getTransactionalMentorsPageTitle } from "pages/mentors";
 
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
@@ -200,7 +201,8 @@ const mainMenuItems: MainMenuItem[] = [
     permission: "Interviewer",
   },
   {
-    name: "预约不定期导师",
+    // Name to be populated dynamically.
+    name: "",
     path: "/mentors",
     icon: IoMdCalendar,
     regex: /^\/mentors$/,
@@ -388,9 +390,13 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           )
           .map((item) => {
             const displayItem = { ...item };
-            if (!features.relational && displayItem.path === "/mentors") {
-              displayItem.name = "预约导师";
+            if (displayItem.path === "/mentors") {
+              displayItem.name = getTransactionalMentorsPageTitle(
+                isPermitted(me.roles, "Mentee"),
+                features.relational,
+              );
             }
+
             return (
               <SidebarRow
                 key={item.path}

@@ -328,7 +328,11 @@ function Selection({ mentorId }: { mentorId: string }) {
 }
 
 function BookingButtonAndModal({ user }: { user: MinUser }) {
+  const isMentee = isPermitted(useMyRoles(), "Mentee");
   const [booking, setBooking] = useState<boolean>();
+
+  if (!isMentee) return null;
+
   return (
     <>
       <Button width="full" variant="brand" onClick={() => setBooking(true)}>
