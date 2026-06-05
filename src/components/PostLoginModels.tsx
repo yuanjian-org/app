@@ -32,7 +32,10 @@ import invariant from "shared/invariant";
 import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
 import { useCanValidateUstcStudent } from "./useCanValidateUstcStudent";
 import { UstcStudentModals } from "./UstcStudentModals";
-import { MenteeProfileModals, useIsMenteeProfileComplete } from "./MenteeProfileModals";
+import {
+  MenteeProfileModals,
+  useIsMenteeProfileComplete,
+} from "./MenteeProfileModals";
 import { useFeatures, useWhiteLabel } from "./useStaticConfigs";
 import { isPermitted } from "shared/Role";
 

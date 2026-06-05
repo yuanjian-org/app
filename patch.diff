@@ -1,0 +1,117 @@
+--- src/components/PostLoginModels.tsx
++++ src/components/PostLoginModels.tsx
+@@ -32,6 +32,9 @@
+ import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
+ import { useCanValidateUstcStudent } from "./useCanValidateUstcStudent";
+ import { UstcStudentModals } from "./UstcStudentModals";
++import { MenteeProfileModals, useIsMenteeProfileComplete } from "./MenteeProfileModals";
++import { useFeatures, useWhiteLabel } from "./useStaticConfigs";
++import { isPermitted } from "shared/Role";
+
+ // prettier-ignore
+ export default function PostLoginModels() {
+@@ -39,6 +42,20 @@
+   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
+   const canValidateUstcStudent = useCanValidateUstcStudent(me.email);
++  const features = useFeatures();
++  const whiteLabel = useWhiteLabel();
++  const { data: profileData } = trpcNext.users.getUserProfile.useQuery(
++    { userId: me.id },
++    { enabled: !!me.id }
++  );
++  const isMenteeProfileComplete = useIsMenteeProfileComplete(profileData?.profile);
++
++  const isMentee = isPermitted(me.roles, "Mentee");
++  const canShowMenteeProfileModal =
++    whiteLabel === "xhef" &&
++    features.menteeProfile &&
++    isMentee &&
++    !isMenteeProfileComplete;
+
+   return state === undefined ? (
+     <></>
+@@ -57,6 +74,9 @@
+   ) : canValidatePearlStudent && !state?.declinedPearlStudentModal ? (
+     <PearlStudentModals userState={state} refetchUserState={refetch} />
+
++  ) : canShowMenteeProfileModal && !state?.declinedMenteeProfileModal ? (
++    <MenteeProfileModals userState={state} refetchUserState={refetch} />
++
+   ) : canValidateUstcStudent && !state?.declinedUstcStudentModal ? (
+     <UstcStudentModals userState={state} refetchUserState={refetch} />
+
+--- src/pages/mentors.tsx
++++ src/pages/mentors.tsx
+@@ -15,6 +15,7 @@
+ import { useFeatures } from "components/useStaticConfigs";
+ import Head from "next/head";
+ import { isPermitted } from "shared/Role";
++import { MenteeProfileModal, useIsMenteeProfileComplete } from "components/MenteeProfileModals";
+
+ export function getTransactionalMentorsPageTitle(
+   isMentee: boolean,
+@@ -42,6 +43,13 @@
+   const features = useFeatures();
+   const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
+
++  const { data: profileData } = trpcNext.users.getUserProfile.useQuery(
++    { userId: me.id },
++    { enabled: !!me.id }
++  );
++  const isMenteeProfileComplete = useIsMenteeProfileComplete(profileData?.profile);
++  const shouldRequireMenteeProfile = features.menteeProfile && isMentee && !isMenteeProfileComplete;
++
+   return (
+     <>
+       <Head>
+@@ -93,6 +101,8 @@
+       {booking && (
+         <MentorBookingModal mentor={null} onClose={() => setBooking(false)} />
+       )}
++
++      {shouldRequireMenteeProfile && <MenteeProfileModal />}
+     </>
+   );
+ });
+
+--- src/pages/mentors/relational.tsx
++++ src/pages/mentors/relational.tsx
+@@ -47,11 +47,16 @@
+ import { toChineseNumber } from "shared/strings";
+ import { ArrowForwardIcon, ChevronDownIcon } from "@chakra-ui/icons";
+ import NextLink from "next/link";
++import { MenteeProfileModal, useIsMenteeProfileComplete } from "components/MenteeProfileModals";
++import { useFeatures } from "components/useStaticConfigs";
++import { isPermitted } from "shared/Role";
++import useMe from "useMe";
+
+ export const minSelectedMentors = 5;
+
+ export default fullPage(() => {
+   const myId = useMyId();
++  const me = useMe();
+
+   const { data } = trpcNext.users.listMentors.useQuery();
+   const [profile, setProfile] = useState<UserProfile>();
+@@ -70,6 +75,11 @@
+   const { data: selections } = trpcNext.mentorSelections.listDrafts.useQuery();
+   const selected = selections?.length ?? 0;
+
++  const features = useFeatures();
++  const isMentee = isPermitted(me.roles, "Mentee");
++  const isMenteeProfileComplete = useIsMenteeProfileComplete(profile);
++  const shouldRequireMenteeProfile = features.menteeProfile && isMentee && !isMenteeProfileComplete;
++
+   const shuffled = useMemo(() => {
+     if (!profile || !data || !applicant) return undefined;
+
+@@ -207,6 +217,8 @@
+           mt={pageMarginX}
+         />
+       )}
++
++      {shouldRequireMenteeProfile && <MenteeProfileModal />}
+     </>
+   );
+ }, "选择一对一导师");

@@ -47,19 +47,11 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import { toChineseNumber } from "shared/strings";
 import { ArrowForwardIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-import {
-  MenteeProfileModal,
-  useIsMenteeProfileComplete,
-} from "components/MenteeProfileModals";
-import { useFeatures } from "components/useStaticConfigs";
-import { isPermitted } from "shared/Role";
-import useMe from "useMe";
 
 export const minSelectedMentors = 5;
 
 export default fullPage(() => {
   const myId = useMyId();
-  const me = useMe();
 
   const { data } = trpcNext.users.listMentors.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
@@ -72,12 +64,6 @@ export default fullPage(() => {
 
   const { data: selections } = trpcNext.mentorSelections.listDrafts.useQuery();
   const selected = selections?.length ?? 0;
-
-  const features = useFeatures();
-  const isMentee = isPermitted(me.roles, "Mentee");
-  const isMenteeProfileComplete = useIsMenteeProfileComplete(profile);
-  const shouldRequireMenteeProfile =
-    features.menteeProfile && isMentee && !isMenteeProfileComplete;
 
   const shuffled = useMemo(() => {
     if (!profile || !data || !applicant) return undefined;
@@ -211,8 +197,6 @@ export default fullPage(() => {
           mt={pageMarginX}
         />
       )}
-
-      {shouldRequireMenteeProfile && <MenteeProfileModal />}
     </>
   );
 }, "选择一对一导师");
