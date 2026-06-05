@@ -47,11 +47,19 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import { toChineseNumber } from "shared/strings";
 import { ArrowForwardIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
+import {
+  MandatoryMenteeProfileModal,
+  isMenteeProfileComplete,
+} from "components/MenteeProfileModals";
+import { useFeatures } from "components/useStaticConfigs";
 
 export const minSelectedMentors = 5;
 
 export default fullPage(() => {
   const myId = useMyId();
+  const features = useFeatures();
+  const { data: profileData, isFetched } =
+    trpcNext.users.getUserProfile.useQuery({ userId: myId });
 
   const { data } = trpcNext.users.listMentors.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
@@ -93,6 +101,11 @@ export default fullPage(() => {
 
   return (
     <>
+      {features.menteeProfile &&
+        isFetched &&
+        !isMenteeProfileComplete(profileData?.profile) && (
+          <MandatoryMenteeProfileModal />
+        )}
       <TopBar>
         <VStack align="start">
           <Stack

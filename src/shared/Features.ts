@@ -11,6 +11,7 @@ export const zFeatures = z.object({
   volunteers: z.boolean().optional(),
   interviews: z.boolean().optional(),
   exams: z.boolean().optional(),
+  menteeProfile: z.boolean().optional(),
 });
 
 export type Features = z.infer<typeof zFeatures>;
