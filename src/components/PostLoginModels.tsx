@@ -32,6 +32,12 @@ import invariant from "shared/invariant";
 import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
 import { useCanValidateUstcStudent } from "./useCanValidateUstcStudent";
 import { UstcStudentModals } from "./UstcStudentModals";
+import {
+  SkippableMenteeProfileModal,
+  isMenteeProfileComplete,
+} from "./MenteeProfileModals";
+import { useFeatures } from "./useStaticConfigs";
+import { isPermitted } from "shared/Role";
 
 // prettier-ignore
 export default function PostLoginModels() {
@@ -39,6 +45,9 @@ export default function PostLoginModels() {
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
   const canValidateUstcStudent = useCanValidateUstcStudent(me.email);
+  const { data: profileData, isFetched: isProfileFetched } = trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+  const features = useFeatures();
+
 
   return state === undefined ? (
     <></>
@@ -62,6 +71,9 @@ export default function PostLoginModels() {
 
   ) : !me.name ? (
     <SetNameModal />
+
+  ) : features.menteeProfile && isPermitted(me.roles, "Mentee") && isProfileFetched && !isMenteeProfileComplete(profileData?.profile) && !state?.declinedMenteeProfileModal ? (
+    <SkippableMenteeProfileModal userState={state} refetchUserState={refetch} />
 
   ) : (
     <></>

@@ -38,6 +38,7 @@ import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
 import _ from "lodash";
 import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
 import getBaseUrl from "shared/getBaseUrl";
+import MenteeProfileFields from "components/MenteeProfileFields";
 import { useMyId, useMyRoles } from "useMe";
 import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
@@ -147,6 +148,31 @@ export default function Page() {
       />
 
       <Divider my={componentSpacing} />
+
+      {isPermitted(user.roles, "Mentor") ? (
+        <>
+          <Heading size="md">导师信息</Heading>
+          <Text>
+            这些信息是学生了解导师的重要渠道，是他们了解并选择
+            <Link isExternal href="https://yuantuapp.com/s/match">
+              与你匹配
+            </Link>
+            的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
+            <MarkdownSupported />
+          </Text>
+        </>
+      ) : (
+        <>
+          <Heading size="md">个人资料</Heading>
+          <Text>
+            <MarkdownSupported />
+          </Text>
+        </>
+      )}
+
+      {isPermitted(user.roles, "Mentee") && (
+        <Mentee profile={profile} updateProfile={updateProfile} />
+      )}
 
       {isPermitted(user.roles, "Mentor") ? (
         <Mentor user={user} profile={profile} updateProfile={updateProfile} />
@@ -416,6 +442,23 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   );
 }
 
+function Mentee({
+  profile,
+  updateProfile,
+}: {
+  profile: UserProfile;
+  updateProfile: (k: keyof UserProfile, v: string) => void;
+}) {
+  return (
+    <>
+      <MenteeProfileFields profile={profile} updateProfile={updateProfile} />
+
+      <CityFormControl profile={profile} updateProfile={updateProfile} />
+      <HobbyFormControl profile={profile} updateProfile={updateProfile} />
+      <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
+    </>
+  );
+}
 function NonMentor({
   profile,
   updateProfile,
@@ -425,10 +468,6 @@ function NonMentor({
 }) {
   return (
     <>
-      <Heading size="md">个人资料</Heading>
-      <Text>
-        <MarkdownSupported />
-      </Text>
       <PositionFormControl profile={profile} updateProfile={updateProfile} />
       <CityFormControl profile={profile} updateProfile={updateProfile} />
       <CareerFormControl profile={profile} updateProfile={updateProfile} />
@@ -660,16 +699,6 @@ function Mentor({
 
   return (
     <>
-      <Heading size="md">导师信息</Heading>
-      <Text>
-        这些信息是学生了解导师的重要渠道，是他们了解并选择
-        <Link isExternal href="https://yuantuapp.com/s/match">
-          与你匹配
-        </Link>
-        的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
-        <MarkdownSupported />
-      </Text>
-
       <FormControl>
         <FormLabel>
           视频介绍 <Highlight />

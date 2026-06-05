@@ -860,6 +860,7 @@ export async function setMyStateImpl(
     "meetingConsentedAt",
     "declinedPearlStudentModal",
     "declinedUstcStudentModal",
+    "declinedMenteeProfileModal",
   ];
   const filteredState: Partial<UserState> = {};
   for (const key of allowed) {
