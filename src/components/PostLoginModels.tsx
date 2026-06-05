@@ -33,7 +33,7 @@ import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
 import { useCanValidateUstcStudent } from "./useCanValidateUstcStudent";
 import { UstcStudentModals } from "./UstcStudentModals";
 import {
-  SkippableMenteeProfileModal,
+  MenteeProfileModal,
   isMenteeProfileComplete,
 } from "./MenteeProfileModals";
 import { useFeatures } from "./useStaticConfigs";
@@ -72,9 +72,17 @@ export default function PostLoginModels() {
   ) : !me.name ? (
     <SetNameModal />
 
-  ) : features.menteeProfile && isPermitted(me.roles, "Mentee") && isProfileFetched && !isMenteeProfileComplete(profileData?.profile) && !state?.declinedMenteeProfileModal ? (
-    <SkippableMenteeProfileModal userState={state} refetchUserState={refetch} />
-
+  ) : isProfileFetched
+  && features.menteeProfile
+  && isPermitted(me.roles, "Mentee")
+  && !isMenteeProfileComplete(profileData?.profile) 
+  && !state?.declinedMenteeProfileModal 
+  ? (
+    <MenteeProfileModal 
+      userState={state} 
+      refetchUserState={refetch} 
+      cancelLabel="稍后再说，跳过此步" 
+    />
   ) : (
     <></>
   );

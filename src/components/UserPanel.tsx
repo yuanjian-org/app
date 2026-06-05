@@ -35,6 +35,10 @@ import {
   visibleUserProfileFields,
 } from "components/UserCards";
 import { isPermitted } from "shared/Role";
+import {
+  MenteeProfileModal,
+  isMenteeProfileComplete,
+} from "./MenteeProfileModals";
 import NextLink from "next/link";
 import { CopyIcon, EditIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
@@ -232,6 +236,9 @@ function MatchingTraits({ userId }: { userId: string }) {
 }
 
 function Selection({ mentorId }: { mentorId: string }) {
+  const me = useMe();
+  const features = useFeatures();
+  const [showMenteeProfileModal, setShowMenteeProfileModal] = useState(false);
   const [reason, setReason] = useState("");
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -255,6 +262,17 @@ function Selection({ mentorId }: { mentorId: string }) {
   const select = async () => {
     setShowError(reason.length === 0);
     if (reason.length === 0) return;
+
+    if (features.menteeProfile) {
+      const freshProfile = await trpc.users.getUserProfile.query({
+        userId: me.id,
+      });
+      if (!isMenteeProfileComplete(freshProfile?.profile)) {
+        setShowMenteeProfileModal(true);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       await trpc.mentorSelections.createDraft.mutate({ mentorId, reason });
@@ -289,6 +307,16 @@ function Selection({ mentorId }: { mentorId: string }) {
 
   return (
     <VStack spacing={componentSpacing} w="full">
+      {showMenteeProfileModal && (
+        <MenteeProfileModal
+          onCancel={() => setShowMenteeProfileModal(false)}
+          cancelLabel="取消"
+          onComplete={() => {
+            setShowMenteeProfileModal(false);
+            void utils.users.getUserProfile.invalidate({ userId: me.id });
+          }}
+        />
+      )}
       <FormControl isInvalid={showError}>
         <Textarea
           height="140px"
