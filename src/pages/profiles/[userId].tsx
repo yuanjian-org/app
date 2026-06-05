@@ -171,13 +171,20 @@ export default function Page() {
       )}
 
       {isPermitted(user.roles, "Mentee") && (
-        <Mentee profile={profile} updateProfile={updateProfile} />
+        <MenteeProfileFields profile={profile} updateProfile={updateProfile} />
       )}
 
       {isPermitted(user.roles, "Mentor") ? (
-        <Mentor user={user} profile={profile} updateProfile={updateProfile} />
+        <MentorProfileFields
+          user={user}
+          profile={profile}
+          updateProfile={updateProfile}
+        />
       ) : (
-        <NonMentor profile={profile} updateProfile={updateProfile} />
+        <NonMentorProfileFields
+          profile={profile}
+          updateProfile={updateProfile}
+        />
       )}
 
       <SaveButton />
@@ -442,24 +449,7 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   );
 }
 
-function Mentee({
-  profile,
-  updateProfile,
-}: {
-  profile: UserProfile;
-  updateProfile: (k: keyof UserProfile, v: string) => void;
-}) {
-  return (
-    <>
-      <MenteeProfileFields profile={profile} updateProfile={updateProfile} />
-
-      <CityFormControl profile={profile} updateProfile={updateProfile} />
-      <HobbyFormControl profile={profile} updateProfile={updateProfile} />
-      <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
-    </>
-  );
-}
-function NonMentor({
+function NonMentorProfileFields({
   profile,
   updateProfile,
 }: {
@@ -676,7 +666,7 @@ function Orgs({ user }: { user: MinUser }) {
   );
 }
 
-function Mentor({
+function MentorProfileFields({
   user,
   profile,
   updateProfile,
