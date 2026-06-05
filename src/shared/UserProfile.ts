@@ -20,6 +20,13 @@ export const zStringUserProfile = z.object({
   生活日常: zStr,
   擅长话题: zStr,
 
+  毕业高中: zStr,
+  大学: zStr,
+  就读专业: zStr,
+  大一入读年份: zStr,
+  现就读阶段: zStr,
+  自我介绍: zStr,
+
   照片链接: zStr,
   视频链接: zStr,
 

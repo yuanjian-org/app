@@ -15,7 +15,6 @@ import { topBarPaddings } from "components/TopBar";
 import { useFeatures } from "components/useStaticConfigs";
 import Head from "next/head";
 import { isPermitted } from "shared/Role";
-import { MenteeProfileModal, useIsMenteeProfileComplete } from "components/MenteeProfileModals";
 
 export function getTransactionalMentorsPageTitle(
   isMentee: boolean,
@@ -41,13 +40,6 @@ export default fullPage(() => {
   );
   const features = useFeatures();
   const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
-
-  const { data: profileData } = trpcNext.users.getUserProfile.useQuery(
-    { userId: me.id },
-    { enabled: !!me.id }
-  );
-  const isMenteeProfileComplete = useIsMenteeProfileComplete(profileData?.profile);
-  const shouldRequireMenteeProfile = features.menteeProfile && isMentee && !isMenteeProfileComplete;
 
   return (
     <>
@@ -93,8 +85,6 @@ export default fullPage(() => {
       {booking && (
         <MentorBookingModal mentor={null} onClose={() => setBooking(false)} />
       )}
-
-      {shouldRequireMenteeProfile && <MenteeProfileModal />}
     </>
   );
 });

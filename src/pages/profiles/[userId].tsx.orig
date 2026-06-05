@@ -150,8 +150,6 @@ export default function Page() {
 
       {isPermitted(user.roles, "Mentor") ? (
         <Mentor user={user} profile={profile} updateProfile={updateProfile} />
-      ) : isPermitted(user.roles, "Mentee") ? (
-        <Mentee profile={profile} updateProfile={updateProfile} />
       ) : (
         <NonMentor profile={profile} updateProfile={updateProfile} />
       )}
@@ -414,80 +412,6 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
           )}
         </Link>
       )}
-    </>
-  );
-}
-
-function Mentee({
-  profile,
-  updateProfile,
-}: {
-  profile: UserProfile;
-  updateProfile: (k: keyof UserProfile, v: string) => void;
-}) {
-  return (
-    <>
-      <Heading size="md">学生资料</Heading>
-      <Text>
-        <MarkdownSupported />
-      </Text>
-      <FormControl>
-        <FormLabel>毕业高中</FormLabel>
-        <Input
-          bg="white"
-          value={profile.毕业高中 || ""}
-          onChange={(ev) => updateProfile("毕业高中", ev.target.value)}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>大学</FormLabel>
-        <Input
-          bg="white"
-          value={profile.大学 || ""}
-          onChange={(ev) => updateProfile("大学", ev.target.value)}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>就读专业</FormLabel>
-        <Input
-          bg="white"
-          value={profile.就读专业 || ""}
-          onChange={(ev) => updateProfile("就读专业", ev.target.value)}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>大一入读年份</FormLabel>
-        <Input
-          bg="white"
-          value={profile.大一入读年份 || ""}
-          onChange={(ev) => updateProfile("大一入读年份", ev.target.value)}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>现就读阶段</FormLabel>
-        <FormHelperTextWithMargin>
-          比如本科、专科、硕博连读等
-        </FormHelperTextWithMargin>
-        <Input
-          bg="white"
-          value={profile.现就读阶段 || ""}
-          onChange={(ev) => updateProfile("现就读阶段", ev.target.value)}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>自我介绍</FormLabel>
-        <FormHelperTextWithMargin>
-          为什么要寻求帮助，未来你会如何回馈他人
-        </FormHelperTextWithMargin>
-        <Textarea
-          bg="white"
-          height={140}
-          value={profile.自我介绍 || ""}
-          onChange={(ev) => updateProfile("自我介绍", ev.target.value)}
-        />
-      </FormControl>
-      <HobbyFormControl profile={profile} updateProfile={updateProfile} />
-      <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
     </>
   );
 }
@@ -802,7 +726,7 @@ function Mentor({
 
       {/* <FormControl>
       <FormLabel>擅长辅导领域</FormLabel>
-      <Input bg="white" value={profile.擅长辅导领域 || ""} 
+      <Input bg="white" value={profile.擅长辅导领域 || ""}
         onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
     </FormControl> */}
