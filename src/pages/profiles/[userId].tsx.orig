@@ -337,12 +337,14 @@ function Picture({
     <>
       <Heading size="md">生活照</Heading>
       <FormControl>
-        <Image
-          src={UserProfilePictureLink(profile)}
-          alt="照片"
-          maxW="300px"
-          my={componentSpacing}
-        />
+        {profile.照片链接 && (
+          <Image
+            src={profile.照片链接}
+            alt="照片"
+            maxW="300px"
+            my={componentSpacing}
+          />
+        )}
 
         {isMe && (
           <Link onClick={handleUpload}>
@@ -744,7 +746,7 @@ function MentorProfileFields({
 
       {/* <FormControl>
       <FormLabel>擅长辅导领域</FormLabel>
-      <Input bg="white" value={profile.擅长辅导领域 || ""} 
+      <Input bg="white" value={profile.擅长辅导领域 || ""}
         onChange={ev => updateProfile('擅长辅导领域', ev.target.value)}
       />
     </FormControl> */}

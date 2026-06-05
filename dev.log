@@ -1,0 +1,75 @@
+yarn run v1.22.22
+$ next dev
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+ ✓ Starting...
+ ✓ Ready in 2.9s
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 47.7s (3686 modules)
+ GET /auth/login 200 in 266ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1900ms (446 modules)
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+ GET /api/auth/session 200 in 2552ms
+ GET /api/auth/session 200 in 6ms
+ ○ Compiling /api/v1/[trpc] ...
+ ✓ Compiled /api/v1/[trpc] in 1182ms (539 modules)
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 2081ms
+ GET /api/auth/providers 200 in 14ms
+ GET /api/auth/csrf 200 in 8ms
+ POST /api/auth/callback/id-password 200 in 236ms
+ GET /api/auth/session 200 in 19ms
+[26-06-05 07:32:47.444]  ○ Compiling / ...
+[26-06-05 07:32:48.497]  ✓ Compiled / in 1592ms (3913 modules)
+[26-06-05 07:32:49.148]  ○ Compiling /users ...
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,groups.listMine,tasks.list,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%224%22%3A%7B%22includeOwned%22%3Afalse%7D%2C%225%22%3A%7B%22assigneeIds%22%3A%5B%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%5D%2C%22includeTasksCreatedByMe%22%3Atrue%2C%22includeDoneTasks%22%3Afalse%7D%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 568ms
+[26-06-05 07:32:49.978]  ✓ Compiled /users in 1349ms (3921 modules)
+ GET /api/v1/users.getUserState,users.getUserState,chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%221%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%2C%22returnEmptyStateIfNoPermission%22%3Atrue%7D%2C%222%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%223%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 3917ms
+ GET /users 200 in 5347ms
+ GET /api/auth/session 200 in 31ms
+ GET /api/auth/session 200 in 14ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,users.list,globalConfigs.getStatic,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%224%22%3A%7B%22includeMerged%22%3Afalse%2C%22includeNonVolunteersMentors%22%3Atrue%2C%22returnMergeInfo%22%3Atrue%2C%22limit%22%3A50%7D%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 42ms
+ GET /api/v1/chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%220%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%221%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 18ms
+ GET /auth/login 200 in 307ms
+ GET /api/auth/session 200 in 23ms
+ GET /api/auth/session 200 in 7ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 15ms
+ GET /api/auth/csrf 200 in 8ms
+ GET /api/auth/csrf 200 in 11ms
+ GET /api/auth/providers 200 in 7ms
+ GET /api/auth/csrf 200 in 8ms
+ POST /api/auth/callback/id-password 200 in 168ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,groups.listMine,tasks.list,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%224%22%3A%7B%22includeOwned%22%3Afalse%7D%2C%225%22%3A%7B%22assigneeIds%22%3A%5B%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%5D%2C%22includeTasksCreatedByMe%22%3Atrue%2C%22includeDoneTasks%22%3Afalse%7D%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 81ms
+ GET /api/v1/users.getUserState,users.getUserState,chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%221%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%2C%22returnEmptyStateIfNoPermission%22%3Atrue%7D%2C%222%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%223%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 28ms
+[26-06-05 07:35:53.790]  ○ Compiling /profiles/[userId] ...
+[26-06-05 07:35:55.318]  ✓ Compiled /profiles/[userId] in 2.2s (3931 modules)
+ GET /profiles/me 200 in 4482ms
+ GET /api/auth/session 200 in 324ms
+ GET /api/auth/session 200 in 9ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,globalConfigs.getStatic,users.getFull,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%225%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 260ms
+ GET /api/v1/chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%220%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%221%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 25ms
+ GET /auth/login 200 in 261ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 7ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 11ms
+ GET /api/auth/csrf 200 in 17ms
+ GET /api/auth/csrf 200 in 9ms
+ GET /api/auth/providers 200 in 11ms
+ GET /api/auth/csrf 200 in 8ms
+ POST /api/auth/callback/id-password 200 in 166ms
+ GET /api/auth/session 200 in 15ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,groups.listMine,tasks.list,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%224%22%3A%7B%22includeOwned%22%3Afalse%7D%2C%225%22%3A%7B%22assigneeIds%22%3A%5B%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%5D%2C%22includeTasksCreatedByMe%22%3Atrue%2C%22includeDoneTasks%22%3Afalse%7D%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 75ms
+ GET /api/v1/users.getUserState,users.getUserState,chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%221%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%2C%22returnEmptyStateIfNoPermission%22%3Atrue%7D%2C%222%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%223%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 37ms
+ POST /api/v1/users.setMyState?batch=1 200 in 23ms
+ GET /api/v1/users.getUserState?batch=1&input=%7B%7D 200 in 11ms
+ GET /profiles/me 200 in 232ms
+ GET /api/auth/session 200 in 44ms
+ GET /api/auth/session 200 in 8ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,globalConfigs.getStatic,users.getFull,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%225%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%2C%226%22%3A%7B%22userId%22%3A%22c4803291-1316-4a4e-b3ce-58f3f43e4f34%22%7D%7D 200 in 55ms
+ GET /api/v1/chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%220%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%2C%221%22%3A%7B%22menteeId%22%3A%220e8fbf29-3e2a-4a72-a1ec-88ffe9372d0b%22%7D%7D 200 in 19ms
