@@ -149,7 +149,7 @@ function MenteeTabs({
           ))
         )}
 
-        {features.menteeProfile && <Tab>个人档案</Tab>}
+        {features.menteeProfile && <Tab>学生资料</Tab>}
 
         {features.interviews && (
           <>
