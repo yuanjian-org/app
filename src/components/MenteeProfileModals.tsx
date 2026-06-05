@@ -36,10 +36,12 @@ function BaseMenteeProfileModal({
   bodyText,
   secondaryAction,
   onComplete,
+  onCancel,
 }: {
   bodyText: React.ReactNode;
   secondaryAction?: React.ReactNode;
   onComplete?: () => void;
+  onCancel?: () => void;
 }) {
   const me = useMe();
   const { data: initialData, isFetched } =
@@ -76,7 +78,7 @@ function BaseMenteeProfileModal({
   };
 
   return (
-    <ModalWithBackdrop isOpen onClose={() => undefined} size="xl">
+    <ModalWithBackdrop isOpen onClose={onCancel || (() => undefined)} size="xl">
       <ModalContent>
         <ModalHeader>完善个人资料</ModalHeader>
         <ModalBody>
@@ -112,19 +114,28 @@ function BaseMenteeProfileModal({
   );
 }
 
-export function SkippableMenteeProfileModal({
+export function MenteeProfileModal({
   userState,
   refetchUserState,
+  onCancel,
+  cancelLabel,
+  onComplete,
 }: {
-  userState: UserState | null;
-  refetchUserState: () => void;
+  userState?: UserState | null;
+  refetchUserState?: () => void;
+  onCancel?: () => void;
+  cancelLabel: string;
+  onComplete?: () => void;
 }) {
   const decline = async () => {
-    await trpc.users.setMyState.mutate({
-      ...userState,
-      declinedMenteeProfileModal: true,
-    });
-    refetchUserState();
+    if (userState !== undefined && refetchUserState) {
+      await trpc.users.setMyState.mutate({
+        ...userState,
+        declinedMenteeProfileModal: true,
+      });
+      refetchUserState();
+    }
+    if (onCancel) onCancel();
   };
 
   return (
@@ -133,20 +144,13 @@ export function SkippableMenteeProfileModal({
         <>
           <Text>为了让导师更好地了解你，我们需要你填写一些个人资料。</Text>
           <Text mt={componentSpacing}>
-            你可以现在填写，也可以选择跳过，之后再前往【个人资料】页进行完善。
+            你可以现在填写，也可以选择之后前往【个人资料】页进行完善。
           </Text>
         </>
       }
-      onComplete={decline}
-      secondaryAction={<Button onClick={decline}>稍后再说，跳过此步</Button>}
-    />
-  );
-}
-
-export function MandatoryMenteeProfileModal() {
-  return (
-    <BaseMenteeProfileModal
-      bodyText={<Text>在使用该功能之前，请先完善学生信息。</Text>}
+      onCancel={decline}
+      onComplete={onComplete}
+      secondaryAction={<Button onClick={decline}>{cancelLabel}</Button>}
     />
   );
 }

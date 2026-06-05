@@ -15,10 +15,6 @@ import { topBarPaddings } from "components/TopBar";
 import { useFeatures } from "components/useStaticConfigs";
 import Head from "next/head";
 import { isPermitted } from "shared/Role";
-import {
-  MandatoryMenteeProfileModal,
-  isMenteeProfileComplete,
-} from "components/MenteeProfileModals";
 
 export function getTransactionalMentorsPageTitle(
   isMentee: boolean,
@@ -43,18 +39,10 @@ export default fullPage(() => {
     [data, me],
   );
   const features = useFeatures();
-  const { data: profileData, isFetched } =
-    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
   const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
 
   return (
     <>
-      {features.menteeProfile &&
-        isFetched &&
-        !isMenteeProfileComplete(profileData?.profile) && (
-          <MandatoryMenteeProfileModal />
-        )}
-
       <Head>
         <title>{title} | 远图</title>
       </Head>

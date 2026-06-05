@@ -13,6 +13,13 @@ import {
 import { formatUserName } from "shared/strings";
 import { MinUser } from "shared/User";
 import { useState } from "react";
+import {
+  MenteeProfileModal,
+  isMenteeProfileComplete,
+} from "./MenteeProfileModals";
+import { useFeatures } from "components/useStaticConfigs";
+import useMe from "useMe";
+import { trpcNext } from "trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
 import invariant from "tiny-invariant";
@@ -27,6 +34,12 @@ export default function MentorBookingModal({
   mentor: MinUser | null;
   onClose: () => void;
 }) {
+  const me = useMe();
+  const features = useFeatures();
+  const utils = trpcNext.useContext();
+  const { data: profileData, isFetched } =
+    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+
   const [topic, setTopic] = useState<string>();
   const [submitting, setSubmitting] = useState<boolean>();
   const [submitted, setSubmitted] = useState<boolean>();
@@ -44,6 +57,22 @@ export default function MentorBookingModal({
       setSubmitting(false);
     }
   };
+
+  if (features.menteeProfile) {
+    if (!isFetched) return null;
+
+    if (!isMenteeProfileComplete(profileData?.profile)) {
+      return (
+        <MenteeProfileModal
+          onCancel={onClose}
+          cancelLabel="取消"
+          onComplete={() => {
+            void utils.users.getUserProfile.invalidate({ userId: me.id });
+          }}
+        />
+      );
+    }
+  }
 
   return !submitted ? (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
