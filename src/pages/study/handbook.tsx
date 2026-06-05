@@ -41,7 +41,7 @@ export default function Page() {
         <Button
           as={Link}
           isExternal
-          href="https://www.notion.so/yuanjian/16d36363e907809aa464da12861db4d7"
+          href="https://yuanjian.notion.site/37136363e907807685b3daba4cb5c2cf"
           variant="outline"
           colorScheme="brand"
           rightIcon={<ExternalLinkIcon />}
