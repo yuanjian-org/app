@@ -48,6 +48,7 @@ import { breakpoint } from "theme/breakpoints";
 import { sectionSpacing, componentSpacing } from "theme/metrics";
 import Transcripts from "components/Transcripts";
 import Interview from "components/Interview";
+import UserPanel from "components/UserPanel";
 import { MentorshipStatusIcon } from "pages/mentees";
 import { displayName, isPermitted } from "shared/Role";
 import useMe, { useMyId } from "useMe";
@@ -148,6 +149,8 @@ function MenteeTabs({
           ))
         )}
 
+        {features.menteeProfile && <Tab>个人档案</Tab>}
+
         {features.interviews && (
           <>
             <Tab>申请表信息</Tab>
@@ -163,6 +166,12 @@ function MenteeTabs({
             <MentorshipPanel mentorship={m} />
           </TabPanel>
         ))}
+
+        {features.menteeProfile && (
+          <TabPanel>
+            <MenteeProfileTabPanel menteeId={mentee.id} />
+          </TabPanel>
+        )}
 
         {features.interviews && (
           <>
@@ -180,6 +189,19 @@ function MenteeTabs({
       </TabPanel> */}
       </TabPanels>
     </TabsWithUrlParam>
+  );
+}
+
+function MenteeProfileTabPanel({ menteeId }: { menteeId: string }) {
+  const { data } = trpcNext.users.getUserProfile.useQuery(
+    { userId: menteeId },
+    { enabled: !!menteeId },
+  );
+
+  return data ? (
+    <UserPanel data={data} showBookingButton={false} hideKudosControl={true} />
+  ) : (
+    <Loader />
   );
 }
 
