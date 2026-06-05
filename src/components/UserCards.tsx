@@ -67,12 +67,15 @@ export type FieldAndLabel = {
  */
 export const visibleUserProfileFields: FieldAndLabel[] = [
   { field: "英文别名", label: "昵称" },
-  { field: "现就读阶段" },
-  { field: "大一入读年份" },
+
+  // Mentee profile fields
   { field: "大学" },
   { field: "就读专业" },
+  { field: "大一入读年份" },
+  { field: "现就读阶段" },
   { field: "毕业高中" },
   { field: "自我介绍" },
+
   { field: "身份头衔", label: "职位" },
   { field: "专业领域" },
   { field: "现居住地" },
