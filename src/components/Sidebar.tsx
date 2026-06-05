@@ -224,6 +224,13 @@ const mainMenuItems: MainMenuItem[] = [
       isAcceptedMentee(me.roles, me.menteeStatus, "excludeTransactionalOnly"),
   },
   {
+    name: "学生档案",
+    path: '/mentees?filter={"menteeStatus":"现届学子"}',
+    icon: AttachmentIcon,
+    regex: /^\/mentees[^/]/,
+    permission: ["MentorshipManager", "MentorshipOperator"],
+  },
+  {
     name: "志愿者档案",
     path: "/volunteers",
     icon: IoStar,
@@ -238,13 +245,6 @@ const mainMenuItems: MainMenuItem[] = [
     icon: MdBusiness,
     regex: /^\/orgs/,
     feature: "orgs",
-  },
-  {
-    name: "学生档案",
-    path: '/mentees?filter={"menteeStatus":"现届学子"}',
-    icon: AttachmentIcon,
-    regex: /^\/mentees[^/]/,
-    permission: ["MentorshipManager", "MentorshipOperator"],
   },
   {
     name: "资源推荐",
