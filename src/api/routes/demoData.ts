@@ -187,6 +187,71 @@ const mentorProfile5: UserProfile = {
     "市场营销与品牌战略、文化创意产业就业规划、女性职场发展与自信建立",
 };
 
+const menteeProfile1: UserProfile = {
+  性别: "女",
+  毕业高中: "河北衡水中学",
+  大学: "清华大学",
+  就读专业: "计算机科学与技术",
+  大一入读年份: "2023",
+  现就读阶段: "本科",
+  自我介绍:
+    "热爱编程，喜欢参加各种黑客松比赛。希望能在远见找到志同道合的小伙伴，一起进步。",
+  个性特点: "积极乐观，乐于助人，对新技术充满好奇心",
+  爱好与特长: "编程，阅读科幻小说，羽毛球",
+};
+
+const menteeProfile2: UserProfile = {
+  性别: "男",
+  毕业高中: "北京人大附中",
+  大学: "北京大学",
+  就读专业: "数学与应用数学",
+  大一入读年份: "2022",
+  现就读阶段: "本科",
+  自我介绍:
+    "喜欢研究数学问题，希望能将数学应用到实际生活中。对金融和人工智能也很感兴趣。",
+  个性特点: "沉稳，逻辑性强，善于思考",
+  爱好与特长: "数学竞赛，国际象棋，跑步",
+};
+
+const menteeProfile3: UserProfile = {
+  性别: "女",
+  毕业高中: "上海中学",
+  大学: "复旦大学",
+  就读专业: "临床医学",
+  大一入读年份: "2024",
+  现就读阶段: "本科",
+  自我介绍:
+    "立志成为一名优秀的医生，帮助更多的人减轻病痛。平时喜欢参加志愿活动。",
+  个性特点: "有同理心，耐心，细心",
+  爱好与特长: "医学知识科普，钢琴，游泳",
+};
+
+const menteeProfile4: UserProfile = {
+  性别: "男",
+  毕业高中: "深圳中学",
+  大学: "浙江大学",
+  就读专业: "电子信息工程",
+  大一入读年份: "2023",
+  现就读阶段: "本科",
+  自我介绍:
+    "对硬件和物联网非常感兴趣，喜欢自己动手做一些小发明。希望未来能在科技公司工作。",
+  个性特点: "动手能力强，有创造力，团队协作",
+  爱好与特长: "电子制作，篮球，摄影",
+};
+
+const menteeProfile5: UserProfile = {
+  性别: "女",
+  毕业高中: "成都七中",
+  大学: "四川大学",
+  就读专业: "汉语言文学",
+  大一入读年份: "2022",
+  现就读阶段: "本科",
+  自我介绍:
+    "喜欢阅读和写作，梦想成为一名作家或编辑。平时也会自己写一些散文和小说。",
+  个性特点: "文艺，感性，善于表达",
+  爱好与特长: "写作，朗诵，书法",
+};
+
 const users: Record<string, DemoUser> = {
   admin: {
     name: "管理员",
@@ -206,6 +271,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    profile: menteeProfile1,
   },
   mentee2: {
     name: "乙学生",
@@ -213,6 +279,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    profile: menteeProfile2,
   },
   mentee3: {
     name: "丙学生",
@@ -220,6 +287,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    profile: menteeProfile3,
   },
   mentee4: {
     name: "丁学生",
@@ -227,6 +295,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: null,
     menteeApplication,
+    profile: menteeProfile4,
   },
   mentee5: {
     name: "戊学生",
@@ -234,6 +303,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: null,
     menteeApplication,
+    profile: menteeProfile5,
   },
 
   mentor1: {
