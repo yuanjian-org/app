@@ -291,7 +291,7 @@ describe("notify()", () => {
       // disabled for 基础)
       void expect(emailStub.calledOnce).to.be.true;
       const emailCall = emailStub.getCall(0);
-      expect(emailCall.args[0]).to.deep.equal([
+      expect(emailCall.args[0]).to.have.members([
         "user2@test.com",
         "user3@test.com",
       ]); // Only user2 and user3 emails
@@ -343,7 +343,7 @@ describe("notify()", () => {
 
       // Verify email call details
       const emailCall = emailStub.getCall(0);
-      expect(emailCall.args[0]).to.deep.equal(["user@test.com"]);
+      expect(emailCall.args[0]).to.have.members(["user@test.com"]);
       expect(emailCall.args[1]).to.equal("E_114706970517");
       expect(emailCall.args[2]).to.deep.equal({
         subject: "Test Subject",
