@@ -64,26 +64,30 @@ export type UserPanelProps = {
   data: UserDisplayData & { isMentor: boolean };
   showBookingButton?: boolean;
   showMatchingTraitsAndSelection?: boolean;
-  hideKudosControl?: boolean;
+  showTitle?: boolean;
+  showKudosControl?: boolean;
 };
 
 export default function UserPanel({
   data,
   showBookingButton,
   showMatchingTraitsAndSelection,
-  hideKudosControl,
+  showTitle = true,
+  showKudosControl = true,
 }: UserPanelProps) {
   const myRoles = useMyRoles();
   const profile = data.profile;
 
   return (
     <>
-      <PageBreadcrumb
-        current={
-          (data.isMentor ? "导师：" : "") +
-          formatUserName(data.user.name, "formal")
-        }
-      />
+      {showTitle && (
+        <PageBreadcrumb
+          current={
+            (data.isMentor ? "导师：" : "") +
+            formatUserName(data.user.name, "formal")
+          }
+        />
+      )}
 
       <Stack
         spacing={sectionSpacing}
@@ -123,7 +127,7 @@ export default function UserPanel({
 
           {showBookingButton && <BookingButtonAndModal user={data.user} />}
 
-          {!hideKudosControl && isPermitted(myRoles, "Volunteer") && (
+          {showKudosControl && isPermitted(myRoles, "Volunteer") && (
             <HStack mt={sectionSpacing}>
               <KudosControl
                 user={data.user}

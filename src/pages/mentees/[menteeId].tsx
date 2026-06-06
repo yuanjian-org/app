@@ -151,12 +151,13 @@ function MenteeTabs({
 
         {features.menteeProfile && <Tab>学生自填信息</Tab>}
 
-        {features.interviews && (
-          <>
-            <Tab>申请表信息</Tab>
-            {!isPermitted(me.roles, "MentorshipOperator") && <Tab>面试页</Tab>}
-          </>
-        )}
+        {features.interviews && <Tab>申请表信息</Tab>}
+
+        {features.interviews &&
+          isPermitted(me.roles, ["Mentor", "MentorshipManager"]) && (
+            <Tab>面试页</Tab>
+          )}
+
         {/* <Tab>年度反馈</Tab> */}
       </TabList>
 
@@ -174,15 +175,15 @@ function MenteeTabs({
         )}
 
         {features.interviews && (
-          <>
-            <TabPanel>
-              <Applicant type="MenteeInterview" userId={mentee.id} />
-            </TabPanel>
-            {!isPermitted(me.roles, "MentorshipOperator") && (
-              <InterviewTabPanel menteeId={mentee.id} />
-            )}
-          </>
+          <TabPanel>
+            <Applicant type="MenteeInterview" userId={mentee.id} />
+          </TabPanel>
         )}
+
+        {features.interviews &&
+          isPermitted(me.roles, ["Mentor", "MentorshipManager"]) && (
+            <InterviewTabPanel menteeId={mentee.id} />
+          )}
 
         {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
@@ -199,7 +200,7 @@ function MenteeProfileTabPanel({ menteeId }: { menteeId: string }) {
   );
 
   return data ? (
-    <UserPanel data={data} showBookingButton={false} hideKudosControl={true} />
+    <UserPanel data={data} showKudosControl={false} showTitle={false} />
   ) : (
     <Loader />
   );

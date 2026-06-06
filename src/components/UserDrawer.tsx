@@ -24,7 +24,7 @@ export default function UserDrawer({
           {/**
            * TODO: Popover is displayed behind the user drawer.
            * cf. https://github.com/chakra-ui/chakra-ui/discussions/5974 */}
-          <UserPanel {...rest} hideKudosControl={true} />
+          <UserPanel {...rest} showKudosControl={false} />
         </DrawerBody>
       </DrawerContent>
     </Drawer>
