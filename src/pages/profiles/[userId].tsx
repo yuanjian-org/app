@@ -43,6 +43,7 @@ import { useMyId, useMyRoles } from "useMe";
 import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
+import { UserProfilePictureLink } from "components/UserCards";
 import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
@@ -336,14 +337,12 @@ function Picture({
     <>
       <Heading size="md">生活照</Heading>
       <FormControl>
-        {profile.照片链接 && (
-          <Image
-            src={profile.照片链接}
-            alt="照片"
-            maxW="300px"
-            my={componentSpacing}
-          />
-        )}
+        <Image
+          src={UserProfilePictureLink(profile)}
+          alt="照片"
+          maxW="300px"
+          my={componentSpacing}
+        />
 
         {isMe && (
           <Link onClick={handleUpload}>
