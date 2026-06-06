@@ -247,6 +247,8 @@ function FieldValueCell({
 
     // URL
   } else if (
+    // Zod's .url() allows javascript: and data: schemes. We explicitly
+    // require http:// or https:// to prevent XSS vulnerabilities.
     z.string().url().safeParse(value).success &&
     (value.toLowerCase().startsWith("http://") ||
       value.toLowerCase().startsWith("https://"))
