@@ -246,7 +246,11 @@ function FieldValueCell({
     );
 
     // URL
-  } else if (z.string().url().safeParse(value).success) {
+  } else if (
+    z.string().url().safeParse(value).success &&
+    (value.toLowerCase().startsWith("http://") ||
+      value.toLowerCase().startsWith("https://"))
+  ) {
     return (
       <Link href={value}>
         下载链接 <DownloadIcon />
