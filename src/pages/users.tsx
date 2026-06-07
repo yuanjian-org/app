@@ -442,6 +442,10 @@ function UserEditor({
                       return null;
                     }
 
+                    if (!features.projects && r === "ProjectAdmin") {
+                      return null;
+                    }
+
                     const rp = roleProfile(r);
                     return (
                       <Checkbox

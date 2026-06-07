@@ -7,6 +7,8 @@ export const allRoles = [
   "GroupManager",
   "OrgAdmin",
 
+  "ProjectAdmin",
+
   "MentorshipAssessor",
   "MentorshipManager",
   "MentorshipOperator",
@@ -66,6 +68,10 @@ const RoleProfiles: {
   OrgAdmin: {
     displayName: "机构管理员",
     actions: "管理机构信息、成员和所有者",
+  },
+  ProjectAdmin: {
+    displayName: "项目管理员",
+    actions: "管理项目信息",
   },
 
   MentorshipAssessor: {

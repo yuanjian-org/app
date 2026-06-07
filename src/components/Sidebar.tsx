@@ -5,7 +5,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import { signOut } from "./signOut";
 import { FiChevronRight } from "react-icons/fi";
-import { IoIosCog, IoMdBookmark, IoMdCalendar } from "react-icons/io";
+import { IoIosCog, IoMdBookmark, IoMdCalendar, IoMdBulb } from "react-icons/io";
 import { IoStar } from "react-icons/io5";
 import {
   Avatar,
@@ -192,6 +192,13 @@ const mainMenuItems: MainMenuItem[] = [
     icon: FaStreetView,
     regex: /^\/$/,
     redDot: UnreadTasksRedDot,
+  },
+  {
+    name: "挑战问题",
+    path: "/projects",
+    icon: IoMdBulb,
+    regex: /^\/projects/,
+    feature: "projects",
   },
   {
     name: "我的面试",

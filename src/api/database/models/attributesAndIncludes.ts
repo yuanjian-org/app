@@ -291,3 +291,23 @@ export const taskInclude = [
     attributes: minUserAttributes,
   },
 ];
+
+/**
+ * Project
+ */
+
+export const projectAttributes = [
+  "id",
+  "title",
+  "status",
+  "visibility",
+  "profile",
+  "ownerId",
+];
+
+export const projectInclude = [
+  {
+    association: "owner",
+    attributes: minUserAttributes,
+  },
+];

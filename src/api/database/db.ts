@@ -34,11 +34,13 @@ import IdToken from "./models/IdToken";
 import Org from "./models/Org";
 import OrgMentor from "./models/OrgMentor";
 import OrgOwner from "./models/OrgOwner";
+import Project from "./models/Project";
 
 const db = {
   Org,
   OrgMentor,
   OrgOwner,
+  Project,
   Mentorship,
   User,
   Group,

@@ -14,6 +14,9 @@ export const zFeatures = z.object({
   interviews: z.boolean().optional(),
   exams: z.boolean().optional(),
 
+  // X-Challenge and X-Idea projects
+  projects: z.boolean().optional(),
+
   /**
    * Controls features related to the mentee's self-filled profile, including:
    * - Prompting mentees to complete their profile via a modal after login, when attempting to book a mentor, or when drafting a mentor selection.

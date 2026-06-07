@@ -27,6 +27,7 @@ import ustcStudents from "./routes/ustcStudents";
 import idTokens from "./routes/idTokens";
 import menteeData from "./routes/menteeData";
 import orgs from "./routes/orgs";
+import projects from "./routes/projects";
 
 // Initialize console-stamp to add timestamps to all console logs
 consoleStamp(console, {
@@ -61,6 +62,7 @@ export const apiRouter = router({
   idTokens,
   menteeData,
   orgs,
+  projects,
 });
 
 export type ApiRouter = typeof apiRouter;
