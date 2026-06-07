@@ -140,6 +140,15 @@ jobs:
 
           echo ">>> Restarting Docker containers"
           docker compose down
+
+          echo ">>> Staggering restart of app containers to avoid resource exhaustion"
+          for SERVICE in $(APP_DOCKER_IMAGE=${{ vars.LOCAL_APP_DOCKER_IMAGE }} docker compose config --services | grep '^app'); do
+            echo ">>> Restarting $SERVICE"
+            docker compose up -d $SERVICE
+            sleep 10
+          done
+
+          echo ">>> Restarting remaining containers"
           docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
