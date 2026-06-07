@@ -5,11 +5,13 @@ import http from "http";
 import z, { TypeOf } from "zod";
 import { internalServerError } from "./errors";
 import MeetingSlot from "./database/models/MeetingSlot";
+import { getWhiteLabel } from "./getWhiteLabel";
 
 const LOG_HEADER = "[TecentMeeting]";
 
 export async function getTmUserIds(): Promise<string[]> {
   const slots = await MeetingSlot.findAll({
+    where: { whiteLabel: getWhiteLabel() },
     attributes: ["tmUserId"],
   });
   return slots.map((s) => s.tmUserId);

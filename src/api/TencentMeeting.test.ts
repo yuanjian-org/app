@@ -29,16 +29,26 @@ describe("TencentMeeting", () => {
 
   describe("getTmUserIds", () => {
     it("should return parsed user ids from MeetingSlot", async () => {
-      sinon
+      const findAllStub = sinon
         .stub(MeetingSlot, "findAll")
         .resolves([{ tmUserId: "user1" } as any, { tmUserId: "user2" } as any]);
       const userIds = await getTmUserIds();
       expect(userIds).to.deep.equal(["user1", "user2"]);
+      void expect(
+        findAllStub.calledWith(
+          sinon.match({ where: { whiteLabel: sinon.match.string } }),
+        ),
+      ).to.be.true;
     });
 
     it("should return empty array if no MeetingSlots are found", async () => {
-      sinon.stub(MeetingSlot, "findAll").resolves([]);
+      const findAllStub = sinon.stub(MeetingSlot, "findAll").resolves([]);
       expect(await getTmUserIds()).to.deep.equal([]);
+      void expect(
+        findAllStub.calledWith(
+          sinon.match({ where: { whiteLabel: sinon.match.string } }),
+        ),
+      ).to.be.true;
     });
   });
 
