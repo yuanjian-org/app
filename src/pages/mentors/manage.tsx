@@ -20,7 +20,7 @@ import Loader from "components/Loader";
 import { formatUserName, toPinyin } from "shared/strings";
 import { trpcNext } from "trpc";
 import { componentSpacing, pageMarginX } from "theme/metrics";
-import Role, { displayName, isPermitted } from "shared/Role";
+import { isPermitted } from "shared/Role";
 import NextLink from "next/link";
 import User, { getUserUrl } from "shared/User";
 import { ChevronRightIcon } from "@chakra-ui/icons";
@@ -32,12 +32,10 @@ import ExamPassDateText from "components/ExamPassDateText";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { okTextColor, warningTextColor } from "theme/colors";
 import { defaultMentorCapacity, MentorPreference } from "shared/UserPreference";
+import { RoleTag } from "components/RoleTag";
 
 const title = "导师档案";
 
-/**
- * TODO: this file closely resembles interviewers.tsx. Dedupe?
- */
 export default fullPage(() => {
   const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
   const [showMatchState, setShowMatchState] = useState(false);
@@ -174,23 +172,6 @@ function SumCell({ n }: { n: number }) {
 
 function cap(pref: MentorPreference): number {
   return pref.最多匹配学生 ?? defaultMentorCapacity;
-}
-
-export function RoleTag({ roles }: { roles: Role[] }) {
-  const { r, c }: { r: Role | null; c: string } = isPermitted(
-    roles,
-    "TransactionalMentor",
-  )
-    ? { r: "TransactionalMentor", c: "red" }
-    : isPermitted(roles, "SeniorMentor")
-      ? { r: "SeniorMentor", c: "blue" }
-      : isPermitted(roles, "Mentor")
-        ? { r: "Mentor", c: "teal" }
-        : isPermitted(roles, "Volunteer")
-          ? { r: "Volunteer", c: "orange" }
-          : { r: null, c: "grey" };
-
-  return r && <Tag colorScheme={c}>{displayName(r)}</Tag>;
 }
 
 function MentorRow({

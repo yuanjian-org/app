@@ -26,11 +26,8 @@ import moment from "moment";
 import TruncatedTextWithTooltip from "components/TruncatedTextWithTooltip";
 import ExamPassDateText from "components/ExamPassDateText";
 import { optInInterviewerText } from "./preferences/[userId]";
-import { RoleTag } from "./mentors/manage";
+import { RoleTag } from "components/RoleTag";
 
-/**
- * TODO: this file closely resembles manage/mentors/index.tsx. Dedupe?
- */
 export default widePage(() => {
   const { data: stats, refetch } =
     trpcNext.interviews.listInterviewerStats.useQuery();
