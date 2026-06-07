@@ -84,22 +84,24 @@ export default function ProjectDetail() {
           <Heading size="md" mb={2}>
             Background
           </Heading>
-          <Text>{project.background}</Text>
+          <Text>{project.profile.Background}</Text>
         </Box>
 
         <Box>
           <Heading size="md" mb={2}>
             Challenge Description
           </Heading>
-          <MarkdownStyler content={project.description} />
+          <MarkdownStyler
+            content={project.profile["Challenge Description"] || ""}
+          />
         </Box>
 
-        {project.videoUrl && (
+        {project.profile.Video && (
           <Box>
             <Heading size="md" mb={2}>
               Video
             </Heading>
-            <a href={project.videoUrl} target="_blank" rel="noreferrer">
+            <a href={project.profile.Video} target="_blank" rel="noreferrer">
               观看导师详细视频讲解
             </a>
           </Box>
@@ -109,7 +111,7 @@ export default function ProjectDetail() {
           <Heading size="md" mb={2}>
             学生画像要求
           </Heading>
-          <Text>{project.studentPersona}</Text>
+          <Text>{project.profile["学生画像要求"]}</Text>
         </Box>
 
         {isApplying ? (

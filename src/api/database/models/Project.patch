@@ -1,0 +1,22 @@
+<<<<<<< SEARCH
+  @AllowNull(false)
+  @Column(TEXT)
+  background: string;
+
+  @AllowNull(false)
+  @Column(TEXT)
+  description: string;
+
+  @AllowNull(false)
+  @Column(STRING)
+  videoUrl: string;
+
+  @AllowNull(false)
+  @Column(TEXT)
+  studentPersona: string;
+=======
+  @AllowNull(false)
+  @Default({})
+  @Column(JSONB)
+  profile: any;
+>>>>>>> REPLACE

@@ -1,0 +1,15 @@
+<<<<<<< SEARCH
+      const p = project.toJSON() as any;
+      if (project.requireLogin && !session?.user) {
+        p.videoUrl = "";
+        p.description = "登录后查看详情";
+      }
+      return p;
+=======
+      const p = project.toJSON() as any;
+      if (project.requireLogin && !session?.user) {
+        p.profile["Video"] = "";
+        p.profile["Challenge Description"] = "登录后查看详情";
+      }
+      return p;
+>>>>>>> REPLACE

@@ -1,0 +1,5 @@
+<<<<<<< SEARCH
+import { BOOLEAN, STRING, TEXT, UUID, UUIDV4 } from "sequelize";
+=======
+import { BOOLEAN, JSONB, STRING, TEXT, UUID, UUIDV4 } from "sequelize";
+>>>>>>> REPLACE

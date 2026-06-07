@@ -27,7 +27,7 @@ export default function Projects() {
             >
               <Heading fontSize="xl">{project.title}</Heading>
               <Text mt={2} noOfLines={3}>
-                {project.description}
+                {project.profile["Challenge Description"]}
               </Text>
               <Text mt={2} color="gray.500" fontSize="sm">
                 发布者: {project.creator?.name}

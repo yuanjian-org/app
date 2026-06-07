@@ -38,12 +38,12 @@ export default router({
         authOptions(ctx.req as any),
       );
 
+      const p = project.toJSON() as any;
       if (project.requireLogin && !session?.user) {
-        throw generalBadRequestError(
-          "This project requires login to view details.",
-        );
+        p.profile.Video = "";
+        p.profile["Challenge Description"] = "登录后查看详情";
       }
-      return project.toJSON() as any;
+      return p;
     }),
 
   applyProject: procedure

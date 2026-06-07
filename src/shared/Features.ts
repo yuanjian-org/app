@@ -20,6 +20,8 @@ export const zFeatures = z.object({
    * - Showing the "学生自填信息" tab on the mentee details page.
    */
   menteeProfile: z.boolean().optional(),
+
+  projects: z.boolean().optional(),
 });
 
 export type Features = z.infer<typeof zFeatures>;

@@ -1,0 +1,45 @@
+<<<<<<< SEARCH
+        <Box>
+          <Heading size="md" mb={2}>Background</Heading>
+          <Text>{project.background}</Text>
+        </Box>
+
+        <Box>
+          <Heading size="md" mb={2}>Challenge Description</Heading>
+          <MarkdownStyler content={project.description} />
+        </Box>
+
+        {project.videoUrl && (
+          <Box>
+             <Heading size="md" mb={2}>Video</Heading>
+             <a href={project.videoUrl} target="_blank" rel="noreferrer">观看导师详细视频讲解</a>
+          </Box>
+        )}
+
+        <Box>
+          <Heading size="md" mb={2}>学生画像要求</Heading>
+          <Text>{project.studentPersona}</Text>
+        </Box>
+=======
+        <Box>
+          <Heading size="md" mb={2}>Background</Heading>
+          <Text>{project.profile.Background}</Text>
+        </Box>
+
+        <Box>
+          <Heading size="md" mb={2}>Challenge Description</Heading>
+          <MarkdownStyler content={project.profile["Challenge Description"] || ""} />
+        </Box>
+
+        {project.profile.Video && (
+          <Box>
+             <Heading size="md" mb={2}>Video</Heading>
+             <a href={project.profile.Video} target="_blank" rel="noreferrer">观看导师详细视频讲解</a>
+          </Box>
+        )}
+
+        <Box>
+          <Heading size="md" mb={2}>学生画像要求</Heading>
+          <Text>{project.profile["学生画像要求"]}</Text>
+        </Box>
+>>>>>>> REPLACE

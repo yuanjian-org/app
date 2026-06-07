@@ -8,7 +8,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { BOOLEAN, STRING, TEXT, UUID, UUIDV4 } from "sequelize";
+import { BOOLEAN, JSONB, STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 
 @Table
@@ -28,20 +28,9 @@ export default class Project extends Model {
   title: string;
 
   @AllowNull(false)
-  @Column(TEXT)
-  background: string;
-
-  @AllowNull(false)
-  @Column(TEXT)
-  description: string;
-
-  @AllowNull(false)
-  @Column(STRING)
-  videoUrl: string;
-
-  @AllowNull(false)
-  @Column(TEXT)
-  studentPersona: string;
+  @Default({})
+  @Column(JSONB)
+  profile: any;
 
   @AllowNull(false)
   @Default(false)

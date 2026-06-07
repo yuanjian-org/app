@@ -1,14 +1,21 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
 
+export const zProjectProfile = z
+  .object({
+    Background: z.string().optional(),
+    "Challenge Description": z.string().optional(),
+    Video: z.string().optional(),
+    学生画像要求: z.string().optional(),
+  })
+  .catchall(z.any());
+export type ProjectProfile = z.TypeOf<typeof zProjectProfile>;
+
 export const zProject = z.object({
   id: z.string(),
   creatorId: z.string(),
   title: z.string(),
-  background: z.string(),
-  description: z.string(),
-  videoUrl: z.string(),
-  studentPersona: z.string(),
+  profile: zProjectProfile,
   requireLogin: z.boolean(),
   isPublished: z.boolean(),
   createdAt: z.date().optional(),

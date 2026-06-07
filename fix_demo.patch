@@ -1,0 +1,33 @@
+<<<<<<< SEARCH
+async function createProjects(t: Transaction) {
+  console.log("Creating projects...");
+  const p1 = await db.Project.create(
+    {
+      creatorId: "mentor1", // Assuming id(mentor1) would resolve to "mentor1" for simplicity in this script addition
+=======
+async function createProjects(t: Transaction) {
+  console.log("Creating projects...");
+  const p1 = await db.Project.create(
+    {
+      creatorId: id(mentor1),
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  await db.ProjectApplication.create(
+    {
+      projectId: p1.id,
+      applicantId: "mentee1",
+=======
+  await db.ProjectApplication.create(
+    {
+      projectId: p1.id,
+      applicantId: id(mentee1),
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  await db.Project.create(
+    {
+      creatorId: "mentor2",
+=======
+  await db.Project.create(
+    {
+      creatorId: id(mentor2),
+>>>>>>> REPLACE
