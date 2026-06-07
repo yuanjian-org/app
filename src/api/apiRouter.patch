@@ -1,0 +1,26 @@
+<<<<<<< SEARCH
+import orgs from "./routes/orgs";
+
+// Initialize console-stamp to add timestamps to all console logs
+=======
+import orgs from "./routes/orgs";
+import projects from "./routes/projects";
+
+// Initialize console-stamp to add timestamps to all console logs
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  idTokens,
+  menteeData,
+  orgs,
+});
+
+export type ApiRouter = typeof apiRouter;
+=======
+  idTokens,
+  menteeData,
+  orgs,
+  projects,
+});
+
+export type ApiRouter = typeof apiRouter;
+>>>>>>> REPLACE

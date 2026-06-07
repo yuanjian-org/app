@@ -247,6 +247,12 @@ const mainMenuItems: MainMenuItem[] = [
     feature: "orgs",
   },
   {
+    name: "X-Challenge",
+    path: "/projects",
+    icon: IoStar,
+    regex: /^\/projects/,
+  },
+  {
     name: "资源推荐",
     path: "/resources",
     icon: IoMdBookmark,

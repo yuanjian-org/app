@@ -1,0 +1,34 @@
+<<<<<<< SEARCH
+  getProject: procedure
+    .input(z.object({ id: z.string() }))
+    .output(zProject)
+    .query(async ({ input: { id }, ctx }) => {
+      const project = await db.Project.findByPk(id, {
+        include: [{ model: db.User, as: "creator", attributes: minUserAttributes }],
+      });
+      if (!project) throw notFoundError;
+      if (project.requireLogin && !ctx.session?.user) {
+        throw generalBadRequestError("This project requires login to view details.");
+      }
+      return project.toJSON() as any;
+    }),
+=======
+  getProject: procedure
+    .input(z.object({ id: z.string() }))
+    .output(zProject)
+    .query(async ({ input: { id }, ctx }) => {
+      const project = await db.Project.findByPk(id, {
+        include: [{ model: db.User, as: "creator", attributes: minUserAttributes }],
+      });
+      if (!project) throw notFoundError;
+
+      const { getServerSession } = await import("next-auth/next");
+      const { authOptions } = await import("../../pages/api/auth/[...nextauth]");
+      const session = await getServerSession(ctx.req as any, ctx.res as any, authOptions);
+
+      if (project.requireLogin && !session?.user) {
+        throw generalBadRequestError("This project requires login to view details.");
+      }
+      return project.toJSON() as any;
+    }),
+>>>>>>> REPLACE

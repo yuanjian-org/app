@@ -1,0 +1,10 @@
+<<<<<<< SEARCH
+      await applyMutation.mutateAsync({ projectId, content });
+      toast({ title: "申请提交成功", status: "success" });
+=======
+      void applyMutation.mutateAsync({ projectId, content }).then(() => {
+        toast({ title: "申请提交成功", status: "success" });
+        setIsApplying(false);
+        setContent("");
+      });
+>>>>>>> REPLACE

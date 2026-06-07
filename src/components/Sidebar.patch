@@ -1,0 +1,23 @@
+<<<<<<< SEARCH
+  {
+    name: "入驻机构",
+    path: "/orgs",
+    icon: MdBusiness,
+    regex: /^\/orgs/,
+    feature: "orgs",
+  },
+=======
+  {
+    name: "入驻机构",
+    path: "/orgs",
+    icon: MdBusiness,
+    regex: /^\/orgs/,
+    feature: "orgs",
+  },
+  {
+    name: "X-Challenge",
+    path: "/projects",
+    icon: IoStar,
+    regex: /^\/projects/,
+  },
+>>>>>>> REPLACE

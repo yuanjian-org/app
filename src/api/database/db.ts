@@ -25,6 +25,8 @@ import DraftChatMessage from "./models/DraftChatMessage";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
 import Task from "./models/Task";
+import Project from "./models/Project";
+import ProjectApplication from "./models/ProjectApplication";
 import MeetingHistory from "./models/MeetingHistory";
 import MatchFeedback from "./models/MatchFeedback";
 import GlobalConfig from "./models/GlobalConfig";
@@ -63,6 +65,8 @@ const db = {
   MentorSelection,
   MentorSelectionBatch,
   Task,
+  Project,
+  ProjectApplication,
   MatchFeedback,
   GlobalConfig,
   DeletedSummary,
