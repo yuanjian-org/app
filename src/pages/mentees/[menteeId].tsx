@@ -137,14 +137,20 @@ function MenteeTabs({
       <TabList>
         {filtered.length == 1 ? (
           <Tab>
-            一对一通话
-            {filtered[0].mentor.id !== me.id &&
-              `【${formatUserName(filtered[0].mentor.name)}】`}
+            <Flex as="span" gap={1} align="center">
+              一对一通话
+              {filtered[0].mentor.id !== me.id &&
+                `【${formatUserName(filtered[0].mentor.name)}】`}
+              <MentorshipStatusIcon m={filtered[0]} />
+            </Flex>
           </Tab>
         ) : (
           filtered.map((m) => (
             <Tab key={m.id}>
-              一对一通话{formatMentorshipTabSuffix(m, me.id)}
+              <Flex as="span" gap={1} align="center">
+                一对一通话{formatMentorshipTabSuffix(m, me.id)}
+                <MentorshipStatusIcon m={m} />
+              </Flex>
             </Tab>
           ))
         )}
