@@ -267,8 +267,14 @@ const zMeetingRecord = z.object({
 export type MeetingRecord = TypeOf<typeof zMeetingRecord>;
 
 /**
- * List meeting recordings since 31 days ago (max allowed date range).
- *
+ * List all meeting recordings in the last N days. The max allowed date range is
+ * 31 days (https://cloud.tencent.com/document/product/1095/51189) but we assume
+ * our max service downtime will not exceed 7 days. Setting the range too large
+ * may cause us hitting TM's rate limit.
+ */
+const queryRangeInDays = 7;
+
+/**
  * https://cloud.tencent.com/document/product/1095/51189
  */
 export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
@@ -285,9 +291,8 @@ export async function listRecords(tmUserId: string): Promise<MeetingRecord[]> {
     const res = zRes.parse(
       await tmRequest("GET", "/v1/records", {
         userid: tmUserId,
-        // 31d is earliest allowed date
         start_time: JSON.stringify(
-          Math.trunc(Date.now() / 1000 - 31 * 24 * 3600),
+          Math.trunc(Date.now() / 1000 - queryRangeInDays * 24 * 3600),
         ),
         end_time: JSON.stringify(Math.trunc(Date.now() / 1000)),
         page_size: 20, // max page size
