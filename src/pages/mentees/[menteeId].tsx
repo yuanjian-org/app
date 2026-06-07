@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import {
+  compareChinese,
   formatUserName,
   parseQueryString,
   prettifyDate,
@@ -40,6 +41,7 @@ import User, { MinUser } from "shared/User";
 import ChatRoom from "components/ChatRoom";
 import {
   formatMentorshipSchedule,
+  isEnded,
   Mentorship,
   MentorshipSchedule,
 } from "shared/Mentorship";
@@ -234,13 +236,28 @@ function filterAndSortMentorship(ms: Mentorship[], me: User): Mentorship[] {
   if (isPermitted(me.roles, "MentorshipOperator")) {
     ms = ms.filter((m) => m.mentor.id == me.id);
   }
+
+  const remaining = ms.filter((m) => m.mentor.id != me.id);
+  const ongoingRelational = remaining
+    .filter((m) => !m.transactional && !isEnded(m.endsAt))
+    .sort((a, b) => compareChinese(a.mentor.name, b.mentor.name));
+  const ongoingTransactional = remaining
+    .filter((m) => m.transactional && !isEnded(m.endsAt))
+    .sort((a, b) => compareChinese(a.mentor.name, b.mentor.name));
+  const endedRelational = remaining
+    .filter((m) => !m.transactional && isEnded(m.endsAt))
+    .sort((a, b) => compareChinese(a.mentor.name, b.mentor.name));
+  const endedTransactional = remaining
+    .filter((m) => m.transactional && isEnded(m.endsAt))
+    .sort((a, b) => compareChinese(a.mentor.name, b.mentor.name));
+
   return [
     // Always put my mentorship as the first tab
     ...ms.filter((m) => m.mentor.id == me.id),
-    // Then sort by ids
-    ...ms
-      .filter((m) => m.mentor.id != me.id)
-      .sort((a, b) => a.id.localeCompare(b.id)),
+    ...ongoingRelational,
+    ...ongoingTransactional,
+    ...endedRelational,
+    ...endedTransactional,
   ];
 }
 
