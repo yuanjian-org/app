@@ -686,7 +686,7 @@ const demoProjectProfileBase: Omit<ProjectProfile, "简介"> = {
   挑战描述: "设计并实现一个高效、安全且易于使用的社会导师服务平台。",
   视频链接: "https://example.com/demo-video",
   学生要求: "熟悉React和Node.js，有全栈开发经验者优先。",
-  参考材料: "《远见社会导师服务平台需求文档》、《Next.js官方文档》",
+  参考材料: "《远图社会导师服务平台需求文档》、《Next.js官方文档》",
 };
 
 const projects: DemoProject[] = [
