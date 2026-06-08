@@ -17,6 +17,9 @@ export function getFeatures(): Features {
   if (process.env.ENABLE_EXAMS === "true") {
     features.exams = true;
   }
+  if (process.env.ENABLE_PROJECTS === "true") {
+    features.projects = true;
+  }
   if (process.env.ENABLE_MENTEE_PROFILE === "true") {
     features.menteeProfile = true;
   }
