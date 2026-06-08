@@ -54,8 +54,7 @@ while IFS=',' read -r name pearlId nationalIdLastFour; do
   fi
 
   # Ensure nationalIdLastFour is lowercased if it contains letters (usually X)
-  ### COMMENTED OUT TO OPTIMIZE FOR TIME
-  # nationalIdLastFour=$(echo "$nationalIdLastFour" | tr '[:upper:]' '[:lower:]')
+  nationalIdLastFour=$(echo "$nationalIdLastFour" | tr '[:upper:]' '[:lower:]')
 
   # Escape single quotes in name to prevent SQL injection
   ### COMMENTED OUT TO OPTIMIZE FOR TIME
