@@ -98,7 +98,7 @@ describe("Projects Route Impl", () => {
       const otherUser = await createTestUser();
       const project = await createTestProject(otherUser.id, "Public", "Open");
 
-      const result = await getImpl(me, { id: project.id }, transaction);
+      const result = await getImpl(me, project.id, transaction);
       expect(result.id).to.equal(project.id);
     });
 
@@ -106,7 +106,7 @@ describe("Projects Route Impl", () => {
       const me = await createTestUser();
       const project = await createTestProject(me.id, "Confidential", "Draft");
 
-      const result = await getImpl(me, { id: project.id }, transaction);
+      const result = await getImpl(me, project.id, transaction);
       expect(result.id).to.equal(project.id);
     });
 
@@ -119,7 +119,7 @@ describe("Projects Route Impl", () => {
         "Draft",
       );
 
-      const result = await getImpl(admin, { id: project.id }, transaction);
+      const result = await getImpl(admin, project.id, transaction);
       expect(result.id).to.equal(project.id);
     });
 
@@ -128,7 +128,7 @@ describe("Projects Route Impl", () => {
 
       let error: any;
       try {
-        await getImpl(me, { id: uuidv4() }, transaction);
+        await getImpl(me, uuidv4(), transaction);
       } catch (e) {
         error = e;
       }
@@ -147,7 +147,7 @@ describe("Projects Route Impl", () => {
 
       let error: any;
       try {
-        await getImpl(me, { id: project.id }, transaction);
+        await getImpl(me, project.id, transaction);
       } catch (e) {
         error = e;
       }
@@ -162,12 +162,11 @@ describe("Projects Route Impl", () => {
 
       const project = await createImpl(
         me,
-        {
-          title: "New Project",
-          status: "Draft",
-          visibility: "Confidential",
-          profile: {},
-        },
+        "New Project",
+        "Draft",
+        "Confidential",
+        {},
+        undefined,
         transaction,
       );
 
@@ -181,13 +180,11 @@ describe("Projects Route Impl", () => {
 
       const project = await createImpl(
         admin,
-        {
-          title: "Admin Created Project",
-          status: "Draft",
-          visibility: "Confidential",
-          profile: {},
-          ownerId: otherUser.id,
-        },
+        "Admin Created Project",
+        "Draft",
+        "Confidential",
+        {},
+        otherUser.id,
         transaction,
       );
 
@@ -202,13 +199,11 @@ describe("Projects Route Impl", () => {
       try {
         await createImpl(
           me,
-          {
-            title: "Hacked Project",
-            status: "Draft",
-            visibility: "Confidential",
-            profile: {},
-            ownerId: otherUser.id,
-          },
+          "Hacked Project",
+          "Draft",
+          "Confidential",
+          {},
+          otherUser.id,
           transaction,
         );
       } catch (e) {
@@ -226,10 +221,12 @@ describe("Projects Route Impl", () => {
 
       const updatedProject = await updateImpl(
         me,
-        {
-          id: project.id,
-          title: "Updated Title",
-        },
+        project.id,
+        "Updated Title",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
         transaction,
       );
 
@@ -243,10 +240,12 @@ describe("Projects Route Impl", () => {
 
       const updatedProject = await updateImpl(
         admin,
-        {
-          id: project.id,
-          title: "Admin Updated Title",
-        },
+        project.id,
+        "Admin Updated Title",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
         transaction,
       );
 
@@ -262,10 +261,12 @@ describe("Projects Route Impl", () => {
       try {
         await updateImpl(
           me,
-          {
-            id: project.id,
-            title: "Hacked Title",
-          },
+          project.id,
+          "Hacked Title",
+          undefined,
+          undefined,
+          undefined,
+          undefined,
           transaction,
         );
       } catch (e) {
@@ -282,10 +283,12 @@ describe("Projects Route Impl", () => {
       try {
         await updateImpl(
           me,
-          {
-            id: uuidv4(),
-            title: "Ghost Project",
-          },
+          uuidv4(),
+          "Ghost Project",
+          undefined,
+          undefined,
+          undefined,
+          undefined,
           transaction,
         );
       } catch (e) {

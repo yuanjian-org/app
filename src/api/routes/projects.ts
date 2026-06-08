@@ -2,6 +2,7 @@ import { procedure, router } from "../trpc";
 import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
+import sequelize from "../database/sequelize";
 import { Op } from "sequelize";
 import { notFoundError, noPermissionError } from "../errors";
 import { isPermitted } from "../../shared/Role";
@@ -12,8 +13,10 @@ import {
   zProjectWithOwner,
   zProjectStatus,
   zProjectVisibility,
+  ProjectStatus,
+  ProjectVisibility,
 } from "../../shared/Project";
-import { zProjectProfile } from "../../shared/ProjectProfile";
+import { zProjectProfile, ProjectProfile } from "../../shared/ProjectProfile";
 import {
   projectInclude,
   projectAttributes,
@@ -43,7 +46,7 @@ export async function listImpl(
     include: projectInclude,
     order: [["createdAt", "DESC"]],
     transaction,
-  })) as any as ProjectWithOwner[]; // DB models are mapped to these types via include/attributes
+  })) as ProjectWithOwner[]; // DB models are mapped to these types via include/attributes
 }
 
 const list = procedure
@@ -55,17 +58,17 @@ const list = procedure
 
 export async function getImpl(
   me: User,
-  input: { id: string },
+  id: string,
   transaction?: Transaction,
 ): Promise<ProjectWithOwner> {
-  const project = await db.Project.findByPk(input.id, {
+  const project = await db.Project.findByPk(id, {
     attributes: projectAttributes,
     include: projectInclude,
     transaction,
   });
 
   if (!project) {
-    throw notFoundError("项目", input.id);
+    throw notFoundError("项目", id);
   }
 
   if (
@@ -73,10 +76,10 @@ export async function getImpl(
     me.id !== project.ownerId &&
     !isPermitted(me.roles, "ProjectAdmin")
   ) {
-    throw noPermissionError("项目", input.id);
+    throw noPermissionError("项目", id);
   }
 
-  return project as any as ProjectWithOwner;
+  return project as unknown as ProjectWithOwner;
 }
 
 const get = procedure
@@ -84,35 +87,29 @@ const get = procedure
   .input(z.object({ id: z.string() }))
   .output(zProjectWithOwner)
   .query(async ({ ctx: { me }, input }) => {
-    return await getImpl(me, input);
+    return await getImpl(me, input.id);
   });
 
 export async function createImpl(
   me: User,
-  input: {
-    title: string;
-    status: "Draft" | "Open" | "Closed";
-    visibility: "Public" | "Confidential";
-    profile: any;
-    ownerId?: string;
-  },
-  transaction?: Transaction,
+  title: string,
+  status: ProjectStatus,
+  visibility: ProjectVisibility,
+  profile: ProjectProfile,
+  ownerId: string | undefined,
+  transaction: Transaction,
 ): Promise<Project> {
-  if (
-    input.ownerId &&
-    input.ownerId !== me.id &&
-    !isPermitted(me.roles, "ProjectAdmin")
-  ) {
+  if (ownerId && ownerId !== me.id && !isPermitted(me.roles, "ProjectAdmin")) {
     throw noPermissionError("项目", "create");
   }
 
   return await db.Project.create(
     {
-      ownerId: input.ownerId || me.id,
-      title: input.title,
-      status: input.status,
-      visibility: input.visibility,
-      profile: input.profile,
+      ownerId: ownerId || me.id,
+      title: title,
+      status: status,
+      visibility: visibility,
+      profile: profile,
     },
     { transaction },
   );
@@ -131,44 +128,61 @@ const create = procedure
   )
   .output(zProject)
   .mutation(async ({ ctx: { me }, input }) => {
-    return await createImpl(me, input);
+    return await sequelize.transaction(async (transaction) => {
+      return await createImpl(
+        me,
+        input.title,
+        input.status,
+        input.visibility,
+        input.profile,
+        input.ownerId,
+        transaction,
+      );
+    });
   });
 
 export async function updateImpl(
   me: User,
-  input: {
-    id: string;
-    title?: string;
-    status?: "Draft" | "Open" | "Closed";
-    visibility?: "Public" | "Confidential";
-    profile?: any;
-    ownerId?: string;
-  },
-  transaction?: Transaction,
+  id: string,
+  title: string | undefined,
+  status: ProjectStatus | undefined,
+  visibility: ProjectVisibility | undefined,
+  profile: ProjectProfile | undefined,
+  ownerId: string | undefined,
+  transaction: Transaction,
 ): Promise<Project> {
-  const project = await db.Project.findByPk(input.id, {
+  const project = await db.Project.findByPk(id, {
     attributes: projectAttributes,
     include: projectInclude,
     transaction,
   });
 
   if (!project) {
-    throw notFoundError("项目", input.id);
+    throw notFoundError("项目", id);
   }
 
   if (project.ownerId !== me.id && !isPermitted(me.roles, "ProjectAdmin")) {
-    throw noPermissionError("项目", input.id);
+    throw noPermissionError("项目", id);
   }
 
   if (
-    input.ownerId &&
-    input.ownerId !== project.ownerId &&
+    ownerId &&
+    ownerId !== project.ownerId &&
     !isPermitted(me.roles, "ProjectAdmin")
   ) {
-    throw noPermissionError("项目", input.id);
+    throw noPermissionError("项目", id);
   }
 
-  await project.update(input, { transaction });
+  await project.update(
+    {
+      title,
+      status,
+      visibility,
+      profile,
+      ownerId,
+    },
+    { transaction },
+  );
   return project;
 }
 
@@ -186,7 +200,18 @@ const update = procedure
   )
   .output(zProject)
   .mutation(async ({ ctx: { me }, input }) => {
-    return await updateImpl(me, input);
+    return await sequelize.transaction(async (transaction) => {
+      return await updateImpl(
+        me,
+        input.id,
+        input.title,
+        input.status,
+        input.visibility,
+        input.profile,
+        input.ownerId,
+        transaction,
+      );
+    });
   });
 
 export default router({
