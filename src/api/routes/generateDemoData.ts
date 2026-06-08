@@ -86,6 +86,8 @@ export async function generateDemoData(t: Transaction) {
   await generateMentorBookings(t);
 
   await generateOrgs(t);
+
+  await generateProjects(t);
 }
 
 async function generateOrgs(t: Transaction) {
@@ -195,6 +197,22 @@ async function generateMentorship(
     endsAt,
     t,
   );
+}
+
+async function generateProjects(t: Transaction) {
+  console.log("Creating projects...");
+  for (const project of demo.projects) {
+    await db.Project.findOrCreate({
+      where: { title: project.title },
+      defaults: {
+        ownerId: id(project.owner),
+        status: project.status,
+        visibility: project.visibility,
+        profile: project.profile ?? null,
+      },
+      transaction: t,
+    });
+  }
 }
 
 async function generateSummaries(groupId: string, t: Transaction) {

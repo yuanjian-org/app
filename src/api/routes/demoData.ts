@@ -11,6 +11,8 @@ import { MenteeStatus } from "../../shared/MenteeStatus";
 import Role, { allRoles } from "../../shared/Role";
 import moment from "moment";
 import { UserPreference } from "../../shared/UserPreference";
+import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
+import { ProjectProfile } from "../../shared/ProjectProfile";
 
 export type DemoUser = {
   name: string;
@@ -671,10 +673,130 @@ const orgs = [
   },
 ];
 
+export type DemoProject = {
+  title: string;
+  owner: DemoUser;
+  status: ProjectStatus;
+  visibility: ProjectVisibility;
+  profile?: ProjectProfile;
+};
+
+const demoProjectProfileBase: Omit<ProjectProfile, "简介"> = {
+  背景: "在数字化时代，我们需要一个可以连接导师和学生的在线平台。",
+  挑战描述: "设计并实现一个高效、安全且易于使用的社会导师服务平台。",
+  视频链接: "https://example.com/demo-video",
+  学生要求: "熟悉React和Node.js，有全栈开发经验者优先。",
+  参考材料: "《远图社会导师服务平台需求文档》、《Next.js官方文档》",
+};
+
+const projects: DemoProject[] = [
+  {
+    title: "Demo Project Public Open 1",
+    owner: users.admin,
+    status: "Open",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public open demo project 1.",
+    },
+  },
+  {
+    title: "Demo Project Public Open 2",
+    owner: users.mentor1,
+    status: "Open",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public open demo project 2.",
+    },
+  },
+  {
+    title: "Demo Project Public Open 3",
+    owner: users.mentor2,
+    status: "Open",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public open demo project 3.",
+    },
+  },
+  {
+    title: "Demo Project Public Open 4",
+    owner: users.admin,
+    status: "Open",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public open demo project 4.",
+    },
+  },
+  {
+    title: "Demo Project Public Open 5",
+    owner: users.mentor1,
+    status: "Open",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public open demo project 5.",
+    },
+  },
+  {
+    title: "Demo Project Public Draft 1",
+    owner: users.admin,
+    status: "Draft",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public draft demo project.",
+    },
+  },
+  {
+    title: "Demo Project Public Closed 1",
+    owner: users.admin,
+    status: "Closed",
+    visibility: "Public",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a public closed demo project.",
+    },
+  },
+  {
+    title: "Demo Project Confidential Open 1",
+    owner: users.admin,
+    status: "Open",
+    visibility: "Confidential",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a confidential open demo project.",
+    },
+  },
+  {
+    title: "Demo Project Confidential Draft 1",
+    owner: users.admin,
+    status: "Draft",
+    visibility: "Confidential",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a confidential draft demo project.",
+    },
+  },
+  {
+    title: "Demo Project Confidential Closed 1",
+    owner: users.admin,
+    status: "Closed",
+    visibility: "Confidential",
+    profile: {
+      ...demoProjectProfileBase,
+      简介: "This is a confidential closed demo project.",
+    },
+  },
+];
+
 const demoData = {
   users,
   tasks,
   orgs,
+  projects,
   summaries: [
     {
       md: summary1md,
