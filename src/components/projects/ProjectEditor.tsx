@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
 import {
-  Box,
   Button,
   FormControl,
   FormLabel,
@@ -9,6 +8,8 @@ import {
   Textarea,
   VStack,
   Text,
+  Card,
+  CardBody,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
@@ -18,6 +19,7 @@ import PageLoader from "../PageLoader";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
+import { componentSpacing } from "../../theme/metrics";
 
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
@@ -108,124 +110,120 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   if (isEdit && isFetching) return <PageLoader />;
   if (isEdit && !project)
     return (
-      <Box p={4} maxW="7xl" mx="auto">
-        <Text>项目不存在或无权限</Text>
-      </Box>
+      <Card mt={componentSpacing} maxW="4xl" mx="auto">
+        <CardBody>
+          <Text>项目不存在或无权限</Text>
+        </CardBody>
+      </Card>
     );
 
   return (
-    <Box
-      p={6}
-      shadow="md"
-      borderWidth="1px"
-      borderRadius="md"
-      bg="white"
-      maxW="4xl"
-      mx="auto"
-    >
-      <form onSubmit={handleSubmit}>
-        <VStack spacing={5} align="stretch">
-          {isAdmin && (
+    <Card mt={componentSpacing} maxW="4xl" mx="auto">
+      <CardBody>
+        <form onSubmit={handleSubmit}>
+          <VStack spacing={5} align="stretch">
+            {isAdmin && (
+              <FormControl>
+                <FormLabel>负责人</FormLabel>
+                <UserSelector
+                  isMulti={false}
+                  onSelect={(ids) => setOwnerId(ids[0] || "")}
+                />
+              </FormControl>
+            )}
+
+            <FormControl isRequired>
+              <FormLabel>项目标题</FormLabel>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            </FormControl>
+
+            <FormControl isRequired>
+              <FormLabel>状态</FormLabel>
+              <Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+              >
+                <option value="Draft">草稿</option>
+                <option value="Open">招募中</option>
+                <option value="Closed">已结束</option>
+              </Select>
+            </FormControl>
+
+            <FormControl isRequired>
+              <FormLabel>可见性</FormLabel>
+              <Select
+                value={visibility}
+                onChange={(e) =>
+                  setVisibility(e.target.value as ProjectVisibility)
+                }
+              >
+                <option value="Public">公开</option>
+                <option value="Confidential">保密</option>
+              </Select>
+            </FormControl>
+
             <FormControl>
-              <FormLabel>负责人</FormLabel>
-              <UserSelector
-                isMulti={false}
-                onSelect={(ids) => setOwnerId(ids[0] || "")}
+              <FormLabel>项目简介</FormLabel>
+              <Textarea
+                value={intro}
+                onChange={(e) => setIntro(e.target.value)}
+                placeholder="一句话或简短的一段话介绍项目核心"
               />
             </FormControl>
-          )}
 
-          <FormControl isRequired>
-            <FormLabel>项目标题</FormLabel>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-          </FormControl>
+            <FormControl>
+              <FormLabel>项目背景 (支持 Markdown)</FormLabel>
+              <Textarea
+                rows={4}
+                value={bg}
+                onChange={(e) => setBg(e.target.value)}
+              />
+            </FormControl>
 
-          <FormControl isRequired>
-            <FormLabel>状态</FormLabel>
-            <Select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+            <FormControl>
+              <FormLabel>挑战描述 (支持 Markdown)</FormLabel>
+              <Textarea
+                rows={6}
+                value={challenge}
+                onChange={(e) => setChallenge(e.target.value)}
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>学生画像要求 (支持 Markdown)</FormLabel>
+              <Textarea
+                rows={4}
+                value={reqs}
+                onChange={(e) => setReqs(e.target.value)}
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>视频链接</FormLabel>
+              <Input value={video} onChange={(e) => setVideo(e.target.value)} />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>参考材料 (支持 Markdown)</FormLabel>
+              <Textarea
+                rows={4}
+                value={refs}
+                onChange={(e) => setRefs(e.target.value)}
+              />
+            </FormControl>
+
+            <Button
+              type="submit"
+              colorScheme="brand"
+              size="lg"
+              isLoading={createMutation.isLoading || updateMutation.isLoading}
+              mt={4}
             >
-              <option value="Draft">草稿</option>
-              <option value="Open">招募中</option>
-              <option value="Closed">已结束</option>
-            </Select>
-          </FormControl>
-
-          <FormControl isRequired>
-            <FormLabel>可见性</FormLabel>
-            <Select
-              value={visibility}
-              onChange={(e) =>
-                setVisibility(e.target.value as ProjectVisibility)
-              }
-            >
-              <option value="Public">公开</option>
-              <option value="Confidential">保密</option>
-            </Select>
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>项目简介</FormLabel>
-            <Textarea
-              value={intro}
-              onChange={(e) => setIntro(e.target.value)}
-              placeholder="一句话或简短的一段话介绍项目核心"
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>项目背景 (支持 Markdown)</FormLabel>
-            <Textarea
-              rows={4}
-              value={bg}
-              onChange={(e) => setBg(e.target.value)}
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>挑战描述 (支持 Markdown)</FormLabel>
-            <Textarea
-              rows={6}
-              value={challenge}
-              onChange={(e) => setChallenge(e.target.value)}
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>学生画像要求 (支持 Markdown)</FormLabel>
-            <Textarea
-              rows={4}
-              value={reqs}
-              onChange={(e) => setReqs(e.target.value)}
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>视频链接</FormLabel>
-            <Input value={video} onChange={(e) => setVideo(e.target.value)} />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>参考材料 (支持 Markdown)</FormLabel>
-            <Textarea
-              rows={4}
-              value={refs}
-              onChange={(e) => setRefs(e.target.value)}
-            />
-          </FormControl>
-
-          <Button
-            type="submit"
-            colorScheme="brand"
-            size="lg"
-            isLoading={createMutation.isLoading || updateMutation.isLoading}
-            mt={4}
-          >
-            {isEdit ? "保存修改" : "提交发布"}
-          </Button>
-        </VStack>
-      </form>
-    </Box>
+              {isEdit ? "保存修改" : "提交发布"}
+            </Button>
+          </VStack>
+        </form>
+      </CardBody>
+    </Card>
   );
 }

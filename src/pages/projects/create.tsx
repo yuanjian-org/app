@@ -1,13 +1,12 @@
 import ProjectEditor from "../../components/projects/ProjectEditor";
-import PageBreadcrumb from "components/PageBreadcrumb";
+import PageBreadcrumb from "../../components/PageBreadcrumb";
+import { widePage } from "../../AppPage";
 
-export default function Page() {
+export default widePage(() => {
   return (
     <>
       <PageBreadcrumb current="发布新项目" />
       <ProjectEditor />
     </>
   );
-}
-
-Page.title = "发布新项目";
+}, "发布新项目");
