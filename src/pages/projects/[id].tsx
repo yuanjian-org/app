@@ -16,11 +16,9 @@ import NextLink from "next/link";
 import { MdEdit } from "react-icons/md";
 import MarkdownStyler from "../../components/MarkdownStyler";
 import PageLoader from "../../components/PageLoader";
-import { widePage } from "../../AppPage";
-import { componentSpacing } from "../../theme/metrics";
 import Head from "next/head";
 
-export default widePage(() => {
+export default function Page() {
   const router = useRouter();
   const id = router.query.id as string;
   const me = useMe();
@@ -40,7 +38,7 @@ export default widePage(() => {
       <Head>
         <title>{project.title} ｜ 远图</title>
       </Head>
-      <Card mt={componentSpacing}>
+      <Card>
         <CardBody>
           <Flex justify="space-between" align="start" mb={4}>
             <Flex direction="column">
@@ -97,7 +95,7 @@ export default widePage(() => {
       </Card>
     </>
   );
-});
+}
 
 function Section({ title, content }: { title: string; content?: string }) {
   if (!content) return null;
