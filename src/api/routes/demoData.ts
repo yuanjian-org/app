@@ -695,8 +695,8 @@ const projects: DemoProject[] = [
   {
     title: "拓扑绝缘体表面态的自旋输运特性研究",
     owner: users.admin,
-    status: "Open",
-    visibility: "Public",
+    status: "招募中",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "这是一个关于拓扑材料表面电子输运机制的公开项目。",
@@ -705,8 +705,8 @@ const projects: DemoProject[] = [
   {
     title: "非线性薛定谔方程的孤立波解分析",
     owner: users.mentor1,
-    status: "Open",
-    visibility: "Public",
+    status: "招募中",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "本研究探讨特定边界条件下非线性偏微分方程的精确解。",
@@ -715,8 +715,8 @@ const projects: DemoProject[] = [
   {
     title: "高温超导材料的微观机理与实验验证",
     owner: users.mentor2,
-    status: "Open",
-    visibility: "Public",
+    status: "招募中",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "结合第一性原理计算与实验表征，研究铜基超导体的超导机制。",
@@ -725,8 +725,8 @@ const projects: DemoProject[] = [
   {
     title: "基于黎曼流形的几何优化算法探索",
     owner: users.admin,
-    status: "Open",
-    visibility: "Public",
+    status: "招募中",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "将微分几何理论应用于复杂流形上的函数最优化问题求解。",
@@ -735,8 +735,8 @@ const projects: DemoProject[] = [
   {
     title: "量子纠缠态的退相干机制与保护策略",
     owner: users.mentor1,
-    status: "Open",
-    visibility: "Public",
+    status: "招募中",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "分析开放量子系统中的环境噪声影响及量子纠错码的应用。",
@@ -745,8 +745,8 @@ const projects: DemoProject[] = [
   {
     title: "新型二维纳米材料的能带结构调控",
     owner: users.admin,
-    status: "Draft",
-    visibility: "Public",
+    status: "草稿",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "这是一项处于草稿阶段的关于石墨烯及类石墨烯材料的研究计划。",
@@ -755,8 +755,8 @@ const projects: DemoProject[] = [
   {
     title: "多体局域化系统中的热力学性质演化",
     owner: users.admin,
-    status: "Closed",
-    visibility: "Public",
+    status: "已结束",
+    visibility: "公开",
     profile: {
       ...demoProjectProfileBase,
       简介: "本已关闭项目曾致力于研究强相互作用系统中的相变行为。",
@@ -765,8 +765,8 @@ const projects: DemoProject[] = [
   {
     title: "引力波探测数据的机器学习降噪处理",
     owner: users.admin,
-    status: "Open",
-    visibility: "Confidential",
+    status: "招募中",
+    visibility: "保密",
     profile: {
       ...demoProjectProfileBase,
       简介: "这是一项机密的开放研究，利用深度学习提取微弱的引力波信号。",
@@ -775,8 +775,8 @@ const projects: DemoProject[] = [
   {
     title: "黎曼猜想中零点分布的统计特性探讨",
     owner: users.admin,
-    status: "Draft",
-    visibility: "Confidential",
+    status: "草稿",
+    visibility: "保密",
     profile: {
       ...demoProjectProfileBase,
       简介: "这是一项保密的草稿计划，旨在从解析数论角度进行理论推演。",
@@ -785,8 +785,8 @@ const projects: DemoProject[] = [
   {
     title: "反物质捕获与储存磁场构型的优化",
     owner: users.admin,
-    status: "Closed",
-    visibility: "Confidential",
+    status: "已结束",
+    visibility: "保密",
     profile: {
       ...demoProjectProfileBase,
       简介: "这项保密的已关闭项目曾探讨高能物理实验中的磁悬浮阱设计。",

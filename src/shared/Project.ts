@@ -2,15 +2,27 @@ import { z } from "zod";
 import { zProjectProfile } from "./ProjectProfile";
 import { zMinUser } from "./User";
 
-export const zProjectStatus = z.enum(["Draft", "Open", "Closed"]);
+export const zProjectStatus = z.enum(["草稿", "招募中", "已结束"]);
 export type ProjectStatus = z.TypeOf<typeof zProjectStatus>;
 
+export const ProjectStatusDescriptions: Record<ProjectStatus, string> = {
+  草稿: "项目还在编辑中，不对外可见",
+  招募中: "项目正在招募成员，对外可见",
+  已结束: "项目已经结束，不对外可见",
+};
+
 /**
- * Public: Visible to everyone, including non-registered users.
- * Confidential: Invisible to everyone for now (reserved for future).
+ * 公开: Visible to everyone, including non-registered users.
+ * 保密: Invisible to everyone for now (reserved for future).
  */
-export const zProjectVisibility = z.enum(["Public", "Confidential"]);
+export const zProjectVisibility = z.enum(["公开", "保密"]);
 export type ProjectVisibility = z.TypeOf<typeof zProjectVisibility>;
+
+export const ProjectVisibilityDescriptions: Record<ProjectVisibility, string> =
+  {
+    公开: "所有人可见（包括未注册用户）",
+    保密: "不对外可见（为未来保留）",
+  };
 
 export const zProject = z.object({
   id: z.string(),

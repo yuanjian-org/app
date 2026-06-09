@@ -37,8 +37,8 @@ export async function listImpl(
           [Op.or]: [
             { ownerId: me.id },
             {
-              status: "Open",
-              visibility: "Public",
+              status: "招募中",
+              visibility: "公开",
             },
           ],
         },
@@ -72,7 +72,7 @@ export async function getImpl(
   }
 
   if (
-    (project.visibility !== "Public" || project.status !== "Open") &&
+    (project.visibility !== "公开" || project.status !== "招募中") &&
     me.id !== project.ownerId &&
     !isPermitted(me.roles, "ProjectAdmin")
   ) {
