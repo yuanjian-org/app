@@ -13,7 +13,6 @@ import {
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
-import _ from "lodash";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { useRouter } from "next/router";
 import PageLoader from "../PageLoader";
@@ -44,6 +43,8 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [reqs, setReqs] = useState("");
   const [refs, setRefs] = useState("");
 
+  const [hasChanged, setHasChanged] = useState(false);
+
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
   useEffect(() => {
@@ -69,59 +70,8 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     onError: (e) => toast.error(e.message),
   });
 
-  const hasUnsavedChanges = () => {
-    const currentPayload = {
-      title,
-      status,
-      visibility,
-      ownerId,
-      profile: {
-        简介: intro,
-        背景: bg,
-        挑战描述: challenge,
-        视频链接: video,
-        学生要求: reqs,
-        参考材料: refs,
-      },
-    };
-
-    if (isEdit && project) {
-      const originalPayload = {
-        title: project.title,
-        status: project.status,
-        visibility: project.visibility,
-        ownerId: project.ownerId,
-        profile: {
-          简介: project.profile?.简介 || "",
-          背景: project.profile?.背景 || "",
-          挑战描述: project.profile?.挑战描述 || "",
-          视频链接: project.profile?.视频链接 || "",
-          学生要求: project.profile?.学生要求 || "",
-          参考材料: project.profile?.参考材料 || "",
-        },
-      };
-      return !_.isEqual(currentPayload, originalPayload);
-    }
-
-    const defaultPayload = {
-      title: "",
-      status: "Draft",
-      visibility: "Public",
-      ownerId: "",
-      profile: {
-        简介: "",
-        背景: "",
-        挑战描述: "",
-        视频链接: "",
-        学生要求: "",
-        参考材料: "",
-      },
-    };
-    return !_.isEqual(currentPayload, defaultPayload);
-  };
-
   const handleCancel = () => {
-    if (hasUnsavedChanges()) {
+    if (hasChanged) {
       if (!window.confirm("有未保存的更改，确定要返回吗？")) {
         return;
       }
@@ -178,21 +128,33 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 <FormLabel>负责人</FormLabel>
                 <UserSelector
                   isMulti={false}
-                  onSelect={(ids) => setOwnerId(ids[0] || "")}
+                  onSelect={(ids) => {
+                    setOwnerId(ids[0] || "");
+                    setHasChanged(true);
+                  }}
                 />
               </FormControl>
             )}
 
             <FormControl isRequired>
               <FormLabel>项目标题</FormLabel>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setHasChanged(true);
+                }}
+              />
             </FormControl>
 
             <FormControl isRequired>
               <FormLabel>状态</FormLabel>
               <Select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+                onChange={(e) => {
+                  setStatus(e.target.value as ProjectStatus);
+                  setHasChanged(true);
+                }}
               >
                 <option value="Draft">草稿</option>
                 <option value="Open">招募中</option>
@@ -204,9 +166,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <FormLabel>可见性</FormLabel>
               <Select
                 value={visibility}
-                onChange={(e) =>
-                  setVisibility(e.target.value as ProjectVisibility)
-                }
+                onChange={(e) => {
+                  setVisibility(e.target.value as ProjectVisibility);
+                  setHasChanged(true);
+                }}
               >
                 <option value="Public">公开</option>
                 <option value="Confidential">保密</option>
@@ -217,7 +180,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <FormLabel>项目简介</FormLabel>
               <Textarea
                 value={intro}
-                onChange={(e) => setIntro(e.target.value)}
+                onChange={(e) => {
+                  setIntro(e.target.value);
+                  setHasChanged(true);
+                }}
                 placeholder="一句话或简短的一段话介绍项目核心"
               />
             </FormControl>
@@ -227,7 +193,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={bg}
-                onChange={(e) => setBg(e.target.value)}
+                onChange={(e) => {
+                  setBg(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
@@ -236,7 +205,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={6}
                 value={challenge}
-                onChange={(e) => setChallenge(e.target.value)}
+                onChange={(e) => {
+                  setChallenge(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
@@ -245,13 +217,22 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={reqs}
-                onChange={(e) => setReqs(e.target.value)}
+                onChange={(e) => {
+                  setReqs(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
             <FormControl>
               <FormLabel>视频链接</FormLabel>
-              <Input value={video} onChange={(e) => setVideo(e.target.value)} />
+              <Input
+                value={video}
+                onChange={(e) => {
+                  setVideo(e.target.value);
+                  setHasChanged(true);
+                }}
+              />
             </FormControl>
 
             <FormControl>
@@ -259,7 +240,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={refs}
-                onChange={(e) => setRefs(e.target.value)}
+                onChange={(e) => {
+                  setRefs(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
