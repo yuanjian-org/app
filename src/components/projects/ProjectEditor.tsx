@@ -7,6 +7,7 @@ import {
   Select,
   Textarea,
   VStack,
+  HStack,
   Card,
   CardBody,
 } from "@chakra-ui/react";
@@ -66,6 +67,44 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const hasUnsavedChanges = () => {
+    if (isEdit && project) {
+      return (
+        title !== project.title ||
+        status !== project.status ||
+        visibility !== project.visibility ||
+        ownerId !== project.ownerId ||
+        intro !== (project.profile?.简介 || "") ||
+        bg !== (project.profile?.背景 || "") ||
+        challenge !== (project.profile?.挑战描述 || "") ||
+        video !== (project.profile?.视频链接 || "") ||
+        reqs !== (project.profile?.学生要求 || "") ||
+        refs !== (project.profile?.参考材料 || "")
+      );
+    }
+    return (
+      title !== "" ||
+      status !== "Draft" ||
+      visibility !== "Public" ||
+      ownerId !== "" ||
+      intro !== "" ||
+      bg !== "" ||
+      challenge !== "" ||
+      video !== "" ||
+      reqs !== "" ||
+      refs !== ""
+    );
+  };
+
+  const handleCancel = () => {
+    if (hasUnsavedChanges()) {
+      if (!window.confirm("有未保存的更改，确定要返回吗？")) {
+        return;
+      }
+    }
+    router.back();
+  };
 
   const updateMutation = trpcNext.projects.update.useMutation({
     onSuccess: (data) => {
@@ -201,15 +240,19 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               />
             </FormControl>
 
-            <Button
-              type="submit"
-              colorScheme="brand"
-              size="lg"
-              isLoading={createMutation.isLoading || updateMutation.isLoading}
-              mt={4}
-            >
-              {isEdit ? "保存修改" : "提交发布"}
-            </Button>
+            <HStack spacing={4} mt={4}>
+              <Button
+                type="submit"
+                colorScheme="brand"
+                size="lg"
+                isLoading={createMutation.isLoading || updateMutation.isLoading}
+              >
+                {isEdit ? "保存修改" : "提交发布"}
+              </Button>
+              <Button size="lg" onClick={handleCancel}>
+                取消
+              </Button>
+            </HStack>
           </VStack>
         </form>
       </CardBody>
