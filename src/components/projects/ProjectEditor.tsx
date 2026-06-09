@@ -33,7 +33,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("Draft");
   const [visibility, setVisibility] = useState<ProjectVisibility>("Public");
-  const [ownerId, setOwnerId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>(me?.id || "");
 
   const [intro, setIntro] = useState("");
   const [bg, setBg] = useState("");
@@ -82,11 +82,16 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
       return;
     }
 
+    if (isAdmin && !ownerId) {
+      toast.warning("请选择项目负责人");
+      return;
+    }
+
     const payload = {
       title,
       status,
       visibility,
-      ...(isAdmin && ownerId ? { ownerId } : {}),
+      ...(isAdmin ? { ownerId } : {}),
       profile: {
         简介: intro,
         背景: bg,
@@ -112,10 +117,17 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
         <form onSubmit={handleSubmit}>
           <VStack spacing={5} align="stretch">
             {isAdmin && (
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>负责人</FormLabel>
                 <UserSelector
                   isMulti={false}
+                  initialValue={
+                    isEdit && project
+                      ? [project.owner]
+                      : me
+                        ? [{ id: me.id, name: me.name, url: me.url }]
+                        : []
+                  }
                   onSelect={(ids) => setOwnerId(ids[0] || "")}
                 />
               </FormControl>
