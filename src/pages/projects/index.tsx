@@ -17,6 +17,7 @@ import { ResponsiveCard } from "../../components/ResponsiveCard";
 import TopBar, { topBarPaddings } from "../../components/TopBar";
 import { fullPage } from "../../AppPage";
 import { componentSpacing, pageMarginX } from "../../theme/metrics";
+import { ProjectBadges } from "../../components/projects/ProjectBadges";
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
@@ -69,14 +70,10 @@ export default fullPage(() => {
                       </Text>
                     </NextLink>
                   </Heading>
-                  <Text fontSize="sm" color="gray.500">
-                    {project.status === "Open"
-                      ? "招募中"
-                      : project.status === "Closed"
-                        ? "已结束"
-                        : "草稿"}{" "}
-                    | {project.visibility === "Public" ? "公开" : "保密"}
-                  </Text>
+                  <ProjectBadges
+                    status={project.status}
+                    visibility={project.visibility}
+                  />
                 </Flex>
               </CardHeader>
               <CardBody>

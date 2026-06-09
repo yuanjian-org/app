@@ -17,6 +17,7 @@ import { MdEdit } from "react-icons/md";
 import MarkdownStyler from "../../components/MarkdownStyler";
 import PageLoader from "../../components/PageLoader";
 import Head from "next/head";
+import { ProjectBadges } from "../../components/projects/ProjectBadges";
 
 export default function Page() {
   const router = useRouter();
@@ -42,17 +43,15 @@ export default function Page() {
         <CardBody>
           <Flex justify="space-between" align="start" mb={4}>
             <Flex direction="column">
-              <Heading size="xl" mb={2}>
-                {project.title}
-              </Heading>
+              <Flex align="center" gap={3} mb={2}>
+                <Heading size="xl">{project.title}</Heading>
+                <ProjectBadges
+                  status={project.status}
+                  visibility={project.visibility}
+                />
+              </Flex>
               <Text fontSize="md" color="gray.500">
-                发起人：{project.owner?.name || "未知"}，状态：
-                {project.status === "Open"
-                  ? "招募中"
-                  : project.status === "Closed"
-                    ? "已结束"
-                    : "草稿"}{" "}
-                ，可见性：{project.visibility === "Public" ? "公开" : "保密"}
+                发起人：{project.owner?.name || "未知"}
               </Text>
             </Flex>
             <Flex gap={2}>

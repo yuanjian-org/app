@@ -12,7 +12,12 @@ import {
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
-import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
+import {
+  ProjectStatus,
+  ProjectVisibility,
+  ProjectStatusLabel,
+  ProjectVisibilityLabel,
+} from "../../shared/Project";
 import { useRouter } from "next/router";
 import PageLoader from "../PageLoader";
 import useMe from "../../useMe";
@@ -132,9 +137,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ProjectStatus)}
               >
-                <option value="Draft">草稿</option>
-                <option value="Open">招募中</option>
-                <option value="Closed">已结束</option>
+                <option value="Draft">{ProjectStatusLabel.Draft}</option>
+                <option value="Open">{ProjectStatusLabel.Open}</option>
+                <option value="Closed">{ProjectStatusLabel.Closed}</option>
               </Select>
             </FormControl>
 
@@ -146,8 +151,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setVisibility(e.target.value as ProjectVisibility)
                 }
               >
-                <option value="Public">公开</option>
-                <option value="Confidential">保密</option>
+                <option value="Public">{ProjectVisibilityLabel.Public}</option>
+                <option value="Confidential">
+                  {ProjectVisibilityLabel.Confidential}
+                </option>
               </Select>
             </FormControl>
 
