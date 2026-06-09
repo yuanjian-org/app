@@ -119,6 +119,7 @@ function VideoSection({ title, url }: { title: string; url?: string }) {
       <video
         src={url}
         controls
+        controlsList="nodownload"
         style={{
           maxWidth: "100%",
         }}
