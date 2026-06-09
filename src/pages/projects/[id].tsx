@@ -46,7 +46,21 @@ export default function Page() {
                 {project.title}
               </Heading>
               <Text fontSize="md" color="gray.500">
-                发起人：{project.owner?.name || "未知"}，状态：
+                发起人：
+                {project.owner ? (
+                  <NextLink href={`/users/${project.owner.id}`}>
+                    <Text
+                      as="span"
+                      color="brand.a"
+                      _hover={{ textDecoration: "underline" }}
+                    >
+                      {project.owner.name}
+                    </Text>
+                  </NextLink>
+                ) : (
+                  "未知"
+                )}
+                ，状态：
                 {project.status === "Open"
                   ? "招募中"
                   : project.status === "Closed"
