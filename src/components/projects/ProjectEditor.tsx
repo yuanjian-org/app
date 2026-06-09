@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
+import _ from "lodash";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { useRouter } from "next/router";
 import PageLoader from "../PageLoader";
@@ -69,32 +70,54 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   });
 
   const hasUnsavedChanges = () => {
+    const currentPayload = {
+      title,
+      status,
+      visibility,
+      ownerId,
+      profile: {
+        简介: intro,
+        背景: bg,
+        挑战描述: challenge,
+        视频链接: video,
+        学生要求: reqs,
+        参考材料: refs,
+      },
+    };
+
     if (isEdit && project) {
-      return (
-        title !== project.title ||
-        status !== project.status ||
-        visibility !== project.visibility ||
-        ownerId !== project.ownerId ||
-        intro !== (project.profile?.简介 || "") ||
-        bg !== (project.profile?.背景 || "") ||
-        challenge !== (project.profile?.挑战描述 || "") ||
-        video !== (project.profile?.视频链接 || "") ||
-        reqs !== (project.profile?.学生要求 || "") ||
-        refs !== (project.profile?.参考材料 || "")
-      );
+      const originalPayload = {
+        title: project.title,
+        status: project.status,
+        visibility: project.visibility,
+        ownerId: project.ownerId,
+        profile: {
+          简介: project.profile?.简介 || "",
+          背景: project.profile?.背景 || "",
+          挑战描述: project.profile?.挑战描述 || "",
+          视频链接: project.profile?.视频链接 || "",
+          学生要求: project.profile?.学生要求 || "",
+          参考材料: project.profile?.参考材料 || "",
+        },
+      };
+      return !_.isEqual(currentPayload, originalPayload);
     }
-    return (
-      title !== "" ||
-      status !== "Draft" ||
-      visibility !== "Public" ||
-      ownerId !== "" ||
-      intro !== "" ||
-      bg !== "" ||
-      challenge !== "" ||
-      video !== "" ||
-      reqs !== "" ||
-      refs !== ""
-    );
+
+    const defaultPayload = {
+      title: "",
+      status: "Draft",
+      visibility: "Public",
+      ownerId: "",
+      profile: {
+        简介: "",
+        背景: "",
+        挑战描述: "",
+        视频链接: "",
+        学生要求: "",
+        参考材料: "",
+      },
+    };
+    return !_.isEqual(currentPayload, defaultPayload);
   };
 
   const handleCancel = () => {
