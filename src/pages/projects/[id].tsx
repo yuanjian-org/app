@@ -88,7 +88,7 @@ export default function Page() {
             <Section title="项目背景" content={project.profile?.背景} />
             <Section title="挑战描述" content={project.profile?.挑战描述} />
             <Section title="学生要求" content={project.profile?.学生要求} />
-            <Section title="视频链接" content={project.profile?.视频链接} />
+            <VideoSection title="视频链接" url={project.profile?.视频链接} />
             <Section title="参考材料" content={project.profile?.参考材料} />
           </VStack>
         </CardBody>
@@ -105,6 +105,25 @@ function Section({ title, content }: { title: string; content?: string }) {
         {title}
       </Heading>
       <MarkdownStyler content={content} />
+    </Flex>
+  );
+}
+
+function VideoSection({ title, url }: { title: string; url?: string }) {
+  if (!url) return null;
+  return (
+    <Flex direction="column">
+      <Heading size="md" mb={3} color="brand.a">
+        {title}
+      </Heading>
+      <video
+        src={url}
+        controls
+        controlsList="nodownload"
+        style={{
+          maxWidth: "100%",
+        }}
+      />
     </Flex>
   );
 }
