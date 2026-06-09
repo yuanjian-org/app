@@ -20,6 +20,7 @@ import {
   Spinner,
   Text,
   Link,
+  AspectRatio,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
@@ -192,47 +193,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               </Select>
             </FormControl>
 
-            <FormControl>
-              <FormLabel>视频链接</FormLabel>
-
-              <Link
-                onClick={async () => {
-                  setVideoLoading(true);
-                  try {
-                    const uploadToken =
-                      await trpc.users.getJinshujuXField.query();
-                    await router.push(
-                      getEmbeddedFormUrl("nhFsf1", uploadToken),
-                    );
-                  } finally {
-                    setVideoLoading(false);
-                  }
-                }}
-              >
-                {videoLoading ? (
-                  <HStack>
-                    <Spinner size="sm" />
-                    <Text>加载中...</Text>
-                  </HStack>
-                ) : video ? (
-                  <HStack>
-                    <MdChangeCircle />
-                    <Text>更换视频</Text>
-                  </HStack>
-                ) : (
-                  <HStack>
-                    <MdCloudUpload />
-                    <Text>上传视频</Text>
-                  </HStack>
-                )}
-              </Link>
-              <Input
-                mt={2}
-                value={video}
-                onChange={(e) => setVideo(e.target.value)}
-              />
-            </FormControl>
-
             <MarkdownSupport prefix="以下字段均" />
 
             <FormControl isRequired>
@@ -293,6 +253,47 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setHasChanged(true);
                 }}
               />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>视频链接</FormLabel>
+
+              <Link
+                onClick={async () => {
+                  setVideoLoading(true);
+                  try {
+                    const uploadToken =
+                      await trpc.users.getJinshujuXField.query();
+                    await router.push(
+                      getEmbeddedFormUrl("nhFsf1", uploadToken),
+                    );
+                  } finally {
+                    setVideoLoading(false);
+                  }
+                }}
+              >
+                {videoLoading ? (
+                  <HStack>
+                    <Spinner size="sm" />
+                    <Text>加载中...</Text>
+                  </HStack>
+                ) : video ? (
+                  <HStack>
+                    <MdChangeCircle />
+                    <Text>更换视频</Text>
+                  </HStack>
+                ) : (
+                  <HStack>
+                    <MdCloudUpload />
+                    <Text>上传视频</Text>
+                  </HStack>
+                )}
+              </Link>
+              {video && (
+                <AspectRatio ratio={16 / 9} mt={2}>
+                  <video src={video} controls preload="metadata" />
+                </AspectRatio>
+              )}
             </FormControl>
 
             <HStack spacing={4} mt={4}>
