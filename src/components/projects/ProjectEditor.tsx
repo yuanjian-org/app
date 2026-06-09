@@ -1,4 +1,11 @@
 import { toast } from "react-toastify";
+
+import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
+
+import MarkdownSupport from "../MarkdownSupport";
+import trpc from "../../trpc";
+import { getEmbeddedFormUrl } from "../../pages/form";
+
 import {
   Button,
   FormControl,
@@ -10,6 +17,10 @@ import {
   HStack,
   Card,
   CardBody,
+  HStack,
+  Spinner,
+  Text,
+  Link,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
@@ -34,7 +45,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("Draft");
   const [visibility, setVisibility] = useState<ProjectVisibility>("Public");
-  const [ownerId, setOwnerId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>(me.id);
 
   const [intro, setIntro] = useState("");
   const [bg, setBg] = useState("");
@@ -45,6 +56,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
 
   const [hasChanged, setHasChanged] = useState(false);
 
+  const [videoLoading, setVideoLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
   useEffect(() => {
@@ -94,11 +106,16 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
       return;
     }
 
+    if (isAdmin && !ownerId) {
+      toast.warning("请选择项目负责人");
+      return;
+    }
+
     const payload = {
       title,
       status,
       visibility,
-      ...(isAdmin && ownerId ? { ownerId } : {}),
+      ...(isAdmin ? { ownerId } : {}),
       profile: {
         简介: intro,
         背景: bg,
@@ -124,14 +141,13 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
         <form onSubmit={handleSubmit}>
           <VStack spacing={5} align="stretch">
             {isAdmin && (
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>负责人</FormLabel>
                 <UserSelector
                   isMulti={false}
-                  onSelect={(ids) => {
-                    setOwnerId(ids[0] || "");
-                    setHasChanged(true);
-                  }}
+                  initialValue={isEdit && project ? [project.owner] : [me]}
+                  onSelect={(ids) => setOwnerId(ids[0] || "")}
+                  setHasChanged(true);
                 />
               </FormControl>
             )}
@@ -145,6 +161,19 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setHasChanged(true);
                 }}
               />
+            </FormControl>
+
+            <FormControl isRequired>
+              <FormLabel>可见性</FormLabel>
+              <Select
+                value={visibility}
+                onChange={(e) =>
+                  setVisibility(e.target.value as ProjectVisibility)
+                }
+              >
+                <option value="Public">公开</option>
+                <option value="Confidential">保密</option>
+              </Select>
             </FormControl>
 
             <FormControl isRequired>
@@ -162,21 +191,50 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               </Select>
             </FormControl>
 
-            <FormControl isRequired>
-              <FormLabel>可见性</FormLabel>
-              <Select
-                value={visibility}
-                onChange={(e) => {
-                  setVisibility(e.target.value as ProjectVisibility);
-                  setHasChanged(true);
+            <FormControl>
+              <FormLabel>视频链接</FormLabel>
+
+              <Link
+                onClick={async () => {
+                  setVideoLoading(true);
+                  try {
+                    const uploadToken =
+                      await trpc.users.getJinshujuXField.query();
+                    await router.push(
+                      getEmbeddedFormUrl("nhFsf1", uploadToken),
+                    );
+                  } finally {
+                    setVideoLoading(false);
+                  }
                 }}
               >
-                <option value="Public">公开</option>
-                <option value="Confidential">保密</option>
-              </Select>
+                {videoLoading ? (
+                  <HStack>
+                    <Spinner size="sm" />
+                    <Text>加载中...</Text>
+                  </HStack>
+                ) : video ? (
+                  <HStack>
+                    <MdChangeCircle />
+                    <Text>更换视频</Text>
+                  </HStack>
+                ) : (
+                  <HStack>
+                    <MdCloudUpload />
+                    <Text>上传视频</Text>
+                  </HStack>
+                )}
+              </Link>
+              <Input
+                mt={2}
+                value={video}
+                onChange={(e) => setVideo(e.target.value)}
+              />
             </FormControl>
 
-            <FormControl>
+            <MarkdownSupport prefix="以下字段均" />
+
+            <FormControl isRequired>
               <FormLabel>项目简介</FormLabel>
               <Textarea
                 value={intro}
@@ -189,7 +247,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>项目背景 (支持 Markdown)</FormLabel>
+              <FormLabel>项目背景</FormLabel>
               <Textarea
                 rows={4}
                 value={bg}
@@ -201,7 +259,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>挑战描述 (支持 Markdown)</FormLabel>
+              <FormLabel>挑战描述</FormLabel>
               <Textarea
                 rows={6}
                 value={challenge}
@@ -213,7 +271,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>学生画像要求 (支持 Markdown)</FormLabel>
+              <FormLabel>学生画像要求</FormLabel>
               <Textarea
                 rows={4}
                 value={reqs}
@@ -225,18 +283,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>视频链接</FormLabel>
-              <Input
-                value={video}
-                onChange={(e) => {
-                  setVideo(e.target.value);
-                  setHasChanged(true);
-                }}
-              />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>参考材料 (支持 Markdown)</FormLabel>
+              <FormLabel>参考材料</FormLabel>
               <Textarea
                 rows={4}
                 value={refs}

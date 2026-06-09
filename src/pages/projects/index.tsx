@@ -82,7 +82,16 @@ export default fullPage(() => {
               <CardBody>
                 {project.owner && (
                   <Text fontSize="sm" color="gray.600" mb={2}>
-                    发起人：{project.owner.name}
+                    发起人：
+                    <NextLink href={`/users/${project.owner.id}`}>
+                      <Text
+                        as="span"
+                        color="brand.a"
+                        _hover={{ textDecoration: "underline" }}
+                      >
+                        {project.owner.name}
+                      </Text>
+                    </NextLink>
                   </Text>
                 )}
                 <Text noOfLines={3} color="gray.700">
