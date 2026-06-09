@@ -14,7 +14,6 @@ import {
   Select,
   Textarea,
   VStack,
-  HStack,
   Card,
   CardBody,
   HStack,
@@ -146,8 +145,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 <UserSelector
                   isMulti={false}
                   initialValue={isEdit && project ? [project.owner] : [me]}
-                  onSelect={(ids) => setOwnerId(ids[0] || "")}
-                  setHasChanged(true);
+                  onSelect={(ids) => {
+                    setOwnerId(ids[0] || "");
+                    setHasChanged(true);
+                  }}
                 />
               </FormControl>
             )}
