@@ -1,4 +1,11 @@
 import { toast } from "react-toastify";
+
+import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
+
+import MarkdownSupport from "../MarkdownSupport";
+import trpc from "../../trpc";
+import { getEmbeddedFormUrl } from "../../pages/form";
+
 import {
   Button,
   FormControl,
@@ -9,6 +16,10 @@ import {
   VStack,
   Card,
   CardBody,
+  HStack,
+  Spinner,
+  Text,
+  Link,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
@@ -41,7 +52,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [video, setVideo] = useState("");
   const [reqs, setReqs] = useState("");
   const [refs, setRefs] = useState("");
-
+  const [videoLoading, setVideoLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
   useEffect(() => {
@@ -127,18 +138,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl isRequired>
-              <FormLabel>状态</FormLabel>
-              <Select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-              >
-                <option value="Draft">草稿</option>
-                <option value="Open">招募中</option>
-                <option value="Closed">已结束</option>
-              </Select>
-            </FormControl>
-
-            <FormControl isRequired>
               <FormLabel>可见性</FormLabel>
               <Select
                 value={visibility}
@@ -151,7 +150,62 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               </Select>
             </FormControl>
 
+            <FormControl isRequired>
+              <FormLabel>状态</FormLabel>
+              <Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+              >
+                <option value="Draft">草稿</option>
+                <option value="Open">招募中</option>
+                <option value="Closed">已结束</option>
+              </Select>
+            </FormControl>
+
             <FormControl>
+              <FormLabel>视频链接</FormLabel>
+
+              <Link
+                onClick={async () => {
+                  setVideoLoading(true);
+                  try {
+                    const uploadToken =
+                      await trpc.users.getJinshujuXField.query();
+                    await router.push(
+                      getEmbeddedFormUrl("nhFsf1", uploadToken),
+                    );
+                  } finally {
+                    setVideoLoading(false);
+                  }
+                }}
+              >
+                {videoLoading ? (
+                  <HStack>
+                    <Spinner size="sm" />
+                    <Text>加载中...</Text>
+                  </HStack>
+                ) : video ? (
+                  <HStack>
+                    <MdChangeCircle />
+                    <Text>更换视频</Text>
+                  </HStack>
+                ) : (
+                  <HStack>
+                    <MdCloudUpload />
+                    <Text>上传视频</Text>
+                  </HStack>
+                )}
+              </Link>
+              <Input
+                mt={2}
+                value={video}
+                onChange={(e) => setVideo(e.target.value)}
+              />
+            </FormControl>
+
+            <MarkdownSupport prefix="以下字段均" />
+
+            <FormControl isRequired>
               <FormLabel>项目简介</FormLabel>
               <Textarea
                 value={intro}
@@ -161,7 +215,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>项目背景 (支持 Markdown)</FormLabel>
+              <FormLabel>项目背景</FormLabel>
               <Textarea
                 rows={4}
                 value={bg}
@@ -170,7 +224,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>挑战描述 (支持 Markdown)</FormLabel>
+              <FormLabel>挑战描述</FormLabel>
               <Textarea
                 rows={6}
                 value={challenge}
@@ -179,7 +233,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>学生画像要求 (支持 Markdown)</FormLabel>
+              <FormLabel>学生画像要求</FormLabel>
               <Textarea
                 rows={4}
                 value={reqs}
@@ -188,12 +242,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>视频链接</FormLabel>
-              <Input value={video} onChange={(e) => setVideo(e.target.value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>参考材料 (支持 Markdown)</FormLabel>
+              <FormLabel>参考材料</FormLabel>
               <Textarea
                 rows={4}
                 value={refs}
