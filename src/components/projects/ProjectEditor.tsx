@@ -260,6 +260,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
 
               <Link
                 onClick={async () => {
+                  if (!isEdit || hasChanged) {
+                    toast.warning("请先保存项目后再上传视频");
+                    return;
+                  }
                   setVideoLoading(true);
                   try {
                     const uploadToken =
