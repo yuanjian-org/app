@@ -1,0 +1,55 @@
+yarn run v1.22.22
+$ next dev
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 37.2s (3686 modules)
+ GET /auth/login 200 in 257ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1673ms (447 modules)
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+ GET /api/auth/session 200 in 2348ms
+ GET /api/auth/session 200 in 6ms
+ ○ Compiling /api/v1/[trpc] ...
+ ✓ Compiled /api/v1/[trpc] in 1077ms (543 modules)
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 1901ms
+ GET /auth/login 200 in 2687ms
+ GET /api/auth/session 200 in 34ms
+ GET /api/auth/session 200 in 8ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 12ms
+ GET /api/auth/csrf 200 in 13ms
+ GET /api/auth/csrf 200 in 7ms
+ GET /auth/login 200 in 225ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/auth/session 200 in 6ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 12ms
+ GET /api/auth/csrf 200 in 6ms
+ GET /api/auth/csrf 200 in 12ms
+ GET /auth/login 200 in 232ms
+ GET /api/auth/session 200 in 12ms
+ GET /api/auth/session 200 in 8ms
+ GET /api/v1/globalConfigs.getStatic?batch=1&input=%7B%7D 200 in 8ms
+ GET /api/auth/csrf 200 in 8ms
+ GET /api/auth/csrf 200 in 6ms
+ GET /api/auth/providers 200 in 7ms
+ GET /api/auth/csrf 200 in 7ms
+ POST /api/auth/callback/id-password 200 in 232ms
+ GET /api/auth/session 200 in 16ms
+[26-06-09 06:04:33.528]  ○ Compiling / ...
+[26-06-09 06:04:34.914]  ✓ Compiled / in 1889ms (3917 modules)
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,groups.listMine,tasks.list,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%224%22%3A%7B%22includeOwned%22%3Afalse%7D%2C%225%22%3A%7B%22assigneeIds%22%3A%5B%22b3b83d68-f1de-49f1-8ac7-0b124fc43c80%22%5D%2C%22includeTasksCreatedByMe%22%3Atrue%2C%22includeDoneTasks%22%3Afalse%7D%2C%226%22%3A%7B%22userId%22%3A%22b3b83d68-f1de-49f1-8ac7-0b124fc43c80%22%7D%7D 200 in 479ms
+ GET /api/v1/users.getUserState,users.getUserState,chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%221%22%3A%7B%22userId%22%3A%22b3b83d68-f1de-49f1-8ac7-0b124fc43c80%22%2C%22returnEmptyStateIfNoPermission%22%3Atrue%7D%2C%222%22%3A%7B%22menteeId%22%3A%22c3ea7408-72e0-4e43-a8e5-c534f1bf1a8d%22%7D%2C%223%22%3A%7B%22menteeId%22%3A%22c3ea7408-72e0-4e43-a8e5-c534f1bf1a8d%22%7D%7D 200 in 31ms
+[26-06-09 06:04:36.438]  ○ Compiling /projects ...
+[26-06-09 06:04:36.664]  ✓ Compiled /projects in 749ms (3927 modules)
+ GET /projects 200 in 2610ms
+ GET /api/auth/session 200 in 207ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/v1/users.getUserState,kudos.getLastKudosCreatedAt,tasks.getLastTasksUpdatedAt,mentorships.listMyMentorships,projects.list,globalConfigs.getStatic,users.getUserProfile?batch=1&input=%7B%223%22%3A%7B%22as%22%3A%22Mentor%22%7D%2C%226%22%3A%7B%22userId%22%3A%22b3b83d68-f1de-49f1-8ac7-0b124fc43c80%22%7D%7D 200 in 307ms
+ GET /api/v1/chat.getLastReadAt,chat.getLastMessageUpdatedAt?batch=1&input=%7B%220%22%3A%7B%22menteeId%22%3A%22c3ea7408-72e0-4e43-a8e5-c534f1bf1a8d%22%7D%2C%221%22%3A%7B%22menteeId%22%3A%22c3ea7408-72e0-4e43-a8e5-c534f1bf1a8d%22%7D%7D 200 in 17ms

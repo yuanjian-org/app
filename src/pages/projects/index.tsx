@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   Button,
   Flex,
@@ -9,6 +10,7 @@ import {
   Badge,
   Tooltip,
   Spacer,
+  VStack,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useMyRoles } from "../../useMe";
@@ -23,34 +25,73 @@ import { componentSpacing, pageMarginX } from "../../theme/metrics";
 import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
+  ProjectWithOwner,
 } from "../../shared/Project";
+import { FullTextSearchBox } from "../../components/UserCards";
+import { toPinyin } from "../../shared/strings";
+
+function searchProjects(projects: ProjectWithOwner[], searchTerm: string) {
+  const lower = searchTerm.trim().toLowerCase();
+
+  const match = (v: string | null | undefined) => {
+    if (!v) return false;
+    const lowerV = v.toLowerCase();
+    return [lowerV, toPinyin(lowerV)].some((s) => s.includes(lower));
+  };
+
+  return projects.filter((p) => {
+    return (
+      match(p.title) ||
+      match(p.owner.name) ||
+      match(p.status) ||
+      match(p.visibility) ||
+      (p.profile &&
+        (match(p.profile.简介) ||
+          match(p.profile.背景) ||
+          match(p.profile.挑战描述) ||
+          match(p.profile.学生要求) ||
+          match(p.profile.参考材料)))
+    );
+  });
+}
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
   const myRoles = useMyRoles();
   const canCreate = isPermitted(myRoles, ["Mentor", "ProjectAdmin"]);
 
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const searchResult = useMemo(() => {
+    return searchTerm && projects
+      ? searchProjects(projects, searchTerm)
+      : projects;
+  }, [searchTerm, projects]);
+
   if (projects === undefined) return <PageLoader />;
 
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        <Flex justify="space-between" align="center">
-          <Heading size="lg">X-Challenge 问题</Heading>
-          {canCreate && (
-            <Button
-              as={NextLink}
-              href="/projects/create"
-              colorScheme="brand"
-              leftIcon={<MdAdd />}
-            >
-              发布项目
-            </Button>
-          )}
-        </Flex>
+        <VStack spacing={componentSpacing} align="stretch">
+          <Flex justify="space-between" align="center">
+            <Heading size="lg">X-Challenge 问题</Heading>
+            {canCreate && (
+              <Button
+                as={NextLink}
+                href="/projects/create"
+                colorScheme="brand"
+                leftIcon={<MdAdd />}
+              >
+                发布项目
+              </Button>
+            )}
+          </Flex>
+          <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
+        </VStack>
       </TopBar>
 
-      {projects.length === 0 ? (
+      {searchResult && searchResult.length === 0 ? (
         <Text mx={pageMarginX} mt={pageMarginX}>
           暂无项目
         </Text>
@@ -61,69 +102,76 @@ export default fullPage(() => {
           mx={pageMarginX}
           mt={pageMarginX}
         >
-          {projects.map((project) => (
-            <ResponsiveCard key={project.id}>
-              <CardHeader>
-                <Flex direction="column" justify="space-between" align="start">
-                  <Heading size="md" width="100%">
-                    <NextLink href={`/projects/${project.id}`}>
-                      <Text
-                        color="brand.a"
-                        _hover={{ textDecoration: "underline" }}
-                        width="100%"
-                      >
-                        {project.title}
-                      </Text>
-                    </NextLink>
-                  </Heading>
-                </Flex>
-              </CardHeader>
-              <CardBody>
-                <Flex align="center" gap={2} mb={4}>
-                  <Text fontSize="sm" color="gray.600">
-                    发起人：
-                    <NextLink href={`/users/${project.owner.id}`}>
-                      <Text
-                        as="span"
-                        color="brand.a"
-                        _hover={{ textDecoration: "underline" }}
-                      >
-                        {project.owner.name}
-                      </Text>
-                    </NextLink>
-                  </Text>
+          {searchResult &&
+            searchResult.map((project) => (
+              <ResponsiveCard key={project.id}>
+                <CardHeader>
+                  <Flex
+                    direction="column"
+                    justify="space-between"
+                    align="start"
+                  >
+                    <Heading size="md" width="100%">
+                      <NextLink href={`/projects/${project.id}`}>
+                        <Text
+                          color="brand.a"
+                          _hover={{ textDecoration: "underline" }}
+                          width="100%"
+                        >
+                          {project.title}
+                        </Text>
+                      </NextLink>
+                    </Heading>
+                  </Flex>
+                </CardHeader>
+                <CardBody>
+                  <Flex align="center" gap={2} mb={4}>
+                    <Text fontSize="sm" color="gray.600">
+                      发起人：
+                      <NextLink href={`/users/${project.owner.id}`}>
+                        <Text
+                          as="span"
+                          color="brand.a"
+                          _hover={{ textDecoration: "underline" }}
+                        >
+                          {project.owner.name}
+                        </Text>
+                      </NextLink>
+                    </Text>
 
-                  <Spacer />
+                    <Spacer />
 
-                  {project.status !== "招募中" && (
-                    <Tooltip
-                      label={ProjectStatusDescriptions[project.status]}
-                      hasArrow
-                    >
-                      <Badge
-                        colorScheme={
-                          project.status === "已结束" ? "yellow" : "gray"
+                    {project.status !== "招募中" && (
+                      <Tooltip
+                        label={ProjectStatusDescriptions[project.status]}
+                        hasArrow
+                      >
+                        <Badge
+                          colorScheme={
+                            project.status === "已结束" ? "yellow" : "gray"
+                          }
+                        >
+                          {project.status}
+                        </Badge>
+                      </Tooltip>
+                    )}
+                    {project.visibility !== "公开" && (
+                      <Tooltip
+                        label={
+                          ProjectVisibilityDescriptions[project.visibility]
                         }
+                        hasArrow
                       >
-                        {project.status}
-                      </Badge>
-                    </Tooltip>
-                  )}
-                  {project.visibility !== "公开" && (
-                    <Tooltip
-                      label={ProjectVisibilityDescriptions[project.visibility]}
-                      hasArrow
-                    >
-                      <Badge colorScheme="red">{project.visibility}</Badge>
-                    </Tooltip>
-                  )}
-                </Flex>
-                <Text noOfLines={3} color="gray.700">
-                  {project.profile?.简介 || "暂无简介"}
-                </Text>
-              </CardBody>
-            </ResponsiveCard>
-          ))}
+                        <Badge colorScheme="red">{project.visibility}</Badge>
+                      </Tooltip>
+                    )}
+                  </Flex>
+                  <Text noOfLines={3} color="gray.700">
+                    {project.profile?.简介 || "暂无简介"}
+                  </Text>
+                </CardBody>
+              </ResponsiveCard>
+            ))}
         </SimpleGrid>
       )}
     </>
