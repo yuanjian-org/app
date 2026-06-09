@@ -71,7 +71,10 @@ export default widePage(() => {
                 <Button
                   colorScheme="brand"
                   onClick={() => {
-                    window.open("https://jinshuju.net/f/fake_form_id", "_blank");
+                    window.open(
+                      "https://jinshuju.net/f/fake_form_id",
+                      "_blank",
+                    );
                   }}
                 >
                   申请加入
