@@ -44,7 +44,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("草稿");
   const [visibility, setVisibility] = useState<ProjectVisibility>("公开");
-  const [ownerId, setOwnerId] = useState<string>("");
+  const [ownerId, setOwnerId] = useState<string>(me.id);
 
   const [intro, setIntro] = useState("");
   const [bg, setBg] = useState("");
@@ -52,6 +52,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [video, setVideo] = useState("");
   const [reqs, setReqs] = useState("");
   const [refs, setRefs] = useState("");
+
+  const [hasChanged, setHasChanged] = useState(false);
+
   const [videoLoading, setVideoLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
@@ -78,6 +81,15 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     onError: (e) => toast.error(e.message),
   });
 
+  const handleCancel = () => {
+    if (hasChanged) {
+      if (!window.confirm("有未保存的更改，确定要返回吗？")) {
+        return;
+      }
+    }
+    router.back();
+  };
+
   const updateMutation = trpcNext.projects.update.useMutation({
     onSuccess: (data) => {
       toast.success("项目更新成功");
@@ -93,11 +105,16 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
       return;
     }
 
+    if (isAdmin && !ownerId) {
+      toast.warning("请选择项目负责人");
+      return;
+    }
+
     const payload = {
       title,
       status,
       visibility,
-      ...(isAdmin && ownerId ? { ownerId } : {}),
+      ...(isAdmin ? { ownerId } : {}),
       profile: {
         简介: intro,
         背景: bg,
@@ -123,18 +140,28 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
         <form onSubmit={handleSubmit}>
           <VStack spacing={5} align="stretch">
             {isAdmin && (
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>负责人</FormLabel>
                 <UserSelector
                   isMulti={false}
-                  onSelect={(ids) => setOwnerId(ids[0] || "")}
+                  initialValue={isEdit && project ? [project.owner] : [me]}
+                  onSelect={(ids) => {
+                    setOwnerId(ids[0] || "");
+                    setHasChanged(true);
+                  }}
                 />
               </FormControl>
             )}
 
             <FormControl isRequired>
               <FormLabel>项目标题</FormLabel>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setHasChanged(true);
+                }}
+              />
             </FormControl>
 
             <FormControl isRequired>
@@ -154,7 +181,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <FormLabel>状态</FormLabel>
               <Select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+                onChange={(e) => {
+                  setStatus(e.target.value as ProjectStatus);
+                  setHasChanged(true);
+                }}
               >
                 <option value="草稿">草稿</option>
                 <option value="招募中">招募中</option>
@@ -209,7 +239,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <FormLabel>项目简介</FormLabel>
               <Textarea
                 value={intro}
-                onChange={(e) => setIntro(e.target.value)}
+                onChange={(e) => {
+                  setIntro(e.target.value);
+                  setHasChanged(true);
+                }}
                 placeholder="一句话或简短的一段话介绍项目核心"
               />
             </FormControl>
@@ -219,7 +252,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={bg}
-                onChange={(e) => setBg(e.target.value)}
+                onChange={(e) => {
+                  setBg(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
@@ -228,7 +264,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={6}
                 value={challenge}
-                onChange={(e) => setChallenge(e.target.value)}
+                onChange={(e) => {
+                  setChallenge(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
@@ -237,7 +276,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={reqs}
-                onChange={(e) => setReqs(e.target.value)}
+                onChange={(e) => {
+                  setReqs(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
@@ -246,19 +288,26 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
               <Textarea
                 rows={4}
                 value={refs}
-                onChange={(e) => setRefs(e.target.value)}
+                onChange={(e) => {
+                  setRefs(e.target.value);
+                  setHasChanged(true);
+                }}
               />
             </FormControl>
 
-            <Button
-              type="submit"
-              colorScheme="brand"
-              size="lg"
-              isLoading={createMutation.isLoading || updateMutation.isLoading}
-              mt={4}
-            >
-              {isEdit ? "保存修改" : "提交发布"}
-            </Button>
+            <HStack spacing={4} mt={4}>
+              <Button
+                type="submit"
+                colorScheme="brand"
+                size="lg"
+                isLoading={createMutation.isLoading || updateMutation.isLoading}
+              >
+                {isEdit ? "保存修改" : "提交发布"}
+              </Button>
+              <Button size="lg" onClick={handleCancel}>
+                取消
+              </Button>
+            </HStack>
           </VStack>
         </form>
       </CardBody>
