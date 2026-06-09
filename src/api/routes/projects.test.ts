@@ -32,8 +32,8 @@ describe("Projects Route Impl", () => {
 
   const createTestProject = async (
     ownerId: string,
-    visibility: "Public" | "Confidential" = "Public",
-    status: "Draft" | "Open" | "Closed" = "Open",
+    visibility: "公开" | "保密" = "公开",
+    status: "草稿" | "招募中" | "已结束" = "招募中",
   ) => {
     return await db.Project.create(
       {
@@ -50,11 +50,11 @@ describe("Projects Route Impl", () => {
   describe("listImpl", () => {
     it("should return projects owned by me", async () => {
       const me = await createTestUser();
-      const project1 = await createTestProject(me.id, "Confidential", "Draft");
-      const project2 = await createTestProject(me.id, "Public", "Open");
+      const project1 = await createTestProject(me.id, "保密", "草稿");
+      const project2 = await createTestProject(me.id, "公开", "招募中");
 
       const otherUser = await createTestUser();
-      await createTestProject(otherUser.id, "Confidential", "Draft"); // shouldn't see
+      await createTestProject(otherUser.id, "保密", "草稿"); // shouldn't see
 
       const projects = await listImpl(me, transaction);
       const projectIds = projects.map((p) => p.id);
@@ -67,7 +67,7 @@ describe("Projects Route Impl", () => {
       const me = await createTestUser();
       const otherUser = await createTestUser();
 
-      const project1 = await createTestProject(otherUser.id, "Public", "Open");
+      const project1 = await createTestProject(otherUser.id, "公开", "招募中");
 
       const projects = await listImpl(me, transaction);
       const projectIds = projects.map((p) => p.id);
@@ -79,11 +79,7 @@ describe("Projects Route Impl", () => {
       const admin = await createTestUser(["ProjectAdmin"]);
       const otherUser = await createTestUser();
 
-      const project1 = await createTestProject(
-        otherUser.id,
-        "Confidential",
-        "Draft",
-      );
+      const project1 = await createTestProject(otherUser.id, "保密", "草稿");
 
       const projects = await listImpl(admin, transaction);
       const projectIds = projects.map((p) => p.id);
@@ -96,7 +92,7 @@ describe("Projects Route Impl", () => {
     it("should get a public/open project", async () => {
       const me = await createTestUser();
       const otherUser = await createTestUser();
-      const project = await createTestProject(otherUser.id, "Public", "Open");
+      const project = await createTestProject(otherUser.id, "公开", "招募中");
 
       const result = await getImpl(me, project.id, transaction);
       expect(result.id).to.equal(project.id);
@@ -104,7 +100,7 @@ describe("Projects Route Impl", () => {
 
     it("should get an owned project regardless of status", async () => {
       const me = await createTestUser();
-      const project = await createTestProject(me.id, "Confidential", "Draft");
+      const project = await createTestProject(me.id, "保密", "草稿");
 
       const result = await getImpl(me, project.id, transaction);
       expect(result.id).to.equal(project.id);
@@ -113,11 +109,7 @@ describe("Projects Route Impl", () => {
     it("should allow ProjectAdmin to get any project", async () => {
       const admin = await createTestUser(["ProjectAdmin"]);
       const otherUser = await createTestUser();
-      const project = await createTestProject(
-        otherUser.id,
-        "Confidential",
-        "Draft",
-      );
+      const project = await createTestProject(otherUser.id, "保密", "草稿");
 
       const result = await getImpl(admin, project.id, transaction);
       expect(result.id).to.equal(project.id);
@@ -139,11 +131,7 @@ describe("Projects Route Impl", () => {
     it("should throw noPermissionError for an unowned private/draft project", async () => {
       const me = await createTestUser();
       const otherUser = await createTestUser();
-      const project = await createTestProject(
-        otherUser.id,
-        "Confidential",
-        "Draft",
-      );
+      const project = await createTestProject(otherUser.id, "保密", "草稿");
 
       let error: any;
       try {
@@ -163,8 +151,8 @@ describe("Projects Route Impl", () => {
       const project = await createImpl(
         me,
         "New Project",
-        "Draft",
-        "Confidential",
+        "草稿",
+        "保密",
         {},
         undefined,
         transaction,
@@ -181,8 +169,8 @@ describe("Projects Route Impl", () => {
       const project = await createImpl(
         admin,
         "Admin Created Project",
-        "Draft",
-        "Confidential",
+        "草稿",
+        "保密",
         {},
         otherUser.id,
         transaction,
@@ -200,8 +188,8 @@ describe("Projects Route Impl", () => {
         await createImpl(
           me,
           "Hacked Project",
-          "Draft",
-          "Confidential",
+          "草稿",
+          "保密",
           {},
           otherUser.id,
           transaction,

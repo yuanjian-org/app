@@ -8,6 +8,8 @@ import {
   Divider,
   Card,
   CardBody,
+  Badge,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import useMe from "../../useMe";
@@ -17,6 +19,10 @@ import { MdEdit } from "react-icons/md";
 import MarkdownStyler from "../../components/MarkdownStyler";
 import PageLoader from "../../components/PageLoader";
 import Head from "next/head";
+import {
+  ProjectStatusDescriptions,
+  ProjectVisibilityDescriptions,
+} from "../../shared/Project";
 
 export default function Page() {
   const router = useRouter();
@@ -41,35 +47,50 @@ export default function Page() {
       <Card>
         <CardBody>
           <Flex justify="space-between" align="start" mb={4}>
-            <Flex direction="column">
-              <Heading size="xl" mb={2}>
+            <Flex direction="column" width="100%">
+              <Heading size="xl" mb={2} width="100%">
                 {project.title}
               </Heading>
-              <Text fontSize="md" color="gray.500">
-                发起人：
-                {project.owner ? (
-                  <NextLink href={`/users/${project.owner.id}`}>
-                    <Text
-                      as="span"
-                      color="brand.a"
-                      _hover={{ textDecoration: "underline" }}
+              <Flex align="center" gap={2}>
+                <Text fontSize="md" color="gray.500">
+                  发起人：
+                  {project.owner ? (
+                    <NextLink href={`/users/${project.owner.id}`}>
+                      <Text
+                        as="span"
+                        color="brand.a"
+                        _hover={{ textDecoration: "underline" }}
+                      >
+                        {project.owner.name}
+                      </Text>
+                    </NextLink>
+                  ) : (
+                    "未知"
+                  )}
+                </Text>
+                {project.status !== "招募中" && (
+                  <Tooltip
+                    label={ProjectStatusDescriptions[project.status]}
+                    hasArrow
+                  >
+                    <Badge
+                      colorScheme={project.status === "已结束" ? "red" : "gray"}
                     >
-                      {project.owner.name}
-                    </Text>
-                  </NextLink>
-                ) : (
-                  "未知"
+                      {project.status}
+                    </Badge>
+                  </Tooltip>
                 )}
-                ，状态：
-                {project.status === "Open"
-                  ? "招募中"
-                  : project.status === "Closed"
-                    ? "已结束"
-                    : "草稿"}{" "}
-                ，可见性：{project.visibility === "Public" ? "公开" : "保密"}
-              </Text>
+                {project.visibility !== "公开" && (
+                  <Tooltip
+                    label={ProjectVisibilityDescriptions[project.visibility]}
+                    hasArrow
+                  >
+                    <Badge colorScheme="purple">{project.visibility}</Badge>
+                  </Tooltip>
+                )}
+              </Flex>
             </Flex>
-            <Flex gap={2}>
+            <Flex gap={2} shrink={0}>
               {canEdit && (
                 <Button
                   as={NextLink}
@@ -79,7 +100,7 @@ export default function Page() {
                   编辑项目
                 </Button>
               )}
-              {project.status === "Open" && (
+              {project.status === "招募中" && (
                 <Button
                   colorScheme="brand"
                   onClick={() => {

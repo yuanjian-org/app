@@ -6,6 +6,8 @@ import {
   SimpleGrid,
   CardHeader,
   CardBody,
+  Badge,
+  Tooltip,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useMyRoles } from "../../useMe";
@@ -17,6 +19,10 @@ import { ResponsiveCard } from "../../components/ResponsiveCard";
 import TopBar, { topBarPaddings } from "../../components/TopBar";
 import { fullPage } from "../../AppPage";
 import { componentSpacing, pageMarginX } from "../../theme/metrics";
+import {
+  ProjectStatusDescriptions,
+  ProjectVisibilityDescriptions,
+} from "../../shared/Project";
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
@@ -57,43 +63,59 @@ export default fullPage(() => {
           {projects.map((project) => (
             <ResponsiveCard key={project.id}>
               <CardHeader>
-                <Flex justify="space-between" align="center">
-                  <Heading size="md">
+                <Flex direction="column" justify="space-between" align="start">
+                  <Heading size="md" width="100%">
                     <NextLink href={`/projects/${project.id}`}>
                       <Text
-                        as="span"
                         color="brand.a"
                         _hover={{ textDecoration: "underline" }}
+                        width="100%"
                       >
                         {project.title}
                       </Text>
                     </NextLink>
                   </Heading>
-                  <Text fontSize="sm" color="gray.500">
-                    {project.status === "Open"
-                      ? "招募中"
-                      : project.status === "Closed"
-                        ? "已结束"
-                        : "草稿"}{" "}
-                    | {project.visibility === "Public" ? "公开" : "保密"}
-                  </Text>
                 </Flex>
               </CardHeader>
               <CardBody>
-                {project.owner && (
-                  <Text fontSize="sm" color="gray.600" mb={2}>
-                    发起人：
-                    <NextLink href={`/users/${project.owner.id}`}>
-                      <Text
-                        as="span"
-                        color="brand.a"
-                        _hover={{ textDecoration: "underline" }}
+                <Flex align="center" gap={2} mb={2}>
+                  {project.owner && (
+                    <Text fontSize="sm" color="gray.600">
+                      发起人：
+                      <NextLink href={`/users/${project.owner.id}`}>
+                        <Text
+                          as="span"
+                          color="brand.a"
+                          _hover={{ textDecoration: "underline" }}
+                        >
+                          {project.owner.name}
+                        </Text>
+                      </NextLink>
+                    </Text>
+                  )}
+                  {project.status !== "招募中" && (
+                    <Tooltip
+                      label={ProjectStatusDescriptions[project.status]}
+                      hasArrow
+                    >
+                      <Badge
+                        colorScheme={
+                          project.status === "已结束" ? "red" : "gray"
+                        }
                       >
-                        {project.owner.name}
-                      </Text>
-                    </NextLink>
-                  </Text>
-                )}
+                        {project.status}
+                      </Badge>
+                    </Tooltip>
+                  )}
+                  {project.visibility !== "公开" && (
+                    <Tooltip
+                      label={ProjectVisibilityDescriptions[project.visibility]}
+                      hasArrow
+                    >
+                      <Badge colorScheme="purple">{project.visibility}</Badge>
+                    </Tooltip>
+                  )}
+                </Flex>
                 <Text noOfLines={3} color="gray.700">
                   {project.profile?.简介 || "暂无简介"}
                 </Text>

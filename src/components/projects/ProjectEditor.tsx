@@ -42,8 +42,8 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   );
 
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState<ProjectStatus>("Draft");
-  const [visibility, setVisibility] = useState<ProjectVisibility>("Public");
+  const [status, setStatus] = useState<ProjectStatus>("草稿");
+  const [visibility, setVisibility] = useState<ProjectVisibility>("公开");
   const [ownerId, setOwnerId] = useState<string>("");
 
   const [intro, setIntro] = useState("");
@@ -145,8 +145,8 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setVisibility(e.target.value as ProjectVisibility)
                 }
               >
-                <option value="Public">公开</option>
-                <option value="Confidential">保密</option>
+                <option value="公开">公开</option>
+                <option value="保密">保密</option>
               </Select>
             </FormControl>
 
@@ -156,9 +156,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 value={status}
                 onChange={(e) => setStatus(e.target.value as ProjectStatus)}
               >
-                <option value="Draft">草稿</option>
-                <option value="Open">招募中</option>
-                <option value="Closed">已结束</option>
+                <option value="草稿">草稿</option>
+                <option value="招募中">招募中</option>
+                <option value="已结束">已结束</option>
               </Select>
             </FormControl>
 
