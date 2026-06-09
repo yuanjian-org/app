@@ -682,112 +682,114 @@ export type DemoProject = {
 };
 
 const demoProjectProfileBase: Omit<ProjectProfile, "简介"> = {
-  背景: "在数字化时代，我们需要一个可以连接导师和学生的在线平台。",
-  挑战描述: "设计并实现一个高效、安全且易于使用的社会导师服务平台。",
+  背景: "在探索宇宙奥秘与物质本质的过程中，我们需要搭建一个可以促进前沿硬科学研究合作的学术交流平台。",
+  挑战描述:
+    "设计并实现一个高效、安全且易于使用的科研导师协作平台，以推进数学、物理与材料科学的交叉融合。",
   视频链接: "https://example.com/demo-video",
-  学生要求: "熟悉React和Node.js，有全栈开发经验者优先。",
-  参考材料: "《远图社会导师服务平台需求文档》、《Next.js官方文档》",
+  学生要求:
+    "具有扎实的数理基础，熟悉微积分与线性代数，对理论物理或凝聚态物理有浓厚兴趣者优先。",
+  参考材料: "《高等量子力学》、《固体物理学导论》、《非线性偏微分方程》",
 };
 
 const projects: DemoProject[] = [
   {
-    title: "Demo Project Public Open 1",
+    title: "拓扑绝缘体表面态的自旋输运特性研究",
     owner: users.admin,
     status: "Open",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public open demo project 1.",
+      简介: "这是一个关于拓扑材料表面电子输运机制的公开项目。",
     },
   },
   {
-    title: "Demo Project Public Open 2",
+    title: "非线性薛定谔方程的孤立波解分析",
     owner: users.mentor1,
     status: "Open",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public open demo project 2.",
+      简介: "本研究探讨特定边界条件下非线性偏微分方程的精确解。",
     },
   },
   {
-    title: "Demo Project Public Open 3",
+    title: "高温超导材料的微观机理与实验验证",
     owner: users.mentor2,
     status: "Open",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public open demo project 3.",
+      简介: "结合第一性原理计算与实验表征，研究铜基超导体的超导机制。",
     },
   },
   {
-    title: "Demo Project Public Open 4",
+    title: "基于黎曼流形的几何优化算法探索",
     owner: users.admin,
     status: "Open",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public open demo project 4.",
+      简介: "将微分几何理论应用于复杂流形上的函数最优化问题求解。",
     },
   },
   {
-    title: "Demo Project Public Open 5",
+    title: "量子纠缠态的退相干机制与保护策略",
     owner: users.mentor1,
     status: "Open",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public open demo project 5.",
+      简介: "分析开放量子系统中的环境噪声影响及量子纠错码的应用。",
     },
   },
   {
-    title: "Demo Project Public Draft 1",
+    title: "新型二维纳米材料的能带结构调控",
     owner: users.admin,
     status: "Draft",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public draft demo project.",
+      简介: "这是一项处于草稿阶段的关于石墨烯及类石墨烯材料的研究计划。",
     },
   },
   {
-    title: "Demo Project Public Closed 1",
+    title: "多体局域化系统中的热力学性质演化",
     owner: users.admin,
     status: "Closed",
     visibility: "Public",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a public closed demo project.",
+      简介: "本已关闭项目曾致力于研究强相互作用系统中的相变行为。",
     },
   },
   {
-    title: "Demo Project Confidential Open 1",
+    title: "引力波探测数据的机器学习降噪处理",
     owner: users.admin,
     status: "Open",
     visibility: "Confidential",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a confidential open demo project.",
+      简介: "这是一项机密的开放研究，利用深度学习提取微弱的引力波信号。",
     },
   },
   {
-    title: "Demo Project Confidential Draft 1",
+    title: "黎曼猜想中零点分布的统计特性探讨",
     owner: users.admin,
     status: "Draft",
     visibility: "Confidential",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a confidential draft demo project.",
+      简介: "这是一项保密的草稿计划，旨在从解析数论角度进行理论推演。",
     },
   },
   {
-    title: "Demo Project Confidential Closed 1",
+    title: "反物质捕获与储存磁场构型的优化",
     owner: users.admin,
     status: "Closed",
     visibility: "Confidential",
     profile: {
       ...demoProjectProfileBase,
-      简介: "This is a confidential closed demo project.",
+      简介: "这项保密的已关闭项目曾探讨高能物理实验中的磁悬浮阱设计。",
     },
   },
 ];
