@@ -7,7 +7,6 @@ import {
   Select,
   Textarea,
   VStack,
-  Text,
   Card,
   CardBody,
 } from "@chakra-ui/react";
@@ -19,7 +18,6 @@ import PageLoader from "../PageLoader";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
-import { componentSpacing } from "../../theme/metrics";
 
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
@@ -27,11 +25,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
 
   const isEdit = !!projectId;
 
-  const { data: project, isLoading: isFetching } =
-    trpcNext.projects.get.useQuery(
-      { id: projectId! },
-      { enabled: isEdit, retry: false },
-    );
+  const { data: project, isLoading } = trpcNext.projects.get.useQuery(
+    { id: projectId! },
+    { enabled: isEdit, retry: false },
+  );
 
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("Draft");
@@ -107,18 +104,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     }
   };
 
-  if (isEdit && isFetching) return <PageLoader />;
-  if (isEdit && !project)
-    return (
-      <Card mt={componentSpacing} maxW="4xl" mx="auto">
-        <CardBody>
-          <Text>项目不存在或无权限</Text>
-        </CardBody>
-      </Card>
-    );
+  if (isEdit && isLoading) return <PageLoader />;
 
   return (
-    <Card mt={componentSpacing} maxW="4xl" mx="auto">
+    <Card>
       <CardBody>
         <form onSubmit={handleSubmit}>
           <VStack spacing={5} align="stretch">
