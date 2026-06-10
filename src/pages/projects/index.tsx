@@ -43,14 +43,10 @@ function searchProjects(projects: ProjectWithOwner[], searchTerm: string) {
     return (
       match(p.title) ||
       match(p.owner.name) ||
-      match(p.status) ||
-      match(p.visibility) ||
       (p.profile &&
-        (match(p.profile.简介) ||
-          match(p.profile.背景) ||
-          match(p.profile.挑战描述) ||
-          match(p.profile.学生要求) ||
-          match(p.profile.参考材料)))
+        Object.entries(p.profile).some(
+          ([key, value]) => key !== "视频链接" && match(value as string),
+        ))
     );
   });
 }
