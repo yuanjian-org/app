@@ -1088,11 +1088,40 @@ const destroy = procedure
 
 const getJinshujuXField = procedure
   .use(authUser())
-  .query(async ({ ctx: { me } }) => {
+  .input(
+    z
+      .object({
+        target: z.enum(["user", "project"]).optional(),
+        projectId: z.string().optional(),
+      })
+      .optional(),
+  )
+  .query(async ({ input, ctx: { me } }) => {
     const user = await db.User.findByPk(me.id, { attributes: ["url"] });
     if (!user) throw notFoundError("用户", me.id);
 
-    return encodeXField(getWhiteLabel(), user.url, me.id);
+    const target = input?.target ?? "user";
+    const extraFields: string[] = [target];
+    if (target === "project") {
+      if (!input?.projectId) {
+        throw generalBadRequestError(
+          "projectId is required when target is project",
+        );
+      }
+
+      const project = await db.Project.findByPk(input.projectId, {
+        attributes: ["ownerId"],
+      });
+      if (!project) throw notFoundError("项目", input.projectId);
+
+      if (project.ownerId !== me.id) {
+        throw noPermissionError("项目", input.projectId);
+      }
+
+      extraFields.push(input.projectId);
+    }
+
+    return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);
   });
 
 export default router({

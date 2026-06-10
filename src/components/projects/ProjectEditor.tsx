@@ -267,7 +267,10 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setVideoLoading(true);
                   try {
                     const uploadToken =
-                      await trpc.users.getJinshujuXField.query();
+                      await trpc.users.getJinshujuXField.query({
+                        target: "project",
+                        projectId: projectId!,
+                      });
                     await router.push(
                       getEmbeddedFormUrl("nhFsf1", uploadToken),
                     );

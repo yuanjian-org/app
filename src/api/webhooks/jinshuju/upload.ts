@@ -4,9 +4,21 @@ import { validateAndDecodeXField } from "../../jinshuju";
 import sequelize from "../../database/sequelize";
 import { getWhiteLabel } from "../../getWhiteLabel";
 import { UserProfile } from "shared/UserProfile";
+import { ProjectProfile } from "shared/ProjectProfile";
+import { noPermissionError } from "../../errors";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
+ *
+ * Protocol for x-field in Jinshuju:
+ * The `x_field_1` token contains comma-separated values encoded by `encodeXField()`.
+ * `validateAndDecodeXField()` extracts:
+ *   - [0]: `userId`
+ *   - [1]: `target` (either "user" or "project", defaults to "user" for backward compatibility)
+ *   - [2]: `projectId` (only present when `target` is "project")
+ *
+ * Based on the `target`, `uploadProfileMedia()` knows whether to update the
+ * User's profile or a specific Project's profile.
  */
 export default async function submit(form: string, entry: Record<string, any>) {
   const urls: string[] = entry.field_1;
@@ -14,37 +26,70 @@ export default async function submit(form: string, entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
   }
 
-  const [userId] = validateAndDecodeXField(getWhiteLabel(), entry);
+  const [userId, target = "user", projectId] = validateAndDecodeXField(
+    getWhiteLabel(),
+    entry,
+  );
 
   if (form === "Bz3uSO") {
-    await uploadUserProfileMedia(userId, urls[0], "照片链接");
+    await uploadProfileMedia(userId, target, projectId, urls[0], "照片链接");
   } else if (form === "nhFsf1") {
-    await uploadUserProfileMedia(userId, urls[0], "视频链接");
+    await uploadProfileMedia(userId, target, projectId, urls[0], "视频链接");
   } else {
     throw generalBadRequestError(`Unknown upload form: ${form}`);
   }
 }
 
-async function uploadUserProfileMedia(
+async function uploadProfileMedia(
   userId: string,
+  target: string,
+  projectId: string | undefined,
   url: string,
-  mediaType: keyof UserProfile,
+  mediaType: keyof UserProfile | keyof ProjectProfile,
 ) {
   await sequelize.transaction(async (transaction) => {
-    const user = await db.User.findByPk(userId, {
-      attributes: ["id", "profile"],
-      transaction,
-    });
-    if (!user) throw notFoundError("用户", userId);
+    if (target === "project") {
+      if (!projectId) {
+        throw generalBadRequestError(
+          "projectId is required when target is project",
+        );
+      }
 
-    await user.update(
-      {
-        profile: {
-          ...user.profile,
-          [mediaType]: url,
+      const project = await db.Project.findByPk(projectId, {
+        attributes: ["id", "profile", "ownerId"],
+        transaction,
+      });
+      if (!project) throw notFoundError("项目", projectId);
+
+      if (project.ownerId !== userId) {
+        throw noPermissionError("项目", projectId);
+      }
+
+      await project.update(
+        {
+          profile: {
+            ...project.profile,
+            [mediaType]: url,
+          },
         },
-      },
-      { transaction },
-    );
+        { transaction },
+      );
+    } else {
+      const user = await db.User.findByPk(userId, {
+        attributes: ["id", "profile"],
+        transaction,
+      });
+      if (!user) throw notFoundError("用户", userId);
+
+      await user.update(
+        {
+          profile: {
+            ...user.profile,
+            [mediaType]: url,
+          },
+        },
+        { transaction },
+      );
+    }
   });
 }
