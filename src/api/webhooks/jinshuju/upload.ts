@@ -26,15 +26,33 @@ export default async function submit(form: string, entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
   }
 
-  const [userId, target = "user", projectId] = validateAndDecodeXField(
+  const [userId, target, projectId] = validateAndDecodeXField(
     getWhiteLabel(),
     entry,
   );
 
+  if (target !== undefined && target !== "user" && target !== "project") {
+    throw generalBadRequestError(`Unknown target: ${target}`);
+  }
+
+  const uploadTarget = target === "project" ? "project" : "user";
+
   if (form === "Bz3uSO") {
-    await uploadProfileMedia(userId, target, projectId, urls[0], "照片链接");
+    await uploadProfileMedia(
+      userId,
+      uploadTarget,
+      projectId,
+      urls[0],
+      "照片链接",
+    );
   } else if (form === "nhFsf1") {
-    await uploadProfileMedia(userId, target, projectId, urls[0], "视频链接");
+    await uploadProfileMedia(
+      userId,
+      uploadTarget,
+      projectId,
+      urls[0],
+      "视频链接",
+    );
   } else {
     throw generalBadRequestError(`Unknown upload form: ${form}`);
   }
@@ -42,7 +60,7 @@ export default async function submit(form: string, entry: Record<string, any>) {
 
 async function uploadProfileMedia(
   userId: string,
-  target: string,
+  target: "user" | "project",
   projectId: string | undefined,
   url: string,
   mediaType: keyof UserProfile | keyof ProjectProfile,
@@ -61,7 +79,16 @@ async function uploadProfileMedia(
       });
       if (!project) throw notFoundError("项目", projectId);
 
-      if (project.ownerId !== userId) {
+      const user = await db.User.findByPk(userId, {
+        attributes: ["id", "roles"],
+        transaction,
+      });
+      if (!user) throw notFoundError("用户", userId);
+
+      const isAdmin =
+        user.roles.includes("ProjectAdmin") ||
+        user.roles.includes("UserManager");
+      if (project.ownerId !== userId && !isAdmin) {
         throw noPermissionError("项目", projectId);
       }
 

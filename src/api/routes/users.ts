@@ -1091,7 +1091,9 @@ const getJinshujuXField = procedure
   .input(
     z
       .object({
+        /** The entity target to upload media to */
         target: z.enum(["user", "project"]).optional(),
+        /** If target is project, the ID of the project to upload to */
         projectId: z.string().optional(),
       })
       .optional(),
@@ -1107,15 +1109,6 @@ const getJinshujuXField = procedure
         throw generalBadRequestError(
           "projectId is required when target is project",
         );
-      }
-
-      const project = await db.Project.findByPk(input.projectId, {
-        attributes: ["ownerId"],
-      });
-      if (!project) throw notFoundError("项目", input.projectId);
-
-      if (project.ownerId !== me.id) {
-        throw noPermissionError("项目", input.projectId);
       }
 
       extraFields.push(input.projectId);
