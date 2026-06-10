@@ -22,10 +22,14 @@ export function encodeXField(
   whiteLabel: WhiteLabel,
   userUrl: string | undefined | null,
   userId: string,
+  ...extraUrlSafeFields: string[]
 ): string {
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const urlPart = userUrl ? userUrl : "";
-  const data = `${whiteLabel},${urlPart},${userId},${timestamp}`;
+  let data = `${whiteLabel},${urlPart},${userId},${timestamp}`;
+  if (extraUrlSafeFields.length > 0) {
+    data += `,${extraUrlSafeFields.join(",")}`;
+  }
   const hmac = hmacChecksumUrlSafe(data);
   return `${data},${hmac}`;
 }
@@ -33,24 +37,27 @@ export function encodeXField(
 export function validateAndDecodeXField(
   whiteLabel: WhiteLabel,
   formEntry: Record<string, any>,
-): string {
+): string[] {
   const xField = formEntry.x_field_1;
   if (!xField || typeof xField !== "string") {
     throw generalBadRequestError(`Empty or malformed x_field_1`);
   }
 
   const parts = xField.split(",");
-  if (parts.length !== 5) {
+  if (parts.length < 5) {
     throw generalBadRequestError(`Malformed x_field_1`);
   }
 
-  const [wl, url, userId, timestampStr, hmac] = parts;
+  const wl = parts[0];
+  const userId = parts[2];
+  const timestampStr = parts[3];
+  const hmac = parts[parts.length - 1];
 
   if (wl !== whiteLabel) {
     throw generalBadRequestError(`Invalid tenant name in x_field_1: ${wl}`);
   }
 
-  const data = `${wl},${url},${userId},${timestampStr}`;
+  const data = parts.slice(0, -1).join(",");
   const expectedHmac = hmacChecksumUrlSafe(data);
 
   if (
@@ -74,5 +81,6 @@ export function validateAndDecodeXField(
     throw generalBadRequestError(`Timestamp in x_field_1 expired`);
   }
 
-  return userId;
+  const extraFields = parts.slice(4, -1);
+  return [userId, ...extraFields];
 }

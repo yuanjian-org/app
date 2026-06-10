@@ -14,7 +14,7 @@ export default async function submit(form: string, entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
   }
 
-  const userId = validateAndDecodeXField(getWhiteLabel(), entry);
+  const [userId] = validateAndDecodeXField(getWhiteLabel(), entry);
 
   if (form === "Bz3uSO") {
     await uploadUserProfileMedia(userId, urls[0], "照片链接");

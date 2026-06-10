@@ -13,7 +13,7 @@ export default async function submit(
   passingScore: number,
   transaction: Transaction,
 ) {
-  const userId = validateAndDecodeXField(getWhiteLabel(), formEntry);
+  const [userId] = validateAndDecodeXField(getWhiteLabel(), formEntry);
 
   const score = formEntry.exam_score;
   if (score < passingScore) {

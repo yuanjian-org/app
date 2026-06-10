@@ -25,10 +25,11 @@ describe("jinshuju", () => {
       expect(parts[1]).to.equal("test-user");
       expect(parts[2]).to.equal("1");
 
-      const decodedId = validateAndDecodeXField("yuantu", {
+      const decoded = validateAndDecodeXField("yuantu", {
         x_field_1: xField,
       });
-      expect(decodedId).to.equal("1");
+      expect(decoded[0]).to.equal("1");
+      expect(decoded.length).to.equal(1);
     });
 
     it("should encode correctly when user url is empty", () => {
@@ -39,10 +40,36 @@ describe("jinshuju", () => {
       expect(parts[1]).to.equal("");
       expect(parts[2]).to.equal("3");
 
-      const decodedId = validateAndDecodeXField("yuantu", {
+      const decoded = validateAndDecodeXField("yuantu", {
         x_field_1: xField,
       });
-      expect(decodedId).to.equal("3");
+      expect(decoded[0]).to.equal("3");
+      expect(decoded.length).to.equal(1);
+    });
+
+    it("should encode and decode correctly when there are extra fields", () => {
+      const xField = encodeXField(
+        "yuantu",
+        "test-user",
+        "1",
+        "extra1",
+        "extra2",
+      );
+      const parts = xField.split(",");
+      expect(parts.length).to.equal(7);
+      expect(parts[0]).to.equal("yuantu");
+      expect(parts[1]).to.equal("test-user");
+      expect(parts[2]).to.equal("1");
+      expect(parts[4]).to.equal("extra1");
+      expect(parts[5]).to.equal("extra2");
+
+      const decoded = validateAndDecodeXField("yuantu", {
+        x_field_1: xField,
+      });
+      expect(decoded[0]).to.equal("1");
+      expect(decoded[1]).to.equal("extra1");
+      expect(decoded[2]).to.equal("extra2");
+      expect(decoded.length).to.equal(3);
     });
 
     it("should fail on malformed x_field_1", () => {
