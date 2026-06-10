@@ -95,7 +95,7 @@ describe("upload webhook", () => {
       { transaction },
     );
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const entry = {
       field_1: ["url1"],
       x_field_1: token,
@@ -127,7 +127,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
@@ -154,7 +154,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],

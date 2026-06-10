@@ -6,6 +6,7 @@ import { getWhiteLabel } from "../../getWhiteLabel";
 import { UserProfile } from "shared/UserProfile";
 import { ProjectProfile } from "shared/ProjectProfile";
 import { noPermissionError } from "../../errors";
+import { isPermitted } from "shared/Role";
 
 /**
  * The Webhook for 金数据 form ids Bz3uSO and nhFsf1.
@@ -31,28 +32,14 @@ export default async function submit(form: string, entry: Record<string, any>) {
     entry,
   );
 
-  if (target !== undefined && target !== "user" && target !== "project") {
+  if (target !== "user" && target !== "project") {
     throw generalBadRequestError(`Unknown target: ${target}`);
   }
 
-  const uploadTarget = target === "project" ? "project" : "user";
-
   if (form === "Bz3uSO") {
-    await uploadProfileMedia(
-      userId,
-      uploadTarget,
-      projectId,
-      urls[0],
-      "照片链接",
-    );
+    await uploadProfileMedia(userId, target, projectId, urls[0], "照片链接");
   } else if (form === "nhFsf1") {
-    await uploadProfileMedia(
-      userId,
-      uploadTarget,
-      projectId,
-      urls[0],
-      "视频链接",
-    );
+    await uploadProfileMedia(userId, target, projectId, urls[0], "视频链接");
   } else {
     throw generalBadRequestError(`Unknown upload form: ${form}`);
   }
@@ -85,10 +72,10 @@ async function uploadProfileMedia(
       });
       if (!user) throw notFoundError("用户", userId);
 
-      const isAdmin =
-        user.roles.includes("ProjectAdmin") ||
-        user.roles.includes("UserManager");
-      if (project.ownerId !== userId && !isAdmin) {
+      if (
+        project.ownerId !== userId &&
+        !isPermitted(user.roles, "ProjectAdmin")
+      ) {
         throw noPermissionError("项目", projectId);
       }
 

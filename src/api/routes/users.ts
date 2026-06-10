@@ -1102,16 +1102,19 @@ const getJinshujuXField = procedure
     const user = await db.User.findByPk(me.id, { attributes: ["url"] });
     if (!user) throw notFoundError("用户", me.id);
 
-    const target = input?.target ?? "user";
-    const extraFields: string[] = [target];
-    if (target === "project") {
-      if (!input?.projectId) {
-        throw generalBadRequestError(
-          "projectId is required when target is project",
-        );
-      }
+    const extraFields: string[] = [];
+    const target = input?.target;
+    if (target) {
+      extraFields.push(target);
+      if (target === "project") {
+        if (!input?.projectId) {
+          throw generalBadRequestError(
+            "projectId is required when target is project",
+          );
+        }
 
-      extraFields.push(input.projectId);
+        extraFields.push(input.projectId);
+      }
     }
 
     return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);
