@@ -1088,11 +1088,36 @@ const destroy = procedure
 
 const getJinshujuXField = procedure
   .use(authUser())
-  .query(async ({ ctx: { me } }) => {
+  .input(
+    z
+      .object({
+        /** The entity target to upload media to */
+        target: z.enum(["user", "project"]).optional(),
+        /** If target is project, the ID of the project to upload to */
+        projectId: z.string().optional(),
+      })
+      .optional(),
+  )
+  .query(async ({ input, ctx: { me } }) => {
     const user = await db.User.findByPk(me.id, { attributes: ["url"] });
     if (!user) throw notFoundError("用户", me.id);
 
-    return encodeXField(getWhiteLabel(), user.url, me.id);
+    const extraFields: string[] = [];
+    const target = input?.target;
+    if (target) {
+      extraFields.push(target);
+      if (target === "project") {
+        if (!input?.projectId) {
+          throw generalBadRequestError(
+            "projectId is required when target is project",
+          );
+        }
+
+        extraFields.push(input.projectId);
+      }
+    }
+
+    return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);
   });
 
 export default router({

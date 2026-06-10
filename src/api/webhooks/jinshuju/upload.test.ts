@@ -95,7 +95,7 @@ describe("upload webhook", () => {
       { transaction },
     );
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const entry = {
       field_1: ["url1"],
       x_field_1: token,
@@ -127,7 +127,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
@@ -154,7 +154,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id);
+    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],
@@ -165,5 +165,54 @@ describe("upload webhook", () => {
 
     const updatedUser = await db.User.findByPk(user.id, { transaction });
     expect(updatedUser!.profile!["视频链接"]).to.equal(testUrl);
+  });
+
+  it("should succeed for project form", async () => {
+    const createdUser = await db.User.create(
+      {
+        id: uuidv4(),
+        name: "Test User",
+        email: `test-${uuidv4()}@example.com`,
+      },
+      { transaction },
+    );
+    const user = createdUser!;
+
+    const createdProject = await db.Project.create(
+      {
+        id: uuidv4(),
+        whiteLabel: getWhiteLabel(),
+        name: "Test Project",
+        title: "Test Project Title",
+        ownerId: user.id,
+        visibility: "Public",
+        status: "Active",
+        profile: {
+          视频链接: "old-video",
+        },
+      },
+      { transaction },
+    );
+    const project = createdProject!;
+
+    const token = encodeXField(
+      getWhiteLabel(),
+      "test",
+      user.id,
+      "project",
+      project.id,
+    );
+    const testUrl = "https://example.com/project-video.mp4";
+    const entry = {
+      field_1: [testUrl],
+      x_field_1: token,
+    };
+
+    await submit("nhFsf1", entry);
+
+    const updatedProject = await db.Project.findByPk(project.id, {
+      transaction,
+    });
+    expect(updatedProject!.profile!["视频链接"]).to.equal(testUrl);
   });
 });

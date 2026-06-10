@@ -326,7 +326,9 @@ function Picture({
   const handleUpload = async () => {
     setLoading(true);
     try {
-      const uploadToken = await trpc.users.getJinshujuXField.query();
+      const uploadToken = await trpc.users.getJinshujuXField.query({
+        target: "user",
+      });
       await router.push(getEmbeddedFormUrl("Bz3uSO", uploadToken));
     } finally {
       setLoading(false);
@@ -402,7 +404,9 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   const handleUpload = async () => {
     setLoading(true);
     try {
-      const uploadToken = await trpc.users.getJinshujuXField.query();
+      const uploadToken = await trpc.users.getJinshujuXField.query({
+        target: "user",
+      });
       await router.push(getEmbeddedFormUrl("nhFsf1", uploadToken));
     } finally {
       setLoading(false);
