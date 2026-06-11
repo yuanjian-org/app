@@ -311,3 +311,21 @@ export const projectInclude = [
     attributes: minUserAttributes,
   },
 ];
+
+export const projectApplicationAttributes = [
+  "id",
+  "projectId",
+  "userId",
+  "status",
+  "application",
+  "createdAt",
+  "updatedAt",
+];
+
+export const projectApplicationInclude = [
+  {
+    association: "user",
+    attributes: userAttributes,
+    include: userInclude,
+  },
+];
