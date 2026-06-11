@@ -7,6 +7,7 @@ import submitExam from "./exam";
 import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
 import { authWebhook } from "../../auth";
+import { submitProjectApp } from "./projectApplication";
 
 /**
  * The Webhook for all 金数据 forms.
@@ -34,6 +35,10 @@ export async function submit(
 
     case "OzuvWD":
       await submitVolunteerApp(entry, transaction);
+      break;
+
+    case "j6iUMC":
+      await submitProjectApp(entry, transaction);
       break;
 
     case "Bz3uSO":

@@ -11,7 +11,7 @@ import {
   Badge,
   Tooltip,
 } from "@chakra-ui/react";
-import { trpcNext } from "../../trpc";
+import trpc, { trpcNext } from "../../trpc";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import NextLink from "next/link";
@@ -23,16 +23,31 @@ import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
 } from "../../shared/Project";
+import { getStandaloneFormUrl } from "pages/form";
+import { useState } from "react";
 
 export default function Page() {
   const router = useRouter();
   const id = router.query.id as string;
   const me = useMe();
+  const [loading, setLoading] = useState(false);
 
   const { data: project } = trpcNext.projects.get.useQuery(
     { id },
     { enabled: !!id },
   );
+
+  const handleApply = async () => {
+    setLoading(true);
+    try {
+      const xField = await trpc.users.getJinshujuXField.query({
+        projectId: id,
+      });
+      window.open(getStandaloneFormUrl("j6iUMC", xField), "_blank");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!project) return <PageLoader />;
 
@@ -97,17 +112,21 @@ export default function Page() {
                   编辑项目
                 </Button>
               )}
+              {canEdit && (
+                <Button
+                  as={NextLink}
+                  href={`/projects/${project.id}/applications`}
+                >
+                  查看申请
+                </Button>
+              )}
               {project.status === "招募中" && (
                 <Button
                   colorScheme="brand"
-                  onClick={() => {
-                    window.open(
-                      "https://jinshuju.net/f/fake_form_id",
-                      "_blank",
-                    );
-                  }}
+                  isLoading={loading}
+                  onClick={handleApply}
                 >
-                  申请加入
+                  申请参与
                 </Button>
               )}
             </Flex>
