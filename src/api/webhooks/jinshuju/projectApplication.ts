@@ -17,7 +17,7 @@ export async function submitProjectApp(
     }
   }
 
-  const [userId, , projectId] = validateAndDecodeXField(getWhiteLabel(), entry);
+  const [userId, projectId] = validateAndDecodeXField(getWhiteLabel(), entry);
 
   if (!projectId) {
     throw new Error("Missing projectId in x_field_1");

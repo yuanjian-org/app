@@ -13,6 +13,7 @@ export function FieldRow({
   name: string;
   value: any;
   readonly: boolean;
+  // required only if !readonly
   update?: (value: string) => Promise<void>;
 }) {
   return (
@@ -34,6 +35,7 @@ function FieldValueCell({
 }: {
   value: any;
   readonly: boolean;
+  // required only if !readonly
   update?: (value: string) => Promise<void>;
 }) {
   invariant(readonly || update);
@@ -49,7 +51,9 @@ function FieldValueCell({
       </UnorderedList>
     );
   } else if (
-    z.string().url().safeParse(value).success &&
+    // Zod's .url() allows javascript: and data: schemes. We explicitly
+    // require http:// or https:// to prevent XSS vulnerabilities.
+    z.url().safeParse(value).success &&
     (value.toLowerCase().startsWith("http://") ||
       value.toLowerCase().startsWith("https://"))
   ) {
@@ -73,6 +77,7 @@ function FieldValueCell({
       />
     );
   } else {
+    // Other types. Display as is.
     const v = value.toString();
     return readonly ? (
       v

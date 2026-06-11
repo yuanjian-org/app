@@ -51,13 +51,12 @@ describe("Project Applications Webhook", () => {
       getWhiteLabel(),
       "url",
       applicant.id,
-      "projectApplication",
       project.id,
     );
 
     const entry = {
       x_field_1: xField,
-      field_104: "Test Name",
+      field_172: "111",
       field_113: "test@example.com",
     };
 
@@ -69,7 +68,7 @@ describe("Project Applications Webhook", () => {
     });
 
     void expect(app).to.exist;
-    expect(app?.application["姓名"]).to.equal("Test Name");
+    expect(app?.application["身份证"]).to.equal("111");
     expect(app?.application["邮箱"]).to.equal("test@example.com");
   });
 });

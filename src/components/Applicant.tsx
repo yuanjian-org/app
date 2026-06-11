@@ -91,12 +91,21 @@ function LoadedApplicant({
 
       {sex && <FieldRow name="性别" readonly value={sex} />}
 
+      {/* It's okay to have mentors' contact information visible to peers */}
       <ContactFieldRow
         mask={isMentee}
         copyable={!isMentee || imPrivileged}
         name="微信"
         value={user.wechat}
       />
+
+      {/* There isn't a need to expose phone numbers yet */}
+      {/* <ContactFieldRow
+        mask={isMentee}
+        copyable={!isMentee || imPrivileged}
+        name="手机"
+        value={removeChinaPhonePrefix(user.phone)}
+      /> */}
 
       {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(
         (f) => {

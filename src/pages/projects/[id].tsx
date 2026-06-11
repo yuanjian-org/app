@@ -11,7 +11,7 @@ import {
   Badge,
   Tooltip,
 } from "@chakra-ui/react";
-import { trpcNext } from "../../trpc";
+import trpc, { trpcNext } from "../../trpc";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import NextLink from "next/link";
@@ -23,21 +23,31 @@ import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
 } from "../../shared/Project";
+import { getStandaloneFormUrl } from "pages/form";
+import { useState } from "react";
 
 export default function Page() {
   const router = useRouter();
   const id = router.query.id as string;
   const me = useMe();
+  const [loading, setLoading] = useState(false);
 
   const { data: project } = trpcNext.projects.get.useQuery(
     { id },
     { enabled: !!id },
   );
 
-  const { data: formUrl } = trpcNext.users.getJinshujuXField.useQuery(
-    { target: "projectApplication", projectId: id },
-    { enabled: !!id && project?.status === "招募中" },
-  );
+  const handleApply = async () => {
+    setLoading(true);
+    try {
+      const xField = await trpc.users.getJinshujuXField.query({
+        projectId: id,
+      });
+      window.open(getStandaloneFormUrl("j6iUMC", xField), "_blank");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!project) return <PageLoader />;
 
@@ -113,18 +123,10 @@ export default function Page() {
               {project.status === "招募中" && (
                 <Button
                   colorScheme="brand"
-                  isDisabled={!formUrl}
-                  onClick={() => {
-                    if (formUrl) {
-                      const w = window.open(
-                        `https://jsj.top/f/j6iUMC?x_field_1=${formUrl}`,
-                        "_blank",
-                      );
-                      if (w) w.opener = null;
-                    }
-                  }}
+                  isLoading={loading}
+                  onClick={handleApply}
                 >
-                  申请加入
+                  申请参与
                 </Button>
               )}
             </Flex>

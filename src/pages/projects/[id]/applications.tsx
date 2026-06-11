@@ -9,7 +9,6 @@ import {
   Text,
   VStack,
   HStack,
-  useToast,
 } from "@chakra-ui/react";
 import { trpcNext } from "trpc";
 import useMe from "useMe";
@@ -19,12 +18,12 @@ import Head from "next/head";
 import { ProjectApplication } from "components/ProjectApplication";
 import { ProjectApplicationStatus } from "shared/ProjectApplication";
 import { formatUserName } from "shared/strings";
+import { toast } from "react-toastify";
 
 export default function Page() {
   const router = useRouter();
   const id = router.query.id as string;
   const me = useMe();
-  const toast = useToast();
   const utils = trpcNext.useContext();
 
   const { data: project } = trpcNext.projects.get.useQuery(
@@ -39,7 +38,7 @@ export default function Page() {
 
   const updateStatus = trpcNext.projectApplications.updateStatus.useMutation({
     onSuccess: () => {
-      toast({ title: "状态已更新", status: "success" });
+      toast.success("状态已更新");
       void utils.projectApplications.list.invalidate({ projectId: id });
     },
   });
@@ -56,7 +55,7 @@ export default function Page() {
   return (
     <>
       <Head>
-        <title>项目申请 ｜ {project.title}</title>
+        <title>项目申请：{project.title} ｜ 远图</title>
       </Head>
       <VStack spacing={6} align="stretch">
         {applications.length === 0 ? (
@@ -100,11 +99,7 @@ export default function Page() {
                 </Flex>
               </CardHeader>
               <CardBody>
-                <ProjectApplication
-                  application={app.application}
-                  sex={app.user?.profile?.性别}
-                  wechat={app.user?.wechat || undefined}
-                />
+                <ProjectApplication application={app.application} />
               </CardBody>
             </Card>
           ))

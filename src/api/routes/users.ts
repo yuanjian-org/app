@@ -1092,7 +1092,7 @@ const getJinshujuXField = procedure
     z
       .object({
         /** The entity target to upload media to */
-        target: z.enum(["user", "project", "projectApplication"]).optional(),
+        target: z.enum(["user", "project"]).optional(),
         /** If target is project, the ID of the project to upload to */
         projectId: z.string().optional(),
       })

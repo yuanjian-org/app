@@ -167,7 +167,6 @@ export const volunteerApplicationFields: ApplicationField[] = [
 
 export const projectApplicationFields: ApplicationField[] = [
   { name: "序号", jsjField: "serial_number" },
-  { name: "姓名", jsjField: "field_104" },
   { name: "性别", jsjField: "field_57" },
   { name: "身份证", jsjField: "field_172" },
   { name: "邮箱", jsjField: "field_113" },
