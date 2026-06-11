@@ -35,12 +35,14 @@ import Org from "./models/Org";
 import OrgMentor from "./models/OrgMentor";
 import OrgOwner from "./models/OrgOwner";
 import Project from "./models/Project";
+import ProjectApplication from "./models/ProjectApplication";
 
 const db = {
   Org,
   OrgMentor,
   OrgOwner,
   Project,
+  ProjectApplication,
   Mentorship,
   User,
   Group,
