@@ -144,7 +144,11 @@ export default fullPage(() => {
               </Button>
             )}
           </Flex>
-          <FullTextSearchBox value={searchTerm} setValue={setSearchTerm} />
+          <FullTextSearchBox
+            value={searchTerm}
+            setValue={setSearchTerm}
+            keywordPlaceholder="关键字或发起人"
+          />
         </VStack>
       </TopBar>
 

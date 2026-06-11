@@ -101,11 +101,13 @@ export function FullTextSearchBox({
   value,
   setValue,
   narrow,
+  keywordPlaceholder = "关键字",
   ...inputGroupProps
 }: {
   value: string;
   setValue: (value: string) => void;
   narrow?: boolean;
+  keywordPlaceholder?: string;
 } & InputGroupProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [innerValue, setInnerValue] = useState(value);
@@ -164,7 +166,7 @@ export function FullTextSearchBox({
         bg="white"
         type="search"
         autoFocus
-        placeholder={`${hotKey}搜索关键字，支持拼音`}
+        placeholder={`${hotKey}搜索${keywordPlaceholder}，支持拼音`}
         value={innerValue}
         onChange={(ev) => {
           setInnerValue(ev.target.value);
