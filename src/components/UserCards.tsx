@@ -9,16 +9,11 @@ import {
   HStack,
   Link,
   Spacer,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Flex,
   Tooltip,
   TextProps,
   BoxProps,
   GridItem,
-  useBreakpointValue,
-  InputGroupProps,
   GridProps,
 } from "@chakra-ui/react";
 import { formatUserName, toPinyin } from "shared/strings";
@@ -27,17 +22,9 @@ import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
 import { UserProfile, StringUserProfile } from "shared/UserProfile";
 import { CardHeader, CardBody, CardFooter } from "@chakra-ui/react";
-import {
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-  PropsWithChildren,
-  useCallback,
-} from "react";
+import { useMemo, useState, PropsWithChildren, useCallback } from "react";
 import MentorBookingModal from "components/MentorBookingModal";
-import { CheckIcon, SearchIcon } from "@chakra-ui/icons";
-import debounce from "lodash/debounce";
+import { CheckIcon } from "@chakra-ui/icons";
 import { KudosControl, KudosHistory } from "./Kudos";
 import {
   markKudosAsRead,
@@ -53,7 +40,6 @@ import { MentorSelection } from "shared/MentorSelection";
 import useMobile from "useMobile";
 import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
-import { cmdOrCtrlChar, isBrowserOnMac } from "macOrWin";
 import { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 
@@ -96,86 +82,6 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
  */
 export type MentorCardType = "TransactionalMentor" | "RelationalMentor";
 export type UserCardType = MentorCardType | "Volunteer";
-
-export function FullTextSearchBox({
-  value,
-  setValue,
-  narrow,
-  keywordPlaceholder = "关键字",
-  ...inputGroupProps
-}: {
-  value: string;
-  setValue: (value: string) => void;
-  narrow?: boolean;
-  keywordPlaceholder?: string;
-} & InputGroupProps) {
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const [innerValue, setInnerValue] = useState(value);
-  const setValueRef = useRef(setValue);
-
-  useEffect(() => {
-    setValueRef.current = setValue;
-  }, [setValue]);
-
-  // Sync prop to state when prop changes.
-  // This helps when the search term is cleared from outside or changed via URL
-  useEffect(() => {
-    setInnerValue(value);
-  }, [value]);
-
-  const debouncedSetValue = useMemo(
-    () => debounce((v: string) => setValueRef.current(v), 200),
-    [],
-  );
-
-  // Cleanup debounce on unmount
-  useEffect(() => {
-    return () => {
-      debouncedSetValue.cancel();
-    };
-  }, [debouncedSetValue]);
-
-  const hotKey = useBreakpointValue({
-    base: "",
-    md: cmdOrCtrlChar() + "+F ",
-  });
-
-  useEffect(() => {
-    const onKeydown = (event: KeyboardEvent) => {
-      if (
-        (isBrowserOnMac() ? event.metaKey : event.ctrlKey) &&
-        event.key === "f"
-      ) {
-        event.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKeydown);
-    return () => {
-      window.removeEventListener("keydown", onKeydown);
-    };
-  }, [searchInputRef]);
-
-  return (
-    <InputGroup maxW={narrow ? "300px" : undefined} {...inputGroupProps}>
-      <InputLeftElement>
-        <SearchIcon color="gray" />
-      </InputLeftElement>
-      <Input
-        ref={searchInputRef}
-        bg="white"
-        type="search"
-        autoFocus
-        placeholder={`${hotKey}搜索${keywordPlaceholder}，支持拼音`}
-        value={innerValue}
-        onChange={(ev) => {
-          setInnerValue(ev.target.value);
-          debouncedSetValue(ev.target.value);
-        }}
-      />
-    </InputGroup>
-  );
-}
 
 /**
  * @param searchTerm Empty string means no search.

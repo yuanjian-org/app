@@ -27,7 +27,7 @@ import {
   ProjectVisibilityDescriptions,
   ProjectWithOwner,
 } from "../../shared/Project";
-import { FullTextSearchBox } from "../../components/UserCards";
+import { FullTextSearchBox } from "../../components/FullTextSearchBox";
 import { toPinyin } from "../../shared/strings";
 
 function searchProjects(projects: ProjectWithOwner[], searchTerm: string) {
