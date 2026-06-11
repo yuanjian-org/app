@@ -22,6 +22,7 @@ export type DemoUser = {
   roles?: Role[];
   volunteerApplication?: Record<string, any> | null;
   menteeApplication?: Record<string, any> | null;
+  projectApplication?: Record<string, any> | null;
   menteeStatus?: MenteeStatus | null;
   profile?: UserProfile | null;
   preference?: UserPreference | null;
@@ -35,6 +36,30 @@ const menteeApplication: Record<string, any> = {
   [menteeMajorField]: "公共卫生学",
   [menteeDegreeField]: "本科",
   [menteeFirstYearInCollegeField]: "2024",
+};
+
+const projectApplication1: Record<string, any> = {
+  性别: "女",
+  邮箱: "mentee@de.mo",
+  身份证: "110105199001011234",
+  手机: "13800138001",
+  微信号: "wxid_1",
+};
+
+const projectApplication2: Record<string, any> = {
+  性别: "男",
+  邮箱: "mentee2@de.mo",
+  身份证: "110105199001011235",
+  手机: "13800138002",
+  微信号: "wxid_2",
+};
+
+const projectApplication3: Record<string, any> = {
+  性别: "女",
+  邮箱: "mentee3@de.mo",
+  身份证: "110105199001011236",
+  手机: "13800138003",
+  微信号: "wxid_3",
 };
 
 const adminProfile: UserProfile = {
@@ -273,6 +298,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    projectApplication: projectApplication1,
     profile: menteeProfile1,
   },
   mentee2: {
@@ -281,6 +307,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    projectApplication: projectApplication2,
     profile: menteeProfile2,
   },
   mentee3: {
@@ -289,6 +316,7 @@ const users: Record<string, DemoUser> = {
     roles: ["Mentee"] as Role[],
     menteeStatus: "现届学子" as MenteeStatus,
     menteeApplication,
+    projectApplication: projectApplication3,
     profile: menteeProfile3,
   },
   mentee4: {

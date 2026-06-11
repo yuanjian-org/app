@@ -19,6 +19,7 @@ import { createMentorBooking } from "./mentorBookings";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
+import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -202,7 +203,7 @@ async function generateMentorship(
 async function generateProjects(t: Transaction) {
   console.log("Creating projects...");
   for (const project of demo.projects) {
-    await db.Project.findOrCreate({
+    const [createdProject] = await db.Project.findOrCreate({
       where: { title: project.title },
       defaults: {
         ownerId: id(project.owner),
@@ -212,6 +213,30 @@ async function generateProjects(t: Transaction) {
       },
       transaction: t,
     });
+
+    const mentees = [mentee1, mentee2, mentee3];
+    const statuses: (ProjectApplicationStatus | null)[] = [
+      null,
+      "已通过",
+      "已拒绝",
+    ];
+
+    for (let i = 0; i < mentees.length; i++) {
+      const mentee = mentees[i];
+      if (mentee.projectApplication) {
+        await db.ProjectApplication.findOrCreate({
+          where: {
+            projectId: createdProject.id,
+            userId: id(mentee),
+          },
+          defaults: {
+            status: statuses[i] ?? null,
+            application: mentee.projectApplication,
+          },
+          transaction: t,
+        });
+      }
+    }
   }
 }
 
