@@ -13,9 +13,7 @@ export const zProjectApplication = z.object({
   projectId: z.string(),
   userId: z.string(),
   status: zProjectApplicationStatus,
-  application: z.record(z.string(), z.any()).nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  application: z.record(z.string(), z.any()),
 });
 
 export type ProjectApplication = z.TypeOf<typeof zProjectApplication>;

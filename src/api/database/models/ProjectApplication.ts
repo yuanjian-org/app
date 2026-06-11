@@ -12,8 +12,7 @@ import {
 import { STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import Project from "./Project";
-
-export type ProjectApplicationStatus = "已通过" | "已拒绝" | null;
+import { ProjectApplicationStatus } from "shared/ProjectApplication";
 
 @Table
 export default class ProjectApplication extends Model {
@@ -39,8 +38,9 @@ export default class ProjectApplication extends Model {
   @Column(STRING)
   status: ProjectApplicationStatus;
 
+  @AllowNull(true)
   @Column(DataType.JSONB)
-  application: Record<string, any> | null;
+  application: Record<string, any>;
 
   /**
    * Associations

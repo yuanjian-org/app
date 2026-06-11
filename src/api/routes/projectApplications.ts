@@ -6,6 +6,7 @@ import sequelize from "../database/sequelize";
 import { notFoundError, noPermissionError } from "../errors";
 import { isPermitted } from "../../shared/Role";
 import {
+  ProjectApplicationStatus,
   zProjectApplicationStatus,
   zProjectApplicationWithUser,
 } from "../../shared/ProjectApplication";
@@ -25,7 +26,10 @@ export async function checkProjectPermission(
     return;
   }
 
-  const project = await db.Project.findByPk(projectId, { transaction });
+  const project = await db.Project.findByPk(projectId, {
+    attributes: ["ownerId"],
+    transaction,
+  });
   if (!project) {
     throw notFoundError("项目", projectId);
   }
@@ -42,13 +46,13 @@ export async function listImpl(
 ) {
   await checkProjectPermission(me, projectId, transaction);
 
-  return (await db.ProjectApplication.findAll({
+  return await db.ProjectApplication.findAll({
     where: { projectId },
     attributes: projectApplicationAttributes,
     include: projectApplicationInclude,
     order: [["createdAt", "DESC"]],
     transaction,
-  })) as any[];
+  });
 }
 
 const list = procedure
@@ -64,10 +68,11 @@ const list = procedure
 export async function updateStatusImpl(
   me: User,
   id: string,
-  status: "已通过" | "已拒绝" | null,
+  status: ProjectApplicationStatus,
   transaction: Transaction,
 ) {
   const app = await db.ProjectApplication.findByPk(id, {
+    attributes: ["id", "projectId"],
     transaction,
   });
 

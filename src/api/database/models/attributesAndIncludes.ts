@@ -318,8 +318,6 @@ export const projectApplicationAttributes = [
   "userId",
   "status",
   "application",
-  "createdAt",
-  "updatedAt",
 ];
 
 export const projectApplicationInclude = [
