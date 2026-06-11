@@ -164,3 +164,23 @@ export const volunteerApplicationFields: ApplicationField[] = [
   { jsjField: "field_17", name: "反馈或问题" },
   { jsjField: "field_22", name: "国籍", showForEdits: true },
 ];
+
+export const projectApplicationFields: ApplicationField[] = [
+  { name: "序号", jsjField: "serial_number" },
+  { name: "姓名", jsjField: "field_104" },
+  { name: "性别", jsjField: "field_57" },
+  { name: "身份证", jsjField: "field_172" },
+  { name: "邮箱", jsjField: "field_113" },
+  { name: "手机", jsjField: "field_171" },
+  { name: "微信号", jsjField: "field_106" },
+  { name: "大学一年级入学年份", jsjField: "field_167" },
+  { name: "当前就读种类", jsjField: "field_149" },
+  { name: "当前就读学校", jsjField: "field_107" },
+  { name: "当前就读学院或书院", jsjField: "field_173" },
+  { name: "当前就读专业", jsjField: "field_108" },
+  { name: "个人CV及研究经历", jsjField: "field_162" },
+  { name: "个人陈述", jsjField: "field_176" },
+  { name: "个人陈述附件", jsjField: "field_177" },
+  { name: "创新经历", jsjField: "field_175" },
+  { name: "创新经历附件", jsjField: "field_178" },
+];

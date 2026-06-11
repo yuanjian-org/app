@@ -1,0 +1,116 @@
+import { useRouter } from "next/router";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Flex,
+  Badge,
+  Select,
+  Text,
+  VStack,
+  HStack,
+  useToast,
+} from "@chakra-ui/react";
+import { trpcNext } from "trpc";
+import useMe from "useMe";
+import { isPermitted } from "shared/Role";
+import PageLoader from "components/PageLoader";
+import Head from "next/head";
+import { ProjectApplication } from "components/ProjectApplication";
+import { ProjectApplicationStatus } from "shared/ProjectApplication";
+import { formatUserName } from "shared/strings";
+
+export default function Page() {
+  const router = useRouter();
+  const id = router.query.id as string;
+  const me = useMe();
+  const toast = useToast();
+  const utils = trpcNext.useContext();
+
+  const { data: project } = trpcNext.projects.get.useQuery(
+    { id },
+    { enabled: !!id },
+  );
+
+  const { data: applications } = trpcNext.projectApplications.list.useQuery(
+    { projectId: id },
+    { enabled: !!id },
+  );
+
+  const updateStatus = trpcNext.projectApplications.updateStatus.useMutation({
+    onSuccess: () => {
+      toast({ title: "状态已更新", status: "success" });
+      void utils.projectApplications.list.invalidate({ projectId: id });
+    },
+  });
+
+  if (!project || !applications) return <PageLoader />;
+
+  const canEdit =
+    me && (me.id === project.ownerId || isPermitted(me.roles, "ProjectAdmin"));
+
+  if (!canEdit) {
+    return <Text>无权限访问</Text>;
+  }
+
+  return (
+    <>
+      <Head>
+        <title>项目申请 ｜ {project.title}</title>
+      </Head>
+      <VStack spacing={6} align="stretch">
+        {applications.length === 0 ? (
+          <Text>暂无申请</Text>
+        ) : (
+          applications.map((app) => (
+            <Card key={app.id}>
+              <CardHeader>
+                <Flex justify="space-between" align="center">
+                  <HStack spacing={4}>
+                    <Text fontSize="lg" fontWeight="bold">
+                      {formatUserName(app.user?.name || "未知用户")}
+                    </Text>
+                    <Badge
+                      colorScheme={
+                        app.status === "已通过"
+                          ? "green"
+                          : app.status === "已拒绝"
+                            ? "red"
+                            : "yellow"
+                      }
+                    >
+                      {app.status || "待处理"}
+                    </Badge>
+                  </HStack>
+                  <Select
+                    width="200px"
+                    value={app.status || ""}
+                    onChange={(e) =>
+                      updateStatus.mutate({
+                        id: app.id,
+                        status: e.target.value as ProjectApplicationStatus,
+                      })
+                    }
+                    placeholder="更新状态"
+                  >
+                    <option value="已通过">已通过</option>
+                    <option value="已拒绝">已拒绝</option>
+                    <option value="待处理">待处理</option>
+                  </Select>
+                </Flex>
+              </CardHeader>
+              <CardBody>
+                <ProjectApplication
+                  application={app.application}
+                  sex={app.user?.profile?.性别}
+                  wechat={app.user?.wechat || undefined}
+                />
+              </CardBody>
+            </Card>
+          ))
+        )}
+      </VStack>
+    </>
+  );
+}
+Page.title = "项目申请";

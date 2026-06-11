@@ -1,34 +1,18 @@
-import {
-  Flex,
-  Box,
-  Link,
-  UnorderedList,
-  ListItem,
-  Heading,
-  useClipboard,
-  Tooltip,
-  Text,
-} from "@chakra-ui/react";
-import { useEffect } from "react";
-import { CopyIcon, DownloadIcon } from "@chakra-ui/icons";
+import { Flex, Heading } from "@chakra-ui/react";
 import Loader from "components/Loader";
 import trpc, { trpcNext } from "trpc";
 import {
   menteeApplicationFields,
   volunteerApplicationFields,
 } from "shared/applicationFields";
-import z from "zod";
 import { sectionSpacing } from "theme/metrics";
-import { formatUserName, notSetText } from "shared/strings";
-import invariant from "tiny-invariant";
-import EditableWithIconOrLink from "components/EditableWithIconOrLink";
+import { formatUserName } from "shared/strings";
 import User from "shared/User";
-import { displayName, isPermitted } from "shared/Role";
-import NextLink from "next/link";
-import { toast } from "react-toastify";
+import { isPermitted } from "shared/Role";
 import { InterviewType } from "shared/InterviewType";
 import { useMyRoles } from "useMe";
-import { SmallGrayText } from "./SmallGrayText";
+import { FieldRow } from "./FieldRow";
+import { ContactFieldRow } from "./ContactFieldRow";
 
 export default function Applicant({
   userId,
@@ -107,21 +91,12 @@ function LoadedApplicant({
 
       {sex && <FieldRow name="性别" readonly value={sex} />}
 
-      {/* It's okay to have mentors' contact information visible to peers */}
       <ContactFieldRow
         mask={isMentee}
         copyable={!isMentee || imPrivileged}
         name="微信"
         value={user.wechat}
       />
-
-      {/* There isn't a need to expose phone numbers yet */}
-      {/* <ContactFieldRow
-        mask={isMentee}
-        copyable={!isMentee || imPrivileged}
-        name="手机"
-        value={removeChinaPhonePrefix(user.phone)}
-      /> */}
 
       {(isMentee ? menteeApplicationFields : volunteerApplicationFields).map(
         (f) => {
@@ -150,145 +125,4 @@ function LoadedApplicant({
       )}
     </Flex>
   );
-}
-
-/**
- * @param value null if the value is not set
- */
-function ContactFieldRow({
-  mask,
-  copyable,
-  name,
-  value,
-}: {
-  mask: boolean;
-  copyable: boolean;
-  name: string;
-  value: string | null;
-}) {
-  const { onCopy, hasCopied } = useClipboard(value || "");
-
-  useEffect(() => {
-    if (hasCopied) toast.success("内容已经拷贝到剪贴板。");
-  }, [hasCopied]);
-
-  return (
-    <Flex direction="column">
-      <b>{name} </b>
-      <Box>
-        {!copyable && (
-          <SmallGrayText>
-            请联系
-            <Link as={NextLink} href="/who-can-see-my-data">
-              {displayName("MentorshipOperator")}
-            </Link>
-          </SmallGrayText>
-        )}
-        {copyable && !value && <Text color="gray">{notSetText}</Text>}
-        {copyable && value && (
-          <>
-            {mask ? "••••••••••••" : value}{" "}
-            <Tooltip label="拷贝内容到剪贴板">
-              <CopyIcon onClick={onCopy} cursor="pointer" />
-            </Tooltip>
-          </>
-        )}
-      </Box>
-    </Flex>
-  );
-}
-
-function FieldRow({
-  name,
-  value,
-  readonly,
-  update,
-}: {
-  name: string;
-  value: any;
-  readonly: boolean;
-  update?: (value: string) => Promise<void>; // required only if !readonly
-}) {
-  return (
-    <Flex direction="column">
-      <Box>
-        <b>{name}</b>
-      </Box>
-      <Box>
-        <FieldValueCell value={value} readonly={readonly} update={update} />
-      </Box>
-    </Flex>
-  );
-}
-
-function FieldValueCell({
-  value,
-  readonly,
-  update,
-}: {
-  value: any;
-  readonly: boolean;
-  update?: (value: string) => Promise<void>; // required only if !readonly
-}) {
-  invariant(readonly || update);
-
-  // Array. Recurse.
-  if (Array.isArray(value)) {
-    return (
-      <UnorderedList>
-        {value.map((v, idx) => (
-          <ListItem key={idx}>
-            {/* Don't allow edits for child values */}
-            <FieldValueCell readonly value={v} />
-          </ListItem>
-        ))}
-      </UnorderedList>
-    );
-
-    // URL
-  } else if (
-    // Zod's .url() allows javascript: and data: schemes. We explicitly
-    // require http:// or https:// to prevent XSS vulnerabilities.
-    z.string().url().safeParse(value).success &&
-    (value.toLowerCase().startsWith("http://") ||
-      value.toLowerCase().startsWith("https://"))
-  ) {
-    return (
-      <Link href={value}>
-        下载链接 <DownloadIcon />
-      </Link>
-    );
-
-    // An arbitrary object
-  } else if (typeof value === "object") {
-    return JSON.stringify(value, null, 2);
-
-    // String
-  } else if (typeof value === "string") {
-    const v = value.split("\n").join("\r\n");
-    return readonly ? (
-      value.split("\n").map((p, idx) => <p key={idx}>{p}</p>)
-    ) : (
-      <EditableWithIconOrLink
-        editor="textarea"
-        decorator="icon"
-        defaultValue={v}
-        onSubmit={update}
-      />
-    );
-
-    // Other types. Display as is.
-  } else {
-    const v = value.toString();
-    return readonly ? (
-      v
-    ) : (
-      <EditableWithIconOrLink
-        editor="input"
-        decorator="icon"
-        defaultValue={v}
-        onSubmit={update}
-      />
-    );
-  }
 }

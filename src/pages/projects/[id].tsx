@@ -34,6 +34,11 @@ export default function Page() {
     { enabled: !!id },
   );
 
+  const { data: formUrl } = trpcNext.users.getJinshujuXField.useQuery(
+    { target: "projectApplication", projectId: id },
+    { enabled: !!id && project?.status === "招募中" },
+  );
+
   if (!project) return <PageLoader />;
 
   const canEdit =
@@ -97,14 +102,26 @@ export default function Page() {
                   编辑项目
                 </Button>
               )}
+              {canEdit && (
+                <Button
+                  as={NextLink}
+                  href={`/projects/${project.id}/applications`}
+                >
+                  查看申请
+                </Button>
+              )}
               {project.status === "招募中" && (
                 <Button
                   colorScheme="brand"
+                  isDisabled={!formUrl}
                   onClick={() => {
-                    window.open(
-                      "https://jinshuju.net/f/fake_form_id",
-                      "_blank",
-                    );
+                    if (formUrl) {
+                      const w = window.open(
+                        `https://jsj.top/f/j6iUMC?x_field_1=${formUrl}`,
+                        "_blank",
+                      );
+                      if (w) w.opener = null;
+                    }
                   }}
                 >
                   申请加入
