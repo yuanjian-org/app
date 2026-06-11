@@ -51,6 +51,67 @@ function searchProjects(projects: ProjectWithOwner[], searchTerm: string) {
   });
 }
 
+function ProjectCard({ project }: { project: ProjectWithOwner }) {
+  return (
+    <ResponsiveCard>
+      <CardHeader>
+        <Flex direction="column" justify="space-between" align="start">
+          <Heading size="md" width="100%">
+            <NextLink href={`/projects/${project.id}`}>
+              <Text
+                color="brand.a"
+                _hover={{ textDecoration: "underline" }}
+                width="100%"
+              >
+                {project.title}
+              </Text>
+            </NextLink>
+          </Heading>
+        </Flex>
+      </CardHeader>
+      <CardBody>
+        <Flex align="center" gap={2} mb={4}>
+          <Text fontSize="sm" color="gray.600">
+            发起人：
+            <NextLink href={`/users/${project.owner.id}`}>
+              <Text
+                as="span"
+                color="brand.a"
+                _hover={{ textDecoration: "underline" }}
+              >
+                {project.owner.name}
+              </Text>
+            </NextLink>
+          </Text>
+
+          <Spacer />
+
+          {project.status !== "招募中" && (
+            <Tooltip label={ProjectStatusDescriptions[project.status]} hasArrow>
+              <Badge
+                colorScheme={project.status === "已结束" ? "yellow" : "gray"}
+              >
+                {project.status}
+              </Badge>
+            </Tooltip>
+          )}
+          {project.visibility !== "公开" && (
+            <Tooltip
+              label={ProjectVisibilityDescriptions[project.visibility]}
+              hasArrow
+            >
+              <Badge colorScheme="red">{project.visibility}</Badge>
+            </Tooltip>
+          )}
+        </Flex>
+        <Text noOfLines={3} color="gray.700">
+          {project.profile?.简介 || "暂无简介"}
+        </Text>
+      </CardBody>
+    </ResponsiveCard>
+  );
+}
+
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
   const myRoles = useMyRoles();
@@ -100,73 +161,7 @@ export default fullPage(() => {
         >
           {searchResult &&
             searchResult.map((project) => (
-              <ResponsiveCard key={project.id}>
-                <CardHeader>
-                  <Flex
-                    direction="column"
-                    justify="space-between"
-                    align="start"
-                  >
-                    <Heading size="md" width="100%">
-                      <NextLink href={`/projects/${project.id}`}>
-                        <Text
-                          color="brand.a"
-                          _hover={{ textDecoration: "underline" }}
-                          width="100%"
-                        >
-                          {project.title}
-                        </Text>
-                      </NextLink>
-                    </Heading>
-                  </Flex>
-                </CardHeader>
-                <CardBody>
-                  <Flex align="center" gap={2} mb={4}>
-                    <Text fontSize="sm" color="gray.600">
-                      发起人：
-                      <NextLink href={`/users/${project.owner.id}`}>
-                        <Text
-                          as="span"
-                          color="brand.a"
-                          _hover={{ textDecoration: "underline" }}
-                        >
-                          {project.owner.name}
-                        </Text>
-                      </NextLink>
-                    </Text>
-
-                    <Spacer />
-
-                    {project.status !== "招募中" && (
-                      <Tooltip
-                        label={ProjectStatusDescriptions[project.status]}
-                        hasArrow
-                      >
-                        <Badge
-                          colorScheme={
-                            project.status === "已结束" ? "yellow" : "gray"
-                          }
-                        >
-                          {project.status}
-                        </Badge>
-                      </Tooltip>
-                    )}
-                    {project.visibility !== "公开" && (
-                      <Tooltip
-                        label={
-                          ProjectVisibilityDescriptions[project.visibility]
-                        }
-                        hasArrow
-                      >
-                        <Badge colorScheme="red">{project.visibility}</Badge>
-                      </Tooltip>
-                    )}
-                  </Flex>
-                  <Text noOfLines={3} color="gray.700">
-                    {project.profile?.简介 || "暂无简介"}
-                  </Text>
-                </CardBody>
-              </ResponsiveCard>
+              <ProjectCard key={project.id} project={project} />
             ))}
         </SimpleGrid>
       )}
