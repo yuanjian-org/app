@@ -11,8 +11,6 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { trpcNext } from "trpc";
-import useMe from "useMe";
-import { isPermitted } from "shared/Role";
 import PageLoader from "components/PageLoader";
 import Head from "next/head";
 import { ProjectApplication } from "components/ProjectApplication";
@@ -23,7 +21,6 @@ import { toast } from "react-toastify";
 export default function Page() {
   const router = useRouter();
   const id = router.query.id as string;
-  const me = useMe();
   const utils = trpcNext.useContext();
 
   const { data: project } = trpcNext.projects.get.useQuery(
@@ -44,13 +41,6 @@ export default function Page() {
   });
 
   if (!project || !applications) return <PageLoader />;
-
-  const canEdit =
-    me && (me.id === project.ownerId || isPermitted(me.roles, "ProjectAdmin"));
-
-  if (!canEdit) {
-    return <Text>无权限访问</Text>;
-  }
 
   return (
     <>
