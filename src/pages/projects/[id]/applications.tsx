@@ -77,14 +77,14 @@ export default function Page() {
                     onChange={(e) =>
                       updateStatus.mutate({
                         id: app.id,
-                        status: e.target.value as ProjectApplicationStatus,
+                        status: (e.target.value ||
+                          null) as ProjectApplicationStatus,
                       })
                     }
-                    placeholder="更新状态"
                   >
                     <option value="已通过">已通过</option>
                     <option value="已拒绝">已拒绝</option>
-                    <option value="待处理">待处理</option>
+                    <option value="">待处理</option>
                   </Select>
                 </Flex>
               </CardHeader>
