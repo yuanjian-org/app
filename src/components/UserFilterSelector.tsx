@@ -6,7 +6,7 @@ import _ from "lodash";
 import MenteeStatusSelect from "./MenteeStatusSelect";
 import UserSelector from "./UserSelector";
 import { componentSpacing } from "theme/metrics";
-import { FullTextSearchBox } from "./UserCards";
+import { FullTextSearchBox } from "./FullTextSearchBox";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`

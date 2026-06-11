@@ -31,7 +31,8 @@ import {
   sectionSpacing,
   maxTextWidth,
 } from "theme/metrics";
-import UserCards, { FullTextSearchBox } from "components/UserCards";
+import UserCards from "components/UserCards";
+import { FullTextSearchBox } from "components/FullTextSearchBox";
 import { UserDisplayData } from "../../components/UserPanel";
 import { dailyShuffle } from "pages/mentors";
 import { TraitsModal } from "components/Traits";

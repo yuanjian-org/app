@@ -1,7 +1,8 @@
 import { compareDate } from "shared/strings";
 import { trpcNext } from "trpc";
 import { useMemo, useState } from "react";
-import UserCards, { FullTextSearchBox } from "components/UserCards";
+import UserCards from "components/UserCards";
+import { FullTextSearchBox } from "components/FullTextSearchBox";
 import Loader from "components/Loader";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { componentSpacing, pageMarginX } from "theme/metrics";

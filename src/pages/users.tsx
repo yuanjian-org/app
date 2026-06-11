@@ -54,7 +54,7 @@ import { useRouter } from "next/router";
 import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
-import { FullTextSearchBox } from "components/UserCards";
+import { FullTextSearchBox } from "components/FullTextSearchBox";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 import { staticUrlPrefix } from "static";
 import {
