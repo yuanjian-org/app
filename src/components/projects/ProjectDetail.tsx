@@ -149,7 +149,8 @@ export function VideoSection({ title, url }: { title: string; url?: string }) {
         controls
         controlsList="nodownload"
         style={{
-          maxWidth: "100%",
+          maxWidth: "600px",
+          maxHeight: "600px",
         }}
       />
     </Flex>
