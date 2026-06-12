@@ -11,12 +11,14 @@ import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
 import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import xLogo from "../../public/img/x_logo.png";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
+import { useWhiteLabel } from "./useStaticConfigs";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -27,6 +29,7 @@ const inactiveNavLinkColor = "gray.700";
  */
 export default function StaticNavBar() {
   const current = useRouter().asPath;
+  const whiteLabel = useWhiteLabel();
 
   return (
     <Box
@@ -47,7 +50,11 @@ export default function StaticNavBar() {
         marginX="auto" // Centers content horizontally
       >
         <NextLink href={staticUrlPrefix}>
-          <Image src={yuanjianLogo80x80} alt="图标" width={30} />
+          {whiteLabel === "x" ? (
+            <Image src={xLogo} alt="图标" width={30} />
+          ) : (
+            <Image src={yuanjianLogo80x80} alt="图标" width={30} />
+          )}
         </NextLink>
 
         <HStack as="nav" spacing={7} fontWeight="bold">
@@ -62,7 +69,9 @@ export default function StaticNavBar() {
           />
 
           <NextLink href={loginUrl()}>
-            <Text color={inactiveNavLinkColor}>进入远图</Text>
+            <Text color={inactiveNavLinkColor}>
+              {whiteLabel === "x" ? "进入平台" : "进入远图"}
+            </Text>
           </NextLink>
 
           <Tooltip label="联系客服">

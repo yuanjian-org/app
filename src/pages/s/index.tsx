@@ -21,8 +21,19 @@ import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
+import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
+  const whiteLabel = useWhiteLabel();
+
+  if (whiteLabel === "x") {
+    return (
+      <VStack spacing={50} align="start">
+        <XLandingPageContent />
+      </VStack>
+    );
+  }
+
   return (
     <VStack spacing={50} align="start">
       <IntroSection />
@@ -166,5 +177,32 @@ function Partner({ name, image }: { name: string; image: StaticImageData }) {
         </Text>
       </VStack>
     </GridItem>
+  );
+}
+
+function XLandingPageContent() {
+  return (
+    <Section header="欢迎来到深圳零一学院社会导师服务平台">
+      <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
+        <VStack spacing={paragraphSpacing} align="start">
+          <Text>
+            <b>深圳零一学院是什么？</b>
+            深圳零一学院创办于2021年，这是一所由深圳市委、市政府推动创办的创新型学院。深圳零一学院源自清华大学钱学森力学班（简称“钱班”）的探索经验，面向全国青少年学生，以项目制方式培养，致力于发掘以科技改变世界、创造未来的创新型人才。
+          </Text>
+          <Text>
+            <b>社会导师服务如何帮助零一学子？</b>
+            零一学院致力于会聚一大批具有创新潜质和内驱力的学生、全球顶尖导师。社会导师作为拥有丰富经验的“过来人”，为学生们提供长期的一对一陪伴与指导。在创新研究性学习和充满挑战的实践项目中，导师不仅在专业上答疑解惑，更在思维方式、视野拓展和职业规划上给予支持。
+          </Text>
+          <Text>
+            <b>如何了解更多？</b>
+            欢迎访问{" "}
+            <Link href="https://www.x-institute.edu.cn/" isExternal>
+              深圳零一学院官方网站
+            </Link>{" "}
+            了解更多关于我们的培养理念、创新营活动以及科研成果。
+          </Text>
+        </VStack>
+      </GridItem>
+    </Section>
   );
 }
