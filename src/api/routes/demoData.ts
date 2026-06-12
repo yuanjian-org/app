@@ -39,27 +39,81 @@ const menteeApplication: Record<string, any> = {
 };
 
 const projectApplication1: Record<string, any> = {
+  序号: "1",
   性别: "女",
-  邮箱: "mentee@de.mo",
   身份证: "110105199001011234",
+  邮箱: "mentee@de.mo",
   手机: "13800138001",
   微信号: "wxid_1",
+  大学一年级入学年份: "2023",
+  当前就读种类: "本科",
+  当前就读学校: "清华大学",
+  当前就读学院或书院: "计算机科学与技术系",
+  当前就读专业: "计算机科学与技术",
+  个人CV及研究经历:
+    "热爱编程，喜欢参加各种黑客松比赛。曾在GitHub上开源多个小工具。",
+  个人陈述: "我对计算机科学充满热情，希望能在远见项目中深入学习和应用技术。",
+  个人陈述附件: [
+    "https://example.com/ps1.pdf",
+    "https://example.com/ps1_supp.pdf",
+  ],
+  创新经历: "参与了多项大学生创新创业训练计划项目。",
+  创新经历附件: [
+    "https://example.com/innov1.pdf",
+    "https://example.com/innov1_supp.pdf",
+  ],
 };
 
 const projectApplication2: Record<string, any> = {
+  序号: "2",
   性别: "男",
-  邮箱: "mentee2@de.mo",
   身份证: "110105199001011235",
+  邮箱: "mentee2@de.mo",
   手机: "13800138002",
   微信号: "wxid_2",
+  大学一年级入学年份: "2022",
+  当前就读种类: "本科",
+  当前就读学校: "北京大学",
+  当前就读学院或书院: "数学科学学院",
+  当前就读专业: "数学与应用数学",
+  个人CV及研究经历:
+    "喜欢研究数学问题，希望能将数学应用到实际生活中。参加过全国大学生数学建模竞赛。",
+  个人陈述: "我希望通过参与科研项目，将理论知识转化为实际应用。",
+  个人陈述附件: [
+    "https://example.com/ps2.pdf",
+    "https://example.com/ps2_supp.pdf",
+  ],
+  创新经历: "在数据分析和算法设计方面有多次创新尝试。",
+  创新经历附件: [
+    "https://example.com/innov2.pdf",
+    "https://example.com/innov2_supp.pdf",
+  ],
 };
 
 const projectApplication3: Record<string, any> = {
+  序号: "3",
   性别: "女",
-  邮箱: "mentee3@de.mo",
   身份证: "110105199001011236",
+  邮箱: "mentee3@de.mo",
   手机: "13800138003",
   微信号: "wxid_3",
+  大学一年级入学年份: "2024",
+  当前就读种类: "本科",
+  当前就读学校: "复旦大学",
+  当前就读学院或书院: "上海医学院",
+  当前就读专业: "临床医学",
+  个人CV及研究经历:
+    "立志成为一名优秀的医生，帮助更多的人减轻病痛。平时喜欢参加志愿活动。",
+  个人陈述: "我希望能在远见项目中锻炼自己的实践能力和科研素养。",
+  个人陈述附件: [
+    "https://example.com/ps3.pdf",
+    "https://example.com/ps3_supp.pdf",
+  ],
+  创新经历: "在医学科普方面有一定的创新尝试和实践。",
+  创新经历附件: [
+    "https://example.com/innov3.pdf",
+    "https://example.com/innov3_supp.pdf",
+  ],
 };
 
 const adminProfile: UserProfile = {
