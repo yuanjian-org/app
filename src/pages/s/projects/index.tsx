@@ -1,33 +1,19 @@
 import { useState, useMemo } from "react";
-import {
-  Button,
-  Flex,
-  Heading,
-  Text,
-  SimpleGrid,
-  VStack,
-} from "@chakra-ui/react";
-import { trpcNext } from "../../trpc";
-import { useMyRoles } from "../../useMe";
-import { isPermitted } from "../../shared/Role";
-import NextLink from "next/link";
-import { MdAdd } from "react-icons/md";
-import PageLoader from "../../components/PageLoader";
-import TopBar, { topBarPaddings } from "../../components/TopBar";
-import { fullPage } from "../../AppPage";
-import { componentSpacing, pageMarginX } from "../../theme/metrics";
-import { FullTextSearchBox } from "../../components/FullTextSearchBox";
+import { Heading, SimpleGrid, Text, VStack, Flex, Box } from "@chakra-ui/react";
+import { trpcNext } from "../../../trpc";
+import { barePage } from "../../../AppPage";
+import PageLoader from "../../../components/PageLoader";
+import { FullTextSearchBox } from "../../../components/FullTextSearchBox";
+import TopBar from "../../../components/TopBar";
+import { componentSpacing, pageMarginX } from "../../../theme/metrics";
 import {
   ProjectCard,
   searchProjects,
-} from "../../components/projects/ProjectList";
+} from "../../../components/projects/ProjectList";
 
-export default fullPage(() => {
-  const { data: projects } = trpcNext.projects.list.useQuery();
-  const myRoles = useMyRoles();
-  const canCreate = isPermitted(myRoles, ["Mentor", "ProjectAdmin"]);
-
-  const [searchTerm, setSearchTerm] = useState<string>("");
+export default barePage(() => {
+  const { data: projects } = trpcNext.projects.listPublic.useQuery();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const searchResult = useMemo(() => {
     return searchTerm && projects
@@ -38,21 +24,11 @@ export default fullPage(() => {
   if (projects === undefined) return <PageLoader />;
 
   return (
-    <>
-      <TopBar {...topBarPaddings()}>
+    <Box maxW="1200px" mx="auto" w="100%">
+      <TopBar px={pageMarginX} py={componentSpacing}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
             <Heading size="lg">X-Challenge 问题</Heading>
-            {canCreate && (
-              <Button
-                as={NextLink}
-                href="/projects/create"
-                colorScheme="brand"
-                leftIcon={<MdAdd />}
-              >
-                发布项目
-              </Button>
-            )}
           </Flex>
           <FullTextSearchBox
             value={searchTerm}
@@ -61,7 +37,6 @@ export default fullPage(() => {
           />
         </VStack>
       </TopBar>
-
       {searchResult && searchResult.length === 0 ? (
         <Text mx={pageMarginX} mt={pageMarginX}>
           暂无项目
@@ -78,11 +53,11 @@ export default fullPage(() => {
               <ProjectCard
                 key={project.id}
                 project={project}
-                basePath="/projects"
+                basePath="/s/projects"
               />
             ))}
         </SimpleGrid>
       )}
-    </>
+    </Box>
   );
 }, "项目列表");

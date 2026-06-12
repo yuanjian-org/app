@@ -48,6 +48,16 @@ describe("Projects Route Impl", () => {
   };
 
   describe("listImpl", () => {
+    it("should return public/open projects when me is undefined", async () => {
+      const otherUser = await createTestUser();
+      const project1 = await createTestProject(otherUser.id, "公开", "招募中");
+      const project2 = await createTestProject(otherUser.id, "保密", "草稿");
+
+      const result = await listImpl(undefined, transaction);
+      expect(result).to.be.an("array");
+      expect(result.map((r) => r.id)).to.include(project1.id);
+      expect(result.map((r) => r.id)).to.not.include(project2.id);
+    });
     it("should return projects owned by me", async () => {
       const me = await createTestUser();
       const project1 = await createTestProject(me.id, "保密", "草稿");
@@ -89,6 +99,26 @@ describe("Projects Route Impl", () => {
   });
 
   describe("getImpl", () => {
+    it("should get a public/open project when me is undefined", async () => {
+      const otherUser = await createTestUser();
+      const project1 = await createTestProject(otherUser.id, "公开", "招募中");
+
+      const result = await getImpl(undefined, project1.id, transaction);
+      void expect(result).to.exist;
+      expect(result.id).to.equal(project1.id);
+    });
+
+    it("should throw noPermissionError when me is undefined and project is not public/open", async () => {
+      const otherUser = await createTestUser();
+      const project2 = await createTestProject(otherUser.id, "保密", "草稿");
+
+      try {
+        await getImpl(undefined, project2.id, transaction);
+        expect.fail("Should have thrown noPermissionError");
+      } catch (error: any) {
+        expect(error.code).to.equal("FORBIDDEN");
+      }
+    });
     it("should get a public/open project", async () => {
       const me = await createTestUser();
       const otherUser = await createTestUser();

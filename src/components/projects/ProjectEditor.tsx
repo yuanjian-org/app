@@ -20,7 +20,7 @@ import {
   Spinner,
   Text,
   Link,
-  AspectRatio,
+  Box,
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
@@ -30,6 +30,7 @@ import PageLoader from "../PageLoader";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
+import { componentSpacing } from "theme/metrics";
 
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
@@ -297,9 +298,17 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 )}
               </Link>
               {video && (
-                <AspectRatio ratio={16 / 9} mt={2}>
-                  <video src={video} controls preload="metadata" />
-                </AspectRatio>
+                <Box mt={componentSpacing}>
+                  <video
+                    src={video}
+                    controls
+                    // Allow editor to download the video
+                    style={{
+                      maxWidth: "500px",
+                      maxHeight: "500px",
+                    }}
+                  />
+                </Box>
               )}
             </FormControl>
 
