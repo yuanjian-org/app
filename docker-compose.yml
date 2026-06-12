@@ -30,21 +30,32 @@ services:
       - ./nginx.proxy.conf:/etc/nginx/proxy_params.conf:ro
       - ./nginx.ssl.conf:/etc/nginx/ssl_params.conf:ro
       - ./certbot:/var/www/certbot:ro
+
       # Due to file permission issues on the host machine, we cannot mount the entire directory.
       - /etc/letsencrypt/live/yuantuapp.com/fullchain.pem:/certs/yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/yuantuapp.com/privkey.pem:/certs/yuantuapp.com/privkey.pem:ro
+
+      # Aliases to the main domain
+      - /etc/letsencrypt/live/www.yuantuapp.com/fullchain.pem:/certs/www.yuantuapp.com/fullchain.pem:ro
+      - /etc/letsencrypt/live/www.yuantuapp.com/privkey.pem:/certs/www.yuantuapp.com/privkey.pem:ro
+      - /etc/letsencrypt/live/mentors.org.cn/fullchain.pem:/certs/mentors.org.cn/fullchain.pem:ro
+      - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/certs/mentors.org.cn/privkey.pem:ro
+
+      # Auxiliary domains
+      - /etc/letsencrypt/live/doc.yuantuapp.com/fullchain.pem:/certs/doc.yuantuapp.com/fullchain.pem:ro
+      - /etc/letsencrypt/live/doc.yuantuapp.com/privkey.pem:/certs/doc.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/book.yuantuapp.com/fullchain.pem:/certs/book.yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/book.yuantuapp.com/privkey.pem:/certs/book.yuantuapp.com/privkey.pem:ro
+
+      # White label domains
+      - /etc/letsencrypt/live/x.yuantuapp.com/fullchain.pem:/certs/x.yuantuapp.com/fullchain.pem:ro
+      - /etc/letsencrypt/live/x.yuantuapp.com/privkey.pem:/certs/x.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/demo.yuantuapp.com/fullchain.pem:/certs/demo.yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/demo.yuantuapp.com/privkey.pem:/certs/demo.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/ustc.yuantuapp.com/fullchain.pem:/certs/ustc.yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/ustc.yuantuapp.com/privkey.pem:/certs/ustc.yuantuapp.com/privkey.pem:ro
       - /etc/letsencrypt/live/xhef.yuantuapp.com/fullchain.pem:/certs/xhef.yuantuapp.com/fullchain.pem:ro
       - /etc/letsencrypt/live/xhef.yuantuapp.com/privkey.pem:/certs/xhef.yuantuapp.com/privkey.pem:ro
-      - /etc/letsencrypt/live/x.yuantuapp.com/fullchain.pem:/certs/x.yuantuapp.com/fullchain.pem:ro
-      - /etc/letsencrypt/live/x.yuantuapp.com/privkey.pem:/certs/x.yuantuapp.com/privkey.pem:ro
-      - /etc/letsencrypt/live/mentors.org.cn/fullchain.pem:/certs/mentors.org.cn/fullchain.pem:ro
-      - /etc/letsencrypt/live/mentors.org.cn/privkey.pem:/certs/mentors.org.cn/privkey.pem:ro
     ports:
       - "443:443"
       - "80:80"
