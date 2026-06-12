@@ -30,6 +30,10 @@ export default function Page() {
     return <XLandingPageContent />;
   }
 
+  return <YuantuLandingPageContent />;
+}
+
+function YuantuLandingPageContent() {
   return (
     <VStack spacing={50} align="start">
       <IntroSection />
@@ -43,12 +47,16 @@ Page.title = "首页";
 function XLandingPageContent() {
   return (
     <VStack spacing={50} align="start">
-      <Section header="欢迎来到深圳零一学院导师服务平台">
+      <Section header="深圳零一学院 | 挑战问题">
         <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
           <VStack spacing={paragraphSpacing} align="start">
             <Text>
               <b>什么是深圳零一学院？</b>
               深圳零一学院创办于2021年，这是一所由深圳市委、市政府推动创办的创新型学院。深圳零一学院源自清华大学钱学森力学班（简称“钱班”）的探索经验，面向全国青少年学生，以项目制方式培养，致力于发掘以科技改变世界、创造未来的创新型人才。
+            </Text>
+            <Text>
+              <b>什么是挑战问题（X-Challenge）？</b>
+              X-Challenge是由卓越导师发起的、面向未来5-10年人类可能面临的重大难题，可以影响上亿人或创造万亿市场。它聚焦一个领域的长期难题，强调学科交叉与开放性探索。目标是通过高难度问题激发学生突破现有知识框架，推动对未知领域的探索，共同攻克人类挑战。
             </Text>
             <Text>
               <b>在这里你会收获什么？</b>
