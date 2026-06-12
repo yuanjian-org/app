@@ -268,7 +268,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   try {
                     const uploadToken =
                       await trpc.users.getJinshujuXField.query({
-                        target: "project",
+                        uploadTarget: "project",
                         projectId: projectId!,
                       });
                     await router.push(

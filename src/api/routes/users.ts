@@ -1091,9 +1091,7 @@ const getJinshujuXField = procedure
   .input(
     z
       .object({
-        /** The entity target to upload media to */
-        target: z.enum(["user", "project"]).optional(),
-        /** If target is project, the ID of the project to upload to */
+        uploadTarget: z.enum(["user", "project"]).optional(),
         projectId: z.string().optional(),
       })
       .optional(),
@@ -1103,18 +1101,18 @@ const getJinshujuXField = procedure
     if (!user) throw notFoundError("用户", me.id);
 
     const extraFields: string[] = [];
-    const target = input?.target;
+    const target = input?.uploadTarget;
     if (target) {
       extraFields.push(target);
-      if (target === "project") {
-        if (!input?.projectId) {
-          throw generalBadRequestError(
-            "projectId is required when target is project",
-          );
-        }
-
-        extraFields.push(input.projectId);
+      if (target === "project" && !input?.projectId) {
+        throw generalBadRequestError(
+          "projectId is required when target is project",
+        );
       }
+    }
+
+    if (input?.projectId) {
+      extraFields.push(input.projectId);
     }
 
     return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);

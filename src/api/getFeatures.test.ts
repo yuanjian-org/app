@@ -7,35 +7,19 @@ describe("getFeatures", () => {
   beforeEach(() => {
     // Keep a shallow copy of the environment variables to restore them later
     originalEnv = { ...process.env };
+
+    Object.keys(process.env).forEach((k) => delete process.env[k]);
   });
 
   afterEach(() => {
-    // Restore individual keys instead of replacing the entire process.env object
-    // to preserve Node's native process.env getter/setter magic.
+    Object.keys(process.env).forEach((k) => delete process.env[k]);
 
-    // First, remove any keys that were added during the test
-    for (const key in process.env) {
-      if (!(key in originalEnv)) {
-        delete process.env[key];
-      }
-    }
-
-    // Then, restore the original values
     for (const key in originalEnv) {
       process.env[key] = originalEnv[key];
     }
   });
 
   it("should return an empty object when no features are enabled", () => {
-    // Ensure all relevant env vars are undefined
-    delete process.env.ENABLE_ORGS;
-    delete process.env.ENABLE_RELATIONAL;
-    delete process.env.ENABLE_VOLUNTEERS;
-    delete process.env.ENABLE_INTERVIEWS;
-    delete process.env.ENABLE_EXAMS;
-    delete process.env.ENABLE_PROJECTS;
-    delete process.env.ENABLE_MENTEE_PROFILE;
-
     const features = getFeatures();
     expect(features).to.deep.equal({});
   });

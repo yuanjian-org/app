@@ -327,7 +327,7 @@ function Picture({
     setLoading(true);
     try {
       const uploadToken = await trpc.users.getJinshujuXField.query({
-        target: "user",
+        uploadTarget: "user",
       });
       await router.push(getEmbeddedFormUrl("Bz3uSO", uploadToken));
     } finally {
@@ -405,7 +405,7 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
     setLoading(true);
     try {
       const uploadToken = await trpc.users.getJinshujuXField.query({
-        target: "user",
+        uploadTarget: "user",
       });
       await router.push(getEmbeddedFormUrl("nhFsf1", uploadToken));
     } finally {

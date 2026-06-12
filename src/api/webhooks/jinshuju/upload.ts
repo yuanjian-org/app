@@ -27,19 +27,31 @@ export default async function submit(form: string, entry: Record<string, any>) {
     throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
   }
 
-  const [userId, target, projectId] = validateAndDecodeXField(
+  const [userId, uploadTarget, projectId] = validateAndDecodeXField(
     getWhiteLabel(),
     entry,
   );
 
-  if (target !== "user" && target !== "project") {
-    throw generalBadRequestError(`Unknown target: ${target}`);
+  if (uploadTarget !== "user" && uploadTarget !== "project") {
+    throw generalBadRequestError(`Unknown target: ${uploadTarget}`);
   }
 
   if (form === "Bz3uSO") {
-    await uploadProfileMedia(userId, target, projectId, urls[0], "照片链接");
+    await uploadProfileMedia(
+      userId,
+      uploadTarget,
+      projectId,
+      urls[0],
+      "照片链接",
+    );
   } else if (form === "nhFsf1") {
-    await uploadProfileMedia(userId, target, projectId, urls[0], "视频链接");
+    await uploadProfileMedia(
+      userId,
+      uploadTarget,
+      projectId,
+      urls[0],
+      "视频链接",
+    );
   } else {
     throw generalBadRequestError(`Unknown upload form: ${form}`);
   }
@@ -47,13 +59,13 @@ export default async function submit(form: string, entry: Record<string, any>) {
 
 async function uploadProfileMedia(
   userId: string,
-  target: "user" | "project",
+  uploadTarget: "user" | "project",
   projectId: string | undefined,
   url: string,
   mediaType: keyof UserProfile | keyof ProjectProfile,
 ) {
   await sequelize.transaction(async (transaction) => {
-    if (target === "project") {
+    if (uploadTarget === "project") {
       if (!projectId) {
         throw generalBadRequestError(
           "projectId is required when target is project",
