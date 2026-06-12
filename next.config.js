@@ -7,6 +7,16 @@ const nextConfig = {
   experimental: {
     serverMinification: false,
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/harvard2026',
+        destination: 'https://yuanjian.net/blog/harvard2026',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
