@@ -28,6 +28,9 @@ describe("getWhiteLabel", () => {
 
     process.env.WHITE_LABEL = "xhef";
     expect(getWhiteLabel()).to.equal("xhef");
+
+    process.env.WHITE_LABEL = "x";
+    expect(getWhiteLabel()).to.equal("x");
   });
 
   it("should fallback to yuantu when WHITE_LABEL is missing", () => {
