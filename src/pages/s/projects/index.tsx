@@ -1,17 +1,15 @@
 import { useState, useMemo } from "react";
 import { Heading, SimpleGrid, Text, VStack, Flex, Box } from "@chakra-ui/react";
 import { trpcNext } from "../../../trpc";
-import { barePage } from "../../../AppPage";
 import PageLoader from "../../../components/PageLoader";
 import { FullTextSearchBox } from "../../../components/FullTextSearchBox";
-import TopBar from "../../../components/TopBar";
 import { componentSpacing, pageMarginX } from "../../../theme/metrics";
 import {
   ProjectCard,
   searchProjects,
 } from "../../../components/projects/ProjectList";
 
-export default barePage(() => {
+export default function Page() {
   const { data: projects } = trpcNext.projects.listPublic.useQuery();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -24,8 +22,8 @@ export default barePage(() => {
   if (projects === undefined) return <PageLoader />;
 
   return (
-    <Box maxW="1200px" mx="auto" w="100%">
-      <TopBar px={pageMarginX} py={componentSpacing}>
+    <Box w="100%">
+      <Box py={componentSpacing}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
             <Heading size="lg">X-Challenge 问题</Heading>
@@ -36,16 +34,13 @@ export default barePage(() => {
             keywordPlaceholder="关键字或发起人"
           />
         </VStack>
-      </TopBar>
+      </Box>
       {searchResult && searchResult.length === 0 ? (
-        <Text mx={pageMarginX} mt={pageMarginX}>
-          暂无项目
-        </Text>
+        <Text mt={pageMarginX}>暂无项目</Text>
       ) : (
         <SimpleGrid
           spacing={componentSpacing}
           templateColumns="repeat(auto-fill, minmax(270px, 1fr))"
-          mx={pageMarginX}
           mt={pageMarginX}
         >
           {searchResult &&
@@ -60,4 +55,6 @@ export default barePage(() => {
       )}
     </Box>
   );
-}, "项目列表");
+}
+
+Page.title = "项目列表";
