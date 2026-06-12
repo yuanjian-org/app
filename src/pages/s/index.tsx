@@ -21,12 +21,15 @@ import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
+import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
+  const whiteLabel = useWhiteLabel();
+
   return (
     <VStack spacing={50} align="start">
-      <IntroSection />
-      <PartnersSection />
+      {whiteLabel === "x" ? <XIntroSection /> : <IntroSection />}
+      {whiteLabel !== "x" && <PartnersSection />}
     </VStack>
   );
 }
@@ -58,6 +61,29 @@ function Section({
       </GridItem>
       {children}
     </Grid>
+  );
+}
+
+function XIntroSection() {
+  return (
+    <Section header="欢迎来到深圳零一学院导师网络">
+      <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
+        <VStack spacing={paragraphSpacing} align="start">
+          <Text>
+            <b>关于深圳零一学院：</b>
+            深圳零一学院创办于2021年，这是一所由深圳市委、市政府推动创办的创新型学院。学院源自清华大学钱学森力学班的探索经验，面向全国青少年学生，以项目制方式培养，致力于发掘以科技改变世界、创造未来的创新型人才。
+          </Text>
+          <Text>
+            <b>培养模式：</b>
+            零一学院致力于长周期、深度培养顶尖创新人才。我们通过“X-Camp”颠覆性创新挑战营等活动，引导学生通过研究挑战性的前沿问题实现主动学习。在各领域资深导师的陪伴指导下，学生们将在头脑风暴中完成具体的实践项目，点燃好奇心与创新志趣。
+          </Text>
+          <Text>
+            <b>关于本平台：</b>
+            本平台是深圳零一学院支持导师网络运作的服务平台，致力于连接优秀的社会导师与充满潜力的年轻学子，为创新人才的成长提供持续的指导与陪伴。
+          </Text>
+        </VStack>
+      </GridItem>
+    </Section>
   );
 }
 
