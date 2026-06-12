@@ -25,28 +25,33 @@ import User from "../../shared/User";
 import { Transaction } from "sequelize";
 
 export async function listImpl(
-  me: User,
+  me?: User,
   transaction?: Transaction,
 ): Promise<ProjectWithOwner[]> {
-  const isProjectAdmin = isPermitted(me.roles, "ProjectAdmin");
+  const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
-  return (await db.Project.findAll({
+  return await db.Project.findAll({
     where: isProjectAdmin
       ? {}
-      : {
-          [Op.or]: [
-            { ownerId: me.id },
-            {
-              status: "招募中",
-              visibility: "公开",
-            },
-          ],
-        },
+      : me
+        ? {
+            [Op.or]: [
+              { ownerId: me.id },
+              {
+                status: "招募中",
+                visibility: "公开",
+              },
+            ],
+          }
+        : {
+            status: "招募中",
+            visibility: "公开",
+          },
     attributes: projectAttributes,
     include: projectInclude,
     order: [["createdAt", "DESC"]],
     transaction,
-  })) as ProjectWithOwner[]; // DB models are mapped to these types via include/attributes
+  });
 }
 
 const list = procedure
@@ -57,7 +62,7 @@ const list = procedure
   });
 
 export async function getImpl(
-  me: User,
+  me: User | undefined,
   id: string,
   transaction?: Transaction,
 ): Promise<ProjectWithOwner> {
@@ -71,15 +76,16 @@ export async function getImpl(
     throw notFoundError("项目", id);
   }
 
+  const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
   if (
     (project.visibility !== "公开" || project.status !== "招募中") &&
-    me.id !== project.ownerId &&
-    !isPermitted(me.roles, "ProjectAdmin")
+    (!me || me.id !== project.ownerId) &&
+    !isProjectAdmin
   ) {
     throw noPermissionError("项目", id);
   }
 
-  return project as unknown as ProjectWithOwner;
+  return project;
 }
 
 const get = procedure
@@ -214,9 +220,24 @@ const update = procedure
     });
   });
 
+const listPublic = procedure
+  .output(z.array(zProjectWithOwner))
+  .query(async () => {
+    return await listImpl();
+  });
+
+const getPublic = procedure
+  .input(z.object({ id: z.string() }))
+  .output(zProjectWithOwner)
+  .query(async ({ input }) => {
+    return await getImpl(undefined, input.id);
+  });
+
 export default router({
   list,
   get,
   create,
   update,
+  listPublic,
+  getPublic,
 });
