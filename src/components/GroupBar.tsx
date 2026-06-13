@@ -232,13 +232,19 @@ function MeetingConsentModal({
   onClose: () => void;
 }) {
   const [declined, setDeclined] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const submit = async () => {
-    await trpc.users.setMyState.mutate({
-      meetingConsentedAt: new Date().toISOString(),
-    });
-    consent();
-    onClose();
+    setLoading(true);
+    try {
+      await trpc.users.setMyState.mutate({
+        meetingConsentedAt: new Date().toISOString(),
+      });
+      consent();
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const decline = async () => {
@@ -269,7 +275,7 @@ function MeetingConsentModal({
           <ModalFooter>
             <Button onClick={decline}>拒绝使用会议</Button>
             <Spacer />
-            <Button variant="brand" onClick={submit}>
+            <Button variant="brand" onClick={submit} isLoading={loading}>
               同意自动录制每次会议
             </Button>
           </ModalFooter>
