@@ -37,7 +37,7 @@ export default function Page() {
       </Box>
       {showLoginModal && (
         <ConfirmationModal
-          message="请先登录 / 注册"
+          message="请首先登录或注册。"
           onClose={() => setShowLoginModal(false)}
           onConfirm={() =>
             router.push(`/auth/login?callbackUrl=/projects/${id}`)
@@ -49,5 +49,3 @@ export default function Page() {
     </>
   );
 }
-
-// We set title dynamically using <Head> inside the component so that it has access to project data
