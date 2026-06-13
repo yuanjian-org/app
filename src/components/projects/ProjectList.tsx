@@ -7,9 +7,9 @@ import {
   Badge,
   Tooltip,
   Spacer,
+  Card,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
-import { ResponsiveCard } from "../../components/ResponsiveCard";
 import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
@@ -49,7 +49,7 @@ export function ProjectCard({
   basePath?: string;
 }) {
   return (
-    <ResponsiveCard>
+    <Card>
       <CardHeader>
         <Flex direction="column" justify="space-between" align="start">
           <Heading size="md" width="100%">
@@ -104,6 +104,6 @@ export function ProjectCard({
           {project.profile?.简介 || "暂无简介"}
         </Text>
       </CardBody>
-    </ResponsiveCard>
+    </Card>
   );
 }
