@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import crypto from "crypto";
 import {
   redactEmail,
   updateWechatUnionId,
@@ -210,7 +209,7 @@ describe("updateImpl", () => {
 
     meManager = await db.User.create(
       {
-        email: `manager-${Date.now()}-${crypto.randomUUID()}@example.com`,
+        email: `manager-${Date.now()}-${Math.random()}@example.com`,
         name: "李经理",
         roles: ["UserManager"],
       },
@@ -231,10 +230,10 @@ describe("updateImpl", () => {
   async function volunteer() {
     return await db.User.create(
       {
-        email: `volunteer-${Date.now()}-${crypto.randomUUID()}@example.com`,
+        email: `volunteer-${Date.now()}-${Math.random()}@example.com`,
         name: "张三",
         roles: ["Volunteer"],
-        phone: `138${crypto.randomInt(0, 100000000)
+        phone: `138${Math.floor(Math.random() * 100000000)
           .toString()
           .padStart(8, "0")}`,
       },
@@ -409,7 +408,7 @@ describe("setMyStateImpl", () => {
 
     me = await db.User.create(
       {
-        email: `user-${Date.now()}-${crypto.randomUUID()}@example.com`,
+        email: `user-${Date.now()}-${Math.random()}@example.com`,
         name: "张三",
         roles: ["Volunteer"],
       },
