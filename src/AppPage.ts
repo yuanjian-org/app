@@ -12,7 +12,10 @@ type AppPage<P = Record<string, unknown>, IP = P> = NextPage<P, IP> & {
 export default AppPage;
 
 /**
- * Occupy full page width instead of leaving a broad margin on the right.
+ * For logged in pages, occupy full page width instead of leaving a broad margin
+ * on the right.
+ *
+ * For public (aka. static) pages, use a larger width than normal pages.
  */
 export function widePage(page: AppPage, title?: string): AppPage {
   page.type = "wide";
@@ -21,7 +24,8 @@ export function widePage(page: AppPage, title?: string): AppPage {
 }
 
 /**
- * Same as `wide` but with no margin to neighboring elements.
+ * For logged in pages, same as `wide` but with no margin to neighboring
+ * elements.
  */
 export function fullPage(page: AppPage, title?: string): AppPage {
   page.type = "full";
@@ -30,7 +34,7 @@ export function fullPage(page: AppPage, title?: string): AppPage {
 }
 
 /**
- * Same as `full` but with no footer.
+ * For logged in pages, same as `full` but with no footer.
  */
 export function barePage(page: AppPage, title?: string): AppPage {
   page.type = "bare";
