@@ -13,10 +13,14 @@ import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
 import PageLoader from "./PageLoader";
 
+import { AppPageType } from "../AppPage";
+
 export default function StaticPageContainer({
   children,
+  pageType,
 }: {
   children: ReactNode;
+  pageType?: AppPageType;
 }) {
   const whiteLabel = useWhiteLabel();
   const features = useFeatures();
@@ -26,7 +30,9 @@ export default function StaticPageContainer({
   }
 
   if (features.projects) {
-    return <DefaultPageContaner>{children}</DefaultPageContaner>;
+    return (
+      <DefaultPageContaner pageType={pageType}>{children}</DefaultPageContaner>
+    );
   }
 
   if (whiteLabel === "ustc") {
@@ -41,15 +47,23 @@ export default function StaticPageContainer({
     return <DemoLandingPage />;
   }
 
-  return <DefaultPageContaner>{children}</DefaultPageContaner>;
+  return (
+    <DefaultPageContaner pageType={pageType}>{children}</DefaultPageContaner>
+  );
 }
 
-function DefaultPageContaner({ children }: { children: ReactNode }) {
+function DefaultPageContaner({
+  children,
+  pageType,
+}: {
+  children: ReactNode;
+  pageType?: AppPageType;
+}) {
   return (
     <VStack minHeight="100vh">
       <StaticNavBar />
       <Box
-        maxWidth={staticPageMaxWidth}
+        maxWidth={pageType === "wide" ? "1200px" : staticPageMaxWidth}
         paddingX={pageMarginX}
         w="100%"
         mt="70px"
