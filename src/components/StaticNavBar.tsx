@@ -17,7 +17,7 @@ import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
-import { useWhiteLabel } from "./useStaticConfigs";
+import { useFeatures } from "./useStaticConfigs";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -28,7 +28,7 @@ const inactiveNavLinkColor = "gray.700";
  */
 export default function StaticNavBar() {
   const current = useRouter().asPath;
-  const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
 
   return (
     <Box
@@ -57,7 +57,7 @@ export default function StaticNavBar() {
             <NavLink href={staticUrlPrefix} current={current} text="首页" />
           </ShowOnDesktop>
 
-          {whiteLabel === "x" ? (
+          {features.projects ? (
             <NavLink
               href={`${staticUrlPrefix}/projects`}
               current={current}

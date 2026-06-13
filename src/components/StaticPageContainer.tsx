@@ -3,7 +3,11 @@ import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
 import { ReactNode } from "react";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
-import { useIsStaticConfigsReady, useWhiteLabel } from "./useStaticConfigs";
+import {
+  useFeatures,
+  useIsStaticConfigsReady,
+  useWhiteLabel,
+} from "./useStaticConfigs";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
@@ -15,9 +19,14 @@ export default function StaticPageContainer({
   children: ReactNode;
 }) {
   const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
 
   if (!useIsStaticConfigsReady()) {
     return <PageLoader />;
+  }
+
+  if (features.projects) {
+    return <DefaultPageContaner>{children}</DefaultPageContaner>;
   }
 
   if (whiteLabel === "ustc") {
@@ -32,6 +41,10 @@ export default function StaticPageContainer({
     return <DemoLandingPage />;
   }
 
+  return <DefaultPageContaner>{children}</DefaultPageContaner>;
+}
+
+function DefaultPageContaner({ children }: { children: ReactNode }) {
   return (
     <VStack minHeight="100vh">
       <StaticNavBar />

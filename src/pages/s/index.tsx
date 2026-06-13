@@ -22,15 +22,20 @@ import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
-import { useWhiteLabel } from "components/useStaticConfigs";
+import {
+  useFeatures,
+  useIsStaticConfigsReady,
+} from "components/useStaticConfigs";
 import { loginUrl } from "pages/auth/login";
+import PageLoader from "components/PageLoader";
 
 export default function Page() {
-  const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
+  const ready = useIsStaticConfigsReady();
 
-  if (whiteLabel === "x") {
-    return <XLandingPageContent />;
-  }
+  if (!ready) return <PageLoader />;
+
+  if (features.projects) return <XLandingPageContent />;
 
   return <YuantuLandingPageContent />;
 }
