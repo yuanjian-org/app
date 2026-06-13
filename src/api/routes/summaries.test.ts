@@ -6,6 +6,7 @@ import { saveSummaryIfNotExistImpl } from "./saveSummary";
 import * as saveSummaryModule from "./saveSummary";
 
 import { expect } from "chai";
+import crypto from "crypto";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -27,7 +28,7 @@ describe("summaries", () => {
   async function createTestUser(roles: any[] = []) {
     const user = await db.User.create(
       {
-        email: `test-user-${Date.now()}-${Math.random()}@test.com`,
+        email: `test-user-${Date.now()}-${crypto.randomUUID()}@test.com`,
         name: "Test User",
         roles,
       },
@@ -58,7 +59,7 @@ describe("summaries", () => {
   }
 
   async function createTestTranscript(groupId: string) {
-    const id = `test-transcript-${Date.now()}-${Math.random()}`;
+    const id = `test-transcript-${Date.now()}-${crypto.randomUUID()}`;
     return await db.Transcript.create(
       {
         id,
