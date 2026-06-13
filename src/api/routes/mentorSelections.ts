@@ -16,7 +16,7 @@ import invariant from "tiny-invariant";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import moment from "moment";
-import { Op, Transaction, literal } from "sequelize";
+import { Op, Transaction, fn, col } from "sequelize";
 import { zDateColumn } from "shared/DateColumn";
 
 export async function createDraftImpl(
@@ -286,6 +286,28 @@ const listFinalizedBatches = procedure
     });
   });
 
+export async function listLastBatchFinalizedAtImpl() {
+  const results = await db.MentorSelectionBatch.findAll({
+    attributes: [
+      "userId",
+      [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
+      [fn("COUNT", col("finalizedAt")), "countFinalizedAt"],
+      [fn("COUNT", col("id")), "countAll"],
+    ],
+    group: ["userId"],
+    // Return the raw result, without wrapping it in Sequelize instances.
+    raw: true,
+  });
+
+  return results.map((row: any) => ({
+    userId: row.userId,
+    finalizedAt:
+      Number(row.countAll) > Number(row.countFinalizedAt)
+        ? null
+        : row.maxFinalizedAt,
+  }));
+}
+
 /**
  * @return the latest batch finalizedAt of all users. If a user has a draft
  * (i.e. unfinalized) batch, the returned value is null.
@@ -301,23 +323,7 @@ const listLastBatchFinalizedAt = procedure
     ),
   )
   .query(async () => {
-    return await db.MentorSelectionBatch.findAll({
-      attributes: [
-        "userId",
-        [
-          literal(`
-          CASE
-            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
-            ELSE MAX("finalizedAt")
-          END
-        `),
-          "finalizedAt",
-        ],
-      ],
-      group: ["userId"],
-      // Return the raw result, without wrapping it in Sequelize instances.
-      raw: true,
-    });
+    return await listLastBatchFinalizedAtImpl();
   });
 
 export default router({

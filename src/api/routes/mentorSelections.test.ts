@@ -6,6 +6,7 @@ import {
   createDraftImpl,
   updateDraftImpl,
   reorderDraftImpl,
+  listLastBatchFinalizedAtImpl,
 } from "./mentorSelections";
 
 describe("mentorSelections routes", () => {
@@ -174,6 +175,59 @@ describe("mentorSelections routes", () => {
         expect.fail("Expected reorderDraftImpl to throw an error");
       } catch (err: any) {
         expect(err.message).to.include("导师选择数量不匹配");
+      }
+    });
+  });
+
+  describe("listLastBatchFinalizedAtImpl", () => {
+    it("should return null if user has any unfinalized batch, otherwise return max finalizedAt", async () => {
+      // Create user 1: has both finalized and unfinalized batches
+      const user1 = await db.User.create({
+        email: "user1@example.com",
+        name: "User 1",
+        roles: [],
+      });
+      await db.MentorSelectionBatch.create({
+        userId: user1.id,
+        finalizedAt: new Date("2023-01-01T00:00:00Z"),
+      });
+      await db.MentorSelectionBatch.create({
+        userId: user1.id,
+        finalizedAt: null,
+      });
+
+      // Create user 2: has only finalized batches
+      const user2 = await db.User.create({
+        email: "user2@example.com",
+        name: "User 2",
+        roles: [],
+      });
+      await db.MentorSelectionBatch.create({
+        userId: user2.id,
+        finalizedAt: new Date("2023-01-01T00:00:00Z"),
+      });
+      await db.MentorSelectionBatch.create({
+        userId: user2.id,
+        finalizedAt: new Date("2023-06-01T00:00:00Z"),
+      });
+
+      try {
+        const results = await listLastBatchFinalizedAtImpl();
+
+        const user1Result = results.find((r: any) => r.userId === user1.id);
+        void expect(user1Result).to.not.be.undefined;
+        void expect(user1Result?.finalizedAt).to.be.null;
+
+        const user2Result = results.find((r: any) => r.userId === user2.id);
+        void expect(user2Result).to.not.be.undefined;
+        expect(new Date(user2Result?.finalizedAt).toISOString()).to.equal(
+          "2023-06-01T00:00:00.000Z",
+        );
+      } finally {
+        await db.MentorSelectionBatch.destroy({
+          where: { userId: [user1.id, user2.id] },
+        });
+        await db.User.destroy({ where: { id: [user1.id, user2.id] } });
       }
     });
   });
