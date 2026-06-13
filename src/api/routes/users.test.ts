@@ -234,7 +234,8 @@ describe("updateImpl", () => {
         email: `volunteer-${Date.now()}-${crypto.randomUUID()}@example.com`,
         name: "张三",
         roles: ["Volunteer"],
-        phone: `138${crypto.randomInt(0, 100000000)
+        phone: `138${crypto
+          .randomInt(0, 100000000)
           .toString()
           .padStart(8, "0")}`,
       },
