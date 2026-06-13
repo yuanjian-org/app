@@ -16,7 +16,7 @@ export default function Page() {
   const handleStartExam = async () => {
     setLoading(true);
     try {
-      const xField = await trpc.users.getJinshujuXField.query();
+      const xField = await trpc.users.getJinshujuXField.query({});
       const w = window.open(getStandaloneFormUrl("wqPdKE", xField), "_blank");
       // Prevent reverse tabnabbing vulnerability
       if (w) w.opener = null;

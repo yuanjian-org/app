@@ -1089,30 +1089,27 @@ const destroy = procedure
 const getJinshujuXField = procedure
   .use(authUser())
   .input(
-    z
-      .object({
-        uploadTarget: z.enum(["user", "project"]).optional(),
-        projectId: z.string().optional(),
-      })
-      .optional(),
+    z.object({
+      uploadTarget: z.enum(["user", "project"]).optional(),
+      projectId: z.string().optional(),
+    }),
   )
-  .query(async ({ input, ctx: { me } }) => {
+  .query(async ({ input: { uploadTarget, projectId }, ctx: { me } }) => {
     const user = await db.User.findByPk(me.id, { attributes: ["url"] });
     if (!user) throw notFoundError("用户", me.id);
 
     const extraFields: string[] = [];
-    const target = input?.uploadTarget;
-    if (target) {
-      extraFields.push(target);
-      if (target === "project" && !input?.projectId) {
+    if (uploadTarget) {
+      if (uploadTarget === "project" && !projectId) {
         throw generalBadRequestError(
-          "projectId is required when target is project",
+          "projectId is required when uploadTarget is project",
         );
       }
+      extraFields.push(uploadTarget);
     }
 
-    if (input?.projectId) {
-      extraFields.push(input.projectId);
+    if (projectId) {
+      extraFields.push(projectId);
     }
 
     return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);
