@@ -7,6 +7,10 @@ services:
       platforms:
         - linux/amd64
       target: runner
+  app-x:
+    image: ${APP_DOCKER_IMAGE:?}:latest
+    container_name: app-x
+    env_file: .env.x
   app-demo:
     image: ${APP_DOCKER_IMAGE:?}:latest
     container_name: app-demo
@@ -57,6 +61,7 @@ services:
       - "80:80"
     depends_on:
       - app
+      - app-x
       - app-demo
       - app-ustc
       - app-xhef
