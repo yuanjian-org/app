@@ -505,8 +505,10 @@ function DropdownMenu({
   const myRoles = useMyRoles();
   const features = useFeatures();
   const filteredItems = menuItems.filter((item) => {
-    if (item.feature) return !!features[item.feature];
-    return isPermitted(myRoles, item.roles);
+    return (
+      isPermitted(myRoles, item.roles) &&
+      (!item.feature || !!features[item.feature])
+    );
   });
 
   if (filteredItems.length === 0) {
