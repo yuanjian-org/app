@@ -17,7 +17,8 @@ export default function Page() {
     setLoading(true);
     try {
       const xField = await trpc.users.getJinshujuXField.query();
-      window.open(getStandaloneFormUrl("w02l95", xField), "_blank");
+      const w = window.open(getStandaloneFormUrl("w02l95", xField), "_blank");
+      if (w) w.opener = null;
     } finally {
       setLoading(false);
     }
