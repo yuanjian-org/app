@@ -21,6 +21,7 @@ describe("WeChatProvider", () => {
     });
 
     expect(config.id).to.equal("wechat");
+    // @ts-ignore
     expect(config.authorization?.url).to.equal(
       "https://open.weixin.qq.com/connect/oauth2/authorize",
     );
@@ -36,6 +37,7 @@ describe("WeChatProvider", () => {
     });
 
     expect(config.id).to.equal("wechat");
+    // @ts-ignore
     expect(config.authorization?.url).to.equal(
       "https://open.weixin.qq.com/connect/qrconnect",
     );
@@ -60,6 +62,7 @@ describe("WeChatProvider", () => {
         json: sinon.stub().resolves(mockResponse),
       } as unknown as Response);
 
+      // @ts-ignore
       const request = config.token?.request;
       expect(request).to.not.equal(undefined);
 
@@ -90,6 +93,7 @@ describe("WeChatProvider", () => {
         platformType: "OfficialAccount",
       });
 
+      // @ts-ignore
       const request = config.token?.request;
 
       try {
@@ -126,6 +130,7 @@ describe("WeChatProvider", () => {
         json: sinon.stub().resolves(mockProfile),
       } as unknown as Response);
 
+      // @ts-ignore
       const request = config.userinfo?.request;
       expect(request).to.not.equal(undefined);
 
@@ -156,6 +161,7 @@ describe("WeChatProvider", () => {
         platformType: "OfficialAccount",
       });
 
+      // @ts-ignore
       const request = config.userinfo?.request;
 
       try {
@@ -168,6 +174,29 @@ describe("WeChatProvider", () => {
         expect.fail("Should have thrown an error");
       } catch (e: any) {
         expect(e.message).to.equal("未获取到微信授权");
+      }
+    });
+
+    it("should reject malicious custom userinfo url", async () => {
+      const config = WeChatProvider({
+        clientId: "my-client-id",
+        clientSecret: "my-client-secret",
+        platformType: "OfficialAccount",
+      });
+
+      // @ts-ignore
+      const request = config.userinfo?.request;
+
+      try {
+        // @ts-ignore
+        await request!({
+          tokens: { access_token: "mock-access-token", openid: "mock-openid" },
+          provider: { ...config, userinfo: { url: "http://evil.com" } } as any,
+          client: {} as any,
+        });
+        expect.fail("Should have thrown an error");
+      } catch (e: any) {
+        expect(e.message).to.equal("Invalid WeChat userinfo endpoint URL");
       }
     });
   });

@@ -53,12 +53,24 @@ export default function WeChatProvider(
     },
 
     token: {
-      async request({ params }) {
+      url: "https://api.weixin.qq.com/sns/oauth2/access_token",
+      async request({ params, provider }) {
         try {
           if (!params.code) throw new Error("No code provided");
-          const url = new URL(
-            "https://api.weixin.qq.com/sns/oauth2/access_token",
-          );
+
+          const endpoint =
+            (provider.token as any)?.url ??
+            "https://api.weixin.qq.com/sns/oauth2/access_token";
+          const url = new URL(endpoint);
+
+          if (
+            url.protocol !== "https:" ||
+            (url.hostname !== "api.weixin.qq.com" &&
+              !url.hostname.endsWith(".weixin.qq.com"))
+          ) {
+            throw new Error("Invalid WeChat token endpoint URL");
+          }
+
           url.searchParams.set("appid", clientId);
           url.searchParams.set("secret", clientSecret);
           url.searchParams.set("code", params.code);
@@ -74,11 +86,25 @@ export default function WeChatProvider(
     },
 
     userinfo: {
-      async request({ tokens }) {
+      url: "https://api.weixin.qq.com/sns/userinfo",
+      async request({ tokens, provider }) {
         if (!tokens.access_token) {
           throw new Error("未获取到微信授权");
         }
-        const url = new URL("https://api.weixin.qq.com/sns/userinfo");
+
+        const endpoint =
+          (provider.userinfo as any)?.url ??
+          "https://api.weixin.qq.com/sns/userinfo";
+        const url = new URL(endpoint);
+
+        if (
+          url.protocol !== "https:" ||
+          (url.hostname !== "api.weixin.qq.com" &&
+            !url.hostname.endsWith(".weixin.qq.com"))
+        ) {
+          throw new Error("Invalid WeChat userinfo endpoint URL");
+        }
+
         url.searchParams.set("access_token", tokens.access_token!);
         url.searchParams.set("openid", String(tokens.openid));
         url.searchParams.set("lang", "zh_CN");

@@ -1,0 +1,65 @@
+--- src/api/auth/WeChatProvider.test.ts
++++ src/api/auth/WeChatProvider.test.ts
+@@ -107,6 +107,31 @@
+         expect(e.message).to.equal("微信登录失败,请重试");
+       }
+     });
++
++    it("should reject malicious custom token url", async () => {
++      const config = WeChatProvider({
++        clientId: "my-client-id",
++        clientSecret: "my-client-secret",
++        platformType: "OfficialAccount",
++      });
++
++      // @ts-ignore
++      const request = config.token?.request;
++
++      try {
++        sinon.stub(console, "error");
++        // @ts-ignore
++        await request!({
++          params: { code: "mock-code" },
++          checks: {},
++          provider: { ...config, token: { url: "http://evil.com" } } as any,
++          client: {} as any,
++        });
++        expect.fail("Should have thrown an error");
++      } catch (e: any) {
++        expect(e.message).to.equal("微信登录失败,请重试");
++      }
++    });
+   });
+
+   describe("userinfo.request", () => {
+@@ -172,6 +197,31 @@
+         expect(e.message).to.equal("未获取到微信授权");
+       }
+     });
++
++    it("should reject malicious custom userinfo url", async () => {
++      const config = WeChatProvider({
++        clientId: "my-client-id",
++        clientSecret: "my-client-secret",
++        platformType: "OfficialAccount",
++      });
++
++      // @ts-ignore
++      const request = config.userinfo?.request;
++
++      try {
++        sinon.stub(console, "error");
++        // @ts-ignore
++        await request!({
++          tokens: { access_token: "mock-access-token", openid: "mock-openid" },
++          provider: { ...config, userinfo: { url: "http://evil.com" } } as any,
++          client: {} as any,
++        });
++        expect.fail("Should have thrown an error");
++      } catch (e: any) {
++        expect(e.message).to.equal("Invalid WeChat userinfo endpoint URL");
++      }
++    });
+   });
+
+   describe("profile", () => {
