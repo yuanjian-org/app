@@ -9,7 +9,9 @@ import {
   searchProjects,
 } from "../../../components/projects/ProjectList";
 
-export default function Page() {
+import { widePage } from "../../../AppPage";
+
+export default widePage(() => {
   const { data: projects } = trpcNext.projects.listPublic.useQuery();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -55,6 +57,4 @@ export default function Page() {
       )}
     </Box>
   );
-}
-
-Page.title = "项目列表";
+}, "项目列表");
