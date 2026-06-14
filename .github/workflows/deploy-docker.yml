@@ -105,6 +105,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    strategy:
+      matrix:
+        include:
+          - host_id: host0
+            hostname_var: HOST0_HOSTNAME
+            env_files: ".env .env.ustc .env.xhef .env.demo"
+          - host_id: host1
+            hostname_var: HOST1_HOSTNAME
+            env_files: ".env.x"
 
     steps:
     - name: Install SSH client
@@ -114,15 +123,15 @@ jobs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars.SERVER_HOSTNAME }}
+        known_hosts: ${{ vars[matrix.hostname_var] }}
         config: |
-          Host ${{ vars.SERVER_HOSTNAME }}
+          Host ${{ vars[matrix.hostname_var] }}
             User ${{ secrets.SERVER_SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Deploy to server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
           set -e
           cd ~/app
 
@@ -132,8 +141,8 @@ jobs:
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           docker rm temp_extract || true
           docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
-          docker cp temp_extract:/app/docker-compose.yml ./docker-compose.yml
-          docker cp temp_extract:/app/nginx.conf ./nginx.conf
+          docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
+          docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
           docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
           docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
           docker rm temp_extract
@@ -145,72 +154,11 @@ jobs:
           echo ">>> Waiting for containers to boot up"
           sleep 5
 
-          echo ">>> Migrating yuantu database"
-          source .env
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
-
-          echo ">>> Migrating ustc database"
-          source .env.ustc
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
-
-          echo ">>> Migrating xhef database"
-          source .env.xhef
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
-
-          echo ">>> Migrating demo database"
-          source .env.demo
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
-
-          echo ">>> Prune Docker images"
-          docker image prune -f
-        EOF
-
-  deploy_shard1:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-    - name: Install SSH client
-      run: sudo apt-get install -y openssh-client
-
-    - name: Add SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars.SHARD1_HOSTNAME }}
-        config: |
-          Host ${{ vars.SHARD1_HOSTNAME }}
-            User ${{ secrets.SERVER_SSH_USERNAME }}
-            StrictHostKeyChecking no
-
-    - name: Deploy to server
-      run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SHARD1_HOSTNAME }} << 'EOF'
-          set -e
-          cd ~/app
-
-          echo ">>> Pulling docker images"
-          docker compose pull
-
-          echo ">>> Extracting docker-compose.yml & nginx.conf"
-          docker rm temp_extract || true
-          docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
-          docker cp temp_extract:/app/docker-compose.shard1.yml ./docker-compose.yml
-          docker cp temp_extract:/app/nginx.shard1.conf ./nginx.conf
-          docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
-          docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
-          docker rm temp_extract
-
-          echo ">>> Restarting Docker containers"
-          docker compose down
-          docker compose up -d
-
-          echo ">>> Waiting for containers to boot up"
-          sleep 5
-
-          echo ">>> Migrating x database"
-          source .env.x
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+          for env_file in ${{ matrix.env_files }}; do
+            echo ">>> Migrating $env_file database"
+            source $env_file
+            curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+          done
 
           echo ">>> Prune Docker images"
           docker image prune -f
