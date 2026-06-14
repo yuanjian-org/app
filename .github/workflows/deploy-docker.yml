@@ -13,9 +13,9 @@
 #     with in the same VPC of the production server, the local Docker image name
 #     may use the repo's internal domain name to speed up the pull.
 #
-#   SERVER_HOSTNAME
-#   SERVER_SSH_USERNAME
-#   SERVER_SSH_PRIVATE_KEY: Infromation to SSH into the server.
+#   HOSTNAME<N>: Hostname of the N-th server
+#   SSH_USERNAME: The username to SSH into the servers.
+#   SSH_PRIVATE_KEY: The private key to SSH into the servers.
 #
 # Finally, push to main to trigger this Github Action.
 #
@@ -108,11 +108,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - host_id: host0
-            hostname_var: HOST0_HOSTNAME
-            env_files: ".env .env.ustc .env.xhef .env.demo"
+          # - host_id: host0
+          #   hostname_var: HOSTNAME0
+          #   env_files: ".env .env.ustc .env.xhef .env.demo"
           - host_id: host1
-            hostname_var: HOST1_HOSTNAME
+            hostname_var: HOSTNAME1
             env_files: ".env.x"
 
     steps:
@@ -126,12 +126,12 @@ jobs:
         known_hosts: ${{ vars[matrix.hostname_var] }}
         config: |
           Host ${{ vars[matrix.hostname_var] }}
-            User ${{ secrets.SERVER_SSH_USERNAME }}
+            User ${{ secrets.SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Deploy to server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ secrets.SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
           set -e
           cd ~/app
 
