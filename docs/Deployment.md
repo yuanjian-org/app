@@ -15,7 +15,7 @@ setting up environmental variables:
 1. Create .env file in the project's root folder
 1. Set APP_DOCKER_IMAGE=<app_image_name> in .env, for example, "yuantu"
 1. Run `docker compose build` to build the image.
-1. Generate SSL certificate, modify `docker-compose.yml` to point to the
+1. Generate SSL certificate, modify `docker-compose.host0.yml` to point to the
    generated certificate and key files.
 
 # Production deployment
@@ -23,7 +23,7 @@ setting up environmental variables:
 1. Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`. Prior to the first run of this Action, do the folloing:
 1. Create and populate `$APP_ROOT/.env` according to the instructions in .env.template, where `$APP_ROOT` is the root folder of the deployment, for example, `/alice/app`,
 
-1. Copy docker-compose.yml to `$APP_ROOT/docker-compose.yml`.
+1. Copy docker-compose.host0.yml to `$APP_ROOT/docker-compose.yml`.
 
 ## SSL certification setup, renewal, and monitoring
 

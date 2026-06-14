@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  backup:
+  backup-host0:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,16 +20,16 @@ jobs:
     - name: Add SSH key
       uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars.SERVER_HOSTNAME }}
+        key: ${{ secrets.HOST0_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ vars.HOST0_HOSTNAME }}
         config: |
-          Host ${{ vars.SERVER_HOSTNAME }}
-            User ${{ secrets.SERVER_SSH_USERNAME }}
+          Host ${{ vars.HOST0_HOSTNAME }}
+            User ${{ secrets.HOST0_SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Execute Backup on Server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} << 'EOF'
+        ssh ${{ secrets.HOST0_SSH_USERNAME }}@${{ vars.HOST0_HOSTNAME }} << 'EOF'
           set -e
           cd ~/app
 
@@ -59,15 +59,77 @@ jobs:
 
     - name: Download Backup Archive
       run: |
-        scp ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }}:~/app/all_backups.tar ./all_backups.tar
+        scp ${{ secrets.HOST0_SSH_USERNAME }}@${{ vars.HOST0_HOSTNAME }}:~/app/all_backups.tar ./all_backups_host0.tar
 
     - name: Clean up remote backup archive
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars.SERVER_HOSTNAME }} "rm -f ~/app/all_backups.tar"
+        ssh ${{ secrets.HOST0_SSH_USERNAME }}@${{ vars.HOST0_HOSTNAME }} "rm -f ~/app/all_backups.tar"
 
     - name: Upload Backup to Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: database-backups
-        path: all_backups.tar
+        name: database-backups-host0
+        path: all_backups_host0.tar
+        retention-days: 30
+
+  backup-host1:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client
+
+    - name: Add SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.HOST1_SSH_PRIVATE_KEY }}
+        known_hosts: ${{ vars.HOST1_HOSTNAME }}
+        config: |
+          Host ${{ vars.HOST1_HOSTNAME }}
+            User ${{ secrets.HOST1_SSH_USERNAME }}
+            StrictHostKeyChecking no
+
+    - name: Execute Backup on Server
+      run: |
+        ssh ${{ secrets.HOST1_SSH_USERNAME }}@${{ vars.HOST1_HOSTNAME }} << 'EOF'
+          set -e
+          cd ~/app
+
+          mkdir -p backups
+          rm -rf backups/*
+
+          for env_file in .env*; do
+            [ -e "$env_file" ] || continue
+
+            # Extract DATABASE_URI and DATABASE_BACKUP_KEY
+            DATABASE_URI=$(grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            DATABASE_BACKUP_KEY=$(grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+
+            if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
+              echo "Backing up database for $env_file"
+              pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
+              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${env_file}.sql.gz.enc
+              rm -f backup.sql backup.sql.gz
+            else
+              echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
+            fi
+          done
+
+          tar -cvf all_backups.tar -C backups .
+          rm -rf backups
+        EOF
+
+    - name: Download Backup Archive
+      run: |
+        scp ${{ secrets.HOST1_SSH_USERNAME }}@${{ vars.HOST1_HOSTNAME }}:~/app/all_backups.tar ./all_backups_host1.tar
+
+    - name: Clean up remote backup archive
+      run: |
+        ssh ${{ secrets.HOST1_SSH_USERNAME }}@${{ vars.HOST1_HOSTNAME }} "rm -f ~/app/all_backups.tar"
+
+    - name: Upload Backup to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backups-host1
+        path: all_backups_host1.tar
         retention-days: 30
