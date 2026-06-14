@@ -139,7 +139,7 @@ jobs:
           docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
-          docker compose down
+          docker compose down --remove-orphans
           docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
