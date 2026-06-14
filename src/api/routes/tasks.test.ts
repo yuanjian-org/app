@@ -6,7 +6,7 @@ import {
   updateImpl,
   updateDoneImpl,
   getLastTasksUpdatedAtImpl,
-  createAutoTasksImpl,
+  createAutoTasks,
 } from "./tasks";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -129,7 +129,7 @@ describe("Tasks Route Impl", () => {
     });
   });
 
-  describe("createAutoTasksImpl", () => {
+  describe("createAutoTasks", () => {
     it("should create auto tasks for mentors with expiring exams in ongoing mentorships", async () => {
       const mentorWithExpiringExams = await db.User.create(
         {
@@ -186,7 +186,7 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
-      await createAutoTasksImpl(transaction);
+      await createAutoTasks(transaction);
 
       const tasksForMentorWithExpiringExams = await db.Task.findAll({
         where: { assigneeId: mentorWithExpiringExams.id },
@@ -489,8 +489,12 @@ describe("Tasks Route Impl", () => {
 
       const afterDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
 
-      expect(afterDate.getTime()).to.be.greaterThan(beforeDate.getTime());
-      expect(afterDate.getTime()).to.equal(task.updatedAt.getTime());
+      expect(moment(afterDate).toDate().getTime()).to.be.greaterThan(
+        moment(beforeDate).toDate().getTime(),
+      );
+      expect(moment(afterDate).toDate().getTime()).to.equal(
+        task.updatedAt.getTime(),
+      );
     });
   });
 });

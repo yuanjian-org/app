@@ -13,7 +13,7 @@ import {
   notFoundError,
 } from "../errors";
 import sequelize from "../database/sequelize";
-import { zDateColumn } from "../../shared/DateColumn";
+import { DateColumn, zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
@@ -38,9 +38,9 @@ export async function listImpl(
       // For mentees, only mentorship managers and mentors can see their
       // tasks.
       !(await isPermittedtoAccessMentee(
-        me as any,
+        me,
         assigneeId,
-        transaction as any,
+        transaction as Transaction,
       ))
     ) {
       throw noPermissionError("待办事项");
@@ -80,7 +80,7 @@ const list = procedure
     }) => {
       return await sequelize.transaction(async (transaction) => {
         return await listImpl(
-          me as unknown as User,
+          me,
           assigneeIds,
           includeTasksCreatedByMe,
           includeDoneTasks,
@@ -131,12 +131,7 @@ const create = procedure
   )
   .mutation(async ({ ctx: { me }, input: { assigneeId, markdown } }) => {
     await sequelize.transaction(async (transaction) => {
-      await createImpl(
-        me as unknown as User,
-        assigneeId,
-        markdown,
-        transaction,
-      );
+      await createImpl(me, assigneeId, markdown, transaction);
     });
   });
 
@@ -183,13 +178,7 @@ const update = procedure
   )
   .mutation(async ({ ctx: { me }, input: { id, assigneeId, markdown } }) => {
     await sequelize.transaction(async (transaction) => {
-      await updateImpl(
-        me as unknown as User,
-        id,
-        assigneeId,
-        markdown,
-        transaction,
-      );
+      await updateImpl(me, id, assigneeId, markdown, transaction);
     });
   });
 
@@ -224,7 +213,7 @@ const updateDone = procedure
   )
   .mutation(async ({ ctx: { me }, input: { id, done } }) => {
     await sequelize.transaction(async (transaction) => {
-      await updateDoneImpl(me as unknown as User, id, done, transaction);
+      await updateDoneImpl(me, id, done, transaction);
     });
   });
 
@@ -242,7 +231,7 @@ function checkForUpdate(task: Task | null, me: User) {
 export async function getLastTasksUpdatedAtImpl(
   me: User,
   transaction?: Transaction,
-): Promise<Date> {
+): Promise<DateColumn> {
   const ret = await db.Task.max("updatedAt", {
     where: {
       assigneeId: me.id,
@@ -251,7 +240,10 @@ export async function getLastTasksUpdatedAtImpl(
     },
     transaction,
   });
-  return (ret as Date | null) ?? moment(0).toDate();
+  return (
+    (ret as unknown as DateColumn) ??
+    (moment(0).toDate() as unknown as DateColumn)
+  );
 }
 
 /**
@@ -262,9 +254,7 @@ const getLastTasksUpdatedAt = procedure
   .output(zDateColumn)
   .query(async ({ ctx: { me } }) => {
     return await sequelize.transaction(async (transaction) => {
-      return moment(
-        await getLastTasksUpdatedAtImpl(me as unknown as User, transaction),
-      );
+      return await getLastTasksUpdatedAtImpl(me, transaction);
     });
   });
 
