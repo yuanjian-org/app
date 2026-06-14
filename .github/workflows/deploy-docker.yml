@@ -136,20 +136,20 @@ jobs:
           cd ~/app
 
           echo ">>> Pulling docker images"
-          docker compose pull
+          sudo docker compose pull
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
-          docker rm temp_extract || true
-          docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
-          docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
-          docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
-          docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
-          docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
-          docker rm temp_extract
+          sudo docker rm temp_extract || true
+          sudo docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
+          sudo docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
+          sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
+          sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
+          sudo docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
+          sudo docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
-          docker compose down --remove-orphans
-          docker compose up -d
+          sudo docker compose down --remove-orphans
+          sudo docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
           sleep 5
@@ -161,5 +161,5 @@ jobs:
           done
 
           echo ">>> Prune Docker images"
-          docker image prune -f
+          sudo docker image prune -f
         EOF
