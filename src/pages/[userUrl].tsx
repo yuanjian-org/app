@@ -1,8 +1,7 @@
 import { trpcNext } from "../trpc";
 import { parseQueryString } from "shared/strings";
 import { useRouter } from "next/router";
-import UserPanel from "components/UserPanel";
-import Loader from "components/Loader";
+import { UserPage } from "./users/[userId]";
 
 export default function Page() {
   const userUrl = parseQueryString(useRouter(), "userUrl");
@@ -12,10 +11,6 @@ export default function Page() {
       enabled: !!userUrl,
     },
   );
-  return data ? (
-    <UserPanel data={data} showBookingButton={data.isMentor} />
-  ) : (
-    <Loader />
-  );
+  return <UserPage profile={data} />;
 }
 Page.title = "用户资料";
