@@ -13,7 +13,7 @@ import {
   notFoundError,
 } from "../errors";
 import sequelize from "../database/sequelize";
-import { DateColumn, zDateColumn } from "../../shared/DateColumn";
+import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
@@ -37,11 +37,7 @@ export async function listImpl(
       !isPermitted(me.roles, "MentorshipManager") &&
       // For mentees, only mentorship managers and mentors can see their
       // tasks.
-      !(await isPermittedtoAccessMentee(
-        me,
-        assigneeId,
-        transaction as Transaction,
-      ))
+      !(await isPermittedtoAccessMentee(me, assigneeId, transaction))
     ) {
       throw noPermissionError("待办事项");
     }
@@ -231,7 +227,7 @@ function checkForUpdate(task: Task | null, me: User) {
 export async function getLastTasksUpdatedAtImpl(
   me: User,
   transaction?: Transaction,
-): Promise<DateColumn> {
+): Promise<Date> {
   const ret = await db.Task.max("updatedAt", {
     where: {
       assigneeId: me.id,
@@ -240,10 +236,7 @@ export async function getLastTasksUpdatedAtImpl(
     },
     transaction,
   });
-  return (
-    (ret as unknown as DateColumn) ??
-    (moment(0).toDate() as unknown as DateColumn)
-  );
+  return (ret as Date | null) ?? moment(0).toDate();
 }
 
 /**
@@ -270,7 +263,7 @@ export default router({
   getLastTasksUpdatedAt,
 });
 
-export async function createAutoTasksImpl(transaction: Transaction) {
+export async function createAutoTasks(transaction: Transaction) {
   // Find all ongoing mentorships
   const mentorships = await db.Mentorship.findAll({
     where: whereMentorshipIsOngoing,
@@ -297,12 +290,6 @@ export async function createAutoTasksImpl(transaction: Transaction) {
       await createAutoTask(m.mentor.id, "study-handbook", transaction);
     }
   }
-}
-
-export async function createAutoTasks() {
-  await sequelize.transaction(async (transaction) => {
-    await createAutoTasksImpl(transaction);
-  });
 }
 
 export async function createAutoTask(
