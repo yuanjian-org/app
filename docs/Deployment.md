@@ -25,7 +25,7 @@ the server(s) that will be deployed to:
 
 1. Install Docker: `sudo snap install docker`
 1. Create and populate `~/app/.env.*` according to the instructions in .env.template, 
-1. Copy docker-compose.hostN.yml to `~/app/docker-compose.yml`.
+1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
 
 ## SSL certification setup, renewal, and monitoring
 

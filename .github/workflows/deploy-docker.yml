@@ -15,7 +15,7 @@
 #
 #   HOSTNAME<N>: Hostname of the N-th server
 #   SSH_USERNAME: The username to SSH into the servers.
-#   SSH_PRIVATE_KEY: The private key to SSH into the servers.
+#   secrets.SSH_PRIVATE_KEY: The private key to SSH into the servers.
 #
 # Finally, push to main to trigger this Github Action.
 #
@@ -126,17 +126,17 @@ jobs:
         known_hosts: ${{ vars[matrix.hostname_var] }}
         config: |
           Host ${{ vars[matrix.hostname_var] }}
-            User ${{ secrets.SSH_USERNAME }}
+            User ${{ vars.SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Deploy to server
       run: |
-        ssh ${{ secrets.SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ vars.SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
           set -e
           cd ~/app
 
           echo ">>> Pulling docker images"
-          sudo docker compose pull
+          sudo APP_DOCKER_IMAGE=${{ vars.LOCAL_APP_DOCKER_IMAGE }} docker compose pull
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           sudo docker rm temp_extract || true
