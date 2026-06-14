@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import crypto from "crypto";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -21,7 +20,7 @@ describe("transcripts", () => {
   async function createTestUser(roles: any[] = []) {
     const user = await db.User.create(
       {
-        email: `test-user-${Date.now()}-${crypto.randomUUID()}@test.com`,
+        email: `test-user-${Date.now()}-${Math.random()}@test.com`,
         name: "Test User",
         roles,
       },
@@ -52,7 +51,7 @@ describe("transcripts", () => {
   }
 
   async function createTestTranscript(groupId: string) {
-    const id = `test-transcript-${Date.now()}-${crypto.randomUUID()}`;
+    const id = `test-transcript-${Date.now()}-${Math.random()}`;
     return await db.Transcript.create(
       {
         id,

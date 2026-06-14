@@ -322,18 +322,12 @@ export function ConsentText() {
 
 function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
 
   const submit = async () => {
-    setLoading(true);
-    try {
-      await trpc.users.setMyState.mutate({
-        consentedAt: new Date().toISOString(),
-      });
-      refetch();
-    } finally {
-      setLoading(false);
-    }
+    await trpc.users.setMyState.mutate({
+      consentedAt: new Date().toISOString(),
+    });
+    refetch();
   };
 
   return (
@@ -351,7 +345,7 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
           <ModalFooter>
             <Button onClick={() => setDeclined(true)}>拒绝使用</Button>
             <Spacer />
-            <Button variant="brand" onClick={submit} isLoading={loading}>
+            <Button variant="brand" onClick={submit}>
               已阅，同意使用本网站
             </Button>
           </ModalFooter>

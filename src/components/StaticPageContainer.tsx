@@ -2,12 +2,7 @@ import { Box, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
 import { ReactNode } from "react";
-import {
-  pageMarginX,
-  staticPageMaxWidth,
-  staticPageMaxWidthWide,
-} from "theme/metrics";
-import { AppPageType } from "../AppPage";
+import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import {
   useFeatures,
   useIsStaticConfigsReady,
@@ -19,11 +14,9 @@ import DemoLandingPage from "./DemoLandingPage";
 import PageLoader from "./PageLoader";
 
 export default function StaticPageContainer({
-  pageType,
   children,
 }: {
   children: ReactNode;
-  pageType?: AppPageType;
 }) {
   const whiteLabel = useWhiteLabel();
   const features = useFeatures();
@@ -33,11 +26,7 @@ export default function StaticPageContainer({
   }
 
   if (features.projects) {
-    return (
-      <DefaultStaticPageContaner pageType={pageType}>
-        {children}
-      </DefaultStaticPageContaner>
-    );
+    return <DefaultPageContaner>{children}</DefaultPageContaner>;
   }
 
   if (whiteLabel === "ustc") {
@@ -52,27 +41,15 @@ export default function StaticPageContainer({
     return <DemoLandingPage />;
   }
 
-  return (
-    <DefaultStaticPageContaner pageType={pageType}>
-      {children}
-    </DefaultStaticPageContaner>
-  );
+  return <DefaultPageContaner>{children}</DefaultPageContaner>;
 }
 
-function DefaultStaticPageContaner({
-  children,
-  pageType,
-}: {
-  children: ReactNode;
-  pageType?: AppPageType;
-}) {
+function DefaultPageContaner({ children }: { children: ReactNode }) {
   return (
     <VStack minHeight="100vh">
-      <StaticNavBar pageType={pageType} />
+      <StaticNavBar />
       <Box
-        maxWidth={
-          pageType === "wide" ? staticPageMaxWidthWide : staticPageMaxWidth
-        }
+        maxWidth={staticPageMaxWidth}
         paddingX={pageMarginX}
         w="100%"
         mt="70px"

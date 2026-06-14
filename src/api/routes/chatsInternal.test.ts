@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import crypto from "crypto";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
@@ -33,7 +32,7 @@ describe("chatsInternal", () => {
   ) {
     const user = await db.User.create(
       {
-        email: `test-user-${Date.now()}-${crypto.randomUUID()}@test.com`,
+        email: `test-user-${Date.now()}-${Math.random()}@test.com`,
         name: "Test User",
         roles,
         menteeStatus,

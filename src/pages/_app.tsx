@@ -61,7 +61,7 @@ function App({
 
       <ErrorBoundary>
         {isStaticPage(router.route) ? (
-          <StaticPageContainer pageType={Component.type}>
+          <StaticPageContainer>
             <Component {...pageProps} />
           </StaticPageContainer>
         ) : (

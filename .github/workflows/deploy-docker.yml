@@ -13,9 +13,9 @@
 #     with in the same VPC of the production server, the local Docker image name
 #     may use the repo's internal domain name to speed up the pull.
 #
-#   HOSTNAME<N>: Hostname of the N-th server
-#   SSH_USERNAME: The username to SSH into the servers.
-#   secrets.SSH_PRIVATE_KEY: The private key to SSH into the servers.
+#   SERVER_HOSTNAME
+#   SERVER_SSH_USERNAME
+#   SERVER_SSH_PRIVATE_KEY: Infromation to SSH into the server.
 #
 # Finally, push to main to trigger this Github Action.
 #
@@ -108,11 +108,11 @@ jobs:
     strategy:
       matrix:
         include:
-          # - host_id: host0
-          #   hostname_var: HOSTNAME0
-          #   env_files: ".env .env.ustc .env.xhef .env.demo"
+          - host_id: host0
+            hostname_var: HOST0_HOSTNAME
+            env_files: ".env .env.ustc .env.xhef .env.demo"
           - host_id: host1
-            hostname_var: HOSTNAME1
+            hostname_var: HOST1_HOSTNAME
             env_files: ".env.x"
 
     steps:
@@ -126,12 +126,12 @@ jobs:
         known_hosts: ${{ vars[matrix.hostname_var] }}
         config: |
           Host ${{ vars[matrix.hostname_var] }}
-            User ${{ vars.SSH_USERNAME }}
+            User ${{ secrets.SERVER_SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Deploy to server
       run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
           set -e
           cd ~/app
 
@@ -148,8 +148,8 @@ jobs:
           sudo docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
-          sudo docker compose down --remove-orphans
-          sudo docker compose up -d
+          sudo APP_DOCKER_IMAGE=${{ vars.LOCAL_APP_DOCKER_IMAGE }} docker compose down --remove-orphans
+          sudo APP_DOCKER_IMAGE=${{ vars.LOCAL_APP_DOCKER_IMAGE }} docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
           sleep 5

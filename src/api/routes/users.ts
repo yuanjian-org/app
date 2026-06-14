@@ -1164,7 +1164,7 @@ export async function checkPermissionToAccessMentee(
 export async function isPermittedtoAccessMentee(
   me: User,
   menteeId: string,
-  transaction?: Transaction,
+  transaction: Transaction,
   action: "any" | "readMetadata" = "any",
 ) {
   return (
@@ -1181,7 +1181,7 @@ export async function isPermittedtoAccessMentee(
 export async function isPermittedtoAccessMentor(
   me: User,
   mentorId: string,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   return (
     (await db.Mentorship.count({

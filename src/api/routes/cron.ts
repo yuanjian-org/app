@@ -16,17 +16,10 @@ export default router({
    * Hourly cron jobs. See hourly.yml.
    */
   syncMeetings: procedure.use(authIntegration()).mutation(syncMeetings),
-
   sendScheduledNotifications: procedure
     .use(authIntegration())
     .mutation(sendScheduledNotifications),
-
-  createAutoTasks: procedure.use(authIntegration()).mutation(
-    async () =>
-      await sequelize.transaction(async (transaction) => {
-        await createAutoTasks(transaction);
-      }),
-  ),
+  createAutoTasks: procedure.use(authIntegration()).mutation(createAutoTasks),
 
   /**
    * Weekly cron jobs. See weekly.yml.
@@ -37,13 +30,10 @@ export default router({
         await auditLastMentorshipMeetings(transaction);
       }),
   ),
-
   recycleMeetings: procedure.use(authIntegration()).mutation(recycleMeetings),
-
   purgeOldData: procedure.use(authIntegration()).mutation(async () => {
     await purgeOldData();
   }),
-
   resetDemoData: procedure.use(authIntegration()).mutation(async () => {
     if (getWhiteLabel() !== "demo") throw noPermissionError("数据");
 

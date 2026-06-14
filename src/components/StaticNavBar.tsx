@@ -7,12 +7,7 @@ import {
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import {
-  pageMarginX,
-  staticPageMaxWidth,
-  staticPageMaxWidthWide,
-} from "theme/metrics";
-import { AppPageType } from "../AppPage";
+import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
 import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
@@ -31,9 +26,7 @@ const inactiveNavLinkColor = "gray.700";
 /**
  * The top navigation bar for static (non-app) pages.
  */
-export default function StaticNavBar({
-  pageType,
-}: { pageType?: AppPageType } = {}) {
+export default function StaticNavBar() {
   const current = useRouter().asPath;
   const features = useFeatures();
 
@@ -51,7 +44,7 @@ export default function StaticNavBar({
         height={16}
         justifyContent="space-between"
         paddingX={pageMarginX}
-        maxW={pageType === "wide" ? staticPageMaxWidthWide : staticPageMaxWidth}
+        maxW={staticPageMaxWidth}
         alignItems="center" // Center content vertically
         marginX="auto" // Centers content horizontally
       >

@@ -8,7 +8,6 @@ export const componentSpacing = 4;
 
 // Actual content width = staticPageMaxWidth - pageMarginX
 export const staticPageMaxWidth = 850;
-export const staticPageMaxWidthWide = 1200;
 
 export const pageMarginX = {
   base: "16px",

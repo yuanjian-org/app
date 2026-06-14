@@ -20,12 +20,10 @@ setting up environmental variables:
 
 # Production deployment
 
-Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`. Prior to the first run of this Action, do the folloing on
-the server(s) that will be deployed to:
+1. Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`. Prior to the first run of this Action, do the folloing:
+1. Create and populate `$APP_ROOT/.env` according to the instructions in .env.template, where `$APP_ROOT` is the root folder of the deployment, for example, `/alice/app`,
 
-1. Install Docker: `sudo snap install docker`
-1. Create and populate `~/app/.env.*` according to the instructions in .env.template, 
-1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
+1. Copy docker-compose.yml to `$APP_ROOT/docker-compose.yml`.
 
 ## SSL certification setup, renewal, and monitoring
 

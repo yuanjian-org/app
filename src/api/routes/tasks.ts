@@ -21,43 +21,7 @@ import { scheduleNotification } from "./scheduledNotifications";
 import { whereMentorshipIsOngoing } from "./mentorships";
 import { isPermittedtoAccessMentee } from "./users";
 import { isPermitted } from "../../shared/Role";
-import User from "../../shared/User";
-
-export async function listImpl(
-  me: User,
-  assigneeIds: string[],
-  includeTasksCreatedByMe: boolean,
-  includeDoneTasks: boolean,
-  transaction?: Transaction,
-): Promise<Task[]> {
-  for (const assigneeId of assigneeIds) {
-    if (
-      assigneeId !== me.id &&
-      // For mentors, only mentorship managers can see their tasks.
-      !isPermitted(me.roles, "MentorshipManager") &&
-      // For mentees, only mentorship managers and mentors can see their
-      // tasks.
-      !(await isPermittedtoAccessMentee(me, assigneeId, transaction))
-    ) {
-      throw noPermissionError("待办事项");
-    }
-  }
-
-  return (
-    await db.Task.findAll({
-      where: {
-        [Op.or]: [
-          ...assigneeIds.map((assigneeId) => ({ assigneeId })),
-          ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
-        ],
-        ...(!includeDoneTasks && { done: false }),
-      },
-      attributes: taskAttributes,
-      include: taskInclude,
-      transaction,
-    })
-  ).map((n) => castTask(n));
-}
+import { User } from "next-auth";
 
 const list = procedure
   .use(authUser())
@@ -75,13 +39,33 @@ const list = procedure
       input: { assigneeIds, includeTasksCreatedByMe, includeDoneTasks },
     }) => {
       return await sequelize.transaction(async (transaction) => {
-        return await listImpl(
-          me,
-          assigneeIds,
-          includeTasksCreatedByMe,
-          includeDoneTasks,
-          transaction,
-        );
+        for (const assigneeId of assigneeIds) {
+          if (
+            assigneeId !== me.id &&
+            // For mentors, only mentorship managers can see their tasks.
+            !isPermitted(me.roles, "MentorshipManager") &&
+            // For mentees, only mentorship managers and mentors can see their
+            // tasks.
+            !(await isPermittedtoAccessMentee(me, assigneeId, transaction))
+          ) {
+            throw noPermissionError("待办事项");
+          }
+        }
+
+        return (
+          await db.Task.findAll({
+            where: {
+              [Op.or]: [
+                ...assigneeIds.map((assigneeId) => ({ assigneeId })),
+                ...(includeTasksCreatedByMe ? [{ creatorId: me.id }] : []),
+              ],
+              ...(!includeDoneTasks && { done: false }),
+            },
+            attributes: taskAttributes,
+            include: taskInclude,
+            transaction,
+          })
+        ).map((n) => castTask(n));
       });
     },
   );
@@ -94,29 +78,6 @@ export function castTask(n: any): Task {
   return zTask.parse(n);
 }
 
-export async function createImpl(
-  me: User,
-  assigneeId: string,
-  markdown: string,
-  transaction: Transaction,
-): Promise<void> {
-  if (markdown.trim().length === 0) {
-    throw generalBadRequestError("待办事项不能为空。");
-  }
-
-  await db.Task.create(
-    {
-      creatorId: me.id,
-      assigneeId,
-      markdown: markdown.trim(),
-      done: false,
-    },
-    { transaction },
-  );
-
-  await scheduleNotification("Task", assigneeId, transaction);
-}
-
 const create = procedure
   .use(authUser())
   .input(
@@ -126,42 +87,24 @@ const create = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { assigneeId, markdown } }) => {
+    if (markdown.trim().length === 0) {
+      throw generalBadRequestError("待办事项不能为空。");
+    }
+
     await sequelize.transaction(async (transaction) => {
-      await createImpl(me, assigneeId, markdown, transaction);
+      await db.Task.create(
+        {
+          creatorId: me.id,
+          assigneeId,
+          markdown: markdown.trim(),
+          done: false,
+        },
+        { transaction },
+      );
+
+      await scheduleNotification("Task", assigneeId, transaction);
     });
   });
-
-export async function updateImpl(
-  me: User,
-  id: number,
-  assigneeId: string,
-  markdown: string,
-  transaction: Transaction,
-): Promise<void> {
-  if (markdown.trim().length === 0) {
-    throw generalBadRequestError("待办事项不能为空。");
-  }
-
-  const task = await db.Task.findByPk(id, {
-    attributes: taskAttributes,
-    include: taskInclude,
-    transaction,
-  });
-  checkForUpdate(castTask(task), me);
-
-  await db.Task.update(
-    {
-      assigneeId,
-      markdown: markdown.trim(),
-    },
-    {
-      where: { id },
-      transaction,
-    },
-  );
-
-  await scheduleNotification("Task", assigneeId, transaction);
-}
 
 const update = procedure
   .use(authUser())
@@ -173,31 +116,32 @@ const update = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { id, assigneeId, markdown } }) => {
+    if (markdown.trim().length === 0) {
+      throw generalBadRequestError("待办事项不能为空。");
+    }
+
     await sequelize.transaction(async (transaction) => {
-      await updateImpl(me, id, assigneeId, markdown, transaction);
+      const task = await db.Task.findByPk(id, {
+        attributes: taskAttributes,
+        include: taskInclude,
+        transaction,
+      });
+      checkForUpdate(castTask(task), me);
+
+      await db.Task.update(
+        {
+          assigneeId,
+          markdown: markdown.trim(),
+        },
+        {
+          where: { id },
+          transaction,
+        },
+      );
+
+      await scheduleNotification("Task", assigneeId, transaction);
     });
   });
-
-export async function updateDoneImpl(
-  me: User,
-  id: number,
-  done: boolean,
-  transaction: Transaction,
-): Promise<void> {
-  const task = await db.Task.findByPk(id, {
-    attributes: taskAttributes,
-    include: taskInclude,
-    transaction,
-  });
-  checkForUpdate(castTask(task), me);
-  await db.Task.update(
-    { done },
-    {
-      where: { id },
-      transaction,
-    },
-  );
-}
 
 const updateDone = procedure
   .use(authUser())
@@ -209,7 +153,19 @@ const updateDone = procedure
   )
   .mutation(async ({ ctx: { me }, input: { id, done } }) => {
     await sequelize.transaction(async (transaction) => {
-      await updateDoneImpl(me, id, done, transaction);
+      const task = await db.Task.findByPk(id, {
+        attributes: taskAttributes,
+        include: taskInclude,
+        transaction,
+      });
+      checkForUpdate(castTask(task), me);
+      await db.Task.update(
+        { done },
+        {
+          where: { id },
+          transaction,
+        },
+      );
     });
   });
 
@@ -224,21 +180,6 @@ function checkForUpdate(task: Task | null, me: User) {
   }
 }
 
-export async function getLastTasksUpdatedAtImpl(
-  me: User,
-  transaction?: Transaction,
-): Promise<Date> {
-  const ret = await db.Task.max("updatedAt", {
-    where: {
-      assigneeId: me.id,
-      creatorId: isAutoTaskOrCreatorIsOther(me.id),
-      done: false,
-    },
-    transaction,
-  });
-  return (ret as Date | null) ?? moment(0).toDate();
-}
-
 /**
  * @return excludes tasks that are done or created by the current user.
  */
@@ -246,9 +187,14 @@ const getLastTasksUpdatedAt = procedure
   .use(authUser())
   .output(zDateColumn)
   .query(async ({ ctx: { me } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await getLastTasksUpdatedAtImpl(me, transaction);
+    const ret = await db.Task.max("updatedAt", {
+      where: {
+        assigneeId: me.id,
+        creatorId: isAutoTaskOrCreatorIsOther(me.id),
+        done: false,
+      },
     });
+    return ret ?? moment(0);
   });
 
 export function isAutoTaskOrCreatorIsOther(assigneeId: string) {
@@ -263,33 +209,35 @@ export default router({
   getLastTasksUpdatedAt,
 });
 
-export async function createAutoTasks(transaction: Transaction) {
-  // Find all ongoing mentorships
-  const mentorships = await db.Mentorship.findAll({
-    where: whereMentorshipIsOngoing,
-    attributes: [],
-    include: [
-      {
-        association: "mentor",
-        attributes: ["id", "state"],
-      },
-    ],
-    transaction,
+export async function createAutoTasks() {
+  await sequelize.transaction(async (transaction) => {
+    // Find all ongoing mentorships
+    const mentorships = await db.Mentorship.findAll({
+      where: whereMentorshipIsOngoing,
+      attributes: [],
+      include: [
+        {
+          association: "mentor",
+          attributes: ["id", "state"],
+        },
+      ],
+      transaction,
+    });
+
+    // Create study-comms tasks
+    for (const m of mentorships) {
+      if (isExamAboutToExpire(m.mentor.state?.commsExam)) {
+        await createAutoTask(m.mentor.id, "study-comms", transaction);
+      }
+    }
+
+    // Create study-handbook tasks
+    for (const m of mentorships) {
+      if (isExamAboutToExpire(m.mentor.state?.handbookExam)) {
+        await createAutoTask(m.mentor.id, "study-handbook", transaction);
+      }
+    }
   });
-
-  // Create study-comms tasks
-  for (const m of mentorships) {
-    if (isExamAboutToExpire(m.mentor.state?.commsExam)) {
-      await createAutoTask(m.mentor.id, "study-comms", transaction);
-    }
-  }
-
-  // Create study-handbook tasks
-  for (const m of mentorships) {
-    if (isExamAboutToExpire(m.mentor.state?.handbookExam)) {
-      await createAutoTask(m.mentor.id, "study-handbook", transaction);
-    }
-  }
 }
 
 export async function createAutoTask(
