@@ -131,7 +131,7 @@ jobs:
 
     - name: Deploy to server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ vars[matrix.hostname_var] }} << 'EOF'
           set -e
           cd ~/app
 
