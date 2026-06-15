@@ -20,17 +20,17 @@ setting up environmental variables:
 Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`. Prior to the first run of this Action, do the folloing on the server(s) that will be deployed to:
 
 1. `sudo apt install docker`
-1. Create `~/app/.env` with `APP_DOCKER_IMAGE=<image_name>` as the only entry.
+1. `mkdir ~/app && echo APP_DOCKER_IMAGE=<image_name> > ~/app/.env`
 1. Create and populate per-white-label env`~/app/.env.*` according to the
 instructions in .env.template, 
 1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
 1. `sudo chown -R root:root ~/app`
-1. `such chmod 600 .env*`
+1. `sudo chmod 600 .env*`
 
 ## SSL certification setup, renewal, and monitoring
 
 1. `sudo apt install certbot -y`
 1. `sudo mkdir ~/app/certbot`
 1. Install the initial certs on the host machine by running `certbot certonly -d <domain>` for each domain name. When asked about the webroot, if the nginx container is not running, select 1. Otherwise, select `2` and then `$HOME/app/certbot` as the webroot. See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
-1. Modify `/etc/cron.d/certbot` and append `--webroot -w $HOME/app/certbot --deploy-hook 'docker compose --project-directory $HOME/app restart'` to certbot's command line. This allows the certbot to renew the certificate without requiring to stop the running server.
+1. Modify `/etc/cron.d/certbot` and append `--webroot -w $HOME/app/certbot --deploy-hook 'docker compose --project-directory $HOME/app restart'` to certbot's command line. Replace `$HOME` with the actual home directory path. This allows the certbot to renew the certificate without requiring to stop the running server.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
