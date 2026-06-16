@@ -47,9 +47,7 @@ function getCountryAreaCodes(): CountryAreaCode[] {
 export default function PhoneInput({
   value,
   onChange,
-  placeholder,
 }: {
-  placeholder?: string;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -119,7 +117,7 @@ export default function PhoneInput({
         value={number}
         onChange={changeNumber}
         type="tel"
-        placeholder={placeholder ?? "手机号"}
+        placeholder="手机号"
       />
     </HStack>
   );
