@@ -243,26 +243,30 @@ function UserTable({
 
             {/* Edit */}
             <Td>
-              <IconButton
-                aria-label="编辑用户"
-                icon={<MdEdit />}
-                size="sm"
-                variant="ghost"
-                onClick={() => setUserBeingEdited(u)}
-              />
+              <Tooltip label="编辑用户">
+                <IconButton
+                  aria-label="编辑用户"
+                  icon={<MdEdit />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setUserBeingEdited(u)}
+                />
+              </Tooltip>
             </Td>
 
             {/* More */}
             <Td>
               <Menu isLazy>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="更多"
-                  icon={<MdMoreVert />}
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <Tooltip label="更多">
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="更多"
+                    icon={<MdMoreVert />}
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Tooltip>
                 <MenuList zIndex={2}>
                   <MenuItem as={NextLink} href={`/profiles/${u.id}`}>
                     编辑个人资料
