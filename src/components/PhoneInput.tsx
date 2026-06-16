@@ -113,7 +113,12 @@ export default function PhoneInput({
           ))}
         </MenuList>
       </Menu>
-      <Input value={number} onChange={changeNumber} type="tel" />
+      <Input
+        value={number}
+        onChange={changeNumber}
+        type="tel"
+        placeholder="手机号"
+      />
     </HStack>
   );
 }
