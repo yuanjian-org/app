@@ -2,7 +2,7 @@ import { expect } from "chai";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
-import { listKudosImpl, getLastKudosCreatedAtImpl } from "./kudos";
+import { listKudosImpl, getLastKudosCreatedAtImpl, createImpl } from "./kudos";
 import createKudos from "./kudosInternal";
 import moment from "moment";
 
@@ -126,6 +126,40 @@ describe("kudos routes", () => {
       const texts = result.map((k) => k.text);
       expect(texts).to.include("First kudos");
       expect(texts).to.include("Second kudos");
+    });
+  });
+
+  describe("createImpl", () => {
+    it("should create a like and schedule a notification", async () => {
+      await createImpl(giver1.id, receiver1.id, null, transaction);
+
+      const updatedReceiver = await db.User.findByPk(receiver1.id, {
+        transaction,
+      });
+      expect(updatedReceiver?.likes).to.equal(1);
+      expect(updatedReceiver?.kudos).to.equal(0);
+
+      const notificationCount = await db.ScheduledNotification.count({
+        where: { subjectId: receiver1.id, type: "Kudos" },
+        transaction,
+      });
+      expect(notificationCount).to.equal(1);
+    });
+
+    it("should create a kudos and schedule a notification", async () => {
+      await createImpl(giver1.id, receiver1.id, "Well done!", transaction);
+
+      const updatedReceiver = await db.User.findByPk(receiver1.id, {
+        transaction,
+      });
+      expect(updatedReceiver?.likes).to.equal(0);
+      expect(updatedReceiver?.kudos).to.equal(1);
+
+      const notificationCount = await db.ScheduledNotification.count({
+        where: { subjectId: receiver1.id, type: "Kudos" },
+        transaction,
+      });
+      expect(notificationCount).to.equal(1);
     });
   });
 
