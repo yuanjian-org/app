@@ -1,0 +1,4 @@
+## 2024-05-23 - [Refactored insecure raw SQL Literal with Sequelize functions]
+**Vulnerability:** A static raw SQL string containing a `CASE` statement with `COUNT(*) FILTER` was injected via Sequelize's `literal()` function.
+**Learning:** Although it wasn't an actively exploitable SQL injection since there were no user-supplied variables interpolated into the string, using `literal` without explicitly escaping content or adhering solely to query builder functions is a security anti-pattern and increases the chance of regressions that lead to injection. The codebase prefers utilizing intermediate aggregates using `fn` and `col` and performing complex logic directly in JavaScript.
+**Prevention:** Always use native ORM aggregation functions like `fn("MAX", col("field"))` combined with post-processing mapping when dealing with conditional queries (`CASE WHEN`).

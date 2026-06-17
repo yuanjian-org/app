@@ -16,7 +16,7 @@ import invariant from "tiny-invariant";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import moment from "moment";
-import { Op, Transaction, literal } from "sequelize";
+import { Op, Transaction, fn, col } from "sequelize";
 import { zDateColumn } from "shared/DateColumn";
 
 export async function createDraftImpl(
@@ -301,23 +301,23 @@ const listLastBatchFinalizedAt = procedure
     ),
   )
   .query(async () => {
-    return await db.MentorSelectionBatch.findAll({
+    const rows = await db.MentorSelectionBatch.findAll({
       attributes: [
         "userId",
-        [
-          literal(`
-          CASE
-            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
-            ELSE MAX("finalizedAt")
-          END
-        `),
-          "finalizedAt",
-        ],
+        [fn("COUNT", col("id")), "totalCount"],
+        [fn("COUNT", col("finalizedAt")), "finalizedCount"],
+        [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
       ],
       group: ["userId"],
       // Return the raw result, without wrapping it in Sequelize instances.
       raw: true,
     });
+
+    return rows.map((row: any) => ({
+      userId: row.userId,
+      finalizedAt:
+        row.totalCount === row.finalizedCount ? row.maxFinalizedAt : null,
+    }));
   });
 
 export default router({
