@@ -6,6 +6,7 @@ import {
   createDraftImpl,
   updateDraftImpl,
   reorderDraftImpl,
+  listLastBatchFinalizedAtImpl,
 } from "./mentorSelections";
 
 describe("mentorSelections routes", () => {
@@ -123,6 +124,76 @@ describe("mentorSelections routes", () => {
       } catch (err: any) {
         expect(err.message).to.include("Invariant failed");
       }
+    });
+  });
+
+  describe("listLastBatchFinalizedAtImpl", () => {
+    it("should return the latest finalizedAt if a user has no drafts", async () => {
+      await db.MentorSelectionBatch.create(
+        { userId: mentee.id, finalizedAt: new Date("2024-01-01T00:00:00Z") },
+        { transaction },
+      );
+      await db.MentorSelectionBatch.create(
+        { userId: mentee.id, finalizedAt: new Date("2024-02-01T00:00:00Z") },
+        { transaction },
+      );
+
+      const result = await listLastBatchFinalizedAtImpl(transaction);
+      const userResult = result.find((r) => r.userId === mentee.id);
+
+      expect(userResult?.finalizedAt?.toISOString()).to.equal(
+        "2024-02-01T00:00:00.000Z",
+      );
+    });
+
+    it("should return null if a user has a draft (unfinalized batch)", async () => {
+      await db.MentorSelectionBatch.create(
+        { userId: mentee.id, finalizedAt: new Date("2024-01-01T00:00:00Z") },
+        { transaction },
+      );
+      await db.MentorSelectionBatch.create(
+        { userId: mentee.id, finalizedAt: null },
+        { transaction },
+      );
+
+      const result = await listLastBatchFinalizedAtImpl(transaction);
+      const userResult = result.find((r) => r.userId === mentee.id);
+
+      void expect(userResult?.finalizedAt).to.be.null;
+    });
+
+    it("should handle multiple users correctly", async () => {
+      const mentee2 = await db.User.create(
+        {
+          email: "mentee222@example.com",
+          name: "Test Mentee 2",
+          roles: [],
+        },
+        { transaction },
+      );
+
+      await db.MentorSelectionBatch.create(
+        { userId: mentee.id, finalizedAt: new Date("2024-01-01T00:00:00Z") },
+        { transaction },
+      );
+      await db.MentorSelectionBatch.create(
+        { userId: mentee2.id, finalizedAt: new Date("2024-01-01T00:00:00Z") },
+        { transaction },
+      );
+      await db.MentorSelectionBatch.create(
+        { userId: mentee2.id, finalizedAt: null },
+        { transaction },
+      );
+
+      const result = await listLastBatchFinalizedAtImpl(transaction);
+
+      const r1 = result.find((r) => r.userId === mentee.id);
+      expect(r1?.finalizedAt?.toISOString()).to.equal(
+        "2024-01-01T00:00:00.000Z",
+      );
+
+      const r2 = result.find((r) => r.userId === mentee2.id);
+      void expect(r2?.finalizedAt).to.be.null;
     });
   });
 

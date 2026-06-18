@@ -290,6 +290,27 @@ const listFinalizedBatches = procedure
  * @return the latest batch finalizedAt of all users. If a user has a draft
  * (i.e. unfinalized) batch, the returned value is null.
  */
+export async function listLastBatchFinalizedAtImpl(transaction?: Transaction) {
+  const rows = await db.MentorSelectionBatch.findAll({
+    attributes: [
+      "userId",
+      [fn("COUNT", col("id")), "totalCount"],
+      [fn("COUNT", col("finalizedAt")), "finalizedCount"],
+      [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
+    ],
+    group: ["userId"],
+    // Return the raw result, without wrapping it in Sequelize instances.
+    raw: true,
+    transaction,
+  });
+
+  return rows.map((row: any) => ({
+    userId: row.userId,
+    finalizedAt:
+      row.totalCount === row.finalizedCount ? row.maxFinalizedAt : null,
+  }));
+}
+
 const listLastBatchFinalizedAt = procedure
   .use(authUser(["MentorshipManager", "MentorshipOperator"]))
   .output(
@@ -301,23 +322,7 @@ const listLastBatchFinalizedAt = procedure
     ),
   )
   .query(async () => {
-    const rows = await db.MentorSelectionBatch.findAll({
-      attributes: [
-        "userId",
-        [fn("COUNT", col("id")), "totalCount"],
-        [fn("COUNT", col("finalizedAt")), "finalizedCount"],
-        [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
-      ],
-      group: ["userId"],
-      // Return the raw result, without wrapping it in Sequelize instances.
-      raw: true,
-    });
-
-    return rows.map((row: any) => ({
-      userId: row.userId,
-      finalizedAt:
-        row.totalCount === row.finalizedCount ? row.maxFinalizedAt : null,
-    }));
+    return await listLastBatchFinalizedAtImpl();
   });
 
 export default router({
