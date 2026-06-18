@@ -71,6 +71,19 @@ const getLastKudosCreatedAt = procedure
 /**
  * Kudos with null text is a like.
  */
+export async function createImpl(
+  meId: string,
+  userId: string,
+  text: string | null,
+  transaction: Transaction,
+) {
+  await createKudos(meId, userId, text, transaction);
+  await scheduleNotification("Kudos", userId, transaction);
+}
+
+/**
+ * Kudos with null text is a like.
+ */
 const create = procedure
   .use(authUser("Volunteer"))
   .input(
@@ -81,8 +94,7 @@ const create = procedure
   )
   .mutation(async ({ ctx: { me }, input: { userId, text } }) => {
     await sequelize.transaction(async (t) => {
-      await createKudos(me.id, userId, text, t);
-      await scheduleNotification("Kudos", userId, t);
+      await createImpl(me.id, userId, text, t);
     });
   });
 
