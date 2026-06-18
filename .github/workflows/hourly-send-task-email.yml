@@ -1,18 +1,17 @@
-name: Weekly Cron Jobs
+name: Hourly Send Tasks And Emails
 
 permissions: {}
 
 on:
   schedule:
-    # Runs at 2:42 AM China Standard Time every Friday.
-    - cron: "42 18 * * 4"
+    - cron: "10 * * * *"
   workflow_dispatch:
 
 jobs:
   run_scheduled_task:
     uses: ./.github/workflows/run-cron.yml
     with:
-      cron_tasks: "cron.auditLastMentorshipMeetings cron.recycleMeetings cron.purgeOldData"
+      cron_tasks: "cron.createAutoTasks cron.sendScheduledNotifications"
     secrets:
       SERVER_SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
       SERVER_SSH_USERNAME: ${{ secrets.SERVER_SSH_USERNAME }}

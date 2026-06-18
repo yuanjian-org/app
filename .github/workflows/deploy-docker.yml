@@ -106,14 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     strategy:
-      matrix:
-        include:
-          - host_id: host0
-            hostname_var: HOSTNAME0
-            env_files: ".env .env.ustc .env.xhef .env.demo"
-          - host_id: host1
-            hostname_var: HOSTNAME1
-            env_files: ".env.x"
+      matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX || '{"include":[{"host_id":"host0","hostname_var":"HOSTNAME0","env_files":".env .env.ustc .env.xhef .env.demo"},{"host_id":"host1","hostname_var":"HOSTNAME1","env_files":".env.x"}]}') }}
 
     steps:
     - name: Install SSH client
