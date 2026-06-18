@@ -8,6 +8,7 @@ import {
   EditableTextarea,
   ButtonGroup,
   Link,
+  Tooltip,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
@@ -43,32 +44,40 @@ export default function EditableWithIconOrLink({
     } = useEditableControls();
     return isEditing ? (
       <ButtonGroup size="sm">
-        <IconButton
-          aria-label="Confirm"
-          icon={<CheckIcon />}
-          {...getSubmitButtonProps()}
-          variant="unstyled"
-        />
-        <IconButton
-          aria-label="Cancel"
-          icon={<CloseIcon />}
-          {...getCancelButtonProps()}
-          variant="unstyled"
-        />
+        <Tooltip label="确认">
+          <IconButton
+            aria-label="Confirm"
+            icon={<CheckIcon />}
+            {...getSubmitButtonProps()}
+            variant="unstyled"
+          />
+        </Tooltip>
+        <Tooltip label="取消">
+          <IconButton
+            aria-label="Cancel"
+            icon={<CloseIcon />}
+            {...getCancelButtonProps()}
+            variant="unstyled"
+          />
+        </Tooltip>
       </ButtonGroup>
     ) : // If defaultValue is empty or null or undefined, show the icon button
     // even if the decorator is not icon so that the user can click on the
     // empty text to edit.
     decorator == "icon" || !value ? (
-      <IconButton
-        aria-label="Edit"
-        {...getEditButtonProps()}
-        variant="unstyled"
-        marginStart={2}
-        icon={
-          <MdEdit {...(decorator == "link" ? { color: linkBaseColor } : {})} />
-        }
-      />
+      <Tooltip label="编辑">
+        <IconButton
+          aria-label="Edit"
+          {...getEditButtonProps()}
+          variant="unstyled"
+          marginStart={2}
+          icon={
+            <MdEdit
+              {...(decorator == "link" ? { color: linkBaseColor } : {})}
+            />
+          }
+        />
+      </Tooltip>
     ) : (
       <></>
     );
