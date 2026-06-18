@@ -299,15 +299,15 @@ export async function listLastBatchFinalizedAtImpl(transaction?: Transaction) {
       [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
     ],
     group: ["userId"],
-    // Return the raw result, without wrapping it in Sequelize instances.
-    raw: true,
     transaction,
   });
 
   return rows.map((row: any) => ({
     userId: row.userId,
     finalizedAt:
-      row.totalCount === row.finalizedCount ? row.maxFinalizedAt : null,
+      row.get("totalCount") === row.get("finalizedCount")
+        ? row.get("maxFinalizedAt")
+        : null,
   }));
 }
 
