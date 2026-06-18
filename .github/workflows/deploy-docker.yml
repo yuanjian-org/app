@@ -156,7 +156,7 @@ jobs:
 
           for env_file in ${{ matrix.env_files }}; do
             echo ">>> Migrating $env_file database"
-            source $env_file
+            export $(sudo cat $env_file | xargs)
             curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
           done
 
