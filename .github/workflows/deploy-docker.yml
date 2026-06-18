@@ -111,9 +111,9 @@ jobs:
           - host_id: host0
             hostname_var: HOSTNAME0
             env_files: ".env .env.ustc .env.xhef .env.demo"
-          # - host_id: host1
-          #   hostname_var: HOSTNAME1
-          #   env_files: ".env.x"
+          - host_id: host1
+            hostname_var: HOSTNAME1
+            env_files: ".env.x"
 
     steps:
     - name: Install SSH client
