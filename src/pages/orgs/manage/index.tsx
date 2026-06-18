@@ -23,6 +23,7 @@ import {
   Th,
   Td,
   IconButton,
+  Tooltip,
   Tag,
   TagLabel,
   TagCloseButton,
@@ -95,12 +96,14 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
             </Tag>
           ))}
           {!showUserSelector ? (
-            <IconButton
-              aria-label="Add owner"
-              icon={<AddIcon />}
-              size="xs"
-              onClick={() => setShowUserSelector(true)}
-            />
+            <Tooltip label="Add owner">
+              <IconButton
+                aria-label="Add owner"
+                icon={<AddIcon />}
+                size="xs"
+                onClick={() => setShowUserSelector(true)}
+              />
+            </Tooltip>
           ) : (
             <Box w="200px">
               <UserSelector
@@ -113,14 +116,16 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
         </Wrap>
       </Td>
       <Td>
-        <IconButton
-          aria-label="Remove org"
-          icon={<DeleteIcon />}
-          colorScheme="red"
-          variant="ghost"
-          onClick={() => void handleRemoveOrg()}
-          isLoading={removeOrgMutation.isLoading}
-        />
+        <Tooltip label="Remove org">
+          <IconButton
+            aria-label="Remove org"
+            icon={<DeleteIcon />}
+            colorScheme="red"
+            variant="ghost"
+            onClick={() => void handleRemoveOrg()}
+            isLoading={removeOrgMutation.isLoading}
+          />
+        </Tooltip>
       </Td>
     </Tr>
   );

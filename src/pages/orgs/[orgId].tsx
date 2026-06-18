@@ -19,6 +19,7 @@ import {
   FormLabel,
   Textarea,
   IconButton,
+  Tooltip,
   Menu,
   MenuButton,
   MenuList,
@@ -107,12 +108,14 @@ export default widePage(() => {
           <HStack>
             {(canEdit || isGlobalAdmin) && (
               <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Options"
-                  icon={<HamburgerIcon />}
-                  variant="outline"
-                />
+                <Tooltip label="Options">
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Options"
+                    icon={<HamburgerIcon />}
+                    variant="outline"
+                  />
+                </Tooltip>
                 <MenuList>
                   {canEdit && (
                     <MenuItem icon={<EditIcon />} onClick={onOpen}>
@@ -169,20 +172,22 @@ export default widePage(() => {
                     </VStack>
                   </HStack>
                   {canEdit && (
-                    <IconButton
-                      aria-label="Remove mentor"
-                      icon={<DeleteIcon />}
-                      size="xs"
-                      position="absolute"
-                      top={2}
-                      right={2}
-                      colorScheme="red"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleRemoveMentor(mentor.id);
-                      }}
-                    />
+                    <Tooltip label="Remove mentor">
+                      <IconButton
+                        aria-label="Remove mentor"
+                        icon={<DeleteIcon />}
+                        size="xs"
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        colorScheme="red"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleRemoveMentor(mentor.id);
+                        }}
+                      />
+                    </Tooltip>
                   )}
                 </Box>
               ))}
