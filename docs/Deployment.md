@@ -50,17 +50,17 @@ Configure the following environment variables and secrets in GitHub Actions (Set
   }
   ```
 
-## 2. Set up host machines
+## 2. Prepare host machines
 
-1. `sudo apt install docker`
+1. `sudo snap install docker`
 1. `mkdir ~/app && echo APP_DOCKER_IMAGE=<image_name> > ~/app/.env`
 1. Create and populate per-white-label env`~/app/.env.*` according to the
 instructions in .env.template, 
 1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
 1. `sudo chown -R root:root ~/app`
-1. `sudo chmod 600 .env*`
+1. `sudo chmod 600 ~/app/.env*`
 
-## 3. Set up, renew and monitor SSL certificates
+## 3. Acquire, renew and monitor SSL certificates
 
 1. `sudo apt install certbot -y`
 1. `sudo mkdir ~/app/certbot`
