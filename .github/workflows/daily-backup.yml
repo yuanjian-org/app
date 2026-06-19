@@ -39,7 +39,7 @@ jobs:
           rm -rf backups/*
 
           for white_label in ${{ matrix.white_labels }}; do
-            env_file="~/app/.env.$white_label"
+            env_file="app/.env.$white_label"
             [ -e "$env_file" ] || continue
 
             # Extract DATABASE_URI and DATABASE_BACKUP_KEY
