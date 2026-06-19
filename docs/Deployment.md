@@ -21,13 +21,7 @@ Continuous deployment is done by Github Actions. See `.github/workflows/deploy-d
 
 ## 1. Configure GitHub Actions
 
-Configure the following environment variables and secrets in GitHub Actions (Settings > Secrets and Variables > Actions) to enable CI/CD and automated cron tasks.
-
-- **`DEPLOYMENT_MATRIX`**: A required GitHub Action variable that defines the dynamic matrix of deployment hosts.
-  Example format:
-  ```json
-  {"include":[{"host_id":"host0","hostname":"server1.example.com","env_files":".env.a .env.b"},{"host_id":"host1","hostname":"server2.example.com","env_files":".env.c"}]}
-  ```
+Configure the following environment variables and secrets in GitHub Actions (Settings > Secrets and Variables > Actions) to enable CI/CD and automated cron tasks. All the variables are required:
 
 - **`DOCKER_REPO_URL`**: URL of the Docker registry to push images to.
 - **`DOCKER_REPO_USERNAME`**: Username to authenticate with the Docker registry.
@@ -38,10 +32,22 @@ Configure the following environment variables and secrets in GitHub Actions (Set
 - **`SSH_USERNAME`**: The username to SSH into the servers during deployment.
 - **`SERVER_SSH_PRIVATE_KEY`**: (Secret) The private key to authenticate the SSH connection into the servers for deploying and backing up databases.
 
-- **`INTEGRATION_MATRIX`**: (Secret) A JSON map providing integration auth tokens for each hostname.
+- **`DEPLOYMENT_MATRIX`**: A matrix of deployment hosts.
   Example format:
   ```json
-  {"whitelabel1.example.com": "xxx", "whitelabel2.example.com": "yyy"}
+  {"include":[
+    {"host_id":"host0","hostname":"server1.example.com","env_files":".env.a .env.b"},
+    {"host_id":"host1","hostname":"server2.example.com","env_files":".env.c"}
+  ]}
+  ```
+
+- **`INTEGRATION_MATRIX`**: (Secret) A map of integration auth tokens for each hostname.
+  Example format:
+  ```json
+  {
+    "whitelabel1.example.com": "xxx", 
+    "whitelabel2.example.com": "yyy"
+  }
   ```
 
 ## 2. Set up host machines
