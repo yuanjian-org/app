@@ -62,11 +62,11 @@ jobs:
 
     - name: Download Backup Archive
       run: |
-        scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/app/all_backups.tar ./all_backups.tar
+        scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/all_backups.tar ./all_backups.tar
 
     - name: Clean up remote backup archive
       run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/app/all_backups.tar"
+        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/all_backups.tar"
 
     - name: Upload Backup to Artifacts
       uses: actions/upload-artifact@v4
