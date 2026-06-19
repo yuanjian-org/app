@@ -63,6 +63,6 @@ instructions in .env.template,
 
 1. `sudo apt install certbot -y`
 1. `sudo mkdir ~/app/certbot`
-1. Install the initial certs on the host machine by running `certbot certonly -d <domain>` for each domain name. When asked about the webroot, if the nginx container is not running, select 1. Otherwise, select `2` and then `$HOME/app/certbot` as the webroot. See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
-1. Modify `/etc/cron.d/certbot` and append `--webroot -w $HOME/app/certbot --deploy-hook 'docker compose --project-directory $HOME/app restart'` to certbot's command line. Replace `$HOME` with the actual home directory path. This allows the certbot to renew the certificate without requiring to stop the running server.
+1. Install the initial certs on the host machine by running `sudo certbot certonly -d <domain>` for each domain name. When asked about the webroot, if the nginx container is not running, select 1. Otherwise, select `2` and then `$HOME/app/certbot` as the webroot. See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
+1. Modify `/etc/cron.d/certbot` and append `--webroot -w <home>/app/certbot --deploy-hook 'APP_DOCKER_IMAGE=<image> docker compose --project-directory <home>/app restart'` to certbot's command line. Replace `<home>` with the home directory path and `<image>` with the value of `LOCAL_APP_DOCKER_IMAGE`. This allows the certbot to renew the certificate without requiring to stop the running server.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
