@@ -11,8 +11,7 @@ setting up environmental variables:
 # Local Docker deployment
 
 1. Create .env file in the project's root folder
-1. Set APP_DOCKER_IMAGE=<app_image_name> in .env, for example, "yuantu"
-1. Run `docker compose build` to build the image.
+1. Run `APP_DOCKER_IMAGE=yuantu docker compose build` to build the image.
 1. Generate SSL certificate, modify `docker-compose.yml` to point to the generated certificate and key files.
 
 # Production deployment
@@ -36,8 +35,8 @@ Configure the following environment variables and secrets in GitHub Actions (Set
   Example format:
   ```json
   {"include":[
-    {"host_id":"host0","hostname":"server1.example.com","env_files":".env.a .env.b"},
-    {"host_id":"host1","hostname":"server2.example.com","env_files":".env.c"}
+    {"host_id":"host0","hostname":"server1.example.com","white_labels":"a b"},
+    {"host_id":"host1","hostname":"server2.example.com","white_labels":"c"}
   ]}
   ```
 
@@ -53,7 +52,7 @@ Configure the following environment variables and secrets in GitHub Actions (Set
 ## 2. Prepare host machines
 
 1. `sudo snap install docker`
-1. `mkdir ~/app && echo APP_DOCKER_IMAGE=<image_name> > ~/app/.env`
+1. `mkdir ~/app`
 1. Create and populate per-white-label env`~/app/.env.*` according to the
 instructions in .env.template, 
 1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.

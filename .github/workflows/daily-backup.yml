@@ -38,7 +38,8 @@ jobs:
           mkdir -p backups
           rm -rf backups/*
 
-          for env_file in ${{ matrix.env_files }}; do
+          for white_label in ${{ matrix.white_labels }}; do
+            env_file=".env.$white_label"
             ENV="app/$env_file"
             [ -e "$ENV" ] || continue
 
