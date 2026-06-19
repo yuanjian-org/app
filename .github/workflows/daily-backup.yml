@@ -47,9 +47,9 @@ jobs:
             DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
 
             if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
-              echo "Backing up database for $env_file"
+              echo "Backing up database for $white_label"
               pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
-              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${env_file}.sql.gz.enc
+              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${white_label}.sql.gz.enc
               rm -f backup.sql backup.sql.gz
             else
               echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
