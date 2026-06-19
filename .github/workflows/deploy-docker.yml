@@ -102,17 +102,19 @@ jobs:
             StrictHostKeyChecking no
 
     - name: Deploy to server
+      env:
+        APP_DOCKER_IMAGE: ${{ vars.LOCAL_APP_DOCKER_IMAGE }}
       run: |
         ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
           set -e
           cd ~/app
 
           echo ">>> Pulling docker images"
-          sudo docker compose pull
+          sudo APP_DOCKER_IMAGE=${{ env.APP_DOCKER_IMAGE }} docker compose pull
 
           echo ">>> Extracting docker-compose.yml & nginx.conf"
           sudo docker rm temp_extract || true
-          sudo docker create --name temp_extract ${{ vars.LOCAL_APP_DOCKER_IMAGE }}:latest
+          sudo docker create --name temp_extract ${{ env.APP_DOCKER_IMAGE }}:latest
           sudo docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
           sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
           sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
@@ -120,13 +122,14 @@ jobs:
           sudo docker rm temp_extract
 
           echo ">>> Restarting Docker containers"
-          sudo docker compose down --remove-orphans
-          sudo docker compose up -d
+          sudo APP_DOCKER_IMAGE=${{ env.APP_DOCKER_IMAGE }} docker compose down --remove-orphans
+          sudo APP_DOCKER_IMAGE=${{ env.APP_DOCKER_IMAGE }} docker compose up -d
 
           echo ">>> Waiting for containers to boot up"
           sleep 5
 
-          for env_file in ${{ matrix.env_files }}; do
+          for white_label in ${{ matrix.white_labels }}; do
+            env_file=".env.$white_label"
             echo ">>> Migrating $env_file database"
             export $(sudo cat $env_file | xargs)
             curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase

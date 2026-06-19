@@ -1,24 +1,24 @@
 services:
-  app:
+  yuantu:
     image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: app
-    env_file: .env
+    container_name: yuantu
+    env_file: .env.yuantu
     build:
       context: .
       platforms:
         - linux/amd64
       target: runner
-  app-demo:
+  demo:
     image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: app-demo
+    container_name: demo
     env_file: .env.demo
-  app-ustc:
+  ustc:
     image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: app-ustc
+    container_name: ustc
     env_file: .env.ustc
-  app-xhef:
+  xhef:
     image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: app-xhef
+    container_name: xhef
     env_file: .env.xhef
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
@@ -33,7 +33,7 @@ services:
       - "443:443"
       - "80:80"
     depends_on:
-      - app
-      - app-demo
-      - app-ustc
-      - app-xhef
+      - yuantu
+      - demo
+      - ustc
+      - xhef
