@@ -13,5 +13,4 @@ jobs:
     uses: ./.github/workflows/run-curl.yml
     with:
       cron_tasks: "cron.auditLastMentorshipMeetings cron.recycleMeetings cron.purgeOldData"
-    secrets:
-      INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
+    secrets: inherit

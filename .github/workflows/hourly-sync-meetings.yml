@@ -20,5 +20,4 @@ jobs:
     uses: ./.github/workflows/run-curl.yml
     with:
       cron_tasks: "cron.syncMeetings"
-    secrets:
-      INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
+    secrets: inherit

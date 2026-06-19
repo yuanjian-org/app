@@ -7,9 +7,6 @@ on:
         description: 'Space-separated list of cron tasks to run (e.g. cron.syncMeetings)'
         required: true
         type: string
-    secrets:
-      INTEGRATION_MATRIX:
-        required: true
 
 jobs:
   setup:
