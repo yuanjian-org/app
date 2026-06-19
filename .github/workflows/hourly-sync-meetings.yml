@@ -1,4 +1,4 @@
-name: Hourly Sync Yuantu Meetings
+name: Hourly Sync Meetings
 
 permissions: {}
 
@@ -17,9 +17,7 @@ on:
 
 jobs:
   run_scheduled_task:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Sync meetings
-        run: |
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.syncMeetings
+    uses: ./.github/workflows/run-curl.yml
+    with:
+      cron_tasks: "cron.syncMeetings"
+    secrets: inherit

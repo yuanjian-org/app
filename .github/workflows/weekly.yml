@@ -10,17 +10,7 @@ on:
 
 jobs:
   run_scheduled_task:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Audit last mentorship meetings
-        run: |
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.auditLastMentorshipMeetings
-
-      - name: Recycle meetings
-        run: |
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.recycleMeetings
-
-      - name: Purge old data
-        run: |
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.INTEGRATION_AUTH_TOKEN }}" https://${{ vars.SERVER_HOSTNAME }}/api/v1/cron.purgeOldData
+    uses: ./.github/workflows/run-curl.yml
+    with:
+      cron_tasks: "cron.auditLastMentorshipMeetings cron.recycleMeetings cron.purgeOldData"
+    secrets: inherit

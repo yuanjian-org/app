@@ -17,7 +17,40 @@ setting up environmental variables:
 
 # Production deployment
 
-Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`. Prior to the first run of this Action, do the folloing on the server(s) that will be deployed to:
+Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`.
+
+## 1. Configure GitHub Actions
+
+Configure the following environment variables and secrets in GitHub Actions (Settings > Secrets and Variables > Actions) to enable CI/CD and automated cron tasks. All the variables are required:
+
+- **`DOCKER_REPO_URL`**: URL of the Docker registry to push images to.
+- **`DOCKER_REPO_USERNAME`**: Username to authenticate with the Docker registry.
+- **`DOCKER_REPO_PASSWORD`**: (Secret) Password/token for the Docker registry.
+- **`REMOTE_APP_DOCKER_IMAGE`**: The Docker image name/tag to be pushed to the production server.
+- **`LOCAL_APP_DOCKER_IMAGE`**: The Docker image name to be pulled from the production server. (Often uses the repo's internal domain name if hosted within the same VPC to speed up the pull).
+
+- **`SSH_USERNAME`**: The username to SSH into the servers during deployment.
+- **`SERVER_SSH_PRIVATE_KEY`**: (Secret) The private key to authenticate the SSH connection into the servers for deploying and backing up databases.
+
+- **`DEPLOYMENT_MATRIX`**: A matrix of deployment hosts.
+  Example format:
+  ```json
+  {"include":[
+    {"host_id":"host0","hostname":"server1.example.com","env_files":".env.a .env.b"},
+    {"host_id":"host1","hostname":"server2.example.com","env_files":".env.c"}
+  ]}
+  ```
+
+- **`INTEGRATION_MATRIX`**: (Secret) A map of integration auth tokens for each hostname.
+  Example format:
+  ```json
+  {
+    "whitelabel1.example.com": "xxx", 
+    "whitelabel2.example.com": "yyy"
+  }
+  ```
+
+## 2. Set up host machines
 
 1. `sudo apt install docker`
 1. `mkdir ~/app && echo APP_DOCKER_IMAGE=<image_name> > ~/app/.env`
@@ -27,7 +60,7 @@ instructions in .env.template,
 1. `sudo chown -R root:root ~/app`
 1. `sudo chmod 600 .env*`
 
-## SSL certification setup, renewal, and monitoring
+## 3. Set up, renew and monitor SSL certificates
 
 1. `sudo apt install certbot -y`
 1. `sudo mkdir ~/app/certbot`

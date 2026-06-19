@@ -1,0 +1,49 @@
+name: Run Curl
+
+on:
+  workflow_call:
+    inputs:
+      cron_tasks:
+        description: 'Space-separated list of cron tasks to run (e.g. cron.syncMeetings)'
+        required: true
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      hostnames: ${{ steps.extract-keys.outputs.hostnames }}
+    steps:
+      - name: Extract Hostnames
+        id: extract-keys
+        env:
+          INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
+        run: |
+          # Extract keys from the JSON object and format as a JSON array string
+          HOSTNAMES_JSON=$(echo "$INTEGRATION_MATRIX" | jq -c 'keys')
+          echo "hostnames=$HOSTNAMES_JSON" >> $GITHUB_OUTPUT
+
+  run_tasks:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        hostname: ${{ fromJSON(needs.setup.outputs.hostnames) }}
+
+    steps:
+    - name: Run Tasks
+      env:
+        INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
+      run: |
+        # Securely extract the token for this hostname from the JSON secret using jq
+        AUTH_TOKEN=$(echo "$INTEGRATION_MATRIX" | jq -r --arg host "${{ matrix.hostname }}" '.[$host]')
+
+        if [ "$AUTH_TOKEN" = "null" ] || [ -z "$AUTH_TOKEN" ]; then
+          echo "Error: Integration token not found for ${{ matrix.hostname }} in INTEGRATION_MATRIX secret."
+          exit 1
+        fi
+
+        for task in ${{ inputs.cron_tasks }}; do
+          echo ">>> Running $task for ${{ matrix.hostname }}"
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${AUTH_TOKEN}" "https://${{ matrix.hostname }}/api/v1/${task}"
+        done
