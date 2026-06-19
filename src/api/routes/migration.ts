@@ -20,6 +20,10 @@ export async function migrateDatabase() {
 
 async function migrateSchema() {
   console.log("Migrating DB schema...");
+
+  // NOTE: This runs BEFORE sequelize.sync() which means the enum type might not be updated yet.
+  // Sequelize sync alter will update the enum type enum_Users_roles to include the new ones.
+
   await Promise.resolve();
 }
 
