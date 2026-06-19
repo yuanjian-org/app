@@ -35,7 +35,8 @@ jobs:
           set -e
           cd ~/app
 
-          mkdir -p backups
+          sudo mkdir -p backups
+          sudo chown `whoami` backups
           rm -rf backups/*
 
           for env_file in ${{ matrix.env_files }}; do
