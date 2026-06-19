@@ -1,7 +1,9 @@
 services:
-  x:
+  # The container for the "x" white label deployment. Docker doesn't allow 
+  # single letter container names.
+  xx:
     image: ${APP_DOCKER_IMAGE:?}:latest
-    container_name: x
+    container_name: xx
     env_file: .env.x
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
@@ -16,4 +18,4 @@ services:
       - "443:443"
       - "80:80"
     depends_on:
-      - x
+      - xx
