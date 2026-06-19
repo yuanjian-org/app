@@ -24,7 +24,6 @@ services:
       - "443:443"
       - "80:80"
     depends_on:
-      - yuantu
       - demo
       - ustc
       - xhef
