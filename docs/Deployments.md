@@ -10,12 +10,6 @@ This document explains the necessary environment variables and secrets you need 
   {"include":[{"host_id":"host0","hostname":"server1.example.com","env_files":".env .env.ustc .env.demo"},{"host_id":"host1","hostname":"server2.example.com","env_files":".env.x"}]}
   ```
 
-- **`INTEGRATION_MATRIX`**: A required GitHub Action variable that defines the targets and integration tokens for API calls over the `run-curl.yml` workflow for executing Cron tasks securely over HTTPS without SSH access.
-  Example format:
-  ```json
-  {"include":[{"hostname":"yuantuapp.com"},{"hostname":"demo.yuantuapp.com"}]}
-  ```
-
 ## Docker Configuration
 
 - **`DOCKER_REPO_URL`**: URL of the Docker registry to push images to.
@@ -28,10 +22,9 @@ This document explains the necessary environment variables and secrets you need 
 
 - **`SSH_USERNAME`**: The username to SSH into the servers during deployment.
 - **`SERVER_SSH_PRIVATE_KEY`**: (Secret) The private key to authenticate the SSH connection into the servers for deploying and backing up databases.
-- **`SERVER_SSH_USERNAME`**: (Secret) The user to SSH into the servers to run cron backups.
 
 ## Cron Tasks Configuration
-- **`INTEGRATION_AUTH_TOKENS_JSON`**: (Secret) A JSON map providing integration auth tokens for each hostname.
+- **`INTEGRATION_MATRIX`**: (Secret) A JSON map providing integration auth tokens for each hostname.
   Example format:
   ```json
   {"yuantuapp.com": "xxx", "demo.yuantuapp.com": "yyy"}

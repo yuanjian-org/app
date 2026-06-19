@@ -21,4 +21,4 @@ jobs:
     with:
       cron_tasks: "cron.syncMeetings"
     secrets:
-      INTEGRATION_AUTH_TOKENS_JSON: ${{ secrets.INTEGRATION_AUTH_TOKENS_JSON }}
+      INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}

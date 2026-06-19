@@ -8,25 +8,41 @@ on:
         required: true
         type: string
     secrets:
-      INTEGRATION_AUTH_TOKENS_JSON:
+      INTEGRATION_MATRIX:
         required: true
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      hostnames: ${{ steps.extract-keys.outputs.hostnames }}
+    steps:
+      - name: Extract Hostnames
+        id: extract-keys
+        env:
+          INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
+        run: |
+          # Extract keys from the JSON object and format as a JSON array string
+          HOSTNAMES_JSON=$(echo "$INTEGRATION_MATRIX" | jq -c 'keys')
+          echo "hostnames=$HOSTNAMES_JSON" >> $GITHUB_OUTPUT
+
   run_tasks:
+    needs: setup
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(vars.INTEGRATION_MATRIX) }}
+      matrix:
+        hostname: ${{ fromJSON(needs.setup.outputs.hostnames) }}
 
     steps:
     - name: Run Tasks
       env:
-        INTEGRATION_AUTH_TOKENS_JSON: ${{ secrets.INTEGRATION_AUTH_TOKENS_JSON }}
+        INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
       run: |
         # Securely extract the token for this hostname from the JSON secret using jq
-        AUTH_TOKEN=$(echo "$INTEGRATION_AUTH_TOKENS_JSON" | jq -r --arg host "${{ matrix.hostname }}" '.[$host]')
+        AUTH_TOKEN=$(echo "$INTEGRATION_MATRIX" | jq -r --arg host "${{ matrix.hostname }}" '.[$host]')
 
         if [ "$AUTH_TOKEN" = "null" ] || [ -z "$AUTH_TOKEN" ]; then
-          echo "Error: Integration token not found for ${{ matrix.hostname }} in INTEGRATION_AUTH_TOKENS_JSON secret."
+          echo "Error: Integration token not found for ${{ matrix.hostname }} in INTEGRATION_MATRIX secret."
           exit 1
         fi
 
