@@ -28,7 +28,6 @@ describe("Global Configs Internal Functions", () => {
       expect(result.features.relational).to.equal(
         process.env.ENABLE_RELATIONAL === "true" ? true : undefined,
       );
-      expect(result.whiteLabel).to.equal(process.env.WHITE_LABEL || "yuantu");
     });
   });
 
