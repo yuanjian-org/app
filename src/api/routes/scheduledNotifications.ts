@@ -45,42 +45,46 @@ const minDelayInMinutes = 5;
 
 export async function sendScheduledNotifications() {
   await sequelize.transaction(async (transaction) => {
-    const all = await db.ScheduledNotification.findAll({
-      attributes: ["id", "type", "subjectId", "createdAt"],
+    await sendScheduledNotificationsImpl(transaction);
+  });
+}
+
+export async function sendScheduledNotificationsImpl(transaction: Transaction) {
+  const all = await db.ScheduledNotification.findAll({
+    attributes: ["id", "type", "subjectId", "createdAt"],
+    transaction,
+  });
+  console.log(`Found ${all.length} scheduled notification`);
+
+  for (const row of all) {
+    const delayed = moment(row.createdAt).add(minDelayInMinutes, "minutes");
+    if (delayed.isAfter(moment())) {
+      console.log(`Delaying notification with row id ${row.id}`);
+      continue;
+    }
+
+    // Offset by 1 second to counter any time skew at commit time.
+    const timestamp = moment(row.createdAt).subtract(1, "second");
+
+    switch (row.type) {
+      case "Kudos":
+        await notifyKudos(row.subjectId, timestamp, transaction);
+        break;
+      case "Chat":
+        await notifyChats(row.subjectId, timestamp, transaction);
+        break;
+      case "Task":
+        await notifyTasks(row.subjectId, timestamp, transaction);
+        break;
+      default:
+        invariant(false, `Unknown scheduled notification type: ${row.type}`);
+    }
+
+    await db.ScheduledNotification.destroy({
+      where: { id: row.id },
       transaction,
     });
-    console.log(`Found ${all.length} scheduled notification`);
-
-    for (const row of all) {
-      const delayed = moment(row.createdAt).add(minDelayInMinutes, "minutes");
-      if (delayed.isAfter(moment())) {
-        console.log(`Delaying notification with row id ${row.id}`);
-        continue;
-      }
-
-      // Offset by 1 second to counter any time skew at commit time.
-      const timestamp = moment(row.createdAt).subtract(1, "second");
-
-      switch (row.type) {
-        case "Kudos":
-          await notifyKudos(row.subjectId, timestamp, transaction);
-          break;
-        case "Chat":
-          await notifyChats(row.subjectId, timestamp, transaction);
-          break;
-        case "Task":
-          await notifyTasks(row.subjectId, timestamp, transaction);
-          break;
-        default:
-          invariant(false, `Unknown scheduled notification type: ${row.type}`);
-      }
-
-      await db.ScheduledNotification.destroy({
-        where: { id: row.id },
-        transaction,
-      });
-    }
-  });
+  }
 }
 
 async function notifyTasks(
