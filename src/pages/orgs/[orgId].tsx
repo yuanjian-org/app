@@ -25,6 +25,7 @@ import {
   MenuItem,
   Alert,
   AlertIcon,
+  Tooltip,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
@@ -169,20 +170,22 @@ export default widePage(() => {
                     </VStack>
                   </HStack>
                   {canEdit && (
-                    <IconButton
-                      aria-label="Remove mentor"
-                      icon={<DeleteIcon />}
-                      size="xs"
-                      position="absolute"
-                      top={2}
-                      right={2}
-                      colorScheme="red"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleRemoveMentor(mentor.id);
-                      }}
-                    />
+                    <Tooltip label="移除导师">
+                      <IconButton
+                        aria-label="Remove mentor"
+                        icon={<DeleteIcon />}
+                        size="xs"
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        colorScheme="red"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleRemoveMentor(mentor.id);
+                        }}
+                      />
+                    </Tooltip>
                   )}
                 </Box>
               ))}

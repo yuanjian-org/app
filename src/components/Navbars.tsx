@@ -2,7 +2,7 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import { ReactNode, useCallback, useRef, useState } from "react";
-import { IconButton, Box, useDisclosure } from "@chakra-ui/react";
+import { IconButton, Box, useDisclosure, Tooltip } from "@chakra-ui/react";
 import { FiMenu } from "react-icons/fi";
 import colors from "theme/colors";
 import AutosaveIndicator, {
@@ -97,18 +97,20 @@ export default function Navbars({ children }: { children: ReactNode }) {
 function SidebarIconForMobile({ onOpen }: { onOpen: () => void }) {
   return (
     <>
-      <IconButton
-        position="fixed"
-        zIndex={2}
-        top={mobileSidbarIconTop}
-        right={4}
-        onClick={onOpen}
-        variant="outline"
-        aria-label="open menu"
-        icon={<FiMenu />}
-        bg="white"
-        shadow="sm"
-      />
+      <Tooltip label="打开菜单">
+        <IconButton
+          position="fixed"
+          zIndex={2}
+          top={mobileSidbarIconTop}
+          right={4}
+          onClick={onOpen}
+          variant="outline"
+          aria-label="open menu"
+          icon={<FiMenu />}
+          bg="white"
+          shadow="sm"
+        />
+      </Tooltip>
       <SidbarIconRedDot />
     </>
   );
