@@ -1,0 +1,36 @@
+name: Run Curl
+
+on:
+  workflow_call:
+    inputs:
+      cron_tasks:
+        description: 'Space-separated list of cron tasks to run (e.g. cron.syncMeetings)'
+        required: true
+        type: string
+    secrets:
+      INTEGRATION_AUTH_TOKENS_JSON:
+        required: true
+
+jobs:
+  run_tasks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(vars.INTEGRATION_MATRIX) }}
+
+    steps:
+    - name: Run Tasks
+      env:
+        INTEGRATION_AUTH_TOKENS_JSON: ${{ secrets.INTEGRATION_AUTH_TOKENS_JSON }}
+      run: |
+        # Securely extract the token for this hostname from the JSON secret using jq
+        AUTH_TOKEN=$(echo "$INTEGRATION_AUTH_TOKENS_JSON" | jq -r --arg host "${{ matrix.hostname }}" '.[$host]')
+
+        if [ "$AUTH_TOKEN" = "null" ] || [ -z "$AUTH_TOKEN" ]; then
+          echo "Error: Integration token not found for ${{ matrix.hostname }} in INTEGRATION_AUTH_TOKENS_JSON secret."
+          exit 1
+        fi
+
+        for task in ${{ inputs.cron_tasks }}; do
+          echo ">>> Running $task for ${{ matrix.hostname }}"
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${AUTH_TOKEN}" "https://${{ matrix.hostname }}/api/v1/${task}"
+        done

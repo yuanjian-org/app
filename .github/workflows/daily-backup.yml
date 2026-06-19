@@ -13,7 +13,7 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX || '{"include":[{"host_id":"host0","hostname_var":"HOSTNAME0","env_files":".env .env.ustc .env.xhef .env.demo"},{"host_id":"host1","hostname_var":"HOSTNAME1","env_files":".env.x"}]}') }}
+      matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
     - name: Install SSH client
@@ -23,15 +23,15 @@ jobs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars[matrix.hostname_var] }}
+        known_hosts: ${{ matrix.hostname }}
         config: |
-          Host ${{ vars[matrix.hostname_var] }}
+          Host ${{ matrix.hostname }}
             User ${{ secrets.SERVER_SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Execute Backup on Server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
           set -e
           cd ~/app
 
@@ -61,11 +61,11 @@ jobs:
 
     - name: Download Backup Archive
       run: |
-        scp ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }}:~/app/all_backups.tar ./all_backups.tar
+        scp ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }}:~/app/all_backups.tar ./all_backups.tar
 
     - name: Clean up remote backup archive
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} "rm -f ~/app/all_backups.tar"
+        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/app/all_backups.tar"
 
     - name: Upload Backup to Artifacts
       uses: actions/upload-artifact@v4

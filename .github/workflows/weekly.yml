@@ -10,9 +10,8 @@ on:
 
 jobs:
   run_scheduled_task:
-    uses: ./.github/workflows/run-cron.yml
+    uses: ./.github/workflows/run-curl.yml
     with:
       cron_tasks: "cron.auditLastMentorshipMeetings cron.recycleMeetings cron.purgeOldData"
     secrets:
-      SERVER_SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-      SERVER_SSH_USERNAME: ${{ secrets.SERVER_SSH_USERNAME }}
+      INTEGRATION_AUTH_TOKENS_JSON: ${{ secrets.INTEGRATION_AUTH_TOKENS_JSON }}

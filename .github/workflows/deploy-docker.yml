@@ -1,24 +1,3 @@
-# Configure Github Actions seretes and variables at
-#   Settings > Secrets and Variables > Actions:
-#
-#   DOCKER_REPO_URL
-#   DOCKER_REPO_USERNAME
-#   DOCKER_REPO_PASSWORD: The repository information for the Docker container to
-#     be pushed.
-#
-#   REMOTE_APP_DOCKER_IMAGE: The Docker image name to be pushed to the 
-#     production server.
-#   LOCAL_APP_DOCKER_IMAGE: The Docker image name to be pulled from the
-#     production server. Because it's possible that the Docker repo is hoseted 
-#     with in the same VPC of the production server, the local Docker image name
-#     may use the repo's internal domain name to speed up the pull.
-#
-#   HOSTNAME<N>: Hostname of the N-th server
-#   SSH_USERNAME: The username to SSH into the servers.
-#   secrets.SSH_PRIVATE_KEY: The private key to SSH into the servers.
-#
-# Finally, push to main to trigger this Github Action.
-#
 name: Deploy Docker
 
 permissions:
@@ -106,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     strategy:
-      matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX || '{"include":[{"host_id":"host0","hostname_var":"HOSTNAME0","env_files":".env .env.ustc .env.xhef .env.demo"},{"host_id":"host1","hostname_var":"HOSTNAME1","env_files":".env.x"}]}') }}
+      matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
     - name: Install SSH client
@@ -116,15 +95,15 @@ jobs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ vars[matrix.hostname_var] }}
+        known_hosts: ${{ matrix.hostname }}
         config: |
-          Host ${{ vars[matrix.hostname_var] }}
+          Host ${{ matrix.hostname }}
             User ${{ vars.SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Deploy to server
       run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ vars[matrix.hostname_var] }} << 'EOF'
+        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
           set -e
           cd ~/app
 
