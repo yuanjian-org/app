@@ -58,11 +58,18 @@ instructions in .env.template,
 1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
 1. `sudo chown -R root:root ~/app`
 1. `sudo chmod 600 ~/app/.env*`
+1. Add Github Actions' SSH public key to `~/.ssh/authorized_keys`.
+
+For convenience of day-to-day admin operations (optional):
+
+1. Add `cd ~/app` to the end of `~/.bashrc`.
+1. Create `~/.env` with content `APP_DOCKER_IMAGE=<image>`. Replace "<image>" with the value of `LOCAL_APP_DOCKER_IMAGE`.
 
 ## 3. Acquire, renew and monitor SSL certificates
 
 1. `sudo apt install certbot -y`
 1. `sudo mkdir ~/app/certbot`
-1. Install the initial certs on the host machine by running `certbot certonly -d <domain>` for each domain name. When asked about the webroot, if the nginx container is not running, select 1. Otherwise, select `2` and then `$HOME/app/certbot` as the webroot. See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
-1. Modify `/etc/cron.d/certbot` and append `--webroot -w $HOME/app/certbot --deploy-hook 'docker compose --project-directory $HOME/app restart'` to certbot's command line. Replace `$HOME` with the actual home directory path. This allows the certbot to renew the certificate without requiring to stop the running server.
+1. Install the initial certs on the host machine by running `sudo certbot certonly -d <domain>` for each domain name. When asked about the webroot, if the nginx container is not running, select 1. Otherwise, select `2` and then `$HOME/app/certbot` as the webroot. See more at http://letsencrypt.org/ and https://certbot.eff.org/instructions.
+1. Modify `/etc/cron.d/certbot` and append `--webroot -w <home>/app/certbot --deploy-hook 'APP_DOCKER_IMAGE=<image> docker compose --project-directory <home>/app restart'` to certbot's command line. Replace `<home>` with the home directory path and `<image>` with the value of `LOCAL_APP_DOCKER_IMAGE`. This allows the certbot to renew the certificate without requiring to stop the running server.
+1. **REMEMBER**: For Aliyun ECS machines, reboot the host after a new domain name is acquired. For some reason Docker on these machines can't recognize the new certificate files otherwise.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.

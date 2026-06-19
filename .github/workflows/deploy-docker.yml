@@ -130,7 +130,7 @@ jobs:
 
           for white_label in ${{ matrix.white_labels }}; do
             env_file=".env.$white_label"
-            echo ">>> Migrating $env_file database"
+            echo ">>> Migrating $white_label database"
             export $(sudo cat $env_file | xargs)
             curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
           done

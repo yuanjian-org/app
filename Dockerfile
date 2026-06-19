@@ -1,9 +1,4 @@
-################################################################################
-# START BOILTERPLATE. Directly copied from                                     #
-# https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile#
-#                                                                              #
-# DO NOT EDIT BELOW CONTENT. Add customization only after END BIOLTERPLATE     #
-################################################################################
+# Content templated from https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile#
 
 FROM node:24-alpine AS base
 
@@ -62,13 +57,8 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Include files needed for deployment in the image
-COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.host0.yml ./
-COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.host1.yml ./
-COPY --from=builder --chown=nextjs:nodejs /app/nginx.host0.conf ./
-COPY --from=builder --chown=nextjs:nodejs /app/nginx.host1.conf ./
-COPY --from=builder --chown=nextjs:nodejs /app/nginx.proxy.conf ./
-COPY --from=builder --chown=nextjs:nodejs /app/nginx.ssl.conf ./
+COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.*.yml ./
+COPY --from=builder --chown=nextjs:nodejs /app/nginx.*.conf ./
 
 USER nextjs
 
@@ -80,7 +70,3 @@ ENV PORT=3000
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
-
-#############################
-# END BIOLTERPLATE          #
-#############################
