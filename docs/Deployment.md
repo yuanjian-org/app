@@ -58,6 +58,7 @@ instructions in .env.template,
 1. Copy docker-compose.host<N>.yml to `~/app/docker-compose.yml`.
 1. `sudo chown -R root:root ~/app`
 1. `sudo chmod 600 ~/app/.env*`
+1. Add Github Actions' SSH public key to `~/.ssh/authorized_keys`.
 
 ## 3. Acquire, renew and monitor SSL certificates
 
