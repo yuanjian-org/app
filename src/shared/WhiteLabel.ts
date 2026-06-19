@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const WHITE_LABELS = ["yuantu", "demo", "ustc", "xhef", "x"] as const;
+export const WHITE_LABELS = [
+  "yuantu",
+  "demo",
+  "ustc",
+  "xhef",
+  "x",
+  "yqd",
+  "sylp",
+] as const;
 
 export const zWhiteLabel = z.enum(WHITE_LABELS);
 

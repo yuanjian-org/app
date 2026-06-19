@@ -1,16 +1,18 @@
 import { Link, Wrap, WrapItem, WrapProps } from "@chakra-ui/react";
 import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
+import { useIsStaticConfigsReady, useWhiteLabel } from "./useStaticConfigs";
 
-export default function Footer({
-  icpIndex = 4,
-  beianNo = "33010802014263",
-  ...rest
-}: {
-  icpIndex?: number;
-  beianNo?: string;
-} & WrapProps) {
+export default function Footer({ ...rest }: WrapProps) {
   const color = "gray.400";
+  const beian = "33010802014263";
+  const isReady = useIsStaticConfigsReady();
+  const whiteLabel = useWhiteLabel();
+
+  const isSongding = whiteLabel === "yqd" || whiteLabel === "sylp";
+  const icp = isSongding ? "沪ICP备2021004288号" : "浙ICP备2024117465号-4";
+
+  if (!isReady) return null;
 
   return (
     <Wrap
@@ -23,22 +25,28 @@ export default function Footer({
       mx={pageMarginX}
       {...rest}
     >
-      <WrapItem>
-        &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
-      </WrapItem>
-      <WrapItem>
-        <Link
-          color={color}
-          isExternal
-          href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beianNo}`}
-          rel="noreferrer"
-        >
-          浙公网安备{beianNo}
-        </Link>
-      </WrapItem>
+      {!isSongding && (
+        <WrapItem>
+          &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
+        </WrapItem>
+      )}
+
+      {!isSongding && (
+        <WrapItem>
+          <Link
+            color={color}
+            isExternal
+            href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beian}`}
+            rel="noreferrer"
+          >
+            浙公网安备{beian}
+          </Link>
+        </WrapItem>
+      )}
+
       <WrapItem>
         <Link color={color} isExternal href="http://beian.miit.gov.cn/">
-          浙ICP备2024117465号-{icpIndex}
+          {icp}
         </Link>
       </WrapItem>
     </Wrap>
