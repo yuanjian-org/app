@@ -23,7 +23,7 @@ import { staticUrlPrefix } from "static";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 
-export default function YiqiduLandingPage() {
+export default function YqdLandingPage() {
   return (
     <VStack minHeight="100vh">
       <Head>
@@ -77,7 +77,7 @@ export default function YiqiduLandingPage() {
           <Heading size="lg">欢迎来到“易起读”公益阅读平台</Heading>
 
           <Text fontSize="lg">
-            “易起读”是由上海颂鼎社会公益创新发展中心（SSIC）主导的社会创新项目，致力于通过阅读联结社区，推动文化共享与终身学习。
+            “易起读”是由上海颂鼎社会公益创新发展中心主导的社会创新项目，致力于通过阅读联结社区，推动文化共享与终身学习。
           </Text>
 
           <Box mt={4}>
@@ -106,7 +106,7 @@ export default function YiqiduLandingPage() {
 
           <Text>
             在这个平台上，我们期待每一位参与者都能找到属于自己的位置，共同构建一个“联结共生、永续创新”的学习型社区。
-            “远图”系统为易起读项目提供全方位的平台支持。
+            此系统为易起读项目提供全方位的平台支持。
           </Text>
 
           <Button

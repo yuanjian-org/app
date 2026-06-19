@@ -16,7 +16,7 @@ import {
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
-import YiqiduLandingPage from "./YiqiduLandingPage";
+import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
 import PageLoader from "./PageLoader";
 
@@ -54,8 +54,8 @@ export default function StaticPageContainer({
     return <DemoLandingPage />;
   }
 
-  if (whiteLabel === "yiqidu") {
-    return <YiqiduLandingPage />;
+  if (whiteLabel === "yqd") {
+    return <YqdLandingPage />;
   }
 
   if (whiteLabel === "sylp") {

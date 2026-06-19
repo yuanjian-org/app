@@ -6,7 +6,7 @@ export const WHITE_LABELS = [
   "ustc",
   "xhef",
   "x",
-  "yiqidu",
+  "yqd",
   "sylp",
 ] as const;
 

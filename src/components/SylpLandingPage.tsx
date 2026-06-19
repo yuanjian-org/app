@@ -60,7 +60,7 @@ export default function SylpLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              Login / 登录
+              登录 ｜ Login
             </Button>
           </HStack>
         </Flex>
@@ -83,7 +83,7 @@ export default function SylpLandingPage() {
               在这里，优秀的国际留学生将与行业顶尖导师同行，深入探索社会创新、可持续发展及企业社会责任（CSR）。项目旨在通过多元视角的碰撞与真实案例的研讨，激发创新思维，培养解决全球性复杂问题的能力，助力青年领袖在全球舞台上发出中国声音，贡献青春力量。
             </Text>
             <Text fontSize="md">
-              “远图”平台为本项目提供全链路的导师匹配与项目管理服务，护航您的创新与成长之旅。
+              网站平台为本项目提供全链路的导师匹配与项目管理服务，护航您的创新与成长之旅。
             </Text>
           </VStack>
 
@@ -112,7 +112,7 @@ export default function SylpLandingPage() {
               stage.
             </Text>
             <Text fontSize="md">
-              The platform provides comprehensive mentor matching and project
+              This platform provides comprehensive mentor matching and project
               management services for this initiative, safeguarding your journey
               of innovation and growth.
             </Text>
@@ -128,7 +128,7 @@ export default function SylpLandingPage() {
             rightIcon={<ChevronRightIcon />}
             width={{ base: "100%", md: "auto" }}
           >
-            进入系统 / Enter the System
+            进入系统 ｜ Enter
           </Button>
         </Flex>
       </Box>
