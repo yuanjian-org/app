@@ -51,6 +51,7 @@ Configure the following environment variables and secrets in GitHub Actions (Set
 
 ## 2. Prepare host machines
 
+1. `sudo apt install postgresql-client-*common*`
 1. `sudo snap install docker`
 1. `mkdir ~/app`
 1. Create and populate per-white-label env`~/app/.env.*` according to the
