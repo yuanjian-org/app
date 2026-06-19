@@ -19,7 +19,9 @@ describe("scheduledNotifications", () => {
   beforeEach(async () => {
     transaction = await sequelize.transaction();
     notifyStub = sinon.stub(notifyModule, "notify").resolves();
-    notifyRolesStub = sinon.stub(notifyModule, "notifyRolesIgnoreError").returns();
+    notifyRolesStub = sinon
+      .stub(notifyModule, "notifyRolesIgnoreError")
+      .returns();
   });
 
   afterEach(async () => {
@@ -83,7 +85,7 @@ describe("scheduledNotifications", () => {
 
       // Notification shouldn't be deleted since it was delayed
       expect(count).to.equal(1);
-      expect(notifyStub.called).to.be.false;
+      expect(notifyStub.called).to.equal(false);
     });
 
     it("should process and delete Task notifications if old enough", async () => {
@@ -142,8 +144,8 @@ describe("scheduledNotifications", () => {
       });
 
       expect(count).to.equal(0);
-      expect(notifyStub.calledOnce).to.be.true;
-      expect(notifyRolesStub.calledOnce).to.be.true;
+      expect(notifyStub.calledOnce).to.equal(true);
+      expect(notifyRolesStub.calledOnce).to.equal(true);
     });
 
     it("should process and delete Task notifications even if no tasks remain", async () => {
@@ -176,7 +178,7 @@ describe("scheduledNotifications", () => {
 
       // It should delete the notification, but NOT call notify since there are no tasks
       expect(count).to.equal(0);
-      expect(notifyStub.called).to.be.false;
+      expect(notifyStub.called).to.equal(false);
     });
 
     it("should process Kudos notifications", async () => {
@@ -244,8 +246,8 @@ describe("scheduledNotifications", () => {
       });
 
       expect(count).to.equal(0);
-      expect(notifyStub.calledOnce).to.be.true;
-      expect(notifyRolesStub.calledOnce).to.be.true;
+      expect(notifyStub.calledOnce).to.equal(true);
+      expect(notifyRolesStub.calledOnce).to.equal(true);
     });
 
     it("should process Chat notifications", async () => {
@@ -326,8 +328,7 @@ describe("scheduledNotifications", () => {
 
       expect(count).to.equal(0);
       // It should call notify once since we only have one mentorship
-      expect(notifyStub.calledOnce).to.be.true;
+      expect(notifyStub.calledOnce).to.equal(true);
     });
-
   });
 });
