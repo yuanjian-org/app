@@ -39,21 +39,20 @@ jobs:
           rm -rf backups/*
 
           for white_label in ${{ matrix.white_labels }}; do
-            env_file=".env.$white_label"
-            ENV="app/$env_file"
-            [ -e "$ENV" ] || continue
+            env_file="~/app/.env.$white_label"
+            [ -e "$env_file" ] || continue
 
             # Extract DATABASE_URI and DATABASE_BACKUP_KEY
-            DATABASE_URI=$(sudo grep '^DATABASE_URI=' "$ENV" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
-            DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$ENV" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            DATABASE_URI=$(sudo grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+            DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
 
             if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
-              echo "Backing up database for $ENV"
+              echo "Backing up database for $env_file"
               pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
               openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${env_file}.sql.gz.enc
               rm -f backup.sql backup.sql.gz
             else
-              echo "Skipping $ENV: DATABASE_URI or DATABASE_BACKUP_KEY not found."
+              echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
             fi
           done
 
