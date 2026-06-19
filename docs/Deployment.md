@@ -60,6 +60,11 @@ instructions in .env.template,
 1. `sudo chmod 600 ~/app/.env*`
 1. Add Github Actions' SSH public key to `~/.ssh/authorized_keys`.
 
+For convenience of day-to-day admin operations (optional):
+
+1. Add `cd ~/app` to the end of `~/.bashrc`.
+1. Create `~/.env` with content `APP_DOCKER_IMAGE=<image>`. Replace "<image>" with the value of `LOCAL_APP_DOCKER_IMAGE`.
+
 ## 3. Acquire, renew and monitor SSL certificates
 
 1. `sudo apt install certbot -y`
