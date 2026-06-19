@@ -14,5 +14,9 @@ jobs:
 
     steps:
       - name: Reset demo data
+        env:
+          INTEGRATION_MATRIX: ${{ secrets.INTEGRATION_MATRIX }}
         run: |
-          curl --fail-with-body -X POST -H "Authorization: Bearer ${{ secrets.DEMO_INTEGRATION_AUTH_TOKEN }}" https://${{ vars.DEMO_SERVER_HOSTNAME }}/api/v1/cron.resetDemoData
+          CLEAN_MATRIX=$(printf '%s\n' "$INTEGRATION_MATRIX" | perl -0777 -pe 's/,\s*\}/}/g')
+          AUTH_TOKEN=$(echo "$CLEAN_MATRIX" | jq -r '."demo.yuantuapp.com"')
+          curl --fail-with-body -X POST -H "Authorization: Bearer ${AUTH_TOKEN}" https://demo.yuantuapp.com/api/v1/cron.resetDemoData
