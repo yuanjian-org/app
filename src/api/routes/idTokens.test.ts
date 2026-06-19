@@ -439,8 +439,8 @@ describe("resetPasswordImpl", () => {
   });
 
   describe("privileged user restrictions", () => {
-    it("should throw error for UserManager role", async () => {
-      await createTestUser("phone", testPhone, ["UserManager"]);
+    it("should throw error for UserAdmin role", async () => {
+      await createTestUser("phone", testPhone, ["UserAdmin"]);
       await createTestIdToken("phone", testPhone, testToken);
 
       try {
@@ -458,8 +458,8 @@ describe("resetPasswordImpl", () => {
       }
     });
 
-    it("should throw error for GroupManager role", async () => {
-      await createTestUser("phone", testPhone, ["GroupManager"]);
+    it("should throw error for GroupAdmin role", async () => {
+      await createTestUser("phone", testPhone, ["GroupAdmin"]);
       await createTestIdToken("phone", testPhone, testToken);
 
       try {
@@ -615,7 +615,7 @@ describe("resetPasswordImpl", () => {
   describe("transaction handling", () => {
     it("should rollback on error", async () => {
       // Create a user with privileged role to trigger error
-      await createTestUser("phone", testPhone, ["UserManager"]);
+      await createTestUser("phone", testPhone, ["UserAdmin"]);
       await createTestIdToken("phone", testPhone, testToken);
 
       try {

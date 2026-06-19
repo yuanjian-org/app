@@ -75,7 +75,7 @@ export async function createMentorBooking(
 
   const baseUrl = getBaseUrl();
   await notifyRoles(
-    ["MentorshipManager", "MentorshipOperator"],
+    ["MentorshipAdmin", "MentorshipOperator"],
     "不定期导师预约请求",
     `请访问 ${baseUrl}/mentors/bookings 查看详情，并尽快为学生安排沟通`,
     transaction,
@@ -83,7 +83,7 @@ export async function createMentorBooking(
 }
 
 const list = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(z.array(zMentorBooking))
   .query(async () => {
     return await db.MentorBooking.findAll({
@@ -93,7 +93,7 @@ const list = procedure
   });
 
 const update = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(
     z.object({
       id: z.string(),

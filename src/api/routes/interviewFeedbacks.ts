@@ -76,7 +76,7 @@ export async function getInterviewFeedbackImpl(
   if (f.interviewer.id == me.id) return f;
 
   if (!allowOnlyInterviewer) {
-    if (isPermitted(me.roles, "MentorshipManager")) return f;
+    if (isPermitted(me.roles, "MentorshipAdmin")) return f;
 
     // Check if the user is a participant of the interview's calibration and the
     // calibration is active.

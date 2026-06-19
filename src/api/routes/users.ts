@@ -55,7 +55,7 @@ import { getWhiteLabel } from "../getWhiteLabel";
 import * as selfModule from "./users";
 
 const create = procedure
-  .use(authUser("UserManager"))
+  .use(authUser("UserAdmin"))
   .input(
     z.object({
       name: z.string(),
@@ -95,9 +95,9 @@ const create = procedure
 const list = procedure
   .use(
     authUser([
-      "UserManager",
-      "GroupManager",
-      "MentorshipManager",
+      "UserAdmin",
+      "GroupAdmin",
+      "MentorshipAdmin",
       "MentorshipOperator",
     ]),
   )
@@ -122,7 +122,7 @@ export async function listImpl(
 }> {
   if (
     (filter.includeMerged === true || filter.returnMergeInfo === true) &&
-    !isPermitted(me.roles, "UserManager")
+    !isPermitted(me.roles, "UserAdmin")
   ) {
     throw noPermissionError(
       "数据",
@@ -313,7 +313,7 @@ const listMentors = procedure
       ) &&
       !isPermitted(me.roles, [
         "Mentor",
-        "MentorshipManager",
+        "MentorshipAdmin",
         "MentorshipOperator",
       ])
     ) {
@@ -359,11 +359,11 @@ const zListMentorStatsOutput = z.array(
 export type ListMentorStatsOutput = z.infer<typeof zListMentorStatsOutput>;
 
 /**
- * Compared to listMentorsRoute, this route is restricted to MentorshipManager
+ * Compared to listMentorsRoute, this route is restricted to MentorshipAdmin
  * access.
  */
 const listMentorStats = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(zListMentorStatsOutput)
   .query(listMentorStatsImpl);
 
@@ -465,9 +465,9 @@ export async function updateImpl(
     throw notFoundError("用户", input.id);
   }
 
-  const isUserManager = isPermitted(me.roles, "UserManager");
-  if (!isUserManager) {
-    // Non-UserManagers can only update their own profile.
+  const isUserAdmin = isPermitted(me.roles, "UserAdmin");
+  if (!isUserAdmin) {
+    // Non-UserAdmins can only update their own profile.
     if (me.id !== input.id) {
       throw noPermissionError("用户", input.id);
     }
@@ -511,8 +511,8 @@ export async function updateImpl(
         transaction,
       })),
 
-      // fields that only UserManagers can change
-      ...(isUserManager && {
+      // fields that only UserAdmins can change
+      ...(isUserAdmin && {
         roles: input.roles,
         email,
         phone,
@@ -536,7 +536,7 @@ export async function updateWechatUnionId(
   wechatUnionId: string | null | undefined,
   transaction: Transaction,
 ) {
-  invariant(isPermitted(myRoles, "UserManager"), `role violation`);
+  invariant(isPermitted(myRoles, "UserAdmin"), `role violation`);
 
   if (wechatUnionId === undefined) return;
 
@@ -580,7 +580,7 @@ const setUserPreference = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { userId, preference } }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -594,7 +594,7 @@ const setUserPreference = procedure
   });
 
 const setMenteeStatus = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       userId: z.string(),
@@ -620,7 +620,7 @@ const get = procedure
     return await sequelize.transaction(async (transaction) => {
       if (
         me.id !== userId &&
-        !isPermitted(me.roles, "UserManager") &&
+        !isPermitted(me.roles, "UserAdmin") &&
         !(await isPermittedtoAccessMentor(me, userId, transaction)) &&
         !(await isPermittedtoAccessMentee(
           me,
@@ -651,7 +651,7 @@ const getFull = procedure
   .input(z.string())
   .output(zUser)
   .query(async ({ ctx: { me }, input: userId }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -673,7 +673,7 @@ const getUserPreference = procedure
   )
   .output(zUserPreference)
   .query(async ({ ctx: { me }, input: { userId } }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -750,7 +750,7 @@ const getUserProfile = procedure
     if (
       me.id !== u.id &&
       // These roles can access profiles of all the users
-      !isPermitted(me.roles, ["Mentor", "MentorshipManager", "UserManager"]) &&
+      !isPermitted(me.roles, ["Mentor", "MentorshipAdmin", "UserAdmin"]) &&
       // Volunteers who are not in the roles above can only access other
       // volunteers profiles
       !(
@@ -786,7 +786,7 @@ const setUserProfile = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { userId, profile } }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "UserManager")) {
+    if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
       throw noPermissionError("用户", userId);
     }
 
@@ -810,8 +810,8 @@ const getUserState = procedure
     if (
       userId !== me.id &&
       !isPermitted(me.roles, [
-        "UserManager",
-        "MentorshipManager",
+        "UserAdmin",
+        "MentorshipAdmin",
         "MentorshipOperator",
       ])
     ) {
@@ -881,7 +881,7 @@ export async function setMyStateImpl(
 }
 
 const setPointOfContactAndNote = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(
     z.object({
       userId: z.string(),
@@ -906,12 +906,12 @@ const setPointOfContactAndNote = procedure
   });
 
 /**
- * Only MentorshipManager, MentorshipOperator, mentor of the applicant,
+ * Only MentorshipAdmin, MentorshipOperator, mentor of the applicant,
  * interviewers of the applicant, participants of the calibration (only if the
  * calibration is active), and the user themselves are allowed to call this
  * route.
  *
- * If the user is not an MentorshipManager, MentorshipOperator or the user being
+ * If the user is not an MentorshipAdmin, MentorshipOperator or the user being
  * requested, contact information is redacted.
  */
 const getApplicant = procedure
@@ -957,7 +957,7 @@ const getApplicant = procedure
 
       if (
         me.id === userId ||
-        isPermitted(me.roles, ["MentorshipManager", "MentorshipOperator"])
+        isPermitted(me.roles, ["MentorshipAdmin", "MentorshipOperator"])
       ) {
         return ret;
       }
@@ -1022,7 +1022,7 @@ const getApplicant = procedure
  * TODO: Support etag. Refer to `interviewFeedbacks.update`.
  */
 const setApplication = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       userId: z.string(),
@@ -1071,7 +1071,7 @@ const listPriviledgedUserDataAccess = procedure
   });
 
 const destroy = procedure
-  .use(authUser("UserManager"))
+  .use(authUser("UserAdmin"))
   .input(
     z.object({
       id: z.string(),
@@ -1168,7 +1168,7 @@ export async function isPermittedtoAccessMentee(
   action: "any" | "readMetadata" = "any",
 ) {
   return (
-    isPermitted(me.roles, "MentorshipManager") ||
+    isPermitted(me.roles, "MentorshipAdmin") ||
     (action === "readMetadata" &&
       isPermitted(me.roles, "MentorshipOperator")) ||
     (await db.Mentorship.count({

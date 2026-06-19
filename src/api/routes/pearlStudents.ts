@@ -58,7 +58,7 @@ export async function validateImpl(
 
   if (!student) {
     notifyRolesIgnoreError(
-      ["UserManager"],
+      ["UserAdmin"],
       "珍珠生验证失败",
       `用户 ${me.id} 认证珍珠生失败：` +
         `"${name}"、"${pearlId}"、"${nationalIdLastFour}"`,
@@ -69,14 +69,14 @@ export async function validateImpl(
 
   if (student.userId) {
     notifyRolesIgnoreError(
-      ["UserManager"],
+      ["UserAdmin"],
       "珍珠生重复验证",
       `用户 ${me.id} （${name}）试图用已被验证的` +
         `珍珠生号 ${pearlId} 进行验证。请联系学生管理员。`,
     );
 
     throw generalBadRequestError(
-      `此珍珠生号已被验证。` + `请联系${displayName("UserManager")}。`,
+      `此珍珠生号已被验证。` + `请联系${displayName("UserAdmin")}。`,
     );
   }
 

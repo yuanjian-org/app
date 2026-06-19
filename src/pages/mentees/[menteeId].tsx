@@ -162,7 +162,7 @@ function MenteeTabs({
         {features.interviews && <Tab>申请表信息</Tab>}
 
         {features.interviews &&
-          isPermitted(me.roles, ["Mentor", "MentorshipManager"]) && (
+          isPermitted(me.roles, ["Mentor", "MentorshipAdmin"]) && (
             <Tab>面试页</Tab>
           )}
 
@@ -189,7 +189,7 @@ function MenteeTabs({
         )}
 
         {features.interviews &&
-          isPermitted(me.roles, ["Mentor", "MentorshipManager"]) && (
+          isPermitted(me.roles, ["Mentor", "MentorshipAdmin"]) && (
             <InterviewTabPanel menteeId={mentee.id} />
           )}
 
@@ -330,7 +330,7 @@ function MentorshipSummaryCard({ m }: { m: Mentorship }) {
 
               <Text>
                 此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
-                {displayName("MentorshipManager")}。
+                {displayName("MentorshipAdmin")}。
               </Text>
             </HStack>
           )}

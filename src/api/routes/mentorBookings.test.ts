@@ -63,7 +63,7 @@ describe("Mentor Bookings Router", () => {
 
       const notifyArgs = notifyRolesStub.firstCall.args;
       expect(notifyArgs[0]).to.deep.equal([
-        "MentorshipManager",
+        "MentorshipAdmin",
         "MentorshipOperator",
       ]);
       expect(notifyArgs[1]).to.equal("不定期导师预约请求");

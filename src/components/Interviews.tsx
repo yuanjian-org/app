@@ -57,9 +57,8 @@ export default function Interviews({
 }) {
   const myRoles = useMyRoles();
 
-  // Show interviewee statuses only to MentorshipManagers
-  const showStatus =
-    forCalibration && isPermitted(myRoles, "MentorshipManager");
+  // Show interviewee statuses only to MentorshipAdmins
+  const showStatus = forCalibration && isPermitted(myRoles, "MentorshipAdmin");
 
   return !interviews ? (
     <Loader />

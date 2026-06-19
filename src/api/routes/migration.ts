@@ -21,11 +21,38 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
+  // NOTE: This runs BEFORE sequelize.sync() which means the enum type might not be updated yet.
+  // Sequelize sync alter will update the enum type enum_Users_roles to include the new ones.
+
   await Promise.resolve();
 }
 
 async function migrateData() {
   console.log("Migrating DB data...");
+
+  // Only run the query if Users table exists
+  const [results] = await sequelize.query(
+    "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Users');",
+  );
+  if ((results as any[])[0].exists) {
+    // Replace old roles with new roles
+    // Since sequelize sync has run, the enum_Users_roles type should contain both old and new roles.
+    await sequelize.query(`
+      UPDATE "Users"
+      SET "roles" = (
+        SELECT array_agg(
+          CASE
+            WHEN role::text = 'UserManager' THEN 'UserAdmin'
+            WHEN role::text = 'GroupManager' THEN 'GroupAdmin'
+            WHEN role::text = 'MentorshipManager' THEN 'MentorshipAdmin'
+            ELSE role::text
+          END
+        )::enum_Users_roles[]
+        FROM unnest("roles") AS role
+      )
+      WHERE "roles"::text[] && ARRAY['UserManager', 'GroupManager', 'MentorshipManager'];
+    `);
+  }
 
   await Promise.resolve();
 }

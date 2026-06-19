@@ -48,13 +48,13 @@ describe("nextauth jwt callback", () => {
     void expect(findByPkStub.called).to.be.false;
   });
 
-  it("should set impersonateTokenKey if user is UserManager", async () => {
+  it("should set impersonateTokenKey if user is UserAdmin", async () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
 
     const user = await db.User.create(
-      { name: "Test User", email: "test1@test.com", roles: ["UserManager"] },
+      { name: "Test User", email: "test1@test.com", roles: ["UserAdmin"] },
       { transaction },
     );
     const token = { sub: user.id };
@@ -66,7 +66,7 @@ describe("nextauth jwt callback", () => {
     void expect(findByPkStub.calledOnceWith(user.id)).to.be.true;
   });
 
-  it("should throw error if user is not UserManager", async () => {
+  it("should throw error if user is not UserAdmin", async () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
@@ -97,7 +97,7 @@ describe("nextauth jwt callback", () => {
       {
         name: "Test User 123",
         email: "test1234@test.com",
-        roles: ["UserManager"],
+        roles: ["UserAdmin"],
         mergedTo: actualUser.id,
       },
       { transaction },
@@ -117,7 +117,7 @@ describe("nextauth jwt callback", () => {
     expect(findByPkStub.secondCall.args[0]).to.equal(actualUser.id);
   });
 
-  it("should allow impersonation if mergedTo actual user is UserManager", async () => {
+  it("should allow impersonation if mergedTo actual user is UserAdmin", async () => {
     const jwtCallback = authOptions().callbacks!.jwt! as (
       params: any,
     ) => Promise<any>;
@@ -125,7 +125,7 @@ describe("nextauth jwt callback", () => {
       {
         name: "Test User 456",
         email: "test4567@test.com",
-        roles: ["UserManager"],
+        roles: ["UserAdmin"],
       },
       { transaction },
     );

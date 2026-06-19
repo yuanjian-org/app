@@ -422,7 +422,7 @@ function UserEditor({
               />
             </FormControl>
 
-            {isPermitted(myRoles, "UserManager") && (
+            {isPermitted(myRoles, "UserAdmin") && (
               <FormControl>
                 <FormLabel>角色</FormLabel>
                 <Stack>

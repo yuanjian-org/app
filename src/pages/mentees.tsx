@@ -188,7 +188,7 @@ export default fullPage(() => {
               showMatchState={showMatchState}
               refetch={refetch}
               isDemo={isDemo}
-              isUserManager={isPermitted(me.roles, "UserManager")}
+              isUserAdmin={isPermitted(me.roles, "UserAdmin")}
             />
             <Text fontSize="sm" color="gray" mt={4} mb={4} ml={4}>
               共 <b>{users.length}</b> 名
@@ -206,13 +206,13 @@ function MenteeTable({
   refetch,
   showMatchState,
   isDemo,
-  isUserManager,
+  isUserAdmin,
 }: {
   users: User[];
   refetch: () => void;
   showMatchState: boolean;
   isDemo?: boolean;
-  isUserManager: boolean;
+  isUserAdmin: boolean;
 }) {
   const [mentee2year, setMentee2year] = useState<Record<string, string>>({});
   const setYear = useCallback((userId: string, year: string) => {
@@ -405,7 +405,7 @@ function MenteeTable({
             addSortOrder={addSortOrder}
           />
 
-          {!isDemo && isUserManager && (
+          {!isDemo && isUserAdmin && (
             <>
               <Th>下载</Th>
               <Th>匿名 ID</Th>
@@ -427,7 +427,7 @@ function MenteeTable({
             setLastMeetingStartedAt={setLastMeetingStartedAt}
             showMatchState={showMatchState}
             isDemo={isDemo}
-            isUserManager={isUserManager}
+            isUserAdmin={isUserAdmin}
             year={mentee2year[u.id]}
           />
         ))}
@@ -482,7 +482,7 @@ function MenteeRow({
   setLastMeetingStartedAt,
   showMatchState,
   isDemo,
-  isUserManager,
+  isUserAdmin,
   year,
 }: {
   user: User;
@@ -494,7 +494,7 @@ function MenteeRow({
   setLastMeetingStartedAt: (userId: string, date: string) => void;
   showMatchState: boolean;
   isDemo?: boolean;
-  isUserManager: boolean;
+  isUserAdmin: boolean;
   year?: string;
 }) {
   const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
@@ -556,7 +556,7 @@ function MenteeRow({
         setData={setLastMentorReviewDate}
       />
 
-      {!isDemo && isUserManager && (
+      {!isDemo && isUserAdmin && (
         <>
           <Td>
             <Tooltip label="下载学生数据">

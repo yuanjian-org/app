@@ -46,7 +46,7 @@ export function PointOfContactCells({
     refetch();
   };
 
-  if (isPermitted(useMyRoles(), ["MentorshipManager", "MentorshipOperator"])) {
+  if (isPermitted(useMyRoles(), ["MentorshipAdmin", "MentorshipOperator"])) {
     return (
       <>
         {editing && (

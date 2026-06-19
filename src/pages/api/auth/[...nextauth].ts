@@ -120,7 +120,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
                 });
             invariant(me, "me not found");
 
-            if (!isPermitted(me.roles, "UserManager")) {
+            if (!isPermitted(me.roles, "UserAdmin")) {
               throw noPermissionError("用户", impersonate);
             }
             token[impersonateTokenKey] = impersonate;

@@ -65,7 +65,7 @@ function LoadedApplicant({
   const myRoles = useMyRoles();
   const isMentee = type == "MenteeInterview";
   const imPrivileged = isPermitted(myRoles, [
-    "MentorshipManager",
+    "MentorshipAdmin",
     "MentorshipOperator",
   ]);
 

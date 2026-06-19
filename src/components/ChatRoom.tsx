@@ -206,7 +206,7 @@ function Message({
           {/* The Add 1:1 icon */}
           {!editing &&
             !m.markdown.startsWith(typedMessagePrefix) &&
-            isPermitted(me.roles, "MentorshipManager") && (
+            isPermitted(me.roles, "MentorshipAdmin") && (
               <>
                 <Spacer />
                 <Tooltip label={`增加${oneOnOneMessagePrefix}前缀`}>
@@ -219,7 +219,7 @@ function Message({
 
           {/* The Edit Time icon */}
           {!editing &&
-            isPermitted(me.roles, "MentorshipManager") &&
+            isPermitted(me.roles, "MentorshipAdmin") &&
             globalConfig?.showEditMessageTimeButton && (
               <>
                 <Spacer />
@@ -475,7 +475,7 @@ function Editor({
               key={p}
               value={
                 p == menteeReviewMessagePrefix
-                  ? p + `仅${displayName("MentorshipManager")}可见：`
+                  ? p + `仅${displayName("MentorshipAdmin")}可见：`
                   : p
               }
             >

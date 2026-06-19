@@ -31,8 +31,8 @@ describe("Group Authorization", () => {
   };
 
   describe("isPermittedToAccessGroupHistory", () => {
-    it("should allow a user with the GroupManager role to access group history", () => {
-      const user: User = { ...mockUserBase, roles: ["GroupManager"] };
+    it("should allow a user with the GroupAdmin role to access group history", () => {
+      const user: User = { ...mockUserBase, roles: ["GroupAdmin"] };
       const group: Group = { ...mockGroupBase };
 
       const result = isPermittedToAccessGroupHistory(user, group);
@@ -50,7 +50,7 @@ describe("Group Authorization", () => {
       void expect(result).to.be.true;
     });
 
-    it("should not allow a user without the GroupManager role and not in the group to access group history", () => {
+    it("should not allow a user without the GroupAdmin role and not in the group to access group history", () => {
       const user: User = {
         ...mockUserBase,
         id: "non-member",
@@ -79,8 +79,8 @@ describe("Group Authorization", () => {
       void expect(result).to.be.true;
     });
 
-    it("should allow a GroupManager to access a private group", () => {
-      const user: User = { ...mockUserBase, roles: ["GroupManager"] };
+    it("should allow a GroupAdmin to access a private group", () => {
+      const user: User = { ...mockUserBase, roles: ["GroupAdmin"] };
       const group: Group = { ...mockGroupBase, public: false };
 
       const result = isPermittedToAccessGroup(user, group);
@@ -99,7 +99,7 @@ describe("Group Authorization", () => {
       void expect(result).to.be.true;
     });
 
-    it("should not allow a non-member without GroupManager role to access a private group", () => {
+    it("should not allow a non-member without GroupAdmin role to access a private group", () => {
       const user: User = {
         ...mockUserBase,
         id: "non-member",

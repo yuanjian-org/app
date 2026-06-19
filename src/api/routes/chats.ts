@@ -216,12 +216,12 @@ const updateMessage = procedure
 
 /**
  * Insert one-on-one message prefix to the message. Only allowed if:
- * 1. The user is a MentorshipManager,
+ * 1. The user is a MentorshipAdmin,
  * 2. The room is owneed by a mentee for mentorship, and:
  * 2. The message must not already have any prefix.
  */
 const insertOneOnOneMessagePrefix = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       messageId: z.string(),
@@ -234,10 +234,10 @@ const insertOneOnOneMessagePrefix = procedure
   });
 
 /**
- * Update the creation time of a message. Only allowed for MentorshipManagers.
+ * Update the creation time of a message. Only allowed for MentorshipAdmins.
  */
 const updateMessageCreationTime = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       messageId: z.string(),

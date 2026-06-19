@@ -151,7 +151,7 @@ export function InterviewDecisionEditor({
       defaultFeedback={decision}
       etag={etag}
       save={save}
-      readonly={readonly || !isPermitted(myRoles, "MentorshipManager")}
+      readonly={readonly || !isPermitted(myRoles, "MentorshipAdmin")}
       showDimensions={false}
     />
   );

@@ -135,7 +135,7 @@ const join = procedure
 const decline = procedure.use(authUser()).mutation(async ({ ctx: { me } }) => {
   await sequelize.transaction(async (transaction) => {
     await notifyRoles(
-      ["MentorshipManager"],
+      ["MentorshipAdmin"],
       "用户拒绝使用会议功能",
       `${formatUserName(me.name)}（用户ID: ${me.id}）拒绝使用会议功能。请与其取得联系，
       商量解决方案。`,
