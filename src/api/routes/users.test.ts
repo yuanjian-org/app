@@ -53,7 +53,7 @@ describe("updateWechatUnionId", () => {
       {
         email: "test@example.com",
         name: "Test User",
-        roles: ["UserManager"],
+        roles: ["UserAdmin"],
         wechatUnionId: oldWechatUnionId,
       },
       { transaction },
@@ -98,7 +98,7 @@ describe("updateWechatUnionId", () => {
     );
 
     await updateWechatUnionId(
-      ["UserManager"],
+      ["UserAdmin"],
       testUser.id,
       newWechatUnionId,
       transaction,
@@ -121,7 +121,7 @@ describe("updateWechatUnionId", () => {
   });
 
   it("should set wechatUnionId to null if null is provided", async () => {
-    await updateWechatUnionId(["UserManager"], testUser.id, null, transaction);
+    await updateWechatUnionId(["UserAdmin"], testUser.id, null, transaction);
 
     const updatedUser = await db.User.findByPk(testUser.id, { transaction });
     void expect(updatedUser?.wechatUnionId).to.be.null;
@@ -129,7 +129,7 @@ describe("updateWechatUnionId", () => {
 
   it("should do nothing if undefined is provided", async () => {
     await updateWechatUnionId(
-      ["UserManager"],
+      ["UserAdmin"],
       testUser.id,
       undefined,
       transaction,
@@ -139,7 +139,7 @@ describe("updateWechatUnionId", () => {
     expect(updatedUser?.wechatUnionId).to.equal(oldWechatUnionId);
   });
 
-  it("should throw invariant if user is not a UserManager", async () => {
+  it("should throw invariant if user is not a UserAdmin", async () => {
     try {
       await updateWechatUnionId(
         ["Volunteer"],
@@ -156,7 +156,7 @@ describe("updateWechatUnionId", () => {
   it("should throw invariant if target user does not exist", async () => {
     try {
       await updateWechatUnionId(
-        ["UserManager"],
+        ["UserAdmin"],
         "00000000-0000-0000-0000-000000000000",
         "some_id",
         transaction,
@@ -172,7 +172,7 @@ describe("updateWechatUnionId", () => {
     // completes successfully.
     // An indirect way is to ensure no accounts are deleted
     await updateWechatUnionId(
-      ["UserManager"],
+      ["UserAdmin"],
       testUser.id,
       oldWechatUnionId,
       transaction,
@@ -212,7 +212,7 @@ describe("updateImpl", () => {
       {
         email: `manager-${Date.now()}-${crypto.randomUUID()}@example.com`,
         name: "李经理",
-        roles: ["UserManager"],
+        roles: ["UserAdmin"],
       },
       { transaction },
     );
@@ -270,7 +270,7 @@ describe("updateImpl", () => {
     }
   });
 
-  it("should throw noPermissionError when a non-UserManager tries to update someone else", async () => {
+  it("should throw noPermissionError when a non-UserAdmin tries to update someone else", async () => {
     try {
       await updateImpl(meNormal, baseInput(targetUser), transaction);
       expect.fail("Should have thrown");
@@ -279,11 +279,11 @@ describe("updateImpl", () => {
     }
   });
 
-  it("should throw noPermissionError when a non-UserManager tries to modify roles", async () => {
+  it("should throw noPermissionError when a non-UserAdmin tries to modify roles", async () => {
     try {
       await updateImpl(
         meNormal,
-        { ...baseInput(meNormal), roles: ["Volunteer", "UserManager"] },
+        { ...baseInput(meNormal), roles: ["Volunteer", "UserAdmin"] },
         transaction,
       );
       expect.fail("Should have thrown");
@@ -292,7 +292,7 @@ describe("updateImpl", () => {
     }
   });
 
-  it("should successfully update own profile (non-UserManager)", async () => {
+  it("should successfully update own profile (non-UserAdmin)", async () => {
     const input = { ...baseInput(meNormal), wechat: "new_wechat" };
     await updateImpl(meNormal, input, transaction);
 
@@ -300,7 +300,7 @@ describe("updateImpl", () => {
     expect(updated?.wechat).to.equal("new_wechat");
   });
 
-  it("should ensure non-UserManagers cannot change email or phone", async () => {
+  it("should ensure non-UserAdmins cannot change email or phone", async () => {
     const input = {
       ...baseInput(meNormal),
       email: "hacked@example.com",
@@ -316,7 +316,7 @@ describe("updateImpl", () => {
     expect(updated?.phone).to.equal(meNormal.phone);
   });
 
-  it("should successfully update another user's profile (UserManager)", async () => {
+  it("should successfully update another user's profile (UserAdmin)", async () => {
     const input = { ...baseInput(targetUser), wechat: "manager_set_wechat" };
     await updateImpl(meManager, input, transaction);
 
@@ -324,7 +324,7 @@ describe("updateImpl", () => {
     expect(updated?.wechat).to.equal("manager_set_wechat");
   });
 
-  it("should successfully update another user's email and phone (UserManager)", async () => {
+  it("should successfully update another user's email and phone (UserAdmin)", async () => {
     const input = {
       ...baseInput(targetUser),
       email: "new_email@example.com",
@@ -337,7 +337,7 @@ describe("updateImpl", () => {
     expect(updated?.phone).to.equal("12345678901");
   });
 
-  it("should successfully update roles (UserManager)", async () => {
+  it("should successfully update roles (UserAdmin)", async () => {
     const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] };
     await updateImpl(meManager, input, transaction);
 
@@ -392,7 +392,7 @@ describe("updateImpl", () => {
     void expect(updated?.url).to.equal("exampleurl123");
   });
 
-  it("should update wechatUnionId when UserManager updates", async () => {
+  it("should update wechatUnionId when UserAdmin updates", async () => {
     const input = { ...baseInput(targetUser), wechatUnionId: "new_union_id" };
     await updateImpl(meManager, input, transaction);
 
@@ -449,8 +449,8 @@ describe("setMyStateImpl", () => {
 
 describe("listImpl", () => {
   let transaction: Transaction;
-  const userManager = { id: "um1", roles: ["UserManager"] } as any;
-  const menteeManager = { id: "mm1", roles: ["MentorshipManager"] } as any;
+  const userAdmin = { id: "um1", roles: ["UserAdmin"] } as any;
+  const mentorshipAdmin = { id: "mm1", roles: ["MentorshipAdmin"] } as any;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
@@ -488,7 +488,7 @@ describe("listImpl", () => {
       );
 
       const res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           limit: 2,
           cursor: 0,
@@ -506,7 +506,7 @@ describe("listImpl", () => {
       expect(res.nextCursor).equals(2);
 
       const res2 = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           limit: 2,
           cursor: res.nextCursor,
@@ -525,10 +525,10 @@ describe("listImpl", () => {
     transaction,
   );
 
-  it("should restrict includeMerged and returnMergeInfo for non-UserManager", async () => {
+  it("should restrict includeMerged and returnMergeInfo for non-UserAdmin", async () => {
     try {
       await usersModule.listImpl(
-        menteeManager,
+        mentorshipAdmin,
         { includeMerged: true },
         transaction,
       );
@@ -539,7 +539,7 @@ describe("listImpl", () => {
 
     try {
       await usersModule.listImpl(
-        menteeManager,
+        mentorshipAdmin,
         { returnMergeInfo: true },
         transaction,
       );
@@ -571,7 +571,7 @@ describe("listImpl", () => {
       );
 
       let res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           ids: [
             "00000000-0000-0000-0000-000000000001",
@@ -584,7 +584,7 @@ describe("listImpl", () => {
       expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
 
       res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           includeNonVolunteersMentors: true,
           ids: [
@@ -621,7 +621,7 @@ describe("listImpl", () => {
       );
 
       const res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           containsRoles: ["Mentee"],
           ids: [
@@ -663,7 +663,7 @@ describe("listImpl", () => {
       );
 
       let res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           menteeStatus: "现届学子",
           ids: [
@@ -677,7 +677,7 @@ describe("listImpl", () => {
       expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
 
       res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           pointOfContactId: "00000000-0000-0000-0000-000000000002",
           ids: [
@@ -731,7 +731,7 @@ describe("listImpl", () => {
       );
 
       const res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           matchesNameOrEmail: "alice",
           ids: [
@@ -850,7 +850,7 @@ describe("listImpl", () => {
       );
 
       let res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           matchesNameOrEmail: "master",
           ids: [
@@ -875,7 +875,7 @@ describe("listImpl", () => {
       ]);
 
       res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           matchesNameOrEmail: "master",
           includeMentorSearch: true,
@@ -935,7 +935,7 @@ describe("listImpl", () => {
       );
 
       const res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           ids: [
             "00000000-0000-0000-0000-000000000001",
@@ -982,7 +982,7 @@ describe("listImpl", () => {
       );
 
       const res = await usersModule.listImpl(
-        userManager,
+        userAdmin,
         {
           includeMerged: true,
           returnMergeInfo: true,

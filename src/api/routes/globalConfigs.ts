@@ -82,7 +82,7 @@ const get = procedure
   });
 
 const update = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(zGlobalConfig.partial())
   .mutation(async ({ input }) => {
     await sequelize.transaction(async (transaction) => {

@@ -110,7 +110,7 @@ const updateLast = procedure
   });
 
 const getLastMenteeMatchFeedback = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(z.object({ menteeId: z.string() }))
   .output(zMenteeMatchFeedback.nullable())
   .query(async ({ input: { menteeId } }) => {
@@ -121,7 +121,7 @@ const getLastMenteeMatchFeedback = procedure
   });
 
 const getLastMentorMatchFeedback = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(z.object({ mentorId: z.string() }))
   .output(zMentorMatchFeedback.nullable())
   .query(async ({ input: { mentorId } }) => {

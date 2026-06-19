@@ -75,22 +75,22 @@ function DataTable() {
           <Tr>
             <Td>姓名</Td>
             <Td>
-              {dp("UserManager")}、{dp("GroupManager")}、
-              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
+              {dp("UserAdmin")}、{dp("GroupAdmin")}、{dp("MentorshipAdmin")}、
+              {dp("MentorshipOperator")}
               、同一会议分组的其他成员
             </Td>
           </Tr>
           <Tr>
             <Td>电子邮箱</Td>
             <Td>
-              {dp("UserManager")}、{dp("GroupManager")}、
-              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
+              {dp("UserAdmin")}、{dp("GroupAdmin")}、{dp("MentorshipAdmin")}、
+              {dp("MentorshipOperator")}
             </Td>
           </Tr>
           <Tr>
             <Td>微信号、手机号</Td>
             <Td>
-              {dp("MentorshipManager")}、{dp("MentorshipOperator")}
+              {dp("MentorshipAdmin")}、{dp("MentorshipOperator")}
             </Td>
           </Tr>
           <Tr>
@@ -106,7 +106,7 @@ function DataTable() {
                 users.getUserProfile route */}
               <UnorderedList>
                 <ListItem>
-                  {dp("UserManager")}、{dp("MentorshipManager")}、{dp("Mentor")}
+                  {dp("UserAdmin")}、{dp("MentorshipAdmin")}、{dp("Mentor")}
                 </ListItem>
                 <ListItem>
                   如果你是{dp("Volunteer")}，则其他{dp("Volunteer")}可访问
@@ -120,13 +120,13 @@ function DataTable() {
           <Tr>
             <Td>一对一导师与学生通话的纪要文字</Td>
             <Td>
-              {dp("GroupManager")}、{dp("MentorshipManager")}
+              {dp("GroupAdmin")}、{dp("MentorshipAdmin")}
               {/* Removed dp("MentorshipAssessor") as the role is not currently used */}
             </Td>
           </Tr>
           <Tr>
             <Td>其他会议的纪要文字</Td>
-            <Td>{dp("GroupManager")}、同一会议分组的其他成员</Td>
+            <Td>{dp("GroupAdmin")}、同一会议分组的其他成员</Td>
           </Tr>
         </Tbody>
       </Table>

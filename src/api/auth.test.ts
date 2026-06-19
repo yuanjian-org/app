@@ -143,9 +143,7 @@ describe("auth.ts", () => {
       ).thenResolve(session);
 
       const mockRouter = router({
-        testQuery: procedure
-          .use(authUser("UserManager"))
-          .query(() => "success"),
+        testQuery: procedure.use(authUser("UserAdmin")).query(() => "success"),
       });
 
       const req = { getHeader: () => undefined } as any;
@@ -168,7 +166,7 @@ describe("auth.ts", () => {
     });
 
     it("should succeed and provide context if session and role are valid", async () => {
-      const session = { me: { roles: ["UserManager"] } };
+      const session = { me: { roles: ["UserAdmin"] } };
       td.when(
         getServerSessionMock(
           td.matchers.anything(),
@@ -178,9 +176,7 @@ describe("auth.ts", () => {
       ).thenResolve(session);
 
       const mockRouter = router({
-        testQuery: procedure
-          .use(authUser("UserManager"))
-          .query(({ ctx }) => ctx),
+        testQuery: procedure.use(authUser("UserAdmin")).query(({ ctx }) => ctx),
       });
 
       const req = { getHeader: () => undefined } as any;

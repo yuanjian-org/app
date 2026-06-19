@@ -42,7 +42,7 @@ export const whereMentorshipIsOngoing = {
 };
 
 const create = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       mentorId: z.string(),
@@ -116,7 +116,7 @@ export async function createMentorship(
 }
 
 const update = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       mentorshipId: z.string(),
@@ -131,7 +131,7 @@ const update = procedure
   });
 
 const updateSchedule = procedure
-  .use(authUser(["Mentor", "MentorshipManager"]))
+  .use(authUser(["Mentor", "MentorshipAdmin"]))
   .input(
     z.object({
       mentorshipId: z.string(),
@@ -164,7 +164,7 @@ export async function updateMentorship(
 }
 
 /**
- * If the current user is a MentorshipManager or MentoershipOperator, return all
+ * If the current user is a MentorshipAdmin or MentoershipOperator, return all
  * mentorships of the mentee. Otherwise, return only the mentorship of the
  * mentee where the current user is the mentor.
  */
@@ -180,7 +180,7 @@ const listMentorshipsForMentee = procedure
   .query(
     async ({ ctx: { me }, input: { menteeId, includeEndedTransactional } }) => {
       const isPrivileged = isPermitted(me.roles, [
-        "MentorshipManager",
+        "MentorshipAdmin",
         "MentorshipOperator",
       ]);
 
@@ -204,7 +204,7 @@ const listMentorshipsForMentee = procedure
  * message with 【一对一】 prefix, whichever is later.
  */
 const getLastMeetingStartedAt = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(z.object({ mentorshipId: z.string() }))
   .output(zNullableDateColumn)
   .query(async ({ input: { mentorshipId } }) => {
@@ -287,7 +287,7 @@ const listMyMentorships = procedure
   });
 
 const listOngoingRelationalMentorships = procedure
-  .use(authUser(["MentorshipManager", "MentorshipOperator"]))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(z.array(zMentorship))
   .query(async () => {
     return await db.Mentorship.findAll({
@@ -302,7 +302,7 @@ const listOngoingRelationalMentorships = procedure
 
 /**
  * Get all information of a mentorship including private notes.
- * Only accessible by the mentor and MentorshipManagers.
+ * Only accessible by the mentor and MentorshipAdmins.
  */
 const get = procedure
   .use(authUser())
@@ -444,7 +444,7 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
   `;
 
   await notifyRoles(
-    ["MentorshipManager", "MentorshipOperator"],
+    ["MentorshipAdmin", "MentorshipOperator"],
     "师生长期未通话提醒",
     // Shrink message. Otherwise mail server may complain about message size.
     message.replace(/\n/g, "").replace(/\s+/g, " "),

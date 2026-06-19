@@ -3,14 +3,14 @@ import z from "zod";
 export const allRoles = [
   "SystemAlertSubscriber",
 
-  "UserManager",
-  "GroupManager",
+  "UserAdmin",
+  "GroupAdmin",
   "OrgAdmin",
 
   "ProjectAdmin",
 
   "MentorshipAssessor",
-  "MentorshipManager",
+  "MentorshipAdmin",
   "MentorshipOperator",
 
   // See `docs/Glossary.md` for the definitions of this type.
@@ -55,12 +55,12 @@ const RoleProfiles: {
     displayName: "系统报警监听员",
     actions: "接受并处理系统异常事件的报警",
   },
-  UserManager: {
+  UserAdmin: {
     displayName: "用户管理员",
     actions: "管理用户基本信息",
     privilegedUserDataAccess: true,
   },
-  GroupManager: {
+  GroupAdmin: {
     displayName: "会议管理员",
     actions: "管理会议分组和会议纪要",
     privilegedUserDataAccess: true,
@@ -79,7 +79,7 @@ const RoleProfiles: {
     actions: "跟踪评估一对一导师辅导效果",
     privilegedUserDataAccess: true,
   },
-  MentorshipManager: {
+  MentorshipAdmin: {
     displayName: "运营主管",
     actions: "管理学生信息、导师信息、面试信息、一对一学生导师匹配信息等",
     privilegedUserDataAccess: true,

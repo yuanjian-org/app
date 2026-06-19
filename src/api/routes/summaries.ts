@@ -165,7 +165,7 @@ export async function updateImpl(
 }
 
 const listDeleted = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .output(
     z.array(
       z.object({

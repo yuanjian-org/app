@@ -9,23 +9,19 @@ describe("Role Authorization - isPermitted", () => {
 
   it("should return true when permitted is a single string and user has the role", () => {
     void expect(isPermitted(["Mentee", "Volunteer"], "Mentee")).to.be.true;
-    void expect(isPermitted(["UserManager"], "UserManager")).to.be.true;
+    void expect(isPermitted(["UserAdmin"], "UserAdmin")).to.be.true;
   });
 
   it("should return false when permitted is a single string and user does not have the role", () => {
-    void expect(isPermitted(["Mentee", "Volunteer"], "UserManager")).to.be
-      .false;
-    void expect(isPermitted([], "UserManager")).to.be.false;
+    void expect(isPermitted(["Mentee", "Volunteer"], "UserAdmin")).to.be.false;
+    void expect(isPermitted([], "UserAdmin")).to.be.false;
   });
 
   it("should return true when permitted is an array of roles and user has one of the roles", () => {
-    void expect(isPermitted(["Mentee"], ["Mentee", "Volunteer", "UserManager"]))
+    void expect(isPermitted(["Mentee"], ["Mentee", "Volunteer", "UserAdmin"]))
       .to.be.true;
     void expect(
-      isPermitted(
-        ["GroupManager", "Volunteer"],
-        ["UserManager", "GroupManager"],
-      ),
+      isPermitted(["GroupAdmin", "Volunteer"], ["UserAdmin", "GroupAdmin"]),
     ).to.be.true;
   });
 
@@ -33,13 +29,13 @@ describe("Role Authorization - isPermitted", () => {
     void expect(
       isPermitted(
         ["Mentee", "Volunteer"],
-        ["Mentee", "Volunteer", "UserManager"],
+        ["Mentee", "Volunteer", "UserAdmin"],
       ),
     ).to.be.true;
   });
 
   it("should return false when permitted is an array of roles and user has none of the roles", () => {
-    void expect(isPermitted(["Mentee"], ["Volunteer", "UserManager"])).to.be
+    void expect(isPermitted(["Mentee"], ["Volunteer", "UserAdmin"])).to.be
       .false;
     void expect(isPermitted([], ["Mentee", "Volunteer"])).to.be.false;
   });

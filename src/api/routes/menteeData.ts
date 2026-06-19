@@ -74,7 +74,7 @@ function anonymizeUserName(content: string, userName: string | null): string {
  * Returns a base64-encoded ZIP file containing all data as separate files.
  */
 const downloadMenteeData = procedure
-  .use(authUser("UserManager"))
+  .use(authUser("UserAdmin"))
   .input(z.string())
   .output(
     z.object({

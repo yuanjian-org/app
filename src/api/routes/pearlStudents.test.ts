@@ -105,7 +105,7 @@ describe("pearlStudents API routes", () => {
         expect.fail("Should have thrown error");
       } catch (e: any) {
         expect(e.message).to.equal(
-          "此珍珠生号已被验证。请联系" + displayName("UserManager") + "。",
+          "此珍珠生号已被验证。请联系" + displayName("UserAdmin") + "。",
         );
       }
     });

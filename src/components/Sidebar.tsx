@@ -89,57 +89,57 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "学生面试",
     action: "/interviews?type=MenteeInterview",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
     feature: "interviews",
   },
   {
     name: "导师面试",
     action: "/interviews?type=MentorInterview",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
     feature: "interviews",
   },
   {
     name: "面试官",
     action: "/interviewers",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
     feature: "interviews",
   },
   {
     name: "导师",
     action: "/mentors/manage",
-    roles: ["MentorshipManager", "MentorshipOperator"],
+    roles: ["MentorshipAdmin", "MentorshipOperator"],
   },
   {
     name: "会议",
     action: "/groups",
-    roles: "GroupManager",
+    roles: "GroupAdmin",
   },
   {
     name: "用户",
     action: "/users",
-    roles: "UserManager",
+    roles: "UserAdmin",
   },
   {
     name: "一对一匹配",
     action: "/match",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
     feature: "relational",
   },
   {
     name: "一对一通话时间",
     action: "/schedules",
-    roles: ["MentorshipManager", "MentorshipOperator"],
+    roles: ["MentorshipAdmin", "MentorshipOperator"],
     feature: "relational",
   },
   {
     name: "不定期导师预约记录",
     action: "/mentors/bookings",
-    roles: ["MentorshipManager", "MentorshipOperator"],
+    roles: ["MentorshipAdmin", "MentorshipOperator"],
   },
   {
     name: "已删除纪要文字",
     action: "/deleted",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
   },
   {
     name: "入驻机构",
@@ -150,7 +150,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "全局设置",
     action: "/global",
-    roles: "MentorshipManager",
+    roles: "MentorshipAdmin",
   },
 ];
 
@@ -218,7 +218,7 @@ const mainMenuItems: MainMenuItem[] = [
       isPermitted(me.roles, [
         "Mentor",
         "MentorshipOperator",
-        "MentorshipManager",
+        "MentorshipAdmin",
       ]),
   },
   {
@@ -235,7 +235,7 @@ const mainMenuItems: MainMenuItem[] = [
     path: '/mentees?filter={"menteeStatus":"现届学子"}',
     icon: AttachmentIcon,
     regex: /^\/mentees[^/]/,
-    permission: ["MentorshipManager", "MentorshipOperator"],
+    permission: ["MentorshipAdmin", "MentorshipOperator"],
   },
   {
     name: "志愿者档案",

@@ -409,7 +409,7 @@ function ProfileTable({
             </React.Fragment>
           ))}
 
-          {(me.id == user.id || isPermitted(me.roles, "UserManager")) && (
+          {(me.id == user.id || isPermitted(me.roles, "UserAdmin")) && (
             <Tr>
               <Td></Td>
               <Td>

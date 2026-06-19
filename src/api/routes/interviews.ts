@@ -39,7 +39,7 @@ import {
 } from "../../shared/applicationFields";
 
 /**
- * Only MentorshipManager, interviewers of the interview, and users
+ * Only MentorshipAdmin, interviewers of the interview, and users
  * allowed by `getCalibrationAndCheckPermissionSafe` and
  * `isPermittedToAccessMentee` are allowed to call this route.
  */
@@ -81,7 +81,7 @@ const get = procedure
         etag: date2etag(i.decisionUpdatedAt),
       };
 
-      if (isPermitted(me.roles, "MentorshipManager")) return ret;
+      if (isPermitted(me.roles, "MentorshipAdmin")) return ret;
 
       if (i.feedbacks.some((f) => f.interviewer.id === me.id)) return ret;
 
@@ -136,7 +136,7 @@ export async function getInterviewIdForMentee(
 }
 
 const list = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(zInterviewType)
   .output(z.array(zInterview))
   .query(async ({ input: type }) => {
@@ -182,7 +182,7 @@ const listMine = procedure
  * any.
  */
 const listPendingCandidates = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(zInterviewType)
   .output(z.array(zUser))
   .query(async ({ input: type }) => {
@@ -248,7 +248,7 @@ function isCandidatePending(
  * @returns the interview id.
  */
 const create = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       type: zInterviewType,
@@ -319,7 +319,7 @@ export async function createInterview(
 }
 
 const avoidAsInterviewer = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(z.object({ userId: z.string(), avoid: z.boolean() }))
   .mutation(async ({ input: { userId, avoid } }) => {
     const [cnt] = await db.User.update(
@@ -330,7 +330,7 @@ const avoidAsInterviewer = procedure
   });
 
 const listInterviewerStats = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .output(
     z.array(
       z.object({
@@ -384,7 +384,7 @@ const listInterviewerStats = procedure
   });
 
 const update = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       id: z.string(),
@@ -408,7 +408,7 @@ const update = procedure
  * @return etag
  */
 const updateDecision = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       interviewId: z.string(),

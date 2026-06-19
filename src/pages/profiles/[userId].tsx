@@ -371,12 +371,12 @@ function Picture({
           建议选择面部清晰、不戴墨镜的近照
         </FormHelperTextWithMargin>
 
-        {isPermitted(myRoles, "UserManager") && (
+        {isPermitted(myRoles, "UserAdmin") && (
           <>
             <FormHelperTextWithMargin>
               <Text color="red.700">
                 以下链接仅
-                {displayName("UserManager")}
+                {displayName("UserAdmin")}
                 可见，用于在个别情况下直接引用其他网站的图像：
               </Text>
             </FormHelperTextWithMargin>

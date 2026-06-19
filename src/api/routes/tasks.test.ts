@@ -229,9 +229,9 @@ describe("Tasks Route Impl", () => {
       expect(tasks[0].markdown).to.equal("test task 1");
     });
 
-    it("should list tasks as MentorshipManager", async () => {
+    it("should list tasks as MentorshipAdmin", async () => {
       const otherUser = await createTestUser();
-      const manager = await createTestUser(["MentorshipManager"]);
+      const manager = await createTestUser(["MentorshipAdmin"]);
 
       await db.Task.create(
         {

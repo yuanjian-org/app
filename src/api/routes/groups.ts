@@ -19,7 +19,7 @@ import {
 import User from "shared/User";
 
 const create = procedure
-  .use(authUser("GroupManager"))
+  .use(authUser("GroupAdmin"))
   .input(
     z.object({
       userIds: z.array(z.string()).min(1),
@@ -32,7 +32,7 @@ const create = procedure
   });
 
 const update = procedure
-  .use(authUser("GroupManager"))
+  .use(authUser("GroupAdmin"))
   .input(zGroup)
   .mutation(async ({ input }) => {
     const newUserIds = input.users.map((u) => u.id);
@@ -121,7 +121,7 @@ async function getGroupWithIdOnly(groupId: string) {
 }
 
 const destroy = procedure
-  .use(authUser("GroupManager"))
+  .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
     const g = await getGroupWithIdOnly(input.groupId);
@@ -132,7 +132,7 @@ const destroy = procedure
   });
 
 const archive = procedure
-  .use(authUser("GroupManager"))
+  .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
     const g = await getGroupWithIdOnly(input.groupId);
@@ -140,7 +140,7 @@ const archive = procedure
   });
 
 const unarchive = procedure
-  .use(authUser("GroupManager"))
+  .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
     const g = await getGroupWithIdOnly(input.groupId);
@@ -197,7 +197,7 @@ const listMine = procedure
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
 const list = procedure
-  .use(authUser(["GroupManager"]))
+  .use(authUser(["GroupAdmin"]))
   .input(
     z.object({
       userIds: z.string().array(),

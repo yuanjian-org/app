@@ -164,7 +164,7 @@ describe("summaries", () => {
 
   describe("listImpl", () => {
     it("should return the AI minutes summary for a transcript", async () => {
-      const me = await createTestUser(["MentorshipManager"]);
+      const me = await createTestUser(["MentorshipAdmin"]);
       const group = await createTestGroup();
       await db.GroupUser.create(
         { userId: me.id, groupId: group.id },
@@ -223,7 +223,7 @@ describe("summaries", () => {
     });
 
     it("should allow updating a summary if user has permission", async () => {
-      const me = await createTestUser(["GroupManager"]);
+      const me = await createTestUser(["GroupAdmin"]);
       const group = await createTestGroup(false);
       const transcript = await createTestTranscript(group.id);
       const originalMarkdown = "Original summary text";

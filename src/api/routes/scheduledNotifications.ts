@@ -254,12 +254,12 @@ async function notifyChats(
 
   /**
    * Compute receipients which should include mentors of all ongoing relational
-   * mentorships and MentorshipManagers.
+   * mentorships and MentorshipAdmins.
    */
   const userId2receipients: Record<string, User> = {};
 
   // Force type check
-  const role: Role = "MentorshipManager";
+  const role: Role = "MentorshipAdmin";
   (
     await db.User.findAll({
       where: { roles: { [Op.contains]: [role] } },

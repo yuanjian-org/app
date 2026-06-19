@@ -41,7 +41,7 @@ describe("interviewFeedbacks routes", () => {
       {
         email: `manager-${Date.now()}@example.com`,
         name: "Test Manager",
-        roles: ["MentorshipManager"],
+        roles: ["MentorshipAdmin"],
       },
       { transaction },
     );
@@ -90,7 +90,7 @@ describe("interviewFeedbacks routes", () => {
       expect(f.id).to.equal(interviewFeedback.id);
     });
 
-    it("should allow MentorshipManager to access", async () => {
+    it("should allow MentorshipAdmin to access", async () => {
       const f = await getInterviewFeedbackImpl(
         interviewFeedback.id,
         manager,

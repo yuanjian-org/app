@@ -16,7 +16,7 @@ export const zUserFilter = z.object({
    */
   includeNonVolunteersMentors: z.boolean().optional(),
   /**
-   * If true, includes users who have been merged into another account. Requires UserManager permission. Defaults to false.
+   * If true, includes users who have been merged into another account. Requires UserAdmin permission. Defaults to false.
    */
   includeMerged: z.boolean().optional(),
   /**
@@ -25,7 +25,7 @@ export const zUserFilter = z.object({
   includeMentorSearch: z.boolean().optional(),
 
   /**
-   * If true, returns additional information about merged users, such as `wechatUnionId` and the `mergedToUser` object. Requires UserManager permission. Defaults to false.
+   * If true, returns additional information about merged users, such as `wechatUnionId` and the `mergedToUser` object. Requires UserAdmin permission. Defaults to false.
    */
   returnMergeInfo: z.boolean().optional(),
 

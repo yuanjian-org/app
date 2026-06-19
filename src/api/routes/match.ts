@@ -89,7 +89,7 @@ const baseUrl = "https://yuantuapp.com";
 
 // Export spreadsheet for initial match
 const exportInitialSpreadsheet = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       documentId: z.string(),
@@ -691,7 +691,7 @@ async function listInterviewFeedbackAndDecisions(
  * Generate input CSVs for the initial match solver.
  */
 const generateInitialSolverInput = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       documentId: z.string(),
@@ -711,7 +711,7 @@ const generateInitialSolverInput = procedure
   });
 
 const generateFinalSolverInput = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .output(
     z.object({
       capacities: zCsvFormats,
@@ -1012,7 +1012,7 @@ export async function applyInitialSolverOutputImpl(
 
 // Apply the output of the initial match solver to the database.
 const applyInitialSolverOutput = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       output: z.string(),
@@ -1134,7 +1134,7 @@ async function createMatchFeedback(
 
 // Export spreadsheet for final match
 const exportFinalSpreadsheet = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       documentId: z.string(),
@@ -1235,7 +1235,7 @@ function sheetColumnLetter(index: number): string {
 }
 
 const applyFinalSolution = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       documentId: z.string(),

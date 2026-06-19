@@ -86,9 +86,9 @@ describe("chatsInternal", () => {
       // Mentees don't have implicit read permission in `checkPermissionToAccessMentee` without proper role unless action="write"
       // Wait, checkRoomPermission: "Allow the mentee to write to their own room. if (action === 'write' && me.id === menteeId) return;"
       // If action='read', it calls checkPermissionToAccessMentee. A Mentee might not have permission.
-      // We will make the user a MentorshipManager for "read" tests.
+      // We will make the user a MentorshipAdmin for "read" tests.
       const mentee = await createTestUser([], "现届学子");
-      const manager = await createTestUser(["MentorshipManager"]);
+      const manager = await createTestUser(["MentorshipAdmin"]);
 
       const createdRoom = await findOrCreateRoom(
         mentee,

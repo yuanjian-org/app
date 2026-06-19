@@ -77,7 +77,7 @@ const createLandmarkAssessment = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    if (me.id !== input.userId && !isPermitted(me.roles, "MentorshipManager")) {
+    if (me.id !== input.userId && !isPermitted(me.roles, "MentorshipAdmin")) {
       throw noPermissionError("评估", input.userId);
     }
     return await sequelize.transaction(async (transaction) => {
@@ -117,7 +117,7 @@ const listLandmarkAssessments = procedure
   )
   .output(z.array(zLandmarkAssessment))
   .query(async ({ ctx: { me }, input: { userId, landmark } }) => {
-    if (me.id !== userId && !isPermitted(me.roles, "MentorshipManager")) {
+    if (me.id !== userId && !isPermitted(me.roles, "MentorshipAdmin")) {
       throw noPermissionError("评估", userId);
     }
     return await listLandmarkAssessmentsImpl(userId, landmark);

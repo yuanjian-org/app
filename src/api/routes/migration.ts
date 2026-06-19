@@ -27,5 +27,21 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
+  await sequelize.query(`
+    UPDATE "users"
+    SET "roles" = (
+      SELECT array_agg(
+        CASE
+          WHEN role::text = 'UserManager' THEN 'UserAdmin'
+          WHEN role::text = 'GroupManager' THEN 'GroupAdmin'
+          WHEN role::text = 'MentorshipManager' THEN 'MentorshipAdmin'
+          ELSE role::text
+        END
+      )
+      FROM unnest("roles") AS role
+    )
+    WHERE "roles"::text[] && ARRAY['UserManager', 'GroupManager', 'MentorshipManager'];
+  `);
+
   await Promise.resolve();
 }

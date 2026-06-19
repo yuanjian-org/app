@@ -24,7 +24,7 @@ import { isPermitted } from "../../shared/Role";
 import User from "../../shared/User";
 
 const create = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       type: zInterviewType,
@@ -55,7 +55,7 @@ export async function createCalibration(
 }
 
 const update = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       id: z.string(),
@@ -79,7 +79,7 @@ const update = procedure
   });
 
 const setManager = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(
     z.object({
       calibrationId: z.string(),
@@ -99,7 +99,7 @@ const setManager = procedure
   });
 
 const list = procedure
-  .use(authUser("MentorshipManager"))
+  .use(authUser("MentorshipAdmin"))
   .input(zInterviewType)
   .output(z.array(zCalibration))
   .query(async ({ input: type }) => {
@@ -200,7 +200,7 @@ async function getCalibrationAndCheckPermission(
 }
 
 /**
- * Only MentorshipManager and participants of the calibration are allowed.
+ * Only MentorshipAdmin and participants of the calibration are allowed.
  * In the latter case, the calibration must be active.
  *
  * @return the calibration if access is allowed. null otherwise
@@ -219,7 +219,7 @@ export async function getCalibrationAndCheckPermissionSafe(
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
-  if (isPermitted(me.roles, "MentorshipManager")) return c;
+  if (isPermitted(me.roles, "MentorshipAdmin")) return c;
 
   if (!c.active) return null;
 
