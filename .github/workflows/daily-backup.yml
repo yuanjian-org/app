@@ -26,12 +26,12 @@ jobs:
         known_hosts: ${{ matrix.hostname }}
         config: |
           Host ${{ matrix.hostname }}
-            User ${{ secrets.SERVER_SSH_USERNAME }}
+            User ${{ vars.SSH_USERNAME }}
             StrictHostKeyChecking no
 
     - name: Execute Backup on Server
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
+        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
           set -e
           cd ~/app
 
@@ -61,11 +61,11 @@ jobs:
 
     - name: Download Backup Archive
       run: |
-        scp ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }}:~/app/all_backups.tar ./all_backups.tar
+        scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/app/all_backups.tar ./all_backups.tar
 
     - name: Clean up remote backup archive
       run: |
-        ssh ${{ secrets.SERVER_SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/app/all_backups.tar"
+        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/app/all_backups.tar"
 
     - name: Upload Backup to Artifacts
       uses: actions/upload-artifact@v4
