@@ -2,8 +2,15 @@ import { expect } from "chai";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import { scheduleNotification } from "./scheduledNotifications";
+import {
+  scheduleNotification,
+  sendScheduledNotifications,
+} from "./scheduledNotifications";
 import { v4 as uuidv4 } from "uuid";
+import sinon from "sinon";
+import * as notifyModule from "../notify";
+import crypto from "crypto";
+import moment from "moment";
 
 describe("scheduledNotifications", () => {
   let transaction: Transaction;
@@ -48,6 +55,246 @@ describe("scheduledNotifications", () => {
       });
 
       expect(count).to.equal(1);
+    });
+  });
+
+  describe("sendScheduledNotifications", () => {
+    let notifyStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      notifyStub = sinon.stub(notifyModule, "notify").resolves();
+      sinon.stub(notifyModule, "notifyRolesIgnoreError").resolves();
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    const createTestUser = async (name: string, roles: string[] = []) => {
+      const email = `${crypto.randomUUID()}@example.com`;
+      const user = await db.User.create(
+        { email, name, roles },
+        { transaction },
+      );
+      return user;
+    };
+
+    it("should skip notifications delayed less than 5 minutes", async () => {
+      const user = await createTestUser("User");
+      await db.ScheduledNotification.create(
+        { type: "Kudos", subjectId: user.id },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.called).to.equal(false);
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(1);
+    });
+
+    it("should notify kudos and delete the notification", async () => {
+      const receiver = await createTestUser("Receiver");
+      const giver = await createTestUser("Giver");
+
+      await db.Kudos.create(
+        {
+          receiverId: receiver.id,
+          giverId: giver.id,
+          text: "Great job!",
+          isInternal: false,
+        },
+        { transaction },
+      );
+
+      await db.Kudos.create(
+        {
+          receiverId: receiver.id,
+          giverId: giver.id,
+          text: null,
+          isInternal: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Kudos", subjectId: receiver.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.calledOnce).to.equal(true);
+      const callArgs = notifyStub.getCall(0).args;
+      expect(callArgs[0]).to.equal("点赞");
+      expect(callArgs[1]).to.deep.equal([receiver.id]);
+      expect(callArgs[3].name).to.equal("Receiver");
+      expect(callArgs[3].delta).to.include("刚刚夸了你");
+      expect(callArgs[3].delta).to.include("刚刚给你点了 1 个赞");
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(0);
+    });
+
+    it("should not notify tasks if there are no tasks", async () => {
+      const assignee = await createTestUser("Assignee");
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Task", subjectId: assignee.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.called).to.equal(false);
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(0);
+    });
+
+    it("should notify tasks and delete the notification", async () => {
+      const assignee = await createTestUser("Assignee");
+      const creator = await createTestUser("Creator");
+
+      await db.Task.create(
+        {
+          assigneeId: assignee.id,
+          creatorId: creator.id,
+          description: "Test task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Task", subjectId: assignee.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.calledOnce).to.equal(true);
+      const callArgs = notifyStub.getCall(0).args;
+      expect(callArgs[0]).to.equal("待办事项");
+      expect(callArgs[1]).to.deep.equal([assignee.id]);
+      expect(callArgs[3].name).to.equal("Assignee");
+      expect(callArgs[3].delta).to.include("Test task");
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(0);
+    });
+
+    it("should not notify chat if no messages", async () => {
+      const mentee = await createTestUser("Mentee");
+      const mentor = await createTestUser("Mentor");
+
+      const room = await db.ChatRoom.create(
+        { menteeId: mentee.id },
+        { transaction },
+      );
+
+      await db.Mentorship.create(
+        {
+          menteeId: mentee.id,
+          mentorId: mentor.id,
+          status: "active",
+          transactional: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Chat", subjectId: room.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.called).to.equal(false);
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(0);
+    });
+
+    it("should notify chat and delete the notification", async () => {
+      const mentee = await createTestUser("Mentee");
+      const mentor = await createTestUser("Mentor");
+      const admin = await createTestUser("Admin", ["MentorshipAdmin"]);
+
+      const room = await db.ChatRoom.create(
+        { menteeId: mentee.id },
+        { transaction },
+      );
+
+      await db.Mentorship.create(
+        {
+          menteeId: mentee.id,
+          mentorId: mentor.id,
+          status: "active",
+          transactional: false,
+        },
+        { transaction },
+      );
+
+      await db.ChatMessage.create(
+        {
+          roomId: room.id,
+          userId: mentee.id, // mentee sends a message
+          markdown: "Hello!",
+          format: "markdown",
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Chat", subjectId: room.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications();
+
+      expect(notifyStub.calledTwice).to.equal(true); // One for mentor, one for admin
+      const mentorCall = notifyStub
+        .getCalls()
+        .find((call) => call.args[1][0] === mentor.id);
+      const adminCall = notifyStub
+        .getCalls()
+        .find((call) => call.args[1][0] === admin.id);
+
+      expect(mentorCall !== undefined).to.equal(true);
+      expect(adminCall !== undefined).to.equal(true);
+
+      const mentorArgs = mentorCall!.args;
+      expect(mentorArgs[0]).to.equal("内部笔记");
+      expect(mentorArgs[3].menteeName).to.equal("Mentee");
+      expect(mentorArgs[3].authors).to.equal("Mentee");
+      expect(mentorArgs[3].delta).to.include("Hello!");
+
+      const count = await db.ScheduledNotification.count({ transaction });
+      expect(count).to.equal(0);
+    });
+
+    it("should throw error for unknown notification type", async () => {
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "UnknownType" as any, subjectId: uuidv4(), createdAt: past },
+        { transaction },
+      );
+
+      try {
+        await sendScheduledNotifications();
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.include(
+          "Unknown scheduled notification type: UnknownType",
+        );
+      }
     });
   });
 });
