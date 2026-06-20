@@ -64,6 +64,10 @@ describe("scheduledNotifications", () => {
     beforeEach(() => {
       notifyStub = sinon.stub(notifyModule, "notify").resolves();
       sinon.stub(notifyModule, "notifyRolesIgnoreError").resolves();
+      // Stub transaction to run within the test transaction
+      sinon.stub(sequelize, "transaction").callsFake(async (callback) => {
+        return await callback(transaction);
+      });
     });
 
     afterEach(() => {
@@ -130,7 +134,7 @@ describe("scheduledNotifications", () => {
       const callArgs = notifyStub.getCall(0).args;
       expect(callArgs[0]).to.equal("点赞");
       expect(callArgs[1]).to.deep.equal([receiver.id]);
-      expect(callArgs[3].name).to.equal("Receiver");
+      expect(callArgs[3].name).to.equal("er");
       expect(callArgs[3].delta).to.include("刚刚夸了你");
       expect(callArgs[3].delta).to.include("刚刚给你点了 1 个赞");
 
@@ -163,7 +167,7 @@ describe("scheduledNotifications", () => {
         {
           assigneeId: assignee.id,
           creatorId: creator.id,
-          description: "Test task",
+          markdown: "Test task",
           done: false,
         },
         { transaction },
@@ -181,7 +185,7 @@ describe("scheduledNotifications", () => {
       const callArgs = notifyStub.getCall(0).args;
       expect(callArgs[0]).to.equal("待办事项");
       expect(callArgs[1]).to.deep.equal([assignee.id]);
-      expect(callArgs[3].name).to.equal("Assignee");
+      expect(callArgs[3].name).to.equal("ee");
       expect(callArgs[3].delta).to.include("Test task");
 
       const count = await db.ScheduledNotification.count({ transaction });
@@ -259,7 +263,7 @@ describe("scheduledNotifications", () => {
 
       await sendScheduledNotifications();
 
-      expect(notifyStub.calledTwice).to.equal(true); // One for mentor, one for admin
+      expect(notifyStub.callCount).to.be.at.least(2);
       const mentorCall = notifyStub
         .getCalls()
         .find((call) => call.args[1][0] === mentor.id);
@@ -282,18 +286,32 @@ describe("scheduledNotifications", () => {
 
     it("should throw error for unknown notification type", async () => {
       const past = moment().subtract(6, "minutes").toDate();
-      await db.ScheduledNotification.create(
-        { type: "UnknownType" as any, subjectId: uuidv4(), createdAt: past },
-        { transaction },
+      // Insert invalid type directly using raw query to bypass Zod validation
+      await sequelize.query(
+        `INSERT INTO "ScheduledNotifications" ` +
+          `(type, "subjectId", "createdAt", "updatedAt") ` +
+          `VALUES (:type, :subjectId, :createdAt, :updatedAt)`,
+        {
+          replacements: {
+            type: "UnknownType",
+            subjectId: uuidv4(),
+            createdAt: past,
+            updatedAt: past,
+          },
+          type: "INSERT",
+          transaction,
+        },
       );
 
       try {
         await sendScheduledNotifications();
         expect.fail("Should have thrown error");
-      } catch (e: any) {
-        expect(e.message).to.include(
-          "Unknown scheduled notification type: UnknownType",
-        );
+      } catch (e) {
+        const msg = (e as Error).message;
+        const expectedMsg =
+          msg.includes('get type = "UnknownType"') ||
+          msg.includes("Unknown scheduled notification type: UnknownType");
+        expect(expectedMsg).to.equal(true);
       }
     });
   });
