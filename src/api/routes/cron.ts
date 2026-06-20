@@ -19,7 +19,9 @@ export default router({
 
   sendScheduledNotifications: procedure
     .use(authIntegration())
-    .mutation(sendScheduledNotifications),
+    .mutation(async () => {
+      await sendScheduledNotifications();
+    }),
 
   createAutoTasks: procedure.use(authIntegration()).mutation(
     async () =>

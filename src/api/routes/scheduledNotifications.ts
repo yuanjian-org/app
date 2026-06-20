@@ -21,7 +21,7 @@ import { ScheduledNotificationType } from "../../shared/ScheduledNotificationTyp
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
 import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
-import { notify, notifyRolesIgnoreError } from "api/notify";
+import { notify, notifyRolesIgnoreError } from "../notify";
 
 export async function scheduleNotification(
   type: ScheduledNotificationType,
@@ -43,8 +43,10 @@ export async function scheduleNotification(
 
 const minDelayInMinutes = 5;
 
-export async function sendScheduledNotifications() {
-  await sequelize.transaction(async (transaction) => {
+export async function sendScheduledNotifications(
+  passedTransaction?: Transaction,
+) {
+  const doWork = async (transaction: Transaction) => {
     const all = await db.ScheduledNotification.findAll({
       attributes: ["id", "type", "subjectId", "createdAt"],
       transaction,
@@ -80,7 +82,13 @@ export async function sendScheduledNotifications() {
         transaction,
       });
     }
-  });
+  };
+
+  if (passedTransaction) {
+    await doWork(passedTransaction);
+  } else {
+    await sequelize.transaction(doWork);
+  }
 }
 
 async function notifyTasks(
