@@ -19,7 +19,6 @@ export const topBarPaddings = () => ({
 
 export default function TopBar({ children, ...rest }: BoxProps) {
   const ref = useRef<HTMLDivElement>(null);
-  // https://github.com/chakra-ui/chakra-ui/issues/6856
   const size = useSize(ref);
 
   return (
