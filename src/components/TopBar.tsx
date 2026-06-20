@@ -1,4 +1,5 @@
-import { Box, BoxProps, useDimensions } from "@chakra-ui/react";
+import { Box, BoxProps } from "@chakra-ui/react";
+import { useSize } from "@chakra-ui/react-use-size";
 import { desktopSidebarWidth, sideBarBorderColor } from "components/Sidebar";
 import { useRef } from "react";
 import { breakpoint } from "theme/breakpoints";
@@ -19,7 +20,7 @@ export const topBarPaddings = () => ({
 export default function TopBar({ children, ...rest }: BoxProps) {
   const ref = useRef<HTMLDivElement>(null);
   // https://github.com/chakra-ui/chakra-ui/issues/6856
-  const dim = useDimensions(ref, true);
+  const size = useSize(ref);
 
   return (
     <>
@@ -41,7 +42,7 @@ export default function TopBar({ children, ...rest }: BoxProps) {
       </Box>
 
       {/* Placeholder to push down other content on the page */}
-      <Box height={`${dim?.borderBox.bottom ?? 0}px`} />
+      <Box height={`${size?.height ?? 0}px`} />
     </>
   );
 }

@@ -280,6 +280,13 @@
   dependencies:
     "@chakra-ui/utils" "1.10.4"
 
+"@chakra-ui/react-use-size@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@chakra-ui/react-use-size/-/react-use-size-2.1.0.tgz#fcf3070eaade8b4a84af8ce5341c4d5ca0a42bec"
+  integrity sha512-tbLqrQhbnqOjzTaMlYytp7wY8BW1JpL78iG7Ru1DlV4EWGiAmXFGvtnEt9HftU0NJ0aJyjgymkxfVGI55/1Z4A==
+  dependencies:
+    "@zag-js/element-size" "0.10.5"
+
 "@chakra-ui/react-utils@1.2.3":
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@chakra-ui/react-utils/-/react-utils-1.2.3.tgz#3356c9299bc8faada8fac6c5886ca65ec95bb5be"
@@ -2010,6 +2017,11 @@
   version "0.31.1"
   resolved "https://registry.yarnpkg.com/@zag-js/dom-query/-/dom-query-0.31.1.tgz#f40be43d0eb1eabdf51538abeeccad46c5b88ed6"
   integrity sha512-oiuohEXAXhBxpzzNm9k2VHGEOLC1SXlXSbRPcfBZ9so5NRQUA++zCE7cyQJqGLTZR0t3itFLlZqDbYEXRrefwg==
+
+"@zag-js/element-size@0.10.5":
+  version "0.10.5"
+  resolved "https://registry.yarnpkg.com/@zag-js/element-size/-/element-size-0.10.5.tgz#a24bad2eeb7e2c8709e32be5336e158e1a1a174f"
+  integrity sha512-uQre5IidULANvVkNOBQ1tfgwTQcGl4hliPSe69Fct1VfYb2Fd0jdAcGzqQgPhfrXFpR62MxLPB7erxJ/ngtL8w==
 
 "@zag-js/element-size@0.31.1":
   version "0.31.1"
