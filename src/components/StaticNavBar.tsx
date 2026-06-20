@@ -71,16 +71,17 @@ export default function StaticNavBar({
               text="挑战问题"
             />
           ) : (
-            <NavLink
-              href={`${staticUrlPrefix}/articles`}
-              current={current}
-              text="文章"
-            />
+            <>
+              <NavLink
+                href={`${staticUrlPrefix}/articles`}
+                current={current}
+                text="文章"
+              />
+              <NextLink href={loginUrl()}>
+                <Text color={inactiveNavLinkColor}>进入远图</Text>
+              </NextLink>
+            </>
           )}
-
-          <NextLink href={loginUrl()}>
-            <Text color={inactiveNavLinkColor}>进入远图</Text>
-          </NextLink>
 
           <Tooltip label="联系客服">
             <Link

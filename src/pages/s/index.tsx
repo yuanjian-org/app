@@ -28,6 +28,7 @@ import {
 } from "components/useStaticConfigs";
 import { loginUrl } from "pages/auth/login";
 import PageLoader from "components/PageLoader";
+import { ChevronRightIcon } from "@chakra-ui/icons";
 
 export default function Page() {
   const features = useFeatures();
@@ -81,8 +82,14 @@ function XLandingPageContent() {
         </GridItem>
       </Section>
 
-      <Button variant="brand" as={NextLink} size="lg" href={loginUrl()}>
-        登录 / 注册
+      <Button
+        variant="brand"
+        as={NextLink}
+        size="lg"
+        href={loginUrl()}
+        rightIcon={<ChevronRightIcon />}
+      >
+        进入远图
       </Button>
     </VStack>
   );
