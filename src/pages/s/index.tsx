@@ -69,6 +69,10 @@ function XLandingPageContent() {
             <Text>
               <b>什么是挑战问题（X-Challenge）？</b>
               X-Challenge是由卓越导师发起的、面向未来5-10年人类可能面临的重大难题，可以影响上亿人或创造万亿市场。它聚焦一个领域的长期难题，强调学科交叉与开放性探索。目标是通过高难度问题激发学生突破现有知识框架，推动对未知领域的探索，共同攻克人类挑战。
+              <Link as={NextLink} href="/s/projects">
+                浏览当前挑战问题
+              </Link>
+              。
             </Text>
             <Text>
               <b>什么是导师服务？</b>
