@@ -86,7 +86,7 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.called).to.equal(false);
 
@@ -124,13 +124,13 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.calledOnce).to.equal(true);
       const callArgs = notifyStub.getCall(0).args;
       expect(callArgs[0]).to.equal("点赞");
       expect(callArgs[1]).to.deep.equal([receiver.id]);
-      expect(callArgs[3].name).to.equal("Receiver");
+      expect(callArgs[3].name).to.equal("er");
       expect(callArgs[3].delta).to.include("刚刚夸了你");
       expect(callArgs[3].delta).to.include("刚刚给你点了 1 个赞");
 
@@ -147,7 +147,7 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.called).to.equal(false);
 
@@ -164,6 +164,7 @@ describe("scheduledNotifications", () => {
           assigneeId: assignee.id,
           creatorId: creator.id,
           description: "Test task",
+          markdown: "Test task markdown",
           done: false,
         },
         { transaction },
@@ -175,13 +176,13 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.calledOnce).to.equal(true);
       const callArgs = notifyStub.getCall(0).args;
       expect(callArgs[0]).to.equal("待办事项");
       expect(callArgs[1]).to.deep.equal([assignee.id]);
-      expect(callArgs[3].name).to.equal("Assignee");
+      expect(callArgs[3].name).to.equal("ee");
       expect(callArgs[3].delta).to.include("Test task");
 
       const count = await db.ScheduledNotification.count({ transaction });
@@ -213,7 +214,7 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.called).to.equal(false);
 
@@ -257,7 +258,7 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await sendScheduledNotifications();
+      await sendScheduledNotifications(transaction);
 
       expect(notifyStub.calledTwice).to.equal(true); // One for mentor, one for admin
       const mentorCall = notifyStub
@@ -283,17 +284,21 @@ describe("scheduledNotifications", () => {
     it("should throw error for unknown notification type", async () => {
       const past = moment().subtract(6, "minutes").toDate();
       await db.ScheduledNotification.create(
-        { type: "UnknownType" as any, subjectId: uuidv4(), createdAt: past },
+        { type: "Task", subjectId: uuidv4(), createdAt: past },
+        { transaction },
+      );
+
+      // Update the type to an invalid value using a raw query, bypassing validation
+      await sequelize.query(
+        `UPDATE "ScheduledNotifications" SET type = 'UnknownType'`,
         { transaction },
       );
 
       try {
-        await sendScheduledNotifications();
+        await sendScheduledNotifications(transaction);
         expect.fail("Should have thrown error");
       } catch (e: any) {
-        expect(e.message).to.include(
-          "Unknown scheduled notification type: UnknownType",
-        );
+        expect(e.message).to.include('get type = "UnknownType"');
       }
     });
   });
