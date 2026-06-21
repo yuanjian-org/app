@@ -1,5 +1,5 @@
 import sequelize from "../database/sequelize";
-import { Transaction } from "sequelize";
+import { EmptyResultError, Transaction } from "sequelize";
 import db from "../database/db";
 import { SummaryDescriptor } from "./summaries";
 
@@ -46,16 +46,25 @@ export async function saveSummaryIfNotExistImpl(
 
   // Do NOT use `upsert` because user may have edited the summary after it is
   // first created.
-  await db.Summary.create(
-    {
-      transcriptId,
-      key,
-      markdown,
-      initialLength: markdown.length,
-      deletedLength: 0,
-    },
-    { transaction },
-  );
+  try {
+    await db.Summary.create(
+      {
+        transcriptId,
+        key,
+        markdown,
+        initialLength: markdown.length,
+        deletedLength: 0,
+      },
+      { transaction, ignoreDuplicates: true },
+    );
+  } catch (e: any) {
+    if (e instanceof EmptyResultError) {
+      // Ignored. Another concurrent process has already created the summary.
+      console.log(`Summary already exists for transcript ${transcriptId} key ${key}`);
+    } else {
+      throw e;
+    }
+  }
 }
 
 export async function saveSummaryIfNotExist(
