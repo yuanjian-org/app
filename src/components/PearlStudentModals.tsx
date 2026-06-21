@@ -35,17 +35,27 @@ export function PearlStudentModals({
   refetchUserState: () => void;
 }) {
   const [isInitial, setIsInitial] = useState<boolean>(true);
+  const [loadingDecline, setLoadingDecline] = useState<boolean>(false);
 
   const decline = async () => {
-    await trpc.users.setMyState.mutate({
-      ...userState,
-      declinedPearlStudentModal: true,
-    });
-    refetchUserState();
+    setLoadingDecline(true);
+    try {
+      await trpc.users.setMyState.mutate({
+        ...userState,
+        declinedPearlStudentModal: true,
+      });
+      refetchUserState();
+    } finally {
+      setLoadingDecline(false);
+    }
   };
 
   return isInitial ? (
-    <InitialModal confirm={() => setIsInitial(false)} decline={decline} />
+    <InitialModal
+      confirm={() => setIsInitial(false)}
+      decline={decline}
+      loadingDecline={loadingDecline}
+    />
   ) : (
     <PearlStudentValidationModal
       cancelLabel="返回"
@@ -57,9 +67,11 @@ export function PearlStudentModals({
 function InitialModal({
   confirm,
   decline,
+  loadingDecline,
 }: {
   confirm: () => void;
   decline: () => void;
+  loadingDecline: boolean;
 }) {
   return (
     // Set onClose to undefined to prevent user from closing the modal without
@@ -77,9 +89,15 @@ function InitialModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>我不是珍珠生，或跳过此步</Button>
+            <Button onClick={decline} isLoading={loadingDecline}>
+              我不是珍珠生，或跳过此步
+            </Button>
             <Spacer />
-            <Button variant="brand" onClick={confirm}>
+            <Button
+              variant="brand"
+              onClick={confirm}
+              isDisabled={loadingDecline}
+            >
               我是珍珠生
             </Button>
           </HStack>
@@ -102,6 +120,7 @@ export function PearlStudentValidationModal({
   const [nationalIdLastFour, setNationalIdLastFour] = useState<string>("");
   const [wechat, setWechat] = useState<string>("");
   const { update } = useSession();
+  const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
 
   const isInputValid =
     isValidChineseName(name) &&
@@ -110,19 +129,24 @@ export function PearlStudentValidationModal({
     wechat.length > 0;
 
   const submit = async () => {
-    await trpc.pearlStudents.validate.mutate({
-      name,
-      pearlId,
-      nationalIdLastFour,
-      wechat,
-    });
+    setLoadingSubmit(true);
+    try {
+      await trpc.pearlStudents.validate.mutate({
+        name,
+        pearlId,
+        nationalIdLastFour,
+        wechat,
+      });
 
-    // As soon as the session is updated, all affected page components should
-    // be refreshed including the caller to PearlStudentModals, so we don't need
-    // to manually close this modal.
-    await update();
+      // As soon as the session is updated, all affected page components should
+      // be refreshed including the caller to PearlStudentModals, so we don't need
+      // to manually close this modal.
+      await update();
 
-    toast.success(`验证成功。您现在可以享受珍珠生专属功能了。`);
+      toast.success(`验证成功。您现在可以享受珍珠生专属功能了。`);
+    } finally {
+      setLoadingSubmit(false);
+    }
   };
 
   return (
@@ -182,8 +206,15 @@ export function PearlStudentValidationModal({
             <RiCustomerServiceFill color="gray" />
 
             <Spacer />
-            <Button onClick={cancel}>{cancelLabel}</Button>
-            <Button onClick={submit} variant="brand" isDisabled={!isInputValid}>
+            <Button onClick={cancel} isDisabled={loadingSubmit}>
+              {cancelLabel}
+            </Button>
+            <Button
+              onClick={submit}
+              variant="brand"
+              isDisabled={!isInputValid}
+              isLoading={loadingSubmit}
+            >
               提交
             </Button>
           </HStack>
