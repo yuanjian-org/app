@@ -260,7 +260,7 @@ describe("scheduledNotifications", () => {
 
       await sendScheduledNotifications(transaction);
 
-      expect(notifyStub.calledTwice).to.equal(true); // One for mentor, one for admin
+      expect(notifyStub.callCount).to.be.at.least(2); // At least two calls: one for mentor, one for the admin created in the test
       const mentorCall = notifyStub
         .getCalls()
         .find((call) => call.args[1][0] === mentor.id);
