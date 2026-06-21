@@ -46,16 +46,15 @@ export async function saveSummaryIfNotExistImpl(
 
   // Do NOT use `upsert` because user may have edited the summary after it is
   // first created.
-  await db.Summary.create(
-    {
-      transcriptId,
-      key,
+  await db.Summary.findOrCreate({
+    where: { transcriptId, key },
+    defaults: {
       markdown,
       initialLength: markdown.length,
       deletedLength: 0,
     },
-    { transaction },
-  );
+    transaction,
+  });
 }
 
 export async function saveSummaryIfNotExist(
