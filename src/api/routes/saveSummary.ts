@@ -54,7 +54,7 @@ export async function saveSummaryIfNotExistImpl(
       initialLength: markdown.length,
       deletedLength: 0,
     },
-    { transaction },
+    { ignoreDuplicates: true, transaction },
   );
 }
 
