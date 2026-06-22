@@ -45,7 +45,7 @@ export async function saveSummaryIfNotExistImpl(
   // Do NOT use `upsert` because user may have edited the summary after it is
   // first created. For some reason there can be races when the summary is
   // already created. Hence findOrCreate() instead of create()
-  await db.Summary.findOrCreate({
+  const [, created] = await db.Summary.findOrCreate({
     where: { transcriptId, key },
     defaults: {
       markdown,
@@ -54,6 +54,12 @@ export async function saveSummaryIfNotExistImpl(
     },
     transaction,
   });
+
+  if (!created) {
+    console.log(
+      `Summary ${transcriptId} key ${key} already exists and will be ignored.`,
+    );
+  }
 }
 
 export async function saveSummaryIfNotExist(
