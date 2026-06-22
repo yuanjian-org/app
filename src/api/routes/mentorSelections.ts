@@ -16,7 +16,7 @@ import invariant from "tiny-invariant";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import moment from "moment";
-import { Op, Transaction, literal } from "sequelize";
+import { Op, Transaction, fn, col } from "sequelize";
 import { zDateColumn } from "shared/DateColumn";
 
 export async function createDraftImpl(
@@ -290,6 +290,27 @@ const listFinalizedBatches = procedure
  * @return the latest batch finalizedAt of all users. If a user has a draft
  * (i.e. unfinalized) batch, the returned value is null.
  */
+export async function listLastBatchFinalizedAtImpl(transaction?: Transaction) {
+  const rows = await db.MentorSelectionBatch.findAll({
+    attributes: [
+      "userId",
+      [fn("COUNT", col("id")), "totalCount"],
+      [fn("COUNT", col("finalizedAt")), "finalizedCount"],
+      [fn("MAX", col("finalizedAt")), "maxFinalizedAt"],
+    ],
+    group: ["userId"],
+    transaction,
+  });
+
+  return rows.map((row: any) => ({
+    userId: row.userId,
+    finalizedAt:
+      row.get("totalCount") === row.get("finalizedCount")
+        ? row.get("maxFinalizedAt")
+        : null,
+  }));
+}
+
 const listLastBatchFinalizedAt = procedure
   .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(
@@ -301,23 +322,7 @@ const listLastBatchFinalizedAt = procedure
     ),
   )
   .query(async () => {
-    return await db.MentorSelectionBatch.findAll({
-      attributes: [
-        "userId",
-        [
-          literal(`
-          CASE
-            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
-            ELSE MAX("finalizedAt")
-          END
-        `),
-          "finalizedAt",
-        ],
-      ],
-      group: ["userId"],
-      // Return the raw result, without wrapping it in Sequelize instances.
-      raw: true,
-    });
+    return await listLastBatchFinalizedAtImpl();
   });
 
 export default router({
