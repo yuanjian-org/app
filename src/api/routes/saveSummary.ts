@@ -30,8 +30,6 @@ export async function saveSummaryIfNotExistImpl(
   markdown: string,
   transaction: Transaction,
 ) {
-  if (await hasSummary(transcriptId, key, transaction)) return;
-
   console.log(`Save transcript ${transcriptId} key ${key}`);
 
   await db.Transcript.upsert(
@@ -45,17 +43,23 @@ export async function saveSummaryIfNotExistImpl(
   );
 
   // Do NOT use `upsert` because user may have edited the summary after it is
-  // first created.
-  await db.Summary.create(
-    {
-      transcriptId,
-      key,
+  // first created. For some reason there can be races when the summary is
+  // already created. Hence findOrCreate() instead of create()
+  const [, created] = await db.Summary.findOrCreate({
+    where: { transcriptId, key },
+    defaults: {
       markdown,
       initialLength: markdown.length,
       deletedLength: 0,
     },
-    { transaction },
-  );
+    transaction,
+  });
+
+  if (!created) {
+    console.log(
+      `Summary ${transcriptId} key ${key} already exists and will be ignored.`,
+    );
+  }
 }
 
 export async function saveSummaryIfNotExist(
