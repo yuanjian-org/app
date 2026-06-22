@@ -30,8 +30,6 @@ export async function saveSummaryIfNotExistImpl(
   markdown: string,
   transaction: Transaction,
 ) {
-  if (await hasSummary(transcriptId, key, transaction)) return;
-
   console.log(`Save transcript ${transcriptId} key ${key}`);
 
   await db.Transcript.upsert(
