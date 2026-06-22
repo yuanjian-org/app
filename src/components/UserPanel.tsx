@@ -17,6 +17,7 @@ import {
   VStack,
   HStack,
   useClipboard,
+  Tooltip,
   Wrap,
   Textarea,
   FormControl,
@@ -155,10 +156,12 @@ function UserUrl({ u }: { u: MinUser }) {
   }, [hasCopied]);
 
   return u.url ? (
-    <HStack onClick={onCopy} cursor="pointer" textColor="gray" fontSize="sm">
-      <Text>{url}</Text>
-      <CopyIcon />
-    </HStack>
+    <Tooltip label="拷贝链接到剪贴板">
+      <HStack onClick={onCopy} cursor="pointer" textColor="gray" fontSize="sm">
+        <Text>{url}</Text>
+        <CopyIcon />
+      </HStack>
+    </Tooltip>
   ) : (
     <></>
   );
