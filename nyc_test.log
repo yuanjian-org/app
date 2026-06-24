@@ -1,0 +1,1294 @@
+yarn run v1.22.22
+$ TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register 'src/**/*.test.ts' --recursive
+(node:12220) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:12220) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///app/src/api/auth.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /app/package.json.
+
+
+  auth.ts
+    authIntegration
+      ✔ should throw UNAUTHORIZED if token is missing
+      ✔ should throw internal server error if INTEGRATION_AUTH_TOKEN is not set
+      ✔ should throw BAD_REQUEST if token is invalid
+      ✔ should succeed if token is valid
+    authUser
+      ✔ should throw UNAUTHORIZED if session is missing
+      ✔ should throw FORBIDDEN if role is not permitted
+      ✔ should succeed and provide context if session and role are valid
+    authWebhook
+      ✔ should throw internal server error if WEBHOOK_TOKEN is not set
+      ✔ should succeed if WEBHOOK_TOKEN is set
+
+  adapter
+    createUser
+adapter.createUser(wechat): oUpF8uMuAJO_M2pxb1Q9zNjWeS6o
+      ✔ should create a wechat user
+adapter.createUser(sso): ssoUserIdNoEmail
+      ✔ should create an sso user without realEmail
+adapter.createUser(sso): ssoUserId123
+      ✔ should create an sso user
+      ✔ should throw for invalid email domain
+    getUserByEmail
+      ✔ should return null for unknown email domain
+adapter.getUserByEmail(wechat): testWechat123
+      ✔ should return user by wechat fake email
+adapter.getUserByEmail(sso): testSso123
+      ✔ should return user by sso fake email
+adapter.getUserByEmail(wechat): nonexistent
+      ✔ should return null if user doesn't exist
+
+  fakeEmail utils
+    ✔ unionId2Email and email2UnionId should be reversible
+    ✔ ssoUserId2Email and email2SsoUserId should be reversible
+unionid "inv+alid" is invalid
+unionid "" is invalid
+    ✔ unionId2Email throws on invalid input
+ssoUserId "inv+alid" is invalid
+ssoUserId "" is invalid
+    ✔ ssoUserId2Email throws on invalid input
+
+  Auth Providers
+    id-password provider
+      ✔ should authorize successfully with correct credentials (291ms)
+      ✔ should fail authorization with incorrect password (268ms)
+      ✔ should fail authorization if user does not exist
+    id-token provider
+      ✔ should return an existing user if one exists for the token
+      ✔ should create and return a new user if one does not exist for the token
+
+  WeChatProvider
+    ✔ should return the correct configuration for OfficialAccount
+    ✔ should return the correct configuration for WebsiteApp
+    token.request
+      ✔ should fetch the access token successfully
+      ✔ should throw an error if no code is provided
+    userinfo.request
+      ✔ should fetch user info successfully
+      ✔ should throw an error if access_token is missing
+    profile
+      ✔ should return the correctly mapped profile
+
+  YuantuSsoProvider
+    ✔ should return the correct configuration
+    userinfo.request
+      ✔ should call client.userinfo with TokenSet
+      ✔ should pass existing TokenSet directly
+    profile
+      ✔ should return the correctly mapped profile
+      ✔ should handle missing optional fields
+
+  checkAndDeleteIdToken
+    ✔ should successfully validate and delete token for phone
+    ✔ should successfully validate and delete token for email
+    ✔ should throw error if token is not found
+    ✔ should increment failedAttempts on incorrect token
+    ✔ should destroy token after 5 failed attempts
+    ✔ should throw error if token is expired
+
+  email
+Sending mail via AoKSend, template id: E_12345, to: test1@example.com, data: {
+  "baseUrl": "https://example.com",
+  "name": "John [表情符]",
+  "message": "Hello world!"
+}
+Sending mail via AoKSend, template id: E_12345, to: test2@example.com, data: {
+  "baseUrl": "https://example.com",
+  "name": "John [表情符]",
+  "message": "Hello world!"
+}
+    ✔ should send emails correctly via AoKSend and sanitize emojis
+Sending mail via AoKSend, template id: E_12345, to: test@example.com, data: {
+  "baseUrl": "https://example.com"
+}
+AoKSend not configured. Skip calling actual API.
+    ✔ should skip actual API call if AOKSEND_APP_KEY is not configured
+Sending mail via AoKSend, template id: E_12345, to: test@example.com, data: {
+  "baseUrl": "https://example.com"
+}
+    ✔ should throw internal server error if AoKSend returns non-200 code
+
+  getFeatures
+    ✔ should return an empty object when no features are enabled
+    ✔ should enable orgs feature when ENABLE_ORGS is true
+    ✔ should enable relational feature when ENABLE_RELATIONAL is true
+    ✔ should enable volunteers feature when ENABLE_VOLUNTEERS is true
+    ✔ should enable interviews feature when ENABLE_INTERVIEWS is true
+    ✔ should enable exams feature when ENABLE_EXAMS is true
+    ✔ should enable projects feature when ENABLE_PROJECTS is true
+    ✔ should enable menteeProfile feature when ENABLE_MENTEE_PROFILE is true
+    ✔ should enable multiple features simultaneously
+    ✔ should not enable features when env var is not exactly 'true'
+
+  getWhiteLabel
+    ✔ should return the correctly parsed valid white label
+    ✔ should fallback to yuantu when WHITE_LABEL is missing
+    ✔ should fallback to yuantu when WHITE_LABEL is invalid
+
+  gsheets
+    updateGoogleSpreadsheet
+Updating worksheet existingSheet
+      ✔ should update an existing sheet
+Updating worksheet newSheet
+      ✔ should add a new sheet if it does not exist
+Updating worksheet existingSheet
+      ✔ should resize sheet if required
+Updating worksheet existingSheet
+      ✔ should correctly handle object values with properties
+Updating worksheet existingSheet
+      ✔ should skip null values
+
+  ip() middleware
+    ✔ should return a tRPC middleware with the expected internal structure
+ip() middleware resolved client IP: 203.0.113.195 | X-Forwarded-For: 203.0.113.195, 127.0.0.1 | remoteAddress: 127.0.0.1
+    ✔ should successfully invoke the internal middleware function setting the correct IP
+ip() middleware resolved client IP: 10.0.0.5 | X-Forwarded-For: 203.0.113.195, 10.0.0.5 | remoteAddress: 10.0.0.5
+    ✔ should successfully invoke the internal middleware function rejecting untrusted proxy
+
+  jinshuju
+    encodeXField & validateAndDecodeXField
+      ✔ should encode correctly when user has a url and then decode successfully
+      ✔ should encode correctly when user url is empty
+      ✔ should encode and decode correctly when there are extra fields
+      ✔ should fail on malformed x_field_1
+      ✔ should fail when x_field_1 is undefined
+      ✔ should throw error when tenant does not match
+      ✔ should throw error when HMAC is tampered
+      ✔ should throw error when timestamp is in the future
+      ✔ should throw error when timestamp is older than 30 minutes
+
+  notify()
+    notifyRolesIgnoreError()
+      ✔ should catch and log synchronous errors from sequelize.transaction without throwing
+      ✔ should catch and log asynchronous errors from notifyRoles without throwing
+    notify() function
+      ✔ should not send notifications to users with no email or phone
+      ✔ should filter users based on SMS preferences
+      ✔ should filter users based on email preferences
+      ✔ should send both SMS and email to users with both contact methods
+      ✔ should handle different notification types
+      ✔ should handle users with complex preferences
+      ✔ should pass template variables correctly to SMS and email
+    edge cases and error handling
+      ✔ should handle invalid user IDs gracefully
+      ✔ should handle mixed valid and invalid user IDs
+      ✔ should handle users with only phone or only email
+      ✔ should respect 基础 preference for all notification types
+
+  OAuth2 Utils
+    hashUserIdForClient
+      ✔ should generate a consistent hash for the same client and user
+      ✔ should generate different hashes for different clients with the same user
+      ✔ should generate different hashes for the same client with different users
+    encryptPayload and decryptPayload
+      ✔ should correctly encrypt and decrypt a payload
+      ✔ should fail to decrypt if the payload was modified
+      ✔ should fail to decrypt a token encrypted with a different key
+      ✔ should throw if NEXTAUTH_SECRET is not set
+
+  assessments
+    createAssessmentImpl
+      ✔ should successfully create an assessment
+    updateAssessmentImpl
+      ✔ should successfully update an assessment summary
+      ✔ should throw notFoundError if assessment does not exist
+    getAssessmentImpl
+      ✔ should fetch an existing assessment
+      ✔ should throw notFoundError if assessment does not exist
+    listAllForMentorshipImpl
+      ✔ should list all assessments for a mentorship if user is the mentor
+      ✔ should throw noPermissionError if user is not the mentor of the mentorship
+
+  getCalibrationAndCheckPermissionSafe
+    ✔ should allow participants access to active calibrations they are part of
+    ✔ should disallow participants access to inactive calibrations
+    ✔ should disallow non-participants access to calibrations
+
+  insertOneOnOneMessagePrefixImpl
+    ✔ should add one-on-one prefix to message markdown
+    ✔ should throw error if message already has a prefix
+
+  chatsInternal
+    findOrCreateRoom
+      ✔ should successfully create a room if it does not exist
+      ✔ should return the existing room if it already exists
+    createChatMessage
+      ✔ should successfully create a chat message and delete drafts
+      ✔ should throw an error if the markdown is empty
+      ✔ should throw an error if the room does not exist
+    checkRoomPermission
+      ✔ should allow a mentee to write to their own room
+      ✔ should throw error if user has no permission to read room
+    insertOneOnOneMessagePrefixImpl
+      ✔ should successfully insert the one-on-one prefix to a message
+      ✔ should throw an error if message already has a typed prefix
+      ✔ should throw an error if message is not found
+
+  checkAndComputeUserFields
+    ✔ should throw error for invalid email
+    ✔ should lowercase valid email
+    ✔ should compute pinyin for name
+    ✔ should handle null name
+    ✔ should omit name/email/pinyin if undefined
+    checkAndComputeUrl
+      ✔ should throw error for invalid url format
+      ✔ should return empty object if url equals oldUrl
+      ✔ should throw error if non-volunteer tries to set url
+      ✔ should throw error if url is already taken
+      ✔ should set url if valid and available for volunteer
+      ✔ should retain old url if oldUrl is not null and url is undefined
+      ✔ should not auto-generate url for non-volunteers
+      ✔ should auto-generate url for volunteer with name
+      ✔ should auto-generate url for volunteer without name
+      ✔ should append suffix if auto-generated url is taken
+      ✔ should append multiple suffixes if multiple urls are taken
+
+  cron
+    resetDemoData
+      ✔ should throw if isDemo is false
+    authIntegration
+      ✔ should throw BAD_REQUEST if token is invalid for cron routes
+
+  formatMeetingMinutes
+    ✔ should produce expected output
+    ✔ should allow missing todos
+    ✔ should handle empty sections
+
+  generateDemoData
+Creating user "管理员"...
+Creating user "甲学生"...
+Creating user "乙学生"...
+Creating user "丙学生"...
+Creating user "丁学生"...
+Creating user "戊学生"...
+Creating user "丙导师"...
+Creating user "丁导师"...
+Creating user "戊导师"...
+Creating user "己导师"...
+Creating user "庚导师"...
+Creating group "导师内部讨论" for 管理员, 丙导师, 丁导师...
+Creating group "学生分享会" for 管理员, 甲学生, 乙学生, 丙导师...
+Creating mentorship for 管理员 and 甲学生...
+Creating summary for group 19d71853-52af-4d58-86cb-9ad0d1f0d326
+Creating summary 0 for group 19d71853-52af-4d58-86cb-9ad0d1f0d326...
+Save transcript transcript-19d71853-52af-4d58-86cb-9ad0d1f0d326-0 key 智能纪要
+Creating summary 1 for group 19d71853-52af-4d58-86cb-9ad0d1f0d326...
+Save transcript transcript-19d71853-52af-4d58-86cb-9ad0d1f0d326-1 key 智能纪要
+Creating mentee notes...
+Creating mentorship for 丙导师 and 甲学生...
+Creating summary for group 0ff45a3c-a819-43de-88c4-e836492b1f3e
+Creating summary 0 for group 0ff45a3c-a819-43de-88c4-e836492b1f3e...
+Save transcript transcript-0ff45a3c-a819-43de-88c4-e836492b1f3e-0 key 智能纪要
+Creating summary 1 for group 0ff45a3c-a819-43de-88c4-e836492b1f3e...
+Save transcript transcript-0ff45a3c-a819-43de-88c4-e836492b1f3e-1 key 智能纪要
+Creating mentorship for 管理员 and 乙学生...
+Creating summary for group 6b93d644-961a-4933-a459-9583886e579f
+Creating summary 0 for group 6b93d644-961a-4933-a459-9583886e579f...
+Save transcript transcript-6b93d644-961a-4933-a459-9583886e579f-0 key 智能纪要
+Creating summary 1 for group 6b93d644-961a-4933-a459-9583886e579f...
+Save transcript transcript-6b93d644-961a-4933-a459-9583886e579f-1 key 智能纪要
+Creating mentee notes...
+Creating mentorship for 庚导师 and 丙学生...
+Creating kudos...
+Creating calibration "2025届面试组"...
+Creating interview for 丁学生...
+Creating interview feedback...
+Creating interview feedback...
+Creating interview for 戊学生...
+Creating interview feedback...
+Creating interview feedback...
+Creating auto tasks...
+creating AutoTask study-handbook for user c65dafe7-5131-46b0-8616-3c47d681b25a
+scheduling Task notification for c65dafe7-5131-46b0-8616-3c47d681b25a
+Creating manual tasks...
+Creating mentor bookings...
+scheduling Chat notification for 28b12e53-ce27-4bb1-8999-9fc03d9ce16a
+Creating orgs...
+Creating projects...
+    ✔ should successfully run and create records in the database (674ms)
+
+  Global Configs Internal Functions
+    getStaticImpl
+      ✔ should return static configuration values including features
+    getImpl
+      ✔ should return an empty object when no config exists in the database
+      ✔ should return the stored configuration data when it exists
+    updateImpl
+      ✔ should create a new row if one doesn't exist and save the correct input
+      ✔ should merge with existing configuration data and ignore undefined fields
+      ✔ should remove showEditMessageTimeButton key entirely when explicitly set to false
+
+  Groups API Internal Functions
+    createGroup
+      ✔ should create a group and associate users
+    updateGroup
+      ✔ should update group properties and modify members
+
+  sendImpl
+    ✔ should throw error for unsupported phone regions
+    ✔ should send SMS for supported China phone number
+    ✔ should send SMS for supported US phone number
+    ✔ should send SMS for supported Italy phone number
+    ✔ should send email for email idType
+    ✔ should throw rate limit error if requested too frequently
+    ✔ should throw rate limit error if requested too frequently by target phone (even from different IP)
+    ✔ should throw rate limit error if requested too frequently by IP (even for different phone)
+    ✔ should succeed if rate limit is passed
+
+  setPhoneImpl
+    ✔ should update phone when existing user is not found
+    ✔ should throw error when existing user is found and current user already has phone
+    ✔ should merge accounts when existing user is found and current user has NO phone (all fields present)
+    ✔ should merge accounts when existing user is found and current user has NO phone (some fields missing)
+
+  resetPasswordImpl
+    phone number password reset
+      ✔ should create new user if user does not exist
+      ✔ should update existing user password
+    email password reset
+      ✔ should create new user if user does not exist
+      ✔ should update existing user password
+    privileged user restrictions
+      ✔ should throw error for UserAdmin role
+      ✔ should throw error for GroupAdmin role
+    token validation and cleanup
+      ✔ should throw error for invalid token
+      ✔ should throw error for non-existent token
+      ✔ should increment failedAttempts on incorrect token
+      ✔ should destroy token after 5 failed attempts
+      ✔ should delete token after successful reset
+      ✔ should throw error for email with invalid token
+    transaction handling
+      ✔ should rollback on error
+
+  setEmailImpl
+    ✔ should set email for the current user when no existing user has this email
+    ✔ should remove email from existing user and notify when another user has this email
+
+  updateMyPhoneAndPreference
+    ✔ should update phone for China phone numbers without disabling SMS
+    ✔ should update phone when user already has phone number without disabling SMS
+    ✔ should update phone to China number when user already has phone without disabling SMS
+    ✔ should disable SMS for non-China phone with no existing phone
+    ✔ should preserve existing smsDisabled preferences
+    ✔ should handle user with no existing preferences
+
+  interviewFeedbacks routes
+    getInterviewFeedbackImpl
+      ✔ should allow interviewer to access
+      ✔ should allow MentorshipAdmin to access
+      ✔ should deny access to stranger
+    updateInterviewFeedbackImpl
+      ✔ should allow interviewer to update with correct ETag
+      ✔ should fail to update with incorrect ETag (optimistic concurrency control)
+      ✔ should not allow non-interviewer to update even if they are manager
+
+  interviews
+    ✔ `create` should create group
+    ✔ `update` should update group
+
+  kudos routes
+    listKudosImpl
+      ✔ should list kudos for a specific user, sorted by createdAt in descending order
+      ✔ should limit the results
+      ✔ should return all kudos when userId is not provided
+    createImpl
+scheduling Kudos notification for cc4cb41e-ce8e-47dc-ad62-68005880a37d
+      ✔ should create a like and schedule a notification
+scheduling Kudos notification for 20a25e50-66d6-4343-969b-14d69e30dbfc
+      ✔ should create a kudos and schedule a notification
+    getLastKudosCreatedAtImpl
+      ✔ should exclude kudos given by the current user
+
+  Kudos Internal Functions
+    createKudos
+      ✔ should successfully create a 'like' and increment receiver's likes count
+      ✔ should successfully create a 'kudos' and increment receiver's kudos count
+      ✔ should throw a generalBadRequestError if a user tries to send kudos to themselves
+      ✔ should throw a SequelizeForeignKeyConstraintError if the receiver does not exist
+
+  Map Router
+    createLandmarkAssessmentImpl
+      ✔ should successfully create a landmark assessment
+    listLandmarkAssessmentsImpl
+      ✔ should list landmark assessments for a specific user and landmark
+
+  match.ts
+    applyInitialSolverOutputImpl
+      ✔ should create transactional mentorship and match feedback successfully (44ms)
+
+  matchFeedback routes
+    getLastMatchFeedback
+      ✔ should return the latest Mentee match feedback
+      ✔ should return the latest Mentor match feedback
+      ✔ should return null if there is no feedback of the requested type
+      ✔ should return null if the latest feedback type does not match
+    listImpl
+      ✔ should return list of match feedbacks and populate user info for Mentee feedback
+      ✔ should return list of match feedbacks and populate user info for Mentor feedback
+    updateLastImpl
+      ✔ should update the latest feedback record
+      ✔ should throw error if no feedback record exists to update
+
+  recycleMeetings
+(Expected) meeting creation failure for user test-user-id:
+          Error: some generic error
+    ✔ should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error
+(Expected) meeting creation failure for user test-user-id:
+          Error: 腾讯会议后台错误：每月总接口调用次数超过限制
+    ✔ should not call notifyRolesIgnoreError when the error includes '每月总接口调用次数超过限制'
+
+  refreshMeetingSlots
+    ✔ should ignore meetings created within the grace period
+    ✔ should ignore ongoing meetings
+Marking meeting_id meeting-3 as ended for group 00000000-0000-0000-0000-000000000001
+    ✔ should end meetings that are not ongoing
+
+  downloadMenteeDataImpl
+    ✔ should generate complete ZIP package with all mentee data (63ms)
+
+  Mentor Bookings Router
+    createMentorBooking
+      ✔ should successfully create a mentor booking and notify roles
+
+  mentorSelections routes
+    createDraftImpl
+      ✔ should successfully create a draft batch and selection for a mentor
+      ✔ should append a new selection to an existing draft batch with correct order
+    updateDraftImpl
+      ✔ should successfully update the reason for an existing draft selection
+      ✔ should throw an error if the mentor selection does not exist
+    reorderDraftImpl
+      ✔ should successfully reorder draft selections
+      ✔ should throw an error if the number of selections in input doesn't match the database
+
+  auditLastMentorshipMeetings
+    ✔ should call notify with correct parameters when mentorship has old one-on-one meeting
+
+  migration.ts
+    migrateDatabase
+Migrating DB schema...
+Migrating DB data...
+      ✔ should successfully sync sequelize and meetingSequelize with { alter: { drop: false } }
+
+  orgs API routes
+    listUserOrgsImpl
+      ✔ should list all orgs the user is a mentor of in alphabetical order
+    listOrgsImpl
+      ✔ should list all orgs in alphabetical order
+    createOrgImpl
+      ✔ should create a new org
+    getOrgImpl
+      ✔ should retrieve an org with mentors and owners
+      ✔ should throw not found error if org does not exist
+    removeOrgImpl
+      ✔ should remove an org
+      ✔ should throw not found error if org to remove does not exist
+    updateOrgDescriptionImpl
+      ✔ should allow an OrgAdmin to update description
+      ✔ should allow an OrgOwner to update description
+      ✔ should deny updating description if not an admin or owner
+      ✔ should throw not found error if org to update does not exist
+    joinOrgImpl and leaveOrgImpl
+      ✔ should allow a mentor to join and leave an org
+      ✔ should allow a non-mentor user to leave an org
+    removeMentorImpl
+      ✔ should allow an OrgAdmin to remove a mentor
+      ✔ should allow an OrgOwner to remove a mentor
+      ✔ should deny removing a mentor if not an admin or owner
+    addOwnerImpl and removeOwnerImpl
+      ✔ should add and remove an owner
+
+  pearlStudents API routes
+    validateImpl
+      ✔ should successfully validate a matching pearl student and update user fields
+      ✔ should throw error if student details do not match
+      ✔ should throw error if pearl student is already verified
+
+  Project Applications Route Impl
+    ✔ should list applications for project owner
+    ✔ should block non-owners from listing applications
+    ✔ should allow ProjectAdmin to list applications
+    ✔ should update application status
+
+  Projects Route Impl
+    listImpl
+      ✔ should return public/open projects when me is undefined
+      ✔ should return projects owned by me
+      ✔ should return public/open projects even if not owned by me
+      ✔ should allow ProjectAdmin to see all projects regardless of status or ownership
+    getImpl
+      ✔ should get a public/open project when me is undefined
+      ✔ should throw noPermissionError when me is undefined and project is not public/open
+      ✔ should get a public/open project
+      ✔ should get an owned project regardless of status
+      ✔ should allow ProjectAdmin to get any project
+      ✔ should throw notFoundError for a non-existent project id
+      ✔ should throw noPermissionError for an unowned private/draft project
+    createImpl
+      ✔ should create a project successfully by its owner
+      ✔ should allow ProjectAdmin to create a project for another user
+      ✔ should throw noPermissionError when a non-admin tries to create a project for another user
+    updateImpl
+      ✔ should update an owned project successfully
+      ✔ should allow ProjectAdmin to update any project successfully
+      ✔ should throw noPermissionError when non-admin tries to update another user's project
+      ✔ should throw notFoundError for a non-existent project id
+
+  purgeOldData
+Purge old data...
+    ✔ should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records
+
+  saveSummary
+    hasSummary
+      ✔ should return false if summary does not exist
+Ignoring existing test-key summary for transcript "8725e4ae-d689-4621-aa56-b401d2173381"
+      ✔ should return true if summary exists
+    saveSummaryIfNotExistImpl
+Save transcript fb2b4878-d85e-4367-80a4-12dd3d455903 key test-key
+      ✔ should create a transcript and summary if they don't exist
+Save transcript fff3c627-3cbe-43d7-bc65-754a354f2c76 key test-key
+Summary fff3c627-3cbe-43d7-bc65-754a354f2c76 key test-key already exists and will be ignored.
+      ✔ should not create a summary if one already exists
+
+  scheduledNotifications
+    scheduleNotification
+scheduling Kudos notification for 9da02ed8-61eb-4436-a70d-02c8339cb233
+      ✔ should successfully schedule a new notification
+scheduling Task notification for f6391b61-c518-473f-8303-ea72a44caac1
+Task notification already scheduled for f6391b61-c518-473f-8303-ea72a44caac1
+      ✔ should not schedule a duplicate notification if one already exists
+    sendScheduledNotifications
+Found 1 scheduled notification
+Delaying notification with row id 43
+      ✔ should skip notifications delayed less than 5 minutes
+Found 1 scheduled notification
+      ✔ should notify kudos and delete the notification
+Found 1 scheduled notification
+No tasks to send to assignee b820ae24-79d7-4ddc-b6b2-f0a516ac399d, assuming assignee has completed the tasks that triggered this scheduled notification.
+      ✔ should not notify tasks if there are no tasks
+Found 1 scheduled notification
+      ✔ should notify tasks and delete the notification (157ms)
+Found 1 scheduled notification
+      ✔ should not notify chat if no messages
+Found 1 scheduled notification
+      ✔ should notify chat and delete the notification
+Found 1 scheduled notification
+      ✔ should throw error for unknown notification type
+
+  summaries
+    saveSummaryImpl
+Save transcript test-transcript-save-1782312723801 key 智能纪要
+      ✔ should successfully create a Transcript and create a Summary
+Save transcript test-transcript-1782312723811-f472bca5-1ff2-44a4-bde4-634a02a05f62 key 智能纪要
+      ✔ should successfully update an existing Transcript and create a Summary
+    listImpl
+      ✔ should return the AI minutes summary for a transcript
+      ✔ should throw error if user has no permission to access group history
+    updateImpl
+      ✔ should throw error if user has no permission to update summary
+      ✔ should allow updating a summary if user has permission
+
+  downloadSummaries functions
+Processing meeting_id m1 record_id mr1 mins 1 start 2026-06-24T22:51:03+08:00 end 2026-06-24T22:52:03+08:00
+Downloading record_id mr1 transcript/record_file_id f1 key 智能纪要
+    ✔ findMissingSummariesforTmUser should filter ready records and map to descriptors
+Processing meeting_id m-process-1 record_id mr-1 mins 60 start 2026-06-24T21:52:03+08:00 end 2026-06-24T22:52:03+08:00
+Downloading record_id mr-1 transcript/record_file_id file-1 key 智能纪要
+    ✔ processRecord should generate summary descriptors correctly
+    ✔ downloadUrl should return data
+    ✔ formatAiMinutesSummary should return null if summary is empty
+    ✔ formatAiMinutesSummary should format correctly
+
+  Tasks Route Impl
+    createAutoTask
+creating AutoTask study-comms for user ac50411d-617d-4565-bed8-411e8a6f6922
+scheduling Task notification for ac50411d-617d-4565-bed8-411e8a6f6922
+      ✔ should create a new auto task and schedule notification if it does not exist
+AutoTask study-comms for 1fd08c39-cf59-4169-9ab0-fb7120a31f61 is already created
+      ✔ should do nothing if an active task already exists
+creating AutoTask study-comms for user 81ded92b-8951-41bc-9c2c-d034f68e1466
+scheduling Task notification for 81ded92b-8951-41bc-9c2c-d034f68e1466
+      ✔ should reopen the task and schedule notification if the task is already done
+    createAutoTasks
+creating AutoTask study-comms for user a32a3264-74fc-45ae-b6b1-8c4b1f243194
+scheduling Task notification for a32a3264-74fc-45ae-b6b1-8c4b1f243194
+creating AutoTask study-handbook for user a32a3264-74fc-45ae-b6b1-8c4b1f243194
+Task notification already scheduled for a32a3264-74fc-45ae-b6b1-8c4b1f243194
+      ✔ should create auto tasks for mentors with expiring exams in ongoing mentorships
+    listImpl
+      ✔ should list tasks for self
+      ✔ should list tasks as MentorshipAdmin
+      ✔ should list a mentee's tasks as their mentor
+      ✔ should fail when a mentor tries to list tasks of someone they don't mentor
+    createImpl
+scheduling Task notification for 2b2e43a9-b74b-4a8c-9e3d-ad53ba130b5c
+      ✔ should create a task successfully
+      ✔ should fail when markdown is empty
+    updateImpl
+scheduling Task notification for dac58c67-1280-468c-8592-faaca08790dd
+      ✔ should update an existing task owned by the user
+      ✔ should fail on unauthorized updates
+      ✔ should fail on empty text update
+    updateDoneImpl
+      ✔ should toggle a task's done status
+      ✔ should fail when user lacks permission to toggle task
+      ✔ should fail to manually toggle an auto-task
+    getLastTasksUpdatedAtImpl
+      ✔ should identify the last updated timestamp for tasks assigned to the user
+
+  transcripts
+    listImpl
+      ✔ should return the transcripts for a group when the user has permission
+      ✔ should throw a notFoundError if the group does not exist
+      ✔ should throw an error if the user has no permission to access the group history
+    getSummaries
+      ✔ should return summaries for a given transcriptId
+      ✔ should return an empty array if there are no summaries for the transcript
+
+  redactEmail
+    ✔ should redact normal email
+    ✔ should handle short names (1 character)
+    ✔ should handle short names (2 characters)
+    ✔ should handle missing domain
+    ✔ should handle missing name
+    ✔ should handle empty string
+
+  updateWechatUnionId
+    ✔ should delete accounts table rows for both old and new wechatUnionIds
+    ✔ should set wechatUnionId to null if null is provided
+    ✔ should do nothing if undefined is provided
+    ✔ should throw invariant if user is not a UserAdmin
+    ✔ should throw invariant if target user does not exist
+    ✔ should do nothing if wechatUnionId is the same as existing
+
+  updateImpl
+    ✔ should throw notFoundError when user doesn't exist
+    ✔ should throw noPermissionError when a non-UserAdmin tries to update someone else
+    ✔ should throw noPermissionError when a non-UserAdmin tries to modify roles
+    ✔ should successfully update own profile (non-UserAdmin)
+    ✔ should ensure non-UserAdmins cannot change email or phone
+    ✔ should successfully update another user's profile (UserAdmin)
+    ✔ should successfully update another user's email and phone (UserAdmin)
+    ✔ should successfully update roles (UserAdmin)
+    ✔ should throw generalBadRequestError for invalid Chinese name
+    ✔ should normalize empty strings to null for email, phone, wechat, but retain url if cleared
+    ✔ should update wechatUnionId when UserAdmin updates
+
+  setMyStateImpl
+    ✔ should restrict exam field updates and allow whitelisted fields
+
+  listImpl
+    ✔ should enforce limit and return nextCursor
+    ✔ should restrict includeMerged and returnMergeInfo for non-UserAdmin
+    ✔ should filter includeNonVolunteersMentors
+    ✔ should filter containsRoles
+    ✔ should filter menteeStatus and pointOfContactId
+    ✔ should filter matchesNameOrEmail correctly on name, pinyin, and email
+    ✔ should filter includeMentorSearch using mentor name/pinyin
+    ✔ should filter by ids
+    ✔ should fetch merged info when returnMergeInfo is true
+
+  ustcStudents.validate
+    ✔ should validate and update user
+    ✔ should throw error if email does not end with @mail.ustc.edu.cn
+    ✔ should keep existing menteeStatus if it is already set
+
+  sms
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "test"
+    }
+  },
+  {
+    "to": "+15000000000",
+    "vars": {
+      "name": "test"
+    }
+  }
+]
+Domestic Submail not configured. Skip actual API.
+    ✔ should return early if Submail credentials are not configured
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "test1"
+    }
+  },
+  {
+    "to": "+8615000000001",
+    "vars": {
+      "name": "test2"
+    }
+  }
+]
+    ✔ should send domestic SMS via multixsend endpoint
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "test_intl"
+    }
+  }
+]
+    ✔ should send international SMS via internationalsms/multixsend endpoint
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  },
+  {
+    "to": "+447000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+    ✔ should send both domestic and international SMS if both types are provided
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： 500 {}
+    ✔ should throw INTERNAL_SERVER_ERROR if domestic SMS returns non-200 status
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： [ { status: 'error', msg: 'some error' } ]
+    ✔ should throw INTERNAL_SERVER_ERROR if domestic SMS returns status other than success
+Sending SMS via Submail, template id: ["dom_tmpl", "some_other_tmpl"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+部分短信发送失败（忽略错误=true）： 500 { status: 'error' }
+部分短信发送失败（忽略错误=true）： [ { status: 'error' } ]
+    ✔ should ignore errors for international SMS if template is not for idToken
+Sending SMS via Submail, template id: ["dom_tmpl", "0Rr8G"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： [ { status: 'error' } ]
+    ✔ should throw INTERNAL_SERVER_ERROR for international SMS if template is for idToken
+
+  TencentMeeting
+    getTmUserIds
+      ✔ should return parsed user ids from MeetingSlot
+      ✔ should return empty array if no MeetingSlots are found
+    createRecurringMeeting
+[TecentMeeting] createRecurringMeeting('Test Subject',
+    1600000000, 1600003600)
+      ✔ should call tmRequest and parse the successful response
+    getMeeting
+[TecentMeeting] getMeeting()
+      ✔ should call tmRequest and return meeting info
+[TecentMeeting] getMeeting()
+      ✔ should throw internal server error if error_info is returned
+
+  submitApplication
+    ✔ should submit mentee application
+    ✔ should submit proxied mentee application
+    ✔ should reset menteeStatus for rejected students
+    ✔ should keep menteeStatus for current students
+
+  exam webhook
+    successful exam submission
+      ✔ should update user state and mark comms exam task as done
+
+  jinshuju webhook index
+    ✔ should route MenteeApp forms
+    ✔ should route VolunteerApp forms
+    ✔ should route upload forms
+    ✔ should route interview exam form
+    ✔ should route handbook exam form
+    ✔ should route comms exam form
+    ✔ should throw BAD_REQUEST on unknown form id
+
+  Project Applications Webhook
+    ✔ should create a project application
+
+  upload webhook
+    ✔ should fail if # urls isn't one
+    ✔ should fail if x_field_1 is malformed
+    ✔ should fail on invalid token HMAC
+    ✔ should fail for unknown form id
+    ✔ should succeed for picture form
+    ✔ should succeed for video form
+    ✔ should succeed for project form
+
+  nextauth jwt callback
+    ✔ should return token immediately if impersonate is undefined
+    ✔ should delete impersonateTokenKey if impersonate is null
+    ✔ should set impersonateTokenKey if user is UserAdmin
+    ✔ should throw error if user is not UserAdmin
+    ✔ should check roles of mergedTo user if account was merged
+    ✔ should allow impersonation if mergedTo actual user is UserAdmin
+
+  OAuth2 authorizeHandler
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST (55ms)
+[OAuth2 IdP] OAuth2 Provider not configured.
+    ✔ should return 500 if provider is not configured
+[OAuth2 IdP] Invalid client_id undefined
+    ✔ should return 400 for missing client_id but config is set
+[OAuth2 IdP] Invalid client_id wrong
+    ✔ should return 400 for invalid client_id
+[OAuth2 IdP] Only 'code' response_type is supported token
+    ✔ should return 400 for invalid response_type
+[OAuth2 IdP] Missing or invalid redirect_uri https://evil.com https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri
+[OAuth2 IdP] PKCE code_challenge_method must be S256 plain
+    ✔ should return 400 for invalid code_challenge_method
+API handler should not return a value, received object.
+    ✔ should redirect to login if user is not logged in
+API handler should not return a value, received object.
+    ✔ should redirect to /oauth2/profile if user is logged in but hasn't set phone
+API handler should not return a value, received object.
+    ✔ should redirect back with code if user is logged in
+API handler should not return a value, received object.
+    ✔ should accept POST method and redirect back with code
+API handler should not return a value, received object.
+    ✔ should redirect back with code when PKCE S256 challenge is provided
+[OAuth2 IdP] PKCE code_challenge_method must be S256 undefined
+    ✔ should return 400 for code_challenge without code_challenge_method
+
+  OAuth2 /api/oauth2/logout API Endpoint
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST
+API handler should not return a value, received object.
+    ✔ should successfully log out and redirect to post_logout_redirect_uri when valid and client_id is provided
+API handler should not return a value, received object.
+    ✔ should successfully log out and redirect to post_logout_redirect_uri for secondary valid origin via client_id
+API handler should not return a value, received object.
+    ✔ should fallback to root path when client_id is not provided
+[OAuth2 IdP] post_logout_redirect_uri origin does not match allowed origin https://demo.yuantuapp.com
+API handler should not return a value, received object.
+    ✔ should fallback to root path when post_logout_redirect_uri origin does not match the specific client OAUTH2_REDIRECT_URIS
+[OAuth2 IdP] post_logout_redirect_uri origin does not match allowed origin https://evil.com
+API handler should not return a value, received object.
+    ✔ should fallback to root path when post_logout_redirect_uri origin does not match any OAUTH2_REDIRECT_URIS
+API handler should not return a value, received object.
+    ✔ should log out and redirect to root when post_logout_redirect_uri is missing
+API handler should not return a value, received object.
+    ✔ should use secure cookies if NEXTAUTH_URL is https
+API handler should not return a value, received object.
+    ✔ should clear non-secure cookies when protocol is HTTP and NEXTAUTH_URL is undefined
+API handler should not return a value, received object.
+    ✔ should clear non-secure cookies when protocol is HTTP
+
+  OAuth2 tokenHandler
+[OAuth2 IdP] Method GET Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than POST
+[OAuth2 IdP] OAuth2 Provider not configured.
+    ✔ should return 500 if provider is not configured
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should return 401 if client is invalid but provider is configured
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should authenticate client via body
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should authenticate client via Basic Auth header
+[OAuth2 IdP] Mismatching redirect_uri https://evil.com https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri
+[OAuth2 IdP] Only 'authorization_code' is supported password
+    ✔ should return 400 for unsupported grant_type
+[OAuth2 IdP] Missing code
+    ✔ should return 400 for missing code
+    ✔ should successfully exchange code for tokens without PKCE
+[OAuth2 IdP] Invalid client_id undefined
+    ✔ should fail if client_id or client_secret is undefined
+[OAuth2 IdP] Mismatching redirect_uri in payload https://another.example.com/callback https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri in code payload
+[OAuth2 IdP] Authorization code already used eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..Bnqw7F3LsEOARnZO.a7SY4AGQhtEeJNvhGmkAszfrjA_57dySAO1SyKM6SgNiPSSHfv1gfFaR5PA8_VkWbS-IpXxqPe3P8yg3esn26DQjF3rx2lpsTqQ-NJ_e_ew1EQ7GW_ekKUCmREcH-x4d98kziIompq3bELuy-HkF9VaMOhTJxZX-vk-wnwIEXj240KOH0mYjy-hWFoZl71s5N-sZmU1b5IXXjkJWGwv_3vPThZyuGmVzLIe6.WBRYkqyUY4us0OH-RHPH1Q
+    ✔ should fail to reuse the same code
+    ✔ should successfully exchange code with PKCE
+[OAuth2 IdP] Invalid code_verifier ZugODcX1jSZ8ehrZTQtS5NEW5sILxakqdD2YByJ-xH4 SBN35pn3-u_HJilReMoo7oew0RsE-QjENC6c9m4MA08
+    ✔ should fail exchange if PKCE verifier is wrong
+[OAuth2 IdP] Invalid token type, expected authorization code access
+    ✔ should fail if code type is not 'code' (JWT Type Confusion prevention)
+[OAuth2 IdP] Invalid or expired authorization code JWTExpired: "exp" claim timestamp check failed
+    at exports.default (/app/node_modules/jose/dist/node/cjs/lib/jwt_claims_set.js:90:19)
+    at Object.jwtDecrypt (/app/node_modules/jose/dist/node/cjs/jwt/decrypt.js:9:53)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_JWT_EXPIRED',
+  claim: 'exp',
+  reason: 'check_failed'
+}
+    ✔ should reject an expired authorization code
+[OAuth2 IdP] Code issued for a different client other-client test-client
+    ✔ should reject a code issued for a different client
+[OAuth2 IdP] Missing code_verifier for PKCE
+    ✔ should return 400 for missing code_verifier when PKCE is required
+    ✔ should include correct standard claims in the id_token
+    ✔ should authenticate client via Basic Auth with valid credentials
+
+  OAuth2 userinfoHandler
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST
+[OAuth2 IdP] Missing or invalid Authorization header
+    ✔ should return 401 if missing Authorization header
+[OAuth2 IdP] Missing or invalid Authorization header
+    ✔ should return 401 if Authorization header is invalid
+[OAuth2 IdP] Invalid or expired token JWEInvalid: Invalid Compact JWE
+    at compactDecrypt (/app/node_modules/jose/dist/node/cjs/jwe/compact/decrypt.js:16:15)
+    at Object.jwtDecrypt (/app/node_modules/jose/dist/node/cjs/jwt/decrypt.js:8:61)
+    at /app/src/api/oauth2/utils.ts:22:272
+    at Generator.next (<anonymous>)
+    at /app/src/api/oauth2/utils.ts:2:4668
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/oauth2/utils.ts:2:3823)
+    at decryptPayload (/app/src/api/oauth2/utils.ts:22:92)
+    at /app/src/pages/api/oauth2/userinfo.ts:3:750
+    at Generator.next (<anonymous>)
+    at /app/src/pages/api/oauth2/userinfo.ts:2:1415
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/pages/api/oauth2/userinfo.ts:2:586)
+    at resolver (/app/src/pages/api/oauth2/userinfo.ts:2:2336)
+    at apiResolver (/app/node_modules/next/src/server/api-utils/node/api-resolver.ts:430:34)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_JWE_INVALID'
+}
+    ✔ should return 401 for an invalid access token
+[OAuth2 IdP] Invalid token type, expected access token code
+    ✔ should return 401 for JWT Type Confusion (using authorization code as access token)
+[OAuth2 IdP] Invalid client_id in token wrong-client
+    ✔ should return 401 if access token is for wrong client
+[OAuth2 IdP] User not found user-123
+    ✔ should return 404 if user is not found in database
+    ✔ should return correct userinfo for valid access token
+    ✔ should accept POST method with a valid access token
+[OAuth2 IdP] Invalid or expired token JWTExpired: "exp" claim timestamp check failed
+    at exports.default (/app/node_modules/jose/dist/node/cjs/lib/jwt_claims_set.js:90:19)
+    at Object.jwtDecrypt (/app/node_modules/jose/dist/node/cjs/jwt/decrypt.js:9:53)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_JWT_EXPIRED',
+  claim: 'exp',
+  reason: 'check_failed'
+}
+    ✔ should return 401 for an expired access token
+
+  getSafeCallbackUrl
+    ✔ should return the URL if it is a safe relative path
+    ✔ should return '/' if the URL is null, undefined, or empty
+    ✔ should return '/' if the URL is an absolute URL
+    ✔ should return '/' if the URL starts with '//' or '/\'
+    ✔ should return '/' if the URL is a javascript: URL
+
+  Exams Requirements
+    isExamExpired
+      ✔ should return true if lastPassed is undefined
+      ✔ should return true if lastPassed is strictly older than expiryDays
+      ✔ should return false if lastPassed is newer than expiryDays
+      ✔ should work correctly with custom expiryDays
+    isExamAboutToExpire
+      ✔ should return true if lastPassed is undefined
+      ✔ should return true if lastPassed is within the 30-day about to expire window
+      ✔ should return false if lastPassed is not about to expire (safely valid)
+      ✔ should return true if the exam has already expired
+
+  calculateExamsRequired
+    ✔ should return undefined for all if state is undefined
+    ✔ should return false for all if exams feature is disabled
+    ✔ should require exams if state is empty and exams enabled
+    ✔ should not require exams if passed recently and exams enabled
+    ✔ should require comms/handbook exams after default expiry days
+    ✔ should require interview exam after interview expiry days
+
+  generateAnonymousId
+    ✔ should generate a 6-character ID with acceptance year prefix and hyphen
+    ✔ should generate consistent IDs for the same inputs
+    ✔ should generate different IDs for different users with same year
+    ✔ should handle null acceptance year with default 00
+    ✔ should handle different year formats correctly
+    ✔ should always generate 3-digit hash with leading zeros if needed
+
+  Group Authorization
+    isPermittedToAccessGroupHistory
+      ✔ should allow a user with the GroupAdmin role to access group history
+      ✔ should allow a user in the group to access group history
+      ✔ should not allow a user without the GroupAdmin role and not in the group to access group history
+    isPermittedToAccessGroup
+      ✔ should allow any user to access a public group
+      ✔ should allow a GroupAdmin to access a private group
+      ✔ should allow a group member to access a private group
+      ✔ should not allow a non-member without GroupAdmin role to access a private group
+
+  Mentorship
+    isEnded
+      ✔ should return false if endsAt is null
+      ✔ should return false if endsAt is in the future (Date)
+      ✔ should return true if endsAt is in the past (Date)
+      ✔ should return false if endsAt is in the future (moment string)
+      ✔ should return true if endsAt is in the past (moment string)
+      ✔ should handle current date edge case
+
+  replaceUrlParam
+    ✔ should add a new query parameter to an existing query
+    ✔ should update an existing query parameter
+    ✔ should add a query parameter when the query is empty
+
+  Role Authorization - isPermitted
+    ✔ should return true when permitted is undefined
+    ✔ should return true when permitted is a single string and user has the role
+    ✔ should return false when permitted is a single string and user does not have the role
+    ✔ should return true when permitted is an array of roles and user has one of the roles
+    ✔ should return true when permitted is an array of roles and user has multiple roles in the array
+    ✔ should return false when permitted is an array of roles and user has none of the roles
+    ✔ should return false when permitted is an empty array
+
+  strings
+    diffInMinutes
+      ✔ should calculate difference correctly with Date objects
+      ✔ should calculate difference correctly with DateColumn strings
+      ✔ should handle mixed Date and DateColumn inputs
+      ✔ should return negative values when 'to' is before 'from'
+      ✔ should return zero when 'from' and 'to' are exactly the same
+      ✔ should round to the nearest minute
+      ✔ should handle date boundaries correctly
+    isValidEmail
+      ✔ should return true for valid standard emails
+      ✔ should return false for invalid emails missing parts
+      ✔ should return false for emails with spaces
+      ✔ should return false for missing @ or domain parts
+    parseQueryString
+      ✔ should return the string if the query parameter is a string
+      ✔ should return undefined if the query parameter is undefined
+      ✔ should return undefined if the query parameter is an array of strings
+    isValidPassword
+      ✔ should return false for empty string
+      ✔ should return false for passwords shorter than 8 characters
+      ✔ should return true for passwords with exactly 8 characters
+      ✔ should return true for passwords longer than 8 characters but less than 80
+      ✔ should return false for passwords with exactly 80 characters
+      ✔ should return false for passwords longer than 80 characters
+    isValidPhone
+      ✔ should return true for valid Chinese phone numbers starting with +86
+      ✔ should return false for invalid Chinese phone numbers starting with +86
+      ✔ should return false for phone numbers that do not start with +
+      ✔ should return true for international phone numbers starting with + and at least 8 characters long
+      ✔ should return false for international phone numbers starting with + but less than 8 characters long
+
+  Summary computeDeletion
+    ✔ should detect no deletions for identical strings
+    ✔ should detect no deletions when only additions are made
+    ✔ should detect deletions and allow if within maxDeletionRatio (<= 20%)
+    ✔ should detect deletions and disallow if exceeding maxDeletionRatio (> 20%)
+    ✔ should ignore case when computing deletions
+    ✔ should accumulate deletedLength properly and disallow if total exceeds ratio
+    ✔ should allow accumulated deletions if total is within ratio
+
+  isTraitsComplete
+    ✔ should return false when traits is undefined
+    ✔ should return false when traits is an empty object
+    ✔ should return false when traits is a partial object
+    ✔ should return true when traits is a complete object without 其他
+    ✔ should return true when traits is a complete object with 其他
+
+
+  529 passing (5s)
+
+Done in 17.08s.
+------------------------------------|---------|----------|---------|---------|----------------------
+File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+------------------------------------|---------|----------|---------|---------|----------------------
+All files                           |   70.29 |    46.92 |   40.82 |   72.73 |
+ api                                |   83.69 |    79.73 |      80 |   84.08 |
+  TencentMeeting.ts                 |   71.27 |    56.25 |      65 |   71.42 | ...6,329-350,363-402
+  auth.ts                           |     100 |      100 |     100 |     100 |
+  checkAndDeleteIdToken.ts          |     100 |      100 |     100 |     100 |
+  email.ts                          |     100 |      100 |     100 |     100 |
+  errors.ts                         |      88 |       75 |    62.5 |    87.5 | 41,56
+  getFeatures.ts                    |     100 |      100 |     100 |     100 |
+  getWhiteLabel.ts                  |     100 |      100 |     100 |     100 |
+  gsheets.ts                        |   11.11 |        0 |       0 |    12.9 | 14-23,59-97
+  ip.ts                             |    92.3 |    66.66 |     100 |    90.9 | 24
+  jinshuju.ts                       |   95.23 |    86.66 |     100 |   95.23 | 8,72
+  notify.ts                         |     100 |      100 |     100 |     100 |
+  sms.ts                            |   96.07 |     87.5 |     100 |   95.74 | 64-65
+  trpc.ts                           |     100 |      100 |     100 |     100 |
+ api/auth                           |   94.06 |    87.67 |      84 |   96.42 |
+  WeChatProvider.ts                 |     100 |      100 |     100 |     100 |
+  YuantuSsoProvider.ts              |     100 |      100 |     100 |     100 |
+  adapter.ts                        |   86.66 |      100 |   33.33 |   89.65 | 35-36,77
+  fakeEmail.ts                      |     100 |      100 |     100 |     100 |
+  providers.ts                      |   90.62 |    73.52 |     100 |   96.42 | 108
+ api/database                       |   89.39 |    38.46 |     100 |   92.06 |
+  db.ts                             |     100 |      100 |     100 |     100 |
+  meetingSequelize.ts               |    87.5 |    33.33 |     100 |    87.5 | 9
+  sequelize.ts                      |    90.9 |       40 |     100 |    90.9 | 7
+  sequelizeConfig.ts                |   54.54 |       40 |     100 |    62.5 | 21-23
+ api/database/modelHelpers          |   76.92 |    58.06 |   88.88 |   80.82 |
+  Fix.ts                            |   88.23 |        0 |    87.5 |   88.23 | 29,49
+  ZodColumn.ts                      |   73.77 |       60 |      90 |   78.57 | ...-65,74-77,101-106
+ api/database/models                |   92.55 |      100 |    64.6 |   91.91 |
+  Assessment.ts                     |     100 |      100 |     100 |     100 |
+  Calibration.ts                    |   94.73 |      100 |   66.66 |   94.44 | 43
+  ChatMessage.ts                    |     100 |      100 |     100 |     100 |
+  ChatRoom.ts                       |     100 |      100 |     100 |     100 |
+  DeletedSummary.ts                 |     100 |      100 |     100 |     100 |
+  DraftChatMessage.ts               |      80 |      100 |       0 |   78.57 | 32,36,40
+  EventLog.ts                       |    90.9 |      100 |       0 |   88.88 | 17
+  GlobalConfig.ts                   |     100 |      100 |     100 |     100 |
+  Group.ts                          |   79.41 |      100 |   54.54 |   78.12 | 86-102
+  GroupUser.ts                      |     100 |      100 |     100 |     100 |
+  IdToken.ts                        |     100 |      100 |     100 |     100 |
+  Interview.ts                      |   80.55 |      100 |   54.54 |      80 | 74-90
+  InterviewFeedback.ts              |     100 |      100 |     100 |     100 |
+  InterviewFeedbackUpdateAttempt.ts |     100 |      100 |     100 |     100 |
+  Kudos.ts                          |   86.66 |      100 |      50 |   84.61 | 16,21
+  LastReadChatRoom.ts               |   83.33 |      100 |       0 |   81.81 | 17,23
+  MatchFeedback.ts                  |    90.9 |      100 |       0 |   88.88 | 18
+  MeetingHistory.ts                 |      90 |      100 |       0 |   88.88 | 21
+  MeetingSlot.ts                    |     100 |      100 |     100 |     100 |
+  MentorBooking.ts                  |      84 |      100 |      50 |    82.6 | 25,30,34,45
+  MentorSelection.ts                |     100 |      100 |     100 |     100 |
+  MentorSelectionBatch.ts           |    92.3 |      100 |      50 |    90.9 | 26
+  Mentorship.ts                     |    92.3 |      100 |   66.66 |      92 | 52,57
+  Org.ts                            |     100 |      100 |     100 |     100 |
+  OrgMentor.ts                      |     100 |      100 |     100 |     100 |
+  OrgOwner.ts                       |     100 |      100 |     100 |     100 |
+  PearlStudent.ts                   |    90.9 |      100 |       0 |   88.88 | 35
+  Project.ts                        |   93.33 |      100 |      50 |    92.3 | 27
+  ProjectApplication.ts             |   88.88 |      100 |      50 |    87.5 | 27,32
+  ScheduledNotification.ts          |     100 |      100 |     100 |     100 |
+  Summary.ts                        |     100 |      100 |     100 |     100 |
+  Task.ts                           |   88.23 |      100 |      50 |   86.66 | 23,31
+  Transcript.ts                     |   80.95 |      100 |      50 |      80 | 42-50
+  User.ts                           |   92.72 |      100 |    62.5 |   92.59 | 120,134,176-180
+  attributesAndIncludes.ts          |     100 |      100 |     100 |     100 |
+ api/database/models/map            |      90 |      100 |   33.33 |   89.47 |
+  LandmarkAssessment.ts             |   88.23 |      100 |   33.33 |    87.5 | 23,29
+  attributesAndIncludes.ts          |     100 |      100 |     100 |     100 |
+ api/database/sequelize-adapter-src |   21.33 |    31.11 |    4.76 |   21.62 |
+  index.ts                          |   15.71 |    31.11 |    4.76 |   15.94 | 176-187,196-321
+  models.js                         |     100 |      100 |     100 |     100 |
+ api/oauth2                         |     100 |      100 |     100 |     100 |
+  testUtils.ts                      |     100 |      100 |     100 |     100 |
+  utils.ts                          |     100 |      100 |     100 |     100 |
+ api/routes                         |   60.43 |    39.16 |   28.99 |   63.78 |
+  assessments.ts                    |   72.09 |    85.71 |      25 |   74.35 | ...0,108-109,123-124
+  calibrations.ts                   |   44.15 |    22.22 |    7.69 |      50 | ...0,165-169,193-199
+  chats.ts                          |   28.97 |      3.7 |    4.44 |    33.7 | ...7,274-298,320-342
+  chatsInternal.ts                  |   95.23 |    81.25 |     100 |   97.29 | 99
+  checkAndComputeUserFields.ts      |     100 |    94.44 |     100 |     100 | 52
+  cron.ts                           |   47.05 |      100 |    12.5 |      50 | 22-46,52-58
+  demoData.ts                       |     100 |      100 |     100 |     100 |
+  formatMeetingMinutes.ts           |     100 |     87.5 |     100 |     100 | 44
+  generateDemoData.ts               |   93.47 |    65.51 |     100 |   95.48 | 132-134,287,341,348
+  globalConfigs.ts                  |   82.05 |      100 |      30 |   84.21 | 74,80-81,87-89
+  groups.ts                         |   58.09 |    51.85 |    32.5 |   60.21 | ...9-223,231-238,253
+  idTokens.ts                       |   80.39 |    97.72 |   27.27 |   83.67 | ...5,257-265,307-312
+  interviewFeedbacks.ts             |   72.54 |    66.66 |   23.07 |   76.08 | ...5,166-168,192-193
+  interviews.ts                     |   49.69 |     9.45 |   19.23 |   52.38 | ...7-469,473,520,526
+  kudos.ts                          |      75 |      100 |   27.27 |   77.41 | 57-58,67-68,95-97
+  kudosInternal.ts                  |      90 |       75 |     100 |     100 | 38
+  map.ts                            |   48.71 |        0 |   15.38 |      50 | 27-43,79-84,119-123
+  match.ts                          |    19.8 |     4.48 |    8.65 |    21.1 | ...44-1234,1246-1290
+  matchFeedback.ts                  |   77.41 |       80 |   33.33 |    80.7 | ...8,116-117,127-128
+  meetings.ts                       |   51.88 |    38.46 |    23.8 |   55.31 | ...0,265-270,297-313
+  menteeData.ts                     |   86.91 |     60.6 |   80.64 |   89.61 | ...9,407,412,444,491
+  mentorBookings.ts                 |   72.22 |       80 |   11.11 |   76.47 | 29-31,88-89,104-113
+  mentorSelections.ts               |   53.76 |    33.33 |   16.21 |   56.47 | ...1,278-279,303-304
+  mentorships.ts                    |   61.78 |    31.42 |    22.5 |   64.03 | ...4,377-378,415,426
+  migration.ts                      |   88.23 |      100 |      60 |   93.75 | 11
+  orgs.ts                           |      60 |      100 |    22.8 |   66.66 | ...3,275-277,289-291
+  pearlStudents.ts                  |   44.11 |    13.63 |      10 |   47.61 | 27-29,123-195
+  projectApplications.ts            |   72.97 |       50 |   27.27 |   77.14 | 34,62-64,80,96-98
+  projects.ts                       |   71.18 |    89.65 |      20 |   73.68 | ...0,225-226,232-233
+  purgeOldData.ts                   |     100 |      100 |     100 |     100 |
+  saveSummary.ts                    |   82.35 |      100 |      40 |    87.5 | 69-70
+  scheduledNotifications.ts         |   95.37 |     61.9 |     100 |   98.01 | 77,90
+  summaries.ts                      |   73.15 |    36.84 |   52.63 |   77.61 | ...6,381-382,397-398
+  tasks.ts                          |   77.65 |    86.84 |    37.5 |   82.95 | ...7,210-212,248-250
+  transcripts.ts                    |      90 |      100 |      50 |   89.47 | 51-52
+  users.ts                          |    44.1 |       26 |    17.1 |   46.99 | ...86,1097-1115,1186
+  ustcStudents.ts                   |      80 |      100 |      20 |   83.33 | 54-59
+ api/webhooks/jinshuju              |    77.3 |    61.64 |   68.75 |   79.61 |
+  application.ts                    |   65.45 |    59.37 |      75 |   65.45 | ...79-99,127,130,133
+  exam.ts                           |   83.33 |    42.85 |     100 |   88.23 | 20-21
+  index.ts                          |   81.25 |     90.9 |   33.33 |   83.87 | 19-21,41-42
+  projectApplication.ts             |   85.71 |       50 |     100 |   85.71 | 23,28,33
+  upload.ts                         |   83.78 |    58.82 |     100 |    90.9 | 36,70,91
+ pages/api/auth                     |   46.47 |    16.66 |   33.33 |   48.52 |
+  [...nextauth].ts                  |   46.47 |    16.66 |   33.33 |   48.52 | ...3-159,167,180-187
+ pages/api/oauth2                   |   98.42 |    96.29 |     100 |   98.42 |
+  authorize.ts                      |     100 |      100 |     100 |     100 |
+  logout.ts                         |   96.29 |      100 |     100 |   96.29 | 44
+  token.ts                          |   97.59 |    91.17 |     100 |   97.59 | 91-92
+  userinfo.ts                       |     100 |      100 |     100 |     100 |
+ shared                             |   78.25 |    35.81 |   67.14 |   80.99 |
+  Assessment.ts                     |     100 |      100 |     100 |     100 |
+  Calibration.ts                    |     100 |      100 |     100 |     100 |
+  ChatMessage.ts                    |     100 |      100 |     100 |     100 |
+  ChatRoom.ts                       |     100 |      100 |     100 |     100 |
+  DateColumn.ts                     |     100 |       75 |     100 |     100 | 12
+  EventLog.ts                       |     100 |      100 |     100 |     100 |
+  Features.ts                       |     100 |      100 |     100 |     100 |
+  GlobalConfig.ts                   |     100 |      100 |     100 |     100 |
+  Group.ts                          |    90.9 |    66.66 |      75 |    90.9 | 18
+  IdType.ts                         |     100 |      100 |     100 |     100 |
+  Interview.ts                      |     100 |      100 |     100 |     100 |
+  InterviewFeedback.ts              |     100 |      100 |     100 |     100 |
+  InterviewType.ts                  |     100 |      100 |     100 |     100 |
+  Kudos.ts                          |     100 |      100 |     100 |     100 |
+  Map.ts                            |     100 |      100 |     100 |     100 |
+  MatchFeedback.ts                  |     100 |      100 |     100 |     100 |
+  MenteeStatus.ts                   |     100 |      100 |     100 |     100 |
+  MentorBooking.ts                  |     100 |      100 |     100 |     100 |
+  MentorSelection.ts                |     100 |      100 |     100 |     100 |
+  Mentorship.ts                     |   84.61 |     12.5 |   33.33 |      84 | 52,65,69,77
+  Org.ts                            |     100 |      100 |     100 |     100 |
+  Project.ts                        |     100 |      100 |     100 |     100 |
+  ProjectApplication.ts             |     100 |      100 |     100 |     100 |
+  ProjectProfile.ts                 |     100 |      100 |     100 |     100 |
+  Role.ts                           |      90 |       75 |   71.42 |   93.75 | 143
+  ScheduledNotificationType.ts      |     100 |      100 |     100 |     100 |
+  Summary.ts                        |     100 |      100 |     100 |     100 |
+  Task.ts                           |   57.14 |     3.84 |     100 |   57.14 | 50-80
+  Traits.ts                         |   34.69 |     3.33 |      60 |   34.78 | 56,77-155
+  Transcript.ts                     |     100 |      100 |     100 |     100 |
+  User.ts                           |      60 |    16.66 |      50 |   69.23 | 48-51
+  UserFilter.ts                     |     100 |      100 |     100 |     100 |
+  UserPreference.ts                 |     100 |      100 |     100 |     100 |
+  UserProfile.ts                    |     100 |      100 |     100 |     100 |
+  UserState.ts                      |     100 |      100 |     100 |     100 |
+  WhiteLabel.ts                     |     100 |      100 |     100 |     100 |
+  applicationFields.ts              |     100 |      100 |     100 |     100 |
+  callbackUrl.ts                    |     100 |      100 |     100 |     100 |
+  exams.ts                          |     100 |      100 |     100 |     100 |
+  getAnonymousId.ts                 |     100 |      100 |     100 |     100 |
+  getBaseUrl.ts                     |      75 |    57.14 |     100 |     100 | 2-4,9
+  interviewDimentions.ts            |     100 |      100 |     100 |     100 |
+  invariant.ts                      |     100 |      100 |     100 |     100 |
+  markdown2html.ts                  |     100 |      100 |     100 |     100 |
+  match.ts                          |     100 |      100 |     100 |     100 |
+  replaceUrlParam.ts                |     100 |      100 |     100 |     100 |
+  sleep.ts                          |   33.33 |      100 |       0 |      50 | 2
+  strings.ts                        |   52.63 |    51.11 |   52.38 |   59.03 | ...7,158-169,175-178
+  token.ts                          |   83.33 |      100 |       0 |   83.33 | 11
+------------------------------------|---------|----------|---------|---------|----------------------
