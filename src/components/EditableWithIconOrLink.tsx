@@ -46,7 +46,7 @@ export default function EditableWithIconOrLink({
       <ButtonGroup size="sm">
         <Tooltip label="确认">
           <IconButton
-            aria-label="Confirm"
+            aria-label="确认"
             icon={<CheckIcon />}
             {...getSubmitButtonProps()}
             variant="unstyled"
@@ -54,7 +54,7 @@ export default function EditableWithIconOrLink({
         </Tooltip>
         <Tooltip label="取消">
           <IconButton
-            aria-label="Cancel"
+            aria-label="取消"
             icon={<CloseIcon />}
             {...getCancelButtonProps()}
             variant="unstyled"
@@ -67,7 +67,7 @@ export default function EditableWithIconOrLink({
     decorator == "icon" || !value ? (
       <Tooltip label="编辑">
         <IconButton
-          aria-label="Edit"
+          aria-label="编辑"
           {...getEditButtonProps()}
           variant="unstyled"
           marginStart={2}
