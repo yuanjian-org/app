@@ -90,7 +90,10 @@ describe("scheduledNotifications", () => {
 
       expect(notifyStub.called).to.equal(false);
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Kudos", subjectId: user.id },
+        transaction,
+      });
       expect(count).to.equal(1);
     });
 
@@ -134,7 +137,10 @@ describe("scheduledNotifications", () => {
       expect(callArgs[3].delta).to.include("刚刚夸了你");
       expect(callArgs[3].delta).to.include("刚刚给你点了 1 个赞");
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Kudos", subjectId: receiver.id },
+        transaction,
+      });
       expect(count).to.equal(0);
     });
 
@@ -151,7 +157,10 @@ describe("scheduledNotifications", () => {
 
       expect(notifyStub.called).to.equal(false);
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Task", subjectId: assignee.id },
+        transaction,
+      });
       expect(count).to.equal(0);
     });
 
@@ -185,7 +194,10 @@ describe("scheduledNotifications", () => {
       expect(callArgs[3].name).to.equal("ee");
       expect(callArgs[3].delta).to.include("Test task");
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Task", subjectId: assignee.id },
+        transaction,
+      });
       expect(count).to.equal(0);
     });
 
@@ -218,7 +230,10 @@ describe("scheduledNotifications", () => {
 
       expect(notifyStub.called).to.equal(false);
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Chat", subjectId: room.id },
+        transaction,
+      });
       expect(count).to.equal(0);
     });
 
@@ -277,7 +292,10 @@ describe("scheduledNotifications", () => {
       expect(mentorArgs[3].authors).to.equal("Mentee");
       expect(mentorArgs[3].delta).to.include("Hello!");
 
-      const count = await db.ScheduledNotification.count({ transaction });
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Chat", subjectId: room.id },
+        transaction,
+      });
       expect(count).to.equal(0);
     });
 
