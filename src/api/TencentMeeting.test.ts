@@ -5,7 +5,11 @@ import EventEmitter from "events";
 import {
   getTmUserIds,
   createRecurringMeeting,
+  updateMeeting,
   getMeeting,
+  listRecords,
+  getKey2FileAddresses,
+  getSpeakerStats,
 } from "./TencentMeeting";
 import MeetingSlot from "./database/models/MeetingSlot";
 
@@ -25,6 +29,30 @@ describe("TencentMeeting", () => {
 
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe("tmRequest (Internal)", () => {
+    it("should handle request errors", async () => {
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      requestStub.callsFake(() => {
+        // We simulate that `req.end()` has been called, and the request fails.
+        // The error will be emitted on `mockReq`.
+        setTimeout(() => mockReq.emit("error", new Error("Network Error")), 0);
+        return mockReq;
+      });
+
+      let errorThrown = false;
+      try {
+        await getMeeting("test-meeting-id", "test-user");
+      } catch (e: any) {
+        errorThrown = true;
+        expect(e.message).to.equal("Network Error");
+      }
+      expect(errorThrown).to.equal(true);
+    });
   });
 
   describe("getTmUserIds", () => {
@@ -79,6 +107,28 @@ describe("TencentMeeting", () => {
       expect(result.meeting_info_list[0].join_url).to.equal(
         "https://meeting.tencent.com/p/123",
       );
+
+      expect(requestStub.calledOnce).to.equal(true);
+    });
+  });
+
+  describe("updateMeeting", () => {
+    it("should call tmRequest with correct PUT method and payload", async () => {
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        expect(options.method).to.equal("PUT");
+        expect(options.path).to.equal("/v1/meetings/test-meeting-id");
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify({}));
+        mockRes.emit("end");
+        return mockReq;
+      });
+
+      await updateMeeting("test-meeting-id", "test-user", "Updated Subject");
 
       expect(requestStub.calledOnce).to.equal(true);
     });
@@ -152,6 +202,131 @@ describe("TencentMeeting", () => {
         expect(e.message).to.include("1001");
       }
       expect(errorThrown).to.equal(true);
+    });
+  });
+
+  describe("listRecords", () => {
+    it("should handle pagination and return records", async () => {
+      const page1Data = {
+        total_count: 3,
+        total_page: 2,
+        record_meetings: [
+          { meeting_id: "m1", meeting_record_id: "r1", state: 3 },
+        ],
+      };
+      const page2Data = {
+        total_count: 3,
+        total_page: 2,
+        record_meetings: [
+          { meeting_id: "m2", meeting_record_id: "r2", state: 3 },
+          { meeting_id: "m3", meeting_record_id: "r3", state: 3 },
+        ],
+      };
+
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      let callCount = 0;
+      requestStub.callsFake((options, callback) => {
+        callCount++;
+        const mockRes = new EventEmitter() as any;
+        callback(mockRes);
+
+        if (callCount === 1) {
+          mockRes.emit("data", JSON.stringify(page1Data));
+        } else {
+          mockRes.emit("data", JSON.stringify(page2Data));
+        }
+
+        mockRes.emit("end");
+        return mockReq;
+      });
+
+      const result = await listRecords("test-user");
+
+      expect(result).to.have.lengthOf(3);
+      expect(result[0].meeting_id).to.equal("m1");
+      expect(result[2].meeting_id).to.equal("m3");
+      expect(requestStub.calledTwice).to.equal(true);
+    });
+  });
+
+  describe("getKey2FileAddresses", () => {
+    it("should return parsed file addresses", async () => {
+      const fakeResponseData = {
+        ai_minutes: [
+          { download_address: "https://example.com/file1", file_type: "pdf" },
+        ],
+        meeting_summary: [
+          { download_address: "https://example.com/file2", file_type: "txt" },
+        ],
+      };
+
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        expect(options.path).to.equal(
+          "/v1/addresses/record-123?userid=test-user",
+        );
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify(fakeResponseData));
+        mockRes.emit("end");
+        return mockReq;
+      });
+
+      const result = await getKey2FileAddresses("record-123", "test-user");
+
+      expect(result.ai_minutes).to.have.lengthOf(1);
+      expect(result.ai_minutes![0].download_address).to.equal(
+        "https://example.com/file1",
+      );
+      expect(result.meeting_summary).to.have.lengthOf(1);
+      expect(requestStub.calledOnce).to.equal(true);
+    });
+  });
+
+  describe("getSpeakerStats", () => {
+    it("should return decoded speaker names and times in minutes", async () => {
+      const fakeResponseData = {
+        speaker_list: [
+          {
+            // Base64 for "Alice"
+            speaker_name: Buffer.from("Alice").toString("base64"),
+            total_time: 120000, // 2 minutes
+          },
+          {
+            // Base64 for "Bob"
+            speaker_name: Buffer.from("Bob").toString("base64"),
+            total_time: 60000, // 1 minute
+          },
+        ],
+      };
+
+      const mockReq = new EventEmitter() as any;
+      mockReq.write = sinon.stub();
+      mockReq.end = sinon.stub();
+
+      const mockRes = new EventEmitter() as any;
+      requestStub.callsFake((options, callback) => {
+        callback(mockRes);
+        mockRes.emit("data", JSON.stringify(fakeResponseData));
+        mockRes.emit("end");
+        return mockReq;
+      });
+
+      const result = await getSpeakerStats("record-123", "test-user");
+
+      expect(result).to.have.lengthOf(2);
+      expect(result[0].speakerName).to.equal("Alice");
+      expect(result[0].totalTime).to.equal(2);
+      expect(result[1].speakerName).to.equal("Bob");
+      expect(result[1].totalTime).to.equal(1);
+
+      expect(requestStub.calledOnce).to.equal(true);
     });
   });
 });
