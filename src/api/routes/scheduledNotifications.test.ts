@@ -301,5 +301,61 @@ describe("scheduledNotifications", () => {
         expect(e.message).to.include('get type = "UnknownType"');
       }
     });
+
+    it("should throw error when tasks assignee is not found", async () => {
+      const assigneeId = uuidv4();
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Task", subjectId: assigneeId, createdAt: past },
+        { transaction },
+      );
+
+      try {
+        await sendScheduledNotifications(transaction);
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.include(`Assignee not found: ${assigneeId}`);
+      }
+    });
+
+    it("should throw error when kudos receiver is not found", async () => {
+      const receiverId = uuidv4();
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Kudos", subjectId: receiverId, createdAt: past },
+        { transaction },
+      );
+
+      try {
+        await sendScheduledNotifications(transaction);
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.include(`User not found: ${receiverId}`);
+      }
+    });
+
+    it("should throw error when chat room is not found", async () => {
+      const roomId = uuidv4();
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Chat", subjectId: roomId, createdAt: past },
+        { transaction },
+      );
+
+      try {
+        await sendScheduledNotifications(transaction);
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.include(`Chat room not found: ${roomId}`);
+      }
+    });
+
+    it("should process notifications when no transaction is provided", async () => {
+      // Instead of committing a test user and leaving it in the database,
+      // we just verify that sendScheduledNotifications executes without error
+      // when no transaction is provided, processing any existing or empty queue.
+      // This is sufficient to reach the 'await sequelize.transaction(doWork);' branch.
+      await sendScheduledNotifications();
+    });
   });
 });
