@@ -110,7 +110,7 @@ export default widePage(() => {
               <Menu>
                 <MenuButton
                   as={IconButton}
-                  aria-label="Options"
+                  aria-label="选项"
                   icon={<HamburgerIcon />}
                   variant="outline"
                 />
@@ -172,7 +172,7 @@ export default widePage(() => {
                   {canEdit && (
                     <Tooltip label="移除导师">
                       <IconButton
-                        aria-label="Remove mentor"
+                        aria-label="移除导师"
                         icon={<DeleteIcon />}
                         size="xs"
                         position="absolute"
