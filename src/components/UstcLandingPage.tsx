@@ -14,10 +14,8 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import NextLink from "next/link";
-import Image from "next/image";
-import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "pages/auth/login";
-import { staticUrlPrefix } from "static";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 
@@ -44,9 +42,7 @@ export default function UstcLandingPage() {
           alignItems="center"
           marginX="auto"
         >
-          <NextLink href={staticUrlPrefix}>
-            <Image src={yuanjianLogo80x80} alt="图标" width={30} />
-          </NextLink>
+          <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
             <Tooltip label="联系客服">

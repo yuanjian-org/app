@@ -15,8 +15,7 @@ import {
 import { AppPageType } from "../AppPage";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
-import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
-import Image from "next/image";
+import DynamicLogo from "components/DynamicLogo";
 import { useRouter } from "next/router";
 import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
@@ -55,9 +54,7 @@ export default function StaticNavBar({
         alignItems="center" // Center content vertically
         marginX="auto" // Centers content horizontally
       >
-        <NextLink href={staticUrlPrefix}>
-          <Image src={yuanjianLogo80x80} alt="图标" width={30} />
-        </NextLink>
+        <DynamicLogo />
 
         <HStack as="nav" spacing={7} fontWeight="bold">
           <ShowOnDesktop>

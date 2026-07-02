@@ -44,9 +44,7 @@ import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
 import { useWhiteLabel } from "components/useStaticConfigs";
-import Image from "next/image";
-import NextLink from "next/link";
-import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
+import DynamicLogo from "components/DynamicLogo";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
@@ -179,13 +177,11 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
         w={350}
         mt={{ base: 10, [breakpoint]: 40 }}
       >
-        <NextLink href={staticUrlPrefix}>
-          <Image alt="图标" width={60} src={yuanjianLogo80x80} />
-        </NextLink>
+        <DynamicLogo height={60} />
 
         <PageBreadcrumb
           current="登录"
-          parents={[{ name: "远图", link: staticUrlPrefix }]}
+          parents={[{ name: "首页", link: staticUrlPrefix }]}
         />
 
         <Tabs
