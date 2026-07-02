@@ -15,10 +15,8 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidthWide } from "theme/metrics";
 import NextLink from "next/link";
-import Image from "next/image";
-import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "pages/auth/login";
-import { staticUrlPrefix } from "static";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 
@@ -45,9 +43,7 @@ export default function SylpLandingPage() {
           alignItems="center"
           marginX="auto"
         >
-          <NextLink href={staticUrlPrefix}>
-            <Image src={yuanjianLogo80x80} alt="Logo" width={30} />
-          </NextLink>
+          <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
             <Tooltip label="联系客服 / Contact Support">
@@ -137,7 +133,7 @@ export default function SylpLandingPage() {
             rightIcon={<ChevronRightIcon />}
             width={{ base: "100%", md: "auto" }}
           >
-            进入系统 ｜ Enter
+            进入平台 ｜ Enter
           </Button>
         </Flex>
       </Box>
