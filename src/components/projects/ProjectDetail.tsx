@@ -92,7 +92,7 @@ export function ProjectDetailCard({
                 查看申请
               </Button>
             )}
-            {project.status === "招募中" && (
+            {!canEdit && project.status === "招募中" && (
               <Button
                 colorScheme="brand"
                 isLoading={isLoadingApply}
