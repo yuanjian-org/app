@@ -1,12 +1,12 @@
 services:
   yuantu:
-    image: ${APP_DOCKER_IMAGE:?}:latest
+    image: ${APP_IMAGE_BASE_NAME:?}.yuantu:latest
     container_name: yuantu
     env_file: .env.yuantu
   # The container for the "x" white label deployment. Docker doesn't allow 
   # single letter container names.
   xx:
-    image: ${APP_DOCKER_IMAGE:?}:latest
+    image: ${APP_IMAGE_BASE_NAME:?}.x:latest
     container_name: xx
     env_file: .env.x
   nginx:
