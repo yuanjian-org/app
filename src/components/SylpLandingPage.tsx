@@ -82,8 +82,12 @@ export default function SylpLandingPage() {
             <Text fontSize="md">
               在这里，优秀的国际留学生将与行业顶尖导师同行，深入探索社会创新、可持续发展及企业社会责任（CSR）。项目旨在通过多元视角的碰撞与真实案例的研讨，激发创新思维，培养解决全球性复杂问题的能力，助力青年领袖在全球舞台上发出中国声音，贡献青春力量。
             </Text>
+            <Heading size="md" pt={4}>
+              AI 数字赋能全球青年可持续发展创新平台
+            </Heading>
             <Text fontSize="md">
-              网站平台为本项目提供全链路的导师匹配与项目管理服务，护航您的创新与成长之旅。
+              AI
+              数字赋能全球青年可持续发展创新平台为本项目提供全链路的导师匹配与项目管理服务，护航您的创新与成长之旅。
             </Text>
           </VStack>
 
@@ -111,10 +115,15 @@ export default function SylpLandingPage() {
               cases, empowering youth leaders to make an impact on the global
               stage.
             </Text>
+            <Heading size="md" pt={4}>
+              AI Digital Empowerment Platform for Global Youth Sustainable
+              Development Innovation
+            </Heading>
             <Text fontSize="md">
-              This platform provides comprehensive mentor matching and project
-              management services for this initiative, safeguarding your journey
-              of innovation and growth.
+              The AI Digital Empowerment Platform for Global Youth Sustainable
+              Development Innovation provides comprehensive mentor matching and
+              project management services for this initiative, safeguarding your
+              journey of innovation and growth.
             </Text>
           </VStack>
         </SimpleGrid>
