@@ -99,12 +99,7 @@ import { getAnonymousId } from "shared/getAnonymousId";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 
 type SortOrderKey =
-  | "year"
-  | "source"
-  | "name"
-  | "mentorReview"
-  | "menteeReview"
-  | "transcript";
+  "year" | "source" | "name" | "mentorReview" | "menteeReview" | "transcript";
 type SortOrderDir = "asc" | "desc";
 
 type SortOrder = {
