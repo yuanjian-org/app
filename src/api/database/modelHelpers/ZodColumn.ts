@@ -7,8 +7,7 @@ import z, { ZodError, ZodTypeAny } from "zod";
 import { Model } from "sequelize-typescript";
 
 type OptionsOrDataType =
-  | Partial<ModelAttributeColumnOptions>
-  | sequelize.DataType;
+  Partial<ModelAttributeColumnOptions> | sequelize.DataType;
 
 export class ZodColumnGetError extends Error {
   constructor(propertyName: string, val: any, zodError: ZodError) {
