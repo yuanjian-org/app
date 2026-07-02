@@ -17,7 +17,7 @@ import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import NextLink from "next/link";
 import Image from "next/image";
-import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import yqdLogo from "../../public/img/yqd-logo.png";
 import { loginUrl } from "pages/auth/login";
 import { staticUrlPrefix } from "static";
 import { RiCustomerServiceFill } from "react-icons/ri";
@@ -47,7 +47,7 @@ export default function YqdLandingPage() {
           marginX="auto"
         >
           <NextLink href={staticUrlPrefix}>
-            <Image src={yuanjianLogo80x80} alt="图标" width={30} />
+            <Image src={yqdLogo} alt="图标" width={90} />
           </NextLink>
 
           <HStack as="nav" spacing={7} fontWeight="bold">

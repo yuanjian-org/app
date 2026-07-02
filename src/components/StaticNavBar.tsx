@@ -16,13 +16,15 @@ import { AppPageType } from "../AppPage";
 import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
 import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import yqdLogo from "../../public/img/yqd-logo.png";
+import sylpLogo from "../../public/img/sylp-logo.png";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
-import { useFeatures } from "./useStaticConfigs";
+import { useFeatures, useWhiteLabel } from "./useStaticConfigs";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -36,6 +38,7 @@ export default function StaticNavBar({
 }: { pageType?: AppPageType } = {}) {
   const current = useRouter().asPath;
   const features = useFeatures();
+  const whiteLabel = useWhiteLabel();
 
   return (
     <Box
@@ -56,7 +59,17 @@ export default function StaticNavBar({
         marginX="auto" // Centers content horizontally
       >
         <NextLink href={staticUrlPrefix}>
-          <Image src={yuanjianLogo80x80} alt="图标" width={30} />
+          <Image
+            src={
+              whiteLabel === "yqd"
+                ? yqdLogo
+                : whiteLabel === "sylp"
+                  ? sylpLogo
+                  : yuanjianLogo80x80
+            }
+            alt="图标"
+            width={whiteLabel === "sylp" ? 150 : whiteLabel === "yqd" ? 90 : 30}
+          />
         </NextLink>
 
         <HStack as="nav" spacing={7} fontWeight="bold">

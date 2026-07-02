@@ -16,7 +16,7 @@ import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidthWide } from "theme/metrics";
 import NextLink from "next/link";
 import Image from "next/image";
-import yuanjianLogo80x80 from "../../public/img/yuanjian-logo-80x80.png";
+import sylpLogo from "../../public/img/sylp-logo.png";
 import { loginUrl } from "pages/auth/login";
 import { staticUrlPrefix } from "static";
 import { RiCustomerServiceFill } from "react-icons/ri";
@@ -46,7 +46,7 @@ export default function SylpLandingPage() {
           marginX="auto"
         >
           <NextLink href={staticUrlPrefix}>
-            <Image src={yuanjianLogo80x80} alt="Logo" width={30} />
+            <Image src={sylpLogo} alt="Logo" width={150} />
           </NextLink>
 
           <HStack as="nav" spacing={7} fontWeight="bold">

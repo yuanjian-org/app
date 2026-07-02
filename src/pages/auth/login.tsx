@@ -47,6 +47,8 @@ import { useWhiteLabel } from "components/useStaticConfigs";
 import Image from "next/image";
 import NextLink from "next/link";
 import yuanjianLogo80x80 from "../../../public/img/yuanjian-logo-80x80.png";
+import yqdLogo from "../../../public/img/yqd-logo.png";
+import sylpLogo from "../../../public/img/sylp-logo.png";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
@@ -114,7 +116,8 @@ function toastSignInError(err: any) {
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   const router = useRouter();
-  const isDemo = useWhiteLabel() === "demo";
+  const whiteLabel = useWhiteLabel();
+  const isDemo = whiteLabel === "demo";
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {
@@ -180,7 +183,19 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
         mt={{ base: 10, [breakpoint]: 40 }}
       >
         <NextLink href={staticUrlPrefix}>
-          <Image alt="图标" width={60} src={yuanjianLogo80x80} />
+          <Image
+            alt="图标"
+            width={
+              whiteLabel === "sylp" ? 200 : whiteLabel === "yqd" ? 120 : 60
+            }
+            src={
+              whiteLabel === "yqd"
+                ? yqdLogo
+                : whiteLabel === "sylp"
+                  ? sylpLogo
+                  : yuanjianLogo80x80
+            }
+          />
         </NextLink>
 
         <PageBreadcrumb
