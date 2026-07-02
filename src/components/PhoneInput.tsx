@@ -10,8 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
-import countries from "world-countries";
-import { compareChinese } from "../shared/strings";
+import countryAreaCodes from "./countryAreaCodes.json";
 
 export interface CountryAreaCode {
   flag: string;
@@ -20,25 +19,7 @@ export interface CountryAreaCode {
 }
 
 function getCountryAreaCodes(): CountryAreaCode[] {
-  const all: CountryAreaCode[] = countries
-    .filter(
-      (country) =>
-        country.translations?.zho?.common && country.idd?.suffixes?.length > 0,
-    )
-    .map((country) => ({
-      flag: country.flag,
-      name: country.translations.zho.common,
-      code:
-        country.idd.suffixes.length === 1
-          ? `${country.idd.root}${country.idd.suffixes[0]}`
-          : country.idd.root,
-    }))
-    .sort((a, b) => compareChinese(a.name, b.name));
-
-  // Repeat frequently used countries at the beginning of the list.
-  const china = all.find((country) => country.name === "中国");
-  const usa = all.find((country) => country.name === "美国");
-  return [china!, usa!, ...all];
+  return countryAreaCodes;
 }
 
 /**
