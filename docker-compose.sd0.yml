@@ -1,10 +1,10 @@
 services:
   yqd:
-    image: ${APP_DOCKER_IMAGE:?}:latest
+    image: ${APP_IMAGE_BASE_NAME:?}.yqd:latest
     container_name: yqd
     env_file: .env.yqd
   sylp:
-    image: ${APP_DOCKER_IMAGE:?}:latest
+    image: ${APP_IMAGE_BASE_NAME:?}.sylp:latest
     container_name: sylp
     env_file: .env.sylp
   nginx:
