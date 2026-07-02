@@ -98,7 +98,7 @@ export function ProjectDetailCard({
                 isLoading={isLoadingApply}
                 onClick={onApply}
               >
-                申请参与
+                申请参加
               </Button>
             )}
           </Flex>
