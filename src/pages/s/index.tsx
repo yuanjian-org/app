@@ -23,7 +23,7 @@ import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
 import { features } from "shared/Features";
-import { loginUrl } from "pages/auth/login";
+import { loginUrl } from "shared/loginUrl";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 
 export default function Page() {

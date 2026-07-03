@@ -7,7 +7,7 @@ export const profileCallbackUrlKey = "profileCallbackUrl";
  * by another '/' or '\', which could be used for protocol-relative redirects.
  * It also implicitly prevents 'javascript:' URLs as they don't start with '/'.
  */
-export function getSafeCallbackUrl(url: string | null | undefined): string {
+export function sanitizeCallbackUrl(url: string | null | undefined): string {
   if (
     !url ||
     !url.startsWith("/") ||

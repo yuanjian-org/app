@@ -22,7 +22,7 @@ import {
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
 import {
   isValidEmail,
@@ -48,23 +48,11 @@ import DynamicLogo from "components/DynamicLogo";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
-import { getSafeCallbackUrl, loginCallbackUrlKey } from "shared/callbackUrl";
-
-export function loginUrl(callbackUrl?: string) {
-  return `/auth/login?${callbackUrlParam(callbackUrl)}`;
-}
-
-function callbackUrlParam(url: string | undefined) {
-  return url ? `${loginCallbackUrlKey}=${encodeURIComponent(url)}` : "";
-}
+import { loginCallbackUrl } from "shared/loginUrl";
 
 function useCallbackUrl() {
   const router = useRouter();
-  return getLoginCallbackUrl(router);
-}
-
-export function getLoginCallbackUrl(router: NextRouter) {
-  return getSafeCallbackUrl(parseQueryString(router, loginCallbackUrlKey));
+  return loginCallbackUrl(router);
 }
 
 type ServerSideProps = {
