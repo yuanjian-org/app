@@ -11,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { STRING, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
+import Org from "./Org";
 import { ProjectProfile } from "../../../shared/ProjectProfile";
 import { ProjectStatus, ProjectVisibility } from "../../../shared/Project";
 
@@ -44,10 +45,17 @@ export default class Project extends Model {
   @Column(DataType.JSONB)
   profile: ProjectProfile | null;
 
+  @ForeignKey(() => Org)
+  @Column(UUID)
+  orgId: string | null;
+
   /**
    * Associations
    */
 
   @BelongsTo(() => User, { foreignKey: "ownerId" })
   owner: User;
+
+  @BelongsTo(() => Org, { foreignKey: "orgId" })
+  org: Org | null;
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zProjectProfile } from "./ProjectProfile";
 import { zMinUser } from "./User";
+import { zOrg } from "./Org";
 
 export const zProjectStatus = z.enum(["草稿", "招募中", "已结束"]);
 export type ProjectStatus = z.TypeOf<typeof zProjectStatus>;
@@ -35,8 +36,9 @@ export const zProject = z.object({
 
 export type Project = z.TypeOf<typeof zProject>;
 
-export const zProjectWithOwner = zProject.extend({
+export const zProjectWithAssociation = zProject.extend({
   owner: zMinUser,
+  org: zOrg.pick({ id: true, name: true }).nullable(),
 });
 
-export type ProjectWithOwner = z.TypeOf<typeof zProjectWithOwner>;
+export type ProjectWithAssociation = z.TypeOf<typeof zProjectWithAssociation>;

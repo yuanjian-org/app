@@ -13,6 +13,7 @@ import { CreationOptional, STRING, TEXT, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 import OrgMentor from "./OrgMentor";
 import OrgOwner from "./OrgOwner";
+import Project from "./Project";
 
 @Table
 class Org extends Model {
@@ -53,6 +54,9 @@ class Org extends Model {
 
   @HasMany(() => OrgOwner)
   orgOwners: OrgOwner[];
+
+  @HasMany(() => Project)
+  projects: Project[];
 }
 
 export default Org;

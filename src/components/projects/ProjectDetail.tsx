@@ -16,7 +16,7 @@ import MarkdownStyler from "../../components/MarkdownStyler";
 import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
-  ProjectWithOwner,
+  ProjectWithAssociation,
 } from "../../shared/Project";
 
 export function ProjectDetailCard({
@@ -25,7 +25,7 @@ export function ProjectDetailCard({
   isLoadingApply,
   onApply,
 }: {
-  project: ProjectWithOwner;
+  project: ProjectWithAssociation;
   canEdit: boolean;
   isLoadingApply: boolean;
   onApply: () => void;
@@ -107,6 +107,7 @@ export function ProjectDetailCard({
         <Divider my={6} />
 
         <VStack spacing={6} align="stretch">
+          <Section title="所属机构" content={project.org?.name} />
           <Section title="项目简介" content={project.profile?.简介} />
           <Section title="项目背景" content={project.profile?.背景} />
           <Section title="挑战描述" content={project.profile?.挑战描述} />
