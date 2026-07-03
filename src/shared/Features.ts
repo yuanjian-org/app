@@ -19,7 +19,8 @@ export const zFeatures = z.object({
 
   /**
    * Controls features related to the mentee's self-filled profile, including:
-   * - Prompting mentees to complete their profile via a modal after login, when attempting to book a mentor, or when drafting a mentor selection.
+   * - Prompting mentees to complete their profile via a modal after login, when
+   *   attempting to book a mentor, or when drafting a mentor selection.
    * - Showing the "学生自填信息" tab on the mentee details page.
    */
   menteeProfile: z.boolean().optional(),
@@ -27,6 +28,11 @@ export const zFeatures = z.object({
 
 export type Features = z.infer<typeof zFeatures>;
 
+/**
+ * N.B. Some places in the codebase use process.env to get features directly to
+ * enable dead code elimination or DCE (Tree Shaking isn't smart enough to
+ * dereference constants at build time). Please keep them in sync.
+ */
 export const features: Features = {
   orgs: process.env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
   relational: process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
