@@ -1,4 +1,3 @@
-import db from "../database/db";
 import sequelize from "../database/sequelize";
 import meetingSequelize from "../database/meetingSequelize";
 import { procedure, router } from "../trpc";
@@ -27,16 +26,6 @@ async function migrateSchema() {
 
 async function migrateData() {
   console.log("Migrating DB data...");
-
-  const passedApplications = await db.ProjectApplication.findAll({
-    where: {
-      status: "已通过",
-    },
-  });
-
-  for (const app of passedApplications) {
-    await app.update({ status: "已批准" });
-  }
 
   await Promise.resolve();
 }
