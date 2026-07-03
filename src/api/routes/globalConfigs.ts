@@ -5,15 +5,12 @@ import { zGlobalConfig, GlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
 import { z } from "zod";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "../getWhiteLabel";
-import { zWhiteLabel } from "shared/WhiteLabel";
 import { getFeatures } from "../getFeatures";
 import { zFeatures } from "shared/Features";
 
 export function getStaticImpl() {
   return {
     features: getFeatures(),
-    whiteLabel: getWhiteLabel(),
   };
 }
 
@@ -67,7 +64,6 @@ const getStatic = procedure
   .output(
     z.object({
       features: zFeatures,
-      whiteLabel: zWhiteLabel,
     }),
   )
   .query(() => {

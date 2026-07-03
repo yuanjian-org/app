@@ -24,7 +24,7 @@ import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
 import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
 import getBaseUrl from "../../shared/getBaseUrl";
-import { getWhiteLabel } from "api/getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export const gracePeriodMinutes = 5;
 

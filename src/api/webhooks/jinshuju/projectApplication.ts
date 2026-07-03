@@ -3,7 +3,7 @@ import db from "../../database/db";
 import { Transaction } from "sequelize";
 import { validateAndDecodeXField } from "../../jinshuju";
 import { notFoundError } from "../../errors";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export async function submitProjectApp(
   entry: Record<string, any>,

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import sequelize from "../database/sequelize";
 import meetingSequelize from "../database/meetingSequelize";
 import * as notifyModule from "../notify";

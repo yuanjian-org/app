@@ -2,7 +2,7 @@ import { expect } from "chai";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import { AutoTaskId } from "../../../shared/Task";
 import submitExam from "./exam";
 import { encodeXField } from "../../jinshuju";

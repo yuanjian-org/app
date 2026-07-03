@@ -94,7 +94,7 @@ jobs:
         tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
         target: runner
         build-args: |
-          WHITE_LABEL=${{ matrix.white_label }}
+          NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
         cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
         cache-to: type=gha,mode=max,scope=docker-build-${{ matrix.white_label }}
 

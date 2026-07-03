@@ -5,7 +5,7 @@ import { notFoundError } from "../../errors";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export default async function submit(
   formEntry: Record<string, any>,

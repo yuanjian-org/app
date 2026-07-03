@@ -29,8 +29,8 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-ARG WHITE_LABEL
-ENV WHITE_LABEL=$WHITE_LABEL
+ARG NEXT_PUBLIC_WHITE_LABEL
+ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
@@ -46,8 +46,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-ARG WHITE_LABEL
-ENV WHITE_LABEL=$WHITE_LABEL
+ARG NEXT_PUBLIC_WHITE_LABEL
+ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
