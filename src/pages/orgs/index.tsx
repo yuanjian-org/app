@@ -12,6 +12,7 @@ import { trpcNext } from "trpc";
 import { widePage } from "AppPage";
 import Loader from "components/Loader";
 import { pageMarginX, componentSpacing } from "theme/metrics";
+import MarkdownStyler from "components/MarkdownStyler";
 
 export default widePage(() => {
   const { data: orgs } = trpcNext.orgs.list.useQuery();
@@ -39,7 +40,13 @@ export default widePage(() => {
                 {org.name}
               </LinkOverlay>
             </Heading>
-            <Text noOfLines={3}>{org.description || "暂无介绍"}</Text>
+            {org.description ? (
+              <Box maxHeight="4.5em" overflow="hidden">
+                <MarkdownStyler content={org.description} />
+              </Box>
+            ) : (
+              <Text noOfLines={3}>暂无介绍</Text>
+            )}
           </LinkBox>
         ))}
       </SimpleGrid>
