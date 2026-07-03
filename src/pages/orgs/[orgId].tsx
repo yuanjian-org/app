@@ -225,10 +225,10 @@ export default widePage(() => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-              <MarkdownSupport mt={2} fontSize="sm" />
             </FormControl>
           </ModalBody>
           <ModalFooter>
+            <MarkdownSupport mr="auto" />
             <Button variant="ghost" mr={3} onClick={onClose}>
               取消
             </Button>
