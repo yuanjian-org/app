@@ -303,6 +303,7 @@ export const projectAttributes = [
   "visibility",
   "profile",
   "ownerId",
+  "orgId",
 ];
 
 export const projectInclude = [

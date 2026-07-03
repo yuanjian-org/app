@@ -28,6 +28,7 @@ export const ProjectVisibilityDescriptions: Record<ProjectVisibility, string> =
 export const zProject = z.object({
   id: z.string(),
   ownerId: z.string(),
+  orgId: z.string().nullable(),
   title: z.string(),
   status: zProjectStatus,
   visibility: zProjectVisibility,
