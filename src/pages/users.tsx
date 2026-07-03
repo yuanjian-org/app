@@ -1,3 +1,4 @@
+import { features } from "shared/Features";
 import { whiteLabel } from "shared/WhiteLabel";
 import {
   Button,
@@ -58,10 +59,6 @@ import { widePage } from "AppPage";
 import { FullTextSearchBox } from "components/FullTextSearchBox";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 import { staticUrlPrefix } from "static";
-import {
-  useFeatures,
-  useIsStaticConfigsReady,
-} from "components/useStaticConfigs";
 
 export default widePage(() => {
   const [includeMerged, setIncludeMerged] = useState(false);
@@ -166,10 +163,6 @@ function UserTable({
   const { update: updateSession } = useSession();
   const router = useRouter();
   const utils = trpcNext.useContext();
-
-  if (!useIsStaticConfigsReady()) {
-    return <Loader />;
-  }
 
   const startImpersonation = async (userId: string) => {
     // Invalidate all queries before impersonation to ensure fresh data
@@ -325,7 +318,6 @@ function UserEditor({
   };
 
   const myRoles = useMyRoles();
-  const features = useFeatures();
   const [phone, setPhone] = useState(u.phone || "");
   const [email, setEmail] = useState(u.email || "");
   const [unionId, setUnionId] = useState(u.wechatUnionId || "");

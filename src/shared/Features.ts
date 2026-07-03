@@ -1,7 +1,8 @@
 import { z } from "zod";
+import getConfig from "next/config";
 
 /**
- * Feature flags, controled by ENABLE_* env variables.
+ * Feature flags, controled by NEXT_PUBLIC_ENABLE_* env variables.
  */
 export const zFeatures = z.object({
   // Organizations
@@ -26,3 +27,43 @@ export const zFeatures = z.object({
 });
 
 export type Features = z.infer<typeof zFeatures>;
+
+const publicRuntimeConfig = getConfig()?.publicRuntimeConfig || {};
+
+export const features: Features = {
+  orgs:
+    publicRuntimeConfig.ENABLE_ORGS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_ORGS === "true"
+      ? true
+      : undefined,
+  relational:
+    publicRuntimeConfig.ENABLE_RELATIONAL === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true"
+      ? true
+      : undefined,
+  volunteers:
+    publicRuntimeConfig.ENABLE_VOLUNTEERS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true"
+      ? true
+      : undefined,
+  interviews:
+    publicRuntimeConfig.ENABLE_INTERVIEWS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true"
+      ? true
+      : undefined,
+  exams:
+    publicRuntimeConfig.ENABLE_EXAMS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_EXAMS === "true"
+      ? true
+      : undefined,
+  projects:
+    publicRuntimeConfig.ENABLE_PROJECTS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true"
+      ? true
+      : undefined,
+  menteeProfile:
+    publicRuntimeConfig.ENABLE_MENTEE_PROFILE === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true"
+      ? true
+      : undefined,
+};

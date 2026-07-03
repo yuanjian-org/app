@@ -31,7 +31,7 @@ import useMe, { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -368,7 +368,6 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
-  const features = useFeatures();
 
   return (
     <Flex
@@ -504,7 +503,6 @@ function DropdownMenu({
   onClose: () => void;
 }) {
   const myRoles = useMyRoles();
-  const features = useFeatures();
   const filteredItems = menuItems.filter((item) => {
     return (
       isPermitted(myRoles, item.roles) &&

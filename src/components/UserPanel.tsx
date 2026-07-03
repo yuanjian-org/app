@@ -1,5 +1,5 @@
 import trpc, { trpcNext } from "../trpc";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import Loader from "components/Loader";
 import { formatUserName } from "shared/strings";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -244,7 +244,6 @@ function MatchingTraits({ userId }: { userId: string }) {
 
 function Selection({ mentorId }: { mentorId: string }) {
   const me = useMe();
-  const features = useFeatures();
   const [showMenteeProfileModal, setShowMenteeProfileModal] = useState(false);
   const [reason, setReason] = useState("");
   const [showError, setShowError] = useState(false);
@@ -389,7 +388,7 @@ function ProfileTable({
   profile: UserProfile;
 }) {
   const me = useMe();
-  const enableOrgs = useFeatures().orgs;
+  const enableOrgs = features.orgs;
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });

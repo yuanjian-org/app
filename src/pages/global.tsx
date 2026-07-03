@@ -19,7 +19,7 @@ import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import { zFeatures, Features } from "shared/Features";
 
 export default function Page() {
@@ -30,7 +30,6 @@ export default function Page() {
     boolean | undefined
   >(undefined);
   const [saving, setSaving] = useState(false);
-  const features = useFeatures();
 
   const save = async () => {
     if (
