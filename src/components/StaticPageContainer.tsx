@@ -16,8 +16,6 @@ import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
 import PageLoader from "./PageLoader";
 
-const whiteLabel = process.env.NEXT_PUBLIC_WHITE_LABEL || "yuantu";
-
 export default function StaticPageContainer({
   pageType,
   children,
@@ -39,23 +37,26 @@ export default function StaticPageContainer({
     );
   }
 
-  if (whiteLabel === "ustc") {
+  // Directly inspect process.env.NEXT_PUBLIC_WHITE_LABEL so Webpack's
+  // DefinePlugin can replace it with a string literal at build time, allowing
+  // dead code elimination (DCE) to prune unused landing page imports.
+  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "ustc") {
     return <UstcLandingPage />;
   }
 
-  if (whiteLabel === "xhef") {
+  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "xhef") {
     return <XhefLandingPage />;
   }
 
-  if (whiteLabel === "demo") {
+  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "demo") {
     return <DemoLandingPage />;
   }
 
-  if (whiteLabel === "yqd") {
+  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "yqd") {
     return <YqdLandingPage />;
   }
 
-  if (whiteLabel === "sylp") {
+  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "sylp") {
     return <SylpLandingPage />;
   }
 
