@@ -23,9 +23,6 @@ import { isPermitted } from "shared/Role";
  */
 export default async function submit(form: string, entry: Record<string, any>) {
   const urls: string[] = entry.field_1;
-  if (urls.length !== 1) {
-    throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
-  }
 
   const [userId, uploadTarget, projectId] = validateAndDecodeXField(
     whiteLabel,
@@ -37,6 +34,9 @@ export default async function submit(form: string, entry: Record<string, any>) {
   }
 
   if (form === "Bz3uSO") {
+    if (urls.length !== 1) {
+      throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
+    }
     await uploadProfileMedia(
       userId,
       uploadTarget,
@@ -45,12 +45,26 @@ export default async function submit(form: string, entry: Record<string, any>) {
       "照片链接",
     );
   } else if (form === "nhFsf1") {
+    if (urls.length !== 1) {
+      throw generalBadRequestError(`# urls isn't one but ${urls.length}`);
+    }
     await uploadProfileMedia(
       userId,
       uploadTarget,
       projectId,
       urls[0],
       "视频链接",
+    );
+  } else if (form === "zF1xqk") {
+    const markdownLinks = urls
+      .map((url, i) => `- [参考材料 ${i + 1}](${url})`)
+      .join("\n");
+    await uploadProfileMedia(
+      userId,
+      uploadTarget,
+      projectId,
+      markdownLinks,
+      "参考材料",
     );
   } else {
     throw generalBadRequestError(`Unknown upload form: ${form}`);
