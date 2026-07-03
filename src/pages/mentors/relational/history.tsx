@@ -13,7 +13,9 @@ import { componentSpacing, sectionSpacing } from "theme/metrics";
 import { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { MentorSelectionBatch } from "shared/MentorSelection";
-import { compareDate, formatUserName, prettifyDate } from "shared/strings";
+import { compareDate } from "shared/strings/compareDate";
+import { formatUserName } from "shared/strings/formatUserName";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import invariant from "shared/invariant";
 
 export default function Page() {

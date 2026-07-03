@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import { barePage } from "AppPage";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import Loader from "components/Loader";
 

@@ -35,14 +35,15 @@ import {
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
-import { formatUserName, prettifyDate } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";
 import { AddIcon } from "@chakra-ui/icons";
 import invariant from "tiny-invariant";
 import Loader from "./Loader";
 import MarkdownStyler from "./MarkdownStyler";
 import MarkdownSupport from "./MarkdownSupport";
-import { compareDate } from "shared/strings";
+import { compareDate } from "shared/strings/compareDate";
 import { SmallGrayText } from "./SmallGrayText";
 import moment, { Moment } from "moment";
 import RedDot, { redDotTransitionProps } from "./RedDot";

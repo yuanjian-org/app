@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { MdEdit } from "react-icons/md";
 import User, { MinUser } from "shared/User";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import UserSelector from "./UserSelector";
 import trpc from "trpc";

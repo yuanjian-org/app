@@ -2,7 +2,7 @@ import { VStack, Button, Link, Text } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import trpc, { trpcNext } from "trpc";
-import { prettifyDate } from "shared/strings";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { useState } from "react";

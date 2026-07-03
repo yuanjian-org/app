@@ -1,5 +1,5 @@
 import { DateColumn } from "shared/DateColumn";
-import { prettifyDate } from "shared/strings";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { Text } from "@chakra-ui/react";
 import { warningTextColor } from "theme/colors";
 import { okTextColor } from "theme/colors";

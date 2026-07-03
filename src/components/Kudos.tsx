@@ -25,7 +25,8 @@ import {
   ModalCloseButton,
   Box,
 } from "@chakra-ui/react";
-import { formatUserName, prettifyDate } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { componentSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
 import { useState, useRef, useCallback } from "react";

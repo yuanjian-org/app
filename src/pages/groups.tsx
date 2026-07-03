@@ -28,7 +28,7 @@ import UserChip from "components/UserChip";
 import { Group, isOwned } from "../shared/Group";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import { MdPersonRemove } from "react-icons/md";
-import { formatGroupName } from "shared/strings";
+import { formatGroupName } from "shared/strings/formatGroupName";
 import { EditIcon, ExternalLinkIcon } from "@chakra-ui/icons";
 import Loader from "components/Loader";
 import UserSelector from "../components/UserSelector";

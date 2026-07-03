@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import {
@@ -14,7 +14,7 @@ import {
 import { breakpoint } from "theme/breakpoints";
 import invariant from "shared/invariant";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import Applicant from "components/Applicant";
 import { BsWechat } from "react-icons/bs";
 import { MinUser } from "shared/User";

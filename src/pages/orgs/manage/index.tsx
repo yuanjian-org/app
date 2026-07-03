@@ -37,7 +37,7 @@ import { pageMarginX, componentSpacing } from "theme/metrics";
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
 import UserSelector from "components/UserSelector";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 
 function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
   const { data: orgWithMembers, refetch: refetchMembers } =

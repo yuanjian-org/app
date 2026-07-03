@@ -21,7 +21,8 @@ import {
 } from "../errors";
 import invariant from "tiny-invariant";
 import { createGroup, updateGroup } from "./groups";
-import { diffInMinutes, formatUserName } from "../../shared/strings";
+import { diffInMinutes } from "../../shared/strings/diffInMinutes";
+import { formatUserName } from "../../shared/strings/formatUserName";
 import Group from "../database/models/Group";
 import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";

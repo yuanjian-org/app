@@ -10,7 +10,8 @@ import {
   Link,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
-import { formatUserName, notSetText } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { notSetText } from "shared/strings/notSetText";
 import { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
 import NextLink from "next/link";
