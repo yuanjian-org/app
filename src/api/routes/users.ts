@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
@@ -49,7 +50,6 @@ import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { encodeXField } from "../jinshuju";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
@@ -1112,7 +1112,7 @@ const getJinshujuXField = procedure
       extraFields.push(projectId);
     }
 
-    return encodeXField(getWhiteLabel(), user.url, me.id, ...extraFields);
+    return encodeXField(whiteLabel, user.url, me.id, ...extraFields);
   });
 
 export default router({

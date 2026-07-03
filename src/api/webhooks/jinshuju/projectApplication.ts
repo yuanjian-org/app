@@ -1,9 +1,9 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { projectApplicationFields } from "../../../shared/applicationFields";
 import db from "../../database/db";
 import { Transaction } from "sequelize";
 import { validateAndDecodeXField } from "../../jinshuju";
 import { notFoundError } from "../../errors";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export async function submitProjectApp(
   entry: Record<string, any>,
@@ -17,7 +17,7 @@ export async function submitProjectApp(
     }
   }
 
-  const [userId, projectId] = validateAndDecodeXField(getWhiteLabel(), entry);
+  const [userId, projectId] = validateAndDecodeXField(whiteLabel, entry);
 
   if (!projectId) {
     throw new Error("Missing projectId in x_field_1");

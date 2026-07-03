@@ -1,9 +1,9 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { expect } from "chai";
 import sinon from "sinon";
 import { Transaction } from "sequelize";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 import submit from "./upload";
 import { TRPCError } from "@trpc/server";
 import { encodeXField } from "../../jinshuju";
@@ -33,7 +33,7 @@ describe("upload webhook", () => {
   it("should fail if # urls isn't one", async () => {
     const entry = {
       field_1: ["url1", "url2"],
-      x_field_1: `${getWhiteLabel()},test,token`,
+      x_field_1: `${whiteLabel},test,token`,
     };
 
     let error: any;
@@ -67,7 +67,7 @@ describe("upload webhook", () => {
   });
 
   it("should fail on invalid token HMAC", async () => {
-    const token = encodeXField(getWhiteLabel(), "url", uuidv4());
+    const token = encodeXField(whiteLabel, "url", uuidv4());
     const entry = {
       field_1: ["url1"],
       x_field_1: token + "tampered",
@@ -95,7 +95,7 @@ describe("upload webhook", () => {
       { transaction },
     );
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
+    const token = encodeXField(whiteLabel, "test", user.id, "user");
     const entry = {
       field_1: ["url1"],
       x_field_1: token,
@@ -127,7 +127,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
+    const token = encodeXField(whiteLabel, "test", user.id, "user");
     const testUrl = "https://example.com/pic.jpg";
     const entry = {
       field_1: [testUrl],
@@ -154,7 +154,7 @@ describe("upload webhook", () => {
     );
     const user = createdUser!;
 
-    const token = encodeXField(getWhiteLabel(), "test", user.id, "user");
+    const token = encodeXField(whiteLabel, "test", user.id, "user");
     const testUrl = "https://example.com/video.mp4";
     const entry = {
       field_1: [testUrl],
@@ -181,7 +181,7 @@ describe("upload webhook", () => {
     const createdProject = await db.Project.create(
       {
         id: uuidv4(),
-        whiteLabel: getWhiteLabel(),
+        whiteLabel,
         name: "Test Project",
         title: "Test Project Title",
         ownerId: user.id,
@@ -196,7 +196,7 @@ describe("upload webhook", () => {
     const project = createdProject!;
 
     const token = encodeXField(
-      getWhiteLabel(),
+      whiteLabel,
       "test",
       user.id,
       "project",

@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { Box, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
@@ -8,11 +9,7 @@ import {
   staticPageMaxWidthWide,
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
-import {
-  useFeatures,
-  useIsStaticConfigsReady,
-  useWhiteLabel,
-} from "./useStaticConfigs";
+import { useFeatures, useIsStaticConfigsReady } from "./useStaticConfigs";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
@@ -27,7 +24,6 @@ export default function StaticPageContainer({
   children: ReactNode;
   pageType?: AppPageType;
 }) {
-  const whiteLabel = useWhiteLabel();
   const features = useFeatures();
 
   if (!useIsStaticConfigsReady()) {

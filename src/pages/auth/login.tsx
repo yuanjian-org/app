@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import {
   Button,
   InputGroup,
@@ -43,7 +44,6 @@ import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
 import trpc from "trpc";
-import { useWhiteLabel } from "components/useStaticConfigs";
 import DynamicLogo from "components/DynamicLogo";
 import Footer from "components/Footer";
 import { breakpoint } from "theme/breakpoints";
@@ -112,7 +112,7 @@ function toastSignInError(err: any) {
 
 function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   const router = useRouter();
-  const isDemo = useWhiteLabel() === "demo";
+  const isDemo = whiteLabel === "demo";
 
   // Show the error passed in by next-auth.js if any.
   useEffect(() => {

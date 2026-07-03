@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import {
   FormControl,
   FormLabel,
@@ -44,7 +45,7 @@ import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import { UserProfilePictureLink } from "components/UserCards";
-import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -678,7 +679,7 @@ function MentorProfileFields({
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
 }) {
-  const label = useWhiteLabel();
+  const label = whiteLabel;
   const exampleVideoUrl =
     label === "yuantu"
       ? "/weihan"

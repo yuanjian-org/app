@@ -1,11 +1,11 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 
 export default function MentorCard() {
-  const whiteLabel = useWhiteLabel();
   const features = useFeatures();
 
   if (whiteLabel === "demo") return null;

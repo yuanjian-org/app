@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import {
   VStack,
   FormControl,
@@ -18,7 +19,7 @@ import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import { useWhiteLabel, useFeatures } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 import { zFeatures, Features } from "shared/Features";
 
 export default function Page() {
@@ -29,7 +30,6 @@ export default function Page() {
     boolean | undefined
   >(undefined);
   const [saving, setSaving] = useState(false);
-  const whiteLabel = useWhiteLabel();
   const features = useFeatures();
 
   const save = async () => {
