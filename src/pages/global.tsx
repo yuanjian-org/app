@@ -9,6 +9,7 @@ import {
   Text,
   Heading,
   Code,
+  Link,
 } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -17,7 +18,8 @@ import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import { useWhiteLabel } from "components/useStaticConfigs";
+import { useWhiteLabel, useFeatures } from "components/useStaticConfigs";
+import { zFeatures, Features } from "shared/Features";
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
@@ -28,6 +30,7 @@ export default function Page() {
   >(undefined);
   const [saving, setSaving] = useState(false);
   const whiteLabel = useWhiteLabel();
+  const features = useFeatures();
 
   const save = async () => {
     if (
@@ -80,6 +83,37 @@ export default function Page() {
       <Button variant="brand" onClick={save} isLoading={saving}>
         保存
       </Button>
+
+      <Heading size="md" mt={componentSpacing}>
+        功能模块开关
+      </Heading>
+      <VStack align="start" spacing={2}>
+        {Object.keys(zFeatures.shape).map((flag) => (
+          <Text key={flag}>
+            <Text as="span" fontFamily="monospace">
+              {flag}
+            </Text>
+            ：
+            {features[flag as keyof Features] ? (
+              <Text as="span" color="green.500" fontWeight="bold">
+                开启
+              </Text>
+            ) : (
+              <Text as="span" color="gray.500">
+                关闭
+              </Text>
+            )}
+          </Text>
+        ))}
+      </VStack>
+      <Text>
+        <Link
+          href="https://yuanjian.notion.site/37136363e90780319372ee9e580b20a3?pvs=74"
+          isExternal
+        >
+          查看文档
+        </Link>
+      </Text>
 
       {whiteLabel == "xhef" && <UploadPearlStudentsForm />}
     </VStack>
