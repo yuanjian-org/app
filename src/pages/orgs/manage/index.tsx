@@ -82,13 +82,7 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
       <Td>
         <Wrap>
           {orgWithMembers?.owners.map((owner) => (
-            <Tag
-              key={owner.id}
-              size="md"
-              borderRadius="full"
-              variant="solid"
-              colorScheme="blue"
-            >
+            <Tag key={owner.id} size="md" borderRadius="full" variant="solid">
               <TagLabel>{formatUserName(owner.name)}</TagLabel>
               <TagCloseButton
                 onClick={() => void handleRemoveOwner(owner.id)}
@@ -152,7 +146,7 @@ export default widePage(() => {
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <HStack justifyContent="space-between" mb={componentSpacing}>
-        <Heading size="lg">机构管理</Heading>
+        <Heading size="lg">管理入住机构</Heading>
         <Button colorScheme="brand" onClick={onOpen}>
           创建机构
         </Button>
@@ -215,4 +209,4 @@ export default widePage(() => {
       </Modal>
     </Box>
   );
-}, "机构管理");
+}, "管理入住机构");

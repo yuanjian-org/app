@@ -67,8 +67,8 @@ const create = procedure
     }),
   )
   .mutation(async ({ input: { name, phone, email, wechatUnionId, roles } }) => {
-    if (!phone && !email) {
-      throw generalBadRequestError("手机号或邮箱是必填的。");
+    if (!phone) {
+      throw generalBadRequestError("手机号是必填的。");
     }
 
     await sequelize.transaction(async (transaction) => {

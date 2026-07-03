@@ -253,7 +253,7 @@ const mainMenuItems: MainMenuItem[] = [
     name: "入驻机构",
     path: "/orgs",
     icon: MdBusiness,
-    regex: /^\/orgs/,
+    regex: /^\/orgs$/,
     feature: "orgs",
   },
   {
