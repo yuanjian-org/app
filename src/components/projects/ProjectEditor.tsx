@@ -319,7 +319,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                         projectId: projectId!,
                       });
                     await router.push(
-                      getEmbeddedFormUrl("RefMatFormId", uploadToken),
+                      getEmbeddedFormUrl("zF1xqk", uploadToken),
                     );
                   } finally {
                     setRefsLoading(false);

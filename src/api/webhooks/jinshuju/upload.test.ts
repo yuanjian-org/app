@@ -266,13 +266,13 @@ describe("upload webhook", () => {
       x_field_1: token,
     };
 
-    await submit("RefMatFormId", entry);
+    await submit("zF1xqk", entry);
 
     const updatedProject = await db.Project.findByPk(project.id, {
       transaction,
     });
     expect(updatedProject!.profile!["参考材料"]).to.equal(
-      "- https://example.com/file1.pdf\n- https://example.com/file2.zip",
+      "- [参考材料 1](https://example.com/file1.pdf)\n- [参考材料 2](https://example.com/file2.zip)",
     );
   });
 });

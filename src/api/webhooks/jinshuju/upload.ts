@@ -55,8 +55,10 @@ export default async function submit(form: string, entry: Record<string, any>) {
       urls[0],
       "视频链接",
     );
-  } else if (form === "RefMatFormId") {
-    const markdownLinks = urls.map((url) => `- ${url}`).join("\n");
+  } else if (form === "zF1xqk") {
+    const markdownLinks = urls
+      .map((url, i) => `- [参考材料 ${i + 1}](${url})`)
+      .join("\n");
     await uploadProfileMedia(
       userId,
       uploadTarget,
