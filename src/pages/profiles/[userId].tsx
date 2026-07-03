@@ -21,6 +21,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import trpc, { trpcNext } from "../../trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
@@ -44,7 +45,7 @@ import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import { UserProfilePictureLink } from "components/UserCards";
-import { useFeatures, useWhiteLabel } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -678,7 +679,7 @@ function MentorProfileFields({
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
 }) {
-  const label = useWhiteLabel();
+  const label = getWhiteLabel();
   const exampleVideoUrl =
     label === "yuantu"
       ? "/weihan"

@@ -2,6 +2,7 @@
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
 import React from "react";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import { useSession } from "next-auth/react";
 import { signOut } from "./signOut";
 import { FiChevronRight } from "react-icons/fi";
@@ -30,7 +31,7 @@ import useMe, { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
-import { useWhiteLabel, useFeatures } from "components/useStaticConfigs";
+import { useFeatures } from "components/useStaticConfigs";
 import { Mentorship } from "shared/Mentorship";
 import {
   MdChevronRight,
@@ -471,7 +472,7 @@ function ImpersonationBanner() {
 }
 
 function DemoBanner() {
-  const isDemo = useWhiteLabel() === "demo";
+  const isDemo = getWhiteLabel() === "demo";
 
   return !isDemo ? (
     <></>

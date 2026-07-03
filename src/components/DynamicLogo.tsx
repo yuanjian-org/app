@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useWhiteLabel } from "./useStaticConfigs";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import yuantuLogo from "../../public/img/logo.yuantu.png";
 import yqdLogo from "../../public/img/logo.yqd.png";
 import sylpLogo from "../../public/img/logo.sylp.png";
@@ -13,7 +13,7 @@ export function getLogoSource(whiteLabel: string) {
 }
 
 export default function DynamicLogo({ height = 30 }: { height?: number }) {
-  const whiteLabel = useWhiteLabel();
+  const whiteLabel = getWhiteLabel();
   const src = getLogoSource(whiteLabel);
 
   return (

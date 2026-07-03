@@ -120,8 +120,7 @@ export function computeTraitsMatchingScore(
         Math.max(-1, Math.min(1, (currentYear - freshmenYear - 3) / 3));
     } else {
       unified[key as keyof UnifiedTraits] = traits[key as keyof Traits] as
-        | number
-        | undefined;
+        number | undefined;
     }
   }
 

@@ -28,6 +28,7 @@ import {
   Checkbox,
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser } from "shared/User";
 import { UserFilter } from "shared/UserFilter";
@@ -91,20 +92,12 @@ import { IconButton, Tooltip } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import useMe from "useMe";
 import { isPermitted } from "shared/Role";
-import {
-  useIsStaticConfigsReady,
-  useWhiteLabel,
-} from "components/useStaticConfigs";
+import { useIsStaticConfigsReady } from "components/useStaticConfigs";
 import { getAnonymousId } from "shared/getAnonymousId";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 
 type SortOrderKey =
-  | "year"
-  | "source"
-  | "name"
-  | "mentorReview"
-  | "menteeReview"
-  | "transcript";
+  "year" | "source" | "name" | "mentorReview" | "menteeReview" | "transcript";
 type SortOrderDir = "asc" | "desc";
 
 type SortOrder = {
@@ -116,7 +109,7 @@ const title = "学生档案";
 
 export default fullPage(() => {
   const isStaticConfigsReady = useIsStaticConfigsReady();
-  const isDemo = useWhiteLabel() === "demo";
+  const isDemo = getWhiteLabel() === "demo";
   const fixedFilter: UserFilter = {
     containsRoles: ["Mentee"],
     includeNonVolunteersMentors: true,

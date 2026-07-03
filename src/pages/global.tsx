@@ -11,13 +11,13 @@ import {
   Code,
 } from "@chakra-ui/react";
 import { toast } from "react-toastify";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { useState } from "react";
 import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import { useWhiteLabel } from "components/useStaticConfigs";
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
@@ -27,7 +27,7 @@ export default function Page() {
     boolean | undefined
   >(undefined);
   const [saving, setSaving] = useState(false);
-  const whiteLabel = useWhiteLabel();
+  const whiteLabel = getWhiteLabel();
 
   const save = async () => {
     if (
