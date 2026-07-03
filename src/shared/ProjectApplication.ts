@@ -2,7 +2,7 @@ import { z } from "zod";
 import { zUser } from "./User";
 
 export const zProjectApplicationStatus = z
-  .enum(["已通过", "已拒绝"])
+  .enum(["已批准", "已拒绝"])
   .nullable();
 export type ProjectApplicationStatus = z.TypeOf<
   typeof zProjectApplicationStatus

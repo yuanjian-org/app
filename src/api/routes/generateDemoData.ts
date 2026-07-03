@@ -217,7 +217,7 @@ async function generateProjects(t: Transaction) {
     const mentees = [mentee1, mentee2, mentee3];
     const statuses: (ProjectApplicationStatus | null)[] = [
       null,
-      "已通过",
+      "已批准",
       "已拒绝",
     ];
 

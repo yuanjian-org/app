@@ -98,11 +98,11 @@ describe("Project Applications Route Impl", () => {
     const project = await createTestProject(owner.id);
     const app = await createTestApp(project.id, applicant.id);
 
-    await updateStatusImpl(owner as any, app.id, "已通过", transaction);
+    await updateStatusImpl(owner as any, app.id, "已批准", transaction);
 
     const updated = await db.ProjectApplication.findByPk(app.id, {
       transaction,
     });
-    expect(updated?.status).to.equal("已通过");
+    expect(updated?.status).to.equal("已批准");
   });
 });

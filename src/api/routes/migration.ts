@@ -43,5 +43,11 @@ async function migrateData() {
     WHERE "roles"::text[] && ARRAY['UserManager', 'GroupManager', 'MentorshipManager'];
   `);
 
+  await sequelize.query(`
+    UPDATE "ProjectApplications"
+    SET "status" = '已批准'
+    WHERE "status" = '已通过';
+  `);
+
   await Promise.resolve();
 }
