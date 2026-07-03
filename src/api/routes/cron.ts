@@ -15,7 +15,9 @@ export default router({
   /**
    * Hourly cron jobs. See hourly.yml.
    */
-  syncMeetings: procedure.use(authIntegration()).mutation(syncMeetings),
+  syncMeetings: procedure
+    .use(authIntegration())
+    .mutation(async () => await syncMeetings()),
 
   sendScheduledNotifications: procedure
     .use(authIntegration())
@@ -40,7 +42,9 @@ export default router({
       }),
   ),
 
-  recycleMeetings: procedure.use(authIntegration()).mutation(recycleMeetings),
+  recycleMeetings: procedure
+    .use(authIntegration())
+    .mutation(async () => await recycleMeetings()),
 
   purgeOldData: procedure.use(authIntegration()).mutation(async () => {
     await purgeOldData();
