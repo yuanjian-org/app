@@ -4,7 +4,7 @@ import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
 import { submit } from "./index";
 import { encodeXField } from "../../jinshuju";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import * as applicationModule from "./application";
 import * as uploadModule from "./upload";
 import * as examModule from "./exam";

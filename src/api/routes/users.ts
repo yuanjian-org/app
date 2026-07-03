@@ -49,7 +49,7 @@ import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { encodeXField } from "../jinshuju";
-import { getWhiteLabel } from "../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";

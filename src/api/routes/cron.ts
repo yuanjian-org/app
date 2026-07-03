@@ -7,7 +7,7 @@ import { auditLastMentorshipMeetings } from "./mentorships";
 import sequelize from "api/database/sequelize";
 import { purgeOldData } from "./purgeOldData";
 import { generateDemoData } from "./generateDemoData";
-import { getWhiteLabel } from "../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import { noPermissionError } from "../errors";
 import { migrateDatabase } from "./migration";
 

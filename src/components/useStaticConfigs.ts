@@ -1,5 +1,6 @@
 import { trpcNext } from "trpc";
 import { WhiteLabel } from "shared/WhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import { Features } from "shared/Features";
 
 export function useIsStaticConfigsReady(): boolean {
@@ -7,7 +8,7 @@ export function useIsStaticConfigsReady(): boolean {
 }
 
 export function useWhiteLabel(): WhiteLabel {
-  return useStaticConfigs().data?.whiteLabel || "yuantu";
+  return getWhiteLabel();
 }
 
 export function useFeatures(): Features {

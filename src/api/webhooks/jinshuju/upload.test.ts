@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { Transaction } from "sequelize";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import submit from "./upload";
 import { TRPCError } from "@trpc/server";
 import { encodeXField } from "../../jinshuju";

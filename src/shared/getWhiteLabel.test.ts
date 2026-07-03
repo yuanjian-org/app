@@ -5,41 +5,41 @@ describe("getWhiteLabel", () => {
   let originalWhiteLabel: string | undefined;
 
   beforeEach(() => {
-    originalWhiteLabel = process.env.WHITE_LABEL;
+    originalWhiteLabel = process.env.NEXT_PUBLIC_WHITE_LABEL;
   });
 
   afterEach(() => {
     if (originalWhiteLabel === undefined) {
-      delete process.env.WHITE_LABEL;
+      delete process.env.NEXT_PUBLIC_WHITE_LABEL;
     } else {
-      process.env.WHITE_LABEL = originalWhiteLabel;
+      process.env.NEXT_PUBLIC_WHITE_LABEL = originalWhiteLabel;
     }
   });
 
   it("should return the correctly parsed valid white label", () => {
-    process.env.WHITE_LABEL = "demo";
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "demo";
     expect(getWhiteLabel()).to.equal("demo");
 
-    process.env.WHITE_LABEL = "ustc";
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "ustc";
     expect(getWhiteLabel()).to.equal("ustc");
 
-    process.env.WHITE_LABEL = "yuantu";
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "yuantu";
     expect(getWhiteLabel()).to.equal("yuantu");
 
-    process.env.WHITE_LABEL = "xhef";
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "xhef";
     expect(getWhiteLabel()).to.equal("xhef");
 
-    process.env.WHITE_LABEL = "x";
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "x";
     expect(getWhiteLabel()).to.equal("x");
   });
 
-  it("should fallback to yuantu when WHITE_LABEL is missing", () => {
-    delete process.env.WHITE_LABEL;
+  it("should fallback to yuantu when NEXT_PUBLIC_WHITE_LABEL is missing", () => {
+    delete process.env.NEXT_PUBLIC_WHITE_LABEL;
     expect(getWhiteLabel()).to.equal("yuantu");
   });
 
-  it("should fallback to yuantu when WHITE_LABEL is invalid", () => {
-    process.env.WHITE_LABEL = "invalid_value";
+  it("should fallback to yuantu when NEXT_PUBLIC_WHITE_LABEL is invalid", () => {
+    process.env.NEXT_PUBLIC_WHITE_LABEL = "invalid_value";
     expect(getWhiteLabel()).to.equal("yuantu");
   });
 });

@@ -4,7 +4,7 @@ import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import crypto from "crypto";
 import { submitProjectApp } from "./projectApplication";
-import { getWhiteLabel } from "../../getWhiteLabel";
+import { getWhiteLabel } from "shared/getWhiteLabel";
 import { encodeXField } from "../../jinshuju";
 
 describe("Project Applications Webhook", () => {
