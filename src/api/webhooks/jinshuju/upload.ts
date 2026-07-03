@@ -1,8 +1,8 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { generalBadRequestError, notFoundError } from "../../errors";
 import db from "../../database/db";
 import { validateAndDecodeXField } from "../../jinshuju";
 import sequelize from "../../database/sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 import { UserProfile } from "shared/UserProfile";
 import { ProjectProfile } from "shared/ProjectProfile";
 import { noPermissionError } from "../../errors";
@@ -28,7 +28,7 @@ export default async function submit(form: string, entry: Record<string, any>) {
   }
 
   const [userId, uploadTarget, projectId] = validateAndDecodeXField(
-    getWhiteLabel(),
+    whiteLabel,
     entry,
   );
 

@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import { validateAndDecodeXField } from "../../jinshuju";
 import db from "../../database/db";
 import moment from "moment";
@@ -5,7 +6,6 @@ import { notFoundError } from "../../errors";
 import { UserState } from "shared/UserState";
 import { AutoTaskId } from "shared/Task";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 
 export default async function submit(
   formEntry: Record<string, any>,
@@ -13,7 +13,7 @@ export default async function submit(
   passingScore: number,
   transaction: Transaction,
 ) {
-  const [userId] = validateAndDecodeXField(getWhiteLabel(), formEntry);
+  const [userId] = validateAndDecodeXField(whiteLabel, formEntry);
 
   const score = formEntry.exam_score;
   if (score < passingScore) {

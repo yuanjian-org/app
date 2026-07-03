@@ -1,3 +1,4 @@
+import { whiteLabel } from "shared/WhiteLabel";
 import {
   Button,
   Table,
@@ -60,7 +61,6 @@ import { staticUrlPrefix } from "static";
 import {
   useFeatures,
   useIsStaticConfigsReady,
-  useWhiteLabel,
 } from "components/useStaticConfigs";
 
 export default widePage(() => {
@@ -161,7 +161,7 @@ function UserTable({
   users: UserWithMergeInfo[];
   setUserBeingEdited: (u: User | null) => void;
 }) {
-  const isDemo = useWhiteLabel() === "demo";
+  const isDemo = whiteLabel === "demo";
   const me = useMe();
   const { update: updateSession } = useSession();
   const router = useRouter();
