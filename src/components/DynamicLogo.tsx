@@ -18,7 +18,7 @@ export default function DynamicLogo({ height = 30 }: { height?: number }) {
 
   return (
     <NextLink href={staticUrlPrefix}>
-      <Image src={src} alt="Logo" height={height} />
+      <Image src={src} alt="Logo" height={height} priority />
     </NextLink>
   );
 }
