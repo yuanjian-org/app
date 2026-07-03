@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Feature flags, controled by ENABLE_* env variables.
+ * Feature flags, controled by NEXT_PUBLIC_ENABLE_* env variables.
  */
 export const zFeatures = z.object({
   // Organizations
@@ -26,3 +26,14 @@ export const zFeatures = z.object({
 });
 
 export type Features = z.infer<typeof zFeatures>;
+
+export const features: Features = {
+  orgs: process.env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
+  relational: process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
+  volunteers: process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true" || undefined,
+  interviews: process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,
+  exams: process.env.NEXT_PUBLIC_ENABLE_EXAMS === "true" || undefined,
+  projects: process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" || undefined,
+  menteeProfile:
+    process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
+};

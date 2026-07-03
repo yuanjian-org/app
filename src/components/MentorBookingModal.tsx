@@ -17,7 +17,7 @@ import {
   MenteeProfileModal,
   isMenteeProfileComplete,
 } from "./MenteeProfileModals";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import useMe from "useMe";
 import { trpcNext } from "trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
@@ -35,7 +35,6 @@ export default function MentorBookingModal({
   onClose: () => void;
 }) {
   const me = useMe();
-  const features = useFeatures();
   const utils = trpcNext.useContext();
   const { data: profileData, isFetched } =
     trpcNext.users.getUserProfile.useQuery({ userId: me.id });

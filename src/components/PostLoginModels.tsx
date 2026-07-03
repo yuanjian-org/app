@@ -36,7 +36,7 @@ import {
   MenteeProfileModal,
   isMenteeProfileComplete,
 } from "./MenteeProfileModals";
-import { useFeatures } from "./useStaticConfigs";
+import { features } from "shared/Features";
 import { isPermitted } from "shared/Role";
 
 // prettier-ignore
@@ -46,7 +46,6 @@ export default function PostLoginModels() {
   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
   const canValidateUstcStudent = useCanValidateUstcStudent(me.email);
   const { data: profileData, isFetched: isProfileFetched } = trpcNext.users.getUserProfile.useQuery({ userId: me.id });
-  const features = useFeatures();
 
 
   return state === undefined ? (

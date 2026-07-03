@@ -8,13 +8,12 @@ import {
   staticPageMaxWidthWide,
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
-import { useFeatures, useIsStaticConfigsReady } from "./useStaticConfigs";
+import { features } from "shared/Features";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import DemoLandingPage from "./DemoLandingPage";
 import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
-import PageLoader from "./PageLoader";
 
 export default function StaticPageContainer({
   pageType,
@@ -23,12 +22,6 @@ export default function StaticPageContainer({
   children: ReactNode;
   pageType?: AppPageType;
 }) {
-  const features = useFeatures();
-
-  if (!useIsStaticConfigsReady()) {
-    return <PageLoader />;
-  }
-
   if (features.projects) {
     return (
       <DefaultStaticPageContaner pageType={pageType}>

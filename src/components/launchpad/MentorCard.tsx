@@ -3,11 +3,9 @@ import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 
 export default function MentorCard() {
-  const features = useFeatures();
-
   if (whiteLabel === "demo") return null;
 
   if (!features.relational && !features.exams && !features.interviews) {

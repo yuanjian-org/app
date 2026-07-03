@@ -6,19 +6,17 @@ import { paragraphSpacing } from "theme/metrics";
 import { useMemo } from "react";
 import NextLink from "next/link";
 import { calculateExamsRequired } from "shared/exams";
-import { useFeatures } from "./useStaticConfigs";
+import { features } from "shared/Features";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
-  const features = useFeatures();
-
   return useMemo(
     () =>
       calculateExamsRequired({
         state,
         features,
       }),
-    [state, features],
+    [state],
   );
 }
 
