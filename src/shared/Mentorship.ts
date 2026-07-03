@@ -2,7 +2,8 @@ import { z } from "zod";
 import { zMinUser } from "./User";
 import { zGroup } from "./Group";
 import { DateColumn, zNullableDateColumn } from "./DateColumn";
-import { compareDate, toChineseDayOfWeek } from "./strings";
+import { compareDate } from "./strings/compareDate";
+import { toChineseDayOfWeek } from "./strings/toChineseDayOfWeek";
 import moment from "moment";
 
 /**

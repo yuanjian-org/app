@@ -3,7 +3,8 @@ import sequelize from "../database/sequelize";
 import { Op, Transaction } from "sequelize";
 import invariant from "../../shared/invariant";
 import User, { getUserUrl, MinUser } from "../../shared/User";
-import { formatUserName, prettifyDate } from "../../shared/strings";
+import { formatUserName } from "../../shared/strings/formatUserName";
+import { prettifyDate } from "../../shared/strings/prettifyDate";
 import getBaseUrl from "../../shared/getBaseUrl";
 import {
   chatMessageAttributes,

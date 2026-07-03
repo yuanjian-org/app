@@ -7,7 +7,8 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
-import { isValidEmail, isValidPhone } from "shared/strings";
+import { isValidEmail } from "shared/strings/isValidEmail";
+import { isValidPhone } from "shared/strings/isValidPhone";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 import PhoneInput from "./PhoneInput";
 import { toast } from "react-toastify";

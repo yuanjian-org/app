@@ -1,5 +1,5 @@
 import { trpcNext } from "../../trpc";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import UserPanel, { UserDisplayData } from "components/UserPanel";
 import { Card, CardBody } from "@chakra-ui/react";

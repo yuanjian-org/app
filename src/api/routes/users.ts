@@ -23,7 +23,8 @@ import {
   zMentorPreference,
   zUserPreference,
 } from "../../shared/UserPreference";
-import { compareChinese, isValidChineseName } from "../../shared/strings";
+import { compareChinese } from "../../shared/strings/compareChinese";
+import { isValidChineseName } from "../../shared/strings/isValidChineseName";
 import {
   generalBadRequestError,
   noPermissionError,

@@ -2,7 +2,9 @@ import { Transaction } from "sequelize";
 import db from "../database/db";
 import { displayName } from "../../shared/Role";
 import { generalBadRequestError } from "../errors";
-import { formatUserName, isValidEmail, toPinyin } from "../../shared/strings";
+import { formatUserName } from "../../shared/strings/formatUserName";
+import { isValidEmail } from "../../shared/strings/isValidEmail";
+import { toPinyin } from "../../shared/strings/toPinyin";
 
 function isValidUserUrl(url: string) {
   return /^[a-z0-9]+$/.test(url);

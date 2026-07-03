@@ -29,7 +29,7 @@ import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";

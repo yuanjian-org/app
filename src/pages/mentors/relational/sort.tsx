@@ -37,7 +37,7 @@ import trpc, { trpcNext } from "trpc";
 import invariant from "tiny-invariant";
 import { MentorSelection } from "shared/MentorSelection";
 import Loader from "components/Loader";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { componentSpacing, maxTextWidth, sectionSpacing } from "theme/metrics";
 import NextLink from "next/link";
 import { useRouter } from "next/router";

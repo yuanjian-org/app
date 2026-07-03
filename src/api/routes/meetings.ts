@@ -22,7 +22,7 @@ import { Op, Transaction } from "sequelize";
 import moment from "moment";
 import invariant from "shared/invariant";
 import { downloadSummaries } from "./summaries";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
 import getBaseUrl from "../../shared/getBaseUrl";
 

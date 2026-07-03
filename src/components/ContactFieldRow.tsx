@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 import NextLink from "next/link";
 import { displayName } from "shared/Role";
-import { notSetText } from "shared/strings";
+import { notSetText } from "shared/strings/notSetText";
 import { SmallGrayText } from "./SmallGrayText";
 
 export function ContactFieldRow({

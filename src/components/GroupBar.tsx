@@ -29,7 +29,7 @@ import { useState } from "react";
 import trpc, { trpcNext } from "../trpc";
 import { MdVideocam } from "react-icons/md";
 import Link from "next/link";
-import { formatGroupName } from "shared/strings";
+import { formatGroupName } from "shared/strings/formatGroupName";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import { breakpoint } from "theme/breakpoints";
 import UserChip from "./UserChip";

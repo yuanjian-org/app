@@ -10,7 +10,8 @@ import db from "../../database/db";
 import { checkAndComputeUserFields } from "../../routes/checkAndComputeUserFields";
 import Role, { isPermitted } from "../../../shared/Role";
 import { generalBadRequestError } from "../../errors";
-import { chinaPhonePrefix, isValidPhone } from "../../../shared/strings";
+import { chinaPhonePrefix } from "../../../shared/strings/chinaPhonePrefix";
+import { isValidPhone } from "../../../shared/strings/isValidPhone";
 import { Transaction } from "sequelize";
 
 /**

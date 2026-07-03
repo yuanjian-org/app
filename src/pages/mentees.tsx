@@ -32,13 +32,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import trpc, { trpcNext } from "../trpc";
 import User, { MinUser } from "shared/User";
 import { UserFilter } from "shared/UserFilter";
-import {
-  compareChinese,
-  compareDate,
-  formatUserName,
-  getColorFromText,
-  prettifyDate,
-} from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
+import { compareDate } from "shared/strings/compareDate";
+import { formatUserName } from "shared/strings/formatUserName";
+import { getColorFromText } from "shared/strings/getColorFromText";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import Loader from "components/Loader";
 import UserFilterSelector from "components/UserFilterSelector";
 import { MenteeStatusSelectCell } from "components/MenteeStatusSelect";

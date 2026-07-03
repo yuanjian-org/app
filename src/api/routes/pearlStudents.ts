@@ -7,7 +7,7 @@ import { authUser } from "../auth";
 import { generalBadRequestError } from "../errors";
 import { MenteeStatus } from "../../shared/MenteeStatus";
 import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
-import { toPinyin } from "../../shared/strings";
+import { toPinyin } from "../../shared/strings/toPinyin";
 import invariant from "../../shared/invariant";
 import { menteeSourceField } from "../../shared/applicationFields";
 import { Transaction } from "sequelize";

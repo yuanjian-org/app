@@ -3,11 +3,9 @@ import { z } from "zod";
 import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { ip, authUser } from "../auth";
-import {
-  chinaPhonePrefix,
-  isValidPassword,
-  toChineseNumber,
-} from "../../shared/strings";
+import { chinaPhonePrefix } from "../../shared/strings/chinaPhonePrefix";
+import { isValidPassword } from "../../shared/strings/isValidPassword";
+import { toChineseNumber } from "../../shared/strings/toChineseNumber";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
 import sequelize from "../database/sequelize";

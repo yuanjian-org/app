@@ -9,11 +9,9 @@ import {
   Link,
   Button,
 } from "@chakra-ui/react";
-import {
-  notSetText,
-  parseQueryString,
-  removeChinaPhonePrefix,
-} from "shared/strings";
+import { notSetText } from "shared/strings/notSetText";
+import { parseQueryString } from "shared/strings/parseQueryString";
+import { removeChinaPhonePrefix } from "shared/strings/removeChinaPhonePrefix";
 import { useRouter } from "next/router";
 import trpc, { trpcNext } from "trpc";
 import Loader from "components/Loader";

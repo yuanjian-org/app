@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { widePage } from "AppPage";
 import Interview from "components/Interview";
 import Loader from "components/Loader";

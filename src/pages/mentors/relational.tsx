@@ -45,7 +45,7 @@ import TopBar, { topBarPaddings } from "components/TopBar";
 import { fullPage } from "AppPage";
 import { SmallGrayText } from "components/SmallGrayText";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
-import { toChineseNumber } from "shared/strings";
+import { toChineseNumber } from "shared/strings/toChineseNumber";
 import { ArrowForwardIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 

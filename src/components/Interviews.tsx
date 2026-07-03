@@ -13,7 +13,9 @@ import {
   Link,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
-import { formatUserName, compareUUID, toPinyin } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { compareUUID } from "shared/strings/compareUUID";
+import { toPinyin } from "shared/strings/toPinyin";
 import { Interview } from "shared/Interview";
 import { CheckIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { sectionSpacing } from "theme/metrics";
