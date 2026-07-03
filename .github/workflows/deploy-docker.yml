@@ -86,6 +86,18 @@ jobs:
     # Build and push the Docker image.
     # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
     # Docker compile time by caching layers directly in the GHA cache backend.
+    - name: Prepare build args
+      id: build-args
+      run: |
+        {
+          echo "args<<EOF"
+          echo "NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}"
+          if [ -f "build.env.${{ matrix.white_label }}" ]; then
+            cat "build.env.${{ matrix.white_label }}"
+          fi
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
@@ -93,8 +105,7 @@ jobs:
         push: true
         tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
         target: runner
-        build-args: |
-          NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
+        build-args: ${{ steps.build-args.outputs.args }}
         cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
         cache-to: type=gha,mode=max,scope=docker-build-${{ matrix.white_label }}
 
