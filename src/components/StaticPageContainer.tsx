@@ -10,12 +10,14 @@ import {
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
 import { useFeatures, useIsStaticConfigsReady } from "./useStaticConfigs";
-import UstcLandingPage from "./UstcLandingPage";
-import XhefLandingPage from "./XhefLandingPage";
-import DemoLandingPage from "./DemoLandingPage";
-import YqdLandingPage from "./YqdLandingPage";
-import SylpLandingPage from "./SylpLandingPage";
 import PageLoader from "./PageLoader";
+import dynamic from "next/dynamic";
+
+const UstcLandingPage = dynamic(() => import("./UstcLandingPage"));
+const XhefLandingPage = dynamic(() => import("./XhefLandingPage"));
+const DemoLandingPage = dynamic(() => import("./DemoLandingPage"));
+const YqdLandingPage = dynamic(() => import("./YqdLandingPage"));
+const SylpLandingPage = dynamic(() => import("./SylpLandingPage"));
 
 export default function StaticPageContainer({
   pageType,
