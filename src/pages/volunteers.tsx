@@ -1,4 +1,4 @@
-import { compareDate } from "shared/strings";
+import { compareDate } from "shared/strings/compareDate";
 import { trpcNext } from "trpc";
 import { useMemo, useState } from "react";
 import UserCards from "components/UserCards";

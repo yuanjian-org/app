@@ -24,13 +24,11 @@ import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
-import {
-  isValidEmail,
-  isValidPassword,
-  isValidPhone,
-  parseQueryString,
-  passwordMinLength,
-} from "shared/strings";
+import { isValidEmail } from "shared/strings/isValidEmail";
+import { isValidPassword } from "shared/strings/isValidPassword";
+import { isValidPhone } from "shared/strings/isValidPhone";
+import { parseQueryString } from "shared/strings/parseQueryString";
+import { passwordMinLength } from "shared/strings/passwordMinLength";
 import { toast } from "react-toastify";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
 import { componentSpacing, sectionSpacing } from "theme/metrics";

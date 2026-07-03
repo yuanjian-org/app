@@ -10,7 +10,7 @@ import { Transaction } from "sequelize";
 import User from "../database/models/User";
 
 import sequelize from "../database/sequelize";
-import { compareChinese } from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
 
 export async function listOrgsImpl(transaction: Transaction) {
   return await db.Org.findAll({

@@ -8,7 +8,8 @@ import {
   InterviewDecisionEditor,
   InterviewFeedbackEditor,
 } from "components/InterviewEditor";
-import { formatUserName, compareUUID } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { compareUUID } from "shared/strings/compareUUID";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import MobileExperienceAlert from "components/MobileExperienceAlert";
 import { useMyId } from "useMe";

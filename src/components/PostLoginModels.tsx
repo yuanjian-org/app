@@ -18,7 +18,7 @@ import { useState } from "react";
 import useMe from "../useMe";
 import trpc, { trpcNext } from "../trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { isValidChineseName } from "shared/strings";
+import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
 import { signOut } from "./signOut";
 import { DateColumn } from "shared/DateColumn";

@@ -28,7 +28,8 @@ import { Op, Transaction } from "sequelize";
 import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import { getLastMessageCreatedAtImpl } from "./chats";
-import { compareDate, formatUserName } from "../../shared/strings";
+import { compareDate } from "../../shared/strings/compareDate";
+import { formatUserName } from "../../shared/strings/formatUserName";
 import {
   mentorReviewMessagePrefix,
   oneOnOneMessagePrefix,

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
 import { zDateColumn } from "./DateColumn";
-import { prettifyDate } from "./strings";
+import { prettifyDate } from "./strings/prettifyDate";
 import { defaultExamExpiryDays } from "./exams";
 import { UserState } from "./UserState";
 import invariant from "./invariant";

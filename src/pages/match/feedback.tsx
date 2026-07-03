@@ -28,7 +28,8 @@ import {
   zMenteeMatchFeedback,
   zMentorMatchFeedback,
 } from "shared/MatchFeedback";
-import { compareDate, prettifyDate } from "shared/strings";
+import { compareDate } from "shared/strings/compareDate";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { sectionSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import invariant from "shared/invariant";

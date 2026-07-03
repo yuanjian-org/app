@@ -17,7 +17,8 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
-import { formatUserName, toPinyin } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { toPinyin } from "shared/strings/toPinyin";
 import { trpcNext } from "trpc";
 import { componentSpacing, pageMarginX } from "theme/metrics";
 import Role, { displayName, isPermitted } from "shared/Role";

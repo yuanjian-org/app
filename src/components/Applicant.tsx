@@ -6,7 +6,7 @@ import {
   volunteerApplicationFields,
 } from "shared/applicationFields";
 import { sectionSpacing } from "theme/metrics";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import User from "shared/User";
 import { isPermitted } from "shared/Role";
 import { InterviewType } from "shared/InterviewType";

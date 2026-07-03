@@ -16,7 +16,8 @@ import {
   GridItem,
   GridProps,
 } from "@chakra-ui/react";
-import { formatUserName, toPinyin } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { toPinyin } from "shared/strings/toPinyin";
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";

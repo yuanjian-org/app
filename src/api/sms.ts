@@ -5,7 +5,7 @@
 import z from "zod";
 import axios, { AxiosResponse } from "axios";
 import { internalServerError } from "./errors";
-import { chinaPhonePrefix } from "../shared/strings";
+import { chinaPhonePrefix } from "../shared/strings/chinaPhonePrefix";
 
 export const idTokenInternationalSmsTemplateId = "0Rr8G";
 

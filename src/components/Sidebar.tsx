@@ -42,7 +42,9 @@ import {
   MdBusiness,
 } from "react-icons/md";
 import Role from "../shared/Role";
-import { compareChinese, compareDate, formatUserName } from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
+import { compareDate } from "shared/strings/compareDate";
+import { formatUserName } from "shared/strings/formatUserName";
 import { AttachmentIcon } from "@chakra-ui/icons";
 import { componentSpacing } from "theme/metrics";
 import colors, { activeNavLinkColor, inactiveNavLinkColor } from "theme/colors";

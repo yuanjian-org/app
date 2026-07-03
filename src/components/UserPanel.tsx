@@ -1,7 +1,7 @@
 import trpc, { trpcNext } from "../trpc";
 import { features } from "shared/Features";
 import Loader from "components/Loader";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import {
   Image,

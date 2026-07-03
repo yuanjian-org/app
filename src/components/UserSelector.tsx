@@ -2,7 +2,7 @@ import { useState } from "react";
 import trpc from "../trpc";
 import AsyncSelect from "react-select/async";
 import { MinUser } from "shared/User";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 
 export default function UserSelector(props: {
   onSelect: (userIds: string[]) => void;

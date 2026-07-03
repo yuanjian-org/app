@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
-import {
-  compareChinese,
-  formatUserName,
-  parseQueryString,
-  prettifyDate,
-  toChineseDayOfWeek,
-} from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
+import { formatUserName } from "shared/strings/formatUserName";
+import { parseQueryString } from "shared/strings/parseQueryString";
+import { prettifyDate } from "shared/strings/prettifyDate";
+import { toChineseDayOfWeek } from "shared/strings/toChineseDayOfWeek";
 import trpc, { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import {

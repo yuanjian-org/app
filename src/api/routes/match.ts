@@ -14,12 +14,10 @@ import {
   mentorSelectionBatchInclude,
   minUserAttributes,
 } from "api/database/models/attributesAndIncludes";
-import {
-  compareChinese,
-  compareDate,
-  compareUUID,
-  formatUserName,
-} from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
+import { compareDate } from "shared/strings/compareDate";
+import { compareUUID } from "shared/strings/compareUUID";
+import { formatUserName } from "shared/strings/formatUserName";
 import { MenteeStatus } from "shared/MenteeStatus";
 import { Feedback } from "shared/InterviewFeedback";
 import { authUser } from "../auth";
