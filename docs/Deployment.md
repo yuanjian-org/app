@@ -16,7 +16,7 @@ setting up environmental variables:
 
 # Production deployment
 
-Continuous deployment is done by Github Actions. See `.github/workflows/deploy-docker.yml`.
+Continuous deployment is done by Github Actions. See `.github/workflows/deploy.yml`.
 
 ## 1. Configure GitHub Actions
 
