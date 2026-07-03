@@ -7,7 +7,7 @@ import { auditLastMentorshipMeetings } from "./mentorships";
 import sequelize from "api/database/sequelize";
 import { purgeOldData } from "./purgeOldData";
 import { generateDemoData } from "./generateDemoData";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 import { noPermissionError } from "../errors";
 import { migrateDatabase } from "./migration";
 
@@ -47,7 +47,7 @@ export default router({
   }),
 
   resetDemoData: procedure.use(authIntegration()).mutation(async () => {
-    if (getWhiteLabel() !== "demo") throw noPermissionError("数据");
+    if (whiteLabel !== "demo") throw noPermissionError("数据");
 
     console.log("Dropping DB schema...");
     await sequelize.drop({ cascade: true });

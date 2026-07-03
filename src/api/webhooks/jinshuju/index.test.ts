@@ -4,7 +4,7 @@ import { Transaction } from "sequelize";
 import sequelize from "../../database/sequelize";
 import { submit } from "./index";
 import { encodeXField } from "../../jinshuju";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 import * as applicationModule from "./application";
 import * as uploadModule from "./upload";
 import * as examModule from "./exam";
@@ -39,7 +39,7 @@ describe("jinshuju webhook index", () => {
   it("should route MenteeApp forms", async () => {
     const entry = {
       data: "test-mentee-app",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+      x_field_1: encodeXField(whiteLabel, "url", "user1"),
     };
 
     await submit({ form: "FBTWTe", entry }, transaction);
@@ -70,7 +70,7 @@ describe("jinshuju webhook index", () => {
   it("should route VolunteerApp forms", async () => {
     const entry = {
       data: "test-volunteer-app",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+      x_field_1: encodeXField(whiteLabel, "url", "user1"),
     };
 
     await submit({ form: "OzuvWD", entry }, transaction);
@@ -84,7 +84,7 @@ describe("jinshuju webhook index", () => {
   it("should route upload forms", async () => {
     const entry = {
       data: "test-upload",
-      x_field_1: encodeXField(getWhiteLabel(), "url", "user1"),
+      x_field_1: encodeXField(whiteLabel, "url", "user1"),
     };
 
     await submit({ form: "Bz3uSO", entry }, transaction);

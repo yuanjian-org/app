@@ -24,7 +24,7 @@ import { downloadSummaries } from "./summaries";
 import { formatUserName } from "shared/strings";
 import { notifyRoles, notifyRolesIgnoreError } from "api/notify";
 import getBaseUrl from "../../shared/getBaseUrl";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 
 export const gracePeriodMinutes = 5;
 
@@ -87,7 +87,7 @@ const join = procedure
               "free slot white label is not null",
             );
             await free.update(
-              { groupId, whiteLabel: getWhiteLabel() },
+              { groupId, whiteLabel: whiteLabel },
               { transaction: meetingTransaction },
             );
             await db.MeetingHistory.create(
@@ -106,7 +106,7 @@ const join = procedure
               continue;
             } else {
               const slots = await MeetingSlot.findAll({
-                where: { whiteLabel: getWhiteLabel() },
+                where: { whiteLabel: whiteLabel },
                 attributes: ["groupId"],
                 transaction: meetingTransaction,
               });
@@ -156,7 +156,7 @@ export async function refreshMeetingSlots(
   const slots = await MeetingSlot.findAll({
     where: {
       groupId: { [Op.ne]: null },
-      whiteLabel: getWhiteLabel(),
+      whiteLabel: whiteLabel,
     },
     attributes: ["id", "tmUserId", "meetingId", "updatedAt", "groupId"],
     lock: true,

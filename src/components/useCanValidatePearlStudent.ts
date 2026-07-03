@@ -1,7 +1,6 @@
-import { useWhiteLabel } from "components/useStaticConfigs";
+import { whiteLabel } from "shared/WhiteLabel";
 import Role from "../shared/Role";
 
 export function useCanValidatePearlStudent(roles: Role[]) {
-  const whiteLabel = useWhiteLabel();
   return whiteLabel === "xhef" && roles.length === 0;
 }

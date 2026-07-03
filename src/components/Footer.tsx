@@ -1,13 +1,13 @@
 import { Link, Wrap, WrapItem, WrapProps } from "@chakra-ui/react";
 import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
-import { useIsStaticConfigsReady, useWhiteLabel } from "./useStaticConfigs";
+import { useIsStaticConfigsReady } from "./useStaticConfigs";
+import { whiteLabel } from "shared/WhiteLabel";
 
 export default function Footer({ ...rest }: WrapProps) {
   const color = "gray.400";
   const beian = "33010802014263";
   const isReady = useIsStaticConfigsReady();
-  const whiteLabel = useWhiteLabel();
 
   const isSongding = whiteLabel === "yqd" || whiteLabel === "sylp";
   const icp = isSongding ? "沪ICP备2021004288号" : "浙ICP备2024117465号-4";

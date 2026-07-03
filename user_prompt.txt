@@ -1,0 +1,7 @@
+remove `useWhiteLabel` and `getWhiteLabel` completely. delete file getWhiteLabel.ts. replace them with a new constant `whiteLabel` in src/shared/WhiteLabel.ts: `export const whiteLabel = (process.env.NEXT_PUBLIC_WHITE_LABEL || "yuantu") as WhiteLabel`
+
+directly use this constant in places where useWhiteLabel and getWhiteLabel were called.
+
+Add comments to the new constant that this is needed to enable dead code elimination because bundlers don't evaluate functions.
+
+do not fix lint errors in existing lines. do not modify unrelated code only to fix lint.

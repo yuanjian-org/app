@@ -2,7 +2,7 @@ import { expect } from "chai";
 import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 import { AutoTaskId } from "../../../shared/Task";
 import submitExam from "./exam";
 import { encodeXField } from "../../jinshuju";
@@ -52,7 +52,7 @@ describe("exam webhook", () => {
   describe("successful exam submission", () => {
     it("should update user state and mark comms exam task as done", async () => {
       const formEntry = {
-        x_field_1: encodeXField(getWhiteLabel(), "tester", userId),
+        x_field_1: encodeXField(whiteLabel, "tester", userId),
         exam_score: 85,
       };
 

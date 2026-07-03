@@ -1,0 +1,1 @@
+export const whiteLabel = (process.env.NEXT_PUBLIC_WHITE_LABEL || "yuantu") as WhiteLabel

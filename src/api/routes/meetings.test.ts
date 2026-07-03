@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 import sequelize from "../database/sequelize";
 import meetingSequelize from "../database/meetingSequelize";
 import * as notifyModule from "../notify";
@@ -111,7 +111,7 @@ describe("refreshMeetingSlots", () => {
         meetingId: "meeting-1",
         meetingLink: "link",
         groupId,
-        whiteLabel: getWhiteLabel(),
+        whiteLabel: whiteLabel,
       },
       { transaction: meetingTransaction },
     );
@@ -131,7 +131,7 @@ describe("refreshMeetingSlots", () => {
         meetingId: "meeting-2",
         meetingLink: "link",
         groupId,
-        whiteLabel: getWhiteLabel(),
+        whiteLabel: whiteLabel,
       },
       { transaction: meetingTransaction },
     );
@@ -161,7 +161,7 @@ describe("refreshMeetingSlots", () => {
         meetingId,
         meetingLink: "link",
         groupId,
-        whiteLabel: getWhiteLabel(),
+        whiteLabel: whiteLabel,
       },
       { transaction: meetingTransaction },
     );

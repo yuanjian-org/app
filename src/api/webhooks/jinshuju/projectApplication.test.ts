@@ -4,7 +4,7 @@ import db from "../../database/db";
 import sequelize from "../../database/sequelize";
 import crypto from "crypto";
 import { submitProjectApp } from "./projectApplication";
-import { getWhiteLabel } from "shared/getWhiteLabel";
+import { whiteLabel } from "shared/WhiteLabel";
 import { encodeXField } from "../../jinshuju";
 
 describe("Project Applications Webhook", () => {
@@ -47,12 +47,7 @@ describe("Project Applications Webhook", () => {
     const applicant = await createTestUser();
     const project = await createTestProject(owner.id);
 
-    const xField = encodeXField(
-      getWhiteLabel(),
-      "url",
-      applicant.id,
-      project.id,
-    );
+    const xField = encodeXField(whiteLabel, "url", applicant.id, project.id);
 
     const entry = {
       x_field_1: xField,

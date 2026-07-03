@@ -1,14 +1,8 @@
 import { trpcNext } from "trpc";
-import { WhiteLabel } from "shared/WhiteLabel";
-import { getWhiteLabel } from "shared/getWhiteLabel";
 import { Features } from "shared/Features";
 
 export function useIsStaticConfigsReady(): boolean {
   return useStaticConfigs()?.data !== undefined;
-}
-
-export function useWhiteLabel(): WhiteLabel {
-  return getWhiteLabel();
 }
 
 export function useFeatures(): Features {

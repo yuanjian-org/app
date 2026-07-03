@@ -32,6 +32,7 @@ import {
   MenuItem,
 } from "@chakra-ui/react";
 import { MdEdit, MdMoreVert } from "react-icons/md";
+import { whiteLabel } from "shared/WhiteLabel";
 import { useState } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
@@ -60,7 +61,6 @@ import { staticUrlPrefix } from "static";
 import {
   useFeatures,
   useIsStaticConfigsReady,
-  useWhiteLabel,
 } from "components/useStaticConfigs";
 
 export default widePage(() => {
@@ -161,7 +161,7 @@ function UserTable({
   users: UserWithMergeInfo[];
   setUserBeingEdited: (u: User | null) => void;
 }) {
-  const isDemo = useWhiteLabel() === "demo";
+  const isDemo = whiteLabel === "demo";
   const me = useMe();
   const { update: updateSession } = useSession();
   const router = useRouter();
