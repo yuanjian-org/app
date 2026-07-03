@@ -87,7 +87,7 @@ const join = procedure
               "free slot white label is not null",
             );
             await free.update(
-              { groupId, whiteLabel: whiteLabel },
+              { groupId, whiteLabel },
               { transaction: meetingTransaction },
             );
             await db.MeetingHistory.create(
@@ -106,7 +106,7 @@ const join = procedure
               continue;
             } else {
               const slots = await MeetingSlot.findAll({
-                where: { whiteLabel: whiteLabel },
+                where: { whiteLabel },
                 attributes: ["groupId"],
                 transaction: meetingTransaction,
               });
@@ -156,7 +156,7 @@ export async function refreshMeetingSlots(
   const slots = await MeetingSlot.findAll({
     where: {
       groupId: { [Op.ne]: null },
-      whiteLabel: whiteLabel,
+      whiteLabel,
     },
     attributes: ["id", "tmUserId", "meetingId", "updatedAt", "groupId"],
     lock: true,

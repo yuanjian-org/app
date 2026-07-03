@@ -111,7 +111,7 @@ describe("refreshMeetingSlots", () => {
         meetingId: "meeting-1",
         meetingLink: "link",
         groupId,
-        whiteLabel: whiteLabel,
+        whiteLabel,
       },
       { transaction: meetingTransaction },
     );
@@ -131,7 +131,7 @@ describe("refreshMeetingSlots", () => {
         meetingId: "meeting-2",
         meetingLink: "link",
         groupId,
-        whiteLabel: whiteLabel,
+        whiteLabel,
       },
       { transaction: meetingTransaction },
     );
@@ -161,7 +161,7 @@ describe("refreshMeetingSlots", () => {
         meetingId,
         meetingLink: "link",
         groupId,
-        whiteLabel: whiteLabel,
+        whiteLabel,
       },
       { transaction: meetingTransaction },
     );

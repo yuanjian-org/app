@@ -181,7 +181,7 @@ describe("upload webhook", () => {
     const createdProject = await db.Project.create(
       {
         id: uuidv4(),
-        whiteLabel: whiteLabel,
+        whiteLabel,
         name: "Test Project",
         title: "Test Project Title",
         ownerId: user.id,
