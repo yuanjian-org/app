@@ -31,6 +31,8 @@ import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
 import { widePage } from "AppPage";
 import Loader from "components/Loader";
+import MarkdownStyler from "components/MarkdownStyler";
+import MarkdownSupport from "components/MarkdownSupport";
 import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { useEffect, useState } from "react";
@@ -99,9 +101,13 @@ export default widePage(() => {
           <VStack align="start" spacing={componentSpacing}>
             <Heading size="xl">{org.name}</Heading>
             <Box>
-              <Text whiteSpace="pre-wrap" fontSize="lg">
-                {org.description || "暂无介绍"}
-              </Text>
+              {org.description ? (
+                <MarkdownStyler content={org.description} />
+              ) : (
+                <Text whiteSpace="pre-wrap" fontSize="lg">
+                  暂无介绍
+                </Text>
+              )}
             </Box>
           </VStack>
 
@@ -219,6 +225,7 @@ export default widePage(() => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+              <MarkdownSupport mt={2} fontSize="sm" />
             </FormControl>
           </ModalBody>
           <ModalFooter>
