@@ -1,23 +1,63 @@
 import { whiteLabel } from "shared/WhiteLabel";
-import Image from "next/image";
-import yuantuLogo from "../../public/img/logo.yuantu.png";
-import yqdLogo from "../../public/img/logo.yqd.png";
-import sylpLogo from "../../public/img/logo.sylp.png";
 import NextLink from "next/link";
 import { staticUrlPrefix } from "static";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@chakra-ui/react";
+import Image from "next/image";
 
-export function getLogoSource(whiteLabel: string) {
-  if (whiteLabel === "yqd") return yqdLogo;
-  if (whiteLabel === "sylp") return sylpLogo;
-  return yuantuLogo;
-}
+const LogoYqd = dynamic(
+  () =>
+    import("../../public/img/logo.yqd.png").then((mod) => {
+      const ImgYqd = (props: any) => (
+        <Image src={mod.default} alt="Logo" {...props} />
+      );
+      ImgYqd.displayName = "LogoYqd";
+      return ImgYqd;
+    }),
+  {
+    ssr: true,
+    loading: () => <Skeleton height="30px" width="100px" />,
+  },
+);
+
+const LogoSylp = dynamic(
+  () =>
+    import("../../public/img/logo.sylp.png").then((mod) => {
+      const ImgSylp = (props: any) => (
+        <Image src={mod.default} alt="Logo" {...props} />
+      );
+      ImgSylp.displayName = "LogoSylp";
+      return ImgSylp;
+    }),
+  {
+    ssr: true,
+    loading: () => <Skeleton height="30px" width="100px" />,
+  },
+);
+
+const LogoYuantu = dynamic(
+  () =>
+    import("../../public/img/logo.yuantu.png").then((mod) => {
+      const ImgYuantu = (props: any) => (
+        <Image src={mod.default} alt="Logo" {...props} />
+      );
+      ImgYuantu.displayName = "LogoYuantu";
+      return ImgYuantu;
+    }),
+  {
+    ssr: true,
+    loading: () => <Skeleton height="30px" width="100px" />,
+  },
+);
 
 export default function DynamicLogo({ height = 30 }: { height?: number }) {
-  const src = getLogoSource(whiteLabel);
+  let LogoComponent = LogoYuantu;
+  if (whiteLabel === "yqd") LogoComponent = LogoYqd;
+  if (whiteLabel === "sylp") LogoComponent = LogoSylp;
 
   return (
     <NextLink href={staticUrlPrefix}>
-      <Image src={src} alt="Logo" height={height} priority />
+      <LogoComponent height={height} priority />
     </NextLink>
   );
 }
