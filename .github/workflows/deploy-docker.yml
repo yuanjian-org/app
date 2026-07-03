@@ -83,6 +83,17 @@ jobs:
     - name: Log in to Docker
       run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
 
+    - name: Prepare build args
+      id: build-args
+      run: |
+        env_file="build.env.${{ matrix.white_label }}"
+        echo "args<<EOF" >> $GITHUB_OUTPUT
+        echo "NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}" >> $GITHUB_OUTPUT
+        if [ -f "$env_file" ]; then
+          cat "$env_file" >> $GITHUB_OUTPUT
+        fi
+        echo "EOF" >> $GITHUB_OUTPUT
+
     # Build and push the Docker image.
     # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
     # Docker compile time by caching layers directly in the GHA cache backend.
@@ -93,8 +104,7 @@ jobs:
         push: true
         tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
         target: runner
-        build-args: |
-          NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
+        build-args: ${{ steps.build-args.outputs.args }}
         cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
         cache-to: type=gha,mode=max,scope=docker-build-${{ matrix.white_label }}
 
