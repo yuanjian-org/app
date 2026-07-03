@@ -24,6 +24,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_WHITE_LABEL
 ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 
+# Copy environment file if it exists, so that Next.js can pick it up during build
+RUN if [ -f "build.env.${NEXT_PUBLIC_WHITE_LABEL}" ]; then cp "build.env.${NEXT_PUBLIC_WHITE_LABEL}" .env.production; fi
+
 RUN yarn build
 
 # Production image, copy all the files and run next
