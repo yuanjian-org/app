@@ -1,3 +1,4 @@
+import db from "../database/db";
 import sequelize from "../database/sequelize";
 import meetingSequelize from "../database/meetingSequelize";
 import { procedure, router } from "../trpc";
@@ -27,27 +28,15 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await sequelize.query(`
-    UPDATE "users"
-    SET "roles" = (
-      SELECT array_agg(
-        CASE
-          WHEN role::text = 'UserManager' THEN 'UserAdmin'
-          WHEN role::text = 'GroupManager' THEN 'GroupAdmin'
-          WHEN role::text = 'MentorshipManager' THEN 'MentorshipAdmin'
-          ELSE role::text
-        END
-      )
-      FROM unnest("roles") AS role
-    )
-    WHERE "roles"::text[] && ARRAY['UserManager', 'GroupManager', 'MentorshipManager'];
-  `);
+  const passedApplications = await db.ProjectApplication.findAll({
+    where: {
+      status: "已通过",
+    },
+  });
 
-  await sequelize.query(`
-    UPDATE "ProjectApplications"
-    SET "status" = '已批准'
-    WHERE "status" = '已通过';
-  `);
+  for (const app of passedApplications) {
+    await app.update({ status: "已批准" });
+  }
 
   await Promise.resolve();
 }
