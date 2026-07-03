@@ -41,6 +41,8 @@ import UserDrawer from "components/UserDrawer";
 import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
 import { OrgMentor } from "shared/Org";
+import { features } from "shared/Features";
+import { ProjectCard } from "components/projects/ProjectList";
 
 export default widePage(() => {
   const router = useRouter();
@@ -53,6 +55,12 @@ export default widePage(() => {
   } = trpcNext.orgs.get.useQuery(orgId, {
     enabled: !!orgId,
   });
+
+  const { data: projects, isLoading: projectsLoading } =
+    trpcNext.projects.list.useQuery(
+      { orgId },
+      { enabled: !!orgId && !!features.projects },
+    );
 
   const [selectedMentor, setSelectedMentor] = useState<OrgMentor | null>(null);
 
@@ -192,6 +200,30 @@ export default widePage(() => {
             </SimpleGrid>
           )}
         </Box>
+
+        {features.projects && (
+          <Box>
+            <Heading size="md" mb={componentSpacing}>
+              机构项目 ({projects?.length ?? 0})
+            </Heading>
+            {projectsLoading ? (
+              <Loader />
+            ) : (
+              <SimpleGrid
+                columns={{ base: 1, md: 2, lg: 3 }}
+                spacing={componentSpacing}
+              >
+                {projects?.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    basePath="/projects"
+                  />
+                ))}
+              </SimpleGrid>
+            )}
+          </Box>
+        )}
       </VStack>
 
       {selectedMentor && (

@@ -13,12 +13,12 @@ import NextLink from "next/link";
 import {
   ProjectStatusDescriptions,
   ProjectVisibilityDescriptions,
-  ProjectWithOwner,
+  ProjectWithAssociation,
 } from "../../shared/Project";
 import { toPinyin } from "../../shared/strings/toPinyin";
 
 export function searchProjects(
-  projects: ProjectWithOwner[],
+  projects: ProjectWithAssociation[],
   searchTerm: string,
 ) {
   const lower = searchTerm.trim().toLowerCase();
@@ -45,7 +45,7 @@ export function ProjectCard({
   project,
   basePath = "/projects",
 }: {
-  project: ProjectWithOwner;
+  project: ProjectWithAssociation;
   basePath?: string;
 }) {
   return (

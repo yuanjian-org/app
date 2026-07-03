@@ -8,9 +8,9 @@ import { notFoundError, noPermissionError } from "../errors";
 import { isPermitted } from "../../shared/Role";
 import {
   Project,
-  ProjectWithOwner,
+  ProjectWithAssociation,
   zProject,
-  zProjectWithOwner,
+  zProjectWithAssociation,
   zProjectStatus,
   zProjectVisibility,
   ProjectStatus,
@@ -26,27 +26,34 @@ import { Transaction } from "sequelize";
 
 export async function listImpl(
   me?: User,
+  orgId?: string,
   transaction?: Transaction,
-): Promise<ProjectWithOwner[]> {
+): Promise<ProjectWithAssociation[]> {
   const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
+  const baseWhere: any = isProjectAdmin
+    ? {}
+    : me
+      ? {
+          [Op.or]: [
+            { ownerId: me.id },
+            {
+              status: "招募中",
+              visibility: "公开",
+            },
+          ],
+        }
+      : {
+          status: "招募中",
+          visibility: "公开",
+        };
+
+  if (orgId) {
+    baseWhere.orgId = orgId;
+  }
+
   return await db.Project.findAll({
-    where: isProjectAdmin
-      ? {}
-      : me
-        ? {
-            [Op.or]: [
-              { ownerId: me.id },
-              {
-                status: "招募中",
-                visibility: "公开",
-              },
-            ],
-          }
-        : {
-            status: "招募中",
-            visibility: "公开",
-          },
+    where: baseWhere,
     attributes: projectAttributes,
     include: projectInclude,
     order: [["createdAt", "DESC"]],
@@ -56,16 +63,17 @@ export async function listImpl(
 
 const list = procedure
   .use(authUser())
-  .output(z.array(zProjectWithOwner))
-  .query(async ({ ctx: { me } }) => {
-    return await listImpl(me);
+  .input(z.object({ orgId: z.string().optional() }).optional())
+  .output(z.array(zProjectWithAssociation))
+  .query(async ({ ctx: { me }, input }) => {
+    return await listImpl(me, input?.orgId);
   });
 
 export async function getImpl(
   me: User | undefined,
   id: string,
   transaction?: Transaction,
-): Promise<ProjectWithOwner> {
+): Promise<ProjectWithAssociation> {
   const project = await db.Project.findByPk(id, {
     attributes: projectAttributes,
     include: projectInclude,
@@ -91,7 +99,7 @@ export async function getImpl(
 const get = procedure
   .use(authUser())
   .input(z.object({ id: z.string() }))
-  .output(zProjectWithOwner)
+  .output(zProjectWithAssociation)
   .query(async ({ ctx: { me }, input }) => {
     return await getImpl(me, input.id);
   });
@@ -103,6 +111,7 @@ export async function createImpl(
   visibility: ProjectVisibility,
   profile: ProjectProfile,
   ownerId: string | undefined,
+  orgId: string | null | undefined,
   transaction: Transaction,
 ): Promise<Project> {
   if (ownerId && ownerId !== me.id && !isPermitted(me.roles, "ProjectAdmin")) {
@@ -112,6 +121,7 @@ export async function createImpl(
   return await db.Project.create(
     {
       ownerId: ownerId || me.id,
+      orgId,
       title: title,
       status: status,
       visibility: visibility,
@@ -130,6 +140,7 @@ const create = procedure
       visibility: zProjectVisibility,
       profile: zProjectProfile,
       ownerId: z.string().optional(), // Admins can set ownerId
+      orgId: z.string().nullish(),
     }),
   )
   .output(zProject)
@@ -142,6 +153,7 @@ const create = procedure
         input.visibility,
         input.profile,
         input.ownerId,
+        input.orgId,
         transaction,
       );
     });
@@ -155,6 +167,7 @@ export async function updateImpl(
   visibility: ProjectVisibility | undefined,
   profile: ProjectProfile | undefined,
   ownerId: string | undefined,
+  orgId: string | undefined | null,
   transaction: Transaction,
 ): Promise<Project> {
   const project = await db.Project.findByPk(id, {
@@ -186,6 +199,7 @@ export async function updateImpl(
       visibility,
       profile,
       ownerId,
+      orgId,
     },
     { transaction },
   );
@@ -201,7 +215,8 @@ const update = procedure
       status: zProjectStatus.optional(),
       visibility: zProjectVisibility.optional(),
       profile: zProjectProfile.optional(),
-      ownerId: z.string().optional(), // Admins can update ownerId
+      ownerId: z.string().optional(),
+      orgId: z.string().nullish(),
     }),
   )
   .output(zProject)
@@ -215,20 +230,21 @@ const update = procedure
         input.visibility,
         input.profile,
         input.ownerId,
+        input.orgId,
         transaction,
       );
     });
   });
 
 const listPublic = procedure
-  .output(z.array(zProjectWithOwner))
+  .output(z.array(zProjectWithAssociation))
   .query(async () => {
     return await listImpl();
   });
 
 const getPublic = procedure
   .input(z.object({ id: z.string() }))
-  .output(zProjectWithOwner)
+  .output(zProjectWithAssociation)
   .query(async ({ input }) => {
     return await getImpl(undefined, input.id);
   });

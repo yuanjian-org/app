@@ -34,14 +34,26 @@ describe("Projects Route Impl", () => {
     ownerId: string,
     visibility: "公开" | "保密" = "公开",
     status: "草稿" | "招募中" | "已结束" = "招募中",
+    orgId?: string,
   ) => {
     return await db.Project.create(
       {
         ownerId,
+        orgId,
         title: "Test Project",
         status,
         visibility,
         profile: {},
+      },
+      { transaction },
+    );
+  };
+
+  const createTestOrg = async () => {
+    return await db.Org.create(
+      {
+        name: `Test Org ${crypto.randomUUID()}`,
+        description: "Test Description",
       },
       { transaction },
     );
@@ -53,7 +65,7 @@ describe("Projects Route Impl", () => {
       const project1 = await createTestProject(otherUser.id, "公开", "招募中");
       const project2 = await createTestProject(otherUser.id, "保密", "草稿");
 
-      const result = await listImpl(undefined, transaction);
+      const result = await listImpl(undefined, undefined, transaction);
       expect(result).to.be.an("array");
       expect(result.map((r) => r.id)).to.include(project1.id);
       expect(result.map((r) => r.id)).to.not.include(project2.id);
@@ -66,7 +78,7 @@ describe("Projects Route Impl", () => {
       const otherUser = await createTestUser();
       await createTestProject(otherUser.id, "保密", "草稿"); // shouldn't see
 
-      const projects = await listImpl(me, transaction);
+      const projects = await listImpl(me, undefined, transaction);
       const projectIds = projects.map((p) => p.id);
 
       expect(projectIds).to.include(project1.id);
@@ -79,7 +91,7 @@ describe("Projects Route Impl", () => {
 
       const project1 = await createTestProject(otherUser.id, "公开", "招募中");
 
-      const projects = await listImpl(me, transaction);
+      const projects = await listImpl(me, undefined, transaction);
       const projectIds = projects.map((p) => p.id);
 
       expect(projectIds).to.include(project1.id);
@@ -91,10 +103,35 @@ describe("Projects Route Impl", () => {
 
       const project1 = await createTestProject(otherUser.id, "保密", "草稿");
 
-      const projects = await listImpl(admin, transaction);
+      const projects = await listImpl(admin, undefined, transaction);
       const projectIds = projects.map((p) => p.id);
 
       expect(projectIds).to.include(project1.id);
+    });
+
+    it("should filter projects by orgId if provided", async () => {
+      const otherUser = await createTestUser();
+      const org1 = await createTestOrg();
+      const org2 = await createTestOrg();
+
+      const project1 = await createTestProject(
+        otherUser.id,
+        "公开",
+        "招募中",
+        org1.id,
+      );
+      const project2 = await createTestProject(
+        otherUser.id,
+        "公开",
+        "招募中",
+        org2.id,
+      );
+
+      const projects = await listImpl(undefined, org1.id, transaction);
+      const projectIds = projects.map((p) => p.id);
+
+      expect(projectIds).to.include(project1.id);
+      expect(projectIds).to.not.include(project2.id);
     });
   });
 
@@ -177,6 +214,7 @@ describe("Projects Route Impl", () => {
   describe("createImpl", () => {
     it("should create a project successfully by its owner", async () => {
       const me = await createTestUser();
+      const org = await createTestOrg();
 
       const project = await createImpl(
         me,
@@ -185,11 +223,13 @@ describe("Projects Route Impl", () => {
         "保密",
         {},
         undefined,
+        org.id,
         transaction,
       );
 
       expect(project.title).to.equal("New Project");
       expect(project.ownerId).to.equal(me.id);
+      expect(project.orgId).to.equal(org.id);
     });
 
     it("should allow ProjectAdmin to create a project for another user", async () => {
@@ -203,6 +243,7 @@ describe("Projects Route Impl", () => {
         "保密",
         {},
         otherUser.id,
+        undefined,
         transaction,
       );
 
@@ -222,6 +263,7 @@ describe("Projects Route Impl", () => {
           "保密",
           {},
           otherUser.id,
+          undefined,
           transaction,
         );
       } catch (e) {
@@ -236,6 +278,7 @@ describe("Projects Route Impl", () => {
     it("should update an owned project successfully", async () => {
       const me = await createTestUser();
       const project = await createTestProject(me.id);
+      const org = await createTestOrg();
 
       const updatedProject = await updateImpl(
         me,
@@ -245,10 +288,12 @@ describe("Projects Route Impl", () => {
         undefined,
         undefined,
         undefined,
+        org.id,
         transaction,
       );
 
       expect(updatedProject.title).to.equal("Updated Title");
+      expect(updatedProject.orgId).to.equal(org.id);
     });
 
     it("should allow ProjectAdmin to update any project successfully", async () => {
@@ -260,6 +305,7 @@ describe("Projects Route Impl", () => {
         admin,
         project.id,
         "Admin Updated Title",
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -285,6 +331,7 @@ describe("Projects Route Impl", () => {
           undefined,
           undefined,
           undefined,
+          undefined,
           transaction,
         );
       } catch (e) {
@@ -303,6 +350,7 @@ describe("Projects Route Impl", () => {
           me,
           uuidv4(),
           "Ghost Project",
+          undefined,
           undefined,
           undefined,
           undefined,

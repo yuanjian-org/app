@@ -310,6 +310,10 @@ export const projectInclude = [
     association: "owner",
     attributes: minUserAttributes,
   },
+  {
+    association: "org",
+    attributes: ["id", "name"],
+  },
 ];
 
 export const projectApplicationAttributes = [

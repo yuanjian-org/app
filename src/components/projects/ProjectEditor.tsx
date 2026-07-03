@@ -31,6 +31,7 @@ import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
 import { componentSpacing } from "theme/metrics";
+import { features } from "../../shared/Features";
 
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [status, setStatus] = useState<ProjectStatus>("草稿");
   const [visibility, setVisibility] = useState<ProjectVisibility>("公开");
   const [ownerId, setOwnerId] = useState<string>(me.id);
+  const [orgId, setOrgId] = useState<string>("");
 
   const [intro, setIntro] = useState("");
   const [bg, setBg] = useState("");
@@ -60,12 +62,17 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [videoLoading, setVideoLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
+  const { data: orgs } = trpcNext.orgs.list.useQuery(undefined, {
+    enabled: !!features.orgs,
+  });
+
   useEffect(() => {
     if (isEdit && project) {
       setTitle(project.title);
       setStatus(project.status);
       setVisibility(project.visibility);
       setOwnerId(project.ownerId);
+      setOrgId(project.orgId || "");
       setIntro(project.profile?.简介 || "");
       setBg(project.profile?.背景 || "");
       setChallenge(project.profile?.挑战描述 || "");
@@ -117,6 +124,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
       status,
       visibility,
       ...(isAdmin ? { ownerId } : {}),
+      orgId: orgId || null,
       profile: {
         简介: intro,
         背景: bg,
@@ -165,6 +173,26 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 }}
               />
             </FormControl>
+
+            {features.orgs && (
+              <FormControl>
+                <FormLabel>所属机构</FormLabel>
+                <Select
+                  value={orgId}
+                  onChange={(e) => {
+                    setOrgId(e.target.value);
+                    setHasChanged(true);
+                  }}
+                >
+                  <option value="">无机构</option>
+                  {orgs?.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
 
             <FormControl isRequired>
               <FormLabel>可见性</FormLabel>
