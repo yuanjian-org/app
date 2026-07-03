@@ -19,10 +19,6 @@ import {
   FormLabel,
   Textarea,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Alert,
   AlertIcon,
   Tooltip,
@@ -38,7 +34,7 @@ import { isPermitted } from "shared/Role";
 import { useEffect, useState } from "react";
 import { pageMarginX, componentSpacing, sectionSpacing } from "theme/metrics";
 import { UserProfilePictureLink } from "components/UserCards";
-import { DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import UserDrawer from "components/UserDrawer";
 import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
@@ -112,22 +108,14 @@ export default widePage(() => {
           </VStack>
 
           <HStack>
-            {(canEdit || isGlobalAdmin) && (
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="选项"
-                  icon={<HamburgerIcon />}
-                  variant="outline"
-                />
-                <MenuList>
-                  {canEdit && (
-                    <MenuItem icon={<EditIcon />} onClick={onOpen}>
-                      编辑介绍
-                    </MenuItem>
-                  )}
-                </MenuList>
-              </Menu>
+            {canEdit && (
+              <Button
+                leftIcon={<EditIcon />}
+                variant="outline"
+                onClick={onOpen}
+              >
+                编辑介绍
+              </Button>
             )}
           </HStack>
         </HStack>
