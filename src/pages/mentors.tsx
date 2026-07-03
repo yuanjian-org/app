@@ -13,7 +13,7 @@ import Loader from "components/Loader";
 import useMe from "useMe";
 import TopBar from "components/TopBar";
 import { topBarPaddings } from "components/TopBar";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import Head from "next/head";
 import { isPermitted } from "shared/Role";
 
@@ -39,7 +39,6 @@ export default fullPage(() => {
     () => (data ? dailyShuffle(data, me.id) : undefined),
     [data, me],
   );
-  const features = useFeatures();
   const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
 
   return (

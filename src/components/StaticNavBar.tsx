@@ -21,7 +21,7 @@ import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
-import { useFeatures } from "./useStaticConfigs";
+import { features } from "shared/Features";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -34,7 +34,6 @@ export default function StaticNavBar({
   pageType,
 }: { pageType?: AppPageType } = {}) {
   const current = useRouter().asPath;
-  const features = useFeatures();
 
   return (
     <Box

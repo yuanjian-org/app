@@ -45,14 +45,14 @@ import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import { UserProfilePictureLink } from "components/UserCards";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
   const myId = useMyId();
   const userId = queryUserId === "me" ? myId : queryUserId;
   const { update: updateSession } = useSession();
-  const enableOrgs = useFeatures().orgs;
+  const enableOrgs = features.orgs;
 
   const queryOpts = {
     // Avoid accidental override when switching between windows

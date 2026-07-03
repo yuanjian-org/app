@@ -22,20 +22,11 @@ import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
-import {
-  useFeatures,
-  useIsStaticConfigsReady,
-} from "components/useStaticConfigs";
+import { features } from "shared/Features";
 import { loginUrl } from "pages/auth/login";
-import PageLoader from "components/PageLoader";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 
 export default function Page() {
-  const features = useFeatures();
-  const ready = useIsStaticConfigsReady();
-
-  if (!ready) return <PageLoader />;
-
   if (features.projects) return <XLandingPageContent />;
 
   return <YuantuLandingPageContent />;

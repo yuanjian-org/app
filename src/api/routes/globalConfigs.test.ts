@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { getStaticImpl, getImpl, updateImpl } from "./globalConfigs";
+import { getImpl, updateImpl } from "./globalConfigs";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
@@ -17,18 +17,6 @@ describe("Global Configs Internal Functions", () => {
     if (transaction) {
       await transaction.rollback();
     }
-  });
-
-  describe("getStaticImpl", () => {
-    it("should return static configuration values including features", () => {
-      const result = getStaticImpl();
-      expect(result.features.orgs).to.equal(
-        process.env.ENABLE_ORGS === "true" ? true : undefined,
-      );
-      expect(result.features.relational).to.equal(
-        process.env.ENABLE_RELATIONAL === "true" ? true : undefined,
-      );
-    });
   });
 
   describe("getImpl", () => {

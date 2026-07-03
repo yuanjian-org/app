@@ -63,7 +63,7 @@ import { IoMdCalendar } from "react-icons/io";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import TasksCard from "components/launchpad/TasksCard";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
-import { useFeatures } from "components/useStaticConfigs";
+import { features } from "shared/Features";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), "menteeId");
@@ -131,7 +131,6 @@ function MenteeTabs({
   mentorships: Mentorship[];
 }) {
   const me = useMe();
-  const features = useFeatures();
   const filtered = filterAndSortMentorship(mentorships, me);
 
   return (

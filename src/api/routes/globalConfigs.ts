@@ -3,16 +3,7 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zGlobalConfig, GlobalConfig } from "shared/GlobalConfig";
 import sequelize from "../database/sequelize";
-import { z } from "zod";
 import { Transaction } from "sequelize";
-import { getFeatures } from "../getFeatures";
-import { zFeatures } from "shared/Features";
-
-export function getStaticImpl() {
-  return {
-    features: getFeatures(),
-  };
-}
 
 export async function getImpl(transaction?: Transaction) {
   const row = await db.GlobalConfig.findOne({
@@ -56,20 +47,6 @@ export async function updateImpl(
   }
 }
 
-/**
- * This route only includes configs that never change during runtime,
- * allowing clients to cache query results aggressively.
- */
-const getStatic = procedure
-  .output(
-    z.object({
-      features: zFeatures,
-    }),
-  )
-  .query(() => {
-    return getStaticImpl();
-  });
-
 const get = procedure
   .use(authUser())
   .output(zGlobalConfig)
@@ -87,7 +64,6 @@ const update = procedure
   });
 
 export default router({
-  getStatic,
   get,
   update,
 });
