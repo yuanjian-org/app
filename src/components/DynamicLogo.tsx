@@ -1,15 +1,19 @@
 import { whiteLabel } from "shared/WhiteLabel";
 import Image from "next/image";
-import yuantuLogo from "../../public/img/logo.yuantu.png";
-import yqdLogo from "../../public/img/logo.yqd.png";
-import sylpLogo from "../../public/img/logo.sylp.png";
 import NextLink from "next/link";
 import { staticUrlPrefix } from "static";
 
 export function getLogoSource(whiteLabel: string) {
-  if (whiteLabel === "yqd") return yqdLogo;
-  if (whiteLabel === "sylp") return sylpLogo;
-  return yuantuLogo;
+  if (whiteLabel === "yqd") {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("../../public/img/logo.yqd.png").default;
+  }
+  if (whiteLabel === "sylp") {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("../../public/img/logo.sylp.png").default;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require("../../public/img/logo.yuantu.png").default;
 }
 
 export default function DynamicLogo({ height = 30 }: { height?: number }) {
