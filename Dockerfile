@@ -21,9 +21,6 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-ARG NEXT_PUBLIC_WHITE_LABEL
-ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
-
 RUN yarn build
 
 # Production image, copy all the files and run next
