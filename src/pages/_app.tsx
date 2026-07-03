@@ -17,7 +17,8 @@ import AppPageContainer from "components/AppPageContainer";
 import AppPage, { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
-import { getLoginCallbackUrl, loginUrl } from "./auth/login";
+import { loginCallbackUrl } from "shared/loginUrl";
+import { loginUrl } from "shared/loginUrl";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
 
@@ -124,7 +125,7 @@ function SwitchBoard({
       // the dashboard page as soon as the user logs in.
       // Redirect to / if no callbackUrl is specified, e.g. when the user
       // directly visits /auth/foo.
-      const url = getLoginCallbackUrl(router);
+      const url = loginCallbackUrl(router);
       void router.replace(url);
       return null;
     } else if (router.route === "/oauth2/profile") {
