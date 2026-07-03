@@ -37,11 +37,9 @@ import { useState } from "react";
 import { trpcNext } from "../trpc";
 import User, { UserWithMergeInfo } from "shared/User";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
-import {
-  formatUserName,
-  isValidChineseName,
-  isValidPhone,
-} from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { isValidChineseName } from "shared/strings/isValidChineseName";
+import { isValidPhone } from "shared/strings/isValidPhone";
 import Role, { allRoles, isPermitted, roleProfile } from "shared/Role";
 import trpc from "trpc";
 import { AddIcon } from "@chakra-ui/icons";

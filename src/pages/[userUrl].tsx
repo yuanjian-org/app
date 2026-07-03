@@ -1,5 +1,5 @@
 import { trpcNext } from "../trpc";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import { UserPage } from "./users/[userId]";
 

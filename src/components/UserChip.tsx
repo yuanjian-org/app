@@ -1,6 +1,6 @@
 import { Avatar, HStack, Link, Text } from "@chakra-ui/react";
 import { getUserUrl, MinUser } from "shared/User";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import NextLink from "next/link";
 import { useMyId } from "useMe";
 

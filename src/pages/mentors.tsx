@@ -1,5 +1,5 @@
 import { Text, Button, VStack } from "@chakra-ui/react";
-import { hash } from "shared/strings";
+import { hash } from "shared/strings/hash";
 import { trpcNext } from "trpc";
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, pageMarginX, sectionSpacing } from "theme/metrics";

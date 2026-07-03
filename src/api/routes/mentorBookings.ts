@@ -12,7 +12,7 @@ import sequelize from "../database/sequelize";
 import { findOrCreateRoom } from "./chatsInternal";
 import { createMessageAndScheduleEmail } from "./chats";
 import { transactionalRequestMessagePrefix } from "../../shared/ChatMessage";
-import { formatUserName } from "../../shared/strings";
+import { formatUserName } from "../../shared/strings/formatUserName";
 import { Transaction } from "sequelize";
 import User from "../../shared/User";
 import { notifyRoles } from "api/notify";

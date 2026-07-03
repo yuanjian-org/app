@@ -10,7 +10,7 @@ import {
   ModalFooter,
   Textarea,
 } from "@chakra-ui/react";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { MinUser } from "shared/User";
 import { useState } from "react";
 import {

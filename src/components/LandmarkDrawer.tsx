@@ -29,12 +29,12 @@ import { useState } from "react";
 import { componentSpacing } from "theme/metrics";
 import MarkdownSupport from "./MarkdownSupport";
 import trpc, { trpcNext } from "trpc";
-import { prettifyDate } from "shared/strings";
+import { prettifyDate } from "shared/strings/prettifyDate";
 import { breakpoint } from "theme/breakpoints";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import invariant from "tiny-invariant";
-import { compareDate } from "shared/strings";
+import { compareDate } from "shared/strings/compareDate";
 import Loader from "./Loader";
 import { useMyId } from "useMe";
 

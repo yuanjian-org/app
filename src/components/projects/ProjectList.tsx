@@ -15,7 +15,7 @@ import {
   ProjectVisibilityDescriptions,
   ProjectWithOwner,
 } from "../../shared/Project";
-import { toPinyin } from "../../shared/strings";
+import { toPinyin } from "../../shared/strings/toPinyin";
 
 export function searchProjects(
   projects: ProjectWithOwner[],

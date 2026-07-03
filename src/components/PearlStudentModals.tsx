@@ -22,7 +22,7 @@ import { UserState } from "shared/UserState";
 import { toast } from "react-toastify";
 import { accountPageTitle } from "pages/accounts/[userId]";
 import useMe from "useMe";
-import { isValidChineseName } from "shared/strings";
+import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import useMe from "useMe";
 import PageLoader from "components/PageLoader";
-import { parseQueryString } from "shared/strings";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { sanitizeCallbackUrl, profileCallbackUrlKey } from "shared/callbackUrl";
 import { SetPhoneModal } from "components/PostLoginModels";
 import { signOut } from "components/signOut";

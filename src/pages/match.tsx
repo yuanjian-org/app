@@ -28,7 +28,8 @@ import {
   FinalMatchSolution,
   CsvFormats,
 } from "shared/match";
-import { compareChinese, formatUserName } from "shared/strings";
+import { compareChinese } from "shared/strings/compareChinese";
+import { formatUserName } from "shared/strings/formatUserName";
 import { sectionSpacing } from "theme/metrics";
 import trpc from "trpc";
 

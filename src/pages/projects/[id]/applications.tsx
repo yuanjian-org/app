@@ -15,7 +15,7 @@ import PageLoader from "components/PageLoader";
 import Head from "next/head";
 import { ProjectApplication } from "components/ProjectApplication";
 import { ProjectApplicationStatus } from "shared/ProjectApplication";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
 
 export default function Page() {

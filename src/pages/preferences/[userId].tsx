@@ -36,7 +36,8 @@ import {
 } from "shared/UserPreference";
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
-import { chinaPhonePrefix, parseQueryString } from "shared/strings";
+import { chinaPhonePrefix } from "shared/strings/chinaPhonePrefix";
+import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import invariant from "tiny-invariant";
 import Loader from "components/Loader";

@@ -13,7 +13,7 @@ import trpc from "trpc";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import UserSelector from "./UserSelector";
 import { useState } from "react";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { MdEdit } from "react-icons/md";
 import { Calibration as SharedCalibration } from "shared/Calibration";
 

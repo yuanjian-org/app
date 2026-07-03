@@ -12,7 +12,8 @@ import {
   Switch,
 } from "@chakra-ui/react";
 import Loader from "components/Loader";
-import { formatUserName, toPinyin } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
+import { toPinyin } from "shared/strings/toPinyin";
 import trpc, { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
 import { displayName } from "shared/Role";

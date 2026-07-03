@@ -38,7 +38,7 @@ import { pageMarginX, componentSpacing, sectionSpacing } from "theme/metrics";
 import { UserProfilePictureLink } from "components/UserCards";
 import { DeleteIcon, EditIcon, HamburgerIcon } from "@chakra-ui/icons";
 import UserDrawer from "components/UserDrawer";
-import { formatUserName } from "shared/strings";
+import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
 import { OrgMentor } from "shared/Org";
 
