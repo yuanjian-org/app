@@ -24,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 import { trpcNext } from "../../trpc";
 import { useState, useEffect } from "react";
+import MarkdownStyler from "../MarkdownStyler";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { useRouter } from "next/router";
 import PageLoader from "../PageLoader";
@@ -58,6 +59,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const [hasChanged, setHasChanged] = useState(false);
 
   const [videoLoading, setVideoLoading] = useState(false);
+  const [refsLoading, setRefsLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
 
   useEffect(() => {
@@ -245,18 +247,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>参考材料</FormLabel>
-              <Textarea
-                rows={4}
-                value={refs}
-                onChange={(e) => {
-                  setRefs(e.target.value);
-                  setHasChanged(true);
-                }}
-              />
-            </FormControl>
-
-            <FormControl>
               <FormLabel>视频链接</FormLabel>
 
               <Link
@@ -308,6 +298,54 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                       maxHeight: "500px",
                     }}
                   />
+                </Box>
+              )}
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>参考材料</FormLabel>
+
+              <Link
+                onClick={async () => {
+                  if (!isEdit || hasChanged) {
+                    toast.warning("请先保存项目后再上传参考材料");
+                    return;
+                  }
+                  setRefsLoading(true);
+                  try {
+                    const uploadToken =
+                      await trpc.users.getJinshujuXField.query({
+                        uploadTarget: "project",
+                        projectId: projectId!,
+                      });
+                    await router.push(
+                      getEmbeddedFormUrl("RefMatFormId", uploadToken),
+                    );
+                  } finally {
+                    setRefsLoading(false);
+                  }
+                }}
+              >
+                {refsLoading ? (
+                  <HStack>
+                    <Spinner size="sm" />
+                    <Text>加载中...</Text>
+                  </HStack>
+                ) : refs ? (
+                  <HStack>
+                    <MdChangeCircle />
+                    <Text>更换材料</Text>
+                  </HStack>
+                ) : (
+                  <HStack>
+                    <MdCloudUpload />
+                    <Text>上传材料</Text>
+                  </HStack>
+                )}
+              </Link>
+              {refs && (
+                <Box mt={componentSpacing}>
+                  <MarkdownStyler content={refs} />
                 </Box>
               )}
             </FormControl>
