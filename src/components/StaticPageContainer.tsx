@@ -1,4 +1,3 @@
-import { whiteLabel } from "shared/WhiteLabel";
 import { Box, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
@@ -16,6 +15,8 @@ import DemoLandingPage from "./DemoLandingPage";
 import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
 import PageLoader from "./PageLoader";
+
+const whiteLabel = process.env.NEXT_PUBLIC_WHITE_LABEL || "yuantu";
 
 export default function StaticPageContainer({
   pageType,
