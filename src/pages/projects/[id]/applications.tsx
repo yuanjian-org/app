@@ -61,7 +61,7 @@ export default function Page() {
                     </Text>
                     <Badge
                       colorScheme={
-                        app.status === "已通过"
+                        app.status === "已批准"
                           ? "green"
                           : app.status === "已拒绝"
                             ? "red"
@@ -82,7 +82,7 @@ export default function Page() {
                       })
                     }
                   >
-                    <option value="已通过">已通过</option>
+                    <option value="已批准">已批准</option>
                     <option value="已拒绝">已拒绝</option>
                     <option value="">待处理</option>
                   </Select>
