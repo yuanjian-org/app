@@ -30,9 +30,9 @@ export default function StaticPageContainer({
     );
   }
 
-  // Directly inspect process.env.NEXT_PUBLIC_WHITE_LABEL so Webpack's
-  // DefinePlugin can replace it with a string literal at build time, allowing
-  // dead code elimination (DCE) to prune unused landing page imports.
+  // Directly inspect env var so Webpack's DefinePlugin can replace it with a
+  // string literal at build time, allowing dead code elimination (DCE) to prune
+  // unused landing page imports.
   if (process.env.NEXT_PUBLIC_WHITE_LABEL === "ustc") {
     return <UstcLandingPage />;
   }
