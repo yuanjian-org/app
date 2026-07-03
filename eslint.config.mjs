@@ -22,7 +22,6 @@ export default defineConfig([
     "dist/**",
     "cypress.config.ts",
     "next-env.d.ts",
-    "eslint.config.mjs",
     "cypress/**/*.js"
   ]),
 
