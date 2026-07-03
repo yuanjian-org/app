@@ -17,10 +17,13 @@ import { DateColumn } from "shared/DateColumn";
 import { componentSpacing, maxTextWidth } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
-import { useWhiteLabel } from "components/useStaticConfigs";
+import { useWhiteLabel, useFeatures } from "components/useStaticConfigs";
+import { zFeatures, Features } from "shared/Features";
+import { Link } from "@chakra-ui/react";
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
+  const features = useFeatures();
   const [matchFeedbackEditableUntil, setMatchFeedbackEditableUntil] =
     useState<DateColumn>();
   const [showEditMessageTimeButton, setShowEditMessageTimeButton] = useState<
@@ -80,6 +83,30 @@ export default function Page() {
       <Button variant="brand" onClick={save} isLoading={saving}>
         保存
       </Button>
+
+      <Heading size="md" mt={componentSpacing}>
+        Feature Flags
+      </Heading>
+      <Text>
+        参考定义:{" "}
+        <Link
+          href="https://yuanjian.notion.site/37136363e90780319372ee9e580b20a3?pvs=74"
+          isExternal
+        >
+          Notion
+        </Link>
+      </Text>
+      <VStack align="start">
+        {Object.keys(zFeatures.shape).map((featureKey) => {
+          const key = featureKey as keyof Features;
+          const isEnabled = features[key];
+          return (
+            <Text key={key}>
+              <Code>{key}</Code>: {isEnabled ? "Enabled" : "Disabled"}
+            </Text>
+          );
+        })}
+      </VStack>
 
       {whiteLabel == "xhef" && <UploadPearlStudentsForm />}
     </VStack>

@@ -26,8 +26,7 @@ function annotate(
   propertyName: string,
   propertyDescriptor?: PropertyDescriptor,
   optionsOrDataType:
-    | Partial<ModelAttributeColumnOptions>
-    | sequelize.DataType = {},
+    Partial<ModelAttributeColumnOptions> | sequelize.DataType = {},
 ): void {
   let options: Partial<ModelAttributeColumnOptions>;
 
