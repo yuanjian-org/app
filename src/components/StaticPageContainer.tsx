@@ -2,6 +2,7 @@ import { Box, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
 import StaticNavBar from "components/StaticNavBar";
 import { ReactNode } from "react";
+import dynamic from "next/dynamic";
 import {
   pageMarginX,
   staticPageMaxWidth,
@@ -9,11 +10,11 @@ import {
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
 import { useFeatures, useIsStaticConfigsReady } from "./useStaticConfigs";
-import UstcLandingPage from "./UstcLandingPage";
-import XhefLandingPage from "./XhefLandingPage";
-import DemoLandingPage from "./DemoLandingPage";
-import YqdLandingPage from "./YqdLandingPage";
-import SylpLandingPage from "./SylpLandingPage";
+const UstcLandingPage = dynamic(() => import("./UstcLandingPage"));
+const XhefLandingPage = dynamic(() => import("./XhefLandingPage"));
+const DemoLandingPage = dynamic(() => import("./DemoLandingPage"));
+const YqdLandingPage = dynamic(() => import("./YqdLandingPage"));
+const SylpLandingPage = dynamic(() => import("./SylpLandingPage"));
 import PageLoader from "./PageLoader";
 
 const whiteLabel = process.env.NEXT_PUBLIC_WHITE_LABEL || "yuantu";
