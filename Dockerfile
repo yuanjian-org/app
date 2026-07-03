@@ -24,6 +24,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_WHITE_LABEL
 ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 
+RUN if [ -f "build.env.$NEXT_PUBLIC_WHITE_LABEL" ]; then \
+      cp "build.env.$NEXT_PUBLIC_WHITE_LABEL" .env; \
+    fi
 RUN yarn build
 
 # Production image, copy all the files and run next
