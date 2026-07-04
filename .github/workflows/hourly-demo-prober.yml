@@ -34,7 +34,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          spec: cypress/e2e/prober.test.ts
+          spec: cypress/e2e/demo-prober.test.ts
           config: baseUrl=https://demo.yuantuapp.com,defaultCommandTimeout=15000,pageLoadTimeout=30000,video=true
 
       - name: Upload failure artifacts
