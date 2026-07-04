@@ -121,6 +121,28 @@ export async function leaveOrgImpl(
   });
 }
 
+export async function addMentorImpl(
+  me: User,
+  input: { orgId: string; mentorId: string },
+  transaction: Transaction,
+) {
+  const { orgId, mentorId } = input;
+  const isOwner =
+    (await db.OrgOwner.count({
+      where: { orgId, ownerId: me.id },
+      transaction,
+    })) > 0;
+
+  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
+    throw noPermissionError("机构", orgId);
+  }
+
+  await db.OrgMentor.findOrCreate({
+    where: { orgId, mentorId },
+    transaction,
+  });
+}
+
 export async function removeMentorImpl(
   me: User,
   input: { orgId: string; mentorId: string },
@@ -250,6 +272,20 @@ const leave = procedure
     });
   });
 
+const addMentor = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      orgId: z.string().uuid(),
+      mentorId: z.string().uuid(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input }) => {
+    await sequelize.transaction(async (transaction) => {
+      await addMentorImpl(me, input, transaction);
+    });
+  });
+
 const removeMentor = procedure
   .use(authUser())
   .input(
@@ -301,6 +337,7 @@ export default router({
   updateDescription,
   join,
   leave,
+  addMentor,
   removeMentor,
   addOwner,
   removeOwner,
