@@ -2,23 +2,18 @@ import {
   Box,
   Spacer,
   VStack,
-  Flex,
-  HStack,
   Button,
   Text,
   Heading,
-  Link,
-  Tooltip,
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
 import { ChevronRightIcon } from "@chakra-ui/icons";
+import { SharedLandingNavBar } from "./SharedLandingNavBar";
 import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import NextLink from "next/link";
-import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
-import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 
 export default function YqdLandingPage() {
@@ -27,41 +22,7 @@ export default function YqdLandingPage() {
       <Head>
         <title>易起读 - 上海颂鼎社会公益创新发展中心</title>
       </Head>
-      <Box
-        as="nav"
-        w="100%"
-        bgColor="white"
-        boxShadow="sm"
-        position="sticky"
-        top="0"
-        zIndex="999"
-      >
-        <Flex
-          height={16}
-          justifyContent="space-between"
-          paddingX={pageMarginX}
-          maxW={staticPageMaxWidth}
-          alignItems="center"
-          marginX="auto"
-        >
-          <DynamicLogo />
-
-          <HStack as="nav" spacing={7} fontWeight="bold">
-            <Tooltip label="联系客服">
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <RiCustomerServiceFill />
-              </Link>
-            </Tooltip>
-
-            <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 / 注册
-            </Button>
-          </HStack>
-        </Flex>
-      </Box>
+      <SharedLandingNavBar />
 
       <Box
         maxWidth={staticPageMaxWidth}

@@ -1,3 +1,4 @@
+import IdTokenInputs from "./IdTokenInputs";
 import {
   Button,
   ModalContent,
@@ -6,15 +7,10 @@ import {
   ModalFooter,
   HStack,
   ModalCloseButton,
-  FormControl,
-  Input,
   VStack,
   Spacer,
   Link,
   Text,
-  InputGroup,
-  InputRightAddon,
-  InputRightElement,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
@@ -26,7 +22,6 @@ import { accountPageTitle } from "pages/accounts/[userId]";
 import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 
 export function UstcStudentModals({
   userState,
@@ -102,41 +97,11 @@ export function UstcStudentValidationModal({
   cancelLabel: string;
   cancel: () => void;
 }) {
-  const [emailPrefix, setEmailPrefix] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [token, setToken] = useState<string>("");
-  const [countdown, setCountdown] = useState(0);
-  const [loadingToken, setLoadingToken] = useState(false);
+  const [isInputValid, setIsInputValid] = useState<boolean>(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { update } = useSession();
-
-  const domain = "@mail.ustc.edu.cn";
-  const email = emailPrefix.trim() + domain;
-  const isEmailPrefixValid = emailPrefix.trim().length > 0;
-  const isInputValid =
-    isEmailPrefixValid && token.trim().length === tokenLength;
-  const buttonWidth = "120px";
-
-  const sendToken = async () => {
-    setLoadingToken(true);
-    try {
-      await trpc.idTokens.send.mutate({ idType: "email", id: email });
-      toast.success("验证码已发送，请注意查收。");
-
-      setCountdown(tokenMinSendIntervalInSeconds);
-
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } finally {
-      setLoadingToken(false);
-    }
-  };
 
   const submit = async () => {
     setLoadingSubmit(true);
@@ -164,39 +129,22 @@ export function UstcStudentValidationModal({
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
-            <FormControl>
-              <InputGroup>
-                <Input
-                  autoFocus
-                  placeholder="邮箱前缀"
-                  value={emailPrefix}
-                  onChange={(e) => setEmailPrefix(e.target.value)}
-                />
-                <InputRightAddon>{domain}</InputRightAddon>
-              </InputGroup>
-            </FormControl>
-
-            <FormControl>
-              <InputGroup>
-                <Input
-                  isRequired={true}
-                  placeholder="验证码"
-                  value={token}
-                  isDisabled={!isEmailPrefixValid}
-                  onChange={(e) => setToken(e.target.value)}
-                />
-                <InputRightElement w={buttonWidth}>
-                  <Button
-                    w={buttonWidth}
-                    isDisabled={!isEmailPrefixValid || countdown > 0}
-                    onClick={sendToken}
-                    isLoading={loadingToken}
-                  >
-                    {countdown > 0 ? `${countdown}秒后重发` : "发送验证码"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </FormControl>
+            <SmallGrayText>所有字段均为必填：</SmallGrayText>
+            <IdTokenInputs
+              idType="email"
+              onStateChange={(state) => {
+                setEmail(state.id);
+                setToken(state.token);
+                setIsInputValid(
+                  state.isValid && state.id.endsWith("@mail.ustc.edu.cn"),
+                );
+              }}
+            />
+            {!isInputValid && email && !email.endsWith("@mail.ustc.edu.cn") && (
+              <Text color="red.500" fontSize="sm">
+                必须是以 @mail.ustc.edu.cn 结尾的邮箱地址
+              </Text>
+            )}
           </VStack>
         </ModalBody>
         <ModalFooter>

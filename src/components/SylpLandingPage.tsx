@@ -3,21 +3,17 @@ import {
   Spacer,
   VStack,
   Flex,
-  HStack,
   Button,
   Text,
   Heading,
-  Link,
-  Tooltip,
   SimpleGrid,
 } from "@chakra-ui/react";
 import { ChevronRightIcon } from "@chakra-ui/icons";
+import { SharedLandingNavBar } from "./SharedLandingNavBar";
 import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidthWide } from "theme/metrics";
 import NextLink from "next/link";
-import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
-import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 
 export default function SylpLandingPage() {
@@ -26,41 +22,11 @@ export default function SylpLandingPage() {
       <Head>
         <title>可持续青年领袖计划 | Sustainable Youth Leadership Program</title>
       </Head>
-      <Box
-        as="nav"
-        w="100%"
-        bgColor="white"
-        boxShadow="sm"
-        position="sticky"
-        top="0"
-        zIndex="999"
-      >
-        <Flex
-          height={16}
-          justifyContent="space-between"
-          paddingX={pageMarginX}
-          maxW={staticPageMaxWidthWide}
-          alignItems="center"
-          marginX="auto"
-        >
-          <DynamicLogo />
-
-          <HStack as="nav" spacing={7} fontWeight="bold">
-            <Tooltip label="联系客服 / Contact Support">
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <RiCustomerServiceFill />
-              </Link>
-            </Tooltip>
-
-            <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 ｜ Login
-            </Button>
-          </HStack>
-        </Flex>
-      </Box>
+      <SharedLandingNavBar
+        maxWidth={staticPageMaxWidthWide}
+        contactLabel="联系客服 / Contact Support"
+        loginLabel="登录 ｜ Login"
+      />
 
       <Box
         maxWidth={staticPageMaxWidthWide}
