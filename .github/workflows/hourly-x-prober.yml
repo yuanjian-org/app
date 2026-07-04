@@ -1,0 +1,46 @@
+name: Hourly X Prober
+
+permissions: {}
+
+on:
+  schedule:
+    - cron: "42 * * * *"
+  workflow_dispatch:
+
+jobs:
+  prober:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'yarn'
+
+      - name: Install Chinese fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+
+      - name: Run Cypress prober
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/x-prober.test.ts
+          config: baseUrl=https://x.yuantuapp.com,defaultCommandTimeout=15000,pageLoadTimeout=30000,video=true
+        env:
+          CYPRESS_PROBER_EMAIL: ${{ secrets.PROBER_EMAIL }}
+          CYPRESS_PROBER_PASSWORD: ${{ secrets.PROBER_PASSWORD }}
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prober-failure-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
+          retention-days: 7
