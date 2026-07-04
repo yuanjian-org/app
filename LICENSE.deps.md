@@ -1,7 +1,6 @@
 This file lists alphabetically libraries that this repository depends on, their licenses, and links to their license pages:
 
 - Chakra UI: [MIT](https://github.com/chakra-ui/chakra-ui/blob/main/LICENSE)
-- class-validator: [MIT](https://github.com/typestack/class-validator/blob/develop/LICENSE)
 - Horizon UI: [MIT](https://github.com/horizon-ui/horizon-ui-chakra/blob/main/LICENSE)
 - next.js: [MIT](https://github.com/vercel/next.js/blob/canary/license.md)
 - sequelize-typescript: [MIT](https://github.com/sequelize/sequelize-typescript/blob/master/LICENSE)
