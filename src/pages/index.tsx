@@ -1,8 +1,12 @@
 import { Grid, VStack } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import GroupsCard from "components/launchpad/GroupsCard";
-import MentorCard from "components/launchpad/MentorCard";
-import TasksCard from "components/launchpad/TasksCard";
+import dynamic from "next/dynamic";
+
+// Dynamically import complex dashboard cards so the home page shell and
+// navigation breadcrumb render instantly without waiting for card subtrees.
+const GroupsCard = dynamic(() => import("components/launchpad/GroupsCard"));
+const MentorCard = dynamic(() => import("components/launchpad/MentorCard"));
+const TasksCard = dynamic(() => import("components/launchpad/TasksCard"));
 import { PropsWithChildren } from "react";
 import { isPermitted } from "shared/Role";
 import { breakpoint } from "theme/breakpoints";
