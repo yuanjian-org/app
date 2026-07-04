@@ -14,12 +14,12 @@ import AppPage from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import dynamic from "next/dynamic";
-import ErrorBoundary from "fundebug/ErrorBoundary";
-import "fundebug"; // Initialize Fundebug
 
 // Dynamically import SwitchBoard so authenticated layout/modals
 // are not bundled into _app.js and downloaded on static routes.
 const SwitchBoard = dynamic(() => import("components/SwitchBoard"));
+import ErrorBoundary from "fundebug/ErrorBoundary";
+import "fundebug"; // Initialize Fundebug
 
 function App({
   Component,

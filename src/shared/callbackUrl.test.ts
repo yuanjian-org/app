@@ -1,33 +1,33 @@
 import { expect } from "chai";
-import { getSafeCallbackUrl } from "./callbackUrl";
+import { sanitizeCallbackUrl } from "./callbackUrl";
 
-describe("getSafeCallbackUrl", () => {
+describe("sanitizeCallbackUrl", () => {
   it("should return the URL if it is a safe relative path", () => {
-    expect(getSafeCallbackUrl("/")).to.equal("/");
-    expect(getSafeCallbackUrl("/home")).to.equal("/home");
-    expect(getSafeCallbackUrl("/path/to/page?query=1")).to.equal(
+    expect(sanitizeCallbackUrl("/")).to.equal("/");
+    expect(sanitizeCallbackUrl("/home")).to.equal("/home");
+    expect(sanitizeCallbackUrl("/path/to/page?query=1")).to.equal(
       "/path/to/page?query=1",
     );
   });
 
   it("should return '/' if the URL is null, undefined, or empty", () => {
-    expect(getSafeCallbackUrl(null)).to.equal("/");
-    expect(getSafeCallbackUrl(undefined)).to.equal("/");
-    expect(getSafeCallbackUrl("")).to.equal("/");
+    expect(sanitizeCallbackUrl(null)).to.equal("/");
+    expect(sanitizeCallbackUrl(undefined)).to.equal("/");
+    expect(sanitizeCallbackUrl("")).to.equal("/");
   });
 
   it("should return '/' if the URL is an absolute URL", () => {
-    expect(getSafeCallbackUrl("https://example.com")).to.equal("/");
-    expect(getSafeCallbackUrl("http://localhost:3000")).to.equal("/");
-    expect(getSafeCallbackUrl("ftp://files.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("https://example.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("http://localhost:3000")).to.equal("/");
+    expect(sanitizeCallbackUrl("ftp://files.com")).to.equal("/");
   });
 
   it("should return '/' if the URL starts with '//' or '/\\'", () => {
-    expect(getSafeCallbackUrl("//evil.com")).to.equal("/");
-    expect(getSafeCallbackUrl("/\\evil.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("//evil.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("/\\evil.com")).to.equal("/");
   });
 
   it("should return '/' if the URL is a javascript: URL", () => {
-    expect(getSafeCallbackUrl("javascript:alert(1)")).to.equal("/");
+    expect(sanitizeCallbackUrl("javascript:alert(1)")).to.equal("/");
   });
 });
