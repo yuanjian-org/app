@@ -11,6 +11,7 @@ import {
   updateOrgDescriptionImpl,
   joinOrgImpl,
   leaveOrgImpl,
+  addMentorImpl,
   removeMentorImpl,
   addOwnerImpl,
   removeOwnerImpl,
@@ -291,6 +292,95 @@ describe("orgs API routes", () => {
         transaction,
       });
       void expect(mentorAssoc).to.be.null;
+    });
+  });
+
+  describe("addMentorImpl", () => {
+    it("should allow an OrgAdmin to add a mentor", async () => {
+      const org = await db.Org.create(
+        { name: "Add Mentor Org" },
+        { transaction },
+      );
+      const admin = await db.User.create(
+        { email: "admin_add@test.com", name: "Admin", roles: ["OrgAdmin"] },
+        { transaction },
+      );
+      const mentor = await db.User.create(
+        { email: "mentor_add@test.com", name: "Mentor", roles: ["Mentor"] },
+        { transaction },
+      );
+
+      await addMentorImpl(
+        admin,
+        { orgId: org.id, mentorId: mentor.id },
+        transaction,
+      );
+
+      const mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: mentor.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.not.be.null;
+    });
+
+    it("should allow an OrgOwner to add a mentor", async () => {
+      const org = await db.Org.create(
+        { name: "Add Mentor Owner Org" },
+        { transaction },
+      );
+      const owner = await db.User.create(
+        { email: "owner_add@test.com", name: "Owner", roles: [] },
+        { transaction },
+      );
+      const mentor = await db.User.create(
+        { email: "mentor_add2@test.com", name: "Mentor", roles: ["Mentor"] },
+        { transaction },
+      );
+
+      await db.OrgOwner.create(
+        { orgId: org.id, ownerId: owner.id },
+        { transaction },
+      );
+
+      await addMentorImpl(
+        owner,
+        { orgId: org.id, mentorId: mentor.id },
+        transaction,
+      );
+
+      const mentorAssoc = await db.OrgMentor.findOne({
+        where: { orgId: org.id, mentorId: mentor.id },
+        transaction,
+      });
+      void expect(mentorAssoc).to.not.be.null;
+    });
+
+    it("should deny adding a mentor if not an admin or owner", async () => {
+      const org = await db.Org.create(
+        { name: "Denied Add Mentor Org" },
+        { transaction },
+      );
+      const regularUser = await db.User.create(
+        { email: "user_add@test.com", name: "User", roles: [] },
+        { transaction },
+      );
+      const mentor = await db.User.create(
+        { email: "mentor_add3@test.com", name: "Mentor", roles: ["Mentor"] },
+        { transaction },
+      );
+
+      let errorThrown = false;
+      try {
+        await addMentorImpl(
+          regularUser,
+          { orgId: org.id, mentorId: mentor.id },
+          transaction,
+        );
+      } catch (e: any) {
+        errorThrown = true;
+        void expect(e.message).to.equal(`没有权限访问机构 ${org.id}。`);
+      }
+      void expect(errorThrown).to.be.true;
     });
   });
 

@@ -32,8 +32,9 @@ import { isPermitted } from "shared/Role";
 import { useEffect, useState } from "react";
 import { pageMarginX, componentSpacing, sectionSpacing } from "theme/metrics";
 import { UserProfilePictureLink } from "components/UserCards";
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon, AddIcon } from "@chakra-ui/icons";
 import UserDrawer from "components/UserDrawer";
+import UserSelector from "components/UserSelector";
 import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
 import { OrgMentor } from "shared/Org";
@@ -62,8 +63,17 @@ export default widePage(() => {
 
   const updateDescMutation = trpcNext.orgs.updateDescription.useMutation();
   const removeMentorMutation = trpcNext.orgs.removeMentor.useMutation();
+  const addMentorMutation = trpcNext.orgs.addMentor.useMutation();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const {
+    isOpen: isAddMentorOpen,
+    onOpen: onAddMentorOpen,
+    onClose: onAddMentorClose,
+  } = useDisclosure();
+  const [selectedUsersToAdd, setSelectedUsersToAdd] = useState<string[]>([]);
+
   const [description, setDescription] = useState("");
 
   useEffect(() => {
@@ -83,6 +93,21 @@ export default widePage(() => {
     void refetch();
     onClose();
     toast.success("介绍已更新");
+  };
+
+  const handleAddMentor = async () => {
+    if (selectedUsersToAdd.length === 0) {
+      toast.error("请选择至少一个导师");
+      return;
+    }
+    await addMentorMutation.mutateAsync({
+      orgId: orgId,
+      mentorId: selectedUsersToAdd[0],
+    });
+    void refetch();
+    onAddMentorClose();
+    setSelectedUsersToAdd([]);
+    toast.success("导师已添加");
   };
 
   const handleRemoveMentor = async (mentorId: string) => {
@@ -121,6 +146,16 @@ export default widePage(() => {
                 onClick={onOpen}
               >
                 编辑介绍
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                leftIcon={<AddIcon />}
+                variant="outline"
+                onClick={onAddMentorOpen}
+                ml={componentSpacing}
+              >
+                添加导师
               </Button>
             )}
           </HStack>
@@ -255,6 +290,35 @@ export default widePage(() => {
               isLoading={updateDescMutation.isLoading}
             >
               保存
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isAddMentorOpen} onClose={onAddMentorClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>添加导师</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>选择导师</FormLabel>
+              <UserSelector
+                onSelect={(userIds) => setSelectedUsersToAdd(userIds)}
+                placeholder="搜索导师..."
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onAddMentorClose}>
+              取消
+            </Button>
+            <Button
+              colorScheme="brand"
+              onClick={handleAddMentor}
+              isLoading={addMentorMutation.isLoading}
+            >
+              添加
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -121,6 +121,28 @@ export async function leaveOrgImpl(
   });
 }
 
+export async function addMentorImpl(
+  me: User,
+  input: { orgId: string; mentorId: string },
+  transaction: Transaction,
+) {
+  const { orgId, mentorId } = input;
+  const isOwner =
+    (await db.OrgOwner.count({
+      where: { orgId, ownerId: me.id },
+      transaction,
+    })) > 0;
+
+  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
+    throw noPermissionError("机构", orgId);
+  }
+
+  await db.OrgMentor.findOrCreate({
+    where: { orgId, mentorId },
+    transaction,
+  });
+}
+
 export async function removeMentorImpl(
   me: User,
   input: { orgId: string; mentorId: string },
@@ -176,7 +198,7 @@ const list = procedure
 
 const listUserOrgs = procedure
   .use(authUser())
-  .input(z.string().uuid())
+  .input(z.string())
   .output(z.array(zOrg))
   .query(async ({ input: userId }) => {
     return await sequelize.transaction(async (transaction) => {
@@ -186,7 +208,7 @@ const listUserOrgs = procedure
 
 const get = procedure
   .use(authUser())
-  .input(z.string().uuid())
+  .input(z.string())
   .output(zOrgWithMembers)
   .query(async ({ input: id }) => {
     return await sequelize.transaction(async (transaction) => {
@@ -211,7 +233,7 @@ const create = procedure
 
 const remove = procedure
   .use(authUser("OrgAdmin"))
-  .input(z.string().uuid())
+  .input(z.string())
   .mutation(async ({ input: id }) => {
     await sequelize.transaction(async (transaction) => {
       await removeOrgImpl(id, transaction);
@@ -222,7 +244,7 @@ const updateDescription = procedure
   .use(authUser())
   .input(
     z.object({
-      id: z.string().uuid(),
+      id: z.string(),
       description: z.string().nullable(),
     }),
   )
@@ -234,7 +256,7 @@ const updateDescription = procedure
 
 const join = procedure
   .use(authUser("Mentor"))
-  .input(z.string().uuid())
+  .input(z.string())
   .mutation(async ({ ctx: { me }, input: orgId }) => {
     await sequelize.transaction(async (transaction) => {
       await joinOrgImpl(me, orgId, transaction);
@@ -243,10 +265,24 @@ const join = procedure
 
 const leave = procedure
   .use(authUser())
-  .input(z.string().uuid())
+  .input(z.string())
   .mutation(async ({ ctx: { me }, input: orgId }) => {
     await sequelize.transaction(async (transaction) => {
       await leaveOrgImpl(me, orgId, transaction);
+    });
+  });
+
+const addMentor = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      orgId: z.string(),
+      mentorId: z.string(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input }) => {
+    await sequelize.transaction(async (transaction) => {
+      await addMentorImpl(me, input, transaction);
     });
   });
 
@@ -254,8 +290,8 @@ const removeMentor = procedure
   .use(authUser())
   .input(
     z.object({
-      orgId: z.string().uuid(),
-      mentorId: z.string().uuid(),
+      orgId: z.string(),
+      mentorId: z.string(),
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
@@ -268,8 +304,8 @@ const addOwner = procedure
   .use(authUser("OrgAdmin"))
   .input(
     z.object({
-      orgId: z.string().uuid(),
-      ownerId: z.string().uuid(),
+      orgId: z.string(),
+      ownerId: z.string(),
     }),
   )
   .mutation(async ({ input }) => {
@@ -282,8 +318,8 @@ const removeOwner = procedure
   .use(authUser("OrgAdmin"))
   .input(
     z.object({
-      orgId: z.string().uuid(),
-      ownerId: z.string().uuid(),
+      orgId: z.string(),
+      ownerId: z.string(),
     }),
   )
   .mutation(async ({ input }) => {
@@ -301,6 +337,7 @@ export default router({
   updateDescription,
   join,
   leave,
+  addMentor,
   removeMentor,
   addOwner,
   removeOwner,
