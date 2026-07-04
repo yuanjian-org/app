@@ -19,8 +19,6 @@ import {
   FormLabel,
   Textarea,
   IconButton,
-  Alert,
-  AlertIcon,
   Tooltip,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
@@ -133,10 +131,7 @@ export default widePage(() => {
             机构导师 ({org.mentors.length})
           </Heading>
           {org.mentors.length === 0 ? (
-            <Alert status="info">
-              <AlertIcon />
-              目前该机构还没有导师。
-            </Alert>
+            <Text>该机构目前没有导师。</Text>
           ) : (
             <SimpleGrid
               columns={{ base: 1, md: 2, lg: 3 }}
@@ -202,6 +197,8 @@ export default widePage(() => {
             </Heading>
             {projectsLoading ? (
               <Loader />
+            ) : !projects?.length ? (
+              <Text>该机构目前没有项目。</Text>
             ) : (
               <SimpleGrid
                 columns={{ base: 1, md: 2, lg: 3 }}

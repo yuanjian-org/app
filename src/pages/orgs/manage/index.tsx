@@ -14,7 +14,6 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Textarea,
   VStack,
   Table,
   Thead,
@@ -184,13 +183,6 @@ export default widePage(() => {
                 <FormLabel>名称</FormLabel>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
               </FormControl>
-              <FormControl>
-                <FormLabel>介绍</FormLabel>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
@@ -200,7 +192,7 @@ export default widePage(() => {
             <Button
               colorScheme="brand"
               onClick={() => void handleCreate()}
-              isLoading={createMutation.isLoading}
+              isLoading={createMutation.isPending}
             >
               创建
             </Button>
