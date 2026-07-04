@@ -107,7 +107,7 @@ export default function Page() {
           href="https://yuanjian.notion.site/37136363e90780319372ee9e580b20a3?pvs=74"
           isExternal
         >
-          查看文档
+          查看功能模块文档
         </Link>
       </Text>
     </VStack>
