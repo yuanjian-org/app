@@ -92,7 +92,7 @@ export default function StudyPage({
             <Text>
               <b>
                 {state[examDateKey]
-                  ? prettifyDate(state[examDateKey] as Date)
+                  ? prettifyDate(state[examDateKey] as unknown as Date)
                   : "无"}
               </b>
             </Text>

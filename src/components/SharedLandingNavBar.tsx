@@ -10,7 +10,7 @@ export function SharedLandingNavBar({
   contactLabel = "联系客服",
   loginLabel = "登录 / 注册",
 }: {
-  maxWidth?: string;
+  maxWidth?: string | number;
   contactLabel?: string;
   loginLabel?: string;
 }) {
