@@ -43,6 +43,7 @@ export async function submit(
 
     case "Bz3uSO":
     case "nhFsf1":
+    case "zF1xqk":
       await submitUpload(form, entry);
       break;
 
