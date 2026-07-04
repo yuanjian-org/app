@@ -17,7 +17,7 @@ import Footer from "components/Footer";
 import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import NextLink from "next/link";
 import DynamicLogo from "components/DynamicLogo";
-import { loginUrl } from "shared/loginUrl";
+import { loginUrl } from "pages/auth/login";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 

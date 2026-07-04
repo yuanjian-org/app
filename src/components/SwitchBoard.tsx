@@ -6,7 +6,7 @@ import PageLoader from "components/PageLoader";
 import AppPageContainer from "components/AppPageContainer";
 import { AppPageType } from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
-import { loginCallbackUrl, loginUrl } from "shared/loginUrl";
+import { getLoginCallbackUrl, loginUrl } from "pages/auth/login";
 
 /**
  * Handles routing and layout wrapping for non-static authenticated pages.
@@ -44,7 +44,7 @@ export default function SwitchBoard({
     invariant(status == "authenticated", "session status");
     if (isAuthPage) {
       // Avoid flashing dashboard page on login by redirecting to callbackUrl.
-      const url = loginCallbackUrl(router);
+      const url = getLoginCallbackUrl(router);
       void router.replace(url);
       return null;
     } else if (router.route === "/oauth2/profile") {

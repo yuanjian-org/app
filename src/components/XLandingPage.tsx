@@ -2,9 +2,9 @@ import { Link, GridItem, Text, VStack, Button } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import { breakpoint } from "theme/breakpoints";
 import NextLink from "next/link";
-import { loginUrl } from "shared/loginUrl";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import LandingPageSection from "./LandingPageSection";
+import { loginUrl } from "pages/auth/login";
 
 export default function XLandingPage() {
   return (

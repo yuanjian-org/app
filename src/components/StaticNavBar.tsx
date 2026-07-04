@@ -17,7 +17,7 @@ import { staticUrlPrefix } from "../static";
 import NextLink from "next/link";
 import DynamicLogo from "components/DynamicLogo";
 import { useRouter } from "next/router";
-import { loginUrl } from "shared/loginUrl";
+import { loginUrl } from "pages/auth/login";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
