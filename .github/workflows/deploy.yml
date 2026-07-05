@@ -30,29 +30,29 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v5
-      with:
-        node-version: '24'
-        cache: 'yarn'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "yarn"
 
-    - name: Install Dependencies
-      run: yarn install --frozen-lockfile
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-    - name: Setup Database and Environment
-      run: |
-        echo "DATABASE_URI=postgres://yuanjian:password@localhost:5432/yuanjian" > .env
-        echo "NEXTAUTH_SECRET=123" >> .env
-        npx ts-node --require tsconfig-paths/register tools/migrateDatabase.ts
+      - name: Setup Database and Environment
+        run: |
+          echo "DATABASE_URI=postgres://yuanjian:password@localhost:5432/yuanjian" > .env
+          echo "NEXTAUTH_SECRET=123" >> .env
+          npx ts-node --require tsconfig-paths/register tools/migrateDatabase.ts
 
-    - name: Run Tests
-      run: yarn test
+      - name: Run Tests
+        run: yarn test
 
-    - name: Generate Demo Data
-      run: yarn gen-demo-data
+      - name: Generate Demo Data
+        run: yarn gen-demo-data
 
   prepare:
     runs-on: ubuntu-latest
@@ -74,29 +74,29 @@ jobs:
         white_label: ${{ fromJSON(needs.prepare.outputs.white_labels) }}
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Docker
-      run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
+      - name: Log in to Docker
+        run: echo "${{ secrets.DOCKER_REPO_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_REPO_USERNAME }} ${{ vars.DOCKER_REPO_URL }} --password-stdin
 
-    # Build and push the Docker image.
-    # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
-    # Docker compile time by caching layers directly in the GHA cache backend.
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
-        target: runner
-        build-args: |
-          NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
-        cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
-        cache-to: type=gha,mode=max,scope=docker-build-${{ matrix.white_label }}
+      # Build and push the Docker image.
+      # Uses GitHub Actions native caching (`type=gha`) to significantly reduce
+      # Docker compile time by caching layers directly in the GHA cache backend.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
+          target: runner
+          build-args: |
+            NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
+          cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
+          cache-to: type=gha,mode=max,scope=docker-build-${{ matrix.white_label }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -105,57 +105,57 @@ jobs:
       matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
-    - name: Install SSH client
-      run: sudo apt-get install -y openssh-client
+      - name: Install SSH client
+        run: sudo apt-get install -y openssh-client
 
-    - name: Add SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ matrix.hostname }}
-        config: |
-          Host ${{ matrix.hostname }}
-            User ${{ vars.SSH_USERNAME }}
-            StrictHostKeyChecking no
+      - name: Add SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          known_hosts: ${{ matrix.hostname }}
+          config: |
+            Host ${{ matrix.hostname }}
+              User ${{ vars.SSH_USERNAME }}
+              StrictHostKeyChecking no
 
-    - name: Deploy to server
-      env:
-        APP_IMAGE_BASE_NAME: ${{ vars.LOCAL_APP_IMAGE_BASE_NAME }}
-      run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
-          set -e
-          cd ~/app
+      - name: Deploy to server
+        env:
+          APP_IMAGE_BASE_NAME: ${{ vars.LOCAL_APP_IMAGE_BASE_NAME }}
+        run: |
+          ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
+            set -e
+            cd ~/app
 
-          echo ">>> Pulling docker images"
-          for white_label in ${{ matrix.white_labels }}; do
-            sudo docker pull ${{ env.APP_IMAGE_BASE_NAME }}.$white_label:latest
-          done
+            echo ">>> Pulling docker images"
+            for white_label in ${{ matrix.white_labels }}; do
+              sudo docker pull ${{ env.APP_IMAGE_BASE_NAME }}.$white_label:latest
+            done
 
-          echo ">>> Extracting docker-compose.yml & nginx.conf"
-          sudo docker rm temp_extract || true
-          # Any white label image will do, we use the first one from the matrix
-          first_wl=$(echo "${{ matrix.white_labels }}" | awk '{print $1}')
-          sudo docker create --name temp_extract ${{ env.APP_IMAGE_BASE_NAME }}.$first_wl:latest
-          sudo docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
-          sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
-          sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
-          sudo docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
-          sudo docker rm temp_extract
+            echo ">>> Extracting docker-compose.yml & nginx.conf"
+            sudo docker rm temp_extract || true
+            # Any white label image will do, we use the first one from the matrix
+            first_wl=$(echo "${{ matrix.white_labels }}" | awk '{print $1}')
+            sudo docker create --name temp_extract ${{ env.APP_IMAGE_BASE_NAME }}.$first_wl:latest
+            sudo docker cp temp_extract:/app/docker-compose.${{ matrix.host_id }}.yml ./docker-compose.yml
+            sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
+            sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
+            sudo docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
+            sudo docker rm temp_extract
 
-          echo ">>> Restarting Docker containers"
-          sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose down --remove-orphans
-          sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose up -d
+            echo ">>> Restarting Docker containers"
+            sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose down --remove-orphans
+            sudo APP_IMAGE_BASE_NAME=${{ env.APP_IMAGE_BASE_NAME }} docker compose up -d
 
-          echo ">>> Waiting for containers to boot up"
-          sleep 5
+            echo ">>> Waiting for containers to boot up"
+            sleep 5
 
-          for white_label in ${{ matrix.white_labels }}; do
-            env_file=".env.$white_label"
-            echo ">>> Migrating $white_label database"
-            export $(sudo cat $env_file | xargs)
-            curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
-          done
+            for white_label in ${{ matrix.white_labels }}; do
+              env_file=".env.$white_label"
+              echo ">>> Migrating $white_label database"
+              export $(sudo cat $env_file | xargs)
+              curl --fail-with-body -X POST -H "Authorization: Bearer ${INTEGRATION_AUTH_TOKEN}" ${NEXTAUTH_URL}/api/v1/migration.migrateDatabase
+            done
 
-          echo ">>> Prune Docker images"
-          sudo docker image prune -f
-        EOF
+            echo ">>> Prune Docker images"
+            sudo docker image prune -f
+          EOF

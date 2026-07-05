@@ -16,61 +16,61 @@ jobs:
       matrix: ${{ fromJSON(vars.DEPLOYMENT_MATRIX) }}
 
     steps:
-    - name: Install SSH client
-      run: sudo apt-get install -y openssh-client
+      - name: Install SSH client
+        run: sudo apt-get install -y openssh-client
 
-    - name: Add SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
-        known_hosts: ${{ matrix.hostname }}
-        config: |
-          Host ${{ matrix.hostname }}
-            User ${{ vars.SSH_USERNAME }}
-            StrictHostKeyChecking no
+      - name: Add SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          known_hosts: ${{ matrix.hostname }}
+          config: |
+            Host ${{ matrix.hostname }}
+              User ${{ vars.SSH_USERNAME }}
+              StrictHostKeyChecking no
 
-    - name: Execute Backup on Server
-      run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
-          set -e
+      - name: Execute Backup on Server
+        run: |
+          ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} << 'EOF'
+            set -e
 
-          cd ~
-          mkdir -p backups
-          rm -rf backups/*
+            cd ~
+            mkdir -p backups
+            rm -rf backups/*
 
-          for white_label in ${{ matrix.white_labels }}; do
-            env_file="app/.env.$white_label"
-            [ -e "$env_file" ] || continue
+            for white_label in ${{ matrix.white_labels }}; do
+              env_file="app/.env.$white_label"
+              [ -e "$env_file" ] || continue
 
-            # Extract DATABASE_URI and DATABASE_BACKUP_KEY
-            DATABASE_URI=$(sudo grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
-            DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+              # Extract DATABASE_URI and DATABASE_BACKUP_KEY
+              DATABASE_URI=$(sudo grep '^DATABASE_URI=' "$env_file" | sed -e 's/^DATABASE_URI=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
+              DATABASE_BACKUP_KEY=$(sudo grep '^DATABASE_BACKUP_KEY=' "$env_file" | sed -e 's/^DATABASE_BACKUP_KEY=//' | sed -e "s/^'//;s/'$//" | sed -e 's/^"//;s/"$//')
 
-            if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
-              echo "Backing up database for $white_label"
-              pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
-              openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${white_label}.sql.gz.enc
-              rm -f backup.sql backup.sql.gz
-            else
-              echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
-            fi
-          done
+              if [ -n "$DATABASE_URI" ] && [ -n "$DATABASE_BACKUP_KEY" ]; then
+                echo "Backing up database for $white_label"
+                pg_dump "$DATABASE_URI" -F p -b -v -f backup.sql && gzip -f backup.sql
+                openssl enc -aes-256-cbc -salt -pbkdf2 -pass "pass:$DATABASE_BACKUP_KEY" -in backup.sql.gz -out backups/backup_${white_label}.sql.gz.enc
+                rm -f backup.sql backup.sql.gz
+              else
+                echo "Skipping $env_file: DATABASE_URI or DATABASE_BACKUP_KEY not found."
+              fi
+            done
 
-          tar -cvf all_backups.tar -C backups .
-          rm -rf backups
-        EOF
+            tar -cvf all_backups.tar -C backups .
+            rm -rf backups
+          EOF
 
-    - name: Download Backup Archive
-      run: |
-        scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/all_backups.tar ./all_backups.tar
+      - name: Download Backup Archive
+        run: |
+          scp ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }}:~/all_backups.tar ./all_backups.tar
 
-    - name: Clean up remote backup archive
-      run: |
-        ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/all_backups.tar"
+      - name: Clean up remote backup archive
+        run: |
+          ssh ${{ vars.SSH_USERNAME }}@${{ matrix.hostname }} "rm -f ~/all_backups.tar"
 
-    - name: Upload Backup to Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: database-backups-${{ matrix.host_id }}
-        path: all_backups.tar
-        retention-days: 30
+      - name: Upload Backup to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backups-${{ matrix.host_id }}
+          path: all_backups.tar
+          retention-days: 30
