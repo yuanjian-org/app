@@ -73,6 +73,7 @@ export default function PhoneInput({
           rightIcon={<ChevronDownIcon />}
           variant="outline"
           minW="120px"
+          aria-label="选择国家或地区代码"
         >
           <HStack spacing={1}>
             <Text>{country?.flag}</Text>
