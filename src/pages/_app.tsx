@@ -20,6 +20,7 @@ import dynamic from "next/dynamic";
 const SwitchBoard = dynamic(() => import("components/SwitchBoard"));
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug"; // Initialize Fundebug
+import { appWithTranslation } from "next-i18next";
 
 function App({
   Component,
@@ -88,4 +89,4 @@ function App({
   );
 }
 
-export default trpcNext.withTRPC(App);
+export default trpcNext.withTRPC(appWithTranslation(App));
