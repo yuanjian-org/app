@@ -9,6 +9,8 @@ const MentorCard = dynamic(() => import("components/launchpad/MentorCard"));
 const TasksCard = dynamic(() => import("components/launchpad/TasksCard"));
 import { PropsWithChildren } from "react";
 import { isPermitted } from "shared/Role";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { breakpoint } from "theme/breakpoints";
 import { sectionSpacing } from "theme/metrics";
 import { useMyId, useMyRoles } from "useMe";
@@ -16,11 +18,12 @@ import { useMyId, useMyRoles } from "useMe";
 const title = "个人空间";
 
 export default function Page() {
+  const { t } = useTranslation("common");
   const myRoles = useMyRoles();
   const myId = useMyId();
   return (
     <>
-      <PageBreadcrumb current={title} />
+      <PageBreadcrumb current={t("personal_space", { defaultValue: title })} />
 
       <Grid
         templateColumns={{ base: "1fr", [breakpoint]: "1fr 0.618fr" }}
@@ -53,3 +56,9 @@ function Column({ children }: PropsWithChildren) {
 }
 
 Page.title = title;
+
+export const getStaticProps = async ({ locale }: { locale: string }) => ({
+  props: {
+    ...(await serverSideTranslations(locale, ["common"])),
+  },
+});

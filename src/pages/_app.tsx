@@ -7,6 +7,8 @@ import { AppProps } from "next/app";
 import theme from "../theme";
 import Head from "next/head";
 import { trpcNext } from "../trpc";
+import { appWithTranslation } from "next-i18next";
+import nextI18NextConfig from "../../next-i18next.config.js";
 import { ToastContainer } from "react-toastify";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -88,4 +90,4 @@ function App({
   );
 }
 
-export default trpcNext.withTRPC(App);
+export default trpcNext.withTRPC(appWithTranslation(App, nextI18NextConfig));
