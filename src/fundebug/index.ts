@@ -16,9 +16,10 @@ if (isFundebugEnabled()) {
 export default fundebug;
 
 export function initFundebug(userId?: string) {
-  if (!isFundebugEnabled() || !fundebug) return;
+  const apikey = process.env.NEXT_PUBLIC_FUNDEBUG_API_KEY;
+  if (!isFundebugEnabled() || !fundebug || !apikey) return;
   fundebug.init({
-    apikey: "724912ab5a0339527a4745dbb8c0192e0e5dfbf82ae6c324a5f31ea8554ae98e",
+    apikey,
     releasestage: process.env.NODE_ENV,
     user: { name: userId ?? "(not logged in)", email: "" },
   });
