@@ -19,7 +19,8 @@ import {
   Flex,
   Spacer,
 } from "@chakra-ui/react";
-import { EmailIcon, LockIcon } from "@chakra-ui/icons";
+import { EmailIcon, LockIcon, ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import { InputRightElement, IconButton } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -459,13 +460,16 @@ export function PasswordInput({
   autoFocus?: boolean;
   placeholder?: string;
 } & InputGroupProps) {
+  const [show, setShow] = useState(false);
+  const handleClick = () => setShow(!show);
+
   return (
     <InputGroup {...inputGroupProps}>
       <InputLeftElement pointerEvents="none">
         <LockIcon color={inputIconColor} />
       </InputLeftElement>
       <Input
-        type="password"
+        type={show ? "text" : "password"}
         name="password"
         placeholder={placeholder ?? "密码"}
         autoFocus={autoFocus}
@@ -475,6 +479,16 @@ export function PasswordInput({
           if (ev.key == "Enter" && isValidInput) await submit();
         }}
       />
+      <InputRightElement width="3rem">
+        <IconButton
+          aria-label={show ? "隐藏密码" : "显示密码"}
+          h="1.75rem"
+          size="sm"
+          onClick={handleClick}
+          variant="ghost"
+          icon={show ? <ViewOffIcon /> : <ViewIcon />}
+        />
+      </InputRightElement>
     </InputGroup>
   );
 }
