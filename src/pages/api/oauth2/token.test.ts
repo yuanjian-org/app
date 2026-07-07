@@ -2,9 +2,22 @@ import { expect } from "chai";
 import request from "supertest";
 import crypto from "crypto";
 import * as jose from "jose";
+import { encryptPayload } from "../../../api/oauth2/utils";
 import { createTestServer } from "../../../api/oauth2/testUtils";
 import tokenHandler from "./token";
-import { encryptPayload } from "../../../api/oauth2/utils";
+
+async function createCodePayloadAndEncrypt(overrides: Partial<any> = {}) {
+  const defaultPayload = {
+    type: "code",
+    jti: crypto.randomUUID(),
+    userId: "user-123",
+    clientId: "test-client",
+    redirectUri: "https://app.example.com/callback",
+    exp: Math.floor(Date.now() / 1000) + 600,
+  };
+  const codePayload = { ...defaultPayload, ...overrides };
+  return await encryptPayload(codePayload);
+}
 
 describe("OAuth2 tokenHandler", () => {
   let server: ReturnType<typeof createTestServer>;
@@ -106,15 +119,7 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should successfully exchange code for tokens without PKCE", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt();
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -143,15 +148,9 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should return 400 for mismatching redirect_uri in code payload", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://another.example.com/callback", // Mismatch
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt({
+      redirectUri: "https://another.example.com/callback",
+    });
 
     // Provide client credentials so validClientId passes, but mismatch redirect_uri inside payload.
     // Wait, the request payload needs to match OAUTH2_REDIRECT_URI exactly or it fails before checking code!
@@ -170,15 +169,7 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should fail to reuse the same code", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt();
 
     // First request should succeed
     const res1 = await request(server).post("/").send({
@@ -211,17 +202,10 @@ describe("OAuth2 tokenHandler", () => {
       .update(codeVerifier)
       .digest("base64url");
 
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
+    const code = await createCodePayloadAndEncrypt({
       codeChallenge,
       codeChallengeMethod: "S256",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -241,17 +225,10 @@ describe("OAuth2 tokenHandler", () => {
       .update("correct-verifier")
       .digest("base64url");
 
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
+    const code = await createCodePayloadAndEncrypt({
       codeChallenge,
       codeChallengeMethod: "S256",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -268,14 +245,7 @@ describe("OAuth2 tokenHandler", () => {
 
   it("should fail if code type is not 'code' (JWT Type Confusion prevention)", async () => {
     // Generate an access token instead
-    const codePayload = {
-      type: "access",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt({ type: "access" });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -290,15 +260,9 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should reject an expired authorization code", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
-      exp: Math.floor(Date.now() / 1000) - 1, // already expired
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt({
+      exp: Math.floor(Date.now() / 1000) - 1,
+    });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -313,15 +277,9 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should reject a code issued for a different client", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "other-client", // different from request's test-client
-      redirectUri: "https://app.example.com/callback",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt({
+      clientId: "other-client",
+    });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -344,17 +302,10 @@ describe("OAuth2 tokenHandler", () => {
       .update("some-verifier")
       .digest("base64url");
 
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
+    const code = await createCodePayloadAndEncrypt({
       codeChallenge,
       codeChallengeMethod: "S256",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -373,16 +324,7 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should include correct standard claims in the id_token", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
-      nonce: "test-nonce-abc",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt({ nonce: "test-nonce-abc" });
 
     const res = await request(server).post("/").send({
       client_id: "test-client",
@@ -409,15 +351,7 @@ describe("OAuth2 tokenHandler", () => {
   });
 
   it("should authenticate client via Basic Auth with valid credentials", async () => {
-    const codePayload = {
-      type: "code",
-      jti: crypto.randomUUID(),
-      userId: "user-123",
-      clientId: "test-client",
-      redirectUri: "https://app.example.com/callback",
-      exp: Math.floor(Date.now() / 1000) + 600,
-    };
-    const code = await encryptPayload(codePayload);
+    const code = await createCodePayloadAndEncrypt();
 
     const authString = Buffer.from("test-client:test-client-secret").toString(
       "base64",
