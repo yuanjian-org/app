@@ -21,6 +21,8 @@ import { staticUrlPrefix } from "static";
 import NextLink from "next/link";
 import { getUserUrl } from "shared/User";
 import useMe from "useMe";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   const { data: privileged } =
@@ -32,7 +34,7 @@ export default function Page() {
       <Flex direction="column" gap={10}>
         <Text>
           <Link isExternal href={`https://yuantuapp.com${staticUrlPrefix}`}>
-            远图社会导师服务平台
+            <T>远图社会导师服务平台</T>
           </Link>
           （简称远图）致力保护个人隐私，仅收集供服务所需的最少信息。同时，我们严格控制数据的访问
           {}
@@ -44,13 +46,17 @@ export default function Page() {
             isExternal
             href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
           >
-            联系我们
+            <T>联系我们</T>
           </Link>
           。
         </Text>
-        <Heading size="md">特权角色和人员名单</Heading>
+        <Heading size="md">
+          <T>特权角色和人员名单</T>
+        </Heading>
         {privileged ? <Privileged privileged={privileged} /> : <Loader />}
-        <Heading size="md">数据访问权限</Heading>
+        <Heading size="md">
+          <T>数据访问权限</T>
+        </Heading>
         <DataTable />
       </Flex>
     </>
@@ -67,39 +73,49 @@ function DataTable() {
       <Table>
         <Thead>
           <Tr>
-            <Th>数据</Th>
-            <Th>可以访问该数据的角色</Th>
+            <Th>
+              <T>数据</T>
+            </Th>
+            <Th>
+              <T>可以访问该数据的角色</T>
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
           <Tr>
-            <Td>姓名</Td>
+            <Td>
+              <T>姓名</T>
+            </Td>
             <Td>
               {dp("UserAdmin")}、{dp("GroupAdmin")}、{dp("MentorshipAdmin")}、
               {dp("MentorshipOperator")}
-              、同一会议分组的其他成员
+              <T>、同一会议分组的其他成员</T>
             </Td>
           </Tr>
           <Tr>
-            <Td>电子邮箱</Td>
+            <Td>
+              <T>电子邮箱</T>
+            </Td>
             <Td>
               {dp("UserAdmin")}、{dp("GroupAdmin")}、{dp("MentorshipAdmin")}、
               {dp("MentorshipOperator")}
             </Td>
           </Tr>
           <Tr>
-            <Td>微信号、手机号</Td>
+            <Td>
+              <T>微信号、手机号</T>
+            </Td>
             <Td>
               {dp("MentorshipAdmin")}、{dp("MentorshipOperator")}
             </Td>
           </Tr>
           <Tr>
             <Td>
-              其他
+              <T>其他</T>
               <Link as={NextLink} href={getUserUrl(me)}>
-                个人资料页
+                <T>个人资料页</T>
               </Link>
-              展示的信息
+              <T>展示的信息</T>
             </Td>
             <Td>
               {/* The content must be consistent with logic in the
@@ -109,24 +125,39 @@ function DataTable() {
                   {dp("UserAdmin")}、{dp("MentorshipAdmin")}、{dp("Mentor")}
                 </ListItem>
                 <ListItem>
-                  如果你是{dp("Volunteer")}，则其他{dp("Volunteer")}可访问
+                  <T>如果你是</T>
+                  {dp("Volunteer")}
+                  <T>，则其他</T>
+                  {dp("Volunteer")}
+                  <T>可访问</T>
                 </ListItem>
                 <ListItem>
-                  如果你是{dp("Mentor")}，则已被录取的{dp("Mentee")}可访问
+                  <T>如果你是</T>
+                  {dp("Mentor")}
+                  <T>，则已被录取的</T>
+                  {dp("Mentee")}
+                  <T>可访问</T>
                 </ListItem>
               </UnorderedList>
             </Td>
           </Tr>
           <Tr>
-            <Td>一对一导师与学生通话的纪要文字</Td>
+            <Td>
+              <T>一对一导师与学生通话的纪要文字</T>
+            </Td>
             <Td>
               {dp("GroupAdmin")}、{dp("MentorshipAdmin")}
               {/* Removed dp("MentorshipAssessor") as the role is not currently used */}
             </Td>
           </Tr>
           <Tr>
-            <Td>其他会议的纪要文字</Td>
-            <Td>{dp("GroupAdmin")}、同一会议分组的其他成员</Td>
+            <Td>
+              <T>其他会议的纪要文字</T>
+            </Td>
+            <Td>
+              {dp("GroupAdmin")}
+              <T>、同一会议分组的其他成员</T>
+            </Td>
           </Tr>
         </Tbody>
       </Table>
@@ -147,9 +178,15 @@ function Privileged({
       <Table>
         <Thead>
           <Tr>
-            <Th>角色</Th>
-            <Th>职责</Th>
-            <Th>人员名单</Th>
+            <Th>
+              <T>角色</T>
+            </Th>
+            <Th>
+              <T>职责</T>
+            </Th>
+            <Th>
+              <T>人员名单</T>
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -176,3 +213,4 @@ function Privileged({
 }
 
 Page.title = "谁能看到我的数据";
+export const getStaticProps = getI18nProps;

@@ -53,7 +53,7 @@ import {
 import invariant from "tiny-invariant";
 import useMe, { useMyId, useMyRoles } from "useMe";
 import { KudosControl } from "./Kudos";
-
+import T from "components/T";
 export type UserDisplayData = MinUserAndProfile & {
   // The presence of these fields depends on call sites and context
   traitsMatchingScore?: number;
@@ -106,13 +106,13 @@ export default function UserPanel({
                 disablePictureInPicture
                 // To set 'autoPlay', we need to also set 'muted'
               >
-                您的浏览器不支持视频播放。
+                <T>您的浏览器不支持视频播放。</T>
               </video>
             ) : (
               <Image
                 maxW="300px"
                 src={UserProfilePictureLink(profile)}
-                alt="照片"
+                alt={"照片"}
               />
             )}
 
@@ -156,7 +156,7 @@ function UserUrl({ u }: { u: MinUser }) {
   }, [hasCopied]);
 
   return u.url ? (
-    <Tooltip label="拷贝链接到剪贴板">
+    <Tooltip label={"拷贝链接到剪贴板"}>
       <HStack onClick={onCopy} cursor="pointer" textColor="gray" fontSize="sm">
         <Text>{url}</Text>
         <CopyIcon />
@@ -206,11 +206,13 @@ function MatchingTraits({ userId }: { userId: string }) {
     <>
       <VStack spacing={componentSpacing}>
         <Text fontSize="sm" textAlign="center">
-          你的以下这些
-          <Link onClick={() => setIsModalOpen(true)}>个人特质</Link>
-          符合导师的匹配偏好
+          <T>你的以下这些</T>
+          <Link onClick={() => setIsModalOpen(true)}>
+            <T>个人特质</T>
+          </Link>
+          <T>符合导师的匹配偏好</T>
           <br />
-          （仅供参考，导师的选择权在你）
+          <T>（仅供参考，导师的选择权在你）</T>
         </Text>
         <Wrap>
           {matchingTraits.map((t) => {
@@ -330,19 +332,23 @@ function Selection({ mentorId }: { mentorId: string }) {
           value={reason}
           onChange={(ev) => setReason(ev.target.value)}
           isDisabled={busy}
-          placeholder="选择这位导师的原因"
+          placeholder={"选择这位导师的原因"}
           autoFocus
         />
-        {showError && <FormErrorMessage>请首先填写选择原因。</FormErrorMessage>}
+        {showError && (
+          <FormErrorMessage>
+            <T>请首先填写选择原因。</T>
+          </FormErrorMessage>
+        )}
       </FormControl>
 
       {selected && (
         <SimpleGrid columns={2} spacing={componentSpacing} w="full">
           <Button onClick={unselect} isLoading={busy}>
-            取消选择
+            <T>取消选择</T>
           </Button>
           <Button variant="brand" onClick={update} isLoading={busy}>
-            更新选择原因
+            <T>更新选择原因</T>
           </Button>
         </SimpleGrid>
       )}
@@ -354,7 +360,7 @@ function Selection({ mentorId }: { mentorId: string }) {
           onClick={select}
           isLoading={busy}
         >
-          选择这位导师
+          <T>选择这位导师</T>
         </Button>
       )}
     </VStack>
@@ -370,7 +376,7 @@ function BookingButtonAndModal({ user }: { user: MinUser }) {
   return (
     <>
       <Button width="full" variant="brand" onClick={() => setBooking(true)}>
-        预约交流
+        <T>预约交流</T>
       </Button>
 
       {booking && (
@@ -402,7 +408,7 @@ function ProfileTable({
               <ProfileRow label={fl.label ?? fl.field} content={p[fl.field]} />
               {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
                 <ProfileRow
-                  label="所属机构"
+                  label={"所属机构"}
                   content={orgs
                     .map((org) => `[${org.name}](/orgs/${org.id})`)
                     .join("，")}
@@ -416,7 +422,7 @@ function ProfileTable({
               <Td></Td>
               <Td>
                 <Link as={NextLink} href={`/profiles/${user.id}`}>
-                  <EditIcon /> 修改资料
+                  <EditIcon /> <T>修改资料</T>
                 </Link>
               </Td>
             </Tr>

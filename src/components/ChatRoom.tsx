@@ -55,6 +55,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import { IoMdPeople } from "react-icons/io";
 import { toast } from "react-toastify";
 import ModalWithBackdrop from "./ModalWithBackdrop";
+import T from "components/T";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
@@ -87,13 +88,13 @@ export default function Room({ menteeId }: { menteeId: string }) {
       <CardHeader>
         <Flex justify="space-between">
           <Heading size="sm" position="relative">
-            内部笔记
+            <T>内部笔记</T>
             <UnreadChatMessagesRedDot menteeId={menteeId} />
           </Heading>
 
           <HStack spacing={componentSpacing} fontSize="sm">
             <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-              全部已读
+              <T>全部已读</T>
             </Link>
 
             {!adding && (
@@ -102,7 +103,7 @@ export default function Room({ menteeId }: { menteeId: string }) {
                 leftIcon={<AddIcon />}
                 onClick={() => setAdding(true)}
               >
-                新建
+                <T>新建</T>
               </Button>
             )}
           </HStack>
@@ -127,7 +128,7 @@ export default function Room({ menteeId }: { menteeId: string }) {
             ))}
 
           <Text size="sm" color="gray">
-            内部笔记仅对导师可见。
+            <T>内部笔记仅对导师可见。</T>
           </Text>
         </VStack>
       </CardBody>
@@ -161,12 +162,22 @@ function Message({
       updatedAt !== createdAt ? (
         <>
           <br />
-          {updatedAt}更新
+          {updatedAt}
+          <T>更新</T>
         </>
       ) : (
         <></>
       ),
-    [breakpoint]: updatedAt !== createdAt ? <> ｜ {updatedAt}更新</> : <></>,
+    [breakpoint]:
+      updatedAt !== createdAt ? (
+        <>
+          {" "}
+          ｜ {updatedAt}
+          <T>更新</T>
+        </>
+      ) : (
+        <></>
+      ),
   });
 
   const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);
@@ -189,7 +200,8 @@ function Message({
 
           {/* Timestamps & red dot */}
           <SmallGrayText position="relative">
-            {createdAt}创建
+            {createdAt}
+            <T>创建</T>
             {updatedAtText}
             <RedDot show={unread} />
           </SmallGrayText>
@@ -224,7 +236,7 @@ function Message({
             globalConfig?.showEditMessageTimeButton && (
               <>
                 <Spacer />
-                <Tooltip label="编辑创建时间">
+                <Tooltip label={"编辑创建时间"}>
                   <Link color="gray" onClick={() => setEditingTime(true)}>
                     <MdAccessTime />
                   </Link>
@@ -302,7 +314,9 @@ function EditCreationTimeModal({
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>编辑创建时间</ModalHeader>
+        <ModalHeader>
+          <T>编辑创建时间</T>
+        </ModalHeader>
         <ModalBody>
           <FormControl>
             <FormLabel>创建时间（格式：YYYY-MM-DD HH:mm:ss）</FormLabel>
@@ -315,10 +329,10 @@ function EditCreationTimeModal({
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={handleSave} isLoading={saving}>
-            确认
+            <T>确认</T>
           </Button>
           <Button variant="ghost" onClick={onClose}>
-            取消
+            <T>取消</T>
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -438,7 +452,7 @@ function Editor({
           leftIcon={<Icon as={MdSend} />}
           display={{ base: "none", [breakpoint]: "flex" }}
         >
-          确认
+          <T>确认</T>
         </Button>
 
         <Button
@@ -448,11 +462,11 @@ function Editor({
           variant="brand"
           display={{ base: "flex", [breakpoint]: "none" }}
         >
-          确认
+          <T>确认</T>
         </Button>
 
         <Button onClick={() => onClose()} variant="ghost" color="gray">
-          取消
+          <T>取消</T>
         </Button>
 
         <Spacer />
@@ -464,7 +478,7 @@ function Editor({
         />
 
         <Select
-          placeholder="笔记分类"
+          placeholder={"笔记分类"}
           onChange={(e) => insertPrefix(e.target.value)}
           // if maxWidth is not specified, it will take up all the remaining
           // width.

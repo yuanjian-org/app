@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { MdEdit } from "react-icons/md";
 import { linkBaseColor } from "theme/links";
+import { useTranslation } from "next-i18next";
 
 export default function EditableWithIconOrLink({
   editor,
@@ -25,6 +26,7 @@ export default function EditableWithIconOrLink({
   editor: "input" | "textarea";
   decorator: "icon" | "link";
 } & EditableProps) {
+  const { t } = useTranslation("common");
   // Use a state variable to reflect latest content
   const [value, setValue] = useState(defaultValue);
 
@@ -44,7 +46,7 @@ export default function EditableWithIconOrLink({
     } = useEditableControls();
     return isEditing ? (
       <ButtonGroup size="sm">
-        <Tooltip label="确认">
+        <Tooltip label={t("确认")}>
           <IconButton
             aria-label="确认"
             icon={<CheckIcon />}
@@ -52,7 +54,7 @@ export default function EditableWithIconOrLink({
             variant="unstyled"
           />
         </Tooltip>
-        <Tooltip label="取消">
+        <Tooltip label={t("取消")}>
           <IconButton
             aria-label="取消"
             icon={<CloseIcon />}
@@ -65,7 +67,7 @@ export default function EditableWithIconOrLink({
     // even if the decorator is not icon so that the user can click on the
     // empty text to edit.
     decorator == "icon" || !value ? (
-      <Tooltip label="编辑">
+      <Tooltip label={t("编辑")}>
         <IconButton
           aria-label="编辑"
           {...getEditButtonProps()}

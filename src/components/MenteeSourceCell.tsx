@@ -1,8 +1,13 @@
 import { Th, Td } from "@chakra-ui/react";
 import TruncatedTextWithTooltip from "./TruncatedTextWithTooltip";
+import T from "components/T";
 
 export function MenteeSourceHeaderCell() {
-  return <Th>来源</Th>;
+  return (
+    <Th>
+      <T>来源</T>
+    </Th>
+  );
 }
 
 export function MenteeSourceCell({ source }: { source: string | null }) {

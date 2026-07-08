@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import countryAreaCodes from "./countryAreaCodes.json";
+import { useTranslation } from "next-i18next";
 
 export interface CountryAreaCode {
   flag: string;
@@ -32,6 +33,7 @@ export default function PhoneInput({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation("common");
   const [country, setCountry] = useState<CountryAreaCode>();
   const [number, setNumber] = useState<string>("");
   const list = useMemo(() => getCountryAreaCodes(), []);
@@ -99,7 +101,7 @@ export default function PhoneInput({
         value={number}
         onChange={changeNumber}
         type="tel"
-        placeholder="手机号"
+        placeholder={t("手机号")}
       />
     </HStack>
   );

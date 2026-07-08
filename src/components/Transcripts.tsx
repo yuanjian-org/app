@@ -28,19 +28,26 @@ import { MdEdit } from "react-icons/md";
 import { useState } from "react";
 import { Summary } from "shared/Summary";
 import SummaryEditor from "./SummaryEditor";
+import T from "components/T";
 
 export default function Transcripts({ group }: { group: Group }) {
   const [currentSummary, setCurrentSummary] = useState<Summary | null>(null);
   const [editing, setEditing] = useState(false);
 
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
-    return <Text color="gray">您没有访问会议摘要的权限。</Text>;
+    return (
+      <Text color="gray">
+        <T>您没有访问会议摘要的权限。</T>
+      </Text>
+    );
   } else {
     return (
       <ResponsiveCard>
         <CardHeader>
           <Flex justify="space-between">
-            <Heading size="sm">智能会议纪要</Heading>
+            <Heading size="sm">
+              <T>智能会议纪要</T>
+            </Heading>
 
             {currentSummary && (
               <Button
@@ -48,7 +55,7 @@ export default function Transcripts({ group }: { group: Group }) {
                 leftIcon={<MdEdit />}
                 onClick={() => setEditing(true)}
               >
-                编辑
+                <T>编辑</T>
               </Button>
             )}
 
@@ -147,7 +154,7 @@ function LoadedTranscripts({
             )
           }
         >
-          前一次
+          <T>前一次</T>
         </Button>
 
         <Spacer />
@@ -200,7 +207,7 @@ function LoadedTranscripts({
             )
           }
         >
-          后一次
+          <T>后一次</T>
         </Button>
       </Flex>
 

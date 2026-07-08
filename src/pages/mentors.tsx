@@ -16,6 +16,8 @@ import { topBarPaddings } from "components/TopBar";
 import { features } from "shared/Features";
 import Head from "next/head";
 import { isPermitted } from "shared/Role";
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 
 export function getTransactionalMentorsPageTitle(
   isMentee: boolean,
@@ -59,10 +61,12 @@ export default fullPage(() => {
               </Text>
 
               <Button variant="brand" onClick={() => setBooking(true)}>
-                我有一个话题，请帮我预约适合的导师
+                <T>我有一个话题，请帮我预约适合的导师</T>
               </Button>
 
-              <Text>或者预约任何一位指定的导师：</Text>
+              <Text>
+                <T>或者预约任何一位指定的导师：</T>
+              </Text>
             </>
           )}
 
@@ -138,3 +142,4 @@ export function dailyShuffle(
     return rng() - 0.5;
   });
 }
+export const getStaticProps = getI18nProps;

@@ -40,6 +40,8 @@ import { ReactNode, useEffect, useState } from "react";
 import Autosaver from "components/Autosaver";
 import moment from "moment";
 import { actionRequiredTextColor } from "theme/colors";
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 
 const title = "初次交流反馈";
 
@@ -74,7 +76,9 @@ export default function Page() {
         {!data || isLoadingEditable ? (
           <Loader />
         ) : data.length === 0 ? (
-          <Text>没有需要填写的反馈表。</Text>
+          <Text>
+            <T>没有需要填写的反馈表。</T>
+          </Text>
         ) : (
           data
             // Place the latest feedback at the top
@@ -88,12 +92,15 @@ export default function Page() {
               return (
                 <>
                   {idx == 0 && !editable && (
-                    <Text>反馈表已于 {until}关闭。</Text>
+                    <Text>
+                      <T>反馈表已于</T> {until}
+                      <T>关闭。</T>
+                    </Text>
                   )}
 
                   {idx == 1 && (
                     <Heading size="md" my={sectionSpacing}>
-                      历史记录
+                      <T>历史记录</T>
                     </Heading>
                   )}
 
@@ -161,7 +168,7 @@ function FeedbackCard({
               <Text>
                 {until && (
                   <>
-                    ⚠️ 反馈表将于{" "}
+                    <T>⚠️ 反馈表将于</T>{" "}
                     <Text
                       color={actionRequiredTextColor}
                       fontWeight="bold"
@@ -169,7 +176,7 @@ function FeedbackCard({
                     >
                       {until}
                     </Text>{" "}
-                    自动关闭，请务必在此前完成反馈。
+                    <T>自动关闭，请务必在此前完成反馈。</T>
                   </>
                 )}
                 建议在每次交流后第一时间内记录感受。反馈信息可以反复修改和补充。
@@ -177,7 +184,9 @@ function FeedbackCard({
 
               {children}
 
-              <SmallGrayText>系统会自动保存填写的内容。</SmallGrayText>
+              <SmallGrayText>
+                <T>系统会自动保存填写的内容。</T>
+              </SmallGrayText>
             </>
           )}
         </VStack>
@@ -211,10 +220,15 @@ function MenteeFeedback({
       {update && (
         <>
           <Text>
-            <b>务必跟随心里最真实的想法打分</b>，打分会直接影响匹配结果。
+            <b>
+              <T>务必跟随心里最真实的想法打分</T>
+            </b>
+            <T>，打分会直接影响匹配结果。</T>
           </Text>
           <Text>
-            <b>无须担心隐私</b>
+            <b>
+              <T>无须担心隐私</T>
+            </b>
             ：导师无法看到你的反馈，所有反馈数据将由中立的专员统一分析，请放心填写。
           </Text>
         </>
@@ -223,17 +237,21 @@ function MenteeFeedback({
         <Table variant="unstyled">
           <Thead>
             <Tr>
-              <LargeTh>导师</LargeTh>
               <LargeTh>
-                打分
+                <T>导师</T>
+              </LargeTh>
+              <LargeTh>
+                <T>打分</T>
                 <br />
                 <Text as="span" fontSize="xs">
-                  1：不想匹配
+                  <T>1：不想匹配</T>
                   <br />
-                  5：很想匹配
+                  <T>5：很想匹配</T>
                 </Text>
               </LargeTh>
-              <LargeTh>打分的原因</LargeTh>
+              <LargeTh>
+                <T>打分的原因</T>
+              </LargeTh>
             </Tr>
           </Thead>
           <Tbody>
@@ -327,9 +345,15 @@ function MentorFeedback({
         <Table variant="unstyled">
           <Thead>
             <Tr>
-              <LargeTh>学生</LargeTh>
-              <LargeTh>评价</LargeTh>
-              <LargeTh>如果是“特别喜欢”，原因是什么？</LargeTh>
+              <LargeTh>
+                <T>学生</T>
+              </LargeTh>
+              <LargeTh>
+                <T>评价</T>
+              </LargeTh>
+              <LargeTh>
+                <T>如果是“特别喜欢”，原因是什么？</T>
+              </LargeTh>
             </Tr>
           </Thead>
           <Tbody>
@@ -401,3 +425,4 @@ function MentorFeedbackRow({
     </Tr>
   );
 }
+export const getStaticProps = getI18nProps;

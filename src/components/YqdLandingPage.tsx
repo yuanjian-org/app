@@ -20,8 +20,11 @@ import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export default function YqdLandingPage() {
+  const { t } = useTranslation("common");
   return (
     <VStack minHeight="100vh">
       <Head>
@@ -47,7 +50,7 @@ export default function YqdLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
-            <Tooltip label="联系客服">
+            <Tooltip label={t("联系客服")}>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
@@ -57,7 +60,7 @@ export default function YqdLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 / 注册
+              <T>登录 / 注册</T>
             </Button>
           </HStack>
         </Flex>
@@ -70,7 +73,9 @@ export default function YqdLandingPage() {
         mt="70px"
       >
         <VStack spacing={6} align="start" mt={10}>
-          <Heading size="lg">欢迎来到“易起读”公益阅读平台</Heading>
+          <Heading size="lg">
+            <T>欢迎来到“易起读”公益阅读平台</T>
+          </Heading>
 
           <Text fontSize="lg">
             “易起读”是由上海颂鼎社会公益创新发展中心主导的社会创新项目，致力于通过阅读联结社区，推动文化共享与终身学习。
@@ -78,23 +83,31 @@ export default function YqdLandingPage() {
 
           <Box mt={4}>
             <Heading size="md" mb={3}>
-              面向多元的参与者
+              <T>面向多元的参与者</T>
             </Heading>
             <UnorderedList spacing={3} pl={5}>
               <ListItem>
-                <b>对广大的读者朋友：</b>
+                <b>
+                  <T>对广大的读者朋友：</T>
+                </b>
                 这里是一个开放、包容的阅读社区。无论您是寻找优质读物，还是希望与志同道合的书友交流心得，易起读都能为您提供丰富的资源和平台。
               </ListItem>
               <ListItem>
-                <b>对热心的志愿者团队：</b>
+                <b>
+                  <T>对热心的志愿者团队：</T>
+                </b>
                 您的每一次付出，都在传递知识的温度。加入我们，共同策划读书分享会，协助社区图书馆运营，让阅读的力量触达更多角落。
               </ListItem>
               <ListItem>
-                <b>对具有教育情怀的导师：</b>
+                <b>
+                  <T>对具有教育情怀的导师：</T>
+                </b>
                 我们期待您的专业引领。在这里，您可以开设导读课程，陪伴青年群体成长，点燃他们内心的求知火种。
               </ListItem>
               <ListItem>
-                <b>对慷慨解囊的捐赠方：</b>
+                <b>
+                  <T>对慷慨解囊的捐赠方：</T>
+                </b>
                 您的支持是项目持续发展的基石。每一份爱心都将被透明化管理，直接转化为受助群体的图书资源与阅读环境改善。
               </ListItem>
             </UnorderedList>
@@ -113,7 +126,7 @@ export default function YqdLandingPage() {
             mt={8}
             rightIcon={<ChevronRightIcon />}
           >
-            进入平台
+            <T>进入平台</T>
           </Button>
         </VStack>
       </Box>

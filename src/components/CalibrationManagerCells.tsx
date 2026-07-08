@@ -16,9 +16,14 @@ import { useState } from "react";
 import { formatUserName } from "shared/strings/formatUserName";
 import { MdEdit } from "react-icons/md";
 import { Calibration as SharedCalibration } from "shared/Calibration";
+import T from "components/T";
 
 export function CalibrationManagerHeaderCells() {
-  return <Th>面试主管</Th>;
+  return (
+    <Th>
+      <T>面试主管</T>
+    </Th>
+  );
 }
 
 export function CalibrationManagerCells({
@@ -73,7 +78,10 @@ function ManagerEditor({
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{calibration.name}的面试主管</ModalHeader>
+        <ModalHeader>
+          {calibration.name}
+          <T>的面试主管</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <UserSelector
@@ -82,7 +90,9 @@ function ManagerEditor({
           />
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>

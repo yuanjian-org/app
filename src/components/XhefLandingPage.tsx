@@ -18,8 +18,11 @@ import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export default function XhefLandingPage() {
+  const { t } = useTranslation("common");
   return (
     <VStack minHeight="100vh">
       <Head>
@@ -45,7 +48,7 @@ export default function XhefLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
-            <Tooltip label="联系客服">
+            <Tooltip label={t("联系客服")}>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
@@ -55,7 +58,7 @@ export default function XhefLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 / 注册
+              <T>登录 / 注册</T>
             </Button>
           </HStack>
         </Flex>
@@ -68,7 +71,9 @@ export default function XhefLandingPage() {
         mt="70px"
       >
         <VStack spacing={6} align="start" mt={10}>
-          <Heading size="lg">欢迎来到珍珠生导师网络</Heading>
+          <Heading size="lg">
+            <T>欢迎来到珍珠生导师网络</T>
+          </Heading>
           <Text>
             社会导师项目旨在为大学珍珠生提供一对一的陪伴与指导。通过过来人的经验分享与帮助，助力同学们更好地规划学业与职业发展，顺利步入社会。“远图”
             是支持这一项目的服务平台。
@@ -81,7 +86,7 @@ export default function XhefLandingPage() {
             mt={4}
             rightIcon={<ChevronRightIcon />}
           >
-            进入远图
+            <T>进入远图</T>
           </Button>
         </VStack>
       </Box>

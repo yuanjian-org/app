@@ -41,6 +41,7 @@ import { MenteeSourceHeaderCell, MenteeSourceCell } from "./MenteeSourceCell";
 import { menteeSourceField } from "shared/applicationFields";
 import { useMyId, useMyRoles } from "useMe";
 import TruncatedTextWithTooltip from "./TruncatedTextWithTooltip";
+import T from "components/T";
 
 /**
  * @param forCalibration when true, show additional columns in the table and
@@ -69,16 +70,31 @@ export default function Interviews({
       <Table size={forCalibration ? "sm" : "md"}>
         <Thead>
           <Tr>
-            {showStatus && <Th>状态</Th>}
+            {showStatus && (
+              <Th>
+                <T>状态</T>
+              </Th>
+            )}
             <PointOfContactHeaderCells />
             <MenteeSourceHeaderCell />
-            <Th>候选人</Th>
-            <Th>{forCalibration ? "" : "其他"}面试官</Th>
+            <Th>
+              <T>候选人</T>
+            </Th>
+            <Th>
+              {forCalibration ? "" : "其他"}
+              <T>面试官</T>
+            </Th>
             {forCalibration && (
               <>
-                <Th>讨论结果</Th>
-                <Th>讨论备注</Th>
-                <Th>拼音（便于查找）</Th>
+                <Th>
+                  <T>讨论结果</T>
+                </Th>
+                <Th>
+                  <T>讨论备注</T>
+                </Th>
+                <Th>
+                  <T>拼音（便于查找）</T>
+                </Th>
               </>
             )}
           </Tr>
@@ -100,12 +116,12 @@ export default function Interviews({
 
       {!hideTotalCount && (
         <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-          共 <b>{interviews.length}</b> 名
+          <T>共</T> <b>{interviews.length}</b> <T>名</T>
         </Text>
       )}
 
       <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
-        <CheckIcon /> 表示已经填写了面试反馈的面试官。
+        <CheckIcon /> <T>表示已经填写了面试反馈的面试官。</T>
       </Text>
     </TableContainer>
   );

@@ -49,6 +49,8 @@ import { breakpoint } from "theme/breakpoints";
 import PageLoader from "components/PageLoader";
 import { loginCallbackUrl } from "shared/loginUrl";
 
+import T from "components/T";
+
 function useCallbackUrl() {
   const router = useRouter();
   return loginCallbackUrl(router);
@@ -118,7 +120,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
       <TabPanel key="微信">
         {isDemo ? (
           <Text color="gray.500" textAlign="center" my={sectionSpacing}>
-            微信登录在演示模式中不可用
+            <T>微信登录在演示模式中不可用</T>
           </Text>
         ) : (
           <>
@@ -194,12 +196,12 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
 
         <HStack justify="center" spacing={2}>
           <SmallGrayText>
-            若登录遇到问题，
+            <T>若登录遇到问题，</T>
             <Link
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               isExternal
             >
-              联系客服
+              <T>联系客服</T>
             </Link>
           </SmallGrayText>
           <RiCustomerServiceFill color="gray" />
@@ -221,8 +223,12 @@ function EmailPanel({ isDemo }: { isDemo?: boolean }) {
       defaultIndex={isDemo ? 1 : 0}
     >
       <TabList mt={componentSpacing}>
-        <Tab>验证码</Tab>
-        <Tab>密码</Tab>
+        <Tab>
+          <T>验证码</T>
+        </Tab>
+        <Tab>
+          <T>密码</T>
+        </Tab>
       </TabList>
       <TabPanels>
         <TabPanel>
@@ -240,8 +246,12 @@ function PhonePanel() {
   return (
     <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
       <TabList mt={componentSpacing}>
-        <Tab>验证码</Tab>
-        <Tab>密码</Tab>
+        <Tab>
+          <T>验证码</T>
+        </Tab>
+        <Tab>
+          <T>密码</T>
+        </Tab>
       </TabList>
       <TabPanels>
         <TabPanel>
@@ -260,9 +270,9 @@ function WechatQRPanel({ wechatQRAppId }: { wechatQRAppId: string }) {
   return (
     <VStack spacing={componentSpacing}>
       <Text fontSize="sm" color="gray">
-        若二维码无法加载，
+        <T>若二维码无法加载，</T>
         <Link onClick={() => signIn("wechat-qr", { callbackUrl })}>
-          点击此处
+          <T>点击此处</T>
         </Link>
       </Text>
       <EmbeddedWeChatQRLogin appid={wechatQRAppId} callbackUrl={callbackUrl} />
@@ -284,7 +294,7 @@ function WechatAccountPanel() {
         color="white"
         _hover={{ bg: "#06AE56" }}
       >
-        微信登录
+        <T>微信登录</T>
       </Button>
     </VStack>
   );
@@ -368,9 +378,13 @@ function IdPasswordPanel({ idType }: { idType: IdType }) {
 
       {reset && (
         <SmallGrayText>
-          密码长度至少{passwordMinLength}位。强烈建议：
+          <T>密码长度至少</T>
+          {passwordMinLength}
+          <T>位。强烈建议：</T>
           <UnorderedList>
-            <ListItem>不要重复使用其他网站或应用的密码。</ListItem>
+            <ListItem>
+              <T>不要重复使用其他网站或应用的密码。</T>
+            </ListItem>
             <ListItem>使用密码工具生成并保存密码。不要试图记忆。</ListItem>
           </UnorderedList>
         </SmallGrayText>
@@ -544,7 +558,7 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
           isLoading={isLoading}
           onClick={submit}
         >
-          登录 / 注册
+          <T>登录 / 注册</T>
         </Button>
       </VStack>
     </>

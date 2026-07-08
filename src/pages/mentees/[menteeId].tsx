@@ -62,6 +62,7 @@ import { ResponsiveCard } from "components/ResponsiveCard";
 import TasksCard from "components/launchpad/TasksCard";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
 import { features } from "shared/Features";
+import T from "components/T";
 
 export default widePage(() => {
   const menteeId = parseQueryString(useRouter(), "menteeId");
@@ -137,7 +138,7 @@ function MenteeTabs({
         {filtered.length == 1 ? (
           <Tab>
             <Flex as="span" gap={1} align="center">
-              一对一通话
+              <T>一对一通话</T>
               {filtered[0].mentor.id !== me.id &&
                 `【${formatUserName(filtered[0].mentor.name)}】`}
               <MentorshipStatusIcon m={filtered[0]} />
@@ -147,20 +148,31 @@ function MenteeTabs({
           filtered.map((m) => (
             <Tab key={m.id}>
               <Flex as="span" gap={1} align="center">
-                一对一通话{formatMentorshipTabSuffix(m, me.id)}
+                <T>一对一通话</T>
+                {formatMentorshipTabSuffix(m, me.id)}
                 <MentorshipStatusIcon m={m} />
               </Flex>
             </Tab>
           ))
         )}
 
-        {features.menteeProfile && <Tab>学生自填信息</Tab>}
+        {features.menteeProfile && (
+          <Tab>
+            <T>学生自填信息</T>
+          </Tab>
+        )}
 
-        {features.interviews && <Tab>申请表信息</Tab>}
+        {features.interviews && (
+          <Tab>
+            <T>申请表信息</T>
+          </Tab>
+        )}
 
         {features.interviews &&
           isPermitted(me.roles, ["Mentor", "MentorshipAdmin"]) && (
-            <Tab>面试页</Tab>
+            <Tab>
+              <T>面试页</T>
+            </Tab>
           )}
 
         {/* <Tab>年度反馈</Tab> */}
@@ -221,7 +233,9 @@ function InterviewTabPanel({ menteeId }: { menteeId: string }) {
       ) : interviewId ? (
         <Interview interviewId={interviewId} readonly />
       ) : (
-        <Text color="gray">没有面试记录。</Text>
+        <Text color="gray">
+          <T>没有面试记录。</T>
+        </Text>
       )}
     </TabPanel>
   );
@@ -272,8 +286,12 @@ function MentorshipPanel({ mentorship: m }: { mentorship: Mentorship }) {
         <TasksCard assigneeIds={[m.mentee.id, m.mentor.id]} />
         <Tabs isLazy>
           <TabList>
-            <Tab>内部笔记</Tab>
-            <Tab>智能会议纪要</Tab>
+            <Tab>
+              <T>内部笔记</T>
+            </Tab>
+            <Tab>
+              <T>智能会议纪要</T>
+            </Tab>
           </TabList>
           <TabPanels>
             <TabPanel px={0} pt={componentSpacing}>
@@ -326,7 +344,9 @@ function MentorshipSummaryCard({ m }: { m: Mentorship }) {
                * this case. */}
 
               <Text>
-                此页将于{prettifyDate(m.endsAt)}失效。如需延期，请联系
+                <T>此页将于</T>
+                {prettifyDate(m.endsAt)}
+                <T>失效。如需延期，请联系</T>
                 {displayName("MentorshipAdmin")}。
               </Text>
             </HStack>
@@ -335,7 +355,11 @@ function MentorshipSummaryCard({ m }: { m: Mentorship }) {
           {!m.transactional && m.endsAt && (
             <HStack>
               <MentorshipStatusIcon m={m} />
-              <Text>一对一师生关系已于{prettifyDate(m.endsAt)}结束。</Text>
+              <Text>
+                <T>一对一师生关系已于</T>
+                {prettifyDate(m.endsAt)}
+                <T>结束。</T>
+              </Text>
             </HStack>
           )}
 
@@ -377,9 +401,18 @@ function MentorshipScheduleControl({
     <Flex align="center" gap={1}>
       <IoMdCalendar />
 
-      {s && <Text>北京时间每月{formatMentorshipSchedule(s)}</Text>}
+      {s && (
+        <Text>
+          <T>北京时间每月</T>
+          {formatMentorshipSchedule(s)}
+        </Text>
+      )}
 
-      {!s && <Link onClick={() => setEditing(true)}>设置每月通话时间</Link>}
+      {!s && (
+        <Link onClick={() => setEditing(true)}>
+          <T>设置每月通话时间</T>
+        </Link>
+      )}
 
       <Link color="gray" ms={2} onClick={() => setEditing(true)}>
         <MdEdit />
@@ -435,14 +468,20 @@ function MentorshipScheduleEditor({
   return (
     <ModalWithBackdrop isOpen={true} onClose={onClose}>
       <ModalContent>
-        <ModalHeader>每月通话时间</ModalHeader>
+        <ModalHeader>
+          <T>每月通话时间</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack align="start" gap={componentSpacing}>
-            <Text>导师应与学生约定每个月固定的通话时间：</Text>
+            <Text>
+              <T>导师应与学生约定每个月固定的通话时间：</T>
+            </Text>
 
             <Wrap gap={componentSpacing} align="center" fontWeight="bold">
-              <WrapItem>北京时间每月第</WrapItem>
+              <WrapItem>
+                <T>北京时间每月第</T>
+              </WrapItem>
               <WrapItem>
                 <Select
                   value={s.week}
@@ -457,7 +496,9 @@ function MentorshipScheduleEditor({
                   ))}
                 </Select>
               </WrapItem>
-              <WrapItem>个星期</WrapItem>
+              <WrapItem>
+                <T>个星期</T>
+              </WrapItem>
               <WrapItem>
                 <Select
                   value={s.day}
@@ -490,7 +531,9 @@ function MentorshipScheduleEditor({
                 </Select>
               </WrapItem>
               <WrapItem>
-                <Text>时</Text>
+                <Text>
+                  <T>时</T>
+                </Text>
               </WrapItem>
               <WrapItem>
                 <Select
@@ -506,16 +549,20 @@ function MentorshipScheduleEditor({
                 </Select>
               </WrapItem>
               <WrapItem>
-                <Text>分</Text>
+                <Text>
+                  <T>分</T>
+                </Text>
               </WrapItem>
             </Wrap>
 
-            <Text mt={sectionSpacing}>每次通话时长可为一个小时左右。</Text>
+            <Text mt={sectionSpacing}>
+              <T>每次通话时长可为一个小时左右。</T>
+            </Text>
           </VStack>
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={save} isLoading={saving}>
-            保存
+            <T>保存</T>
           </Button>
         </ModalFooter>
       </ModalContent>

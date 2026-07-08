@@ -10,6 +10,8 @@ import {
 } from "../../../components/projects/ProjectList";
 
 import { widePage } from "../../../AppPage";
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 
 export default widePage(() => {
   const { data: projects } = trpcNext.projects.listPublic.useQuery();
@@ -28,7 +30,9 @@ export default widePage(() => {
       <Box py={componentSpacing}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">X-Challenge 问题</Heading>
+            <Heading size="lg">
+              <T>X-Challenge 问题</T>
+            </Heading>
           </Flex>
           <FullTextSearchBox
             value={searchTerm}
@@ -38,7 +42,9 @@ export default widePage(() => {
         </VStack>
       </Box>
       {searchResult && searchResult.length === 0 ? (
-        <Text mt={pageMarginX}>暂无项目</Text>
+        <Text mt={pageMarginX}>
+          <T>暂无项目</T>
+        </Text>
       ) : (
         <SimpleGrid
           spacing={componentSpacing}
@@ -58,3 +64,4 @@ export default widePage(() => {
     </Box>
   );
 }, "项目列表");
+export const getStaticProps = getI18nProps;

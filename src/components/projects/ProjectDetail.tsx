@@ -18,6 +18,8 @@ import {
   ProjectVisibilityDescriptions,
   ProjectWithAssociation,
 } from "../../shared/Project";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export function ProjectDetailCard({
   project,
@@ -30,6 +32,7 @@ export function ProjectDetailCard({
   isLoadingApply: boolean;
   onApply: () => void;
 }) {
+  const { t } = useTranslation("common");
   return (
     <Card>
       <CardBody>
@@ -40,7 +43,7 @@ export function ProjectDetailCard({
             </Heading>
             <Flex align="center" gap={2}>
               <Text fontSize="md" color="gray.500" me={10}>
-                发起人：
+                <T>发起人：</T>
                 <NextLink href={`/users/${project.owner.id}`}>
                   <Text
                     as="span"
@@ -81,7 +84,7 @@ export function ProjectDetailCard({
                 href={`/projects/${project.id}/edit`}
                 leftIcon={<MdEdit />}
               >
-                编辑项目
+                <T>编辑项目</T>
               </Button>
             )}
             {canEdit && (
@@ -89,7 +92,7 @@ export function ProjectDetailCard({
                 as={NextLink}
                 href={`/projects/${project.id}/applications`}
               >
-                查看申请
+                <T>查看申请</T>
               </Button>
             )}
             {!canEdit && project.status === "招募中" && (
@@ -98,7 +101,7 @@ export function ProjectDetailCard({
                 isLoading={isLoadingApply}
                 onClick={onApply}
               >
-                申请参加
+                <T>申请参加</T>
               </Button>
             )}
           </Flex>
@@ -107,13 +110,13 @@ export function ProjectDetailCard({
         <Divider my={6} />
 
         <VStack spacing={6} align="stretch">
-          <Section title="所属机构" content={project.org?.name} />
-          <Section title="项目简介" content={project.profile?.简介} />
-          <Section title="项目背景" content={project.profile?.背景} />
-          <Section title="挑战描述" content={project.profile?.挑战描述} />
-          <Section title="学生要求" content={project.profile?.学生要求} />
-          <VideoSection title="视频链接" url={project.profile?.视频链接} />
-          <Section title="参考材料" content={project.profile?.参考材料} />
+          <Section title={t("所属机构")} content={project.org?.name} />
+          <Section title={t("项目简介")} content={project.profile?.简介} />
+          <Section title={t("项目背景")} content={project.profile?.背景} />
+          <Section title={t("挑战描述")} content={project.profile?.挑战描述} />
+          <Section title={t("学生要求")} content={project.profile?.学生要求} />
+          <VideoSection title={t("视频链接")} url={project.profile?.视频链接} />
+          <Section title={t("参考材料")} content={project.profile?.参考材料} />
         </VStack>
       </CardBody>
     </Card>

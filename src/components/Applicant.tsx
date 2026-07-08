@@ -89,13 +89,13 @@ function LoadedApplicant({
         </Heading>
       )}
 
-      {sex && <FieldRow name="性别" readonly value={sex} />}
+      {sex && <FieldRow name={"性别"} readonly value={sex} />}
 
       {/* It's okay to have mentors' contact information visible to peers */}
       <ContactFieldRow
         mask={isMentee}
         copyable={!isMentee || imPrivileged}
-        name="微信"
+        name={"微信"}
         value={user.wechat}
       />
 

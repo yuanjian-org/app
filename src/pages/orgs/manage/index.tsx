@@ -37,6 +37,8 @@ import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
 import UserSelector from "components/UserSelector";
 import { formatUserName } from "shared/strings/formatUserName";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
   const { data: orgWithMembers, refetch: refetchMembers } =
@@ -89,7 +91,7 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
             </Tag>
           ))}
           {!showUserSelector ? (
-            <Tooltip label="添加负责人">
+            <Tooltip label={"添加负责人"}>
               <IconButton
                 aria-label="添加负责人"
                 icon={<AddIcon />}
@@ -101,7 +103,7 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
             <Box w="200px">
               <UserSelector
                 onSelect={(ids) => void handleAddOwner(ids)}
-                placeholder="搜索用户..."
+                placeholder={"搜索用户..."}
                 isMulti={false}
               />
             </Box>
@@ -109,7 +111,7 @@ function OrgRow({ org, refetchOrgs }: { org: any; refetchOrgs: () => void }) {
         </Wrap>
       </Td>
       <Td>
-        <Tooltip label="删除机构">
+        <Tooltip label={"删除机构"}>
           <IconButton
             aria-label="删除机构"
             icon={<DeleteIcon />}
@@ -145,9 +147,11 @@ export default widePage(() => {
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <HStack justifyContent="space-between" mb={componentSpacing}>
-        <Heading size="lg">管理入住机构</Heading>
+        <Heading size="lg">
+          <T>管理入住机构</T>
+        </Heading>
         <Button colorScheme="brand" onClick={onOpen}>
-          创建机构
+          <T>创建机构</T>
         </Button>
       </HStack>
 
@@ -155,9 +159,15 @@ export default widePage(() => {
         <Table variant="simple">
           <Thead>
             <Tr>
-              <Th>名称</Th>
-              <Th>负责人</Th>
-              <Th>操作</Th>
+              <Th>
+                <T>名称</T>
+              </Th>
+              <Th>
+                <T>负责人</T>
+              </Th>
+              <Th>
+                <T>操作</T>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -175,26 +185,30 @@ export default widePage(() => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>创建新机构</ModalHeader>
+          <ModalHeader>
+            <T>创建新机构</T>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
               <FormControl isRequired>
-                <FormLabel>名称</FormLabel>
+                <FormLabel>
+                  <T>名称</T>
+                </FormLabel>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onClose}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               colorScheme="brand"
               onClick={() => void handleCreate()}
               isLoading={createMutation.isPending}
             >
-              创建
+              <T>创建</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -202,3 +216,4 @@ export default widePage(() => {
     </Box>
   );
 }, "管理入住机构");
+export const getStaticProps = getI18nProps;

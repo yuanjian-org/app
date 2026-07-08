@@ -38,6 +38,7 @@ import {
   UnreadTasksRedDot,
   useUnreadTasks,
 } from "components/unread";
+import T from "components/T";
 
 /**
  * @param assigneeIds The assignees of the tasks to be listed on this card.
@@ -130,13 +131,13 @@ export default function TasksCard({
       <CardHeader>
         <Flex justify="space-between">
           <Heading size="sm" position="relative">
-            待办事项
+            <T>待办事项</T>
             <UnreadTasksRedDot />
           </Heading>
 
           <HStack spacing={componentSpacing} fontSize="sm">
             <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-              全部已读
+              <T>全部已读</T>
             </Link>
 
             {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
@@ -150,7 +151,7 @@ export default function TasksCard({
               leftIcon={<AddIcon />}
               onClick={() => setCreating(true)}
             >
-              新建
+              <T>新建</T>
             </Button>
 
             {creating && (

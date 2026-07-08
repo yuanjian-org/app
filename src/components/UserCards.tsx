@@ -43,7 +43,7 @@ import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
 import { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
-
+import T from "components/T";
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
   label?: string;
@@ -215,13 +215,13 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
         >
           <Flex justify="space-between">
             <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
-              最近的赞
+              <T>最近的赞</T>
               <UnreadKudosBlueDot />
             </Heading>
 
             <HStack spacing={2} fontSize="sm">
               <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-                全部已读
+                <T>全部已读</T>
               </Link>
             </HStack>
           </Flex>
@@ -335,26 +335,43 @@ function UserCardForDesktop({
             <>
               {p?.专业领域 && (
                 <Text>
-                  <b>专业</b>：{p.专业领域}
+                  <b>
+                    <T>专业</T>
+                  </b>
+                  ：{p.专业领域}
                 </Text>
               )}
               {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
             </>
           ) : type == "RelationalMentor" ? (
             <>
-              {p?.现居住地 && <Text>坐标：{p.现居住地}</Text>}
+              {p?.现居住地 && (
+                <Text>
+                  <T>坐标：</T>
+                  {p.现居住地}
+                </Text>
+              )}
               {p?.擅长话题 && (
-                <TruncatedText>擅长聊：{p.擅长话题}</TruncatedText>
+                <TruncatedText>
+                  <T>擅长聊：</T>
+                  {p.擅长话题}
+                </TruncatedText>
               )}
               {p?.成长亮点 && (
-                <TruncatedText>成长亮点：{p.成长亮点}</TruncatedText>
+                <TruncatedText>
+                  <T>成长亮点：</T>
+                  {p.成长亮点}
+                </TruncatedText>
               )}
             </>
           ) : (
             <>
               {p?.现居住地 && (
                 <Text>
-                  <b>坐标</b>：{p.现居住地}
+                  <b>
+                    <T>坐标</T>
+                  </b>
+                  ：{p.现居住地}
                 </Text>
               )}
               {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
@@ -365,14 +382,18 @@ function UserCardForDesktop({
       </CardBody>
 
       <CardFooter alignItems="center">
-        <Button onClick={visitUser}>查看详情</Button>
+        <Button onClick={visitUser}>
+          <T>查看详情</T>
+        </Button>
 
         <Spacer />
 
         {selected && (
           <Text color="green.600">
             <CheckIcon mr={1} />
-            <b>已选择</b>
+            <b>
+              <T>已选择</T>
+            </b>
           </Text>
         )}
 
@@ -385,7 +406,7 @@ function UserCardForDesktop({
                 openModal();
               }}
             >
-              预约交流
+              <T>预约交流</T>
             </Button>
           </>
         )}
@@ -448,7 +469,7 @@ function FullWidthImageSquare({
         height="100%"
         objectFit="cover"
         src={UserProfilePictureLink(profile)}
-        alt="照片"
+        alt={"照片"}
       />
 
       {/* The overlaying triangle icon indicating a video profile. */}
@@ -552,12 +573,14 @@ function UserCardForMobile({
             <>
               {p?.擅长话题 && (
                 <TruncatedText noOfLines={3}>
-                  擅长聊：{p.擅长话题}
+                  <T>擅长聊：</T>
+                  {p.擅长话题}
                 </TruncatedText>
               )}
               {p?.成长亮点 && (
                 <TruncatedText noOfLines={3}>
-                  成长亮点：{p.成长亮点}
+                  <T>成长亮点：</T>
+                  {p.成长亮点}
                 </TruncatedText>
               )}
             </>
@@ -565,11 +588,15 @@ function UserCardForMobile({
             <>
               {p?.爱好与特长 && (
                 <TruncatedText noOfLines={3}>
-                  爱好：{p.爱好与特长}
+                  <T>爱好：</T>
+                  {p.爱好与特长}
                 </TruncatedText>
               )}
               {p?.生活日常 && (
-                <TruncatedText noOfLines={3}>日常：{p.生活日常}</TruncatedText>
+                <TruncatedText noOfLines={3}>
+                  <T>日常：</T>
+                  {p.生活日常}
+                </TruncatedText>
               )}
             </>
           )}
@@ -588,13 +615,15 @@ function UserCardForMobile({
             <>
               <Text color="green.600">
                 <CheckIcon mr={1} />
-                已选择
+                <T>已选择</T>
               </Text>
               <LinkDivider />
             </>
           )}
 
-          <Link onClick={visitUser}>查看详情</Link>
+          <Link onClick={visitUser}>
+            <T>查看详情</T>
+          </Link>
 
           {type == "TransactionalMentor" && isMentee && (
             <>
@@ -605,7 +634,7 @@ function UserCardForMobile({
                   openModal();
                 }}
               >
-                预约交流
+                <T>预约交流</T>
               </Link>
             </>
           )}

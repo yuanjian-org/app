@@ -4,8 +4,11 @@ import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 import { features } from "shared/Features";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export default function MentorCard() {
+  const { t } = useTranslation("common");
   if (whiteLabel === "demo") return null;
 
   if (!features.relational && !features.exams && !features.interviews) {
@@ -15,23 +18,28 @@ export default function MentorCard() {
   return (
     <ResponsiveCard>
       <CardHeader>
-        <Heading size="sm">社会导师工具</Heading>
+        <Heading size="sm">
+          <T>社会导师工具</T>
+        </Heading>
       </CardHeader>
       <CardBody>
         <Flex direction="column" gap={componentSpacing}>
           {features.relational && (
             <LaunchpadCardItem
               padding
-              title="初次交流反馈"
+              title={t("初次交流反馈")}
               href="/match/feedback"
             />
           )}
 
           {features.exams && (
             <>
-              <LaunchpadCardItem title="《学生通讯原则》" href="/study/comms" />
               <LaunchpadCardItem
-                title="《社会导师手册》"
+                title={t("《学生通讯原则》")}
+                href="/study/comms"
+              />
+              <LaunchpadCardItem
+                title={t("《社会导师手册》")}
                 href="/study/handbook"
               />
             </>
@@ -39,7 +47,7 @@ export default function MentorCard() {
 
           {features.interviews && (
             <LaunchpadCardItem
-              title="《招生流程》与《面试标准》"
+              title={t("《招生流程》与《面试标准》")}
               href="/study/interview"
             />
           )}

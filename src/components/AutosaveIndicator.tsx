@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
+import T from "components/T";
 
 export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
   const errors = [...state.id2state.values()].filter((v) => v !== null);
@@ -37,7 +38,7 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
             <>
               <RepeatIcon {...iconProps} color="disabled" />
               <Text {...textProps} color="disabled">
-                保存中...
+                <T>保存中...</T>
               </Text>
             </>
           )}
@@ -53,7 +54,7 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
       <Center>
         <CheckIcon {...iconProps} color="green" />
         <Text {...textProps} color="green">
-          已保存
+          <T>已保存</T>
         </Text>
       </Center>
     </motion.div>

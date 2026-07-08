@@ -25,6 +25,8 @@ import {
 import { getUserUrl } from "shared/User";
 import invariant from "shared/invariant";
 import _ from "lodash";
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 
 const meetingDurationInMins = 60;
 const bucketSizeInMins = 15;
@@ -61,14 +63,20 @@ export default widePage(() => {
       <Table size="sm">
         <Thead>
           <Tr>
-            <Th>学生</Th>
-            <Th>导师</Th>
-            <Th>通话时间（北京时区）</Th>
+            <Th>
+              <T>学生</T>
+            </Th>
+            <Th>
+              <T>导师</T>
+            </Th>
+            <Th>
+              <T>通话时间（北京时区）</T>
+            </Th>
             {_.range(bucketsPerMeeting).map((i) => (
               <Th key={i}>
-                {i * bucketSizeInMins}-{(i + 1) * bucketSizeInMins} 分钟
+                {i * bucketSizeInMins}-{(i + 1) * bucketSizeInMins} <T>分钟</T>
                 <br />
-                并发数量
+                <T>并发数量</T>
               </Th>
             ))}
           </Tr>
@@ -82,7 +90,7 @@ export default widePage(() => {
       </Table>
 
       <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-        共 <b>{sorted.length}</b> 个一对一匹配
+        <T>共</T> <b>{sorted.length}</b> <T>个一对一匹配</T>
       </Text>
     </TableContainer>
   );
@@ -163,3 +171,4 @@ function Row({
     </Tr>
   );
 }
+export const getStaticProps = getI18nProps;

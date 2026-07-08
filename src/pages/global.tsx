@@ -18,6 +18,8 @@ import trpc, { trpcNext } from "trpc";
 import moment from "moment-timezone";
 import { features } from "shared/Features";
 import { zFeatures, Features } from "shared/Features";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   const { data } = trpcNext.globalConfigs.get.useQuery();
@@ -77,11 +79,11 @@ export default function Page() {
       </FormControl>
 
       <Button variant="brand" onClick={save} isLoading={saving}>
-        保存
+        <T>保存</T>
       </Button>
 
       <Heading size="md" mt={componentSpacing}>
-        功能模块开关
+        <T>功能模块开关</T>
       </Heading>
       <VStack align="start" spacing={2}>
         {Object.keys(zFeatures.shape).map((flag) => (
@@ -92,11 +94,11 @@ export default function Page() {
             ：
             {features[flag as keyof Features] ? (
               <Text as="span" color="green.500" fontWeight="bold">
-                开启
+                <T>开启</T>
               </Text>
             ) : (
               <Text as="span" color="gray.500">
-                关闭
+                <T>关闭</T>
               </Text>
             )}
           </Text>
@@ -107,9 +109,10 @@ export default function Page() {
           href="https://yuanjian.notion.site/37136363e90780319372ee9e580b20a3?pvs=74"
           isExternal
         >
-          查看功能模块文档
+          <T>查看功能模块文档</T>
         </Link>
       </Text>
     </VStack>
   );
 }
+export const getStaticProps = getI18nProps;

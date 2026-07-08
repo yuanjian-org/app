@@ -73,6 +73,8 @@ import {
 } from "components/MenteeSourceCell";
 import NextLink from "next/link";
 import SwitchAndLabel from "components/SwitchAndLabel";
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 
 export default widePage(() => {
   const type: InterviewType =
@@ -92,8 +94,13 @@ export default widePage(() => {
     <Flex direction="column" gap={6}>
       <TabsWithUrlParam isLazy>
         <TabList>
-          <Tab>{type == "MenteeInterview" ? "学生" : "导师"}候选人列表</Tab>
-          <Tab>面试讨论组</Tab>
+          <Tab>
+            {type == "MenteeInterview" ? "学生" : "导师"}
+            <T>候选人列表</T>
+          </Tab>
+          <Tab>
+            <T>面试讨论组</T>
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -163,7 +170,7 @@ function Applicants({
   return (
     <TableContainer>
       <Text marginBottom={sectionSpacing} color="gray" fontSize="sm">
-        点击候选人以编辑面试官和面试讨论组：
+        <T>点击候选人以编辑面试官和面试讨论组：</T>
       </Text>
 
       <Table size="sm">
@@ -171,10 +178,18 @@ function Applicants({
           <Tr>
             <PointOfContactHeaderCells />
             {type == "MenteeInterview" && <MenteeSourceHeaderCell />}
-            <Th>候选人</Th>
-            <Th>面试官</Th>
-            <Th>面试讨论组</Th>
-            <Th>拼音（方便查找）</Th>
+            <Th>
+              <T>候选人</T>
+            </Th>
+            <Th>
+              <T>面试官</T>
+            </Th>
+            <Th>
+              <T>面试讨论组</T>
+            </Th>
+            <Th>
+              <T>拼音（方便查找）</T>
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -193,11 +208,11 @@ function Applicants({
       </Table>
 
       <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-        共 <b>{applicants.length}</b> 名
+        <T>共</T> <b>{applicants.length}</b> <T>名</T>
       </Text>
 
       <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
-        <CheckIcon /> 表示已经填写了面试反馈的面试官。
+        <CheckIcon /> <T>表示已经填写了面试反馈的面试官。</T>
       </Text>
     </TableContainer>
   );
@@ -366,17 +381,22 @@ function InterviewEditor({
       <ModalContent>
         <ModalHeader>
           {interview ? "修改" : "创建"}
-          {type == "MenteeInterview" ? "学生" : "导师"}面试
+          {type == "MenteeInterview" ? "学生" : "导师"}
+          <T>面试</T>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
             <FormControl>
-              <FormLabel>候选人</FormLabel>
+              <FormLabel>
+                <T>候选人</T>
+              </FormLabel>
               <Text>{formatUserName(applicant.name)}</Text>
             </FormControl>
             <FormControl>
-              <FormLabel>面试官</FormLabel>
+              <FormLabel>
+                <T>面试官</T>
+              </FormLabel>
               <UserSelector
                 isMulti
                 onSelect={(userIds) => setInterviewerIds(userIds)}
@@ -388,7 +408,9 @@ function InterviewEditor({
               />
             </FormControl>
             <FormControl>
-              <FormLabel>面试讨论组</FormLabel>
+              <FormLabel>
+                <T>面试讨论组</T>
+              </FormLabel>
               <Select
                 placeholder="-"
                 onChange={(e) => setCalibrationId(e.target.value)}
@@ -408,7 +430,7 @@ function InterviewEditor({
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" isLoading={saving} onClick={save}>
-            保存
+            <T>保存</T>
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -445,7 +467,7 @@ function Calibrations({
   return (
     <Flex direction="column" gap={paragraphSpacing}>
       <Box>
-        说明：
+        <T>说明：</T>
         <UnorderedList>
           <ListItem>
             通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。
@@ -464,7 +486,7 @@ function Calibrations({
 
       <Box>
         <Button variant="outline" leftIcon={<AddIcon />} onClick={create}>
-          新建面试讨论组
+          <T>新建面试讨论组</T>
         </Button>
       </Box>
 
@@ -472,11 +494,19 @@ function Calibrations({
         <Table>
           <Thead>
             <Tr>
-              <Th>名称</Th>
-              <Th>进入</Th>
-              <Th>状态</Th>
+              <Th>
+                <T>名称</T>
+              </Th>
+              <Th>
+                <T>进入</T>
+              </Th>
+              <Th>
+                <T>状态</T>
+              </Th>
               <CalibrationManagerHeaderCells />
-              <Th>创建日期</Th>
+              <Th>
+                <T>创建日期</T>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -524,3 +554,4 @@ function Calibrations({
     </Flex>
   );
 }
+export const getStaticProps = getI18nProps;

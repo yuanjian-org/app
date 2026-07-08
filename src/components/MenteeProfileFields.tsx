@@ -1,6 +1,7 @@
 import { FormControl, FormLabel, Input, Textarea } from "@chakra-ui/react";
 import FormHelperTextWithMargin from "./FormHelperTextWithMargin";
 import { UserProfile } from "shared/UserProfile";
+import T from "components/T";
 
 export default function MenteeProfileFields({
   profile,
@@ -14,7 +15,9 @@ export default function MenteeProfileFields({
   return (
     <>
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>毕业高中</FormLabel>
+        <FormLabel>
+          <T>毕业高中</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.毕业高中 || ""}
@@ -23,7 +26,9 @@ export default function MenteeProfileFields({
       </FormControl>
 
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>大学</FormLabel>
+        <FormLabel>
+          <T>大学</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.大学 || ""}
@@ -32,7 +37,9 @@ export default function MenteeProfileFields({
       </FormControl>
 
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>就读专业</FormLabel>
+        <FormLabel>
+          <T>就读专业</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.就读专业 || ""}
@@ -41,7 +48,9 @@ export default function MenteeProfileFields({
       </FormControl>
 
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>大一入读年份</FormLabel>
+        <FormLabel>
+          <T>大一入读年份</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.大一入读年份 || ""}
@@ -50,9 +59,11 @@ export default function MenteeProfileFields({
       </FormControl>
 
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>现就读阶段</FormLabel>
+        <FormLabel>
+          <T>现就读阶段</T>
+        </FormLabel>
         <FormHelperTextWithMargin>
-          本科、专科、硕博连读等
+          <T>本科、专科、硕博连读等</T>
         </FormHelperTextWithMargin>
         <Input
           bg="white"
@@ -62,9 +73,11 @@ export default function MenteeProfileFields({
       </FormControl>
 
       <FormControl isRequired={showIsRequired}>
-        <FormLabel>自我介绍</FormLabel>
+        <FormLabel>
+          <T>自我介绍</T>
+        </FormLabel>
         <FormHelperTextWithMargin>
-          为什么要寻求帮助，未来你会如何回馈他人
+          <T>为什么要寻求帮助，未来你会如何回馈他人</T>
         </FormHelperTextWithMargin>
         <Textarea
           bg="white"

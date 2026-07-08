@@ -6,6 +6,7 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { useState } from "react";
+import T from "components/T";
 
 export interface StudyExamPageProps {
   title: string;
@@ -56,7 +57,11 @@ export default function StudyExamPage({
 
         {links.map((link, index) => (
           <div key={index}>
-            <Text>第{numberToChinese[index]}步：</Text>
+            <Text>
+              <T>第</T>
+              {numberToChinese[index]}
+              <T>步：</T>
+            </Text>
             <Button
               as={Link}
               isExternal
@@ -73,14 +78,20 @@ export default function StudyExamPage({
           </div>
         ))}
 
-        <Text>第{numberToChinese[links.length]}步：</Text>
+        <Text>
+          <T>第</T>
+          {numberToChinese[links.length]}
+          <T>步：</T>
+        </Text>
         <Button isLoading={loading} onClick={handleStartExam} variant="brand">
           开始评测&nbsp;&nbsp;&nbsp;✍️
         </Button>
 
         {state && (
           <>
-            <Text>上次评测通过时间：</Text>
+            <Text>
+              <T>上次评测通过时间：</T>
+            </Text>
             <Text>
               <b>
                 {state[examStateKey]

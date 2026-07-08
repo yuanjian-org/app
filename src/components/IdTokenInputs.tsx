@@ -14,6 +14,7 @@ import PhoneInput from "./PhoneInput";
 import { toast } from "react-toastify";
 import { IdType } from "shared/IdType";
 import { EmailInput } from "pages/auth/login";
+import { useTranslation } from "next-i18next";
 
 export type IdTokenInputsState = {
   id: string;
@@ -30,6 +31,7 @@ export default function IdTokenInputs({
   onStateChange: (state: IdTokenInputsState) => void;
   buttonWidth?: string;
 }) {
+  const { t } = useTranslation("common");
   const [id, setId] = useState("");
   const [token, setToken] = useState("");
   const [countdown, setCountdown] = useState(0);
@@ -99,7 +101,7 @@ export default function IdTokenInputs({
           <Input
             isRequired={true}
             value={token}
-            placeholder="验证码"
+            placeholder={t("验证码")}
             type="text"
             isDisabled={!isValidId(id)}
             onChange={(e) => {

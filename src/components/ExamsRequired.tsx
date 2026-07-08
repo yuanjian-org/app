@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import NextLink from "next/link";
 import { calculateExamsRequired } from "shared/exams";
 import { features } from "shared/Features";
+import T from "components/T";
 
 export function useExamsRequired() {
   const { data: state } = trpcNext.users.getUserState.useQuery();
@@ -42,21 +43,21 @@ export function ExamsRequired({
   if (commsExamRequired) {
     links.push(
       <Link as={NextLink} href="/study/comms" key="comms">
-        《学生通信原则》自学与评测
+        <T>《学生通信原则》自学与评测</T>
       </Link>,
     );
   }
   if (interviewExamRequired) {
     links.push(
       <Link as={NextLink} href="/study/interview" key="interview">
-        面试官自学与评测
+        <T>面试官自学与评测</T>
       </Link>,
     );
   }
   if (handbookExamRequired) {
     links.push(
       <Link as={NextLink} href="/study/handbook" key="handbook">
-        《社会导师手册》自学与评测
+        <T>《社会导师手册》自学与评测</T>
       </Link>,
     );
   }
@@ -64,7 +65,7 @@ export function ExamsRequired({
   return (
     <Flex direction="column" gap={paragraphSpacing} maxW={maxTextWidth}>
       <p>
-        请首先完成
+        <T>请首先完成</T>
         {links.map((link, index) => (
           <span key={link.key}>
             {index > 0 && " 以及 "}
@@ -74,7 +75,11 @@ export function ExamsRequired({
         ，{actionText}。
       </p>
 
-      <p>我们邀请{roleText}每年重新评测一次，感谢你的理解与支持。</p>
+      <p>
+        <T>我们邀请</T>
+        {roleText}
+        <T>每年重新评测一次，感谢你的理解与支持。</T>
+      </p>
 
       {interviewExamRequired && (
         <p>

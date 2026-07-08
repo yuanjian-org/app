@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { parseQueryString } from "shared/strings/parseQueryString";
 import Loader from "components/Loader";
 import { Heading, Text, Flex } from "@chakra-ui/react";
+import T from "components/T";
 
 export default function Page() {
   return <AssessmentEditor />;
@@ -28,10 +29,18 @@ function AssessmentEditor() {
         <Loader />
       ) : (
         <Flex direction="column" gap={6}>
-          <Heading size="sm">总评</Heading>
-          <Text color="disabled">尚未开发</Text>
-          <Heading size="sm">按辅助层面评估</Heading>
-          <Text color="disabled">尚未开发</Text>
+          <Heading size="sm">
+            <T>总评</T>
+          </Heading>
+          <Text color="disabled">
+            <T>尚未开发</T>
+          </Text>
+          <Heading size="sm">
+            <T>按辅助层面评估</T>
+          </Heading>
+          <Text color="disabled">
+            <T>尚未开发</T>
+          </Text>
         </Flex>
       )}
     </>

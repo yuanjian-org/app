@@ -26,6 +26,8 @@ import { getTaskMarkdown, isAutoTask, Task } from "shared/Task";
 import { componentSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { useMyId } from "useMe";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 /**
  * @param task The task to edit. If not provided, a new task will be created.
@@ -41,6 +43,7 @@ export default function TaskEditor({
   onClose: () => void;
   refetch: () => void;
 }) {
+  const { t } = useTranslation("common");
   const [assigneeId, setAssigneeId] = useState<string | undefined>(
     task?.assignee.id,
   );
@@ -78,7 +81,7 @@ export default function TaskEditor({
       <ModalContent>
         <ModalHeader>
           {task ? "编辑" : "新建"}
-          待办事项
+          <T>待办事项</T>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -110,7 +113,7 @@ export default function TaskEditor({
               </Box>
             ) : (
               <Input
-                placeholder="待办事项"
+                placeholder={t("待办事项")}
                 autoFocus
                 value={markdown}
                 onChange={(e) => setMarkdown(e.target.value)}
@@ -120,7 +123,7 @@ export default function TaskEditor({
             {task?.creator && (
               <HStack justify="space-between" w="full">
                 <SmallGrayText>
-                  创建人：
+                  <T>创建人：</T>
                   <UserName user={task.creator} />
                 </SmallGrayText>
                 <MarkdownSupport fontSize="sm" />
@@ -138,7 +141,7 @@ export default function TaskEditor({
         <ModalFooter>
           <HStack spacing={componentSpacing}>
             <Button variant="ghost" color="gray" onClick={onClose}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               isDisabled={!assigneeId || markdown.trim().length === 0}
@@ -146,7 +149,7 @@ export default function TaskEditor({
               isLoading={isSaving}
               onClick={save}
             >
-              确认
+              <T>确认</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -205,7 +208,9 @@ function AssigneeSelector({
 
   return (
     <HStack align="start">
-      <Text fontWeight="bold">待办人：</Text>
+      <Text fontWeight="bold">
+        <T>待办人：</T>
+      </Text>
       <RadioGroup onChange={setSelected} value={selected}>
         <HStack spacing={2}>
           {users.map((user) => {

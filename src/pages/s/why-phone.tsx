@@ -6,6 +6,8 @@
 import { Link, Text, Flex, ListItem, UnorderedList } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { staticUrlPrefix } from "static";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   return (
@@ -14,7 +16,7 @@ export default function Page() {
       <Flex direction="column" gap={5}>
         <Text>
           <Link isExternal href={staticUrlPrefix}>
-            远图社会导师服务平台
+            <T>远图社会导师服务平台</T>
           </Link>
           致力保护个人隐私。我们仅收集提供服务所需的最少个人信息。本声明旨在解释我们收集用户手机号的原因：
         </Text>
@@ -24,15 +26,21 @@ export default function Page() {
         <Text>手机号是实现这一目标最有效的途径，原因如下：</Text>
         <UnorderedList>
           <ListItem>
-            <b>唯一性：</b>
+            <b>
+              <T>唯一性：</T>
+            </b>
             相比邮箱和微信号，手机号能更可靠地识别您的身份。大多数用户只有一个常用手机号，而邮箱地址可能有多個，微信号也难以记忆和验证。
           </ListItem>
           <ListItem>
-            <b>隐私保护：</b>
+            <b>
+              <T>隐私保护：</T>
+            </b>
             与身份证号、银行卡号等更敏感的个人信息相比，手机号泄露隐私的风险更低。
           </ListItem>
           <ListItem>
-            <b>账号关联：</b>
+            <b>
+              <T>账号关联：</T>
+            </b>
             手机号能将您不同的登录方式（如邮箱和微信）关联到同一个账户，确保您的所有数据都集中在一个地方，避免信息分散或丢失。
           </ListItem>
         </UnorderedList>
@@ -45,3 +53,4 @@ export default function Page() {
 }
 
 Page.title = "为什么要填手机号？";
+export const getStaticProps = getI18nProps;

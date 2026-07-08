@@ -2,6 +2,7 @@ import { whiteLabel } from "shared/WhiteLabel";
 import { Link, Wrap, WrapItem, WrapProps } from "@chakra-ui/react";
 import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
+import T from "components/T";
 
 export default function Footer({ ...rest }: WrapProps) {
   const color = "gray.400";
@@ -22,7 +23,7 @@ export default function Footer({ ...rest }: WrapProps) {
     >
       {!isSongding && (
         <WrapItem>
-          &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
+          &copy; {new Date().getFullYear()} <T>杭州思烛教育科技有限公司</T>
         </WrapItem>
       )}
 
@@ -34,7 +35,8 @@ export default function Footer({ ...rest }: WrapProps) {
             href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beian}`}
             rel="noreferrer"
           >
-            浙公网安备{beian}
+            <T>浙公网安备</T>
+            {beian}
           </Link>
         </WrapItem>
       )}

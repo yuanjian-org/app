@@ -43,6 +43,7 @@ import { getLastKudosReadAt } from "components/unread";
 import { motion, AnimatePresence } from "framer-motion";
 import useMe, { useMyId } from "useMe";
 import ListItemDivider from "./ListItemDivider";
+import T from "components/T";
 
 export function KudosControl({
   user,
@@ -269,10 +270,12 @@ function KudosForm({
       </ButtonGroup>
 
       <ButtonGroup width="100%" alignItems="center">
-        <Link onClick={() => setIsHistoryOpen(true)}>查看所有的赞</Link>
+        <Link onClick={() => setIsHistoryOpen(true)}>
+          <T>查看所有的赞</T>
+        </Link>
         <Spacer />
         <Button variant="outline" onClick={onClose}>
-          取消
+          <T>取消</T>
         </Button>
         <Button
           isDisabled={text.length == 0}
@@ -280,7 +283,7 @@ function KudosForm({
           onClick={submit}
           isLoading={isSaving}
         >
-          发送
+          <T>发送</T>
         </Button>
       </ButtonGroup>
 
@@ -307,7 +310,10 @@ function UserKudosHistoryModal({
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(user.name, "formal")}收到的赞</ModalHeader>
+        <ModalHeader>
+          {formatUserName(user.name, "formal")}
+          <T>收到的赞</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {!kudos ? (
@@ -323,7 +329,9 @@ function UserKudosHistoryModal({
           )}
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>

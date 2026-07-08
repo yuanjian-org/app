@@ -26,6 +26,7 @@ import { useMyId } from "useMe";
 import { InterviewType } from "shared/InterviewType";
 import { useMemo } from "react";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
+import T from "components/T";
 
 export default widePage(() => {
   const interviewId = parseQueryString(useRouter(), "interviewId");
@@ -123,17 +124,26 @@ function Instructions({
       {/* <b>面试官必读</b> */}
       <UnorderedList>
         <ListItem>
-          用<Icon as={BsWechat} marginX={1.5} />
-          微信发起视频群聊。
+          <T>用</T>
+          <Icon as={BsWechat} marginX={1.5} />
+          <T>微信发起视频群聊。</T>
         </ListItem>
         {first !== null && (
           <>
             <ListItem>
-              <mark>你负责提问维度 {first ? firstHalf : secondHalf} </mark>；
-              {otherName}负责维度 {first ? secondHalf : firstHalf} 。
+              <mark>
+                <T>你负责提问维度</T> {first ? firstHalf : secondHalf}{" "}
+              </mark>
+              ；{otherName}
+              <T>负责维度</T> {first ? secondHalf : firstHalf} 。
             </ListItem>
             <ListItem>
-              <mark>填写所有{isMentee ? "八" : "十"}个维度</mark>的评价和总评。
+              <mark>
+                <T>填写所有</T>
+                {isMentee ? "八" : "十"}
+                <T>个维度</T>
+              </mark>
+              <T>的评价和总评。</T>
             </ListItem>
           </>
         )}
@@ -145,7 +155,7 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064"
               >
-                考察维度和参考题库 <ExternalLinkIcon />
+                <T>考察维度和参考题库</T> <ExternalLinkIcon />
               </Link>
             </ListItem>
             <ListItem>
@@ -153,7 +163,7 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe"
               >
-                面试须知 <ExternalLinkIcon />
+                <T>面试须知</T> <ExternalLinkIcon />
               </Link>
             </ListItem>
           </>
@@ -164,7 +174,7 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/7ded3b1de3ef4c35a2a669a4c6bc7ac1"
               >
-                导师面试流程和标准 <ExternalLinkIcon />
+                <T>导师面试流程和标准</T> <ExternalLinkIcon />
               </Link>
             </ListItem>
           </>
