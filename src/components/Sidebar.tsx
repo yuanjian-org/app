@@ -40,6 +40,7 @@ import {
   MdMic,
   MdHome,
   MdBusiness,
+  MdLanguage,
 } from "react-icons/md";
 import Role from "../shared/Role";
 import { compareChinese } from "shared/strings/compareChinese";
@@ -154,31 +155,6 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     name: "全局设置",
     action: "/global",
     roles: "MentorshipAdmin",
-  },
-];
-
-const userDropdownMenuItems: DropdownMenuItem[] = [
-  {
-    name: "个人资料",
-    action: "/profiles/me",
-  },
-  {
-    name: "偏好设置",
-    action: "/preferences/me",
-  },
-  {
-    name: accountPageTitle,
-    action: "/accounts/me",
-  },
-  {
-    icon: <RiCustomerServiceFill />,
-    name: "联系客服",
-    action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
-    target: "_blank",
-  },
-  {
-    name: "退出登录",
-    action: () => signOut({ callbackUrl: staticUrlPrefix }),
   },
 ];
 
@@ -370,6 +346,45 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
+  const router = useRouter();
+
+  const userDropdownMenuItems: DropdownMenuItem[] = [
+    {
+      name: "个人资料",
+      action: "/profiles/me",
+    },
+    {
+      name: "偏好设置",
+      action: "/preferences/me",
+    },
+    {
+      name: accountPageTitle,
+      action: "/accounts/me",
+    },
+    {
+      icon: <RiCustomerServiceFill />,
+      name: "联系客服",
+      action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
+      target: "_blank",
+    },
+    ...(features.english
+      ? [
+          {
+            icon: <MdLanguage />,
+            name: router.locale === "en" ? "切换到中文" : "Switch to English",
+            action: () => {
+              const nextLocale = router.locale === "en" ? "zh" : "en";
+              document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`;
+              router.reload();
+            },
+          } as DropdownMenuItem,
+        ]
+      : []),
+    {
+      name: "退出登录",
+      action: () => signOut({ callbackUrl: staticUrlPrefix }),
+    },
+  ];
 
   return (
     <Flex
