@@ -23,7 +23,7 @@ export default function Page() {
   const myId = useMyId();
   return (
     <>
-      <PageBreadcrumb current={t("personal_space", { defaultValue: title })} />
+      <PageBreadcrumb current={t(title)} />
 
       <Grid
         templateColumns={{ base: "1fr", [breakpoint]: "1fr 0.618fr" }}
