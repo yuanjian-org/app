@@ -6,6 +6,7 @@ import NextLink from "next/link";
 import { sectionSpacing } from "theme/metrics";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
@@ -48,3 +49,5 @@ export default function Page() {
 }
 
 Page.title = "我的面试";
+
+export const getStaticProps = getI18nProps;

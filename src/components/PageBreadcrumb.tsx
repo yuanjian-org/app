@@ -7,6 +7,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import T from "./T";
 
 export const pageBreadcrumbMarginBottom = 8;
 
@@ -21,7 +22,9 @@ export default function PageBreadcrumb({
   const parentItems = parents?.map((p) => (
     <BreadcrumbItem key={p.link}>
       <BreadcrumbLink as={Link} href={p.link}>
-        <Heading size="md">{p.name}</Heading>
+        <Heading size="md">
+          <T>{p.name}</T>
+        </Heading>
       </BreadcrumbLink>
     </BreadcrumbItem>
   ));
@@ -34,7 +37,9 @@ export default function PageBreadcrumb({
       {parentItems}
       <BreadcrumbItem isCurrentPage>
         <BreadcrumbLink>
-          <Heading size="md">{current}</Heading>
+          <Heading size="md">
+            <T>{current}</T>
+          </Heading>
         </BreadcrumbLink>
       </BreadcrumbItem>
     </Breadcrumb>
