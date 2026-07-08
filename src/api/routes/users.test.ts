@@ -252,6 +252,9 @@ describe("updateImpl", () => {
     wechat: user.wechat || "",
     url: user.url || "",
     wechatUnionId: null,
+    menteeStatus: user.menteeStatus || null,
+    pointOfContact: null,
+    pointOfContactNote: null,
   });
 
   it("should throw notFoundError when user doesn't exist", async () => {
@@ -338,7 +341,10 @@ describe("updateImpl", () => {
   });
 
   it("should successfully update roles (UserAdmin)", async () => {
-    const input = { ...baseInput(targetUser), roles: ["Volunteer", "Mentor"] };
+    const input = {
+      ...baseInput(targetUser),
+      roles: ["Volunteer", "Mentor"] as any,
+    };
     await updateImpl(meManager, input, transaction);
 
     const updated = await db.User.findByPk(targetUser.id, { transaction });
@@ -460,70 +466,66 @@ describe("listImpl", () => {
     await transaction.rollback();
   });
 
-  it(
-    "should enforce limit and return nextCursor",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "User 1",
-            roles: ["Volunteer"],
-            pinyin: "a",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "User 2",
-            roles: ["Volunteer"],
-            pinyin: "b",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000003",
-            name: "User 3",
-            roles: ["Volunteer"],
-            pinyin: "c",
-          },
+  it("should enforce limit and return nextCursor", async () => {
+    await db.User.bulkCreate(
+      [
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "User 1",
+          roles: ["Volunteer"],
+          pinyin: "a",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "User 2",
+          roles: ["Volunteer"],
+          pinyin: "b",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          name: "User 3",
+          roles: ["Volunteer"],
+          pinyin: "c",
+        },
+      ],
+      { transaction },
+    );
+
+    const res = await usersModule.listImpl(
+      userAdmin,
+      {
+        limit: 2,
+        cursor: 0,
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000003",
         ],
-        { transaction },
-      );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(2);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
+    expect(res.items[1].id).equals("00000000-0000-0000-0000-000000000002");
+    expect(res.nextCursor).equals(2);
 
-      const res = await usersModule.listImpl(
-        userAdmin,
-        {
-          limit: 2,
-          cursor: 0,
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-            "00000000-0000-0000-0000-000000000003",
-          ],
-        },
-        transaction,
-      );
-      expect(res.items.length).equals(2);
-      expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
-      expect(res.items[1].id).equals("00000000-0000-0000-0000-000000000002");
-      expect(res.nextCursor).equals(2);
-
-      const res2 = await usersModule.listImpl(
-        userAdmin,
-        {
-          limit: 2,
-          cursor: res.nextCursor,
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-            "00000000-0000-0000-0000-000000000003",
-          ],
-        },
-        transaction,
-      );
-      expect(res2.items.length).equals(1);
-      expect(res2.items[0].id).equals("00000000-0000-0000-0000-000000000003");
-      expect(res2.nextCursor).equals(undefined);
-    },
-    transaction,
-  );
+    const res2 = await usersModule.listImpl(
+      userAdmin,
+      {
+        limit: 2,
+        cursor: res.nextCursor,
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+          "00000000-0000-0000-0000-000000000003",
+        ],
+      },
+      transaction,
+    );
+    expect(res2.items.length).equals(1);
+    expect(res2.items[0].id).equals("00000000-0000-0000-0000-000000000003");
+    expect(res2.nextCursor).equals(undefined);
+  });
 
   it("should restrict includeMerged and returnMergeInfo for non-UserAdmin", async () => {
     try {
@@ -549,465 +551,426 @@ describe("listImpl", () => {
     }
   });
 
-  it(
-    "should filter includeNonVolunteersMentors",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "Vol",
-            roles: ["Volunteer"],
-            pinyin: "a",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "NonVol",
-            roles: ["Mentee"],
-            pinyin: "b",
-          },
-        ],
-        { transaction },
-      );
-
-      let res = await usersModule.listImpl(
-        userAdmin,
+  it("should filter includeNonVolunteersMentors", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Vol",
+          roles: ["Volunteer"],
+          pinyin: "a",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(1);
-      expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
-
-      res = await usersModule.listImpl(
-        userAdmin,
         {
-          includeNonVolunteersMentors: true,
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "NonVol",
+          roles: ["Mentee"],
+          pinyin: "b",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(2);
-    },
-    transaction,
-  );
+      ],
+      { transaction },
+    );
 
-  it(
-    "should filter containsRoles",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "Vol",
-            roles: ["Volunteer"],
-            pinyin: "a",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "Vol+Mentee",
-            roles: ["Volunteer", "Mentee"],
-            pinyin: "b",
-          },
+    let res = await usersModule.listImpl(
+      userAdmin,
+      {
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
         ],
-        { transaction },
-      );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
 
-      const res = await usersModule.listImpl(
-        userAdmin,
+    res = await usersModule.listImpl(
+      userAdmin,
+      {
+        includeNonVolunteersMentors: true,
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+        ],
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(2);
+  });
+
+  it("should filter containsRoles", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          containsRoles: ["Mentee"],
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Vol",
+          roles: ["Volunteer"],
+          pinyin: "a",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(1);
-      expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
-    },
-    transaction,
-  );
-
-  it(
-    "should filter menteeStatus and pointOfContactId",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "Vol1",
-            roles: ["Volunteer"],
-            menteeStatus: "现届学子",
-            pointOfContactId: "00000000-0000-0000-0000-000000000001",
-            pinyin: "a",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "Vol2",
-            roles: ["Volunteer"],
-            menteeStatus: "初拒",
-            pointOfContactId: "00000000-0000-0000-0000-000000000002",
-            pinyin: "b",
-          },
-        ],
-        { transaction },
-      );
-
-      let res = await usersModule.listImpl(
-        userAdmin,
         {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "Vol+Mentee",
+          roles: ["Volunteer", "Mentee"],
+          pinyin: "b",
+        },
+      ],
+      { transaction },
+    );
+
+    const res = await usersModule.listImpl(
+      userAdmin,
+      {
+        containsRoles: ["Mentee"],
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+        ],
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
+  });
+
+  it("should filter menteeStatus and pointOfContactId", async () => {
+    await db.User.bulkCreate(
+      [
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Vol1",
+          roles: ["Volunteer"],
           menteeStatus: "现届学子",
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          pointOfContactId: "00000000-0000-0000-0000-000000000001",
+          pinyin: "a",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(1);
-      expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
-
-      res = await usersModule.listImpl(
-        userAdmin,
         {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "Vol2",
+          roles: ["Volunteer"],
+          menteeStatus: "初拒",
           pointOfContactId: "00000000-0000-0000-0000-000000000002",
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          pinyin: "b",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(1);
-      expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
-    },
-    transaction,
-  );
+      ],
+      { transaction },
+    );
 
-  it(
-    "should filter matchesNameOrEmail correctly on name, pinyin, and email",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "Alice Zhang",
-            email: "foo@a.com",
-            roles: ["Volunteer"],
-            pinyin: "alice zhang",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "Bob Li",
-            email: "alice.l@a.com",
-            roles: ["Volunteer"],
-            pinyin: "bob li",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000003",
-            name: "Charlie Wang",
-            email: "bar@a.com",
-            roles: ["Volunteer"],
-            pinyin: "charlie wang alice",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000004",
-            name: "David Chen",
-            email: "baz@a.com",
-            roles: ["Volunteer"],
-            pinyin: "david chen",
-          },
+    let res = await usersModule.listImpl(
+      userAdmin,
+      {
+        menteeStatus: "现届学子",
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
         ],
-        { transaction },
-      );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000001");
 
-      const res = await usersModule.listImpl(
-        userAdmin,
+    res = await usersModule.listImpl(
+      userAdmin,
+      {
+        pointOfContactId: "00000000-0000-0000-0000-000000000002",
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+        ],
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(1);
+    expect(res.items[0].id).equals("00000000-0000-0000-0000-000000000002");
+  });
+
+  it("should filter matchesNameOrEmail correctly on name, pinyin, and email", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          matchesNameOrEmail: "alice",
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-            "00000000-0000-0000-0000-000000000003",
-            "00000000-0000-0000-0000-000000000004",
-          ],
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Alice Zhang",
+          email: "foo@a.com",
+          roles: ["Volunteer"],
+          pinyin: "alice zhang",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(3);
-      const ids = res.items.map((i) => i.id).sort();
-      expect(ids).to.deep.equal(
-        [
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "Bob Li",
+          email: "alice.l@a.com",
+          roles: ["Volunteer"],
+          pinyin: "bob li",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          name: "Charlie Wang",
+          email: "bar@a.com",
+          roles: ["Volunteer"],
+          pinyin: "charlie wang alice",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000004",
+          name: "David Chen",
+          email: "baz@a.com",
+          roles: ["Volunteer"],
+          pinyin: "david chen",
+        },
+      ],
+      { transaction },
+    );
+
+    const res = await usersModule.listImpl(
+      userAdmin,
+      {
+        matchesNameOrEmail: "alice",
+        ids: [
           "00000000-0000-0000-0000-000000000001",
           "00000000-0000-0000-0000-000000000002",
           "00000000-0000-0000-0000-000000000003",
+          "00000000-0000-0000-0000-000000000004",
         ],
-        { transaction },
-      );
-    },
-    transaction,
-  );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(3);
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000003",
+    ]);
+  });
 
-  it(
-    "should filter includeMentorSearch using mentor name/pinyin",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "10000000-0000-0000-0000-000000000001",
-            name: "Mentee One",
-            roles: ["Volunteer"],
-            pinyin: "mentee one",
-          },
-          {
-            id: "10000000-0000-0000-0000-000000000002",
-            name: "Mentee Two",
-            roles: ["Volunteer"],
-            pinyin: "mentee two",
-          },
-          {
-            id: "20000000-0000-0000-0000-000000000001",
-            name: "Mentor Master",
-            roles: ["Volunteer"],
-            pinyin: "mentor master",
-          },
-          {
-            id: "20000000-0000-0000-0000-000000000002",
-            name: "Mentor Guru",
-            roles: ["Volunteer"],
-            pinyin: "mentor guru",
-          },
-          {
-            id: "20000000-0000-0000-0000-000000000003",
-            name: "Mentor Master Ended",
-            roles: ["Volunteer"],
-            pinyin: "mentor master ended",
-          },
-          {
-            id: "10000000-0000-0000-0000-000000000003",
-            name: "Mentee Three",
-            roles: ["Volunteer"],
-            pinyin: "mentee three",
-          },
-          {
-            id: "20000000-0000-0000-0000-000000000004",
-            name: "Mentor Master Transactional",
-            roles: ["Volunteer"],
-            pinyin: "mentor master transactional",
-          },
-          {
-            id: "10000000-0000-0000-0000-000000000004",
-            name: "Mentee Four",
-            roles: ["Volunteer"],
-            pinyin: "mentee four",
-          },
-        ],
-        { transaction },
-      );
-
-      await db.Mentorship.bulkCreate(
-        [
-          {
-            id: "30000000-0000-0000-0000-000000000001",
-            menteeId: "10000000-0000-0000-0000-000000000001",
-            mentorId: "20000000-0000-0000-0000-000000000001",
-            status: "Active",
-            transactional: false,
-          },
-          {
-            id: "30000000-0000-0000-0000-000000000002",
-            menteeId: "10000000-0000-0000-0000-000000000002",
-            mentorId: "20000000-0000-0000-0000-000000000002",
-            status: "Active",
-            transactional: false,
-          },
-          {
-            id: "30000000-0000-0000-0000-000000000003",
-            menteeId: "10000000-0000-0000-0000-000000000003",
-            mentorId: "20000000-0000-0000-0000-000000000003",
-            status: "Active",
-            endsAt: new Date(Date.now() - 10000), // Ended mentorship
-            transactional: false,
-          },
-          {
-            id: "30000000-0000-0000-0000-000000000004",
-            menteeId: "10000000-0000-0000-0000-000000000004",
-            mentorId: "20000000-0000-0000-0000-000000000004",
-            status: "Active",
-            transactional: true, // Transactional mentorship
-          },
-        ],
-        { transaction },
-      );
-
-      let res = await usersModule.listImpl(
-        userAdmin,
+  it("should filter includeMentorSearch using mentor name/pinyin", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          matchesNameOrEmail: "master",
-          ids: [
-            "10000000-0000-0000-0000-000000000001",
-            "10000000-0000-0000-0000-000000000002",
-            "10000000-0000-0000-0000-000000000003",
-            "10000000-0000-0000-0000-000000000004",
-            "20000000-0000-0000-0000-000000000001",
-            "20000000-0000-0000-0000-000000000002",
-            "20000000-0000-0000-0000-000000000003",
-            "20000000-0000-0000-0000-000000000004",
-          ],
+          id: "10000000-0000-0000-0000-000000000001",
+          name: "Mentee One",
+          roles: ["Volunteer"],
+          pinyin: "mentee one",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(3); // Mentor Master, Mentor Master Ended, and Mentor Master Transactional
-      const mentorIds = res.items.map((i) => i.id).sort();
-      expect(mentorIds).to.deep.equal([
-        "20000000-0000-0000-0000-000000000001",
-        "20000000-0000-0000-0000-000000000003",
-        "20000000-0000-0000-0000-000000000004",
-      ]);
-
-      res = await usersModule.listImpl(
-        userAdmin,
         {
-          matchesNameOrEmail: "master",
-          includeMentorSearch: true,
-          ids: [
-            "10000000-0000-0000-0000-000000000001",
-            "10000000-0000-0000-0000-000000000002",
-            "10000000-0000-0000-0000-000000000003",
-            "10000000-0000-0000-0000-000000000004",
-            "20000000-0000-0000-0000-000000000001",
-            "20000000-0000-0000-0000-000000000002",
-            "20000000-0000-0000-0000-000000000003",
-            "20000000-0000-0000-0000-000000000004",
-          ],
+          id: "10000000-0000-0000-0000-000000000002",
+          name: "Mentee Two",
+          roles: ["Volunteer"],
+          pinyin: "mentee two",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(4); // Mentee One (active), Mentor Master, Mentor Master Ended, Mentor Master Transactional. (Mentee Three and Mentee Four excluded)
-      const ids = res.items.map((i) => i.id).sort();
-      expect(ids).to.deep.equal(
-        [
+        {
+          id: "20000000-0000-0000-0000-000000000001",
+          name: "Mentor Master",
+          roles: ["Volunteer"],
+          pinyin: "mentor master",
+        },
+        {
+          id: "20000000-0000-0000-0000-000000000002",
+          name: "Mentor Guru",
+          roles: ["Volunteer"],
+          pinyin: "mentor guru",
+        },
+        {
+          id: "20000000-0000-0000-0000-000000000003",
+          name: "Mentor Master Ended",
+          roles: ["Volunteer"],
+          pinyin: "mentor master ended",
+        },
+        {
+          id: "10000000-0000-0000-0000-000000000003",
+          name: "Mentee Three",
+          roles: ["Volunteer"],
+          pinyin: "mentee three",
+        },
+        {
+          id: "20000000-0000-0000-0000-000000000004",
+          name: "Mentor Master Transactional",
+          roles: ["Volunteer"],
+          pinyin: "mentor master transactional",
+        },
+        {
+          id: "10000000-0000-0000-0000-000000000004",
+          name: "Mentee Four",
+          roles: ["Volunteer"],
+          pinyin: "mentee four",
+        },
+      ],
+      { transaction },
+    );
+
+    await db.Mentorship.bulkCreate(
+      [
+        {
+          id: "30000000-0000-0000-0000-000000000001",
+          menteeId: "10000000-0000-0000-0000-000000000001",
+          mentorId: "20000000-0000-0000-0000-000000000001",
+          status: "Active",
+          transactional: false,
+        },
+        {
+          id: "30000000-0000-0000-0000-000000000002",
+          menteeId: "10000000-0000-0000-0000-000000000002",
+          mentorId: "20000000-0000-0000-0000-000000000002",
+          status: "Active",
+          transactional: false,
+        },
+        {
+          id: "30000000-0000-0000-0000-000000000003",
+          menteeId: "10000000-0000-0000-0000-000000000003",
+          mentorId: "20000000-0000-0000-0000-000000000003",
+          status: "Active",
+          endsAt: new Date(Date.now() - 10000), // Ended mentorship
+          transactional: false,
+        },
+        {
+          id: "30000000-0000-0000-0000-000000000004",
+          menteeId: "10000000-0000-0000-0000-000000000004",
+          mentorId: "20000000-0000-0000-0000-000000000004",
+          status: "Active",
+          transactional: true, // Transactional mentorship
+        },
+      ],
+      { transaction },
+    );
+
+    let res = await usersModule.listImpl(
+      userAdmin,
+      {
+        matchesNameOrEmail: "master",
+        ids: [
           "10000000-0000-0000-0000-000000000001",
+          "10000000-0000-0000-0000-000000000002",
+          "10000000-0000-0000-0000-000000000003",
+          "10000000-0000-0000-0000-000000000004",
           "20000000-0000-0000-0000-000000000001",
+          "20000000-0000-0000-0000-000000000002",
           "20000000-0000-0000-0000-000000000003",
           "20000000-0000-0000-0000-000000000004",
         ],
-        { transaction },
-      );
-    },
-    transaction,
-  );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(3); // Mentor Master, Mentor Master Ended, and Mentor Master Transactional
+    const mentorIds = res.items.map((i) => i.id).sort();
+    expect(mentorIds).to.deep.equal([
+      "20000000-0000-0000-0000-000000000001",
+      "20000000-0000-0000-0000-000000000003",
+      "20000000-0000-0000-0000-000000000004",
+    ]);
 
-  it(
-    "should filter by ids",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "User 1",
-            roles: ["Volunteer"],
-            pinyin: "a",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "User 2",
-            roles: ["Volunteer"],
-            pinyin: "b",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000003",
-            name: "User 3",
-            roles: ["Volunteer"],
-            pinyin: "c",
-          },
+    res = await usersModule.listImpl(
+      userAdmin,
+      {
+        matchesNameOrEmail: "master",
+        includeMentorSearch: true,
+        ids: [
+          "10000000-0000-0000-0000-000000000001",
+          "10000000-0000-0000-0000-000000000002",
+          "10000000-0000-0000-0000-000000000003",
+          "10000000-0000-0000-0000-000000000004",
+          "20000000-0000-0000-0000-000000000001",
+          "20000000-0000-0000-0000-000000000002",
+          "20000000-0000-0000-0000-000000000003",
+          "20000000-0000-0000-0000-000000000004",
         ],
-        { transaction },
-      );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(4); // Mentee One (active), Mentor Master, Mentor Master Ended, Mentor Master Transactional. (Mentee Three and Mentee Four excluded)
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "10000000-0000-0000-0000-000000000001",
+      "20000000-0000-0000-0000-000000000001",
+      "20000000-0000-0000-0000-000000000003",
+      "20000000-0000-0000-0000-000000000004",
+    ]);
+  });
 
-      const res = await usersModule.listImpl(
-        userAdmin,
+  it("should filter by ids", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000003",
-          ],
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "User 1",
+          roles: ["Volunteer"],
+          pinyin: "a",
         },
-        transaction,
-      );
-      expect(res.items.length).equals(2);
-      const ids = res.items.map((i) => i.id).sort();
-      expect(ids).to.deep.equal(
-        [
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "User 2",
+          roles: ["Volunteer"],
+          pinyin: "b",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          name: "User 3",
+          roles: ["Volunteer"],
+          pinyin: "c",
+        },
+      ],
+      { transaction },
+    );
+
+    const res = await usersModule.listImpl(
+      userAdmin,
+      {
+        ids: [
           "00000000-0000-0000-0000-000000000001",
           "00000000-0000-0000-0000-000000000003",
         ],
-        { transaction },
-      );
-    },
-    transaction,
-  );
+      },
+      transaction,
+    );
+    expect(res.items.length).equals(2);
+    const ids = res.items.map((i) => i.id).sort();
+    expect(ids).to.deep.equal([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000003",
+    ]);
+  });
 
-  it(
-    "should fetch merged info when returnMergeInfo is true",
-    async () => {
-      await db.User.bulkCreate(
-        [
-          {
-            id: "00000000-0000-0000-0000-000000000001",
-            name: "User 1",
-            roles: ["Volunteer"],
-            pinyin: "a",
-            wechatUnionId: "wx1",
-          },
-          {
-            id: "00000000-0000-0000-0000-000000000002",
-            name: "User 2",
-            roles: ["Volunteer"],
-            pinyin: "b",
-            wechatUnionId: "wx2",
-            mergedTo: "00000000-0000-0000-0000-000000000001",
-          },
-        ],
-        { transaction },
-      );
-
-      const res = await usersModule.listImpl(
-        userAdmin,
+  it("should fetch merged info when returnMergeInfo is true", async () => {
+    await db.User.bulkCreate(
+      [
         {
-          includeMerged: true,
-          returnMergeInfo: true,
-          ids: [
-            "00000000-0000-0000-0000-000000000001",
-            "00000000-0000-0000-0000-000000000002",
-          ],
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "User 1",
+          roles: ["Volunteer"],
+          pinyin: "a",
+          wechatUnionId: "wx1",
         },
-        transaction,
-      );
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "User 2",
+          roles: ["Volunteer"],
+          pinyin: "b",
+          wechatUnionId: "wx2",
+          mergedTo: "00000000-0000-0000-0000-000000000001",
+        },
+      ],
+      { transaction },
+    );
 
-      expect(res.items.length).equals(2);
-      const u1 = res.items.find(
-        (i) => i.id === "00000000-0000-0000-0000-000000000001",
-      );
-      const u2 = res.items.find(
-        (i) => i.id === "00000000-0000-0000-0000-000000000002",
-      );
+    const res = await usersModule.listImpl(
+      userAdmin,
+      {
+        includeMerged: true,
+        returnMergeInfo: true,
+        ids: [
+          "00000000-0000-0000-0000-000000000001",
+          "00000000-0000-0000-0000-000000000002",
+        ],
+      },
+      transaction,
+    );
 
-      expect(u1!.wechatUnionId).equals("wx1");
-      expect(u2!.wechatUnionId).equals("wx2");
-      expect(u2!.mergedToUser?.id).equals(
-        "00000000-0000-0000-0000-000000000001",
-      );
-    },
-    transaction,
-  );
+    expect(res.items.length).equals(2);
+    const u1 = res.items.find(
+      (i) => i.id === "00000000-0000-0000-0000-000000000001",
+    );
+    const u2 = res.items.find(
+      (i) => i.id === "00000000-0000-0000-0000-000000000002",
+    );
+
+    expect(u1!.wechatUnionId).equals("wx1");
+    expect(u2!.wechatUnionId).equals("wx2");
+    expect(u2!.mergedToUser?.id).equals("00000000-0000-0000-0000-000000000001");
+  });
 });
