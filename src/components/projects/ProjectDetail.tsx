@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   Flex,
@@ -18,7 +19,6 @@ import {
   ProjectVisibilityDescriptions,
   ProjectWithAssociation,
 } from "../../shared/Project";
-
 export function ProjectDetailCard({
   project,
   canEdit,
@@ -40,12 +40,14 @@ export function ProjectDetailCard({
             </Heading>
             <Flex align="center" gap={2}>
               <Text fontSize="md" color="gray.500" me={10}>
-                发起人：
+                <T>发起人：</T>
                 <NextLink href={`/users/${project.owner.id}`}>
                   <Text
                     as="span"
                     color="brand.a"
-                    _hover={{ textDecoration: "underline" }}
+                    _hover={{
+                      textDecoration: "underline",
+                    }}
                   >
                     {project.owner.name}
                   </Text>
@@ -81,7 +83,7 @@ export function ProjectDetailCard({
                 href={`/projects/${project.id}/edit`}
                 leftIcon={<MdEdit />}
               >
-                编辑项目
+                <T>编辑项目</T>
               </Button>
             )}
             {canEdit && (
@@ -89,7 +91,7 @@ export function ProjectDetailCard({
                 as={NextLink}
                 href={`/projects/${project.id}/applications`}
               >
-                查看申请
+                <T>查看申请</T>
               </Button>
             )}
             {!canEdit && project.status === "招募中" && (
@@ -98,7 +100,7 @@ export function ProjectDetailCard({
                 isLoading={isLoadingApply}
                 onClick={onApply}
               >
-                申请参加
+                <T>申请参加</T>
               </Button>
             )}
           </Flex>
@@ -119,7 +121,6 @@ export function ProjectDetailCard({
     </Card>
   );
 }
-
 export function Section({
   title,
   content,
@@ -137,7 +138,6 @@ export function Section({
     </Flex>
   );
 }
-
 export function VideoSection({ title, url }: { title: string; url?: string }) {
   if (!url) return null;
   return (

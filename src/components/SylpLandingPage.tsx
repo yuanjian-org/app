@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Box,
   Spacer,
@@ -19,7 +20,6 @@ import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
-
 export default function SylpLandingPage() {
   return (
     <VStack minHeight="100vh">
@@ -56,7 +56,7 @@ export default function SylpLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 ｜ Login
+              <T>登录 ｜ Login</T>
             </Button>
           </HStack>
         </Flex>
@@ -68,7 +68,14 @@ export default function SylpLandingPage() {
         w="100%"
         mt="70px"
       >
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} mt={10}>
+        <SimpleGrid
+          columns={{
+            base: 1,
+            md: 2,
+          }}
+          spacing={10}
+          mt={10}
+        >
           {/* Chinese Content */}
           <VStack spacing={6} align="start">
             <Heading size="lg">欢迎来到可持续青年领袖计划 (SYLP)</Heading>
@@ -131,9 +138,12 @@ export default function SylpLandingPage() {
             as={NextLink}
             href={loginUrl()}
             rightIcon={<ChevronRightIcon />}
-            width={{ base: "100%", md: "auto" }}
+            width={{
+              base: "100%",
+              md: "auto",
+            }}
           >
-            进入平台 ｜ Enter
+            <T>进入平台 ｜ Enter</T>
           </Button>
         </Flex>
       </Box>

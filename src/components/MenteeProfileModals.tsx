@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   ModalContent,
@@ -17,9 +18,7 @@ import { useEffect, useState } from "react";
 import MenteeProfileFields from "./MenteeProfileFields";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
-
 import useMe from "useMe";
-
 export function isMenteeProfileComplete(profile?: UserProfile) {
   if (!profile) return false;
   return !!(
@@ -31,7 +30,6 @@ export function isMenteeProfileComplete(profile?: UserProfile) {
     profile.自我介绍
   );
 }
-
 function BaseMenteeProfileModal({
   bodyText,
   secondaryAction,
@@ -45,24 +43,25 @@ function BaseMenteeProfileModal({
 }) {
   const me = useMe();
   const { data: initialData, isFetched } =
-    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+    trpcNext.users.getUserProfile.useQuery({
+      userId: me.id,
+    });
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
-
   useEffect(() => {
     if (initialData?.profile) {
       setProfile(initialData.profile);
     }
   }, [initialData]);
-
   const updateProfile = (k: keyof UserProfile, v: string) => {
-    const updated = { ...profile, [k]: v };
+    const updated = {
+      ...profile,
+      [k]: v,
+    };
     if (!v) delete updated[k];
     setProfile(updated);
   };
-
   const isComplete = isMenteeProfileComplete(profile as UserProfile);
   const [saving, setSaving] = useState(false);
-
   const save = async () => {
     setSaving(true);
     try {
@@ -76,11 +75,12 @@ function BaseMenteeProfileModal({
       setSaving(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen onClose={onCancel || (() => undefined)} size="xl">
       <ModalContent>
-        <ModalHeader>完善个人资料</ModalHeader>
+        <ModalHeader>
+          <T>完善个人资料</T>
+        </ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} align="start">
             <Text>{bodyText}</Text>
@@ -91,7 +91,9 @@ function BaseMenteeProfileModal({
                 showIsRequired
               />
             ) : (
-              <Text>加载中...</Text>
+              <Text>
+                <T>加载中...</T>
+              </Text>
             )}
           </VStack>
         </ModalBody>
@@ -105,7 +107,7 @@ function BaseMenteeProfileModal({
               isLoading={saving}
               onClick={save}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -113,7 +115,6 @@ function BaseMenteeProfileModal({
     </ModalWithBackdrop>
   );
 }
-
 export function MenteeProfileModal({
   userState,
   refetchUserState,
@@ -137,7 +138,6 @@ export function MenteeProfileModal({
     }
     if (onCancel) onCancel();
   };
-
   return (
     <BaseMenteeProfileModal
       bodyText={

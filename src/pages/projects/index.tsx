@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import { useState, useMemo } from "react";
 import {
   Button,
@@ -21,28 +23,25 @@ import {
   ProjectCard,
   searchProjects,
 } from "../../components/projects/ProjectList";
-
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
   const myRoles = useMyRoles();
   const canCreate = isPermitted(myRoles, ["Mentor", "ProjectAdmin"]);
-
   const [searchTerm, setSearchTerm] = useState<string>("");
-
   const searchResult = useMemo(() => {
     return searchTerm && projects
       ? searchProjects(projects, searchTerm)
       : projects;
   }, [searchTerm, projects]);
-
   if (projects === undefined) return <PageLoader />;
-
   return (
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">X-Challenge 问题</Heading>
+            <Heading size="lg">
+              <T>X-Challenge 问题</T>
+            </Heading>
             {canCreate && (
               <Button
                 as={NextLink}
@@ -50,7 +49,7 @@ export default fullPage(() => {
                 colorScheme="brand"
                 leftIcon={<MdAdd />}
               >
-                发布项目
+                <T>发布项目</T>
               </Button>
             )}
           </Flex>
@@ -64,7 +63,7 @@ export default fullPage(() => {
 
       {searchResult && searchResult.length === 0 ? (
         <Text mx={pageMarginX} mt={pageMarginX}>
-          暂无项目
+          <T>暂无项目</T>
         </Text>
       ) : (
         <SimpleGrid
@@ -86,3 +85,4 @@ export default fullPage(() => {
     </>
   );
 }, "项目列表");
+export const getStaticProps = getI18nProps;

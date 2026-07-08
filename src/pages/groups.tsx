@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Button,
   StackDivider,
@@ -34,11 +36,9 @@ import Loader from "components/Loader";
 import UserSelector from "../components/UserSelector";
 import QuestionIconTooltip from "../components/QuestionIconTooltip";
 import ConfirmationModal from "components/ConfirmationModal";
-
 export const publicGroupDescription =
   "公开会议允许任何有远图会议链接的用户加入会议。" +
   "仅下列用户有权查看会议历史。";
-
 export default function Page() {
   const [userIds, setUserIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
@@ -50,22 +50,21 @@ export default function Page() {
     includeOwned,
     includeArchived,
   });
-
   const createGroup = async () => {
     setCreating(true);
     try {
-      await trpc.groups.create.mutate({ userIds });
+      await trpc.groups.create.mutate({
+        userIds,
+      });
       void refetch();
     } finally {
       setCreating(false);
     }
   };
-
   const closeGroupEditor = () => {
     setGroupBeingEdited(null);
     void refetch();
   };
-
   return (
     <>
       {groupBeingEdited && (
@@ -88,7 +87,7 @@ export default function Page() {
             variant="brand"
             onClick={createGroup}
           >
-            创建自由分组
+            <T>创建自由分组</T>
           </Button>
         </WrapItem>
         <WrapItem alignItems="center">
@@ -96,7 +95,7 @@ export default function Page() {
             isChecked={includeOwned}
             onChange={(e) => setIncludeOwned(e.target.checked)}
           >
-            显示托管分组
+            <T>显示托管分组</T>
           </Checkbox>
           <QuestionIconTooltip label="”托管分组“是通过一对一导师匹配、学生面试等功能自动创建的分组。其他分组叫 ”自由分组“。" />
         </WrapItem>
@@ -105,7 +104,7 @@ export default function Page() {
             isChecked={includeArchived}
             onChange={(e) => setIncludeArchived(e.target.checked)}
           >
-            显示已存档分组
+            <T>显示已存档分组</T>
           </Checkbox>
         </WrapItem>
       </Wrap>
@@ -133,9 +132,7 @@ export default function Page() {
     </>
   );
 }
-
 Page.title = "会议";
-
 function GroupEditor({
   group,
   onClose,
@@ -149,9 +146,7 @@ function GroupEditor({
   const [users, setUsers] = useState(group.users);
   const [working, setWorking] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
-
   const isValid = users.length + newUserIds.length > 0;
-
   const save = async () => {
     setWorking(true);
     try {
@@ -160,7 +155,11 @@ function GroupEditor({
         name,
         public: isPublic,
         users: [
-          ...newUserIds.map((n) => ({ id: n, name: null, url: null })),
+          ...newUserIds.map((n) => ({
+            id: n,
+            name: null,
+            url: null,
+          })),
           ...users,
         ],
       });
@@ -169,43 +168,47 @@ function GroupEditor({
       setWorking(false);
     }
   };
-
   const archive = async () => {
     try {
-      await trpc.groups.archive.mutate({ groupId: group.id });
+      await trpc.groups.archive.mutate({
+        groupId: group.id,
+      });
     } finally {
       onClose();
     }
   };
-
   const unarchive = async () => {
     try {
-      await trpc.groups.unarchive.mutate({ groupId: group.id });
+      await trpc.groups.unarchive.mutate({
+        groupId: group.id,
+      });
     } finally {
       onClose();
     }
   };
-
   const destroy = async () => {
     setConfirmingDeletion(false);
     try {
-      await trpc.groups.destroy.mutate({ groupId: group.id });
+      await trpc.groups.destroy.mutate({
+        groupId: group.id,
+      });
     } finally {
       onClose();
     }
   };
-
   return (
     <>
       <ModalWithBackdrop isOpen onClose={onClose}>
         <ModalContent>
-          <ModalHeader>编辑会议分组</ModalHeader>
+          <ModalHeader>
+            <T>编辑会议分组</T>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={6}>
               <FormControl>
                 <FormLabel>
-                  会议链接{" "}
+                  <T>会议链接</T>{" "}
                   <Link
                     href={`${window.location.origin}/groups/${group.id}`}
                     isExternal
@@ -218,7 +221,9 @@ function GroupEditor({
                 </code>
               </FormControl>
               <FormControl>
-                <FormLabel>分组名称</FormLabel>
+                <FormLabel>
+                  <T>分组名称</T>
+                </FormLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -233,15 +238,20 @@ function GroupEditor({
                   isChecked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
                 >
-                  公开：{publicGroupDescription}
+                  <T>公开：</T>
+                  {publicGroupDescription}
                 </Checkbox>
               </FormControl>
               <FormControl>
-                <FormLabel>添加用户</FormLabel>
+                <FormLabel>
+                  <T>添加用户</T>
+                </FormLabel>
                 <UserSelector isMulti onSelect={setNewUserIds} />
               </FormControl>
               <FormControl>
-                <FormLabel>移除用户</FormLabel>
+                <FormLabel>
+                  <T>移除用户</T>
+                </FormLabel>
               </FormControl>
               {users.map((u) => (
                 <FormControl
@@ -259,22 +269,28 @@ function GroupEditor({
                 </FormControl>
               ))}
               <FormControl isInvalid={!isValid}>
-                <FormErrorMessage>需要至少一名用户。</FormErrorMessage>
+                <FormErrorMessage>
+                  <T>需要至少一名用户。</T>
+                </FormErrorMessage>
               </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
             {!group.archived ? (
-              <Button onClick={() => archive()}>存档分组</Button>
+              <Button onClick={() => archive()}>
+                <T>存档分组</T>
+              </Button>
             ) : (
               <>
-                <Button onClick={() => unarchive()}>取消存档</Button>
+                <Button onClick={() => unarchive()}>
+                  <T>取消存档</T>
+                </Button>
                 <Spacer />
                 <Button
                   onClick={() => setConfirmingDeletion(true)}
                   colorScheme="red"
                 >
-                  删除分组
+                  <T>删除分组</T>
                 </Button>
               </>
             )}
@@ -285,7 +301,7 @@ function GroupEditor({
               isDisabled={!isValid}
               onClick={save}
             >
-              保存
+              <T>保存</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -301,3 +317,4 @@ function GroupEditor({
     </>
   );
 }
+export const getStaticProps = getI18nProps;

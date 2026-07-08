@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import { whiteLabel } from "shared/WhiteLabel";
 import {
   Table,
@@ -92,7 +94,6 @@ import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { getAnonymousId } from "shared/getAnonymousId";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
-
 type SortOrderKey =
   | "year"
   | "source"
@@ -101,14 +102,11 @@ type SortOrderKey =
   | "menteeReview"
   | "transcript";
 type SortOrderDir = "asc" | "desc";
-
 type SortOrder = {
   key: SortOrderKey;
   dir: SortOrderDir;
 }[];
-
 const title = "学生档案";
-
 export default fullPage(() => {
   const isDemo = whiteLabel === "demo";
   const fixedFilter: UserFilter = {
@@ -116,11 +114,9 @@ export default fullPage(() => {
     includeNonVolunteersMentors: true,
     includeMentorSearch: true,
   };
-
   const [filter, setFilter] = useState<UserFilter>(fixedFilter);
   const [showMatchState, setShowMatchState] = useState(false);
   const me = useMe();
-
   const {
     data: usersData,
     fetchNextPage,
@@ -136,11 +132,12 @@ export default fullPage(() => {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     },
   );
-
   const users = usersData?.pages.flatMap((page) => page.items);
-
-  useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
-
+  useInfiniteScroll({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
   return (
     <>
       <TopBar {...topBarPaddings()}>
@@ -157,7 +154,7 @@ export default fullPage(() => {
               isChecked={showMatchState}
               onChange={(e) => setShowMatchState(e.target.checked)}
             >
-              显示师生匹配状态
+              <T>显示师生匹配状态</T>
             </Checkbox>
           </WrapItem>
         </Wrap>
@@ -185,7 +182,7 @@ export default fullPage(() => {
               isUserAdmin={isPermitted(me.roles, "UserAdmin")}
             />
             <Text fontSize="sm" color="gray" mt={4} mb={4} ml={4}>
-              共 <b>{users.length}</b> 名
+              <T>共</T> <b>{users.length}</b> <T>名</T>
             </Text>
           </TableContainer>
         )}
@@ -194,7 +191,6 @@ export default fullPage(() => {
     </>
   );
 }, title);
-
 function MenteeTable({
   users,
   refetch,
@@ -210,16 +206,20 @@ function MenteeTable({
 }) {
   const [mentee2year, setMentee2year] = useState<Record<string, string>>({});
   const setYear = useCallback((userId: string, year: string) => {
-    setMentee2year((current) => ({ ...current, [userId]: year }));
+    setMentee2year((current) => ({
+      ...current,
+      [userId]: year,
+    }));
   }, []);
-
   const [mentee2source, setMentee2source] = useState<Record<string, string>>(
     {},
   );
   const setSource = useCallback((userId: string, source: string) => {
-    setMentee2source((current) => ({ ...current, [userId]: source }));
+    setMentee2source((current) => ({
+      ...current,
+      [userId]: source,
+    }));
   }, []);
-
   const [mentee2mentorReview, setMentee2mentorReview] = useState<
     Record<string, string>
   >({});
@@ -232,7 +232,6 @@ function MenteeTable({
     },
     [],
   );
-
   const [mentee2menteeReview, setMentee2menteeReview] = useState<
     Record<string, string>
   >({});
@@ -245,7 +244,6 @@ function MenteeTable({
     },
     [],
   );
-
   const [mentee2lastMeeting, setMentee2lastMeeting] = useState<
     Record<string, string>
   >({});
@@ -258,26 +256,34 @@ function MenteeTable({
     },
     [],
   );
-
   const defaultSortOrder: SortOrder = [
-    { key: "year", dir: "desc" },
-    { key: "source", dir: "asc" },
-    { key: "name", dir: "asc" },
+    {
+      key: "year",
+      dir: "desc",
+    },
+    {
+      key: "source",
+      dir: "asc",
+    },
+    {
+      key: "name",
+      dir: "asc",
+    },
   ];
   const sortOrderLength = defaultSortOrder.length;
-
   const [sortOrder, setSortOrder] = useState<SortOrder>(defaultSortOrder);
-
   const addSortOrder = useCallback(
     (key: SortOrderKey, dir: SortOrderDir) => {
       setSortOrder([
-        { key, dir },
+        {
+          key,
+          dir,
+        },
         ...sortOrder.filter((o) => o.key !== key).slice(0, sortOrderLength - 1),
       ]);
     },
     [sortOrder, sortOrderLength],
   );
-
   const sortUser = useCallback(
     (a: MinUser, b: MinUser) => {
       for (const order of sortOrder) {
@@ -290,7 +296,6 @@ function MenteeTable({
             );
             if (comp !== 0) return sign * comp;
             break;
-
           case "source":
             comp = compareChinese(
               mentee2source[a.id] ?? "",
@@ -298,12 +303,10 @@ function MenteeTable({
             );
             if (comp !== 0) return sign * comp;
             break;
-
           case "name":
             comp = compareChinese(a.name, b.name);
             if (comp !== 0) return sign * comp;
             break;
-
           case "mentorReview":
             comp = compareDate(
               mentee2mentorReview[a.id],
@@ -311,7 +314,6 @@ function MenteeTable({
             );
             if (comp !== 0) return sign * comp;
             break;
-
           case "menteeReview":
             comp = compareDate(
               mentee2menteeReview[a.id],
@@ -319,7 +321,6 @@ function MenteeTable({
             );
             if (comp !== 0) return sign * comp;
             break;
-
           case "transcript":
             comp = compareDate(
               mentee2lastMeeting[a.id],
@@ -341,11 +342,9 @@ function MenteeTable({
       sortOrder,
     ],
   );
-
   const sortedUsers = useMemo(() => {
     return users.sort(sortUser);
   }, [users, sortUser]);
-
   return (
     <Table
       size="sm"
@@ -362,10 +361,16 @@ function MenteeTable({
         bg="white"
         zIndex={1}
         boxShadow="sm"
-        sx={{ th: { py: 3 } }}
+        sx={{
+          th: {
+            py: 3,
+          },
+        }}
       >
         <Tr>
-          <Th>状态</Th>
+          <Th>
+            <T>状态</T>
+          </Th>
           <PointOfContactHeaderCells />
           <MenteeHeaderCells
             sortOrder={sortOrder}
@@ -374,12 +379,18 @@ function MenteeTable({
 
           {showMatchState && (
             <>
-              <Th color="brand.c">导师选择状态</Th>
-              <Th color="brand.c">交流反馈状态</Th>
+              <Th color="brand.c">
+                <T>导师选择状态</T>
+              </Th>
+              <Th color="brand.c">
+                <T>交流反馈状态</T>
+              </Th>
             </>
           )}
 
-          <Th>导师</Th>
+          <Th>
+            <T>导师</T>
+          </Th>
           <SortableHeaderCell
             label="最近一对一"
             sortOrderKey="transcript"
@@ -401,8 +412,12 @@ function MenteeTable({
 
           {!isDemo && isUserAdmin && (
             <>
-              <Th>下载</Th>
-              <Th>匿名 ID</Th>
+              <Th>
+                <T>下载</T>
+              </Th>
+              <Th>
+                <T>匿名 ID</T>
+              </Th>
             </>
           )}
         </Tr>
@@ -429,7 +444,6 @@ function MenteeTable({
     </Table>
   );
 }
-
 function SortableHeaderCell({
   label,
   sortOrderKey,
@@ -443,10 +457,11 @@ function SortableHeaderCell({
 }) {
   const idx = sortOrder.findIndex((o) => o.key === sortOrderKey);
   const dir = idx >= 0 ? sortOrder[idx].dir : undefined;
-
   return (
     <Th
-      _hover={{ cursor: "pointer" }}
+      _hover={{
+        cursor: "pointer",
+      }}
       onClick={() => addSortOrder(sortOrderKey, dir === "asc" ? "desc" : "asc")}
     >
       <HStack spacing={0.5}>
@@ -465,7 +480,6 @@ function SortableHeaderCell({
     </Th>
   );
 }
-
 function MenteeRow({
   user: u,
   refetch,
@@ -493,10 +507,12 @@ function MenteeRow({
 }) {
   const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
     invariant(menteeStatus !== undefined);
-    await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
+    await trpc.users.setMenteeStatus.mutate({
+      userId: u.id,
+      menteeStatus,
+    });
     refetch();
   };
-
   const downloadMenteeData = async (userId: string) => {
     const result = await trpc.menteeData.downloadMenteeData.query(userId);
 
@@ -507,7 +523,9 @@ function MenteeRow({
       byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
     const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: "application/zip" });
+    const blob = new Blob([byteArray], {
+      type: "application/zip",
+    });
 
     // Create download link
     const url = window.URL.createObjectURL(blob);
@@ -518,10 +536,8 @@ function MenteeRow({
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-
     toast.success("学生数据下载成功");
   };
-
   return (
     <Tr key={u.id}>
       <MenteeStatusSelectCell status={u.menteeStatus} onChange={saveStatus} />
@@ -569,12 +585,10 @@ function MenteeRow({
     </Tr>
   );
 }
-
 function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
   const { data } = trpcNext.matchFeedback.getLastMenteeMatchFeedback.useQuery({
     menteeId,
   });
-
   const total = data?.mentors.length ?? 0;
   const [scores, reasons] = data?.mentors.reduce(
     ([scores, reasons], m) => {
@@ -584,7 +598,6 @@ function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
     },
     [0, 0],
   ) ?? [0, 0];
-
   return (
     <MatchFeedbackStateCell
       loading={data === undefined}
@@ -594,7 +607,6 @@ function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
     />
   );
 }
-
 function MenteeHeaderCells({
   sortOrder,
   addSortOrder,
@@ -625,7 +637,6 @@ function MenteeHeaderCells({
     </>
   );
 }
-
 export function MenteeCells({
   mentee,
   setYear,
@@ -639,20 +650,16 @@ export function MenteeCells({
     type: "MenteeInterview",
     userId: mentee.id,
   });
-
   const year = (data?.application as Record<string, any>)?.[
     menteeAcceptanceYearField
   ];
-
   const source = (data?.application as Record<string, any> | null)?.[
     menteeSourceField
   ];
-
   useEffect(() => {
     if (year) setYear?.(mentee.id, year);
     if (source) setSource?.(mentee.id, source);
   }, [mentee.id, year, source, setYear, setSource]);
-
   return (
     <>
       {/* Acceptance Year */}
@@ -670,7 +677,6 @@ export function MenteeCells({
     </>
   );
 }
-
 function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
   const { data } =
     trpcNext.mentorSelections.listLastBatchFinalizedAt.useQuery();
@@ -680,16 +686,22 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
       {data === undefined ? (
         ""
       ) : f === undefined ? (
-        <Text color={actionRequiredTextColor}>未选择</Text>
+        <Text color={actionRequiredTextColor}>
+          <T>未选择</T>
+        </Text>
       ) : f === null ? (
-        <Text color={warningTextColor}>草稿</Text>
+        <Text color={warningTextColor}>
+          <T>草稿</T>
+        </Text>
       ) : (
-        <Text color={okTextColor}>{prettifyDate(f)}完成</Text>
+        <Text color={okTextColor}>
+          {prettifyDate(f)}
+          <T>完成</T>
+        </Text>
       )}
     </Td>
   );
 }
-
 export function MentorshipCells({
   mentee,
   readonly,
@@ -713,7 +725,6 @@ export function MentorshipCells({
 
   // Stablize list order
   data.sort((a, b) => a.id.localeCompare(b.id));
-
   return (
     <LoadedMentorsCells
       mentee={mentee}
@@ -724,7 +735,6 @@ export function MentorshipCells({
     />
   );
 }
-
 function LoadedMentorsCells({
   mentee,
   mentorships,
@@ -744,7 +754,6 @@ function LoadedMentorsCells({
       if (a.transactional === b.transactional) return 0;
       return a.transactional ? 1 : -1;
     });
-
   const lastMeetingsRes = trpcNext.useQueries((t) => {
     return visibleMentorships.map((m) =>
       t.mentorships.getLastMeetingStartedAt({
@@ -753,10 +762,8 @@ function LoadedMentorsCells({
     );
   });
   const lastMeetingsData = lastMeetingsRes.map((l) => l.data);
-
   useEffect(() => {
     if (!setLastMeetingStartedAt) return;
-
     const earliest = moment(0).toISOString();
     const last = lastMeetingsData.reduce((last, data) => {
       if (data && compareDate(last, data) < 0) return data;
@@ -768,7 +775,6 @@ function LoadedMentorsCells({
     // https://stackoverflow.com/a/59468261
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mentee.id, setLastMeetingStartedAt, JSON.stringify(lastMeetingsData)]);
-
   const transcriptTextAndColors = lastMeetingsData.map((t) =>
     getDateTextAndColor(
       t,
@@ -777,12 +783,9 @@ function LoadedMentorsCells({
       "尚未通话",
     ),
   );
-
   const [editing, setEditing] = useState<boolean>(false);
-
   const LinkToEditor = ({ children, ...props }: LinkProps) =>
     readonly ? <>{children}</> : <Link {...props}>{children}</Link>;
-
   return (
     <>
       {/* 导师 */}
@@ -825,7 +828,6 @@ function LoadedMentorsCells({
     </>
   );
 }
-
 function LastReviewDateCell({
   menteeId,
   prefix,
@@ -839,11 +841,9 @@ function LastReviewDateCell({
     menteeId,
     prefix,
   });
-
   useEffect(() => {
     if (setData && date) setData(menteeId, date);
   }, [date, menteeId, setData]);
-
   const textAndColor = getDateTextAndColor(
     date,
     reviewYellowThreshold,
@@ -879,7 +879,6 @@ export function getDateTextAndColor(
   }
   return [text, color];
 }
-
 export function mentorshipStatusIconType(m: Mentorship) {
   return !m.endsAt
     ? undefined
@@ -891,14 +890,11 @@ export function mentorshipStatusIconType(m: Mentorship) {
         ? TbClock
         : undefined;
 }
-
 export function MentorshipStatusIcon({ m }: { m: Mentorship }) {
   const type = mentorshipStatusIconType(m);
   return type ? <Icon as={type} /> : <></>;
 }
-
 type PartialConfirmationModelProps = Omit<ConfirmationModelProps, "onClose">;
-
 function MentorshipsEditor({
   mentee,
   mentorships,
@@ -913,7 +909,6 @@ function MentorshipsEditor({
   const [creating, setCreating] = useState<boolean>(false);
   const [confirmationModelProps, setConfirmationModelProps] =
     useState<PartialConfirmationModelProps>();
-
   const updateMentorship = async (
     mentorshipId: string,
     transactional: boolean,
@@ -940,17 +935,28 @@ function MentorshipsEditor({
   return (
     <ModalWithBackdrop isOpen size="4xl" onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
+        <ModalHeader>
+          {formatUserName(mentee.name)}
+          <T>的导师</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <TableContainer>
             <Table>
               <Thead>
                 <Tr>
-                  <Th>导师</Th>
-                  <Th>类型</Th>
-                  <Th>状态</Th>
-                  <Th>操作</Th>
+                  <Th>
+                    <T>导师</T>
+                  </Th>
+                  <Th>
+                    <T>类型</T>
+                  </Th>
+                  <Th>
+                    <T>状态</T>
+                  </Th>
+                  <Th>
+                    <T>操作</T>
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -970,12 +976,20 @@ function MentorshipsEditor({
                         ) : compareDate(m.endsAt, new Date()) < 0 ? (
                           <HStack>
                             <MentorshipStatusIcon m={m} />
-                            <Text>已于{prettifyDate(m.endsAt)}结束</Text>
+                            <Text>
+                              <T>已于</T>
+                              {prettifyDate(m.endsAt)}
+                              <T>结束</T>
+                            </Text>
                           </HStack>
                         ) : (
                           <HStack>
                             <MentorshipStatusIcon m={m} />
-                            <Text>将于{prettifyDate(m.endsAt)}结束</Text>
+                            <Text>
+                              <T>将于</T>
+                              {prettifyDate(m.endsAt)}
+                              <T>结束</T>
+                            </Text>
                           </HStack>
                         )}
                       </Td>
@@ -1001,7 +1015,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  重新开始
+                                  <T>重新开始</T>
                                 </Link>
                               ) : (
                                 <>
@@ -1020,7 +1034,7 @@ function MentorshipsEditor({
                                       })
                                     }
                                   >
-                                    立即结束
+                                    <T>立即结束</T>
                                   </Link>
 
                                   <Link
@@ -1036,7 +1050,7 @@ function MentorshipsEditor({
                                       })
                                     }
                                   >
-                                    延期结束
+                                    <T>延期结束</T>
                                   </Link>
                                 </>
                               )}
@@ -1051,7 +1065,7 @@ function MentorshipsEditor({
                                   })
                                 }
                               >
-                                转成一对一
+                                <T>转成一对一</T>
                               </Link>
                             </>
                           ) : (
@@ -1068,7 +1082,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  重新开始
+                                  <T>重新开始</T>
                                 </Link>
                               ) : (
                                 <Link
@@ -1086,7 +1100,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  立即结束
+                                  <T>立即结束</T>
                                 </Link>
                               )}
                             </>
@@ -1121,16 +1135,17 @@ function MentorshipsEditor({
             onClick={() => setCreating(true)}
             leftIcon={<AddIcon />}
           >
-            增加导师
+            <T>增加导师</T>
           </Button>
           <Spacer />
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function MentorshipCreator({
   menteeId,
   refetch,
@@ -1153,11 +1168,12 @@ function MentorshipCreator({
     onClose();
     refetch();
   };
-
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>增加导师</ModalHeader>
+        <ModalHeader>
+          <T>增加导师</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl>
@@ -1167,9 +1183,12 @@ function MentorshipCreator({
           </FormControl>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>
+            <T>取消</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
+export const getStaticProps = getI18nProps;

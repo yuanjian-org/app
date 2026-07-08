@@ -1,14 +1,13 @@
+import T from "components/T";
 import { whiteLabel } from "shared/WhiteLabel";
 import { Link, Wrap, WrapItem, WrapProps } from "@chakra-ui/react";
 import { componentSpacing } from "theme/metrics";
 import { pageMarginX } from "theme/metrics";
-
 export default function Footer({ ...rest }: WrapProps) {
   const color = "gray.400";
   const beian = "33010802014263";
   const isSongding = whiteLabel === "yqd" || whiteLabel === "sylp";
   const icp = isSongding ? "沪ICP备2021004288号" : "浙ICP备2024117465号-4";
-
   return (
     <Wrap
       justify="center"
@@ -22,7 +21,7 @@ export default function Footer({ ...rest }: WrapProps) {
     >
       {!isSongding && (
         <WrapItem>
-          &copy; {new Date().getFullYear()} 杭州思烛教育科技有限公司
+          &copy; {new Date().getFullYear()} <T>杭州思烛教育科技有限公司</T>
         </WrapItem>
       )}
 
@@ -34,7 +33,8 @@ export default function Footer({ ...rest }: WrapProps) {
             href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beian}`}
             rel="noreferrer"
           >
-            浙公网安备{beian}
+            <T>浙公网安备</T>
+            {beian}
           </Link>
         </WrapItem>
       )}

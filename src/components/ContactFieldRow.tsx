@@ -1,3 +1,4 @@
+import T from "components/T";
 import { Flex, Box, Link, Tooltip, Text, useClipboard } from "@chakra-ui/react";
 import { CopyIcon } from "@chakra-ui/icons";
 import { useEffect } from "react";
@@ -6,7 +7,6 @@ import NextLink from "next/link";
 import { displayName } from "shared/Role";
 import { notSetText } from "shared/strings/notSetText";
 import { SmallGrayText } from "./SmallGrayText";
-
 export function ContactFieldRow({
   mask,
   copyable,
@@ -19,18 +19,16 @@ export function ContactFieldRow({
   value: string | null;
 }) {
   const { onCopy, hasCopied } = useClipboard(value || "");
-
   useEffect(() => {
     if (hasCopied) toast.success("内容已经拷贝到剪贴板。");
   }, [hasCopied]);
-
   return (
     <Flex direction="column">
       <b>{name} </b>
       <Box>
         {!copyable && (
           <SmallGrayText>
-            请联系
+            <T>请联系</T>
             <Link as={NextLink} href="/who-can-see-my-data">
               {displayName("MentorshipOperator")}
             </Link>

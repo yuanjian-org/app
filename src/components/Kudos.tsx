@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Text,
   Button,
@@ -43,7 +44,6 @@ import { getLastKudosReadAt } from "components/unread";
 import { motion, AnimatePresence } from "framer-motion";
 import useMe, { useMyId } from "useMe";
 import ListItemDivider from "./ListItemDivider";
-
 export function KudosControl({
   user,
   likes,
@@ -61,14 +61,12 @@ export function KudosControl({
   const [localKudos, setLocalKudos] = useState<number>(kudos);
   const [popoverTitle, setPopoverTitle] = useState<string>("");
   const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
-
   const popoverInputRef = useRef<HTMLInputElement>(null);
   const {
     onOpen: onOpenPopover,
     onClose: onClosePopover,
     isOpen: isPopoverOpen,
   } = useDisclosure();
-
   const animeDurationInSeconds = 2;
   const saveLike = useCallback(async () => {
     setLocalLikes(localLikes + 1);
@@ -76,14 +74,18 @@ export function KudosControl({
     setTimeout(() => setShowPlusOneAnime(false), animeDurationInSeconds * 1000);
     setPopoverTitle(`感谢点赞！要不要再给${name}留个言？（可选）`);
     onOpenPopover();
-    await trpc.kudos.create.mutate({ userId: user.id, text: null });
+    await trpc.kudos.create.mutate({
+      userId: user.id,
+      text: null,
+    });
   }, [localLikes, name, onOpenPopover, user.id]);
-
   const saveKudos = async (text: string) => {
     setLocalKudos(localKudos + 1);
-    await trpc.kudos.create.mutate({ userId: user.id, text });
+    await trpc.kudos.create.mutate({
+      userId: user.id,
+      text,
+    });
   };
-
   return myId == user.id ? (
     <MyKudosControl likes={likes} kudos={kudos} />
   ) : (
@@ -103,10 +105,22 @@ export function KudosControl({
           <AnimatePresence>
             {showPlusOneAnime && (
               <motion.div
-                initial={{ opacity: 1, x: -25, y: 0 }}
-                animate={{ opacity: 0, x: -25, y: -100 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: animeDurationInSeconds }}
+                initial={{
+                  opacity: 1,
+                  x: -25,
+                  y: 0,
+                }}
+                animate={{
+                  opacity: 0,
+                  x: -25,
+                  y: -100,
+                }}
+                exit={{
+                  opacity: 0,
+                }}
+                transition={{
+                  duration: animeDurationInSeconds,
+                }}
                 style={{
                   position: "absolute",
                   left: "50%",
@@ -173,11 +187,9 @@ export function KudosControl({
     </>
   );
 }
-
 function MyKudosControl({ likes, kudos }: { likes: number; kudos: number }) {
   const me = useMe();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
   return (
     <>
       <Text
@@ -209,7 +221,6 @@ function MyKudosControl({ likes, kudos }: { likes: number; kudos: number }) {
     </>
   );
 }
-
 function KudosForm({
   title,
   user,
@@ -226,7 +237,6 @@ function KudosForm({
   const [text, setText] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
   const submit = async () => {
     setIsSaving(true);
     try {
@@ -238,7 +248,6 @@ function KudosForm({
       setIsSaving(false);
     }
   };
-
   return (
     <VStack spacing={componentSpacing}>
       <FormControl>
@@ -269,10 +278,12 @@ function KudosForm({
       </ButtonGroup>
 
       <ButtonGroup width="100%" alignItems="center">
-        <Link onClick={() => setIsHistoryOpen(true)}>查看所有的赞</Link>
+        <Link onClick={() => setIsHistoryOpen(true)}>
+          <T>查看所有的赞</T>
+        </Link>
         <Spacer />
         <Button variant="outline" onClick={onClose}>
-          取消
+          <T>取消</T>
         </Button>
         <Button
           isDisabled={text.length == 0}
@@ -280,7 +291,7 @@ function KudosForm({
           onClick={submit}
           isLoading={isSaving}
         >
-          发送
+          <T>发送</T>
         </Button>
       </ButtonGroup>
 
@@ -293,7 +304,6 @@ function KudosForm({
     </VStack>
   );
 }
-
 function UserKudosHistoryModal({
   user,
   onClose,
@@ -302,12 +312,16 @@ function UserKudosHistoryModal({
   onClose: () => void;
 }) {
   const myId = useMyId();
-  const { data: kudos } = trpcNext.kudos.list.useQuery({ userId: user.id });
-
+  const { data: kudos } = trpcNext.kudos.list.useQuery({
+    userId: user.id,
+  });
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(user.name, "formal")}收到的赞</ModalHeader>
+        <ModalHeader>
+          {formatUserName(user.name, "formal")}
+          <T>收到的赞</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {!kudos ? (
@@ -323,13 +337,14 @@ function UserKudosHistoryModal({
           )}
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 export function KudosHistory({
   kudos,
   type,
@@ -351,14 +366,12 @@ export function KudosHistory({
       if (!lastKudosReadAt) setLastKudosReadAt(getLastKudosReadAt(state));
     },
   });
-
   const unread = kudos.filter((k) =>
     moment(k.createdAt).isAfter(lastKudosReadAt),
   );
   const read = kudos.filter((k) =>
     moment(k.createdAt).isSameOrBefore(lastKudosReadAt),
   );
-
   return (
     <SimpleGrid
       templateColumns="1fr auto"
@@ -396,7 +409,6 @@ export function KudosHistory({
     </SimpleGrid>
   );
 }
-
 function KudosHistoryRow({
   kudos,
   showReceiver,

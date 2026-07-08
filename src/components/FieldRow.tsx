@@ -1,9 +1,9 @@
+import T from "components/T";
 import { Flex, Box, UnorderedList, ListItem, Link } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import z from "zod";
 import invariant from "tiny-invariant";
-
 export function FieldRow({
   name,
   value,
@@ -27,7 +27,6 @@ export function FieldRow({
     </Flex>
   );
 }
-
 function FieldValueCell({
   value,
   readonly,
@@ -39,7 +38,6 @@ function FieldValueCell({
   update?: (value: string) => Promise<void>;
 }) {
   invariant(readonly || update);
-
   if (Array.isArray(value)) {
     return (
       <UnorderedList>
@@ -59,7 +57,7 @@ function FieldValueCell({
   ) {
     return (
       <Link href={value}>
-        下载链接 <DownloadIcon />
+        <T>下载链接</T> <DownloadIcon />
       </Link>
     );
   } else if (typeof value === "object") {

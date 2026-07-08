@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   VStack,
@@ -37,12 +38,12 @@ export default function MentorBookingModal({
   const me = useMe();
   const utils = trpcNext.useContext();
   const { data: profileData, isFetched } =
-    trpcNext.users.getUserProfile.useQuery({ userId: me.id });
-
+    trpcNext.users.getUserProfile.useQuery({
+      userId: me.id,
+    });
   const [topic, setTopic] = useState<string>();
   const [submitting, setSubmitting] = useState<boolean>();
   const [submitted, setSubmitted] = useState<boolean>();
-
   const submit = async () => {
     setSubmitting(true);
     try {
@@ -56,28 +57,27 @@ export default function MentorBookingModal({
       setSubmitting(false);
     }
   };
-
   if (features.menteeProfile) {
     if (!isFetched) return null;
-
     if (!isMenteeProfileComplete(profileData?.profile)) {
       return (
         <MenteeProfileModal
           onCancel={onClose}
           cancelLabel="取消"
           onComplete={() => {
-            void utils.users.getUserProfile.invalidate({ userId: me.id });
+            void utils.users.getUserProfile.invalidate({
+              userId: me.id,
+            });
           }}
         />
       );
     }
   }
-
   return !submitted ? (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>
-          预约导师
+          <T>预约导师</T>
           {mentor && `：${formatUserName(mentor.name, "formal")}`}
         </ModalHeader>
         <ModalCloseButton />
@@ -85,9 +85,9 @@ export default function MentorBookingModal({
           <VStack spacing={6}>
             <FormControl>
               <FormLabel>
-                你希望
+                <T>你希望</T>
                 {mentor && `与${formatUserName(mentor.name, "friendly")}`}
-                交流的话题：
+                <T>交流的话题：</T>
               </FormLabel>
               <Textarea
                 autoFocus
@@ -109,7 +109,7 @@ export default function MentorBookingModal({
             isDisabled={!topic}
             onClick={submit}
           >
-            提交
+            <T>提交</T>
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -117,12 +117,16 @@ export default function MentorBookingModal({
   ) : (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>预约请求已提交</ModalHeader>
+        <ModalHeader>
+          <T>预约请求已提交</T>
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>我们的工作人员会尽快与你联系。</ModalBody>
+        <ModalBody>
+          <T>我们的工作人员会尽快与你联系。</T>
+        </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={onClose}>
-            好的
+            <T>好的</T>
           </Button>
         </ModalFooter>
       </ModalContent>

@@ -1,21 +1,21 @@
+import T from "components/T";
 import { whiteLabel } from "shared/WhiteLabel";
 import { Heading, CardHeader, CardBody, Flex } from "@chakra-ui/react";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 import { features } from "shared/Features";
-
 export default function MentorCard() {
   if (whiteLabel === "demo") return null;
-
   if (!features.relational && !features.exams && !features.interviews) {
     return null;
   }
-
   return (
     <ResponsiveCard>
       <CardHeader>
-        <Heading size="sm">社会导师工具</Heading>
+        <Heading size="sm">
+          <T>社会导师工具</T>
+        </Heading>
       </CardHeader>
       <CardBody>
         <Flex direction="column" gap={componentSpacing}>

@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Text,
   SimpleGrid,
@@ -43,7 +44,6 @@ import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
 import { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
-
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
   label?: string;
@@ -53,29 +53,68 @@ export type FieldAndLabel = {
  * UI displays these fields in the order of this array.
  */
 export const visibleUserProfileFields: FieldAndLabel[] = [
-  { field: "英文别名", label: "昵称" },
-
+  {
+    field: "英文别名",
+    label: "昵称",
+  },
   // Mentee profile fields
-  { field: "大学" },
-  { field: "就读专业" },
-  { field: "大一入读年份" },
-  { field: "现就读阶段" },
-  { field: "毕业高中" },
-  { field: "自我介绍" },
-
-  { field: "身份头衔", label: "职位" },
-  { field: "专业领域" },
-  { field: "现居住地" },
-  { field: "擅长话题", label: "擅长聊" },
-  { field: "成长亮点" },
-
-  { field: "个性特点" },
-  { field: "爱好与特长" },
-  { field: "喜爱读物", label: "喜爱的书和媒体" },
-  { field: "职业经历" },
-  { field: "教育经历" },
-  { field: "曾居住地" },
-  { field: "生活日常" },
+  {
+    field: "大学",
+  },
+  {
+    field: "就读专业",
+  },
+  {
+    field: "大一入读年份",
+  },
+  {
+    field: "现就读阶段",
+  },
+  {
+    field: "毕业高中",
+  },
+  {
+    field: "自我介绍",
+  },
+  {
+    field: "身份头衔",
+    label: "职位",
+  },
+  {
+    field: "专业领域",
+  },
+  {
+    field: "现居住地",
+  },
+  {
+    field: "擅长话题",
+    label: "擅长聊",
+  },
+  {
+    field: "成长亮点",
+  },
+  {
+    field: "个性特点",
+  },
+  {
+    field: "爱好与特长",
+  },
+  {
+    field: "喜爱读物",
+    label: "喜爱的书和媒体",
+  },
+  {
+    field: "职业经历",
+  },
+  {
+    field: "教育经历",
+  },
+  {
+    field: "曾居住地",
+  },
+  {
+    field: "生活日常",
+  },
 ];
 
 /**
@@ -101,16 +140,13 @@ export default function UserCards({
 } & GridProps) {
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
-
   const searchResult = useMemo(() => {
     return searchTerm ? search(users, searchTerm) : users;
   }, [searchTerm, users]);
 
   // Show kudos history card only when not searching.
   const showKudosHistory = type == "Volunteer" && !searchTerm;
-
   const mobile = useMobile();
-
   return (
     <>
       {!mobile && (
@@ -173,7 +209,6 @@ export default function UserCards({
     </>
   );
 }
-
 function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
   const limit = 50;
   const { data: kudos } = trpcNext.kudos.list.useQuery({
@@ -181,7 +216,6 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
     limit,
   });
   const hasUnread = useUnreadKudos();
-
   const utils = trpcNext.useContext();
   const [marked, setMarked] = useState(false);
   const markAsRead = useCallback(async () => {
@@ -194,7 +228,6 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
       setMarked(true);
     }
   }, [marked, kudos, utils]);
-
   const MyCard = useCallback(
     ({ children }: PropsWithChildren) =>
       type == "desktop" ? (
@@ -204,7 +237,6 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
       ),
     [type],
   );
-
   return (
     <MyCard>
       <CardBody onClick={markAsRead} display="flex" flexDirection="column">
@@ -215,13 +247,13 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
         >
           <Flex justify="space-between">
             <Heading size={type == "desktop" ? "md" : "sm"} position="relative">
-              最近的赞
+              <T>最近的赞</T>
               <UnreadKudosBlueDot />
             </Heading>
 
             <HStack spacing={2} fontSize="sm">
               <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-                全部已读
+                <T>全部已读</T>
               </Link>
             </HStack>
           </Flex>
@@ -234,7 +266,7 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
             allowing the card to simply respect the row height of adjacent
             cards instead of expanding infinitely as content grows.
             On mobile, we retain the fixed relative positioning and max height.
-          */}
+           */}
           <Box
             flex={1}
             position="relative"
@@ -271,21 +303,17 @@ function KudosHistoryCard({ type }: { type: "desktop" | "mobile" }) {
     </MyCard>
   );
 }
-
 function isMentorRecommended(traitsMatchingScore?: number) {
   return traitsMatchingScore !== undefined && traitsMatchingScore > 0;
 }
-
 function search(users: UserDisplayData[], searchTerm: string) {
   // Note that `toPinyin('Abc') returns 'Abc' without case change.
   const lower = searchTerm.trim().toLowerCase();
-
   const match = (v: string | null | undefined) => {
     if (!v) return false;
     const lowerV = v.toLowerCase();
     return [lowerV, toPinyin(lowerV)].some((s) => s.includes(lower));
   };
-
   return users.filter(
     (u) =>
       match(u.user.name) ||
@@ -294,7 +322,6 @@ function search(users: UserDisplayData[], searchTerm: string) {
           visibleUserProfileFields.some((fl) => match(u.profile?.[fl.field])))),
   );
 }
-
 function UserCardForDesktop({
   data,
   type,
@@ -310,12 +337,16 @@ function UserCardForDesktop({
 }) {
   const p = data.profile;
   const isMentee = isPermitted(useMyRoles(), "Mentee");
-
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
-
   return (
-    <CardForDesktop {...(selected ? { bg: "green.50" } : {})}>
+    <CardForDesktop
+      {...(selected
+        ? {
+            bg: "green.50",
+          }
+        : {})}
+    >
       <FullWidthImageSquare profile={p} onClick={visitUser} cursor="pointer" />
 
       <CardHeader onClick={visitUser} cursor="pointer">
@@ -335,26 +366,43 @@ function UserCardForDesktop({
             <>
               {p?.专业领域 && (
                 <Text>
-                  <b>专业</b>：{p.专业领域}
+                  <b>
+                    <T>专业</T>
+                  </b>
+                  ：{p.专业领域}
                 </Text>
               )}
               {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
             </>
           ) : type == "RelationalMentor" ? (
             <>
-              {p?.现居住地 && <Text>坐标：{p.现居住地}</Text>}
+              {p?.现居住地 && (
+                <Text>
+                  <T>坐标：</T>
+                  {p.现居住地}
+                </Text>
+              )}
               {p?.擅长话题 && (
-                <TruncatedText>擅长聊：{p.擅长话题}</TruncatedText>
+                <TruncatedText>
+                  <T>擅长聊：</T>
+                  {p.擅长话题}
+                </TruncatedText>
               )}
               {p?.成长亮点 && (
-                <TruncatedText>成长亮点：{p.成长亮点}</TruncatedText>
+                <TruncatedText>
+                  <T>成长亮点：</T>
+                  {p.成长亮点}
+                </TruncatedText>
               )}
             </>
           ) : (
             <>
               {p?.现居住地 && (
                 <Text>
-                  <b>坐标</b>：{p.现居住地}
+                  <b>
+                    <T>坐标</T>
+                  </b>
+                  ：{p.现居住地}
                 </Text>
               )}
               {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
@@ -365,14 +413,18 @@ function UserCardForDesktop({
       </CardBody>
 
       <CardFooter alignItems="center">
-        <Button onClick={visitUser}>查看详情</Button>
+        <Button onClick={visitUser}>
+          <T>查看详情</T>
+        </Button>
 
         <Spacer />
 
         {selected && (
           <Text color="green.600">
             <CheckIcon mr={1} />
-            <b>已选择</b>
+            <b>
+              <T>已选择</T>
+            </b>
           </Text>
         )}
 
@@ -385,7 +437,7 @@ function UserCardForDesktop({
                 openModal();
               }}
             >
-              预约交流
+              <T>预约交流</T>
             </Button>
           </>
         )}
@@ -401,7 +453,10 @@ function UserCardForDesktop({
 
       {isDrawerOpen && (
         <UserDrawer
-          data={{ ...data, isMentor: type != "Volunteer" }}
+          data={{
+            ...data,
+            isMentor: type != "Volunteer",
+          }}
           showBookingButton={type == "TransactionalMentor" && isMentee}
           showMatchingTraitsAndSelection={type == "RelationalMentor"}
           onClose={() => setIsDrawerOpen(false)}
@@ -410,7 +465,6 @@ function UserCardForDesktop({
     </CardForDesktop>
   );
 }
-
 function TruncatedText({
   children,
   noOfLines = 5,
@@ -419,7 +473,6 @@ function TruncatedText({
 } & PropsWithChildren) {
   return <Text noOfLines={noOfLines}>{children}</Text>;
 }
-
 export function UserProfilePictureLink(profile: UserProfile | null) {
   return profile?.照片链接
     ? profile.照片链接
@@ -455,16 +508,28 @@ function FullWidthImageSquare({
       {profile?.视频链接 && (
         <Box
           position="absolute"
-          bottom={{ base: "0.5rem", [breakpoint]: "1rem" }}
-          right={{ base: "0.5rem", [breakpoint]: "1rem" }}
+          bottom={{
+            base: "0.5rem",
+            [breakpoint]: "1rem",
+          }}
+          right={{
+            base: "0.5rem",
+            [breakpoint]: "1rem",
+          }}
           pointerEvents="none"
           display="flex"
           alignItems="center"
           justifyContent="center"
           bg="rgba(0,0,0,0.35)"
           borderRadius="full"
-          w={{ base: "2.5rem", [breakpoint]: "5.6rem" }}
-          h={{ base: "2.5rem", [breakpoint]: "5.6rem" }}
+          w={{
+            base: "2.5rem",
+            [breakpoint]: "5.6rem",
+          }}
+          h={{
+            base: "2.5rem",
+            [breakpoint]: "5.6rem",
+          }}
         >
           <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none">
             <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.15)" />
@@ -475,7 +540,6 @@ function FullWidthImageSquare({
     </Box>
   );
 }
-
 function UserCardForMobile({
   data,
   type,
@@ -491,12 +555,16 @@ function UserCardForMobile({
 }) {
   const p = data.profile;
   const isMentee = isPermitted(useMyRoles(), "Mentee");
-
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
-
   return (
-    <CardForMobile {...(selected ? { bg: "green.50" } : {})}>
+    <CardForMobile
+      {...(selected
+        ? {
+            bg: "green.50",
+          }
+        : {})}
+    >
       <HStack
         spacing={componentSpacing}
         fontSize="sm"
@@ -552,12 +620,14 @@ function UserCardForMobile({
             <>
               {p?.擅长话题 && (
                 <TruncatedText noOfLines={3}>
-                  擅长聊：{p.擅长话题}
+                  <T>擅长聊：</T>
+                  {p.擅长话题}
                 </TruncatedText>
               )}
               {p?.成长亮点 && (
                 <TruncatedText noOfLines={3}>
-                  成长亮点：{p.成长亮点}
+                  <T>成长亮点：</T>
+                  {p.成长亮点}
                 </TruncatedText>
               )}
             </>
@@ -565,11 +635,15 @@ function UserCardForMobile({
             <>
               {p?.爱好与特长 && (
                 <TruncatedText noOfLines={3}>
-                  爱好：{p.爱好与特长}
+                  <T>爱好：</T>
+                  {p.爱好与特长}
                 </TruncatedText>
               )}
               {p?.生活日常 && (
-                <TruncatedText noOfLines={3}>日常：{p.生活日常}</TruncatedText>
+                <TruncatedText noOfLines={3}>
+                  <T>日常：</T>
+                  {p.生活日常}
+                </TruncatedText>
               )}
             </>
           )}
@@ -588,13 +662,15 @@ function UserCardForMobile({
             <>
               <Text color="green.600">
                 <CheckIcon mr={1} />
-                已选择
+                <T>已选择</T>
               </Text>
               <LinkDivider />
             </>
           )}
 
-          <Link onClick={visitUser}>查看详情</Link>
+          <Link onClick={visitUser}>
+            <T>查看详情</T>
+          </Link>
 
           {type == "TransactionalMentor" && isMentee && (
             <>
@@ -605,7 +681,7 @@ function UserCardForMobile({
                   openModal();
                 }}
               >
-                预约交流
+                <T>预约交流</T>
               </Link>
             </>
           )}
@@ -625,7 +701,10 @@ function UserCardForMobile({
 
       {isDrawerOpen && (
         <UserDrawer
-          data={{ ...data, isMentor: type != "Volunteer" }}
+          data={{
+            ...data,
+            isMentor: type != "Volunteer",
+          }}
           showBookingButton={type == "TransactionalMentor" && isMentee}
           showMatchingTraitsAndSelection={type == "RelationalMentor"}
           onClose={() => setIsDrawerOpen(false)}
@@ -634,7 +713,6 @@ function UserCardForMobile({
     </CardForMobile>
   );
 }
-
 export function MentorStar(props: TextProps) {
   return (
     <Tooltip label="该导师的匹配偏好与你的个人特质契合度较高。推荐仅供参考，选择权在你。">

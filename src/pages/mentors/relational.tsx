@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Text,
   VStack,
@@ -48,27 +50,20 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import { toChineseNumber } from "shared/strings/toChineseNumber";
 import { ArrowForwardIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
-
 export const minSelectedMentors = 5;
-
 export default fullPage(() => {
   const myId = useMyId();
-
   const { data } = trpcNext.users.listMentors.useQuery();
   const [profile, setProfile] = useState<UserProfile>();
   const [searchTerm, setSearchTerm] = useState<string>("");
-
   const { data: applicant } = trpcNext.users.getApplicant.useQuery({
     type: "MenteeInterview",
     userId: myId,
   });
-
   const { data: selections } = trpcNext.mentorSelections.listDrafts.useQuery();
   const selected = selections?.length ?? 0;
-
   const shuffled = useMemo(() => {
     if (!profile || !data || !applicant) return undefined;
-
     const filtered: UserDisplayData[] = data
       .filter((m) => m.relational)
       .map((m) => {
@@ -85,13 +80,11 @@ export default fullPage(() => {
       })
       // Filter out hard mismatching mentors
       .filter((m) => m.traitsMatchingScore !== hardMismatchScore);
-
     const compare = (a: UserDisplayData, b: UserDisplayData) => {
       return (b.traitsMatchingScore ?? 0) - (a.traitsMatchingScore ?? 0);
     };
     return dailyShuffle(filtered, myId, compare);
   }, [data, myId, profile, applicant]);
-
   return (
     <>
       <TopBar>
@@ -99,8 +92,14 @@ export default fullPage(() => {
           <Stack
             w="full"
             justify="space-between"
-            align={{ base: "start", [breakpoint]: "center" }}
-            direction={{ base: "column", [breakpoint]: "row" }}
+            align={{
+              base: "start",
+              [breakpoint]: "center",
+            }}
+            direction={{
+              base: "column",
+              [breakpoint]: "row",
+            }}
             spacing={componentSpacing}
             {...topBarPaddings()}
           >
@@ -112,7 +111,9 @@ export default fullPage(() => {
 
             {selected < minSelectedMentors ? (
               <Heading size="md">
-                请选择至少{toChineseNumber(minSelectedMentors)}位导师
+                <T>请选择至少</T>
+                {toChineseNumber(minSelectedMentors)}
+                <T>位导师</T>
                 <Text
                   display="inline"
                   color={selected === 0 ? "gray" : "green.600"}
@@ -132,14 +133,18 @@ export default fullPage(() => {
                 animation="flash 1s ease-in-out infinite"
                 sx={{
                   "@keyframes flash": {
-                    "0%, 100%": { opacity: 1 },
-                    "50%": { opacity: 0.1 },
+                    "0%, 100%": {
+                      opacity: 1,
+                    },
+                    "50%": {
+                      opacity: 0.1,
+                    },
                   },
                 }}
               >
                 <WrapItem>
                   <Heading size="md">
-                    选择更多导师，或者
+                    <T>选择更多导师，或者</T>
                     <ArrowForwardIcon ms={2} />
                   </Heading>
                 </WrapItem>
@@ -149,7 +154,7 @@ export default fullPage(() => {
                     as={NextLink}
                     href="/mentors/relational/sort"
                   >
-                    完成选择
+                    <T>完成选择</T>
                   </Button>
                 </WrapItem>
               </Wrap>
@@ -162,15 +167,15 @@ export default fullPage(() => {
 
               <Menu>
                 <MenuButton as={Link}>
-                  更多功能 <ChevronDownIcon />
+                  <T>更多功能</T> <ChevronDownIcon />
                 </MenuButton>
                 <MenuList>
                   <TraitsMenuItemAndModal setProfile={setProfile} />
                   <MenuItem as={NextLink} href="/mentors/relational/history">
-                    导师选择历史
+                    <T>导师选择历史</T>
                   </MenuItem>
                   <MenuItem as={NextLink} href="/match/feedback">
-                    初次交流反馈
+                    <T>初次交流反馈</T>
                   </MenuItem>
                 </MenuList>
               </Menu>
@@ -201,19 +206,18 @@ export default fullPage(() => {
     </>
   );
 }, "选择一对一导师");
-
 function InstructionsLinkAndModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <>
-      <Link onClick={() => setIsModalOpen(true)}>如何选择导师</Link>
+      <Link onClick={() => setIsModalOpen(true)}>
+        <T>如何选择导师</T>
+      </Link>
 
       {isModalOpen && <InstructionsModal close={() => setIsModalOpen(false)} />}
     </>
   );
 }
-
 function InstructionsModal({ close }: { close: () => void }) {
   return (
     <ModalWithBackdrop
@@ -224,7 +228,9 @@ function InstructionsModal({ close }: { close: () => void }) {
       scrollBehavior="outside"
     >
       <ModalContent>
-        <ModalHeader>如何选择一对一导师</ModalHeader>
+        <ModalHeader>
+          <T>如何选择一对一导师</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack
@@ -248,10 +254,14 @@ function InstructionsModal({ close }: { close: () => void }) {
               </ListItem>
             </UnorderedList>
 
-            <Text>基于以上内容，我们建议你选择时：</Text>
+            <Text>
+              <T>基于以上内容，我们建议你选择时：</T>
+            </Text>
             <OrderedList>
               <ListItem>
-                <b>请用“交朋友”的心态选择导师</b>
+                <b>
+                  <T>请用“交朋友”的心态选择导师</T>
+                </b>
                 ，关注导师的成长背景、兴趣爱好、沟通风格等信息；
               </ListItem>
               <ListItem>
@@ -260,23 +270,22 @@ function InstructionsModal({ close }: { close: () => void }) {
               <ListItem>
                 无须担心在匹配完一对一导师后失去与其他导师沟通的机会，你随时可通过
                 <Link href="/mentors" isExternal>
-                  预约不定期导师
+                  <T>预约不定期导师</T>
                 </Link>
-                获得与社区内其他导师交流的机会。
+                <T>获得与社区内其他导师交流的机会。</T>
               </ListItem>
             </OrderedList>
           </VStack>
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={close}>
-            知道了
+            <T>知道了</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function TraitsMenuItemAndModal({
   setProfile,
 }: {
@@ -285,9 +294,7 @@ function TraitsMenuItemAndModal({
   const { data, refetch } = trpcNext.users.getUserProfile.useQuery({
     userId: useMyId(),
   });
-
   const [state, setState] = useState<null | "instructions" | "traits">(null);
-
   useEffect(() => {
     if (!data) return;
     const t = data?.profile?.特质;
@@ -297,10 +304,11 @@ function TraitsMenuItemAndModal({
       setState("instructions");
     }
   }, [data, setProfile]);
-
   return (
     <>
-      <MenuItem onClick={() => setState("traits")}>个人特质</MenuItem>
+      <MenuItem onClick={() => setState("traits")}>
+        <T>个人特质</T>
+      </MenuItem>
 
       {state === "instructions" && (
         <InstructionsModal
@@ -322,3 +330,4 @@ function TraitsMenuItemAndModal({
     </>
   );
 }
+export const getStaticProps = getI18nProps;

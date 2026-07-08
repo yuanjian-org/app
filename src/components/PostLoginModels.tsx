@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   Box,
@@ -42,58 +43,34 @@ import { isPermitted } from "shared/Role";
 // prettier-ignore
 export default function PostLoginModels() {
   const me = useMe();
-  const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
+  const {
+    data: state,
+    refetch
+  } = trpcNext.users.getUserState.useQuery();
   const canValidatePearlStudent = useCanValidatePearlStudent(me.roles);
   const canValidateUstcStudent = useCanValidateUstcStudent(me.email);
-  const { data: profileData, isFetched: isProfileFetched } = trpcNext.users.getUserProfile.useQuery({ userId: me.id });
+  const {
+    data: profileData,
+    isFetched: isProfileFetched
+  } = trpcNext.users.getUserProfile.useQuery({
+    userId: me.id
+  });
+  return state === undefined ? <></> : !isConsented(state.consentedAt) ? <ConsentModal refetch={refetch} />
 
+  // Ask for phone number first because this step may cause the current user to
+  // be merged with another user. Information required later (name, phone,
+  // roles, etc) may have been already filled in the merged account.
+  : me.phone === null ? <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
 
-  return state === undefined ? (
-    <></>
-
-  ) : !isConsented(state.consentedAt) ? (
-    <ConsentModal refetch={refetch} />
-
-    // Ask for phone number first because this step may cause the current user to
-    // be merged with another user. Information required later (name, phone,
-    // roles, etc) may have been already filled in the merged account.
-  ) : me.phone === null ? (
-    <SetPhoneModal cancel={signOut} cancelLabel="退出登录" />
-
-    // Validate pearl student before setting name because the former also sets
-    // name.
-  ) : canValidatePearlStudent && !state?.declinedPearlStudentModal ? (
-    <PearlStudentModals userState={state} refetchUserState={refetch} />
-
-  ) : canValidateUstcStudent && !state?.declinedUstcStudentModal ? (
-    <UstcStudentModals userState={state} refetchUserState={refetch} />
-
-  ) : !me.name ? (
-    <SetNameModal />
-
-  ) : isProfileFetched
-  && features.menteeProfile
-  && isPermitted(me.roles, "Mentee")
-  && !isMenteeProfileComplete(profileData?.profile) 
-  && !state?.declinedMenteeProfileModal 
-  ? (
-    <MenteeProfileModal 
-      userState={state} 
-      refetchUserState={refetch} 
-      cancelLabel="稍后再说，跳过此步" 
-    />
-  ) : (
-    <></>
-  );
+  // Validate pearl student before setting name because the former also sets
+  // name.
+  : canValidatePearlStudent && !state?.declinedPearlStudentModal ? <PearlStudentModals userState={state} refetchUserState={refetch} /> : canValidateUstcStudent && !state?.declinedUstcStudentModal ? <UstcStudentModals userState={state} refetchUserState={refetch} /> : !me.name ? <SetNameModal /> : isProfileFetched && features.menteeProfile && isPermitted(me.roles, "Mentee") && !isMenteeProfileComplete(profileData?.profile) && !state?.declinedMenteeProfileModal ? <MenteeProfileModal userState={state} refetchUserState={refetch} cancelLabel="稍后再说，跳过此步" /> : <></>;
 }
-
 const buttonWidth = "120px";
-
 export function SetEmailModal({ cancel }: { cancel: () => void }) {
   const { update } = useSession();
   const [state, setState] = useState<IdTokenInputsState>();
   const [loading, setLoading] = useState(false);
-
   const submit = async () => {
     invariant(state?.isValid, "state is invalid");
     setLoading(true);
@@ -111,11 +88,12 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
       setLoading(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen onClose={cancel}>
       <ModalContent>
-        <ModalHeader>邮箱验证</ModalHeader>
+        <ModalHeader>
+          <T>邮箱验证</T>
+        </ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
             <IdTokenInputs
@@ -128,19 +106,19 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <SmallGrayText>
-              如有问题，
+              <T>如有问题，</T>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
               >
-                联系客服
+                <T>联系客服</T>
               </Link>
             </SmallGrayText>
             <RiCustomerServiceFill color="gray" />
 
             <Spacer />
             <Button onClick={cancel} isDisabled={loading}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               onClick={submit}
@@ -148,7 +126,7 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
               isDisabled={!state?.isValid}
               isLoading={loading}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -156,7 +134,6 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
     </ModalWithBackdrop>
   );
 }
-
 export function SetPhoneModal({
   cancel,
   cancelLabel,
@@ -167,7 +144,6 @@ export function SetPhoneModal({
   const { update } = useSession();
   const [state, setState] = useState<IdTokenInputsState>();
   const [loading, setLoading] = useState(false);
-
   const submit = async () => {
     invariant(state?.isValid, "state is invalid");
     setLoading(true);
@@ -185,13 +161,14 @@ export function SetPhoneModal({
       setLoading(false);
     }
   };
-
   return (
     // Set onClose to undefined to prevent user from closing the modal without
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>手机号验证</ModalHeader>
+        <ModalHeader>
+          <T>手机号验证</T>
+        </ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} w="full">
             <IdTokenInputs
@@ -206,17 +183,17 @@ export function SetPhoneModal({
                   href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
                   isExternal
                 >
-                  为什么要填手机号？
+                  <T>为什么要填手机号？</T>
                 </Link>
               </SmallGrayText>
               <Spacer />
               <SmallGrayText>
-                如有问题，
+                <T>如有问题，</T>
                 <Link
                   href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                   isExternal
                 >
-                  联系客服
+                  <T>联系客服</T>
                 </Link>
               </SmallGrayText>
               <RiCustomerServiceFill color="gray" />
@@ -236,7 +213,7 @@ export function SetPhoneModal({
               onClick={submit}
               isLoading={loading}
             >
-              确认
+              <T>确认</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -244,7 +221,6 @@ export function SetPhoneModal({
     </ModalWithBackdrop>
   );
 }
-
 function SetNameModal() {
   const me = useMe();
   const { update } = useSession();
@@ -259,17 +235,20 @@ function SetNameModal() {
       await update();
     }
   };
-
   return (
     // Set onClose to undefined to prevent user from closing the modal without
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>你好，新用户 👋</ModalHeader>
+        <ModalHeader>
+          <T>你好，新用户 👋</T>
+        </ModalHeader>
         <ModalBody>
           <Box mt={4}>
             <FormControl>
-              <FormLabel>请填写中文全名</FormLabel>
+              <FormLabel>
+                <T>请填写中文全名</T>
+              </FormLabel>
               <Input
                 isRequired={true}
                 value={name}
@@ -284,7 +263,7 @@ function SetNameModal() {
                 w="100%"
                 mb="24px"
               >
-                提交
+                <T>提交</T>
               </Button>
             </FormControl>
           </Box>
@@ -293,16 +272,13 @@ function SetNameModal() {
     </ModalWithBackdrop>
   );
 }
-
 function isConsented(consentedAt: DateColumn | undefined) {
   const consentTextLastUpdatedAt = new Date("2023-06-01");
-
   return (
     consentedAt &&
     new Date(consentedAt).getTime() >= consentTextLastUpdatedAt.getTime()
   );
 }
-
 export function ConsentText() {
   return (
     <>
@@ -318,11 +294,9 @@ export function ConsentText() {
     </>
   );
 }
-
 function ConsentModal({ refetch }: { refetch: () => void }) {
   const [declined, setDeclined] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
   const submit = async () => {
     setLoading(true);
     try {
@@ -334,24 +308,27 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
       setLoading(false);
     }
   };
-
   return (
     <>
       {/* onClose returns undefined to prevent user from closing the modal
         without entering name. */}
       <ModalWithBackdrop isOpen={!declined} onClose={() => undefined}>
         <ModalContent>
-          <ModalHeader>在继续之前，请阅读以下声明：</ModalHeader>
+          <ModalHeader>
+            <T>在继续之前，请阅读以下声明：</T>
+          </ModalHeader>
           <ModalBody>
             <VStack spacing={6} marginBottom={10} align="left">
               <ConsentText />
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={() => setDeclined(true)}>拒绝使用</Button>
+            <Button onClick={() => setDeclined(true)}>
+              <T>拒绝使用</T>
+            </Button>
             <Spacer />
             <Button variant="brand" onClick={submit} isLoading={loading}>
-              已阅，同意使用本网站
+              <T>已阅，同意使用本网站</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -361,10 +338,14 @@ function ConsentModal({ refetch }: { refetch: () => void }) {
         <ModalContent>
           <ModalHeader />
           <ModalBody>
-            <Text>您已拒绝继续使用，请退出登录。</Text>
+            <Text>
+              <T>您已拒绝继续使用，请退出登录。</T>
+            </Text>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={() => signOut()}>退出登录</Button>
+            <Button onClick={() => signOut()}>
+              <T>退出登录</T>
+            </Button>
           </ModalFooter>
         </ModalContent>
       </ModalWithBackdrop>

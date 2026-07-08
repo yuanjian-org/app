@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Table,
   Thead,
@@ -61,7 +62,6 @@ export default function Interviews({
 
   // Show interviewee statuses only to MentorshipAdmins
   const showStatus = forCalibration && isPermitted(myRoles, "MentorshipAdmin");
-
   return !interviews ? (
     <Loader />
   ) : (
@@ -69,16 +69,31 @@ export default function Interviews({
       <Table size={forCalibration ? "sm" : "md"}>
         <Thead>
           <Tr>
-            {showStatus && <Th>状态</Th>}
+            {showStatus && (
+              <Th>
+                <T>状态</T>
+              </Th>
+            )}
             <PointOfContactHeaderCells />
             <MenteeSourceHeaderCell />
-            <Th>候选人</Th>
-            <Th>{forCalibration ? "" : "其他"}面试官</Th>
+            <Th>
+              <T>候选人</T>
+            </Th>
+            <Th>
+              {forCalibration ? "" : "其他"}
+              <T>面试官</T>
+            </Th>
             {forCalibration && (
               <>
-                <Th>讨论结果</Th>
-                <Th>讨论备注</Th>
-                <Th>拼音（便于查找）</Th>
+                <Th>
+                  <T>讨论结果</T>
+                </Th>
+                <Th>
+                  <T>讨论备注</T>
+                </Th>
+                <Th>
+                  <T>拼音（便于查找）</T>
+                </Th>
               </>
             )}
           </Tr>
@@ -100,17 +115,16 @@ export default function Interviews({
 
       {!hideTotalCount && (
         <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-          共 <b>{interviews.length}</b> 名
+          <T>共</T> <b>{interviews.length}</b> <T>名</T>
         </Text>
       )}
 
       <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
-        <CheckIcon /> 表示已经填写了面试反馈的面试官。
+        <CheckIcon /> <T>表示已经填写了面试反馈的面试官。</T>
       </Text>
     </TableContainer>
   );
 }
-
 function InterviewRow({
   i,
   forCalibration,
@@ -128,7 +142,6 @@ function InterviewRow({
   const source = (app?.application as Record<string, any> | null)?.[
     menteeSourceField
   ];
-
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
     invariant(status !== undefined);
     await trpc.users.setMenteeStatus.mutate({
@@ -137,13 +150,16 @@ function InterviewRow({
     });
     void refetch();
   };
-
   const url = forCalibration
     ? `/interviews/${i.id}`
     : `/interviews/${i.id}/feedback`;
-
   return (
-    <Tr key={i.id} _hover={{ bg: "white" }}>
+    <Tr
+      key={i.id}
+      _hover={{
+        bg: "white",
+      }}
+    >
       {showStatus &&
         app &&
         (i.type !== "MenteeInterview" ? (
@@ -204,7 +220,6 @@ function InterviewRow({
     </Tr>
   );
 }
-
 function DecisionScore({ interview }: { interview: Interview }) {
   const d = getDimension(interview);
   return d?.score ? (
@@ -216,12 +231,10 @@ function DecisionScore({ interview }: { interview: Interview }) {
     <></>
   );
 }
-
 function DecisionComment({ interview }: { interview: Interview }) {
   const d = getDimension(interview);
   return d?.comment ? <TruncatedTextWithTooltip text={d.comment} /> : <></>;
 }
-
 function getDimension(i: Interview): EditorFeedbackDimension | null {
   if (!i.decision) return null;
   for (const d of (i.decision as EditorFeedback).dimensions) {

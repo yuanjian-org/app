@@ -1,10 +1,10 @@
+import T from "components/T";
 import { CheckIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons";
 import { Center, Text } from "@chakra-ui/react";
 import { useEffect } from "react";
 import invariant from "tiny-invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-
 export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
   const errors = [...state.id2state.values()].filter((v) => v !== null);
   const iconProps = {
@@ -16,14 +16,19 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
     textShadow:
       "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff",
   };
-
   return hasPendingSavers(state) ? (
     <>
       <LeavePagePrompt />
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        initial={{
+          opacity: 0,
+        }}
+        animate={{
+          opacity: 1,
+        }}
+        transition={{
+          duration: 0.3,
+        }}
       >
         <Center>
           {errors.length > 0 ? (
@@ -37,7 +42,7 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
             <>
               <RepeatIcon {...iconProps} color="disabled" />
               <Text {...textProps} color="disabled">
-                保存中...
+                <T>保存中...</T>
               </Text>
             </>
           )}
@@ -46,14 +51,20 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
     </>
   ) : state.virgin ? null : (
     <motion.div
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 0 }}
-      transition={{ duration: 3 }}
+      initial={{
+        opacity: 1,
+      }}
+      animate={{
+        opacity: 0,
+      }}
+      transition={{
+        duration: 3,
+      }}
     >
       <Center>
         <CheckIcon {...iconProps} color="green" />
         <Text {...textProps} color="green">
-          已保存
+          <T>已保存</T>
         </Text>
       </Center>
     </motion.div>
@@ -83,7 +94,6 @@ function LeavePagePrompt() {
       router.events.off("routeChangeStart", handleBrowseAway);
     };
   }, [router]);
-
   return null;
 }
 
@@ -97,16 +107,13 @@ export type AutosaveState = {
   id2state: ReadonlyMap<string, null | any>;
   virgin: boolean;
 };
-
 export const initialState: AutosaveState = {
   id2state: new Map<string, any>(),
   virgin: true,
 };
-
 function hasPendingSaver(s: AutosaveState, id: string): boolean {
   return s.id2state.has(id);
 }
-
 function hasPendingSavers(s: AutosaveState): boolean {
   return s.id2state.size > 0;
 }

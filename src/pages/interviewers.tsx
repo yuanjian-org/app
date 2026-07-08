@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Table,
   Th,
@@ -35,31 +37,55 @@ import { RoleTag } from "./mentors/manage";
 export default widePage(() => {
   const { data: stats, refetch } =
     trpcNext.interviews.listInterviewerStats.useQuery();
-
   return !stats ? (
     <Loader />
   ) : (
     <Flex direction="column" gap={sectionSpacing}>
       <Text>
-        以下列表包括所有{displayName("Mentor")}
-        和在偏好设置中勾选了“{optInInterviewerText}”的
+        <T>以下列表包括所有</T>
+        {displayName("Mentor")}
+        <T>和在偏好设置中勾选了“</T>
+        {optInInterviewerText}
+        <T>”的</T>
         {displayName("Volunteer")}。
       </Text>
       <TableContainer>
         <Table size="sm">
           <Thead>
             <Tr>
-              <Th>避免</Th>
-              <Th>面试官</Th>
-              <Th>角色</Th>
-              <Th>面试总量</Th>
-              <Th>面试限制</Th>
-              <Th>性别</Th>
-              <Th>坐标</Th>
-              <Th>通讯原则评测</Th>
-              <Th>面试标准评测</Th>
-              <Th>微信</Th>
-              <Th>拼音（便于查找）</Th>
+              <Th>
+                <T>避免</T>
+              </Th>
+              <Th>
+                <T>面试官</T>
+              </Th>
+              <Th>
+                <T>角色</T>
+              </Th>
+              <Th>
+                <T>面试总量</T>
+              </Th>
+              <Th>
+                <T>面试限制</T>
+              </Th>
+              <Th>
+                <T>性别</T>
+              </Th>
+              <Th>
+                <T>坐标</T>
+              </Th>
+              <Th>
+                <T>通讯原则评测</T>
+              </Th>
+              <Th>
+                <T>面试标准评测</T>
+              </Th>
+              <Th>
+                <T>微信</T>
+              </Th>
+              <Th>
+                <T>拼音（便于查找）</T>
+              </Th>
             </Tr>
           </Thead>
 
@@ -86,13 +112,12 @@ export default widePage(() => {
         </Table>
 
         <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-          共 <b>{stats.length}</b> 名
+          <T>共</T> <b>{stats.length}</b> <T>名</T>
         </Text>
       </TableContainer>
     </Flex>
   );
 }, "面试官");
-
 function Row({
   user,
   interviews,
@@ -111,16 +136,20 @@ function Row({
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
-
   const limit = preference.limit;
-
   const saveAvoid = async (avoid: boolean) => {
-    await trpc.interviews.avoidAsInterviewer.mutate({ userId: user.id, avoid });
+    await trpc.interviews.avoidAsInterviewer.mutate({
+      userId: user.id,
+      avoid,
+    });
     refetch();
   };
-
   return (
-    <Tr _hover={{ bg: "white" }}>
+    <Tr
+      _hover={{
+        bg: "white",
+      }}
+    >
       {/* 避免 */}
       <Td>
         <Switch
@@ -134,8 +163,13 @@ function Row({
           <Text
             style={
               avoid
-                ? { textDecoration: "line-through", color: "gray" }
-                : { fontWeight: "bold" }
+                ? {
+                    textDecoration: "line-through",
+                    color: "gray",
+                  }
+                : {
+                    fontWeight: "bold",
+                  }
             }
           >
             {formatUserName(user.name)} <ChevronRightIcon />
@@ -188,3 +222,4 @@ function Row({
     </Tr>
   );
 }
+export const getStaticProps = getI18nProps;

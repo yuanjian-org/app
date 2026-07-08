@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Box,
   Button,
@@ -32,9 +33,10 @@ const inactiveNavLinkColor = "gray.700";
  */
 export default function StaticNavBar({
   pageType,
-}: { pageType?: AppPageType } = {}) {
+}: {
+  pageType?: AppPageType;
+} = {}) {
   const current = useRouter().asPath;
-
   return (
     <Box
       as="nav"
@@ -74,7 +76,9 @@ export default function StaticNavBar({
                 text="文章"
               />
               <NextLink href={loginUrl()}>
-                <Text color={inactiveNavLinkColor}>进入远图</Text>
+                <Text color={inactiveNavLinkColor}>
+                  <T>进入远图</T>
+                </Text>
               </NextLink>
             </>
           )}
@@ -89,14 +93,13 @@ export default function StaticNavBar({
           </Tooltip>
 
           <Button variant="brand" as={NextLink} href={loginUrl()}>
-            登录 / 注册
+            <T>登录 / 注册</T>
           </Button>
         </HStack>
       </Flex>
     </Box>
   );
 }
-
 function NavLink({
   href,
   current,

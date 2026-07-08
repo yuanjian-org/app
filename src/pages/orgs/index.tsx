@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Box,
   Heading,
@@ -13,19 +15,25 @@ import { widePage } from "AppPage";
 import Loader from "components/Loader";
 import { pageMarginX, componentSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
-
 export default widePage(() => {
   const { data: orgs } = trpcNext.orgs.list.useQuery();
-
   if (!orgs) return <Loader />;
-
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <HStack justifyContent="space-between" mb={componentSpacing}>
-        <Heading size="lg">所有机构</Heading>
+        <Heading size="lg">
+          <T>所有机构</T>
+        </Heading>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
+      <SimpleGrid
+        columns={{
+          base: 1,
+          md: 2,
+          lg: 3,
+        }}
+        spacing={10}
+      >
         {orgs.map((org) => (
           <LinkBox
             key={org.id}
@@ -33,7 +41,10 @@ export default widePage(() => {
             p="5"
             borderWidth="1px"
             rounded="md"
-            _hover={{ shadow: "md", borderColor: "brand.500" }}
+            _hover={{
+              shadow: "md",
+              borderColor: "brand.500",
+            }}
           >
             <Heading size="md" my="2">
               <LinkOverlay as={NextLink} href={`/orgs/${org.id}`}>
@@ -44,7 +55,9 @@ export default widePage(() => {
               {org.description ? (
                 <MarkdownStyler content={org.description} />
               ) : (
-                <Text>暂无介绍</Text>
+                <Text>
+                  <T>暂无介绍</T>
+                </Text>
               )}
             </Box>
           </LinkBox>
@@ -53,3 +66,4 @@ export default widePage(() => {
     </Box>
   );
 }, "机构列表");
+export const getStaticProps = getI18nProps;

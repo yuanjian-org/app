@@ -1,3 +1,4 @@
+import T from "components/T";
 import { whiteLabel } from "shared/WhiteLabel";
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
@@ -59,13 +60,11 @@ import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { Features } from "shared/Features";
 import { getTransactionalMentorsPageTitle } from "pages/mentors";
-
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
 export const sideBarBorderColor = "gray.200";
 const sidebarItemPaddingY = 4;
 const sidebarItemPaddingLeft = 8;
-
 interface MainMenuItem {
   name: string;
   icon: React.ComponentType;
@@ -76,7 +75,6 @@ interface MainMenuItem {
   feature?: keyof Features;
   redDot?: React.ComponentType;
 }
-
 interface DropdownMenuItem {
   name: string;
   // string url as the href attribute and function as the onClick handler.
@@ -87,7 +85,6 @@ interface DropdownMenuItem {
   feature?: keyof Features;
   icon?: React.ReactNode;
 }
-
 const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "学生面试",
@@ -156,7 +153,6 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
     roles: "MentorshipAdmin",
   },
 ];
-
 const userDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "个人资料",
@@ -178,10 +174,12 @@ const userDropdownMenuItems: DropdownMenuItem[] = [
   },
   {
     name: "退出登录",
-    action: () => signOut({ callbackUrl: staticUrlPrefix }),
+    action: () =>
+      signOut({
+        callbackUrl: staticUrlPrefix,
+      }),
   },
 ];
-
 const mainMenuItems: MainMenuItem[] = [
   {
     name: "首页",
@@ -267,12 +265,10 @@ const mainMenuItems: MainMenuItem[] = [
       isPermitted(me.roles, ["Mentor", "Volunteer"]),
   },
 ];
-
 function mentorships2Items(
   mentorships: Mentorship[] | undefined,
 ): MainMenuItem[] {
   if (!mentorships) return [];
-
   mentorships.sort((a, b) => {
     const aEnded = isMentorshipEnded(a);
     const bEnded = isMentorshipEnded(b);
@@ -286,7 +282,6 @@ function mentorships2Items(
       return compareChinese(a.mentee.name, b.mentee.name);
     }
   });
-
   return mentorships.map((m) => {
     const icon = mentorshipStatusIconType(m);
     return {
@@ -300,15 +295,12 @@ function mentorships2Items(
     };
   });
 }
-
 export function showRedDotForMentorship(m: Mentorship) {
   return !m.transactional && !isMentorshipEnded(m);
 }
-
 function isMentorshipEnded(m: Mentorship) {
   return m.endsAt !== null && compareDate(m.endsAt, new Date()) < 0;
 }
-
 export function useMyMentorshipsAsMentor() {
   const myRoles = useMyRoles();
   const { data } = trpcNext.mentorships.listMyMentorships.useQuery(
@@ -321,7 +313,6 @@ export function useMyMentorshipsAsMentor() {
   );
   return data ?? [];
 }
-
 export function SidebarForDesktop() {
   return (
     <Box
@@ -340,7 +331,6 @@ export function SidebarForDesktop() {
     </Box>
   );
 }
-
 export function SidebarForMobile({
   isOpen,
   onClose,
@@ -364,13 +354,11 @@ export function SidebarForMobile({
     </Drawer>
   );
 }
-
 function SidebarContent({ onClose }: { onClose: () => void }) {
   const me = useMe();
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
-
   return (
     <Flex
       direction="column"
@@ -394,14 +382,15 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
               : isPermitted(me.roles, item.permission),
           )
           .map((item) => {
-            const displayItem = { ...item };
+            const displayItem = {
+              ...item,
+            };
             if (displayItem.path === "/mentors") {
               displayItem.name = getTransactionalMentorsPageTitle(
                 isPermitted(me.roles, "Mentee"),
                 features.relational,
               );
             }
-
             return (
               <SidebarRow
                 key={item.path}
@@ -435,17 +424,16 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
     </Flex>
   );
 }
-
 function ImpersonationBanner() {
   const { data: session, update } = useSession();
   const router = useRouter();
-
   const stopImpersonation = async () => {
-    const req: ImpersonationRequest = { impersonate: null };
+    const req: ImpersonationRequest = {
+      impersonate: null,
+    };
     await update(req);
     await router.push("/users");
   };
-
   return !session?.impersonated ? (
     <></>
   ) : (
@@ -459,22 +447,22 @@ function ImpersonationBanner() {
       px={4}
       fontSize="sm"
     >
-      <Text>假扮模式</Text>
+      <Text>
+        <T>假扮模式</T>
+      </Text>
       <Link
         ml={2}
         color="orange.600"
         textDecoration="underline"
         onClick={stopImpersonation}
       >
-        退出
+        <T>退出</T>
       </Link>
     </Box>
   );
 }
-
 function DemoBanner() {
   const isDemo = whiteLabel === "demo";
-
   return !isDemo ? (
     <></>
   ) : (
@@ -488,11 +476,12 @@ function DemoBanner() {
       px={4}
       fontSize="sm"
     >
-      <Text>演示模式。数据每天重置一次。</Text>
+      <Text>
+        <T>演示模式。数据每天重置一次。</T>
+      </Text>
     </Box>
   );
 }
-
 function DropdownMenu({
   title,
   icon,
@@ -511,7 +500,6 @@ function DropdownMenu({
       (!item.feature || !!features[item.feature])
     );
   });
-
   if (filteredItems.length === 0) {
     return <></>;
   }
@@ -547,7 +535,6 @@ function DropdownMenu({
     </Flex>
   );
 }
-
 const DropdownMenuButton = ({
   title,
   icon,
@@ -562,7 +549,9 @@ const DropdownMenuButton = ({
       color={inactiveNavLinkColor}
       fontWeight="medium"
       transition="all 0.3s"
-      _focus={{ boxShadow: "none" }}
+      _focus={{
+        boxShadow: "none",
+      }}
     >
       <HStack>
         {icon}
@@ -572,7 +561,6 @@ const DropdownMenuButton = ({
     </MenuButton>
   );
 };
-
 function SidebarRow({
   item,
   onClose,
@@ -584,7 +572,6 @@ function SidebarRow({
   const active =
     item.regex &&
     (item.regex.test(router.pathname) || item.regex.test(router.asPath));
-
   return (
     <Link
       as={NextLink}
@@ -602,7 +589,9 @@ function SidebarRow({
       >
         <Icon
           as={item.icon}
-          {...(item.iconColor && { color: item.iconColor })}
+          {...(item.iconColor && {
+            color: item.iconColor,
+          })}
         />
         <Text marginX={componentSpacing} position="relative">
           {item.name}
@@ -611,7 +600,13 @@ function SidebarRow({
         <Icon
           as={MdChevronRight}
           opacity={0}
-          _groupHover={active ? {} : { opacity: 100 }}
+          _groupHover={
+            active
+              ? {}
+              : {
+                  opacity: 100,
+                }
+          }
         />
       </Flex>
     </Link>

@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Button,
   ModalHeader,
@@ -73,7 +75,6 @@ import {
 } from "components/MenteeSourceCell";
 import NextLink from "next/link";
 import SwitchAndLabel from "components/SwitchAndLabel";
-
 export default widePage(() => {
   const type: InterviewType =
     useRouter().query.type === "MenteeInterview"
@@ -87,13 +88,17 @@ export default widePage(() => {
     trpcNext.interviews.list.useQuery(type);
   const { data: calibrations, refetch: refetchCalibrations } =
     trpcNext.calibrations.list.useQuery(type);
-
   return (
     <Flex direction="column" gap={6}>
       <TabsWithUrlParam isLazy>
         <TabList>
-          <Tab>{type == "MenteeInterview" ? "学生" : "导师"}候选人列表</Tab>
-          <Tab>面试讨论组</Tab>
+          <Tab>
+            {type == "MenteeInterview" ? "学生" : "导师"}
+            <T>候选人列表</T>
+          </Tab>
+          <Tab>
+            <T>面试讨论组</T>
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -131,7 +136,6 @@ export default widePage(() => {
     </Flex>
   );
 }, "面试");
-
 function Applicants({
   type,
   applicants,
@@ -146,11 +150,16 @@ function Applicants({
   refetchApplicants: () => void;
 }) {
   // A map from applicants' user ids to sources.
-  const [sources, setSources] = useState<{ [id: string]: string }>({});
+  const [sources, setSources] = useState<{
+    [id: string]: string;
+  }>({});
   const updateSource = (id: string) => (source: string) => {
     setSources((prev) => {
       if (prev[id] === source) return prev;
-      return { ...prev, [id]: source };
+      return {
+        ...prev,
+        [id]: source,
+      };
     });
   };
   const sortedApplicants = useMemo(() => {
@@ -159,11 +168,10 @@ function Applicants({
       return comp !== 0 ? comp : compareChinese(a1.name, a2.name);
     });
   }, [applicants, sources]);
-
   return (
     <TableContainer>
       <Text marginBottom={sectionSpacing} color="gray" fontSize="sm">
-        点击候选人以编辑面试官和面试讨论组：
+        <T>点击候选人以编辑面试官和面试讨论组：</T>
       </Text>
 
       <Table size="sm">
@@ -171,10 +179,18 @@ function Applicants({
           <Tr>
             <PointOfContactHeaderCells />
             {type == "MenteeInterview" && <MenteeSourceHeaderCell />}
-            <Th>候选人</Th>
-            <Th>面试官</Th>
-            <Th>面试讨论组</Th>
-            <Th>拼音（方便查找）</Th>
+            <Th>
+              <T>候选人</T>
+            </Th>
+            <Th>
+              <T>面试官</T>
+            </Th>
+            <Th>
+              <T>面试讨论组</T>
+            </Th>
+            <Th>
+              <T>拼音（方便查找）</T>
+            </Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -193,16 +209,15 @@ function Applicants({
       </Table>
 
       <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-        共 <b>{applicants.length}</b> 名
+        <T>共</T> <b>{applicants.length}</b> <T>名</T>
       </Text>
 
       <Text marginTop={sectionSpacing} color="gray" fontSize="sm">
-        <CheckIcon /> 表示已经填写了面试反馈的面试官。
+        <CheckIcon /> <T>表示已经填写了面试反馈的面试官。</T>
       </Text>
     </TableContainer>
   );
 }
-
 function Applicant({
   type,
   applicant,
@@ -226,11 +241,9 @@ function Applicant({
   const source = (data?.application as Record<string, any> | null)?.[
     menteeSourceField
   ];
-
   useEffect(() => {
     updateSource(source);
   }, [source, updateSource]);
-
   const matches = interviews.filter((i) => i.interviewee.id == applicant.id);
   if (matches.length > 1) {
     console.error(
@@ -250,13 +263,11 @@ function Applicant({
   const [interviewInEditor, setInterviewInEditor] = useState<
     Interview | null | undefined
   >(undefined);
-
   const TdEditLink = ({ children }: TableCellProps) => (
     <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
       {children}
     </TdLink>
   );
-
   return (
     <>
       {interviewInEditor !== undefined && (
@@ -271,7 +282,12 @@ function Applicant({
         />
       )}
 
-      <Tr key={applicant.id} _hover={{ bg: "white" }}>
+      <Tr
+        key={applicant.id}
+        _hover={{
+          bg: "white",
+        }}
+      >
         <PointOfContactCells user={applicant} refetch={refetchApplicants} />
 
         {/* 来源 */}
@@ -309,7 +325,6 @@ function Applicant({
     </>
   );
 }
-
 function InterviewEditor({
   type,
   applicant,
@@ -322,18 +337,15 @@ function InterviewEditor({
   onClose: () => void;
 }) {
   invariant(interview == null || interview.type == type);
-
   const [interviewerIds, setInterviewerIds] = useState<string[]>(
     interview ? interview.feedbacks.map((f) => f.interviewer.id) : [],
   );
   const [saving, setSaving] = useState(false);
-
   const { data: calibrations } = trpcNext.calibrations.list.useQuery(type);
   // When selecting "-“ <Select> emits "".
   const [calibrationId, setCalibrationId] = useState<string>(
     interview?.calibration?.id || "",
   );
-
   const save = async () => {
     setSaving(true);
     try {
@@ -354,29 +366,32 @@ function InterviewEditor({
           interviewerIds,
         });
       }
-
       onClose();
     } finally {
       setSaving(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           {interview ? "修改" : "创建"}
-          {type == "MenteeInterview" ? "学生" : "导师"}面试
+          {type == "MenteeInterview" ? "学生" : "导师"}
+          <T>面试</T>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={6}>
             <FormControl>
-              <FormLabel>候选人</FormLabel>
+              <FormLabel>
+                <T>候选人</T>
+              </FormLabel>
               <Text>{formatUserName(applicant.name)}</Text>
             </FormControl>
             <FormControl>
-              <FormLabel>面试官</FormLabel>
+              <FormLabel>
+                <T>面试官</T>
+              </FormLabel>
               <UserSelector
                 isMulti
                 onSelect={(userIds) => setInterviewerIds(userIds)}
@@ -388,7 +403,9 @@ function InterviewEditor({
               />
             </FormControl>
             <FormControl>
-              <FormLabel>面试讨论组</FormLabel>
+              <FormLabel>
+                <T>面试讨论组</T>
+              </FormLabel>
               <Select
                 placeholder="-"
                 onChange={(e) => setCalibrationId(e.target.value)}
@@ -408,14 +425,13 @@ function InterviewEditor({
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" isLoading={saving} onClick={save}>
-            保存
+            <T>保存</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function Calibrations({
   type,
   calibrations,
@@ -432,20 +448,25 @@ function Calibrations({
     do {
       name = `新面试讨论 (${count++})`;
     } while (calibrations.some((c) => c.name === name));
-    await trpc.calibrations.create.mutate({ type, name });
+    await trpc.calibrations.create.mutate({
+      type,
+      name,
+    });
     refetch();
   };
-
   const update = async (old: Calibration, name: string, active: boolean) => {
     if (old.name === name && old.active === active) return;
-    await trpc.calibrations.update.mutate({ id: old.id, name, active });
+    await trpc.calibrations.update.mutate({
+      id: old.id,
+      name,
+      active,
+    });
     refetch();
   };
-
   return (
     <Flex direction="column" gap={paragraphSpacing}>
       <Box>
-        说明：
+        <T>说明：</T>
         <UnorderedList>
           <ListItem>
             通过候选人列表的”修改面试“功能为每位候选人分配面试讨论组。
@@ -464,7 +485,7 @@ function Calibrations({
 
       <Box>
         <Button variant="outline" leftIcon={<AddIcon />} onClick={create}>
-          新建面试讨论组
+          <T>新建面试讨论组</T>
         </Button>
       </Box>
 
@@ -472,11 +493,19 @@ function Calibrations({
         <Table>
           <Thead>
             <Tr>
-              <Th>名称</Th>
-              <Th>进入</Th>
-              <Th>状态</Th>
+              <Th>
+                <T>名称</T>
+              </Th>
+              <Th>
+                <T>进入</T>
+              </Th>
+              <Th>
+                <T>状态</T>
+              </Th>
               <CalibrationManagerHeaderCells />
-              <Th>创建日期</Th>
+              <Th>
+                <T>创建日期</T>
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -524,3 +553,4 @@ function Calibrations({
     </Flex>
   );
 }
+export const getStaticProps = getI18nProps;

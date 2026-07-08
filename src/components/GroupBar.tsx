@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Avatar,
   Box,
@@ -39,7 +40,6 @@ import { ChevronRightIcon, QuestionIcon } from "@chakra-ui/icons";
 import { publicGroupDescription } from "pages/groups";
 import { useMyId } from "useMe";
 import { ConsentText } from "./PostLoginModels";
-
 export default function GroupBar({
   group,
   showSelf,
@@ -61,11 +61,12 @@ export default function GroupBar({
   const myId = useMyId();
   const [isJoiningMeeting, setJoining] = useState(false);
   const [showMeetingQuotaWarning, setShowMeetingQuotaWarning] = useState(false);
-
   const launchMeeting = async (groupId: string) => {
     setJoining(true);
     try {
-      const link = await trpc.meetings.join.mutate({ groupId: groupId });
+      const link = await trpc.meetings.join.mutate({
+        groupId: groupId,
+      });
       if (!link) {
         setShowMeetingQuotaWarning(true);
         setJoining(false);
@@ -91,9 +92,7 @@ export default function GroupBar({
       throw e;
     }
   };
-
   if (showGroupName == undefined) showGroupName = true;
-
   return (
     <SimpleGrid
       columns={showJoinButton ? 2 : 1}
@@ -139,7 +138,7 @@ export default function GroupBar({
               <Center>
                 <Text>
                   <LinkOverlay as={Link} href={`/groups/${group.id}`}>
-                    详情 <ChevronRightIcon />
+                    <T>详情</T> <ChevronRightIcon />
                   </LinkOverlay>
                 </Text>
               </Center>
@@ -150,20 +149,19 @@ export default function GroupBar({
     </SimpleGrid>
   );
 }
-
 function GroupTagOrName({ group }: { group: Group }) {
   return (
     <HStack>
       {group.archived && (
         <Tag color="white" bgColor="gray.800">
-          已存档
+          <T>已存档</T>
         </Tag>
       )}
 
       {group.public && (
         <Tooltip label={publicGroupDescription}>
           <Tag color="white" bgColor="green.400">
-            公开
+            <T>公开</T>
             <QuestionIcon color="white" marginStart={2} />
           </Tag>
         </Tooltip>
@@ -187,7 +185,6 @@ function GroupTagOrName({ group }: { group: Group }) {
     </HStack>
   );
 }
-
 function JoinButton({
   join,
   isLoading,
@@ -198,7 +195,6 @@ function JoinButton({
   const { data: state, refetch } = trpcNext.users.getUserState.useQuery();
   const consented = !!state?.meetingConsentedAt;
   const [showConsentModal, setShowConsentModal] = useState(false);
-
   return (
     <>
       <Button
@@ -208,7 +204,7 @@ function JoinButton({
         onClick={consented ? join : () => setShowConsentModal(true)}
         isLoading={isLoading}
       >
-        加入
+        <T>加入</T>
       </Button>
 
       {showConsentModal && (
@@ -223,7 +219,6 @@ function JoinButton({
     </>
   );
 }
-
 function MeetingConsentModal({
   consent,
   onClose,
@@ -233,7 +228,6 @@ function MeetingConsentModal({
 }) {
   const [declined, setDeclined] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
   const submit = async () => {
     setLoading(true);
     try {
@@ -246,17 +240,17 @@ function MeetingConsentModal({
       setLoading(false);
     }
   };
-
   const decline = async () => {
     setDeclined(true);
     await trpc.meetings.decline.mutate();
   };
-
   return (
     <>
       <ModalWithBackdrop isOpen={!declined} onClose={onClose}>
         <ModalContent>
-          <ModalHeader>自动录制</ModalHeader>
+          <ModalHeader>
+            <T>自动录制</T>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={6} marginBottom={10} align="left">
@@ -266,17 +260,22 @@ function MeetingConsentModal({
                 功能所需要的。但是，系统只会保存腾讯会议生成的智能纪要，而不会下载或使用
                 {}
                 腾讯会议录制的音视频。此外，在会议结束后，您也可以修改智能纪要，删掉过于隐私
-                {}的内容。
+                {}
+                <T>的内容。</T>
               </Text>
-              <Heading size="md">声明</Heading>
+              <Heading size="md">
+                <T>声明</T>
+              </Heading>
               <ConsentText />
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={decline}>拒绝使用会议</Button>
+            <Button onClick={decline}>
+              <T>拒绝使用会议</T>
+            </Button>
             <Spacer />
             <Button variant="brand" onClick={submit} isLoading={loading}>
-              同意自动录制每次会议
+              <T>同意自动录制每次会议</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -293,7 +292,7 @@ function MeetingConsentModal({
           </ModalBody>
           <ModalFooter>
             <Button variant="brand" onClick={onClose}>
-              好的
+              <T>好的</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -301,30 +300,32 @@ function MeetingConsentModal({
     </>
   );
 }
-
 function MeetingQuotaWarning({ onClose }: { onClose: () => void }) {
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>无法加入会议</ModalHeader>
+        <ModalHeader>
+          <T>无法加入会议</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <p>
             抱歉，同时进行的会议数量已超过上线。请稍后再试。
             <br />
             <br />
-            系统管理员已收到通知，会及时处理。
+            <T>系统管理员已收到通知，会及时处理。</T>
           </p>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>确认</Button>
+          <Button onClick={onClose}>
+            <T>确认</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function UserChips({
   currentUserId,
   users,
@@ -343,7 +344,6 @@ function UserChips({
   const abbrOnMobile =
     (abbreviateOnMobile === undefined || abbreviateOnMobile) &&
     displayUsers.length > 1;
-
   return (
     <>
       {/* Abbreviated mode */}

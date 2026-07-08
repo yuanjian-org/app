@@ -1,11 +1,9 @@
+import T from "components/T";
 import { toast } from "react-toastify";
-
 import { MdChangeCircle, MdCloudUpload } from "react-icons/md";
-
 import MarkdownSupport from "../MarkdownSupport";
 import trpc from "../../trpc";
 import { getEmbeddedFormUrl } from "../../pages/form";
-
 import {
   Button,
   FormControl,
@@ -33,41 +31,37 @@ import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
 import { componentSpacing } from "theme/metrics";
 import { features } from "../../shared/Features";
-
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
   const me = useMe();
-
   const isEdit = !!projectId;
-
   const { data: project, isLoading } = trpcNext.projects.get.useQuery(
-    { id: projectId! },
-    { enabled: isEdit, retry: false },
+    {
+      id: projectId!,
+    },
+    {
+      enabled: isEdit,
+      retry: false,
+    },
   );
-
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("草稿");
   const [visibility, setVisibility] = useState<ProjectVisibility>("公开");
   const [ownerId, setOwnerId] = useState<string>(me.id);
   const [orgId, setOrgId] = useState<string>("");
-
   const [intro, setIntro] = useState("");
   const [bg, setBg] = useState("");
   const [challenge, setChallenge] = useState("");
   const [video, setVideo] = useState("");
   const [reqs, setReqs] = useState("");
   const [refs, setRefs] = useState("");
-
   const [hasChanged, setHasChanged] = useState(false);
-
   const [videoLoading, setVideoLoading] = useState(false);
   const [refsLoading, setRefsLoading] = useState(false);
   const isAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
-
   const { data: orgs } = trpcNext.orgs.list.useQuery(undefined, {
     enabled: !!features.orgs,
   });
-
   useEffect(() => {
     if (isEdit && project) {
       setTitle(project.title);
@@ -83,7 +77,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
       setRefs(project.profile?.参考材料 || "");
     }
   }, [project, isEdit]);
-
   const createMutation = trpcNext.projects.create.useMutation({
     onSuccess: (data) => {
       toast.success("项目创建成功");
@@ -91,7 +84,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     },
     onError: (e) => toast.error(e.message),
   });
-
   const handleCancel = () => {
     if (hasChanged) {
       if (!window.confirm("有未保存的更改，确定要返回吗？")) {
@@ -100,7 +92,6 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     }
     router.back();
   };
-
   const updateMutation = trpcNext.projects.update.useMutation({
     onSuccess: (data) => {
       toast.success("项目更新成功");
@@ -108,24 +99,25 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     },
     onError: (e) => toast.error(e.message),
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       toast.warning("请输入项目标题");
       return;
     }
-
     if (isAdmin && !ownerId) {
       toast.warning("请选择项目负责人");
       return;
     }
-
     const payload = {
       title,
       status,
       visibility,
-      ...(isAdmin ? { ownerId } : {}),
+      ...(isAdmin
+        ? {
+            ownerId,
+          }
+        : {}),
       orgId: orgId || null,
       profile: {
         简介: intro,
@@ -136,16 +128,16 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
         参考材料: refs,
       },
     };
-
     if (isEdit) {
-      void updateMutation.mutate({ id: projectId!, ...payload });
+      void updateMutation.mutate({
+        id: projectId!,
+        ...payload,
+      });
     } else {
       void createMutation.mutate(payload);
     }
   };
-
   if (isEdit && isLoading) return <PageLoader />;
-
   return (
     <Card>
       <CardBody>
@@ -153,7 +145,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
           <VStack spacing={5} align="stretch">
             {isAdmin && (
               <FormControl isRequired>
-                <FormLabel>负责人</FormLabel>
+                <FormLabel>
+                  <T>负责人</T>
+                </FormLabel>
                 <UserSelector
                   isMulti={false}
                   initialValue={isEdit && project ? [project.owner] : [me]}
@@ -166,7 +160,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             )}
 
             <FormControl isRequired>
-              <FormLabel>项目标题</FormLabel>
+              <FormLabel>
+                <T>项目标题</T>
+              </FormLabel>
               <Input
                 value={title}
                 onChange={(e) => {
@@ -178,7 +174,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
 
             {features.orgs && (
               <FormControl>
-                <FormLabel>所属机构</FormLabel>
+                <FormLabel>
+                  <T>所属机构</T>
+                </FormLabel>
                 <Select
                   value={orgId}
                   onChange={(e) => {
@@ -186,7 +184,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                     setHasChanged(true);
                   }}
                 >
-                  <option value="">无机构</option>
+                  <option value="">
+                    <T>无机构</T>
+                  </option>
                   {orgs?.map((org) => (
                     <option key={org.id} value={org.id}>
                       {org.name}
@@ -197,20 +197,28 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             )}
 
             <FormControl isRequired>
-              <FormLabel>可见性</FormLabel>
+              <FormLabel>
+                <T>可见性</T>
+              </FormLabel>
               <Select
                 value={visibility}
                 onChange={(e) =>
                   setVisibility(e.target.value as ProjectVisibility)
                 }
               >
-                <option value="公开">公开</option>
-                <option value="保密">保密</option>
+                <option value="公开">
+                  <T>公开</T>
+                </option>
+                <option value="保密">
+                  <T>保密</T>
+                </option>
               </Select>
             </FormControl>
 
             <FormControl isRequired>
-              <FormLabel>状态</FormLabel>
+              <FormLabel>
+                <T>状态</T>
+              </FormLabel>
               <Select
                 value={status}
                 onChange={(e) => {
@@ -218,16 +226,24 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                   setHasChanged(true);
                 }}
               >
-                <option value="草稿">草稿</option>
-                <option value="招募中">招募中</option>
-                <option value="已结束">已结束</option>
+                <option value="草稿">
+                  <T>草稿</T>
+                </option>
+                <option value="招募中">
+                  <T>招募中</T>
+                </option>
+                <option value="已结束">
+                  <T>已结束</T>
+                </option>
               </Select>
             </FormControl>
 
             <MarkdownSupport prefix="以下字段均" />
 
             <FormControl isRequired>
-              <FormLabel>项目简介</FormLabel>
+              <FormLabel>
+                <T>项目简介</T>
+              </FormLabel>
               <Textarea
                 value={intro}
                 onChange={(e) => {
@@ -239,7 +255,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>项目背景</FormLabel>
+              <FormLabel>
+                <T>项目背景</T>
+              </FormLabel>
               <Textarea
                 rows={4}
                 value={bg}
@@ -251,7 +269,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>挑战描述</FormLabel>
+              <FormLabel>
+                <T>挑战描述</T>
+              </FormLabel>
               <Textarea
                 rows={6}
                 value={challenge}
@@ -263,7 +283,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>学生画像要求</FormLabel>
+              <FormLabel>
+                <T>学生画像要求</T>
+              </FormLabel>
               <Textarea
                 rows={4}
                 value={reqs}
@@ -275,7 +297,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>视频链接</FormLabel>
+              <FormLabel>
+                <T>视频链接</T>
+              </FormLabel>
 
               <Link
                 onClick={async () => {
@@ -301,17 +325,23 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 {videoLoading ? (
                   <HStack>
                     <Spinner size="sm" />
-                    <Text>加载中...</Text>
+                    <Text>
+                      <T>加载中...</T>
+                    </Text>
                   </HStack>
                 ) : video ? (
                   <HStack>
                     <MdChangeCircle />
-                    <Text>更换视频</Text>
+                    <Text>
+                      <T>更换视频</T>
+                    </Text>
                   </HStack>
                 ) : (
                   <HStack>
                     <MdCloudUpload />
-                    <Text>上传视频</Text>
+                    <Text>
+                      <T>上传视频</T>
+                    </Text>
                   </HStack>
                 )}
               </Link>
@@ -331,7 +361,9 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
             </FormControl>
 
             <FormControl>
-              <FormLabel>参考材料</FormLabel>
+              <FormLabel>
+                <T>参考材料</T>
+              </FormLabel>
 
               <Link
                 onClick={async () => {
@@ -357,17 +389,23 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 {refsLoading ? (
                   <HStack>
                     <Spinner size="sm" />
-                    <Text>加载中...</Text>
+                    <Text>
+                      <T>加载中...</T>
+                    </Text>
                   </HStack>
                 ) : refs ? (
                   <HStack>
                     <MdChangeCircle />
-                    <Text>更换材料</Text>
+                    <Text>
+                      <T>更换材料</T>
+                    </Text>
                   </HStack>
                 ) : (
                   <HStack>
                     <MdCloudUpload />
-                    <Text>上传材料</Text>
+                    <Text>
+                      <T>上传材料</T>
+                    </Text>
                   </HStack>
                 )}
               </Link>
@@ -388,7 +426,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 {isEdit ? "保存修改" : "提交发布"}
               </Button>
               <Button size="lg" onClick={handleCancel}>
-                取消
+                <T>取消</T>
               </Button>
             </HStack>
           </VStack>

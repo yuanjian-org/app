@@ -1,8 +1,7 @@
+import T from "components/T";
 import { Text, Link, HStack, Icon, LinkProps } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
-
 export const markdownSyntaxUrl = "https://markdown.com.cn/basic-syntax";
-
 export default function MarkdownSupport({
   prefix,
   ...rest
@@ -12,7 +11,10 @@ export default function MarkdownSupport({
   return (
     <Link isExternal href={markdownSyntaxUrl} {...rest}>
       <HStack>
-        <Text>{prefix && prefix}支持 Markdown</Text>
+        <Text>
+          {prefix && prefix}
+          <T>支持 Markdown</T>
+        </Text>
         <Icon as={ExternalLinkIcon} />
       </HStack>
     </Link>

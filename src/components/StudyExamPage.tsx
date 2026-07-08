@@ -1,3 +1,4 @@
+import T from "components/T";
 import { VStack, Button, Link, Text } from "@chakra-ui/react";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -6,7 +7,6 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import { sectionSpacing } from "theme/metrics";
 import { getStandaloneFormUrl } from "pages/form";
 import { useState } from "react";
-
 export interface StudyExamPageProps {
   title: string;
   description: string;
@@ -17,7 +17,6 @@ export interface StudyExamPageProps {
   examFormId: string;
   examStateKey: "commsExam" | "handbookExam" | "menteeInterviewerExam";
 }
-
 export default function StudyExamPage({
   title,
   description,
@@ -27,7 +26,6 @@ export default function StudyExamPage({
 }: StudyExamPageProps) {
   const { data: state } = trpcNext.users.getUserState.useQuery();
   const [loading, setLoading] = useState(false);
-
   const handleStartExam = async () => {
     setLoading(true);
     try {
@@ -39,9 +37,7 @@ export default function StudyExamPage({
       setLoading(false);
     }
   };
-
   const numberToChinese = ["一", "二", "三", "四", "五"];
-
   return (
     <>
       <PageBreadcrumb current={title} />
@@ -56,7 +52,11 @@ export default function StudyExamPage({
 
         {links.map((link, index) => (
           <div key={index}>
-            <Text>第{numberToChinese[index]}步：</Text>
+            <Text>
+              <T>第</T>
+              {numberToChinese[index]}
+              <T>步：</T>
+            </Text>
             <Button
               as={Link}
               isExternal
@@ -73,14 +73,20 @@ export default function StudyExamPage({
           </div>
         ))}
 
-        <Text>第{numberToChinese[links.length]}步：</Text>
+        <Text>
+          <T>第</T>
+          {numberToChinese[links.length]}
+          <T>步：</T>
+        </Text>
         <Button isLoading={loading} onClick={handleStartExam} variant="brand">
-          开始评测&nbsp;&nbsp;&nbsp;✍️
+          <T>开始评测   ✍️</T>
         </Button>
 
         {state && (
           <>
-            <Text>上次评测通过时间：</Text>
+            <Text>
+              <T>上次评测通过时间：</T>
+            </Text>
             <Text>
               <b>
                 {state[examStateKey]

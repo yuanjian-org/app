@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Avatar,
   Button,
@@ -55,18 +56,16 @@ import ConfirmationModal from "./ConfirmationModal";
 import { IoMdPeople } from "react-icons/io";
 import { toast } from "react-toastify";
 import ModalWithBackdrop from "./ModalWithBackdrop";
-
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
-
-  const { data: room } = trpcNext.chat.getRoom.useQuery({ menteeId });
+  const { data: room } = trpcNext.chat.getRoom.useQuery({
+    menteeId,
+  });
   const { data: lastReadAt } = trpcNext.chat.getLastReadAt.useQuery({
     menteeId,
   });
-
   const [adding, setAdding] = useState<boolean>(false);
   const [hasUnread, setHasUnread] = useState<boolean>(false);
-
   const markAsRead = useCallback(async () => {
     if (!room || room.messages.length === 0) return;
     const earliest = moment(0);
@@ -75,11 +74,13 @@ export default function Room({ menteeId }: { menteeId: string }) {
       const updatedAt = m.updatedAt ? moment(m.updatedAt) : earliest;
       return moment.max(latest, updatedAt);
     }, earliest);
-    await trpc.chat.setLastReadAt.mutate({ menteeId, lastReadAt: last });
+    await trpc.chat.setLastReadAt.mutate({
+      menteeId,
+      lastReadAt: last,
+    });
     await utils.chat.getLastReadAt.invalidate();
     setHasUnread(false);
   }, [menteeId, room, utils]);
-
   return !room ? (
     <Loader />
   ) : (
@@ -87,13 +88,13 @@ export default function Room({ menteeId }: { menteeId: string }) {
       <CardHeader>
         <Flex justify="space-between">
           <Heading size="sm" position="relative">
-            内部笔记
+            <T>内部笔记</T>
             <UnreadChatMessagesRedDot menteeId={menteeId} />
           </Heading>
 
           <HStack spacing={componentSpacing} fontSize="sm">
             <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-              全部已读
+              <T>全部已读</T>
             </Link>
 
             {!adding && (
@@ -102,7 +103,7 @@ export default function Room({ menteeId }: { menteeId: string }) {
                 leftIcon={<AddIcon />}
                 onClick={() => setAdding(true)}
               >
-                新建
+                <T>新建</T>
               </Button>
             )}
           </HStack>
@@ -127,14 +128,13 @@ export default function Room({ menteeId }: { menteeId: string }) {
             ))}
 
           <Text size="sm" color="gray">
-            内部笔记仅对导师可见。
+            <T>内部笔记仅对导师可见。</T>
           </Text>
         </VStack>
       </CardBody>
     </ResponsiveCard>
   );
 }
-
 function Message({
   message: m,
   lastReadAt,
@@ -151,7 +151,6 @@ function Message({
   const [confirming, setConfirming] = useState<boolean>(false);
   const [editingTime, setEditingTime] = useState<boolean>(false);
   const utils = trpcNext.useContext();
-
   const createdAt = m.createdAt ? prettifyDate(m.createdAt) : "";
   const updatedAt = m.updatedAt ? prettifyDate(m.updatedAt) : "";
 
@@ -161,24 +160,33 @@ function Message({
       updatedAt !== createdAt ? (
         <>
           <br />
-          {updatedAt}更新
+          {updatedAt}
+          <T>更新</T>
         </>
       ) : (
         <></>
       ),
-    [breakpoint]: updatedAt !== createdAt ? <> ｜ {updatedAt}更新</> : <></>,
+    [breakpoint]:
+      updatedAt !== createdAt ? (
+        <>
+          {" "}
+          ｜ {updatedAt}
+          <T>更新</T>
+        </>
+      ) : (
+        <></>
+      ),
   });
-
   const unread = m.user.id !== me.id && moment(m.updatedAt).isAfter(lastReadAt);
   useEffect(() => {
     if (unread) setHasUnread();
   }, [setHasUnread, unread]);
-
   const insertOneOnOneMessagePrefix = async () => {
-    await trpc.chat.insertOneOnOneMessagePrefix.mutate({ messageId: m.id });
+    await trpc.chat.insertOneOnOneMessagePrefix.mutate({
+      messageId: m.id,
+    });
     await utils.chat.getRoom.invalidate();
   };
-
   return (
     <HStack align="top" spacing={componentSpacing} width="100%">
       <Avatar name={name} boxSize={10} />
@@ -189,7 +197,8 @@ function Message({
 
           {/* Timestamps & red dot */}
           <SmallGrayText position="relative">
-            {createdAt}创建
+            {createdAt}
+            <T>创建</T>
             {updatedAtText}
             <RedDot show={unread} />
           </SmallGrayText>
@@ -262,7 +271,6 @@ function Message({
     </HStack>
   );
 }
-
 function EditCreationTimeModal({
   message,
   onClose,
@@ -278,14 +286,12 @@ function EditCreationTimeModal({
       : "",
   );
   const [saving, setSaving] = useState<boolean>(false);
-
   const handleSave = async () => {
     const parsedDate = moment(dateTimeInput);
     if (!parsedDate.isValid()) {
       toast.error("日期格式错误，请使用格式：YYYY-MM-DD HH:mm:ss");
       return;
     }
-
     setSaving(true);
     try {
       await trpc.chat.updateMessageCreationTime.mutate({
@@ -298,11 +304,12 @@ function EditCreationTimeModal({
       setSaving(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>编辑创建时间</ModalHeader>
+        <ModalHeader>
+          <T>编辑创建时间</T>
+        </ModalHeader>
         <ModalBody>
           <FormControl>
             <FormLabel>创建时间（格式：YYYY-MM-DD HH:mm:ss）</FormLabel>
@@ -315,17 +322,16 @@ function EditCreationTimeModal({
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={handleSave} isLoading={saving}>
-            确认
+            <T>确认</T>
           </Button>
           <Button variant="ghost" onClick={onClose}>
-            取消
+            <T>取消</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function Editor({
   roomId,
   message,
@@ -339,7 +345,6 @@ function Editor({
   onClose: () => void;
 } & TextareaProps) {
   const [markdown, setMarkdown] = useState<string>();
-
   const { data: draft } = trpcNext.chat.getDraftMessage.useQuery({
     roomId,
     messageId: message?.id,
@@ -349,14 +354,11 @@ function Editor({
       setMarkdown(draft !== null ? draft : (message?.markdown ?? ""));
     }
   }, [draft, message?.markdown, markdown]);
-
   const [saving, setSaving] = useState<boolean>(false);
   const utils = trpcNext.useContext();
-
   const insertPrefix = (prefix: string) => {
     setMarkdown((prev) => prefix + prev);
   };
-
   const save = useCallback(async () => {
     invariant(markdown);
     setSaving(true);
@@ -369,7 +371,10 @@ function Editor({
         });
       } else {
         invariant(roomId);
-        await trpc.chat.createMessage.mutate({ roomId, markdown });
+        await trpc.chat.createMessage.mutate({
+          roomId,
+          markdown,
+        });
       }
       await utils.chat.getRoom.invalidate();
       // The draft is deleted in the backend.
@@ -386,7 +391,6 @@ function Editor({
     onClose,
     roomId,
   ]);
-
   const saveDraft = useCallback(
     async (markdown: string) => {
       await trpc.chat.saveDraftMessage.mutate({
@@ -398,7 +402,6 @@ function Editor({
     },
     [message?.id, roomId, utils.chat.getDraftMessage],
   );
-
   const prefixes = [
     oneOnOneMessagePrefix,
     menteeReviewMessagePrefix,
@@ -407,7 +410,6 @@ function Editor({
     "【分享会】",
     "【情况报备】",
   ];
-
   return (
     <>
       <Textarea
@@ -436,9 +438,12 @@ function Editor({
           isDisabled={!markdown}
           variant="brand"
           leftIcon={<Icon as={MdSend} />}
-          display={{ base: "none", [breakpoint]: "flex" }}
+          display={{
+            base: "none",
+            [breakpoint]: "flex",
+          }}
         >
-          确认
+          <T>确认</T>
         </Button>
 
         <Button
@@ -446,13 +451,16 @@ function Editor({
           isLoading={saving}
           isDisabled={!markdown}
           variant="brand"
-          display={{ base: "flex", [breakpoint]: "none" }}
+          display={{
+            base: "flex",
+            [breakpoint]: "none",
+          }}
         >
-          确认
+          <T>确认</T>
         </Button>
 
         <Button onClick={() => onClose()} variant="ghost" color="gray">
-          取消
+          <T>取消</T>
         </Button>
 
         <Spacer />
@@ -460,7 +468,10 @@ function Editor({
         {/* Hide on narrow screen due to limited space */}
         <MarkdownSupport
           fontSize="sm"
-          display={{ base: "none", "2xl": "block" }}
+          display={{
+            base: "none",
+            "2xl": "block",
+          }}
         />
 
         <Select
@@ -494,15 +505,20 @@ function Editor({
  */
 export function useUnreadChatMessages(menteeIds: string[]) {
   const lastReads = trpcNext.useQueries((t) => {
-    return menteeIds.map((id) => t.chat.getLastReadAt({ menteeId: id }));
+    return menteeIds.map((id) =>
+      t.chat.getLastReadAt({
+        menteeId: id,
+      }),
+    );
   });
   const lastUpdates = trpcNext.useQueries((t) => {
     return menteeIds.map((id) =>
-      t.chat.getLastMessageUpdatedAt({ menteeId: id }),
+      t.chat.getLastMessageUpdatedAt({
+        menteeId: id,
+      }),
     );
   });
   invariant(lastReads.length === lastUpdates.length);
-
   return lastReads.some((res, i) => {
     const lastRead = res.data;
     const lastUpdated = lastUpdates[i].data;

@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import { useEffect, useState } from "react";
 import {
   DndContext,
@@ -45,13 +47,11 @@ import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { MdDragIndicator } from "react-icons/md";
 import { minSelectedMentors } from "../relational";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
-
 export default function Page() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isFinalizable, setIsFinalizable] = useState(false);
   const [isFinalized, setIsFinalized] = useState(false);
-
   const finalize = async () => {
     setIsSaving(true);
     try {
@@ -61,7 +61,6 @@ export default function Page() {
       setIsSaving(false);
     }
   };
-
   return (
     <>
       <PageBreadcrumb current="为导师排序" />
@@ -75,7 +74,7 @@ export default function Page() {
 
         <HStack align="center">
           <Link as={NextLink} href="/mentors/relational">
-            <ChevronLeftIcon me={1} /> 返回选择页面
+            <ChevronLeftIcon me={1} /> <T>返回选择页面</T>
           </Link>
           <Spacer />
           <Button
@@ -99,7 +98,6 @@ export default function Page() {
     </>
   );
 }
-
 function Sorter({
   setIsSaving,
   setIsFinalizable,
@@ -109,14 +107,11 @@ function Sorter({
 }) {
   const { data } = trpcNext.mentorSelections.listDrafts.useQuery();
   const [sorted, setSorted] = useState<MentorSelection[]>();
-
   useEffect(() => {
     setSorted(data?.sort((a, b) => a.order - b.order));
     setIsFinalizable(!!data && data.length >= minSelectedMentors);
   }, [data, setIsFinalizable]);
-
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
-
   const onDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
     invariant(sorted);
@@ -124,17 +119,18 @@ function Sorter({
     const newIndex = sorted.findIndex((i) => i.mentor.id === over.id);
     const newSorted = arrayMove(sorted, oldIndex, newIndex);
     setSorted(newSorted);
-
     try {
       setIsSaving(true);
       await trpc.mentorSelections.reorderDraft.mutate(
-        newSorted.map((s, i) => ({ mentorId: s.mentor.id, order: i })),
+        newSorted.map((s, i) => ({
+          mentorId: s.mentor.id,
+          order: i,
+        })),
       );
     } finally {
       setIsSaving(false);
     }
   };
-
   return sorted === undefined ? (
     <Loader />
   ) : (
@@ -170,8 +166,9 @@ const SortableCard = ({
   currentOrder: number;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: ms.mentor.id });
-
+    useSortable({
+      id: ms.mentor.id,
+    });
   return (
     <Card
       ref={setNodeRef}
@@ -200,13 +197,14 @@ const SortableCard = ({
     </Card>
   );
 };
-
 function FinalizedModal({ close }: { close: () => void }) {
   return (
     <ModalWithBackdrop isOpen onClose={close}>
       <ModalContent>
         <ModalHeader>
-          <Heading size="md">导师选择完成</Heading>
+          <Heading size="md">
+            <T>导师选择完成</T>
+          </Heading>
         </ModalHeader>
         <ModalBody>
           <Text>相关工作人员会尽快通知下一步流程，请耐心等待。</Text>
@@ -216,10 +214,11 @@ function FinalizedModal({ close }: { close: () => void }) {
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={close}>
-            知道了
+            <T>知道了</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
+export const getStaticProps = getI18nProps;

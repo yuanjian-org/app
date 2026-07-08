@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   Textarea,
@@ -23,7 +24,6 @@ import { componentSpacing } from "theme/metrics";
 import { cmdOrCtrlChar } from "macOrWin";
 import MarkdownSupport from "./MarkdownSupport";
 import useMobile from "useMobile";
-
 export default function SummaryEditor({
   summary,
   onClose,
@@ -34,7 +34,6 @@ export default function SummaryEditor({
   const [markdown, setMarkdown] = useState(summary.markdown);
   const [saving, setSaving] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
-
   const { deleted, totalDeletedLength, allowed } = computeDeletion(
     summary,
     markdown,
@@ -43,10 +42,8 @@ export default function SummaryEditor({
     (totalDeletedLength / summary.initialLength) *
     100
   ).toFixed(1);
-
   const isMobile = useMobile();
   const utils = trpcNext.useContext();
-
   const save = async () => {
     setSaving(true);
     try {
@@ -56,41 +53,47 @@ export default function SummaryEditor({
         markdown,
       });
       await utils.summaries.list.invalidate();
-
       toast.success("会议纪要已更新。");
       onClose();
     } finally {
       setSaving(false);
     }
   };
-
   return (
     <ModalWithBackdrop
       isOpen
-      size={{ base: "full", [breakpoint]: "6xl" }}
+      size={{
+        base: "full",
+        [breakpoint]: "6xl",
+      }}
       scrollBehavior="outside"
       onClose={() => undefined}
     >
       <ModalContent>
-        <ModalHeader>编辑会议纪要</ModalHeader>
+        <ModalHeader>
+          <T>编辑会议纪要</T>
+        </ModalHeader>
         <ModalBody>
           <VStack align="start" spacing={componentSpacing}>
             <Text>
               ⚠️
               由于合规性要求，系统会以完全匿名的方式在后台自动保存被删除的文字，
-              {}并限制累计删除字数不得超过总字数的{" "}
+              {}
+              <T>并限制累计删除字数不得超过总字数的</T>{" "}
               <b>{maxDeletionRatio * 100}%</b>。
               <Link
                 onClick={() => setShowDeleted(true)}
                 color={allowed ? undefined : "red"}
               >
-                已删除 <b>{deletedRatio}%</b>
+                <T>已删除</T> <b>{deletedRatio}%</b>
               </Link>
             </Text>
 
             <Text>
               为节省删除限额，建议在删除非敏感内容时使用波浪线语法而不是直接删除，比如：
-              <Code>~需删除内容~</Code>
+              <Code>
+                <T>~需删除内容~</T>
+              </Code>
             </Text>
 
             {showDeleted && (
@@ -112,14 +115,16 @@ export default function SummaryEditor({
           <HStack w="full" gap={componentSpacing}>
             {!allowed && (
               <Text color="red">
-                累计删除过多。请
+                <T>累计删除过多。请</T>
                 {isMobile ? "摇摇手机" : `按 ${cmdOrCtrlChar()} + Z `}
-                恢复被删的文字。
+                <T>恢复被删的文字。</T>
               </Text>
             )}
             <Spacer />
             {(allowed || !isMobile) && <MarkdownSupport />}
-            <Button onClick={onClose}>取消</Button>
+            <Button onClick={onClose}>
+              <T>取消</T>
+            </Button>
             {(allowed || !isMobile) && (
               <Button
                 variant="brand"
@@ -127,7 +132,7 @@ export default function SummaryEditor({
                 isLoading={saving}
                 isDisabled={!allowed}
               >
-                保存
+                <T>保存</T>
               </Button>
             )}
           </HStack>
@@ -136,7 +141,6 @@ export default function SummaryEditor({
     </ModalWithBackdrop>
   );
 }
-
 function DeletedContentModal({
   deleted,
   onClose,
@@ -147,7 +151,9 @@ function DeletedContentModal({
   return (
     <ModalWithBackdrop isOpen onClose={onClose} size="4xl">
       <ModalContent>
-        <ModalHeader>本次编辑待删除内容</ModalHeader>
+        <ModalHeader>
+          <T>本次编辑待删除内容</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack align="start" spacing={componentSpacing}>
@@ -155,7 +161,11 @@ function DeletedContentModal({
               保存本次编辑后，以下内容将从纪要中删除，并以匿名的方式保存在系统后台：
             </Text>
 
-            {!deleted.length && <Text>（尚没有删除任何内容）</Text>}
+            {!deleted.length && (
+              <Text>
+                <T>（尚没有删除任何内容）</T>
+              </Text>
+            )}
 
             {deleted.map((str, idx) => (
               <Text key={idx}>
@@ -170,7 +180,7 @@ function DeletedContentModal({
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={onClose}>
-            关闭
+            <T>关闭</T>
           </Button>
         </ModalFooter>
       </ModalContent>

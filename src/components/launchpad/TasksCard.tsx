@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Heading,
   CardHeader,
@@ -55,7 +56,6 @@ export default function TasksCard({
 }) {
   const utils = trpcNext.useContext();
   const myId = useMyId();
-
   const [creating, setCreating] = useState(false);
   const [includeDone, setIncludeDone] = useState(false);
   const { data, refetch } = trpcNext.tasks.list.useQuery({
@@ -96,10 +96,8 @@ export default function TasksCard({
           ),
       );
     }
-
     return [...assigneeIds, ...(await Promise.all(promises)).flat()];
   }, [assigneeIds, allowMentorshipAssignment]);
-
   const sorted = data?.sort((a, b) => {
     // Place tasks that are assigned to the current user at the top.
     if (a.assignee.id === myId && b.assignee.id !== myId) return -1;
@@ -116,27 +114,24 @@ export default function TasksCard({
     // Finally, place tasks that are updated more recently at the top.
     return compareDate(b.updatedAt, a.updatedAt);
   });
-
   const hasUnread = useUnreadTasks();
-
   const markAsRead = async () => {
     // Note that `last` covers all the tasks created by the current user.
     const last = sorted?.[0]?.updatedAt;
     if (last) await markTasksAsRead(utils, last);
   };
-
   return (
     <ResponsiveCard>
       <CardHeader>
         <Flex justify="space-between">
           <Heading size="sm" position="relative">
-            待办事项
+            <T>待办事项</T>
             <UnreadTasksRedDot />
           </Heading>
 
           <HStack spacing={componentSpacing} fontSize="sm">
             <Link onClick={markAsRead} {...redDotTransitionProps(hasUnread)}>
-              全部已读
+              <T>全部已读</T>
             </Link>
 
             {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
@@ -150,7 +145,7 @@ export default function TasksCard({
               leftIcon={<AddIcon />}
               onClick={() => setCreating(true)}
             >
-              新建
+              <T>新建</T>
             </Button>
 
             {creating && (
@@ -168,7 +163,9 @@ export default function TasksCard({
           {sorted === undefined ? (
             <Loader />
           ) : sorted.length === 0 ? (
-            <Text color="gray">🌙&nbsp;&nbsp;一切静谧，万物安然</Text>
+            <Text color="gray">
+              <T>🌙  一切静谧，万物安然</T>
+            </Text>
           ) : (
             <TaskItems
               tasks={sorted}
@@ -182,7 +179,6 @@ export default function TasksCard({
     </ResponsiveCard>
   );
 }
-
 function TaskItems({
   tasks,
   refetch,
@@ -195,7 +191,6 @@ function TaskItems({
   getAllowedAssigneeIds: () => Promise<string[]>;
 }) {
   const myId = useMyId();
-
   const items: ReactNode[] = [];
   let lastAssigneeId = myId;
   for (const t of tasks) {
@@ -218,7 +213,6 @@ function TaskItems({
         />,
       );
     }
-
     items.push(
       <TaskItem
         key={t.id}
@@ -228,10 +222,8 @@ function TaskItems({
       />,
     );
   }
-
   return <>{items}</>;
 }
-
 function TaskItem({
   t,
   refetch,
@@ -242,7 +234,6 @@ function TaskItem({
   getAllowedAssigneeIds: () => Promise<string[]>;
 }) {
   const myId = useMyId();
-
   const { data: myState } = trpcNext.users.getUserState.useQuery();
   const lastTasksReadAt = myState ? getLastTasksReadAt(myState) : moment();
   const { data: assigneeState } = trpcNext.users.getUserState.useQuery({
@@ -250,7 +241,6 @@ function TaskItem({
     returnEmptyStateIfNoPermission: true,
   });
   const markdown = getTaskMarkdown(t, assigneeState, getBaseUrl());
-
   const [done, setDone] = useState(t.done);
   const [editing, setEditing] = useState<Task>();
 
@@ -259,7 +249,6 @@ function TaskItem({
     !t.done &&
     myId !== t.creator?.id &&
     moment(t.updatedAt).isAfter(lastTasksReadAt);
-
   const updateDone = async (done: boolean) => {
     await trpc.tasks.updateDone.mutate({
       id: t.id,
@@ -268,9 +257,7 @@ function TaskItem({
     refetch();
     toast.success("待办事项已更新。");
   };
-
   const markdownStylerMarginY = 3;
-
   return (
     <HStack w="full">
       <Checkbox

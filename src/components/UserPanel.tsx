@@ -1,3 +1,4 @@
+import T from "components/T";
 import trpc, { trpcNext } from "../trpc";
 import { features } from "shared/Features";
 import Loader from "components/Loader";
@@ -53,22 +54,21 @@ import {
 import invariant from "tiny-invariant";
 import useMe, { useMyId, useMyRoles } from "useMe";
 import { KudosControl } from "./Kudos";
-
 export type UserDisplayData = MinUserAndProfile & {
   // The presence of these fields depends on call sites and context
   traitsMatchingScore?: number;
   likes?: number;
   kudos?: number;
 };
-
 export type UserPanelProps = {
-  data: UserDisplayData & { isMentor: boolean };
+  data: UserDisplayData & {
+    isMentor: boolean;
+  };
   showBookingButton?: boolean;
   showMatchingTraitsAndSelection?: boolean;
   showTitle?: boolean;
   showKudosControl?: boolean;
 };
-
 export default function UserPanel({
   data,
   showBookingButton,
@@ -78,7 +78,6 @@ export default function UserPanel({
 }: UserPanelProps) {
   const myRoles = useMyRoles();
   const profile = data.profile;
-
   return (
     <>
       {showTitle && (
@@ -92,7 +91,10 @@ export default function UserPanel({
 
       <Stack
         spacing={sectionSpacing}
-        direction={{ base: "column", [breakpoint]: "row" }}
+        direction={{
+          base: "column",
+          [breakpoint]: "row",
+        }}
       >
         <VStack spacing={sectionSpacing}>
           <VStack spacing={componentSpacing}>
@@ -100,13 +102,15 @@ export default function UserPanel({
               <video
                 src={profile.视频链接}
                 poster={UserProfilePictureLink(profile)}
-                style={{ maxWidth: "300px" }}
+                style={{
+                  maxWidth: "300px",
+                }}
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture
                 // To set 'autoPlay', we need to also set 'muted'
               >
-                您的浏览器不支持视频播放。
+                <T>您的浏览器不支持视频播放。</T>
               </video>
             ) : (
               <Image
@@ -146,15 +150,12 @@ export default function UserPanel({
     </>
   );
 }
-
 function UserUrl({ u }: { u: MinUser }) {
   const url = window.location.host + getUserUrl(u);
   const { onCopy, hasCopied } = useClipboard(url);
-
   useEffect(() => {
     if (hasCopied) toast.success("链接已经拷贝到剪贴板。");
   }, [hasCopied]);
-
   return u.url ? (
     <Tooltip label="拷贝链接到剪贴板">
       <HStack onClick={onCopy} cursor="pointer" textColor="gray" fontSize="sm">
@@ -166,10 +167,8 @@ function UserUrl({ u }: { u: MinUser }) {
     <></>
   );
 }
-
 function MatchingTraits({ userId }: { userId: string }) {
   const myId = useMyId();
-
   const { data: traitsPref } = trpcNext.users.getMentorTraitsPref.useQuery({
     userId,
   });
@@ -180,9 +179,7 @@ function MatchingTraits({ userId }: { userId: string }) {
     type: "MenteeInterview",
     userId: myId,
   });
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const matchingTraits = useMemo(() => {
     if (
       user === undefined ||
@@ -197,7 +194,6 @@ function MatchingTraits({ userId }: { userId: string }) {
     );
     return matchingTraits;
   }, [user, applicant, traitsPref]);
-
   return !matchingTraits ? (
     <Loader />
   ) : matchingTraits.length === 0 ? (
@@ -206,21 +202,21 @@ function MatchingTraits({ userId }: { userId: string }) {
     <>
       <VStack spacing={componentSpacing}>
         <Text fontSize="sm" textAlign="center">
-          你的以下这些
-          <Link onClick={() => setIsModalOpen(true)}>个人特质</Link>
-          符合导师的匹配偏好
+          <T>你的以下这些</T>
+          <Link onClick={() => setIsModalOpen(true)}>
+            <T>个人特质</T>
+          </Link>
+          <T>符合导师的匹配偏好</T>
           <br />
-          （仅供参考，导师的选择权在你）
+          <T>（仅供参考，导师的选择权在你）</T>
         </Text>
         <Wrap>
           {matchingTraits.map((t) => {
             const profile = traitsPrefProfiles.find((p) => p.field === t);
             if (!profile) return <></>;
-
             invariant(traitsPref);
             invariant(traitsPrefLabel2value[0] < 0);
             invariant(traitsPrefLabel2value[1] > 0);
-
             const label =
               (traitsPref[t as keyof TraitsPreference] as number) < 0
                 ? profile.labels[0]
@@ -241,7 +237,6 @@ function MatchingTraits({ userId }: { userId: string }) {
     </>
   );
 }
-
 function Selection({ mentorId }: { mentorId: string }) {
   const me = useMe();
   const [showMenteeProfileModal, setShowMenteeProfileModal] = useState(false);
@@ -249,26 +244,24 @@ function Selection({ mentorId }: { mentorId: string }) {
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
   const utils = trpcNext.useContext();
-
-  const { data } = trpcNext.mentorSelections.getDraft.useQuery({ mentorId });
-
+  const { data } = trpcNext.mentorSelections.getDraft.useQuery({
+    mentorId,
+  });
   useEffect(() => {
     // `old ?? ...` so that existing data doesn't get overridden
     if (data !== undefined) setReason((old) => old || (data?.reason ?? ""));
   }, [data]);
-
   const selected = data !== null;
   const busy = saving || data === undefined;
-
   const invalidate = async () => {
     await utils.mentorSelections.listDrafts.invalidate();
-    await utils.mentorSelections.getDraft.invalidate({ mentorId });
+    await utils.mentorSelections.getDraft.invalidate({
+      mentorId,
+    });
   };
-
   const select = async () => {
     setShowError(reason.length === 0);
     if (reason.length === 0) return;
-
     if (features.menteeProfile) {
       const freshProfile = await trpc.users.getUserProfile.query({
         userId: me.id,
@@ -278,39 +271,43 @@ function Selection({ mentorId }: { mentorId: string }) {
         return;
       }
     }
-
     setSaving(true);
     try {
-      await trpc.mentorSelections.createDraft.mutate({ mentorId, reason });
+      await trpc.mentorSelections.createDraft.mutate({
+        mentorId,
+        reason,
+      });
       await invalidate();
       toast.success("选择成功。");
     } finally {
       setSaving(false);
     }
   };
-
   const unselect = async () => {
     setSaving(true);
     try {
-      await trpc.mentorSelections.destroyDraft.mutate({ mentorId });
+      await trpc.mentorSelections.destroyDraft.mutate({
+        mentorId,
+      });
       await invalidate();
       toast.success("选择已取消。");
     } finally {
       setSaving(false);
     }
   };
-
   const update = async () => {
     setSaving(true);
     try {
-      await trpc.mentorSelections.updateDraft.mutate({ mentorId, reason });
+      await trpc.mentorSelections.updateDraft.mutate({
+        mentorId,
+        reason,
+      });
       await invalidate();
       toast.success("更新成功。");
     } finally {
       setSaving(false);
     }
   };
-
   return (
     <VStack spacing={componentSpacing} w="full">
       {showMenteeProfileModal && (
@@ -319,7 +316,9 @@ function Selection({ mentorId }: { mentorId: string }) {
           cancelLabel="取消"
           onComplete={() => {
             setShowMenteeProfileModal(false);
-            void utils.users.getUserProfile.invalidate({ userId: me.id });
+            void utils.users.getUserProfile.invalidate({
+              userId: me.id,
+            });
           }}
         />
       )}
@@ -333,16 +332,20 @@ function Selection({ mentorId }: { mentorId: string }) {
           placeholder="选择这位导师的原因"
           autoFocus
         />
-        {showError && <FormErrorMessage>请首先填写选择原因。</FormErrorMessage>}
+        {showError && (
+          <FormErrorMessage>
+            <T>请首先填写选择原因。</T>
+          </FormErrorMessage>
+        )}
       </FormControl>
 
       {selected && (
         <SimpleGrid columns={2} spacing={componentSpacing} w="full">
           <Button onClick={unselect} isLoading={busy}>
-            取消选择
+            <T>取消选择</T>
           </Button>
           <Button variant="brand" onClick={update} isLoading={busy}>
-            更新选择原因
+            <T>更新选择原因</T>
           </Button>
         </SimpleGrid>
       )}
@@ -354,23 +357,20 @@ function Selection({ mentorId }: { mentorId: string }) {
           onClick={select}
           isLoading={busy}
         >
-          选择这位导师
+          <T>选择这位导师</T>
         </Button>
       )}
     </VStack>
   );
 }
-
 function BookingButtonAndModal({ user }: { user: MinUser }) {
   const isMentee = isPermitted(useMyRoles(), "Mentee");
   const [booking, setBooking] = useState<boolean>();
-
   if (!isMentee) return null;
-
   return (
     <>
       <Button width="full" variant="brand" onClick={() => setBooking(true)}>
-        预约交流
+        <T>预约交流</T>
       </Button>
 
       {booking && (
@@ -379,7 +379,6 @@ function BookingButtonAndModal({ user }: { user: MinUser }) {
     </>
   );
 }
-
 function ProfileTable({
   user,
   profile: p,
@@ -392,7 +391,6 @@ function ProfileTable({
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });
-
   return (
     <TableContainer maxW="700px">
       <Table variant="unstyled">
@@ -416,7 +414,7 @@ function ProfileTable({
               <Td></Td>
               <Td>
                 <Link as={NextLink} href={`/profiles/${user.id}`}>
-                  <EditIcon /> 修改资料
+                  <EditIcon /> <T>修改资料</T>
                 </Link>
               </Td>
             </Tr>
@@ -426,7 +424,6 @@ function ProfileTable({
     </TableContainer>
   );
 }
-
 function ProfileRow({
   label,
   content,
@@ -448,7 +445,7 @@ function ProfileRow({
         whiteSpace="normal"
       >
         {/* Keep `my` synced with `.markdownStyler p` margin in
-        MarkdownStyler.module.css */}
+         MarkdownStyler.module.css */}
         <Text fontWeight="bold" my="0.75em">
           {label}
         </Text>

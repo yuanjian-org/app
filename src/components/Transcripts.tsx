@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   CardBody,
   Select,
@@ -28,19 +29,23 @@ import { MdEdit } from "react-icons/md";
 import { useState } from "react";
 import { Summary } from "shared/Summary";
 import SummaryEditor from "./SummaryEditor";
-
 export default function Transcripts({ group }: { group: Group }) {
   const [currentSummary, setCurrentSummary] = useState<Summary | null>(null);
   const [editing, setEditing] = useState(false);
-
   if (!isPermittedToAccessGroupHistory(useMe(), group)) {
-    return <Text color="gray">您没有访问会议摘要的权限。</Text>;
+    return (
+      <Text color="gray">
+        <T>您没有访问会议摘要的权限。</T>
+      </Text>
+    );
   } else {
     return (
       <ResponsiveCard>
         <CardHeader>
           <Flex justify="space-between">
-            <Heading size="sm">智能会议纪要</Heading>
+            <Heading size="sm">
+              <T>智能会议纪要</T>
+            </Heading>
 
             {currentSummary && (
               <Button
@@ -48,7 +53,7 @@ export default function Transcripts({ group }: { group: Group }) {
                 leftIcon={<MdEdit />}
                 onClick={() => setEditing(true)}
               >
-                编辑
+                <T>编辑</T>
               </Button>
             )}
 
@@ -70,7 +75,6 @@ export default function Transcripts({ group }: { group: Group }) {
     );
   }
 }
-
 function PermittedTranscripts({
   groupId,
   setCurrentSummary,
@@ -78,13 +82,14 @@ function PermittedTranscripts({
   groupId: string;
   setCurrentSummary: (s: Summary | null) => void;
 }) {
-  const { data } = trpcNext.transcripts.list.useQuery({ groupId });
+  const { data } = trpcNext.transcripts.list.useQuery({
+    groupId,
+  });
 
   // Make a shadow copy
   const sorted = [...(data ?? [])];
   // Sort by reverse chronological order
   sorted.sort((t1, t2) => diffInMinutes(t1.startedAt, t2.startedAt));
-
   return !data ? (
     <Loader />
   ) : sorted.length ? (
@@ -96,7 +101,6 @@ function PermittedTranscripts({
     <Text color="gray">会议纪要将在会议结束后一小时内显示在这里。</Text>
   );
 }
-
 function LoadedTranscripts({
   transcripts,
   setCurrentSummary,
@@ -106,22 +110,24 @@ function LoadedTranscripts({
 }) {
   // Guaranteed by the caller
   invariant(transcripts.length, "No transcripts");
-
   const router = useRouter();
-
   const getTranscriptAndIndex = () => {
     const id = parseQueryString(router, "transcriptId");
     for (let i = 0; i < transcripts.length; i++) {
       if (transcripts[i].id == id) {
-        return { transcript: transcripts[i], transcriptIndex: i };
+        return {
+          transcript: transcripts[i],
+          transcriptIndex: i,
+        };
       }
     }
-    return { transcript: transcripts[0], transcriptIndex: 0 };
+    return {
+      transcript: transcripts[0],
+      transcriptIndex: 0,
+    };
   };
   const { transcript, transcriptIndex } = getTranscriptAndIndex();
-
   const { data: summaries } = trpcNext.summaries.list.useQuery(transcript.id);
-
   let summary = null;
   if (summaries) {
     // Every transcript should have at least one summary
@@ -131,7 +137,6 @@ function LoadedTranscripts({
     summary = match.length ? match[0] : summaries[0];
   }
   setCurrentSummary(summary);
-
   return (
     <Flex direction="column" gap={sectionSpacing}>
       <Flex gap={componentSpacing}>
@@ -147,7 +152,7 @@ function LoadedTranscripts({
             )
           }
         >
-          前一次
+          <T>前一次</T>
         </Button>
 
         <Spacer />
@@ -155,7 +160,7 @@ function LoadedTranscripts({
         {/* <Flex
           direction={{ base: "column", [breakpoint]: "row" }} 
           gap={componentSpacing}
-        > */}
+         > */}
 
         <Select
           value={transcript.id}
@@ -184,7 +189,7 @@ function LoadedTranscripts({
               >{s.key}</option>)}
             </Select>
           }
-        </Flex> */}
+         </Flex> */}
 
         <Spacer />
 
@@ -200,7 +205,7 @@ function LoadedTranscripts({
             )
           }
         >
-          后一次
+          <T>后一次</T>
         </Button>
       </Flex>
 

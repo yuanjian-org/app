@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Table,
   Th,
@@ -25,12 +27,10 @@ import {
 import { getUserUrl } from "shared/User";
 import invariant from "shared/invariant";
 import _ from "lodash";
-
 const meetingDurationInMins = 60;
 const bucketSizeInMins = 15;
 const bucketsPerMeeting = meetingDurationInMins / bucketSizeInMins;
 invariant(meetingDurationInMins % bucketSizeInMins === 0, "bucket size");
-
 export default widePage(() => {
   const { data } =
     trpcNext.mentorships.listOngoingRelationalMentorships.useQuery();
@@ -51,9 +51,7 @@ export default widePage(() => {
     // Sort by start time
     return buckets(sa)[0] - buckets(sb)[0];
   });
-
   const max = Math.max(...h.values());
-
   return !sorted ? (
     <Loader />
   ) : (
@@ -61,14 +59,20 @@ export default widePage(() => {
       <Table size="sm">
         <Thead>
           <Tr>
-            <Th>学生</Th>
-            <Th>导师</Th>
-            <Th>通话时间（北京时区）</Th>
+            <Th>
+              <T>学生</T>
+            </Th>
+            <Th>
+              <T>导师</T>
+            </Th>
+            <Th>
+              <T>通话时间（北京时区）</T>
+            </Th>
             {_.range(bucketsPerMeeting).map((i) => (
               <Th key={i}>
-                {i * bucketSizeInMins}-{(i + 1) * bucketSizeInMins} 分钟
+                {i * bucketSizeInMins}-{(i + 1) * bucketSizeInMins} <T>分钟</T>
                 <br />
-                并发数量
+                <T>并发数量</T>
               </Th>
             ))}
           </Tr>
@@ -82,12 +86,11 @@ export default widePage(() => {
       </Table>
 
       <Text fontSize="sm" color="gray" marginTop={sectionSpacing}>
-        共 <b>{sorted.length}</b> 个一对一匹配
+        <T>共</T> <b>{sorted.length}</b> <T>个一对一匹配</T>
       </Text>
     </TableContainer>
   );
 }, "一对一通话时间");
-
 function buckets(s: MentorshipSchedule): number[] {
   const start = s.week * 7 * 24 * 60 + s.day * 24 * 60 + s.hour * 60 + s.minute;
   return _.range(bucketsPerMeeting).map((i) => start + i * bucketSizeInMins);
@@ -99,7 +102,6 @@ function buckets(s: MentorshipSchedule): number[] {
  * month. Bucket duration is `bucketSizeInMins`.
  */
 type Histogram = Map<number, number>;
-
 function computeHistogram(mentorships: Mentorship[]): Histogram {
   const h = new Map<number, number>();
   for (const { schedule: s } of mentorships) {
@@ -110,7 +112,6 @@ function computeHistogram(mentorships: Mentorship[]): Histogram {
   }
   return h;
 }
-
 function Row({
   mentorship: m,
   h,
@@ -121,9 +122,12 @@ function Row({
   max: number;
 }) {
   const s = m.schedule;
-
   return (
-    <Tr _hover={{ bg: "white" }}>
+    <Tr
+      _hover={{
+        bg: "white",
+      }}
+    >
       {/* 学生 */}
       <Td>
         <Link as={NextLink} href={`/mentees/${m.mentee.id}`}>
@@ -163,3 +167,4 @@ function Row({
     </Tr>
   );
 }
+export const getStaticProps = getI18nProps;

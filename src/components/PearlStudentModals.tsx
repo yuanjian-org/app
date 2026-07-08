@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   ModalContent,
@@ -26,7 +27,6 @@ import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
-
 export function PearlStudentModals({
   userState,
   refetchUserState,
@@ -36,7 +36,6 @@ export function PearlStudentModals({
 }) {
   const [isInitial, setIsInitial] = useState<boolean>(true);
   const [loadingDecline, setLoadingDecline] = useState<boolean>(false);
-
   const decline = async () => {
     setLoadingDecline(true);
     try {
@@ -49,7 +48,6 @@ export function PearlStudentModals({
       setLoadingDecline(false);
     }
   };
-
   return isInitial ? (
     <InitialModal
       confirm={() => setIsInitial(false)}
@@ -63,7 +61,6 @@ export function PearlStudentModals({
     />
   );
 }
-
 function InitialModal({
   confirm,
   decline,
@@ -78,19 +75,21 @@ function InitialModal({
     // entering name.
     <ModalWithBackdrop isOpen onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>珍珠生验证</ModalHeader>
+        <ModalHeader>
+          <T>珍珠生验证</T>
+        </ModalHeader>
         <ModalBody>
           <Text>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</Text>
           <Text mt={componentSpacing}>
-            如果选择跳过，之后可以前往用户菜单的【
+            <T>如果选择跳过，之后可以前往用户菜单的【</T>
             {accountPageTitle}
-            】页进行验证。
+            <T>】页进行验证。</T>
           </Text>
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <Button onClick={decline} isLoading={loadingDecline}>
-              我不是珍珠生，或跳过此步
+              <T>我不是珍珠生，或跳过此步</T>
             </Button>
             <Spacer />
             <Button
@@ -98,7 +97,7 @@ function InitialModal({
               onClick={confirm}
               isDisabled={loadingDecline}
             >
-              我是珍珠生
+              <T>我是珍珠生</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -106,7 +105,6 @@ function InitialModal({
     </ModalWithBackdrop>
   );
 }
-
 export function PearlStudentValidationModal({
   cancelLabel,
   cancel,
@@ -121,13 +119,11 @@ export function PearlStudentValidationModal({
   const [wechat, setWechat] = useState<string>("");
   const { update } = useSession();
   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
-
   const isInputValid =
     isValidChineseName(name) &&
     pearlId.length > 0 &&
     nationalIdLastFour.length === 4 &&
     wechat.length > 0;
-
   const submit = async () => {
     setLoadingSubmit(true);
     try {
@@ -142,23 +138,27 @@ export function PearlStudentValidationModal({
       // be refreshed including the caller to PearlStudentModals, so we don't need
       // to manually close this modal.
       await update();
-
       toast.success(`验证成功。您现在可以享受珍珠生专属功能了。`);
     } finally {
       setLoadingSubmit(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>珍珠生验证</ModalHeader>
+        <ModalHeader>
+          <T>珍珠生验证</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
-            <SmallGrayText>所有字段均为必填：</SmallGrayText>
+            <SmallGrayText>
+              <T>所有字段均为必填：</T>
+            </SmallGrayText>
             <FormControl>
-              <FormLabel>姓名</FormLabel>
+              <FormLabel>
+                <T>姓名</T>
+              </FormLabel>
               <Input
                 autoFocus
                 value={name}
@@ -167,7 +167,9 @@ export function PearlStudentValidationModal({
             </FormControl>
 
             <FormControl>
-              <FormLabel>珍珠生号（一般为11个字符）</FormLabel>
+              <FormLabel>
+                <T>珍珠生号（一般为11个字符）</T>
+              </FormLabel>
               <Input
                 value={pearlId}
                 onChange={(e) => setPearlId(e.target.value)}
@@ -175,7 +177,9 @@ export function PearlStudentValidationModal({
             </FormControl>
 
             <FormControl>
-              <FormLabel>身份证号最后四位</FormLabel>
+              <FormLabel>
+                <T>身份证号最后四位</T>
+              </FormLabel>
               <Input
                 value={nationalIdLastFour}
                 onChange={(e) => setNationalIdLastFour(e.target.value)}
@@ -184,7 +188,9 @@ export function PearlStudentValidationModal({
             </FormControl>
 
             <FormControl>
-              <FormLabel>微信号</FormLabel>
+              <FormLabel>
+                <T>微信号</T>
+              </FormLabel>
               <Input
                 value={wechat}
                 onChange={(e) => setWechat(e.target.value)}
@@ -195,12 +201,12 @@ export function PearlStudentValidationModal({
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <SmallGrayText>
-              如有问题，
+              <T>如有问题，</T>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
               >
-                联系客服
+                <T>联系客服</T>
               </Link>
             </SmallGrayText>
             <RiCustomerServiceFill color="gray" />
@@ -215,7 +221,7 @@ export function PearlStudentValidationModal({
               isDisabled={!isInputValid}
               isLoading={loadingSubmit}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>

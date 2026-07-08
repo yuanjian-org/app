@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Link,
   Table,
@@ -33,7 +35,6 @@ import ExamPassDateText from "components/ExamPassDateText";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { okTextColor, warningTextColor } from "theme/colors";
 import { defaultMentorCapacity, MentorPreference } from "shared/UserPreference";
-
 const title = "导师档案";
 
 /**
@@ -42,7 +43,6 @@ const title = "导师档案";
 export default fullPage(() => {
   const [showOnlyWithCapacity, setShowOnlyWithCapacity] = useState(false);
   const [showMatchState, setShowMatchState] = useState(false);
-
   return (
     <>
       <TopBar {...topBarPaddings()}>
@@ -55,7 +55,7 @@ export default fullPage(() => {
               isChecked={showOnlyWithCapacity}
               onChange={(e) => setShowOnlyWithCapacity(e.target.checked)}
             >
-              仅显示有剩余容量的一对一导师
+              <T>仅显示有剩余容量的一对一导师</T>
             </Checkbox>
           </WrapItem>
           <WrapItem>
@@ -63,7 +63,7 @@ export default fullPage(() => {
               isChecked={showMatchState}
               onChange={(e) => setShowMatchState(e.target.checked)}
             >
-              显示师生匹配状态
+              <T>显示师生匹配状态</T>
             </Checkbox>
           </WrapItem>
         </Wrap>
@@ -78,7 +78,6 @@ export default fullPage(() => {
     </>
   );
 }, title);
-
 function Mentors({
   showOnlyWithCapacity,
   showMatchState,
@@ -87,7 +86,6 @@ function Mentors({
   showMatchState: boolean;
 }) {
   const { data: stats } = trpcNext.users.listMentorStats.useQuery();
-
   return !stats ? (
     <Loader />
   ) : (
@@ -95,20 +93,50 @@ function Mentors({
       <Table size="sm">
         <Thead>
           <Tr>
-            <Th>导师</Th>
-            <Th>角色</Th>
-            {showMatchState && <Th color="brand.c">交流反馈状态</Th>}
-            <Th>学生容量</Th>
-            <Th>学生数量</Th>
-            <Th>剩余容量</Th>
-            <Th>通讯原则评测</Th>
-            <Th>导师手册评测</Th>
-            <Th>已设偏好</Th>
-            <Th>文字偏好</Th>
-            <Th>性别</Th>
-            <Th>坐标</Th>
-            <Th>微信</Th>
-            <Th>拼音（便于查找）</Th>
+            <Th>
+              <T>导师</T>
+            </Th>
+            <Th>
+              <T>角色</T>
+            </Th>
+            {showMatchState && (
+              <Th color="brand.c">
+                <T>交流反馈状态</T>
+              </Th>
+            )}
+            <Th>
+              <T>学生容量</T>
+            </Th>
+            <Th>
+              <T>学生数量</T>
+            </Th>
+            <Th>
+              <T>剩余容量</T>
+            </Th>
+            <Th>
+              <T>通讯原则评测</T>
+            </Th>
+            <Th>
+              <T>导师手册评测</T>
+            </Th>
+            <Th>
+              <T>已设偏好</T>
+            </Th>
+            <Th>
+              <T>文字偏好</T>
+            </Th>
+            <Th>
+              <T>性别</T>
+            </Th>
+            <Th>
+              <T>坐标</T>
+            </Th>
+            <Th>
+              <T>微信</T>
+            </Th>
+            <Th>
+              <T>拼音（便于查找）</T>
+            </Th>
           </Tr>
         </Thead>
 
@@ -136,7 +164,6 @@ function Mentors({
     </TableContainer>
   );
 }
-
 function SumsRow({
   stats,
 }: {
@@ -162,38 +189,53 @@ function SumsRow({
     </Tr>
   );
 }
-
 function SumCell({ n }: { n: number }) {
   return (
     <Td>
       <Text fontSize="sm" color="gray" marginTop={componentSpacing}>
-        <b>共 {n}</b>
+        <b>
+          <T>共</T> {n}
+        </b>
       </Text>
     </Td>
   );
 }
-
 function cap(pref: MentorPreference): number {
   return pref.最多匹配学生 ?? defaultMentorCapacity;
 }
-
 export function RoleTag({ roles }: { roles: Role[] }) {
-  const { r, c }: { r: Role | null; c: string } = isPermitted(
-    roles,
-    "TransactionalMentor",
-  )
-    ? { r: "TransactionalMentor", c: "red" }
+  const {
+    r,
+    c,
+  }: {
+    r: Role | null;
+    c: string;
+  } = isPermitted(roles, "TransactionalMentor")
+    ? {
+        r: "TransactionalMentor",
+        c: "red",
+      }
     : isPermitted(roles, "SeniorMentor")
-      ? { r: "SeniorMentor", c: "blue" }
+      ? {
+          r: "SeniorMentor",
+          c: "blue",
+        }
       : isPermitted(roles, "Mentor")
-        ? { r: "Mentor", c: "teal" }
+        ? {
+            r: "Mentor",
+            c: "teal",
+          }
         : isPermitted(roles, "Volunteer")
-          ? { r: "Volunteer", c: "orange" }
-          : { r: null, c: "grey" };
-
+          ? {
+              r: "Volunteer",
+              c: "orange",
+            }
+          : {
+              r: null,
+              c: "grey",
+            };
   return r && <Tag colorScheme={c}>{displayName(r)}</Tag>;
 }
-
 function MentorRow({
   user,
   profile,
@@ -210,12 +252,14 @@ function MentorRow({
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
-
   const capacity = cap(preference);
   const isDefaultCapacity = preference.最多匹配学生 === undefined;
-
   return (
-    <Tr _hover={{ bg: "white" }}>
+    <Tr
+      _hover={{
+        bg: "white",
+      }}
+    >
       {/* 导师 */}
       <Td>
         <Link as={NextLink} href={getUserUrl(user)}>
@@ -252,9 +296,13 @@ function MentorRow({
       {/* 已设偏好 */}
       <Td>
         {preference.学生特质 ? (
-          <Tag colorScheme="green">是</Tag>
+          <Tag colorScheme="green">
+            <T>是</T>
+          </Tag>
         ) : (
-          <Tag colorScheme="red">否</Tag>
+          <Tag colorScheme="red">
+            <T>否</T>
+          </Tag>
         )}
       </Td>
 
@@ -281,12 +329,10 @@ function MentorRow({
     </Tr>
   );
 }
-
 function MentorMatchFeedbackStateCell({ mentorId }: { mentorId: string }) {
   const { data } = trpcNext.matchFeedback.getLastMentorMatchFeedback.useQuery({
     mentorId,
   });
-
   const total = data?.mentees.length ?? 0;
   const [choices, reasons] = data?.mentees.reduce(
     ([choices, reasons], m) => {
@@ -296,7 +342,6 @@ function MentorMatchFeedbackStateCell({ mentorId }: { mentorId: string }) {
     },
     [0, 0],
   ) ?? [0, 0];
-
   return (
     <MatchFeedbackStateCell
       loading={data === undefined}
@@ -306,7 +351,6 @@ function MentorMatchFeedbackStateCell({ mentorId }: { mentorId: string }) {
     />
   );
 }
-
 export function MatchFeedbackStateCell({
   loading,
   total,
@@ -323,7 +367,9 @@ export function MatchFeedbackStateCell({
       {loading ? (
         <Text />
       ) : total === 0 ? (
-        <Text color="gray">无反馈表</Text>
+        <Text color="gray">
+          <T>无反馈表</T>
+        </Text>
       ) : (
         <Tooltip label="匹配数量 / 已评分数量 / 评分原因数量">
           <Text color={total == scores ? okTextColor : warningTextColor}>
@@ -334,3 +380,4 @@ export function MatchFeedbackStateCell({
     </Td>
   );
 }
+export const getStaticProps = getI18nProps;

@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   ModalBody,
@@ -46,7 +47,6 @@ export default function TaskEditor({
   );
   const [markdown, setMarkdown] = useState(task?.markdown ?? "");
   const [isSaving, setIsSaving] = useState(false);
-
   const save = async () => {
     invariant(assigneeId && markdown, "assigneeId && markdown can't be empty");
     setIsSaving(true);
@@ -70,15 +70,13 @@ export default function TaskEditor({
       setIsSaving(false);
     }
   };
-
   const isAuto = task && isAutoTask(task);
-
   return (
     <ModalWithBackdrop isOpen={true} onClose={onClose} isCentered>
       <ModalContent>
         <ModalHeader>
           {task ? "编辑" : "新建"}
-          待办事项
+          <T>待办事项</T>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -120,7 +118,7 @@ export default function TaskEditor({
             {task?.creator && (
               <HStack justify="space-between" w="full">
                 <SmallGrayText>
-                  创建人：
+                  <T>创建人：</T>
                   <UserName user={task.creator} />
                 </SmallGrayText>
                 <MarkdownSupport fontSize="sm" />
@@ -138,7 +136,7 @@ export default function TaskEditor({
         <ModalFooter>
           <HStack spacing={componentSpacing}>
             <Button variant="ghost" color="gray" onClick={onClose}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               isDisabled={!assigneeId || markdown.trim().length === 0}
@@ -146,7 +144,7 @@ export default function TaskEditor({
               isLoading={isSaving}
               onClick={save}
             >
-              确认
+              <T>确认</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -154,7 +152,6 @@ export default function TaskEditor({
     </ModalWithBackdrop>
   );
 }
-
 function AssigneeSelector({
   getAllowedAssigneeIds,
   selected,
@@ -166,11 +163,9 @@ function AssigneeSelector({
 }) {
   const myId = useMyId();
   const [allowedAssigneeIds, setAllowedAssigneeIds] = useState<string[]>([]);
-
   const initialize = useCallback(async () => {
     // Do not update it if already initialized
     if (allowedAssigneeIds.length > 0) return;
-
     const ids = await getAllowedAssigneeIds();
     invariant(ids.length > 0, "empty allowedAssigneeIds");
 
@@ -185,7 +180,6 @@ function AssigneeSelector({
       if (b === myId) return 1;
       return 0;
     });
-
     setAllowedAssigneeIds(ids);
 
     // Select myself by default
@@ -193,19 +187,18 @@ function AssigneeSelector({
       setSelected(myId);
     }
   }, [allowedAssigneeIds, getAllowedAssigneeIds, selected, setSelected, myId]);
-
   useEffect(() => {
     void initialize();
   }, [initialize]);
-
   const users = trpcNext
     .useQueries((t) => allowedAssigneeIds.map((id) => t.users.get(id)))
     .map((res) => res.data)
     .filter((u) => u !== undefined);
-
   return (
     <HStack align="start">
-      <Text fontWeight="bold">待办人：</Text>
+      <Text fontWeight="bold">
+        <T>待办人：</T>
+      </Text>
       <RadioGroup onChange={setSelected} value={selected}>
         <HStack spacing={2}>
           {users.map((user) => {

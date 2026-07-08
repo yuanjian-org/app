@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   TableContainer,
   Table,
@@ -20,10 +22,8 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import trpc, { trpcNext } from "trpc";
 import NextLink from "next/link";
 import { getUserUrl } from "shared/User";
-
 export default function Page() {
   const { data, isLoading, refetch } = trpcNext.mentorBookings.list.useQuery();
-
   const assignMentor = async (mb: MentorBooking, userId: string) => {
     await trpc.mentorBookings.update.mutate({
       id: mb.id,
@@ -32,7 +32,6 @@ export default function Page() {
     });
     void refetch();
   };
-
   const saveNotes = async (mb: MentorBooking, notes: string) => {
     await trpc.mentorBookings.update.mutate({
       id: mb.id,
@@ -41,7 +40,6 @@ export default function Page() {
     });
     void refetch();
   };
-
   return (
     <>
       <PageBreadcrumb current="不定期导师预约记录" />
@@ -53,13 +51,27 @@ export default function Page() {
           <Table>
             <Thead>
               <Tr>
-                <Th>申请人</Th>
-                <Th>主题</Th>
-                <Th>指定导师</Th>
-                <Th>分配导师</Th>
-                <Th>申请日期</Th>
-                <Th>备注</Th>
-                <Th>备注人</Th>
+                <Th>
+                  <T>申请人</T>
+                </Th>
+                <Th>
+                  <T>主题</T>
+                </Th>
+                <Th>
+                  <T>指定导师</T>
+                </Th>
+                <Th>
+                  <T>分配导师</T>
+                </Th>
+                <Th>
+                  <T>申请日期</T>
+                </Th>
+                <Th>
+                  <T>备注</T>
+                </Th>
+                <Th>
+                  <T>备注人</T>
+                </Th>
               </Tr>
             </Thead>
 
@@ -125,5 +137,5 @@ export default function Page() {
     </>
   );
 }
-
 Page.title = "导师预约记录";
+export const getStaticProps = getI18nProps;

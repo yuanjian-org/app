@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Drawer,
   DrawerBody,
@@ -37,10 +38,8 @@ import invariant from "tiny-invariant";
 import { compareDate } from "shared/strings/compareDate";
 import Loader from "./Loader";
 import { useMyId } from "useMe";
-
 const desktopTextLimit = 60;
 const mobileTextLimit = 20;
-
 export default function LandmarkDrawer({
   onClose,
   landmark,
@@ -65,11 +64,9 @@ export default function LandmarkDrawer({
     </Drawer>
   );
 }
-
 function LandmarkDefinition({ definition }: { definition: string }) {
   return <Text>{definition}</Text>;
 }
-
 function LandmarkAssessmentSelect({ landmark }: { landmark: Landmark }) {
   const myId = useMyId();
   const [score, setScore] = useState<LandmarkScore | undefined>();
@@ -85,7 +82,11 @@ function LandmarkAssessmentSelect({ landmark }: { landmark: Landmark }) {
   };
   return (
     <>
-      <Text>你认为你的{landmark.名称}处于以下哪个阶段？（单选）</Text>
+      <Text>
+        <T>你认为你的</T>
+        {landmark.名称}
+        <T>处于以下哪个阶段？（单选）</T>
+      </Text>
       <RadioGroup
         onChange={(value) => setScore(Number(value))}
         value={String(score)}
@@ -104,12 +105,11 @@ function LandmarkAssessmentSelect({ landmark }: { landmark: Landmark }) {
         variant="brand"
         alignSelf="center"
       >
-        提交
+        <T>提交</T>
       </Button>
     </>
   );
 }
-
 function Editor({
   markdown,
   setMarkdown,
@@ -130,32 +130,38 @@ function Editor({
     </>
   );
 }
-
 function getAssessorName(assessment: LandmarkAssessment) {
   return assessment.assessor ? formatUserName(assessment.assessor.name) : "我";
 }
-
 function getAssessmentDate(assessment: LandmarkAssessment) {
   return assessment.createdAt && prettifyDate(assessment.createdAt);
 }
-
 function LandmarkAssessmentHistory({ landmark }: { landmark: Landmark }) {
   const { data: assessments } = trpcNext.map.listLandmarkAssessments.useQuery({
     userId: useMyId(),
     landmark: landmark.名称,
   });
-
   const [selectedAssessment, setSelectedAssessment] =
     useState<LandmarkAssessment>();
   return (
     <>
       <Table whiteSpace="nowrap">
-        <Thead>历史评估结果</Thead>
+        <Thead>
+          <T>历史评估结果</T>
+        </Thead>
         <Tr>
-          <Th>日期</Th>
-          <Th>结果</Th>
-          <Th>评估人</Th>
-          <Th>详情</Th>
+          <Th>
+            <T>日期</T>
+          </Th>
+          <Th>
+            <T>结果</T>
+          </Th>
+          <Th>
+            <T>评估人</T>
+          </Th>
+          <Th>
+            <T>详情</T>
+          </Th>
         </Tr>
         <Tbody>
           {!assessments ? (
@@ -198,7 +204,6 @@ function LandmarkAssessmentHistory({ landmark }: { landmark: Landmark }) {
     </>
   );
 }
-
 function AssessmentModal({
   onClose,
   assessment,
@@ -209,29 +214,41 @@ function AssessmentModal({
   return (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>历史评估结果</ModalHeader>
+        <ModalHeader>
+          <T>历史评估结果</T>
+        </ModalHeader>
         <ModalBody>
           <VStack gap={componentSpacing} align="left">
             <p>
-              <b>日期：</b>
+              <b>
+                <T>日期：</T>
+              </b>
               {getAssessmentDate(assessment)}
             </p>
             <p>
-              <b>结果：</b>
+              <b>
+                <T>结果：</T>
+              </b>
               {assessment.score}
             </p>
             <p>
-              <b>评估人：</b>
+              <b>
+                <T>评估人：</T>
+              </b>
               {getAssessorName(assessment)}
             </p>
             <p>
-              <b>详情：</b>
+              <b>
+                <T>详情：</T>
+              </b>
               {assessment.markdown || "无"}
             </p>
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>

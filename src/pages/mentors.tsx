@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import { Text, Button, VStack } from "@chakra-ui/react";
 import { hash } from "shared/strings/hash";
 import { trpcNext } from "trpc";
@@ -16,7 +18,6 @@ import { topBarPaddings } from "components/TopBar";
 import { features } from "shared/Features";
 import Head from "next/head";
 import { isPermitted } from "shared/Role";
-
 export function getTransactionalMentorsPageTitle(
   isMentee: boolean,
   enableRelational?: boolean,
@@ -27,29 +28,31 @@ export function getTransactionalMentorsPageTitle(
       : "预约导师"
     : "导师一览";
 }
-
 export default fullPage(() => {
   const me = useMe();
   const isMentee = isPermitted(me.roles, "Mentee");
   const [booking, setBooking] = useState<boolean>();
   const [searchTerm, setSearchTerm] = useState<string>("");
-
   const { data } = trpcNext.users.listMentors.useQuery();
   const shuffled = useMemo(
     () => (data ? dailyShuffle(data, me.id) : undefined),
     [data, me],
   );
   const title = getTransactionalMentorsPageTitle(isMentee, features.relational);
-
   return (
     <>
       <Head>
-        <title>{title} | 远图</title>
+        <title>
+          {title} <T>| 远图</T>
+        </title>
       </Head>
 
       <TopBar
         {...topBarPaddings()}
-        pb={{ base: componentSpacing, [breakpoint]: sectionSpacing }}
+        pb={{
+          base: componentSpacing,
+          [breakpoint]: sectionSpacing,
+        }}
       >
         <VStack spacing={componentSpacing} align="start">
           {isMentee && (
@@ -59,10 +62,12 @@ export default fullPage(() => {
               </Text>
 
               <Button variant="brand" onClick={() => setBooking(true)}>
-                我有一个话题，请帮我预约适合的导师
+                <T>我有一个话题，请帮我预约适合的导师</T>
               </Button>
 
-              <Text>或者预约任何一位指定的导师：</Text>
+              <Text>
+                <T>或者预约任何一位指定的导师：</T>
+              </Text>
             </>
           )}
 
@@ -123,7 +128,6 @@ export function dailyShuffle(
       return seed / 233280;
     };
   }
-
   const seed = hash(`${local4am.getTime()}-${users.length}-${uuid}`);
   const rng = seededRandom(seed);
 
@@ -138,3 +142,4 @@ export function dailyShuffle(
     return rng() - 0.5;
   });
 }
+export const getStaticProps = getI18nProps;

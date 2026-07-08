@@ -1,3 +1,5 @@
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 import {
   Card,
   CardBody,
@@ -6,7 +8,6 @@ import {
   Heading,
   Text,
 } from "@chakra-ui/react";
-
 import { VStack } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
@@ -17,10 +18,8 @@ import { compareDate } from "shared/strings/compareDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import invariant from "shared/invariant";
-
 export default function Page() {
   const { data } = trpcNext.mentorSelections.listFinalizedBatches.useQuery();
-
   return (
     <>
       <PageBreadcrumb current="导师选择历史" />
@@ -29,7 +28,10 @@ export default function Page() {
         {!data ? (
           <Loader />
         ) : data.length === 0 ? (
-          <Text> 尚无选择历史。 </Text>
+          <Text>
+            {" "}
+            <T>尚无选择历史。</T>{" "}
+          </Text>
         ) : (
           data
             .sort((a, b) => compareDate(b.finalizedAt, a.finalizedAt))
@@ -39,7 +41,6 @@ export default function Page() {
     </>
   );
 }
-
 function Batch({ batch }: { batch: MentorSelectionBatch }) {
   invariant(batch.finalizedAt, "Batch must be finalized");
   return (
@@ -68,3 +69,4 @@ function Batch({ batch }: { batch: MentorSelectionBatch }) {
     </>
   );
 }
+export const getStaticProps = getI18nProps;

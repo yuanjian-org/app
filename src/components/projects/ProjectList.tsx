@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Flex,
   Heading,
@@ -16,19 +17,16 @@ import {
   ProjectWithAssociation,
 } from "../../shared/Project";
 import { toPinyin } from "../../shared/strings/toPinyin";
-
 export function searchProjects(
   projects: ProjectWithAssociation[],
   searchTerm: string,
 ) {
   const lower = searchTerm.trim().toLowerCase();
-
   const match = (v: string | null | undefined) => {
     if (!v) return false;
     const lowerV = v.toLowerCase();
     return [lowerV, toPinyin(lowerV)].some((s) => s.includes(lower));
   };
-
   return projects.filter((p) => {
     return (
       match(p.title) ||
@@ -40,7 +38,6 @@ export function searchProjects(
     );
   });
 }
-
 export function ProjectCard({
   project,
   basePath = "/projects",
@@ -56,7 +53,9 @@ export function ProjectCard({
             <NextLink href={`${basePath}/${project.id}`}>
               <Text
                 color="brand.a"
-                _hover={{ textDecoration: "underline" }}
+                _hover={{
+                  textDecoration: "underline",
+                }}
                 width="100%"
               >
                 {project.title}
@@ -68,12 +67,14 @@ export function ProjectCard({
       <CardBody>
         <Flex align="center" gap={2} mb={4}>
           <Text fontSize="sm" color="gray.600">
-            发起人：
+            <T>发起人：</T>
             <NextLink href={`/users/${project.owner.id}`}>
               <Text
                 as="span"
                 color="brand.a"
-                _hover={{ textDecoration: "underline" }}
+                _hover={{
+                  textDecoration: "underline",
+                }}
               >
                 {project.owner.name}
               </Text>

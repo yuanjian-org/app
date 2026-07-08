@@ -1,3 +1,4 @@
+import T from "components/T";
 import { Link, GridItem, Text, VStack } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import Image from "next/image";
@@ -14,7 +15,6 @@ import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import NextLink from "next/link";
 import LandingPageSection from "components/LandingPageSection";
-
 export default function YuantuLandingPageContent() {
   return (
     <VStack spacing={50} align="start">
@@ -23,20 +23,29 @@ export default function YuantuLandingPageContent() {
     </VStack>
   );
 }
-
 function IntroSection() {
   return (
     <LandingPageSection header="欢迎来到 “远图” 社会导师服务平台">
-      <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
+      <GridItem
+        colSpan={{
+          base: 2,
+          [breakpoint]: 5,
+        }}
+      >
         <VStack spacing={paragraphSpacing} align="start">
           <Text>
-            <b>什么是社会导师？</b>社会导师是拥有丰富职业经验和社会阅历的
-            “过来人”，他们为年{}
+            <b>
+              <T>什么是社会导师？</T>
+            </b>
+            社会导师是拥有丰富职业经验和社会阅历的 “过来人”，他们为年{}
             轻人，特别是在校大学生，提供长期的一对一陪伴与指导，帮助他们顺利度过校园时光
             {}，尽早为步入职场和社会做好准备，助力年轻人实现人生理想与社会责任。
           </Text>
           <Text>
-            <b>任何人都可以接受社会导师服务么？</b>是的。
+            <b>
+              <T>任何人都可以接受社会导师服务么？</T>
+            </b>
+            <T>是的。</T>
             <Link href="/img/wechat-app-qrcode.jpg" isExternal>
               馒头工坊｜Mentor Workshop
             </Link>{" "}
@@ -45,16 +54,18 @@ function IntroSection() {
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               isExternal
             >
-              联系客服
+              <T>联系客服</T>
             </Link>
-            进行咨询。
+            <T>进行咨询。</T>
           </Text>
           <Text>
-            <b>如何了解更多？</b>
+            <b>
+              <T>如何了解更多？</T>
+            </b>
             社会导师服务的背后是一套完整的方法体系和运营平台。{}
             随着这一系统的日益完善，我们将逐步向公众分享实践与经验。欢迎浏览{" "}
             <Link as={NextLink} href="/s/articles">
-              📄 已经发表的文章
+              <T>📄 已经发表的文章</T>
             </Link>
             。{}
             也欢迎您在自己的组织或机构中尝试类似形式的服务。我们真诚期待您的反馈与交流。
@@ -64,7 +75,6 @@ function IntroSection() {
     </LandingPageSection>
   );
 }
-
 function PartnersSection() {
   const partners = [
     {
@@ -104,7 +114,6 @@ function PartnersSection() {
       image: partner_5,
     },
   ];
-
   return (
     <LandingPageSection header="参与机构" gap={10}>
       {partners.map((partner, idx) => (
@@ -113,7 +122,6 @@ function PartnersSection() {
     </LandingPageSection>
   );
 }
-
 function Partner({ name, image }: { name: string; image: StaticImageData }) {
   return (
     <GridItem>

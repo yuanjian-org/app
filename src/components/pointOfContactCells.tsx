@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Th,
   Td,
@@ -19,16 +20,18 @@ import trpc from "trpc";
 import EditableWithIconOrLink from "./EditableWithIconOrLink";
 import { isPermitted } from "shared/Role";
 import { useMyRoles } from "useMe";
-
 export function PointOfContactHeaderCells() {
   return (
     <>
-      <Th>联络人</Th>
-      <Th>备注</Th>
+      <Th>
+        <T>联络人</T>
+      </Th>
+      <Th>
+        <T>备注</T>
+      </Th>
     </>
   );
 }
-
 export function PointOfContactCells({
   user,
   refetch,
@@ -37,7 +40,6 @@ export function PointOfContactCells({
   refetch: () => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
-
   const savePoCNote = async (note: string) => {
     await trpc.users.setPointOfContactAndNote.mutate({
       userId: user.id,
@@ -45,7 +47,6 @@ export function PointOfContactCells({
     });
     refetch();
   };
-
   if (isPermitted(useMyRoles(), ["MentorshipAdmin", "MentorshipOperator"])) {
     return (
       <>
@@ -91,7 +92,6 @@ export function PointOfContactCells({
     );
   }
 }
-
 function PoCEditor({
   user,
   poc,
@@ -112,17 +112,21 @@ function PoCEditor({
     });
     refetch();
   };
-
   return (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(user.name)}的联络人</ModalHeader>
+        <ModalHeader>
+          {formatUserName(user.name)}
+          <T>的联络人</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <UserSelector initialValue={poc ? [poc] : []} onSelect={savePoC} />
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>

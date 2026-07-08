@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Text,
   VStack,
@@ -15,17 +16,17 @@ import { componentSpacing } from "theme/metrics";
 import { ResponsiveCard } from "components/ResponsiveCard";
 import GroupBar from "components/GroupBar";
 import { SmallGrayText } from "components/SmallGrayText";
-
 export default function GroupsCard() {
   const { data: groups, isLoading } = trpcNext.groups.listMine.useQuery({
     // TODO: This is a hack. Do it properly.
     includeOwned: isPermitted(useMyRoles(), "Mentee"),
   });
-
   return (
     <ResponsiveCard>
       <CardHeader>
-        <Heading size="sm">我的会议</Heading>
+        <Heading size="sm">
+          <T>我的会议</T>
+        </Heading>
       </CardHeader>
       <CardBody>
         {isLoading && <Loader />}
@@ -49,22 +50,23 @@ export default function GroupsCard() {
     </ResponsiveCard>
   );
 }
-
 function NoGroup() {
   return (
     <VStack spacing={componentSpacing} align="start">
-      <Text>在使用会议功能前请确保：</Text>
       <Text>
-        🇨🇳 国内用户安装腾讯会议（
+        <T>在使用会议功能前请确保：</T>
+      </Text>
+      <Text>
+        <T>🇨🇳 国内用户安装腾讯会议（</T>
         <Link isExternal href="https://meeting.tencent.com/download/">
-          下载
+          <T>下载</T>
         </Link>
         ）
       </Text>
       <Text>
-        🌎 海外用户安装海外版腾讯会议（
+        <T>🌎 海外用户安装海外版腾讯会议（</T>
         <Link isExternal href="https://voovmeeting.com/download-center.html">
-          下载
+          <T>下载</T>
         </Link>
         ）
       </Text>
@@ -75,7 +77,7 @@ function NoGroup() {
           href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
           isExternal
         >
-          请联系客服
+          <T>请联系客服</T>
         </Link>
         。
       </SmallGrayText>

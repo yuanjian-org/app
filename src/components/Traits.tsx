@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   hardTraitPrefAbsValue,
   isTraitsComplete,
@@ -32,22 +33,52 @@ import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "trpc";
 import _ from "lodash";
 import { useMyId } from "useMe";
-
 export const traitsProfiles: {
   title: string;
   field: keyof Traits;
   labels: string[];
 }[] = [
-  { title: "来自", field: "农村vs城市", labels: ["农村", "城市"] },
-  { title: "沟通", field: "内敛vs外向", labels: ["内敛", "外向"] },
-  { title: "关系", field: "慢热vs快热", labels: ["慢热", "快热"] },
-  { title: "追求", field: "安逸vs奋斗", labels: ["安逸", "奋斗"] },
-  { title: "个性", field: "顺从vs独立", labels: ["顺从", "独立"] },
-  { title: "风格", field: "思考者vs实干家", labels: ["思考者", "实干家"] },
-  { title: "职业", field: "创业vs大厂", labels: ["创业", "就业"] },
-  { title: "学术", field: "科研vs非科研", labels: ["科研", "非科研"] },
+  {
+    title: "来自",
+    field: "农村vs城市",
+    labels: ["农村", "城市"],
+  },
+  {
+    title: "沟通",
+    field: "内敛vs外向",
+    labels: ["内敛", "外向"],
+  },
+  {
+    title: "关系",
+    field: "慢热vs快热",
+    labels: ["慢热", "快热"],
+  },
+  {
+    title: "追求",
+    field: "安逸vs奋斗",
+    labels: ["安逸", "奋斗"],
+  },
+  {
+    title: "个性",
+    field: "顺从vs独立",
+    labels: ["顺从", "独立"],
+  },
+  {
+    title: "风格",
+    field: "思考者vs实干家",
+    labels: ["思考者", "实干家"],
+  },
+  {
+    title: "职业",
+    field: "创业vs大厂",
+    labels: ["创业", "就业"],
+  },
+  {
+    title: "学术",
+    field: "科研vs非科研",
+    labels: ["科研", "非科研"],
+  },
 ];
-
 export const traitsPrefProfiles: {
   title: string;
   field: keyof TraitsPreference;
@@ -58,7 +89,11 @@ export const traitsPrefProfiles: {
     field: "男vs女",
     labels: ["男生", "女生", "仅匹配男生", "仅匹配女生"],
   },
-  { title: "年级", field: "低年级vs高年级", labels: ["低年级", "高年级"] },
+  {
+    title: "年级",
+    field: "低年级vs高年级",
+    labels: ["低年级", "高年级"],
+  },
   ...traitsProfiles,
 ];
 
@@ -95,25 +130,28 @@ export function TraitTag({
     </WrapItem>
   );
 }
-
 export function TraitsModal({ onClose }: { onClose: () => void }) {
   const myId = useMyId();
-  const { data } = trpcNext.users.getUserProfile.useQuery({ userId: myId });
-
+  const { data } = trpcNext.users.getUserProfile.useQuery({
+    userId: myId,
+  });
   const [traits, setTraits] = useState<Traits>();
   useEffect(() => setTraits(data?.profile?.特质 ?? {}), [data]);
-
   const update = async (field: keyof Traits, value: number | string) => {
-    const v = { ...traits, [field]: value };
+    const v = {
+      ...traits,
+      [field]: value,
+    };
     setTraits(v);
     await trpc.users.setUserProfile.mutate({
       userId: myId,
-      profile: { ...data?.profile, 特质: v },
+      profile: {
+        ...data?.profile,
+        特质: v,
+      },
     });
   };
-
   const complete = isTraitsComplete(traits);
-
   return (
     <ModalWithBackdrop
       isOpen
@@ -125,7 +163,9 @@ export function TraitsModal({ onClose }: { onClose: () => void }) {
       }}
     >
       <ModalContent>
-        <ModalHeader>填写你的个人特质，让系统推荐导师</ModalHeader>
+        <ModalHeader>
+          <T>填写你的个人特质，让系统推荐导师</T>
+        </ModalHeader>
         <ModalCloseButton disabled={!complete} />
 
         <ModalBody>
@@ -140,7 +180,10 @@ export function TraitsModal({ onClose }: { onClose: () => void }) {
               <GridItem />
               <GridItem
                 colSpan={3}
-                mx={{ base: "auto", [breakpoint]: "4em" }}
+                mx={{
+                  base: "auto",
+                  [breakpoint]: "4em",
+                }}
                 textAlign="center"
                 fontSize="sm"
                 color="gray"
@@ -169,14 +212,13 @@ export function TraitsModal({ onClose }: { onClose: () => void }) {
 
         <ModalFooter>
           <Button isDisabled={!complete} variant="brand" onClick={onClose}>
-            确认
+            <T>确认</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
-
 function Trait({
   title,
   labels,
@@ -189,7 +231,6 @@ function Trait({
   update: (value: number) => void;
 }) {
   invariant(labels.length == 2);
-
   return (
     <>
       <GridItem
@@ -235,7 +276,6 @@ function Trait({
     </>
   );
 }
-
 function OtherTrait({
   value,
   update,
@@ -250,7 +290,9 @@ function OtherTrait({
         display="flex"
         alignItems="center"
       >
-        <Text>其他：</Text>
+        <Text>
+          <T>其他：</T>
+        </Text>
       </GridItem>
       <GridItem colSpan={3} mt={componentSpacing}>
         <Textarea

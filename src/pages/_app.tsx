@@ -1,7 +1,7 @@
+import T from "components/T";
 import "../app.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-datepicker/dist/react-datepicker.css";
-
 import { ChakraProvider } from "@chakra-ui/react";
 import { AppProps } from "next/app";
 import theme from "../theme";
@@ -23,7 +23,6 @@ import "fundebug"; // Initialize Fundebug
 // Dynamically import SwitchBoard so authenticated layout/modals
 // are not bundled into _app.js and downloaded on static routes.
 const SwitchBoard = dynamic(() => import("components/SwitchBoard"));
-
 function App({
   Component,
   pageProps: { session, ...pageProps },
@@ -31,25 +30,24 @@ function App({
   Component: AppPage;
 } & AppProps) {
   const router = useRouter();
-
   const subtitle =
     typeof Component.title === "function"
       ? Component.title(pageProps)
       : typeof Component.title === "string"
         ? Component.title
         : null;
-
   if (router.pathname === "/s/yuanjian") {
     return (
       <ChakraProvider theme={theme}>
         <Head>
-          <title>远见社会导师</title>
+          <title>
+            <T>远见社会导师</T>
+          </title>
         </Head>
         <Component {...pageProps} />
       </ChakraProvider>
     );
   }
-
   return (
     <ChakraProvider theme={theme}>
       <Head>
@@ -90,7 +88,6 @@ function App({
     </ChakraProvider>
   );
 }
-
 export default trpcNext.withTRPC(
   appWithTranslation(App, nextI18NextConfig as UserConfig),
 );

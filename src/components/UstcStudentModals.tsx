@@ -1,3 +1,4 @@
+import T from "components/T";
 import {
   Button,
   ModalContent,
@@ -27,7 +28,6 @@ import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
-
 export function UstcStudentModals({
   userState,
   refetchUserState,
@@ -36,7 +36,6 @@ export function UstcStudentModals({
   refetchUserState: () => void;
 }) {
   const [isInitial, setIsInitial] = useState<boolean>(true);
-
   const decline = async () => {
     await trpc.users.setMyState.mutate({
       ...userState,
@@ -44,7 +43,6 @@ export function UstcStudentModals({
     });
     refetchUserState();
   };
-
   return isInitial ? (
     <InitialModal confirm={() => setIsInitial(false)} decline={decline} />
   ) : (
@@ -54,7 +52,6 @@ export function UstcStudentModals({
     />
   );
 }
-
 function InitialModal({
   confirm,
   decline,
@@ -67,23 +64,27 @@ function InitialModal({
     // entering name.
     <ModalWithBackdrop isOpen size="lg" onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>科大学生邮箱验证</ModalHeader>
+        <ModalHeader>
+          <T>科大学生邮箱验证</T>
+        </ModalHeader>
         <ModalBody>
           <Text>
             本站的【导师预约】页面仅限中国科学技术大学的学生。您有科大学生邮箱吗？
           </Text>
           <Text mt={componentSpacing}>
-            如果选择跳过，之后可以前往用户菜单的【
+            <T>如果选择跳过，之后可以前往用户菜单的【</T>
             {accountPageTitle}
-            】页进行验证。
+            <T>】页进行验证。</T>
           </Text>
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>我没有科大学生邮箱，或跳过此步</Button>
+            <Button onClick={decline}>
+              <T>我没有科大学生邮箱，或跳过此步</T>
+            </Button>
             <Spacer />
             <Button variant="brand" onClick={confirm}>
-              我有科大学生邮箱
+              <T>我有科大学生邮箱</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -108,22 +109,21 @@ export function UstcStudentValidationModal({
   const [loadingToken, setLoadingToken] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const { update } = useSession();
-
   const domain = "@mail.ustc.edu.cn";
   const email = emailPrefix.trim() + domain;
   const isEmailPrefixValid = emailPrefix.trim().length > 0;
   const isInputValid =
     isEmailPrefixValid && token.trim().length === tokenLength;
   const buttonWidth = "120px";
-
   const sendToken = async () => {
     setLoadingToken(true);
     try {
-      await trpc.idTokens.send.mutate({ idType: "email", id: email });
+      await trpc.idTokens.send.mutate({
+        idType: "email",
+        id: email,
+      });
       toast.success("验证码已发送，请注意查收。");
-
       setCountdown(tokenMinSendIntervalInSeconds);
-
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -137,7 +137,6 @@ export function UstcStudentValidationModal({
       setLoadingToken(false);
     }
   };
-
   const submit = async () => {
     setLoadingSubmit(true);
     try {
@@ -150,17 +149,17 @@ export function UstcStudentValidationModal({
       // be refreshed including the caller to UstcStudentModals, so we don't need
       // to manually close this modal.
       await update();
-
       toast.success(`验证成功。您现在可以享受专属功能了。`);
     } finally {
       setLoadingSubmit(false);
     }
   };
-
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>科大学生邮箱验证</ModalHeader>
+        <ModalHeader>
+          <T>科大学生邮箱验证</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
@@ -202,12 +201,12 @@ export function UstcStudentValidationModal({
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <SmallGrayText>
-              如有问题，
+              <T>如有问题，</T>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
               >
-                联系客服
+                <T>联系客服</T>
               </Link>
             </SmallGrayText>
             <RiCustomerServiceFill color="gray" />
@@ -222,7 +221,7 @@ export function UstcStudentValidationModal({
               isDisabled={!isInputValid}
               isLoading={loadingSubmit}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>
