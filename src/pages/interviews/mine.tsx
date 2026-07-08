@@ -7,8 +7,10 @@ import { sectionSpacing } from "theme/metrics";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
 import getI18nProps from "components/getI18nProps";
+import { useTranslation } from "next-i18next";
 
 export default function Page() {
+  const { t } = useTranslation("common");
   const { data: interviews } = trpcNext.interviews.listMine.useQuery();
   const { data: calibrations } = trpcNext.calibrations.listMine.useQuery();
   const { commsExamRequired, interviewExamRequired } = useExamsRequired();
@@ -23,7 +25,7 @@ export default function Page() {
   } else {
     return (
       <>
-        <PageBreadcrumb current="我的面试" />
+        <PageBreadcrumb current={t("我的面试")} />
         <Interviews
           interviews={interviews}
           forCalibration={false}
@@ -32,7 +34,7 @@ export default function Page() {
 
         {calibrations && calibrations.length > 0 && (
           <>
-            <PageBreadcrumb current="面试讨论组" mt={sectionSpacing * 2} />
+            <PageBreadcrumb current={t("面试讨论组")} mt={sectionSpacing * 2} />
             {calibrations.map((c) => (
               <Link key={c.id} as={NextLink} href={`/calibrations/${c.id}`}>
                 <HStack>

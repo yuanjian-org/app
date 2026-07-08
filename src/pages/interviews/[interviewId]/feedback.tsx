@@ -26,8 +26,11 @@ import { useMyId } from "useMe";
 import { InterviewType } from "shared/InterviewType";
 import { useMemo } from "react";
 import { ExamsRequired, useExamsRequired } from "components/ExamsRequired";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export default widePage(() => {
+  const { t } = useTranslation("common");
   const interviewId = parseQueryString(useRouter(), "interviewId");
   const { data } = trpcNext.interviews.get.useQuery(
     { interviewId: interviewId ?? "" },
@@ -38,11 +41,12 @@ export default widePage(() => {
 
   const myId = useMyId();
   const myFeedbackId = useMemo(() => {
+    const { t } = useTranslation("common");
     if (!data) return undefined;
     const feedbacks = data.interviewWithGroup.feedbacks.filter(
       (f) => f.interviewer.id === myId,
     );
-    invariant(feedbacks.length == 1, "面试官只能有一个反馈");
+    invariant(feedbacks.length == 1, t("面试官只能有一个反馈"));
     return feedbacks[0].id;
   }, [data, myId]);
 
@@ -63,7 +67,7 @@ export default widePage(() => {
         current={formatUserName(i.interviewee.name)}
         parents={[
           {
-            name: "我的面试",
+            name: t("我的面试"),
             link: "/interviews/mine",
           },
         ]}
@@ -100,13 +104,14 @@ function Instructions({
   type: InterviewType;
   interviewers: MinUser[];
 }) {
+  const { t } = useTranslation("common");
   const myId = useMyId();
 
   let first: boolean | null = null;
   let other: MinUser | null = null;
   invariant(
     interviewers.filter((i) => i.id === myId).length == 1,
-    "面试官只能有一个",
+    t("面试官只能有一个"),
   );
   if (interviewers.length == 2) {
     other = interviewers[0].id === myId ? interviewers[1] : interviewers[0];
@@ -114,8 +119,8 @@ function Instructions({
   }
 
   const isMentee = type == "MenteeInterview";
-  const firstHalf = isMentee ? "1 到 4" : "1 到 5";
-  const secondHalf = isMentee ? "5 到 8" : "6 到 10";
+  const firstHalf = isMentee ? t("1 到 4") : t("1 到 5");
+  const secondHalf = isMentee ? t("5 到 8") : t("6 到 10");
   const otherName = formatUserName(other?.name ?? null, "friendly");
 
   return (
@@ -123,17 +128,28 @@ function Instructions({
       {/* <b>面试官必读</b> */}
       <UnorderedList>
         <ListItem>
-          用<Icon as={BsWechat} marginX={1.5} />
-          微信发起视频群聊。
+          <T>用</T>
+          <Icon as={BsWechat} marginX={1.5} />
+          <T>微信发起视频群聊。</T>
         </ListItem>
         {first !== null && (
           <>
             <ListItem>
-              <mark>你负责提问维度 {first ? firstHalf : secondHalf} </mark>；
-              {otherName}负责维度 {first ? secondHalf : firstHalf} 。
+              <mark>
+                <T>你负责提问维度</T>
+                {first ? firstHalf : secondHalf}{" "}
+              </mark>
+              ；{otherName}
+              <T>负责维度</T>
+              {first ? secondHalf : firstHalf} 。
             </ListItem>
             <ListItem>
-              <mark>填写所有{isMentee ? "八" : "十"}个维度</mark>的评价和总评。
+              <mark>
+                <T>填写所有</T>
+                {isMentee ? t("八") : t("十")}
+                <T>个维度</T>
+              </mark>
+              <T>的评价和总评。</T>
             </ListItem>
           </>
         )}
@@ -145,7 +161,8 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064"
               >
-                考察维度和参考题库 <ExternalLinkIcon />
+                <T>考察维度和参考题库</T>
+                <ExternalLinkIcon />
               </Link>
             </ListItem>
             <ListItem>
@@ -153,7 +170,8 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/4616bf621b5b41fbbd62477d66d87ffe"
               >
-                面试须知 <ExternalLinkIcon />
+                <T>面试须知</T>
+                <ExternalLinkIcon />
               </Link>
             </ListItem>
           </>
@@ -164,7 +182,8 @@ function Instructions({
                 isExternal
                 href="https://www.notion.so/yuanjian/7ded3b1de3ef4c35a2a669a4c6bc7ac1"
               >
-                导师面试流程和标准 <ExternalLinkIcon />
+                <T>导师面试流程和标准</T>
+                <ExternalLinkIcon />
               </Link>
             </ListItem>
           </>
@@ -173,3 +192,6 @@ function Instructions({
     </Flex>
   );
 }
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;
