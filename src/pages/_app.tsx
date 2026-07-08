@@ -8,6 +8,7 @@ import theme from "../theme";
 import Head from "next/head";
 import { trpcNext } from "../trpc";
 import { appWithTranslation } from "next-i18next";
+import type { UserConfig } from "next-i18next";
 import nextI18NextConfig from "../../next-i18next.config.js";
 import { ToastContainer } from "react-toastify";
 import { SessionProvider } from "next-auth/react";
@@ -16,12 +17,12 @@ import AppPage from "AppPage";
 import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import dynamic from "next/dynamic";
+import ErrorBoundary from "fundebug/ErrorBoundary";
+import "fundebug"; // Initialize Fundebug
 
 // Dynamically import SwitchBoard so authenticated layout/modals
 // are not bundled into _app.js and downloaded on static routes.
 const SwitchBoard = dynamic(() => import("components/SwitchBoard"));
-import ErrorBoundary from "fundebug/ErrorBoundary";
-import "fundebug"; // Initialize Fundebug
 
 function App({
   Component,
@@ -90,4 +91,6 @@ function App({
   );
 }
 
-export default trpcNext.withTRPC(appWithTranslation(App, nextI18NextConfig));
+export default trpcNext.withTRPC(
+  appWithTranslation(App, nextI18NextConfig as UserConfig),
+);

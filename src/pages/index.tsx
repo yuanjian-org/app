@@ -1,29 +1,27 @@
 import { Grid, VStack } from "@chakra-ui/react";
+import getI18nProps from "components/getI18nProps";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import dynamic from "next/dynamic";
+import { PropsWithChildren } from "react";
+import { isPermitted } from "shared/Role";
+import { breakpoint } from "theme/breakpoints";
+import { sectionSpacing } from "theme/metrics";
+import { useMyId, useMyRoles } from "useMe";
 
 // Dynamically import complex dashboard cards so the home page shell and
 // navigation breadcrumb render instantly without waiting for card subtrees.
 const GroupsCard = dynamic(() => import("components/launchpad/GroupsCard"));
 const MentorCard = dynamic(() => import("components/launchpad/MentorCard"));
 const TasksCard = dynamic(() => import("components/launchpad/TasksCard"));
-import { PropsWithChildren } from "react";
-import { isPermitted } from "shared/Role";
-import { useTranslation } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { breakpoint } from "theme/breakpoints";
-import { sectionSpacing } from "theme/metrics";
-import { useMyId, useMyRoles } from "useMe";
 
 const title = "个人空间";
 
 export default function Page() {
-  const { t } = useTranslation("common");
   const myRoles = useMyRoles();
   const myId = useMyId();
   return (
     <>
-      <PageBreadcrumb current={t(title)} />
+      <PageBreadcrumb current={title} />
 
       <Grid
         templateColumns={{ base: "1fr", [breakpoint]: "1fr 0.618fr" }}
@@ -57,8 +55,4 @@ function Column({ children }: PropsWithChildren) {
 
 Page.title = title;
 
-export const getStaticProps = async ({ locale }: { locale: string }) => ({
-  props: {
-    ...(await serverSideTranslations(locale, ["common"])),
-  },
-});
+export const getStaticProps = getI18nProps;
