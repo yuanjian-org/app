@@ -22,9 +22,13 @@ import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
 import { useTranslation } from "next-i18next";
+import { features } from "shared/Features";
+import { useRouter } from "next/router";
+import { getSwitchLanguageName, switchLanguage } from "shared/switchLanguage";
 
 export default function YqdLandingPage() {
   const { t } = useTranslation("common");
+  const router = useRouter();
   return (
     <VStack minHeight="100vh">
       <Head>
@@ -50,6 +54,15 @@ export default function YqdLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
+            {features.english && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => switchLanguage(router)}
+              >
+                {getSwitchLanguageName(router.locale)}
+              </Button>
+            )}
             <Tooltip label={t("联系客服")}>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"

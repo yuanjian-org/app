@@ -20,8 +20,12 @@ import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
+import { features } from "shared/Features";
+import { useRouter } from "next/router";
+import { getSwitchLanguageName, switchLanguage } from "shared/switchLanguage";
 
 export default function SylpLandingPage() {
+  const router = useRouter();
   return (
     <VStack minHeight="100vh">
       <Head>
@@ -47,6 +51,15 @@ export default function SylpLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
+            {features.english && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => switchLanguage(router)}
+              >
+                {getSwitchLanguageName(router.locale)}
+              </Button>
+            )}
             <Tooltip label="联系客服 / Contact Support">
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"

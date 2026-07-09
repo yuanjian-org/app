@@ -1,3 +1,4 @@
+import { getSwitchLanguageName, switchLanguage } from "shared/switchLanguage";
 import { whiteLabel } from "shared/WhiteLabel";
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
@@ -366,12 +367,8 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
     ...(process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true"
       ? [
           {
-            name: router.locale === "en" ? "切换到中文" : "Switch to English",
-            action: () => {
-              const locale = router.locale === "en" ? "zh" : "en";
-              document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${365 * 24 * 60 * 60}`;
-              void router.replace("/", undefined, { locale });
-            },
+            name: getSwitchLanguageName(router.locale),
+            action: () => switchLanguage(router),
           } as DropdownMenuItem,
         ]
       : []),
