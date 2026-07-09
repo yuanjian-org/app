@@ -40,7 +40,6 @@ import {
   MdMic,
   MdHome,
   MdBusiness,
-  MdLanguage,
 } from "react-icons/md";
 import Role from "../shared/Role";
 import { compareChinese } from "shared/strings/compareChinese";
@@ -367,15 +366,15 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
       target: "_blank",
     },
-    ...(features.english
+    // Use env var directly to enable tree shaking and dead code elimination.
+    ...(process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true"
       ? [
           {
-            icon: <MdLanguage />,
             name: router.locale === "en" ? "切换到中文" : "Switch to English",
             action: () => {
-              const nextLocale = router.locale === "en" ? "zh" : "en";
-              document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`;
-              router.reload();
+              const locale = router.locale === "en" ? "zh" : "en";
+              document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${365 * 24 * 60 * 60}`;
+              void router.replace("/", undefined, { locale });
             },
           } as DropdownMenuItem,
         ]
