@@ -25,6 +25,7 @@ import {
   Drawer,
   DrawerCloseButton,
   DrawerOverlay,
+  MenuDivider,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import useMe, { useMyRoles } from "useMe";
@@ -157,7 +158,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   },
 ];
 
-const mainMenuItems: MainMenuItem[] = [
+const mainMenuItems: (MainMenuItem | null)[] = [
   {
     name: "首页",
     path: staticUrlPrefix,
@@ -347,7 +348,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const myName = formatUserName(me.name);
   const router = useRouter();
 
-  const userDropdownMenuItems: DropdownMenuItem[] = [
+  const userDropdownMenuItems: (DropdownMenuItem | null)[] = [
     {
       name: "个人资料",
       action: "/profiles/me",
@@ -360,12 +361,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       name: accountPageTitle,
       action: "/accounts/me",
     },
-    {
-      icon: <RiCustomerServiceFill />,
-      name: "联系客服",
-      action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
-      target: "_blank",
-    },
+    null,
     // Use env var directly to enable tree shaking and dead code elimination.
     ...(process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true"
       ? [
@@ -379,6 +375,13 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           } as DropdownMenuItem,
         ]
       : []),
+    {
+      icon: <RiCustomerServiceFill />,
+      name: "联系客服",
+      action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
+      target: "_blank",
+    },
+    null,
     {
       name: "退出登录",
       action: () => signOut({ callbackUrl: staticUrlPrefix }),
@@ -401,13 +404,19 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <Box height={sidebarContentMarginTop - sidebarItemPaddingY} />
 
         {mainMenuItems
-          .filter((item) => !item.feature || !!features[item.feature])
-          .filter((item) =>
-            typeof item.permission === "function"
-              ? item.permission(me)
-              : isPermitted(me.roles, item.permission),
+          .filter((item) => !item || !item.feature || !!features[item.feature])
+          .filter(
+            (item) =>
+              !item ||
+              (typeof item.permission === "function"
+                ? item.permission(me)
+                : isPermitted(me.roles, item.permission)),
           )
-          .map((item) => {
+          .map((item, index) => {
+            if (item === null) {
+              return <Divider key={`divider-${index}`} marginY={2} />;
+            }
+
             const displayItem = { ...item };
             if (displayItem.path === "/mentors") {
               displayItem.name = getTransactionalMentorsPageTitle(
@@ -519,14 +528,15 @@ function DropdownMenu({
 }: {
   title: string;
   icon: React.ReactNode;
-  menuItems: DropdownMenuItem[];
+  menuItems: (DropdownMenuItem | null)[];
   onClose: () => void;
 }) {
   const myRoles = useMyRoles();
   const filteredItems = menuItems.filter((item) => {
     return (
-      isPermitted(myRoles, item.roles) &&
-      (!item.feature || !!features[item.feature])
+      !item ||
+      (isPermitted(myRoles, item.roles) &&
+        (!item.feature || !!features[item.feature]))
     );
   });
 
@@ -539,6 +549,9 @@ function DropdownMenu({
         <DropdownMenuButton title={title} icon={icon} />
         <MenuList bg="white" borderColor={sideBarBorderColor}>
           {filteredItems.map((item, index) => {
+            if (item === null) {
+              return <MenuDivider key={index} />;
+            }
             const isUrl = typeof item.action === "string";
             return (
               <MenuItem
