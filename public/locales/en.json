@@ -571,5 +571,8 @@
   "搜索机构...": "Search institution...",
   "添加负责人": "Add person in charge",
   "搜索用户...": "Search user...",
-  "删除机构": "Delete institution"
+  "删除机构": "Delete institution",
+  "显示已完成": "Show completed",
+  "隐藏已完成": "Hide completed",
+  "一切静谧，万物安然": "All quiet, everything at peace"
 }
