@@ -143,7 +143,7 @@ export default function TasksCard({
             {/* <LinkDivider {...redDotTransitionProps(hasUnread)} /> */}
 
             <Link onClick={() => setIncludeDone(!includeDone)}>
-              {includeDone ? "隐藏已完成" : "显示已完成"}
+              {includeDone ? <T>隐藏已完成</T> : <T>显示已完成</T>}
             </Link>
 
             <Button
@@ -169,7 +169,9 @@ export default function TasksCard({
           {sorted === undefined ? (
             <Loader />
           ) : sorted.length === 0 ? (
-            <Text color="gray">🌙&nbsp;&nbsp;一切静谧，万物安然</Text>
+            <Text color="gray">
+              🌙&nbsp;&nbsp;<T>一切静谧，万物安然</T>
+            </Text>
           ) : (
             <TaskItems
               tasks={sorted}
