@@ -157,31 +157,6 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   },
 ];
 
-const userDropdownMenuItems: DropdownMenuItem[] = [
-  {
-    name: "个人资料",
-    action: "/profiles/me",
-  },
-  {
-    name: "偏好设置",
-    action: "/preferences/me",
-  },
-  {
-    name: accountPageTitle,
-    action: "/accounts/me",
-  },
-  {
-    icon: <RiCustomerServiceFill />,
-    name: "联系客服",
-    action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
-    target: "_blank",
-  },
-  {
-    name: "退出登录",
-    action: () => signOut({ callbackUrl: staticUrlPrefix }),
-  },
-];
-
 const mainMenuItems: MainMenuItem[] = [
   {
     name: "首页",
@@ -370,6 +345,45 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
   const myName = formatUserName(me.name);
+  const router = useRouter();
+
+  const userDropdownMenuItems: DropdownMenuItem[] = [
+    {
+      name: "个人资料",
+      action: "/profiles/me",
+    },
+    {
+      name: "偏好设置",
+      action: "/preferences/me",
+    },
+    {
+      name: accountPageTitle,
+      action: "/accounts/me",
+    },
+    {
+      icon: <RiCustomerServiceFill />,
+      name: "联系客服",
+      action: "https://work.weixin.qq.com/kfid/kfcd32727f0d352531e",
+      target: "_blank",
+    },
+    // Use env var directly to enable tree shaking and dead code elimination.
+    ...(process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true"
+      ? [
+          {
+            name: router.locale === "en" ? "切换到中文" : "Switch to English",
+            action: () => {
+              const locale = router.locale === "en" ? "zh" : "en";
+              document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${365 * 24 * 60 * 60}`;
+              void router.replace("/", undefined, { locale });
+            },
+          } as DropdownMenuItem,
+        ]
+      : []),
+    {
+      name: "退出登录",
+      action: () => signOut({ callbackUrl: staticUrlPrefix }),
+    },
+  ];
 
   return (
     <Flex
