@@ -223,11 +223,11 @@ function Basic({
     <>
       <Heading size="md">基本信息</Heading>
 
-      {isPermitted(user.roles, "Volunteer") && (
+      {isPermitted(user.roles, ["Volunteer", "Mentor"]) && (
         <FormControl>
           <FormLabel>自定义URL</FormLabel>
           <FormHelperTextWithMargin>
-            {displayName("Volunteer")}
+            {displayName("Volunteer")}或{displayName("Mentor")}
             可以自定义
             <Link href={getUserUrl(user)} isExternal>
               个人资料展示页
