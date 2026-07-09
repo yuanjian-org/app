@@ -62,6 +62,17 @@ graph TD;
    - If you run into error `TS_NODE_PROJECT' is not recognized as an internal or external command`, see this [`doc`](./docs/package.json.md).
 1. See [this doc](./cypress/README.md) for end-to-end testing.
 
+## Mobile App Wrapper
+
+A React Native wrapper using Expo is available in the `mobile` directory. It uses a WebView to present the web application as a mobile app.
+
+To run the mobile app:
+
+1. Navigate to the `mobile` directory: `cd mobile`
+2. Install dependencies (if not already installed): `npm install`
+3. Start the Expo server: `npm start`
+4. Use the Expo Go app on your physical device, or run it on an iOS Simulator (`npm run ios`) or Android Emulator (`npm run android`).
+
 ## More Documentation
 
 Browse the [`docs`](./docs/) folder.
