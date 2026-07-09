@@ -23,6 +23,7 @@ import { trpcNext } from "trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
 import invariant from "tiny-invariant";
+import T from "components/T";
 
 /**
  * @param mentor Set to null to book with any mentor
@@ -77,7 +78,7 @@ export default function MentorBookingModal({
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
         <ModalHeader>
-          预约导师
+          <T>预约导师</T>
           {mentor && `：${formatUserName(mentor.name, "formal")}`}
         </ModalHeader>
         <ModalCloseButton />
@@ -85,9 +86,9 @@ export default function MentorBookingModal({
           <VStack spacing={6}>
             <FormControl>
               <FormLabel>
-                你希望
+                <T>你希望</T>
                 {mentor && `与${formatUserName(mentor.name, "friendly")}`}
-                交流的话题：
+                <T>交流的话题：</T>
               </FormLabel>
               <Textarea
                 autoFocus
@@ -109,7 +110,7 @@ export default function MentorBookingModal({
             isDisabled={!topic}
             onClick={submit}
           >
-            提交
+            <T>提交</T>
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -117,12 +118,16 @@ export default function MentorBookingModal({
   ) : (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>预约请求已提交</ModalHeader>
+        <ModalHeader>
+          <T>预约请求已提交</T>
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>我们的工作人员会尽快与你联系。</ModalBody>
+        <ModalBody>
+          <T>我们的工作人员会尽快与你联系。</T>
+        </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={onClose}>
-            好的
+            <T>好的</T>
           </Button>
         </ModalFooter>
       </ModalContent>

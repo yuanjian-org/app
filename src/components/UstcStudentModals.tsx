@@ -27,6 +27,8 @@ import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export function UstcStudentModals({
   userState,
@@ -67,23 +69,27 @@ function InitialModal({
     // entering name.
     <ModalWithBackdrop isOpen size="lg" onClose={() => undefined}>
       <ModalContent>
-        <ModalHeader>科大学生邮箱验证</ModalHeader>
+        <ModalHeader>
+          <T>科大学生邮箱验证</T>
+        </ModalHeader>
         <ModalBody>
           <Text>
             本站的【导师预约】页面仅限中国科学技术大学的学生。您有科大学生邮箱吗？
           </Text>
           <Text mt={componentSpacing}>
-            如果选择跳过，之后可以前往用户菜单的【
+            <T>如果选择跳过，之后可以前往用户菜单的【</T>
             {accountPageTitle}
-            】页进行验证。
+            <T>】页进行验证。</T>
           </Text>
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>我没有科大学生邮箱，或跳过此步</Button>
+            <Button onClick={decline}>
+              <T>我没有科大学生邮箱，或跳过此步</T>
+            </Button>
             <Spacer />
             <Button variant="brand" onClick={confirm}>
-              我有科大学生邮箱
+              <T>我有科大学生邮箱</T>
             </Button>
           </HStack>
         </ModalFooter>
@@ -102,6 +108,7 @@ export function UstcStudentValidationModal({
   cancelLabel: string;
   cancel: () => void;
 }) {
+  const { t } = useTranslation("common");
   const [emailPrefix, setEmailPrefix] = useState<string>("");
   const [token, setToken] = useState<string>("");
   const [countdown, setCountdown] = useState(0);
@@ -160,7 +167,9 @@ export function UstcStudentValidationModal({
   return (
     <ModalWithBackdrop isOpen size="lg" onClose={cancel}>
       <ModalContent>
-        <ModalHeader>科大学生邮箱验证</ModalHeader>
+        <ModalHeader>
+          <T>科大学生邮箱验证</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={componentSpacing} align="stretch">
@@ -168,7 +177,7 @@ export function UstcStudentValidationModal({
               <InputGroup>
                 <Input
                   autoFocus
-                  placeholder="邮箱前缀"
+                  placeholder={t("邮箱前缀")}
                   value={emailPrefix}
                   onChange={(e) => setEmailPrefix(e.target.value)}
                 />
@@ -180,7 +189,7 @@ export function UstcStudentValidationModal({
               <InputGroup>
                 <Input
                   isRequired={true}
-                  placeholder="验证码"
+                  placeholder={t("验证码")}
                   value={token}
                   isDisabled={!isEmailPrefixValid}
                   onChange={(e) => setToken(e.target.value)}
@@ -202,12 +211,12 @@ export function UstcStudentValidationModal({
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
             <SmallGrayText>
-              如有问题，
+              <T>如有问题，</T>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
                 isExternal
               >
-                联系客服
+                <T>联系客服</T>
               </Link>
             </SmallGrayText>
             <RiCustomerServiceFill color="gray" />
@@ -222,7 +231,7 @@ export function UstcStudentValidationModal({
               isDisabled={!isInputValid}
               isLoading={loadingSubmit}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>

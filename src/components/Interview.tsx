@@ -13,6 +13,7 @@ import { compareUUID } from "shared/strings/compareUUID";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import MobileExperienceAlert from "components/MobileExperienceAlert";
 import { useMyId } from "useMe";
+import T from "components/T";
 
 export default function Interview({
   interviewId,
@@ -37,7 +38,8 @@ export default function Interview({
     <Flex direction="column" gap={sectionSpacing}>
       {hasTitle && (
         <Heading size="md">
-          候选人：{formatUserName(i.interviewee.name)}
+          <T>候选人：</T>
+          {formatUserName(i.interviewee.name)}
         </Heading>
       )}
 
@@ -49,14 +51,14 @@ export default function Interview({
             isExternal
             href="https://www.notion.so/yuanjian/0de91c837f1743c3a3ecdedf78f9e064"
           >
-            考察维度和参考题库 <ExternalLinkIcon />
+            <T>考察维度和参考题库</T> <ExternalLinkIcon />
           </Link>
         ) : (
           <Link
             isExternal
             href="https://www.notion.so/yuanjian/7ded3b1de3ef4c35a2a669a4c6bc7ac1"
           >
-            导师面试流程和标准 <ExternalLinkIcon />
+            <T>导师面试流程和标准</T> <ExternalLinkIcon />
           </Link>
         )}
       </Box>
@@ -88,7 +90,9 @@ export default function Interview({
 
         <GridItem>
           <Flex direction="column" gap={sectionSpacing}>
-            <Heading size="md">面试讨论</Heading>
+            <Heading size="md">
+              <T>面试讨论</T>
+            </Heading>
             <InterviewDecisionEditor
               type={i.type}
               interviewId={interviewId}

@@ -45,6 +45,8 @@ import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { MdDragIndicator } from "react-icons/md";
 import { minSelectedMentors } from "../relational";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   const router = useRouter();
@@ -75,7 +77,7 @@ export default function Page() {
 
         <HStack align="center">
           <Link as={NextLink} href="/mentors/relational">
-            <ChevronLeftIcon me={1} /> 返回选择页面
+            <ChevronLeftIcon me={1} /> <T>返回选择页面</T>
           </Link>
           <Spacer />
           <Button
@@ -206,7 +208,9 @@ function FinalizedModal({ close }: { close: () => void }) {
     <ModalWithBackdrop isOpen onClose={close}>
       <ModalContent>
         <ModalHeader>
-          <Heading size="md">导师选择完成</Heading>
+          <Heading size="md">
+            <T>导师选择完成</T>
+          </Heading>
         </ModalHeader>
         <ModalBody>
           <Text>相关工作人员会尽快通知下一步流程，请耐心等待。</Text>
@@ -216,10 +220,11 @@ function FinalizedModal({ close }: { close: () => void }) {
         </ModalBody>
         <ModalFooter>
           <Button variant="brand" onClick={close}>
-            知道了
+            <T>知道了</T>
           </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
+export const getStaticProps = getI18nProps;

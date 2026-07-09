@@ -6,6 +6,8 @@ import NextLink from "next/link";
 import { displayName } from "shared/Role";
 import { notSetText } from "shared/strings/notSetText";
 import { SmallGrayText } from "./SmallGrayText";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export function ContactFieldRow({
   mask,
@@ -18,6 +20,7 @@ export function ContactFieldRow({
   name: string;
   value: string | null;
 }) {
+  const { t } = useTranslation("common");
   const { onCopy, hasCopied } = useClipboard(value || "");
 
   useEffect(() => {
@@ -26,11 +29,13 @@ export function ContactFieldRow({
 
   return (
     <Flex direction="column">
-      <b>{name} </b>
+      <b>
+        <T>{name}</T>{" "}
+      </b>
       <Box>
         {!copyable && (
           <SmallGrayText>
-            请联系
+            <T>请联系</T>
             <Link as={NextLink} href="/who-can-see-my-data">
               {displayName("MentorshipOperator")}
             </Link>
@@ -40,7 +45,7 @@ export function ContactFieldRow({
         {copyable && value && (
           <>
             {mask ? "••••••••••••" : value}{" "}
-            <Tooltip label="拷贝内容到剪贴板">
+            <Tooltip label={t("拷贝内容到剪贴板")}>
               <CopyIcon onClick={onCopy} cursor="pointer" />
             </Tooltip>
           </>

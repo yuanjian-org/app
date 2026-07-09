@@ -19,12 +19,17 @@ import trpc from "trpc";
 import EditableWithIconOrLink from "./EditableWithIconOrLink";
 import { isPermitted } from "shared/Role";
 import { useMyRoles } from "useMe";
+import T from "components/T";
 
 export function PointOfContactHeaderCells() {
   return (
     <>
-      <Th>联络人</Th>
-      <Th>备注</Th>
+      <Th>
+        <T>联络人</T>
+      </Th>
+      <Th>
+        <T>备注</T>
+      </Th>
     </>
   );
 }
@@ -116,13 +121,18 @@ function PoCEditor({
   return (
     <ModalWithBackdrop isCentered isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(user.name)}的联络人</ModalHeader>
+        <ModalHeader>
+          {formatUserName(user.name)}
+          <T>的联络人</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <UserSelector initialValue={poc ? [poc] : []} onSelect={savePoC} />
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>

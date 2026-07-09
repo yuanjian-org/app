@@ -19,6 +19,7 @@ import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
+import T from "components/T";
 
 export default function SylpLandingPage() {
   return (
@@ -56,7 +57,7 @@ export default function SylpLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              登录 ｜ Login
+              <T>登录 ｜ Login</T>
             </Button>
           </HStack>
         </Flex>
@@ -133,7 +134,7 @@ export default function SylpLandingPage() {
             rightIcon={<ChevronRightIcon />}
             width={{ base: "100%", md: "auto" }}
           >
-            进入平台 ｜ Enter
+            <T>进入平台 ｜ Enter</T>
           </Button>
         </Flex>
       </Box>

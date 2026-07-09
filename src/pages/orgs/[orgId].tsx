@@ -40,7 +40,7 @@ import { toast } from "react-toastify";
 import { OrgMentor } from "shared/Org";
 import { features } from "shared/Features";
 import { ProjectCard } from "components/projects/ProjectList";
-
+import T from "components/T";
 export default widePage(() => {
   const router = useRouter();
   const orgId = router.query.orgId as string;
@@ -132,7 +132,7 @@ export default widePage(() => {
                 <MarkdownStyler content={org.description} />
               ) : (
                 <Text whiteSpace="pre-wrap" fontSize="lg">
-                  暂无介绍
+                  <T>暂无介绍</T>
                 </Text>
               )}
             </Box>
@@ -145,7 +145,7 @@ export default widePage(() => {
                 variant="outline"
                 onClick={onOpen}
               >
-                编辑介绍
+                <T>编辑介绍</T>
               </Button>
             )}
             {canEdit && (
@@ -155,7 +155,7 @@ export default widePage(() => {
                 onClick={onAddMentorOpen}
                 ml={componentSpacing}
               >
-                添加导师
+                <T>添加导师</T>
               </Button>
             )}
           </HStack>
@@ -163,10 +163,13 @@ export default widePage(() => {
 
         <Box>
           <Heading size="md" mb={componentSpacing}>
-            机构导师 ({org.mentors.length})
+            <T>机构导师 (</T>
+            {org.mentors.length})
           </Heading>
           {org.mentors.length === 0 ? (
-            <Text>该机构目前没有导师。</Text>
+            <Text>
+              <T>该机构目前没有导师。</T>
+            </Text>
           ) : (
             <SimpleGrid
               columns={{ base: 1, md: 2, lg: 3 }}
@@ -190,7 +193,7 @@ export default widePage(() => {
                       boxSize="50px"
                       rounded="full"
                       objectFit="cover"
-                      alt="照片"
+                      alt={"照片"}
                     />
                     <VStack align="start" spacing={0}>
                       <Text fontWeight="bold">
@@ -202,7 +205,7 @@ export default widePage(() => {
                     </VStack>
                   </HStack>
                   {canEdit && (
-                    <Tooltip label="移除导师">
+                    <Tooltip label={"移除导师"}>
                       <IconButton
                         aria-label="移除导师"
                         icon={<DeleteIcon />}
@@ -228,12 +231,15 @@ export default widePage(() => {
         {features.projects && (
           <Box>
             <Heading size="md" mb={componentSpacing}>
-              机构项目 ({projects?.length ?? 0})
+              <T>机构项目 (</T>
+              {projects?.length ?? 0})
             </Heading>
             {projectsLoading ? (
               <Loader />
             ) : !projects?.length ? (
-              <Text>该机构目前没有项目。</Text>
+              <Text>
+                <T>该机构目前没有项目。</T>
+              </Text>
             ) : (
               <SimpleGrid
                 columns={{ base: 1, md: 2, lg: 3 }}
@@ -267,11 +273,15 @@ export default widePage(() => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>编辑机构介绍</ModalHeader>
+          <ModalHeader>
+            <T>编辑机构介绍</T>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl>
-              <FormLabel>介绍</FormLabel>
+              <FormLabel>
+                <T>介绍</T>
+              </FormLabel>
               <Textarea
                 rows={10}
                 value={description}
@@ -282,14 +292,14 @@ export default widePage(() => {
           <ModalFooter>
             <MarkdownSupport mr="auto" />
             <Button variant="ghost" mr={3} onClick={onClose}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               colorScheme="brand"
               onClick={handleUpdateDescription}
               isLoading={updateDescMutation.isLoading}
             >
-              保存
+              <T>保存</T>
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -298,27 +308,31 @@ export default widePage(() => {
       <Modal isOpen={isAddMentorOpen} onClose={onAddMentorClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>添加导师</ModalHeader>
+          <ModalHeader>
+            <T>添加导师</T>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl>
-              <FormLabel>选择导师</FormLabel>
+              <FormLabel>
+                <T>选择导师</T>
+              </FormLabel>
               <UserSelector
                 onSelect={(userIds) => setSelectedUsersToAdd(userIds)}
-                placeholder="搜索导师..."
+                placeholder={"搜索导师..."}
               />
             </FormControl>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onAddMentorClose}>
-              取消
+              <T>取消</T>
             </Button>
             <Button
               colorScheme="brand"
               onClick={handleAddMentor}
               isLoading={addMentorMutation.isLoading}
             >
-              添加
+              <T>添加</T>
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "trpc";
 import _ from "lodash";
 import { useMyId } from "useMe";
+import T from "components/T";
 
 export const traitsProfiles: {
   title: string;
@@ -125,7 +126,9 @@ export function TraitsModal({ onClose }: { onClose: () => void }) {
       }}
     >
       <ModalContent>
-        <ModalHeader>填写你的个人特质，让系统推荐导师</ModalHeader>
+        <ModalHeader>
+          <T>填写你的个人特质，让系统推荐导师</T>
+        </ModalHeader>
         <ModalCloseButton disabled={!complete} />
 
         <ModalBody>
@@ -169,7 +172,7 @@ export function TraitsModal({ onClose }: { onClose: () => void }) {
 
         <ModalFooter>
           <Button isDisabled={!complete} variant="brand" onClick={onClose}>
-            确认
+            <T>确认</T>
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -250,7 +253,9 @@ function OtherTrait({
         display="flex"
         alignItems="center"
       >
-        <Text>其他：</Text>
+        <Text>
+          <T>其他：</T>
+        </Text>
       </GridItem>
       <GridItem colSpan={3} mt={componentSpacing}>
         <Textarea

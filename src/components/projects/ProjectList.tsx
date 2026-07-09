@@ -16,6 +16,7 @@ import {
   ProjectWithAssociation,
 } from "../../shared/Project";
 import { toPinyin } from "../../shared/strings/toPinyin";
+import T from "components/T";
 
 export function searchProjects(
   projects: ProjectWithAssociation[],
@@ -68,7 +69,7 @@ export function ProjectCard({
       <CardBody>
         <Flex align="center" gap={2} mb={4}>
           <Text fontSize="sm" color="gray.600">
-            发起人：
+            <T>发起人：</T>
             <NextLink href={`/users/${project.owner.id}`}>
               <Text
                 as="span"

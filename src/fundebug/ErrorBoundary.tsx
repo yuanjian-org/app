@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 import { Box, VStack, Heading, Text, Button } from "@chakra-ui/react";
 import { reportError } from "fundebug";
+import T from "components/T";
 
 interface Props {
   children: ReactNode;
@@ -40,10 +41,14 @@ function ErrorFallback() {
       justifyContent="center"
     >
       <VStack spacing={6}>
-        <Heading size="md">出现错误</Heading>
-        <Text>抱歉，发生了意外错误。请尝试刷新页面。</Text>
+        <Heading size="md">
+          <T>出现错误</T>
+        </Heading>
+        <Text>
+          <T>抱歉，发生了意外错误。请尝试刷新页面。</T>
+        </Text>
         <Button onClick={() => window.location.reload()} variant="brand">
-          刷新页面
+          <T>刷新页面</T>
         </Button>
       </VStack>
     </Box>

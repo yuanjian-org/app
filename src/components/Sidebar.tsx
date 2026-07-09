@@ -59,7 +59,7 @@ import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { Features } from "shared/Features";
 import { getTransactionalMentorsPageTitle } from "pages/mentors";
-
+import T from "components/T";
 export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
 export const sideBarBorderColor = "gray.200";
@@ -426,7 +426,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
           })}
 
         <DropdownMenu
-          title="管理功能"
+          title={"管理功能"}
           icon={<Icon as={IoIosCog} marginRight="2" />}
           menuItems={managerDropdownMenuItems}
           onClose={onClose}
@@ -473,14 +473,16 @@ function ImpersonationBanner() {
       px={4}
       fontSize="sm"
     >
-      <Text>假扮模式</Text>
+      <Text>
+        <T>假扮模式</T>
+      </Text>
       <Link
         ml={2}
         color="orange.600"
         textDecoration="underline"
         onClick={stopImpersonation}
       >
-        退出
+        <T>退出</T>
       </Link>
     </Box>
   );
@@ -502,7 +504,9 @@ function DemoBanner() {
       px={4}
       fontSize="sm"
     >
-      <Text>演示模式。数据每天重置一次。</Text>
+      <Text>
+        <T>演示模式。数据每天重置一次。</T>
+      </Text>
     </Box>
   );
 }

@@ -92,7 +92,8 @@ import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { getAnonymousId } from "shared/getAnonymousId";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
-
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 type SortOrderKey =
   | "year"
   | "source"
@@ -157,7 +158,7 @@ export default fullPage(() => {
               isChecked={showMatchState}
               onChange={(e) => setShowMatchState(e.target.checked)}
             >
-              显示师生匹配状态
+              <T>显示师生匹配状态</T>
             </Checkbox>
           </WrapItem>
         </Wrap>
@@ -185,7 +186,7 @@ export default fullPage(() => {
               isUserAdmin={isPermitted(me.roles, "UserAdmin")}
             />
             <Text fontSize="sm" color="gray" mt={4} mb={4} ml={4}>
-              共 <b>{users.length}</b> 名
+              <T>共</T> <b>{users.length}</b> <T>名</T>
             </Text>
           </TableContainer>
         )}
@@ -365,7 +366,9 @@ function MenteeTable({
         sx={{ th: { py: 3 } }}
       >
         <Tr>
-          <Th>状态</Th>
+          <Th>
+            <T>状态</T>
+          </Th>
           <PointOfContactHeaderCells />
           <MenteeHeaderCells
             sortOrder={sortOrder}
@@ -374,26 +377,32 @@ function MenteeTable({
 
           {showMatchState && (
             <>
-              <Th color="brand.c">导师选择状态</Th>
-              <Th color="brand.c">交流反馈状态</Th>
+              <Th color="brand.c">
+                <T>导师选择状态</T>
+              </Th>
+              <Th color="brand.c">
+                <T>交流反馈状态</T>
+              </Th>
             </>
           )}
 
-          <Th>导师</Th>
+          <Th>
+            <T>导师</T>
+          </Th>
           <SortableHeaderCell
-            label="最近一对一"
+            label={"最近一对一"}
             sortOrderKey="transcript"
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
           <SortableHeaderCell
-            label="最近学生访谈"
+            label={"最近学生访谈"}
             sortOrderKey="menteeReview"
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
           />
           <SortableHeaderCell
-            label="最近导师访谈"
+            label={"最近导师访谈"}
             sortOrderKey="mentorReview"
             sortOrder={sortOrder}
             addSortOrder={addSortOrder}
@@ -401,8 +410,12 @@ function MenteeTable({
 
           {!isDemo && isUserAdmin && (
             <>
-              <Th>下载</Th>
-              <Th>匿名 ID</Th>
+              <Th>
+                <T>下载</T>
+              </Th>
+              <Th>
+                <T>匿名 ID</T>
+              </Th>
             </>
           )}
         </Tr>
@@ -553,7 +566,7 @@ function MenteeRow({
       {!isDemo && isUserAdmin && (
         <>
           <Td>
-            <Tooltip label="下载学生数据">
+            <Tooltip label={"下载学生数据"}>
               <IconButton
                 aria-label="下载学生数据"
                 icon={<DownloadIcon />}
@@ -605,19 +618,19 @@ function MenteeHeaderCells({
   return (
     <>
       <SortableHeaderCell
-        label="录取届"
+        label={"录取届"}
         sortOrderKey="year"
         sortOrder={sortOrder}
         addSortOrder={addSortOrder}
       />
       <SortableHeaderCell
-        label="来源"
+        label={"来源"}
         sortOrderKey="source"
         sortOrder={sortOrder}
         addSortOrder={addSortOrder}
       />
       <SortableHeaderCell
-        label="姓名"
+        label={"姓名"}
         sortOrderKey="name"
         sortOrder={sortOrder}
         addSortOrder={addSortOrder}
@@ -680,11 +693,18 @@ function MentorSelectionStateCell({ menteeId }: { menteeId: string }) {
       {data === undefined ? (
         ""
       ) : f === undefined ? (
-        <Text color={actionRequiredTextColor}>未选择</Text>
+        <Text color={actionRequiredTextColor}>
+          <T>未选择</T>
+        </Text>
       ) : f === null ? (
-        <Text color={warningTextColor}>草稿</Text>
+        <Text color={warningTextColor}>
+          <T>草稿</T>
+        </Text>
       ) : (
-        <Text color={okTextColor}>{prettifyDate(f)}完成</Text>
+        <Text color={okTextColor}>
+          {prettifyDate(f)}
+          <T>完成</T>
+        </Text>
       )}
     </Td>
   );
@@ -940,17 +960,28 @@ function MentorshipsEditor({
   return (
     <ModalWithBackdrop isOpen size="4xl" onClose={onClose}>
       <ModalContent>
-        <ModalHeader>{formatUserName(mentee.name)}的导师</ModalHeader>
+        <ModalHeader>
+          {formatUserName(mentee.name)}
+          <T>的导师</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <TableContainer>
             <Table>
               <Thead>
                 <Tr>
-                  <Th>导师</Th>
-                  <Th>类型</Th>
-                  <Th>状态</Th>
-                  <Th>操作</Th>
+                  <Th>
+                    <T>导师</T>
+                  </Th>
+                  <Th>
+                    <T>类型</T>
+                  </Th>
+                  <Th>
+                    <T>状态</T>
+                  </Th>
+                  <Th>
+                    <T>操作</T>
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -970,12 +1001,20 @@ function MentorshipsEditor({
                         ) : compareDate(m.endsAt, new Date()) < 0 ? (
                           <HStack>
                             <MentorshipStatusIcon m={m} />
-                            <Text>已于{prettifyDate(m.endsAt)}结束</Text>
+                            <Text>
+                              <T>已于</T>
+                              {prettifyDate(m.endsAt)}
+                              <T>结束</T>
+                            </Text>
                           </HStack>
                         ) : (
                           <HStack>
                             <MentorshipStatusIcon m={m} />
-                            <Text>将于{prettifyDate(m.endsAt)}结束</Text>
+                            <Text>
+                              <T>将于</T>
+                              {prettifyDate(m.endsAt)}
+                              <T>结束</T>
+                            </Text>
                           </HStack>
                         )}
                       </Td>
@@ -1001,7 +1040,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  重新开始
+                                  <T>重新开始</T>
                                 </Link>
                               ) : (
                                 <>
@@ -1020,7 +1059,7 @@ function MentorshipsEditor({
                                       })
                                     }
                                   >
-                                    立即结束
+                                    <T>立即结束</T>
                                   </Link>
 
                                   <Link
@@ -1036,7 +1075,7 @@ function MentorshipsEditor({
                                       })
                                     }
                                   >
-                                    延期结束
+                                    <T>延期结束</T>
                                   </Link>
                                 </>
                               )}
@@ -1051,7 +1090,7 @@ function MentorshipsEditor({
                                   })
                                 }
                               >
-                                转成一对一
+                                <T>转成一对一</T>
                               </Link>
                             </>
                           ) : (
@@ -1068,7 +1107,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  重新开始
+                                  <T>重新开始</T>
                                 </Link>
                               ) : (
                                 <Link
@@ -1086,7 +1125,7 @@ function MentorshipsEditor({
                                     })
                                   }
                                 >
-                                  立即结束
+                                  <T>立即结束</T>
                                 </Link>
                               )}
                             </>
@@ -1121,10 +1160,12 @@ function MentorshipsEditor({
             onClick={() => setCreating(true)}
             leftIcon={<AddIcon />}
           >
-            增加导师
+            <T>增加导师</T>
           </Button>
           <Spacer />
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>
+            <T>关闭</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
@@ -1157,7 +1198,9 @@ function MentorshipCreator({
   return (
     <ModalWithBackdrop isOpen onClose={onClose}>
       <ModalContent>
-        <ModalHeader>增加导师</ModalHeader>
+        <ModalHeader>
+          <T>增加导师</T>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl>
@@ -1167,9 +1210,12 @@ function MentorshipCreator({
           </FormControl>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>
+            <T>取消</T>
+          </Button>
         </ModalFooter>
       </ModalContent>
     </ModalWithBackdrop>
   );
 }
+export const getStaticProps = getI18nProps;

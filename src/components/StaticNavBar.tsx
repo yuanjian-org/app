@@ -22,6 +22,8 @@ import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
 import { features } from "shared/Features";
+import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -33,6 +35,7 @@ const inactiveNavLinkColor = "gray.700";
 export default function StaticNavBar({
   pageType,
 }: { pageType?: AppPageType } = {}) {
+  const { t } = useTranslation("common");
   const current = useRouter().asPath;
 
   return (
@@ -74,12 +77,14 @@ export default function StaticNavBar({
                 text="文章"
               />
               <NextLink href={loginUrl()}>
-                <Text color={inactiveNavLinkColor}>进入远图</Text>
+                <Text color={inactiveNavLinkColor}>
+                  <T>进入远图</T>
+                </Text>
               </NextLink>
             </>
           )}
 
-          <Tooltip label="联系客服">
+          <Tooltip label={t("联系客服")}>
             <Link
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               isExternal
@@ -89,7 +94,7 @@ export default function StaticNavBar({
           </Tooltip>
 
           <Button variant="brand" as={NextLink} href={loginUrl()}>
-            登录 / 注册
+            <T>登录 / 注册</T>
           </Button>
         </HStack>
       </Flex>

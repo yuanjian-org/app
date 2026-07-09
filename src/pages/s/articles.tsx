@@ -10,6 +10,8 @@ import PageBreadcrumb from "components/PageBreadcrumb";
 import NextLink from "next/link";
 import { MdOutlineDescription } from "react-icons/md";
 import { paragraphSpacing } from "theme/metrics";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   return (
@@ -28,32 +30,32 @@ export default function Page() {
       </Text>
       <UnorderedList spacing={paragraphSpacing}>
         <ListItem>
-          初心与理念
+          <T>初心与理念</T>
           <HStack>
             <MdOutlineDescription />
             <Link as={NextLink} href="/s/why">
-              从乡土到全球：构想社会导师制
+              <T>从乡土到全球：构想社会导师制</T>
             </Link>
           </HStack>
           <HStack>
             <MdOutlineDescription />
             <Link as={NextLink} href="/s/meritocracy">
-              成功背后的逻辑
+              <T>成功背后的逻辑</T>
             </Link>
           </HStack>
           <HStack>
             <MdOutlineDescription />
             <Link as={NextLink} href="/s/how">
-              铠甲与火苗
+              <T>铠甲与火苗</T>
             </Link>
           </HStack>
         </ListItem>
         <ListItem>
-          探索与实践
+          <T>探索与实践</T>
           <HStack>
             <MdOutlineDescription />
             <Link as={NextLink} href="/s/match">
-              设计科学高效的师生匹配系统
+              <T>设计科学高效的师生匹配系统</T>
             </Link>
           </HStack>
         </ListItem>
@@ -63,3 +65,4 @@ export default function Page() {
 }
 
 Page.title = "文章";
+export const getStaticProps = getI18nProps;

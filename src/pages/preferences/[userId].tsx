@@ -50,6 +50,7 @@ import {
 import useMe, { useMyId } from "useMe";
 import SwitchAndLabel from "components/SwitchAndLabel";
 import ConfirmationModal from "components/ConfirmationModal";
+import T from "components/T";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -151,7 +152,7 @@ export default function Page() {
         isLoading={isSaving}
         onClick={handleSubmit}
       >
-        保存
+        <T>保存</T>
       </Button>
     </VStack>
   );
@@ -187,7 +188,9 @@ function InterviewerPreferences({
 
   return (
     <>
-      <Heading size="md">面试官偏好</Heading>
+      <Heading size="md">
+        <T>面试官偏好</T>
+      </Heading>
 
       {!isMentor && (
         <FormControl>
@@ -208,9 +211,9 @@ function InterviewerPreferences({
               e.target.checked ? setLimit(noMoreThan, until) : removeLimit()
             }
           >
-            面试限制：
+            <T>面试限制：</T>
           </Checkbox>
-          在
+          <T>在</T>
           <DatePicker
             selected={until}
             onChange={(date: Date | null) => {
@@ -222,7 +225,7 @@ function InterviewerPreferences({
             disabled={!data?.limit}
             customInput={<Input {...datePicker} textAlign="center" />}
           />
-          之前，我还可以参与
+          <T>之前，我还可以参与</T>
           <NumberInput
             value={noMoreThan}
             onChange={(v) => setLimit(Number.parseInt(v), until)}
@@ -238,7 +241,7 @@ function InterviewerPreferences({
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          场面试。
+          <T>场面试。</T>
         </Flex>
         <FormHelperText>
           将次数限制设置为 0 避免所有面试。在所选日期之后，面试限制将自动解除。
@@ -257,11 +260,13 @@ function MentorPreferences({
 }) {
   return (
     <>
-      <Heading size="md">导师偏好</Heading>
+      <Heading size="md">
+        <T>导师偏好</T>
+      </Heading>
 
       <FormControl>
         <Flex align="center">
-          我可以同时带
+          <T>我可以同时带</T>
           <NumberInput
             background="white"
             size="sm"
@@ -277,11 +282,11 @@ function MentorPreferences({
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          名学生。
+          <T>名学生。</T>
         </Flex>
         <FormHelperText>
           强烈建议两名学生或以上，因为横向对比十分有助于导师的工作。{}
-          若希望避免匹配学生，请选择0。
+          <T>若希望避免匹配学生，请选择0。</T>
         </FormHelperText>
       </FormControl>
 
@@ -318,7 +323,9 @@ function MenteeTraitsPreferences({
 
   return (
     <>
-      <Text>对学生的偏好：</Text>
+      <Text>
+        <T>对学生的偏好：</T>
+      </Text>
 
       <SimpleGrid
         columns={2}
@@ -337,12 +344,14 @@ function MenteeTraitsPreferences({
       </SimpleGrid>
 
       <FormControl>
-        <FormLabel>其他偏好：</FormLabel>
+        <FormLabel>
+          <T>其他偏好：</T>
+        </FormLabel>
         <Input
           bg="white"
           value={data?.其他 ?? ""}
           onChange={(ev) => update({ ...data, 其他: ev.target.value })}
-          placeholder="无"
+          placeholder={"无"}
         />
       </FormControl>
     </>
@@ -376,7 +385,7 @@ function TraitPreference({
       <GridItem>
         <Wrap>
           <TraitTag
-            label="无偏好"
+            label={"无偏好"}
             selected={value === undefined}
             onClick={() => update(undefined)}
           />
@@ -445,15 +454,21 @@ function NotificationPreferences({
 
   return (
     <>
-      <Heading size="md">通知偏好</Heading>
+      <Heading size="md">
+        <T>通知偏好</T>
+      </Heading>
 
       <Grid templateColumns="1fr 1fr 1fr" gap={sectionSpacing}>
         <GridItem />
         <GridItem>
-          <Text>短信通知</Text>
+          <Text>
+            <T>短信通知</T>
+          </Text>
         </GridItem>
         <GridItem>
-          <Text>邮件通知</Text>
+          <Text>
+            <T>邮件通知</T>
+          </Text>
         </GridItem>
 
         {allNotificationTypes

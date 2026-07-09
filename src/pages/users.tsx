@@ -57,7 +57,8 @@ import { FullTextSearchBox } from "components/FullTextSearchBox";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
 import { staticUrlPrefix } from "static";
 import { features } from "shared/Features";
-
+import getI18nProps from "components/getI18nProps";
+import T from "components/T";
 export default widePage(() => {
   const [includeMerged, setIncludeMerged] = useState(false);
 
@@ -114,7 +115,7 @@ export default widePage(() => {
               leftIcon={<AddIcon />}
               onClick={() => setCreatingNewUser(true)}
             >
-              新建用户
+              <T>新建用户</T>
             </Button>
           </WrapItem>
 
@@ -123,7 +124,7 @@ export default widePage(() => {
               isChecked={includeMerged}
               onChange={(e) => setIncludeMerged(e.target.checked)}
             >
-              显示已迁移账号
+              <T>显示已迁移账号</T>
             </Checkbox>
           </WrapItem>
 
@@ -179,14 +180,32 @@ function UserTable({
     <Table size="sm">
       <Thead>
         <Tr>
-          <Th>姓名</Th>
-          <Th>角色</Th>
-          <Th>修改</Th>
-          <Th>更多</Th>
-          {!isDemo && <Th>假扮</Th>}
-          <Th>手机号（唯一标识）</Th>
-          <Th>电子邮箱</Th>
-          <Th>微信UID</Th>
+          <Th>
+            <T>姓名</T>
+          </Th>
+          <Th>
+            <T>角色</T>
+          </Th>
+          <Th>
+            <T>修改</T>
+          </Th>
+          <Th>
+            <T>更多</T>
+          </Th>
+          {!isDemo && (
+            <Th>
+              <T>假扮</T>
+            </Th>
+          )}
+          <Th>
+            <T>手机号（唯一标识）</T>
+          </Th>
+          <Th>
+            <T>电子邮箱</T>
+          </Th>
+          <Th>
+            <T>微信UID</T>
+          </Th>
           <Th>ID</Th>
         </Tr>
       </Thead>
@@ -225,7 +244,8 @@ function UserTable({
                 {u.mergedToUser && (
                   <WrapItem>
                     <Tag colorScheme="red">
-                      已迁移至：{formatUserName(u.mergedToUser.name)}
+                      <T>已迁移至：</T>
+                      {formatUserName(u.mergedToUser.name)}
                     </Tag>
                   </WrapItem>
                 )}
@@ -234,7 +254,7 @@ function UserTable({
 
             {/* Edit */}
             <Td>
-              <Tooltip label="编辑用户">
+              <Tooltip label={"编辑用户"}>
                 <IconButton
                   aria-label="编辑用户"
                   icon={<MdEdit />}
@@ -248,7 +268,7 @@ function UserTable({
             {/* More */}
             <Td>
               <Menu isLazy>
-                <Tooltip label="更多">
+                <Tooltip label={"更多"}>
                   <MenuButton
                     as={IconButton}
                     aria-label="更多"
@@ -260,10 +280,10 @@ function UserTable({
                 </Tooltip>
                 <MenuList zIndex={2}>
                   <MenuItem as={NextLink} href={`/profiles/${u.id}`}>
-                    编辑个人资料
+                    <T>编辑个人资料</T>
                   </MenuItem>
                   <MenuItem as={NextLink} href={`/preferences/${u.id}`}>
-                    编辑偏好设置
+                    <T>编辑偏好设置</T>
                   </MenuItem>
                 </MenuList>
               </Menu>
@@ -273,7 +293,7 @@ function UserTable({
             {!isDemo && (
               <Td>
                 {me.id !== u.id && (
-                  <Tooltip label="假扮用户">
+                  <Tooltip label={"假扮用户"}>
                     <IconButton
                       aria-label="假扮用户"
                       icon={<TbSpy />}
@@ -371,9 +391,13 @@ function UserEditor({
         <ModalBody>
           <VStack spacing={6}>
             <FormControl isRequired isInvalid={!validName}>
-              <FormLabel>姓名</FormLabel>
+              <FormLabel>
+                <T>姓名</T>
+              </FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
-              <FormErrorMessage>需要填写中文姓名。</FormErrorMessage>
+              <FormErrorMessage>
+                <T>需要填写中文姓名。</T>
+              </FormErrorMessage>
             </FormControl>
 
             <FormControl isInvalid={!validPhone}>
@@ -382,7 +406,7 @@ function UserEditor({
                   href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
                   isExternal
                 >
-                  手机号（唯一标识用户）
+                  <T>手机号（唯一标识用户）</T>
                 </Link>
               </FormLabel>
               <Input
@@ -391,7 +415,9 @@ function UserEditor({
                 placeholder="填写 +86138... +1650... 等国际号码格式"
                 onChange={(e) => setPhone(e.target.value)}
               />
-              <FormErrorMessage>需要填写有效手机号。</FormErrorMessage>
+              <FormErrorMessage>
+                <T>需要填写有效手机号。</T>
+              </FormErrorMessage>
             </FormControl>
 
             <FormControl isInvalid={!validEmail}>
@@ -401,11 +427,15 @@ function UserEditor({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <FormErrorMessage>需要填写有效Email地址。</FormErrorMessage>
+              <FormErrorMessage>
+                <T>需要填写有效Email地址。</T>
+              </FormErrorMessage>
             </FormControl>
 
             <FormControl>
-              <FormLabel>微信UID</FormLabel>
+              <FormLabel>
+                <T>微信UID</T>
+              </FormLabel>
               <Input
                 value={unionId}
                 onChange={(e) => setUnionId(e.target.value)}
@@ -414,7 +444,9 @@ function UserEditor({
 
             {isPermitted(myRoles, "UserAdmin") && (
               <FormControl>
-                <FormLabel>角色</FormLabel>
+                <FormLabel>
+                  <T>角色</T>
+                </FormLabel>
                 <Stack>
                   {allRoles.map((r) => {
                     // This role is not currently used.
@@ -451,7 +483,7 @@ function UserEditor({
                         {rp.automatic ? "*" : ""} {rp.displayName}
                         {rp.privilegedUserDataAccess && (
                           <Tag size="sm" color="white" bgColor="orange" ml={2}>
-                            特权
+                            <T>特权</T>
                           </Tag>
                         )}
                       </Checkbox>
@@ -468,12 +500,12 @@ function UserEditor({
             <FormControl>
               <small>
                 <Tag size="sm" color="white" bgColor="orange" mr={1}>
-                  特权
+                  <T>特权</T>
                 </Tag>
                 <Link as={NextLink} href="/who-can-see-my-data" isExternal>
-                  访问此页面
+                  <T>访问此页面</T>
                 </Link>
-                了解这些角色的数据访问权限。
+                <T>了解这些角色的数据访问权限。</T>
               </small>
             </FormControl>
           </VStack>
@@ -481,7 +513,7 @@ function UserEditor({
         <ModalFooter>
           <Flex justifyContent="space-between" width="100%">
             <Button variant="outline" colorScheme="red" onClick={deleteUser}>
-              删除
+              <T>删除</T>
             </Button>
             <Button
               variant="brand"
@@ -489,7 +521,7 @@ function UserEditor({
               onClick={save}
               isDisabled={!validEmail || !validName}
             >
-              保存
+              <T>保存</T>
             </Button>
           </Flex>
         </ModalFooter>
@@ -497,3 +529,4 @@ function UserEditor({
     </ModalWithBackdrop>
   );
 }
+export const getStaticProps = getI18nProps;

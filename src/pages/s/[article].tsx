@@ -5,6 +5,7 @@ import MarkdownStyler from "components/MarkdownStyler";
 import { Box, Heading, Stack, VStack, Text, Link } from "@chakra-ui/react";
 import { breakpoint } from "theme/breakpoints";
 import NextLink from "next/link";
+import T from "components/T";
 
 const articlesFolder = path.join(process.cwd(), "/public/articles");
 const articleExt = ".md";
@@ -38,10 +39,13 @@ export default function Page({ title, authors, date, markdown }: ArticleProps) {
 
       <Stack my={4} direction={{ base: "column", [breakpoint]: "row" }}>
         <Link as={NextLink} href="/s/articles">
-          社会导师系列文章
+          <T>社会导师系列文章</T>
         </Link>
         <Separator />
-        <Text>作者：{authors}</Text>
+        <Text>
+          <T>作者：</T>
+          {authors}
+        </Text>
         <Separator />
         <Text>{date}</Text>
       </Stack>

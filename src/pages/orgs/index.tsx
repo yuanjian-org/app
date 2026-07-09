@@ -13,6 +13,8 @@ import { widePage } from "AppPage";
 import Loader from "components/Loader";
 import { pageMarginX, componentSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default widePage(() => {
   const { data: orgs } = trpcNext.orgs.list.useQuery();
@@ -22,7 +24,9 @@ export default widePage(() => {
   return (
     <Box mx={pageMarginX} mt={pageMarginX}>
       <HStack justifyContent="space-between" mb={componentSpacing}>
-        <Heading size="lg">所有机构</Heading>
+        <Heading size="lg">
+          <T>所有机构</T>
+        </Heading>
       </HStack>
 
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
@@ -44,7 +48,9 @@ export default widePage(() => {
               {org.description ? (
                 <MarkdownStyler content={org.description} />
               ) : (
-                <Text>暂无介绍</Text>
+                <Text>
+                  <T>暂无介绍</T>
+                </Text>
               )}
             </Box>
           </LinkBox>
@@ -53,3 +59,4 @@ export default widePage(() => {
     </Box>
   );
 }, "机构列表");
+export const getStaticProps = getI18nProps;

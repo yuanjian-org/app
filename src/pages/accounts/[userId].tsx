@@ -27,6 +27,7 @@ import { toast } from "react-toastify";
 import { useCanValidatePearlStudent } from "components/useCanValidatePearlStudent";
 import { useCanValidateUstcStudent } from "components/useCanValidateUstcStudent";
 import { UstcStudentValidationModal } from "components/UstcStudentModals";
+import T from "components/T";
 
 export const accountPageTitle = "账号与安全";
 
@@ -83,15 +84,19 @@ export default function Page() {
       spacing={componentSpacing}
       margin={sectionSpacing}
     >
-      <SectionHeading>账号信息</SectionHeading>
+      <SectionHeading>
+        <T>账号信息</T>
+      </SectionHeading>
 
       <FormControl>
-        <FormLabel>邮箱</FormLabel>
+        <FormLabel>
+          <T>邮箱</T>
+        </FormLabel>
         <Input value={user.email || notSetText} readOnly />
       </FormControl>
       <FormControl>
         <Button variant="brand" onClick={() => setIsSettingEmail(true)}>
-          修改
+          <T>修改</T>
         </Button>
       </FormControl>
 
@@ -100,7 +105,9 @@ export default function Page() {
       )}
 
       <FormControl>
-        <FormLabel>手机号</FormLabel>
+        <FormLabel>
+          <T>手机号</T>
+        </FormLabel>
         <Input
           readOnly
           value={!user.phone ? notSetText : removeChinaPhonePrefix(user.phone)!}
@@ -108,7 +115,7 @@ export default function Page() {
       </FormControl>
       <FormControl>
         <Button variant="brand" onClick={() => setIsSettingPhone(true)}>
-          修改
+          <T>修改</T>
         </Button>
       </FormControl>
 
@@ -120,7 +127,9 @@ export default function Page() {
       )}
 
       <FormControl>
-        <FormLabel>微信号</FormLabel>
+        <FormLabel>
+          <T>微信号</T>
+        </FormLabel>
         <Input
           bg="white"
           value={wechat}
@@ -129,13 +138,15 @@ export default function Page() {
       </FormControl>
       <FormControl>
         <Button variant="brand" onClick={saveWechat} isLoading={isSaving}>
-          保存
+          <T>保存</T>
         </Button>
       </FormControl>
 
       {canValidatePearlStudent && (
         <>
-          <SectionHeading>珍珠生验证</SectionHeading>
+          <SectionHeading>
+            <T>珍珠生验证</T>
+          </SectionHeading>
           <Text>
             如果您是新华爱心教育基金会曾经或正在资助的珍珠生，请点击按钮进行验证。
           </Text>
@@ -143,7 +154,7 @@ export default function Page() {
             variant="brand"
             onClick={() => setIsValidatingPearlStudent(true)}
           >
-            开始验证
+            <T>开始验证</T>
           </Button>
         </>
       )}
@@ -157,13 +168,15 @@ export default function Page() {
 
       {canValidateUstcStudent && (
         <>
-          <SectionHeading>中科大学生邮箱验证</SectionHeading>
+          <SectionHeading>
+            <T>中科大学生邮箱验证</T>
+          </SectionHeading>
           <Text>如果您有中国科学技术大学的学生邮箱，请点击按钮进行验证。</Text>
           <Button
             variant="brand"
             onClick={() => setIsValidatingUstcStudent(true)}
           >
-            开始验证
+            <T>开始验证</T>
           </Button>
         </>
       )}
@@ -175,12 +188,16 @@ export default function Page() {
         />
       )}
 
-      <SectionHeading>安全信息</SectionHeading>
+      <SectionHeading>
+        <T>安全信息</T>
+      </SectionHeading>
 
       <Link as={NextLink} href="/who-can-see-my-data">
         <HStack>
           <LockIcon />
-          <Text>谁能看到我的数据</Text>
+          <Text>
+            <T>谁能看到我的数据</T>
+          </Text>
         </HStack>
       </Link>
     </VStack>

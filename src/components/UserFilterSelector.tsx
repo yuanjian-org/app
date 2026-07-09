@@ -7,6 +7,7 @@ import MenteeStatusSelect from "./MenteeStatusSelect";
 import UserSelector from "./UserSelector";
 import { componentSpacing } from "theme/metrics";
 import { FullTextSearchBox } from "./FullTextSearchBox";
+import { useTranslation } from "next-i18next";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
@@ -20,6 +21,7 @@ export default function UserFilterSelector({
   fixedFilter?: UserFilter;
   onChange: (f: UserFilter) => void;
 }) {
+  const { t } = useTranslation("common");
   const router = useRouter();
 
   // Parse query parameters
@@ -95,7 +97,7 @@ export default function UserFilterSelector({
 
       <WrapItem>
         <UserSelector
-          placeholder="搜索联络人..."
+          placeholder={t("搜索联络人...")}
           onSelect={(userIds) =>
             updateUrlParams({
               ...filter,

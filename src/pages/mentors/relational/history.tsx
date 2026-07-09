@@ -17,6 +17,8 @@ import { compareDate } from "shared/strings/compareDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import invariant from "shared/invariant";
+import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 export default function Page() {
   const { data } = trpcNext.mentorSelections.listFinalizedBatches.useQuery();
@@ -29,7 +31,10 @@ export default function Page() {
         {!data ? (
           <Loader />
         ) : data.length === 0 ? (
-          <Text> 尚无选择历史。 </Text>
+          <Text>
+            {" "}
+            <T>尚无选择历史。</T>{" "}
+          </Text>
         ) : (
           data
             .sort((a, b) => compareDate(b.finalizedAt, a.finalizedAt))
@@ -68,3 +73,4 @@ function Batch({ batch }: { batch: MentorSelectionBatch }) {
     </>
   );
 }
+export const getStaticProps = getI18nProps;

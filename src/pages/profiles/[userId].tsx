@@ -46,6 +46,7 @@ import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
 import { UserProfilePictureLink } from "components/UserCards";
 import { features } from "shared/Features";
+import T from "components/T";
 
 export default function Page() {
   const queryUserId = parseQueryString(useRouter(), "userId");
@@ -116,7 +117,7 @@ export default function Page() {
 
   const SaveButton = () => (
     <Button onClick={onSave} variant="brand" isLoading={isSaving}>
-      保存
+      <T>保存</T>
     </Button>
   );
 
@@ -153,11 +154,13 @@ export default function Page() {
 
       {isPermitted(user.roles, "Mentor") ? (
         <>
-          <Heading size="md">导师信息</Heading>
+          <Heading size="md">
+            <T>导师信息</T>
+          </Heading>
           <Text>
             这些信息是学生了解导师的重要渠道，是他们了解并选择
             <Link isExternal href="https://yuantuapp.com/s/match">
-              与你匹配
+              <T>与你匹配</T>
             </Link>
             的唯一渠道，因此请详尽填写，并展示你在生活中的丰富个性，而不只是职场中的剪影。
             <MarkdownSupported />
@@ -165,7 +168,9 @@ export default function Page() {
         </>
       ) : (
         <>
-          <Heading size="md">个人资料</Heading>
+          <Heading size="md">
+            <T>个人资料</T>
+          </Heading>
           <Text>
             <MarkdownSupported />
           </Text>
@@ -193,13 +198,19 @@ export default function Page() {
 
       <Link href={getUserUrl(user)} isExternal>
         <HStack>
-          <Text>查看展示效果</Text> <ExternalLinkIcon />
+          <Text>
+            <T>查看展示效果</T>
+          </Text>{" "}
+          <ExternalLinkIcon />
         </HStack>
       </Link>
 
       <Link href={`/who-can-see-my-data`} isExternal>
         <HStack>
-          <LockIcon /> <Text>谁能看到我的资料</Text>
+          <LockIcon />{" "}
+          <Text>
+            <T>谁能看到我的资料</T>
+          </Text>
         </HStack>
       </Link>
     </VStack>
@@ -221,19 +232,24 @@ function Basic({
 }) {
   return (
     <>
-      <Heading size="md">基本信息</Heading>
+      <Heading size="md">
+        <T>基本信息</T>
+      </Heading>
 
       {isPermitted(user.roles, "Volunteer") && (
         <FormControl>
-          <FormLabel>自定义URL</FormLabel>
+          <FormLabel>
+            <T>自定义URL</T>
+          </FormLabel>
           <FormHelperTextWithMargin>
             {displayName("Volunteer")}
-            可以自定义
+            <T>可以自定义</T>
             <Link href={getUserUrl(user)} isExternal>
-              个人资料展示页
+              <T>个人资料展示页</T>
             </Link>
             的URL。URL只支持小写英文字母和数字。为了便于其他小伙伴记忆，建议使用中文真名的拼音
-            {}或者英文昵称。
+            {}
+            <T>或者英文昵称。</T>
           </FormHelperTextWithMargin>
           <InputGroup>
             <InputLeftAddon bg="white">{getBaseUrl() + "/"}</InputLeftAddon>
@@ -253,7 +269,9 @@ function Basic({
       )}
 
       <FormControl isInvalid={!user.name}>
-        <FormLabel>中文全名</FormLabel>
+        <FormLabel>
+          <T>中文全名</T>
+        </FormLabel>
         <Input
           bg="white"
           value={user.name ?? ""}
@@ -264,11 +282,17 @@ function Basic({
             })
           }
         />
-        {!user.name && <FormErrorMessage>用户姓名不能为空</FormErrorMessage>}
+        {!user.name && (
+          <FormErrorMessage>
+            <T>用户姓名不能为空</T>
+          </FormErrorMessage>
+        )}
       </FormControl>
 
       <FormControl>
-        <FormLabel>昵称或英文名</FormLabel>
+        <FormLabel>
+          <T>昵称或英文名</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.英文别名 ?? ""}
@@ -282,7 +306,9 @@ function Basic({
       </FormControl>
 
       <FormControl display="flex" gap={componentSpacing}>
-        <FormLabel>性别</FormLabel>
+        <FormLabel>
+          <T>性别</T>
+        </FormLabel>
         <RadioGroup
           value={profile.性别 ?? ""}
           onChange={(v) =>
@@ -294,10 +320,10 @@ function Basic({
         >
           <Stack direction="row">
             <Radio bg="white" value="男">
-              男
+              <T>男</T>
             </Radio>
             <Radio bg="white" value="女">
-              女
+              <T>女</T>
             </Radio>
           </Stack>
         </RadioGroup>
@@ -338,11 +364,13 @@ function Picture({
 
   return (
     <>
-      <Heading size="md">生活照</Heading>
+      <Heading size="md">
+        <T>生活照</T>
+      </Heading>
       <FormControl>
         <Image
           src={UserProfilePictureLink(profile)}
-          alt="照片"
+          alt={"照片"}
           maxW="300px"
           my={componentSpacing}
         />
@@ -352,31 +380,37 @@ function Picture({
             {loading ? (
               <HStack>
                 <Spinner size="sm" />
-                <Text>加载中...</Text>
+                <Text>
+                  <T>加载中...</T>
+                </Text>
               </HStack>
             ) : profile.照片链接 ? (
               <HStack>
                 <MdChangeCircle />
-                <Text>更换照片</Text>
+                <Text>
+                  <T>更换照片</T>
+                </Text>
               </HStack>
             ) : (
               <HStack>
                 <MdCloudUpload />
-                <Text>上传照片</Text>
+                <Text>
+                  <T>上传照片</T>
+                </Text>
               </HStack>
             )}
           </Link>
         )}
 
         <FormHelperTextWithMargin>
-          建议选择面部清晰、不戴墨镜的近照
+          <T>建议选择面部清晰、不戴墨镜的近照</T>
         </FormHelperTextWithMargin>
 
         {isPermitted(myRoles, "UserAdmin") && (
           <>
             <FormHelperTextWithMargin>
               <Text color="red.700">
-                以下链接仅
+                <T>以下链接仅</T>
                 {displayName("UserAdmin")}
                 可见，用于在个别情况下直接引用其他网站的图像：
               </Text>
@@ -434,17 +468,23 @@ function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
           {loading ? (
             <HStack>
               <Spinner size="sm" />
-              <Text>加载中...</Text>
+              <Text>
+                <T>加载中...</T>
+              </Text>
             </HStack>
           ) : profile.视频链接 ? (
             <HStack>
               <MdChangeCircle />
-              <Text>更换视频</Text>
+              <Text>
+                <T>更换视频</T>
+              </Text>
             </HStack>
           ) : (
             <HStack>
               <MdCloudUpload />
-              <Text>上传视频</Text>
+              <Text>
+                <T>上传视频</T>
+              </Text>
             </HStack>
           )}
         </Link>
@@ -474,10 +514,10 @@ function NonMentorProfileFields({
 function MarkdownSupported() {
   return (
     <>
-      所有文字均支持
+      <T>所有文字均支持</T>
       <Link isExternal href={markdownSyntaxUrl}>
         {" "}
-        Markdown 格式
+        <T>Markdown 格式</T>
       </Link>
       。
     </>
@@ -495,9 +535,11 @@ function PositionFormControl({
 }) {
   return (
     <FormControl>
-      <FormLabel>雇主与职位 {highlight && <Highlight />}</FormLabel>
+      <FormLabel>
+        <T>雇主与职位</T> {highlight && <Highlight />}
+      </FormLabel>
       <FormHelperTextWithMargin>
-        比如甲公司人事处处长、餐饮业创业者等
+        <T>比如甲公司人事处处长、餐饮业创业者等</T>
       </FormHelperTextWithMargin>
       <Input
         bg="white"
@@ -519,7 +561,9 @@ function CityFormControl({
 }) {
   return (
     <FormControl>
-      <FormLabel>现居住城市或地区 {highlight && <Highlight />}</FormLabel>
+      <FormLabel>
+        <T>现居住城市或地区</T> {highlight && <Highlight />}
+      </FormLabel>
       <Input
         bg="white"
         value={profile.现居住地 || ""}
@@ -538,7 +582,9 @@ function HobbyFormControl({
 }) {
   return (
     <FormControl>
-      <FormLabel>业余爱好和特长、个人网站或自媒体账号等</FormLabel>
+      <FormLabel>
+        <T>业余爱好和特长、个人网站或自媒体账号等</T>
+      </FormLabel>
       <Textarea
         bg="white"
         height={140}
@@ -560,15 +606,17 @@ function CareerFormControl({
 }) {
   return (
     <FormControl>
-      <FormLabel>职业经历和网站 {highlight && <Highlight />}</FormLabel>
+      <FormLabel>
+        <T>职业经历和网站</T> {highlight && <Highlight />}
+      </FormLabel>
       <FormHelperTextWithMargin>
         <ListAndMarkdownSupport />
-        ，比如：
+        <T>，比如：</T>
         <br />
         <br />
-        * 经历1
+        <T>* 经历1</T>
         <br />
-        * 经历2
+        <T>* 经历2</T>
         <br />* 领英：linkedin.com/in/user
       </FormHelperTextWithMargin>
       <Textarea
@@ -590,7 +638,9 @@ function DailyLifeFormControl({
 }) {
   return (
     <FormControl>
-      <FormLabel>目前的日常和生活趣事</FormLabel>
+      <FormLabel>
+        <T>目前的日常和生活趣事</T>
+      </FormLabel>
       <FormHelperTextWithMargin>
         比如业余活动、好玩儿或独特的经历、家中宠物等
       </FormHelperTextWithMargin>
@@ -653,16 +703,20 @@ function Orgs({ user }: { user: MinUser }) {
 
   return (
     <>
-      <Heading size="md">所属机构</Heading>
+      <Heading size="md">
+        <T>所属机构</T>
+      </Heading>
       <FormControl>
-        <FormLabel>选择或修改机构</FormLabel>
+        <FormLabel>
+          <T>选择或修改机构</T>
+        </FormLabel>
         <Select
           isMulti
           options={options}
           value={value}
           onChange={handleChange}
           isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
-          placeholder="搜索机构..."
+          placeholder={"搜索机构..."}
           noOptionsMessage={() => "没有找到相关机构"}
         />
       </FormControl>
@@ -695,17 +749,17 @@ function MentorProfileFields({
     <>
       <FormControl>
         <FormLabel>
-          视频介绍 <Highlight />
+          <T>视频介绍</T> <Highlight />
         </FormLabel>
         <FormHelperTextWithMargin>
           <Text style={{ display: "inline" }} color="red.700">
-            强烈建议
+            <T>强烈建议</T>
           </Text>
           上传长度约1-2分钟的视频，以便学生直观感受你的沟通方式。
           这将很大程度提高匹配的成功率和满意度。
           内容可包括坐标、职业、性格、擅长聊的话题等等。
           <Link isExternal href={exampleVideoUrl}>
-            参考示例
+            <T>参考示例</T>
           </Link>
           。
         </FormHelperTextWithMargin>
@@ -720,10 +774,10 @@ function MentorProfileFields({
 
       <FormControl>
         <FormLabel>
-          专业领域 <Highlight />
+          <T>专业领域</T> <Highlight />
         </FormLabel>
         <FormHelperTextWithMargin>
-          比如金融、电子工程、教育学专业等
+          <T>比如金融、电子工程、教育学专业等</T>
         </FormHelperTextWithMargin>
         <Input
           bg="white"
@@ -739,7 +793,9 @@ function MentorProfileFields({
       />
 
       <FormControl>
-        <FormLabel>成长过程中曾经居住的城市或地区</FormLabel>
+        <FormLabel>
+          <T>成长过程中曾经居住的城市或地区</T>
+        </FormLabel>
         <Input
           bg="white"
           value={profile.曾居住地 || ""}
@@ -756,7 +812,7 @@ function MentorProfileFields({
 
       <FormControl>
         <FormLabel>
-          擅长聊天话题 <Highlight />
+          <T>擅长聊天话题</T> <Highlight />
         </FormLabel>
         <FormHelperTextWithMargin>
           擅长或喜欢“八卦”的事情，比如时事新闻、中国历史、哲学思辨、网游桌游……
@@ -788,9 +844,11 @@ function MentorProfileFields({
       />
 
       <FormControl>
-        <FormLabel>教育经历</FormLabel>
+        <FormLabel>
+          <T>教育经历</T>
+        </FormLabel>
         <FormHelperTextWithMargin>
-          大学及以上，也鼓励填写更早的经历。
+          <T>大学及以上，也鼓励填写更早的经历。</T>
           <ListAndMarkdownSupport />。
         </FormHelperTextWithMargin>
         <Textarea
@@ -802,7 +860,9 @@ function MentorProfileFields({
       </FormControl>
 
       <FormControl>
-        <FormLabel>个性特点</FormLabel>
+        <FormLabel>
+          <T>个性特点</T>
+        </FormLabel>
         <Textarea
           bg="white"
           height={140}
@@ -831,7 +891,7 @@ function MentorProfileFields({
 function Highlight() {
   return (
     <Tag ms={2} size="sm" colorScheme="green">
-      首页亮点
+      <T>首页亮点</T>
     </Tag>
   );
 }
@@ -839,9 +899,9 @@ function Highlight() {
 function ListAndMarkdownSupport() {
   return (
     <>
-      可用以星号开头的列表格式或
+      <T>可用以星号开头的列表格式或</T>
       <Link isExternal href={markdownSyntaxUrl}>
-        其他 Markdown 格式
+        <T>其他 Markdown 格式</T>
       </Link>
     </>
   );

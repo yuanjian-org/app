@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
 
 import useMe from "useMe";
+import T from "components/T";
 
 export function isMenteeProfileComplete(profile?: UserProfile) {
   if (!profile) return false;
@@ -80,7 +81,9 @@ function BaseMenteeProfileModal({
   return (
     <ModalWithBackdrop isOpen onClose={onCancel || (() => undefined)} size="xl">
       <ModalContent>
-        <ModalHeader>完善个人资料</ModalHeader>
+        <ModalHeader>
+          <T>完善个人资料</T>
+        </ModalHeader>
         <ModalBody>
           <VStack spacing={componentSpacing} align="start">
             <Text>{bodyText}</Text>
@@ -91,7 +94,9 @@ function BaseMenteeProfileModal({
                 showIsRequired
               />
             ) : (
-              <Text>加载中...</Text>
+              <Text>
+                <T>加载中...</T>
+              </Text>
             )}
           </VStack>
         </ModalBody>
@@ -105,7 +110,7 @@ function BaseMenteeProfileModal({
               isLoading={saving}
               onClick={save}
             >
-              提交
+              <T>提交</T>
             </Button>
           </HStack>
         </ModalFooter>

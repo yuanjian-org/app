@@ -18,7 +18,7 @@ import { isStaticPage, staticUrlPrefix } from "../static";
 import StaticPageContainer from "components/StaticPageContainer";
 import dynamic from "next/dynamic";
 import ErrorBoundary from "fundebug/ErrorBoundary";
-import "fundebug"; // Initialize Fundebug
+import "fundebug";
 
 // Dynamically import SwitchBoard so authenticated layout/modals
 // are not bundled into _app.js and downloaded on static routes.

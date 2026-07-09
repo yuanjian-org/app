@@ -3,6 +3,7 @@ import { DownloadIcon } from "@chakra-ui/icons";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import z from "zod";
 import invariant from "tiny-invariant";
+import T from "components/T";
 
 export function FieldRow({
   name,
@@ -59,7 +60,7 @@ function FieldValueCell({
   ) {
     return (
       <Link href={value}>
-        下载链接 <DownloadIcon />
+        <T>下载链接</T> <DownloadIcon />
       </Link>
     );
   } else if (typeof value === "object") {
