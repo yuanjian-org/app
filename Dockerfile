@@ -27,6 +27,13 @@ ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 RUN if [ -f "build.env.$NEXT_PUBLIC_WHITE_LABEL" ]; then \
       cp "build.env.$NEXT_PUBLIC_WHITE_LABEL" .env; \
     fi
+
+# If English is not enabled, remove I18N-MARKER line from next.config.js.
+RUN if [ ! -f .env ] || \
+       ! grep -q '^NEXT_PUBLIC_ENABLE_ENGLISH=true' .env; then \
+      sed -i '/I18N-MARKER/d' next.config.js; \
+    fi
+
 RUN yarn build
 
 # Production image, copy all the files and run next

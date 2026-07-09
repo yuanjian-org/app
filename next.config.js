@@ -2,7 +2,7 @@
 const { i18n } = require("./next-i18next.config");
 const nextConfig = {
   reactStrictMode: true,
-  i18n,
+  i18n, // I18N-MARKER for build automation. Do not remove.
   output: "standalone",
 
   // https://github.com/vercel/next.js/issues/59594
