@@ -22,6 +22,7 @@ import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
 import { useTranslation } from "next-i18next";
+import LanguageToggle from "components/LanguageToggle";
 
 export default function YqdLandingPage() {
   const { t } = useTranslation("common");
@@ -50,6 +51,7 @@ export default function YqdLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
+            <LanguageToggle />
             <Tooltip label={t("联系客服")}>
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"

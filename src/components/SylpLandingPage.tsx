@@ -20,6 +20,7 @@ import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
+import LanguageToggle from "components/LanguageToggle";
 
 export default function SylpLandingPage() {
   return (
@@ -47,6 +48,7 @@ export default function SylpLandingPage() {
           <DynamicLogo />
 
           <HStack as="nav" spacing={7} fontWeight="bold">
+            <LanguageToggle />
             <Tooltip label="联系客服 / Contact Support">
               <Link
                 href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
