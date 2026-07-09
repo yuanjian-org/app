@@ -81,3 +81,6 @@ NEXTAUTH_SECRET=your-secret-here
 - **tRPC DevTools**: API call inspection and debugging
 - **Sequelize Logging**: Database query debugging
 - **Cypress Dashboard**: E2E test result analysis
+
+## Internationalization (i18n)
+- When updating files for i18n support, ignore the entire file if it contains the string `// @i18n-ignore-file` at the top.
