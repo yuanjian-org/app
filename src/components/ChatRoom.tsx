@@ -56,6 +56,7 @@ import { IoMdPeople } from "react-icons/io";
 import { toast } from "react-toastify";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import T from "components/T";
+import { useTranslation } from "next-i18next";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();
@@ -352,6 +353,7 @@ function Editor({
   message?: ChatMessage;
   onClose: () => void;
 } & TextareaProps) {
+  const { t } = useTranslation("common");
   const [markdown, setMarkdown] = useState<string>();
 
   const { data: draft } = trpcNext.chat.getDraftMessage.useQuery({
@@ -478,7 +480,7 @@ function Editor({
         />
 
         <Select
-          placeholder={"笔记分类"}
+          placeholder={t("笔记分类")}
           onChange={(e) => insertPrefix(e.target.value)}
           // if maxWidth is not specified, it will take up all the remaining
           // width.

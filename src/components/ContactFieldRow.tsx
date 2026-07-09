@@ -29,7 +29,9 @@ export function ContactFieldRow({
 
   return (
     <Flex direction="column">
-      <b>{name} </b>
+      <b>
+        <T>{name}</T>{" "}
+      </b>
       <Box>
         {!copyable && (
           <SmallGrayText>
