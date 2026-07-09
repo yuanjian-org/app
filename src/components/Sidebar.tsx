@@ -29,6 +29,7 @@ import {
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import useMe, { useMyRoles } from "useMe";
+import { useTranslation } from "next-i18next";
 import { isPermitted } from "shared/Role";
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
@@ -342,6 +343,7 @@ export function SidebarForMobile({
 }
 
 function SidebarContent({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation("common");
   const me = useMe();
   const mentorships = useMyMentorshipsAsMentor();
   const mentorshipItems = mentorships2Items(mentorships);
@@ -419,25 +421,29 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
 
             const displayItem = { ...item };
             if (displayItem.path === "/mentors") {
-              displayItem.name = getTransactionalMentorsPageTitle(
-                isPermitted(me.roles, "Mentee"),
-                features.relational,
+              displayItem.name = t(
+                getTransactionalMentorsPageTitle(
+                  isPermitted(me.roles, "Mentee"),
+                  features.relational,
+                ),
               );
             }
 
             return (
               <SidebarRow
                 key={item.path}
-                item={displayItem}
+                item={{ ...displayItem, name: t(displayItem.name) }}
                 onClose={onClose}
               />
             );
           })}
 
         <DropdownMenu
-          title={"管理功能"}
+          title={t("管理功能")}
           icon={<Icon as={IoIosCog} marginRight="2" />}
-          menuItems={managerDropdownMenuItems}
+          menuItems={managerDropdownMenuItems.map((item) =>
+            item ? { ...item, name: t(item.name) } : null,
+          )}
           onClose={onClose}
         />
 
@@ -451,7 +457,9 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
         <DropdownMenu
           title={myName}
           icon={<Avatar size={"sm"} bg="brand.a" color="white" name={myName} />}
-          menuItems={userDropdownMenuItems}
+          menuItems={userDropdownMenuItems.map((item) =>
+            item ? { ...item, name: t(item.name) } : null,
+          )}
           onClose={onClose}
         />
       </Box>
