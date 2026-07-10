@@ -19,10 +19,12 @@ import UserDrawer from "components/UserDrawer";
 import { formatUserName } from "shared/strings/formatUserName";
 import { OrgMentor } from "shared/Org";
 import { features } from "shared/Features";
+import DefaultErrorPage from "next/error";
 import { ProjectCard } from "components/projects/ProjectList";
 import T from "components/T";
 
 export default widePage(() => {
+  if (!features.publicOrgsMentors) return <DefaultErrorPage statusCode={404} />;
   const router = useRouter();
   const orgId = router.query.orgId as string;
   const { data: org, isLoading } = trpcNext.orgs.getPublic.useQuery(orgId, {

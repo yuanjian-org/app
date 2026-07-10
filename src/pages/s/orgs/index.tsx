@@ -15,8 +15,11 @@ import { pageMarginX, componentSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
 import T from "components/T";
 import getI18nProps from "components/getI18nProps";
+import { features } from "shared/Features";
+import DefaultErrorPage from "next/error";
 
 export default widePage(() => {
+  if (!features.publicOrgsMentors) return <DefaultErrorPage statusCode={404} />;
   const { data: orgs } = trpcNext.orgs.listPublic.useQuery();
 
   if (!orgs) return <Loader />;

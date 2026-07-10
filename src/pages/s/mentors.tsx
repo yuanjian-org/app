@@ -12,8 +12,11 @@ import { topBarPaddings } from "components/TopBar";
 import Head from "next/head";
 import getI18nProps from "components/getI18nProps";
 import { getTransactionalMentorsPageTitle, dailyShuffle } from "pages/mentors";
+import { features } from "shared/Features";
+import DefaultErrorPage from "next/error";
 
 export default fullPage(() => {
+  if (!features.publicOrgsMentors) return <DefaultErrorPage statusCode={404} />;
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const { data } = trpcNext.users.listPublicMentors.useQuery();
