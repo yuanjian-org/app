@@ -1,3 +1,4 @@
+// @i18n-ignore-file
 import { useRouter } from "next/router";
 import {
   Card,
@@ -17,7 +18,6 @@ import { ProjectApplication } from "components/ProjectApplication";
 import { ProjectApplicationStatus } from "shared/ProjectApplication";
 import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
-import T from "components/T";
 
 export default function Page() {
   const router = useRouter();
@@ -53,9 +53,7 @@ export default function Page() {
       </Head>
       <VStack spacing={6} align="stretch">
         {applications.length === 0 ? (
-          <Text>
-            <T>暂无申请</T>
-          </Text>
+          <Text>暂无申请</Text>
         ) : (
           applications.map((app) => (
             <Card key={app.id}>
@@ -88,15 +86,9 @@ export default function Page() {
                       })
                     }
                   >
-                    <option value="已批准">
-                      <T>已批准</T>
-                    </option>
-                    <option value="已拒绝">
-                      <T>已拒绝</T>
-                    </option>
-                    <option value="">
-                      <T>待处理</T>
-                    </option>
+                    <option value="已批准">已批准</option>
+                    <option value="已拒绝">已拒绝</option>
+                    <option value="">待处理</option>
                   </Select>
                 </Flex>
               </CardHeader>

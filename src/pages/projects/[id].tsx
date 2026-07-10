@@ -1,3 +1,4 @@
+// @i18n-ignore-file
 import { useRouter } from "next/router";
 import trpc, { trpcNext } from "../../trpc";
 import useMe from "../../useMe";

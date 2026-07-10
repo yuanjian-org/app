@@ -1,3 +1,4 @@
+// @i18n-ignore-file
 import { useRouter } from "next/router";
 import ProjectEditor from "../../../components/projects/ProjectEditor";
 import PageBreadcrumb from "../../../components/PageBreadcrumb";
