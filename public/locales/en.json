@@ -550,8 +550,10 @@
   "偏好设置": "Preferences",
   "账号与安全": "Account & Security",
   "导师一览": "Mentors",
-  "显示已完成": "Show completed",
-  "隐藏已完成": "Hide completed",
-  "一切静谧，万物安然": "All quiet, everything at peace",
+  "显示已完成": "Show Completed",
+  "隐藏已完成": "Hide Completed",
+  "一切静谧，万物安然": "All quiet, everything at peace.",
+  "role-features": "Features vary by role. If you can't find what you need, ",
+  "。": ".",
   "welcome-to-book": "Book an appointment anytime for career guidance, interview prep, relationship advice, or any other topic that matters to you:"
 }

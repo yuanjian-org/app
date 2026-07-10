@@ -75,14 +75,17 @@ function NoGroup() {
       </Text>
 
       <SmallGrayText>
-        本网站提供的功能会根据用户角色不同而有所差异。如果您未找到所需功能，
+        {/* Translate the role-based features warning using a token */}
+        <T token="role-features">
+          本网站提供的功能会根据用户角色不同而有所差异。如果您未找到所需功能，
+        </T>
         <Link
           href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
           isExternal
         >
           <T>请联系客服</T>
         </Link>
-        。
+        <T>。</T>
       </SmallGrayText>
     </VStack>
   );
