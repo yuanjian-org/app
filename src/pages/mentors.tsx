@@ -57,7 +57,9 @@ export default fullPage(() => {
           {isMentee && (
             <>
               <Text>
-                欢迎你随时预约择业就业、面试辅导、情感困惑等任何你关心的话题：
+                <T token="welcome-to-book">
+                  欢迎你随时预约择业就业、面试辅导、情感困惑等任何你关心的话题：
+                </T>
               </Text>
 
               <Button variant="brand" onClick={() => setBooking(true)}>
