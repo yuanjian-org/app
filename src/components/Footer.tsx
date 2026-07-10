@@ -44,6 +44,7 @@ export default function Footer({ ...rest }: WrapProps) {
 
       <WrapItem>
         <Link color={color} isExternal href="http://beian.miit.gov.cn/">
+          {/* @i18n-ignore */}
           {icp}
         </Link>
       </WrapItem>
