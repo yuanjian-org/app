@@ -6,12 +6,14 @@ import { useTranslation } from "next-i18next";
  */
 export default function T({
   token,
+  ns,
   children,
 }: {
   token?: string;
+  ns?: string;
   children: string;
 }) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(ns);
 
   return <>{token ? t(token, children) : t(children)}</>;
 }
