@@ -7,10 +7,20 @@ export default function useMe() {
   return data.me;
 }
 
+export function useOptionalMe() {
+  const { data } = useSession();
+  return data?.me;
+}
+
 export function useMyRoles() {
   const { data } = useSession();
   invariant(data);
   return data.me.roles;
+}
+
+export function useOptionalMyRoles() {
+  const { data } = useSession();
+  return data?.me?.roles || [];
 }
 
 export function useMyId() {

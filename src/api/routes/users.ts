@@ -1,3 +1,4 @@
+import { features } from "../../shared/Features";
 import { whiteLabel } from "shared/WhiteLabel";
 import { procedure, router } from "../trpc";
 import { z } from "zod";
@@ -301,6 +302,13 @@ const zListMentorsOutput = z.array(
   ),
 );
 export type ListMentorsOutput = z.infer<typeof zListMentorsOutput>;
+
+const listPublicMentors = procedure
+  .output(zListMentorsOutput)
+  .query(async () => {
+    if (!features.publicOrgsMentors) throw noPermissionError("导师");
+    return await listMentorsImpl();
+  });
 
 const listMentors = procedure
   .use(authUser())
@@ -1124,6 +1132,7 @@ export default router({
   listPriviledgedUserDataAccess,
   listVolunteers,
   listMentors,
+  listPublicMentors,
   listMentorStats,
   getMentorTraitsPref,
 

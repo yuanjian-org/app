@@ -41,7 +41,7 @@ import { MentorSelection } from "shared/MentorSelection";
 import useMobile from "useMobile";
 import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
-import { useMyRoles } from "useMe";
+import { useOptionalMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import T from "components/T";
 export type FieldAndLabel = {
@@ -309,7 +309,7 @@ function UserCardForDesktop({
   selected?: boolean;
 }) {
   const p = data.profile;
-  const isMentee = isPermitted(useMyRoles(), "Mentee");
+  const isMentee = isPermitted(useOptionalMyRoles(), "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
@@ -511,7 +511,7 @@ function UserCardForMobile({
   selected?: boolean;
 }) {
   const p = data.profile;
-  const isMentee = isPermitted(useMyRoles(), "Mentee");
+  const isMentee = isPermitted(useOptionalMyRoles(), "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);

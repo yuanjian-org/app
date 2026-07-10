@@ -7,6 +7,8 @@ export const zFeatures = z.object({
   // Organizations
   orgs: z.boolean().optional(),
 
+  publicOrgsMentors: z.boolean().optional(),
+
   // Relational mentorship. When disabled, only transactional mentors are supported.
   relational: z.boolean().optional(),
 
@@ -37,6 +39,8 @@ export type Features = z.infer<typeof zFeatures>;
  */
 export const features: Features = {
   orgs: process.env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
+  publicOrgsMentors:
+    process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ORGS_MENTORS === "true" || undefined,
   relational: process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
   volunteers: process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true" || undefined,
   interviews: process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,

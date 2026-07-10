@@ -51,7 +51,7 @@ import {
   TraitTag,
 } from "components/Traits";
 import invariant from "tiny-invariant";
-import useMe, { useMyId, useMyRoles } from "useMe";
+import { useOptionalMe, useOptionalMyRoles } from "useMe";
 import { KudosControl } from "./Kudos";
 import T from "components/T";
 export type UserDisplayData = MinUserAndProfile & {
@@ -76,7 +76,7 @@ export default function UserPanel({
   showTitle = true,
   showKudosControl = true,
 }: UserPanelProps) {
-  const myRoles = useMyRoles();
+  const myRoles = useOptionalMyRoles();
   const profile = data.profile;
 
   return (
@@ -140,7 +140,11 @@ export default function UserPanel({
         </VStack>
 
         {data.profile && (
-          <ProfileTable user={data.user} profile={data.profile} />
+          <ProfileTable
+            user={data.user}
+            profile={data.profile}
+            myRoles={myRoles}
+          />
         )}
       </Stack>
     </>
@@ -168,22 +172,28 @@ function UserUrl({ u }: { u: MinUser }) {
 }
 
 function MatchingTraits({ userId }: { userId: string }) {
-  const myId = useMyId();
+  const me = useOptionalMe();
+  const myRoles = useOptionalMyRoles();
+  const isMentee = isPermitted(myRoles, "Mentee");
+  const myId = me?.id || "";
 
-  const { data: traitsPref } = trpcNext.users.getMentorTraitsPref.useQuery({
-    userId,
-  });
-  const { data: user, refetch } = trpcNext.users.getUserProfile.useQuery({
-    userId: myId,
-  });
-  const { data: applicant } = trpcNext.users.getApplicant.useQuery({
-    type: "MenteeInterview",
-    userId: myId,
-  });
+  const { data: traitsPref } = trpcNext.users.getMentorTraitsPref.useQuery(
+    { userId },
+    { enabled: isMentee },
+  );
+  const { data: user, refetch } = trpcNext.users.getUserProfile.useQuery(
+    { userId: myId },
+    { enabled: isMentee && !!myId },
+  );
+  const { data: applicant } = trpcNext.users.getApplicant.useQuery(
+    { type: "MenteeInterview", userId: myId },
+    { enabled: isMentee && !!myId },
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const matchingTraits = useMemo(() => {
+    if (!isMentee) return undefined;
     if (
       user === undefined ||
       applicant === undefined ||
@@ -196,7 +206,7 @@ function MatchingTraits({ userId }: { userId: string }) {
       traitsPref,
     );
     return matchingTraits;
-  }, [user, applicant, traitsPref]);
+  }, [user, applicant, traitsPref, isMentee]);
 
   return !matchingTraits ? (
     <Loader />
@@ -245,14 +255,19 @@ function MatchingTraits({ userId }: { userId: string }) {
 }
 
 function Selection({ mentorId }: { mentorId: string }) {
-  const me = useMe();
+  const me = useOptionalMe();
+  const myRoles = useOptionalMyRoles();
+  const isMentee = isPermitted(myRoles, "Mentee");
   const [showMenteeProfileModal, setShowMenteeProfileModal] = useState(false);
   const [reason, setReason] = useState("");
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
   const utils = trpcNext.useContext();
 
-  const { data } = trpcNext.mentorSelections.getDraft.useQuery({ mentorId });
+  const { data } = trpcNext.mentorSelections.getDraft.useQuery(
+    { mentorId },
+    { enabled: isMentee },
+  );
 
   useEffect(() => {
     // `old ?? ...` so that existing data doesn't get overridden
@@ -261,6 +276,8 @@ function Selection({ mentorId }: { mentorId: string }) {
 
   const selected = data !== null;
   const busy = saving || data === undefined;
+
+  if (!isMentee) return null;
 
   const invalidate = async () => {
     await utils.mentorSelections.listDrafts.invalidate();
@@ -273,7 +290,7 @@ function Selection({ mentorId }: { mentorId: string }) {
 
     if (features.menteeProfile) {
       const freshProfile = await trpc.users.getUserProfile.query({
-        userId: me.id,
+        userId: me!.id,
       });
       if (!isMenteeProfileComplete(freshProfile?.profile)) {
         setShowMenteeProfileModal(true);
@@ -321,7 +338,7 @@ function Selection({ mentorId }: { mentorId: string }) {
           cancelLabel="取消"
           onComplete={() => {
             setShowMenteeProfileModal(false);
-            void utils.users.getUserProfile.invalidate({ userId: me.id });
+            void utils.users.getUserProfile.invalidate({ userId: me!.id });
           }}
         />
       )}
@@ -368,7 +385,7 @@ function Selection({ mentorId }: { mentorId: string }) {
 }
 
 function BookingButtonAndModal({ user }: { user: MinUser }) {
-  const isMentee = isPermitted(useMyRoles(), "Mentee");
+  const isMentee = isPermitted(useOptionalMyRoles(), "Mentee");
   const [booking, setBooking] = useState<boolean>();
 
   if (!isMentee) return null;
@@ -387,13 +404,16 @@ function BookingButtonAndModal({ user }: { user: MinUser }) {
 }
 
 function ProfileTable({
+  myRoles,
+
   user,
   profile: p,
 }: {
   user: MinUser;
   profile: UserProfile;
+  myRoles: import("shared/Role").default[];
 }) {
-  const me = useMe();
+  const me = useOptionalMe();
   const enableOrgs = features.orgs;
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
@@ -417,7 +437,7 @@ function ProfileTable({
             </React.Fragment>
           ))}
 
-          {(me.id == user.id || isPermitted(me.roles, "UserAdmin")) && (
+          {(me?.id == user.id || isPermitted(myRoles, "UserAdmin")) && (
             <Tr>
               <Td></Td>
               <Td>

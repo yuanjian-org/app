@@ -1,3 +1,4 @@
+import { features } from "../../shared/Features";
 import { z } from "zod";
 import { procedure, router } from "../trpc";
 import { authUser } from "../auth";
@@ -187,6 +188,23 @@ export async function removeOwnerImpl(
   });
 }
 
+const listPublic = procedure.output(z.array(zOrg)).query(async () => {
+  if (!features.publicOrgsMentors) throw noPermissionError("机构");
+  return await sequelize.transaction(async (transaction) => {
+    return await listOrgsImpl(transaction);
+  });
+});
+
+const getPublic = procedure
+  .input(z.string())
+  .output(zOrgWithMembers)
+  .query(async ({ input: id }) => {
+    if (!features.publicOrgsMentors) throw noPermissionError("机构");
+    return await sequelize.transaction(async (transaction) => {
+      return await getOrgImpl(id, transaction);
+    });
+  });
+
 const list = procedure
   .use(authUser())
   .output(z.array(zOrg))
@@ -330,6 +348,8 @@ const removeOwner = procedure
 
 export default router({
   list,
+  listPublic,
+  getPublic,
   listUserOrgs,
   get,
   create,
