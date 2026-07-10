@@ -3,7 +3,7 @@ import { features } from "shared/Features";
 
 export default async function getI18nProps({
   locale,
-  namespaces = ["common"],
+  namespaces = ["common", "sylp", "yqd"],
 }: {
   locale: string;
   namespaces?: string[];
