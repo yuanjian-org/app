@@ -1,3 +1,4 @@
+import getI18nProps from "components/getI18nProps";
 import XLandingPage from "components/XLandingPage";
 import YuantuLandingPage from "components/YuantuLandingPage";
 
@@ -13,3 +14,6 @@ export default function Page() {
 }
 
 Page.title = "首页";
+
+export const getStaticProps = async ({ locale }: { locale: string }) =>
+  await getI18nProps({ locale, namespaces: ["common", "sylp", "yqd"] });
