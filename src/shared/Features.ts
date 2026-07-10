@@ -1,4 +1,5 @@
 import { z } from "zod";
+import getConfig from "next/config";
 
 /**
  * Feature flags, controled by NEXT_PUBLIC_ENABLE_* env variables.
@@ -30,19 +31,37 @@ export const zFeatures = z.object({
 
 export type Features = z.infer<typeof zFeatures>;
 
+const config = getConfig() || {};
+const publicRuntimeConfig = config.publicRuntimeConfig || {};
+
 /**
  * N.B. Some places in the codebase use process.env to get features directly to
  * enable dead code elimination or DCE (Tree Shaking isn't smart enough to
  * dereference constants at build time). Please keep them in sync.
  */
 export const features: Features = {
-  orgs: process.env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
-  relational: process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
-  volunteers: process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true" || undefined,
-  interviews: process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,
-  exams: process.env.NEXT_PUBLIC_ENABLE_EXAMS === "true" || undefined,
-  projects: process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" || undefined,
+  orgs:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_ORGS ||
+      process.env.NEXT_PUBLIC_ENABLE_ORGS) === "true" || undefined,
+  relational:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_RELATIONAL ||
+      process.env.NEXT_PUBLIC_ENABLE_RELATIONAL) === "true" || undefined,
+  volunteers:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_VOLUNTEERS ||
+      process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS) === "true" || undefined,
+  interviews:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_INTERVIEWS ||
+      process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS) === "true" || undefined,
+  exams:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_EXAMS ||
+      process.env.NEXT_PUBLIC_ENABLE_EXAMS) === "true" || undefined,
+  projects:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_PROJECTS ||
+      process.env.NEXT_PUBLIC_ENABLE_PROJECTS) === "true" || undefined,
   menteeProfile:
-    process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
-  english: process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE ||
+      process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE) === "true" || undefined,
+  english:
+    (publicRuntimeConfig.NEXT_PUBLIC_ENABLE_ENGLISH ||
+      process.env.NEXT_PUBLIC_ENABLE_ENGLISH) === "true" || undefined,
 };
