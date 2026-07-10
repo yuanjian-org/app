@@ -17,6 +17,9 @@ export const zFeatures = z.object({
   // X-Challenge and X-Idea projects
   projects: z.boolean().optional(),
 
+  // Public Orgs and Mentors
+  publicOrgsMentors: z.boolean().optional(),
+
   /**
    * Controls features related to the mentee's self-filled profile, including:
    * - Prompting mentees to complete their profile via a modal after login, when
@@ -42,6 +45,8 @@ export const features: Features = {
   interviews: process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,
   exams: process.env.NEXT_PUBLIC_ENABLE_EXAMS === "true" || undefined,
   projects: process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" || undefined,
+  publicOrgsMentors:
+    process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ORGS_MENTORS === "true" || undefined,
   menteeProfile:
     process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
   english: process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,

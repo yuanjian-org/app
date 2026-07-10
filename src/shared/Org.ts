@@ -2,13 +2,14 @@ import { z } from "zod";
 import { zMinUser } from "./User";
 import { zRoles } from "./Role";
 import { zUserProfile } from "./UserProfile";
+import { zOptionalDateColumn } from "./DateColumn";
 
 export const zOrg = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string().nullable(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: zOptionalDateColumn,
+  updatedAt: zOptionalDateColumn,
 });
 export type Org = z.infer<typeof zOrg>;
 

@@ -63,12 +63,12 @@ function App({
       </Head>
 
       <ErrorBoundary>
-        {isStaticPage(router.route) ? (
-          <StaticPageContainer pageType={Component.type}>
-            <Component {...pageProps} />
-          </StaticPageContainer>
-        ) : (
-          <SessionProvider session={session}>
+        <SessionProvider session={session}>
+          {isStaticPage(router.route) ? (
+            <StaticPageContainer pageType={Component.type}>
+              <Component {...pageProps} />
+            </StaticPageContainer>
+          ) : (
             <SwitchBoard pageType={Component.type}>
               <Component {...pageProps} />
               <ToastContainer
@@ -84,8 +84,8 @@ function App({
                 theme="colored"
               />
             </SwitchBoard>
-          </SessionProvider>
-        )}
+          )}
+        </SessionProvider>
       </ErrorBoundary>
     </ChakraProvider>
   );

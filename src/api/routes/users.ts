@@ -30,6 +30,7 @@ import {
   noPermissionError,
   notFoundError,
 } from "../errors";
+import { features } from "../../shared/Features";
 import { zInterviewType } from "../../shared/InterviewType";
 import {
   minUserAttributes,
@@ -320,6 +321,13 @@ const listMentors = procedure
     ) {
       throw noPermissionError("导师");
     }
+    return await listMentorsImpl();
+  });
+
+const listMentorsPublic = procedure
+  .output(zListMentorsOutput)
+  .query(async () => {
+    if (!features.publicOrgsMentors) throw noPermissionError("导师");
     return await listMentorsImpl();
   });
 
@@ -1124,6 +1132,7 @@ export default router({
   listPriviledgedUserDataAccess,
   listVolunteers,
   listMentors,
+  listMentorsPublic,
   listMentorStats,
   getMentorTraitsPref,
 

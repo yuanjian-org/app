@@ -10,7 +10,6 @@ import {
 } from "../../../components/projects/ProjectList";
 
 import { widePage } from "../../../AppPage";
-import getI18nProps from "components/getI18nProps";
 import T from "components/T";
 
 export default widePage(() => {
@@ -30,9 +29,7 @@ export default widePage(() => {
       <Box py={componentSpacing}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              <T>X-Challenge 问题</T>
-            </Heading>
+            <Heading size="lg">X-Challenge 问题</Heading>
           </Flex>
           <FullTextSearchBox
             value={searchTerm}
@@ -64,4 +61,3 @@ export default widePage(() => {
     </Box>
   );
 }, "项目列表");
-export const getStaticProps = getI18nProps;
