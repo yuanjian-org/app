@@ -35,7 +35,8 @@ export default function Footer({ ...rest }: WrapProps) {
             href={`https://beian.mps.gov.cn/#/query/webSearch?code=${beian}`}
             rel="noreferrer"
           >
-            <T>浙公网安备</T>
+            {/* @i18n-ignore */}
+            浙公网安备
             {beian}
           </Link>
         </WrapItem>
