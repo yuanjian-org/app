@@ -5,6 +5,7 @@
 - Keep all lines including comments within 80 characters limit.
 - Add sufficient inline comments when making changes. Keep comments up to date.
 - Avoid `any` types.
+- When updating files for i18n support, ignore an entire file if the file has "@i18n-ignore-file" string in it; also ignore the line immediately below "@i18n-ignore".
 
 # Development Environment
 
@@ -44,8 +45,6 @@ NEXTAUTH_SECRET=your-secret-here
 
 ## Best Practices
 - **Coding Style**: Follow [docs/CodingStyle.md](docs/CodingStyle.md)
-
-- When updating files for i18n support, ignore an entire file if the file has "@i18n-ignore-file" string in it.
 - **ESLint**: Follow configured linting rules strictly
 - **TypeScript**: Maintain strict type checking
 - **Prettier**: Use consistent code formatting
