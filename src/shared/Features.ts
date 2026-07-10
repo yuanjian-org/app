@@ -1,4 +1,5 @@
 import { z } from "zod";
+import getConfig from "next/config";
 
 /**
  * Feature flags, controled by NEXT_PUBLIC_ENABLE_* env variables.
@@ -35,14 +36,15 @@ export type Features = z.infer<typeof zFeatures>;
  * enable dead code elimination or DCE (Tree Shaking isn't smart enough to
  * dereference constants at build time). Please keep them in sync.
  */
+const env = getConfig()?.publicRuntimeConfig || process.env;
+
 export const features: Features = {
-  orgs: process.env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
-  relational: process.env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
-  volunteers: process.env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true" || undefined,
-  interviews: process.env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,
-  exams: process.env.NEXT_PUBLIC_ENABLE_EXAMS === "true" || undefined,
-  projects: process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" || undefined,
-  menteeProfile:
-    process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
-  english: process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,
+  orgs: env.NEXT_PUBLIC_ENABLE_ORGS === "true" || undefined,
+  relational: env.NEXT_PUBLIC_ENABLE_RELATIONAL === "true" || undefined,
+  volunteers: env.NEXT_PUBLIC_ENABLE_VOLUNTEERS === "true" || undefined,
+  interviews: env.NEXT_PUBLIC_ENABLE_INTERVIEWS === "true" || undefined,
+  exams: env.NEXT_PUBLIC_ENABLE_EXAMS === "true" || undefined,
+  projects: env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" || undefined,
+  menteeProfile: env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
+  english: env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,
 };
