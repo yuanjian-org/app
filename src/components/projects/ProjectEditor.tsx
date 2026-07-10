@@ -206,7 +206,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
                 }
               >
                 <option value="公开">公开</option>
-                <option value="保密">保密</option>
+                <option value="未列出">未列出</option>
               </Select>
             </FormControl>
 
