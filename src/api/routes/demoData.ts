@@ -848,7 +848,7 @@ const projects: DemoProject[] = [
     title: "引力波探测数据的机器学习降噪处理",
     owner: users.admin,
     status: "招募中",
-    visibility: "保密",
+    visibility: "未列出",
     profile: {
       ...demoProjectProfileBase,
       简介: "这是一项机密的开放研究，利用深度学习提取微弱的引力波信号。",
@@ -858,20 +858,20 @@ const projects: DemoProject[] = [
     title: "黎曼猜想中零点分布的统计特性探讨",
     owner: users.admin,
     status: "草稿",
-    visibility: "保密",
+    visibility: "未列出",
     profile: {
       ...demoProjectProfileBase,
-      简介: "这是一项保密的草稿计划，旨在从解析数论角度进行理论推演。",
+      简介: "这是一项未列出的草稿计划，旨在从解析数论角度进行理论推演。",
     },
   },
   {
     title: "反物质捕获与储存磁场构型的优化",
     owner: users.admin,
     status: "已结束",
-    visibility: "保密",
+    visibility: "未列出",
     profile: {
       ...demoProjectProfileBase,
-      简介: "这项保密的已关闭项目曾探讨高能物理实验中的磁悬浮阱设计。",
+      简介: "这项未列出的已关闭项目曾探讨高能物理实验中的磁悬浮阱设计。",
     },
   },
 ];

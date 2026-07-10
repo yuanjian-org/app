@@ -14,15 +14,15 @@ export const ProjectStatusDescriptions: Record<ProjectStatus, string> = {
 
 /**
  * 公开: Visible to everyone, including non-registered users.
- * 保密: Invisible to everyone for now (reserved for future).
+ * 未列出: Only accessible via direct link, hidden from lists.
  */
-export const zProjectVisibility = z.enum(["公开", "保密"]);
+export const zProjectVisibility = z.enum(["公开", "未列出"]);
 export type ProjectVisibility = z.TypeOf<typeof zProjectVisibility>;
 
 export const ProjectVisibilityDescriptions: Record<ProjectVisibility, string> =
   {
     公开: "所有人可见（包括未注册用户）",
-    保密: "不对外可见（为未来保留）",
+    未列出: "仅通过链接访问，不在列表中展示",
   };
 
 export const zProject = z.object({

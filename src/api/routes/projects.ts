@@ -85,8 +85,12 @@ export async function getImpl(
   }
 
   const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
+  const isPubliclyVisible =
+    (project.visibility === "公开" || project.visibility === "未列出") &&
+    project.status === "招募中";
+
   if (
-    (project.visibility !== "公开" || project.status !== "招募中") &&
+    !isPubliclyVisible &&
     (!me || me.id !== project.ownerId) &&
     !isProjectAdmin
   ) {
