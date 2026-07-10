@@ -1,8 +1,8 @@
-import { Html, Head, Main, NextScript } from "next/document";
+import { Html, Head, Main, NextScript, DocumentProps } from "next/document";
 
-export default function Document() {
+export default function Document(props: DocumentProps) {
   return (
-    <Html lang="zh-cn">
+    <Html lang={props.locale ?? "zh"}>
       <Head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" />
