@@ -1,5 +1,5 @@
 import { whiteLabel } from "shared/WhiteLabel";
-import { switchLanguage } from "shared/switchLanguage";
+import { switchLanguage } from "components/switchLanguage";
 /**
  * Template from: https://chakra-templates.dev/navigation/sidebar
  */
