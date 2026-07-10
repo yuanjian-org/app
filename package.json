@@ -123,6 +123,7 @@
     "adm-zip": "^0.5.16",
     "chai": "4",
     "cypress": "^15.8.2",
+    "dotenv": "^17.3.1",
     "eslint": "^9.30.1",
     "eslint-config-next": "^15.3.5",
     "eslint-config-prettier": "^10.1.5",
