@@ -61,7 +61,7 @@ export default function SylpLandingPage() {
             </Tooltip>
 
             <Button variant="brand" as={NextLink} href={loginUrl()}>
-              <T ns="sylp">登录 ｜ Login</T>
+              <T>登录 / 注册</T>
             </Button>
           </HStack>
         </Flex>
@@ -107,7 +107,7 @@ export default function SylpLandingPage() {
             rightIcon={<ChevronRightIcon />}
             width={{ base: "100%", md: "auto" }}
           >
-            <T ns="sylp">进入平台 ｜ Enter</T>
+            <T ns="sylp">进入平台</T>
           </Button>
         </Flex>
       </Box>
