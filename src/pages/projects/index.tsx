@@ -1,3 +1,4 @@
+// @i18n-ignore-file
 import { useState, useMemo } from "react";
 import {
   Button,
@@ -21,8 +22,6 @@ import {
   ProjectCard,
   searchProjects,
 } from "../../components/projects/ProjectList";
-import getI18nProps from "components/getI18nProps";
-import T from "components/T";
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
@@ -44,9 +43,7 @@ export default fullPage(() => {
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              <T>X-Challenge 问题</T>
-            </Heading>
+            <Heading size="lg">X-Challenge 问题</Heading>
             {canCreate && (
               <Button
                 as={NextLink}
@@ -54,7 +51,7 @@ export default fullPage(() => {
                 colorScheme="brand"
                 leftIcon={<MdAdd />}
               >
-                <T>发布项目</T>
+                发布项目
               </Button>
             )}
           </Flex>
@@ -68,7 +65,7 @@ export default fullPage(() => {
 
       {searchResult && searchResult.length === 0 ? (
         <Text mx={pageMarginX} mt={pageMarginX}>
-          <T>暂无项目</T>
+          暂无项目
         </Text>
       ) : (
         <SimpleGrid
@@ -90,4 +87,3 @@ export default fullPage(() => {
     </>
   );
 }, "项目列表");
-export const getStaticProps = getI18nProps;
