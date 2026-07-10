@@ -18,13 +18,14 @@ export default function DynamicLogo({ height = 30 }: { height?: number }) {
 
   return (
     <NextLink href={staticUrlPrefix}>
+      {/* Crop the long SYLP logo on mobile to save space */}
       <Box
         width={{
           base: whiteLabel === "sylp" ? `${height * 3.2}px` : "auto",
           md: "auto",
         }}
         overflow="hidden"
-        height={`${height}px`}
+        height={height}
         display="flex"
       >
         <Image
