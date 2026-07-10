@@ -26,6 +26,7 @@ ENV NEXT_PUBLIC_WHITE_LABEL=$NEXT_PUBLIC_WHITE_LABEL
 
 RUN if [ -f "build.env.$NEXT_PUBLIC_WHITE_LABEL" ]; then \
       cp "build.env.$NEXT_PUBLIC_WHITE_LABEL" .env; \
+      cp "build.env.$NEXT_PUBLIC_WHITE_LABEL" .env.buildtime; \
     fi
 
 # If English is not enabled, remove I18N-MARKER line from next.config.js.
@@ -48,7 +49,6 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.env* ./
-COPY --from=builder --chown=nextjs:nodejs /app/build.env.* ./
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -71,4 +71,7 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+# docker-compose might mount a runtime .env file which overwrites the build-time .env.
+# By merging the build-time environment variables (.env.buildtime) with the runtime .env
+# into .env.local, we ensure both are consumed, and runtime variables take precedence.
+CMD ["sh", "-c", "cat .env.buildtime .env 2>/dev/null > .env.local && node server.js"]
