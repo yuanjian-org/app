@@ -2960,11 +2960,6 @@ dom-helpers@^5.0.1:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
 
-dotenv@^17.3.1:
-  version "17.4.2"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.4.2.tgz#c07e54a746e11eba021dd9e1047ced5afdc1c034"
-  integrity sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==
-
 dottie@^2.0.6:
   version "2.0.7"
   resolved "https://registry.yarnpkg.com/dottie/-/dottie-2.0.7.tgz#fd1b465a1211b35d5660e95b69bb6d5b5809b3c4"
