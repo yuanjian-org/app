@@ -567,7 +567,7 @@ function DropdownMenu({
                   onClose();
                 }}
               >
-                {item.name}
+                <T>{item.name}</T>
                 {!!item.icon && <>&nbsp;</>}
                 {item.icon}
               </MenuItem>
@@ -597,7 +597,9 @@ const DropdownMenuButton = ({
     >
       <HStack>
         {icon}
-        <Text>{title}</Text>
+        <Text>
+          <T>{title}</T>
+        </Text>
         <FiChevronRight />
       </HStack>
     </MenuButton>
@@ -636,7 +638,7 @@ function SidebarRow({
           {...(item.iconColor && { color: item.iconColor })}
         />
         <Text marginX={componentSpacing} position="relative">
-          {item.name}
+          <T>{item.name}</T>
           {item.redDot && <item.redDot />}
         </Text>
         <Icon
