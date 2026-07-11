@@ -5,7 +5,7 @@ import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { features } from "shared/Features";
 import { OrgProfile } from "components/orgs/OrgProfile";
-import PageLoader from "components/PageLoader";
+import Loader from "components/Loader";
 
 export default widePage(() => {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default widePage(() => {
       { enabled: !!orgId && !!features.projects },
     );
 
-  if (isLoading || !org) return <PageLoader />;
+  if (isLoading || !org) return <Loader />;
 
   const isOwner = org.owners.some((o) => o.id === me.id);
   const isGlobalAdmin = isPermitted(me.roles, "OrgAdmin");

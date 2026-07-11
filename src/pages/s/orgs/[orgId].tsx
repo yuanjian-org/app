@@ -4,7 +4,7 @@ import { widePage } from "AppPage";
 import { features } from "shared/Features";
 import ErrorPage from "next/error";
 import { OrgProfile } from "components/orgs/OrgProfile";
-import PageLoader from "components/PageLoader";
+import Loader from "components/Loader";
 
 export default widePage(() => {
   if (!features.publicOrgsMentors) return <ErrorPage statusCode={404} />;
@@ -20,7 +20,7 @@ export default widePage(() => {
       enabled: !!orgId && !!features.projects,
     });
 
-  if (isLoading || !org) return <PageLoader />;
+  if (isLoading || !org) return <Loader />;
 
   return (
     <OrgProfile

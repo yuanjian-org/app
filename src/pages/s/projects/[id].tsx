@@ -1,12 +1,12 @@
 import { useRouter } from "next/router";
 import { Box } from "@chakra-ui/react";
 import { trpcNext } from "../../../trpc";
-import PageLoader from "../../../components/PageLoader";
 import Head from "next/head";
 import { useState } from "react";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { componentSpacing } from "../../../theme/metrics";
 import { ProjectDetailCard } from "../../../components/projects/ProjectDetail";
+import Loader from "components/Loader";
 
 export default function Page() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function Page() {
     { enabled: !!id },
   );
 
-  if (!project) return <PageLoader />;
+  if (!project) return <Loader />;
 
   return (
     <>

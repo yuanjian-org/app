@@ -8,7 +8,7 @@ import { dailyShuffle } from "components/dailyShuffle";
 import { features } from "shared/Features";
 import ErrorPage from "next/error";
 import { widePage } from "../../../AppPage";
-import PageLoader from "components/PageLoader";
+import Loader from "components/Loader";
 
 export default widePage(() => {
   if (!features.publicOrgsMentors) return <ErrorPage statusCode={404} />;
@@ -30,7 +30,7 @@ export default widePage(() => {
       </VStack>
 
       {!shuffled ? (
-        <PageLoader />
+        <Loader />
       ) : (
         <UserCards
           type="TransactionalMentor"

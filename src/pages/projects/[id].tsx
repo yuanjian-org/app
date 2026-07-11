@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 import trpc, { trpcNext } from "../../trpc";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
-import PageLoader from "../../components/PageLoader";
 import Head from "next/head";
 import { getStandaloneFormUrl } from "pages/form";
 import { useState } from "react";
 import { ProjectDetailCard } from "../../components/projects/ProjectDetail";
+import Loader from "components/Loader";
 
 export default function Page() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function Page() {
     }
   };
 
-  if (!project) return <PageLoader />;
+  if (!project) return <Loader />;
 
   const canEdit =
     me && (me.id === project.ownerId || isPermitted(me.roles, "ProjectAdmin"));

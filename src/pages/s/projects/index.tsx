@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Heading, SimpleGrid, Text, VStack, Flex, Box } from "@chakra-ui/react";
 import { trpcNext } from "../../../trpc";
-import PageLoader from "../../../components/PageLoader";
 import { FullTextSearchBox } from "../../../components/FullTextSearchBox";
 import { componentSpacing, pageMarginX } from "../../../theme/metrics";
 import {
@@ -11,6 +10,7 @@ import {
 
 import { widePage } from "../../../AppPage";
 import T from "components/T";
+import Loader from "components/Loader";
 
 export default widePage(() => {
   const { data: projects } = trpcNext.projects.listPublic.useQuery();
@@ -22,7 +22,7 @@ export default widePage(() => {
       : projects;
   }, [searchTerm, projects]);
 
-  if (projects === undefined) return <PageLoader />;
+  if (projects === undefined) return <Loader />;
 
   return (
     <Box w="100%">

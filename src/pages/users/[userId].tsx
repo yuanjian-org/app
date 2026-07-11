@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import UserPanel from "components/UserPanel";
 import { UserDisplayData } from "components/UserDisplayData";
 import { Card, CardBody } from "@chakra-ui/react";
-import PageLoader from "components/PageLoader";
+import Loader from "components/Loader";
 
 export default function Page() {
   const userId = parseQueryString(useRouter(), "userId");
@@ -30,6 +30,6 @@ export function UserPage({
       </CardBody>
     </Card>
   ) : (
-    <PageLoader />
+    <Loader />
   );
 }

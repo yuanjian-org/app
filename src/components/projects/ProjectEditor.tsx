@@ -28,12 +28,12 @@ import { useState, useEffect } from "react";
 import MarkdownStyler from "../MarkdownStyler";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { useRouter } from "next/router";
-import PageLoader from "../PageLoader";
 import useMe from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import UserSelector from "../UserSelector";
 import { componentSpacing } from "theme/metrics";
 import { features } from "../../shared/Features";
+import Loader from "components/Loader";
 
 export default function ProjectEditor({ projectId }: { projectId?: string }) {
   const router = useRouter();
@@ -145,7 +145,7 @@ export default function ProjectEditor({ projectId }: { projectId?: string }) {
     }
   };
 
-  if (isEdit && isLoading) return <PageLoader />;
+  if (isEdit && isLoading) return <Loader />;
 
   return (
     <Card>

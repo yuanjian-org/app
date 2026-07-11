@@ -13,7 +13,6 @@ import { useMyRoles } from "../../useMe";
 import { isPermitted } from "../../shared/Role";
 import NextLink from "next/link";
 import { MdAdd } from "react-icons/md";
-import PageLoader from "../../components/PageLoader";
 import TopBar, { topBarPaddings } from "../../components/TopBar";
 import { fullPage } from "../../AppPage";
 import { componentSpacing, pageMarginX } from "../../theme/metrics";
@@ -22,6 +21,7 @@ import {
   ProjectCard,
   searchProjects,
 } from "../../components/projects/ProjectList";
+import Loader from "components/Loader";
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
@@ -36,7 +36,7 @@ export default fullPage(() => {
       : projects;
   }, [searchTerm, projects]);
 
-  if (projects === undefined) return <PageLoader />;
+  if (projects === undefined) return <Loader />;
 
   return (
     <>

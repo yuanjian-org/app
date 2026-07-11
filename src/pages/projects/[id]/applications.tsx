@@ -12,12 +12,12 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { trpcNext } from "trpc";
-import PageLoader from "components/PageLoader";
 import Head from "next/head";
 import { ProjectApplication } from "components/ProjectApplication";
 import { ProjectApplicationStatus } from "shared/ProjectApplication";
 import { formatUserName } from "shared/strings/formatUserName";
 import { toast } from "react-toastify";
+import Loader from "components/Loader";
 
 export default function Page() {
   const router = useRouter();
@@ -41,7 +41,7 @@ export default function Page() {
     },
   });
 
-  if (!project || !applications) return <PageLoader />;
+  if (!project || !applications) return <Loader />;
 
   return (
     <>
