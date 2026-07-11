@@ -1,0 +1,27 @@
+yarn run v1.22.22
+$ next dev
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Experiments (use with caution):
+     ⨯ serverMinification
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 29.4s (2540 modules)
+ GET / 200 in 31281ms
+ GET / 200 in 449ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1503ms (500 modules)
+(node:144359) [DEP0170] DeprecationWarning: The URL sqlite::memory: is invalid. Future versions of Node.js will throw an error.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /s ...
+ ✓ Compiled /s in 990ms (2690 modules)
+ GET /s 200 in 3148ms
+[next-auth][warn][NEXTAUTH_URL]
+https://next-auth.js.org/warnings#nextauth_url
+[next-auth][warn][NO_SECRET]
+https://next-auth.js.org/warnings#no_secret
+ GET /api/auth/session 200 in 129ms
+ GET /api/auth/session 200 in 6ms
