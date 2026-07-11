@@ -13,6 +13,7 @@ import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
 import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
+import { useRouter } from "next/router";
 
 export default function StaticPageContainer({
   pageType,
@@ -21,7 +22,12 @@ export default function StaticPageContainer({
   children: ReactNode;
   pageType?: AppPageType;
 }) {
+  const router = useRouter();
+
   if (features.projects) {
+    if (router.pathname === "/s") {
+      return <>{children}</>;
+    }
     return (
       <DefaultStaticPageContaner pageType={pageType}>
         {children}
@@ -46,6 +52,10 @@ export default function StaticPageContainer({
 
   if (process.env.NEXT_PUBLIC_WHITE_LABEL === "sylp") {
     return <SylpLandingPage />;
+  }
+
+  if (router.pathname === "/s") {
+    return <>{children}</>;
   }
 
   return (

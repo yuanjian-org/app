@@ -15,13 +15,16 @@ import { StaticImageData } from "next/image";
 import NextLink from "next/link";
 import LandingPageSection from "components/LandingPageSection";
 import T from "components/T";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function YuantuLandingPageContent() {
   return (
-    <VStack spacing={50} align="start">
-      <IntroSection />
-      <PartnersSection />
-    </VStack>
+    <BaseLandingPage title="远图网" useStaticNavBar={true}>
+      <VStack spacing={50} align="start">
+        <IntroSection />
+        <PartnersSection />
+      </VStack>
+    </BaseLandingPage>
   );
 }
 

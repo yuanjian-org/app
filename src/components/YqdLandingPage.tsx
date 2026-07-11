@@ -1,151 +1,93 @@
 import {
   Box,
-  Spacer,
   VStack,
-  Flex,
-  HStack,
   Button,
   Text,
   Heading,
-  Link,
-  Tooltip,
   UnorderedList,
   ListItem,
 } from "@chakra-ui/react";
 import { ChevronRightIcon } from "@chakra-ui/icons";
-import Footer from "components/Footer";
-import { pageMarginX, staticPageMaxWidth } from "theme/metrics";
 import NextLink from "next/link";
-import DynamicLogo from "components/DynamicLogo";
 import { loginUrl } from "shared/loginUrl";
-import { RiCustomerServiceFill } from "react-icons/ri";
-import Head from "next/head";
 import T from "components/T";
-import { useTranslation } from "next-i18next/pages";
-import LanguageToggle from "components/LanguageToggle";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function YqdLandingPage() {
-  const { t } = useTranslation("common");
   return (
-    <VStack minHeight="100vh">
-      <Head>
-        <title>易起读 - 上海颂鼎社会公益创新发展中心</title>
-      </Head>
-      <Box
-        as="nav"
-        w="100%"
-        bgColor="white"
-        boxShadow="sm"
-        position="sticky"
-        top="0"
-        zIndex="999"
-      >
-        <Flex
-          height={16}
-          justifyContent="space-between"
-          paddingX={pageMarginX}
-          maxW={staticPageMaxWidth}
-          alignItems="center"
-          marginX="auto"
-        >
-          <DynamicLogo />
+    <BaseLandingPage
+      title="易起读 - 上海颂鼎社会公益创新发展中心"
+      showLanguageToggle={true}
+    >
+      <VStack spacing={6} align="start" mt={10}>
+        <Heading size="lg">
+          <T ns="yqd">欢迎来到“易起读”公益阅读平台</T>
+        </Heading>
 
-          <HStack as="nav" spacing={7} fontWeight="bold">
-            <LanguageToggle />
-            <Tooltip label={t("联系客服")}>
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <RiCustomerServiceFill />
-              </Link>
-            </Tooltip>
+        <Text fontSize="lg">
+          <T ns="yqd" token="yqd-intro">
+            “易起读”是由上海颂鼎社会公益创新发展中心主导的社会创新项目，致力于通过阅读联结社区，推动文化共享与终身学习。
+          </T>
+        </Text>
 
-            <Button variant="brand" as={NextLink} href={loginUrl()}>
-              <T>登录 / 注册</T>
-            </Button>
-          </HStack>
-        </Flex>
-      </Box>
-
-      <Box
-        maxWidth={staticPageMaxWidth}
-        paddingX={pageMarginX}
-        w="100%"
-        mt="70px"
-      >
-        <VStack spacing={6} align="start" mt={10}>
-          <Heading size="lg">
-            <T ns="yqd">欢迎来到“易起读”公益阅读平台</T>
+        <Box mt={4}>
+          <Heading size="md" mb={3}>
+            <T ns="yqd">面向多元的参与者</T>
           </Heading>
+          <UnorderedList spacing={3} pl={5}>
+            <ListItem>
+              <b>
+                <T ns="yqd">对广大的读者朋友：</T>
+              </b>
+              <T ns="yqd" token="yqd-readers">
+                这里是一个开放、包容的阅读社区。无论您是寻找优质读物，还是希望与志同道合的书友交流心得，易起读都能为您提供丰富的资源和平台。
+              </T>
+            </ListItem>
+            <ListItem>
+              <b>
+                <T ns="yqd">对热心的志愿者团队：</T>
+              </b>
+              <T ns="yqd" token="yqd-volunteers">
+                您的每一次付出，都在传递知识的温度。加入我们，共同策划读书分享会，协助社区图书馆运营，让阅读的力量触达更多角落。
+              </T>
+            </ListItem>
+            <ListItem>
+              <b>
+                <T ns="yqd">对具有教育情怀的导师：</T>
+              </b>
+              <T ns="yqd" token="yqd-mentors">
+                我们期待您的专业引领。在这里，您可以开设导读课程，陪伴青年群体成长，点燃他们内心的求知火种。
+              </T>
+            </ListItem>
+            <ListItem>
+              <b>
+                <T ns="yqd">对慷慨解囊的捐赠方：</T>
+              </b>
+              <T ns="yqd" token="yqd-donors">
+                您的支持是项目持续发展的基石。每一份爱心都将被透明化管理，直接转化为受助群体的图书资源与阅读环境改善。
+              </T>
+            </ListItem>
+          </UnorderedList>
+        </Box>
 
-          <Text fontSize="lg">
-            <T ns="yqd" token="yqd-intro">
-              “易起读”是由上海颂鼎社会公益创新发展中心主导的社会创新项目，致力于通过阅读联结社区，推动文化共享与终身学习。
-            </T>
-          </Text>
+        <Text>
+          <T ns="yqd" token="yqd-outro">
+            在这个平台上，我们期待每一位参与者都能找到属于自己的位置，共同构建一个“联结共生、永续创新”的学习型社区。
+            此系统为易起读项目提供全方位的 AI 数字平台支持。
+          </T>
+        </Text>
 
-          <Box mt={4}>
-            <Heading size="md" mb={3}>
-              <T ns="yqd">面向多元的参与者</T>
-            </Heading>
-            <UnorderedList spacing={3} pl={5}>
-              <ListItem>
-                <b>
-                  <T ns="yqd">对广大的读者朋友：</T>
-                </b>
-                <T ns="yqd" token="yqd-readers">
-                  这里是一个开放、包容的阅读社区。无论您是寻找优质读物，还是希望与志同道合的书友交流心得，易起读都能为您提供丰富的资源和平台。
-                </T>
-              </ListItem>
-              <ListItem>
-                <b>
-                  <T ns="yqd">对热心的志愿者团队：</T>
-                </b>
-                <T ns="yqd" token="yqd-volunteers">
-                  您的每一次付出，都在传递知识的温度。加入我们，共同策划读书分享会，协助社区图书馆运营，让阅读的力量触达更多角落。
-                </T>
-              </ListItem>
-              <ListItem>
-                <b>
-                  <T ns="yqd">对具有教育情怀的导师：</T>
-                </b>
-                <T ns="yqd" token="yqd-mentors">
-                  我们期待您的专业引领。在这里，您可以开设导读课程，陪伴青年群体成长，点燃他们内心的求知火种。
-                </T>
-              </ListItem>
-              <ListItem>
-                <b>
-                  <T ns="yqd">对慷慨解囊的捐赠方：</T>
-                </b>
-                <T ns="yqd" token="yqd-donors">
-                  您的支持是项目持续发展的基石。每一份爱心都将被透明化管理，直接转化为受助群体的图书资源与阅读环境改善。
-                </T>
-              </ListItem>
-            </UnorderedList>
-          </Box>
-
-          <Text>
-            <T ns="yqd" token="yqd-outro">
-              在这个平台上，我们期待每一位参与者都能找到属于自己的位置，共同构建一个“联结共生、永续创新”的学习型社区。
-              此系统为易起读项目提供全方位的 AI 数字平台支持。
-            </T>
-          </Text>
-
-          <Button
-            size="lg"
-            variant="brand"
-            as={NextLink}
-            href={loginUrl()}
-            mt={8}
-            rightIcon={<ChevronRightIcon />}
-          >
-            <T ns="yqd">进入平台</T>
-          </Button>
-        </VStack>
-      </Box>
-      <Spacer />
-      <Footer />
-    </VStack>
+        <Button
+          size="lg"
+          variant="brand"
+          as={NextLink}
+          href={loginUrl()}
+          mt={8}
+          rightIcon={<ChevronRightIcon />}
+        >
+          <T ns="yqd">进入平台</T>
+        </Button>
+      </VStack>
+    </BaseLandingPage>
   );
 }
