@@ -1,4 +1,4 @@
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 /**
  * @param token translation token, used for long strings to avoid repeating them

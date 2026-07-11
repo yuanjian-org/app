@@ -28,7 +28,7 @@ import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export function UstcStudentModals({
   userState,

@@ -19,7 +19,7 @@ import { loginUrl } from "shared/loginUrl";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function XhefLandingPage() {
   const { t } = useTranslation("common");

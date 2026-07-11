@@ -7,7 +7,7 @@ import MenteeStatusSelect from "./MenteeStatusSelect";
 import UserSelector from "./UserSelector";
 import { componentSpacing } from "theme/metrics";
 import { FullTextSearchBox } from "./FullTextSearchBox";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 /**
  * Should be wrapped by a `<Wrap align="center">`
