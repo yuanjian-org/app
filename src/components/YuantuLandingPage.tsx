@@ -10,6 +10,8 @@ import partner_4 from "../../public/img/partner_4.png";
 import partner_5 from "../../public/img/partner_5.png";
 import partner_6 from "../../public/img/partner_6.png";
 import partner_7 from "../../public/img/partner_7.jpg";
+import partner_songding from "../../public/img/partner_songding.png";
+import partner_lingyi from "../../public/img/partner_lingyi.png";
 import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import NextLink from "next/link";
@@ -117,6 +119,14 @@ function PartnersSection() {
     {
       name: "好奇学习社区",
       image: partner_5,
+    },
+    {
+      name: "上海颂鼎社创",
+      image: partner_songding,
+    },
+    {
+      name: "深圳零一学院",
+      image: partner_lingyi,
     },
   ];
 
