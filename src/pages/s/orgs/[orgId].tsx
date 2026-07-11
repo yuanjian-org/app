@@ -33,3 +33,6 @@ export default widePage(() => {
     />
   );
 }, "机构主页");
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

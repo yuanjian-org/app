@@ -14,3 +14,6 @@ export default function Page() {
   return <UserPage profile={data} />;
 }
 Page.title = "用户资料";
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

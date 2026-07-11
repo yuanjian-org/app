@@ -19,3 +19,6 @@ export default function Page() {
     </VStack>
   );
 }
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

@@ -61,3 +61,6 @@ export default widePage(() => {
     </Box>
   );
 }, "项目列表");
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

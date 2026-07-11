@@ -22,3 +22,6 @@ export default widePage(() => {
     </>
   );
 }, "面试讨论组");
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

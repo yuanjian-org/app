@@ -30,3 +30,6 @@ export default function Page() {
     return <PageLoader loadingText="完成登录..." />;
   }
 }
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

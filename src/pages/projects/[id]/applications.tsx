@@ -103,3 +103,6 @@ export default function Page() {
   );
 }
 Page.title = "项目申请";
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

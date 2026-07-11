@@ -15,3 +15,6 @@ export default barePage(() => {
     </Box>
   );
 }, "资源推荐");
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;

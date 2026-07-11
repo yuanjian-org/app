@@ -52,3 +52,6 @@ export function getYearText(date?: Date | string): string {
   // @ts-expect-error
   return new Date(date).getFullYear() + "年度";
 }
+
+import getI18nProps from "components/getI18nProps";
+export const getServerSideProps = getI18nProps;
