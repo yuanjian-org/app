@@ -6,13 +6,14 @@ import { zOrg, zOrgWithMembers, OrgWithMembers } from "../../shared/Org";
 import { isPermitted } from "../../shared/Role";
 import { noPermissionError, notFoundError } from "../errors";
 import { minUserAttributes } from "../database/models/attributesAndIncludes";
+import { features } from "../../shared/Features";
 import { Transaction } from "sequelize";
 import User from "../database/models/User";
 
 import sequelize from "../database/sequelize";
 import { compareChinese } from "shared/strings/compareChinese";
 
-export async function listOrgsImpl(transaction: Transaction) {
+export async function listOrgsImpl(transaction?: Transaction) {
   return await db.Org.findAll({
     order: [["name", "ASC"]],
     transaction,
@@ -21,7 +22,7 @@ export async function listOrgsImpl(transaction: Transaction) {
 
 export async function listUserOrgsImpl(
   userId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const orgMentors = await db.OrgMentor.findAll({
     where: { mentorId: userId },
@@ -35,7 +36,7 @@ export async function listUserOrgsImpl(
 
 export async function getOrgImpl(
   id: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ): Promise<OrgWithMembers> {
   const org = await db.Org.findByPk(id, {
     include: [
@@ -191,19 +192,19 @@ const list = procedure
   .use(authUser())
   .output(z.array(zOrg))
   .query(async () => {
-    return await sequelize.transaction(async (transaction) => {
-      return await listOrgsImpl(transaction);
-    });
+    return await listOrgsImpl();
   });
 
+const listPublic = procedure.output(z.array(zOrg)).query(async () => {
+  if (!features.publicOrgsMentors) throw noPermissionError("机构");
+  return await listOrgsImpl();
+});
+
 const listUserOrgs = procedure
-  .use(authUser())
   .input(z.string())
   .output(z.array(zOrg))
   .query(async ({ input: userId }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await listUserOrgsImpl(userId, transaction);
-    });
+    return await listUserOrgsImpl(userId);
   });
 
 const get = procedure
@@ -211,9 +212,15 @@ const get = procedure
   .input(z.string())
   .output(zOrgWithMembers)
   .query(async ({ input: id }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await getOrgImpl(id, transaction);
-    });
+    return await getOrgImpl(id);
+  });
+
+const getPublic = procedure
+  .input(z.string())
+  .output(zOrgWithMembers)
+  .query(async ({ input: id }) => {
+    if (!features.publicOrgsMentors) throw noPermissionError("机构", id);
+    return await getOrgImpl(id);
   });
 
 const create = procedure
@@ -330,8 +337,10 @@ const removeOwner = procedure
 
 export default router({
   list,
+  listPublic,
   listUserOrgs,
   get,
+  getPublic,
   create,
   remove,
   updateDescription,

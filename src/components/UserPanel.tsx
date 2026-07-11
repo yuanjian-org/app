@@ -24,7 +24,7 @@ import {
   FormErrorMessage,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { MinUserAndProfile, UserProfile } from "shared/UserProfile";
+import { UserProfile } from "shared/UserProfile";
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
 import MarkdownStyler from "components/MarkdownStyler";
@@ -51,15 +51,16 @@ import {
   TraitTag,
 } from "components/Traits";
 import invariant from "tiny-invariant";
-import useMe, { useMyId, useMyRoles } from "useMe";
+import useMe, {
+  useMyRoles,
+  useMeOptional,
+  useMyId,
+  useMyRolesOptional,
+} from "useMe";
 import { KudosControl } from "./Kudos";
 import T from "components/T";
-export type UserDisplayData = MinUserAndProfile & {
-  // The presence of these fields depends on call sites and context
-  traitsMatchingScore?: number;
-  likes?: number;
-  kudos?: number;
-};
+import { UserDisplayData } from "components/UserDisplayData";
+import { staticUrlPrefix } from "static";
 
 export type UserPanelProps = {
   data: UserDisplayData & { isMentor: boolean };
@@ -76,7 +77,8 @@ export default function UserPanel({
   showTitle = true,
   showKudosControl = true,
 }: UserPanelProps) {
-  const myRoles = useMyRoles();
+  const myRoles = useMyRolesOptional();
+  const isVolunteer = isPermitted(myRoles ?? [], "Volunteer");
   const profile = data.profile;
 
   return (
@@ -128,7 +130,7 @@ export default function UserPanel({
 
           {showBookingButton && <BookingButtonAndModal user={data.user} />}
 
-          {showKudosControl && isPermitted(myRoles, "Volunteer") && (
+          {showKudosControl && isVolunteer && (
             <HStack mt={sectionSpacing}>
               <KudosControl
                 user={data.user}
@@ -393,11 +395,12 @@ function ProfileTable({
   user: MinUser;
   profile: UserProfile;
 }) {
-  const me = useMe();
+  const me = useMeOptional();
   const enableOrgs = features.orgs;
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });
+  const urlPrefix = features.publicOrgsMentors && !me ? staticUrlPrefix : "";
 
   return (
     <TableContainer maxW="700px">
@@ -410,14 +413,15 @@ function ProfileTable({
                 <ProfileRow
                   label={"所属机构"}
                   content={orgs
-                    .map((org) => `[${org.name}](/orgs/${org.id})`)
+                    .map((org) => `[${org.name}](${urlPrefix}/orgs/${org.id})`)
                     .join("，")}
                 />
               )}
             </React.Fragment>
           ))}
 
-          {(me.id == user.id || isPermitted(me.roles, "UserAdmin")) && (
+          {(me?.id == user.id ||
+            (me && isPermitted(me.roles, "UserAdmin"))) && (
             <Tr>
               <Td></Td>
               <Td>

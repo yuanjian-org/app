@@ -33,8 +33,8 @@ import {
 } from "theme/metrics";
 import UserCards from "components/UserCards";
 import { FullTextSearchBox } from "components/FullTextSearchBox";
-import { UserDisplayData } from "../../components/UserPanel";
-import { dailyShuffle } from "pages/mentors";
+import { UserDisplayData } from "components/UserDisplayData";
+import { dailyShuffle } from "components/dailyShuffle";
 import { TraitsModal } from "components/Traits";
 import { hardMismatchScore, isTraitsComplete } from "shared/Traits";
 import { computeTraitsMatchingScore } from "shared/Traits";

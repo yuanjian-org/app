@@ -18,3 +18,13 @@ export function useMyId() {
   invariant(data);
   return data.me.id;
 }
+
+export function useMeOptional() {
+  const { data } = useSession();
+  return data?.me;
+}
+
+export function useMyRolesOptional() {
+  const { data } = useSession();
+  return data?.me?.roles;
+}

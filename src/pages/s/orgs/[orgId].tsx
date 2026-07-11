@@ -1,35 +1,26 @@
 import { useRouter } from "next/router";
 import { trpcNext } from "trpc";
 import { widePage } from "AppPage";
-import useMe from "useMe";
-import { isPermitted } from "shared/Role";
 import { features } from "shared/Features";
+import ErrorPage from "next/error";
 import { OrgProfile } from "components/orgs/OrgProfile";
 import PageLoader from "components/PageLoader";
 
 export default widePage(() => {
+  if (!features.publicOrgsMentors) return <ErrorPage statusCode={404} />;
+
   const router = useRouter();
   const orgId = router.query.orgId as string;
-  const me = useMe();
-  const {
-    data: org,
-    refetch,
-    isLoading,
-  } = trpcNext.orgs.get.useQuery(orgId, {
-    enabled: !!orgId,
+  const { data: org, isLoading } = trpcNext.orgs.getPublic.useQuery(orgId, {
+    enabled: !!orgId && !!features.publicOrgsMentors,
   });
 
   const { data: projects, isLoading: projectsLoading } =
-    trpcNext.projects.list.useQuery(
-      { orgId },
-      { enabled: !!orgId && !!features.projects },
-    );
+    trpcNext.projects.listPublic.useQuery(undefined, {
+      enabled: !!orgId && !!features.projects,
+    });
 
   if (isLoading || !org) return <PageLoader />;
-
-  const isOwner = org.owners.some((o) => o.id === me.id);
-  const isGlobalAdmin = isPermitted(me.roles, "OrgAdmin");
-  const canEdit = isGlobalAdmin || isOwner;
 
   return (
     <OrgProfile
@@ -37,8 +28,8 @@ export default widePage(() => {
       orgId={orgId}
       projects={projects}
       projectsLoading={projectsLoading}
-      canEdit={canEdit}
-      refetch={() => void refetch()}
+      canEdit={false}
+      isPublic={true}
     />
   );
 }, "机构主页");

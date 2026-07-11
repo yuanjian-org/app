@@ -63,11 +63,26 @@ export default function StaticNavBar({
             <NavLink href={staticUrlPrefix} current={current} text="首页" />
           </ShowOnDesktop>
 
+          {features.publicOrgsMentors && (
+            <>
+              <NavLink
+                href={`${staticUrlPrefix}/mentors`}
+                current={current}
+                text="导师"
+              />
+              <NavLink
+                href={`${staticUrlPrefix}/orgs`}
+                current={current}
+                text="机构"
+              />
+            </>
+          )}
+
           {features.projects ? (
             <NavLink
               href={`${staticUrlPrefix}/projects`}
               current={current}
-              text="挑战问题"
+              text="问题"
             />
           ) : (
             <>

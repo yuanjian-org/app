@@ -58,6 +58,7 @@ export default function Page() {
         canEdit={!!canEdit}
         isLoadingApply={loading}
         onApply={handleApply}
+        highlightApplyButton
       />
     </>
   );

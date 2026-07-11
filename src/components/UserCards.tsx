@@ -35,15 +35,15 @@ import {
 import { CardForDesktop, CardForMobile } from "./ResponsiveCard";
 import { trpcNext } from "trpc";
 import Loader from "./Loader";
-import { UserDisplayData } from "components/UserPanel";
+import { UserDisplayData } from "components/UserDisplayData";
 import UserDrawer from "./UserDrawer";
 import { MentorSelection } from "shared/MentorSelection";
 import useMobile from "useMobile";
 import LinkDivider from "./LinkDivider";
 import { redDotTransitionProps } from "./RedDot";
-import { useMyRoles } from "useMe";
 import { isPermitted } from "shared/Role";
 import T from "components/T";
+import { useMyRolesOptional } from "useMe";
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
   label?: string;
@@ -92,12 +92,14 @@ export default function UserCards({
   users,
   searchTerm,
   mentorSelections,
+  isPublic = false,
   ...gridProps
 }: {
   type: UserCardType;
   users: UserDisplayData[];
   searchTerm: string;
   mentorSelections?: MentorSelection[];
+  isPublic?: boolean;
 } & GridProps) {
   // Set to null to book with any mentor
   const [bookingMentor, setBookingMentor] = useState<MinUser | null>();
@@ -127,6 +129,7 @@ export default function UserCards({
 
           {searchResult.map((d) => (
             <UserCardForDesktop
+              isPublic={isPublic}
               key={d.user.id}
               data={d}
               type={type}
@@ -151,6 +154,7 @@ export default function UserCards({
 
           {searchResult.map((d) => (
             <UserCardForMobile
+              isPublic={isPublic}
               key={d.user.id}
               data={d}
               type={type}
@@ -296,12 +300,14 @@ function search(users: UserDisplayData[], searchTerm: string) {
 }
 
 function UserCardForDesktop({
+  isPublic,
   data,
   type,
   openModal,
   recommended,
   selected,
 }: {
+  isPublic: boolean;
   data: UserDisplayData;
   type: UserCardType;
   openModal: () => void;
@@ -309,7 +315,8 @@ function UserCardForDesktop({
   selected?: boolean;
 }) {
   const p = data.profile;
-  const isMentee = isPermitted(useMyRoles(), "Mentee");
+  const myRoles = useMyRolesOptional();
+  const isMentee = isPermitted(myRoles ?? [], "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
@@ -397,7 +404,7 @@ function UserCardForDesktop({
           </Text>
         )}
 
-        {type == "TransactionalMentor" && isMentee && (
+        {!isPublic && type == "TransactionalMentor" && isMentee && (
           <>
             <Button
               variant="brand"
@@ -423,8 +430,12 @@ function UserCardForDesktop({
       {isDrawerOpen && (
         <UserDrawer
           data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={type == "TransactionalMentor" && isMentee}
-          showMatchingTraitsAndSelection={type == "RelationalMentor"}
+          showBookingButton={
+            !isPublic && type == "TransactionalMentor" && isMentee
+          }
+          showMatchingTraitsAndSelection={
+            !isPublic && type == "RelationalMentor"
+          }
           onClose={() => setIsDrawerOpen(false)}
         />
       )}
@@ -498,12 +509,14 @@ function FullWidthImageSquare({
 }
 
 function UserCardForMobile({
+  isPublic,
   data,
   type,
   openModal,
   recommended,
   selected,
 }: {
+  isPublic: boolean;
   data: UserDisplayData;
   type: UserCardType;
   openModal: () => void;
@@ -511,7 +524,8 @@ function UserCardForMobile({
   selected?: boolean;
 }) {
   const p = data.profile;
-  const isMentee = isPermitted(useMyRoles(), "Mentee");
+  const myRoles = useMyRolesOptional();
+  const isMentee = isPermitted(myRoles ?? [], "Mentee");
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const visitUser = () => setIsDrawerOpen(true);
@@ -625,7 +639,7 @@ function UserCardForMobile({
             <T>查看详情</T>
           </Link>
 
-          {type == "TransactionalMentor" && isMentee && (
+          {!isPublic && type == "TransactionalMentor" && isMentee && (
             <>
               <LinkDivider />
               <Link
@@ -655,8 +669,12 @@ function UserCardForMobile({
       {isDrawerOpen && (
         <UserDrawer
           data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={type == "TransactionalMentor" && isMentee}
-          showMatchingTraitsAndSelection={type == "RelationalMentor"}
+          showBookingButton={
+            !isPublic && type == "TransactionalMentor" && isMentee
+          }
+          showMatchingTraitsAndSelection={
+            !isPublic && type == "RelationalMentor"
+          }
           onClose={() => setIsDrawerOpen(false)}
         />
       )}

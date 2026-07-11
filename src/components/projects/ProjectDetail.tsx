@@ -25,11 +25,13 @@ export function ProjectDetailCard({
   canEdit,
   isLoadingApply,
   onApply,
+  highlightApplyButton,
 }: {
   project: ProjectWithAssociation;
   canEdit: boolean;
   isLoadingApply: boolean;
   onApply: () => void;
+  highlightApplyButton?: boolean;
 }) {
   return (
     <Card>
@@ -95,7 +97,7 @@ export function ProjectDetailCard({
             )}
             {!canEdit && project.status === "招募中" && (
               <Button
-                colorScheme="brand"
+                colorScheme={highlightApplyButton ? "brand" : undefined}
                 isLoading={isLoadingApply}
                 onClick={onApply}
               >
