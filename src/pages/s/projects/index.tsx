@@ -11,6 +11,7 @@ import {
 import { widePage } from "../../../AppPage";
 import T from "components/T";
 import Loader from "components/Loader";
+import ProjectsLabel from "components/ProjectsLabel";
 
 export default widePage(() => {
   const { data: projects } = trpcNext.projects.listPublic.useQuery();
@@ -29,7 +30,9 @@ export default widePage(() => {
       <Box py={componentSpacing}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">X-Challenge 问题</Heading>
+            <Heading size="lg">
+              <ProjectsLabel />
+            </Heading>
           </Flex>
           <FullTextSearchBox
             value={searchTerm}

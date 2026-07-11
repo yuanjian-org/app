@@ -22,6 +22,7 @@ import {
   searchProjects,
 } from "../../components/projects/ProjectList";
 import Loader from "components/Loader";
+import ProjectsLabel from "components/ProjectsLabel";
 
 export default fullPage(() => {
   const { data: projects } = trpcNext.projects.list.useQuery();
@@ -43,7 +44,9 @@ export default fullPage(() => {
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">X-Challenge 问题</Heading>
+            <Heading size="lg">
+              <ProjectsLabel />
+            </Heading>
             {canCreate && (
               <Button
                 as={NextLink}
