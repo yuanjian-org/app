@@ -3,11 +3,14 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { loginUrl } from "shared/loginUrl";
 import T from "components/T";
-import BaseLandingPage from "./BaseLandingPage";
+import Head from "next/head";
 
 export default function SylpLandingPage() {
   return (
-    <BaseLandingPage title="可持续青年领袖计划 | Sustainable Youth Leadership Program">
+    <>
+      <Head>
+        <title>可持续青年领袖计划 | Sustainable Youth Leadership Program</title>
+      </Head>
       <VStack spacing={6} align="start" mt={10}>
         <Heading size="lg">
           <T ns="sylp">欢迎来到可持续青年领袖计划 (SYLP)</T>
@@ -45,6 +48,6 @@ export default function SylpLandingPage() {
           <T ns="sylp">进入平台</T>
         </Button>
       </Flex>
-    </BaseLandingPage>
+    </>
   );
 }

@@ -3,11 +3,14 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { loginUrl } from "shared/loginUrl";
 import T from "components/T";
-import BaseLandingPage from "./BaseLandingPage";
+import Head from "next/head";
 
 export default function XhefLandingPage() {
   return (
-    <BaseLandingPage title="远图：珍珠生导师网络">
+    <>
+      <Head>
+        <title>远图：珍珠生导师网络</title>
+      </Head>
       <VStack spacing={6} align="start" mt={10}>
         <Heading size="lg">
           <T>欢迎来到珍珠生导师网络</T>
@@ -27,6 +30,6 @@ export default function XhefLandingPage() {
           <T>进入远图</T>
         </Button>
       </VStack>
-    </BaseLandingPage>
+    </>
   );
 }

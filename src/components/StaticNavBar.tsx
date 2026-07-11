@@ -20,8 +20,6 @@ import { useRouter } from "next/router";
 import { loginUrl } from "shared/loginUrl";
 import { activeNavLinkColor } from "theme/colors";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import { ShowOnDesktop } from "./Show";
-import { features } from "shared/Features";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
 import LanguageToggle from "./LanguageToggle";
@@ -60,11 +58,12 @@ export default function StaticNavBar({
         <DynamicLogo />
 
         <HStack as="nav" spacing={7} fontWeight="bold">
-          <ShowOnDesktop>
+          {/* Directly use env var to allow tree shaking */}
+          {process.env.NEXT_PUBLIC_WHITE_LABEL === "yuantu" && (
             <NavLink href={staticUrlPrefix} current={current} text="首页" />
-          </ShowOnDesktop>
+          )}
 
-          {features.publicOrgsMentors && (
+          {process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ORGS_MENTORS === "true" && (
             <>
               <NavLink
                 href={`${staticUrlPrefix}/mentors`}
@@ -79,28 +78,22 @@ export default function StaticNavBar({
             </>
           )}
 
-          {features.projects ? (
+          {process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" && (
             <NavLink
               href={`${staticUrlPrefix}/projects`}
               current={current}
-              text="问题"
+              text="项目"
             />
-          ) : (
-            <>
-              <NavLink
-                href={`${staticUrlPrefix}/articles`}
-                current={current}
-                text="文章"
-              />
-              <NextLink href={loginUrl()}>
-                <Text color={inactiveNavLinkColor}>
-                  <T>进入远图</T>
-                </Text>
-              </NextLink>
-            </>
           )}
 
-          {/* Directly use env var to enable tree shaking */}
+          {process.env.NEXT_PUBLIC_WHITE_LABEL === "yuantu" && (
+            <NavLink
+              href={`${staticUrlPrefix}/articles`}
+              current={current}
+              text="文章"
+            />
+          )}
+
           {process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" && (
             <LanguageToggle />
           )}
@@ -137,7 +130,7 @@ function NavLink({
       <Text
         color={current === href ? activeNavLinkColor : inactiveNavLinkColor}
       >
-        {text}
+        <T>{text}</T>
       </Text>
     </NextLink>
   );

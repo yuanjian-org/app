@@ -8,56 +8,10 @@ import {
   staticPageMaxWidthWide,
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
-import { features } from "shared/Features";
-import UstcLandingPage from "./UstcLandingPage";
-import XhefLandingPage from "./XhefLandingPage";
-import YqdLandingPage from "./YqdLandingPage";
-import SylpLandingPage from "./SylpLandingPage";
 
 export default function StaticPageContainer({
   pageType,
   children,
-}: {
-  children: ReactNode;
-  pageType?: AppPageType;
-}) {
-  if (features.projects) {
-    return (
-      <DefaultStaticPageContaner pageType={pageType}>
-        {children}
-      </DefaultStaticPageContaner>
-    );
-  }
-
-  // Directly inspect env var so Webpack's DefinePlugin can replace it with a
-  // string literal at build time, allowing dead code elimination (DCE) to prune
-  // unused landing page imports.
-  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "ustc") {
-    return <UstcLandingPage />;
-  }
-
-  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "xhef") {
-    return <XhefLandingPage />;
-  }
-
-  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "yqd") {
-    return <YqdLandingPage />;
-  }
-
-  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "sylp") {
-    return <SylpLandingPage />;
-  }
-
-  return (
-    <DefaultStaticPageContaner pageType={pageType}>
-      {children}
-    </DefaultStaticPageContaner>
-  );
-}
-
-function DefaultStaticPageContaner({
-  children,
-  pageType,
 }: {
   children: ReactNode;
   pageType?: AppPageType;

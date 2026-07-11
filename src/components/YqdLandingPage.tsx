@@ -11,11 +11,14 @@ import { ChevronRightIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { loginUrl } from "shared/loginUrl";
 import T from "components/T";
-import BaseLandingPage from "./BaseLandingPage";
+import Head from "next/head";
 
 export default function YqdLandingPage() {
   return (
-    <BaseLandingPage title="易起读 - 上海颂鼎社会公益创新发展中心">
+    <>
+      <Head>
+        <title>易起读 - 上海颂鼎社会公益创新发展中心</title>
+      </Head>
       <VStack spacing={6} align="start" mt={10}>
         <Heading size="lg">
           <T ns="yqd">欢迎来到“易起读”公益阅读平台</T>
@@ -85,6 +88,6 @@ export default function YqdLandingPage() {
           <T ns="yqd">进入平台</T>
         </Button>
       </VStack>
-    </BaseLandingPage>
+    </>
   );
 }
