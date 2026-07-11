@@ -5,7 +5,7 @@ import invariant from "shared/invariant";
 import PageLoader from "components/PageLoader";
 import AppPageContainer from "components/AppPageContainer";
 import { AppPageType } from "AppPage";
-import { isStaticPage, staticUrlPrefix } from "../static";
+import { isPublicUrl, publicUrlPrefix } from "../publicUrl";
 import { loginCallbackUrl, loginUrl } from "shared/loginUrl";
 
 /**
@@ -23,7 +23,7 @@ export default function SwitchBoard({
   const router = useRouter();
 
   // Invariant guaranteed by the caller
-  invariant(!isStaticPage(router.route), "non-static page");
+  invariant(!isPublicUrl(router.route), "logged-in page");
   const isAuthPage = router.route.startsWith("/auth/");
 
   if (status == "loading") {
@@ -32,8 +32,8 @@ export default function SwitchBoard({
     if (isAuthPage) {
       return children;
     } else if (router.asPath === "/") {
-      // Redirect to static page if accessing home page while logged out.
-      void router.push(staticUrlPrefix);
+      // Redirect to public page if accessing home page while logged out.
+      void router.push(publicUrlPrefix);
       return null;
     } else {
       // Redirect to login if attempting to access sub-pages while logged out.

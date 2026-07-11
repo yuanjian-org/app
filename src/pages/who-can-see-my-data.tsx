@@ -17,7 +17,7 @@ import { trpcNext } from "../trpc";
 import Loader from "components/Loader";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import Role, { allRoles, displayName, roleProfile } from "../shared/Role";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import NextLink from "next/link";
 import { getUserUrl } from "shared/User";
 import useMe from "useMe";
@@ -33,7 +33,7 @@ export default function Page() {
       <PageBreadcrumb current="谁能看到我的数据" />
       <Flex direction="column" gap={10}>
         <Text>
-          <Link isExternal href={`https://yuantuapp.com${staticUrlPrefix}`}>
+          <Link isExternal href={`https://yuantuapp.com${publicUrlPrefix}`}>
             <T>远图社会导师服务平台</T>
           </Link>
           （简称远图）致力保护个人隐私，仅收集供服务所需的最少信息。同时，我们严格控制数据的访问

@@ -4,7 +4,7 @@ import yuantuLogo from "../../public/img/logo.yuantu.png";
 import yqdLogo from "../../public/img/logo.yqd.png";
 import sylpLogo from "../../public/img/logo.sylp.png";
 import NextLink from "next/link";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import { Box } from "@chakra-ui/react";
 
 export function getLogoSource(whiteLabel: string) {
@@ -17,7 +17,7 @@ export default function DynamicLogo({ height = 30 }: { height?: number }) {
   const src = getLogoSource(whiteLabel);
 
   return (
-    <NextLink href={staticUrlPrefix}>
+    <NextLink href={publicUrlPrefix}>
       {whiteLabel === "sylp" ? (
         // Crop the long SYLP logo on mobile to save space
         <Box

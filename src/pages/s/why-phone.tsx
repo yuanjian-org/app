@@ -5,7 +5,7 @@
 
 import { Link, Text, Flex, ListItem, UnorderedList } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import T from "components/T";
 import getI18nProps from "components/getI18nProps";
 
@@ -15,7 +15,7 @@ export default function Page() {
       <PageBreadcrumb current="为什么要填手机号？" />
       <Flex direction="column" gap={5}>
         <Text>
-          <Link isExternal href={staticUrlPrefix}>
+          <Link isExternal href={publicUrlPrefix}>
             <T>远图社会导师服务平台</T>
           </Link>
           致力保护个人隐私。我们仅收集提供服务所需的最少个人信息。本声明旨在解释我们收集用户手机号的原因：

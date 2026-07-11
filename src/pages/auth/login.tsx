@@ -34,7 +34,7 @@ import { toast } from "react-toastify";
 import EmbeddedWeChatQRLogin from "components/EmbeddedWeChatQRLogin";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
 import PageBreadcrumb from "components/PageBreadcrumb";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import { IoLogoWechat } from "react-icons/io5";
 import { SmallGrayText } from "components/SmallGrayText";
 import invariant from "shared/invariant";
@@ -171,7 +171,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
 
         <PageBreadcrumb
           current="登录"
-          parents={[{ name: "首页", link: staticUrlPrefix }]}
+          parents={[{ name: "首页", link: publicUrlPrefix }]}
         />
 
         <Tabs

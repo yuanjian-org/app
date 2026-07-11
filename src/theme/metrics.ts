@@ -6,9 +6,9 @@ export const paragraphSpacing = 4;
 
 export const componentSpacing = 4;
 
-// Actual content width = staticPageMaxWidth - pageMarginX
-export const staticPageMaxWidth = 850;
-export const staticPageMaxWidthWide = 1200;
+// Actual content width = publicPageMaxWidth - pageMarginX
+export const publicPageMaxWidth = 850;
+export const publicPageMaxWidthWide = 1200;
 
 export const pageMarginX = {
   base: "16px",

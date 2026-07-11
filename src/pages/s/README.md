@@ -1,5 +1,4 @@
-"s" stands for "static". This folder hosts all the static pages as opposed to
-app pages.
+This folder hosts all the public pages as opposed to logged-in pages.
 
 Reference template designs: 
 https://ecosystem.hubspot.com/marketplace/website/quest-theme-by-juice-tactics-snacks

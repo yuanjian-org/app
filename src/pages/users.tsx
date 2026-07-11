@@ -55,7 +55,7 @@ import { widePage } from "AppPage";
 
 import { FullTextSearchBox } from "components/FullTextSearchBox";
 import { useInfiniteScroll } from "components/useInfiniteScroll";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import { features } from "shared/Features";
 import getI18nProps from "components/getI18nProps";
 import T from "components/T";
@@ -403,7 +403,7 @@ function UserEditor({
             <FormControl isInvalid={!validPhone}>
               <FormLabel>
                 <Link
-                  href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
+                  href={`https://yuantuapp.com${publicUrlPrefix}/why-phone`}
                   isExternal
                 >
                   <T>手机号（唯一标识用户）</T>

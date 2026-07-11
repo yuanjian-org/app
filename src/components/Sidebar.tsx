@@ -50,7 +50,7 @@ import { formatUserName } from "shared/strings/formatUserName";
 import { AttachmentIcon } from "@chakra-ui/icons";
 import { componentSpacing } from "theme/metrics";
 import colors, { activeNavLinkColor, inactiveNavLinkColor } from "theme/colors";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import User, { isAcceptedMentee } from "shared/User";
 import { mentorshipStatusIconType } from "pages/mentees";
 import { ImpersonationRequest } from "pages/api/auth/[...nextauth]";
@@ -162,7 +162,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
 const mainMenuItems: (MainMenuItem | null)[] = [
   {
     name: "首页",
-    path: staticUrlPrefix,
+    path: publicUrlPrefix,
     icon: MdHome,
     iconColor: colors.brand.b,
   },
@@ -381,7 +381,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
     null,
     {
       name: "退出登录",
-      action: () => signOut({ callbackUrl: staticUrlPrefix }),
+      action: () => signOut({ callbackUrl: publicUrlPrefix }),
     },
   ];
 

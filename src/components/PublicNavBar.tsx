@@ -9,11 +9,11 @@ import {
 } from "@chakra-ui/react";
 import {
   pageMarginX,
-  staticPageMaxWidth,
-  staticPageMaxWidthWide,
+  publicPageMaxWidth,
+  publicPageMaxWidthWide,
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
-import { staticUrlPrefix } from "../static";
+import { publicUrlPrefix } from "../publicUrl";
 import NextLink from "next/link";
 import DynamicLogo from "components/DynamicLogo";
 import { useRouter } from "next/router";
@@ -31,7 +31,7 @@ const inactiveNavLinkColor = "gray.700";
 /**
  * The top navigation bar for static (non-app) pages.
  */
-export default function StaticNavBar({
+export default function PublicNavBar({
   pageType,
 }: { pageType?: AppPageType } = {}) {
   const { t } = useTranslation("common");
@@ -51,7 +51,7 @@ export default function StaticNavBar({
         height={16}
         justifyContent="space-between"
         paddingX={pageMarginX}
-        maxW={pageType === "wide" ? staticPageMaxWidthWide : staticPageMaxWidth}
+        maxW={pageType === "wide" ? publicPageMaxWidthWide : publicPageMaxWidth}
         alignItems="center" // Center content vertically
         marginX="auto" // Centers content horizontally
       >
@@ -60,18 +60,18 @@ export default function StaticNavBar({
         <HStack as="nav" spacing={7} fontWeight="bold">
           {/* Directly use env var to allow tree shaking */}
           {process.env.NEXT_PUBLIC_WHITE_LABEL === "yuantu" && (
-            <NavLink href={staticUrlPrefix} current={current} text="首页" />
+            <NavLink href={publicUrlPrefix} current={current} text="首页" />
           )}
 
           {process.env.NEXT_PUBLIC_ENABLE_PUBLIC_ORGS_MENTORS === "true" && (
             <>
               <NavLink
-                href={`${staticUrlPrefix}/mentors`}
+                href={`${publicUrlPrefix}/mentors`}
                 current={current}
                 text="导师"
               />
               <NavLink
-                href={`${staticUrlPrefix}/orgs`}
+                href={`${publicUrlPrefix}/orgs`}
                 current={current}
                 text="机构"
               />
@@ -80,7 +80,7 @@ export default function StaticNavBar({
 
           {process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true" && (
             <NavLink
-              href={`${staticUrlPrefix}/projects`}
+              href={`${publicUrlPrefix}/projects`}
               current={current}
               text="项目"
             />
@@ -88,7 +88,7 @@ export default function StaticNavBar({
 
           {process.env.NEXT_PUBLIC_WHITE_LABEL === "yuantu" && (
             <NavLink
-              href={`${staticUrlPrefix}/articles`}
+              href={`${publicUrlPrefix}/articles`}
               current={current}
               text="文章"
             />

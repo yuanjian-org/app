@@ -1,15 +1,15 @@
 import { Box, Spacer, VStack } from "@chakra-ui/react";
 import Footer from "components/Footer";
-import StaticNavBar from "components/StaticNavBar";
+import StaticNavBar from "components/PublicNavBar";
 import { ReactNode } from "react";
 import {
   pageMarginX,
-  staticPageMaxWidth,
-  staticPageMaxWidthWide,
+  publicPageMaxWidth,
+  publicPageMaxWidthWide,
 } from "theme/metrics";
 import { AppPageType } from "../AppPage";
 
-export default function StaticPageContainer({
+export default function PublicPageContainer({
   pageType,
   children,
 }: {
@@ -21,7 +21,7 @@ export default function StaticPageContainer({
       <StaticNavBar pageType={pageType} />
       <Box
         maxWidth={
-          pageType === "wide" ? staticPageMaxWidthWide : staticPageMaxWidth
+          pageType === "wide" ? publicPageMaxWidthWide : publicPageMaxWidth
         }
         paddingX={pageMarginX}
         w="100%"

@@ -60,7 +60,7 @@ import useMe, {
 import { KudosControl } from "./Kudos";
 import T from "components/T";
 import { UserDisplayData } from "components/UserDisplayData";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 
 export type UserPanelProps = {
   data: UserDisplayData & { isMentor: boolean };
@@ -400,7 +400,7 @@ function ProfileTable({
   const { data: orgs } = trpcNext.orgs.listUserOrgs.useQuery(user.id, {
     enabled: !!enableOrgs,
   });
-  const urlPrefix = features.publicOrgsMentors && !me ? staticUrlPrefix : "";
+  const urlPrefix = features.publicOrgsMentors && !me ? publicUrlPrefix : "";
 
   return (
     <TableContainer maxW="700px">

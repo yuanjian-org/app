@@ -26,7 +26,7 @@ import { PearlStudentModals } from "./PearlStudentModals";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
 import { RiCustomerServiceFill } from "react-icons/ri";
-import { staticUrlPrefix } from "static";
+import { publicUrlPrefix } from "publicUrl";
 import IdTokenInputs, { IdTokenInputsState } from "./IdTokenInputs";
 import invariant from "shared/invariant";
 import { useCanValidatePearlStudent } from "./useCanValidatePearlStudent";
@@ -207,7 +207,7 @@ export function SetPhoneModal({
             <HStack spacing={2} w="full">
               <SmallGrayText>
                 <Link
-                  href={`https://yuantuapp.com${staticUrlPrefix}/why-phone`}
+                  href={`https://yuantuapp.com${publicUrlPrefix}/why-phone`}
                   isExternal
                 >
                   <T>为什么要填手机号？</T>

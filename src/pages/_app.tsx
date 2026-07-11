@@ -14,8 +14,8 @@ import { ToastContainer } from "react-toastify";
 import { SessionProvider } from "next-auth/react";
 import { useRouter } from "next/router";
 import AppPage from "AppPage";
-import { isStaticPage, staticUrlPrefix } from "../static";
-import StaticPageContainer from "components/StaticPageContainer";
+import { isPublicUrl, publicUrlPrefix } from "../publicUrl";
+import PublicPageContainer from "components/PublicPageContainer";
 import dynamic from "next/dynamic";
 import ErrorBoundary from "fundebug/ErrorBoundary";
 import "fundebug";
@@ -54,7 +54,7 @@ function App({
     <ChakraProvider theme={theme}>
       <Head>
         <title>
-          {router.pathname === staticUrlPrefix
+          {router.pathname === publicUrlPrefix
             ? "远图网"
             : (subtitle ? subtitle + " | " : "") + "远图"}
         </title>
@@ -64,10 +64,10 @@ function App({
 
       <ErrorBoundary>
         <SessionProvider session={session}>
-          {isStaticPage(router.route) ? (
-            <StaticPageContainer pageType={Component.type}>
+          {isPublicUrl(router.route) ? (
+            <PublicPageContainer pageType={Component.type}>
               <Component {...pageProps} />
-            </StaticPageContainer>
+            </PublicPageContainer>
           ) : (
             <SwitchBoard pageType={Component.type}>
               <Component {...pageProps} />
