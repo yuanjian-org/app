@@ -50,6 +50,7 @@ import PageLoader from "components/PageLoader";
 import { loginCallbackUrl } from "shared/loginUrl";
 
 import T from "components/T";
+import getI18nProps from "components/getI18nProps";
 
 function useCallbackUrl() {
   const router = useRouter();
@@ -565,10 +566,15 @@ function IdTokenPanel({ idType }: { idType: IdType }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<ServerSideProps> = () =>
-  Promise.resolve({
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = async ({
+  locale,
+}) => {
+  const i18nProps = await getI18nProps({ locale: locale ?? "zh" });
+  return {
     props: {
       wechatQRAppId: process.env.AUTH_WECHAT_QR_APP_ID ?? "",
       ssoEnabled: !!process.env.AUTH_YUANTU_SSO_CLIENT_ID,
+      ...i18nProps.props,
     },
-  });
+  };
+};
