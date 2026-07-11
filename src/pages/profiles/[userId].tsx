@@ -775,9 +775,6 @@ function MentorProfileFields({
         <>
           <FormControl>
             <FormLabel>开创性成果及重要标签</FormLabel>
-            <FormHelperTextWithMargin>
-              1. 一句话概括自己做过的最重要的事情，2. 一句话概括梦想做的事情
-            </FormHelperTextWithMargin>
             <Textarea
               bg="white"
               height={140}
