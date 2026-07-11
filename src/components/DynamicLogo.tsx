@@ -18,24 +18,28 @@ export default function DynamicLogo({ height = 30 }: { height?: number }) {
 
   return (
     <NextLink href={staticUrlPrefix}>
-      {/* Crop the long SYLP logo on mobile to save space */}
-      <Box
-        width={{
-          base: whiteLabel === "sylp" ? `${height * 3.2}px` : "auto",
-          md: "auto",
-        }}
-        overflow="hidden"
-        height={height}
-        display="flex"
-      >
-        <Image
-          src={src}
-          alt="Logo"
+      {whiteLabel === "sylp" ? (
+        // Crop the long SYLP logo on mobile to save space
+        <Box
+          width={{
+            base: whiteLabel === "sylp" ? `${height * 3.2}px` : "auto",
+            md: "auto",
+          }}
+          overflow="hidden"
           height={height}
-          priority
-          style={{ maxWidth: "none", width: "auto", height: "100%" }}
-        />
-      </Box>
+          display="flex"
+        >
+          <Image
+            src={src}
+            alt="Logo"
+            height={height}
+            priority
+            style={{ maxWidth: "none", width: "auto", height: "100%" }}
+          />
+        </Box>
+      ) : (
+        <Image src={src} alt="Logo" height={height} priority />
+      )}
     </NextLink>
   );
 }
