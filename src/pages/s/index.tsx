@@ -1,3 +1,4 @@
+import DemoLandingPage from "components/DemoLandingPage";
 import getI18nProps from "components/getI18nProps";
 import XLandingPage from "components/XLandingPage";
 import YuantuLandingPage from "components/YuantuLandingPage";
@@ -7,7 +8,11 @@ export default function Page() {
   // string literal at build time, allowing dead code elimination (DCE) to prune
   // unused landing page imports.
   if (process.env.NEXT_PUBLIC_ENABLE_PROJECTS === "true") {
-    return <XLandingPage />;
+    return process.env.NEXT_PUBLIC_WHITE_LABEL === "demo" ? (
+      <DemoLandingPage />
+    ) : (
+      <XLandingPage />
+    );
   } else {
     return <YuantuLandingPage />;
   }

@@ -11,7 +11,6 @@ import { AppPageType } from "../AppPage";
 import { features } from "shared/Features";
 import UstcLandingPage from "./UstcLandingPage";
 import XhefLandingPage from "./XhefLandingPage";
-import DemoLandingPage from "./DemoLandingPage";
 import YqdLandingPage from "./YqdLandingPage";
 import SylpLandingPage from "./SylpLandingPage";
 
@@ -39,10 +38,6 @@ export default function StaticPageContainer({
 
   if (process.env.NEXT_PUBLIC_WHITE_LABEL === "xhef") {
     return <XhefLandingPage />;
-  }
-
-  if (process.env.NEXT_PUBLIC_WHITE_LABEL === "demo") {
-    return <DemoLandingPage />;
   }
 
   if (process.env.NEXT_PUBLIC_WHITE_LABEL === "yqd") {
