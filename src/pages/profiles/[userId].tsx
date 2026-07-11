@@ -695,25 +695,20 @@ function Orgs({ user }: { user: MinUser }) {
   };
 
   return (
-    <>
-      <Heading size="md">
+    <FormControl>
+      <FormLabel>
         <T>所属机构</T>
-      </Heading>
-      <FormControl>
-        <FormLabel>
-          <T>选择或修改机构</T>
-        </FormLabel>
-        <Select
-          isMulti
-          options={options}
-          value={value}
-          onChange={handleChange}
-          isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
-          placeholder={"搜索机构..."}
-          noOptionsMessage={() => "没有找到相关机构"}
-        />
-      </FormControl>
-    </>
+      </FormLabel>
+      <Select
+        isMulti
+        options={options}
+        value={value}
+        onChange={handleChange}
+        isDisabled={joinMutation.isLoading || leaveMutation.isLoading}
+        placeholder={"搜索机构..."}
+        noOptionsMessage={() => "没有找到相关机构"}
+      />
+    </FormControl>
   );
 }
 
