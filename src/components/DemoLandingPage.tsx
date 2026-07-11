@@ -4,7 +4,7 @@ import { loginUrl } from "shared/loginUrl";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import T from "components/T";
 
-export default function XLandingPage() {
+export default function DemoLandingPage() {
   return (
     <VStack spacing={6} align="start" mt={10}>
       <Heading size="lg">

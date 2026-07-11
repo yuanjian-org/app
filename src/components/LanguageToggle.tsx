@@ -1,14 +1,9 @@
 import { Link, Tooltip } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { switchLanguage } from "components/switchLanguage";
-import { features } from "shared/Features";
 
 export default function LanguageToggle() {
   const router = useRouter();
-
-  if (!features.english) {
-    return null;
-  }
 
   return (
     <Tooltip
