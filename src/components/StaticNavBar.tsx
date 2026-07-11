@@ -23,7 +23,7 @@ import { RiCustomerServiceFill } from "react-icons/ri";
 import { ShowOnDesktop } from "./Show";
 import { features } from "shared/Features";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.

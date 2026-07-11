@@ -7,7 +7,7 @@ import { displayName } from "shared/Role";
 import { notSetText } from "shared/strings/notSetText";
 import { SmallGrayText } from "./SmallGrayText";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export function ContactFieldRow({
   mask,

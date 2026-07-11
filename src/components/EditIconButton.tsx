@@ -1,6 +1,6 @@
 import { EditIcon } from "@chakra-ui/icons";
 import { IconButton, Tooltip } from "@chakra-ui/react";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function EditIconButton({ onClick }: { onClick?: () => void }) {
   const { t } = useTranslation("common");

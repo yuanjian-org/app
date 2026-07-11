@@ -14,7 +14,7 @@ import PhoneInput from "./PhoneInput";
 import { toast } from "react-toastify";
 import { IdType } from "shared/IdType";
 import { EmailInput } from "pages/auth/login";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export type IdTokenInputsState = {
   id: string;

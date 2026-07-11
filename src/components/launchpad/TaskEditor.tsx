@@ -27,7 +27,7 @@ import { componentSpacing } from "theme/metrics";
 import trpc, { trpcNext } from "trpc";
 import { useMyId } from "useMe";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 /**
  * @param task The task to edit. If not provided, a new task will be created.

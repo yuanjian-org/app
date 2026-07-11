@@ -20,7 +20,7 @@ import { RiCustomerServiceFill } from "react-icons/ri";
 import Head from "next/head";
 import T from "components/T";
 import LanguageToggle from "components/LanguageToggle";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function SylpLandingPage() {
   const { t } = useTranslation("common");
