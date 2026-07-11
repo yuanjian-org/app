@@ -13,8 +13,8 @@ import partner_7 from "../../public/img/partner_7.jpg";
 import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import NextLink from "next/link";
+// @i18n-ignore-file
 import LandingPageSection from "components/LandingPageSection";
-import T from "components/T";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { loginUrl } from "shared/loginUrl";
 
@@ -44,18 +44,14 @@ function IntroSection() {
       <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
         <VStack spacing={paragraphSpacing} align="start">
           <Text>
-            <b>
-              <T>什么是社会导师？</T>
-            </b>
+            <b>什么是社会导师？</b>
             社会导师是拥有丰富职业经验和社会阅历的 “过来人”，他们为年{}
             轻人，特别是在校大学生，提供长期的一对一陪伴与指导，帮助他们顺利度过校园时光
             {}，尽早为步入职场和社会做好准备，助力年轻人实现人生理想与社会责任。
           </Text>
           <Text>
-            <b>
-              <T>任何人都可以接受社会导师服务么？</T>
-            </b>
-            <T>是的。</T>
+            <b>任何人都可以接受社会导师服务么？</b>
+            是的。
             <Link href="/img/wechat-app-qrcode.jpg" isExternal>
               馒头工坊｜Mentor Workshop
             </Link>{" "}
@@ -64,18 +60,16 @@ function IntroSection() {
               href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
               isExternal
             >
-              <T>联系客服</T>
+              联系客服
             </Link>
-            <T>进行咨询。</T>
+            进行咨询。
           </Text>
           <Text>
-            <b>
-              <T>如何了解更多？</T>
-            </b>
+            <b>如何了解更多？</b>
             社会导师服务的背后是一套完整的方法体系和运营平台。{}
             随着这一系统的日益完善，我们将逐步向公众分享实践与经验。欢迎浏览{" "}
             <Link as={NextLink} href="/s/articles">
-              <T>📄 已经发表的文章</T>
+              📄 已经发表的文章
             </Link>
             。{}
             也欢迎您在自己的组织或机构中尝试类似形式的服务。我们真诚期待您的反馈与交流。
