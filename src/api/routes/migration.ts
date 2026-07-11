@@ -27,9 +27,5 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await sequelize.query(
-    `UPDATE "Projects" SET visibility = '未列出' WHERE visibility = '保密'`,
-  );
-
   await Promise.resolve();
 }
