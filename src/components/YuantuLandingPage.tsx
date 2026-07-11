@@ -2,7 +2,6 @@ import { Link, GridItem, Text, VStack, Button } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import Image from "next/image";
 import partner_mantou from "../../public/img/partner_mantou.png";
-import partner_yuanjian from "../../public/img/partner_yuanjian.png";
 import partner_1 from "../../public/img/partner_1.png";
 import partner_2 from "../../public/img/partner_2.png";
 import partner_3 from "../../public/img/partner_3.png";
@@ -10,6 +9,8 @@ import partner_4 from "../../public/img/partner_4.png";
 import partner_5 from "../../public/img/partner_5.png";
 import partner_6 from "../../public/img/partner_6.png";
 import partner_7 from "../../public/img/partner_7.jpg";
+import partner_songding from "../../public/img/partner_songding.png";
+import partner_lingyi from "../../public/img/partner_lingyi.png";
 import { breakpoint } from "theme/breakpoints";
 import { StaticImageData } from "next/image";
 import NextLink from "next/link";
@@ -83,14 +84,6 @@ function IntroSection() {
 function PartnersSection() {
   const partners = [
     {
-      name: "馒头工坊 | Mentor Workshop",
-      image: partner_mantou,
-    },
-    {
-      name: "远见教育基金会",
-      image: partner_yuanjian,
-    },
-    {
       name: "中美爱心教育发展促进会",
       image: partner_1,
     },
@@ -117,6 +110,18 @@ function PartnersSection() {
     {
       name: "好奇学习社区",
       image: partner_5,
+    },
+    {
+      name: "上海颂鼎社创",
+      image: partner_songding,
+    },
+    {
+      name: "深圳零一学院",
+      image: partner_lingyi,
+    },
+    {
+      name: "馒头工坊 | Mentor Workshop",
+      image: partner_mantou,
     },
   ];
 
