@@ -2,7 +2,6 @@ import { Link, GridItem, Text, VStack, Button } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import Image from "next/image";
 import partner_mantou from "../../public/img/partner_mantou.png";
-import partner_yuanjian from "../../public/img/partner_yuanjian.png";
 import partner_1 from "../../public/img/partner_1.png";
 import partner_2 from "../../public/img/partner_2.png";
 import partner_3 from "../../public/img/partner_3.png";
@@ -85,14 +84,6 @@ function IntroSection() {
 function PartnersSection() {
   const partners = [
     {
-      name: "馒头工坊 | Mentor Workshop",
-      image: partner_mantou,
-    },
-    {
-      name: "远见教育基金会",
-      image: partner_yuanjian,
-    },
-    {
       name: "中美爱心教育发展促进会",
       image: partner_1,
     },
@@ -127,6 +118,10 @@ function PartnersSection() {
     {
       name: "深圳零一学院",
       image: partner_lingyi,
+    },
+    {
+      name: "馒头工坊 | Mentor Workshop",
+      image: partner_mantou,
     },
   ];
 
