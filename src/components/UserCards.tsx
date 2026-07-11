@@ -44,6 +44,8 @@ import { redDotTransitionProps } from "./RedDot";
 import { isPermitted } from "shared/Role";
 import T from "components/T";
 import { useMyRolesOptional } from "useMe";
+import { features } from "shared/Features";
+
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
   label?: string;
@@ -65,6 +67,13 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
 
   { field: "身份头衔", label: "职位" },
   { field: "专业领域" },
+  ...(features.academicProfiles
+    ? [
+        { field: "开创性成果及重要标签" } as FieldAndLabel,
+        { field: "未来五年感兴趣的研究方向" } as FieldAndLabel,
+        { field: "自身科学探索中的经历和故事" } as FieldAndLabel,
+      ]
+    : []),
   { field: "现居住地" },
   { field: "擅长话题", label: "擅长聊" },
   { field: "成长亮点" },

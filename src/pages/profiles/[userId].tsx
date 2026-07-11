@@ -771,6 +771,46 @@ function MentorProfileFields({
         />
       </FormControl>
 
+      {features.academicProfiles && (
+        <>
+          <FormControl>
+            <FormLabel>开创性成果及重要标签</FormLabel>
+            <Textarea
+              bg="white"
+              height={140}
+              value={profile.开创性成果及重要标签 || ""}
+              onChange={(ev) =>
+                updateProfile("开创性成果及重要标签", ev.target.value)
+              }
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>未来五年感兴趣的研究方向</FormLabel>
+            <Textarea
+              bg="white"
+              height={140}
+              value={profile.未来五年感兴趣的研究方向 || ""}
+              onChange={(ev) =>
+                updateProfile("未来五年感兴趣的研究方向", ev.target.value)
+              }
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>自身科学探索中的经历和故事</FormLabel>
+            <Textarea
+              bg="white"
+              height={140}
+              value={profile.自身科学探索中的经历和故事 || ""}
+              onChange={(ev) =>
+                updateProfile("自身科学探索中的经历和故事", ev.target.value)
+              }
+            />
+          </FormControl>
+        </>
+      )}
+
       <CityFormControl profile={profile} updateProfile={updateProfile} />
 
       <FormControl>
