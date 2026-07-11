@@ -11,13 +11,14 @@ import {
   Divider,
   Heading,
   Image,
-  HStack, Stack,
+  HStack,
+  Stack,
   RadioGroup,
   Radio,
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
-  Spinner
+  Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -600,7 +601,7 @@ function CareerFormControl({
   return (
     <FormControl>
       <FormLabel>
-        <T>职业经历和网站</T>
+        <T>职业经历、学术背景和个人网站</T>
       </FormLabel>
       <FormHelperTextWithMargin>
         <ListAndMarkdownSupport />
@@ -817,10 +818,7 @@ function MentorProfileFields({
         />
       </FormControl>
 
-      <CareerFormControl
-        profile={profile}
-        updateProfile={updateProfile}
-      />
+      <CareerFormControl profile={profile} updateProfile={updateProfile} />
 
       <FormControl>
         <FormLabel>
