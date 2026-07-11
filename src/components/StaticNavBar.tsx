@@ -24,6 +24,7 @@ import { ShowOnDesktop } from "./Show";
 import { features } from "shared/Features";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
+import LanguageToggle from "./LanguageToggle";
 
 // Do not use the same-named variable in theme/colors becuase it's a bit too
 // light on the static navbar.
@@ -97,6 +98,11 @@ export default function StaticNavBar({
                 </Text>
               </NextLink>
             </>
+          )}
+
+          {/* Directly use env var to enable tree shaking */}
+          {process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" && (
+            <LanguageToggle />
           )}
 
           <Tooltip label={t("联系客服")}>
