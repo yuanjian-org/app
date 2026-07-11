@@ -11,15 +11,13 @@ import {
   Divider,
   Heading,
   Image,
-  HStack,
-  Tag,
-  Stack,
+  HStack, Stack,
   RadioGroup,
   Radio,
   FormErrorMessage,
   InputGroup,
   InputLeftAddon,
-  Spinner,
+  Spinner
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -527,7 +525,6 @@ function MarkdownSupported() {
 function PositionFormControl({
   profile,
   updateProfile,
-  highlight,
 }: {
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
@@ -536,7 +533,7 @@ function PositionFormControl({
   return (
     <FormControl>
       <FormLabel>
-        <T>雇主与职位</T> {highlight && <Highlight />}
+        <T>雇主与职位</T>
       </FormLabel>
       <FormHelperTextWithMargin>
         <T>比如甲公司人事处处长、餐饮业创业者等</T>
@@ -553,16 +550,14 @@ function PositionFormControl({
 function CityFormControl({
   profile,
   updateProfile,
-  highlight,
 }: {
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
-  highlight?: boolean;
 }) {
   return (
     <FormControl>
       <FormLabel>
-        <T>现居住城市或地区</T> {highlight && <Highlight />}
+        <T>现居住城市或地区</T>
       </FormLabel>
       <Input
         bg="white"
@@ -598,16 +593,14 @@ function HobbyFormControl({
 function CareerFormControl({
   profile,
   updateProfile,
-  highlight,
 }: {
   profile: UserProfile;
   updateProfile: (k: keyof UserProfile, v: string) => void;
-  highlight?: boolean;
 }) {
   return (
     <FormControl>
       <FormLabel>
-        <T>职业经历和网站</T> {highlight && <Highlight />}
+        <T>职业经历和网站</T>
       </FormLabel>
       <FormHelperTextWithMargin>
         <ListAndMarkdownSupport />
@@ -749,7 +742,7 @@ function MentorProfileFields({
     <>
       <FormControl>
         <FormLabel>
-          <T>视频介绍</T> <Highlight />
+          <T>视频介绍</T>
         </FormLabel>
         <FormHelperTextWithMargin>
           <Text style={{ display: "inline" }} color="red.700">
@@ -766,15 +759,11 @@ function MentorProfileFields({
         <Video user={user} profile={profile} />
       </FormControl>
 
-      <PositionFormControl
-        profile={profile}
-        updateProfile={updateProfile}
-        highlight
-      />
+      <PositionFormControl profile={profile} updateProfile={updateProfile} />
 
       <FormControl>
         <FormLabel>
-          <T>专业领域</T> <Highlight />
+          <T>专业领域</T>
         </FormLabel>
         <FormHelperTextWithMargin>
           <T>比如金融、电子工程、教育学专业等</T>
@@ -786,11 +775,7 @@ function MentorProfileFields({
         />
       </FormControl>
 
-      <CityFormControl
-        profile={profile}
-        updateProfile={updateProfile}
-        highlight
-      />
+      <CityFormControl profile={profile} updateProfile={updateProfile} />
 
       <FormControl>
         <FormLabel>
@@ -812,7 +797,7 @@ function MentorProfileFields({
 
       <FormControl>
         <FormLabel>
-          <T>擅长聊天话题</T> <Highlight />
+          <T>擅长聊天话题</T>
         </FormLabel>
         <FormHelperTextWithMargin>
           擅长或喜欢“八卦”的事情，比如时事新闻、中国历史、哲学思辨、网游桌游……
@@ -827,7 +812,7 @@ function MentorProfileFields({
 
       <FormControl>
         <FormLabel>
-          成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人 <Highlight />
+          成长过程中的亮点、难忘的经历、或曾经给你重要影响的事或人
         </FormLabel>
         <Textarea
           bg="white"
@@ -840,7 +825,6 @@ function MentorProfileFields({
       <CareerFormControl
         profile={profile}
         updateProfile={updateProfile}
-        highlight
       />
 
       <FormControl>
@@ -885,14 +869,6 @@ function MentorProfileFields({
 
       <DailyLifeFormControl profile={profile} updateProfile={updateProfile} />
     </>
-  );
-}
-
-function Highlight() {
-  return (
-    <Tag ms={2} size="sm" colorScheme="green">
-      <T>首页亮点</T>
-    </Tag>
   );
 }
 
