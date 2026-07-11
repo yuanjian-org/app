@@ -1,4 +1,4 @@
-import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
+import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers/oauth";
 import { TokenSet } from "openid-client";
 import { ssoUserId2Email } from "./fakeEmail";
 

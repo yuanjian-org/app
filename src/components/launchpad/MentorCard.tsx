@@ -5,7 +5,7 @@ import { componentSpacing } from "theme/metrics";
 import LaunchpadCardItem from "./LaunchpadCardItem";
 import { features } from "shared/Features";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function MentorCard() {
   const { t } = useTranslation("common");

@@ -56,7 +56,7 @@ import { IoMdPeople } from "react-icons/io";
 import { toast } from "react-toastify";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import T from "components/T";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function Room({ menteeId }: { menteeId: string }) {
   const utils = trpcNext.useContext();

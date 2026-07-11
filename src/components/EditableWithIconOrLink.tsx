@@ -14,7 +14,7 @@ import React, { useState } from "react";
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { MdEdit } from "react-icons/md";
 import { linkBaseColor } from "theme/links";
-import { useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next/pages";
 
 export default function EditableWithIconOrLink({
   editor,
