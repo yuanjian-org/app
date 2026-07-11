@@ -759,10 +759,10 @@ function MentorProfileFields({
 
       <FormControl>
         <FormLabel>
-          <T>专业领域</T>
+          <T>专业领域或研究方向</T>
         </FormLabel>
         <FormHelperTextWithMargin>
-          <T>比如金融、电子工程、教育学专业等</T>
+          <T>比如金融、电子工程、教育学等</T>
         </FormHelperTextWithMargin>
         <Input
           bg="white"
