@@ -18,34 +18,50 @@ import getBaseUrl from "shared/getBaseUrl";
 const errorToastLink: TRPCLink<ApiRouter> = () => {
   return ({ next, op }) => {
     return observable((observer) => {
+      const handleError = (err: unknown) => {
+        if (!(err instanceof Error)) return;
+
+        console.log("TRPC got an error:", err);
+
+        // Assume UI will manually handle this error.
+        if ((err as TRPCClientError<ApiRouter>).data?.code !== "CONFLICT") {
+          // When Vercel's gateway times oute (504), it inserts the following
+          // text in the response body which TRPC simply can't parse. When
+          // this happens, TRPC also doesn't give us the HTTP status code.
+          // https://vercel.com/docs/functions/runtimes#max-duration
+          //
+          //    An error occurred with your deployment
+          //
+          //    FUNCTION_INVOCATION_TIMEOUT
+          //
+          const msg =
+            err.message ==
+            `Unexpected token 'A', "An error o"... is not valid JSON`
+              ? "服务器端超时，请稍后重试。"
+              : `糟糕！${err.message}`;
+
+          // Avoid multiple toasts with the same message.
+          toast.error(msg, { toastId: msg });
+        }
+      };
+
       const unsubscribe = next(op).subscribe({
         next(value) {
+          if (value instanceof Error) {
+            handleError(value);
+          } else if (
+            value &&
+            typeof value === "object" &&
+            "result" in value &&
+            value.result instanceof Error
+          ) {
+            handleError(value.result);
+          }
           observer.next(value);
         },
 
         error(err: TRPCClientError<ApiRouter>) {
-          console.log("TRPC got an error:", err);
-
-          // Assume UI will manually handle this error.
-          if (err.data?.code !== "CONFLICT") {
-            // When Vercel's gateway times oute (504), it inserts the following
-            // text in the response body which TRPC simply can't parse. When
-            // this happens, TRPC also doesn't give us the HTTP status code.
-            // https://vercel.com/docs/functions/runtimes#max-duration
-            //
-            //    An error occurred with your deployment
-            //
-            //    FUNCTION_INVOCATION_TIMEOUT
-            //
-            const msg =
-              err.message ==
-              `Unexpected token 'A', "An error o"... is not valid JSON`
-                ? "服务器端超时，请稍后重试。"
-                : `糟糕！${err.message}`;
-
-            // Avoid multiple toasts with the same message.
-            toast.error(msg, { toastId: msg });
-          }
+          handleError(err);
           observer.error(err);
         },
 
