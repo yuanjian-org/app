@@ -1,7 +1,7 @@
 /**
  * See docs/WeChat.md for details.
  */
-import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
+import type { OAuthConfig, OAuthUserConfig } from "next-auth/providers/oauth";
 import { unionId2Email } from "./fakeEmail";
 
 /**
