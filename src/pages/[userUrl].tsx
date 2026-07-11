@@ -2,6 +2,8 @@ import { trpcNext } from "../trpc";
 import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import { UserPage } from "./users/[userId]";
+import getI18nProps from "components/getI18nProps";
+import getI18nPaths from "components/getI18nPaths";
 
 export default function Page() {
   const userUrl = parseQueryString(useRouter(), "userUrl");
@@ -14,3 +16,6 @@ export default function Page() {
   return <UserPage profile={data} />;
 }
 Page.title = "用户资料";
+
+export const getStaticProps = getI18nProps;
+export const getStaticPaths = getI18nPaths;
