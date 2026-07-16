@@ -5,7 +5,7 @@ import { Tooltip } from "@chakra-ui/react";
 export default function QuestionIconTooltip({ label }: { label: string }) {
   return (
     <Tooltip label={label}>
-      <QuestionIcon color="gray" marginStart={2} />
+      <QuestionIcon color="gray" marginStart={2} tabIndex={0} />
     </Tooltip>
   );
 }
