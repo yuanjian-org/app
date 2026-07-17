@@ -1,9 +1,11 @@
-import { SearchIcon } from "@chakra-ui/icons";
+import { SearchIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Input,
   InputGroup,
   InputGroupProps,
   InputLeftElement,
+  InputRightElement,
+  IconButton,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { debounce } from "lodash";
@@ -86,6 +88,21 @@ export function FullTextSearchBox({
           debouncedSetValue(ev.target.value);
         }}
       />
+      {innerValue && (
+        <InputRightElement>
+          <IconButton
+            aria-label="清空搜索"
+            icon={<CloseIcon />}
+            size="xs"
+            variant="ghost"
+            onClick={() => {
+              setInnerValue("");
+              debouncedSetValue("");
+              searchInputRef.current?.focus();
+            }}
+          />
+        </InputRightElement>
+      )}
     </InputGroup>
   );
 }
