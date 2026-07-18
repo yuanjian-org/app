@@ -120,7 +120,7 @@
     "@types/sinon": "^21.0.0",
     "@types/supertest": "^7.2.0",
     "@typescript-eslint/parser": "^8.62.1",
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.6.0",
     "chai": "4",
     "cypress": "^15.8.2",
     "dotenv": "^17.3.1",
