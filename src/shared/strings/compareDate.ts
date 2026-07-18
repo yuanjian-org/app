@@ -1,4 +1,5 @@
 import { DateColumn } from "../DateColumn";
+import { getTimestamp } from "./getTimestamp";
 
 /**
  * Return -1 if d1 is earlier than d2. Treat undefined & null as earliest date.
@@ -6,20 +7,6 @@ import { DateColumn } from "../DateColumn";
  * We avoid importing `moment` here to prevent bundling the entire ~280 KB
  * moment library into client bundles for simple date comparisons.
  */
-function getTimestamp(val: Date | DateColumn | unknown): number {
-  if (val instanceof Date) return val.getTime();
-  if (typeof val === "string" || typeof val === "number") {
-    return new Date(val).getTime();
-  }
-  if (
-    val &&
-    typeof (val as { valueOf?: () => number }).valueOf === "function"
-  ) {
-    return Number((val as { valueOf: () => number }).valueOf());
-  }
-  return 0;
-}
-
 export function compareDate(
   d1: Date | DateColumn | undefined | null,
   d2: Date | DateColumn | undefined | null,
