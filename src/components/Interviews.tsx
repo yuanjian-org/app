@@ -16,12 +16,11 @@ import Loader from "components/Loader";
 import { formatUserName } from "shared/strings/formatUserName";
 import { compareUUID } from "shared/strings/compareUUID";
 import { toPinyin } from "shared/strings/toPinyin";
+import { Feedback, FeedbackDimension } from "shared/InterviewFeedback";
 import { Interview } from "shared/Interview";
 import { CheckIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { sectionSpacing } from "theme/metrics";
 import {
-  EditorFeedback,
-  EditorFeedbackDimension,
   summaryDimensionName,
   summaryScoreLabels,
   getScoreColor,
@@ -238,9 +237,9 @@ function DecisionComment({ interview }: { interview: Interview }) {
   return d?.comment ? <TruncatedTextWithTooltip text={d.comment} /> : <></>;
 }
 
-function getDimension(i: Interview): EditorFeedbackDimension | null {
+function getDimension(i: Interview): FeedbackDimension | null {
   if (!i.decision) return null;
-  for (const d of (i.decision as EditorFeedback).dimensions) {
+  for (const d of (i.decision as Feedback).dimensions || []) {
     if (d.name == summaryDimensionName) return d;
   }
   return null;

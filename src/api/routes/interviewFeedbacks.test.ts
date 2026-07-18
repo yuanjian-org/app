@@ -64,12 +64,14 @@ describe("interviewFeedbacks routes", () => {
       { transaction },
     );
 
-    // Create Interview Feedback
+    // Create Interview Feedback with valid zFeedback data
     interviewFeedback = await db.InterviewFeedback.create(
       {
         interviewId: interview.id,
         interviewerId: interviewer.id,
-        feedback: { content: "initial feedback" },
+        feedback: {
+          dimensions: [{ name: "能力", score: 3 }],
+        },
       },
       { transaction },
     );
@@ -123,12 +125,18 @@ describe("interviewFeedbacks routes", () => {
         true,
         transaction,
       );
-      // feedbackUpdatedAt is initially null for create without it, so date2etag gives 0.
+      // feedbackUpdatedAt is initially null for
+      // create without it, so date2etag gives 0.
       const initialEtag = 0;
+
+      // Use valid zFeedback data (dimensions field)
+      const updatedFeedback = {
+        dimensions: [{ name: "能力", score: 5, comment: "优秀" }],
+      };
 
       const newEtag = await updateInterviewFeedbackImpl(
         interviewFeedback.id,
-        { content: "updated feedback" },
+        updatedFeedback,
         initialEtag,
         interviewer,
         transaction,
@@ -140,7 +148,7 @@ describe("interviewFeedbacks routes", () => {
         true,
         transaction,
       );
-      expect(fAfter.feedback).to.deep.equal({ content: "updated feedback" });
+      expect(fAfter.feedback).to.deep.equal(updatedFeedback);
       expect(newEtag).to.be.greaterThan(0);
     });
 
@@ -148,7 +156,7 @@ describe("interviewFeedbacks routes", () => {
       try {
         await updateInterviewFeedbackImpl(
           interviewFeedback.id,
-          { content: "updated feedback" },
+          { dimensions: [{ name: "能力", score: 4 }] },
           123456789, // Fake ETag
           interviewer,
           transaction,
@@ -163,7 +171,7 @@ describe("interviewFeedbacks routes", () => {
       try {
         await updateInterviewFeedbackImpl(
           interviewFeedback.id,
-          { content: "manager updated feedback" },
+          { dimensions: [{ name: "能力", score: 4 }] },
           0,
           manager,
           transaction,

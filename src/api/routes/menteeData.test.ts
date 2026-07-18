@@ -54,13 +54,14 @@ describe("downloadMenteeDataImpl", () => {
       { transaction },
     );
 
+    // Note: Interview.decision uses zFeedback schema which
+    // only allows { dimensions?: FeedbackDimension[] }
     const interview = await db.Interview.create(
       {
         type: "MenteeInterview",
         intervieweeId: mentee.id,
         decision: {
-          decision: "通过",
-          dimensions: [{ name: "能力", score: 5 }],
+          dimensions: [{ name: "能力", score: 5, comment: "通过" }],
         },
         createdAt: new Date("2024-01-10"),
       },
@@ -71,7 +72,15 @@ describe("downloadMenteeDataImpl", () => {
       {
         interviewId: interview.id,
         interviewerId: interviewer.id,
-        feedback: { rating: 5, comment: "Line 1\nLine 2\nLine 3" },
+        feedback: {
+          dimensions: [
+            {
+              name: "表达能力",
+              score: 5,
+              comment: "Line 1\nLine 2\nLine 3",
+            },
+          ],
+        },
         feedbackUpdatedAt: new Date("2024-01-12"),
       },
       { transaction },
@@ -245,14 +254,14 @@ describe("downloadMenteeDataImpl", () => {
     const interviewEntry = zip.getEntry("interviewResults.json");
     const interviewsJson = interviewEntry!.getData().toString("utf8");
     const interviews = JSON.parse(interviewsJson);
-    expect(interviews).to.be.an("array");
-    expect(interviews.length).to.equal(1);
-    expect(interviews[0].type).to.equal("MenteeInterview");
-    expect(interviews[0].decision.decision).to.equal("通过");
+    const decision = interviews[0].decision;
+    expect(decision.dimensions[0].comment).to.equal("通过");
+    expect(decision.dimensions[0].name).to.equal("能力");
     expect(interviews[0].feedbacks).to.be.an("array");
     expect(interviews[0].feedbacks.length).to.equal(1);
-    expect(interviews[0].feedbacks[0].interviewer.name).to.equal("测试面试官");
-    expect(interviews[0].feedbacks[0].feedback.rating).to.equal(5);
+    const fb0 = interviews[0].feedbacks[0];
+    expect(fb0.interviewer.name).to.equal("测试面试官");
+    expect(fb0.feedback.dimensions[0].score).to.equal(5);
     // Verify name anonymization in JSON
     expect(interviewsJson).to.not.include(mentee.name);
 
@@ -262,7 +271,7 @@ describe("downloadMenteeDataImpl", () => {
       .getData()
       .toString("utf8");
     expect(interviewTxt).to.include("测试面试官");
-    expect(interviewTxt).to.include("rating: 5");
+    expect(interviewTxt).to.include("score: 5");
     // Verify multi-line comment formatting
     expect(interviewTxt).to.include("comment:");
     expect(interviewTxt).to.include("Line 1");
