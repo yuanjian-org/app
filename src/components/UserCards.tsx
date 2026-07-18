@@ -75,6 +75,9 @@ export const visibleUserProfileFields: FieldAndLabel[] = [
       ]
     : []),
   { field: "现居住地" },
+  ...(features.mentorContact
+    ? [{ field: "常用联系方式" } as FieldAndLabel]
+    : []),
   { field: "擅长话题", label: "擅长聊" },
   { field: "成长亮点" },
 

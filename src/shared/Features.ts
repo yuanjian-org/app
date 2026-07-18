@@ -31,6 +31,8 @@ export const zFeatures = z.object({
   english: z.boolean().optional(),
 
   academicProfiles: z.boolean().optional(),
+
+  mentorContact: z.boolean().optional(),
 });
 
 export type Features = z.infer<typeof zFeatures>;
@@ -54,4 +56,6 @@ export const features: Features = {
   english: process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,
   academicProfiles:
     process.env.NEXT_PUBLIC_ACADEMIC_PROFILES === "true" || undefined,
+  mentorContact:
+    process.env.NEXT_PUBLIC_ENABLE_MENTOR_CONTACT === "true" || undefined,
 };

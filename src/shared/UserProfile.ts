@@ -36,6 +36,8 @@ export const zStringUserProfile = z.object({
 
   // Unused / deprecated
   擅长辅导领域: zStr,
+
+  常用联系方式: zStr,
 });
 
 export type StringUserProfile = z.TypeOf<typeof zStringUserProfile>;
