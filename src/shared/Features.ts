@@ -55,7 +55,7 @@ export const features: Features = {
     process.env.NEXT_PUBLIC_ENABLE_MENTEE_PROFILE === "true" || undefined,
   english: process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true" || undefined,
   academicProfiles:
-    process.env.NEXT_PUBLIC_ACADEMIC_PROFILES === "true" || undefined,
+    process.env.NEXT_PUBLIC_ENABLE_ACADEMIC_PROFILES === "true" || undefined,
   mentorContact:
     process.env.NEXT_PUBLIC_ENABLE_MENTOR_CONTACT === "true" || undefined,
 };
