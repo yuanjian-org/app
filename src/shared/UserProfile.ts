@@ -23,6 +23,8 @@ export const zStringUserProfile = z.object({
   生活日常: zStr,
   擅长话题: zStr,
 
+  常用联系方式: zStr,
+
   // Mentee profile fields
   毕业高中: zStr,
   大学: zStr,

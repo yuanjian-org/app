@@ -523,6 +523,30 @@ function MarkdownSupported() {
   );
 }
 
+function ContactFormControl({
+  profile,
+  updateProfile,
+}: {
+  profile: UserProfile;
+  updateProfile: (k: keyof UserProfile, v: string) => void;
+}) {
+  return (
+    <FormControl>
+      <FormLabel>
+        <T>常用联系方式</T>
+      </FormLabel>
+      <FormHelperTextWithMargin>
+        <T>可以是 Email 或微信号。</T>
+      </FormHelperTextWithMargin>
+      <Input
+        bg="white"
+        value={profile.常用联系方式 || ""}
+        onChange={(e) => updateProfile("常用联系方式", e.target.value)}
+      />
+    </FormControl>
+  );
+}
+
 function PositionFormControl({
   profile,
   updateProfile,
@@ -754,6 +778,10 @@ function MentorProfileFields({
         </FormHelperTextWithMargin>
         <Video user={user} profile={profile} />
       </FormControl>
+
+      {features.mentorContact && (
+        <ContactFormControl profile={profile} updateProfile={updateProfile} />
+      )}
 
       <PositionFormControl profile={profile} updateProfile={updateProfile} />
 
