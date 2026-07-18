@@ -84,7 +84,7 @@ export function InterviewFeedbackEditor({
   const save = async (feedback: Feedback, etag: number) => {
     const data = {
       id: f.id,
-      feedback: feedback,
+      feedback,
       etag,
     };
     // TODO: A holistic solution.
