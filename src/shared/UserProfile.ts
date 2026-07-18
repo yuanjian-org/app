@@ -34,6 +34,9 @@ export const zStringUserProfile = z.object({
   照片链接: zStr,
   视频链接: zStr,
 
+  // Used only when features.mentorContact is on
+  常用联系方式: zStr,
+
   // Unused / deprecated
   擅长辅导领域: zStr,
 });

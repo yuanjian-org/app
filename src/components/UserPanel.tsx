@@ -406,19 +406,32 @@ function ProfileTable({
     <TableContainer maxW="700px">
       <Table variant="unstyled">
         <Tbody>
-          {visibleUserProfileFields.map((fl, idx) => (
-            <React.Fragment key={idx}>
-              <ProfileRow label={fl.label ?? fl.field} content={p[fl.field]} />
-              {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
-                <ProfileRow
-                  label={"所属机构"}
-                  content={orgs
-                    .map((org) => `[${org.name}](${urlPrefix}/orgs/${org.id})`)
-                    .join("，")}
-                />
-              )}
-            </React.Fragment>
-          ))}
+          {visibleUserProfileFields.map((fl, idx) => {
+            let label = fl.label ?? fl.field;
+            if (fl.field === "常用联系方式" && p[fl.field]) {
+              const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+              if (emailRegex.test(p[fl.field]!)) {
+                label = "联系方式（Email）";
+              } else {
+                label = "联系方式（微信号）";
+              }
+            }
+            return (
+              <React.Fragment key={idx}>
+                <ProfileRow label={label} content={p[fl.field]} />
+                {fl.field === "身份头衔" && orgs && orgs.length > 0 && (
+                  <ProfileRow
+                    label={"所属机构"}
+                    content={orgs
+                      .map(
+                        (org) => `[${org.name}](${urlPrefix}/orgs/${org.id})`,
+                      )
+                      .join("，")}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
 
           {(me?.id == user.id ||
             (me && isPermitted(me.roles, "UserAdmin"))) && (

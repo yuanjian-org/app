@@ -757,6 +757,22 @@ function MentorProfileFields({
 
       <PositionFormControl profile={profile} updateProfile={updateProfile} />
 
+      {features.mentorContact && (
+        <FormControl>
+          <FormLabel>
+            <T>常用联系方式</T>
+          </FormLabel>
+          <FormHelperTextWithMargin>
+            <T>可以填写邮箱或微信号</T>
+          </FormHelperTextWithMargin>
+          <Input
+            bg="white"
+            value={profile.常用联系方式 || ""}
+            onChange={(ev) => updateProfile("常用联系方式", ev.target.value)}
+          />
+        </FormControl>
+      )}
+
       <FormControl>
         <FormLabel>
           <T>专业领域或研究方向</T>
