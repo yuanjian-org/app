@@ -159,7 +159,21 @@ function UserUrl({ u }: { u: MinUser }) {
 
   return u.url ? (
     <Tooltip label={"拷贝链接到剪贴板"}>
-      <HStack onClick={onCopy} cursor="pointer" textColor="gray" fontSize="sm">
+      <HStack
+        onClick={onCopy}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onCopy();
+          }
+        }}
+        cursor="pointer"
+        textColor="gray"
+        fontSize="sm"
+        role="button"
+        tabIndex={0}
+        aria-label="拷贝链接到剪贴板"
+      >
         <Text>{url}</Text>
         <CopyIcon />
       </HStack>

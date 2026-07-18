@@ -163,7 +163,7 @@ function GroupTagOrName({ group }: { group: Group }) {
 
       {group.public && (
         <Tooltip label={publicGroupDescription}>
-          <Tag color="white" bgColor="green.400">
+          <Tag color="white" bgColor="green.400" tabIndex={0}>
             <T>公开</T>
             <QuestionIcon color="white" marginStart={2} />
           </Tag>

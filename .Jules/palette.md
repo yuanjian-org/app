@@ -1,0 +1,3 @@
+## 2024-11-20 - Custom copy buttons require keyboard interaction setup
+**Learning:** Found multiple instances where non-interactive elements (like `Icon` or `HStack`) had `onClick` handlers for clipboard copying, making them inaccessible to keyboard users and screen readers. Also found non-interactive tags wrapped in Tooltips that couldn't be triggered.
+**Action:** When creating custom interactive buttons (especially for copy actions or tooltips), always add `role="button"`, `tabIndex={0}`, an `aria-label`, and an `onKeyDown` listener that triggers on `Enter` and `Space`. For elements like tags inside tooltips, always add `tabIndex={0}` to allow focus.
