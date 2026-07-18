@@ -19,10 +19,7 @@ import ZodColumn from "../modelHelpers/ZodColumn";
 import InterviewFeedback from "./InterviewFeedback";
 import Group from "./Group";
 import { InterviewType, zInterviewType } from "../../../shared/InterviewType";
-import {
-  FeedbackDeprecated,
-  zFeedbackDeprecated,
-} from "../../../shared/InterviewFeedback";
+import { Feedback, zFeedback } from "../../../shared/InterviewFeedback";
 import Calibration from "./Calibration";
 import { DateColumn } from "shared/DateColumn";
 
@@ -48,8 +45,8 @@ class Interview extends Model {
   @Column(UUID)
   calibrationId: string | null;
 
-  @ZodColumn(JSONB, zFeedbackDeprecated.nullable())
-  decision: FeedbackDeprecated | null;
+  @ZodColumn(JSONB, zFeedback.nullable())
+  decision: Feedback | null;
 
   @Column(DATE)
   decisionUpdatedAt: DateColumn | null;

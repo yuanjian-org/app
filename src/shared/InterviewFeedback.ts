@@ -8,12 +8,6 @@ export const zInterviewer = z.object({
   feedbackUpdatedAt: zNullableDateColumn,
 });
 
-// TODO: Replace with zInterviewFeedback
-export const zFeedbackDeprecated = z.record(z.string(), z.any());
-// z.ZodType<typeof zFeedback>; For some reason using z.ZodType upsets
-// typescript.
-export type FeedbackDeprecated = object;
-
 export const zFeedbackDimension = z.object({
   name: z.string(),
   score: z.number().optional(),
@@ -28,7 +22,7 @@ export type Feedback = z.TypeOf<typeof zFeedback>;
 
 export const zInterviewFeedback = zInterviewer.merge(
   z.object({
-    feedback: zFeedbackDeprecated.nullable(),
+    feedback: zFeedback.nullable(),
   }),
 );
 export type InterviewFeedback = z.TypeOf<typeof zInterviewFeedback>;

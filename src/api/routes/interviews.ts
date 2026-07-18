@@ -28,7 +28,7 @@ import { getCalibrationAndCheckPermissionSafe } from "./calibrations";
 import { InterviewType, zInterviewType } from "../../shared/InterviewType";
 import { isPermitted } from "../../shared/Role";
 import { date2etag } from "./interviewFeedbacks";
-import { zFeedbackDeprecated } from "../../shared/InterviewFeedback";
+import { zFeedback } from "../../shared/InterviewFeedback";
 import { isPermittedtoAccessMentee } from "./users";
 import User, { zUser } from "../../shared/User";
 import { zInterviewerPreference } from "../../shared/UserPreference";
@@ -413,7 +413,7 @@ const updateDecision = procedure
   .input(
     z.object({
       interviewId: z.string(),
-      decision: zFeedbackDeprecated,
+      decision: zFeedback,
       etag: z.number(),
     }),
   )

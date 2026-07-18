@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
-import { zFeedbackDeprecated, zInterviewer } from "./InterviewFeedback";
+import { zFeedback, zInterviewer } from "./InterviewFeedback";
 import { zGroup } from "./Group";
 import { zCalibration } from "./Calibration";
 import { zInterviewType } from "./InterviewType";
@@ -12,7 +12,7 @@ export const zInterview = z.object({
   interviewee: zMinUser,
 
   // TODO: rename to calibrationFeedback & interviewers respectively
-  decision: zFeedbackDeprecated.nullable(),
+  decision: zFeedback.nullable(),
   feedbacks: z.array(zInterviewer),
 });
 export type Interview = z.TypeOf<typeof zInterview>;

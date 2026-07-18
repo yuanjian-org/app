@@ -15,11 +15,7 @@ import invariant from "tiny-invariant";
 import { useRef, useState } from "react";
 import Autosaver from "components/Autosaver";
 import { TRPCClientError } from "@trpc/client";
-import {
-  FeedbackDeprecated,
-  Feedback,
-  FeedbackDimension,
-} from "shared/InterviewFeedback";
+import { Feedback, FeedbackDimension } from "shared/InterviewFeedback";
 import { isPermitted } from "shared/Role";
 import { InterviewType } from "shared/InterviewType";
 import { useMyRoles } from "useMe";
@@ -88,7 +84,7 @@ export function InterviewFeedbackEditor({
   const save = async (feedback: Feedback, etag: number) => {
     const data = {
       id: f.id,
-      feedback: feedback as FeedbackDeprecated,
+      feedback: feedback,
       etag,
     };
     // TODO: A holistic solution.
@@ -117,7 +113,7 @@ export function InterviewDecisionEditor({
 }: {
   type: InterviewType;
   interviewId: string;
-  decision: FeedbackDeprecated | null;
+  decision: Feedback | null;
   etag: number;
   readonly?: boolean;
 }) {
@@ -126,7 +122,7 @@ export function InterviewDecisionEditor({
   const save = async (decision: Feedback, etag: number) => {
     return await trpc.interviews.updateDecision.mutate({
       interviewId,
-      decision: decision as FeedbackDeprecated,
+      decision: decision,
       etag,
     });
   };

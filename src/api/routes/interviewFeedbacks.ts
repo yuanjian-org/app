@@ -7,10 +7,7 @@ import {
   interviewFeedbackAttributes,
 } from "../database/models/attributesAndIncludes";
 import { conflictError, noPermissionError, notFoundError } from "../errors";
-import {
-  zFeedbackDeprecated,
-  zInterviewFeedback,
-} from "../../shared/InterviewFeedback";
+import { zFeedback, zInterviewFeedback } from "../../shared/InterviewFeedback";
 import User from "../../shared/User";
 import { isPermitted } from "../../shared/Role";
 import moment from "moment";
@@ -158,7 +155,7 @@ const update = procedure
   .input(
     z.object({
       id: z.string(),
-      feedback: zFeedbackDeprecated,
+      feedback: zFeedback,
       etag: z.number(),
     }),
   )
@@ -185,7 +182,7 @@ const logUpdateAttempt = procedure
   .input(
     z.object({
       id: z.string(),
-      feedback: zFeedbackDeprecated,
+      feedback: zFeedback,
       etag: z.number(),
     }),
   )
