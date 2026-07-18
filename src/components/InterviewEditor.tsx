@@ -95,7 +95,7 @@ export function InterviewFeedbackEditor({
   return (
     <Editor
       type={type}
-      defaultFeedback={f.feedback as Feedback}
+      defaultFeedback={f.feedback}
       etag={data.etag}
       save={save}
       showDimensions
@@ -122,7 +122,7 @@ export function InterviewDecisionEditor({
   const save = async (decision: Feedback, etag: number) => {
     return await trpc.interviews.updateDecision.mutate({
       interviewId,
-      decision: decision,
+      decision,
       etag,
     });
   };
@@ -130,7 +130,7 @@ export function InterviewDecisionEditor({
   return (
     <Editor
       type={type}
-      defaultFeedback={decision as Feedback}
+      defaultFeedback={decision}
       etag={etag}
       save={save}
       readonly={readonly || !isPermitted(myRoles, "MentorshipAdmin")}
