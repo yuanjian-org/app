@@ -15,24 +15,16 @@ import invariant from "tiny-invariant";
 import { useRef, useState } from "react";
 import Autosaver from "components/Autosaver";
 import { TRPCClientError } from "@trpc/client";
-import { FeedbackDeprecated } from "shared/InterviewFeedback";
+import {
+  FeedbackDeprecated,
+  Feedback,
+  FeedbackDimension,
+} from "shared/InterviewFeedback";
 import { isPermitted } from "shared/Role";
 import { InterviewType } from "shared/InterviewType";
 import { useMyRoles } from "useMe";
 import { menteeInterviewDimensions } from "shared/interviewDimentions";
 import { mentorInterviewDimensions } from "shared/interviewDimentions";
-
-// TODO: Replace EditorFeedback and EditorFeedbackDimension with Feedback and
-// FeedbackDimension
-export type EditorFeedback = {
-  dimensions: EditorFeedbackDimension[];
-};
-
-export type EditorFeedbackDimension = {
-  name: string;
-  score: number | null;
-  comment: string | null;
-};
 
 export const summaryDimensionName = "总评";
 export const summaryScoreLabels = ["拒", "弱拒", "弱收", "收"];
@@ -49,19 +41,16 @@ export function getScoreColor(scoreLabels: string[], score: number): string {
   return backgrounds[score - 1];
 }
 
-function getDimension(
-  f: EditorFeedback,
-  name: string,
-): EditorFeedbackDimension {
-  const ds = f.dimensions.filter((d) => d.name === name);
+function getDimension(f: Feedback, name: string): FeedbackDimension {
+  const ds = (f.dimensions || []).filter((d) => d.name === name);
   if (ds.length > 0) {
     invariant(ds.length == 1);
     return ds[0];
   } else {
     return {
       name,
-      score: null,
-      comment: null,
+      score: undefined,
+      comment: undefined,
     };
   }
 }
@@ -69,13 +58,10 @@ function getDimension(
 /**
  * @returns a new Feedback object
  */
-function setDimension(
-  f: EditorFeedback,
-  dimension: EditorFeedbackDimension,
-): EditorFeedback {
+function setDimension(f: Feedback, dimension: FeedbackDimension): Feedback {
   return {
     dimensions: [
-      ...f.dimensions.filter((d) => dimension.name !== d.name),
+      ...(f.dimensions || []).filter((d) => dimension.name !== d.name),
       dimension,
     ],
   };
@@ -99,10 +85,10 @@ export function InterviewFeedbackEditor({
 
   const f = data.interviewFeedback;
 
-  const save = async (feedback: EditorFeedback, etag: number) => {
+  const save = async (feedback: Feedback, etag: number) => {
     const data = {
       id: f.id,
-      feedback,
+      feedback: feedback as FeedbackDeprecated,
       etag,
     };
     // TODO: A holistic solution.
@@ -113,7 +99,7 @@ export function InterviewFeedbackEditor({
   return (
     <Editor
       type={type}
-      defaultFeedback={f.feedback}
+      defaultFeedback={f.feedback as Feedback}
       etag={data.etag}
       save={save}
       showDimensions
@@ -137,10 +123,10 @@ export function InterviewDecisionEditor({
 }) {
   const myRoles = useMyRoles();
 
-  const save = async (decision: EditorFeedback, etag: number) => {
+  const save = async (decision: Feedback, etag: number) => {
     return await trpc.interviews.updateDecision.mutate({
       interviewId,
-      decision,
+      decision: decision as FeedbackDeprecated,
       etag,
     });
   };
@@ -148,7 +134,7 @@ export function InterviewDecisionEditor({
   return (
     <Editor
       type={type}
-      defaultFeedback={decision}
+      defaultFeedback={decision as Feedback}
       etag={etag}
       save={save}
       readonly={readonly || !isPermitted(myRoles, "MentorshipAdmin")}
@@ -174,16 +160,16 @@ function Editor({
   readonly,
 }: {
   type: InterviewType;
-  defaultFeedback: FeedbackDeprecated | null;
+  defaultFeedback: Feedback | null;
   etag: number;
-  save: (f: EditorFeedback, etag: number) => Promise<number>;
+  save: (f: Feedback, etag: number) => Promise<number>;
   showDimensions: boolean;
   readonly?: boolean;
 }) {
   // Only load the original feedback once, and not when the parent auto
   // refetches it. Changing content during edits may confuses the user to hell.
-  const [feedback, setFeedback] = useState<EditorFeedback>(
-    (defaultFeedback as EditorFeedback) || { dimensions: [] },
+  const [feedback, setFeedback] = useState<Feedback>(
+    defaultFeedback || { dimensions: [] },
   );
   const refEtag = useRef<number>(etag);
 
@@ -192,7 +178,7 @@ function Editor({
       ? menteeInterviewDimensions
       : mentorInterviewDimensions;
 
-  const onSave = async (f: EditorFeedback) => {
+  const onSave = async (f: Feedback) => {
     try {
       refEtag.current = await save(f, refEtag.current);
     } catch (e) {
@@ -251,11 +237,11 @@ function DimensionEditor({
   readonly,
   onChange,
 }: {
-  dimension: EditorFeedbackDimension;
+  dimension: FeedbackDimension;
   dimensionLabel: string;
   scoreLabels: string[];
   commentPlaceholder: string;
-  onChange: (d: EditorFeedbackDimension) => void;
+  onChange: (d: FeedbackDimension) => void;
   readonly?: boolean;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -272,7 +258,7 @@ function DimensionEditor({
   const resetScore = () =>
     onChange({
       ...d,
-      score: null,
+      score: undefined,
     });
 
   return (
