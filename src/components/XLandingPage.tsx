@@ -1,15 +1,14 @@
-import { Link, GridItem, Text, VStack, Button } from "@chakra-ui/react";
+import { Link, GridItem, Text, VStack } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import { breakpoint } from "theme/breakpoints";
 import NextLink from "next/link";
 // @i18n-ignore-file
-import { loginUrl } from "shared/loginUrl";
-import { ChevronRightIcon } from "@chakra-ui/icons";
 import LandingPageSection from "./LandingPageSection";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function XLandingPage() {
   return (
-    <VStack spacing={50} align="start">
+    <BaseLandingPage spacing={50}>
       <LandingPageSection header="远图：零一学院挑战问题与社会导师网络">
         <GridItem colSpan={{ base: 2, [breakpoint]: 5 }}>
           <VStack spacing={paragraphSpacing} align="start">
@@ -40,16 +39,6 @@ export default function XLandingPage() {
           </VStack>
         </GridItem>
       </LandingPageSection>
-
-      <Button
-        variant="brand"
-        as={NextLink}
-        size="lg"
-        href={loginUrl()}
-        rightIcon={<ChevronRightIcon />}
-      >
-        进入远图
-      </Button>
-    </VStack>
+    </BaseLandingPage>
   );
 }
