@@ -11,6 +11,7 @@ import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction, QueryTypes } from "sequelize";
 import sinon from "sinon";
+import * as mentorshipsModule from "./mentorships";
 
 describe("redactEmail", () => {
   it("should redact normal email", () => {
@@ -972,5 +973,138 @@ describe("listImpl", () => {
     expect(u1!.wechatUnionId).equals("wx1");
     expect(u2!.wechatUnionId).equals("wx2");
     expect(u2!.mergedToUser?.id).equals("00000000-0000-0000-0000-000000000001");
+  });
+});
+
+describe("listMentorsImpl", () => {
+  let transaction: Transaction;
+  let getUser2MentorshipCountStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    getUser2MentorshipCountStub = sinon.stub(
+      mentorshipsModule,
+      "getUser2MentorshipCount",
+    );
+  });
+
+  afterEach(async () => {
+    getUser2MentorshipCountStub.restore();
+    await transaction.rollback();
+  });
+
+  it("should return mentors and calculate relational property based on mentorship count and transactional role", async () => {
+    await db.User.bulkCreate(
+      [
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Mentor 1",
+          roles: ["Mentor"],
+          pinyin: "mentor 1",
+          preference: { mentor: { 最多匹配学生: 2, 学生特质: [] } },
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "Mentor 2",
+          roles: ["Mentor"],
+          pinyin: "mentor 2",
+          preference: { mentor: { 最多匹配学生: 1, 学生特质: [] } },
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          name: "Transactional Mentor",
+          roles: ["Mentor", "TransactionalMentor"],
+          pinyin: "transactional mentor",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000004",
+          name: "Not a mentor",
+          roles: ["Volunteer"],
+          pinyin: "not a mentor",
+        },
+      ],
+      { transaction },
+    );
+
+    getUser2MentorshipCountStub.resolves({
+      "00000000-0000-0000-0000-000000000002": 1,
+    });
+
+    const res = await usersModule.listMentorsImpl(transaction);
+
+    expect(res.length).equals(3);
+    const m1 = res.find(
+      (u: any) => u.user.id === "00000000-0000-0000-0000-000000000001",
+    );
+    const m2 = res.find(
+      (u: any) => u.user.id === "00000000-0000-0000-0000-000000000002",
+    );
+    const tm = res.find(
+      (u: any) => u.user.id === "00000000-0000-0000-0000-000000000003",
+    );
+
+    void expect(m1?.relational).to.be.true; // capacity = 2, active = 0
+    void expect(m2?.relational).to.be.false; // capacity = 1, active = 1
+    void expect(tm?.relational).to.be.false; // TransactionalMentor
+  });
+});
+
+describe("listMentorStatsImpl", () => {
+  let transaction: Transaction;
+  let getUser2MentorshipCountStub: sinon.SinonStub;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    getUser2MentorshipCountStub = sinon.stub(
+      mentorshipsModule,
+      "getUser2MentorshipCount",
+    );
+  });
+
+  afterEach(async () => {
+    getUser2MentorshipCountStub.restore();
+    await transaction.rollback();
+  });
+
+  it("should return mentors stats and sort by Chinese name", async () => {
+    await db.User.bulkCreate(
+      [
+        {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "张三", // Zhang San
+          roles: ["Mentor"],
+          pinyin: "zhang san",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "李四", // Li Si
+          roles: ["Mentor"],
+          pinyin: "li si",
+        },
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          name: "Not a mentor",
+          roles: ["Volunteer"],
+          pinyin: "not a mentor",
+        },
+      ],
+      { transaction },
+    );
+
+    getUser2MentorshipCountStub.resolves({
+      "00000000-0000-0000-0000-000000000002": 3, // Zhang San has 3
+      "00000000-0000-0000-0000-000000000001": 5, // Li Si has 5
+    });
+
+    const res = await usersModule.listMentorStatsImpl(transaction);
+
+    expect(res.length).equals(2);
+
+    // Check sorting (Li Si before Zhang San in pinyin)
+    expect(res[0].user.name).equals("李四");
+    expect(res[0].mentorships).equals(5);
+
+    expect(res[1].user.name).equals("张三");
+    expect(res[1].mentorships).equals(3);
   });
 });
