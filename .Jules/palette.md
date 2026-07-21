@@ -1,0 +1,3 @@
+## 2024-07-21 - [A11y] Keyboard interactions for non-interactive elements acting as buttons
+**Learning:** Found instances where non-interactive elements like `CopyIcon` and `HStack` had `onClick` handlers but lacked keyboard interactions (like tabbing to it or pressing Enter/Space to execute the action). This makes it completely inaccessible to screen reader and keyboard-only users.
+**Action:** Always ensure that if a non-interactive element has an `onClick` handler, it also includes `role="button"`, `tabIndex={0}`, an appropriate `aria-label`, and an `onKeyDown` listener that triggers the action on the 'Enter' and Space keys to maintain keyboard accessibility.
