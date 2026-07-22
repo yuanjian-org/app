@@ -1,4 +1,4 @@
-import { Link, GridItem, Text, VStack, Button } from "@chakra-ui/react";
+import { Link, GridItem, Text, VStack } from "@chakra-ui/react";
 import { paragraphSpacing } from "theme/metrics";
 import Image from "next/image";
 import partner_mantou from "../../public/img/partner_mantou.png";
@@ -16,26 +16,14 @@ import { StaticImageData } from "next/image";
 import NextLink from "next/link";
 // @i18n-ignore-file
 import LandingPageSection from "components/LandingPageSection";
-import { ChevronRightIcon } from "@chakra-ui/icons";
-import { loginUrl } from "shared/loginUrl";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function YuantuLandingPage() {
   return (
-    <VStack spacing={50} align="start">
+    <BaseLandingPage spacing={50} buttonText="进入远图" buttonMt={8}>
       <IntroSection />
       <PartnersSection />
-
-      <Button
-        size="lg"
-        variant="brand"
-        as={NextLink}
-        href={loginUrl()}
-        mt={8}
-        rightIcon={<ChevronRightIcon />}
-      >
-        进入远图
-      </Button>
-    </VStack>
+    </BaseLandingPage>
   );
 }
 

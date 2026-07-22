@@ -1,17 +1,7 @@
-import {
-  Box,
-  VStack,
-  Button,
-  Text,
-  Heading,
-  UnorderedList,
-  ListItem,
-} from "@chakra-ui/react";
-import { ChevronRightIcon } from "@chakra-ui/icons";
-import NextLink from "next/link";
-import { loginUrl } from "shared/loginUrl";
+import { Box, Text, Heading, UnorderedList, ListItem } from "@chakra-ui/react";
 import T from "components/T";
 import Head from "next/head";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function YqdLandingPage() {
   return (
@@ -19,7 +9,12 @@ export default function YqdLandingPage() {
       <Head>
         <title>易起读 - 上海颂鼎社会公益创新发展中心</title>
       </Head>
-      <VStack spacing={6} align="start" mt={10}>
+      <BaseLandingPage
+        buttonText={<T ns="yqd">进入平台</T>}
+        spacing={6}
+        mt={10}
+        buttonMt={8}
+      >
         <Heading size="lg">
           <T ns="yqd">欢迎来到“易起读”公益阅读平台</T>
         </Heading>
@@ -76,18 +71,7 @@ export default function YqdLandingPage() {
             此系统为易起读项目提供全方位的 AI 数字平台支持。
           </T>
         </Text>
-
-        <Button
-          size="lg"
-          variant="brand"
-          as={NextLink}
-          href={loginUrl()}
-          mt={8}
-          rightIcon={<ChevronRightIcon />}
-        >
-          <T ns="yqd">进入平台</T>
-        </Button>
-      </VStack>
+      </BaseLandingPage>
     </>
   );
 }
