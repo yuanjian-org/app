@@ -10,9 +10,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { notSetText } from "shared/strings/notSetText";
-import { parseQueryString } from "shared/strings/parseQueryString";
 import { removeChinaPhonePrefix } from "shared/strings/removeChinaPhonePrefix";
-import { useRouter } from "next/router";
 import trpc, { trpcNext } from "trpc";
 import Loader from "components/Loader";
 import { componentSpacing } from "theme/metrics";
@@ -20,7 +18,6 @@ import { sectionSpacing } from "theme/metrics";
 import { LockIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { useEffect, useState } from "react";
-import { useMyId } from "useMe";
 import { PearlStudentValidationModal } from "components/PearlStudentModals";
 import { SetEmailModal, SetPhoneModal } from "components/PostLoginModels";
 import { toast } from "react-toastify";
@@ -31,10 +28,10 @@ import T from "components/T";
 
 export const accountPageTitle = "账号与安全";
 
+import { useUserIdFromQuery } from "useUserIdFromQuery";
+
 export default function Page() {
-  const queryUserId = parseQueryString(useRouter(), "userId");
-  const myId = useMyId();
-  const userId = queryUserId === "me" ? myId : queryUserId;
+  const userId = useUserIdFromQuery();
 
   const { data: user } = trpcNext.users.getFull.useQuery(userId ?? "", {
     enabled: !!userId,
