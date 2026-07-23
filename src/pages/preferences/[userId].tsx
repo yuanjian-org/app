@@ -37,8 +37,6 @@ import {
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
 import { chinaPhonePrefix } from "shared/strings/chinaPhonePrefix";
-import { parseQueryString } from "shared/strings/parseQueryString";
-import { useRouter } from "next/router";
 import invariant from "tiny-invariant";
 import Loader from "components/Loader";
 import { TraitsPreference } from "shared/Traits";
@@ -47,15 +45,15 @@ import {
   traitsPrefProfiles,
   TraitTag,
 } from "components/Traits";
-import useMe, { useMyId } from "useMe";
+import useMe from "useMe";
 import SwitchAndLabel from "components/SwitchAndLabel";
 import ConfirmationModal from "components/ConfirmationModal";
 import T from "components/T";
 
+import { useUserIdFromQuery } from "useUserIdFromQuery";
+
 export default function Page() {
-  const queryUserId = parseQueryString(useRouter(), "userId");
-  const myId = useMyId();
-  const userId = queryUserId === "me" ? myId : queryUserId;
+  const userId = useUserIdFromQuery();
 
   const { data: user } = trpcNext.users.getFull.useQuery(userId ?? "", {
     enabled: !!userId,
