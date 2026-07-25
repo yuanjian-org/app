@@ -46,7 +46,19 @@ export function ContactFieldRow({
           <>
             {mask ? "••••••••••••" : value}{" "}
             <Tooltip label={t("拷贝内容到剪贴板")}>
-              <CopyIcon onClick={onCopy} cursor="pointer" />
+              <CopyIcon
+                onClick={onCopy}
+                cursor="pointer"
+                role="button"
+                aria-label="拷贝内容到剪贴板"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onCopy();
+                  }
+                }}
+              />
             </Tooltip>
           </>
         )}
