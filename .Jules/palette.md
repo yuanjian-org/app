@@ -1,0 +1,3 @@
+## 2024-11-13 - Add Clear Button to FullTextSearchBox
+**Learning:** Adding a small "Clear Search" icon to input boxes enhances user experience by allowing quick resets, especially beneficial when the search bar is constantly used for filtering dense lists. I learned how to use Chakra UI's `InputRightElement` to position interactive icons inside inputs cleanly. Also ensuring ARIA labels are included for accessibility.
+**Action:** When working on search or filter inputs, verify if a clear button exists, and add one if missing, utilizing `InputRightElement` with `IconButton` and proper `aria-label`.
