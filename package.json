@@ -36,7 +36,7 @@
     "lru-cache": "^11.2.7",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.2",
-    "next": "^15.5.18",
+    "next": "^15.5.21",
     "next-auth": "^4.24.15",
     "next-i18next": "^16.0.7",
     "nzh": "^1.0.14",
