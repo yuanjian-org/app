@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@auth/sequelize-adapter": "^2.11.1",
+    "@auth/core": "^0.41.3",
     "@chakra-ui/anatomy": "^2.3.4",
     "@chakra-ui/icons": "^1.1.5",
     "@chakra-ui/react": "^2.0.0",
