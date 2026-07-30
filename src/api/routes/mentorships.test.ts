@@ -89,7 +89,7 @@ describe("createMentorship", () => {
       await createMentorship(mentor.id, mentee.id, false, null, transaction);
     } catch (e: any) {
       errorThrown = true;
-      void expect(e.message).to.equal("一对一匹配已存在。");
+      void expect(e.message).to.equal("一对一匹配已经存在。");
     }
     void expect(errorThrown).to.be.true;
   });
