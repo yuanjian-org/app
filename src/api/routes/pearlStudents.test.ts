@@ -56,7 +56,7 @@ describe("pearlStudents API routes", () => {
       expect(user!.roles).to.include("Mentee");
       expect(user!.name).to.equal("Test Pearl");
       expect(user!.wechat).to.equal("wechat123");
-      expect(user!.menteeApplication[menteeSourceField]).to.equal(
+      expect(user!.menteeApplication![menteeSourceField]).to.equal(
         "珍珠生：P123",
       );
     });

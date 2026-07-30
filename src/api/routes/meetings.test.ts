@@ -18,13 +18,13 @@ describe("recycleMeetings", () => {
     transaction = await sequelize.transaction();
     meetingTransaction = await meetingSequelize.transaction();
 
-    sinon.stub(sequelize, "transaction").callsFake(async (cb) => {
+    sinon.stub(sequelize, "transaction").callsFake((async (cb: any) => {
       return await cb(transaction);
-    });
+    }) as any);
 
-    sinon.stub(meetingSequelize, "transaction").callsFake(async (cb) => {
+    sinon.stub(meetingSequelize, "transaction").callsFake((async (cb: any) => {
       return await cb(meetingTransaction);
-    });
+    }) as any);
 
     notifyStub = sinon.stub(notifyModule, "notifyRolesIgnoreError");
     sinon.stub(tencentMeetingModule, "getTmUserIds").resolves(["test-user-id"]);

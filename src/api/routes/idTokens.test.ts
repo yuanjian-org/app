@@ -24,7 +24,7 @@ describe("sendImpl", () => {
     transaction = await sequelize.transaction();
     smsStub = sinon.stub(smsModule, "sms").resolves();
     emailStub = sinon.stub(emailModule, "email").resolves();
-    sinon.stub(tokenModule, "generateToken").resolves(123456);
+    sinon.stub(tokenModule, "generateToken").resolves("123456");
   });
 
   afterEach(async () => {
@@ -664,7 +664,7 @@ describe("setEmailImpl", () => {
   it("should set email for the current user when no existing user has this email", async () => {
     const myUser = await createTestUser();
 
-    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken as unknown as sinon.SinonStub;
     if (checkStub.restore) checkStub.restore();
     checkStub = sinon
       .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
@@ -691,7 +691,7 @@ describe("setEmailImpl", () => {
     const existingUser = await createTestUser("shared@example.com");
     const myUser = await createTestUser();
 
-    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken as any;
     if (checkStub.restore) checkStub.restore();
     checkStub = sinon
       .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")

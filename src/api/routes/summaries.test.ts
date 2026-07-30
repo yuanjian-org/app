@@ -1,3 +1,4 @@
+import { getTimestamp } from "shared/strings/getTimestamp";
 import * as tencentMeetingModule from "../TencentMeeting";
 import * as summariesModule from "./summaries";
 import axios from "axios";
@@ -109,8 +110,8 @@ describe("summaries", () => {
       });
       expect(transcript !== null).to.equal(true);
       expect(transcript?.groupId).to.equal(group.id);
-      expect(transcript?.startedAt?.getTime()).to.equal(startedAt);
-      expect(transcript?.endedAt?.getTime()).to.equal(endedAt);
+      expect(getTimestamp(transcript?.startedAt)).to.equal(startedAt);
+      expect(getTimestamp(transcript?.endedAt)).to.equal(endedAt);
 
       const summary = await db.Summary.findOne({
         where: { transcriptId, key },
@@ -148,8 +149,8 @@ describe("summaries", () => {
       });
       expect(transcript !== null).to.equal(true);
       // StartedAt and EndedAt should be updated to the new values
-      expect(transcript?.startedAt?.getTime()).to.equal(startedAt);
-      expect(transcript?.endedAt?.getTime()).to.equal(endedAt);
+      expect(getTimestamp(transcript?.startedAt)).to.equal(startedAt);
+      expect(getTimestamp(transcript?.endedAt)).to.equal(endedAt);
 
       const summary = await db.Summary.findOne({
         where: { transcriptId: existingTranscript.id, key },
@@ -306,7 +307,7 @@ describe("downloadSummaries functions", () => {
       .resolves({ data: "会议摘要\n\nSome important points." });
     sinon
       .stub(saveSummaryModule, "saveSummaryIfNotExist")
-      .callsFake((desc: any) => {
+      .callsFake(async (desc: any) => {
         descs.push(desc);
       });
     sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
@@ -365,7 +366,7 @@ describe("downloadSummaries functions", () => {
 
     sinon
       .stub(saveSummaryModule, "saveSummaryIfNotExist")
-      .callsFake((desc: any) => {
+      .callsFake(async (desc: any) => {
         descs.push(desc);
       });
     sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
