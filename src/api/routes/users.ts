@@ -331,12 +331,15 @@ const listMentorsPublic = procedure
     return await listMentorsImpl();
   });
 
-export async function listMentorsImpl(): Promise<ListMentorsOutput> {
+export async function listMentorsImpl(
+  transaction?: Transaction,
+): Promise<ListMentorsOutput> {
   // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
     attributes: [...minUserAttributes, "roles", "preference", "profile"],
+    transaction,
   });
 
   const user2mentorships = await getUser2MentorshipCount();
@@ -374,15 +377,20 @@ export type ListMentorStatsOutput = z.infer<typeof zListMentorStatsOutput>;
 const listMentorStats = procedure
   .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(zListMentorStatsOutput)
-  .query(listMentorStatsImpl);
+  .query(async () => {
+    return await listMentorStatsImpl();
+  });
 
-export async function listMentorStatsImpl(): Promise<ListMentorStatsOutput> {
+export async function listMentorStatsImpl(
+  transaction?: Transaction,
+): Promise<ListMentorStatsOutput> {
   // Force type check
   const mentorRole: Role = "Mentor";
   const users = await db.User.findAll({
     where: { roles: { [Op.contains]: [mentorRole] } },
     attributes: [...userAttributes, "profile", "preference"],
     include: userInclude,
+    transaction,
   });
 
   const user2mentorships = await getUser2MentorshipCount();
