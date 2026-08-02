@@ -1,4 +1,3 @@
-
 import crypto from "crypto";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -19,7 +18,6 @@ import * as usersModule from "./users";
 
 import sequelize from "../database/sequelize";
 import { Transaction, QueryTypes } from "sequelize";
-
 
 describe("redactEmail", () => {
   it("should redact normal email", () => {
@@ -984,13 +982,6 @@ describe("listImpl", () => {
   });
 });
 
-
-
-
-
-
-
-
 describe("Users access control", () => {
   let countStub: sinon.SinonStub;
 
@@ -1016,7 +1007,7 @@ describe("Users access control", () => {
         me,
         "menteeId",
         undefined,
-        "readMetadata"
+        "readMetadata",
       );
       void expect(res).to.be.true;
       void expect(countStub.called).to.be.false;
@@ -1025,7 +1016,12 @@ describe("Users access control", () => {
     it("should not permit if user is MentorshipOperator but action is any", async () => {
       const me = { roles: ["MentorshipOperator"] } as User;
       countStub.resolves(0);
-      const res = await isPermittedtoAccessMentee(me, "menteeId", undefined, "any");
+      const res = await isPermittedtoAccessMentee(
+        me,
+        "menteeId",
+        undefined,
+        "any",
+      );
       void expect(res).to.be.false;
       void expect(countStub.calledOnce).to.be.true;
     });
@@ -1075,7 +1071,10 @@ describe("Users access control", () => {
 
   describe("checkPermissionToAccessMentee", () => {
     it("should not throw if permission is granted", async () => {
-      const me = { id: "mentorId", roles: ["MentorshipAdmin"] } as unknown as User;
+      const me = {
+        id: "mentorId",
+        roles: ["MentorshipAdmin"],
+      } as unknown as User;
       await checkPermissionToAccessMentee(me, "menteeId", {} as Transaction);
       // If it doesn't throw, it succeeds.
     });
