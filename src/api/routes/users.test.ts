@@ -1,16 +1,23 @@
-import { expect } from "chai";
 import crypto from "crypto";
+import { expect } from "chai";
+import sinon from "sinon";
+import db from "../database/db";
+import { User } from "../database/models/User";
+import { TRPCError } from "@trpc/server";
+
 import {
   redactEmail,
   updateWechatUnionId,
   updateImpl,
   setMyStateImpl,
+  checkPermissionToAccessMentee,
+  isPermittedtoAccessMentee,
+  isPermittedtoAccessMentor,
 } from "./users";
 import * as usersModule from "./users";
-import db from "../database/db";
+
 import sequelize from "../database/sequelize";
 import { Transaction, QueryTypes } from "sequelize";
-import sinon from "sinon";
 
 describe("redactEmail", () => {
   it("should redact normal email", () => {
@@ -972,5 +979,117 @@ describe("listImpl", () => {
     expect(u1!.wechatUnionId).equals("wx1");
     expect(u2!.wechatUnionId).equals("wx2");
     expect(u2!.mergedToUser?.id).equals("00000000-0000-0000-0000-000000000001");
+  });
+});
+
+describe("Users access control", () => {
+  let countStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    countStub = sinon.stub(db.Mentorship, "count");
+  });
+
+  afterEach(() => {
+    countStub.restore();
+  });
+
+  describe("isPermittedtoAccessMentee", () => {
+    it("should permit if user is MentorshipAdmin", async () => {
+      const me = { roles: ["MentorshipAdmin"] } as User;
+      const res = await isPermittedtoAccessMentee(me, "menteeId");
+      void expect(res).to.be.true;
+      void expect(countStub.called).to.be.false;
+    });
+
+    it("should permit if user is MentorshipOperator and action is readMetadata", async () => {
+      const me = { roles: ["MentorshipOperator"] } as User;
+      const res = await isPermittedtoAccessMentee(
+        me,
+        "menteeId",
+        undefined,
+        "readMetadata",
+      );
+      void expect(res).to.be.true;
+      void expect(countStub.called).to.be.false;
+    });
+
+    it("should not permit if user is MentorshipOperator but action is any", async () => {
+      const me = { roles: ["MentorshipOperator"] } as User;
+      countStub.resolves(0);
+      const res = await isPermittedtoAccessMentee(
+        me,
+        "menteeId",
+        undefined,
+        "any",
+      );
+      void expect(res).to.be.false;
+      void expect(countStub.calledOnce).to.be.true;
+    });
+
+    it("should permit if user is mentor of the mentee", async () => {
+      const me = { id: "mentorId", roles: [] } as unknown as User;
+      countStub.resolves(1);
+      const res = await isPermittedtoAccessMentee(me, "menteeId");
+      void expect(res).to.be.true;
+      void expect(countStub.calledOnce).to.be.true;
+      void expect(countStub.firstCall.args[0]).to.deep.equal({
+        where: { mentorId: "mentorId", menteeId: "menteeId" },
+        transaction: undefined,
+      });
+    });
+
+    it("should not permit if user is not mentor of the mentee", async () => {
+      const me = { id: "mentorId", roles: [] } as unknown as User;
+      countStub.resolves(0);
+      const res = await isPermittedtoAccessMentee(me, "menteeId");
+      void expect(res).to.be.false;
+      void expect(countStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe("isPermittedtoAccessMentor", () => {
+    it("should permit if user is mentee of the mentor", async () => {
+      const me = { id: "menteeId", roles: [] } as unknown as User;
+      countStub.resolves(1);
+      const res = await isPermittedtoAccessMentor(me, "mentorId");
+      void expect(res).to.be.true;
+      void expect(countStub.calledOnce).to.be.true;
+      void expect(countStub.firstCall.args[0]).to.deep.equal({
+        where: { mentorId: "mentorId", menteeId: "menteeId" },
+        transaction: undefined,
+      });
+    });
+
+    it("should not permit if user is not mentee of the mentor", async () => {
+      const me = { id: "menteeId", roles: [] } as unknown as User;
+      countStub.resolves(0);
+      const res = await isPermittedtoAccessMentor(me, "mentorId");
+      void expect(res).to.be.false;
+      void expect(countStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe("checkPermissionToAccessMentee", () => {
+    it("should not throw if permission is granted", async () => {
+      const me = {
+        id: "mentorId",
+        roles: ["MentorshipAdmin"],
+      } as unknown as User;
+      await checkPermissionToAccessMentee(me, "menteeId", {} as Transaction);
+      // If it doesn't throw, it succeeds.
+    });
+
+    it("should throw TRPCError if permission is denied", async () => {
+      const me = { id: "mentorId", roles: [] } as unknown as User;
+      countStub.resolves(0);
+      try {
+        await checkPermissionToAccessMentee(me, "menteeId", {} as Transaction);
+        expect.fail("Should have thrown");
+      } catch (err: any) {
+        expect(err).to.be.instanceOf(TRPCError);
+        expect(err.code).to.equal("FORBIDDEN");
+        expect(err.message).to.equal("没有权限访问学生 menteeId。");
+      }
+    });
   });
 });
