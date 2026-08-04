@@ -2,6 +2,7 @@ import * as trpcNext from "@trpc/server/adapters/next";
 import { apiRouter } from "../../../api/apiRouter";
 import { inferAsyncReturnType } from "@trpc/server";
 import { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { reportError } from "../../../fundebug";
 
 export function createContext({ req, res }: CreateNextContextOptions) {
   return {
@@ -20,7 +21,7 @@ export default trpcNext.createNextApiHandler({
   onError({ error }) {
     console.error("Error:", error);
     if (error.code === "INTERNAL_SERVER_ERROR") {
-      // TODO: send to bug reporting
+      reportError(error, { info: error });
     }
   },
 });
