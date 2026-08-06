@@ -24,7 +24,7 @@ describe("sendImpl", () => {
     transaction = await sequelize.transaction();
     smsStub = sinon.stub(smsModule, "sms").resolves();
     emailStub = sinon.stub(emailModule, "email").resolves();
-    sinon.stub(tokenModule, "generateToken").resolves(123456);
+    sinon.stub(tokenModule, "generateToken").resolves("123456" as any);
   });
 
   afterEach(async () => {
@@ -664,7 +664,7 @@ describe("setEmailImpl", () => {
   it("should set email for the current user when no existing user has this email", async () => {
     const myUser = await createTestUser();
 
-    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken as any;
     if (checkStub.restore) checkStub.restore();
     checkStub = sinon
       .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
@@ -679,19 +679,19 @@ describe("setEmailImpl", () => {
     await myUser.reload({ transaction });
     expect(myUser.email).to.equal("new@example.com");
 
-    expect(checkStub.callCount).to.equal(1);
-    expect(checkStub.firstCall.args[0]).to.equal("email");
-    expect(checkStub.firstCall.args[1]).to.equal("new@example.com");
-    expect(checkStub.firstCall.args[2]).to.equal("123456");
+    expect((checkStub as sinon.SinonStub).callCount).to.equal(1);
+    expect((checkStub as sinon.SinonStub).firstCall.args[0]).to.equal("email");
+    expect((checkStub as sinon.SinonStub).firstCall.args[1]).to.equal("new@example.com");
+    expect((checkStub as sinon.SinonStub).firstCall.args[2]).to.equal("123456");
 
-    expect(notifyStub.callCount).to.equal(0);
+    expect((notifyStub as sinon.SinonStub).callCount).to.equal(0);
   });
 
   it("should remove email from existing user and notify when another user has this email", async () => {
     const existingUser = await createTestUser("shared@example.com");
     const myUser = await createTestUser();
 
-    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken;
+    let checkStub = checkAndDeleteIdTokenModule.checkAndDeleteIdToken as any;
     if (checkStub.restore) checkStub.restore();
     checkStub = sinon
       .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
@@ -709,10 +709,10 @@ describe("setEmailImpl", () => {
     await existingUser.reload({ transaction });
     void expect(existingUser.email).to.be.null;
 
-    expect(checkStub.callCount).to.equal(1);
+    expect((checkStub as sinon.SinonStub).callCount).to.equal(1);
 
-    expect(notifyStub.callCount).to.equal(1);
-    expect(notifyStub.firstCall.args[0]).to.deep.equal([
+    expect((notifyStub as sinon.SinonStub).callCount).to.equal(1);
+    expect((notifyStub as sinon.SinonStub).firstCall.args[0]).to.deep.equal([
       "SystemAlertSubscriber",
     ]);
     expect(notifyStub.firstCall.args[1]).to.equal("邮箱转移通知");
