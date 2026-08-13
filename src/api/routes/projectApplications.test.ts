@@ -2,7 +2,11 @@ import { expect } from "chai";
 import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
-import { listImpl, updateStatusImpl } from "./projectApplications";
+import {
+  listImpl,
+  updateStatusImpl,
+  checkProjectPermission,
+} from "./projectApplications";
 import crypto from "crypto";
 
 describe("Project Applications Route Impl", () => {
@@ -92,17 +96,105 @@ describe("Project Applications Route Impl", () => {
     expect(result[0].id).to.equal(app.id);
   });
 
-  it("should update application status", async () => {
-    const owner = await createTestUser();
-    const applicant = await createTestUser();
-    const project = await createTestProject(owner.id);
-    const app = await createTestApp(project.id, applicant.id);
-
-    await updateStatusImpl(owner as any, app.id, "已批准", transaction);
-
-    const updated = await db.ProjectApplication.findByPk(app.id, {
-      transaction,
+  describe("checkProjectPermission", () => {
+    it("should allow if user has ProjectAdmin role", async () => {
+      const admin = await createTestUser(["ProjectAdmin"]);
+      await checkProjectPermission(admin as any, "some-random-id", transaction);
+      // should not throw
     });
-    expect(updated?.status).to.equal("已批准");
+
+    it("should throw NOT_FOUND if project doesn't exist", async () => {
+      const randomUser = await createTestUser();
+      let error: any;
+      try {
+        await checkProjectPermission(
+          randomUser as any,
+          "00000000-0000-0000-0000-000000000000",
+          transaction,
+        );
+      } catch (e) {
+        error = e;
+      }
+      expect(error.code).to.equal("NOT_FOUND");
+    });
+
+    it("should throw FORBIDDEN if user is not the owner", async () => {
+      const owner = await createTestUser();
+      const randomUser = await createTestUser();
+      const project = await createTestProject(owner.id);
+
+      let error: any;
+      try {
+        await checkProjectPermission(
+          randomUser as any,
+          project.id,
+          transaction,
+        );
+      } catch (e) {
+        error = e;
+      }
+      expect(error.code).to.equal("FORBIDDEN");
+    });
+
+    it("should not throw if user is the owner", async () => {
+      const owner = await createTestUser();
+      const project = await createTestProject(owner.id);
+
+      await checkProjectPermission(owner as any, project.id, transaction);
+      // should not throw
+    });
+  });
+
+  describe("updateStatusImpl", () => {
+    it("should throw NOT_FOUND if application doesn't exist", async () => {
+      const owner = await createTestUser();
+      let error: any;
+      try {
+        await updateStatusImpl(
+          owner as any,
+          "00000000-0000-0000-0000-000000000000",
+          "已批准",
+          transaction,
+        );
+      } catch (e) {
+        error = e;
+      }
+      expect(error.code).to.equal("NOT_FOUND");
+    });
+
+    it("should throw FORBIDDEN if user is not the owner", async () => {
+      const owner = await createTestUser();
+      const randomUser = await createTestUser();
+      const applicant = await createTestUser();
+      const project = await createTestProject(owner.id);
+      const app = await createTestApp(project.id, applicant.id);
+
+      let error: any;
+      try {
+        await updateStatusImpl(
+          randomUser as any,
+          app.id,
+          "已批准",
+          transaction,
+        );
+      } catch (e) {
+        error = e;
+      }
+      expect(error.code).to.equal("FORBIDDEN");
+    });
+
+    it("should update application status if user is owner", async () => {
+      const owner = await createTestUser();
+      const applicant = await createTestUser();
+      const project = await createTestProject(owner.id);
+      const app = await createTestApp(project.id, applicant.id);
+
+      await updateStatusImpl(owner as any, app.id, "已批准", transaction);
+
+      const updated = await db.ProjectApplication.findByPk(app.id, {
+        transaction,
+      });
+      expect(updated?.status).to.equal("已批准");
+    });
   });
 });
