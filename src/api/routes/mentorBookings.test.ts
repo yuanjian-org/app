@@ -110,15 +110,6 @@ describe("Mentor Bookings Router", () => {
 
   describe("list", () => {
     it("should list all mentor bookings", async () => {
-      const admin = await db.User.create(
-        {
-          email: "admin@example.com",
-          name: "Test Admin",
-          roles: ["MentorshipAdmin"],
-        },
-        { transaction },
-      );
-
       await db.MentorBooking.create(
         {
           requesterId: requester.id,
