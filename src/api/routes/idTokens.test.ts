@@ -681,7 +681,9 @@ describe("setEmailImpl", () => {
 
     expect((checkStub as sinon.SinonStub).callCount).to.equal(1);
     expect((checkStub as sinon.SinonStub).firstCall.args[0]).to.equal("email");
-    expect((checkStub as sinon.SinonStub).firstCall.args[1]).to.equal("new@example.com");
+    expect((checkStub as sinon.SinonStub).firstCall.args[1]).to.equal(
+      "new@example.com",
+    );
     expect((checkStub as sinon.SinonStub).firstCall.args[2]).to.equal("123456");
 
     expect((notifyStub as sinon.SinonStub).callCount).to.equal(0);

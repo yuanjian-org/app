@@ -305,11 +305,12 @@ describe("downloadSummaries functions", () => {
     sinon
       .stub(axios, "get")
       .resolves({ data: "会议摘要\n\nSome important points." });
-    sinon
-      .stub(saveSummaryModule, "saveSummaryIfNotExist")
-      .callsFake((async (desc: any) => {
-        descs.push(desc);
-      }) as any);
+    sinon.stub(saveSummaryModule, "saveSummaryIfNotExist").callsFake(((
+      desc: any,
+    ) => {
+      descs.push(desc);
+      return Promise.resolve();
+    }) as any);
     sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
 
     const descs: any[] = [];
@@ -364,11 +365,12 @@ describe("downloadSummaries functions", () => {
       .stub(db.MeetingHistory, "findOne")
       .resolves({ groupId } as any);
 
-    sinon
-      .stub(saveSummaryModule, "saveSummaryIfNotExist")
-      .callsFake((async (desc: any) => {
-        descs.push(desc);
-      }) as any);
+    sinon.stub(saveSummaryModule, "saveSummaryIfNotExist").callsFake(((
+      desc: any,
+    ) => {
+      descs.push(desc);
+      return Promise.resolve();
+    }) as any);
     sinon.stub(saveSummaryModule, "hasSummary").resolves(false as any);
 
     await summariesModule.processRecord(record as any, tmUserId, descs);

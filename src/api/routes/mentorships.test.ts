@@ -123,7 +123,12 @@ describe("updateMentorship", () => {
 
   it("should successfully update a mentorship", async () => {
     const endsAt = moment().add(30, "days").toDate();
-    await updateMentorship(mentorshipId, false, endsAt.toISOString(), transaction);
+    await updateMentorship(
+      mentorshipId,
+      false,
+      endsAt.toISOString(),
+      transaction,
+    );
     const updatedMentorship = await db.Mentorship.findByPk(mentorshipId, {
       transaction,
     });

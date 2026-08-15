@@ -87,10 +87,14 @@ describe("match.ts", () => {
       });
       expect(menteeFeedback).to.not.equal(null);
       expect(menteeFeedback!.feedback.type).to.equal("Mentee");
-      expect((menteeFeedback!.feedback as Extract<NonNullable<typeof menteeFeedback>["feedback"], { type: "Mentee" }>).mentors).to.deep.equal([
-        { id: mentor1.id },
-        { id: mentor2.id },
-      ]);
+      expect(
+        (
+          menteeFeedback!.feedback as Extract<
+            NonNullable<typeof menteeFeedback>["feedback"],
+            { type: "Mentee" }
+          >
+        ).mentors,
+      ).to.deep.equal([{ id: mentor1.id }, { id: mentor2.id }]);
 
       // Assert database state: MatchFeedback for Mentors
       const mentor1Feedback = await db.MatchFeedback.findOne({
@@ -99,9 +103,14 @@ describe("match.ts", () => {
       });
       expect(mentor1Feedback).to.not.equal(null);
       expect(mentor1Feedback!.feedback.type).to.equal("Mentor");
-      expect((mentor1Feedback!.feedback as Extract<NonNullable<typeof mentor1Feedback>["feedback"], { type: "Mentor" }>).mentees).to.deep.equal([
-        { id: mentee.id },
-      ]);
+      expect(
+        (
+          mentor1Feedback!.feedback as Extract<
+            NonNullable<typeof mentor1Feedback>["feedback"],
+            { type: "Mentor" }
+          >
+        ).mentees,
+      ).to.deep.equal([{ id: mentee.id }]);
 
       const mentor2Feedback = await db.MatchFeedback.findOne({
         where: { userId: mentor2.id },
@@ -109,9 +118,14 @@ describe("match.ts", () => {
       });
       expect(mentor2Feedback).to.not.equal(null);
       expect(mentor2Feedback!.feedback.type).to.equal("Mentor");
-      expect((mentor2Feedback!.feedback as Extract<NonNullable<typeof mentor2Feedback>["feedback"], { type: "Mentor" }>).mentees).to.deep.equal([
-        { id: mentee.id },
-      ]);
+      expect(
+        (
+          mentor2Feedback!.feedback as Extract<
+            NonNullable<typeof mentor2Feedback>["feedback"],
+            { type: "Mentor" }
+          >
+        ).mentees,
+      ).to.deep.equal([{ id: mentee.id }]);
     });
   });
 });
