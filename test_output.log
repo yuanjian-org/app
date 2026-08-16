@@ -1,0 +1,2364 @@
+yarn run v1.22.22
+$ TS_NODE_PROJECT='./tsconfig.test.json' mocha --require ts-node/register --require tsconfig-paths/register 'src/**/*.test.ts' --recursive
+(node:3883) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:3883) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///app/src/api/auth.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /app/package.json.
+(node:3883) [DEP0170] DeprecationWarning: The URL sqlite::memory: is invalid. Future versions of Node.js will throw an error.
+
+
+  auth.ts
+    authIntegration
+      ✔ should throw UNAUTHORIZED if token is missing
+      ✔ should throw internal server error if INTEGRATION_AUTH_TOKEN is not set
+      ✔ should throw BAD_REQUEST if token is invalid
+      ✔ should succeed if token is valid
+    authUser
+      ✔ should throw UNAUTHORIZED if session is missing
+      ✔ should throw FORBIDDEN if role is not permitted
+      ✔ should succeed and provide context if session and role are valid
+    authWebhook
+      ✔ should throw internal server error if WEBHOOK_TOKEN is not set
+      ✔ should succeed if WEBHOOK_TOKEN is set
+
+  adapter
+    createUser
+      1) "before each" hook for "should create a wechat user"
+      2) "after each" hook for "should create a wechat user"
+
+  fakeEmail utils
+    ✔ unionId2Email and email2UnionId should be reversible
+    ✔ ssoUserId2Email and email2SsoUserId should be reversible
+unionid "inv+alid" is invalid
+unionid "" is invalid
+    ✔ unionId2Email throws on invalid input
+ssoUserId "inv+alid" is invalid
+ssoUserId "" is invalid
+    ✔ ssoUserId2Email throws on invalid input
+
+  Auth Providers
+    id-password provider
+TypeError: this.lib.Database is not a constructor
+    at connection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+    at new Promise (<anonymous>)
+    at ConnectionManager.getConnection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+    at Transaction.prepareEnvironment (/app/node_modules/sequelize/src/transaction.js:122:60)
+    at /app/node_modules/sequelize/src/sequelize.js:1193:25
+    at Function._clsRun (/app/node_modules/sequelize/src/sequelize.js:1244:21)
+    at Sequelize.transaction (/app/node_modules/sequelize/src/sequelize.js:1192:22)
+    at /app/src/api/auth/providers.test.ts:70:43
+    at Generator.next (<anonymous>)
+    at /app/src/api/auth/providers.test.ts:41:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/auth/providers.test.ts:37:12)
+    at Context.<anonymous> (/app/src/api/auth/providers.test.ts:67:76)
+    at callFn (/app/node_modules/mocha/lib/runnable.js:364:21)
+    at Test.Runnable.run (/app/node_modules/mocha/lib/runnable.js:352:5)
+    at Runner.runTest (/app/node_modules/mocha/lib/runner.js:677:10)
+    at /app/node_modules/mocha/lib/runner.js:800:12
+    at next (/app/node_modules/mocha/lib/runner.js:592:14)
+    at /app/node_modules/mocha/lib/runner.js:602:7
+    at next (/app/node_modules/mocha/lib/runner.js:485:14)
+    at Immediate.<anonymous> (/app/node_modules/mocha/lib/runner.js:570:5)
+    at processImmediate (node:internal/timers:484:21)
+      3) should authorize successfully with correct credentials
+TypeError: this.lib.Database is not a constructor
+    at connection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+    at new Promise (<anonymous>)
+    at ConnectionManager.getConnection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+    at Transaction.prepareEnvironment (/app/node_modules/sequelize/src/transaction.js:122:60)
+    at /app/node_modules/sequelize/src/sequelize.js:1193:25
+    at Function._clsRun (/app/node_modules/sequelize/src/sequelize.js:1244:21)
+    at Sequelize.transaction (/app/node_modules/sequelize/src/sequelize.js:1192:22)
+    at /app/src/api/auth/providers.test.ts:109:43
+    at Generator.next (<anonymous>)
+    at /app/src/api/auth/providers.test.ts:41:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/auth/providers.test.ts:37:12)
+    at Context.<anonymous> (/app/src/api/auth/providers.test.ts:106:71)
+    at callFn (/app/node_modules/mocha/lib/runnable.js:364:21)
+    at Test.Runnable.run (/app/node_modules/mocha/lib/runnable.js:352:5)
+    at Runner.runTest (/app/node_modules/mocha/lib/runner.js:677:10)
+    at /app/node_modules/mocha/lib/runner.js:800:12
+    at next (/app/node_modules/mocha/lib/runner.js:592:14)
+    at /app/node_modules/mocha/lib/runner.js:602:7
+    at next (/app/node_modules/mocha/lib/runner.js:485:14)
+    at Immediate.<anonymous> (/app/node_modules/mocha/lib/runner.js:570:5)
+    at processImmediate (node:internal/timers:484:21)
+      4) should fail authorization with incorrect password
+      ✔ should fail authorization if user does not exist
+    id-token provider
+TypeError: this.lib.Database is not a constructor
+    at connection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+    at new Promise (<anonymous>)
+    at ConnectionManager.getConnection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+    at Transaction.prepareEnvironment (/app/node_modules/sequelize/src/transaction.js:122:60)
+    at /app/node_modules/sequelize/src/sequelize.js:1193:25
+    at Function._clsRun (/app/node_modules/sequelize/src/sequelize.js:1244:21)
+    at Sequelize.transaction (/app/node_modules/sequelize/src/sequelize.js:1192:22)
+    at /app/src/api/auth/providers.test.ts:153:43
+    at Generator.next (<anonymous>)
+    at /app/src/api/auth/providers.test.ts:41:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/auth/providers.test.ts:37:12)
+    at Context.<anonymous> (/app/src/api/auth/providers.test.ts:150:80)
+    at callFn (/app/node_modules/mocha/lib/runnable.js:364:21)
+    at Test.Runnable.run (/app/node_modules/mocha/lib/runnable.js:352:5)
+    at Runner.runTest (/app/node_modules/mocha/lib/runner.js:677:10)
+    at /app/node_modules/mocha/lib/runner.js:800:12
+    at next (/app/node_modules/mocha/lib/runner.js:592:14)
+    at /app/node_modules/mocha/lib/runner.js:602:7
+    at next (/app/node_modules/mocha/lib/runner.js:485:14)
+    at Immediate.<anonymous> (/app/node_modules/mocha/lib/runner.js:570:5)
+    at processImmediate (node:internal/timers:484:21)
+      5) should return an existing user if one exists for the token
+TypeError: this.lib.Database is not a constructor
+    at connection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+    at new Promise (<anonymous>)
+    at ConnectionManager.getConnection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+    at Transaction.prepareEnvironment (/app/node_modules/sequelize/src/transaction.js:122:60)
+    at /app/node_modules/sequelize/src/sequelize.js:1193:25
+    at Function._clsRun (/app/node_modules/sequelize/src/sequelize.js:1244:21)
+    at Sequelize.transaction (/app/node_modules/sequelize/src/sequelize.js:1192:22)
+    at /app/src/api/auth/providers.test.ts:191:43
+    at Generator.next (<anonymous>)
+    at /app/src/api/auth/providers.test.ts:41:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/auth/providers.test.ts:37:12)
+    at Context.<anonymous> (/app/src/api/auth/providers.test.ts:188:93)
+    at callFn (/app/node_modules/mocha/lib/runnable.js:364:21)
+    at Test.Runnable.run (/app/node_modules/mocha/lib/runnable.js:352:5)
+    at Runner.runTest (/app/node_modules/mocha/lib/runner.js:677:10)
+    at /app/node_modules/mocha/lib/runner.js:800:12
+    at next (/app/node_modules/mocha/lib/runner.js:592:14)
+    at /app/node_modules/mocha/lib/runner.js:602:7
+    at next (/app/node_modules/mocha/lib/runner.js:485:14)
+    at Immediate.<anonymous> (/app/node_modules/mocha/lib/runner.js:570:5)
+    at processImmediate (node:internal/timers:484:21)
+      6) should create and return a new user if one does not exist for the token
+
+  WeChatProvider
+    ✔ should return the correct configuration for OfficialAccount
+    ✔ should return the correct configuration for WebsiteApp
+    token.request
+      ✔ should fetch the access token successfully
+      ✔ should throw an error if no code is provided
+    userinfo.request
+      ✔ should fetch user info successfully
+      ✔ should throw an error if access_token is missing
+    profile
+      ✔ should return the correctly mapped profile
+
+  YuantuSsoProvider
+    ✔ should return the correct configuration
+    userinfo.request
+      ✔ should call client.userinfo with TokenSet
+      ✔ should pass existing TokenSet directly
+    profile
+      ✔ should return the correctly mapped profile
+      ✔ should handle missing optional fields
+
+  checkAndDeleteIdToken
+    7) "before each" hook for "should successfully validate and delete token for phone"
+    8) "after each" hook for "should successfully validate and delete token for phone"
+
+  email
+Sending mail via AoKSend, template id: E_12345, to: test1@example.com, data: {
+  "baseUrl": "https://example.com",
+  "name": "John [表情符]",
+  "message": "Hello world!"
+}
+Sending mail via AoKSend, template id: E_12345, to: test2@example.com, data: {
+  "baseUrl": "https://example.com",
+  "name": "John [表情符]",
+  "message": "Hello world!"
+}
+    ✔ should send emails correctly via AoKSend and sanitize emojis
+Sending mail via AoKSend, template id: E_12345, to: test@example.com, data: {
+  "baseUrl": "https://example.com"
+}
+AoKSend not configured. Skip calling actual API.
+    ✔ should skip actual API call if AOKSEND_APP_KEY is not configured
+Sending mail via AoKSend, template id: E_12345, to: test@example.com, data: {
+  "baseUrl": "https://example.com"
+}
+    ✔ should throw internal server error if AoKSend returns non-200 code
+
+  gsheets
+    updateGoogleSpreadsheet
+Updating worksheet existingSheet
+      ✔ should update an existing sheet
+Updating worksheet newSheet
+      ✔ should add a new sheet if it does not exist
+Updating worksheet existingSheet
+      ✔ should resize sheet if required
+Updating worksheet existingSheet
+      ✔ should correctly handle object values with properties
+Updating worksheet existingSheet
+      ✔ should skip null values
+
+  ip() middleware
+    ✔ should return a tRPC middleware with the expected internal structure
+ip() middleware resolved client IP: 203.0.113.195 | X-Forwarded-For: 203.0.113.195, 127.0.0.1 | remoteAddress: 127.0.0.1
+    ✔ should successfully invoke the internal middleware function setting the correct IP
+ip() middleware resolved client IP: 10.0.0.5 | X-Forwarded-For: 203.0.113.195, 10.0.0.5 | remoteAddress: 10.0.0.5
+    ✔ should successfully invoke the internal middleware function rejecting untrusted proxy
+
+  jinshuju
+    encodeXField & validateAndDecodeXField
+      ✔ should encode correctly when user has a url and then decode successfully
+      ✔ should encode correctly when user url is empty
+      ✔ should encode and decode correctly when there are extra fields
+      ✔ should fail on malformed x_field_1
+      ✔ should fail when x_field_1 is undefined
+      ✔ should throw error when tenant does not match
+      ✔ should throw error when HMAC is tampered
+      ✔ should throw error when timestamp is in the future
+      ✔ should throw error when timestamp is older than 30 minutes
+
+  notify()
+    notifyRolesIgnoreError()
+      9) "before each" hook for "should catch and log synchronous errors from sequelize.transaction without throwing"
+      10) "after each" hook for "should catch and log synchronous errors from sequelize.transaction without throwing"
+
+  OAuth2 Utils
+    hashUserIdForClient
+      ✔ should generate a consistent hash for the same client and user
+      ✔ should generate different hashes for different clients with the same user
+      ✔ should generate different hashes for the same client with different users
+    encryptPayload and decryptPayload
+      ✔ should correctly encrypt and decrypt a payload
+      ✔ should fail to decrypt if the payload was modified
+      ✔ should fail to decrypt a token encrypted with a different key
+      ✔ should throw if NEXTAUTH_SECRET is not set
+
+  assessments
+    createAssessmentImpl
+      11) "before each" hook for "should successfully create an assessment"
+      12) "after each" hook for "should successfully create an assessment"
+
+  getCalibrationAndCheckPermissionSafe
+    13) "before each" hook for "should allow participants access to active calibrations they are part of"
+    14) "after each" hook for "should allow participants access to active calibrations they are part of"
+
+  insertOneOnOneMessagePrefixImpl
+    15) "before each" hook for "should add one-on-one prefix to message markdown"
+    16) "after each" hook for "should add one-on-one prefix to message markdown"
+
+  chatsInternal
+    findOrCreateRoom
+      17) "before each" hook for "should successfully create a room if it does not exist"
+      18) "after each" hook for "should successfully create a room if it does not exist"
+
+  checkAndComputeUserFields
+    19) "before each" hook for "should throw error for invalid email"
+    20) "after each" hook for "should throw error for invalid email"
+
+  cron
+    authIntegration
+      21) "before each" hook for "should throw BAD_REQUEST if token is invalid for cron routes"
+      22) "after each" hook for "should throw BAD_REQUEST if token is invalid for cron routes"
+
+  formatMeetingMinutes
+    ✔ should produce expected output
+    ✔ should allow missing todos
+    ✔ should handle empty sections
+
+  generateDemoData
+TypeError: this.lib.Database is not a constructor
+    at connection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+    at new Promise (<anonymous>)
+    at ConnectionManager.getConnection (/app/node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+    at Transaction.prepareEnvironment (/app/node_modules/sequelize/src/transaction.js:122:60)
+    at /app/node_modules/sequelize/src/sequelize.js:1193:25
+    at Function._clsRun (/app/node_modules/sequelize/src/sequelize.js:1244:21)
+    at Sequelize.transaction (/app/node_modules/sequelize/src/sequelize.js:1192:22)
+    at /app/src/api/routes/generateDemoData.test.ts:23:39
+    at Generator.next (<anonymous>)
+    at /app/src/api/routes/generateDemoData.test.ts:8:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/routes/generateDemoData.test.ts:4:12)
+    at Context.<anonymous> (/app/src/api/routes/generateDemoData.test.ts:20:76)
+    at callFn (/app/node_modules/mocha/lib/runnable.js:364:21)
+    at Test.Runnable.run (/app/node_modules/mocha/lib/runnable.js:352:5)
+    at Runner.runTest (/app/node_modules/mocha/lib/runner.js:677:10)
+    at /app/node_modules/mocha/lib/runner.js:800:12
+    at next (/app/node_modules/mocha/lib/runner.js:592:14)
+    at /app/node_modules/mocha/lib/runner.js:602:7
+    at next (/app/node_modules/mocha/lib/runner.js:485:14)
+    at Immediate.<anonymous> (/app/node_modules/mocha/lib/runner.js:570:5)
+    at processImmediate (node:internal/timers:484:21)
+    23) should successfully run and create records in the database
+
+  Global Configs Internal Functions
+    getImpl
+      24) "before each" hook for "should return an empty object when no config exists in the database"
+
+  Groups API Internal Functions
+    createGroup
+      25) "before each" hook for "should create a group and associate users"
+      26) "after each" hook for "should create a group and associate users"
+
+  sendImpl
+    27) "before each" hook for "should throw error for unsupported phone regions"
+    28) "after each" hook for "should throw error for unsupported phone regions"
+
+  setPhoneImpl
+    29) "before each" hook for "should update phone when existing user is not found"
+    30) "after each" hook for "should update phone when existing user is not found"
+
+  resetPasswordImpl
+    phone number password reset
+      31) "before each" hook for "should create new user if user does not exist"
+      32) "after each" hook for "should create new user if user does not exist"
+
+  setEmailImpl
+    33) "before each" hook for "should set email for the current user when no existing user has this email"
+    34) "after each" hook for "should set email for the current user when no existing user has this email"
+
+  updateMyPhoneAndPreference
+    35) "before each" hook for "should update phone for China phone numbers without disabling SMS"
+    36) "after each" hook for "should update phone for China phone numbers without disabling SMS"
+
+  interviewFeedbacks routes
+    getInterviewFeedbackImpl
+      37) "before each" hook for "should allow interviewer to access"
+
+  interviews
+    38) "before each" hook for "`create` should create group"
+    39) "after each" hook for "`create` should create group"
+
+  kudos routes
+    listKudosImpl
+      40) "before each" hook for "should list kudos for a specific user, sorted by createdAt in descending order"
+
+  Kudos Internal Functions
+    createKudos
+      41) "before each" hook for "should successfully create a 'like' and increment receiver's likes count"
+
+  Map Router
+    createLandmarkAssessmentImpl
+      42) "before each" hook for "should successfully create a landmark assessment"
+
+  match.ts
+    applyInitialSolverOutputImpl
+      43) "before each" hook for "should create transactional mentorship and match feedback successfully"
+      44) "after each" hook for "should create transactional mentorship and match feedback successfully"
+
+  matchFeedback routes
+    getLastMatchFeedback
+      45) "before each" hook for "should return the latest Mentee match feedback"
+
+  recycleMeetings
+    46) "before each" hook for "should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error"
+
+  refreshMeetingSlots
+    47) "before each" hook for "should ignore meetings created within the grace period"
+    48) "after each" hook for "should ignore meetings created within the grace period"
+
+  meetings API
+    join
+      49) "before each" hook for "should throw notFoundError if group is not found"
+
+  downloadMenteeDataImpl
+    50) "before each" hook for "should generate complete ZIP package with all mentee data"
+    51) "after each" hook for "should generate complete ZIP package with all mentee data"
+
+  Mentor Bookings Router
+    createMentorBooking
+      52) "before each" hook for "should successfully create a mentor booking and notify roles"
+
+  mentorSelections routes
+    createDraftImpl
+      53) "before each" hook for "should successfully create a draft batch and selection for a mentor"
+
+  createMentorship
+    54) "before each" hook for "should successfully create a mentorship and associated group"
+    55) "after each" hook for "should successfully create a mentorship and associated group"
+
+  updateMentorship
+    56) "before each" hook for "should successfully update a mentorship"
+    57) "after each" hook for "should successfully update a mentorship"
+
+  auditLastMentorshipMeetings
+    58) "before each" hook for "should call notify with correct parameters when mentorship has old one-on-one meeting"
+    59) "after each" hook for "should call notify with correct parameters when mentorship has old one-on-one meeting"
+
+  migration.ts
+    migrateDatabase
+Migrating DB schema...
+Migrating DB data...
+      ✔ should successfully sync sequelize and meetingSequelize with { alter: { drop: false } }
+
+  orgs API routes
+    listUserOrgsImpl
+      60) "before each" hook for "should list all orgs the user is a mentor of in alphabetical order"
+      61) "after each" hook for "should list all orgs the user is a mentor of in alphabetical order"
+
+  pearlStudents API routes
+    validateImpl
+      62) "before each" hook for "should successfully validate a matching pearl student and update user fields"
+
+  Project Applications Route Impl
+    63) "before each" hook for "should list applications for project owner"
+    64) "after each" hook for "should list applications for project owner"
+
+  Projects Route Impl
+    listImpl
+      65) "before each" hook for "should return public/open projects when me is undefined"
+      66) "after each" hook for "should return public/open projects when me is undefined"
+
+  purgeOldData
+    67) "before each" hook for "should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records"
+    68) "after each" hook for "should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records"
+
+  saveSummary
+    hasSummary
+      69) "before each" hook for "should return false if summary does not exist"
+      70) "after each" hook for "should return false if summary does not exist"
+
+  scheduledNotifications
+    scheduleNotification
+      71) "before each" hook for "should successfully schedule a new notification"
+      72) "after each" hook for "should successfully schedule a new notification"
+
+  summaries
+    saveSummaryImpl
+      73) "before each" hook for "should successfully create a Transcript and create a Summary"
+      74) "after each" hook for "should successfully create a Transcript and create a Summary"
+
+  downloadSummaries functions
+    75) "before each" hook for "findMissingSummariesforTmUser should filter ready records and map to descriptors"
+    76) "after each" hook for "findMissingSummariesforTmUser should filter ready records and map to descriptors"
+
+  Tasks Route Impl
+    createAutoTask
+      77) "before each" hook for "should create a new auto task and schedule notification if it does not exist"
+
+  transcripts
+    listImpl
+      78) "before each" hook for "should return the transcripts for a group when the user has permission"
+      79) "after each" hook for "should return the transcripts for a group when the user has permission"
+
+  redactEmail
+    ✔ should redact normal email
+    ✔ should handle short names (1 character)
+    ✔ should handle short names (2 characters)
+    ✔ should handle missing domain
+    ✔ should handle missing name
+    ✔ should handle empty string
+
+  updateWechatUnionId
+    80) "before each" hook for "should delete accounts table rows for both old and new wechatUnionIds"
+
+  updateImpl
+    81) "before each" hook for "should throw notFoundError when user doesn't exist"
+    82) "after each" hook for "should throw notFoundError when user doesn't exist"
+
+  setMyStateImpl
+    83) "before each" hook for "should restrict exam field updates and allow whitelisted fields"
+    84) "after each" hook for "should restrict exam field updates and allow whitelisted fields"
+
+  listImpl
+    85) "before each" hook for "should enforce limit and return nextCursor"
+    86) "after each" hook for "should enforce limit and return nextCursor"
+
+  listMentorsImpl
+    87) "before each" hook for "should return mentors and calculate relational property based on mentorship count and transactional role"
+    88) "after each" hook for "should return mentors and calculate relational property based on mentorship count and transactional role"
+
+  listMentorStatsImpl
+    89) "before each" hook for "should return mentors stats and sort by Chinese name"
+    90) "after each" hook for "should return mentors stats and sort by Chinese name"
+
+  ustcStudents.validate
+    91) should validate and update user
+    92) should throw error if email does not end with @mail.ustc.edu.cn
+    93) should keep existing menteeStatus if it is already set
+
+  sms
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "test"
+    }
+  },
+  {
+    "to": "+15000000000",
+    "vars": {
+      "name": "test"
+    }
+  }
+]
+Domestic Submail not configured. Skip actual API.
+    ✔ should return early if Submail credentials are not configured
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "test1"
+    }
+  },
+  {
+    "to": "+8615000000001",
+    "vars": {
+      "name": "test2"
+    }
+  }
+]
+    ✔ should send domestic SMS via multixsend endpoint
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "test_intl"
+    }
+  }
+]
+    ✔ should send international SMS via internationalsms/multixsend endpoint
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  },
+  {
+    "to": "+447000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+    ✔ should send both domestic and international SMS if both types are provided
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： 500 {}
+    ✔ should throw INTERNAL_SERVER_ERROR if domestic SMS returns non-200 status
+Sending SMS via Submail, template id: ["dom_tmpl", "intl_tmpl"], data: [
+  {
+    "to": "+8615000000000",
+    "vars": {
+      "name": "dom"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： [ { status: 'error', msg: 'some error' } ]
+    ✔ should throw INTERNAL_SERVER_ERROR if domestic SMS returns status other than success
+Sending SMS via Submail, template id: ["dom_tmpl", "some_other_tmpl"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+部分短信发送失败（忽略错误=true）： 500 { status: 'error' }
+部分短信发送失败（忽略错误=true）： [ { status: 'error' } ]
+    ✔ should ignore errors for international SMS if template is not for idToken
+Sending SMS via Submail, template id: ["dom_tmpl", "0Rr8G"], data: [
+  {
+    "to": "+12000000000",
+    "vars": {
+      "name": "intl"
+    }
+  }
+]
+部分短信发送失败（忽略错误=false）： [ { status: 'error' } ]
+    ✔ should throw INTERNAL_SERVER_ERROR for international SMS if template is for idToken
+
+  TencentMeeting
+    tmRequest (Internal)
+[TecentMeeting] getMeeting()
+      ✔ should handle request errors
+    getTmUserIds
+      ✔ should return parsed user ids from MeetingSlot
+      ✔ should return empty array if no MeetingSlots are found
+    createRecurringMeeting
+[TecentMeeting] createRecurringMeeting('Test Subject',
+    1600000000, 1600003600)
+      ✔ should call tmRequest and parse the successful response
+    updateMeeting
+[TecentMeeting] updateMeeting('test-meeting-id', 'Updated Subject')
+      ✔ should call tmRequest with correct PUT method and payload
+    getMeeting
+[TecentMeeting] getMeeting()
+      ✔ should call tmRequest and return meeting info
+[TecentMeeting] getMeeting()
+      ✔ should throw internal server error if error_info is returned
+    listRecords
+[TecentMeeting] listRecords()
+      ✔ should handle pagination and return records
+    getKey2FileAddresses
+[TecentMeeting] getFileAddresses("record-123")
+      ✔ should return parsed file addresses
+    getSpeakerStats
+[TecentMeeting] getSpeakerStats("record-123")
+      ✔ should return decoded speaker names and times in minutes
+
+  submitApplication
+    94) "before each" hook for "should submit mentee application"
+
+  exam webhook
+    successful exam submission
+      95) "before each" hook for "should update user state and mark comms exam task as done"
+
+  jinshuju webhook index
+    96) "before each" hook for "should route MenteeApp forms"
+    97) "after each" hook for "should route MenteeApp forms"
+
+  Project Applications Webhook
+    98) "before each" hook for "should create a project application"
+    99) "after each" hook for "should create a project application"
+
+  upload webhook
+    100) "before each" hook for "should fail if # urls isn't one"
+    101) "after each" hook for "should fail if # urls isn't one"
+
+  nextauth jwt callback
+    102) "before each" hook for "should return token immediately if impersonate is undefined"
+
+  OAuth2 authorizeHandler
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST (56ms)
+[OAuth2 IdP] OAuth2 Provider not configured.
+    ✔ should return 500 if provider is not configured
+[OAuth2 IdP] Invalid client_id undefined
+    ✔ should return 400 for missing client_id but config is set
+[OAuth2 IdP] Invalid client_id wrong
+    ✔ should return 400 for invalid client_id
+[OAuth2 IdP] Only 'code' response_type is supported token
+    ✔ should return 400 for invalid response_type
+[OAuth2 IdP] Missing or invalid redirect_uri https://evil.com https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri
+[OAuth2 IdP] PKCE code_challenge_method must be S256 plain
+    ✔ should return 400 for invalid code_challenge_method
+API handler should not return a value, received object.
+    ✔ should redirect to login if user is not logged in
+API handler should not return a value, received object.
+    ✔ should redirect to /oauth2/profile if user is logged in but hasn't set phone
+API handler should not return a value, received object.
+    ✔ should redirect back with code if user is logged in
+API handler should not return a value, received object.
+    ✔ should accept POST method and redirect back with code
+API handler should not return a value, received object.
+    ✔ should redirect back with code when PKCE S256 challenge is provided
+[OAuth2 IdP] PKCE code_challenge_method must be S256 undefined
+    ✔ should return 400 for code_challenge without code_challenge_method
+
+  OAuth2 /api/oauth2/logout API Endpoint
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST
+API handler should not return a value, received object.
+    ✔ should successfully log out and redirect to post_logout_redirect_uri when valid and client_id is provided
+API handler should not return a value, received object.
+    ✔ should successfully log out and redirect to post_logout_redirect_uri for secondary valid origin via client_id
+API handler should not return a value, received object.
+    ✔ should fallback to root path when client_id is not provided
+[OAuth2 IdP] post_logout_redirect_uri origin does not match allowed origin https://demo.yuantuapp.com
+API handler should not return a value, received object.
+    ✔ should fallback to root path when post_logout_redirect_uri origin does not match the specific client OAUTH2_REDIRECT_URIS
+[OAuth2 IdP] post_logout_redirect_uri origin does not match allowed origin https://evil.com
+API handler should not return a value, received object.
+    ✔ should fallback to root path when post_logout_redirect_uri origin does not match any OAUTH2_REDIRECT_URIS
+API handler should not return a value, received object.
+    ✔ should log out and redirect to root when post_logout_redirect_uri is missing
+API handler should not return a value, received object.
+    ✔ should use secure cookies if NEXTAUTH_URL is https
+API handler should not return a value, received object.
+    ✔ should clear non-secure cookies when protocol is HTTP and NEXTAUTH_URL is undefined
+API handler should not return a value, received object.
+    ✔ should clear non-secure cookies when protocol is HTTP
+
+  OAuth2 tokenHandler
+[OAuth2 IdP] Method GET Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than POST
+[OAuth2 IdP] OAuth2 Provider not configured.
+    ✔ should return 500 if provider is not configured
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should return 401 if client is invalid but provider is configured
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should authenticate client via body
+[OAuth2 IdP] Invalid client_id wrong-client
+    ✔ should authenticate client via Basic Auth header
+[OAuth2 IdP] Mismatching redirect_uri https://evil.com https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri
+[OAuth2 IdP] Only 'authorization_code' is supported password
+    ✔ should return 400 for unsupported grant_type
+[OAuth2 IdP] Missing code
+    ✔ should return 400 for missing code
+    ✔ should successfully exchange code for tokens without PKCE
+[OAuth2 IdP] Invalid client_id undefined
+    ✔ should fail if client_id or client_secret is undefined
+[OAuth2 IdP] Mismatching redirect_uri in payload https://another.example.com/callback https://app.example.com/callback
+    ✔ should return 400 for mismatching redirect_uri in code payload
+[OAuth2 IdP] Authorization code already used eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..VOTMO7EHFdlkQIjE.ohz0GvYM6skv1pxZlE_UDoCPW6-zzmLOWWzxaGQQ_ipaeOsGiID8tyIDZXtwn36cxovW4DpGjND_LAVO7nyPOL2CcFmdGIAS3U2Ttjy82ElJPSX7Pgkq9x07SGyNGMfswH6vTCXN2cV5J6f1Hcvqk5u4IcJXYurlit59JS4uMRiOvHtNwmqgYt7vd4PcjsMaGUXAE59IvyHwIMNC1WPFBlX-yYfteTCvqEIp.jJD-dzThPbev7MZp056Mqg
+    ✔ should fail to reuse the same code
+    ✔ should successfully exchange code with PKCE
+[OAuth2 IdP] Invalid code_verifier ZugODcX1jSZ8ehrZTQtS5NEW5sILxakqdD2YByJ-xH4 SBN35pn3-u_HJilReMoo7oew0RsE-QjENC6c9m4MA08
+    ✔ should fail exchange if PKCE verifier is wrong
+[OAuth2 IdP] Invalid token type, expected authorization code access
+    ✔ should fail if code type is not 'code' (JWT Type Confusion prevention)
+[OAuth2 IdP] Invalid or expired authorization code JWTExpired: "exp" claim timestamp check failed
+    at validateClaimsSet (file:///app/node_modules/jose/dist/webapi/lib/jwt_claims_set.js:155:19)
+    at Object.jwtDecrypt (file:///app/node_modules/jose/dist/webapi/jwt/decrypt.js:6:21) {
+  code: 'ERR_JWT_EXPIRED',
+  claim: 'exp',
+  reason: 'check_failed',
+  payload: {
+    type: 'code',
+    jti: 'aa7f439c-fbd9-4aed-9f9e-d6d47f78e243',
+    userId: 'user-123',
+    clientId: 'test-client',
+    redirectUri: 'https://app.example.com/callback',
+    exp: 1786764425
+  },
+  [cause]: {
+    claim: 'exp',
+    reason: 'check_failed',
+    payload: {
+      type: 'code',
+      jti: 'aa7f439c-fbd9-4aed-9f9e-d6d47f78e243',
+      userId: 'user-123',
+      clientId: 'test-client',
+      redirectUri: 'https://app.example.com/callback',
+      exp: 1786764425
+    }
+  }
+}
+    ✔ should reject an expired authorization code
+[OAuth2 IdP] Code issued for a different client other-client test-client
+    ✔ should reject a code issued for a different client
+[OAuth2 IdP] Missing code_verifier for PKCE
+    ✔ should return 400 for missing code_verifier when PKCE is required
+    ✔ should include correct standard claims in the id_token
+    ✔ should authenticate client via Basic Auth with valid credentials
+
+  OAuth2 userinfoHandler
+[OAuth2 IdP] Method PUT Not Allowed
+API handler should not return a value, received object.
+    ✔ should return 405 for methods other than GET or POST
+[OAuth2 IdP] Missing or invalid Authorization header
+    ✔ should return 401 if missing Authorization header
+[OAuth2 IdP] Missing or invalid Authorization header
+    ✔ should return 401 if Authorization header is invalid
+[OAuth2 IdP] Invalid or expired token JWEInvalid: Invalid Compact JWE
+    at compactDecrypt (file:///app/node_modules/jose/dist/webapi/jwe/compact/decrypt.js:13:15)
+    at Object.jwtDecrypt (file:///app/node_modules/jose/dist/webapi/jwt/decrypt.js:5:29)
+    at /app/src/api/oauth2/utils.ts:135:40
+    at Generator.next (<anonymous>)
+    at /app/src/api/oauth2/utils.ts:41:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/api/oauth2/utils.ts:37:12)
+    at decryptPayload (/app/src/api/oauth2/utils.ts:133:12)
+    at /app/src/pages/api/oauth2/userinfo.ts:39:56
+    at Generator.next (<anonymous>)
+    at /app/src/pages/api/oauth2/userinfo.ts:8:71
+    at new Promise (<anonymous>)
+    at __awaiter (/app/src/pages/api/oauth2/userinfo.ts:4:12)
+    at resolver (/app/src/pages/api/oauth2/userinfo.ts:20:12)
+    at apiResolver (/app/node_modules/next/src/server/api-utils/node/api-resolver.ts:430:34)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  code: 'ERR_JWE_INVALID'
+}
+    ✔ should return 401 for an invalid access token
+[OAuth2 IdP] Invalid token type, expected access token code
+    ✔ should return 401 for JWT Type Confusion (using authorization code as access token)
+[OAuth2 IdP] Invalid client_id in token wrong-client
+    ✔ should return 401 if access token is for wrong client
+[OAuth2 IdP] User not found user-123
+    ✔ should return 404 if user is not found in database
+    ✔ should return correct userinfo for valid access token
+    ✔ should accept POST method with a valid access token
+[OAuth2 IdP] Invalid or expired token JWTExpired: "exp" claim timestamp check failed
+    at validateClaimsSet (file:///app/node_modules/jose/dist/webapi/lib/jwt_claims_set.js:155:19)
+    at Object.jwtDecrypt (file:///app/node_modules/jose/dist/webapi/jwt/decrypt.js:6:21) {
+  code: 'ERR_JWT_EXPIRED',
+  claim: 'exp',
+  reason: 'check_failed',
+  payload: {
+    type: 'access',
+    jti: 'e48a1787-549c-448e-bf57-d403fd461a07',
+    userId: 'user-123',
+    clientId: 'test-client',
+    exp: 1786764425
+  },
+  [cause]: {
+    claim: 'exp',
+    reason: 'check_failed',
+    payload: {
+      type: 'access',
+      jti: 'e48a1787-549c-448e-bf57-d403fd461a07',
+      userId: 'user-123',
+      clientId: 'test-client',
+      exp: 1786764425
+    }
+  }
+}
+    ✔ should return 401 for an expired access token
+
+  sanitizeCallbackUrl
+    ✔ should return the URL if it is a safe relative path
+    ✔ should return '/' if the URL is null, undefined, or empty
+    ✔ should return '/' if the URL is an absolute URL
+    ✔ should return '/' if the URL starts with '//' or '/\'
+    ✔ should return '/' if the URL is a javascript: URL
+
+  Exams Requirements
+    isExamExpired
+      ✔ should return true if lastPassed is undefined
+      ✔ should return true if lastPassed is strictly older than expiryDays
+      ✔ should return false if lastPassed is newer than expiryDays
+      ✔ should work correctly with custom expiryDays
+    isExamAboutToExpire
+      ✔ should return true if lastPassed is undefined
+      ✔ should return true if lastPassed is within the 30-day about to expire window
+      ✔ should return false if lastPassed is not about to expire (safely valid)
+      ✔ should return true if the exam has already expired
+
+  calculateExamsRequired
+    ✔ should return undefined for all if state is undefined
+    ✔ should return false for all if exams feature is disabled
+    ✔ should require exams if state is empty and exams enabled
+    ✔ should not require exams if passed recently and exams enabled
+    ✔ should require comms/handbook exams after default expiry days
+    ✔ should require interview exam after interview expiry days
+
+  generateAnonymousId
+    ✔ should generate a 6-character ID with acceptance year prefix and hyphen
+    ✔ should generate consistent IDs for the same inputs
+    ✔ should generate different IDs for different users with same year
+    ✔ should handle null acceptance year with default 00
+    ✔ should handle different year formats correctly
+    ✔ should always generate 3-digit hash with leading zeros if needed
+
+  Group Authorization
+    isPermittedToAccessGroupHistory
+      ✔ should allow a user with the GroupAdmin role to access group history
+      ✔ should allow a user in the group to access group history
+      ✔ should not allow a user without the GroupAdmin role and not in the group to access group history
+    isPermittedToAccessGroup
+      ✔ should allow any user to access a public group
+      ✔ should allow a GroupAdmin to access a private group
+      ✔ should allow a group member to access a private group
+      ✔ should not allow a non-member without GroupAdmin role to access a private group
+
+  Mentorship
+    isEnded
+      ✔ should return false if endsAt is null
+      ✔ should return false if endsAt is in the future (Date)
+      ✔ should return true if endsAt is in the past (Date)
+      ✔ should return false if endsAt is in the future (moment string)
+      ✔ should return true if endsAt is in the past (moment string)
+      ✔ should handle current date edge case
+
+  replaceUrlParam
+    ✔ should add a new query parameter to an existing query
+    ✔ should update an existing query parameter
+    ✔ should add a query parameter when the query is empty
+
+  Role Authorization - isPermitted
+    ✔ should return true when permitted is undefined
+    ✔ should return true when permitted is a single string and user has the role
+    ✔ should return false when permitted is a single string and user does not have the role
+    ✔ should return true when permitted is an array of roles and user has one of the roles
+    ✔ should return true when permitted is an array of roles and user has multiple roles in the array
+    ✔ should return false when permitted is an array of roles and user has none of the roles
+    ✔ should return false when permitted is an empty array
+
+  diffInMinutes
+    ✔ should calculate difference correctly with Date objects
+    ✔ should calculate difference correctly with DateColumn strings
+    ✔ should handle mixed Date and DateColumn inputs
+    ✔ should return negative values when 'to' is before 'from'
+    ✔ should return zero when 'from' and 'to' are exactly the same
+    ✔ should round to the nearest minute
+    ✔ should handle date boundaries correctly
+
+  isValidEmail
+    ✔ should return true for valid standard emails
+    ✔ should return false for invalid emails missing parts
+    ✔ should return false for emails with spaces
+    ✔ should return false for missing @ or domain parts
+
+  isValidPassword
+    ✔ should return false for empty string
+    ✔ should return false for passwords shorter than 8 characters
+    ✔ should return true for passwords with exactly 8 characters
+    ✔ should return true for passwords longer than 8 characters but less than 80
+    ✔ should return false for passwords with exactly 80 characters
+    ✔ should return false for passwords longer than 80 characters
+
+  isValidPhone
+    ✔ should return true for valid Chinese phone numbers starting with +86
+    ✔ should return false for invalid Chinese phone numbers starting with +86
+    ✔ should return false for phone numbers that do not start with +
+    ✔ should return true for international phone numbers starting with + and at least 8 characters long
+    ✔ should return false for international phone numbers starting with + but less than 8 characters long
+
+  parseQueryString
+    ✔ should return the string if the query parameter is a string
+    ✔ should return undefined if the query parameter is undefined
+    ✔ should return undefined if the query parameter is an array of strings
+
+  Summary computeDeletion
+    ✔ should detect no deletions for identical strings
+    ✔ should detect no deletions when only additions are made
+    ✔ should detect deletions and allow if within maxDeletionRatio (<= 20%)
+    ✔ should detect deletions and disallow if exceeding maxDeletionRatio (> 20%)
+    ✔ should ignore case when computing deletions
+    ✔ should accumulate deletedLength properly and disallow if total exceeds ratio
+    ✔ should allow accumulated deletions if total is within ratio
+
+  isTraitsComplete
+    ✔ should return false when traits is undefined
+    ✔ should return false when traits is an empty object
+    ✔ should return false when traits is a partial object
+    ✔ should return true when traits is a complete object without 其他
+    ✔ should return true when traits is a complete object with 其他
+
+
+  219 passing (836ms)
+  102 failing
+
+  1) adapter
+       "before each" hook for "should create a wechat user":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/auth/adapter.test.ts:23:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/auth/adapter.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/auth/adapter.test.ts:4:12)
+      at Context.<anonymous> (src/api/auth/adapter.test.ts:22:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  2) adapter
+       "after each" hook for "should create a wechat user":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/auth/adapter.test.ts:26:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/auth/adapter.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/auth/adapter.test.ts:4:12)
+      at Context.<anonymous> (src/api/auth/adapter.test.ts:25:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  3) Auth Providers
+       id-password provider
+         should authorize successfully with correct credentials:
+
+      AssertionError: expected 'this.lib.Database is not a constructor' to equal 'ROLLBACK_FOR_TEST'
+      + expected - actual
+
+      -this.lib.Database is not a constructor
+      +ROLLBACK_FOR_TEST
+
+      at /app/src/api/auth/providers.test.ts:104:114
+      at Generator.throw (<anonymous>)
+      at rejected (src/api/auth/providers.test.ts:39:65)
+
+  4) Auth Providers
+       id-password provider
+         should fail authorization with incorrect password:
+
+      AssertionError: expected 'this.lib.Database is not a constructor' to equal 'ROLLBACK_FOR_TEST'
+      + expected - actual
+
+      -this.lib.Database is not a constructor
+      +ROLLBACK_FOR_TEST
+
+      at /app/src/api/auth/providers.test.ts:137:114
+      at Generator.throw (<anonymous>)
+      at rejected (src/api/auth/providers.test.ts:39:65)
+
+  5) Auth Providers
+       id-token provider
+         should return an existing user if one exists for the token:
+
+      AssertionError: expected 'this.lib.Database is not a constructor' to equal 'ROLLBACK_FOR_TEST'
+      + expected - actual
+
+      -this.lib.Database is not a constructor
+      +ROLLBACK_FOR_TEST
+
+      at /app/src/api/auth/providers.test.ts:186:114
+      at Generator.throw (<anonymous>)
+      at rejected (src/api/auth/providers.test.ts:39:65)
+
+  6) Auth Providers
+       id-token provider
+         should create and return a new user if one does not exist for the token:
+
+      AssertionError: expected 'this.lib.Database is not a constructor' to equal 'ROLLBACK_FOR_TEST'
+      + expected - actual
+
+      -this.lib.Database is not a constructor
+      +ROLLBACK_FOR_TEST
+
+      at /app/src/api/auth/providers.test.ts:222:114
+      at Generator.throw (<anonymous>)
+      at rejected (src/api/auth/providers.test.ts:39:65)
+
+  7) checkAndDeleteIdToken
+       "before each" hook for "should successfully validate and delete token for phone":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/checkAndDeleteIdToken.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/checkAndDeleteIdToken.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/checkAndDeleteIdToken.test.ts:4:12)
+      at Context.<anonymous> (src/api/checkAndDeleteIdToken.test.ts:26:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  8) checkAndDeleteIdToken
+       "after each" hook for "should successfully validate and delete token for phone":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/checkAndDeleteIdToken.test.ts:30:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/checkAndDeleteIdToken.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/checkAndDeleteIdToken.test.ts:4:12)
+      at Context.<anonymous> (src/api/checkAndDeleteIdToken.test.ts:29:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  9) notify()
+       "before each" hook for "should catch and log synchronous errors from sequelize.transaction without throwing":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/notify.test.ts:122:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/notify.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/notify.test.ts:37:12)
+      at Context.<anonymous> (src/api/notify.test.ts:121:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  10) notify()
+       "after each" hook for "should catch and log synchronous errors from sequelize.transaction without throwing":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/notify.test.ts:136:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/notify.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/notify.test.ts:37:12)
+      at Context.<anonymous> (src/api/notify.test.ts:135:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  11) assessments
+       "before each" hook for "should successfully create an assessment":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/assessments.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/assessments.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/assessments.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/assessments.test.ts:26:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  12) assessments
+       "after each" hook for "should successfully create an assessment":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/assessments.test.ts:51:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/assessments.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/assessments.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/assessments.test.ts:50:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  13) getCalibrationAndCheckPermissionSafe
+       "before each" hook for "should allow participants access to active calibrations they are part of":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/calibrations.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/calibrations.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/calibrations.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/calibrations.test.ts:26:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  14) getCalibrationAndCheckPermissionSafe
+       "after each" hook for "should allow participants access to active calibrations they are part of":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/calibrations.test.ts:66:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/calibrations.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/calibrations.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/calibrations.test.ts:65:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  15) insertOneOnOneMessagePrefixImpl
+       "before each" hook for "should add one-on-one prefix to message markdown":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/chats.test.ts:23:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/chats.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/chats.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/chats.test.ts:22:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  16) insertOneOnOneMessagePrefixImpl
+       "after each" hook for "should add one-on-one prefix to message markdown":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/chats.test.ts:26:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/chats.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/chats.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/chats.test.ts:25:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  17) chatsInternal
+       "before each" hook for "should successfully create a room if it does not exist":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/chatsInternal.test.ts:24:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/chatsInternal.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/chatsInternal.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/chatsInternal.test.ts:23:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  18) chatsInternal
+       "after each" hook for "should successfully create a room if it does not exist":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/chatsInternal.test.ts:27:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/chatsInternal.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/chatsInternal.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/chatsInternal.test.ts:26:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  19) checkAndComputeUserFields
+       "before each" hook for "should throw error for invalid email":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/checkAndComputeUserFields.test.ts:22:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/checkAndComputeUserFields.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/checkAndComputeUserFields.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/checkAndComputeUserFields.test.ts:21:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  20) checkAndComputeUserFields
+       "after each" hook for "should throw error for invalid email":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/checkAndComputeUserFields.test.ts:25:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/checkAndComputeUserFields.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/checkAndComputeUserFields.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/checkAndComputeUserFields.test.ts:24:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  21) cron
+       "before each" hook for "should throw BAD_REQUEST if token is invalid for cron routes":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/cron.test.ts:67:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/cron.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/cron.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/cron.test.ts:65:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  22) cron
+       "after each" hook for "should throw BAD_REQUEST if token is invalid for cron routes":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/cron.test.ts:92:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/cron.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/cron.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/cron.test.ts:90:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  23) generateDemoData
+       should successfully run and create records in the database:
+
+      AssertionError: expected 'this.lib.Database is not a constructor' to equal 'ROLLBACK_FOR_TEST'
+      + expected - actual
+
+      -this.lib.Database is not a constructor
+      +ROLLBACK_FOR_TEST
+
+      at /app/src/api/routes/generateDemoData.test.ts:41:52
+      at Generator.throw (<anonymous>)
+      at rejected (src/api/routes/generateDemoData.test.ts:6:65)
+
+  24) Global Configs Internal Functions
+       "before each" hook for "should return an empty object when no config exists in the database":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/globalConfigs.test.ts:22:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/globalConfigs.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/globalConfigs.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/globalConfigs.test.ts:21:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  25) Groups API Internal Functions
+       "before each" hook for "should create a group and associate users":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/groups.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/groups.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/groups.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/groups.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  26) Groups API Internal Functions
+       "after each" hook for "should create a group and associate users":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/groups.test.ts:44:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/groups.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/groups.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/groups.test.ts:43:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  27) sendImpl
+       "before each" hook for "should throw error for unsupported phone regions":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/idTokens.test.ts:63:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:62:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  28) sendImpl
+       "after each" hook for "should throw error for unsupported phone regions":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/idTokens.test.ts:69:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:68:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  29) setPhoneImpl
+       "before each" hook for "should update phone when existing user is not found":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/idTokens.test.ts:212:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:211:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  30) setPhoneImpl
+       "after each" hook for "should update phone when existing user is not found":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/idTokens.test.ts:216:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:215:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  31) resetPasswordImpl
+       "before each" hook for "should create new user if user does not exist":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/idTokens.test.ts:299:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:298:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  32) resetPasswordImpl
+       "after each" hook for "should create new user if user does not exist":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/idTokens.test.ts:302:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:301:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  33) setEmailImpl
+       "before each" hook for "should set email for the current user when no existing user has this email":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/idTokens.test.ts:489:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:488:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  34) setEmailImpl
+       "after each" hook for "should set email for the current user when no existing user has this email":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/idTokens.test.ts:492:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:491:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  35) updateMyPhoneAndPreference
+       "before each" hook for "should update phone for China phone numbers without disabling SMS":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/idTokens.test.ts:555:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:554:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  36) updateMyPhoneAndPreference
+       "after each" hook for "should update phone for China phone numbers without disabling SMS":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/idTokens.test.ts:558:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/idTokens.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/idTokens.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/idTokens.test.ts:557:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  37) interviewFeedbacks routes
+       "before each" hook for "should allow interviewer to access":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/interviewFeedbacks.test.ts:28:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/interviewFeedbacks.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/interviewFeedbacks.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/interviewFeedbacks.test.ts:27:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  38) interviews
+       "before each" hook for "`create` should create group":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/interviews.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/interviews.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/interviews.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/interviews.test.ts:26:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  39) interviews
+       "after each" hook for "`create` should create group":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/interviews.test.ts:30:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/interviews.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/interviews.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/interviews.test.ts:29:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  40) kudos routes
+       "before each" hook for "should list kudos for a specific user, sorted by createdAt in descending order":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/kudos.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/kudos.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/kudos.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/kudos.test.ts:26:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  41) Kudos Internal Functions
+       "before each" hook for "should successfully create a 'like' and increment receiver's likes count":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/kudosInternal.test.ts:24:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/kudosInternal.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/kudosInternal.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/kudosInternal.test.ts:23:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  42) Map Router
+       "before each" hook for "should successfully create a landmark assessment":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/map.test.ts:23:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/map.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/map.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/map.test.ts:22:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  43) match.ts
+       applyInitialSolverOutputImpl
+         "before each" hook for "should create transactional mentorship and match feedback successfully":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/match.test.ts:24:53
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/match.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/match.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/match.test.ts:23:26)
+      at processImmediate (node:internal/timers:484:21)
+
+  44) match.ts
+       applyInitialSolverOutputImpl
+         "after each" hook for "should create transactional mentorship and match feedback successfully":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/match.test.ts:27:31
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/match.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/match.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/match.test.ts:26:25)
+      at processImmediate (node:internal/timers:484:21)
+
+  45) matchFeedback routes
+       "before each" hook for "should return the latest Mentee match feedback":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/matchFeedback.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/matchFeedback.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/matchFeedback.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/matchFeedback.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  46) recycleMeetings
+       "before each" hook for "should call notifyRolesIgnoreError when createRecurringMeeting throws a generic error":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/meetings.test.ts:62:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/meetings.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/meetings.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/meetings.test.ts:61:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  47) refreshMeetingSlots
+       "before each" hook for "should ignore meetings created within the grace period":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/meetings.test.ts:118:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/meetings.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/meetings.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/meetings.test.ts:117:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  48) refreshMeetingSlots
+       "after each" hook for "should ignore meetings created within the grace period":
+     TypeError: Cannot read properties of undefined (reading 'restore')
+      at /app/src/api/routes/meetings.test.ts:124:15
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/meetings.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/meetings.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/meetings.test.ts:123:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  49) meetings API
+       "before each" hook for "should throw notFoundError if group is not found":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/meetings.test.ts:193:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/meetings.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/meetings.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/meetings.test.ts:192:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  50) downloadMenteeDataImpl
+       "before each" hook for "should generate complete ZIP package with all mentee data":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/menteeData.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/menteeData.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/menteeData.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/menteeData.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  51) downloadMenteeDataImpl
+       "after each" hook for "should generate complete ZIP package with all mentee data":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/menteeData.test.ts:28:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/menteeData.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/menteeData.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/menteeData.test.ts:27:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  52) Mentor Bookings Router
+       "before each" hook for "should successfully create a mentor booking and notify roles":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/mentorBookings.test.ts:63:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorBookings.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorBookings.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorBookings.test.ts:62:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  53) mentorSelections routes
+       "before each" hook for "should successfully create a draft batch and selection for a mentor":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/mentorSelections.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorSelections.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorSelections.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/mentorSelections.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  54) createMentorship
+       "before each" hook for "should successfully create a mentorship and associated group":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/mentorships.test.ts:60:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:59:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  55) createMentorship
+       "after each" hook for "should successfully create a mentorship and associated group":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/mentorships.test.ts:63:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:62:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  56) updateMentorship
+       "before each" hook for "should successfully update a mentorship":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/mentorships.test.ts:114:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:113:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  57) updateMentorship
+       "after each" hook for "should successfully update a mentorship":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/mentorships.test.ts:125:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:124:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  58) auditLastMentorshipMeetings
+       "before each" hook for "should call notify with correct parameters when mentorship has old one-on-one meeting":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/mentorships.test.ts:167:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:166:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  59) auditLastMentorshipMeetings
+       "after each" hook for "should call notify with correct parameters when mentorship has old one-on-one meeting":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/mentorships.test.ts:173:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/mentorships.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/mentorships.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/mentorships.test.ts:172:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  60) orgs API routes
+       "before each" hook for "should list all orgs the user is a mentor of in alphabetical order":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/orgs.test.ts:22:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/orgs.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/orgs.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/orgs.test.ts:21:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  61) orgs API routes
+       "after each" hook for "should list all orgs the user is a mentor of in alphabetical order":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/orgs.test.ts:25:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/orgs.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/orgs.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/orgs.test.ts:24:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  62) pearlStudents API routes
+       validateImpl
+         "before each" hook for "should successfully validate a matching pearl student and update user fields":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/pearlStudents.test.ts:26:53
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/pearlStudents.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/pearlStudents.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/pearlStudents.test.ts:25:26)
+      at processImmediate (node:internal/timers:484:21)
+
+  63) Project Applications Route Impl
+       "before each" hook for "should list applications for project owner":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/projectApplications.test.ts:23:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/projectApplications.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/projectApplications.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/projectApplications.test.ts:22:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  64) Project Applications Route Impl
+       "after each" hook for "should list applications for project owner":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/projectApplications.test.ts:26:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/projectApplications.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/projectApplications.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/projectApplications.test.ts:25:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  65) Projects Route Impl
+       "before each" hook for "should return public/open projects when me is undefined":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/projects.test.ts:24:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/projects.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/projects.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/projects.test.ts:23:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  66) Projects Route Impl
+       "after each" hook for "should return public/open projects when me is undefined":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/projects.test.ts:27:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/projects.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/projects.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/projects.test.ts:26:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  67) purgeOldData
+       "before each" hook for "should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/purgeOldData.test.ts:22:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/purgeOldData.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/purgeOldData.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/purgeOldData.test.ts:21:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  68) purgeOldData
+       "after each" hook for "should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/purgeOldData.test.ts:25:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/purgeOldData.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/purgeOldData.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/purgeOldData.test.ts:24:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  69) saveSummary
+       "before each" hook for "should return false if summary does not exist":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/saveSummary.test.ts:23:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/saveSummary.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/saveSummary.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/saveSummary.test.ts:22:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  70) saveSummary
+       "after each" hook for "should return false if summary does not exist":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/saveSummary.test.ts:26:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/saveSummary.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/saveSummary.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/saveSummary.test.ts:25:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  71) scheduledNotifications
+       "before each" hook for "should successfully schedule a new notification":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/scheduledNotifications.test.ts:60:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/scheduledNotifications.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/scheduledNotifications.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/scheduledNotifications.test.ts:59:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  72) scheduledNotifications
+       "after each" hook for "should successfully schedule a new notification":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/scheduledNotifications.test.ts:63:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/scheduledNotifications.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/scheduledNotifications.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/scheduledNotifications.test.ts:62:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  73) summaries
+       "before each" hook for "should successfully create a Transcript and create a Summary":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/summaries.test.ts:62:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/summaries.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/summaries.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/summaries.test.ts:61:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  74) summaries
+       "after each" hook for "should successfully create a Transcript and create a Summary":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/summaries.test.ts:65:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/summaries.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/summaries.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/summaries.test.ts:64:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  75) downloadSummaries functions
+       "before each" hook for "findMissingSummariesforTmUser should filter ready records and map to descriptors":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/summaries.test.ts:238:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/summaries.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/summaries.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/summaries.test.ts:237:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  76) downloadSummaries functions
+       "after each" hook for "findMissingSummariesforTmUser should filter ready records and map to descriptors":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/summaries.test.ts:242:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/summaries.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/summaries.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/summaries.test.ts:240:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  77) Tasks Route Impl
+       "before each" hook for "should create a new auto task and schedule notification if it does not exist":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/tasks.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/tasks.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/tasks.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/tasks.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  78) transcripts
+       "before each" hook for "should return the transcripts for a group when the user has permission":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/transcripts.test.ts:24:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/transcripts.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/transcripts.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/transcripts.test.ts:23:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  79) transcripts
+       "after each" hook for "should return the transcripts for a group when the user has permission":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/transcripts.test.ts:27:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/transcripts.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/transcripts.test.ts:4:12)
+      at Context.<anonymous> (src/api/routes/transcripts.test.ts:26:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  80) updateWechatUnionId
+       "before each" hook for "should delete accounts table rows for both old and new wechatUnionIds":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:82:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:81:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  81) updateImpl
+       "before each" hook for "should throw notFoundError when user doesn't exist":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:179:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:178:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  82) updateImpl
+       "after each" hook for "should throw notFoundError when user doesn't exist":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/users.test.ts:194:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:193:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  83) setMyStateImpl
+       "before each" hook for "should restrict exam field updates and allow whitelisted fields":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:318:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:317:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  84) setMyStateImpl
+       "after each" hook for "should restrict exam field updates and allow whitelisted fields":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/users.test.ts:326:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:325:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  85) listImpl
+       "before each" hook for "should enforce limit and return nextCursor":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:350:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:349:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  86) listImpl
+       "after each" hook for "should enforce limit and return nextCursor":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/routes/users.test.ts:353:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:352:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  87) listMentorsImpl
+       "before each" hook for "should return mentors and calculate relational property based on mentorship count and transactional role":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:759:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:758:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  88) listMentorsImpl
+       "after each" hook for "should return mentors and calculate relational property based on mentorship count and transactional role":
+     TypeError: Cannot read properties of undefined (reading 'restore')
+      at /app/src/api/routes/users.test.ts:763:37
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:762:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  89) listMentorStatsImpl
+       "before each" hook for "should return mentors stats and sort by Chinese name":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/routes/users.test.ts:812:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:811:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  90) listMentorStatsImpl
+       "after each" hook for "should return mentors stats and sort by Chinese name":
+     TypeError: Cannot read properties of undefined (reading 'restore')
+      at /app/src/api/routes/users.test.ts:816:37
+      at Generator.next (<anonymous>)
+      at /app/src/api/routes/users.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/routes/users.test.ts:37:12)
+      at Context.<anonymous> (src/api/routes/users.test.ts:815:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  91) ustcStudents.validate
+       should validate and update user:
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at /app/node_modules/sequelize/src/sequelize.js:638:111
+      at /app/node_modules/retry-as-promised/dist/index.js:65:25
+      at new Promise (<anonymous>)
+      at retryAsPromised (node_modules/retry-as-promised/dist/index.js:54:12)
+      at Sequelize.query (node_modules/sequelize/src/sequelize.js:631:12)
+      at SQLiteQueryInterface.insert (node_modules/sequelize/src/dialects/abstract/query-interface.js:795:42)
+      at User.save (node_modules/sequelize/src/model.js:4154:73)
+      at Function.create (node_modules/sequelize/src/model.js:2305:12)
+
+  92) ustcStudents.validate
+       should throw error if email does not end with @mail.ustc.edu.cn:
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at /app/node_modules/sequelize/src/sequelize.js:638:111
+      at /app/node_modules/retry-as-promised/dist/index.js:65:25
+      at new Promise (<anonymous>)
+      at retryAsPromised (node_modules/retry-as-promised/dist/index.js:54:12)
+      at Sequelize.query (node_modules/sequelize/src/sequelize.js:631:12)
+      at SQLiteQueryInterface.insert (node_modules/sequelize/src/dialects/abstract/query-interface.js:795:42)
+      at User.save (node_modules/sequelize/src/model.js:4154:73)
+      at Function.create (node_modules/sequelize/src/model.js:2305:12)
+
+  93) ustcStudents.validate
+       should keep existing menteeStatus if it is already set:
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at /app/node_modules/sequelize/src/sequelize.js:638:111
+      at /app/node_modules/retry-as-promised/dist/index.js:65:25
+      at new Promise (<anonymous>)
+      at retryAsPromised (node_modules/retry-as-promised/dist/index.js:54:12)
+      at Sequelize.query (node_modules/sequelize/src/sequelize.js:631:12)
+      at SQLiteQueryInterface.insert (node_modules/sequelize/src/dialects/abstract/query-interface.js:795:42)
+      at User.save (node_modules/sequelize/src/model.js:4154:73)
+      at Function.create (node_modules/sequelize/src/model.js:2305:12)
+
+  94) submitApplication
+       "before each" hook for "should submit mentee application":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/webhooks/jinshuju/application.test.ts:201:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/application.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/application.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/application.test.ts:200:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  95) exam webhook
+       "before each" hook for "should update user state and mark comms exam task as done":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/webhooks/jinshuju/exam.test.ts:27:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/exam.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/exam.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/exam.test.ts:25:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  96) jinshuju webhook index
+       "before each" hook for "should route MenteeApp forms":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/webhooks/jinshuju/index.test.ts:66:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/index.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/index.test.ts:37:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/index.test.ts:64:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  97) jinshuju webhook index
+       "after each" hook for "should route MenteeApp forms":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/webhooks/jinshuju/index.test.ts:78:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/index.test.ts:41:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/index.test.ts:37:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/index.test.ts:76:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  98) Project Applications Webhook
+       "before each" hook for "should create a project application":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/webhooks/jinshuju/projectApplication.test.ts:25:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/projectApplication.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/projectApplication.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/projectApplication.test.ts:24:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  99) Project Applications Webhook
+       "after each" hook for "should create a project application":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/webhooks/jinshuju/projectApplication.test.ts:28:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/projectApplication.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/projectApplication.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/projectApplication.test.ts:27:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  100) upload webhook
+       "before each" hook for "should fail if # urls isn't one":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/api/webhooks/jinshuju/upload.test.ts:30:49
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/upload.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/upload.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/upload.test.ts:27:22)
+      at processImmediate (node:internal/timers:484:21)
+
+  101) upload webhook
+       "after each" hook for "should fail if # urls isn't one":
+     TypeError: Cannot read properties of undefined (reading 'rollback')
+      at /app/src/api/webhooks/jinshuju/upload.test.ts:39:27
+      at Generator.next (<anonymous>)
+      at /app/src/api/webhooks/jinshuju/upload.test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/api/webhooks/jinshuju/upload.test.ts:4:12)
+      at Context.<anonymous> (src/api/webhooks/jinshuju/upload.test.ts:36:21)
+      at processImmediate (node:internal/timers:484:21)
+
+  102) nextauth jwt callback
+       "before each" hook for "should return token immediately if impersonate is undefined":
+     TypeError: this.lib.Database is not a constructor
+      at connection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:74:60)
+      at new Promise (<anonymous>)
+      at ConnectionManager.getConnection (node_modules/sequelize/src/dialects/sqlite/connection-manager.js:73:30)
+      at Transaction.prepareEnvironment (node_modules/sequelize/src/transaction.js:122:60)
+      at Sequelize.transaction (node_modules/sequelize/src/sequelize.js:1187:25)
+      at /app/src/pages/api/auth/[...nextauth].test.ts:24:49
+      at Generator.next (<anonymous>)
+      at /app/src/pages/api/auth/[...nextauth].test.ts:8:71
+      at new Promise (<anonymous>)
+      at __awaiter (src/pages/api/auth/[...nextauth].test.ts:4:12)
+      at Context.<anonymous> (src/pages/api/auth/[...nextauth].test.ts:23:22)
+      at processImmediate (node:internal/timers:484:21)
+
+
+
+error Command failed with exit code 102.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

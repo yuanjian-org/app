@@ -135,6 +135,7 @@
     "prettier": "^3.8.1",
     "regenerator-runtime": "^0.14.1",
     "sinon": "^21.0.3",
+    "sqlite3": "^6.0.1",
     "supertest": "^7.2.2",
     "testdouble": "^3.20.2",
     "ts-node": "^10.9.2",
