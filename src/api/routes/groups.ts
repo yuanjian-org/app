@@ -121,23 +121,18 @@ async function getGroupWithIdOnly(groupId: string, transaction?: Transaction) {
   return group;
 }
 
-export async function destroyGroup(groupId: string, transaction?: Transaction) {
+export async function destroyGroup(groupId: string, transaction: Transaction) {
   const g = await getGroupWithIdOnly(groupId, transaction);
-  if (transaction) {
-    await g.destroy({ transaction });
-  } else {
-    // Need a transaction for cascading destroys
-    await sequelize.transaction(
-      async (t) => await g.destroy({ transaction: t }),
-    );
-  }
+  await g.destroy({ transaction });
 }
 
 const destroy = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    await destroyGroup(input.groupId);
+    await sequelize.transaction(async (t) => {
+      await destroyGroup(input.groupId, t);
+    });
   });
 
 export async function archiveGroup(groupId: string, transaction?: Transaction) {
