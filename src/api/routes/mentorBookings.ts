@@ -82,7 +82,7 @@ export async function createMentorBooking(
   );
 }
 
-export async function listMentorBookings(transaction?: Transaction) {
+export async function listMentorBookings(transaction: Transaction) {
   return await db.MentorBooking.findAll({
     attributes: mentorBookingAttributes,
     include: mentorBookingInclude,
@@ -94,7 +94,9 @@ const list = procedure
   .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(z.array(zMentorBooking))
   .query(async () => {
-    return await listMentorBookings();
+    return await sequelize.transaction(async (transaction) => {
+      return await listMentorBookings(transaction);
+    });
   });
 
 export async function updateMentorBooking(
@@ -102,7 +104,7 @@ export async function updateMentorBooking(
   id: string,
   notes: string | null,
   assignedMentorId: string | null,
-  transaction?: Transaction,
+  transaction: Transaction,
 ) {
   const [cnt] = await db.MentorBooking.update(
     {
