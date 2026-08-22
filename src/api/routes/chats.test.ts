@@ -123,7 +123,7 @@ describe("chats tests", () => {
   describe("getLastMessageCreatedAtImpl", () => {
     it("should return null if room does not exist", async () => {
       const res = await getLastMessageCreatedAtImpl(uuidv4(), "", transaction);
-      expect(res).to.be.null;
+      void expect(res).to.be.null;
     });
 
     it("should return correct max createdAt when messages exist", async () => {
@@ -159,8 +159,8 @@ describe("chats tests", () => {
       );
 
       const res = await getLastMessageCreatedAtImpl(mentee.id, "", transaction);
-      expect(res).to.not.be.null;
-      expect(moment(res).isAfter(old)).to.be.true;
+      void expect(res).to.not.be.null;
+      void expect(moment(res).isAfter(old)).to.be.true;
     });
 
     it("should handle prefix filtering", async () => {
@@ -185,7 +185,7 @@ describe("chats tests", () => {
         "PREFIX",
         transaction,
       );
-      expect(res).to.be.null;
+      void expect(res).to.be.null;
     });
   });
 
@@ -197,7 +197,7 @@ describe("chats tests", () => {
         uuidv4(),
         transaction,
       );
-      expect(res).to.be.null;
+      void expect(res).to.be.null;
     });
 
     it("should return max updatedAt ignoring current user messages", async () => {
@@ -240,9 +240,9 @@ describe("chats tests", () => {
         mentee.id,
         transaction,
       );
-      expect(res).to.not.be.null;
+      void expect(res).to.not.be.null;
       // Should match otherUser's message
-      expect(moment(res).isSame(moment(old))).to.be.true;
+      void expect(moment(res).isSame(moment(old))).to.be.true;
     });
   });
 
@@ -416,7 +416,7 @@ describe("chats tests", () => {
         undefined,
         transaction,
       );
-      expect(res).to.be.null;
+      void expect(res).to.be.null;
     });
 
     it("should save and get draft correctly using roomId", async () => {
