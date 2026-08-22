@@ -82,15 +82,40 @@ export async function createMentorBooking(
   );
 }
 
+export async function listMentorBookings(transaction: Transaction) {
+  return await db.MentorBooking.findAll({
+    attributes: mentorBookingAttributes,
+    include: mentorBookingInclude,
+    transaction,
+  });
+}
+
 const list = procedure
   .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(z.array(zMentorBooking))
   .query(async () => {
-    return await db.MentorBooking.findAll({
-      attributes: mentorBookingAttributes,
-      include: mentorBookingInclude,
+    return await sequelize.transaction(async (transaction) => {
+      return await listMentorBookings(transaction);
     });
   });
+
+export async function updateMentorBooking(
+  me: User,
+  id: string,
+  notes: string | null,
+  assignedMentorId: string | null,
+  transaction: Transaction,
+) {
+  const [cnt] = await db.MentorBooking.update(
+    {
+      assignedMentorId,
+      notes,
+      updaterId: me.id,
+    },
+    { where: { id }, transaction },
+  );
+  if (!cnt) throw notFoundError("数据", id);
+}
 
 const update = procedure
   .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
@@ -102,15 +127,9 @@ const update = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { id, notes, assignedMentorId } }) => {
-    const [cnt] = await db.MentorBooking.update(
-      {
-        assignedMentorId,
-        notes,
-        updaterId: me.id,
-      },
-      { where: { id } },
-    );
-    if (!cnt) throw notFoundError("数据", id);
+    await sequelize.transaction(async (transaction) => {
+      await updateMentorBooking(me, id, notes, assignedMentorId, transaction);
+    });
   });
 
 export default router({
