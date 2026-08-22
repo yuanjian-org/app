@@ -10,7 +10,11 @@ import {
 import sequelize from "../database/sequelize";
 import { zChatRoom } from "../../shared/ChatRoom";
 import { Op, Transaction } from "sequelize";
-import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
+import {
+  zDateColumn,
+  zNullableDateColumn,
+  DateColumn,
+} from "../../shared/DateColumn";
 import moment from "moment";
 import { scheduleNotification } from "./scheduledNotifications";
 import {
@@ -96,7 +100,7 @@ const getLastMessageUpdatedAt = procedure
 export async function getLastMessageUpdatedAtImpl(
   me: User,
   menteeId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const room = await findRoom(menteeId, transaction);
   if (!room) return null;
@@ -130,7 +134,7 @@ const getLastReadAt = procedure
 export async function getLastReadAtImpl(
   me: User,
   menteeId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const room = await findRoom(menteeId, transaction);
   if (!room) return moment(0);
@@ -164,7 +168,7 @@ const setLastReadAt = procedure
 export async function setLastReadAtImpl(
   me: User,
   menteeId: string,
-  lastReadAt: Date | string,
+  lastReadAt: DateColumn,
   transaction: Transaction,
 ) {
   const room = await findRoom(menteeId, transaction);
@@ -288,7 +292,7 @@ const updateMessageCreationTime = procedure
 
 export async function updateMessageCreationTimeImpl(
   messageId: string,
-  createdAt: Date | string,
+  createdAt: DateColumn,
   transaction: Transaction,
 ) {
   const m = await db.ChatMessage.findByPk(messageId, {
@@ -318,8 +322,6 @@ const saveDraftMessage = procedure
   .mutation(async ({ ctx: { me }, input: { roomId, messageId, markdown } }) => {
     checkDraftMessageInput(roomId, messageId);
 
-    // Sequelize's upsert() doesn't work well when there are multiple unique
-    // constraints. So we do upsert manually.
     await sequelize.transaction(async (transaction) => {
       await saveDraftMessageImpl(me, markdown, transaction, roomId, messageId);
     });
@@ -332,6 +334,8 @@ export async function saveDraftMessageImpl(
   roomId?: string,
   messageId?: string,
 ) {
+  // Sequelize's upsert() doesn't work well when there are multiple unique
+  // constraints. So we do upsert manually.
   const condition = roomId === undefined ? { messageId } : { roomId };
   const cnt = await db.DraftChatMessage.count({
     where: {
