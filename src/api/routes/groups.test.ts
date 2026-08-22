@@ -5,7 +5,7 @@ import {
   destroyGroup,
   archiveGroup,
   unarchiveGroup,
-  listMineGroups,
+  listMyGroups,
   listGroups,
   getGroup,
   findGroups,
@@ -184,7 +184,7 @@ describe("Groups API Internal Functions", () => {
     });
   });
 
-  describe("listMineGroups", () => {
+  describe("listMyGroups", () => {
     it("should list groups for a user", async () => {
       const groupId1 = await createGroup(
         "Group 1",
@@ -208,7 +208,7 @@ describe("Groups API Internal Functions", () => {
         transaction,
       );
 
-      const myGroups = await listMineGroups(user1.id, false, transaction);
+      const myGroups = await listMyGroups(user1.id, false, transaction);
       expect(myGroups).to.have.lengthOf(2);
       const groupIds = myGroups.map((g) => g.id);
       expect(groupIds).to.include(groupId1);
@@ -233,10 +233,10 @@ describe("Groups API Internal Functions", () => {
         { transaction },
       );
 
-      let groups = await listMineGroups(user1.id, false, transaction);
+      let groups = await listMyGroups(user1.id, false, transaction);
       void expect(groups.find((x) => x.id === g.id)).to.be.undefined;
 
-      groups = await listMineGroups(user1.id, true, transaction);
+      groups = await listMyGroups(user1.id, true, transaction);
       void expect(groups.find((x) => x.id === g.id)).to.not.be.undefined;
     });
   });

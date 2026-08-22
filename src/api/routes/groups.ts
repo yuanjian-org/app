@@ -176,7 +176,7 @@ const whereUnowned = {
  * @param includeUnowned Whether to include unowned groups.
  * A group is unowned if and only if its partnershipId is null.
  */
-export async function listMineGroups(
+export async function listMyGroups(
   userId: string,
   includeOwned: boolean,
   transaction?: Transaction,
@@ -218,7 +218,7 @@ const listMine = procedure
   )
   .output(z.array(zGroup))
   .query(async ({ ctx: { me }, input }) => {
-    return await listMineGroups(me.id, input.includeOwned);
+    return await listMyGroups(me.id, input.includeOwned);
   });
 
 /**
