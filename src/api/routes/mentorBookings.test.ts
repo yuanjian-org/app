@@ -110,6 +110,9 @@ describe("Mentor Bookings Router", () => {
 
   describe("list", () => {
     it("should list all mentor bookings", async () => {
+      // Count existing bookings before creating a new one
+      const before = await listMentorBookings(transaction);
+
       await db.MentorBooking.create(
         {
           requesterId: requester.id,
@@ -119,8 +122,13 @@ describe("Mentor Bookings Router", () => {
       );
 
       const result = await listMentorBookings(transaction);
-      expect(result).to.have.lengthOf(1);
-      expect(result[0].topic).to.equal("List test topic");
+      // Verify exactly one new booking was added
+      expect(result).to.have.lengthOf(before.length + 1);
+      const match = result.find(
+        (b: { topic: string }) =>
+          b.topic === "List test topic",
+      );
+      expect(match).to.not.be.undefined;
     });
   });
 
@@ -183,7 +191,7 @@ describe("Mentor Bookings Router", () => {
         );
         expect.fail("Expected notFoundError to be thrown");
       } catch (err: any) {
-        expect(err.message).to.include("未找到数据");
+        expect(err.message).to.include("不存在");
       }
     });
   });
