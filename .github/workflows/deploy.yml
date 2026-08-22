@@ -93,6 +93,10 @@ jobs:
         push: true
         tags: ${{ vars.REMOTE_APP_IMAGE_BASE_NAME }}.${{ matrix.white_label }}:latest
         target: runner
+        # Disable OCI provenance attestations to avoid
+        # "unknown manifest class" errors on Aliyun's ACR Personal
+        # Edition, which doesn't support OCI manifests.
+        provenance: false
         build-args: |
           NEXT_PUBLIC_WHITE_LABEL=${{ matrix.white_label }}
         cache-from: type=gha,scope=docker-build-${{ matrix.white_label }}
