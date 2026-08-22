@@ -1001,14 +1001,15 @@ describe("listMentorsImpl", () => {
           name: "Mentor 1",
           roles: ["Mentor"],
           pinyin: "mentor 1",
-          preference: { mentor: { 最多匹配学生: 2, 学生特质: [] } },
+          // 学生特质 is optional; omit it to use a valid preference object
+          preference: { mentor: { 最多匹配学生: 2 } },
         },
         {
           id: "00000000-0000-0000-0000-000000000002",
           name: "Mentor 2",
           roles: ["Mentor"],
           pinyin: "mentor 2",
-          preference: { mentor: { 最多匹配学生: 1, 学生特质: [] } },
+          preference: { mentor: { 最多匹配学生: 1 } },
         },
         {
           id: "00000000-0000-0000-0000-000000000003",
@@ -1030,7 +1031,16 @@ describe("listMentorsImpl", () => {
       "00000000-0000-0000-0000-000000000002": 1,
     });
 
-    const res = await usersModule.listMentorsImpl(transaction);
+    const allRes = await usersModule.listMentorsImpl(transaction);
+
+    // Filter to only the users created in this test to avoid interference
+    // from pre-existing Mentor users in the database.
+    const testIds = new Set([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000003",
+    ]);
+    const res = allRes.filter((u: any) => testIds.has(u.user.id));
 
     expect(res.length).equals(3);
     const m1 = res.find(
@@ -1096,7 +1106,15 @@ describe("listMentorStatsImpl", () => {
       "00000000-0000-0000-0000-000000000001": 5, // Li Si has 5
     });
 
-    const res = await usersModule.listMentorStatsImpl(transaction);
+    const allRes = await usersModule.listMentorStatsImpl(transaction);
+
+    // Filter to only the users created in this test to avoid interference
+    // from pre-existing Mentor users in the database.
+    const testIds = new Set([
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+    ]);
+    const res = allRes.filter((u: any) => testIds.has(u.user.id));
 
     expect(res.length).equals(2);
 
