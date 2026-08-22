@@ -125,10 +125,9 @@ describe("Mentor Bookings Router", () => {
       // Verify exactly one new booking was added
       expect(result).to.have.lengthOf(before.length + 1);
       const match = result.find(
-        (b: { topic: string }) =>
-          b.topic === "List test topic",
+        (b: { topic: string }) => b.topic === "List test topic",
       );
-      expect(match).to.not.be.undefined;
+      expect(match).to.not.equal(undefined);
     });
   });
 
