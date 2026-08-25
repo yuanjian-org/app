@@ -28,7 +28,6 @@ import { sectionSpacing } from "theme/metrics";
 import { toast } from "react-toastify";
 import { UserProfile } from "shared/UserProfile";
 import invariant from "shared/invariant";
-import { parseQueryString } from "shared/strings/parseQueryString";
 import { useRouter } from "next/router";
 import User, { getUserUrl, MinUser } from "shared/User";
 import { markdownSyntaxUrl } from "components/MarkdownSupport";
@@ -40,6 +39,7 @@ import FormHelperTextWithMargin from "components/FormHelperTextWithMargin";
 import getBaseUrl from "shared/getBaseUrl";
 import MenteeProfileFields from "components/MenteeProfileFields";
 import { useMyId, useMyRoles } from "useMe";
+import { useUserIdFromQuery } from "useUserIdFromQuery";
 import { useSession } from "next-auth/react";
 import { getEmbeddedFormUrl } from "pages/form";
 import Select from "react-select";
@@ -48,9 +48,8 @@ import { features } from "shared/Features";
 import T from "components/T";
 
 export default function Page() {
-  const queryUserId = parseQueryString(useRouter(), "userId");
+  const userId = useUserIdFromQuery();
   const myId = useMyId();
-  const userId = queryUserId === "me" ? myId : queryUserId;
   const { update: updateSession } = useSession();
   const enableOrgs = features.orgs;
 
