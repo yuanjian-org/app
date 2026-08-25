@@ -73,4 +73,22 @@ describe("formatMeetingMinutes", () => {
 
     expect(formatMeetingMinutes(input)).is.equal(expeted);
   });
+
+  it("should return empty string if no todos and summary is empty", () => {
+    const input = `会议摘要`;
+
+    const expected = ``;
+
+    expect(formatMeetingMinutes(input)).is.equal(expected);
+  });
+
+  it("should handle formatSummaryBlock with empty lines", () => {
+    const input = `会议摘要
+
+`;
+
+    const expected = ``;
+
+    expect(formatMeetingMinutes(input)).is.equal(expected);
+  });
 });
