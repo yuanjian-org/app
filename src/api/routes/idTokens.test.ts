@@ -42,6 +42,18 @@ describe("sendImpl", () => {
     }
   });
 
+  it("should send SMS for supported Russian phone number", async () => {
+    const phone = "+79123456789";
+    await sendImpl("phone", phone, "127.0.0.1", transaction);
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone, ip: "127.0.0.1" },
+      transaction,
+    });
+    void expect(tokenRecord).to.not.be.null;
+    void expect(smsStub.calledOnce).to.be.true;
+  });
+
   it("should send SMS for supported China phone number", async () => {
     const phone = "+8613800138000";
     await sendImpl("phone", phone, "127.0.0.1", transaction);

@@ -34,7 +34,8 @@ export async function sendImpl(
     idType === "phone" &&
     !id.startsWith(chinaPhonePrefix) &&
     !id.startsWith("+1") &&
-    !id.startsWith("+39")
+    !id.startsWith("+39") &&
+    !id.startsWith("+7")
   ) {
     throw generalBadRequestError(
       "目前尚不支持您所在地区的手机号。如需使用，请联系客服。",
