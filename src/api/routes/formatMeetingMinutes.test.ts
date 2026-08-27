@@ -73,4 +73,65 @@ describe("formatMeetingMinutes", () => {
 
     expect(formatMeetingMinutes(input)).is.equal(expeted);
   });
+
+  it("should handle minutes without todos and without summary", () => {
+    const input = `会议摘要
+
+
+
+暂无会议待办
+
+（注：文档部分内容可能由 AI 生成）`;
+
+    const expeted = ``;
+
+    expect(formatMeetingMinutes(input)).is.equal(expeted);
+  });
+
+  it("should handle minutes with todos but no summary", () => {
+    const input = `会议摘要
+
+
+
+会议待办
+
+· 了解并了解其他实验室的薪资发放情况
+
+（注：文档部分内容可能由 AI 生成）`;
+
+    const expeted = `### 会议待办
+
+
+* 了解并了解其他实验室的薪资发放情况
+
+
+### 会议摘要`;
+
+    expect(formatMeetingMinutes(input)).is.equal(expeted);
+  });
+
+  it("should handle minutes with summary but no todos under 会议待办", () => {
+    const input = `会议摘要
+
+研究生毕业准备与实验室生活分享
+这段内容主要讲述了一个人在实验室忙碌的生活。
+
+会议待办
+
+暂无会议待办
+
+（注：文档部分内容可能由 AI 生成）`;
+
+    const expeted = `### 会议待办
+
+
+### 会议摘要
+
+
+**研究生毕业准备与实验室生活分享**
+
+这段内容主要讲述了一个人在实验室忙碌的生活。`;
+
+    expect(formatMeetingMinutes(input)).is.equal(expeted);
+  });
 });
