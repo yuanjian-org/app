@@ -1,0 +1,3 @@
+## 2024-10-18 - Tooltip-less icon links lack semantic accessibility
+**Learning:** Link tags (`<Link>`) used as interactive icon buttons in React components often lack a `Tooltip` for visual clarity and miss essential button semantics (`role="button"`, `tabIndex={0}`, `aria-label`, and `onKeyDown` handlers for keyboard operation). This prevents screen readers from understanding the action and makes keyboard navigation impossible.
+**Action:** Always ensure that interactive icon links have a descriptive `Tooltip`, and are upgraded with full button accessibility attributes (`role="button"`, `tabIndex={0}`, `aria-label`, and keyboard events).

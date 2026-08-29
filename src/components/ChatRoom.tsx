@@ -211,9 +211,23 @@ function Message({
           {!editing && me.id == m.user.id && (
             <>
               <Spacer />
-              <Link color="gray" onClick={() => setEditing(true)}>
-                <MdEdit />
-              </Link>
+              <Tooltip label={"编辑消息"}>
+                <Link
+                  color="gray"
+                  onClick={() => setEditing(true)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="编辑消息"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setEditing(true);
+                    }
+                  }}
+                >
+                  <MdEdit />
+                </Link>
+              </Tooltip>
             </>
           )}
 
@@ -224,7 +238,19 @@ function Message({
               <>
                 <Spacer />
                 <Tooltip label={`增加${oneOnOneMessagePrefix}前缀`}>
-                  <Link color="gray" onClick={() => setConfirming(true)}>
+                  <Link
+                    color="gray"
+                    onClick={() => setConfirming(true)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`增加${oneOnOneMessagePrefix}前缀`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setConfirming(true);
+                      }
+                    }}
+                  >
                     <IoMdPeople />
                   </Link>
                 </Tooltip>
@@ -238,7 +264,19 @@ function Message({
               <>
                 <Spacer />
                 <Tooltip label={"编辑创建时间"}>
-                  <Link color="gray" onClick={() => setEditingTime(true)}>
+                  <Link
+                    color="gray"
+                    onClick={() => setEditingTime(true)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={"编辑创建时间"}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setEditingTime(true);
+                      }
+                    }}
+                  >
                     <MdAccessTime />
                   </Link>
                 </Tooltip>
