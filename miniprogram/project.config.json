@@ -1,0 +1,14 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "yuanjian-miniprogram",
+  "description": "Visionary Education Foundation Web App Mini Program",
+  "appid": "",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram"
+}
