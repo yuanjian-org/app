@@ -41,7 +41,7 @@ export async function findOrCreateRoom(
 
 export async function findRoom(
   menteeId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
   attributes: string[] = ["id"],
   include: Includeable[] = [],
 ) {
