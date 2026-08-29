@@ -1,9 +1,7 @@
-import { VStack, Flex, Button, Text, Heading } from "@chakra-ui/react";
-import { ChevronRightIcon } from "@chakra-ui/icons";
-import NextLink from "next/link";
-import { loginUrl } from "shared/loginUrl";
+import { Text, Heading } from "@chakra-ui/react";
 import T from "components/T";
 import Head from "next/head";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function SylpLandingPage() {
   return (
@@ -11,7 +9,12 @@ export default function SylpLandingPage() {
       <Head>
         <title>可持续青年领袖计划 | Sustainable Youth Leadership Program</title>
       </Head>
-      <VStack spacing={6} align="start" mt={10}>
+      <BaseLandingPage
+        actionText={<T ns="sylp">进入平台</T>}
+        buttonMt={12}
+        flexProps={{ justifyContent: "center" }}
+        buttonProps={{ width: { base: "100%", md: "auto" } }}
+      >
         <Heading size="lg">
           <T ns="sylp">欢迎来到可持续青年领袖计划 (SYLP)</T>
         </Heading>
@@ -34,20 +37,7 @@ export default function SylpLandingPage() {
             数字赋能全球青年可持续发展创新平台为本项目提供全链路的导师匹配与项目管理服务，护航您的创新与成长之旅。
           </T>
         </Text>
-      </VStack>
-
-      <Flex mt={12} justifyContent="center" width="100%">
-        <Button
-          size="lg"
-          variant="brand"
-          as={NextLink}
-          href={loginUrl()}
-          rightIcon={<ChevronRightIcon />}
-          width={{ base: "100%", md: "auto" }}
-        >
-          <T ns="sylp">进入平台</T>
-        </Button>
-      </Flex>
+      </BaseLandingPage>
     </>
   );
 }
