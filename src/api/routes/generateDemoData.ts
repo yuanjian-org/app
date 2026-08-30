@@ -1,6 +1,6 @@
 import { Op, Transaction } from "sequelize";
 import { createGroup, findGroups } from "./groups";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import moment from "moment";
 import demoData, { DemoUser } from "./demoData";
 import { createMentorship } from "./mentorships";
@@ -161,7 +161,7 @@ async function generateGroup(
   name: string | null,
   transaction: Transaction,
 ) {
-  invariant(users.length > 1);
+  invariant(users.length > 1, "Expected users length to be greater than 1");
   const userIds = users.map((u) => id(u));
   if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
 

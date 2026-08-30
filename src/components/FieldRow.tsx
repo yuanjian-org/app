@@ -2,7 +2,7 @@ import { Flex, Box, UnorderedList, ListItem, Link } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import z from "zod";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import T from "components/T";
 
 export function FieldRow({
@@ -39,7 +39,10 @@ function FieldValueCell({
   // required only if !readonly
   update?: (value: string) => Promise<void>;
 }) {
-  invariant(readonly || update);
+  invariant(
+    readonly || update,
+    "FieldRow requires either readonly or update handler",
+  );
 
   if (Array.isArray(value)) {
     return (

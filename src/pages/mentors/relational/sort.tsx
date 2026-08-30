@@ -34,7 +34,7 @@ import {
 } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import trpc, { trpcNext } from "trpc";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { MentorSelection } from "shared/MentorSelection";
 import Loader from "components/Loader";
 import { formatUserName } from "shared/strings/formatUserName";
@@ -121,7 +121,7 @@ function Sorter({
 
   const onDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
-    invariant(sorted);
+    invariant(sorted, "sorted list of selections is missing");
     const oldIndex = sorted.findIndex((i) => i.mentor.id === active.id);
     const newIndex = sorted.findIndex((i) => i.mentor.id === over.id);
     const newSorted = arrayMove(sorted, oldIndex, newIndex);

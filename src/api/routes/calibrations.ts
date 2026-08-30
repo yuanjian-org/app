@@ -17,7 +17,7 @@ import {
   calibrationInclude,
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Calibration from "api/database/models/Calibration";
 import { zInterview } from "../../shared/Interview";
 import { isPermitted } from "../../shared/Role";
@@ -74,7 +74,7 @@ const update = procedure
       },
     );
 
-    invariant(affected <= 1);
+    invariant(affected <= 1, `Calibration update affected ${affected} rows`);
     if (!affected) throw notFoundError("面试讨论", input.id);
   });
 
@@ -94,7 +94,10 @@ const setManager = procedure
       },
     );
 
-    invariant(affected <= 1);
+    invariant(
+      affected <= 1,
+      `Calibration manager update affected ${affected} rows`,
+    );
     if (!affected) throw notFoundError("面试讨论", calibrationId);
   });
 

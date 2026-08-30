@@ -1,7 +1,7 @@
 import { CheckIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons";
 import { Center, Text } from "@chakra-ui/react";
 import { useEffect } from "react";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import T from "components/T";
@@ -132,7 +132,7 @@ export function removePendingSaver(
   s: AutosaveState,
   id: string,
 ): AutosaveState {
-  invariant(hasPendingSaver(s, id));
+  invariant(hasPendingSaver(s, id), `No pending saver for ${id}`);
   const newMap = new Map(s.id2state);
   newMap.delete(id);
   return {
@@ -149,7 +149,7 @@ export function setPendingSaverError(
   id: string,
   error?: any,
 ): AutosaveState {
-  invariant(hasPendingSaver(s, id));
+  invariant(hasPendingSaver(s, id), `No pending saver for ${id}`);
   const newMap = new Map(s.id2state);
   newMap.set(id, error ?? null);
   return {

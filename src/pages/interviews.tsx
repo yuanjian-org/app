@@ -36,7 +36,7 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
 import Loader from "components/Loader";
 import UserSelector from "components/UserSelector";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { compareChinese } from "shared/strings/compareChinese";
 import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";
@@ -253,7 +253,7 @@ function Applicant({
     );
     matches.map((i) => console.error(`  ${i.id}`));
     console.error("We must let the frontend die");
-    invariant(false);
+    invariant(false, "Unreachable code: invalid tab type");
   }
   const interview = matches.length ? matches[0] : null;
 
@@ -336,7 +336,10 @@ function InterviewEditor({
   interview: Interview | null; // Create a new interview when null
   onClose: () => void;
 }) {
-  invariant(interview == null || interview.type == type);
+  invariant(
+    interview == null || interview.type == type,
+    "Interview type mismatch",
+  );
 
   const [interviewerIds, setInterviewerIds] = useState<string[]>(
     interview ? interview.feedbacks.map((f) => f.interviewer.id) : [],

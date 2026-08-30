@@ -39,7 +39,7 @@ import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";
 import { AddIcon } from "@chakra-ui/icons";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Loader from "./Loader";
 import MarkdownStyler from "./MarkdownStyler";
 import MarkdownSupport from "./MarkdownSupport";
@@ -374,17 +374,20 @@ function Editor({
   };
 
   const save = useCallback(async () => {
-    invariant(markdown);
+    invariant(markdown, "Markdown message content is empty");
     setSaving(true);
     try {
       if (message) {
-        invariant(!roomId);
+        invariant(
+          !roomId,
+          "roomId should not be set for Mentee chat room creation",
+        );
         await trpc.chat.updateMessage.mutate({
           messageId: message.id,
           markdown,
         });
       } else {
-        invariant(roomId);
+        invariant(roomId, "roomId is required for Unowned chat room creation");
         await trpc.chat.createMessage.mutate({ roomId, markdown });
       }
       await utils.chat.getRoom.invalidate();
@@ -517,7 +520,10 @@ export function useUnreadChatMessages(menteeIds: string[]) {
       t.chat.getLastMessageUpdatedAt({ menteeId: id }),
     );
   });
-  invariant(lastReads.length === lastUpdates.length);
+  invariant(
+    lastReads.length === lastUpdates.length,
+    "lastReads and lastUpdates length mismatch",
+  );
 
   return lastReads.some((res, i) => {
     const lastRead = res.data;

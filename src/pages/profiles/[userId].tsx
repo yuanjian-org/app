@@ -341,7 +341,7 @@ function Picture({
   updateProfile: (k: keyof UserProfile, v: string) => void;
   SaveButton: React.ComponentType;
 }) {
-  invariant(profile, "!profile");
+  invariant(profile, "profile is required for Picture component");
   const myRoles = useMyRoles();
   const router = useRouter();
 
@@ -428,7 +428,7 @@ function Picture({
 }
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
-  invariant(profile, "!profile");
+  invariant(profile, "profile is required for Video component");
   const router = useRouter();
 
   const isMe = useMyId() === user.id;

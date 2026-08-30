@@ -22,7 +22,7 @@ import useMe from "useMe";
 import { trpcNext } from "trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import T from "components/T";
 
 /**
@@ -47,7 +47,7 @@ export default function MentorBookingModal({
   const submit = async () => {
     setSubmitting(true);
     try {
-      invariant(topic);
+      invariant(topic, "Booking topic is required");
       await trpc.mentorBookings.create.mutate({
         requestedMentorId: mentor?.id ?? null,
         topic,
