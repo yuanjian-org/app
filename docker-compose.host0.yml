@@ -7,10 +7,6 @@ services:
     image: ${APP_IMAGE_BASE_NAME:?}.ustc:latest
     container_name: ustc
     env_file: .env.ustc
-  xhef:
-    image: ${APP_IMAGE_BASE_NAME:?}.xhef:latest
-    container_name: xhef
-    env_file: .env.xhef
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
     container_name: nginx
