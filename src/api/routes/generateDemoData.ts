@@ -161,7 +161,7 @@ async function generateGroup(
   name: string | null,
   transaction: Transaction,
 ) {
-  invariant(users.length > 1);
+  invariant(users.length > 1, "Expected users length to be greater than 1");
   const userIds = users.map((u) => id(u));
   if ((await findGroupsByType("Unowned", userIds)).length != 0) return;
 

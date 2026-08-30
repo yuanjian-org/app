@@ -191,7 +191,7 @@ function Trait({
   value: number | undefined;
   update: (value: number) => void;
 }) {
-  invariant(labels.length == 2);
+  invariant(labels.length == 2, "Traits labels length must be 2");
 
   return (
     <>

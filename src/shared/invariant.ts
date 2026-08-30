@@ -6,7 +6,7 @@ const prefix = "Invariant failed";
  */
 export default function invariant(
   condition: any,
-  message?: string | (() => string),
+  message: string | (() => string),
 ): asserts condition {
   if (condition) {
     return;

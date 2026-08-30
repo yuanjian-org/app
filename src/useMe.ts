@@ -3,19 +3,19 @@ import invariant from "shared/invariant";
 
 export default function useMe() {
   const { data } = useSession();
-  invariant(data);
+  invariant(data, "Session data is required for useMe");
   return data.me;
 }
 
 export function useMyRoles() {
   const { data } = useSession();
-  invariant(data);
+  invariant(data, "Session data is required for useMyRoles");
   return data.me.roles;
 }
 
 export function useMyId() {
   const { data } = useSession();
-  invariant(data);
+  invariant(data, "Session data is required for useMyId");
   return data.me.id;
 }
 

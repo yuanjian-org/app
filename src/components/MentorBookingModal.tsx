@@ -47,7 +47,7 @@ export default function MentorBookingModal({
   const submit = async () => {
     setSubmitting(true);
     try {
-      invariant(topic);
+      invariant(topic, "Booking topic is required");
       await trpc.mentorBookings.create.mutate({
         requestedMentorId: mentor?.id ?? null,
         topic,

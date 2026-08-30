@@ -26,7 +26,10 @@ export const summaryDimensionName = "总评";
 export const summaryScoreLabels = ["拒", "弱拒", "弱收", "收"];
 
 export function getScoreColor(scoreLabels: string[], score: number): string {
-  invariant(scoreLabels.length == 4 || scoreLabels.length == 5);
+  invariant(
+    scoreLabels.length == 4 || scoreLabels.length == 5,
+    "scoreLabels length must be 4 or 5",
+  );
   const backgrounds = [
     "red.600",
     "orange",
@@ -40,7 +43,7 @@ export function getScoreColor(scoreLabels: string[], score: number): string {
 function getDimension(f: Feedback, name: string): FeedbackDimension {
   const ds = (f.dimensions || []).filter((d) => d.name === name);
   if (ds.length > 0) {
-    invariant(ds.length == 1);
+    invariant(ds.length == 1, "Expected exactly 1 draft feedback");
     return ds[0];
   } else {
     return {

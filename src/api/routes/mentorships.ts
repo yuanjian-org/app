@@ -106,7 +106,7 @@ export async function createMentorship(
   }
 
   // Create groups
-  invariant(mentorship);
+  invariant(mentorship, "Mentorship not found");
   return await createGroup(
     null,
     [mentorId, menteeId],

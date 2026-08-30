@@ -145,7 +145,10 @@ function InterviewRow({
   ];
 
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
-    invariant(status !== undefined);
+    invariant(
+      status !== undefined,
+      `Status not found for mentee ${i.interviewee.id}`,
+    );
     await trpc.users.setMenteeStatus.mutate({
       userId: i.interviewee.id,
       menteeStatus: status,

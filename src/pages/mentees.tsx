@@ -505,7 +505,10 @@ function MenteeRow({
   year?: string;
 }) {
   const saveStatus = async (menteeStatus: MenteeStatus | null | undefined) => {
-    invariant(menteeStatus !== undefined);
+    invariant(
+      menteeStatus !== undefined,
+      `menteeStatus is undefined for ${u.id}`,
+    );
     await trpc.users.setMenteeStatus.mutate({ userId: u.id, menteeStatus });
     refetch();
   };
@@ -782,7 +785,7 @@ function LoadedMentorsCells({
       if (data && compareDate(last, data) < 0) return data;
       return last;
     }, earliest);
-    invariant(last);
+    invariant(last, "last step is undefined");
     if (last !== earliest) setLastMeetingStartedAt(mentee.id, last);
 
     // https://stackoverflow.com/a/59468261
@@ -1182,8 +1185,8 @@ function MentorshipCreator({
   onClose: () => void;
 }) {
   const save = async (mentorId: string) => {
-    invariant(menteeId);
-    invariant(mentorId);
+    invariant(menteeId, "menteeId is required to delete partnership");
+    invariant(mentorId, "mentorId is required to delete partnership");
     await trpc.mentorships.create.mutate({
       mentorId,
       menteeId,

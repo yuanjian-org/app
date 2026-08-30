@@ -103,7 +103,10 @@ export async function destroyDraftImpl(
     throw notFoundError("导师选择", mentorId);
   }
 
-  invariant(batch.selections.length === 1);
+  invariant(
+    batch.selections.length === 1,
+    "Expected exactly 1 mentor selection",
+  );
   await db.MentorSelection.destroy({
     where: {
       id: batch.selections[0].id,
@@ -132,7 +135,10 @@ export async function updateDraftImpl(
   transaction: Transaction,
 ) {
   const batch = await getDraftBatch(userId, mentorId, transaction);
-  invariant(batch && batch.selections.length === 1);
+  invariant(
+    batch && batch.selections.length === 1,
+    "Expected exactly 1 mentor selection batch",
+  );
   if (!batch) {
     throw notFoundError("导师选择", mentorId);
   }
@@ -165,7 +171,10 @@ const getDraft = procedure
   .query(async ({ ctx: { me }, input: { mentorId } }) => {
     return await sequelize.transaction(async (transaction) => {
       const batch = await getDraftBatch(me.id, mentorId, transaction);
-      invariant(!batch || batch.selections.length === 1);
+      invariant(
+        !batch || batch.selections.length === 1,
+        "Expected at most 1 mentor selection batch",
+      );
       return batch ? batch.selections[0] : null;
     });
   });
@@ -234,7 +243,7 @@ export async function reorderDraftImpl(
         transaction,
       },
     );
-    invariant(cnt <= 1);
+    invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
     if (cnt === 0) {
       throw generalBadRequestError("导师选择不存在，请刷新页面重试");
     }
@@ -266,7 +275,7 @@ const finalizeDraft = procedure
       },
       { where: { userId: me.id, finalizedAt: null } },
     );
-    invariant(cnt <= 1);
+    invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
     if (cnt === 0) {
       throw generalBadRequestError("没有未完成的导师选择，请刷新页面重试");
     }

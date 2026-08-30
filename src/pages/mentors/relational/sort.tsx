@@ -121,7 +121,7 @@ function Sorter({
 
   const onDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
-    invariant(sorted);
+    invariant(sorted, "sorted list of selections is missing");
     const oldIndex = sorted.findIndex((i) => i.mentor.id === active.id);
     const newIndex = sorted.findIndex((i) => i.mentor.id === over.id);
     const newSorted = arrayMove(sorted, oldIndex, newIndex);

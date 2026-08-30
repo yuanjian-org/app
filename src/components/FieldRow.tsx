@@ -39,7 +39,10 @@ function FieldValueCell({
   // required only if !readonly
   update?: (value: string) => Promise<void>;
 }) {
-  invariant(readonly || update);
+  invariant(
+    readonly || update,
+    "FieldRow requires either readonly or update handler",
+  );
 
   if (Array.isArray(value)) {
     return (

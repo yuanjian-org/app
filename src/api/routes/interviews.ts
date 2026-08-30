@@ -302,7 +302,7 @@ export async function createInterview(
   // Update roles
   for (const interviwerId of interviewerIds) {
     const u = await db.User.findByPk(interviwerId, { transaction });
-    invariant(u);
+    invariant(u, "User not found for interview");
     if (u.roles.some((r) => r == "Interviewer")) continue;
     u.roles = [...u.roles, "Interviewer"];
     await u.save({ transaction });
@@ -500,7 +500,7 @@ export async function updateInterview(
     // Update roles
     for (const interviwerId of interviewerIds) {
       const u = await db.User.findByPk(interviwerId, { transaction });
-      invariant(u);
+      invariant(u, "User not found for interview feedback");
       if (u.roles.some((r) => r == "Interviewer")) continue;
       u.roles = [...u.roles, "Interviewer"];
       await u.save({ transaction });
