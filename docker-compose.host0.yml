@@ -3,10 +3,10 @@ services:
     image: ${APP_IMAGE_BASE_NAME:?}.demo:latest
     container_name: demo
     env_file: .env.demo
-  ustc:
-    image: ${APP_IMAGE_BASE_NAME:?}.ustc:latest
-    container_name: ustc
-    env_file: .env.ustc
+  xhef:
+    image: ${APP_IMAGE_BASE_NAME:?}.xhef:latest
+    container_name: xhef
+    env_file: .env.xhef
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
     container_name: nginx
@@ -21,5 +21,4 @@ services:
       - "80:80"
     depends_on:
       - demo
-      - ustc
       - xhef
