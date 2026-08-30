@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
-import { notify, notifyRolesIgnoreError } from "./notify";
+import {
+  clearNotificationDedupeCache,
+  notify,
+  notifyRolesIgnoreError,
+} from "./notify";
 import db from "./database/db";
 import { NotificationType } from "shared/UserPreference";
 import sequelize from "./database/sequelize";
@@ -101,6 +105,7 @@ describe("notify()", () => {
   let emailStub: sinon.SinonStub;
 
   beforeEach(async () => {
+    clearNotificationDedupeCache();
     transaction = await sequelize.transaction();
 
     // Stub the SMS and email functions to capture their calls
@@ -680,6 +685,116 @@ describe("notify()", () => {
       // Verify email was called with empty email list
       const emailCall = emailStub.getCall(0);
       void expect(emailCall.args[0]).to.have.length(0);
+    });
+  });
+
+  describe("notification deduplication", () => {
+    it("should suppress duplicate notifications within dedupe window", async () => {
+      const user = await db.User.create(
+        {
+          phone: "+8613800138000",
+          email: "user@test.com",
+          name: "Test User",
+          roles: ["Mentee"],
+        },
+        { transaction },
+      );
+
+      const templates = {
+        email: "E_114706970517",
+        domesticSms: "yaD264",
+        internationalSms: "0Rr8G",
+      };
+      const vars = {
+        subject: "珍珠生验证失败",
+        content: '用户 123 认证珍珠生失败："张三"',
+      };
+
+      // First call should send notification
+      await notify("基础", [user.id], templates, vars, transaction);
+      void expect(smsStub.calledOnce).to.be.true;
+      void expect(emailStub.calledOnce).to.be.true;
+
+      // Reset stub history to track subsequent calls
+      smsStub.resetHistory();
+      emailStub.resetHistory();
+
+      // Second call with identical arguments should be suppressed
+      await notify("基础", [user.id], templates, vars, transaction);
+      void expect(smsStub.called).to.be.false;
+      void expect(emailStub.called).to.be.false;
+    });
+
+    it("should send notification when template variables differ", async () => {
+      const user = await db.User.create(
+        {
+          phone: "+8613800138000",
+          email: "user@test.com",
+          name: "Test User",
+          roles: ["Mentee"],
+        },
+        { transaction },
+      );
+
+      const templates = {
+        email: "E_114706970517",
+        domesticSms: "yaD264",
+        internationalSms: "0Rr8G",
+      };
+
+      await notify(
+        "基础",
+        [user.id],
+        templates,
+        { subject: "珍珠生验证失败", content: "attempt 1" },
+        transaction,
+      );
+      void expect(smsStub.calledOnce).to.be.true;
+
+      smsStub.resetHistory();
+
+      // Different content should not be suppressed
+      await notify(
+        "基础",
+        [user.id],
+        templates,
+        { subject: "珍珠生验证失败", content: "attempt 2" },
+        transaction,
+      );
+      void expect(smsStub.calledOnce).to.be.true;
+    });
+
+    it("should send notification again after cache clearing", async () => {
+      const user = await db.User.create(
+        {
+          phone: "+8613800138000",
+          email: "user@test.com",
+          name: "Test User",
+          roles: ["Mentee"],
+        },
+        { transaction },
+      );
+
+      const templates = {
+        email: "E_114706970517",
+        domesticSms: "yaD264",
+        internationalSms: "0Rr8G",
+      };
+      const vars = {
+        subject: "珍珠生验证失败",
+        content: '用户 123 认证珍珠生失败："张三"',
+      };
+
+      await notify("基础", [user.id], templates, vars, transaction);
+      void expect(smsStub.calledOnce).to.be.true;
+
+      smsStub.resetHistory();
+
+      // Clear cache to simulate window expiration
+      clearNotificationDedupeCache();
+
+      await notify("基础", [user.id], templates, vars, transaction);
+      void expect(smsStub.calledOnce).to.be.true;
     });
   });
 });
