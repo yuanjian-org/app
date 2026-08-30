@@ -30,7 +30,7 @@ import { isPermitted } from "shared/Role";
 import { MenteeStatusSelectCell } from "./MenteeStatusSelect";
 import trpc, { trpcNext } from "trpc";
 import { MenteeStatus } from "shared/MenteeStatus";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import TdLink from "./TdLink";
 import {
   PointOfContactHeaderCells,

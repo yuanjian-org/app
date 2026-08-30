@@ -1,6 +1,6 @@
 import { Op, Transaction } from "sequelize";
 import { createGroup, findGroups } from "./groups";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import moment from "moment";
 import demoData, { DemoUser } from "./demoData";
 import { createMentorship } from "./mentorships";

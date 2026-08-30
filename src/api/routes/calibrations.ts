@@ -17,7 +17,7 @@ import {
   calibrationInclude,
 } from "../database/models/attributesAndIncludes";
 import { Transaction } from "sequelize";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Calibration from "api/database/models/Calibration";
 import { zInterview } from "../../shared/Interview";
 import { isPermitted } from "../../shared/Role";

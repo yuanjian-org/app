@@ -19,7 +19,7 @@ import {
   noPermissionError,
   notFoundError,
 } from "../errors";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { createGroup, updateGroup } from "./groups";
 import { diffInMinutes } from "../../shared/strings/diffInMinutes";
 import { formatUserName } from "../../shared/strings/formatUserName";

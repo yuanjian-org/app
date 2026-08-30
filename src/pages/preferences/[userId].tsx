@@ -37,7 +37,7 @@ import {
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
 import { chinaPhonePrefix } from "shared/strings/chinaPhonePrefix";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Loader from "components/Loader";
 import { TraitsPreference } from "shared/Traits";
 import {

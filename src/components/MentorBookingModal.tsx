@@ -22,7 +22,7 @@ import useMe from "useMe";
 import { trpcNext } from "trpc";
 import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import T from "components/T";
 
 /**

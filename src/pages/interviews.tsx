@@ -36,7 +36,7 @@ import ModalWithBackdrop from "components/ModalWithBackdrop";
 import trpc from "trpc";
 import Loader from "components/Loader";
 import UserSelector from "components/UserSelector";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { compareChinese } from "shared/strings/compareChinese";
 import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";

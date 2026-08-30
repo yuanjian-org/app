@@ -40,7 +40,7 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import Loader from "components/Loader";
 import UserFilterSelector from "components/UserFilterSelector";
 import { MenteeStatusSelectCell } from "components/MenteeStatusSelect";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import NextLink from "next/link";
 import { AddIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import moment from "moment";

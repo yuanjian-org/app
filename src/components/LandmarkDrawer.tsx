@@ -33,7 +33,7 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import { breakpoint } from "theme/breakpoints";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import { formatUserName } from "shared/strings/formatUserName";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { compareDate } from "shared/strings/compareDate";
 import Loader from "./Loader";
 import { useMyId } from "useMe";

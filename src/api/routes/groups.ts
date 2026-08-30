@@ -3,7 +3,7 @@ import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
 import { noPermissionError, notFoundError } from "../errors";
 import {

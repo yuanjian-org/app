@@ -34,7 +34,7 @@ import {
 } from "@chakra-ui/react";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import trpc, { trpcNext } from "trpc";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { MentorSelection } from "shared/MentorSelection";
 import Loader from "components/Loader";
 import { formatUserName } from "shared/strings/formatUserName";

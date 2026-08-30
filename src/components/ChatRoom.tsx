@@ -39,7 +39,7 @@ import { formatUserName } from "shared/strings/formatUserName";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { MdEdit, MdSend, MdAccessTime } from "react-icons/md";
 import { AddIcon } from "@chakra-ui/icons";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Loader from "./Loader";
 import MarkdownStyler from "./MarkdownStyler";
 import MarkdownSupport from "./MarkdownSupport";

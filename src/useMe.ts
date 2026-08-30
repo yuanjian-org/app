@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 
 export default function useMe() {
   const { data } = useSession();

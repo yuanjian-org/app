@@ -2,7 +2,7 @@ import { Flex, Box, UnorderedList, ListItem, Link } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 import EditableWithIconOrLink from "components/EditableWithIconOrLink";
 import z from "zod";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import T from "components/T";
 
 export function FieldRow({

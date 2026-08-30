@@ -50,7 +50,7 @@ import {
   traitsPrefProfiles,
   TraitTag,
 } from "components/Traits";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import useMe, {
   useMyRoles,
   useMeOptional,

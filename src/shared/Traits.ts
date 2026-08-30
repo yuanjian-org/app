@@ -1,4 +1,4 @@
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { z } from "zod";
 import { UserProfile } from "./UserProfile";
 import { menteeFirstYearInCollegeField } from "./applicationFields";

@@ -1,7 +1,7 @@
 import { CheckIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons";
 import { Center, Text } from "@chakra-ui/react";
 import { useEffect } from "react";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
 import T from "components/T";

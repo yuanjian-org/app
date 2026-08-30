@@ -11,7 +11,7 @@ import {
   Tooltip,
   Textarea,
 } from "@chakra-ui/react";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { useRef, useState } from "react";
 import Autosaver from "components/Autosaver";
 import { TRPCClientError } from "@trpc/client";

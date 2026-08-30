@@ -12,7 +12,7 @@ import {
   mentorSelectionBatchInclude,
   mentorSelectionInclude,
 } from "api/database/models/attributesAndIncludes";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import sequelize from "api/database/sequelize";
 import { generalBadRequestError, notFoundError } from "api/errors";
 import moment from "moment";
