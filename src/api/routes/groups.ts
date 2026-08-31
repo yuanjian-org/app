@@ -131,20 +131,23 @@ const destroy = procedure
     );
   });
 
+async function setGroupArchiveState(groupId: string, archived: boolean) {
+  const g = await getGroupWithIdOnly(groupId);
+  await g.update({ archived });
+}
+
 const archive = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: true });
+    await setGroupArchiveState(input.groupId, true);
   });
 
 const unarchive = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: false });
+    await setGroupArchiveState(input.groupId, false);
   });
 
 const whereUnowned = {

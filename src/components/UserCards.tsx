@@ -440,14 +440,11 @@ function UserCardForDesktop({
       </CardFooter>
 
       {isDrawerOpen && (
-        <UserDrawer
-          data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={
-            !isPublic && type == "TransactionalMentor" && isMentee
-          }
-          showMatchingTraitsAndSelection={
-            !isPublic && type == "RelationalMentor"
-          }
+        <UserDrawerWrapper
+          data={data}
+          type={type}
+          isPublic={isPublic}
+          isMentee={isMentee}
           onClose={() => setIsDrawerOpen(false)}
         />
       )}
@@ -679,14 +676,11 @@ function UserCardForMobile({
       </HStack>
 
       {isDrawerOpen && (
-        <UserDrawer
-          data={{ ...data, isMentor: type != "Volunteer" }}
-          showBookingButton={
-            !isPublic && type == "TransactionalMentor" && isMentee
-          }
-          showMatchingTraitsAndSelection={
-            !isPublic && type == "RelationalMentor"
-          }
+        <UserDrawerWrapper
+          data={data}
+          type={type}
+          isPublic={isPublic}
+          isMentee={isMentee}
           onClose={() => setIsDrawerOpen(false)}
         />
       )}
@@ -701,5 +695,28 @@ export function MentorStar(props: TextProps) {
         ⭐
       </Text>
     </Tooltip>
+  );
+}
+
+function UserDrawerWrapper({
+  data,
+  type,
+  isPublic,
+  isMentee,
+  onClose,
+}: {
+  data: UserDisplayData;
+  type: UserCardType;
+  isPublic: boolean;
+  isMentee: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <UserDrawer
+      data={{ ...data, isMentor: type != "Volunteer" }}
+      showBookingButton={!isPublic && type == "TransactionalMentor" && isMentee}
+      showMatchingTraitsAndSelection={!isPublic && type == "RelationalMentor"}
+      onClose={onClose}
+    />
   );
 }

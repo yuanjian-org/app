@@ -278,40 +278,17 @@ function MenteeFeedbackRow({
 }) {
   invariant(f.user, "expect user");
   return (
-    <Tr>
-      <Td>
-        <UserLink user={f.user} />
-      </Td>
-      <Td>
-        <RadioGroup
-          value={f.score?.toString() ?? "0"}
-          onChange={(score) =>
-            update ? update({ ...f, score: parseInt(score) }) : undefined
-          }
-        >
-          <Wrap>
-            {[1, 2, 3, 4, 5].map((score) => (
-              <WrapItem key={score}>
-                <Radio value={score.toString()} isReadOnly={!update}>
-                  {score}
-                </Radio>
-              </WrapItem>
-            ))}
-          </Wrap>
-        </RadioGroup>
-      </Td>
-      <Td>
-        <Textarea
-          value={f.reason ?? ""}
-          isReadOnly={!update}
-          // Ensure good look on mobile
-          minW="300px"
-          onChange={(e) =>
-            update ? update({ ...f, reason: e.target.value }) : undefined
-          }
-        />
-      </Td>
-    </Tr>
+    <FeedbackRow
+      user={f.user}
+      userLinkComponent={UserLink}
+      choice={f.score?.toString() ?? "0"}
+      choices={["1", "2", "3", "4", "5"]}
+      getChoiceLabel={(c) => c}
+      onChoiceChange={(c) => update && update({ ...f, score: parseInt(c) })}
+      reason={f.reason ?? ""}
+      onReasonChange={(r) => update && update({ ...f, reason: r })}
+      isReadOnly={!update}
+    />
   );
 }
 
@@ -380,31 +357,57 @@ function MentorFeedbackRow({
 }) {
   invariant(f.user, "expect user");
   return (
+    <FeedbackRow
+      user={f.user}
+      userLinkComponent={MenteeLink}
+      choice={f.choice ?? ""}
+      choices={mentorMatchFeedbackChoices}
+      getChoiceLabel={(c) =>
+        c == "Prefer" ? "特别喜欢" : c == "Avoid" ? "希望避免" : "都不是"
+      }
+      onChoiceChange={(c) =>
+        update && update({ ...f, choice: c as MentorMatchFeedbackChoice })
+      }
+      reason={f.reason ?? ""}
+      onReasonChange={(r) => update && update({ ...f, reason: r })}
+      isReadOnly={!update}
+    />
+  );
+}
+
+function FeedbackRow({
+  user,
+  userLinkComponent: UserLinkComponent,
+  choice,
+  choices,
+  getChoiceLabel,
+  onChoiceChange,
+  reason,
+  onReasonChange,
+  isReadOnly,
+}: {
+  user: import("shared/User").MinUser;
+  userLinkComponent: React.ElementType;
+  choice: string;
+  choices: readonly string[];
+  getChoiceLabel: (c: string) => string;
+  onChoiceChange: (c: string) => void;
+  reason: string;
+  onReasonChange: (r: string) => void;
+  isReadOnly: boolean;
+}) {
+  return (
     <Tr>
       <Td>
-        <MenteeLink user={f.user} />
+        <UserLinkComponent user={user} />
       </Td>
       <Td>
-        <RadioGroup
-          value={f.choice ?? ""}
-          onChange={(choice) =>
-            update
-              ? update({
-                  ...f,
-                  choice: choice as MentorMatchFeedbackChoice,
-                })
-              : undefined
-          }
-        >
+        <RadioGroup value={choice} onChange={onChoiceChange}>
           <Wrap>
-            {mentorMatchFeedbackChoices.map((choice) => (
-              <WrapItem key={choice}>
-                <Radio value={choice} isReadOnly={!update}>
-                  {choice == "Prefer"
-                    ? "特别喜欢"
-                    : choice == "Avoid"
-                      ? "希望避免"
-                      : "都不是"}
+            {choices.map((c) => (
+              <WrapItem key={c}>
+                <Radio value={c} isReadOnly={isReadOnly}>
+                  {getChoiceLabel(c)}
                 </Radio>
               </WrapItem>
             ))}
@@ -413,16 +416,14 @@ function MentorFeedbackRow({
       </Td>
       <Td>
         <Textarea
-          value={f.reason ?? ""}
-          isReadOnly={!update}
-          // Ensure good look on mobile
+          value={reason}
+          isReadOnly={isReadOnly}
           minW="300px"
-          onChange={(e) =>
-            update ? update({ ...f, reason: e.target.value }) : undefined
-          }
+          onChange={(e) => onReasonChange(e.target.value)}
         />
       </Td>
     </Tr>
   );
 }
+
 export const getStaticProps = getI18nProps;
