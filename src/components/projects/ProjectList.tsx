@@ -16,27 +16,22 @@ import {
   ProjectVisibilityDescriptions,
   ProjectWithAssociation,
 } from "../../shared/Project";
-import { toPinyin } from "../../shared/strings/toPinyin";
+import { matchPinyin } from "../../shared/strings/matchPinyin";
 
 export function searchProjects(
   projects: ProjectWithAssociation[],
   searchTerm: string,
 ) {
-  const lower = searchTerm.trim().toLowerCase();
-
-  const match = (v: string | null | undefined) => {
-    if (!v) return false;
-    const lowerV = v.toLowerCase();
-    return [lowerV, toPinyin(lowerV)].some((s) => s.includes(lower));
-  };
+  const lowerSearch = searchTerm.trim().toLowerCase();
 
   return projects.filter((p) => {
     return (
-      match(p.title) ||
-      match(p.owner.name) ||
+      matchPinyin(lowerSearch, p.title) ||
+      matchPinyin(lowerSearch, p.owner.name) ||
       (p.profile &&
         Object.entries(p.profile).some(
-          ([key, value]) => key !== "视频链接" && match(value as string),
+          ([key, value]) =>
+            key !== "视频链接" && matchPinyin(lowerSearch, value as string),
         ))
     );
   });
