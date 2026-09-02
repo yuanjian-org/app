@@ -22,7 +22,7 @@ describe("summaries", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   async function createTestUser(roles: any[] = []) {
@@ -260,7 +260,7 @@ describe("downloadSummaries functions", () => {
 
   afterEach(async () => {
     sinon.restore();
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("findMissingSummariesforTmUser should filter ready records and map to descriptors", async () => {

@@ -21,7 +21,7 @@ describe("createMentorship", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should successfully create a mentorship and associated group", async () => {
@@ -118,7 +118,7 @@ describe("updateMentorship", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should successfully update a mentorship", async () => {
@@ -181,7 +181,7 @@ describe("auditLastMentorshipMeetings", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 

@@ -12,7 +12,7 @@ describe("checkAndComputeUserFields", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should throw error for invalid email", async () => {

@@ -15,7 +15,7 @@ describe("Project Applications Webhook", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   const createTestUser = async (roles: string[] = []) => {

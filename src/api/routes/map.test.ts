@@ -26,7 +26,7 @@ describe("Map Router", () => {
 
   afterEach(async () => {
     if (transaction) {
-      await transaction.rollback();
+      await transaction?.rollback();
     }
   });
 

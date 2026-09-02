@@ -77,7 +77,7 @@ describe("getCalibrationAndCheckPermissionSafe", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should allow participants access to active calibrations they are part of", async () => {
