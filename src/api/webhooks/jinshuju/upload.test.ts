@@ -27,7 +27,7 @@ describe("upload webhook", () => {
   afterEach(async () => {
     process.env.NEXTAUTH_SECRET = originalSecret;
     sinon.restore();
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should fail if # urls isn't one", async () => {

@@ -18,7 +18,7 @@ describe("interviews", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   async function createUser(email: string): Promise<string> {

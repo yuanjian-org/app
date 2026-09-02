@@ -24,7 +24,7 @@ describe("chatsInternal", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   async function createTestUser(

@@ -13,7 +13,7 @@ describe("match.ts", () => {
     });
 
     afterEach(async () => {
-      await transaction.rollback();
+      await transaction?.rollback();
     });
 
     it("should create transactional mentorship and match feedback successfully", async () => {

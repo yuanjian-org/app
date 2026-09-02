@@ -62,7 +62,7 @@ describe("updateWechatUnionId", () => {
   });
 
   afterEach(async () => {
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   it("should delete accounts table rows for both old and new wechatUnionIds", async () => {
@@ -224,7 +224,7 @@ describe("updateImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
 
     sinon.restore();
   });
@@ -426,7 +426,7 @@ describe("setMyStateImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should restrict exam field updates and allow whitelisted fields", async () => {
@@ -464,7 +464,7 @@ describe("listImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should enforce limit and return nextCursor", async () => {
@@ -989,8 +989,8 @@ describe("listMentorsImpl", () => {
   });
 
   afterEach(async () => {
-    getUser2MentorshipCountStub.restore();
-    await transaction.rollback();
+    getUser2MentorshipCountStub?.restore();
+    await transaction?.rollback();
   });
 
   it("should return mentors and calculate relational property based on mentorship count and transactional role", async () => {
@@ -1072,8 +1072,8 @@ describe("listMentorStatsImpl", () => {
   });
 
   afterEach(async () => {
-    getUser2MentorshipCountStub.restore();
-    await transaction.rollback();
+    getUser2MentorshipCountStub?.restore();
+    await transaction?.rollback();
   });
 
   it("should return mentors stats and sort by Chinese name", async () => {

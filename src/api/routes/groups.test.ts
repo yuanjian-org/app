@@ -43,7 +43,7 @@ describe("Groups API Internal Functions", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   describe("createGroup", () => {
