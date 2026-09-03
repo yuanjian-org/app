@@ -14,8 +14,14 @@ const maxPoolSize = process.env.DATABASE_MAX_POOL_SIZE
   ? parseInt(process.env.DATABASE_MAX_POOL_SIZE)
   : undefined;
 
+const config = commonSequelizeConfig(minPoolSize, maxPoolSize);
+
+if (process.env.DATABASE_URI.startsWith("sqlite:")) {
+  delete config.dialectModule;
+}
+
 const sequelize = new Sequelize(process.env.DATABASE_URI, {
-  ...commonSequelizeConfig(minPoolSize, maxPoolSize),
+  ...config,
   models: Object.values(db),
 });
 
