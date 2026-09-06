@@ -1,4 +1,0 @@
-## 2025-01-20 - Open Redirect Vulnerability in NextAuth Redirect Callback
-**Vulnerability:** Open Redirect via protocol-relative URLs (`//evil.com` or `/\evil.com`). The `redirect` callback in NextAuth was allowing relative redirects using `url.startsWith("/")`. Since `//evil.com` also starts with `/`, it passed the check.
-**Learning:** `url.startsWith("/")` is not sufficient to validate relative paths, as it doesn't account for protocol-relative URLs which allow redirects to external domains.
-**Prevention:** Always combine `url.startsWith("/")` with `!url.startsWith("//") && !url.startsWith("/\\")` to securely enforce local redirects, or use an established safe redirect path utility.
