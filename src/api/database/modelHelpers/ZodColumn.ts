@@ -1,14 +1,7 @@
-import sequelize, { ModelAttributeColumnOptions } from "sequelize";
-
 import { addAttribute } from "sequelize-typescript/dist/model/column/attribute-service";
-import { getSequelizeTypeByDesignType } from "sequelize-typescript/dist/model/shared/model-service";
-import { isDataType } from "sequelize-typescript/dist/sequelize/data-type/data-type-service";
 import z, { ZodError, ZodTypeAny } from "zod";
 import { Model } from "sequelize-typescript";
-
-type OptionsOrDataType =
-  | Partial<ModelAttributeColumnOptions>
-  | sequelize.DataType;
+import { OptionsOrDataType, getOptions } from "./utils";
 
 export class ZodColumnGetError extends Error {
   constructor(propertyName: string, val: any, zodError: ZodError) {
@@ -52,19 +45,7 @@ function annotate(
   propertyName: string,
   propertyDescriptor?: PropertyDescriptor,
 ): void {
-  let options: Partial<ModelAttributeColumnOptions>;
-
-  if (isDataType(optionsOrDataType)) {
-    options = {
-      type: optionsOrDataType,
-    };
-  } else {
-    options = { ...(optionsOrDataType as ModelAttributeColumnOptions) };
-
-    if (!options.type) {
-      options.type = getSequelizeTypeByDesignType(target, propertyName);
-    }
-  }
+  const options = getOptions(optionsOrDataType, target, propertyName);
 
   const originalGet = propertyDescriptor?.get;
   const originalSet = propertyDescriptor?.set;

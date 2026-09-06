@@ -1,17 +1,8 @@
-import {
-  Column,
-  ForeignKey,
-  Model,
-  Table,
-  BelongsTo,
-  Default,
-  IsUUID,
-  Unique,
-  PrimaryKey,
-} from "sequelize-typescript";
-import { CreationOptional, UUID, UUIDV4 } from "sequelize";
+import { Column, ForeignKey, Table, BelongsTo } from "sequelize-typescript";
+import { UUID } from "sequelize";
 import User from "./User";
 import Org from "./Org";
+import OrgUserRole from "./OrgUserRole";
 
 @Table({
   indexes: [
@@ -21,18 +12,7 @@ import Org from "./Org";
     },
   ],
 })
-class OrgOwner extends Model {
-  @Unique
-  @IsUUID(4)
-  @PrimaryKey
-  @Default(UUIDV4)
-  @Column(UUID)
-  id: CreationOptional<string>;
-
-  @ForeignKey(() => Org)
-  @Column(UUID)
-  orgId: string;
-
+class OrgOwner extends OrgUserRole {
   @ForeignKey(() => User)
   @Column(UUID)
   ownerId: string;

@@ -1,8 +1,7 @@
-import sequelize, { ModelAttributeColumnOptions } from "sequelize";
+import sequelize from "sequelize";
 
 import { addAttribute } from "sequelize-typescript/dist/model/column/attribute-service";
-import { getSequelizeTypeByDesignType } from "sequelize-typescript/dist/model/shared/model-service";
-import { isDataType } from "sequelize-typescript/dist/sequelize/data-type/data-type-service";
+import { OptionsOrDataType, getOptions } from "./utils";
 
 // from https://github.com/sequelize/sequelize-typescript/blob/master/src/model/column/column.ts
 export function ColumnForAll(dataType: sequelize.DataType) {
@@ -25,23 +24,9 @@ function annotate(
   target: any,
   propertyName: string,
   propertyDescriptor?: PropertyDescriptor,
-  optionsOrDataType:
-    | Partial<ModelAttributeColumnOptions>
-    | sequelize.DataType = {},
+  optionsOrDataType: OptionsOrDataType = {},
 ): void {
-  let options: Partial<ModelAttributeColumnOptions>;
-
-  if (isDataType(optionsOrDataType)) {
-    options = {
-      type: optionsOrDataType,
-    };
-  } else {
-    options = { ...(optionsOrDataType as ModelAttributeColumnOptions) };
-
-    if (!options.type) {
-      options.type = getSequelizeTypeByDesignType(target, propertyName);
-    }
-  }
+  const options = getOptions(optionsOrDataType, target, propertyName);
 
   // const desc = Object.getOwnPropertyDescriptor(
   //   target.prototype || {},
