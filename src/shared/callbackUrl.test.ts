@@ -1,5 +1,34 @@
 import { expect } from "chai";
-import { sanitizeCallbackUrl } from "./callbackUrl";
+import { isSafeCallbackUrl, sanitizeCallbackUrl } from "./callbackUrl";
+
+describe("isSafeCallbackUrl", () => {
+  it("should return true if it is a safe relative path", () => {
+    void expect(isSafeCallbackUrl("/")).to.be.true;
+    void expect(isSafeCallbackUrl("/home")).to.be.true;
+    void expect(isSafeCallbackUrl("/path/to/page?query=1")).to.be.true;
+  });
+
+  it("should return false if the URL is null, undefined, or empty", () => {
+    void expect(isSafeCallbackUrl(null)).to.be.false;
+    void expect(isSafeCallbackUrl(undefined)).to.be.false;
+    void expect(isSafeCallbackUrl("")).to.be.false;
+  });
+
+  it("should return false if the URL is an absolute URL", () => {
+    void expect(isSafeCallbackUrl("https://example.com")).to.be.false;
+    void expect(isSafeCallbackUrl("http://localhost:3000")).to.be.false;
+    void expect(isSafeCallbackUrl("ftp://files.com")).to.be.false;
+  });
+
+  it("should return false if the URL starts with '//' or '/\\'", () => {
+    void expect(isSafeCallbackUrl("//evil.com")).to.be.false;
+    void expect(isSafeCallbackUrl("/\\evil.com")).to.be.false;
+  });
+
+  it("should return false if the URL is a javascript: URL", () => {
+    void expect(isSafeCallbackUrl("javascript:alert(1)")).to.be.false;
+  });
+});
 
 describe("sanitizeCallbackUrl", () => {
   it("should return the URL if it is a safe relative path", () => {
