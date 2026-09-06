@@ -51,6 +51,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     // https://next-auth.js.org/configuration/callbacks
     callbacks: {
       redirect({ url, baseUrl }) {
+        // Prevent Open Redirect vulnerabilities via protocol-relative URLs
         if (
           url.startsWith("/") &&
           !url.startsWith("//") &&
