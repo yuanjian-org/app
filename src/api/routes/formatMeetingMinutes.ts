@@ -41,7 +41,5 @@ function formatTodoItem(section: string): string {
 
 function formatSummaryBlock(section: string): string {
   const lines = section.split("\n");
-  return lines.length == 0
-    ? section
-    : [`**${lines[0]}**`, ...lines.slice(1)].join("\n\n");
+  return [`**${lines[0]}**`, ...lines.slice(1)].join("\n\n");
 }

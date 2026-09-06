@@ -73,4 +73,16 @@ describe("formatMeetingMinutes", () => {
 
     expect(formatMeetingMinutes(input)).is.equal(expeted);
   });
+
+  it("should handle empty minutes", () => {
+    const input = ``;
+    const expected = ``;
+    expect(formatMeetingMinutes(input)).is.equal(expected);
+  });
+
+  it("should handle missing todos and empty summary", () => {
+    const input = `会议摘要`;
+    const expected = ``;
+    expect(formatMeetingMinutes(input)).is.equal(expected);
+  });
 });
