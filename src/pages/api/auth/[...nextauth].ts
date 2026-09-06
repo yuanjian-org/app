@@ -12,7 +12,7 @@ import { noPermissionError } from "../../../api/errors";
 import { NextApiRequest, NextApiResponse } from "next";
 import { adapter } from "../../../api/auth/adapter";
 import providers from "../../../api/auth/providers";
-import { sanitizeCallbackUrl } from "../../../shared/callbackUrl";
+import { isSafeCallbackUrl } from "../../../shared/callbackUrl";
 
 declare module "next-auth" {
   interface Session {
@@ -53,9 +53,8 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     callbacks: {
       redirect({ url, baseUrl }) {
         // Prevent Open Redirect vulnerabilities via protocol-relative URLs
-        const safeUrl = sanitizeCallbackUrl(url);
-        if (safeUrl !== "/") {
-          return new URL(safeUrl, baseUrl).toString();
+        if (isSafeCallbackUrl(url)) {
+          return new URL(url, baseUrl).toString();
         }
         try {
           const urlOrigin = new URL(url).origin;
