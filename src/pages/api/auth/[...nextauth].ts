@@ -51,7 +51,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
     // https://next-auth.js.org/configuration/callbacks
     callbacks: {
       redirect({ url, baseUrl }) {
-        if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+        if (
+          url.startsWith("/") &&
+          !url.startsWith("//") &&
+          !url.startsWith("/\\")
+        ) {
+          return new URL(url, baseUrl).toString();
+        }
         try {
           const urlOrigin = new URL(url).origin;
           if (urlOrigin === baseUrl) return url;
