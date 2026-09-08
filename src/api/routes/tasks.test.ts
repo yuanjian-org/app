@@ -303,6 +303,96 @@ describe("Tasks Route Impl", () => {
         expect(error.code).to.equal("FORBIDDEN");
       }
     });
+
+    it("should include tasks created by the user if includeTasksCreatedByMe is true", async () => {
+      const otherUser = await createTestUser();
+
+      await db.Task.create(
+        {
+          assigneeId: otherUser.id,
+          creatorId: testUser.id,
+          markdown: "test task I created",
+          done: false,
+        },
+        { transaction },
+      );
+
+      const tasks = await listImpl(
+        testUser,
+        [],
+        true,
+        false,
+        transaction,
+      );
+      expect(tasks.length).to.equal(1);
+      expect(tasks[0].markdown).to.equal("test task I created");
+    });
+
+    it("should not include tasks created by the user if includeTasksCreatedByMe is false", async () => {
+      const otherUser = await createTestUser();
+
+      await db.Task.create(
+        {
+          assigneeId: otherUser.id,
+          creatorId: testUser.id,
+          markdown: "test task I created",
+          done: false,
+        },
+        { transaction },
+      );
+
+      const tasks = await listImpl(
+        testUser,
+        [],
+        false,
+        false,
+        transaction,
+      );
+      expect(tasks.length).to.equal(0);
+    });
+
+    it("should return done tasks if includeDoneTasks is true", async () => {
+      await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: testUser.id,
+          markdown: "done task",
+          done: true,
+        },
+        { transaction },
+      );
+
+      const tasks = await listImpl(
+        testUser,
+        [testUser.id],
+        false,
+        true,
+        transaction,
+      );
+      expect(tasks.length).to.equal(1);
+      expect(tasks[0].markdown).to.equal("done task");
+    });
+
+    it("should not return done tasks if includeDoneTasks is false", async () => {
+      await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          creatorId: testUser.id,
+          markdown: "done task",
+          done: true,
+        },
+        { transaction },
+      );
+
+      const tasks = await listImpl(
+        testUser,
+        [testUser.id],
+        false,
+        false,
+        transaction,
+      );
+      expect(tasks.length).to.equal(0);
+    });
   });
 
   describe("createImpl", () => {
@@ -492,6 +582,63 @@ describe("Tasks Route Impl", () => {
       expect(moment(afterDate).toDate().getTime()).to.be.greaterThan(
         moment(beforeDate).toDate().getTime(),
       );
+      expect(moment(afterDate).toDate().getTime()).to.equal(
+        task.updatedAt.getTime(),
+      );
+    });
+
+    it("should ignore done tasks", async () => {
+      const otherUser = await createTestUser();
+      const beforeDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
+
+      await db.Task.create(
+        {
+          creatorId: otherUser.id,
+          assigneeId: testUser.id,
+          markdown: "Done Task",
+          done: true,
+        },
+        { transaction },
+      );
+
+      const afterDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
+      expect(moment(afterDate).toDate().getTime()).to.equal(
+        moment(beforeDate).toDate().getTime(),
+      );
+    });
+
+    it("should ignore tasks created by the user themselves", async () => {
+      const beforeDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
+
+      await db.Task.create(
+        {
+          creatorId: testUser.id,
+          assigneeId: testUser.id,
+          markdown: "Self-created Task",
+          done: false,
+        },
+        { transaction },
+      );
+
+      const afterDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
+      expect(moment(afterDate).toDate().getTime()).to.equal(
+        moment(beforeDate).toDate().getTime(),
+      );
+    });
+
+    it("should consider auto tasks (creatorId is null)", async () => {
+      const beforeDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
+
+      const task = await db.Task.create(
+        {
+          assigneeId: testUser.id,
+          autoTaskId: "study-comms",
+          done: false,
+        },
+        { transaction },
+      );
+
+      const afterDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
       expect(moment(afterDate).toDate().getTime()).to.equal(
         task.updatedAt.getTime(),
       );
