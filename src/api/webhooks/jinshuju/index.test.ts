@@ -33,7 +33,7 @@ describe("jinshuju webhook index", () => {
 
   afterEach(async () => {
     sinon.restore();
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should route MenteeApp forms", async () => {

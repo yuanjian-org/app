@@ -28,7 +28,7 @@ describe("sendImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 
@@ -229,7 +229,7 @@ describe("setPhoneImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 
@@ -358,7 +358,7 @@ describe("resetPasswordImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 
@@ -669,7 +669,7 @@ describe("setEmailImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 
@@ -760,7 +760,7 @@ describe("updateMyPhoneAndPreference", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 

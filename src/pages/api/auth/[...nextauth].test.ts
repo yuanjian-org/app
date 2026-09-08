@@ -19,7 +19,7 @@ describe("nextauth jwt callback", () => {
 
   afterEach(async () => {
     if (transaction) {
-      await transaction.rollback();
+      await transaction?.rollback();
     }
     sinon.restore();
   });

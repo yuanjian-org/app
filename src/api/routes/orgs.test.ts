@@ -25,7 +25,7 @@ describe("orgs API routes", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   describe("listUserOrgsImpl", () => {

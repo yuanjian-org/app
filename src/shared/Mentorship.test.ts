@@ -38,7 +38,7 @@ describe("Mentorship", () => {
         const now = new Date();
         void expect(isEnded(now.toISOString() as DateColumn)).to.be.false;
       } finally {
-        clock.restore();
+        clock?.restore();
       }
     });
   });

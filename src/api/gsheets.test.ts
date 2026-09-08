@@ -39,7 +39,7 @@ describe("gsheets", () => {
   });
 
   afterEach(() => {
-    clock.restore();
+    clock?.restore();
     sinon.restore();
   });
 
