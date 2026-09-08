@@ -46,7 +46,7 @@ describe("mentorSelections routes", () => {
   });
 
   afterEach(async () => {
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   describe("createDraftImpl", () => {

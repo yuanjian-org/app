@@ -46,7 +46,7 @@ describe("exam webhook", () => {
 
   afterEach(async () => {
     // Clean up test data
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   describe("successful exam submission", () => {

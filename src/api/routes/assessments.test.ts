@@ -57,7 +57,7 @@ describe("assessments", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   describe("createAssessmentImpl", () => {

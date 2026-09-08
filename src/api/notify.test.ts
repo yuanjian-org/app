@@ -117,7 +117,7 @@ describe("notify()", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
     sinon.restore();
   });
 

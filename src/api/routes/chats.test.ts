@@ -13,7 +13,7 @@ describe("insertOneOnOneMessagePrefixImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   async function createTestMessage(markdown: string) {

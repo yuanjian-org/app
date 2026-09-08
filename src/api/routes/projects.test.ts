@@ -15,7 +15,7 @@ describe("Projects Route Impl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   const createTestUser = async (roles: string[] = []): Promise<User> => {
