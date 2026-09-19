@@ -299,14 +299,7 @@ export async function createInterview(
     { transaction },
   );
 
-  // Update roles
-  for (const interviwerId of interviewerIds) {
-    const u = await db.User.findByPk(interviwerId, { transaction });
-    invariant(u);
-    if (u.roles.some((r) => r == "Interviewer")) continue;
-    u.roles = [...u.roles, "Interviewer"];
-    await u.save({ transaction });
-  }
+  await grantInterviewerRole(interviewerIds, transaction);
 
   await createGroup(
     null,
@@ -497,14 +490,7 @@ export async function updateInterview(
         );
       }
     }
-    // Update roles
-    for (const interviwerId of interviewerIds) {
-      const u = await db.User.findByPk(interviwerId, { transaction });
-      invariant(u);
-      if (u.roles.some((r) => r == "Interviewer")) continue;
-      u.roles = [...u.roles, "Interviewer"];
-      await u.save({ transaction });
-    }
+    await grantInterviewerRole(interviewerIds, transaction);
     // Update group
     await updateGroup(
       i.group.id,
@@ -525,6 +511,19 @@ export async function updateInterview(
 function validate(intervieweeId: string, interviewerIds: string[]) {
   if (interviewerIds.some((id) => id === intervieweeId)) {
     throw generalBadRequestError("面试官和候选人不能是同一人");
+  }
+}
+
+export async function grantInterviewerRole(
+  interviewerIds: string[],
+  transaction: Transaction,
+) {
+  for (const interviewerId of interviewerIds) {
+    const u = await db.User.findByPk(interviewerId, { transaction });
+    invariant(u);
+    if (u.roles.some((r) => r == "Interviewer")) continue;
+    u.roles = [...u.roles, "Interviewer"];
+    await u.save({ transaction });
   }
 }
 

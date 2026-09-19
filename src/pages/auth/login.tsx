@@ -142,7 +142,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
     name: "手机",
     panel: (
       <TabPanel px={0} key="手机">
-        <PhonePanel />
+        <AuthIdPanel idType="phone" isDemo={isDemo} />
       </TabPanel>
     ),
   };
@@ -150,7 +150,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
     name: "邮箱",
     panel: (
       <TabPanel px={0} key="邮箱">
-        <EmailPanel isDemo={isDemo} />
+        <AuthIdPanel idType="email" isDemo={isDemo} />
       </TabPanel>
     ),
   };
@@ -214,7 +214,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
   );
 }
 
-function EmailPanel({ isDemo }: { isDemo?: boolean }) {
+function AuthIdPanel({ idType, isDemo }: { idType: IdType; isDemo?: boolean }) {
   return (
     <Tabs
       variant="enclosed-colored"
@@ -233,33 +233,10 @@ function EmailPanel({ isDemo }: { isDemo?: boolean }) {
       </TabList>
       <TabPanels>
         <TabPanel>
-          <IdTokenPanel idType="email" />
+          <IdTokenPanel idType={idType} />
         </TabPanel>
         <TabPanel>
-          <IdPasswordPanel idType="email" />
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
-  );
-}
-
-function PhonePanel() {
-  return (
-    <Tabs variant="enclosed-colored" isFitted isLazy size="sm">
-      <TabList mt={componentSpacing}>
-        <Tab>
-          <T>验证码</T>
-        </Tab>
-        <Tab>
-          <T>密码</T>
-        </Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel>
-          <IdTokenPanel idType="phone" />
-        </TabPanel>
-        <TabPanel>
-          <IdPasswordPanel idType="phone" />
+          <IdPasswordPanel idType={idType} />
         </TabPanel>
       </TabPanels>
     </Tabs>

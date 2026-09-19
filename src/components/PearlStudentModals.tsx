@@ -12,7 +12,6 @@ import {
   VStack,
   Spacer,
   Link,
-  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import trpc from "../trpc";
@@ -20,13 +19,13 @@ import ModalWithBackdrop from "./ModalWithBackdrop";
 import { componentSpacing } from "theme/metrics";
 import { UserState } from "shared/UserState";
 import { toast } from "react-toastify";
-import { accountPageTitle } from "pages/accounts/[userId]";
 import useMe from "useMe";
 import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import T from "components/T";
+import { BaseInitialModal } from "./BaseInitialModal";
 
 export function PearlStudentModals({
   userState,
@@ -75,38 +74,15 @@ function InitialModal({
   loadingDecline: boolean;
 }) {
   return (
-    // Set onClose to undefined to prevent user from closing the modal without
-    // entering name.
-    <ModalWithBackdrop isOpen onClose={() => undefined}>
-      <ModalContent>
-        <ModalHeader>
-          <T>珍珠生验证</T>
-        </ModalHeader>
-        <ModalBody>
-          <Text>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</Text>
-          <Text mt={componentSpacing}>
-            <T>如果选择跳过，之后可以前往用户菜单的【</T>
-            {accountPageTitle}
-            <T>】页进行验证。</T>
-          </Text>
-        </ModalBody>
-        <ModalFooter>
-          <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline} isLoading={loadingDecline}>
-              <T>我不是珍珠生，或跳过此步</T>
-            </Button>
-            <Spacer />
-            <Button
-              variant="brand"
-              onClick={confirm}
-              isDisabled={loadingDecline}
-            >
-              <T>我是珍珠生</T>
-            </Button>
-          </HStack>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+    <BaseInitialModal
+      title="珍珠生验证"
+      bodyMainText={<T>您是新华爱心教育基金会曾经或正在资助的珍珠生吗？</T>}
+      confirm={confirm}
+      decline={decline}
+      loadingDecline={loadingDecline}
+      declineButtonText="我不是珍珠生，或跳过此步"
+      confirmButtonText="我是珍珠生"
+    />
   );
 }
 

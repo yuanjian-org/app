@@ -69,6 +69,18 @@ const list = procedure
     return await listImpl(me, input?.orgId);
   });
 
+export function checkProjectPermission(me: User | undefined, project: Project) {
+  const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
+
+  if (
+    project.status !== "招募中" &&
+    (!me || me.id !== project.ownerId) &&
+    !isProjectAdmin
+  ) {
+    throw noPermissionError("项目", project.id);
+  }
+}
+
 export async function getImpl(
   me: User | undefined,
   id: string,
@@ -84,15 +96,7 @@ export async function getImpl(
     throw notFoundError("项目", id);
   }
 
-  const isProjectAdmin = me ? isPermitted(me.roles, "ProjectAdmin") : false;
-
-  if (
-    project.status !== "招募中" &&
-    (!me || me.id !== project.ownerId) &&
-    !isProjectAdmin
-  ) {
-    throw noPermissionError("项目", id);
-  }
+  checkProjectPermission(me, project as unknown as Project);
 
   return project;
 }
@@ -181,15 +185,13 @@ export async function updateImpl(
     throw notFoundError("项目", id);
   }
 
-  if (project.ownerId !== me.id && !isPermitted(me.roles, "ProjectAdmin")) {
+  const isProjectAdmin = isPermitted(me.roles, "ProjectAdmin");
+
+  if (project.ownerId !== me.id && !isProjectAdmin) {
     throw noPermissionError("项目", id);
   }
 
-  if (
-    ownerId &&
-    ownerId !== project.ownerId &&
-    !isPermitted(me.roles, "ProjectAdmin")
-  ) {
+  if (ownerId && ownerId !== project.ownerId && !isProjectAdmin) {
     throw noPermissionError("项目", id);
   }
 

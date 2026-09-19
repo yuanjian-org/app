@@ -1,16 +1,6 @@
-import {
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalCloseButton,
-  Button,
-  Th,
-  Td,
-  Link,
-} from "@chakra-ui/react";
+import { Th, Td, Link } from "@chakra-ui/react";
 import trpc from "trpc";
-import ModalWithBackdrop from "./ModalWithBackdrop";
+import ModalWithCloseButton from "./ModalWithCloseButton";
 import UserSelector from "./UserSelector";
 import { useState } from "react";
 import { formatUserName } from "shared/strings/formatUserName";
@@ -76,25 +66,19 @@ function ManagerEditor({
   };
 
   return (
-    <ModalWithBackdrop isOpen onClose={onClose}>
-      <ModalContent>
-        <ModalHeader>
+    <ModalWithCloseButton
+      onClose={onClose}
+      title={
+        <>
           {calibration.name}
           <T>的面试主管</T>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <UserSelector
-            initialValue={calibration.manager ? [calibration.manager] : []}
-            onSelect={saveManager}
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={onClose}>
-            <T>关闭</T>
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+        </>
+      }
+    >
+      <UserSelector
+        initialValue={calibration.manager ? [calibration.manager] : []}
+        onSelect={saveManager}
+      />
+    </ModalWithCloseButton>
   );
 }

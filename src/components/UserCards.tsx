@@ -345,58 +345,7 @@ function UserCardForDesktop({
       </CardHeader>
       <CardBody pt={1} onClick={visitUser} cursor="pointer">
         <Flex direction="column" gap={paragraphSpacing}>
-          {p?.身份头衔 && (
-            <Text>
-              <b>{p.身份头衔}</b>
-            </Text>
-          )}
-          {type == "TransactionalMentor" ? (
-            <>
-              {p?.专业领域 && (
-                <Text>
-                  <b>
-                    <T>专业</T>
-                  </b>
-                  ：{p.专业领域}
-                </Text>
-              )}
-              {p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}
-            </>
-          ) : type == "RelationalMentor" ? (
-            <>
-              {p?.现居住地 && (
-                <Text>
-                  <T>坐标：</T>
-                  {p.现居住地}
-                </Text>
-              )}
-              {p?.擅长话题 && (
-                <TruncatedText>
-                  <T>擅长聊：</T>
-                  {p.擅长话题}
-                </TruncatedText>
-              )}
-              {p?.成长亮点 && (
-                <TruncatedText>
-                  <T>成长亮点：</T>
-                  {p.成长亮点}
-                </TruncatedText>
-              )}
-            </>
-          ) : (
-            <>
-              {p?.现居住地 && (
-                <Text>
-                  <b>
-                    <T>坐标</T>
-                  </b>
-                  ：{p.现居住地}
-                </Text>
-              )}
-              {p?.爱好与特长 && <TruncatedText>{p.爱好与特长}</TruncatedText>}
-              {p?.生活日常 && <TruncatedText>{p.生活日常}</TruncatedText>}
-            </>
-          )}
+          <UserCardProfileFields type={type} p={p} />
         </Flex>
       </CardBody>
 
@@ -462,6 +411,79 @@ function TruncatedText({
   noOfLines?: number;
 } & PropsWithChildren) {
   return <Text noOfLines={noOfLines}>{children}</Text>;
+}
+
+function UserCardProfileFields({
+  type,
+  p,
+  noOfLines = 5,
+}: {
+  type: UserCardType;
+  p: UserProfile | undefined | null;
+  noOfLines?: number;
+}) {
+  return (
+    <>
+      {p?.身份头衔 && (
+        <Text>
+          <b>{p.身份头衔}</b>
+        </Text>
+      )}
+      {type == "TransactionalMentor" ? (
+        <>
+          {p?.专业领域 && (
+            <Text>
+              <b>
+                <T>专业</T>
+              </b>
+              ：{p.专业领域}
+            </Text>
+          )}
+          {p?.职业经历 && (
+            <TruncatedText noOfLines={noOfLines}>{p.职业经历}</TruncatedText>
+          )}
+        </>
+      ) : type == "RelationalMentor" ? (
+        <>
+          {p?.现居住地 && (
+            <Text>
+              <T>坐标：</T>
+              {p.现居住地}
+            </Text>
+          )}
+          {p?.擅长话题 && (
+            <TruncatedText noOfLines={noOfLines}>
+              <T>擅长聊：</T>
+              {p.擅长话题}
+            </TruncatedText>
+          )}
+          {p?.成长亮点 && (
+            <TruncatedText noOfLines={noOfLines}>
+              <T>成长亮点：</T>
+              {p.成长亮点}
+            </TruncatedText>
+          )}
+        </>
+      ) : (
+        <>
+          {p?.现居住地 && (
+            <Text>
+              <b>
+                <T>坐标</T>
+              </b>
+              ：{p.现居住地}
+            </Text>
+          )}
+          {p?.爱好与特长 && (
+            <TruncatedText noOfLines={noOfLines}>{p.爱好与特长}</TruncatedText>
+          )}
+          {p?.生活日常 && (
+            <TruncatedText noOfLines={noOfLines}>{p.生活日常}</TruncatedText>
+          )}
+        </>
+      )}
+    </>
+  );
 }
 
 export function UserProfilePictureLink(profile: UserProfile | null) {
@@ -587,45 +609,7 @@ function UserCardForMobile({
           pb={3 + componentSpacing}
           onClick={visitUser}
         >
-          {p?.身份头衔 && (
-            <Text>
-              <b>{p.身份头衔}</b>
-            </Text>
-          )}
-
-          {type == "TransactionalMentor" ? (
-            <>{p?.职业经历 && <TruncatedText>{p.职业经历}</TruncatedText>}</>
-          ) : type == "RelationalMentor" ? (
-            <>
-              {p?.擅长话题 && (
-                <TruncatedText noOfLines={3}>
-                  <T>擅长聊：</T>
-                  {p.擅长话题}
-                </TruncatedText>
-              )}
-              {p?.成长亮点 && (
-                <TruncatedText noOfLines={3}>
-                  <T>成长亮点：</T>
-                  {p.成长亮点}
-                </TruncatedText>
-              )}
-            </>
-          ) : (
-            <>
-              {p?.爱好与特长 && (
-                <TruncatedText noOfLines={3}>
-                  <T>爱好：</T>
-                  {p.爱好与特长}
-                </TruncatedText>
-              )}
-              {p?.生活日常 && (
-                <TruncatedText noOfLines={3}>
-                  <T>日常：</T>
-                  {p.生活日常}
-                </TruncatedText>
-              )}
-            </>
-          )}
+          <UserCardProfileFields type={type} p={p} noOfLines={3} />
         </VStack>
 
         {/* Position it to the bottom right corner of the card */}

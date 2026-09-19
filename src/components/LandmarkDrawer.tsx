@@ -18,11 +18,7 @@ import {
   Td,
   Thead,
   Textarea,
-  ModalBody,
-  ModalHeader,
-  ModalContent,
   VStack,
-  ModalFooter,
 } from "@chakra-ui/react";
 import { Landmark, LandmarkAssessment, LandmarkScore } from "shared/Map";
 import { useState } from "react";
@@ -31,7 +27,7 @@ import MarkdownSupport from "./MarkdownSupport";
 import trpc, { trpcNext } from "trpc";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { breakpoint } from "theme/breakpoints";
-import ModalWithBackdrop from "./ModalWithBackdrop";
+import ModalWithCloseButton from "./ModalWithCloseButton";
 import { formatUserName } from "shared/strings/formatUserName";
 import invariant from "tiny-invariant";
 import { compareDate } from "shared/strings/compareDate";
@@ -222,45 +218,37 @@ function AssessmentModal({
   assessment: LandmarkAssessment;
 }) {
   return (
-    <ModalWithBackdrop isCentered isOpen onClose={onClose}>
-      <ModalContent>
-        <ModalHeader>
-          <T>历史评估结果</T>
-        </ModalHeader>
-        <ModalBody>
-          <VStack gap={componentSpacing} align="left">
-            <p>
-              <b>
-                <T>日期：</T>
-              </b>
-              {getAssessmentDate(assessment)}
-            </p>
-            <p>
-              <b>
-                <T>结果：</T>
-              </b>
-              {assessment.score}
-            </p>
-            <p>
-              <b>
-                <T>评估人：</T>
-              </b>
-              {getAssessorName(assessment)}
-            </p>
-            <p>
-              <b>
-                <T>详情：</T>
-              </b>
-              {assessment.markdown || "无"}
-            </p>
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={onClose}>
-            <T>关闭</T>
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+    <ModalWithCloseButton
+      isCentered
+      onClose={onClose}
+      title={<T>历史评估结果</T>}
+    >
+      <VStack gap={componentSpacing} align="left">
+        <p>
+          <b>
+            <T>日期：</T>
+          </b>
+          {getAssessmentDate(assessment)}
+        </p>
+        <p>
+          <b>
+            <T>结果：</T>
+          </b>
+          {assessment.score}
+        </p>
+        <p>
+          <b>
+            <T>评估人：</T>
+          </b>
+          {getAssessorName(assessment)}
+        </p>
+        <p>
+          <b>
+            <T>详情：</T>
+          </b>
+          {assessment.markdown || "无"}
+        </p>
+      </VStack>
+    </ModalWithCloseButton>
   );
 }

@@ -8,6 +8,7 @@ import {
   encryptPayload,
   logError,
   getOAuth2ClientConfig,
+  ensureMethods,
 } from "../../../api/oauth2/utils";
 import { loginCallbackUrlKey } from "shared/callbackUrl";
 import { profileCallbackUrlKey } from "shared/callbackUrl";
@@ -24,11 +25,7 @@ export default async function authorizeHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    logError(`Method ${req.method} Not Allowed`);
-    res.setHeader("Allow", ["GET", "POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
+  if (!ensureMethods(req, res, ["GET", "POST"])) return;
 
   // The client will redirect the user to this endpoint.
   // We need to verify the user is logged in.

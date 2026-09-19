@@ -53,6 +53,20 @@ export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
 }
 
+export function ensureMethods(
+  req: import("next").NextApiRequest,
+  res: import("next").NextApiResponse,
+  allowedMethods: string[],
+): boolean {
+  if (!req.method || !allowedMethods.includes(req.method)) {
+    logError(`Method ${req.method} Not Allowed`);
+    res.setHeader("Allow", allowedMethods);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return false;
+  }
+  return true;
+}
+
 /**
  * Hashes the combination of the client ID and the local user ID.
  * This provides a unique ID per client for the same user,
