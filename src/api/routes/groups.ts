@@ -120,32 +120,27 @@ async function getGroupWithIdOnly(groupId: string) {
   return group;
 }
 
-const destroy = procedure
+const groupAdminProcedureWithId = procedure
   .use(authUser("GroupAdmin"))
-  .input(z.object({ groupId: z.string().uuid() }))
-  .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    // Need a transaction for cascading destroys
-    await sequelize.transaction(
-      async (transaction) => await g.destroy({ transaction }),
-    );
-  });
+  .input(z.object({ groupId: z.string().uuid() }));
 
-const archive = procedure
-  .use(authUser("GroupAdmin"))
-  .input(z.object({ groupId: z.string().uuid() }))
-  .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: true });
-  });
+const destroy = groupAdminProcedureWithId.mutation(async ({ input }) => {
+  const g = await getGroupWithIdOnly(input.groupId);
+  // Need a transaction for cascading destroys
+  await sequelize.transaction(
+    async (transaction) => await g.destroy({ transaction }),
+  );
+});
 
-const unarchive = procedure
-  .use(authUser("GroupAdmin"))
-  .input(z.object({ groupId: z.string().uuid() }))
-  .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: false });
-  });
+const archive = groupAdminProcedureWithId.mutation(async ({ input }) => {
+  const g = await getGroupWithIdOnly(input.groupId);
+  await g.update({ archived: true });
+});
+
+const unarchive = groupAdminProcedureWithId.mutation(async ({ input }) => {
+  const g = await getGroupWithIdOnly(input.groupId);
+  await g.update({ archived: false });
+});
 
 const whereUnowned = {
   partnershipId: null,

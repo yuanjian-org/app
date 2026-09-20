@@ -49,8 +49,28 @@ export function getOAuth2ClientConfig(
   };
 }
 
+import { NextApiRequest, NextApiResponse } from "next";
+
 export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
+}
+
+/**
+ * Validates that the request method is GET or POST.
+ * If not, it sends a 405 response and returns true.
+ * Returns false if the method is valid.
+ */
+export function isMethodNotAllowed(
+  req: NextApiRequest,
+  res: NextApiResponse,
+): boolean {
+  if (req.method !== "GET" && req.method !== "POST") {
+    logError(`Method ${req.method} Not Allowed`);
+    res.setHeader("Allow", ["GET", "POST"]);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return true;
+  }
+  return false;
 }
 
 /**

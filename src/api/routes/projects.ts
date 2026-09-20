@@ -132,16 +132,24 @@ export async function createImpl(
   );
 }
 
+const zProjectInputBase = {
+  title: z.string().optional(),
+  status: zProjectStatus.optional(),
+  visibility: zProjectVisibility.optional(),
+  profile: zProjectProfile.optional(),
+  ownerId: z.string().optional(),
+  orgId: z.string().nullish(),
+};
+
 const create = procedure
   .use(authUser(["Mentor", "ProjectAdmin"]))
   .input(
     z.object({
-      title: z.string(),
+      ...zProjectInputBase,
+      title: z.string(), // Title is required for creation
       status: zProjectStatus,
       visibility: zProjectVisibility,
       profile: zProjectProfile,
-      ownerId: z.string().optional(), // Admins can set ownerId
-      orgId: z.string().nullish(),
     }),
   )
   .output(zProject)
@@ -211,13 +219,8 @@ const update = procedure
   .use(authUser(["Mentor", "ProjectAdmin"]))
   .input(
     z.object({
+      ...zProjectInputBase,
       id: z.string(),
-      title: z.string().optional(),
-      status: zProjectStatus.optional(),
-      visibility: zProjectVisibility.optional(),
-      profile: zProjectProfile.optional(),
-      ownerId: z.string().optional(),
-      orgId: z.string().nullish(),
     }),
   )
   .output(zProject)
