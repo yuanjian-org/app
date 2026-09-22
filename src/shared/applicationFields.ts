@@ -90,6 +90,9 @@ export const menteeApplicationFields: ApplicationField[] = [
     showForEdits: true,
   },
 
+  // Date of birth for mentee application form FBTWTe
+  { jsjField: "field_61", name: "出生年月" },
+
   // 国籍 for 馒头工坊 application form, 同学推荐 for 远见 application form
   { jsjField: "field_170", name: "国籍或同学推荐" },
 
