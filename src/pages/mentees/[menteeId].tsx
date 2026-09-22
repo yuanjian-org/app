@@ -135,7 +135,11 @@ function MenteeTabs({
   return (
     <TabsWithUrlParam isLazy>
       <TabList>
-        {filtered.length == 1 ? (
+        {filtered.length === 0 ? (
+          <Tab>
+            <T>内部笔记</T>
+          </Tab>
+        ) : filtered.length === 1 ? (
           <Tab>
             <Flex as="span" gap={1} align="center">
               <T>一对一通话</T>
@@ -179,11 +183,17 @@ function MenteeTabs({
       </TabList>
 
       <TabPanels>
-        {filtered.map((m) => (
-          <TabPanel key={m.id} px={0} pt={sectionSpacing}>
-            <MentorshipPanel mentorship={m} />
+        {filtered.length === 0 ? (
+          <TabPanel px={0} pt={sectionSpacing}>
+            <ChatRoom menteeId={mentee.id} />
           </TabPanel>
-        ))}
+        ) : (
+          filtered.map((m) => (
+            <TabPanel key={m.id} px={0} pt={sectionSpacing}>
+              <MentorshipPanel mentorship={m} />
+            </TabPanel>
+          ))
+        )}
 
         {features.menteeProfile && (
           <TabPanel>
