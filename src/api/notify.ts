@@ -15,12 +15,56 @@ type Templates = {
   internationalSms: string;
 };
 
+// Deduplication window: 5 minutes in milliseconds.
+const DEDUPE_WINDOW_MS = 5 * 60 * 1000;
+
+// Cache map storing deduplication keys and their last sent timestamps.
+const recentNotifications = new Map<string, number>();
+
+/**
+ * Clear the deduplication cache. Primarily used in unit tests.
+ */
+export function clearNotificationDedupeCache() {
+  recentNotifications.clear();
+}
+
+/**
+ * Generates a unique deduplication key for a notification.
+ */
+function getDedupeKey(
+  type: NotificationType,
+  userIds: string[],
+  templates: Templates,
+  templateVariables: Record<string, string>,
+): string {
+  const sortedUserIds = [...userIds].sort();
+  return JSON.stringify({
+    type,
+    userIds: sortedUserIds,
+    templates,
+    templateVariables,
+  });
+}
+
+/**
+ * Cleans up expired entries from recentNotifications to prevent memory leaks.
+ */
+function cleanupRecentNotifications(now: number) {
+  if (recentNotifications.size > 100) {
+    for (const [key, timestamp] of recentNotifications.entries()) {
+      if (now - timestamp >= DEDUPE_WINDOW_MS) {
+        recentNotifications.delete(key);
+      }
+    }
+  }
+}
+
 export function notifyRolesIgnoreError(
   roles: Role[],
   subject: string,
   content: string,
 ) {
-  const logError = (e: any) => {
+  const logError = (e: unknown) => {
     console.log(
       `notifyRolesIgnoreError() ignored error: ${roles}, ${subject}, ${e}`,
     );
@@ -81,6 +125,22 @@ export async function notify(
   templateVariables: Record<string, string>,
   transaction: Transaction,
 ) {
+  const now = Date.now();
+  cleanupRecentNotifications(now);
+
+  const dedupeKey = getDedupeKey(type, userIds, templates, templateVariables);
+  const lastSent = recentNotifications.get(dedupeKey);
+
+  if (lastSent && now - lastSent < DEDUPE_WINDOW_MS) {
+    console.log(
+      `Suppressing duplicate notification within ${DEDUPE_WINDOW_MS}ms window:` +
+        ` ${templateVariables.subject ?? dedupeKey}`,
+    );
+    return;
+  }
+
+  recentNotifications.set(dedupeKey, now);
+
   const users = await db.User.findAll({
     where: { id: { [Op.in]: userIds } },
     attributes: ["email", "phone", "preference"],
