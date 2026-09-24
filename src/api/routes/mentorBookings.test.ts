@@ -42,7 +42,7 @@ describe("Mentor Bookings Router", () => {
   afterEach(async () => {
     sinon.restore();
     if (transaction) {
-      await transaction.rollback();
+      await transaction?.rollback();
     }
   });
 

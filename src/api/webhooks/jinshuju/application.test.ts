@@ -201,7 +201,7 @@ describe("submitApplication", () => {
   });
 
   afterEach(async () => {
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   it("should submit mentee application", async () => {

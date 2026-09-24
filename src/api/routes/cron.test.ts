@@ -50,7 +50,7 @@ describe("cron", () => {
 
   afterEach(async () => {
     sinon.restore();
-    await transaction.rollback();
+    await transaction?.rollback();
     process.env = envBackup;
   });
 

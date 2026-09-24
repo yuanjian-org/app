@@ -37,7 +37,7 @@ describe("Kudos Internal Functions", () => {
   });
 
   afterEach(async () => {
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   describe("createKudos", () => {

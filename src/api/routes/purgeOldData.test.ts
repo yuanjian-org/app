@@ -12,7 +12,7 @@ describe("purgeOldData", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should purge old EventLog, InterviewFeedbackUpdateAttempt, and MeetingHistory records", async () => {

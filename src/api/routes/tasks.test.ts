@@ -32,7 +32,7 @@ describe("Tasks Route Impl", () => {
   });
 
   afterEach(async () => {
-    if (transaction) await transaction.rollback();
+    if (transaction) await transaction?.rollback();
   });
 
   const createTestUser = async (roles: string[] = []): Promise<any> => {

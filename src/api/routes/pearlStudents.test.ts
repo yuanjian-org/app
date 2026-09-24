@@ -35,7 +35,7 @@ describe("pearlStudents API routes", () => {
     });
 
     afterEach(async () => {
-      if (transaction) await transaction.rollback();
+      if (transaction) await transaction?.rollback();
     });
 
     it("should successfully validate a matching pearl student and update user fields", async () => {

@@ -40,7 +40,7 @@ describe("recycleMeetings", () => {
       await meetingTransaction.rollback();
     }
     if (transaction) {
-      await transaction.rollback();
+      await transaction?.rollback();
     }
   });
 
@@ -97,10 +97,10 @@ describe("refreshMeetingSlots", () => {
   });
 
   afterEach(async () => {
-    clock.restore();
+    clock?.restore();
     sinon.restore();
     await meetingTransaction.rollback();
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should ignore meetings created within the grace period", async () => {

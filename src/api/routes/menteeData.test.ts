@@ -18,7 +18,7 @@ describe("downloadMenteeDataImpl", () => {
   });
 
   afterEach(async () => {
-    await transaction.rollback();
+    await transaction?.rollback();
   });
 
   it("should generate complete ZIP package with all mentee data", async () => {

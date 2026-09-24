@@ -170,11 +170,11 @@ describe("Auth Providers", () => {
             .resolves();
 
           // Force sequelize.transaction in authorize to run in our current transaction
-          sinon
-            .stub(sequelize, "transaction")
-            .callsFake(async (callback: any) => {
-              return await callback(transaction);
-            });
+          sinon.stub(sequelize, "transaction").callsFake((async (
+            callback: any,
+          ) => {
+            return await callback(transaction);
+          }) as any);
 
           const result = await idTokenProvider.authorize!(
             {
@@ -210,11 +210,11 @@ describe("Auth Providers", () => {
             .stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken")
             .resolves();
 
-          sinon
-            .stub(sequelize, "transaction")
-            .callsFake(async (callback: any) => {
-              return await callback(transaction);
-            });
+          sinon.stub(sequelize, "transaction").callsFake((async (
+            callback: any,
+          ) => {
+            return await callback(transaction);
+          }) as any);
 
           const testNewUserEmail = `new-user-token-${randomUUID()}@example.com`;
 
