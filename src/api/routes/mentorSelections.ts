@@ -83,21 +83,7 @@ export async function destroyDraftImpl(
   mentorId: string,
   transaction: Transaction,
 ) {
-  const batch = await db.MentorSelectionBatch.findOne({
-    where: {
-      userId,
-      finalizedAt: null,
-    },
-    attributes: ["id"],
-    include: [
-      {
-        association: "selections",
-        attributes: ["id"],
-        where: { mentorId },
-      },
-    ],
-    transaction,
-  });
+  const batch = await getDraftBatch(userId, mentorId, transaction);
 
   if (!batch || batch.selections.length === 0) {
     throw notFoundError("导师选择", mentorId);

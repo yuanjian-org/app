@@ -1,19 +1,9 @@
-import {
-  Th,
-  Td,
-  Link,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  Button,
-} from "@chakra-ui/react";
+import { Th, Td, Link } from "@chakra-ui/react";
 import { useState } from "react";
 import { MdEdit } from "react-icons/md";
 import User, { MinUser } from "shared/User";
 import { formatUserName } from "shared/strings/formatUserName";
-import ModalWithBackdrop from "./ModalWithBackdrop";
+import ModalWithCloseButton from "./ModalWithCloseButton";
 import UserSelector from "./UserSelector";
 import trpc from "trpc";
 import EditableWithIconOrLink from "./EditableWithIconOrLink";
@@ -119,22 +109,17 @@ function PoCEditor({
   };
 
   return (
-    <ModalWithBackdrop isCentered isOpen onClose={onClose}>
-      <ModalContent>
-        <ModalHeader>
+    <ModalWithCloseButton
+      isCentered
+      onClose={onClose}
+      title={
+        <>
           {formatUserName(user.name)}
           <T>的联络人</T>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <UserSelector initialValue={poc ? [poc] : []} onSelect={savePoC} />
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={onClose}>
-            <T>关闭</T>
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+        </>
+      }
+    >
+      <UserSelector initialValue={poc ? [poc] : []} onSelect={savePoC} />
+    </ModalWithCloseButton>
   );
 }

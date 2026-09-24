@@ -57,11 +57,11 @@ const list = procedure
     });
   });
 
-export async function listImpl(
+export async function getTranscriptAndCheckPermission(
   me: User,
   transcriptId: string,
   transaction: Transaction,
-): Promise<Summary[]> {
+) {
   const t = await db.Transcript.findByPk(transcriptId, {
     attributes: ["id"],
     include: [
@@ -77,6 +77,16 @@ export async function listImpl(
   if (!t) throw notFoundError("会议纪要", transcriptId);
 
   checkPermissionForGroupHistory(me, t.group);
+
+  return t;
+}
+
+export async function listImpl(
+  me: User,
+  transcriptId: string,
+  transaction: Transaction,
+): Promise<Summary[]> {
+  await getTranscriptAndCheckPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
@@ -121,22 +131,7 @@ export async function updateImpl(
   markdown: string,
   transaction: Transaction,
 ) {
-  const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["id"],
-    include: [
-      {
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      },
-    ],
-    transaction,
-  });
-
-  if (!t) throw notFoundError("会议纪要", transcriptId);
-
-  // Users must be members of the group to update its summaries.
-  checkPermissionForGroupHistory(me, t.group);
+  await getTranscriptAndCheckPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key },

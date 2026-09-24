@@ -10,17 +10,14 @@ import {
   hashUserIdForClient,
   logError,
   getOAuth2ClientConfig,
+  ensureMethods,
 } from "../../../api/oauth2/utils";
 
 export default async function userinfoHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    logError(`Method ${req.method} Not Allowed`);
-    res.setHeader("Allow", ["GET", "POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
+  if (!ensureMethods(req, res, ["GET", "POST"])) return;
 
   // 1. Verify the access token.
   const authHeader = req.headers.authorization;

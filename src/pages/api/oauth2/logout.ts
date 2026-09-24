@@ -1,16 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
-import { logError, getOAuth2ClientConfig } from "../../../api/oauth2/utils";
+import {
+  logError,
+  getOAuth2ClientConfig,
+  ensureMethods,
+} from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    logError(`Method ${req.method} Not Allowed`);
-    res.setHeader("Allow", ["GET", "POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
+  if (!ensureMethods(req, res, ["GET", "POST"])) return;
 
   const { post_logout_redirect_uri, client_id } = req.query as {
     post_logout_redirect_uri?: string;

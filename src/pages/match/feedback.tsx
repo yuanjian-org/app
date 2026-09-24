@@ -283,32 +283,20 @@ function MenteeFeedbackRow({
         <UserLink user={f.user} />
       </Td>
       <Td>
-        <RadioGroup
+        <FeedbackRadioGroup
           value={f.score?.toString() ?? "0"}
+          options={[1, 2, 3, 4, 5].map((v) => v.toString())}
           onChange={(score) =>
-            update ? update({ ...f, score: parseInt(score) }) : undefined
+            update && update({ ...f, score: parseInt(score) })
           }
-        >
-          <Wrap>
-            {[1, 2, 3, 4, 5].map((score) => (
-              <WrapItem key={score}>
-                <Radio value={score.toString()} isReadOnly={!update}>
-                  {score}
-                </Radio>
-              </WrapItem>
-            ))}
-          </Wrap>
-        </RadioGroup>
+          isReadOnly={!update}
+        />
       </Td>
       <Td>
-        <Textarea
+        <FeedbackTextarea
           value={f.reason ?? ""}
+          onChange={(e) => update && update({ ...f, reason: e.target.value })}
           isReadOnly={!update}
-          // Ensure good look on mobile
-          minW="300px"
-          onChange={(e) =>
-            update ? update({ ...f, reason: e.target.value }) : undefined
-          }
         />
       </Td>
     </Tr>
@@ -385,44 +373,76 @@ function MentorFeedbackRow({
         <MenteeLink user={f.user} />
       </Td>
       <Td>
-        <RadioGroup
+        <FeedbackRadioGroup
           value={f.choice ?? ""}
+          options={mentorMatchFeedbackChoices.map((c) => c.toString())}
+          labels={{
+            Prefer: "特别喜欢",
+            Avoid: "希望避免",
+            Neutral: "都不是",
+          }}
           onChange={(choice) =>
-            update
-              ? update({
-                  ...f,
-                  choice: choice as MentorMatchFeedbackChoice,
-                })
-              : undefined
+            update &&
+            update({ ...f, choice: choice as MentorMatchFeedbackChoice })
           }
-        >
-          <Wrap>
-            {mentorMatchFeedbackChoices.map((choice) => (
-              <WrapItem key={choice}>
-                <Radio value={choice} isReadOnly={!update}>
-                  {choice == "Prefer"
-                    ? "特别喜欢"
-                    : choice == "Avoid"
-                      ? "希望避免"
-                      : "都不是"}
-                </Radio>
-              </WrapItem>
-            ))}
-          </Wrap>
-        </RadioGroup>
+          isReadOnly={!update}
+        />
       </Td>
       <Td>
-        <Textarea
+        <FeedbackTextarea
           value={f.reason ?? ""}
+          onChange={(e) => update && update({ ...f, reason: e.target.value })}
           isReadOnly={!update}
-          // Ensure good look on mobile
-          minW="300px"
-          onChange={(e) =>
-            update ? update({ ...f, reason: e.target.value }) : undefined
-          }
         />
       </Td>
     </Tr>
   );
 }
+function FeedbackRadioGroup({
+  value,
+  options,
+  labels,
+  onChange,
+  isReadOnly,
+}: {
+  value: string;
+  options: string[];
+  labels?: Record<string, string>;
+  onChange: (val: string) => void;
+  isReadOnly?: boolean;
+}) {
+  return (
+    <RadioGroup value={value} onChange={onChange}>
+      <Wrap>
+        {options.map((option) => (
+          <WrapItem key={option}>
+            <Radio value={option} isReadOnly={isReadOnly}>
+              {labels ? labels[option] || option : option}
+            </Radio>
+          </WrapItem>
+        ))}
+      </Wrap>
+    </RadioGroup>
+  );
+}
+
+function FeedbackTextarea({
+  value,
+  onChange,
+  isReadOnly,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  isReadOnly?: boolean;
+}) {
+  return (
+    <Textarea
+      value={value}
+      isReadOnly={isReadOnly}
+      minW="300px" // Ensure good look on mobile
+      onChange={onChange}
+    />
+  );
+}
+
 export const getStaticProps = getI18nProps;

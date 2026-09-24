@@ -11,7 +11,6 @@ import {
   VStack,
   Spacer,
   Link,
-  Text,
   InputGroup,
   InputRightAddon,
   InputRightElement,
@@ -22,13 +21,13 @@ import ModalWithBackdrop from "./ModalWithBackdrop";
 import { componentSpacing } from "theme/metrics";
 import { UserState } from "shared/UserState";
 import { toast } from "react-toastify";
-import { accountPageTitle } from "pages/accounts/[userId]";
 import { useSession } from "next-auth/react";
 import { SmallGrayText } from "./SmallGrayText";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
+import { BaseInitialModal } from "./BaseInitialModal";
 
 export function UstcStudentModals({
   userState,
@@ -65,36 +64,18 @@ function InitialModal({
   decline: () => void;
 }) {
   return (
-    // Set onClose to undefined to prevent user from closing the modal without
-    // entering name.
-    <ModalWithBackdrop isOpen size="lg" onClose={() => undefined}>
-      <ModalContent>
-        <ModalHeader>
-          <T>科大学生邮箱验证</T>
-        </ModalHeader>
-        <ModalBody>
-          <Text>
-            本站的【导师预约】页面仅限中国科学技术大学的学生。您有科大学生邮箱吗？
-          </Text>
-          <Text mt={componentSpacing}>
-            <T>如果选择跳过，之后可以前往用户菜单的【</T>
-            {accountPageTitle}
-            <T>】页进行验证。</T>
-          </Text>
-        </ModalBody>
-        <ModalFooter>
-          <HStack spacing={componentSpacing} w="full">
-            <Button onClick={decline}>
-              <T>我没有科大学生邮箱，或跳过此步</T>
-            </Button>
-            <Spacer />
-            <Button variant="brand" onClick={confirm}>
-              <T>我有科大学生邮箱</T>
-            </Button>
-          </HStack>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+    <BaseInitialModal
+      title="科大学生邮箱验证"
+      bodyMainText={
+        <T>
+          本站的【导师预约】页面仅限中国科学技术大学的学生。您有科大学生邮箱吗？
+        </T>
+      }
+      confirm={confirm}
+      decline={decline}
+      declineButtonText="我没有科大学生邮箱，或跳过此步"
+      confirmButtonText="我有科大学生邮箱"
+    />
   );
 }
 

@@ -16,13 +16,8 @@ import {
   FormControl,
   FormLabel,
   useDisclosure,
-  ModalBody,
-  ModalHeader,
   SimpleGrid,
   GridItem,
-  ModalContent,
-  ModalFooter,
-  ModalCloseButton,
   Box,
 } from "@chakra-ui/react";
 import { formatUserName } from "shared/strings/formatUserName";
@@ -33,7 +28,7 @@ import { useState, useRef, useCallback } from "react";
 import trpc, { trpcNext } from "trpc";
 import FocusLock from "react-focus-lock";
 import { toast } from "react-toastify";
-import ModalWithBackdrop from "./ModalWithBackdrop";
+import ModalWithCloseButton from "./ModalWithCloseButton";
 import { Kudos } from "shared/Kudos";
 import Loader from "./Loader";
 import { UserLink } from "./UserChip";
@@ -308,33 +303,29 @@ function UserKudosHistoryModal({
   const { data: kudos } = trpcNext.kudos.list.useQuery({ userId: user.id });
 
   return (
-    <ModalWithBackdrop isOpen size="lg" onClose={onClose}>
-      <ModalContent>
-        <ModalHeader>
+    <ModalWithCloseButton
+      isOpen
+      size="lg"
+      onClose={onClose}
+      title={
+        <>
           {formatUserName(user.name, "formal")}
           <T>收到的赞</T>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          {!kudos ? (
-            <Loader />
-          ) : kudos.length == 0 ? (
-            <Text>
-              {myId == user.id
-                ? "还没有赞。"
-                : `还没有人赞。快去赞一下${formatUserName(user.name, "friendly")}吧！`}
-            </Text>
-          ) : (
-            <KudosHistory kudos={kudos} type="desktop" />
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={onClose}>
-            <T>关闭</T>
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </ModalWithBackdrop>
+        </>
+      }
+    >
+      {!kudos ? (
+        <Loader />
+      ) : kudos.length == 0 ? (
+        <Text>
+          {myId == user.id
+            ? "还没有赞。"
+            : `还没有人赞。快去赞一下${formatUserName(user.name, "friendly")}吧！`}
+        </Text>
+      ) : (
+        <KudosHistory kudos={kudos} type="desktop" />
+      )}
+    </ModalWithCloseButton>
   );
 }
 
