@@ -1,4 +1,4 @@
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { z } from "zod";
 import { UserProfile } from "./UserProfile";
 import { menteeFirstYearInCollegeField } from "./applicationFields";
@@ -135,7 +135,10 @@ export function computeTraitsMatchingScore(
     if (tv === undefined) continue;
 
     const pv = pref[key as keyof TraitsPreference];
-    invariant(typeof pv === "number" && typeof tv === "number");
+    invariant(
+      typeof pv === "number" && typeof tv === "number",
+      "Trait values must be numbers",
+    );
 
     if (pv * tv > 0) {
       matchingTraits.push(key as keyof TraitsPreference);

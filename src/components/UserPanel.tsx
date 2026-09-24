@@ -50,7 +50,7 @@ import {
   traitsPrefProfiles,
   TraitTag,
 } from "components/Traits";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import useMe, {
   useMyRoles,
   useMeOptional,
@@ -221,9 +221,15 @@ function MatchingTraits({ userId }: { userId: string }) {
             const profile = traitsPrefProfiles.find((p) => p.field === t);
             if (!profile) return <></>;
 
-            invariant(traitsPref);
-            invariant(traitsPrefLabel2value[0] < 0);
-            invariant(traitsPrefLabel2value[1] > 0);
+            invariant(traitsPref, "traitsPref is undefined");
+            invariant(
+              traitsPrefLabel2value[0] < 0,
+              "traitsPref lower bound must be < 0",
+            );
+            invariant(
+              traitsPrefLabel2value[1] > 0,
+              "traitsPref upper bound must be > 0",
+            );
 
             const label =
               (traitsPref[t as keyof TraitsPreference] as number) < 0

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { authUser } from "../auth";
 import db from "../database/db";
 import { Includeable, Transaction } from "sequelize";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
 import { noPermissionError, notFoundError } from "../errors";
 import {
@@ -271,7 +271,7 @@ export async function findGroups(
   additionalWhere?: { [k: string]: any },
   transaction?: Transaction,
 ): Promise<Group[]> {
-  invariant(userIds.length > 0);
+  invariant(userIds.length > 0, "userIds cannot be empty");
 
   const gus = await db.GroupUser.findAll({
     where: {
@@ -299,7 +299,10 @@ export async function findGroups(
     })
     .map((gu) => gu.group);
 
-  invariant(mode === "inclusive" || res.length <= 1);
+  invariant(
+    mode === "inclusive" || res.length <= 1,
+    `Expected at most 1 exclusive group match, found ${res.length}`,
+  );
   return res;
 }
 
@@ -313,7 +316,10 @@ export async function createGroup(
   interviewId: string | null,
   transaction: Transaction,
 ): Promise<string> {
-  invariant(!partnershipId || !interviewId);
+  invariant(
+    !partnershipId || !interviewId,
+    "Cannot set both partnershipId and interviewId",
+  );
 
   const g = await db.Group.create(
     {

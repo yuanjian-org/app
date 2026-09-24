@@ -30,7 +30,7 @@ import { isPermitted } from "shared/Role";
 import { MenteeStatusSelectCell } from "./MenteeStatusSelect";
 import trpc, { trpcNext } from "trpc";
 import { MenteeStatus } from "shared/MenteeStatus";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import TdLink from "./TdLink";
 import {
   PointOfContactHeaderCells,
@@ -145,7 +145,10 @@ function InterviewRow({
   ];
 
   const saveMenteeStatus = async (status: MenteeStatus | null | undefined) => {
-    invariant(status !== undefined);
+    invariant(
+      status !== undefined,
+      `Status not found for mentee ${i.interviewee.id}`,
+    );
     await trpc.users.setMenteeStatus.mutate({
       userId: i.interviewee.id,
       menteeStatus: status,
