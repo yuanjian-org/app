@@ -1,0 +1,3 @@
+## 2025-01-28 - Keyboard Accessibility for Custom Icons/Buttons
+**Learning:** Found custom button-like elements (e.g. `CopyIcon`, `HStack` used as a link wrapper) that lacked basic keyboard accessibility and screen reader support. Because they don't natively have focus or click handling for keyboards, they require explicit `role="button"`, `tabIndex={0}`, and `onKeyDown` handlers to support Space/Enter keys for activation.
+**Action:** Always ensure that when assigning `onClick` to non-interactive Chakra UI components (like `Icon`, `HStack`, etc.), they are also made keyboard-navigable and accessible to assistive technologies.
