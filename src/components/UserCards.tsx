@@ -17,7 +17,6 @@ import {
   GridProps,
 } from "@chakra-ui/react";
 import { formatUserName } from "shared/strings/formatUserName";
-import { toPinyin } from "shared/strings/toPinyin";
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, paragraphSpacing } from "theme/metrics";
 import { MinUser } from "shared/User";
@@ -45,6 +44,7 @@ import { isPermitted } from "shared/Role";
 import T from "components/T";
 import { useMyRolesOptional } from "useMe";
 import { features } from "shared/Features";
+import { matchPinyin } from "shared/strings/matchPinyin";
 
 export type FieldAndLabel = {
   field: keyof StringUserProfile;
@@ -293,21 +293,16 @@ function isMentorRecommended(traitsMatchingScore?: number) {
 }
 
 function search(users: UserDisplayData[], searchTerm: string) {
-  // Note that `toPinyin('Abc') returns 'Abc' without case change.
-  const lower = searchTerm.trim().toLowerCase();
-
-  const match = (v: string | null | undefined) => {
-    if (!v) return false;
-    const lowerV = v.toLowerCase();
-    return [lowerV, toPinyin(lowerV)].some((s) => s.includes(lower));
-  };
+  const lowerSearch = searchTerm.trim().toLowerCase();
 
   return users.filter(
     (u) =>
-      match(u.user.name) ||
+      matchPinyin(lowerSearch, u.user.name) ||
       (u.profile &&
-        (match(u.profile.性别) ||
-          visibleUserProfileFields.some((fl) => match(u.profile?.[fl.field])))),
+        (matchPinyin(lowerSearch, u.profile.性别) ||
+          visibleUserProfileFields.some((fl) =>
+            matchPinyin(lowerSearch, u.profile?.[fl.field]),
+          ))),
   );
 }
 
