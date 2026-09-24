@@ -64,14 +64,14 @@ export async function createDraftImpl(
   );
 }
 
+const draftInputSchema = z.object({
+  mentorId: z.string(),
+  reason: z.string(),
+});
+
 const createDraft = procedure
   .use(authUser())
-  .input(
-    z.object({
-      mentorId: z.string(),
-      reason: z.string(),
-    }),
-  )
+  .input(draftInputSchema)
   .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
       await createDraftImpl(me.id, mentorId, reason, transaction);
@@ -141,12 +141,7 @@ export async function updateDraftImpl(
 
 const updateDraft = procedure
   .use(authUser())
-  .input(
-    z.object({
-      mentorId: z.string(),
-      reason: z.string(),
-    }),
-  )
+  .input(draftInputSchema)
   .mutation(async ({ ctx: { me }, input: { mentorId, reason } }) => {
     await sequelize.transaction(async (transaction) => {
       await updateDraftImpl(me.id, mentorId, reason, transaction);
