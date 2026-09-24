@@ -13,6 +13,22 @@ import User from "../database/models/User";
 import sequelize from "../database/sequelize";
 import { compareChinese } from "shared/strings/compareChinese";
 
+async function assertOrgAdminOrOwner(
+  me: User,
+  orgId: string,
+  transaction?: Transaction,
+) {
+  const isOwner =
+    (await db.OrgOwner.count({
+      where: { orgId, ownerId: me.id },
+      transaction,
+    })) > 0;
+
+  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
+    throw noPermissionError("机构", orgId);
+  }
+}
+
 export async function listOrgsImpl(transaction?: Transaction) {
   return await db.Org.findAll({
     order: [["name", "ASC"]],
@@ -63,7 +79,7 @@ export async function getOrgImpl(
 
 export async function createOrgImpl(
   input: { name: string; description: string | null },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   return await db.Org.create(input, { transaction });
 }
@@ -79,7 +95,7 @@ export async function removeOrgImpl(id: string, transaction: Transaction) {
 export async function updateOrgDescriptionImpl(
   me: User,
   input: { id: string; description: string | null },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const { id, description } = input;
   const org = await db.Org.findByPk(id, { transaction });
@@ -87,15 +103,7 @@ export async function updateOrgDescriptionImpl(
     throw notFoundError("机构", id);
   }
 
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId: id, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", id);
-  }
+  await assertOrgAdminOrOwner(me, id, transaction);
 
   await org.update({ description }, { transaction });
 }
@@ -103,7 +111,7 @@ export async function updateOrgDescriptionImpl(
 export async function joinOrgImpl(
   me: User,
   orgId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId: me.id },
@@ -114,7 +122,7 @@ export async function joinOrgImpl(
 export async function leaveOrgImpl(
   me: User,
   orgId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   await db.OrgMentor.destroy({
     where: { orgId, mentorId: me.id },
@@ -125,18 +133,10 @@ export async function leaveOrgImpl(
 export async function addMentorImpl(
   me: User,
   input: { orgId: string; mentorId: string },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const { orgId, mentorId } = input;
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", orgId);
-  }
+  await assertOrgAdminOrOwner(me, orgId, transaction);
 
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId },
@@ -147,18 +147,10 @@ export async function addMentorImpl(
 export async function removeMentorImpl(
   me: User,
   input: { orgId: string; mentorId: string },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const { orgId, mentorId } = input;
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", orgId);
-  }
+  await assertOrgAdminOrOwner(me, orgId, transaction);
 
   await db.OrgMentor.destroy({
     where: { orgId, mentorId },
@@ -168,7 +160,7 @@ export async function removeMentorImpl(
 
 export async function addOwnerImpl(
   input: { orgId: string; ownerId: string },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const { orgId, ownerId } = input;
   await db.OrgOwner.findOrCreate({
@@ -179,7 +171,7 @@ export async function addOwnerImpl(
 
 export async function removeOwnerImpl(
   input: { orgId: string; ownerId: string },
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const { orgId, ownerId } = input;
   await db.OrgOwner.destroy({

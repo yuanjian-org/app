@@ -343,22 +343,8 @@ function Picture({
 }) {
   invariant(profile, "!profile");
   const myRoles = useMyRoles();
-  const router = useRouter();
-
   const isMe = useMyId() === user.id;
-  const [loading, setLoading] = useState(false);
-
-  const handleUpload = async () => {
-    setLoading(true);
-    try {
-      const uploadToken = await trpc.users.getJinshujuXField.query({
-        uploadTarget: "user",
-      });
-      await router.push(getEmbeddedFormUrl("Bz3uSO", uploadToken));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, handleUpload } = useJinshujuUpload("Bz3uSO");
 
   return (
     <>
@@ -429,22 +415,8 @@ function Picture({
 
 function Video({ user, profile }: { user: MinUser; profile: UserProfile }) {
   invariant(profile, "!profile");
-  const router = useRouter();
-
   const isMe = useMyId() === user.id;
-  const [loading, setLoading] = useState(false);
-
-  const handleUpload = async () => {
-    setLoading(true);
-    try {
-      const uploadToken = await trpc.users.getJinshujuXField.query({
-        uploadTarget: "user",
-      });
-      await router.push(getEmbeddedFormUrl("nhFsf1", uploadToken));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { loading, handleUpload } = useJinshujuUpload("nhFsf1");
 
   return (
     <>
@@ -929,4 +901,23 @@ function ListAndMarkdownSupport() {
       </Link>
     </>
   );
+}
+
+function useJinshujuUpload(formId: string) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpload = async () => {
+    setLoading(true);
+    try {
+      const uploadToken = await trpc.users.getJinshujuXField.query({
+        uploadTarget: "user",
+      });
+      await router.push(getEmbeddedFormUrl(formId, uploadToken));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { loading, handleUpload };
 }
