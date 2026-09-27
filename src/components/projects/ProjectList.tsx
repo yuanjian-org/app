@@ -22,16 +22,14 @@ export function searchProjects(
   projects: ProjectWithAssociation[],
   searchTerm: string,
 ) {
-  const lowerSearch = searchTerm.trim().toLowerCase();
-
   return projects.filter((p) => {
     return (
-      matchPinyin(lowerSearch, p.title) ||
-      matchPinyin(lowerSearch, p.owner.name) ||
+      matchPinyin(searchTerm, p.title) ||
+      matchPinyin(searchTerm, p.owner.name) ||
       (p.profile &&
         Object.entries(p.profile).some(
           ([key, value]) =>
-            key !== "视频链接" && matchPinyin(lowerSearch, value as string),
+            key !== "视频链接" && matchPinyin(searchTerm, value as string),
         ))
     );
   });

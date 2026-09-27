@@ -293,15 +293,13 @@ function isMentorRecommended(traitsMatchingScore?: number) {
 }
 
 function search(users: UserDisplayData[], searchTerm: string) {
-  const lowerSearch = searchTerm.trim().toLowerCase();
-
   return users.filter(
     (u) =>
-      matchPinyin(lowerSearch, u.user.name) ||
+      matchPinyin(searchTerm, u.user.name) ||
       (u.profile &&
-        (matchPinyin(lowerSearch, u.profile.性别) ||
+        (matchPinyin(searchTerm, u.profile.性别) ||
           visibleUserProfileFields.some((fl) =>
-            matchPinyin(lowerSearch, u.profile?.[fl.field]),
+            matchPinyin(searchTerm, u.profile?.[fl.field]),
           ))),
   );
 }
