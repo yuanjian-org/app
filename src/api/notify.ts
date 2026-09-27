@@ -16,7 +16,7 @@ type Templates = {
 };
 
 // Deduplication window: 5 minutes in milliseconds.
-const DEDUPE_WINDOW_MS = 5 * 60 * 1000;
+const dedupeWindowMs = 5 * 60 * 1000;
 
 // Cache map storing deduplication keys and their last sent timestamps.
 const recentNotifications = new Map<string, number>();
@@ -52,7 +52,7 @@ function getDedupeKey(
 function cleanupRecentNotifications(now: number) {
   if (recentNotifications.size > 100) {
     for (const [key, timestamp] of recentNotifications.entries()) {
-      if (now - timestamp >= DEDUPE_WINDOW_MS) {
+      if (now - timestamp >= dedupeWindowMs) {
         recentNotifications.delete(key);
       }
     }
@@ -131,9 +131,9 @@ export async function notify(
   const dedupeKey = getDedupeKey(type, userIds, templates, templateVariables);
   const lastSent = recentNotifications.get(dedupeKey);
 
-  if (lastSent && now - lastSent < DEDUPE_WINDOW_MS) {
+  if (lastSent && now - lastSent < dedupeWindowMs) {
     console.log(
-      `Suppressing duplicate notification within ${DEDUPE_WINDOW_MS}ms window:` +
+      `Suppressing duplicate notification within ${dedupeWindowMs}ms window:` +
         ` ${templateVariables.subject ?? dedupeKey}`,
     );
     return;
