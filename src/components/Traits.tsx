@@ -27,7 +27,7 @@ import {
 } from "@chakra-ui/react";
 import { breakpoint } from "theme/breakpoints";
 import { componentSpacing, sectionSpacing } from "theme/metrics";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { useEffect, useState } from "react";
 import trpc, { trpcNext } from "trpc";
 import _ from "lodash";
@@ -191,7 +191,7 @@ function Trait({
   value: number | undefined;
   update: (value: number) => void;
 }) {
-  invariant(labels.length == 2);
+  invariant(labels.length == 2, "Traits labels length must be 2");
 
   return (
     <>

@@ -37,7 +37,7 @@ import {
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
 import { chinaPhonePrefix } from "shared/strings/chinaPhonePrefix";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import Loader from "components/Loader";
 import { TraitsPreference } from "shared/Traits";
 import {
@@ -87,7 +87,7 @@ export default function Page() {
     update({ ...pref, emailDisabled: setDisabled(pref?.emailDisabled, k, v) });
 
   const update = async (pref: UserPreference) => {
-    invariant(userId);
+    invariant(userId, "userId is required for resetPreferences");
     setPref(pref);
     await trpc.users.setUserPreference.mutate({
       userId,
@@ -99,7 +99,7 @@ export default function Page() {
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      invariant(userId);
+      invariant(userId, "userId is required for savePreferences");
       await trpc.users.setUserPreference.mutate({
         userId,
         preference: pref || {},
@@ -366,7 +366,7 @@ function TraitPreference({
   value: number | undefined;
   update: (value: number | undefined) => void;
 }) {
-  invariant(labels.length <= 4);
+  invariant(labels.length <= 4, "Traits field rows length must be at most 4");
 
   return (
     <>

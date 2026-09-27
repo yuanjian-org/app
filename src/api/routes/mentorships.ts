@@ -23,7 +23,7 @@ import {
   mentorshipInclude,
 } from "../database/models/attributesAndIncludes";
 import { createGroup } from "./groups";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { Op, Transaction } from "sequelize";
 import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
@@ -106,7 +106,7 @@ export async function createMentorship(
   }
 
   // Create groups
-  invariant(mentorship);
+  invariant(mentorship, "Mentorship not found");
   return await createGroup(
     null,
     [mentorId, menteeId],

@@ -33,7 +33,7 @@ import { prettifyDate } from "shared/strings/prettifyDate";
 import { breakpoint } from "theme/breakpoints";
 import ModalWithBackdrop from "./ModalWithBackdrop";
 import { formatUserName } from "shared/strings/formatUserName";
-import invariant from "tiny-invariant";
+import invariant from "shared/invariant";
 import { compareDate } from "shared/strings/compareDate";
 import Loader from "./Loader";
 import { useMyId } from "useMe";
@@ -76,7 +76,7 @@ function LandmarkAssessmentSelect({ landmark }: { landmark: Landmark }) {
   const [score, setScore] = useState<LandmarkScore | undefined>();
   const [markdown, setMarkdown] = useState<string>("");
   const createLandmarkAssessment = async () => {
-    invariant(score !== undefined);
+    invariant(score !== undefined, "Landmark score is undefined");
     await trpc.map.createLandmarkAssessment.mutate({
       userId: myId,
       landmark: landmark.名称,

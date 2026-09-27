@@ -60,7 +60,6 @@ This file lists alphabetically libraries that this repository depends on, their 
 - remark-rehype: [MIT](https://github.com/remarkjs/remark-rehype)
 - sequelize: [MIT](https://github.com/sequelize/sequelize)
 - sequelize-typescript: [MIT](https://github.com/RobinBuschmann/sequelize-typescript)
-- tiny-invariant: [MIT](https://github.com/alexreardon/tiny-invariant)
 - unified: [MIT](https://github.com/unifiedjs/unified)
 - uuid: [MIT](https://github.com/uuidjs/uuid)
 - zod: [MIT](https://github.com/colinhacks/zod)
