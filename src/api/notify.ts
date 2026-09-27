@@ -15,8 +15,8 @@ type Templates = {
   internationalSms: string;
 };
 
-// Deduplication window: 5 minutes in milliseconds.
-const dedupeWindowMs = 5 * 60 * 1000;
+// Deduplication window: 10 seconds in milliseconds.
+const dedupeWindowMs = 10 * 1000;
 
 // Cache map storing deduplication keys and their last sent timestamps.
 const recentNotifications = new Map<string, number>();
