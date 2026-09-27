@@ -317,13 +317,7 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
-      const tasks = await listImpl(
-        testUser,
-        [],
-        true,
-        false,
-        transaction,
-      );
+      const tasks = await listImpl(testUser, [], true, false, transaction);
       expect(tasks.length).to.equal(1);
       expect(tasks[0].markdown).to.equal("test task I created");
     });
@@ -341,13 +335,7 @@ describe("Tasks Route Impl", () => {
         { transaction },
       );
 
-      const tasks = await listImpl(
-        testUser,
-        [],
-        false,
-        false,
-        transaction,
-      );
+      const tasks = await listImpl(testUser, [], false, false, transaction);
       expect(tasks.length).to.equal(0);
     });
 
@@ -627,8 +615,6 @@ describe("Tasks Route Impl", () => {
     });
 
     it("should consider auto tasks (creatorId is null)", async () => {
-      const beforeDate = await getLastTasksUpdatedAtImpl(testUser, transaction);
-
       const task = await db.Task.create(
         {
           assigneeId: testUser.id,
