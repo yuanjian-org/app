@@ -9,6 +9,7 @@ import {
   decryptPayload,
   logError,
   getOAuth2ClientConfig,
+  ensureAllowedMethods,
 } from "../../../api/oauth2/utils";
 import getBaseUrl from "../../../shared/getBaseUrl";
 
@@ -24,10 +25,8 @@ export default async function tokenHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== "POST") {
-    logError(`Method ${req.method} Not Allowed`);
-    res.setHeader("Allow", ["POST"]);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  if (!ensureAllowedMethods(req, res, ["POST"])) {
+    return;
   }
 
   const {

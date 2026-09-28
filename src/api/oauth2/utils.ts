@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import * as jose from "jose";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export type OAuth2ClientConfigResult =
   | { configured: false }
@@ -51,6 +52,24 @@ export function getOAuth2ClientConfig(
 
 export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
+}
+
+/**
+ * Validates that the HTTP request method is allowed. If not allowed,
+ * logs an error, sets the Allow header, and returns a 405 status response.
+ */
+export function ensureAllowedMethods(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  allowedMethods: string[],
+): boolean {
+  if (!req.method || !allowedMethods.includes(req.method)) {
+    logError(`Method ${req.method} Not Allowed`);
+    res.setHeader("Allow", allowedMethods);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return false;
+  }
+  return true;
 }
 
 /**

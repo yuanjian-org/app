@@ -1,7 +1,51 @@
 import { expect } from "chai";
-import { hashUserIdForClient, encryptPayload, decryptPayload } from "./utils";
+import {
+  hashUserIdForClient,
+  encryptPayload,
+  decryptPayload,
+  ensureAllowedMethods,
+} from "./utils";
 
 describe("OAuth2 Utils", () => {
+  describe("ensureAllowedMethods", () => {
+    it("should return true when req.method is in allowedMethods", () => {
+      const req = { method: "GET" } as any;
+      const res = {} as any;
+      const result = ensureAllowedMethods(req, res, ["GET", "POST"]);
+      void expect(result).to.be.true;
+    });
+
+    it("should return false and set 405 response when req.method is not in allowedMethods", () => {
+      let statusCode = 0;
+      let endedMessage = "";
+      let headerName = "";
+      let headerValue: string[] | undefined;
+
+      const req = { method: "DELETE" } as any;
+      const res = {
+        setHeader: (name: string, val: string[]) => {
+          headerName = name;
+          headerValue = val;
+        },
+        status: (code: number) => {
+          statusCode = code;
+          return {
+            end: (msg: string) => {
+              endedMessage = msg;
+            },
+          };
+        },
+      } as any;
+
+      const result = ensureAllowedMethods(req, res, ["GET", "POST"]);
+      void expect(result).to.be.false;
+      expect(statusCode).to.equal(405);
+      expect(headerName).to.equal("Allow");
+      expect(headerValue).to.deep.equal(["GET", "POST"]);
+      expect(endedMessage).to.equal("Method DELETE Not Allowed");
+    });
+  });
+
   describe("hashUserIdForClient", () => {
     it("should generate a consistent hash for the same client and user", () => {
       const hash1 = hashUserIdForClient("client1", "user1");
