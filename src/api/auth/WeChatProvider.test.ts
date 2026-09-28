@@ -21,11 +21,11 @@ describe("WeChatProvider", () => {
     });
 
     expect(config.id).to.equal("wechat");
-    expect(config.authorization?.url).to.equal(
+    expect((config.authorization as import("next-auth/providers/oauth").AuthorizationEndpointHandler)?.url).to.equal(
       "https://open.weixin.qq.com/connect/oauth2/authorize",
     );
     // @ts-ignore
-    expect(config.authorization?.params?.scope).to.equal("snsapi_userinfo");
+    expect((config.authorization as import("next-auth/providers/oauth").AuthorizationEndpointHandler)?.params?.scope).to.equal("snsapi_userinfo");
   });
 
   it("should return the correct configuration for WebsiteApp", () => {
@@ -36,11 +36,11 @@ describe("WeChatProvider", () => {
     });
 
     expect(config.id).to.equal("wechat");
-    expect(config.authorization?.url).to.equal(
+    expect((config.authorization as import("next-auth/providers/oauth").AuthorizationEndpointHandler)?.url).to.equal(
       "https://open.weixin.qq.com/connect/qrconnect",
     );
     // @ts-ignore
-    expect(config.authorization?.params?.scope).to.equal("snsapi_login");
+    expect((config.authorization as import("next-auth/providers/oauth").AuthorizationEndpointHandler)?.params?.scope).to.equal("snsapi_login");
   });
 
   describe("token.request", () => {
@@ -60,7 +60,7 @@ describe("WeChatProvider", () => {
         json: sinon.stub().resolves(mockResponse),
       } as unknown as Response);
 
-      const request = config.token?.request;
+      const request = (config.token as import("next-auth/providers/oauth").TokenEndpointHandler)?.request;
       expect(request).to.not.equal(undefined);
 
       // @ts-ignore
@@ -90,7 +90,7 @@ describe("WeChatProvider", () => {
         platformType: "OfficialAccount",
       });
 
-      const request = config.token?.request;
+      const request = (config.token as import("next-auth/providers/oauth").TokenEndpointHandler)?.request;
 
       try {
         sinon.stub(console, "error");
@@ -126,7 +126,7 @@ describe("WeChatProvider", () => {
         json: sinon.stub().resolves(mockProfile),
       } as unknown as Response);
 
-      const request = config.userinfo?.request;
+      const request = (config.userinfo as import("next-auth/providers/oauth").UserinfoEndpointHandler)?.request;
       expect(request).to.not.equal(undefined);
 
       // @ts-ignore
@@ -156,7 +156,7 @@ describe("WeChatProvider", () => {
         platformType: "OfficialAccount",
       });
 
-      const request = config.userinfo?.request;
+      const request = (config.userinfo as import("next-auth/providers/oauth").UserinfoEndpointHandler)?.request;
 
       try {
         // @ts-ignore

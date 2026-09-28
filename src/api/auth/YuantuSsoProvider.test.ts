@@ -25,7 +25,7 @@ describe("YuantuSsoProvider", () => {
     expect(config.issuer).to.equal("https://sso.example.com");
     expect(config.allowDangerousEmailAccountLinking).to.equal(true);
 
-    expect(config.authorization?.url).to.equal(
+    expect((config.authorization as import("next-auth/providers/oauth").AuthorizationEndpointHandler)?.url).to.equal(
       "https://sso.example.com/api/oauth2/authorize",
     );
     // @ts-ignore
@@ -33,10 +33,10 @@ describe("YuantuSsoProvider", () => {
       "openid profile email phone",
     );
 
-    expect(config.token?.url).to.equal(
+    expect((config.token as import("next-auth/providers/oauth").TokenEndpointHandler)?.url).to.equal(
       "https://sso.example.com/api/oauth2/token",
     );
-    expect(config.userinfo?.url).to.equal(
+    expect((config.userinfo as import("next-auth/providers/oauth").UserinfoEndpointHandler)?.url).to.equal(
       "https://sso.example.com/api/oauth2/userinfo",
     );
 
@@ -63,7 +63,7 @@ describe("YuantuSsoProvider", () => {
         userinfo: userinfoStub,
       };
 
-      const requestFn = config.userinfo?.request;
+      const requestFn = (config.userinfo as import("next-auth/providers/oauth").UserinfoEndpointHandler)?.request;
       expect(requestFn).to.not.equal(undefined);
 
       const tokens = { access_token: "mock-access-token" };
@@ -95,7 +95,7 @@ describe("YuantuSsoProvider", () => {
         userinfo: userinfoStub,
       };
 
-      const requestFn = config.userinfo?.request;
+      const requestFn = (config.userinfo as import("next-auth/providers/oauth").UserinfoEndpointHandler)?.request;
 
       const tokens = new TokenSet({ access_token: "mock-token" });
 
