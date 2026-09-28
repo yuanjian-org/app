@@ -12,7 +12,9 @@ export function isSafeCallbackUrl(url: string | null | undefined): boolean {
     !url ||
     !url.startsWith("/") ||
     url.startsWith("//") ||
-    url.startsWith("/\\")
+    url.startsWith("/\\") ||
+    // Prevent whitespace or control characters in URL that could cause bypass
+    /[\s\0-\x1f\x7f]/.test(url)
   ) {
     return false;
   }

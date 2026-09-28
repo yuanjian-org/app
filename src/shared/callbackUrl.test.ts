@@ -28,6 +28,12 @@ describe("isSafeCallbackUrl", () => {
   it("should return false if the URL is a javascript: URL", () => {
     void expect(isSafeCallbackUrl("javascript:alert(1)")).to.be.false;
   });
+
+  it("should return false if the URL contains whitespace or control characters", () => {
+    void expect(isSafeCallbackUrl("/\tevil")).to.be.false;
+    void expect(isSafeCallbackUrl("/\nevil")).to.be.false;
+    void expect(isSafeCallbackUrl("/evil page")).to.be.false;
+  });
 });
 
 describe("sanitizeCallbackUrl", () => {
