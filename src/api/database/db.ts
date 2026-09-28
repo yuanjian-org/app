@@ -21,7 +21,9 @@ import ScheduledNotification from "./models/ScheduledNotification";
 import EventLog from "./models/EventLog";
 import Kudos from "./models/Kudos";
 import LastReadChatRoom from "./models/LastReadChatRoom";
-import DraftChatMessage from "./models/DraftChatMessage";
+import DraftMessage from "./models/DraftMessage";
+import ShudongPost from "./models/ShudongPost";
+import ShudongUpvote from "./models/ShudongUpvote";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
 import Task from "./models/Task";
@@ -63,7 +65,9 @@ const db = {
   EventLog,
   Kudos,
   LastReadChatRoom,
-  DraftChatMessage,
+  DraftMessage,
+  ShudongPost,
+  ShudongUpvote,
   MentorSelection,
   MentorSelectionBatch,
   Task,

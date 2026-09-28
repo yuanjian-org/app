@@ -27,5 +27,28 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await Promise.resolve();
+  try {
+    const [results] = await sequelize.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_name = 'DraftChatMessages'
+         OR table_name = 'DraftMessages';
+    `);
+    const tableNames = (results as any[]).map(
+      (r: any) => r.table_name || r.TABLE_NAME,
+    );
+    if (
+      tableNames.includes("DraftChatMessages") &&
+      tableNames.includes("DraftMessages")
+    ) {
+      await sequelize.query(`
+        INSERT INTO "DraftMessages" ("id", "roomId", "messageId", "authorId", "markdown", "createdAt", "updatedAt")
+        SELECT "id", "roomId", "messageId", "authorId", "markdown", "createdAt", "updatedAt"
+        FROM "DraftChatMessages"
+        ON CONFLICT DO NOTHING;
+      `);
+    }
+  } catch {
+    // Ignore migration errors if tables do not exist or dialect differs
+  }
 }

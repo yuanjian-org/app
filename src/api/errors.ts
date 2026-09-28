@@ -21,6 +21,8 @@ type Kind =
   | "待办事项"
   | "机构"
   | "项目"
+  | "树洞"
+  | "树洞帖子"
   | "数据"; // A general kind
 
 export const notFoundError = (kind: Kind, id?: string) =>

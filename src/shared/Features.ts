@@ -33,6 +33,9 @@ export const zFeatures = z.object({
   academicProfiles: z.boolean().optional(),
 
   mentorContact: z.boolean().optional(),
+
+  shudong: z.boolean().optional(),
+  shudongRecordAnonymousUserId: z.boolean().optional(),
 });
 
 export type Features = z.infer<typeof zFeatures>;
@@ -58,4 +61,8 @@ export const features: Features = {
     process.env.NEXT_PUBLIC_ENABLE_ACADEMIC_PROFILES === "true" || undefined,
   mentorContact:
     process.env.NEXT_PUBLIC_ENABLE_MENTOR_CONTACT === "true" || undefined,
+  shudong: process.env.NEXT_PUBLIC_ENABLE_SHUDONG === "true" || undefined,
+  shudongRecordAnonymousUserId:
+    process.env.NEXT_PUBLIC_ENABLE_SHUDONG_RECORD_ANONYMOUS_USER_ID ===
+      "true" || undefined,
 };

@@ -119,7 +119,7 @@ describe("chatsInternal", () => {
       );
 
       // Create a draft first
-      await db.DraftChatMessage.create(
+      await db.DraftMessage.create(
         {
           roomId: room.id,
           authorId: mentee.id,
@@ -136,7 +136,7 @@ describe("chatsInternal", () => {
       });
       expect(messageCount).to.equal(1);
 
-      const draftCount = await db.DraftChatMessage.count({
+      const draftCount = await db.DraftMessage.count({
         where: { roomId: room.id, authorId: mentee.id },
         transaction,
       });
