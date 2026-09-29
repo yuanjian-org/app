@@ -17,6 +17,7 @@ import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
+import PageBreadcrumb from "components/PageBreadcrumb";
 import { fullPage } from "AppPage";
 import { componentSpacing, pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
@@ -105,14 +106,10 @@ export default fullPage(() => {
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
-          <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              <T>问题详情</T>
-            </Heading>
-            <Button size="sm" onClick={() => void router.push("/shudong")}>
-              <T>返回列表</T>
-            </Button>
-          </Flex>
+          <PageBreadcrumb
+            current="问题详情"
+            parents={[{ name: "树洞", link: "/shudong" }]}
+          />
         </VStack>
       </TopBar>
 
@@ -142,7 +139,7 @@ export default fullPage(() => {
               <Flex justify="space-between" align="center">
                 <FormControl display="flex" alignItems="center" w="auto">
                   <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
-                    <T>匿名回答（默认关闭）</T>
+                    <T>匿名回答</T>
                   </FormLabel>
                   <Switch
                     id="resp-anon-switch"

@@ -163,7 +163,7 @@ export default fullPage(() => {
               />
               <FormControl display="flex" alignItems="center">
                 <FormLabel htmlFor="anon-switch" mb="0">
-                  <T>匿名提问（默认开启）</T>
+                  <T>匿名提问</T>
                 </FormLabel>
                 <Switch
                   id="anon-switch"

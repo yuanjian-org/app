@@ -20,7 +20,9 @@ import {
   Switch,
   FormControl,
   FormLabel,
+  Icon,
 } from "@chakra-ui/react";
+import { FiThumbsUp } from "react-icons/fi";
 import {
   ChatIcon,
   EditIcon,
@@ -64,12 +66,12 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
             </Text>
           )}
           {post.isEdited && (
-            <Badge colorScheme="yellow" fontSize="xs">
+            <Badge variant="subtle" colorScheme="gray" fontSize="xs">
               <T>已编辑</T>
             </Badge>
           )}
           {post.isDeleted && (
-            <Badge colorScheme="red" fontSize="xs">
+            <Badge variant="subtle" colorScheme="gray" fontSize="xs">
               <T>已删除</T>
             </Badge>
           )}
@@ -304,7 +306,7 @@ export function ShudongPostItem({
             <Text
               display="flex"
               alignItems="center"
-              color={localHasUpvoted ? "orange.600" : "gray.600"}
+              color={localHasUpvoted ? "black" : "gray.600"}
               fontWeight={localHasUpvoted ? "bold" : "normal"}
               cursor="pointer"
               role="button"
@@ -320,7 +322,8 @@ export function ShudongPostItem({
                 }
               }}
             >
-              👍 {localUpvoteCount > 0 && localUpvoteCount}
+              <Icon as={FiThumbsUp} mr={1} boxSize={4} />
+              {localUpvoteCount > 0 && localUpvoteCount}
             </Text>
 
             <AnimatePresence>
