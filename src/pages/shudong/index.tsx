@@ -133,7 +133,11 @@ export default fullPage(() => {
                   passHref
                   legacyBehavior
                 >
-                  <Link _hover={{ textDecoration: "none" }} display="block">
+                  <Link
+                    color="inherit"
+                    _hover={{ textDecoration: "none" }}
+                    display="block"
+                  >
                     <ShudongPostItem
                       post={question}
                       onRefetch={refetch}

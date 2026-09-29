@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Box,
   Flex,
@@ -87,6 +87,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 export function ShudongPostItem({
   post,
   onRefetch,
+  isRootQuestion = false,
 }: {
   post: ShudongPost;
   onRefetch?: () => void;
@@ -100,6 +101,7 @@ export function ShudongPostItem({
   const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
 
   const [isReplying, setIsReplying] = useState(false);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
   const [replyMarkdown, setReplyMarkdown] = useState("");
   const [replyIsAnon, setReplyIsAnon] = useState(false);
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
@@ -349,36 +351,56 @@ export function ShudongPostItem({
             </AnimatePresence>
           </Box>
 
-          <Text
-            display="flex"
-            alignItems="center"
-            cursor="pointer"
-            role="button"
-            tabIndex={0}
-            aria-label="回复"
-            onClick={() => setIsReplying(!isReplying)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setIsReplying(!isReplying);
-              }
-            }}
-          >
-            <ChatIcon mr={1} />
-            <T>回复</T>
-          </Text>
+          {!isRootQuestion && (
+            <>
+              <Text
+                display="flex"
+                alignItems="center"
+                cursor="pointer"
+                role="button"
+                tabIndex={0}
+                aria-label="回复"
+                onClick={() => {
+                  setIsReplying((prev) => {
+                    const next = !prev;
+                    if (next) {
+                      setTimeout(() => replyInputRef.current?.focus(), 100);
+                    }
+                    return next;
+                  });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setIsReplying((prev) => {
+                      const next = !prev;
+                      if (next) {
+                        setTimeout(() => replyInputRef.current?.focus(), 100);
+                      }
+                      return next;
+                    });
+                  }
+                }}
+              >
+                <ChatIcon mr={1} />
+                <T>回复</T>
+              </Text>
 
-          {post.responseCount > 0 && (
-            <Button
-              size="xs"
-              variant="ghost"
-              leftIcon={
-                showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
-              }
-              onClick={() => setShowChildResponses(!showChildResponses)}
-            >
-              {showChildResponses ? "收起回复" : `${post.responseCount} 条回复`}
-            </Button>
+              {post.responseCount > 0 && (
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  leftIcon={
+                    showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
+                  }
+                  onClick={() => setShowChildResponses(!showChildResponses)}
+                >
+                  {showChildResponses
+                    ? "收起回复"
+                    : `${post.responseCount} 条回复`}
+                </Button>
+              )}
+            </>
           )}
         </HStack>
       )}
@@ -393,6 +415,7 @@ export function ShudongPostItem({
           borderRadius="md"
         >
           <Textarea
+            ref={replyInputRef}
             placeholder="写下你的回复..."
             value={replyMarkdown}
             onChange={(e) => setReplyMarkdown(e.target.value)}

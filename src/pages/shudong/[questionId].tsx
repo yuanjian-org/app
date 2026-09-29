@@ -12,7 +12,10 @@ import {
   FormLabel,
   Switch,
   Divider,
+  IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
+import { FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import { canAccessShudong } from "shared/ShudongPermissions";
@@ -106,16 +109,52 @@ export default fullPage(() => {
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
-          <PageBreadcrumb
-            current="问题详情"
-            parents={[{ name: "树洞", link: "/shudong" }]}
-          />
+          <Flex justify="space-between" align="center">
+            <PageBreadcrumb
+              current="问题详情"
+              parents={[{ name: "树洞", link: "/shudong" }]}
+            />
+            <Tooltip label="分享问题" placement="top">
+              <IconButton
+                aria-label="分享问题"
+                icon={<FiShare2 />}
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  if (navigator.clipboard) {
+                    void navigator.clipboard.writeText(window.location.href);
+                    toast.success("已复制链接到剪贴板");
+                  }
+                }}
+              />
+            </Tooltip>
+          </Flex>
         </VStack>
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
         <VStack spacing={6} align="stretch">
           <ShudongPostItem post={question} onRefetch={refetch} isRootQuestion />
+
+          <Heading size="md" mt={2}>
+            {responses.length} <T>条回答</T>
+          </Heading>
+
+          {responses.length === 0 ? (
+            <Text color="gray.500">
+              <T>暂无回答，抢沙发吧！</T>
+            </Text>
+          ) : (
+            <VStack spacing={4} align="stretch">
+              {responses.map((resp) => (
+                <ShudongPostItem
+                  key={resp.id}
+                  post={resp}
+                  onRefetch={refetch}
+                />
+              ))}
+            </VStack>
+          )}
 
           <Divider />
 
@@ -160,26 +199,6 @@ export default fullPage(() => {
               </Flex>
             </VStack>
           </Box>
-
-          <Heading size="md" mt={2}>
-            {responses.length} <T>条回答</T>
-          </Heading>
-
-          {responses.length === 0 ? (
-            <Text color="gray.500">
-              <T>暂无回答，抢沙发吧！</T>
-            </Text>
-          ) : (
-            <VStack spacing={4} align="stretch">
-              {responses.map((resp) => (
-                <ShudongPostItem
-                  key={resp.id}
-                  post={resp}
-                  onRefetch={refetch}
-                />
-              ))}
-            </VStack>
-          )}
         </VStack>
       </Box>
     </>
