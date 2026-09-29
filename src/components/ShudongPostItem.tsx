@@ -129,7 +129,7 @@ export function ShudongPostItem({
   const { data: childResponses, refetch: refetchChildren } =
     trpcNext.shudong.getResponses.useQuery(
       { parentId: post.id },
-      { enabled: showChildResponses && !post.isDeleted },
+      { enabled: showChildResponses },
     );
 
   const animeDurationInSeconds = 1.5;
@@ -314,8 +314,8 @@ export function ShudongPostItem({
         </Box>
       )}
 
-      {!post.isDeleted && (
-        <HStack spacing={4} align="center" fontSize="sm" color="gray.600">
+      <HStack spacing={4} align="center" fontSize="sm" color="gray.600">
+        {!post.isDeleted && (
           <Box position="relative" display="flex" alignItems="center">
             <Text
               display="flex"
@@ -362,9 +362,11 @@ export function ShudongPostItem({
               )}
             </AnimatePresence>
           </Box>
+        )}
 
-          {(isHomePage || !isRootQuestion) && (
-            <>
+        {(isHomePage || !isRootQuestion) && (
+          <>
+            {!post.isDeleted && (
               <Text
                 display="flex"
                 alignItems="center"
@@ -405,31 +407,31 @@ export function ShudongPostItem({
                 <ChatIcon mr={1} />
                 <T>回复</T>
               </Text>
+            )}
 
-              {post.responseCount > 0 && (
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  leftIcon={
-                    showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
+            {post.responseCount > 0 && (
+              <Button
+                size="xs"
+                variant="ghost"
+                leftIcon={
+                  showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
+                }
+                onClick={() => {
+                  if (isHomePage) {
+                    void router.push(`/shudong/${post.id}`);
+                  } else {
+                    setShowChildResponses(!showChildResponses);
                   }
-                  onClick={() => {
-                    if (isHomePage) {
-                      void router.push(`/shudong/${post.id}`);
-                    } else {
-                      setShowChildResponses(!showChildResponses);
-                    }
-                  }}
-                >
-                  {showChildResponses
-                    ? "收起回复"
-                    : `${post.responseCount} 条回复`}
-                </Button>
-              )}
-            </>
-          )}
-        </HStack>
-      )}
+                }}
+              >
+                {showChildResponses
+                  ? "收起回复"
+                  : `${post.responseCount} 条回复`}
+              </Button>
+            )}
+          </>
+        )}
+      </HStack>
 
       {isReplying && (
         <VStack
@@ -479,7 +481,7 @@ export function ShudongPostItem({
         </VStack>
       )}
 
-      {showChildResponses && !post.isDeleted && (
+      {showChildResponses && (
         <VStack
           align="stretch"
           spacing={3}

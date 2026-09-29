@@ -8,7 +8,7 @@ import {
   notFoundError,
 } from "../errors";
 import sequelize from "../database/sequelize";
-import { Transaction } from "sequelize";
+import { Transaction, Op } from "sequelize";
 import User from "shared/User";
 import {
   canAccessShudong,
@@ -34,8 +34,10 @@ export async function formatShudongPost(
     transaction,
   });
 
+  const isDeleted = post.isDeleted;
+  const isAnonymous = isDeleted || post.isAnonymous;
   const author =
-    !post.isAnonymous && post.author
+    !isAnonymous && post.author
       ? { id: post.author.id, name: post.author.name, url: post.author.url }
       : null;
 
@@ -43,7 +45,7 @@ export async function formatShudongPost(
     id: post.id,
     parentId: post.parentId,
     author,
-    isAnonymous: post.isAnonymous,
+    isAnonymous,
     markdown: post.markdown,
     upvoteCount: post.upvoteCount,
     responseCount: post.responseCount,
@@ -97,7 +99,10 @@ export async function getQuestionImpl(
   const question = await formatShudongPost(q, me.id, transaction);
 
   const responsesRaw = await db.ShudongPost.findAll({
-    where: { parentId: input.questionId, isDeleted: false },
+    where: {
+      parentId: input.questionId,
+      [Op.or]: [{ isDeleted: false }, { responseCount: { [Op.gt]: 0 } }],
+    },
     order: [["createdAt", "ASC"]],
     include: [{ association: "author", attributes: ["id", "name", "url"] }],
     transaction,
@@ -118,7 +123,10 @@ export async function getResponsesImpl(
 ) {
   checkShudongAccess(me);
   const responsesRaw = await db.ShudongPost.findAll({
-    where: { parentId: input.parentId, isDeleted: false },
+    where: {
+      parentId: input.parentId,
+      [Op.or]: [{ isDeleted: false }, { responseCount: { [Op.gt]: 0 } }],
+    },
     order: [["createdAt", "ASC"]],
     include: [{ association: "author", attributes: ["id", "name", "url"] }],
     transaction,

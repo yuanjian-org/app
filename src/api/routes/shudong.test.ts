@@ -127,6 +127,49 @@ describe("shudong backend routes", () => {
       expect(resps.length).to.equal(1);
     });
 
+    it("should anonymize deleted response with child responses and preserve tree", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      const question = await createPostImpl(
+        mentor,
+        { markdown: "Tree question" },
+        transaction,
+      );
+
+      const answer = await createPostImpl(
+        mentor,
+        { parentId: question.id, markdown: "Answer 1", isAnonymous: false },
+        transaction,
+      );
+
+      const reply = await createPostImpl(
+        mentor,
+        { parentId: answer.id, markdown: "Reply to Answer 1" },
+        transaction,
+      );
+
+      // Delete the answer (which has a child reply)
+      await deletePostImpl(mentor, { postId: answer.id }, transaction);
+
+      const qDetail = await getQuestionImpl(
+        mentor,
+        { questionId: question.id },
+        transaction,
+      );
+      expect(qDetail.responses.length).to.equal(1);
+      const deletedAns = qDetail.responses[0];
+      void expect(deletedAns.isDeleted).to.be.true;
+      void expect(deletedAns.author).to.be.null;
+
+      const childResps = await getResponsesImpl(
+        mentor,
+        { parentId: answer.id },
+        transaction,
+      );
+      expect(childResps.length).to.equal(1);
+      expect(childResps[0].id).to.equal(reply.id);
+    });
+
     it("should respect anonymity settings and feature flag for recording authorId", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
