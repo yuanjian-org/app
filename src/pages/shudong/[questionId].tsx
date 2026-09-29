@@ -134,7 +134,12 @@ export default fullPage(() => {
 
       <Box mx={pageMarginX} mt={pageMarginX}>
         <VStack spacing={6} align="stretch">
-          <ShudongPostItem post={question} onRefetch={refetch} isRootQuestion />
+          <ShudongPostItem
+            post={question}
+            onRefetch={refetch}
+            isRootQuestion
+            onDeleteSuccess={() => void router.push("/shudong")}
+          />
 
           <Heading size="md" mt={2}>
             {responses.length} <T>条回答</T>
@@ -156,7 +161,7 @@ export default fullPage(() => {
             </VStack>
           )}
 
-          <Divider />
+          {responses.length > 0 && <Divider />}
 
           <Box
             p={4}
@@ -166,11 +171,10 @@ export default fullPage(() => {
             boxShadow="sm"
           >
             <Heading size="md" mb={3}>
-              <T>撰写回答</T>
+              <T>写下你的回答</T>
             </Heading>
             <VStack spacing={3} align="stretch">
               <Textarea
-                placeholder="写下你的回答..."
                 value={responseMarkdown}
                 onChange={(e) => setResponseMarkdown(e.target.value)}
                 rows={4}

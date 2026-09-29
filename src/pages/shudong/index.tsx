@@ -142,6 +142,8 @@ export default fullPage(() => {
                       post={question}
                       onRefetch={refetch}
                       isRootQuestion
+                      hideEditDelete
+                      isHomePage
                     />
                   </Link>
                 </NextLink>

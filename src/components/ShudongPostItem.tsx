@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Flex,
@@ -88,12 +89,19 @@ export function ShudongPostItem({
   post,
   onRefetch,
   isRootQuestion = false,
+  hideEditDelete = false,
+  onDeleteSuccess,
+  isHomePage = false,
 }: {
   post: ShudongPost;
   onRefetch?: () => void;
   isRootQuestion?: boolean;
+  hideEditDelete?: boolean;
+  onDeleteSuccess?: () => void;
+  isHomePage?: boolean;
 }) {
   const me = useMe();
+  const router = useRouter();
   const [localHasUpvoted, setLocalHasUpvoted] = useState(
     post.userHasUpvoted ?? false,
   );
@@ -221,16 +229,20 @@ export function ShudongPostItem({
       await trpc.shudong.deletePost.mutate({ postId: post.id });
       toast.success("已删除帖子");
       onDeleteClose();
-      if (onRefetch) onRefetch();
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      } else if (isRootQuestion) {
+        void router.push("/shudong");
+      } else if (onRefetch) {
+        onRefetch();
+      }
     } catch (err: any) {
       toast.error(err.message || "删除失败");
     }
   };
 
-  const canEditOrDelete = canEditOrDeleteShudongPost(
-    me,
-    post.author?.id ?? null,
-  );
+  const canEditOrDelete =
+    !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
 
   return (
     <Box
@@ -351,7 +363,7 @@ export function ShudongPostItem({
             </AnimatePresence>
           </Box>
 
-          {!isRootQuestion && (
+          {(isHomePage || !isRootQuestion) && (
             <>
               <Text
                 display="flex"
@@ -361,17 +373,9 @@ export function ShudongPostItem({
                 tabIndex={0}
                 aria-label="回复"
                 onClick={() => {
-                  setIsReplying((prev) => {
-                    const next = !prev;
-                    if (next) {
-                      setTimeout(() => replyInputRef.current?.focus(), 100);
-                    }
-                    return next;
-                  });
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
+                  if (isHomePage) {
+                    void router.push(`/shudong/${post.id}`);
+                  } else {
                     setIsReplying((prev) => {
                       const next = !prev;
                       if (next) {
@@ -379,6 +383,22 @@ export function ShudongPostItem({
                       }
                       return next;
                     });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (isHomePage) {
+                      void router.push(`/shudong/${post.id}`);
+                    } else {
+                      setIsReplying((prev) => {
+                        const next = !prev;
+                        if (next) {
+                          setTimeout(() => replyInputRef.current?.focus(), 100);
+                        }
+                        return next;
+                      });
+                    }
                   }
                 }}
               >
@@ -393,7 +413,13 @@ export function ShudongPostItem({
                   leftIcon={
                     showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
                   }
-                  onClick={() => setShowChildResponses(!showChildResponses)}
+                  onClick={() => {
+                    if (isHomePage) {
+                      void router.push(`/shudong/${post.id}`);
+                    } else {
+                      setShowChildResponses(!showChildResponses);
+                    }
+                  }}
                 >
                   {showChildResponses
                     ? "收起回复"
