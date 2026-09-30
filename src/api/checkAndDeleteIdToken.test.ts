@@ -140,7 +140,7 @@ describe("checkAndDeleteIdToken", () => {
     void expect(tokenRecord).to.equal(null);
   });
 
-  it("should throw error if token is expired", async () => {
+  it("should throw error and destroy token if token is expired", async () => {
     const expiredTime = moment()
       .subtract(tokenMaxAgeInMins + 1, "minutes")
       .toDate();
@@ -162,5 +162,11 @@ describe("checkAndDeleteIdToken", () => {
     } catch (error: any) {
       void expect(error.message).to.include("验证码已过期");
     }
+
+    const tokenRecord = await db.IdToken.findOne({
+      where: { phone: testPhone },
+      transaction,
+    });
+    void expect(tokenRecord).to.equal(null);
   });
 });
