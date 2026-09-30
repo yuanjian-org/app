@@ -11,7 +11,7 @@ export const allowedShudongMenteeStatuses: MenteeStatus[] = [
 export function canAccessShudong(
   user: Pick<User, "id" | "roles" | "menteeStatus">,
 ): boolean {
-  if (isPermitted(user.roles, "MentorshipAdmin")) {
+  if (isPermitted(user.roles, "ShudongAdmin")) {
     return true;
   }
   if (isPermitted(user.roles, "Mentor")) {
@@ -31,7 +31,7 @@ export function canEditOrDeleteShudongPost(
   user: Pick<User, "id" | "roles">,
   postAuthorId: string | null,
 ): boolean {
-  if (isPermitted(user.roles, "MentorshipAdmin")) {
+  if (isPermitted(user.roles, "ShudongAdmin")) {
     return true;
   }
   return postAuthorId !== null && user.id === postAuthorId;

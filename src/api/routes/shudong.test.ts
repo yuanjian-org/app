@@ -59,7 +59,7 @@ describe("shudong backend routes", () => {
     it("should allow mentor, valid mentee, or admin to access shudong", async () => {
       const mentor = await createTestUser(["Mentor"]);
       const mentee = await createTestUser(["Mentee"], "现届学子");
-      const admin = await createTestUser(["MentorshipAdmin"]);
+      const admin = await createTestUser(["ShudongAdmin"]);
 
       const post = await createPostImpl(
         mentor,
@@ -203,7 +203,7 @@ describe("shudong backend routes", () => {
     it("should allow editing and soft deleting by post author or admin", async () => {
       const mentor = await createTestUser(["Mentor"]);
       const otherUser = await createTestUser(["Mentor"]);
-      const admin = await createTestUser(["MentorshipAdmin"]);
+      const admin = await createTestUser(["ShudongAdmin"]);
 
       const q = await createPostImpl(
         mentor,
