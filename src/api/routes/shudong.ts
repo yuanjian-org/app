@@ -17,12 +17,21 @@ import {
 import { zShudongPost, ShudongPost } from "../../shared/Shudong";
 import { features } from "../../shared/Features";
 
+/**
+ * Throws a permission error if the current user is not authorized to use
+ * Shudong.
+ */
 export function checkShudongAccess(me: User) {
   if (!canAccessShudong(me)) {
     throw noPermissionError("树洞");
   }
 }
 
+/**
+ * Formats a raw DB ShudongPost for client consumption.
+ * Anonymizes author info if the post is marked anonymous or soft-deleted.
+ * Checks whether the current user has upvoted the post.
+ */
 export async function formatShudongPost(
   post: any,
   meId: string,
@@ -34,6 +43,7 @@ export async function formatShudongPost(
     transaction,
   });
 
+  // Soft-deleted posts are anonymized on the UI to protect user privacy
   const isDeleted = post.isDeleted;
   const isAnonymous = isDeleted || post.isAnonymous;
   const author =
@@ -57,6 +67,11 @@ export async function formatShudongPost(
   });
 }
 
+/**
+ * Lists top-level questions (parentId = null).
+ * Includes soft-deleted questions IF they have existing responses (responseCount > 0)
+ * so that the response tree beneath them remains accessible.
+ */
 export async function listQuestionsImpl(
   me: User,
   input: { limit?: number; offset?: number },
@@ -85,6 +100,10 @@ export async function listQuestionsImpl(
   return items;
 }
 
+/**
+ * Retrieves a root question and its top-level responses.
+ * Allows viewing soft-deleted questions if they have existing responses.
+ */
 export async function getQuestionImpl(
   me: User,
   input: { questionId: string },
@@ -101,6 +120,7 @@ export async function getQuestionImpl(
 
   const question = await formatShudongPost(q, me.id, transaction);
 
+  // Retrieve direct child responses to this question
   const responsesRaw = await db.ShudongPost.findAll({
     where: {
       parentId: input.questionId,
@@ -119,6 +139,11 @@ export async function getQuestionImpl(
   return { question, responses };
 }
 
+/**
+ * Retrieves child responses for any parent post (response or sub-response).
+ * Preserves soft-deleted posts with responseCount > 0 so multi-level threads
+ * stay intact.
+ */
 export async function getResponsesImpl(
   me: User,
   input: { parentId: string },
@@ -142,6 +167,12 @@ export async function getResponsesImpl(
   return responses;
 }
 
+/**
+ * Creates a new question or response.
+ * Questioners are anonymous by default; answerers/responders are non-anonymous.
+ * If shudongRecordAnonymousUserId is false, authorId is set to null in DB for
+ * true untraceability. Increments responseCount on parent post if replying.
+ */
 export async function createPostImpl(
   me: User,
   input: { parentId?: string | null; markdown: string; isAnonymous?: boolean },
@@ -155,11 +186,13 @@ export async function createPostImpl(
   }
 
   const parentId = input.parentId ?? null;
+  // Questions default to anonymous (true); answers default to non-anonymous (false)
   const defaultIsAnonymous = parentId === null;
   const isAnonymous = input.isAnonymous ?? defaultIsAnonymous;
 
   let authorId: string | null = me.id;
   if (isAnonymous && !features.shudongRecordAnonymousUserId) {
+    // True untraceability: do not store authorId when flag is disabled
     authorId = null;
   }
 
@@ -177,6 +210,7 @@ export async function createPostImpl(
     { transaction },
   );
 
+  // Update parent's response counter if this is a reply
   if (parentId) {
     const parent = await db.ShudongPost.findByPk(parentId, { transaction });
     if (parent) {
@@ -184,6 +218,7 @@ export async function createPostImpl(
     }
   }
 
+  // Clear draft upon successful publication
   const draftParentIdKey = parentId ?? "root";
   await db.DraftMessage.destroy({
     where: { shudongParentId: draftParentIdKey, authorId: me.id },
@@ -198,6 +233,10 @@ export async function createPostImpl(
   return await formatShudongPost(fresh, me.id, transaction);
 }
 
+/**
+ * Updates a post's content and marks isEdited = true.
+ * Requires post author or ShudongAdmin permissions.
+ */
 export async function updatePostImpl(
   me: User,
   input: { postId: string; markdown: string },
@@ -240,6 +279,10 @@ export async function updatePostImpl(
   return await formatShudongPost(fresh, me.id, transaction);
 }
 
+/**
+ * Soft deletes a post (isDeleted = true, deletedAt = now).
+ * Existing child responses under this post are NOT deleted.
+ */
 export async function deletePostImpl(
   me: User,
   input: { postId: string },
@@ -264,6 +307,7 @@ export async function deletePostImpl(
     { transaction },
   );
 
+  // Decrement response count on parent post
   if (post.parentId) {
     const parent = await db.ShudongPost.findByPk(post.parentId, {
       transaction,
@@ -276,6 +320,10 @@ export async function deletePostImpl(
   return { success: true };
 }
 
+/**
+ * Toggles an upvote on a post for the current user.
+ * Each user can upvote a post at most once. Clicking again cancels the vote.
+ */
 export async function toggleUpvoteImpl(
   me: User,
   input: { postId: string },
@@ -311,6 +359,9 @@ export async function toggleUpvoteImpl(
   }
 }
 
+/**
+ * Saves a draft for a Shudong post (either creating a new post or editing).
+ */
 export async function saveDraftImpl(
   me: User,
   input: {
@@ -352,6 +403,9 @@ export async function saveDraftImpl(
   return { success: true };
 }
 
+/**
+ * Fetches saved draft content for a Shudong post.
+ */
 export async function getDraftImpl(
   me: User,
   input: { shudongParentId?: string | null; shudongPostId?: string | null },
