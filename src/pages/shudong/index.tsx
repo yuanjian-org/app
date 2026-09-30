@@ -23,6 +23,7 @@ import { MdAdd } from "react-icons/md";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import useMobile from "useMobile";
+import { cmdOrCtrlChar } from "macOrWin";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -166,8 +167,8 @@ export default fullPage(() => {
             <VStack spacing={4} align="stretch">
               <Textarea
                 placeholder={
-                  "请写下你的问题..." +
-                  (!isMobile ? " (Cmd/Ctrl + Enter 发送)" : "")
+                  "请写下你的问题" +
+                  (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
                 }
                 value={questionMarkdown}
                 onChange={(e) => setQuestionMarkdown(e.target.value)}

@@ -18,6 +18,7 @@ import { FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import useMobile from "useMobile";
+import { cmdOrCtrlChar } from "macOrWin";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -188,7 +189,9 @@ export default fullPage(() => {
             <VStack spacing={3} align="stretch">
               <Textarea
                 ref={responseInputRef}
-                placeholder={!isMobile ? "(Cmd/Ctrl + Enter 发送)" : ""}
+                placeholder={
+                  !isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""
+                }
                 value={responseMarkdown}
                 onChange={(e) => setResponseMarkdown(e.target.value)}
                 onKeyDown={(e) => {

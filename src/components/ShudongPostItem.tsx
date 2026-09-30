@@ -37,6 +37,7 @@ import { ShudongPost } from "shared/Shudong";
 import { canEditOrDeleteShudongPost } from "shared/ShudongPermissions";
 import useMe from "useMe";
 import useMobile from "useMobile";
+import { cmdOrCtrlChar } from "macOrWin";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import MarkdownStyler from "./MarkdownStyler";
@@ -382,8 +383,10 @@ export function ShudongPostItem({
                 role="button"
                 tabIndex={0}
                 aria-label="回复"
-                onClick={() => {
+                onClick={(e) => {
                   if (isHomePage) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     void router.push(`/shudong/${post.id}?focus=reply`);
                   } else {
                     setIsReplying((prev) => {
@@ -398,6 +401,7 @@ export function ShudongPostItem({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
+                    e.stopPropagation();
                     if (isHomePage) {
                       void router.push(`/shudong/${post.id}?focus=reply`);
                     } else {
@@ -424,8 +428,10 @@ export function ShudongPostItem({
                 leftIcon={
                   showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
                 }
-                onClick={() => {
+                onClick={(e) => {
                   if (isHomePage) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     void router.push(`/shudong/${post.id}`);
                   } else {
                     setShowChildResponses(!showChildResponses);
@@ -453,7 +459,8 @@ export function ShudongPostItem({
           <Textarea
             ref={replyInputRef}
             placeholder={
-              "写下你的回复..." + (!isMobile ? " (Cmd/Ctrl + Enter 发送)" : "")
+              "写下你的回复" +
+              (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
             }
             value={replyMarkdown}
             onChange={(e) => setReplyMarkdown(e.target.value)}
