@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Flex,
-  Heading,
   VStack,
   Text,
   Textarea,
@@ -25,6 +24,7 @@ import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
+import PageBreadcrumb from "components/PageBreadcrumb";
 import { fullPage } from "AppPage";
 import { componentSpacing, pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
@@ -107,13 +107,14 @@ export default fullPage(() => {
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              <T>树洞</T>
-            </Heading>
+            <PageBreadcrumb current="树洞" />
             <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
               <T>提问</T>
             </Button>
           </Flex>
+          <Text fontSize="sm" color="gray.600">
+            <T>欢迎来到树洞！在这里你可以匿名或实名提问、交流与解答问题。</T>
+          </Text>
         </VStack>
       </TopBar>
 

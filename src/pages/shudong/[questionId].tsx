@@ -14,6 +14,7 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  HStack,
 } from "@chakra-ui/react";
 import { FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
@@ -109,16 +110,17 @@ export default fullPage(() => {
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
-          <Flex justify="space-between" align="center">
+          <HStack spacing={1} align="center">
             <PageBreadcrumb
               current="问题详情"
               parents={[{ name: "树洞", link: "/shudong" }]}
+              marginBottom={0}
             />
             <Tooltip label="分享问题" placement="top">
               <IconButton
                 aria-label="分享问题"
                 icon={<FiShare2 />}
-                size="sm"
+                size="xs"
                 variant="ghost"
                 onClick={() => {
                   if (navigator.clipboard) {
@@ -128,7 +130,7 @@ export default fullPage(() => {
                 }}
               />
             </Tooltip>
-          </Flex>
+          </HStack>
         </VStack>
       </TopBar>
 

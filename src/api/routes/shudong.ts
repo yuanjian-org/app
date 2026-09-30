@@ -67,7 +67,10 @@ export async function listQuestionsImpl(
   const offset = input.offset ?? 0;
 
   const questions = await db.ShudongPost.findAll({
-    where: { parentId: null, isDeleted: false },
+    where: {
+      parentId: null,
+      [Op.or]: [{ isDeleted: false }, { responseCount: { [Op.gt]: 0 } }],
+    },
     order: [["createdAt", "DESC"]],
     limit,
     offset,
@@ -92,7 +95,7 @@ export async function getQuestionImpl(
     include: [{ association: "author", attributes: ["id", "name", "url"] }],
     transaction,
   });
-  if (!q || q.isDeleted) {
+  if (!q || (q.isDeleted && q.responseCount === 0)) {
     throw notFoundError("树洞帖子", input.questionId);
   }
 
