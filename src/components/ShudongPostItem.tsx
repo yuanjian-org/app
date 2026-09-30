@@ -517,7 +517,7 @@ export function ShudongPostItem({
           </ModalHeader>
           <ModalBody>
             <Text>
-              <T>确定要删除这条帖子吗？</T>
+              <T>确定要删除这条帖子吗？已有的回复将不会被删除。</T>
             </Text>
           </ModalBody>
           <ModalFooter>

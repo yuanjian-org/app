@@ -12,8 +12,6 @@ import {
   FormLabel,
   Switch,
   Divider,
-  IconButton,
-  Tooltip,
   HStack,
 } from "@chakra-ui/react";
 import { FiShare2 } from "react-icons/fi";
@@ -110,26 +108,25 @@ export default fullPage(() => {
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
-          <HStack spacing={1} align="center">
+          <HStack spacing={3} align="center">
             <PageBreadcrumb
               current="问题详情"
               parents={[{ name: "树洞", link: "/shudong" }]}
               marginBottom={0}
             />
-            <Tooltip label="分享问题" placement="top">
-              <IconButton
-                aria-label="分享问题"
-                icon={<FiShare2 />}
-                size="xs"
-                variant="ghost"
-                onClick={() => {
-                  if (navigator.clipboard) {
-                    void navigator.clipboard.writeText(window.location.href);
-                    toast.success("已复制链接到剪贴板");
-                  }
-                }}
-              />
-            </Tooltip>
+            <Button
+              leftIcon={<FiShare2 />}
+              size="xs"
+              variant="ghost"
+              onClick={() => {
+                if (navigator.clipboard) {
+                  void navigator.clipboard.writeText(window.location.href);
+                  toast.success("已复制链接到剪贴板");
+                }
+              }}
+            >
+              <T>分享</T>
+            </Button>
           </HStack>
         </VStack>
       </TopBar>

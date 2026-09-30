@@ -26,7 +26,7 @@ import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { fullPage } from "AppPage";
-import { componentSpacing, pageMarginX } from "theme/metrics";
+import { pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
@@ -105,17 +105,17 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        <VStack spacing={componentSpacing} align="stretch">
-          <Flex justify="space-between" align="center">
-            <PageBreadcrumb current="树洞" />
-            <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
-              <T>提问</T>
-            </Button>
-          </Flex>
-          <Text fontSize="sm" color="gray.600">
-            <T>欢迎来到树洞！在这里你可以匿名或实名提问、交流与解答问题。</T>
-          </Text>
-        </VStack>
+        <Flex justify="space-between" align="center">
+          <VStack align="start" spacing={1}>
+            <PageBreadcrumb current="树洞" marginBottom={0} />
+            <Text fontSize="sm" color="gray.600">
+              <T>欢迎来到树洞！在这里你可以匿名或实名提问、交流与解答问题。</T>
+            </Text>
+          </VStack>
+          <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
+            <T>提问</T>
+          </Button>
+        </Flex>
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
