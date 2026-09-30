@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -17,6 +17,7 @@ import {
 import { FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
+import useMobile from "useMobile";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -29,10 +30,12 @@ import { toast } from "react-toastify";
 
 export default fullPage(() => {
   const router = useRouter();
+  const isMobile = useMobile();
   const questionId =
     typeof router.query.questionId === "string" ? router.query.questionId : "";
 
   const me = useMe();
+  const responseInputRef = useRef<HTMLTextAreaElement>(null);
   const hasAccess = canAccessShudong(me);
 
   const { data, isLoading, refetch } = trpcNext.shudong.getQuestion.useQuery(
@@ -65,6 +68,16 @@ export default fullPage(() => {
       return () => clearTimeout(timer);
     }
   }, [responseMarkdown, questionId]);
+
+  useEffect(() => {
+    if (router.query.focus === "reply" && !isLoading && data) {
+      const timer = setTimeout(() => {
+        responseInputRef.current?.focus();
+        responseInputRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [router.query.focus, isLoading, data]);
 
   const handleCreateResponse = async () => {
     if (!responseMarkdown.trim()) {
@@ -174,8 +187,16 @@ export default fullPage(() => {
             </Heading>
             <VStack spacing={3} align="stretch">
               <Textarea
+                ref={responseInputRef}
+                placeholder={!isMobile ? "(Cmd/Ctrl + Enter 发送)" : ""}
                 value={responseMarkdown}
                 onChange={(e) => setResponseMarkdown(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    void handleCreateResponse();
+                  }
+                }}
                 rows={4}
               />
               <Flex justify="space-between" align="center">

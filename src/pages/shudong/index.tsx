@@ -22,6 +22,7 @@ import NextLink from "next/link";
 import { MdAdd } from "react-icons/md";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
+import useMobile from "useMobile";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -34,6 +35,7 @@ import { toast } from "react-toastify";
 
 export default fullPage(() => {
   const me = useMe();
+  const isMobile = useMobile();
   const hasAccess = canAccessShudong(me);
 
   const {
@@ -163,9 +165,18 @@ export default fullPage(() => {
           <ModalBody>
             <VStack spacing={4} align="stretch">
               <Textarea
-                placeholder="请写下你的问题..."
+                placeholder={
+                  "请写下你的问题..." +
+                  (!isMobile ? " (Cmd/Ctrl + Enter 发送)" : "")
+                }
                 value={questionMarkdown}
                 onChange={(e) => setQuestionMarkdown(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    void handleCreateQuestion();
+                  }
+                }}
                 rows={5}
               />
               <FormControl display="flex" alignItems="center">

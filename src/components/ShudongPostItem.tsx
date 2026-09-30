@@ -36,6 +36,7 @@ import trpc, { trpcNext } from "trpc";
 import { ShudongPost } from "shared/Shudong";
 import { canEditOrDeleteShudongPost } from "shared/ShudongPermissions";
 import useMe from "useMe";
+import useMobile from "useMobile";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import MarkdownStyler from "./MarkdownStyler";
@@ -101,6 +102,7 @@ export function ShudongPostItem({
   isHomePage?: boolean;
 }) {
   const me = useMe();
+  const isMobile = useMobile();
   const router = useRouter();
   const [localHasUpvoted, setLocalHasUpvoted] = useState(
     post.userHasUpvoted ?? false,
@@ -284,6 +286,12 @@ export function ShudongPostItem({
           <Textarea
             value={editMarkdown}
             onChange={(e) => setEditMarkdown(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                void handleSaveEdit();
+              }
+            }}
             rows={3}
           />
           <HStack justify="end">
@@ -376,7 +384,7 @@ export function ShudongPostItem({
                 aria-label="回复"
                 onClick={() => {
                   if (isHomePage) {
-                    void router.push(`/shudong/${post.id}`);
+                    void router.push(`/shudong/${post.id}?focus=reply`);
                   } else {
                     setIsReplying((prev) => {
                       const next = !prev;
@@ -391,7 +399,7 @@ export function ShudongPostItem({
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     if (isHomePage) {
-                      void router.push(`/shudong/${post.id}`);
+                      void router.push(`/shudong/${post.id}?focus=reply`);
                     } else {
                       setIsReplying((prev) => {
                         const next = !prev;
@@ -444,9 +452,17 @@ export function ShudongPostItem({
         >
           <Textarea
             ref={replyInputRef}
-            placeholder="写下你的回复..."
+            placeholder={
+              "写下你的回复..." + (!isMobile ? " (Cmd/Ctrl + Enter 发送)" : "")
+            }
             value={replyMarkdown}
             onChange={(e) => setReplyMarkdown(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                void handleCreateReply();
+              }
+            }}
             rows={2}
           />
           <Flex justify="space-between" align="center">
