@@ -45,7 +45,13 @@ import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
 
+/**
+ * Shared metadata header for Shudong questions and responses.
+ * Reusing the exact same metadata component across all node types ensures
+ * visual consistency and avoids duplicating author/status rendering.
+ */
 export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
+  // Soft-deleted or anonymous posts hide author details to protect identity
   const isAnon = post.isAnonymous || !post.author;
   const authorName = post.author ? formatUserName(post.author.name) : "匿名";
 
@@ -87,6 +93,11 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
   );
 }
 
+/**
+ * Renders a single Shudong post (question, response, or sub-response) with
+ * upvoting (+1 animation), reply toggling, draft auto-saving, inline editing,
+ * soft deletion, and expandable nested child responses.
+ */
 export function ShudongPostItem({
   post,
   onRefetch,
@@ -105,6 +116,8 @@ export function ShudongPostItem({
   const me = useMe();
   const isMobile = useMobile();
   const router = useRouter();
+
+  // Optimistic upvote state provides instant UI feedback before mutation completes
   const [localHasUpvoted, setLocalHasUpvoted] = useState(
     post.userHasUpvoted ?? false,
   );
@@ -129,6 +142,7 @@ export function ShudongPostItem({
     onClose: onDeleteClose,
   } = useDisclosure();
 
+  // Fetches child responses lazily only when expanded to reduce initial payload
   const { data: childResponses, refetch: refetchChildren } =
     trpcNext.shudong.getResponses.useQuery(
       { parentId: post.id },
@@ -137,6 +151,7 @@ export function ShudongPostItem({
 
   const animeDurationInSeconds = 1.5;
 
+  // Toggle upvote optimistically to ensure snappy interactions
   const handleUpvote = useCallback(async () => {
     if (localHasUpvoted) {
       setLocalHasUpvoted(false);
@@ -159,6 +174,7 @@ export function ShudongPostItem({
     }
   }, [localHasUpvoted, post.id]);
 
+  // Load existing draft when opening reply area to restore unsaved work
   useEffect(() => {
     if (isReplying) {
       void trpc.shudong.getDraft
@@ -169,6 +185,7 @@ export function ShudongPostItem({
     }
   }, [isReplying, post.id]);
 
+  // Auto-save reply draft after 800ms debounce to prevent data loss on navigate
   useEffect(() => {
     if (isReplying) {
       const timer = setTimeout(() => {
@@ -227,6 +244,7 @@ export function ShudongPostItem({
     }
   };
 
+  // Deleting root question navigates back to /shudong to prevent NOT_FOUND errors
   const handleDelete = async () => {
     try {
       await trpc.shudong.deletePost.mutate({ postId: post.id });
@@ -244,6 +262,7 @@ export function ShudongPostItem({
     }
   };
 
+  // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
     !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
 
@@ -288,6 +307,7 @@ export function ShudongPostItem({
             value={editMarkdown}
             onChange={(e) => setEditMarkdown(e.target.value)}
             onKeyDown={(e) => {
+              // Cmd/Ctrl + Enter shortcut for fast saving on desktop
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                 e.preventDefault();
                 void handleSaveEdit();
@@ -373,6 +393,7 @@ export function ShudongPostItem({
           </Box>
         )}
 
+        {/* Home page cards show reply/response buttons that route to question page */}
         {(isHomePage || !isRootQuestion) && (
           <>
             {!post.isDeleted && (
@@ -385,6 +406,7 @@ export function ShudongPostItem({
                 aria-label="回复"
                 onClick={(e) => {
                   if (isHomePage) {
+                    // Prevent card link wrapper from overriding query parameter routing
                     e.preventDefault();
                     e.stopPropagation();
                     void router.push(`/shudong/${post.id}?focus=reply`);
@@ -392,6 +414,7 @@ export function ShudongPostItem({
                     setIsReplying((prev) => {
                       const next = !prev;
                       if (next) {
+                        // Focus textarea immediately after expanding
                         setTimeout(() => replyInputRef.current?.focus(), 100);
                       }
                       return next;
@@ -504,6 +527,7 @@ export function ShudongPostItem({
         </VStack>
       )}
 
+      {/* Child response tree rendered with left border indentation */}
       {showChildResponses && (
         <VStack
           align="stretch"

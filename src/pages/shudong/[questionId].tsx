@@ -29,6 +29,10 @@ import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
 
+/**
+ * Question detail page displaying the root question, existing response tree,
+ * and a response input panel placed at the bottom.
+ */
 export default fullPage(() => {
   const router = useRouter();
   const isMobile = useMobile();
@@ -45,9 +49,11 @@ export default fullPage(() => {
   );
 
   const [responseMarkdown, setResponseMarkdown] = useState("");
+  // Responders are non-anonymous (false) by default
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Restore unsaved response draft specific to this question ID
   useEffect(() => {
     if (questionId) {
       void trpc.shudong.getDraft
@@ -58,6 +64,7 @@ export default fullPage(() => {
     }
   }, [questionId]);
 
+  // Debounce saving response drafts to prevent continuous API requests
   useEffect(() => {
     if (questionId) {
       const timer = setTimeout(() => {
@@ -70,6 +77,7 @@ export default fullPage(() => {
     }
   }, [responseMarkdown, questionId]);
 
+  // Focus and scroll to response box if arriving from home page "回复" click
   useEffect(() => {
     if (router.query.focus === "reply" && !isLoading && data) {
       const timer = setTimeout(() => {
@@ -122,6 +130,7 @@ export default fullPage(() => {
     <>
       <TopBar {...topBarPaddings()}>
         <VStack spacing={componentSpacing} align="stretch">
+          {/* Share button placed inline next to Breadcrumb for quick copying */}
           <HStack spacing={3} align="center">
             <PageBreadcrumb
               current="问题详情"
@@ -147,6 +156,7 @@ export default fullPage(() => {
 
       <Box mx={pageMarginX} mt={pageMarginX}>
         <VStack spacing={6} align="stretch">
+          {/* Root question display */}
           <ShudongPostItem
             post={question}
             onRefetch={refetch}
@@ -158,6 +168,7 @@ export default fullPage(() => {
             {responses.length} <T>条回答</T>
           </Heading>
 
+          {/* List of top-level responses */}
           {responses.length === 0 ? (
             <Text color="gray.500">
               <T>暂无回答，抢沙发吧！</T>
@@ -174,8 +185,10 @@ export default fullPage(() => {
             </VStack>
           )}
 
+          {/* Divider rendered only when responses exist to avoid visual clutter */}
           {responses.length > 0 && <Divider />}
 
+          {/* Response creation panel positioned at the bottom of thread */}
           <Box
             p={4}
             borderWidth="1px"

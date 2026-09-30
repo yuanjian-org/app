@@ -34,11 +34,16 @@ import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
 
+/**
+ * Main Shudong feed page displaying top-level questions.
+ * Enforces permission checks and allows users to draft and submit questions.
+ */
 export default fullPage(() => {
   const me = useMe();
   const isMobile = useMobile();
   const hasAccess = canAccessShudong(me);
 
+  // Enabled condition prevents unauthorized users from fetching question feeds
   const {
     data: questions,
     isLoading,
@@ -47,9 +52,11 @@ export default fullPage(() => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [questionMarkdown, setQuestionMarkdown] = useState("");
+  // Questions default to anonymous (true) to lower inhibition for asking questions
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Load unsaved draft for top-level questions when opening modal
   useEffect(() => {
     if (isOpen) {
       void trpc.shudong.getDraft
@@ -60,6 +67,7 @@ export default fullPage(() => {
     }
   }, [isOpen]);
 
+  // Debounce draft saving to avoid high API call volume while typing
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
@@ -95,6 +103,7 @@ export default fullPage(() => {
     }
   };
 
+  // Deny render if user lacks Shudong permissions
   if (!hasAccess) {
     return (
       <Box p={8}>
@@ -108,6 +117,7 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
+        {/* Title and feature explanation share a VStack next to action button */}
         <Flex justify="space-between" align="center">
           <VStack align="start" spacing={1}>
             <PageBreadcrumb current="树洞" marginBottom={0} />
@@ -137,6 +147,7 @@ export default fullPage(() => {
                   passHref
                   legacyBehavior
                 >
+                  {/* color="inherit" prevents default blue link styling on cards */}
                   <Link
                     color="inherit"
                     _hover={{ textDecoration: "none" }}
@@ -173,6 +184,7 @@ export default fullPage(() => {
                 value={questionMarkdown}
                 onChange={(e) => setQuestionMarkdown(e.target.value)}
                 onKeyDown={(e) => {
+                  // Keyboard shortcut for fast submission on desktop
                   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                     e.preventDefault();
                     void handleCreateQuestion();
