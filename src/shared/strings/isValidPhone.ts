@@ -1,8 +1,11 @@
 import { chinaPhonePrefix } from "./chinaPhonePrefix";
+import { removeChinaPhonePrefix } from "./removeChinaPhonePrefix";
 
 export function isValidPhone(v: string): boolean {
   if (v.startsWith(chinaPhonePrefix)) {
-    return /^1[3-9]\d{9}$/.test(v.slice(chinaPhonePrefix.length));
+    // Strip country code prefix using shared helper and validate number.
+    const numberWithoutPrefix = removeChinaPhonePrefix(v) ?? "";
+    return /^1[3-9]\d{9}$/.test(numberWithoutPrefix);
   } else if (!v.startsWith("+")) {
     return false;
   } else {
