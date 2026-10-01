@@ -11,7 +11,6 @@ import {
   FormLabel,
   VStack,
   Spacer,
-  Link,
   Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
@@ -24,8 +23,8 @@ import { accountPageTitle } from "pages/accounts/[userId]";
 import useMe from "useMe";
 import { isValidChineseName } from "shared/strings/isValidChineseName";
 import { useSession } from "next-auth/react";
+import ContactCustomerService from "./ContactCustomerService";
 import { SmallGrayText } from "./SmallGrayText";
-import { RiCustomerServiceFill } from "react-icons/ri";
 import T from "components/T";
 
 export function PearlStudentModals({
@@ -209,16 +208,7 @@ export function PearlStudentValidationModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <SmallGrayText>
-              <T>如有问题，</T>
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <T>联系客服</T>
-              </Link>
-            </SmallGrayText>
-            <RiCustomerServiceFill color="gray" />
+            <ContactCustomerService />
 
             <Spacer />
             <Button onClick={cancel} isDisabled={loadingSubmit}>
