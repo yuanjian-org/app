@@ -5,6 +5,7 @@ import {
   getOAuth2ClientConfig,
   ensureAllowedMethods,
 } from "../../../api/oauth2/utils";
+import { sanitizeCallbackUrl } from "../../../shared/callbackUrl";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -23,32 +24,28 @@ export default function logoutHandler(
 
   const clientConfig = getOAuth2ClientConfig(client_id);
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
-  // We allow redirects to the same origin as the client application.
-  if (
-    post_logout_redirect_uri &&
-    clientConfig.configured &&
-    clientConfig.validClient
-  ) {
-    try {
-      const allowedOrigin = new URL(clientConfig.redirectUri).origin;
-      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+  // Validate post_logout_redirect_uri against OAUTH2_REDIRECT_URIS
+  // or validate as safe local path using sanitizeCallbackUrl.
+  if (post_logout_redirect_uri) {
+    if (clientConfig.configured && clientConfig.validClient) {
+      try {
+        const allowedOrigin = new URL(clientConfig.redirectUri).origin;
+        const requestedOrigin = new URL(post_logout_redirect_uri).origin;
 
-      if (allowedOrigin === requestedOrigin) {
-        callbackUrl = post_logout_redirect_uri;
-      } else {
-        logError(
-          "post_logout_redirect_uri origin does not match allowed origin",
-          requestedOrigin,
-        );
+        if (allowedOrigin === requestedOrigin) {
+          callbackUrl = post_logout_redirect_uri;
+        } else {
+          logError(
+            "post_logout_redirect_uri origin does not match allowed origin",
+            requestedOrigin,
+          );
+        }
+      } catch {
+        // Fallback to checking for a safe local relative redirect path
+        callbackUrl = sanitizeCallbackUrl(post_logout_redirect_uri);
       }
-    } catch (e) {
-      logError(
-        "Invalid post_logout_redirect_uri URL",
-        post_logout_redirect_uri,
-        e,
-      );
-      // Ignore invalid URLs and fallback to "/"
+    } else {
+      callbackUrl = sanitizeCallbackUrl(post_logout_redirect_uri);
     }
   }
 
