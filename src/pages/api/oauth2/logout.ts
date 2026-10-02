@@ -5,6 +5,7 @@ import {
   getOAuth2ClientConfig,
   ensureAllowedMethods,
 } from "../../../api/oauth2/utils";
+import { sanitizeCallbackUrl } from "../../../shared/callbackUrl";
 
 export default function logoutHandler(
   req: NextApiRequest,
@@ -23,32 +24,33 @@ export default function logoutHandler(
 
   const clientConfig = getOAuth2ClientConfig(client_id);
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
-  // We allow redirects to the same origin as the client application.
-  if (
-    post_logout_redirect_uri &&
-    clientConfig.configured &&
-    clientConfig.validClient
-  ) {
-    try {
-      const allowedOrigin = new URL(clientConfig.redirectUri).origin;
-      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+  // Validate post_logout_redirect_uri.
+  // Support safe relative paths, or absolute URLs matching configured origin.
+  if (post_logout_redirect_uri) {
+    if (post_logout_redirect_uri.startsWith("/")) {
+      // Use sanitizeCallbackUrl to prevent protocol-relative open redirects
+      callbackUrl = sanitizeCallbackUrl(post_logout_redirect_uri);
+    } else if (clientConfig.configured && clientConfig.validClient) {
+      try {
+        const allowedOrigin = new URL(clientConfig.redirectUri).origin;
+        const requestedOrigin = new URL(post_logout_redirect_uri).origin;
 
-      if (allowedOrigin === requestedOrigin) {
-        callbackUrl = post_logout_redirect_uri;
-      } else {
+        if (allowedOrigin === requestedOrigin) {
+          callbackUrl = post_logout_redirect_uri;
+        } else {
+          logError(
+            "post_logout_redirect_uri origin does not match allowed origin",
+            requestedOrigin,
+          );
+        }
+      } catch (e) {
         logError(
-          "post_logout_redirect_uri origin does not match allowed origin",
-          requestedOrigin,
+          "Invalid post_logout_redirect_uri URL",
+          post_logout_redirect_uri,
+          e,
         );
+        // Ignore invalid URLs and fallback to "/"
       }
-    } catch (e) {
-      logError(
-        "Invalid post_logout_redirect_uri URL",
-        post_logout_redirect_uri,
-        e,
-      );
-      // Ignore invalid URLs and fallback to "/"
     }
   }
 
