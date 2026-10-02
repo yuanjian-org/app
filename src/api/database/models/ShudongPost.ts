@@ -7,16 +7,11 @@ import {
   AllowNull,
   Default,
   DataType,
+  Index,
 } from "sequelize-typescript";
 import User from "./User";
 
-@Table({
-  indexes: [
-    { fields: ["parentId"] },
-    { fields: ["authorId"] },
-    { fields: ["createdAt"] },
-  ],
-})
+@Table
 class ShudongPost extends Model {
   @Default(DataType.UUIDV4)
   @Column({
@@ -25,6 +20,10 @@ class ShudongPost extends Model {
   })
   id: string;
 
+  /**
+   * parentId is null for root questions, and non-null for responses/replies.
+   */
+  @Index
   @ForeignKey(() => ShudongPost)
   @Column(DataType.UUID)
   parentId: string | null;
@@ -32,6 +31,11 @@ class ShudongPost extends Model {
   @BelongsTo(() => ShudongPost, "parentId")
   parent: ShudongPost | null;
 
+  /**
+   * authorId is null if the post was created anonymously when
+   * shudongRecordAnonymousUserId is disabled.
+   */
+  @Index
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   authorId: string | null;
@@ -58,18 +62,15 @@ class ShudongPost extends Model {
   @Column(DataType.INTEGER)
   responseCount: number;
 
-  @AllowNull(false)
-  @Default(false)
-  @Column(DataType.BOOLEAN)
-  isEdited: boolean;
-
-  @AllowNull(false)
-  @Default(false)
-  @Column(DataType.BOOLEAN)
-  isDeleted: boolean;
+  @Column(DataType.DATE)
+  lastEditedAt: Date | null;
 
   @Column(DataType.DATE)
   deletedAt: Date | null;
+
+  @Index
+  @Column(DataType.DATE)
+  createdAt: Date;
 }
 
 export default ShudongPost;

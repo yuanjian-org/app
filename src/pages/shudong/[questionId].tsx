@@ -28,6 +28,7 @@ import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
+import Autosaver from "components/Autosaver";
 
 /**
  * Question detail page displaying the root question, existing response tree,
@@ -57,25 +58,12 @@ export default fullPage(() => {
   useEffect(() => {
     if (questionId) {
       void trpc.shudong.getDraft
-        .query({ shudongParentId: questionId })
+        .query({ shudongParentId: questionId, shudongPostId: null })
         .then((draft) => {
           if (draft) setResponseMarkdown(draft);
         });
     }
   }, [questionId]);
-
-  // Debounce saving response drafts to prevent continuous API requests
-  useEffect(() => {
-    if (questionId) {
-      const timer = setTimeout(() => {
-        void trpc.shudong.saveDraft.mutate({
-          shudongParentId: questionId,
-          markdown: responseMarkdown,
-        });
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [responseMarkdown, questionId]);
 
   // Focus and scroll to response box if arriving from home page "回复" click
   useEffect(() => {
@@ -196,6 +184,16 @@ export default fullPage(() => {
             bg="white"
             boxShadow="sm"
           >
+            <Autosaver
+              data={responseMarkdown}
+              onSave={async (draft) => {
+                await trpc.shudong.saveDraft.mutate({
+                  shudongParentId: questionId,
+                  shudongPostId: null,
+                  markdown: draft,
+                });
+              }}
+            />
             <Heading size="md" mb={3}>
               <T>写下你的回答</T>
             </Heading>

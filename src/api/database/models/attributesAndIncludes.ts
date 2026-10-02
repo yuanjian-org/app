@@ -332,3 +332,14 @@ export const projectApplicationInclude = [
     include: userInclude,
   },
 ];
+
+/**
+ * ShudongPost
+ */
+
+export const shudongPostInclude = [
+  {
+    association: "author",
+    attributes: minUserAttributes,
+  },
+];

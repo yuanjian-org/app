@@ -33,6 +33,7 @@ import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
+import Autosaver from "components/Autosaver";
 
 /**
  * Main Shudong feed page displaying top-level questions.
@@ -60,25 +61,12 @@ export default fullPage(() => {
   useEffect(() => {
     if (isOpen) {
       void trpc.shudong.getDraft
-        .query({ shudongParentId: "root" })
+        .query({ shudongParentId: "root", shudongPostId: null })
         .then((draft) => {
           if (draft) setQuestionMarkdown(draft);
         });
     }
   }, [isOpen]);
-
-  // Debounce draft saving to avoid high API call volume while typing
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        void trpc.shudong.saveDraft.mutate({
-          shudongParentId: "root",
-          markdown: questionMarkdown,
-        });
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [questionMarkdown, isOpen]);
 
   const handleCreateQuestion = async () => {
     if (!questionMarkdown.trim()) {
@@ -176,6 +164,18 @@ export default fullPage(() => {
           </ModalHeader>
           <ModalBody>
             <VStack spacing={4} align="stretch">
+              {isOpen && (
+                <Autosaver
+                  data={questionMarkdown}
+                  onSave={async (draft) => {
+                    await trpc.shudong.saveDraft.mutate({
+                      shudongParentId: "root",
+                      shudongPostId: null,
+                      markdown: draft,
+                    });
+                  }}
+                />
+              )}
               <Textarea
                 placeholder={
                   "请写下你的问题" +

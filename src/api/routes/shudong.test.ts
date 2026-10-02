@@ -63,17 +63,21 @@ describe("shudong backend routes", () => {
 
       const post = await createPostImpl(
         mentor,
-        { markdown: "Mentor Question" },
+        null,
+        "Mentor Question",
+        true,
         transaction,
       );
       expect(post.markdown).to.equal("Mentor Question");
 
-      const list = await listQuestionsImpl(mentee, {}, transaction);
+      const list = await listQuestionsImpl(mentee, 20, 0, transaction);
       expect(list.length).to.be.greaterThan(0);
 
       const resp = await createPostImpl(
         admin,
-        { parentId: post.id, markdown: "Admin Answer" },
+        post.id,
+        "Admin Answer",
+        false,
         transaction,
       );
       expect(resp.markdown).to.equal("Admin Answer");
@@ -83,11 +87,73 @@ describe("shudong backend routes", () => {
       const unauthorized = await createTestUser(["Mentee"], "初拒");
 
       try {
-        await listQuestionsImpl(unauthorized, {}, transaction);
+        await listQuestionsImpl(unauthorized, 20, 0, transaction);
         expect.fail("Should have thrown permission error");
       } catch (err: any) {
         expect(err.message).to.contain("没有权限访问");
       }
+    });
+  });
+
+  describe("listQuestionsImpl and getQuestionImpl soft-delete filtering", () => {
+    it("should hide soft-deleted questions with zero responses in listQuestionsImpl and getQuestionImpl", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      const qNoResp = await createPostImpl(
+        mentor,
+        null,
+        "Question with no responses",
+        true,
+        transaction,
+      );
+
+      await deletePostImpl(mentor, qNoResp.id, transaction);
+
+      // Should not show in list
+      const list = await listQuestionsImpl(mentor, 20, 0, transaction);
+      expect(list.map((q) => q.id)).not.to.include(qNoResp.id);
+
+      // Should throw notFound in getQuestionImpl
+      try {
+        await getQuestionImpl(mentor, qNoResp.id, transaction);
+        expect.fail("Should have thrown not found error");
+      } catch (err: any) {
+        expect(err.message).to.contain("树洞帖子");
+      }
+    });
+
+    it("should include soft-deleted questions with existing responses in listQuestionsImpl and getQuestionImpl", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      const qWithResp = await createPostImpl(
+        mentor,
+        null,
+        "Question with responses",
+        true,
+        transaction,
+      );
+
+      await createPostImpl(
+        mentor,
+        qWithResp.id,
+        "A response to question",
+        false,
+        transaction,
+      );
+
+      await deletePostImpl(mentor, qWithResp.id, transaction);
+
+      // Should show in list as anonymized
+      const list = await listQuestionsImpl(mentor, 20, 0, transaction);
+      const found = list.find((q) => q.id === qWithResp.id);
+      void expect(found).not.to.be.undefined;
+      void expect(found?.isDeleted).to.be.true;
+      void expect(found?.author).to.be.null;
+
+      // Should be retrievable in getQuestionImpl
+      const detail = await getQuestionImpl(mentor, qWithResp.id, transaction);
+      void expect(detail.question.isDeleted).to.be.true;
+      expect(detail.responses.length).to.equal(1);
     });
   });
 
@@ -97,33 +163,27 @@ describe("shudong backend routes", () => {
 
       const question = await createPostImpl(
         mentor,
-        { markdown: "What is 1+1?" },
+        null,
+        "What is 1+1?",
+        true,
         transaction,
       );
-      void expect(question.isAnonymous).to.be.true;
       void expect(question.author).to.be.null;
 
       const answer = await createPostImpl(
         mentor,
-        { parentId: question.id, markdown: "It is 2." },
+        question.id,
+        "It is 2.",
+        false,
         transaction,
       );
-      void expect(answer.isAnonymous).to.be.false;
       void expect(answer.author).to.not.be.null;
       expect(answer.author?.id).to.equal(mentor.id);
 
-      const qDetail = await getQuestionImpl(
-        mentor,
-        { questionId: question.id },
-        transaction,
-      );
+      const qDetail = await getQuestionImpl(mentor, question.id, transaction);
       expect(qDetail.responses.length).to.equal(1);
 
-      const resps = await getResponsesImpl(
-        mentor,
-        { parentId: question.id },
-        transaction,
-      );
+      const resps = await getResponsesImpl(mentor, question.id, transaction);
       expect(resps.length).to.equal(1);
     });
 
@@ -132,40 +192,38 @@ describe("shudong backend routes", () => {
 
       const question = await createPostImpl(
         mentor,
-        { markdown: "Tree question" },
+        null,
+        "Tree question",
+        true,
         transaction,
       );
 
       const answer = await createPostImpl(
         mentor,
-        { parentId: question.id, markdown: "Answer 1", isAnonymous: false },
+        question.id,
+        "Answer 1",
+        false,
         transaction,
       );
 
       const reply = await createPostImpl(
         mentor,
-        { parentId: answer.id, markdown: "Reply to Answer 1" },
+        answer.id,
+        "Reply to Answer 1",
+        true,
         transaction,
       );
 
       // Delete the answer (which has a child reply)
-      await deletePostImpl(mentor, { postId: answer.id }, transaction);
+      await deletePostImpl(mentor, answer.id, transaction);
 
-      const qDetail = await getQuestionImpl(
-        mentor,
-        { questionId: question.id },
-        transaction,
-      );
+      const qDetail = await getQuestionImpl(mentor, question.id, transaction);
       expect(qDetail.responses.length).to.equal(1);
       const deletedAns = qDetail.responses[0];
       void expect(deletedAns.isDeleted).to.be.true;
       void expect(deletedAns.author).to.be.null;
 
-      const childResps = await getResponsesImpl(
-        mentor,
-        { parentId: answer.id },
-        transaction,
-      );
+      const childResps = await getResponsesImpl(mentor, answer.id, transaction);
       expect(childResps.length).to.equal(1);
       expect(childResps[0].id).to.equal(reply.id);
     });
@@ -177,7 +235,9 @@ describe("shudong backend routes", () => {
       features.shudongRecordAnonymousUserId = false;
       const q1 = await createPostImpl(
         mentor,
-        { markdown: "Anon q1", isAnonymous: true },
+        null,
+        "Anon q1",
+        true,
         transaction,
       );
       const dbPost1 = await db.ShudongPost.findByPk(q1.id, { transaction });
@@ -187,7 +247,9 @@ describe("shudong backend routes", () => {
       features.shudongRecordAnonymousUserId = true;
       const q2 = await createPostImpl(
         mentor,
-        { markdown: "Anon q2", isAnonymous: true },
+        null,
+        "Anon q2",
+        true,
         transaction,
       );
       const dbPost2 = await db.ShudongPost.findByPk(q2.id, { transaction });
@@ -207,17 +269,15 @@ describe("shudong backend routes", () => {
 
       const q = await createPostImpl(
         mentor,
-        { markdown: "Original text", isAnonymous: false },
+        null,
+        "Original text",
+        false,
         transaction,
       );
 
       // Other user edit attempt should fail
       try {
-        await updatePostImpl(
-          otherUser,
-          { postId: q.id, markdown: "Hacked" },
-          transaction,
-        );
+        await updatePostImpl(otherUser, q.id, "Hacked", transaction);
         expect.fail("Should have failed");
       } catch (err: any) {
         expect(err.message).to.contain("没有权限访问");
@@ -226,33 +286,36 @@ describe("shudong backend routes", () => {
       // Author update
       const updated = await updatePostImpl(
         mentor,
-        { postId: q.id, markdown: "Updated text" },
+        q.id,
+        "Updated text",
         transaction,
       );
       expect(updated.markdown).to.equal("Updated text");
       void expect(updated.isEdited).to.be.true;
 
       // Admin delete
-      await deletePostImpl(admin, { postId: q.id }, transaction);
+      await deletePostImpl(admin, q.id, transaction);
       const dbPost = await db.ShudongPost.findByPk(q.id, { transaction });
-      void expect(dbPost?.isDeleted).to.be.true;
+      void expect(dbPost?.deletedAt).to.not.be.null;
     });
 
     it("should toggle upvotes correctly", async () => {
       const mentor = await createTestUser(["Mentor"]);
       const q = await createPostImpl(
         mentor,
-        { markdown: "Upvote question" },
+        null,
+        "Upvote question",
+        true,
         transaction,
       );
 
       // Upvote
-      const up1 = await toggleUpvoteImpl(mentor, { postId: q.id }, transaction);
+      const up1 = await toggleUpvoteImpl(mentor, q.id, transaction);
       void expect(up1.userHasUpvoted).to.be.true;
       expect(up1.upvoteCount).to.equal(1);
 
       // Cancel upvote
-      const up2 = await toggleUpvoteImpl(mentor, { postId: q.id }, transaction);
+      const up2 = await toggleUpvoteImpl(mentor, q.id, transaction);
       void expect(up2.userHasUpvoted).to.be.false;
       expect(up2.upvoteCount).to.equal(0);
     });
@@ -262,27 +325,15 @@ describe("shudong backend routes", () => {
     it("should save and retrieve drafts for Shudong posts", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
-      await saveDraftImpl(
-        mentor,
-        { shudongParentId: "root", markdown: "Draft question" },
-        transaction,
-      );
+      await saveDraftImpl(mentor, "root", null, "Draft question", transaction);
 
-      const d1 = await getDraftImpl(
-        mentor,
-        { shudongParentId: "root" },
-        transaction,
-      );
+      const d1 = await getDraftImpl(mentor, "root", null);
       expect(d1).to.equal("Draft question");
 
       // Creating post should clear the draft
-      await createPostImpl(mentor, { markdown: "Final post" }, transaction);
+      await createPostImpl(mentor, null, "Final post", true, transaction);
 
-      const d2 = await getDraftImpl(
-        mentor,
-        { shudongParentId: "root" },
-        transaction,
-      );
+      const d2 = await getDraftImpl(mentor, "root", null);
       void expect(d2).to.be.null;
     });
   });

@@ -19,15 +19,12 @@ export const allowedShudongMenteeStatuses: MenteeStatus[] = [
 export function canAccessShudong(
   user: Pick<User, "id" | "roles" | "menteeStatus">,
 ): boolean {
-  // ShudongAdmin has global administrative access
   if (isPermitted(user.roles, "ShudongAdmin")) {
     return true;
   }
-  // All active mentors can access Shudong
   if (isPermitted(user.roles, "Mentor")) {
     return true;
   }
-  // Mentees must be active scholars/alumni to participate
   if (
     isPermitted(user.roles, "Mentee") &&
     user.menteeStatus &&

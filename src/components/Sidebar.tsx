@@ -175,6 +175,14 @@ const mainMenuItems: (MainMenuItem | null)[] = [
     redDot: UnreadTasksRedDot,
   },
   {
+    name: "树洞",
+    path: "/shudong",
+    icon: FaTree,
+    regex: /^\/shudong/,
+    feature: "shudong",
+    permission: (me: User) => canAccessShudong(me),
+  },
+  {
     name: "挑战问题",
     path: "/projects",
     icon: IoMdBulb,
@@ -243,14 +251,6 @@ const mainMenuItems: (MainMenuItem | null)[] = [
     permission: (me: User) =>
       isAcceptedMentee(me.roles, me.menteeStatus, "includeTransactionalOnly") ||
       isPermitted(me.roles, ["Mentor", "Volunteer"]),
-  },
-  {
-    name: "树洞",
-    path: "/shudong",
-    icon: FaTree,
-    regex: /^\/shudong/,
-    feature: "shudong",
-    permission: (me: User) => canAccessShudong(me),
   },
 ];
 

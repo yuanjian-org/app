@@ -4,7 +4,6 @@ import {
   Model,
   ForeignKey,
   BelongsTo,
-  Default,
   DataType,
   AllowNull,
 } from "sequelize-typescript";
@@ -20,13 +19,6 @@ import ShudongPost from "./ShudongPost";
   ],
 })
 class ShudongUpvote extends Model {
-  @Default(DataType.UUIDV4)
-  @Column({
-    type: DataType.UUID,
-    primaryKey: true,
-  })
-  id: string;
-
   @ForeignKey(() => ShudongPost)
   @AllowNull(false)
   @Column(DataType.UUID)

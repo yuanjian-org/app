@@ -44,6 +44,7 @@ import MarkdownStyler from "./MarkdownStyler";
 import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
+import Autosaver from "./Autosaver";
 
 /**
  * Shared metadata header for Shudong questions and responses.
@@ -52,7 +53,7 @@ import { UserLink } from "./UserChip";
  */
 export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
   // Soft-deleted or anonymous posts hide author details to protect identity
-  const isAnon = post.isAnonymous || !post.author;
+  const isAnon = !post.author;
   const authorName = post.author ? formatUserName(post.author.name) : "匿名";
 
   return (
@@ -174,29 +175,27 @@ export function ShudongPostItem({
     }
   }, [localHasUpvoted, post.id]);
 
-  // Load existing draft when opening reply area to restore unsaved work
+  // Load existing reply draft when opening reply area to restore unsaved work
   useEffect(() => {
     if (isReplying) {
       void trpc.shudong.getDraft
-        .query({ shudongParentId: post.id })
+        .query({ shudongParentId: post.id, shudongPostId: null })
         .then((draft) => {
           if (draft) setReplyMarkdown(draft);
         });
     }
   }, [isReplying, post.id]);
 
-  // Auto-save reply draft after 800ms debounce to prevent data loss on navigate
+  // Load existing edit draft when entering edit mode
   useEffect(() => {
-    if (isReplying) {
-      const timer = setTimeout(() => {
-        void trpc.shudong.saveDraft.mutate({
-          shudongParentId: post.id,
-          markdown: replyMarkdown,
+    if (isEditing) {
+      void trpc.shudong.getDraft
+        .query({ shudongParentId: null, shudongPostId: post.id })
+        .then((draft) => {
+          if (draft) setEditMarkdown(draft);
         });
-      }, 800);
-      return () => clearTimeout(timer);
     }
-  }, [replyMarkdown, isReplying, post.id]);
+  }, [isEditing, post.id]);
 
   const handleCreateReply = async () => {
     if (!replyMarkdown.trim()) {
@@ -303,6 +302,16 @@ export function ShudongPostItem({
 
       {isEditing ? (
         <VStack align="stretch" spacing={2} mb={3}>
+          <Autosaver
+            data={editMarkdown}
+            onSave={async (draft) => {
+              await trpc.shudong.saveDraft.mutate({
+                shudongParentId: null,
+                shudongPostId: post.id,
+                markdown: draft,
+              });
+            }}
+          />
           <Textarea
             value={editMarkdown}
             onChange={(e) => setEditMarkdown(e.target.value)}
@@ -479,6 +488,16 @@ export function ShudongPostItem({
           bg="gray.50"
           borderRadius="md"
         >
+          <Autosaver
+            data={replyMarkdown}
+            onSave={async (draft) => {
+              await trpc.shudong.saveDraft.mutate({
+                shudongParentId: post.id,
+                shudongPostId: null,
+                markdown: draft,
+              });
+            }}
+          />
           <Textarea
             ref={replyInputRef}
             placeholder={

@@ -4,7 +4,6 @@ import {
   Model,
   ForeignKey,
   AllowNull,
-  Default,
   DataType,
 } from "sequelize-typescript";
 import User from "./User";
@@ -15,11 +14,11 @@ import ShudongPost from "./ShudongPost";
 @Table({
   indexes: [
     {
-      fields: ["roomId", "authorId"],
+      fields: ["chatRoomId", "authorId"],
       unique: true,
     },
     {
-      fields: ["messageId", "authorId"],
+      fields: ["chatMessageId", "authorId"],
       unique: true,
     },
     {
@@ -33,20 +32,19 @@ import ShudongPost from "./ShudongPost";
   ],
 })
 class DraftMessage extends Model {
-  @Default(DataType.UUIDV4)
-  @Column({
-    type: DataType.UUID,
-    primaryKey: true,
-  })
-  id: string;
-
+  /**
+   * chatRoomId and chatMessageId are mutually exclusive, meaning that one and only one
+   * of them is null. When chatRoomId is non-null, it's a draft of a new message.
+   * When chatMessageId is non-null, it's a draft of an existing message.
+   * Similarly, shudongParentId and shudongPostId are for Shudong post creation / editing drafts.
+   */
   @ForeignKey(() => ChatRoom)
   @Column(DataType.UUID)
-  roomId: string | null;
+  chatRoomId: string | null;
 
   @ForeignKey(() => ChatMessage)
   @Column(DataType.UUID)
-  messageId: string | null;
+  chatMessageId: string | null;
 
   @Column(DataType.STRING(255))
   shudongParentId: string | null;

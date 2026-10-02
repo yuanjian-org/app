@@ -76,7 +76,7 @@ export async function createChatMessage(
   );
 
   await db.DraftMessage.destroy({
-    where: { roomId, authorId: author.id },
+    where: { chatRoomId: roomId, authorId: author.id },
     transaction,
   });
 }
