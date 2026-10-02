@@ -34,7 +34,7 @@
     "jose": "^6.2.3",
     "lodash": "^4.18.1",
     "lru-cache": "^11.2.7",
-    "moment": "^2.30.1",
+    "moment": "^2.31.0",
     "moment-timezone": "^0.6.2",
     "next": "^15.5.24",
     "next-auth": "^4.24.15",
