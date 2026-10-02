@@ -46,11 +46,14 @@ export default async function tokenHandler(
   if (authHeader?.startsWith("Basic ")) {
     const encodedStr = authHeader.substring(6);
     const decodedStr = Buffer.from(encodedStr, "base64").toString("utf-8");
-    // RFC 6749: only the first colon separates the client_id from the secret.
-    // Using split(":") would silently truncate secrets that contain colons.
+    // RFC 6749: only the first colon separates the client_id from the
+    // secret. Ensure colonIndex is valid so malformed headers lacking
+    // a colon are not improperly parsed.
     const colonIndex = decodedStr.indexOf(":");
-    clientId = decodedStr.substring(0, colonIndex);
-    clientSecret = decodedStr.substring(colonIndex + 1);
+    if (colonIndex !== -1) {
+      clientId = decodedStr.substring(0, colonIndex);
+      clientSecret = decodedStr.substring(colonIndex + 1);
+    }
   }
 
   const clientConfig = getOAuth2ClientConfig(clientId);
