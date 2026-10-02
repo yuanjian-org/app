@@ -76,6 +76,22 @@ export async function removeOrgImpl(id: string, transaction: Transaction) {
   await org.destroy({ transaction });
 }
 
+async function checkOrgPermission(
+  me: User,
+  orgId: string,
+  transaction: Transaction,
+) {
+  const isOwner =
+    (await db.OrgOwner.count({
+      where: { orgId, ownerId: me.id },
+      transaction,
+    })) > 0;
+
+  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
+    throw noPermissionError("机构", orgId);
+  }
+}
+
 export async function updateOrgDescriptionImpl(
   me: User,
   input: { id: string; description: string | null },
@@ -87,15 +103,7 @@ export async function updateOrgDescriptionImpl(
     throw notFoundError("机构", id);
   }
 
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId: id, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", id);
-  }
+  await checkOrgPermission(me, id, transaction);
 
   await org.update({ description }, { transaction });
 }
@@ -128,15 +136,7 @@ export async function addMentorImpl(
   transaction: Transaction,
 ) {
   const { orgId, mentorId } = input;
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", orgId);
-  }
+  await checkOrgPermission(me, orgId, transaction);
 
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId },
@@ -150,15 +150,7 @@ export async function removeMentorImpl(
   transaction: Transaction,
 ) {
   const { orgId, mentorId } = input;
-  const isOwner =
-    (await db.OrgOwner.count({
-      where: { orgId, ownerId: me.id },
-      transaction,
-    })) > 0;
-
-  if (!isPermitted(me.roles, "OrgAdmin") && !isOwner) {
-    throw noPermissionError("机构", orgId);
-  }
+  await checkOrgPermission(me, orgId, transaction);
 
   await db.OrgMentor.destroy({
     where: { orgId, mentorId },
