@@ -27,6 +27,7 @@ import { cmdOrCtrlChar } from "macOrWin";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
+import { fullPage } from "AppPage";
 import { pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
@@ -37,7 +38,7 @@ import { toast } from "react-toastify";
  * Main Shudong feed page displaying top-level questions.
  * Enforces permission checks and allows users to draft and submit questions.
  */
-function ShudongIndexPage() {
+export default fullPage(() => {
   const me = useMe();
   const isMobile = useMobile();
   const hasAccess = canAccessShudong(me);
@@ -221,7 +222,4 @@ function ShudongIndexPage() {
       </Modal>
     </>
   );
-}
-
-ShudongIndexPage.title = "树洞";
-export default ShudongIndexPage;
+}, "树洞");
