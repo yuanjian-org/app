@@ -10,7 +10,6 @@ import {
   Input,
   VStack,
   Spacer,
-  Link,
   Text,
   InputGroup,
   InputRightAddon,
@@ -24,8 +23,7 @@ import { UserState } from "shared/UserState";
 import { toast } from "react-toastify";
 import { accountPageTitle } from "pages/accounts/[userId]";
 import { useSession } from "next-auth/react";
-import { SmallGrayText } from "./SmallGrayText";
-import { RiCustomerServiceFill } from "react-icons/ri";
+import ContactCustomerService from "./ContactCustomerService";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
@@ -210,16 +208,7 @@ export function UstcStudentValidationModal({
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <SmallGrayText>
-              <T>如有问题，</T>
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <T>联系客服</T>
-              </Link>
-            </SmallGrayText>
-            <RiCustomerServiceFill color="gray" />
+            <ContactCustomerService />
 
             <Spacer />
             <Button onClick={cancel} isDisabled={loadingSubmit}>
