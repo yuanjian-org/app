@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
-import { zDateColumn, zOptionalDateColumn } from "./DateColumn";
+import { zDateColumn, zNullableDateColumn } from "./DateColumn";
 
 export const zShudongPost = z.object({
   id: z.string().uuid(),
@@ -12,9 +12,8 @@ export const zShudongPost = z.object({
   markdown: z.string(),
   upvoteCount: z.number(),
   responseCount: z.number(),
-  isEdited: z.boolean(),
   isDeleted: z.boolean(),
-  lastEditedAt: zOptionalDateColumn,
+  lastEditedAt: zNullableDateColumn,
   createdAt: zDateColumn,
   userHasUpvoted: z.boolean().optional(),
 });

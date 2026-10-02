@@ -75,7 +75,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
               <UserLink user={post.author!} />
             </Text>
           )}
-          {post.isEdited && (
+          {post.lastEditedAt !== null && (
             <Badge variant="subtle" colorScheme="gray" fontSize="xs">
               <T>已编辑</T>
             </Badge>

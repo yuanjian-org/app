@@ -291,7 +291,7 @@ describe("shudong backend routes", () => {
         transaction,
       );
       expect(updated.markdown).to.equal("Updated text");
-      void expect(updated.isEdited).to.be.true;
+      void expect(updated.lastEditedAt).to.not.be.null;
 
       // Admin delete
       await deletePostImpl(admin, q.id, transaction);

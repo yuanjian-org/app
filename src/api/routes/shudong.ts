@@ -83,7 +83,6 @@ export async function formatShudongPost(
     markdown: post.markdown,
     upvoteCount: post.upvoteCount,
     responseCount: post.responseCount,
-    isEdited: post.lastEditedAt !== null,
     isDeleted,
     lastEditedAt: post.lastEditedAt,
     createdAt: post.createdAt,
