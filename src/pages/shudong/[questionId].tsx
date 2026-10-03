@@ -12,7 +12,6 @@ import {
   FormLabel,
   Switch,
   Divider,
-  HStack,
 } from "@chakra-ui/react";
 import { FiShare2 } from "react-icons/fi";
 import trpc, { trpcNext } from "trpc";
@@ -23,7 +22,7 @@ import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { fullPage } from "AppPage";
-import { componentSpacing, pageMarginX } from "theme/metrics";
+import { pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
@@ -117,29 +116,29 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        <VStack spacing={componentSpacing} align="stretch">
-          {/* Share button placed inline next to Breadcrumb for quick copying */}
-          <HStack spacing={3} align="center">
-            <PageBreadcrumb
-              current="问题详情"
-              parents={[{ name: "树洞", link: "/shudong" }]}
-              marginBottom={0}
-            />
-            <Button
-              leftIcon={<FiShare2 />}
-              size="xs"
-              variant="ghost"
-              onClick={() => {
-                if (navigator.clipboard) {
-                  void navigator.clipboard.writeText(window.location.href);
-                  toast.success("已复制链接到剪贴板");
-                }
-              }}
-            >
-              <T>分享</T>
-            </Button>
-          </HStack>
-        </VStack>
+        {/* Breadcrumb on the left, share button pushed to the right edge */}
+        <Flex align="center" justify="space-between" gap={3}>
+          <PageBreadcrumb
+            current="问题详情"
+            parents={[{ name: "树洞", link: "/shudong" }]}
+            marginBottom={0}
+          />
+          <Button
+            leftIcon={<FiShare2 />}
+            size="sm"
+            variant="outline"
+            colorScheme="brand"
+            flexShrink={0}
+            onClick={() => {
+              if (navigator.clipboard) {
+                void navigator.clipboard.writeText(window.location.href);
+                toast.success("已复制链接到剪贴板");
+              }
+            }}
+          >
+            <T>分享</T>
+          </Button>
+        </Flex>
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
