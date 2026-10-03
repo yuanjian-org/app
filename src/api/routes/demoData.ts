@@ -29,6 +29,15 @@ export type DemoUser = {
   password?: string;
 };
 
+export type DemoShudongPost = {
+  author: DemoUser;
+  markdown: string;
+  isAnonymous?: boolean;
+  isDeleted?: boolean;
+  upvotedBy?: readonly DemoUser[];
+  children?: readonly DemoShudongPost[];
+};
+
 const menteeApplication: Record<string, any> = {
   [menteeAcceptanceYearField]: "2025",
   [menteeSourceField]: "远见教育基金会",
@@ -339,8 +348,13 @@ const users: Record<string, DemoUser> = {
     email: "admin@de.mo",
     phone: "13800138000",
     password: "yuanjian",
-    roles: allRoles.filter(
-      (role) => !["Banned", "Mentee", "TransactionalMentor"].includes(role),
+    roles: Array.from(
+      new Set([
+        "ShudongAdmin" as Role,
+        ...allRoles.filter(
+          (role) => !["Banned", "Mentee", "TransactionalMentor"].includes(role),
+        ),
+      ]),
     ),
     profile: adminProfile,
   },
@@ -927,6 +941,248 @@ const demoData = {
       },
     ],
   },
+  shudong: [
+    {
+      author: users.mentee1,
+      markdown:
+        "【求助/讨论】大二大三面临科研与保研/出国选择，大家是如何走出焦虑的？",
+      isAnonymous: false,
+      upvotedBy: [users.mentee2, users.mentor1, users.admin],
+      children: [
+        {
+          author: users.mentor1,
+          markdown:
+            "迷茫是非常正常的。在大二大三这个阶段，面对多元选择容易产生自我怀疑。" +
+            "建议先拆解目标，多和同领域的导师与学长学姐交流。",
+          isAnonymous: false,
+          upvotedBy: [users.mentee1, users.mentee3],
+          children: [
+            {
+              author: users.mentee1,
+              markdown:
+                "谢谢丙导师！追问一下关于时间分配的问题，如何在课业、" +
+                "科研和语言准备之间找到平衡？",
+              isAnonymous: false,
+              children: [
+                {
+                  author: users.mentor1,
+                  markdown:
+                    "关于时间分配，建议采用三段式规划：保证课业底线、" +
+                    "集中块状时间做科研、碎片化时间背单词和听力。",
+                  isAnonymous: false,
+                },
+                {
+                  author: users.mentee2,
+                  markdown:
+                    "我也遇到了类似的问题，跟着丙导师的方法试了试，" +
+                    "感觉头脑清晰多了！",
+                  isAnonymous: false,
+                },
+              ],
+            },
+            {
+              author: users.mentee3,
+              markdown:
+                "作为医学生也深受启发，感觉不同专业的底层逻辑是通用的。",
+              isAnonymous: true,
+            },
+          ],
+        },
+        {
+          author: users.mentor2,
+          markdown:
+            "当时在清华和LSE读书时也经历过这种阶段。选定一个方向后深耕，" +
+            "不要太在意短期得失。",
+          isAnonymous: false,
+          isDeleted: true,
+          children: [
+            {
+              author: users.mentee2,
+              markdown: "非常认同前辈提到的‘做正确但艰难的事’，对我启发很大！",
+              isAnonymous: false,
+              children: [
+                {
+                  author: users.mentor3,
+                  markdown: "给乙同学点赞！心态放平，时间会给答案。",
+                  isAnonymous: false,
+                },
+              ],
+            },
+            {
+              author: users.admin,
+              markdown:
+                "远见平台后续也会推出更多关于跨学科与出国的讲座，" +
+                "欢迎大家关注。",
+              isAnonymous: false,
+            },
+          ],
+        },
+        {
+          author: users.mentee2,
+          markdown:
+            "分享一个我自己的反思：不要为了缓解眼前的焦虑而盲目增加任务量，" +
+            "先做好一件小事。",
+          isAnonymous: true,
+          children: [
+            {
+              author: users.mentor4,
+              markdown:
+                "这位匿名同学说得很中肯。科研最重要的是节奏感，" +
+                "保持可持续的心态。",
+              isAnonymous: false,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      author: users.mentee2,
+      markdown: "【交流】如何在大一/大二阶段建立良好的导师沟通习惯？",
+      isAnonymous: true,
+      upvotedBy: [users.mentee1, users.mentee3, users.mentor1],
+      children: [
+        {
+          author: users.mentor3,
+          markdown:
+            "站在导师的角度，最希望看到学生主动汇报进展和遇到的瓶颈，" +
+            "而不是等到最后才说。",
+          isAnonymous: false,
+          children: [
+            {
+              author: users.mentee1,
+              markdown: "有时候怕打扰导师，不敢发微信或邮件沟通，怎么办？",
+              isAnonymous: false,
+              children: [
+                {
+                  author: users.mentor3,
+                  markdown:
+                    "可以采用‘定期总结+明确议题’的方式，提前整理好要讨论的" +
+                    "3个要点。",
+                  isAnonymous: false,
+                },
+                {
+                  author: users.mentor5,
+                  markdown: "赞同！只要是有准备的沟通，导师都不会觉得是打扰。",
+                  isAnonymous: false,
+                },
+              ],
+            },
+            {
+              author: users.mentor1,
+              markdown: "保持真诚与尊重，定期反馈自己的学习心得即可。",
+              isAnonymous: false,
+              isDeleted: true,
+              children: [
+                {
+                  author: users.mentee3,
+                  markdown:
+                    "虽然原回复删除了，但之前提到的沟通三要素我记在了笔记里，" +
+                    "非常实用！",
+                  isAnonymous: false,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          author: users.admin,
+          markdown:
+            "推荐大家阅读学习手册中的沟通指南，里面包含了很多实用的沟通模板" +
+            "与技巧。",
+          isAnonymous: false,
+        },
+      ],
+    },
+    {
+      author: users.mentor5,
+      markdown: "【树洞】关于跨专业转型与情绪调适的心路历程",
+      isAnonymous: true,
+      isDeleted: true,
+      upvotedBy: [users.mentor1, users.mentee2],
+      children: [
+        {
+          author: users.mentor1,
+          markdown:
+            "接纳自己的脆弱反而是一种强大的力量。当年我在川西徒步时也重新" +
+            "思考了人生方向。",
+          isAnonymous: false,
+          children: [
+            {
+              author: users.mentee3,
+              markdown: "读到这段话眼眶湿润了，谢谢丙导师的温暖陪伴！",
+              isAnonymous: false,
+            },
+            {
+              author: users.mentee2,
+              markdown:
+                "在这个充满竞争的环境里，能听到这样真实的声音真的很不容易。",
+              isAnonymous: true,
+            },
+          ],
+        },
+        {
+          author: users.mentor4,
+          markdown:
+            "运动也是很好的解压方式，大家遇到压力可以尝试去球场挥洒汗水。",
+          isAnonymous: false,
+          children: [
+            {
+              author: users.mentee1,
+              markdown: "己导师求带打羽毛球/篮球！",
+              isAnonymous: false,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      author: users.admin,
+      markdown: "【公益与社会创新】科技如何更好地赋能教育公平？",
+      isAnonymous: false,
+      upvotedBy: [
+        users.mentor1,
+        users.mentor2,
+        users.mentor3,
+        users.mentee1,
+        users.mentee2,
+        users.mentee3,
+      ],
+      children: [
+        {
+          author: users.mentor3,
+          markdown:
+            "技术是杠杆，但核心依然是‘人与人的连接’。我们要用技术搭建桥梁，" +
+            "而不是高墙。",
+          isAnonymous: false,
+          children: [
+            {
+              author: users.admin,
+              markdown:
+                "说得很透彻！远见平台的树洞和一对一辅导就是基于这种理念" +
+                "设计的。",
+              isAnonymous: false,
+              children: [
+                {
+                  author: users.mentor1,
+                  markdown:
+                    "作为导师参与进来，我也从学生身上学到了很多，" +
+                    "这是双向的滋养。",
+                  isAnonymous: false,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          author: users.mentor2,
+          markdown:
+            "从绿色金融和资源配置的角度来看，建立长效机制与可持续模式" +
+            "同样至关重要。",
+          isAnonymous: true,
+        },
+      ],
+    },
+  ],
 } as const;
 
 export default demoData;

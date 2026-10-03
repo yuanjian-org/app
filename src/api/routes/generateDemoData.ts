@@ -2,8 +2,14 @@ import { Op, Transaction } from "sequelize";
 import { createGroup, findGroups } from "./groups";
 import invariant from "shared/invariant";
 import moment from "moment";
-import demoData, { DemoUser } from "./demoData";
+import demoData, { DemoUser, DemoShudongPost } from "./demoData";
 import { createMentorship } from "./mentorships";
+import {
+  createPostImpl,
+  deletePostImpl,
+  listQuestionsImpl,
+  toggleUpvoteImpl,
+} from "./shudong";
 import { DateColumn } from "../../shared/DateColumn";
 import db from "../database/db";
 import createKudos from "./kudosInternal";
@@ -89,6 +95,8 @@ export async function generateDemoData(t: Transaction) {
   await generateOrgs(t);
 
   await generateProjects(t);
+
+  await generateShudong(t);
 }
 
 async function generateOrgs(t: Transaction) {
@@ -130,12 +138,13 @@ async function generateUsersAndAssingIds(transaction: Transaction) {
 
     if (existing) {
       u.id = existing.id;
-      if (hashedPassword) {
-        await db.User.update(
-          { password: hashedPassword },
-          { where: { id: u.id }, transaction },
-        );
-      }
+      await db.User.update(
+        {
+          ...(hashedPassword && { password: hashedPassword }),
+          ...(u.roles && { roles: u.roles }),
+        },
+        { where: { id: u.id }, transaction },
+      );
     } else {
       console.log(`Creating user "${u.name}"...`);
       const created = await db.User.create(
@@ -198,6 +207,43 @@ async function generateMentorship(
     endsAt,
     t,
   );
+}
+
+async function generateShudong(t: Transaction) {
+  console.log("Creating Shudong posts...");
+
+  const existing = await listQuestionsImpl(admin as User, 1, 0, t);
+  if (existing.length > 0) return;
+
+  async function processPost(node: DemoShudongPost, parentId: string | null) {
+    const post = await createPostImpl(
+      node.author as User,
+      parentId,
+      node.markdown,
+      node.isAnonymous ?? false,
+      t,
+    );
+
+    if (node.upvotedBy) {
+      for (const u of node.upvotedBy) {
+        await toggleUpvoteImpl(u as User, post.id, t);
+      }
+    }
+
+    if (node.children) {
+      for (const child of node.children) {
+        await processPost(child, post.id);
+      }
+    }
+
+    if (node.isDeleted) {
+      await deletePostImpl(node.author as User, post.id, t);
+    }
+  }
+
+  for (const rootPost of demo.shudong) {
+    await processPost(rootPost, null);
+  }
 }
 
 async function generateProjects(t: Transaction) {
