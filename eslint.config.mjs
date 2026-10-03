@@ -18,6 +18,7 @@ export default defineConfig([
     "src/api/database/sequelize-adapter-src",
     "**/next.config.js",
     ".next/**",
+    ".next-dev/**",
     "node_modules/**",
     "dist/**",
     "cypress.config.ts",
