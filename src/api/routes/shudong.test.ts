@@ -99,11 +99,13 @@ describe("shudong backend routes", () => {
     it("should hide soft-deleted questions with zero responses in listQuestionsImpl and getQuestionImpl", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
+      // Use isAnonymous=false so authorId is recorded in DB,
+      // allowing the author to delete the post.
       const qNoResp = await createPostImpl(
         mentor,
         null,
         "Question with no responses",
-        true,
+        false,
         transaction,
       );
 
@@ -125,11 +127,13 @@ describe("shudong backend routes", () => {
     it("should include soft-deleted questions with existing responses in listQuestionsImpl and getQuestionImpl", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
+      // Use isAnonymous=false so authorId is recorded in DB,
+      // allowing the author to delete the post.
       const qWithResp = await createPostImpl(
         mentor,
         null,
         "Question with responses",
-        true,
+        false,
         transaction,
       );
 
@@ -397,11 +401,13 @@ describe("shudong backend routes", () => {
         expect(err.message).to.contain("内容不能为空");
       }
 
+      // Use isAnonymous=false so the author can update the post
+      // and the empty-content validation is reached.
       const post = await createPostImpl(
         mentor,
         null,
         "Valid text",
-        true,
+        false,
         transaction,
       );
 
