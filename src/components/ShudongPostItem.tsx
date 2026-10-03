@@ -164,13 +164,9 @@ export function ShudongPostItem({
         animeDurationInSeconds * 1000,
       );
     }
-    try {
-      const res = await trpc.shudong.toggleUpvote.mutate({ postId: post.id });
-      setLocalHasUpvoted(res.userHasUpvoted);
-      setLocalUpvoteCount(res.upvoteCount);
-    } catch (err: any) {
-      toast.error(err.message || "点赞失败");
-    }
+    const res = await trpc.shudong.toggleUpvote.mutate({ postId: post.id });
+    setLocalHasUpvoted(res.userHasUpvoted);
+    setLocalUpvoteCount(res.upvoteCount);
   }, [localHasUpvoted, post.id]);
 
   // Load existing reply draft when opening reply area to restore unsaved work
@@ -213,8 +209,6 @@ export function ShudongPostItem({
       setShowChildResponses(true);
       if (refetchChildren) await refetchChildren();
       if (onRefetch) onRefetch();
-    } catch (err: any) {
-      toast.error(err.message || "发送回复失败");
     } finally {
       setIsSubmittingReply(false);
     }
@@ -234,8 +228,6 @@ export function ShudongPostItem({
       toast.success("修改成功");
       setIsEditing(false);
       if (onRefetch) onRefetch();
-    } catch (err: any) {
-      toast.error(err.message || "修改失败");
     } finally {
       setIsSubmittingEdit(false);
     }
@@ -243,19 +235,15 @@ export function ShudongPostItem({
 
   // Deleting root question navigates back to /shudong to prevent NOT_FOUND errors
   const handleDelete = async () => {
-    try {
-      await trpc.shudong.deletePost.mutate({ postId: post.id });
-      toast.success("已删除帖子");
-      onDeleteClose();
-      if (onDeleteSuccess) {
-        onDeleteSuccess();
-      } else if (isRootQuestion) {
-        void router.push("/shudong");
-      } else if (onRefetch) {
-        onRefetch();
-      }
-    } catch (err: any) {
-      toast.error(err.message || "删除失败");
+    await trpc.shudong.deletePost.mutate({ postId: post.id });
+    toast.success("已删除帖子");
+    onDeleteClose();
+    if (onDeleteSuccess) {
+      onDeleteSuccess();
+    } else if (isRootQuestion) {
+      void router.push("/shudong");
+    } else if (onRefetch) {
+      onRefetch();
     }
   };
 
