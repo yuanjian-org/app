@@ -20,7 +20,12 @@ import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
-import { createPostImpl, deletePostImpl, listQuestionsImpl, toggleUpvoteImpl } from "./shudong";
+import {
+  createPostImpl,
+  deletePostImpl,
+  listQuestionsImpl,
+  toggleUpvoteImpl,
+} from "./shudong";
 import { DemoShudongPost } from "./demoData";
 
 const demo = _.cloneDeep(demoData);
@@ -36,21 +41,6 @@ const mentor5 = demo.users.mentor5;
 
 function id(u: DemoUser): string {
   return u.id as string;
-}
-
-function toUser(u: DemoUser): User {
-  return {
-    id: id(u),
-    name: u.name ?? null,
-    url: null,
-    roles: u.roles ?? [],
-    email: u.email ?? null,
-    phone: u.phone ?? null,
-    wechat: null,
-    menteeStatus: u.menteeStatus ?? null,
-    pointOfContact: null,
-    pointOfContactNote: null,
-  };
 }
 
 export async function generateDemoData(t: Transaction) {
@@ -130,9 +120,8 @@ async function generateShudongPost(
   parentId: string | null,
   t: Transaction,
 ) {
-  const authorUser = toUser(postData.author);
   const post = await createPostImpl(
-    authorUser,
+    postData.author as User,
     parentId,
     postData.markdown,
     postData.isAnonymous,
@@ -141,7 +130,7 @@ async function generateShudongPost(
 
   if (postData.upvotes) {
     for (const upvoter of postData.upvotes) {
-      await toggleUpvoteImpl(toUser(upvoter), post.id, t);
+      await toggleUpvoteImpl(upvoter as User, post.id, t);
     }
   }
 
@@ -152,7 +141,7 @@ async function generateShudongPost(
   }
 
   if (postData.isDeleted) {
-    await deletePostImpl(toUser(admin), post.id, t);
+    await deletePostImpl(admin as User, post.id, t);
   }
 }
 
