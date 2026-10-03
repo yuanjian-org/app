@@ -20,9 +20,12 @@ describe("isSafeCallbackUrl", () => {
     void expect(isSafeCallbackUrl("ftp://files.com")).to.be.false;
   });
 
-  it("should return false if the URL starts with '//' or '/\\'", () => {
+  it("should return false if the URL contains backslashes or encoded backslashes", () => {
     void expect(isSafeCallbackUrl("//evil.com")).to.be.false;
     void expect(isSafeCallbackUrl("/\\evil.com")).to.be.false;
+    void expect(isSafeCallbackUrl("/path\\evil.com")).to.be.false;
+    void expect(isSafeCallbackUrl("/%5cevil.com")).to.be.false;
+    void expect(isSafeCallbackUrl("/%5Cevil.com")).to.be.false;
   });
 
   it("should return false if the URL is a javascript: URL", () => {
@@ -57,9 +60,12 @@ describe("sanitizeCallbackUrl", () => {
     expect(sanitizeCallbackUrl("ftp://files.com")).to.equal("/");
   });
 
-  it("should return '/' if the URL starts with '//' or '/\\'", () => {
+  it("should return '/' if the URL contains backslashes or encoded backslashes", () => {
     expect(sanitizeCallbackUrl("//evil.com")).to.equal("/");
     expect(sanitizeCallbackUrl("/\\evil.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("/path\\evil.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("/%5cevil.com")).to.equal("/");
+    expect(sanitizeCallbackUrl("/%5Cevil.com")).to.equal("/");
   });
 
   it("should return '/' if the URL is a javascript: URL", () => {
