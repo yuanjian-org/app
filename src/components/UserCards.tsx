@@ -124,61 +124,39 @@ export default function UserCards({
   const showKudosHistory = type == "Volunteer" && !searchTerm;
 
   const mobile = useMobile();
+  const CardComponent = mobile ? UserCardForMobile : UserCardForDesktop;
+  const gridLayoutProps: GridProps = mobile
+    ? { templateColumns: "1fr", alignItems: "stretch" }
+    : { templateColumns: "repeat(auto-fill, minmax(270px, 1fr))" };
 
   return (
     <>
-      {!mobile && (
-        <SimpleGrid
-          spacing={componentSpacing}
-          templateColumns="repeat(auto-fill, minmax(270px, 1fr))"
-          {...gridProps}
-        >
-          {showKudosHistory && (
+      <SimpleGrid
+        spacing={componentSpacing}
+        {...gridLayoutProps}
+        {...gridProps}
+      >
+        {showKudosHistory &&
+          (mobile ? (
+            <KudosHistoryCard type="mobile" />
+          ) : (
             <GridItem colSpan={2} rowSpan={1}>
               <KudosHistoryCard type="desktop" />
             </GridItem>
-          )}
-
-          {searchResult.map((d) => (
-            <UserCardForDesktop
-              isPublic={isPublic}
-              key={d.user.id}
-              data={d}
-              type={type}
-              openModal={() => setBookingMentor(d.user)}
-              recommended={isMentorRecommended(d.traitsMatchingScore)}
-              selected={mentorSelections?.some(
-                (ms) => ms.mentor.id == d.user.id,
-              )}
-            />
           ))}
-        </SimpleGrid>
-      )}
 
-      {mobile && (
-        <SimpleGrid
-          spacing={componentSpacing}
-          templateColumns="1fr"
-          alignItems="stretch"
-          {...gridProps}
-        >
-          {showKudosHistory && <KudosHistoryCard type="mobile" />}
-
-          {searchResult.map((d) => (
-            <UserCardForMobile
-              isPublic={isPublic}
-              key={d.user.id}
-              data={d}
-              type={type}
-              openModal={() => setBookingMentor(d.user)}
-              recommended={isMentorRecommended(d.traitsMatchingScore)}
-              selected={mentorSelections?.some(
-                (ms) => ms.mentor.id == d.user.id,
-              )}
-            />
-          ))}
-        </SimpleGrid>
-      )}
+        {searchResult.map((d) => (
+          <CardComponent
+            isPublic={isPublic}
+            key={d.user.id}
+            data={d}
+            type={type}
+            openModal={() => setBookingMentor(d.user)}
+            recommended={isMentorRecommended(d.traitsMatchingScore)}
+            selected={mentorSelections?.some((ms) => ms.mentor.id == d.user.id)}
+          />
+        ))}
+      </SimpleGrid>
 
       {bookingMentor !== undefined && (
         <MentorBookingModal
