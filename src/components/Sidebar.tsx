@@ -67,7 +67,7 @@ export const desktopSidebarWidth = "240px";
 export const sidebarContentMarginTop = 10;
 export const sideBarBorderColor = "gray.200";
 const sidebarItemPaddingY = 4;
-const sidebarItemPaddingLeft = 8;
+export const sidebarItemPaddingLeft = 8;
 
 interface MainMenuItem {
   name: string;

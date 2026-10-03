@@ -96,7 +96,7 @@ async function saveWithRetry<T>(
           `${retryIntervalSec} secs:`,
         e,
       );
-      setError(`保存失败，自动重试中。`);
+      setError(`保存失败，自动重试中`);
       await sleep(retryIntervalSec * 1000);
     }
   }

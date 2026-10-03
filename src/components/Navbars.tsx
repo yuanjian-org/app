@@ -16,6 +16,7 @@ import AutosaveContext from "AutosaveContext";
 import {
   desktopSidebarWidth,
   showRedDotForMentorship,
+  sidebarItemPaddingLeft,
   SidebarForDesktop,
   SidebarForMobile,
   useMyMentorshipsAsMentor,
@@ -168,7 +169,17 @@ function AutosaveIndicatorForDesktop({
   autosaveState: AutosaveState;
 }) {
   return (
-    <Box position="fixed" zIndex={2} top={1} left={10}>
+    // Sidebar icons are 1em (16px) wide and start at sidebarItemPaddingLeft,
+    // so their horizontal center is at (sidebarItemPaddingLeft * 4 + 8)px. The
+    // indicator icon is 20px wide, so its left edge is 10px before that center
+    // to align the centers. Vertically, 10px puts it midway between the top of
+    // the page and the first sidebar item (which starts at ~40px).
+    <Box
+      position="fixed"
+      zIndex={2}
+      top="10px"
+      left={`${sidebarItemPaddingLeft * 4 + 8 - 10}px`}
+    >
       <AutosaveIndicator
         state={autosaveState}
         // For debugging only

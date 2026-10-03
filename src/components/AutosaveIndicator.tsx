@@ -1,22 +1,20 @@
-import { CheckIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons";
-import { Center, Text } from "@chakra-ui/react";
+import { WarningIcon } from "@chakra-ui/icons";
+import { Center, Icon, Text } from "@chakra-ui/react";
+import { MdOutlineCloudUpload } from "react-icons/md";
 import { useEffect } from "react";
 import invariant from "shared/invariant";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import T from "components/T";
+
+/**
+ * A static icon with no text.
+ */
+function SavingIcon() {
+  return <Icon as={MdOutlineCloudUpload} boxSize={5} color="disabled" />;
+}
 
 export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
   const errors = [...state.id2state.values()].filter((v) => v !== null);
-  const iconProps = {
-    boxSize: 3.5,
-    marginRight: 2,
-  };
-  const textProps = {
-    fontSize: "sm",
-    textShadow:
-      "-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff",
-  };
 
   return hasPendingSavers(state) ? (
     <>
@@ -29,33 +27,35 @@ export default function AutosaveIndicator({ state }: { state: AutosaveState }) {
         <Center>
           {errors.length > 0 ? (
             <>
-              <WarningIcon {...iconProps} color="red" />
-              <Text {...textProps} color="red">
+              <WarningIcon boxSize={5} marginRight={2} color="red" />
+              <Text
+                fontSize="sm"
+                // Match the icon height so icon and text are centered.
+                lineHeight={5}
+                color="red"
+                textShadow={
+                  "-1px -1px 0 #fff, 1px -1px 0 #fff, " +
+                  "-1px 1px 0 #fff, 1px 1px 0 #fff"
+                }
+              >
                 {errors[0].toString()}
               </Text>
             </>
           ) : (
-            <>
-              <RepeatIcon {...iconProps} color="disabled" />
-              <Text {...textProps} color="disabled">
-                <T>保存中...</T>
-              </Text>
-            </>
+            <SavingIcon />
           )}
         </Center>
       </motion.div>
     </>
   ) : state.virgin ? null : (
+    // The icon fades out after saving completes, slowly.
     <motion.div
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
       transition={{ duration: 3 }}
     >
       <Center>
-        <CheckIcon {...iconProps} color="green" />
-        <Text {...textProps} color="green">
-          <T>已保存</T>
-        </Text>
+        <SavingIcon />
       </Center>
     </motion.div>
   );
