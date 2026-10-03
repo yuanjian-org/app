@@ -1014,7 +1014,9 @@ const demoData = {
           ],
         },
         {
-          author: users.mentee4,
+          // Must be a user permitted to access Shudong. mentee4 and mentee5
+          // have no menteeStatus (they are interviewees).
+          author: users.mentee3,
           markdown: "原回复内容已删除",
           isAnonymous: true,
           isDeleted: true,
@@ -1038,7 +1040,7 @@ const demoData = {
       ],
     },
     {
-      author: users.mentee5,
+      author: users.mentee2,
       markdown: "原提问内容已删除",
       isAnonymous: true,
       isDeleted: true,
