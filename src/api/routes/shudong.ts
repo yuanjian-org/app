@@ -242,18 +242,27 @@ export async function createPostImpl(
   } else {
     // For root question, auto-subscribe poster and global subscribers
     const subscribers: Set<string> = new Set([me.id]);
-    const users = await db.User.findAll({
-      attributes: ["id", "roles", "preference"],
+    const autoSubscribers = await db.User.findAll({
+      attributes: ["id"],
+      where: {
+        [Op.or]: [
+          { "preference.shudongSubscribeAll": "yes" },
+          {
+            roles: { [Op.contains]: ["Mentor"] },
+            [Op.or]: [
+              { "preference.shudongSubscribeAll": "default" },
+              { "preference.shudongSubscribeAll": null },
+            ],
+          },
+        ],
+      },
       transaction,
     });
-    for (const u of users) {
-      const pref = u.preference?.shudongSubscribeAll ?? "default";
-      if (pref === "yes") {
-        subscribers.add(u.id);
-      } else if (pref === "default" && u.roles?.includes("Mentor")) {
-        subscribers.add(u.id);
-      }
+
+    for (const u of autoSubscribers) {
+      subscribers.add(u.id);
     }
+
     const subscriptionRows = Array.from(subscribers).map((uId) => ({
       questionId: post.id,
       userId: uId,
