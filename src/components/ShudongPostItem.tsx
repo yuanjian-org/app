@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -119,9 +119,7 @@ export function ShudongPostItem({
   const router = useRouter();
 
   // Optimistic upvote state provides instant UI feedback before mutation completes
-  const [localHasUpvoted, setLocalHasUpvoted] = useState(
-    post.userHasUpvoted ?? false,
-  );
+  const [localHasUpvoted, setLocalHasUpvoted] = useState(post.userHasUpvoted);
   const [localUpvoteCount, setLocalUpvoteCount] = useState(post.upvoteCount);
   const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
 

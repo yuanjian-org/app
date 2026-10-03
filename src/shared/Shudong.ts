@@ -15,7 +15,7 @@ export const zShudongPost = z.object({
   isDeleted: z.boolean(),
   lastEditedAt: zNullableDateColumn,
   createdAt: zDateColumn,
-  userHasUpvoted: z.boolean().optional(),
+  userHasUpvoted: z.boolean(),
 });
 
 export type ShudongPost = z.infer<typeof zShudongPost>;
