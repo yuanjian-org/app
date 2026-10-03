@@ -24,6 +24,7 @@ import LastReadChatRoom from "./models/LastReadChatRoom";
 import DraftMessage from "./models/DraftMessage";
 import ShudongPost from "./models/ShudongPost";
 import ShudongUpvote from "./models/ShudongUpvote";
+import ShudongSubscription from "./models/ShudongSubscription";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
 import Task from "./models/Task";
@@ -68,6 +69,7 @@ const db = {
   DraftMessage,
   ShudongPost,
   ShudongUpvote,
+  ShudongSubscription,
   MentorSelection,
   MentorSelectionBatch,
   Task,

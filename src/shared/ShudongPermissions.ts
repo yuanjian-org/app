@@ -15,6 +15,9 @@ export const allowedShudongMenteeStatuses: MenteeStatus[] = [
 /**
  * Checks whether a user can read and write posts in Shudong.
  * ShudongAdmin, Mentors, and Mentees in allowed statuses have full access.
+ *
+ * TODO: shudongGlobalSubscriberWhere should respect access permissions
+ * controlled by menteeStatus and Mentee role.
  */
 export function canAccessShudong(
   user: Pick<User, "id" | "roles" | "menteeStatus">,
