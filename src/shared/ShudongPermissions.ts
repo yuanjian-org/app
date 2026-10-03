@@ -19,10 +19,7 @@ export const allowedShudongMenteeStatuses: MenteeStatus[] = [
 export function canAccessShudong(
   user: Pick<User, "id" | "roles" | "menteeStatus">,
 ): boolean {
-  if (isPermitted(user.roles, "ShudongAdmin")) {
-    return true;
-  }
-  if (isPermitted(user.roles, "Mentor")) {
+  if (isPermitted(user.roles, ["ShudongAdmin", "Mentor"])) {
     return true;
   }
   if (

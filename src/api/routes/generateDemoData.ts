@@ -20,6 +20,13 @@ import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
+import {
+  createPostImpl,
+  deletePostImpl,
+  listQuestionsImpl,
+  toggleUpvoteImpl,
+} from "./shudong";
+import { DemoShudongPost } from "./demoData";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -89,6 +96,53 @@ export async function generateDemoData(t: Transaction) {
   await generateOrgs(t);
 
   await generateProjects(t);
+
+  await generateShudong(t);
+}
+
+async function generateShudong(t: Transaction) {
+  console.log("Creating shudong posts...");
+  if (!demo.shudong) return;
+
+  const existing = await listQuestionsImpl(admin as User, 1, 0, t);
+  if (existing.length > 0) {
+    console.log("Shudong posts already exist. Skip.");
+    return;
+  }
+
+  for (const postData of demo.shudong) {
+    await generateShudongPost(postData, null, t);
+  }
+}
+
+async function generateShudongPost(
+  postData: DemoShudongPost,
+  parentId: string | null,
+  t: Transaction,
+) {
+  const post = await createPostImpl(
+    postData.author as User,
+    parentId,
+    postData.markdown,
+    postData.isAnonymous,
+    t,
+  );
+
+  if (postData.upvotes) {
+    for (const upvoter of postData.upvotes) {
+      await toggleUpvoteImpl(upvoter as User, post.id, t);
+    }
+  }
+
+  if (postData.responses) {
+    for (const child of postData.responses) {
+      await generateShudongPost(child, post.id, t);
+    }
+  }
+
+  if (postData.isDeleted) {
+    await deletePostImpl(admin as User, post.id, t);
+  }
 }
 
 async function generateOrgs(t: Transaction) {
