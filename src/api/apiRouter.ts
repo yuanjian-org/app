@@ -29,6 +29,7 @@ import menteeData from "./routes/menteeData";
 import orgs from "./routes/orgs";
 import projects from "./routes/projects";
 import projectApplications from "./routes/projectApplications";
+import shudong from "./routes/shudong";
 
 // Initialize console-stamp to add timestamps to all console logs
 consoleStamp(console, {
@@ -65,6 +66,7 @@ export const apiRouter = router({
   orgs,
   projects,
   projectApplications,
+  shudong,
 });
 
 export type ApiRouter = typeof apiRouter;

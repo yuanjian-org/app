@@ -8,6 +8,7 @@ export const allRoles = [
   "OrgAdmin",
 
   "ProjectAdmin",
+  "ShudongAdmin",
 
   "MentorshipAssessor",
   "MentorshipAdmin",
@@ -72,6 +73,11 @@ const RoleProfiles: {
   ProjectAdmin: {
     displayName: "项目管理员",
     actions: "管理项目信息",
+  },
+  ShudongAdmin: {
+    displayName: "树洞管理员",
+    actions: "管理树洞功能、帖子与权限",
+    privilegedUserDataAccess: true,
   },
 
   MentorshipAssessor: {

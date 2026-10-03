@@ -205,8 +205,8 @@ const updateMessage = procedure
 
       await m.update({ markdown: trimmed }, { transaction });
 
-      await db.DraftChatMessage.destroy({
-        where: { messageId, authorId: me.id },
+      await db.DraftMessage.destroy({
+        where: { chatMessageId: messageId, authorId: me.id },
         transaction,
       });
 
@@ -278,8 +278,11 @@ const saveDraftMessage = procedure
     // constraints. So we do upsert manually.
 
     await sequelize.transaction(async (transaction) => {
-      const condition = roomId === undefined ? { messageId } : { roomId };
-      const cnt = await db.DraftChatMessage.count({
+      const condition =
+        roomId === undefined
+          ? { chatMessageId: messageId }
+          : { chatRoomId: roomId };
+      const cnt = await db.DraftMessage.count({
         where: {
           authorId: me.id,
           ...condition,
@@ -287,7 +290,7 @@ const saveDraftMessage = procedure
         transaction,
       });
       if (cnt > 0) {
-        await db.DraftChatMessage.update(
+        await db.DraftMessage.update(
           { markdown },
           {
             where: condition,
@@ -295,7 +298,7 @@ const saveDraftMessage = procedure
           },
         );
       } else {
-        await db.DraftChatMessage.create(
+        await db.DraftMessage.create(
           {
             authorId: me.id,
             ...condition,
@@ -322,10 +325,12 @@ const getDraftMessage = procedure
 
     return (
       (
-        await db.DraftChatMessage.findOne({
+        await db.DraftMessage.findOne({
           where: {
             authorId: me.id,
-            ...(roomId === undefined ? { messageId } : { roomId }),
+            ...(roomId === undefined
+              ? { chatMessageId: messageId }
+              : { chatRoomId: roomId }),
           },
           attributes: ["markdown"],
         })
@@ -333,7 +338,7 @@ const getDraftMessage = procedure
     );
   });
 
-// See models/DraftChatMessage.ts for the explanation of roomId and messageId.
+// See models/DraftMessage.ts for the explanation of chatRoomId and chatMessageId.
 function checkDraftMessageInput(
   roomId: string | undefined,
   messageId: string | undefined,

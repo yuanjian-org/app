@@ -56,7 +56,8 @@ import { mentorshipStatusIconType } from "pages/mentees";
 import { ImpersonationRequest } from "pages/api/auth/[...nextauth]";
 import { accountPageTitle } from "pages/accounts/[userId]";
 import { UnreadChatMessagesRedDot } from "./ChatRoom";
-import { FaStreetView } from "react-icons/fa";
+import { FaStreetView, FaTree } from "react-icons/fa";
+import { canAccessShudong } from "shared/ShudongPermissions";
 import { UnreadTasksRedDot, UnreadKudosBlueDot } from "./unread";
 import { RiCustomerServiceFill } from "react-icons/ri";
 import { Features } from "shared/Features";
@@ -172,6 +173,14 @@ const mainMenuItems: (MainMenuItem | null)[] = [
     icon: FaStreetView,
     regex: /^\/$/,
     redDot: UnreadTasksRedDot,
+  },
+  {
+    name: "树洞",
+    path: "/shudong",
+    icon: FaTree,
+    regex: /^\/shudong/,
+    feature: "shudong",
+    permission: (me: User) => canAccessShudong(me),
   },
   {
     name: "挑战问题",
