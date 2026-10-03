@@ -20,6 +20,9 @@ import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
+import { createPostImpl, deletePostImpl, toggleUpvoteImpl } from "./shudong";
+import { canEditOrDeleteShudongPost } from "../../shared/ShudongPermissions";
+import { DemoShudongPost } from "./demoData";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -34,6 +37,21 @@ const mentor5 = demo.users.mentor5;
 
 function id(u: DemoUser): string {
   return u.id as string;
+}
+
+function toUser(u: DemoUser): User {
+  return {
+    id: id(u),
+    name: u.name ?? null,
+    url: null,
+    roles: u.roles ?? [],
+    email: u.email ?? null,
+    phone: u.phone ?? null,
+    wechat: null,
+    menteeStatus: u.menteeStatus ?? null,
+    pointOfContact: null,
+    pointOfContactNote: null,
+  };
 }
 
 export async function generateDemoData(t: Transaction) {
@@ -89,6 +107,55 @@ export async function generateDemoData(t: Transaction) {
   await generateOrgs(t);
 
   await generateProjects(t);
+
+  await generateShudong(t);
+}
+
+async function generateShudong(t: Transaction) {
+  console.log("Creating shudong posts...");
+  if (!demo.shudong) return;
+
+  for (const postData of demo.shudong) {
+    await generateShudongPost(postData, null, t);
+  }
+}
+
+async function generateShudongPost(
+  postData: DemoShudongPost,
+  parentId: string | null,
+  t: Transaction,
+) {
+  const authorUser = toUser(postData.author);
+  const post = await createPostImpl(
+    authorUser,
+    parentId,
+    postData.markdown,
+    postData.isAnonymous,
+    t,
+  );
+
+  if (postData.upvotes) {
+    for (const upvoter of postData.upvotes) {
+      await toggleUpvoteImpl(toUser(upvoter), post.id, t);
+    }
+  }
+
+  if (postData.responses) {
+    for (const child of postData.responses) {
+      await generateShudongPost(child, post.id, t);
+    }
+  }
+
+  if (postData.isDeleted) {
+    const adminUser = toUser(admin);
+    const deleter = canEditOrDeleteShudongPost(
+      authorUser,
+      postData.isAnonymous ? null : authorUser.id,
+    )
+      ? authorUser
+      : adminUser;
+    await deletePostImpl(deleter, post.id, t);
+  }
 }
 
 async function generateOrgs(t: Transaction) {
