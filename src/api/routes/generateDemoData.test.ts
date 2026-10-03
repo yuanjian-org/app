@@ -20,6 +20,21 @@ describe("generateDemoData", () => {
         const mentorshipsCount = await db.Mentorship.count({ transaction });
         expect(mentorshipsCount).to.be.greaterThan(0);
 
+        const adminUser = await db.User.findOne({
+          where: { email: "admin@de.mo" },
+          transaction,
+        });
+        void expect(adminUser).to.not.be.null;
+        expect(adminUser?.roles).to.include("ShudongAdmin");
+
+        const shudongPostsCount = await db.ShudongPost.count({ transaction });
+        expect(shudongPostsCount).to.be.greaterThan(0);
+
+        const shudongUpvotesCount = await db.ShudongUpvote.count({
+          transaction,
+        });
+        expect(shudongUpvotesCount).to.be.greaterThan(0);
+
         throw new Error("ROLLBACK_FOR_TEST");
       });
     } catch (e: any) {

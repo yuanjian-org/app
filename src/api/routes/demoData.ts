@@ -14,6 +14,15 @@ import { UserPreference } from "../../shared/UserPreference";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { ProjectProfile } from "../../shared/ProjectProfile";
 
+export type DemoShudongPost = {
+  author: DemoUser;
+  markdown: string;
+  isAnonymous: boolean;
+  isDeleted?: boolean;
+  upvotes?: readonly DemoUser[];
+  responses?: readonly DemoShudongPost[];
+};
+
 export type DemoUser = {
   name: string;
   email: string;
@@ -894,6 +903,202 @@ const demoData = {
     },
   ],
   menteeNotes: [menteeNote1, menteeNote2],
+  shudong: [
+    {
+      author: users.mentee1,
+      markdown:
+        "大学期间如何平衡学术研究、实习与个人生活？大家有什么时间管理经验分享吗？",
+      isAnonymous: false,
+      upvotes: [users.mentor1, users.mentee2, users.admin],
+      responses: [
+        {
+          author: users.mentor1,
+          markdown:
+            "要学会给事情做优先级排序，推荐使用四象限法则（紧急/重要）。另外，每周给自己留出至少半天的‘无特定安排时间’，对舒缓压力非常有效。",
+          isAnonymous: false,
+          upvotes: [users.mentee1, users.mentee2],
+          responses: [
+            {
+              author: users.mentee1,
+              markdown:
+                "感谢丙导师！请问四象限法则在应对突发的科研实验失败时，该如何灵活调整呢？",
+              isAnonymous: false,
+              responses: [
+                {
+                  author: users.mentor1,
+                  markdown:
+                    "科研中的突发状况很常见。首先把‘总结失败原因’放入‘紧急且重要’，但不要过度沉溺于情绪。将复盘拆解成具体的小步行动。",
+                  isAnonymous: false,
+                  upvotes: [users.mentee1, users.mentor2],
+                },
+                {
+                  author: users.mentor2,
+                  markdown:
+                    "我也补充一点：科研实验失败往往是常态，可以建立一个‘实验异常记录本’，把每次失败当成排除错误选项的过程。",
+                  isAnonymous: false,
+                  upvotes: [users.mentee1],
+                },
+              ],
+            },
+            {
+              author: users.mentee2,
+              markdown:
+                "同感！我平时会用番茄工作法+Obsidian记录每日Todo，感觉效率提升了不少。",
+              isAnonymous: true,
+              upvotes: [users.mentor1],
+            },
+          ],
+        },
+        {
+          author: users.mentee3,
+          markdown: "原回复内容已删除",
+          isAnonymous: true,
+          isDeleted: true,
+          responses: [
+            {
+              author: users.mentor3,
+              markdown:
+                "虽然上面的回复被删除了，但关于‘放弃不适合自己的实习’这一点其实很值得讨论。懂得及时止损也是一种非常重要的能力。",
+              isAnonymous: false,
+              upvotes: [users.admin, users.mentee1],
+              responses: [
+                {
+                  author: users.mentee2,
+                  markdown:
+                    "确实！之前有一份实习发现和自己期望相差很大，强撑了三个月反而错过了秋招机会。",
+                  isAnonymous: false,
+                  upvotes: [users.mentor3],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          author: users.mentor4,
+          markdown:
+            "在生物医药科研中，工作时间往往受细胞培养和实验周期限制。我的经验是做计划要留有至少20%的弹性缓冲区。",
+          isAnonymous: false,
+          upvotes: [users.admin, users.mentor1],
+        },
+      ],
+    },
+    {
+      author: users.mentee2,
+      markdown:
+        "面对跨专业考研/保研的焦虑，如何判断自己是真的喜欢新专业，还是仅仅为了逃避原专业？",
+      isAnonymous: true,
+      upvotes: [users.mentee1, users.mentor3, users.mentor5],
+      responses: [
+        {
+          author: users.mentor5,
+          markdown:
+            "可以问自己三个问题：1. 如果新专业未来3年没有任何光鲜亮丽的标签，你还愿意每天研究它吗？2. 你是否深入阅读过该专业的核心教材或近期顶刊论文？3. 你接触过该行业的从业者并了解真实的日常吗？",
+          isAnonymous: false,
+          upvotes: [users.mentee2, users.mentee3, users.admin],
+          responses: [
+            {
+              author: users.mentee2,
+              markdown:
+                "非常中肯的建议！特别是第2点，之前我只是看了一些科普文章，真正翻开专业教材才发现数学门槛很高。",
+              isAnonymous: true,
+              responses: [
+                {
+                  author: users.mentor2,
+                  markdown:
+                    "跨考数学/统计确实需要扎实的基础，建议可以先试听一两门MOOC公开课，检验一下自己的接受度。",
+                  isAnonymous: false,
+                  upvotes: [users.mentee2],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          author: users.mentee4,
+          markdown: "原回复内容已删除",
+          isAnonymous: true,
+          isDeleted: true,
+          responses: [
+            {
+              author: users.admin,
+              markdown:
+                "提醒大家：在树洞讨论跨专业转型时，请尽量分享具体的学习路径和资源，避免空泛宣泄情绪哦。",
+              isAnonymous: false,
+              upvotes: [users.mentor1, users.mentor5],
+            },
+          ],
+        },
+        {
+          author: users.mentor3,
+          markdown:
+            "逃避不可耻，但逃避解决不了长远问题。建议做一次SWOT分析，把原专业的优势和新专业的风险都列出来。",
+          isAnonymous: false,
+          upvotes: [users.mentee1, users.mentee3],
+        },
+      ],
+    },
+    {
+      author: users.mentee5,
+      markdown: "原提问内容已删除",
+      isAnonymous: true,
+      isDeleted: true,
+      responses: [
+        {
+          author: users.mentor1,
+          markdown:
+            "看到原贴提到的职场新人人际交往困惑，想鼓励一句：刚入职场不必强求和所有人成为朋友，保持专业、真诚和清晰的边界即可。",
+          isAnonymous: false,
+          upvotes: [users.mentee1, users.mentee2, users.admin],
+          responses: [
+            {
+              author: users.mentee1,
+              markdown: "同意丙导师，‘边界感’这三个字太重要了！",
+              isAnonymous: false,
+              upvotes: [users.mentor1],
+            },
+            {
+              author: users.mentee3,
+              markdown:
+                "想请教导师，如果在团队合作中遇到习惯性推卸责任的同事，应该如何应对？",
+              isAnonymous: true,
+              responses: [
+                {
+                  author: users.mentor4,
+                  markdown:
+                    "保持工作沟通留痕（邮件、工作群记录），分工时明确责任边界和交付节点，必要时及时向项目负责人同步进展。",
+                  isAnonymous: false,
+                  upvotes: [users.mentee3, users.admin],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      author: users.admin,
+      markdown:
+        "推荐大家读项飚老师的《把自己作为方法》，里面关于‘乡绅’与‘附近’的讨论对理解当下社会心态非常有启发！",
+      isAnonymous: false,
+      upvotes: [users.mentor1, users.mentor3, users.mentee1, users.mentee2],
+      responses: [
+        {
+          author: users.mentor3,
+          markdown:
+            "大赞这本！‘重建附近’也是我们在公益和社群建设中一直在尝试做的事情。",
+          isAnonymous: false,
+          upvotes: [users.admin],
+        },
+        {
+          author: users.mentee2,
+          markdown:
+            "读完这本书后，我也开始尝试关注宿舍楼下的保安大叔和食堂阿姨的生活，感觉生活真实了很多。",
+          isAnonymous: false,
+          upvotes: [users.admin, users.mentor3],
+        },
+      ],
+    },
+  ],
   calibration: {
     name: "2025届面试组",
     interviews: [
