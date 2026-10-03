@@ -1041,9 +1041,9 @@ const demoData = {
     },
     {
       author: users.mentee2,
-      markdown: "原提问内容已删除",
+      markdown:
+        "作为职场新人，在入职初期该如何与团队成员以及导师建立良好的人际交往与沟通边界？",
       isAnonymous: true,
-      isDeleted: true,
       responses: [
         {
           author: users.mentor1,
