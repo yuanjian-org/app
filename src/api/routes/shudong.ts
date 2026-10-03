@@ -46,9 +46,6 @@ export async function findShudongPostOrThrow(
   postId: string,
   transaction?: Transaction,
 ) {
-  if (!z.string().uuid().safeParse(postId).success) {
-    throw notFoundError("树洞帖子", postId);
-  }
   const post = await db.ShudongPost.findByPk(postId, {
     include: shudongPostInclude,
     transaction,
@@ -158,9 +155,6 @@ export async function getQuestionImpl(
   transaction?: Transaction,
 ) {
   checkShudongAccess(me);
-  if (!z.string().uuid().safeParse(questionId).success) {
-    throw notFoundError("树洞帖子", questionId);
-  }
   const q = await db.ShudongPost.findByPk(questionId, {
     include: shudongPostInclude,
     transaction,

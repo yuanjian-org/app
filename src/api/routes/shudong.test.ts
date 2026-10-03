@@ -327,7 +327,7 @@ describe("shudong backend routes", () => {
 
       await saveDraftImpl(mentor, "root", null, "Draft question", transaction);
 
-      const d1 = await getDraftImpl(mentor, "root", null);
+      const d1 = await getDraftImpl(mentor, "root", null, transaction);
       expect(d1).to.equal("Draft question");
 
       // Overwrite existing draft
@@ -338,13 +338,13 @@ describe("shudong backend routes", () => {
         "Updated draft question",
         transaction,
       );
-      const d1Updated = await getDraftImpl(mentor, "root", null);
+      const d1Updated = await getDraftImpl(mentor, "root", null, transaction);
       expect(d1Updated).to.equal("Updated draft question");
 
       // Creating post should clear the draft
       await createPostImpl(mentor, null, "Final post", true, transaction);
 
-      const d2 = await getDraftImpl(mentor, "root", null);
+      const d2 = await getDraftImpl(mentor, "root", null, transaction);
       void expect(d2).to.be.null;
     });
 
@@ -366,7 +366,7 @@ describe("shudong backend routes", () => {
         "Edit draft content",
         transaction,
       );
-      const editDraft = await getDraftImpl(mentor, null, q.id);
+      const editDraft = await getDraftImpl(mentor, null, q.id, transaction);
       expect(editDraft).to.equal("Edit draft content");
 
       // Invalid parameter combinations should throw invariant error
@@ -378,7 +378,7 @@ describe("shudong backend routes", () => {
       }
 
       try {
-        await getDraftImpl(mentor, null, null);
+        await getDraftImpl(mentor, null, null, transaction);
         expect.fail("Should have thrown invariant error");
       } catch (err: any) {
         expect(err.message).to.contain("one and only one");
