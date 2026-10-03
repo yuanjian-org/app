@@ -19,6 +19,7 @@ import ShudongPostModel from "../database/models/ShudongPost";
 import { shudongPostInclude } from "../database/models/attributesAndIncludes";
 import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
+import { scheduleNotification } from "./scheduledNotifications";
 
 /**
  * Common where condition for active or soft-deleted posts that have replies.
@@ -37,6 +38,20 @@ export function checkShudongAccess(me: User) {
   if (!canAccessShudong(me)) {
     throw noPermissionError("树洞");
   }
+}
+
+/**
+ * Recursively traverses parent posts to find the root question ID.
+ */
+export async function findRootQuestionId(
+  postId: string,
+  transaction?: Transaction,
+): Promise<string> {
+  let curr = await db.ShudongPost.findByPk(postId, { transaction });
+  while (curr && curr.parentId) {
+    curr = await db.ShudongPost.findByPk(curr.parentId, { transaction });
+  }
+  return curr ? curr.id : postId;
 }
 
 /**
@@ -59,7 +74,7 @@ export async function findShudongPostOrThrow(
 /**
  * Formats a raw DB ShudongPost for client consumption.
  * Anonymizes author info if the post is marked anonymous or soft-deleted.
- * Checks whether the current user has upvoted the post.
+ * Checks whether the current user has upvoted and subscribed to the post.
  */
 export async function formatShudongPost(
   post: ShudongPostModel,
@@ -68,6 +83,16 @@ export async function formatShudongPost(
 ): Promise<ShudongPost> {
   const upvote = await db.ShudongUpvote.findOne({
     where: { postId: post.id, userId: myId },
+    attributes: ["userId"],
+    transaction,
+  });
+
+  const rootQuestionId = post.parentId
+    ? await findRootQuestionId(post.id, transaction)
+    : post.id;
+
+  const subscription = await db.ShudongSubscription.findOne({
+    where: { questionId: rootQuestionId, userId: myId },
     attributes: ["userId"],
     transaction,
   });
@@ -87,6 +112,7 @@ export async function formatShudongPost(
     lastEditedAt: post.lastEditedAt,
     createdAt: post.createdAt,
     userHasUpvoted: !!upvote,
+    userIsSubscribed: !!subscription,
   });
 }
 
@@ -205,6 +231,46 @@ export async function createPostImpl(
     const parent = await db.ShudongPost.findByPk(parentId, { transaction });
     invariant(parent, "Parent post not found");
     await parent.increment("responseCount", { by: 1, transaction });
+
+    // Auto-subscribe responder to root question and schedule notification
+    const rootQuestionId = await findRootQuestionId(post.id, transaction);
+    await db.ShudongSubscription.findOrCreate({
+      where: { questionId: rootQuestionId, userId: me.id },
+      transaction,
+    });
+    await scheduleNotification("Shudong", rootQuestionId, transaction);
+  } else {
+    // For root question, auto-subscribe poster and global subscribers
+    const subscribers: Set<string> = new Set([me.id]);
+    const autoSubscribers = await db.User.findAll({
+      attributes: ["id"],
+      where: {
+        [Op.or]: [
+          { "preference.shudongSubscribeAll": "yes" },
+          {
+            roles: { [Op.contains]: ["Mentor"] },
+            [Op.or]: [
+              { "preference.shudongSubscribeAll": "default" },
+              { "preference.shudongSubscribeAll": null },
+            ],
+          },
+        ],
+      },
+      transaction,
+    });
+
+    for (const u of autoSubscribers) {
+      subscribers.add(u.id);
+    }
+
+    const subscriptionRows = Array.from(subscribers).map((uId) => ({
+      questionId: post.id,
+      userId: uId,
+    }));
+    await db.ShudongSubscription.bulkCreate(subscriptionRows, {
+      ignoreDuplicates: true,
+      transaction,
+    });
   }
 
   const draftParentIdKey = parentId ?? "root";
@@ -340,6 +406,36 @@ export async function toggleUpvoteImpl(
     });
     await post.reload({ transaction });
     return { userHasUpvoted: true, upvoteCount: post.upvoteCount };
+  }
+}
+
+/**
+ * Toggles subscription to a Shudong question for the current user.
+ */
+export async function toggleSubscriptionImpl(
+  me: User,
+  questionId: string,
+  transaction: Transaction,
+) {
+  checkShudongAccess(me);
+
+  const question = await findShudongPostOrThrow(questionId, transaction);
+  invariant(question.parentId === null, "Can only subscribe to root questions");
+
+  const existing = await db.ShudongSubscription.findOne({
+    where: { questionId, userId: me.id },
+    transaction,
+  });
+
+  if (existing) {
+    await existing.destroy({ transaction });
+    return { isSubscribed: false };
+  } else {
+    await db.ShudongSubscription.create(
+      { questionId, userId: me.id },
+      { transaction },
+    );
+    return { isSubscribed: true };
   }
 }
 
@@ -516,6 +612,24 @@ const toggleUpvote = procedure
     });
   });
 
+const toggleSubscription = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      questionId: z.string(),
+    }),
+  )
+  .output(
+    z.object({
+      isSubscribed: z.boolean(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { questionId } }) => {
+    return await sequelize.transaction(async (t) => {
+      return await toggleSubscriptionImpl(me, questionId, t);
+    });
+  });
+
 const saveDraft = procedure
   .use(authUser())
   .input(
@@ -557,6 +671,7 @@ export default router({
   updatePost,
   deletePost,
   toggleUpvote,
+  toggleSubscription,
   saveDraft,
   getDraft,
 });

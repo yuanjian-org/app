@@ -23,7 +23,7 @@ import {
   FormLabel,
   Icon,
 } from "@chakra-ui/react";
-import { FiThumbsUp } from "react-icons/fi";
+import { FiThumbsUp, FiBell, FiBellOff } from "react-icons/fi";
 import {
   ChatIcon,
   EditIcon,
@@ -96,8 +96,9 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 
 /**
  * Renders a single Shudong post (question, response, or sub-response) with
- * upvoting (+1 animation), reply toggling, draft auto-saving, inline editing,
- * soft deletion, and expandable nested child responses.
+ * upvoting (+1 animation), subscription toggling, reply toggling,
+ * draft auto-saving, inline editing, soft deletion, and expandable nested
+ * child responses.
  */
 export function ShudongPostItem({
   post,
@@ -118,10 +119,19 @@ export function ShudongPostItem({
   const isMobile = useMobile();
   const router = useRouter();
 
-  // Optimistic upvote state provides instant UI feedback before mutation completes
+  // Optimistic upvote state
   const [localHasUpvoted, setLocalHasUpvoted] = useState(post.userHasUpvoted);
   const [localUpvoteCount, setLocalUpvoteCount] = useState(post.upvoteCount);
   const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
+
+  // Optimistic subscription state
+  const [localIsSubscribed, setLocalIsSubscribed] = useState(
+    post.userIsSubscribed ?? false,
+  );
+
+  useEffect(() => {
+    setLocalIsSubscribed(post.userIsSubscribed ?? false);
+  }, [post.userIsSubscribed]);
 
   const [isReplying, setIsReplying] = useState(false);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -141,7 +151,7 @@ export function ShudongPostItem({
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  // Fetches child responses lazily only when expanded to reduce initial payload
+  // Fetches child responses lazily only when expanded
   const { data: childResponses, refetch: refetchChildren } =
     trpcNext.shudong.getResponses.useQuery(
       { parentId: post.id },
@@ -150,7 +160,7 @@ export function ShudongPostItem({
 
   const animeDurationInSeconds = 1.5;
 
-  // Toggle upvote optimistically to ensure snappy interactions
+  // Toggle upvote optimistically
   const handleUpvote = useCallback(async () => {
     if (localHasUpvoted) {
       setLocalHasUpvoted(false);
@@ -169,7 +179,28 @@ export function ShudongPostItem({
     setLocalUpvoteCount(res.upvoteCount);
   }, [localHasUpvoted, post.id]);
 
-  // Load existing reply draft when opening reply area to restore unsaved work
+  // Toggle subscription optimistically
+  const handleToggleSubscription = useCallback(
+    async (e: React.MouseEvent | React.KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const nextState = !localIsSubscribed;
+      setLocalIsSubscribed(nextState);
+      try {
+        const res = await trpc.shudong.toggleSubscription.mutate({
+          questionId: post.id,
+        });
+        setLocalIsSubscribed(res.isSubscribed);
+        toast.success(res.isSubscribed ? "已订阅该问题" : "已取消订阅");
+      } catch (err: any) {
+        setLocalIsSubscribed(!nextState);
+        toast.error(err?.message || "操作失败");
+      }
+    },
+    [localIsSubscribed, post.id],
+  );
+
+  // Load existing reply draft
   useEffect(() => {
     if (isReplying) {
       void trpc.shudong.getDraft
@@ -180,7 +211,7 @@ export function ShudongPostItem({
     }
   }, [isReplying, post.id]);
 
-  // Load existing edit draft when entering edit mode
+  // Load existing edit draft
   useEffect(() => {
     if (isEditing) {
       void trpc.shudong.getDraft
@@ -233,7 +264,7 @@ export function ShudongPostItem({
     }
   };
 
-  // Deleting root question navigates back to /shudong to prevent NOT_FOUND errors
+  // Deleting root question navigates back to /shudong
   const handleDelete = async () => {
     await trpc.shudong.deletePost.mutate({ postId: post.id });
     toast.success("已删除帖子");
@@ -247,9 +278,10 @@ export function ShudongPostItem({
     }
   };
 
-  // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
     !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
+
+  const isQuestionNode = post.parentId === null || isRootQuestion;
 
   return (
     <Box
@@ -302,7 +334,6 @@ export function ShudongPostItem({
             value={editMarkdown}
             onChange={(e) => setEditMarkdown(e.target.value)}
             onKeyDown={(e) => {
-              // Cmd/Ctrl + Enter shortcut for fast saving on desktop
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                 e.preventDefault();
                 void handleSaveEdit();
@@ -351,8 +382,6 @@ export function ShudongPostItem({
               tabIndex={0}
               aria-label="点赞"
               onClick={(e) => {
-                // Prevent card link wrapper on home page from intercepting
-                // upvote clicks
                 e.preventDefault();
                 e.stopPropagation();
                 void handleUpvote();
@@ -393,7 +422,32 @@ export function ShudongPostItem({
           </Box>
         )}
 
-        {/* Home page cards show reply/response buttons that route to question page */}
+        {!post.isDeleted && isQuestionNode && (
+          <Text
+            display="flex"
+            alignItems="center"
+            cursor="pointer"
+            role="button"
+            tabIndex={0}
+            aria-label={localIsSubscribed ? "取消订阅" : "订阅问题"}
+            color={localIsSubscribed ? "brand.500" : "gray.600"}
+            fontWeight={localIsSubscribed ? "bold" : "normal"}
+            onClick={(e) => void handleToggleSubscription(e)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                void handleToggleSubscription(e);
+              }
+            }}
+          >
+            <Icon
+              as={localIsSubscribed ? FiBell : FiBellOff}
+              mr={1}
+              boxSize={4}
+            />
+            <T>{localIsSubscribed ? "已订阅" : "订阅"}</T>
+          </Text>
+        )}
+
         {(isHomePage || !isRootQuestion) && (
           <>
             {!post.isDeleted && (
@@ -406,7 +460,6 @@ export function ShudongPostItem({
                 aria-label="回复"
                 onClick={(e) => {
                   if (isHomePage) {
-                    // Prevent card link wrapper from overriding query parameter routing
                     e.preventDefault();
                     e.stopPropagation();
                     void router.push(`/shudong/${post.id}?focus=reply`);
@@ -414,7 +467,6 @@ export function ShudongPostItem({
                     setIsReplying((prev) => {
                       const next = !prev;
                       if (next) {
-                        // Focus textarea immediately after expanding
                         setTimeout(() => replyInputRef.current?.focus(), 100);
                       }
                       return next;
@@ -537,7 +589,7 @@ export function ShudongPostItem({
         </VStack>
       )}
 
-      {/* Child response tree rendered with left border indentation */}
+      {/* Child response tree */}
       {showChildResponses && (
         <VStack
           align="stretch"
