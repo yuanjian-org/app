@@ -46,6 +46,9 @@ export async function findShudongPostOrThrow(
   postId: string,
   transaction?: Transaction,
 ) {
+  if (!z.string().uuid().safeParse(postId).success) {
+    throw notFoundError("树洞帖子", postId);
+  }
   const post = await db.ShudongPost.findByPk(postId, {
     include: shudongPostInclude,
     transaction,
@@ -155,6 +158,9 @@ export async function getQuestionImpl(
   transaction?: Transaction,
 ) {
   checkShudongAccess(me);
+  if (!z.string().uuid().safeParse(questionId).success) {
+    throw notFoundError("树洞帖子", questionId);
+  }
   const q = await db.ShudongPost.findByPk(questionId, {
     include: shudongPostInclude,
     transaction,
@@ -326,20 +332,20 @@ export async function toggleUpvoteImpl(
 
   if (existing) {
     await existing.destroy({ transaction });
-    invariant(post.upvoteCount > 0, "Upvote count must be greater than zero");
     await post.increment("upvoteCount", {
       by: -1,
       transaction,
     });
-    return { userHasUpvoted: false, upvoteCount: post.upvoteCount - 1 };
+    await post.reload({ transaction });
+    return { userHasUpvoted: false, upvoteCount: post.upvoteCount };
   } else {
     await db.ShudongUpvote.create({ postId, userId: me.id }, { transaction });
-    await db.ShudongPost.increment("upvoteCount", {
+    await post.increment("upvoteCount", {
       by: 1,
-      where: { id: postId },
       transaction,
     });
-    return { userHasUpvoted: true, upvoteCount: post.upvoteCount + 1 };
+    await post.reload({ transaction });
+    return { userHasUpvoted: true, upvoteCount: post.upvoteCount };
   }
 }
 
@@ -394,6 +400,7 @@ export async function getDraftImpl(
   me: User,
   shudongParentId: string | null,
   shudongPostId: string | null,
+  transaction?: Transaction,
 ) {
   checkShudongAccess(me);
 
@@ -408,6 +415,7 @@ export async function getDraftImpl(
   const draft = await db.DraftMessage.findOne({
     where: { authorId: me.id, ...condition },
     attributes: ["markdown"],
+    transaction,
   });
 
   return draft ? draft.markdown : null;
