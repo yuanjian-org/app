@@ -21,6 +21,7 @@ import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
 import { createPostImpl, deletePostImpl, toggleUpvoteImpl } from "./shudong";
+import { canEditOrDeleteShudongPost } from "../../shared/ShudongPermissions";
 import { DemoShudongPost } from "./demoData";
 
 const demo = _.cloneDeep(demoData);
@@ -146,7 +147,14 @@ async function generateShudongPost(
   }
 
   if (postData.isDeleted) {
-    await deletePostImpl(authorUser, post.id, t);
+    const adminUser = toUser(admin);
+    const deleter = canEditOrDeleteShudongPost(
+      authorUser,
+      postData.isAnonymous ? null : authorUser.id,
+    )
+      ? authorUser
+      : adminUser;
+    await deletePostImpl(deleter, post.id, t);
   }
 }
 
