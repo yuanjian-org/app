@@ -330,11 +330,113 @@ describe("shudong backend routes", () => {
       const d1 = await getDraftImpl(mentor, "root", null);
       expect(d1).to.equal("Draft question");
 
+      // Overwrite existing draft
+      await saveDraftImpl(
+        mentor,
+        "root",
+        null,
+        "Updated draft question",
+        transaction,
+      );
+      const d1Updated = await getDraftImpl(mentor, "root", null);
+      expect(d1Updated).to.equal("Updated draft question");
+
       // Creating post should clear the draft
       await createPostImpl(mentor, null, "Final post", true, transaction);
 
       const d2 = await getDraftImpl(mentor, "root", null);
       void expect(d2).to.be.null;
+    });
+
+    it("should handle post edit drafts and enforce parameter invariants", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Original post",
+        true,
+        transaction,
+      );
+
+      // Save and retrieve edit draft
+      await saveDraftImpl(
+        mentor,
+        null,
+        q.id,
+        "Edit draft content",
+        transaction,
+      );
+      const editDraft = await getDraftImpl(mentor, null, q.id);
+      expect(editDraft).to.equal("Edit draft content");
+
+      // Invalid parameter combinations should throw invariant error
+      try {
+        await saveDraftImpl(mentor, "root", q.id, "Invalid", transaction);
+        expect.fail("Should have thrown invariant error");
+      } catch (err: any) {
+        expect(err.message).to.contain("one and only one");
+      }
+
+      try {
+        await getDraftImpl(mentor, null, null);
+        expect.fail("Should have thrown invariant error");
+      } catch (err: any) {
+        expect(err.message).to.contain("one and only one");
+      }
+    });
+  });
+
+  describe("input validation and error handling", () => {
+    it("should reject empty post markdown on create and update", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      try {
+        await createPostImpl(mentor, null, "   ", true, transaction);
+        expect.fail("Should have thrown bad request error");
+      } catch (err: any) {
+        expect(err.message).to.contain("内容不能为空");
+      }
+
+      const post = await createPostImpl(
+        mentor,
+        null,
+        "Valid text",
+        true,
+        transaction,
+      );
+
+      try {
+        await updatePostImpl(mentor, post.id, "   ", transaction);
+        expect.fail("Should have thrown bad request error");
+      } catch (err: any) {
+        expect(err.message).to.contain("内容不能为空");
+      }
+    });
+
+    it("should throw not found error when post does not exist", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const fakeId = crypto.randomUUID();
+
+      try {
+        await updatePostImpl(mentor, fakeId, "Updated text", transaction);
+        expect.fail("Should have thrown not found error");
+      } catch (err: any) {
+        expect(err.message).to.contain("树洞帖子");
+      }
+
+      try {
+        await deletePostImpl(mentor, fakeId, transaction);
+        expect.fail("Should have thrown not found error");
+      } catch (err: any) {
+        expect(err.message).to.contain("树洞帖子");
+      }
+
+      try {
+        await toggleUpvoteImpl(mentor, fakeId, transaction);
+        expect.fail("Should have thrown not found error");
+      } catch (err: any) {
+        expect(err.message).to.contain("树洞帖子");
+      }
     });
   });
 });
