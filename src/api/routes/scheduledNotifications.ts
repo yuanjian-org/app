@@ -74,6 +74,9 @@ export async function sendScheduledNotifications(
         case "Task":
           await notifyTasks(row.subjectId, timestamp, transaction);
           break;
+        case "Shudong":
+          await notifyShudong(row.subjectId, timestamp, transaction);
+          break;
         default:
           invariant(false, `Unknown scheduled notification type: ${row.type}`);
       }
@@ -89,6 +92,71 @@ export async function sendScheduledNotifications(
     await doWork(passedTransaction);
   } else {
     await sequelize.transaction(doWork);
+  }
+}
+
+async function notifyShudong(
+  questionId: string,
+  timestamp: Moment,
+  transaction: Transaction,
+) {
+  const question = await db.ShudongPost.findByPk(questionId, {
+    transaction,
+  });
+  if (!question || question.deletedAt !== null) return;
+
+  const candidateResponses = await db.ShudongPost.findAll({
+    where: {
+      parentId: { [Op.ne]: null },
+      deletedAt: null,
+      createdAt: isOnOrAfter(timestamp),
+    },
+    transaction,
+  });
+
+  const newResponses: Array<typeof question> = [];
+  for (const resp of candidateResponses) {
+    let curr: typeof question | null = resp;
+    while (curr && curr.parentId) {
+      if (curr.parentId === questionId) {
+        newResponses.push(resp);
+        break;
+      }
+      curr = await db.ShudongPost.findByPk(curr.parentId, { transaction });
+    }
+  }
+
+  if (newResponses.length === 0) return;
+
+  const subscriptions = await db.ShudongSubscription.findAll({
+    where: { questionId },
+    attributes: ["userId"],
+    transaction,
+  });
+
+  const subscriberIds = subscriptions.map((s) => s.userId);
+  if (subscriberIds.length === 0) return;
+
+  for (const recipientId of subscriberIds) {
+    const relevant = newResponses.filter((r) => r.authorId !== recipientId);
+    if (relevant.length === 0) continue;
+
+    await notify(
+      "树洞",
+      [recipientId],
+      {
+        email: "TODO_TEMP",
+        domesticSms: "TODO_TEMP",
+        internationalSms: "TODO_TEMP",
+      },
+      {
+        questionId,
+        questionMarkdown: question.markdown,
+        responseCount: String(relevant.length),
+        questionLink: `${getBaseUrl()}/shudong/${questionId}`,
+      },
+      transaction,
+    );
   }
 }
 

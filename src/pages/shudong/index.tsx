@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Flex,
+  HStack,
   VStack,
   Text,
   Textarea,
@@ -16,6 +17,7 @@ import {
   FormControl,
   FormLabel,
   Switch,
+  Select,
   Link,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
@@ -44,6 +46,12 @@ export default fullPage(() => {
   const isMobile = useMobile();
   const hasAccess = canAccessShudong(me);
 
+  const { data: pref, refetch: refetchPref } =
+    trpcNext.users.getUserPreference.useQuery(
+      { userId: me.id },
+      { enabled: hasAccess && !!me.id },
+    );
+
   // Enabled condition prevents unauthorized users from fetching question feeds
   const {
     data: questions,
@@ -53,7 +61,7 @@ export default fullPage(() => {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [questionMarkdown, setQuestionMarkdown] = useState("");
-  // Questions default to anonymous (true) to lower inhibition for asking questions
+  // Questions default to anonymous (true) to lower inhibition
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,6 +75,24 @@ export default fullPage(() => {
         });
     }
   }, [isOpen]);
+
+  const subscribeAllChoice = pref?.shudongSubscribeAll ?? "default";
+
+  const handleSubscribeAllChange = async (val: "yes" | "no" | "default") => {
+    try {
+      await trpc.users.setUserPreference.mutate({
+        userId: me.id,
+        preference: {
+          ...(pref ?? {}),
+          shudongSubscribeAll: val,
+        },
+      });
+      toast.success("自动订阅设置已更新");
+      void refetchPref();
+    } catch (err: any) {
+      toast.error(err?.message || "更新设置失败");
+    }
+  };
 
   const handleCreateQuestion = async () => {
     if (!questionMarkdown.trim()) {
@@ -105,13 +131,35 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        {/* Title and feature explanation share a VStack next to action button */}
-        <Flex justify="space-between" align="center">
+        {/* Title and feature explanation share a VStack next to action */}
+        <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
           <VStack align="start" spacing={1}>
             <PageBreadcrumb current="树洞" marginBottom={0} />
             <Text fontSize="sm" color="gray.600">
               <T>欢迎来到树洞！在这里你可以匿名或实名提问、交流与解答问题。</T>
             </Text>
+            <HStack spacing={2} align="center" pt={1}>
+              <Text fontSize="xs" color="gray.600">
+                <T>自动订阅未来新问题：</T>
+              </Text>
+              <Select
+                size="xs"
+                w="auto"
+                value={subscribeAllChoice}
+                onChange={(e) =>
+                  void handleSubscribeAllChange(
+                    e.target.value as "yes" | "no" | "default",
+                  )
+                }
+              >
+                <option value="default">默认</option>
+                <option value="yes">是</option>
+                <option value="no">否</option>
+              </Select>
+              <Text fontSize="xs" color="gray.500">
+                <T>（导师默认是，其他用户默认否）</T>
+              </Text>
+            </HStack>
           </VStack>
           <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
             <T>提问</T>
@@ -135,7 +183,7 @@ export default fullPage(() => {
                   passHref
                   legacyBehavior
                 >
-                  {/* color="inherit" prevents default blue link styling on cards */}
+                  {/* color="inherit" prevents default blue link styling */}
                   <Link
                     color="inherit"
                     _hover={{ textDecoration: "none" }}

@@ -144,6 +144,59 @@ describe("scheduledNotifications", () => {
       expect(count).to.equal(0);
     });
 
+    it("should notify shudong subscribers and delete notification", async () => {
+      const poster = await createTestUser("Poster");
+      const subscriber = await createTestUser("Subscriber");
+      const responder = await createTestUser("Responder");
+
+      const q = await db.ShudongPost.create(
+        {
+          authorId: poster.id,
+          markdown: "Sample question?",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      await db.ShudongSubscription.create(
+        { questionId: q.id, userId: subscriber.id },
+        { transaction },
+      );
+
+      await db.ShudongPost.create(
+        {
+          parentId: q.id,
+          authorId: responder.id,
+          markdown: "Sample response!",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "Shudong", subjectId: q.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.calledOnce).to.equal(true);
+      const args = notifyStub.getCall(0).args;
+      expect(args[0]).to.equal("树洞");
+      expect(args[1]).to.deep.equal([subscriber.id]);
+      expect(args[2].email).to.equal("TODO_TEMP");
+      expect(args[2].domesticSms).to.equal("TODO_TEMP");
+      expect(args[2].internationalSms).to.equal("TODO_TEMP");
+      expect(args[3].questionId).to.equal(q.id);
+
+      const count = await db.ScheduledNotification.count({
+        where: { type: "Shudong", subjectId: q.id },
+        transaction,
+      });
+      expect(count).to.equal(0);
+    });
+
     it("should not notify tasks if there are no tasks", async () => {
       const assignee = await createTestUser("Assignee");
 
@@ -275,7 +328,7 @@ describe("scheduledNotifications", () => {
 
       await sendScheduledNotifications(transaction);
 
-      expect(notifyStub.callCount).to.be.at.least(2); // At least two calls: one for mentor, one for the admin created in the test
+      expect(notifyStub.callCount).to.be.at.least(2);
       const mentorCall = notifyStub
         .getCalls()
         .find((call) => call.args[1][0] === mentor.id);
@@ -306,7 +359,6 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      // Update the type to an invalid value using a raw query, bypassing validation
       await sequelize.query(
         `UPDATE "ScheduledNotifications" SET type = 'UnknownType'`,
         { transaction },
@@ -369,10 +421,6 @@ describe("scheduledNotifications", () => {
     });
 
     it("should process notifications when no transaction is provided", async () => {
-      // Instead of committing a test user and leaving it in the database,
-      // we just verify that sendScheduledNotifications executes without error
-      // when no transaction is provided, processing any existing or empty queue.
-      // This is sufficient to reach the 'await sequelize.transaction(doWork);' branch.
       await sendScheduledNotifications();
     });
   });
