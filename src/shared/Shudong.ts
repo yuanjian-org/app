@@ -6,7 +6,8 @@ export const zShudongPost = z.object({
   id: z.string().uuid(),
   parentId: z.string().uuid().nullable(),
   /**
-   * author is null if the post was posted anonymously or if the post has been soft-deleted.
+   * author is null if the post was posted anonymously or if the post has
+   * been soft-deleted.
    */
   author: zMinUser.nullable(),
   markdown: z.string(),
@@ -16,6 +17,10 @@ export const zShudongPost = z.object({
   lastEditedAt: zNullableDateColumn,
   createdAt: zDateColumn,
   userHasUpvoted: z.boolean(),
+  /**
+   * userIsSubscribed is only valid for questions (i.e. root posts).
+   */
+  userIsSubscribed: z.boolean().optional(),
 });
 
 export type ShudongPost = z.infer<typeof zShudongPost>;
