@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -105,8 +105,14 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        {/* Title and feature explanation share a VStack next to action button */}
-        <Flex justify="space-between" align="center">
+        {/* Title and feature explanation share a VStack next to action button.
+            On mobile, the button is placed vertically below the VStack. */}
+        <Flex
+          direction={isMobile ? "column" : "row"}
+          justify="space-between"
+          align={isMobile ? "start" : "center"}
+          gap={isMobile ? 3 : 0}
+        >
           <VStack align="start" spacing={1}>
             <PageBreadcrumb current="树洞" marginBottom={0} />
             <Text fontSize="sm" color="gray.600">

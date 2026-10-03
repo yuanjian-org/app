@@ -116,8 +116,8 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        {/* Breadcrumb on the left, share button pushed to the right edge */}
-        <Flex align="center" justify="space-between" gap={3}>
+        {/* Share button placed right after the breadcrumb with spacing */}
+        <Flex align="center" justify="flex-start" gap={6}>
           <PageBreadcrumb
             current="问题详情"
             parents={[{ name: "树洞", link: "/shudong" }]}
