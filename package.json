@@ -82,7 +82,7 @@
     "prepare": "husky install && if [ \"$VERCEL_ENV\" = \"production\" ]; then ts-node --require tsconfig-paths/register tools/migrateDatabase.ts; fi"
   },
   "engines": {
-    "//node": "TODO: Remove 24.x after Vercel supports 26.x",
+    "【【 TODO: Remove 24.x after Vercel supports 26.x 】】": "yes",
     "node": "24.x || 26.x"
   },
   "browserslist": {

@@ -62,7 +62,7 @@ export const features: Features = {
   mentorContact:
     process.env.NEXT_PUBLIC_ENABLE_MENTOR_CONTACT === "true" || undefined,
   shudong: process.env.NEXT_PUBLIC_ENABLE_SHUDONG === "true" || undefined,
+  // This is a backend-only flag
   shudongRecordAnonymousUserId:
-    process.env.NEXT_PUBLIC_ENABLE_SHUDONG_RECORD_ANONYMOUS_USER_ID ===
-      "true" || undefined,
+    process.env.ENABLE_SHUDONG_RECORD_ANONYMOUS_USER_ID === "true" || undefined,
 };

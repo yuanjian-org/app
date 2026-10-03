@@ -20,7 +20,7 @@ import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
-import { createPostImpl, deletePostImpl, toggleUpvoteImpl } from "./shudong";
+import { createPostImpl, deletePostImpl, listQuestionsImpl, toggleUpvoteImpl } from "./shudong";
 import { DemoShudongPost } from "./demoData";
 
 const demo = _.cloneDeep(demoData);
@@ -113,6 +113,12 @@ export async function generateDemoData(t: Transaction) {
 async function generateShudong(t: Transaction) {
   console.log("Creating shudong posts...");
   if (!demo.shudong) return;
+
+  const existing = await listQuestionsImpl(admin as User, 1, 0, t);
+  if (existing.length > 0) {
+    console.log("Shudong posts already exist. Skip.");
+    return;
+  }
 
   for (const postData of demo.shudong) {
     await generateShudongPost(postData, null, t);
