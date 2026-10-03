@@ -350,12 +350,17 @@ export function ShudongPostItem({
               role="button"
               tabIndex={0}
               aria-label="点赞"
-              onClick={() => {
+              onClick={(e) => {
+                // Prevent card link wrapper on home page from intercepting
+                // upvote clicks
+                e.preventDefault();
+                e.stopPropagation();
                 void handleUpvote();
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
+                  e.stopPropagation();
                   void handleUpvote();
                 }
               }}
