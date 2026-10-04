@@ -130,7 +130,7 @@ describe("shudong backend routes", () => {
       void expect(sub2.isSubscribed).to.be.false;
     });
 
-    it("should auto-subscribe poster and users based on global preference", async () => {
+    it("should auto-subscribe poster only to new question", async () => {
       const posterMentee = await createTestUser(["Mentee"], "现届学子", {
         shudongSubscribeAll: "default",
       });
@@ -150,7 +150,7 @@ describe("shudong backend routes", () => {
         transaction,
       );
 
-      // Check subscriptions in DB
+      // Check subscriptions in DB: only poster should be subscribed
       const subs = await db.ShudongSubscription.findAll({
         where: { questionId: q.id },
         transaction,
@@ -158,11 +158,12 @@ describe("shudong backend routes", () => {
       const subUserIds = subs.map((s) => s.userId);
 
       expect(subUserIds).to.include(posterMentee.id);
-      expect(subUserIds).to.include(mentorDefault.id);
-      expect(subUserIds).to.include(menteeOptIn.id);
+      expect(subUserIds).not.to.include(mentorDefault.id);
+      expect(subUserIds).not.to.include(menteeOptIn.id);
       expect(subUserIds).not.to.include(menteeOptOut.id);
 
-      // A new-question notification should be scheduled
+      // A new-question notification should still be scheduled for global
+      // subscribers
       const scheduledCount = await db.ScheduledNotification.count({
         where: {
           type: "ShudongQuestion",

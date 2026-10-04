@@ -11,7 +11,8 @@ const mentorRole: Role = "Mentor";
 
 /**
  * Where clause on the User model that selects users who are globally
- * subscribed to all Shudong questions. A user is globally subscribed if:
+ * notified of new Shudong questions (without auto-subscribing them to
+ * future replies). A user receives new question notifications if:
  *
  * - their `shudongSubscribeAll` preference is "yes", or
  * - they are a mentor and the preference is "default" or unset.

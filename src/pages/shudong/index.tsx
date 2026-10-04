@@ -87,7 +87,7 @@ export default fullPage(() => {
         shudongSubscribeAll: val,
       },
     });
-    toast.success("自动订阅设置已更新");
+    toast.success("新问题通知设置已更新");
     void refetchPref();
   };
 
@@ -138,7 +138,7 @@ export default fullPage(() => {
         >
           <VStack align="start" spacing={1}>
             <PageBreadcrumb current="树洞" marginBottom={0} />
-            {/* The subscribe controls are inlined after the welcome text
+            {/* The notification controls are inlined after the welcome text
                 so that the whole thing is a single responsive line that
                 wraps as needed and shares one font style. */}
             <Text fontSize="sm" color="gray.600">
@@ -155,7 +155,7 @@ export default fullPage(() => {
                 top="-2px"
                 mr={1}
               />
-              <T>自动订阅未来新问题：</T>
+              <T>接收未来新问题通知：</T>
               <Select
                 size="xs"
                 // Layout props apply to Select's wrapper element. Keep it

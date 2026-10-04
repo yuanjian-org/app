@@ -6,7 +6,7 @@ export const zScheduledNotificationType = z.enum([
   "Task",
   // New responses to an existing Shudong question.
   "ShudongResponse",
-  // New Shudong questions, for globally subscribed users.
+  // New Shudong questions, for globally notified users.
   "ShudongQuestion",
 ]);
 export type ScheduledNotificationType = z.TypeOf<
