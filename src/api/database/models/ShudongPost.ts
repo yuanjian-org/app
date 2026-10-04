@@ -32,16 +32,18 @@ class ShudongPost extends Model {
   parent: ShudongPost | null;
 
   /**
-   * authorId is null if the post was created anonymously when
-   * shudongRecordAnonymousUserId is disabled.
+   * authorId is non-null for all posts. authorId is recorded even for
+   * anonymous posts to avoid sending notifications to the poster of
+   * anonymous posts.
    */
   @Index
+  @AllowNull(false)
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  authorId: string | null;
+  authorId: string;
 
   @BelongsTo(() => User, "authorId")
-  author: User | null;
+  author: User;
 
   @AllowNull(false)
   @Default(false)
