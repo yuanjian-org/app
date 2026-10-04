@@ -368,4 +368,14 @@ describe("OAuth2 tokenHandler", () => {
     expect(res.status).to.equal(200);
     expect(res.body).to.have.property("access_token");
   });
+
+  it("should fail gracefully for Basic Auth header lacking a colon", async () => {
+    const authString = Buffer.from("invalidheader").toString("base64");
+    const res = await request(server)
+      .post("/")
+      .set("Authorization", `Basic ${authString}`)
+      .send({});
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_client");
+  });
 });

@@ -12,9 +12,11 @@ import {
   updatePostImpl,
   deletePostImpl,
   toggleUpvoteImpl,
+  toggleSubscriptionImpl,
   saveDraftImpl,
   getDraftImpl,
 } from "./shudong";
+import { shudongNewQuestionSubjectId } from "./shudongInternal";
 
 describe("shudong backend routes", () => {
   let transaction: Transaction;
@@ -30,6 +32,7 @@ describe("shudong backend routes", () => {
   async function createTestUser(
     roles: any[] = [],
     menteeStatus: string | null = null,
+    preference: any = null,
   ) {
     const user = await db.User.create(
       {
@@ -37,6 +40,7 @@ describe("shudong backend routes", () => {
         name: "Shudong Test User",
         roles,
         menteeStatus,
+        preference,
       },
       { transaction },
     );
@@ -91,6 +95,117 @@ describe("shudong backend routes", () => {
       } catch (err: any) {
         expect(err.message).to.contain("没有权限访问");
       }
+    });
+  });
+
+  describe("subscriptions and auto-enrollment", () => {
+    it("should toggle subscription to root questions", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"], "现届学子", {
+        shudongSubscribeAll: "no",
+      });
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Sub question",
+        true,
+        transaction,
+      );
+
+      // Mentee starts unsubscribed due to preference = 'no'
+      const detail1 = await getQuestionImpl(mentee, q.id, transaction);
+      void expect(detail1.question.userIsSubscribed).to.be.false;
+
+      // Mentee toggles subscription ON
+      const sub1 = await toggleSubscriptionImpl(mentee, q.id, transaction);
+      void expect(sub1.isSubscribed).to.be.true;
+
+      const detail2 = await getQuestionImpl(mentee, q.id, transaction);
+      void expect(detail2.question.userIsSubscribed).to.be.true;
+
+      // Mentee toggles subscription OFF
+      const sub2 = await toggleSubscriptionImpl(mentee, q.id, transaction);
+      void expect(sub2.isSubscribed).to.be.false;
+    });
+
+    it("should auto-subscribe poster only to new question", async () => {
+      const posterMentee = await createTestUser(["Mentee"], "现届学子", {
+        shudongSubscribeAll: "default",
+      });
+      const mentorDefault = await createTestUser(["Mentor"]);
+      const menteeOptIn = await createTestUser(["Mentee"], "现届学子", {
+        shudongSubscribeAll: "yes",
+      });
+      const menteeOptOut = await createTestUser(["Mentee"], "现届学子", {
+        shudongSubscribeAll: "no",
+      });
+
+      const q = await createPostImpl(
+        posterMentee,
+        null,
+        "Auto sub question",
+        true,
+        transaction,
+      );
+
+      // Check subscriptions in DB: only poster should be subscribed
+      const subs = await db.ShudongSubscription.findAll({
+        where: { questionId: q.id },
+        transaction,
+      });
+      const subUserIds = subs.map((s) => s.userId);
+
+      expect(subUserIds).to.include(posterMentee.id);
+      expect(subUserIds).not.to.include(mentorDefault.id);
+      expect(subUserIds).not.to.include(menteeOptIn.id);
+      expect(subUserIds).not.to.include(menteeOptOut.id);
+
+      // A new-question notification should still be scheduled for global
+      // subscribers
+      const scheduledCount = await db.ScheduledNotification.count({
+        where: {
+          type: "ShudongQuestion",
+          subjectId: shudongNewQuestionSubjectId,
+        },
+        transaction,
+      });
+      expect(scheduledCount).to.equal(1);
+    });
+
+    it("should auto-subscribe responder to root question and schedule notification", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const responder = await createTestUser(["Mentee"], "现届学子", {
+        shudongSubscribeAll: "no",
+      });
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Question",
+        true,
+        transaction,
+      );
+
+      // Responder posts a response
+      await createPostImpl(
+        responder,
+        q.id,
+        "Response text",
+        false,
+        transaction,
+      );
+
+      // Responder should now be subscribed
+      const detail = await getQuestionImpl(responder, q.id, transaction);
+      void expect(detail.question.userIsSubscribed).to.be.true;
+
+      // Scheduled notification should be created for the question
+      const scheduledCount = await db.ScheduledNotification.count({
+        where: { type: "ShudongResponse", subjectId: q.id },
+        transaction,
+      });
+      expect(scheduledCount).to.equal(1);
     });
   });
 

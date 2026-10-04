@@ -24,6 +24,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { FiThumbsUp } from "react-icons/fi";
+import { FaBell } from "react-icons/fa";
 import {
   ChatIcon,
   EditIcon,
@@ -75,14 +76,11 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
               <UserLink user={post.author!} />
             </Text>
           )}
-          {post.lastEditedAt !== null && (
+          {/* Soft-deleted posts indicate deletion directly via content, */}
+          {/* so no deleted label is shown. Edit badge is for active posts. */}
+          {!post.isDeleted && post.lastEditedAt !== null && (
             <Badge variant="subtle" colorScheme="gray" fontSize="xs">
               <T>已编辑</T>
-            </Badge>
-          )}
-          {post.isDeleted && (
-            <Badge variant="subtle" colorScheme="gray" fontSize="xs">
-              <T>已删除</T>
             </Badge>
           )}
         </HStack>
@@ -96,8 +94,9 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 
 /**
  * Renders a single Shudong post (question, response, or sub-response) with
- * upvoting (+1 animation), reply toggling, draft auto-saving, inline editing,
- * soft deletion, and expandable nested child responses.
+ * upvoting (+1 animation), subscription toggling, reply toggling,
+ * draft auto-saving, inline editing, soft deletion, and expandable nested
+ * child responses.
  */
 export function ShudongPostItem({
   post,
@@ -118,10 +117,20 @@ export function ShudongPostItem({
   const isMobile = useMobile();
   const router = useRouter();
 
-  // Optimistic upvote state provides instant UI feedback before mutation completes
+  // Optimistic upvote state provides instant UI feedback before mutation
+  // completes
   const [localHasUpvoted, setLocalHasUpvoted] = useState(post.userHasUpvoted);
   const [localUpvoteCount, setLocalUpvoteCount] = useState(post.upvoteCount);
   const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
+
+  // Optimistic subscription state
+  const [localIsSubscribed, setLocalIsSubscribed] = useState(
+    post.userIsSubscribed ?? false,
+  );
+
+  useEffect(() => {
+    setLocalIsSubscribed(post.userIsSubscribed ?? false);
+  }, [post.userIsSubscribed]);
 
   const [isReplying, setIsReplying] = useState(false);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -141,7 +150,8 @@ export function ShudongPostItem({
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  // Fetches child responses lazily only when expanded to reduce initial payload
+  // Fetches child responses lazily only when expanded to reduce initial
+  // payload
   const { data: childResponses, refetch: refetchChildren } =
     trpcNext.shudong.getResponses.useQuery(
       { parentId: post.id },
@@ -168,6 +178,32 @@ export function ShudongPostItem({
     setLocalHasUpvoted(res.userHasUpvoted);
     setLocalUpvoteCount(res.upvoteCount);
   }, [localHasUpvoted, post.id]);
+
+  // Toggle subscription optimistically
+  const handleToggleSubscription = useCallback(
+    async (e: React.MouseEvent | React.KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const nextState = !localIsSubscribed;
+      setLocalIsSubscribed(nextState);
+      try {
+        const res = await trpc.shudong.toggleSubscription.mutate({
+          questionId: post.id,
+        });
+        setLocalIsSubscribed(res.isSubscribed);
+        // Clarify that subscribing notifies user of all responses under this
+        // question.
+        toast.success(
+          res.isSubscribed
+            ? "已订阅该问题，你将收到该问题下所有回复的通知"
+            : "已取消订阅",
+        );
+      } catch {
+        setLocalIsSubscribed(!nextState);
+      }
+    },
+    [localIsSubscribed, post.id],
+  );
 
   // Load existing reply draft when opening reply area to restore unsaved work
   useEffect(() => {
@@ -233,7 +269,8 @@ export function ShudongPostItem({
     }
   };
 
-  // Deleting root question navigates back to /shudong to prevent NOT_FOUND errors
+  // Deleting root question navigates back to /shudong to prevent NOT_FOUND
+  // errors
   const handleDelete = async () => {
     await trpc.shudong.deletePost.mutate({ postId: post.id });
     toast.success("已删除帖子");
@@ -250,6 +287,8 @@ export function ShudongPostItem({
   // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
     !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
+
+  const isQuestionNode = post.parentId === null || isRootQuestion;
 
   return (
     <Box
@@ -393,7 +432,30 @@ export function ShudongPostItem({
           </Box>
         )}
 
-        {/* Home page cards show reply/response buttons that route to question page */}
+        {!post.isDeleted && isQuestionNode && (
+          <Text
+            display="flex"
+            alignItems="center"
+            cursor="pointer"
+            role="button"
+            tabIndex={0}
+            aria-label={localIsSubscribed ? "取消订阅" : "订阅问题"}
+            // No color/weight overrides: inherit the same style as 回复.
+            onClick={(e) => void handleToggleSubscription(e)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                void handleToggleSubscription(e);
+              }
+            }}
+          >
+            {/* Show the bell icon only when subscribed. */}
+            {localIsSubscribed && <Icon as={FaBell} mr={1} boxSize={4} />}
+            <T>{localIsSubscribed ? "已订阅" : "订阅"}</T>
+          </Text>
+        )}
+
+        {/* Home page cards show reply/response buttons that route to
+            question page */}
         {(isHomePage || !isRootQuestion) && (
           <>
             {!post.isDeleted && (
@@ -406,7 +468,8 @@ export function ShudongPostItem({
                 aria-label="回复"
                 onClick={(e) => {
                   if (isHomePage) {
-                    // Prevent card link wrapper from overriding query parameter routing
+                    // Prevent card link wrapper from overriding query
+                    // parameter routing
                     e.preventDefault();
                     e.stopPropagation();
                     void router.push(`/shudong/${post.id}?focus=reply`);

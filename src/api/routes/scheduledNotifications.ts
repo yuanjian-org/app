@@ -12,19 +12,35 @@ import {
   kudosAttributes,
   kudosInclude,
   minUserAttributes,
+  shudongPostAttributes,
   taskAttributes,
   taskInclude,
   userAttributes,
 } from "../database/models/attributesAndIncludes";
 import moment, { Moment } from "moment";
 import Role from "../../shared/Role";
-import { ScheduledNotificationType } from "../../shared/ScheduledNotificationType";
+import { ScheduledNotificationType } from "shared/ScheduledNotificationType";
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
 import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
 import { notify, notifyRolesIgnoreError } from "../notify";
+import { shudongGlobalSubscriberWhere } from "./shudongInternal";
 
-export async function scheduleNotification(
+/**
+ * Schedules a notification of the given type for the given subject, unless
+ * one is already scheduled.
+ *
+ * IMPORTANT: Callers MUST call this function *before* saving the data (e.g.
+ * kudos, chat messages, tasks, Shudong posts) that the notification is about.
+ *
+ * When sending notifications, `sendScheduledNotifications()` uses the
+ * `createdAt` of the scheduled notification row as the lower bound timestamp,
+ * and only includes data whose `createdAt` or `updatedAt` is on or after that
+ * timestamp. If the data were saved before the notification is scheduled, the
+ * data's timestamp would be earlier than the notification's, and the data
+ * would be silently excluded from the notification.
+ */
+export async function scheduleNotificationBeforeSavingData(
   type: ScheduledNotificationType,
   subjectId: string,
   transaction: Transaction,
@@ -61,8 +77,7 @@ export async function sendScheduledNotifications(
         continue;
       }
 
-      // Offset by 1 second to counter any time skew at commit time.
-      const timestamp = moment(row.createdAt).subtract(1, "second");
+      const timestamp = row.createdAt;
 
       switch (row.type) {
         case "Kudos":
@@ -73,6 +88,12 @@ export async function sendScheduledNotifications(
           break;
         case "Task":
           await notifyTasks(row.subjectId, timestamp, transaction);
+          break;
+        case "ShudongResponse":
+          await notifyShudongResponses(row.subjectId, timestamp, transaction);
+          break;
+        case "ShudongQuestion":
+          await notifyShudongQuestions(timestamp, transaction);
           break;
         default:
           invariant(false, `Unknown scheduled notification type: ${row.type}`);
@@ -89,6 +110,130 @@ export async function sendScheduledNotifications(
     await doWork(passedTransaction);
   } else {
     await sequelize.transaction(doWork);
+  }
+}
+
+/**
+ * Notifies globally subscribed users (see `shudongGlobalSubscriberWhere`)
+ * that new Shudong questions have been posted since `timestamp`. The
+ * templates take no variables; they simply tell users there are new
+ * questions.
+ */
+async function notifyShudongQuestions(
+  timestamp: Moment,
+  transaction: Transaction,
+) {
+  const newQuestions = await db.ShudongPost.findAll({
+    where: {
+      parentId: null,
+      deletedAt: null,
+      createdAt: isOnOrAfter(timestamp),
+    },
+    attributes: ["authorId"],
+    transaction,
+  });
+  if (newQuestions.length === 0) return;
+
+  const subscribers = await db.User.findAll({
+    where: shudongGlobalSubscriberWhere,
+    attributes: ["id"],
+    transaction,
+  });
+
+  // Skip users whose only new questions are authored by themselves. Note
+  // that anonymous questions may have a null authorId and thus are never
+  // skipped.
+  const recipientIds = subscribers
+    .map((u) => u.id)
+    .filter((id) => newQuestions.some((q) => q.authorId !== id));
+  if (recipientIds.length === 0) return;
+
+  await notify(
+    "树洞",
+    recipientIds,
+    {
+      email: "E_114705350039",
+      domesticSms: "ep7Wd3",
+      internationalSms: "DyvYZ",
+    },
+    {},
+    transaction,
+  );
+}
+
+async function notifyShudongResponses(
+  questionId: string,
+  timestamp: Moment,
+  transaction: Transaction,
+) {
+  const question = await db.ShudongPost.findByPk(questionId, {
+    attributes: shudongPostAttributes,
+    transaction,
+  });
+  if (!question || question.deletedAt !== null) return;
+
+  const candidateResponses = await db.ShudongPost.findAll({
+    where: {
+      parentId: { [Op.ne]: null },
+      deletedAt: null,
+      createdAt: isOnOrAfter(timestamp),
+    },
+    attributes: shudongPostAttributes,
+    transaction,
+  });
+
+  const postMap = new Map<string, typeof question | null>();
+  const getPost = async (id: string) => {
+    if (postMap.has(id)) return postMap.get(id)!;
+    const p = await db.ShudongPost.findByPk(id, {
+      attributes: shudongPostAttributes,
+      transaction,
+    });
+    postMap.set(id, p);
+    return p;
+  };
+
+  const newResponses: Array<typeof question> = [];
+  for (const resp of candidateResponses) {
+    let curr: typeof question | null = resp;
+    while (curr && curr.parentId) {
+      if (curr.parentId === questionId) {
+        newResponses.push(resp);
+        break;
+      }
+      curr = await getPost(curr.parentId);
+    }
+  }
+
+  if (newResponses.length === 0) return;
+
+  const subscriptions = await db.ShudongSubscription.findAll({
+    where: { questionId },
+    attributes: ["userId"],
+    transaction,
+  });
+
+  const subscriberIds = subscriptions.map((s) => s.userId);
+  if (subscriberIds.length === 0) return;
+
+  for (const recipientId of subscriberIds) {
+    const relevant = newResponses.filter((r) => r.authorId !== recipientId);
+    if (relevant.length === 0) continue;
+
+    await notify(
+      "树洞",
+      [recipientId],
+      {
+        email: "E_114703550737",
+        domesticSms: "cFcyM4",
+        internationalSms: "sVrjE",
+      },
+      {
+        questionMarkdown: question.markdown,
+        questionLink: `${getBaseUrl()}/shudong/${questionId}`,
+      },
+      transaction,
+    );
   }
 }
 

@@ -337,6 +337,20 @@ export const projectApplicationInclude = [
  * ShudongPost
  */
 
+export const shudongPostAttributes = [
+  "id",
+  "parentId",
+  "authorId",
+  "markdown",
+  "deletedAt",
+  // The fields below are required by formatShudongPost() in shudong.ts.
+  "isAnonymous",
+  "upvoteCount",
+  "responseCount",
+  "lastEditedAt",
+  "createdAt",
+];
+
 export const shudongPostInclude = [
   {
     association: "author",

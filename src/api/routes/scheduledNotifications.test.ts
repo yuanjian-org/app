@@ -3,7 +3,7 @@ import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
-  scheduleNotification,
+  scheduleNotificationBeforeSavingData,
   sendScheduledNotifications,
 } from "./scheduledNotifications";
 import { v4 as uuidv4 } from "uuid";
@@ -23,12 +23,12 @@ describe("scheduledNotifications", () => {
     await transaction.rollback();
   });
 
-  describe("scheduleNotification", () => {
+  describe("scheduleNotificationBeforeSavingData", () => {
     it("should successfully schedule a new notification", async () => {
       const type = "Kudos";
       const subjectId = uuidv4();
 
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       const count = await db.ScheduledNotification.count({
         where: { type, subjectId },
@@ -43,10 +43,10 @@ describe("scheduledNotifications", () => {
       const subjectId = uuidv4();
 
       // Schedule the first time
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       // Attempt to schedule again with the same type and subjectId
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       // Verify that only one notification exists
       const count = await db.ScheduledNotification.count({
@@ -139,6 +139,113 @@ describe("scheduledNotifications", () => {
 
       const count = await db.ScheduledNotification.count({
         where: { type: "Kudos", subjectId: receiver.id },
+        transaction,
+      });
+      expect(count).to.equal(0);
+    });
+
+    it("should notify shudong subscribers and delete notification", async () => {
+      const poster = await createTestUser("Poster");
+      const subscriber = await createTestUser("Subscriber");
+      const responder = await createTestUser("Responder");
+
+      const q = await db.ShudongPost.create(
+        {
+          authorId: poster.id,
+          markdown: "Sample question?",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      await db.ShudongSubscription.create(
+        { questionId: q.id, userId: subscriber.id },
+        { transaction },
+      );
+
+      await db.ShudongPost.create(
+        {
+          parentId: q.id,
+          authorId: responder.id,
+          markdown: "Sample response!",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "ShudongResponse", subjectId: q.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.calledOnce).to.equal(true);
+      const args = notifyStub.getCall(0).args;
+      expect(args[0]).to.equal("树洞");
+      expect(args[1]).to.deep.equal([subscriber.id]);
+      // Verify notification template IDs configured for Shudong response.
+      expect(args[2].email).to.equal("E_114703550737");
+      expect(args[2].domesticSms).to.equal("cFcyM4");
+      expect(args[2].internationalSms).to.equal("sVrjE");
+      expect(args[3].questionMarkdown).to.equal("Sample question?");
+      expect(args[3].questionLink).to.include(q.id);
+
+      const count = await db.ScheduledNotification.count({
+        where: { type: "ShudongResponse", subjectId: q.id },
+        transaction,
+      });
+      expect(count).to.equal(0);
+    });
+
+    it("should notify global subscribers of new questions", async () => {
+      // A mentor with default preference is globally subscribed.
+      const poster = await createTestUser("Poster", ["Mentor"]);
+      const mentor = await createTestUser("Mentor", ["Mentor"]);
+      const optedIn = await createTestUser("OptedIn");
+      await optedIn.update(
+        { preference: { shudongSubscribeAll: "yes" } },
+        { transaction },
+      );
+      const optedOut = await createTestUser("OptedOut", ["Mentor"]);
+      await optedOut.update(
+        { preference: { shudongSubscribeAll: "no" } },
+        { transaction },
+      );
+      const other = await createTestUser("Other");
+
+      await db.ShudongPost.create(
+        { authorId: poster.id, markdown: "New question?", isAnonymous: false },
+        { transaction },
+      );
+
+      const subjectId = "00000000-0000-0000-0000-000000000000";
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "ShudongQuestion", subjectId, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.calledOnce).to.equal(true);
+      const args = notifyStub.getCall(0).args;
+      expect(args[0]).to.equal("树洞");
+      expect(args[1]).to.include(mentor.id);
+      expect(args[1]).to.include(optedIn.id);
+      // The poster is not notified of their own question.
+      expect(args[1]).to.not.include(poster.id);
+      expect(args[1]).to.not.include(optedOut.id);
+      expect(args[1]).to.not.include(other.id);
+      // Verify notification template IDs configured for Shudong question.
+      expect(args[2].email).to.equal("E_114705350039");
+      expect(args[2].domesticSms).to.equal("ep7Wd3");
+      expect(args[2].internationalSms).to.equal("DyvYZ");
+      expect(args[3]).to.deep.equal({});
+
+      const count = await db.ScheduledNotification.count({
+        where: { type: "ShudongQuestion", subjectId },
         transaction,
       });
       expect(count).to.equal(0);
@@ -275,7 +382,9 @@ describe("scheduledNotifications", () => {
 
       await sendScheduledNotifications(transaction);
 
-      expect(notifyStub.callCount).to.be.at.least(2); // At least two calls: one for mentor, one for the admin created in the test
+      // At least two calls: one for mentor, one for the admin created in the
+      // test
+      expect(notifyStub.callCount).to.be.at.least(2);
       const mentorCall = notifyStub
         .getCalls()
         .find((call) => call.args[1][0] === mentor.id);
@@ -306,7 +415,8 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      // Update the type to an invalid value using a raw query, bypassing validation
+      // Update the type to an invalid value using a raw query, bypassing
+      // validation
       await sequelize.query(
         `UPDATE "ScheduledNotifications" SET type = 'UnknownType'`,
         { transaction },
@@ -371,8 +481,9 @@ describe("scheduledNotifications", () => {
     it("should process notifications when no transaction is provided", async () => {
       // Instead of committing a test user and leaving it in the database,
       // we just verify that sendScheduledNotifications executes without error
-      // when no transaction is provided, processing any existing or empty queue.
-      // This is sufficient to reach the 'await sequelize.transaction(doWork);' branch.
+      // when no transaction is provided, processing any existing or empty
+      // queue. This is sufficient to reach the
+      // 'await sequelize.transaction(doWork);' branch.
       await sendScheduledNotifications();
     });
   });

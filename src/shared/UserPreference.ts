@@ -50,5 +50,6 @@ export const zUserPreference = z.object({
   // When absent, all notifications are enabled.
   smsDisabled: zNotificationTypes.optional(),
   emailDisabled: zNotificationTypes.optional(),
+  shudongSubscribeAll: z.enum(["yes", "no", "default"]).optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;

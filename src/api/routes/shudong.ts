@@ -15,9 +15,14 @@ import {
 } from "../../shared/ShudongPermissions";
 import { zShudongPost, ShudongPost } from "../../shared/Shudong";
 import ShudongPostModel from "../database/models/ShudongPost";
-import { shudongPostInclude } from "../database/models/attributesAndIncludes";
+import {
+  shudongPostAttributes,
+  shudongPostInclude,
+} from "../database/models/attributesAndIncludes";
 import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
+import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
+import { shudongNewQuestionSubjectId } from "./shudongInternal";
 
 /**
  * Common where condition for active or soft-deleted posts that have replies.
@@ -39,6 +44,26 @@ export function checkShudongAccess(me: User) {
 }
 
 /**
+ * Recursively traverses parent posts to find the root question ID.
+ */
+export async function findRootQuestionId(
+  postId: string,
+  transaction?: Transaction,
+): Promise<string> {
+  let curr = await db.ShudongPost.findByPk(postId, {
+    attributes: ["id", "parentId"],
+    transaction,
+  });
+  while (curr && curr.parentId) {
+    curr = await db.ShudongPost.findByPk(curr.parentId, {
+      attributes: ["id", "parentId"],
+      transaction,
+    });
+  }
+  return curr ? curr.id : postId;
+}
+
+/**
  * Retrieves a post by PK and throws a notFoundError if missing or soft-deleted.
  */
 export async function findShudongPostOrThrow(
@@ -46,6 +71,7 @@ export async function findShudongPostOrThrow(
   transaction?: Transaction,
 ) {
   const post = await db.ShudongPost.findByPk(postId, {
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -58,7 +84,7 @@ export async function findShudongPostOrThrow(
 /**
  * Formats a raw DB ShudongPost for client consumption.
  * Anonymizes author info if the post is marked anonymous or soft-deleted.
- * Checks whether the current user has upvoted the post.
+ * Checks whether the current user has upvoted and subscribed to the post.
  */
 export async function formatShudongPost(
   post: ShudongPostModel,
@@ -67,6 +93,16 @@ export async function formatShudongPost(
 ): Promise<ShudongPost> {
   const upvote = await db.ShudongUpvote.findOne({
     where: { postId: post.id, userId: myId },
+    attributes: ["userId"],
+    transaction,
+  });
+
+  const rootQuestionId = post.parentId
+    ? await findRootQuestionId(post.id, transaction)
+    : post.id;
+
+  const subscription = await db.ShudongSubscription.findOne({
+    where: { questionId: rootQuestionId, userId: myId },
     attributes: ["userId"],
     transaction,
   });
@@ -86,6 +122,7 @@ export async function formatShudongPost(
     lastEditedAt: post.lastEditedAt,
     createdAt: post.createdAt,
     userHasUpvoted: !!upvote,
+    userIsSubscribed: !!subscription,
   });
 }
 
@@ -108,6 +145,7 @@ export async function listQuestionsImpl(
     order: [["createdAt", "DESC"]],
     limit,
     offset,
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -134,6 +172,7 @@ export async function getResponsesImpl(
       ...shudongPostWhereCondition,
     },
     order: [["createdAt", "ASC"]],
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -155,6 +194,7 @@ export async function getQuestionImpl(
 ) {
   checkShudongAccess(me);
   const q = await db.ShudongPost.findByPk(questionId, {
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -189,6 +229,34 @@ export async function createPostImpl(
   // available to avoid sending notifications to the poster of anonymous posts.
   const authorId = me.id;
 
+  let parent: ShudongPostModel | null = null;
+  let rootQuestionId: string | null = null;
+  if (parentId) {
+    parent = await db.ShudongPost.findByPk(parentId, {
+      attributes: shudongPostAttributes,
+      transaction,
+    });
+    invariant(parent, "Parent post not found");
+    rootQuestionId = await findRootQuestionId(parentId, transaction);
+
+    // Must schedule before saving data. See the callee's comment.
+    await scheduleNotificationBeforeSavingData(
+      "ShudongResponse",
+      rootQuestionId,
+      transaction,
+    );
+  } else {
+    // Notify global subscribers of new questions without auto-subscribing
+    // them to it. All new questions share the same subject ID so that they
+    // are batched into one notification. Must schedule before saving data.
+    // See the callee's comment.
+    await scheduleNotificationBeforeSavingData(
+      "ShudongQuestion",
+      shudongNewQuestionSubjectId,
+      transaction,
+    );
+  }
+
   const post = await db.ShudongPost.create(
     {
       parentId,
@@ -200,9 +268,22 @@ export async function createPostImpl(
   );
 
   if (parentId) {
-    const parent = await db.ShudongPost.findByPk(parentId, { transaction });
     invariant(parent, "Parent post not found");
     await parent.increment("responseCount", { by: 1, transaction });
+
+    // Auto-subscribe responder to root question
+    invariant(rootQuestionId, "rootQuestionId should be defined");
+    await db.ShudongSubscription.findOrCreate({
+      where: { questionId: rootQuestionId, userId: me.id },
+      transaction,
+    });
+  } else {
+    // Auto-subscribe poster to root question (global subscribers are notified
+    // but not auto-subscribed).
+    await db.ShudongSubscription.findOrCreate({
+      where: { questionId: post.id, userId: me.id },
+      transaction,
+    });
   }
 
   const draftParentIdKey = parentId ?? "root";
@@ -212,6 +293,7 @@ export async function createPostImpl(
   });
 
   const fresh = await db.ShudongPost.findByPk(post.id, {
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -256,6 +338,7 @@ export async function updatePostImpl(
   });
 
   const fresh = await db.ShudongPost.findByPk(post.id, {
+    attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
   });
@@ -292,6 +375,7 @@ export async function deletePostImpl(
   // If responseCount > 0, this post stays in the thread as an anonymized soft-deleted placeholder.
   if (post.parentId && post.responseCount === 0) {
     const parent = await db.ShudongPost.findByPk(post.parentId, {
+      attributes: shudongPostAttributes,
       transaction,
     });
     invariant(
@@ -338,6 +422,36 @@ export async function toggleUpvoteImpl(
     });
     await post.reload({ transaction });
     return { userHasUpvoted: true, upvoteCount: post.upvoteCount };
+  }
+}
+
+/**
+ * Toggles subscription to a Shudong question for the current user.
+ */
+export async function toggleSubscriptionImpl(
+  me: User,
+  questionId: string,
+  transaction: Transaction,
+) {
+  checkShudongAccess(me);
+
+  const question = await findShudongPostOrThrow(questionId, transaction);
+  invariant(question.parentId === null, "Can only subscribe to root questions");
+
+  const existing = await db.ShudongSubscription.findOne({
+    where: { questionId, userId: me.id },
+    transaction,
+  });
+
+  if (existing) {
+    await existing.destroy({ transaction });
+    return { isSubscribed: false };
+  } else {
+    await db.ShudongSubscription.create(
+      { questionId, userId: me.id },
+      { transaction },
+    );
+    return { isSubscribed: true };
   }
 }
 
@@ -514,6 +628,24 @@ const toggleUpvote = procedure
     });
   });
 
+const toggleSubscription = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      questionId: z.string(),
+    }),
+  )
+  .output(
+    z.object({
+      isSubscribed: z.boolean(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { questionId } }) => {
+    return await sequelize.transaction(async (t) => {
+      return await toggleSubscriptionImpl(me, questionId, t);
+    });
+  });
+
 const saveDraft = procedure
   .use(authUser())
   .input(
@@ -555,6 +687,7 @@ export default router({
   updatePost,
   deletePost,
   toggleUpvote,
+  toggleSubscription,
   saveDraft,
   getDraft,
 });

@@ -11,7 +11,7 @@ import {
 import { zKudos } from "../../shared/Kudos";
 import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
-import { scheduleNotification } from "./scheduledNotifications";
+import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import createKudos from "./kudosInternal";
 import { Transaction } from "sequelize";
 
@@ -77,8 +77,9 @@ export async function createImpl(
   text: string | null,
   transaction: Transaction,
 ) {
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Kudos", userId, transaction);
   await createKudos(meId, userId, text, transaction);
-  await scheduleNotification("Kudos", userId, transaction);
 }
 
 /**
