@@ -65,36 +65,35 @@ export default function IdTokenInputs({
   const isValidState = (id: string, token: string) =>
     isValidId(id) && token.length === tokenLength;
 
+  // Handle updates to ID state (phone or email)
+  const handleIdChange = (v: string) => {
+    const nextId = v.trim();
+    setId(nextId);
+    onStateChange({
+      id: nextId,
+      token,
+      isValid: isValidState(nextId, token),
+    });
+  };
+
+  // Handle updates to verification token state
+  const handleTokenChange = (v: string) => {
+    const nextToken = v.trim();
+    setToken(nextToken);
+    onStateChange({
+      id,
+      token: nextToken,
+      isValid: isValidState(id, nextToken),
+    });
+  };
+
+  // Dynamically choose input component based on idType
+  const IdInputComponent = idType === "phone" ? PhoneInput : EmailInput;
+
   return (
     <>
       <FormControl>
-        {idType === "phone" ? (
-          <PhoneInput
-            value={id}
-            onChange={(v) => {
-              const id = v.trim();
-              setId(id);
-              onStateChange({
-                id,
-                token,
-                isValid: isValidState(id, token),
-              });
-            }}
-          />
-        ) : (
-          <EmailInput
-            value={id}
-            onChange={(v) => {
-              const id = v.trim();
-              setId(id);
-              onStateChange({
-                id,
-                token,
-                isValid: isValidState(id, token),
-              });
-            }}
-          />
-        )}
+        <IdInputComponent value={id} onChange={handleIdChange} />
       </FormControl>
       <FormControl>
         <InputGroup>
@@ -104,15 +103,7 @@ export default function IdTokenInputs({
             placeholder={t("验证码")}
             type="text"
             isDisabled={!isValidId(id)}
-            onChange={(e) => {
-              const token = e.target.value.trim();
-              setToken(token);
-              onStateChange({
-                id,
-                token,
-                isValid: isValidState(id, token),
-              });
-            }}
+            onChange={(e) => handleTokenChange(e.target.value)}
           />
           <InputRightElement w={buttonWidth}>
             <Button
