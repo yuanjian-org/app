@@ -26,7 +26,21 @@ import markdown2html from "../../shared/markdown2html";
 import { notify, notifyRolesIgnoreError } from "../notify";
 import { shudongGlobalSubscriberWhere } from "./shudongInternal";
 
-export async function scheduleNotification(
+/**
+ * Schedules a notification of the given type for the given subject, unless
+ * one is already scheduled.
+ *
+ * IMPORTANT: Callers MUST call this function *before* saving the data (e.g.
+ * kudos, chat messages, tasks, Shudong posts) that the notification is about.
+ *
+ * When sending notifications, `sendScheduledNotifications()` uses the
+ * `createdAt` of the scheduled notification row as the lower bound timestamp,
+ * and only includes data whose `createdAt` or `updatedAt` is on or after that
+ * timestamp. If the data were saved before the notification is scheduled, the
+ * data's timestamp would be earlier than the notification's, and the data
+ * would be silently excluded from the notification.
+ */
+export async function scheduleNotificationBeforeSavingData(
   type: ScheduledNotificationType,
   subjectId: string,
   transaction: Transaction,
@@ -63,8 +77,7 @@ export async function sendScheduledNotifications(
         continue;
       }
 
-      // Offset by 1 second to counter any time skew at commit time.
-      const timestamp = moment(row.createdAt).subtract(1, "second");
+      const timestamp = row.createdAt;
 
       switch (row.type) {
         case "Kudos":

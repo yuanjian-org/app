@@ -12,7 +12,7 @@ import { zChatRoom } from "../../shared/ChatRoom";
 import { Op, Transaction } from "sequelize";
 import { zDateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
-import { scheduleNotification } from "./scheduledNotifications";
+import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import {
   checkRoomPermission,
   createChatMessage,
@@ -176,8 +176,9 @@ export async function createMessageAndScheduleEmail(
   markdown: string,
   transaction: Transaction,
 ) {
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Chat", roomId, transaction);
   await createChatMessage(author, roomId, markdown, transaction);
-  await scheduleNotification("Chat", roomId, transaction);
 }
 
 /**
@@ -203,14 +204,15 @@ const updateMessage = procedure
       if (!m) throw notFoundError("讨论消息", messageId);
       if (m.userId !== me.id) throw noPermissionError("讨论消息", messageId);
 
+      // Must schedule before saving data. See the callee's comment.
+      await scheduleNotificationBeforeSavingData("Chat", m.roomId, transaction);
+
       await m.update({ markdown: trimmed }, { transaction });
 
       await db.DraftMessage.destroy({
         where: { chatMessageId: messageId, authorId: me.id },
         transaction,
       });
-
-      await scheduleNotification("Chat", m.roomId, transaction);
     });
   });
 

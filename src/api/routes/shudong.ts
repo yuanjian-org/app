@@ -22,7 +22,7 @@ import {
 } from "../database/models/attributesAndIncludes";
 import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
-import { scheduleNotification } from "./scheduledNotifications";
+import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import {
   shudongGlobalSubscriberWhere,
   shudongNewQuestionSubjectId,
@@ -234,6 +234,33 @@ export async function createPostImpl(
     authorId = null;
   }
 
+  let parent: ShudongPostModel | null = null;
+  let rootQuestionId: string | null = null;
+  if (parentId) {
+    parent = await db.ShudongPost.findByPk(parentId, {
+      attributes: shudongPostAttributes,
+      transaction,
+    });
+    invariant(parent, "Parent post not found");
+    rootQuestionId = await findRootQuestionId(parentId, transaction);
+
+    // Must schedule before saving data. See the callee's comment.
+    await scheduleNotificationBeforeSavingData(
+      "ShudongResponse",
+      rootQuestionId,
+      transaction,
+    );
+  } else {
+    // Notify global subscribers of new questions. All new questions share
+    // the same subject ID so that they are batched into one notification.
+    // Must schedule before saving data. See the callee's comment.
+    await scheduleNotificationBeforeSavingData(
+      "ShudongQuestion",
+      shudongNewQuestionSubjectId,
+      transaction,
+    );
+  }
+
   const post = await db.ShudongPost.create(
     {
       parentId,
@@ -245,20 +272,15 @@ export async function createPostImpl(
   );
 
   if (parentId) {
-    const parent = await db.ShudongPost.findByPk(parentId, {
-      attributes: shudongPostAttributes,
-      transaction,
-    });
     invariant(parent, "Parent post not found");
     await parent.increment("responseCount", { by: 1, transaction });
 
-    // Auto-subscribe responder to root question and schedule notification
-    const rootQuestionId = await findRootQuestionId(post.id, transaction);
+    // Auto-subscribe responder to root question
+    invariant(rootQuestionId, "rootQuestionId should be defined");
     await db.ShudongSubscription.findOrCreate({
       where: { questionId: rootQuestionId, userId: me.id },
       transaction,
     });
-    await scheduleNotification("ShudongResponse", rootQuestionId, transaction);
   } else {
     // For root question, auto-subscribe poster and global subscribers
     const subscribers: Set<string> = new Set([me.id]);
@@ -280,14 +302,6 @@ export async function createPostImpl(
       ignoreDuplicates: true,
       transaction,
     });
-
-    // Notify global subscribers of new questions. All new questions share
-    // the same subject ID so that they are batched into one notification.
-    await scheduleNotification(
-      "ShudongQuestion",
-      shudongNewQuestionSubjectId,
-      transaction,
-    );
   }
 
   const draftParentIdKey = parentId ?? "root";
