@@ -5,6 +5,7 @@ import { Transaction } from "sequelize";
 import {
   getInterviewFeedbackImpl,
   updateInterviewFeedbackImpl,
+  logUpdateAttemptImpl,
 } from "./interviewFeedbacks";
 describe("interviewFeedbacks routes", () => {
   let transaction: Transaction;
@@ -174,6 +175,43 @@ describe("interviewFeedbacks routes", () => {
           { dimensions: [{ name: "能力", score: 4 }] },
           0,
           manager,
+          transaction,
+        );
+        expect.fail("Should have thrown noPermissionError");
+      } catch (e: any) {
+        expect(e.message).to.include("没有权限访问");
+      }
+    });
+  });
+
+  describe("logUpdateAttemptImpl", () => {
+    it("should allow interviewer to log update attempt", async () => {
+      const feedback = { dimensions: [{ name: "能力", score: 4 }] };
+      await logUpdateAttemptImpl(
+        interviewFeedback.id,
+        feedback,
+        0,
+        interviewer,
+        transaction,
+      );
+
+      const count = await db.InterviewFeedbackUpdateAttempt.count({
+        where: {
+          interviewFeedbackId: interviewFeedback.id,
+          userId: interviewer.id,
+        },
+        transaction,
+      });
+      expect(count).to.equal(1);
+    });
+
+    it("should deny non-interviewer from logging update attempt", async () => {
+      try {
+        await logUpdateAttemptImpl(
+          interviewFeedback.id,
+          { dimensions: [{ name: "能力", score: 4 }] },
+          0,
+          stranger,
           transaction,
         );
         expect.fail("Should have thrown noPermissionError");

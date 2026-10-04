@@ -174,9 +174,35 @@ const update = procedure
 
 /**
  * Changelogging for auditing and data loss prevention.
- *
- * TODO: A holistic solution.
+ * Verifies authorization to prevent unauthorized users from recording
+ * update attempts for feedback they do not own or have access to.
  */
+export async function logUpdateAttemptImpl(
+  id: string,
+  feedback: any,
+  etag: number,
+  me: User,
+  transaction: Transaction,
+) {
+  // Ensure the user is authorized to edit this interview feedback.
+  await getInterviewFeedbackImpl(
+    id,
+    me,
+    /*allowOnlyInterviewer=*/ true,
+    transaction,
+  );
+
+  await db.InterviewFeedbackUpdateAttempt.create(
+    {
+      userId: me.id,
+      interviewFeedbackId: id,
+      feedback,
+      etag,
+    },
+    { transaction },
+  );
+}
+
 const logUpdateAttempt = procedure
   .use(authUser())
   .input(
@@ -187,11 +213,14 @@ const logUpdateAttempt = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input }) => {
-    await db.InterviewFeedbackUpdateAttempt.create({
-      userId: me.id,
-      interviewFeedbackId: input.id,
-      feedback: input.feedback,
-      etag: input.etag,
+    await sequelize.transaction(async (transaction) => {
+      await logUpdateAttemptImpl(
+        input.id,
+        input.feedback,
+        input.etag,
+        me,
+        transaction,
+      );
     });
   });
 
