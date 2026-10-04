@@ -38,6 +38,10 @@ async function migrateSchema() {
       SET "authorId" = (SELECT "id" FROM "Users" ORDER BY "createdAt" ASC LIMIT 1)
       WHERE "authorId" IS NULL AND EXISTS (SELECT 1 FROM "Users");
     `);
+    await sequelize.query(`
+      ALTER TABLE "ShudongPosts"
+      ALTER COLUMN "authorId" SET NOT NULL;
+    `);
   }
 }
 

@@ -35,7 +35,7 @@ export function canAccessShudong(
 /**
  * Determines whether a user can edit or delete a Shudong post.
  * ShudongAdmin can edit/delete any post; regular users can only edit/delete
- * their own posts when authorId is recorded.
+ * their own posts.
  */
 export function canEditOrDeleteShudongPost(
   user: Pick<User, "id" | "roles">,
