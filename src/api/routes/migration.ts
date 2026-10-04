@@ -32,7 +32,7 @@ async function migrateSchema() {
   const tables = (tableResults as any[]).map(
     (r: any) => r.table_name || r.TABLE_NAME,
   );
-  if (tables.includes("ShudongPosts")) {
+  if (tables.includes("ShudongPosts") && tables.includes("users")) {
     await sequelize.query(`
       UPDATE "ShudongPosts"
       SET "authorId" = (SELECT "id" FROM "Users" ORDER BY "createdAt" ASC LIMIT 1)
