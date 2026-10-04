@@ -14,7 +14,6 @@ import {
   canEditOrDeleteShudongPost,
 } from "../../shared/ShudongPermissions";
 import { zShudongPost, ShudongPost } from "../../shared/Shudong";
-import { features } from "../../shared/Features";
 import ShudongPostModel from "../database/models/ShudongPost";
 import {
   shudongPostAttributes,
@@ -226,10 +225,9 @@ export async function createPostImpl(
     throw generalBadRequestError("内容不能为空");
   }
 
-  let authorId: string | null = me.id;
-  if (isAnonymous && !features.shudongRecordAnonymousUserId) {
-    authorId = null;
-  }
+  // authorId is always recorded (even for anonymous posts) so that authorId is
+  // available to avoid sending notifications to the poster of anonymous posts.
+  const authorId = me.id;
 
   let parent: ShudongPostModel | null = null;
   let rootQuestionId: string | null = null;

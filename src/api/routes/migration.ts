@@ -21,7 +21,28 @@ export async function migrateDatabase() {
 async function migrateSchema() {
   console.log("Migrating DB schema...");
 
-  await Promise.resolve();
+  // Enforce authorId as non-null for existing ShudongPosts before alter table.
+  // authorId is needed to avoid sending notifications to the poster of
+  // anonymous posts.
+  const [tableResults] = await sequelize.query(`
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_name = 'ShudongPosts';
+  `);
+  const tables = (tableResults as any[]).map(
+    (r: any) => r.table_name || r.TABLE_NAME,
+  );
+  if (tables.includes("ShudongPosts")) {
+    await sequelize.query(`
+      UPDATE "ShudongPosts"
+      SET "authorId" = (SELECT "id" FROM "Users" ORDER BY "createdAt" ASC LIMIT 1)
+      WHERE "authorId" IS NULL AND EXISTS (SELECT 1 FROM "Users");
+    `);
+    await sequelize.query(`
+      ALTER TABLE "ShudongPosts"
+      ALTER COLUMN "authorId" SET NOT NULL;
+    `);
+  }
 }
 
 async function migrateData() {

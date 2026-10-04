@@ -16,7 +16,6 @@ import {
   saveDraftImpl,
   getDraftImpl,
 } from "./shudong";
-import { features } from "../../shared/Features";
 import { shudongNewQuestionSubjectId } from "./shudongInternal";
 
 describe("shudong backend routes", () => {
@@ -214,8 +213,6 @@ describe("shudong backend routes", () => {
     it("should hide soft-deleted questions with zero responses in listQuestionsImpl and getQuestionImpl", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
-      // Use isAnonymous=false so authorId is recorded in DB,
-      // allowing the author to delete the post.
       const qNoResp = await createPostImpl(
         mentor,
         null,
@@ -242,8 +239,6 @@ describe("shudong backend routes", () => {
     it("should include soft-deleted questions with existing responses in listQuestionsImpl and getQuestionImpl", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
-      // Use isAnonymous=false so authorId is recorded in DB,
-      // allowing the author to delete the post.
       const qWithResp = await createPostImpl(
         mentor,
         null,
@@ -347,36 +342,19 @@ describe("shudong backend routes", () => {
       expect(childResps[0].id).to.equal(reply.id);
     });
 
-    it("should respect anonymity settings and feature flag for recording authorId", async () => {
+    it("should record authorId in database for anonymous post but anonymize author in formatted output", async () => {
       const mentor = await createTestUser(["Mentor"]);
 
-      // Flag disabled: authorId should be null in DB for anonymous post
-      features.shudongRecordAnonymousUserId = false;
-      const q1 = await createPostImpl(
+      const q = await createPostImpl(
         mentor,
         null,
-        "Anon q1",
+        "Anon question",
         true,
         transaction,
       );
-      const dbPost1 = await db.ShudongPost.findByPk(q1.id, { transaction });
-      void expect(dbPost1?.authorId).to.be.null;
-
-      // Flag enabled: authorId recorded in DB, but returned author is null
-      features.shudongRecordAnonymousUserId = true;
-      const q2 = await createPostImpl(
-        mentor,
-        null,
-        "Anon q2",
-        true,
-        transaction,
-      );
-      const dbPost2 = await db.ShudongPost.findByPk(q2.id, { transaction });
-      expect(dbPost2?.authorId).to.equal(mentor.id);
-      void expect(q2.author).to.be.null;
-
-      // Reset flag
-      features.shudongRecordAnonymousUserId = undefined;
+      const dbPost = await db.ShudongPost.findByPk(q.id, { transaction });
+      expect(dbPost?.authorId).to.equal(mentor.id);
+      void expect(q.author).to.be.null;
     });
   });
 
