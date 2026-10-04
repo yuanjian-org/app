@@ -17,7 +17,7 @@ import { zDateColumn } from "../../shared/DateColumn";
 import moment from "moment";
 import { Op, Transaction } from "sequelize";
 import { isExamAboutToExpire } from "../../shared/exams";
-import { scheduleNotification } from "./scheduledNotifications";
+import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import { whereMentorshipIsOngoing } from "./mentorships";
 import { isPermittedtoAccessMentee } from "./users";
 import { isPermitted } from "../../shared/Role";
@@ -104,6 +104,9 @@ export async function createImpl(
     throw generalBadRequestError("待办事项不能为空。");
   }
 
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Task", assigneeId, transaction);
+
   await db.Task.create(
     {
       creatorId: me.id,
@@ -113,8 +116,6 @@ export async function createImpl(
     },
     { transaction },
   );
-
-  await scheduleNotification("Task", assigneeId, transaction);
 }
 
 const create = procedure
@@ -149,6 +150,9 @@ export async function updateImpl(
   });
   checkForUpdate(castTask(task), me);
 
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Task", assigneeId, transaction);
+
   await db.Task.update(
     {
       assigneeId,
@@ -159,8 +163,6 @@ export async function updateImpl(
       transaction,
     },
   );
-
-  await scheduleNotification("Task", assigneeId, transaction);
 }
 
 const update = procedure
@@ -311,6 +313,9 @@ export async function createAutoTask(
 
   console.log(`creating AutoTask ${autoTaskId} for user ${assigneeId}`);
 
+  // Must schedule before saving data. See the callee's comment.
+  await scheduleNotificationBeforeSavingData("Task", assigneeId, transaction);
+
   // Sequelize's upsert() doesn't work because it can't deal with the id column.
   if (task) {
     await task.update({ done: false }, { transaction });
@@ -324,6 +329,4 @@ export async function createAutoTask(
       { transaction },
     );
   }
-
-  await scheduleNotification("Task", assigneeId, transaction);
 }

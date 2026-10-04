@@ -3,7 +3,7 @@ import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
-  scheduleNotification,
+  scheduleNotificationBeforeSavingData,
   sendScheduledNotifications,
 } from "./scheduledNotifications";
 import { v4 as uuidv4 } from "uuid";
@@ -23,12 +23,12 @@ describe("scheduledNotifications", () => {
     await transaction.rollback();
   });
 
-  describe("scheduleNotification", () => {
+  describe("scheduleNotificationBeforeSavingData", () => {
     it("should successfully schedule a new notification", async () => {
       const type = "Kudos";
       const subjectId = uuidv4();
 
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       const count = await db.ScheduledNotification.count({
         where: { type, subjectId },
@@ -43,10 +43,10 @@ describe("scheduledNotifications", () => {
       const subjectId = uuidv4();
 
       // Schedule the first time
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       // Attempt to schedule again with the same type and subjectId
-      await scheduleNotification(type, subjectId, transaction);
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
 
       // Verify that only one notification exists
       const count = await db.ScheduledNotification.count({
