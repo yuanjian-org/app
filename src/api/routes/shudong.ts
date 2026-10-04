@@ -23,10 +23,7 @@ import {
 import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
 import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
-import {
-  shudongGlobalSubscriberWhere,
-  shudongNewQuestionSubjectId,
-} from "./shudongInternal";
+import { shudongNewQuestionSubjectId } from "./shudongInternal";
 
 /**
  * Common where condition for active or soft-deleted posts that have replies.
@@ -251,9 +248,10 @@ export async function createPostImpl(
       transaction,
     );
   } else {
-    // Notify global subscribers of new questions. All new questions share
-    // the same subject ID so that they are batched into one notification.
-    // Must schedule before saving data. See the callee's comment.
+    // Notify global subscribers of new questions without auto-subscribing
+    // them to it. All new questions share the same subject ID so that they
+    // are batched into one notification. Must schedule before saving data.
+    // See the callee's comment.
     await scheduleNotificationBeforeSavingData(
       "ShudongQuestion",
       shudongNewQuestionSubjectId,
@@ -282,24 +280,10 @@ export async function createPostImpl(
       transaction,
     });
   } else {
-    // For root question, auto-subscribe poster and global subscribers
-    const subscribers: Set<string> = new Set([me.id]);
-    const autoSubscribers = await db.User.findAll({
-      attributes: ["id"],
-      where: shudongGlobalSubscriberWhere,
-      transaction,
-    });
-
-    for (const u of autoSubscribers) {
-      subscribers.add(u.id);
-    }
-
-    const subscriptionRows = Array.from(subscribers).map((uId) => ({
-      questionId: post.id,
-      userId: uId,
-    }));
-    await db.ShudongSubscription.bulkCreate(subscriptionRows, {
-      ignoreDuplicates: true,
+    // Auto-subscribe poster to root question (global subscribers are notified
+    // but not auto-subscribed).
+    await db.ShudongSubscription.findOrCreate({
+      where: { questionId: post.id, userId: me.id },
       transaction,
     });
   }
