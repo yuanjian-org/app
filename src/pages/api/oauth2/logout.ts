@@ -40,11 +40,20 @@ export default function logoutHandler(
             requestedOrigin,
           );
         }
-      } catch {
+      } catch (e) {
+        logError(
+          "Invalid post_logout_redirect_uri URL",
+          post_logout_redirect_uri,
+          e,
+        );
         // Fallback to checking for a safe local relative redirect path
         callbackUrl = sanitizeCallbackUrl(post_logout_redirect_uri);
       }
     } else {
+      logError(
+        "Invalid client_id or client OAuth2 configuration not found",
+        client_id,
+      );
       callbackUrl = sanitizeCallbackUrl(post_logout_redirect_uri);
     }
   }
