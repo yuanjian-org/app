@@ -23,9 +23,9 @@ import { useSession } from "next-auth/react";
 import { signOut } from "./signOut";
 import { DateColumn } from "shared/DateColumn";
 import { PearlStudentModals } from "./PearlStudentModals";
+import ContactCustomerService from "./ContactCustomerService";
 import { SmallGrayText } from "./SmallGrayText";
 import { componentSpacing } from "theme/metrics";
-import { RiCustomerServiceFill } from "react-icons/ri";
 import { publicUrlPrefix } from "publicUrl";
 import IdTokenInputs, { IdTokenInputsState } from "./IdTokenInputs";
 import invariant from "shared/invariant";
@@ -129,16 +129,7 @@ export function SetEmailModal({ cancel }: { cancel: () => void }) {
         </ModalBody>
         <ModalFooter>
           <HStack spacing={componentSpacing} w="full">
-            <SmallGrayText>
-              <T>如有问题，</T>
-              <Link
-                href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                isExternal
-              >
-                <T>联系客服</T>
-              </Link>
-            </SmallGrayText>
-            <RiCustomerServiceFill color="gray" />
+            <ContactCustomerService />
 
             <Spacer />
             <Button onClick={cancel} isDisabled={loading}>
@@ -214,16 +205,7 @@ export function SetPhoneModal({
                 </Link>
               </SmallGrayText>
               <Spacer />
-              <SmallGrayText>
-                <T>如有问题，</T>
-                <Link
-                  href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-                  isExternal
-                >
-                  <T>联系客服</T>
-                </Link>
-              </SmallGrayText>
-              <RiCustomerServiceFill color="gray" />
+              <ContactCustomerService />
             </HStack>
           </VStack>
         </ModalBody>

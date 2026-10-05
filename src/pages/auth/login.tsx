@@ -38,7 +38,7 @@ import { publicUrlPrefix } from "publicUrl";
 import { IoLogoWechat } from "react-icons/io5";
 import { SmallGrayText } from "components/SmallGrayText";
 import invariant from "shared/invariant";
-import { RiCustomerServiceFill } from "react-icons/ri";
+import ContactCustomerService from "components/ContactCustomerService";
 import IdTokenInputs, { IdTokenInputsState } from "components/IdTokenInputs";
 import { IdType } from "shared/IdType";
 import PhoneInput from "components/PhoneInput";
@@ -196,16 +196,7 @@ function LocalSignIn({ wechatQRAppId }: { wechatQRAppId: string }) {
         </Tabs>
 
         <HStack justify="center" spacing={2}>
-          <SmallGrayText>
-            <T>若登录遇到问题，</T>
-            <Link
-              href="https://work.weixin.qq.com/kfid/kfcd32727f0d352531e"
-              isExternal
-            >
-              <T>联系客服</T>
-            </Link>
-          </SmallGrayText>
-          <RiCustomerServiceFill color="gray" />
+          <ContactCustomerService prefix="若登录遇到问题，" />
         </HStack>
       </VStack>
       <Spacer />
