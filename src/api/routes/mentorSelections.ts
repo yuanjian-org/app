@@ -162,7 +162,7 @@ const updateDraft = procedure
 export async function getDraftImpl(
   userId: string,
   mentorId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const batch = await getDraftBatch(userId, mentorId, transaction);
   invariant(
@@ -182,12 +182,13 @@ const getDraft = procedure
   )
   .output(zMentorSelection.nullable())
   .query(async ({ ctx: { me }, input: { mentorId } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await getDraftImpl(me.id, mentorId, transaction);
-    });
+    return await getDraftImpl(me.id, mentorId);
   });
 
-export async function listDraftsImpl(userId: string, transaction: Transaction) {
+export async function listDraftsImpl(
+  userId: string,
+  transaction?: Transaction,
+) {
   const batch = await getDraftBatch(userId, undefined, transaction);
   return batch?.selections ?? [];
 }
@@ -196,9 +197,7 @@ const listDrafts = procedure
   .use(authUser())
   .output(z.array(zMentorSelection))
   .query(async ({ ctx: { me } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await listDraftsImpl(me.id, transaction);
-    });
+    return await listDraftsImpl(me.id);
   });
 
 /**
@@ -208,7 +207,7 @@ const listDrafts = procedure
 async function getDraftBatch(
   myId: string,
   mentorId: string | undefined,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   return await db.MentorSelectionBatch.findOne({
     where: {
@@ -340,7 +339,7 @@ export async function listLastBatchFinalizedAtImpl(transaction?: Transaction) {
     // Return the raw result, without wrapping it in Sequelize instances.
     raw: true,
     transaction,
-  })) as any;
+  })) as unknown as { userId: string; finalizedAt: string | null }[];
 }
 
 /**
