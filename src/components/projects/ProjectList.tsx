@@ -1,4 +1,5 @@
 // @i18n-ignore-file
+import { useState, useMemo, ReactNode } from "react";
 import {
   Flex,
   Heading,
@@ -9,6 +10,9 @@ import {
   Tooltip,
   Spacer,
   Card,
+  SimpleGrid,
+  VStack,
+  Box,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import {
@@ -17,6 +21,10 @@ import {
   ProjectWithAssociation,
 } from "../../shared/Project";
 import { toPinyin } from "../../shared/strings/toPinyin";
+import { FullTextSearchBox } from "../FullTextSearchBox";
+import { componentSpacing, pageMarginX } from "../../theme/metrics";
+import TopBar, { topBarPaddings } from "../TopBar";
+import ProjectsLabel from "components/ProjectsLabel";
 
 export function searchProjects(
   projects: ProjectWithAssociation[],
@@ -106,5 +114,82 @@ export function ProjectCard({
         </Text>
       </CardBody>
     </Card>
+  );
+}
+
+export interface ProjectListContainerProps {
+  // List of projects to display
+  projects: ProjectWithAssociation[];
+  // Base path for project detail links
+  basePath?: string;
+  // Optional header action element
+  headerAction?: ReactNode;
+  // Whether to wrap the header inside TopBar
+  useTopBar?: boolean;
+  // Optional horizontal margin
+  mx?: string | number | Record<string, string | number>;
+}
+
+export function ProjectListContainer({
+  projects,
+  basePath = "/projects",
+  headerAction,
+  useTopBar = false,
+  mx,
+}: ProjectListContainerProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const searchResult = useMemo(() => {
+    return searchTerm && projects
+      ? searchProjects(projects, searchTerm)
+      : projects;
+  }, [searchTerm, projects]);
+
+  const headerContent = (
+    <VStack spacing={componentSpacing} align="stretch">
+      <Flex justify="space-between" align="center">
+        <Heading size="lg">
+          <ProjectsLabel />
+        </Heading>
+        {headerAction}
+      </Flex>
+      <FullTextSearchBox
+        value={searchTerm}
+        setValue={setSearchTerm}
+        keywordPlaceholder="关键字或发起人"
+      />
+    </VStack>
+  );
+
+  return (
+    <>
+      {useTopBar ? (
+        <TopBar {...topBarPaddings()}>{headerContent}</TopBar>
+      ) : (
+        <Box py={componentSpacing}>{headerContent}</Box>
+      )}
+
+      {searchResult && searchResult.length === 0 ? (
+        <Text mx={mx} mt={pageMarginX}>
+          暂无项目
+        </Text>
+      ) : (
+        <SimpleGrid
+          spacing={componentSpacing}
+          templateColumns="repeat(auto-fill, minmax(270px, 1fr))"
+          mx={mx}
+          mt={pageMarginX}
+        >
+          {searchResult &&
+            searchResult.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                basePath={basePath}
+              />
+            ))}
+        </SimpleGrid>
+      )}
+    </>
   );
 }
