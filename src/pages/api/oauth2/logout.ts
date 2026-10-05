@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
+import { isSafeCallbackUrl } from "../../../shared/callbackUrl";
 import {
   logError,
   getOAuth2ClientConfig,
@@ -23,8 +24,10 @@ export default function logoutHandler(
 
   const clientConfig = getOAuth2ClientConfig(client_id);
 
-  // Validate the post_logout_redirect_uri against the configured OAUTH2_REDIRECT_URIS.
-  // We allow redirects to the same origin as the client application.
+  // Validate the post_logout_redirect_uri against the configured
+  // OAUTH2_REDIRECT_URIS. We allow redirects to the same origin as the client
+  // application and ensure the path does not contain backslashes or
+  // protocol-relative bypasses.
   if (
     post_logout_redirect_uri &&
     clientConfig.configured &&
@@ -32,14 +35,25 @@ export default function logoutHandler(
   ) {
     try {
       const allowedOrigin = new URL(clientConfig.redirectUri).origin;
-      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+      const requestedUrl = new URL(post_logout_redirect_uri);
+      const relativePath =
+        requestedUrl.pathname + requestedUrl.search + requestedUrl.hash;
 
-      if (allowedOrigin === requestedOrigin) {
+      const isRawUrlSafe =
+        !post_logout_redirect_uri.includes("\\") &&
+        !/%5c/i.test(post_logout_redirect_uri) &&
+        !/[\s\0-\x1f\x7f]/.test(post_logout_redirect_uri);
+
+      if (
+        isRawUrlSafe &&
+        allowedOrigin === requestedUrl.origin &&
+        isSafeCallbackUrl(relativePath)
+      ) {
         callbackUrl = post_logout_redirect_uri;
       } else {
         logError(
-          "post_logout_redirect_uri origin does not match allowed origin",
-          requestedOrigin,
+          "post_logout_redirect_uri origin or path is unsafe/unmatched",
+          post_logout_redirect_uri,
         );
       }
     } catch (e) {
