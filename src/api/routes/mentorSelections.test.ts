@@ -132,7 +132,6 @@ describe("mentorSelections routes", () => {
     });
   });
 
-
   describe("destroyDraftImpl", () => {
     it("should successfully delete a draft", async () => {
       await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
@@ -239,8 +238,12 @@ describe("mentorSelections routes", () => {
 
       const timestamps = await listLastBatchFinalizedAtImpl(transaction);
 
-      const mentee1Timestamp = timestamps.find((t: any) => t.userId === mentee.id);
-      const mentee2Timestamp = timestamps.find((t: any) => t.userId === mentee2.id);
+      const mentee1Timestamp = timestamps.find(
+        (t: any) => t.userId === mentee.id,
+      );
+      const mentee2Timestamp = timestamps.find(
+        (t: any) => t.userId === mentee2.id,
+      );
 
       void expect(mentee1Timestamp?.finalizedAt).to.not.be.null;
       void expect(mentee2Timestamp?.finalizedAt).to.be.null;
