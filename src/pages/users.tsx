@@ -54,7 +54,7 @@ import useMe, { useMyRoles } from "useMe";
 import { widePage } from "AppPage";
 
 import { FullTextSearchBox } from "components/FullTextSearchBox";
-import { useInfiniteScroll } from "components/useInfiniteScroll";
+import { useInfiniteUsers } from "useInfiniteUsers";
 import { publicUrlPrefix } from "publicUrl";
 import { features } from "shared/Features";
 import getI18nProps from "components/getI18nProps";
@@ -67,28 +67,12 @@ export default widePage(() => {
     ids?: string[];
   }>({});
 
-  const {
-    data: usersData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-  } = trpcNext.users.list.useInfiniteQuery(
-    {
-      includeMerged,
-      includeNonVolunteersMentors: true,
-      returnMergeInfo: true,
-      limit: 50,
-      ...filter,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
-  );
-
-  const users = usersData?.pages.flatMap((page) => page.items);
-
-  useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+  const { users, isFetchingNextPage, refetch } = useInfiniteUsers({
+    includeMerged,
+    includeNonVolunteersMentors: true,
+    returnMergeInfo: true,
+    ...filter,
+  });
 
   const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);

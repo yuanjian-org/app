@@ -91,7 +91,7 @@ import { toast } from "react-toastify";
 import useMe from "useMe";
 import { isPermitted } from "shared/Role";
 import { getAnonymousId } from "shared/getAnonymousId";
-import { useInfiniteScroll } from "components/useInfiniteScroll";
+import { useInfiniteUsers } from "useInfiniteUsers";
 import getI18nProps from "components/getI18nProps";
 import T from "components/T";
 type SortOrderKey =
@@ -122,25 +122,7 @@ export default fullPage(() => {
   const [showMatchState, setShowMatchState] = useState(false);
   const me = useMe();
 
-  const {
-    data: usersData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-  } = trpcNext.users.list.useInfiniteQuery(
-    {
-      limit: 50,
-      ...filter,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
-  );
-
-  const users = usersData?.pages.flatMap((page) => page.items);
-
-  useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+  const { users, isFetchingNextPage, refetch } = useInfiniteUsers(filter);
 
   return (
     <>
