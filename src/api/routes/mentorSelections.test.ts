@@ -6,6 +6,12 @@ import {
   createDraftImpl,
   updateDraftImpl,
   reorderDraftImpl,
+  destroyDraftImpl,
+  getDraftImpl,
+  listDraftsImpl,
+  finalizeDraftImpl,
+  listFinalizedBatchesImpl,
+  listLastBatchFinalizedAtImpl,
 } from "./mentorSelections";
 
 describe("mentorSelections routes", () => {
@@ -123,6 +129,124 @@ describe("mentorSelections routes", () => {
       } catch (err: any) {
         expect(err.message).to.include("Invariant failed");
       }
+    });
+  });
+
+  describe("destroyDraftImpl", () => {
+    it("should successfully delete a draft", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+      await createDraftImpl(mentee.id, mentor2.id, "Reason 2", transaction);
+
+      await destroyDraftImpl(mentee.id, mentor1.id, transaction);
+
+      const batch = await db.MentorSelectionBatch.findOne({
+        where: { userId: mentee.id, finalizedAt: null },
+        include: [{ association: "selections" }],
+        transaction,
+      });
+
+      expect(batch?.selections.length).to.equal(1);
+      expect(batch?.selections[0].mentorId).to.equal(mentor2.id);
+    });
+
+    it("should throw NOT_FOUND error when draft doesn't exist", async () => {
+      try {
+        await destroyDraftImpl(mentee.id, mentor1.id, transaction);
+        expect.fail("Expected destroyDraftImpl to throw an error");
+      } catch (err: any) {
+        expect(err.code).to.equal("NOT_FOUND");
+      }
+    });
+  });
+
+  describe("getDraftImpl", () => {
+    it("should fetch a specific mentor draft", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+      const draft = await getDraftImpl(mentee.id, mentor1.id, transaction);
+      expect(draft?.mentorId).to.equal(mentor1.id);
+      expect(draft?.reason).to.equal("Reason 1");
+    });
+
+    it("should return null if user hasn't selected this mentor", async () => {
+      const draft = await getDraftImpl(mentee.id, mentor1.id, transaction);
+      void expect(draft).to.be.null;
+    });
+  });
+
+  describe("listDraftsImpl", () => {
+    it("should fetch all mentor drafts of a user", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+      await createDraftImpl(mentee.id, mentor2.id, "Reason 2", transaction);
+
+      const drafts = await listDraftsImpl(mentee.id, transaction);
+      expect(drafts.length).to.equal(2);
+      expect(drafts[0].mentorId).to.equal(mentor1.id);
+      expect(drafts[1].mentorId).to.equal(mentor2.id);
+    });
+
+    it("should return empty array if there are no drafts", async () => {
+      const drafts = await listDraftsImpl(mentee.id, transaction);
+      expect(drafts.length).to.equal(0);
+    });
+  });
+
+  describe("finalizeDraftImpl", () => {
+    it("should finalize mentor selection drafts successfully", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+
+      await finalizeDraftImpl(mentee.id, transaction);
+
+      const batch = await db.MentorSelectionBatch.findOne({
+        where: { userId: mentee.id },
+        transaction,
+      });
+      void expect(batch?.finalizedAt).to.not.be.null;
+    });
+
+    it("should throw generalBadRequestError if there are no drafts to finalize", async () => {
+      try {
+        await finalizeDraftImpl(mentee.id, transaction);
+        expect.fail("Expected finalizeDraftImpl to throw an error");
+      } catch (err: any) {
+        expect(err.code).to.equal("BAD_REQUEST");
+        expect(err.message).to.include("没有未完成的导师选择，请刷新页面重试");
+      }
+    });
+  });
+
+  describe("listFinalizedBatchesImpl", () => {
+    it("should fetch finalized batches for a user", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+      await finalizeDraftImpl(mentee.id, transaction);
+
+      const batches = await listFinalizedBatchesImpl(mentee.id, transaction);
+      expect(batches.length).to.equal(1);
+      void expect(batches[0].finalizedAt).to.not.be.null;
+    });
+  });
+
+  describe("listLastBatchFinalizedAtImpl", () => {
+    it("should fetch latest batch finalized timestamps for all users", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+      await finalizeDraftImpl(mentee.id, transaction);
+
+      const mentee2 = await db.User.create(
+        { email: "mentee2@example.com", name: "Test Mentee 2", roles: [] },
+        { transaction },
+      );
+      await createDraftImpl(mentee2.id, mentor2.id, "Reason 2", transaction);
+
+      const timestamps = await listLastBatchFinalizedAtImpl(transaction);
+
+      const mentee1Timestamp = timestamps.find(
+        (t: any) => t.userId === mentee.id,
+      );
+      const mentee2Timestamp = timestamps.find(
+        (t: any) => t.userId === mentee2.id,
+      );
+
+      void expect(mentee1Timestamp?.finalizedAt).to.not.be.null;
+      void expect(mentee2Timestamp?.finalizedAt).to.be.null;
     });
   });
 
