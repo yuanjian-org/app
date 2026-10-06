@@ -163,4 +163,15 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
 
     expect(setCookie[2]).to.include("next-auth.callback-url=;");
   });
+
+  it("should handle duplicate query parameters safely without error", async () => {
+    const targetUrl = "https://demo.yuantuapp.com/post-logout";
+
+    const res = await request(app).get(
+      `/?post_logout_redirect_uri=${encodeURIComponent(targetUrl)}&post_logout_redirect_uri=${encodeURIComponent(targetUrl)}&client_id=client-1&client_id=client-1`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal("/");
+  });
 });

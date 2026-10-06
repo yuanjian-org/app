@@ -33,24 +33,30 @@ export default async function authorizeHandler(
   // We need to verify the user is logged in.
   const session = await getServerSession(req, res, authOptions(req));
 
-  const {
-    response_type,
-    client_id,
-    redirect_uri,
-    state,
-    nonce,
-    code_challenge,
-    code_challenge_method,
-  } = req.query as {
-    response_type?: string;
-    client_id?: string;
-    redirect_uri?: string;
-    scope?: string;
-    state?: string;
-    nonce?: string;
-    code_challenge?: string;
-    code_challenge_method?: string;
-  };
+  // Explicitly validate parameter types to prevent type confusion
+  // and runtime errors when duplicate query string keys produce arrays.
+  const response_type =
+    typeof req.query.response_type === "string"
+      ? req.query.response_type
+      : undefined;
+  const client_id =
+    typeof req.query.client_id === "string" ? req.query.client_id : undefined;
+  const redirect_uri =
+    typeof req.query.redirect_uri === "string"
+      ? req.query.redirect_uri
+      : undefined;
+  const state =
+    typeof req.query.state === "string" ? req.query.state : undefined;
+  const nonce =
+    typeof req.query.nonce === "string" ? req.query.nonce : undefined;
+  const code_challenge =
+    typeof req.query.code_challenge === "string"
+      ? req.query.code_challenge
+      : undefined;
+  const code_challenge_method =
+    typeof req.query.code_challenge_method === "string"
+      ? req.query.code_challenge_method
+      : undefined;
 
   // 1. Validate the client ID and redirect URI against the env variables.
   const clientConfig = getOAuth2ClientConfig(client_id);
