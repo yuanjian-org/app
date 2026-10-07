@@ -15,10 +15,12 @@ export default function logoutHandler(
     return;
   }
 
-  const { post_logout_redirect_uri, client_id } = req.query as {
-    post_logout_redirect_uri?: string;
-    client_id?: string;
-  };
+  const post_logout_redirect_uri =
+    typeof req.query.post_logout_redirect_uri === "string"
+      ? req.query.post_logout_redirect_uri
+      : undefined;
+  const client_id =
+    typeof req.query.client_id === "string" ? req.query.client_id : undefined;
 
   let callbackUrl = "/";
 
