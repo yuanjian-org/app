@@ -74,6 +74,18 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(res.header.location).to.equal("/");
   });
 
+  it("should fallback to root path when post_logout_redirect_uri contains relative or protocol-relative open redirect vectors", async () => {
+    const vectors = ["//evil.com", "/\\evil.com", "/%5cevil.com"];
+
+    for (const vector of vectors) {
+      const res = await request(app).get(
+        `/?post_logout_redirect_uri=${encodeURIComponent(vector)}&client_id=client-1`,
+      );
+      expect(res.status).to.equal(302);
+      expect(res.header.location).to.equal("/");
+    }
+  });
+
   it("should fallback to root path when post_logout_redirect_uri origin does not match the specific client OAUTH2_REDIRECT_URIS", async () => {
     const targetUrl = "https://demo.yuantuapp.com/post-logout";
 

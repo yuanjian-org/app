@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import getBaseUrl from "../../../shared/getBaseUrl";
+import { sanitizeCallbackUrl } from "../../../shared/callbackUrl";
 import {
   logError,
   getOAuth2ClientConfig,
@@ -73,6 +74,19 @@ export default function logoutHandler(
   );
 
   res.setHeader("Set-Cookie", serializedCookies);
+
+  // Sanitize callback URL to prevent open redirect or header injection risks.
+  if (callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")) {
+    if (
+      callbackUrl.includes("\\") ||
+      /%5c/i.test(callbackUrl) ||
+      /[\s\0-\x1f\x7f]/.test(callbackUrl)
+    ) {
+      callbackUrl = "/";
+    }
+  } else {
+    callbackUrl = sanitizeCallbackUrl(callbackUrl);
+  }
 
   return res.redirect(302, callbackUrl);
 }
