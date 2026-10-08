@@ -9,6 +9,7 @@ import {
   logError,
   getOAuth2ClientConfig,
   ensureAllowedMethods,
+  getStringParam,
 } from "../../../api/oauth2/utils";
 import { loginCallbackUrlKey } from "shared/callbackUrl";
 import { profileCallbackUrlKey } from "shared/callbackUrl";
@@ -32,11 +33,6 @@ export default async function authorizeHandler(
   // The client will redirect the user to this endpoint.
   // We need to verify the user is logged in.
   const session = await getServerSession(req, res, authOptions(req));
-
-  // Explicitly validate types to prevent HTTP parameter pollution (array inputs)
-  const getStringParam = (
-    param: string | string[] | undefined,
-  ): string | undefined => (typeof param === "string" ? param : undefined);
 
   const response_type = getStringParam(req.query.response_type);
   const client_id = getStringParam(req.query.client_id);

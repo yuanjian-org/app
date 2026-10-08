@@ -50,6 +50,16 @@ export function getOAuth2ClientConfig(
   };
 }
 
+/**
+ * Safely extracts a single query string parameter, ignoring arrays
+ * (HTTP parameter pollution) or undefined/non-string values.
+ */
+export function getStringParam(
+  param: string | string[] | undefined,
+): string | undefined {
+  return typeof param === "string" ? param : undefined;
+}
+
 export function logError(message: string, ...optionalParams: any[]) {
   console.error(`[OAuth2 IdP] ${message}`, ...optionalParams);
 }

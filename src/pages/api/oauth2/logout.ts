@@ -4,6 +4,7 @@ import {
   logError,
   getOAuth2ClientConfig,
   ensureAllowedMethods,
+  getStringParam,
 } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
@@ -13,11 +14,6 @@ export default function logoutHandler(
   if (!ensureAllowedMethods(req, res, ["GET", "POST"])) {
     return;
   }
-
-  // Explicitly validate types to prevent HTTP parameter pollution (array inputs)
-  const getStringParam = (
-    param: string | string[] | undefined,
-  ): string | undefined => (typeof param === "string" ? param : undefined);
 
   const post_logout_redirect_uri = getStringParam(
     req.query.post_logout_redirect_uri,
