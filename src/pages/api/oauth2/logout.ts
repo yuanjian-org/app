@@ -17,8 +17,9 @@ export default function logoutHandler(
 
   const post_logout_redirect_uri = getStringParam(
     req.query.post_logout_redirect_uri,
+    "post_logout_redirect_uri",
   );
-  const client_id = getStringParam(req.query.client_id);
+  const client_id = getStringParam(req.query.client_id, "client_id");
 
   let callbackUrl = "/";
 

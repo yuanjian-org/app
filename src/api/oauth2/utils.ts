@@ -56,8 +56,15 @@ export function getOAuth2ClientConfig(
  */
 export function getStringParam(
   param: string | string[] | undefined,
+  paramName?: string,
 ): string | undefined {
-  return typeof param === "string" ? param : undefined;
+  if (typeof param !== "string") {
+    logError(
+      `Invalid query parameter${paramName ? ` '${paramName}'` : ""}: expected string, got ${typeof param}`,
+    );
+    return undefined;
+  }
+  return param;
 }
 
 export function logError(message: string, ...optionalParams: any[]) {
