@@ -14,10 +14,15 @@ export default function logoutHandler(
     return;
   }
 
-  const { post_logout_redirect_uri, client_id } = req.query as {
-    post_logout_redirect_uri?: string;
-    client_id?: string;
-  };
+  // Explicitly validate types to prevent HTTP parameter pollution (array inputs)
+  const getStringParam = (
+    param: string | string[] | undefined,
+  ): string | undefined => (typeof param === "string" ? param : undefined);
+
+  const post_logout_redirect_uri = getStringParam(
+    req.query.post_logout_redirect_uri,
+  );
+  const client_id = getStringParam(req.query.client_id);
 
   let callbackUrl = "/";
 

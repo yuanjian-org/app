@@ -33,24 +33,18 @@ export default async function authorizeHandler(
   // We need to verify the user is logged in.
   const session = await getServerSession(req, res, authOptions(req));
 
-  const {
-    response_type,
-    client_id,
-    redirect_uri,
-    state,
-    nonce,
-    code_challenge,
-    code_challenge_method,
-  } = req.query as {
-    response_type?: string;
-    client_id?: string;
-    redirect_uri?: string;
-    scope?: string;
-    state?: string;
-    nonce?: string;
-    code_challenge?: string;
-    code_challenge_method?: string;
-  };
+  // Explicitly validate types to prevent HTTP parameter pollution (array inputs)
+  const getStringParam = (
+    param: string | string[] | undefined,
+  ): string | undefined => (typeof param === "string" ? param : undefined);
+
+  const response_type = getStringParam(req.query.response_type);
+  const client_id = getStringParam(req.query.client_id);
+  const redirect_uri = getStringParam(req.query.redirect_uri);
+  const state = getStringParam(req.query.state);
+  const nonce = getStringParam(req.query.nonce);
+  const code_challenge = getStringParam(req.query.code_challenge);
+  const code_challenge_method = getStringParam(req.query.code_challenge_method);
 
   // 1. Validate the client ID and redirect URI against the env variables.
   const clientConfig = getOAuth2ClientConfig(client_id);
