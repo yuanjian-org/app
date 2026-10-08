@@ -4,6 +4,7 @@ import {
   logError,
   getOAuth2ClientConfig,
   ensureAllowedMethods,
+  getStringParam,
 } from "../../../api/oauth2/utils";
 
 export default function logoutHandler(
@@ -14,10 +15,11 @@ export default function logoutHandler(
     return;
   }
 
-  const { post_logout_redirect_uri, client_id } = req.query as {
-    post_logout_redirect_uri?: string;
-    client_id?: string;
-  };
+  const post_logout_redirect_uri = getStringParam(
+    req.query.post_logout_redirect_uri,
+    "post_logout_redirect_uri",
+  );
+  const client_id = getStringParam(req.query.client_id, "client_id");
 
   let callbackUrl = "/";
 

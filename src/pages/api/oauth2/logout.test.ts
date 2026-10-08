@@ -74,6 +74,18 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(res.header.location).to.equal("/");
   });
 
+  it("should safely handle duplicate query parameters (parameter pollution)", async () => {
+    const targetUrl = "https://demo.yuantuapp.com/post-logout";
+
+    const res = await request(app).get(
+      `/?client_id=client-1&client_id=client-2&post_logout_redirect_uri=${encodeURIComponent(targetUrl)}`,
+    );
+
+    expect(res.status).to.equal(302);
+    // Duplicate client_id parameters produce an array, which is safely rejected by getStringParam, falling back to "/"
+    expect(res.header.location).to.equal("/");
+  });
+
   it("should fallback to root path when post_logout_redirect_uri origin does not match the specific client OAUTH2_REDIRECT_URIS", async () => {
     const targetUrl = "https://demo.yuantuapp.com/post-logout";
 
