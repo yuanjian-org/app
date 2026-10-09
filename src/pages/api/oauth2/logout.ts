@@ -34,14 +34,21 @@ export default function logoutHandler(
   ) {
     try {
       const allowedOrigin = new URL(clientConfig.redirectUri).origin;
-      const requestedOrigin = new URL(post_logout_redirect_uri).origin;
+      const requestedUrl = new URL(post_logout_redirect_uri);
 
-      if (allowedOrigin === requestedOrigin) {
+      // Validate origin matches allowed client redirect origin and contains no
+      // backslashes or control characters to prevent Open Redirect bypasses.
+      const isUnsafeUrl =
+        post_logout_redirect_uri.includes("\\") ||
+        /%5c/i.test(post_logout_redirect_uri) ||
+        /[\s\0-\x1f\x7f]/.test(post_logout_redirect_uri);
+
+      if (allowedOrigin === requestedUrl.origin && !isUnsafeUrl) {
         callbackUrl = post_logout_redirect_uri;
       } else {
         logError(
-          "post_logout_redirect_uri origin does not match allowed origin",
-          requestedOrigin,
+          "post_logout_redirect_uri origin invalid or contains unsafe characters",
+          requestedUrl.origin,
         );
       }
     } catch (e) {
