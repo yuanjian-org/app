@@ -43,7 +43,7 @@
     "p-limit": "^7.3.0",
     "pg": "^8.20.0",
     "pinyin-pro": "^3.28.0",
-    "proxy-addr": "^2.0.7",
+    "proxy-addr": "^2.0.8",
     "qs": "^6.16.0",
     "random-number-csprng": "^1.0.2",
     "react": "^18.2.0",
