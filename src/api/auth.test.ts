@@ -72,6 +72,26 @@ describe("auth.ts", () => {
       expect((error as TRPCError).code).to.equal("BAD_REQUEST");
     });
 
+    it("should throw BAD_REQUEST if token byte length differs", async () => {
+      process.env.INTEGRATION_AUTH_TOKEN = "valid-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authIntegration()).query(() => "success"),
+      });
+      // String length is 11, but UTF-8 byte length is 13 ("valid-tok€n").
+      const caller = mockRouter.createCaller({
+        req: { headers: { authorization: "Bearer valid-tok€n" } },
+      } as any);
+
+      let error: any;
+      try {
+        await caller.testQuery();
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.be.instanceOf(TRPCError);
+      expect((error as TRPCError).code).to.equal("BAD_REQUEST");
+    });
+
     it("should succeed if token is valid", async () => {
       process.env.INTEGRATION_AUTH_TOKEN = "valid-token";
       const mockRouter = router({
