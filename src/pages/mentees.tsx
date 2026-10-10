@@ -55,7 +55,7 @@ import ConfirmationModal, {
   ConfirmationModelProps,
 } from "components/ConfirmationModal";
 import { FaAngleDoubleUp, FaAngleDoubleDown } from "react-icons/fa";
-import { LuChevronsUpDown } from "react-icons/lu";
+import { LuChevronsUpDown, LuFileText } from "react-icons/lu";
 import { topBarPaddings } from "components/TopBar";
 import TopBar from "components/TopBar";
 import UserSelector from "components/UserSelector";
@@ -513,11 +513,8 @@ function MenteeRow({
     refetch();
   };
 
-  const downloadMenteeData = async (userId: string) => {
-    const result = await trpc.menteeData.downloadMenteeData.query(userId);
-
-    // Decode base64 and create a blob
-    const byteCharacters = atob(result.data);
+  const handleDownloadBlob = (dataBase64: string, filename: string) => {
+    const byteCharacters = atob(dataBase64);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
       byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -525,17 +522,27 @@ function MenteeRow({
     const byteArray = new Uint8Array(byteNumbers);
     const blob = new Blob([byteArray], { type: "application/zip" });
 
-    // Create download link
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = result.filename;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+  };
 
+  const downloadMenteeData = async (userId: string) => {
+    const result = await trpc.menteeData.downloadMenteeData.query(userId);
+    handleDownloadBlob(result.data, result.filename);
     toast.success("学生数据下载成功");
+  };
+
+  const downloadMenteeTranscripts = async (userId: string) => {
+    const result =
+      await trpc.menteeData.downloadMenteeTranscripts.query(userId);
+    handleDownloadBlob(result.data, result.filename);
+    toast.success("学生逐字稿下载成功");
   };
 
   return (
@@ -569,15 +576,26 @@ function MenteeRow({
       {!isDemo && isUserAdmin && (
         <>
           <Td>
-            <Tooltip label={"下载学生数据"}>
-              <IconButton
-                aria-label="下载学生数据"
-                icon={<DownloadIcon />}
-                size="sm"
-                variant="ghost"
-                onClick={() => downloadMenteeData(u.id)}
-              />
-            </Tooltip>
+            <HStack spacing={1}>
+              <Tooltip label={"下载学生数据"}>
+                <IconButton
+                  aria-label="下载学生数据"
+                  icon={<DownloadIcon />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => downloadMenteeData(u.id)}
+                />
+              </Tooltip>
+              <Tooltip label={"下载会议逐字稿"}>
+                <IconButton
+                  aria-label="下载会议逐字稿"
+                  icon={<LuFileText />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => downloadMenteeTranscripts(u.id)}
+                />
+              </Tooltip>
+            </HStack>
           </Td>
           <Td>{getAnonymousId(u.id, year || null)}</Td>
         </>

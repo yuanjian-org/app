@@ -4,9 +4,9 @@ import { z } from "zod";
 import db from "../database/db";
 import { notFoundError } from "../errors";
 import sequelize from "../database/sequelize";
-import { AI_MINUTES_SUMMARY_KEY } from "./summaries";
+import { AI_MEETING_TRANSCRIPT_KEY, AI_MINUTES_SUMMARY_KEY } from "./summaries";
 import archiver from "archiver";
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { getAnonymousId } from "../../shared/getAnonymousId";
 import {
   menteeAcceptanceYearField,
@@ -48,16 +48,16 @@ function anonymizeUserName(content: string, userName: string | null): string {
 
 /**
  * Download mentee data as a ZIP package containing:
- * 1. metadata.json - Metadata including userId, userName, generatedAt, and file list
+ * 1. metadata.json - Metadata including userId, userName, generatedAt, etc.
  * 2. menteeApplication.json - Mentee application data from Users table
  * 3. menteeApplication.txt - Human-readable version of mentee application
  * 4. interviewResults.json - Interview results with all interviewer feedback
  * 5. interviewResults.txt - Human-readable version of interview results
- * 6. internalNotes.json - All messages from the internal notes chat room (内部笔记)
+ * 6. internalNotes.json - All messages from internal notes chat (内部笔记)
  * 7. internalNotes.txt - Human-readable version of internal notes
- * 8. mentorships.json - All AI meeting summaries (智能纪要) from mentorships
- * 9. mentorship_[mentorName]_[mentorshipId].txt - Plain text file for each mentorship
- *    containing all transcript summaries with key 智能纪要
+ * 8. mentorships.json - All AI meeting summaries (智能纪要)
+ * 9. mentorship_[mentorName]_[mentorshipId].txt - Plain text file for each
+ *    mentorship containing all transcript summaries
  *
  * Returns a base64-encoded ZIP file containing all data as separate files.
  */
@@ -73,6 +73,26 @@ const downloadMenteeData = procedure
   .query(async ({ input: userId }) => {
     return await sequelize.transaction(async (transaction) => {
       return await downloadMenteeDataImpl(userId, transaction);
+    });
+  });
+
+/**
+ * Download raw meeting transcripts of a mentee as a ZIP package containing
+ * only plain text files for each mentorship:
+ * mentorship_[mentorName]_[mentorshipId].txt
+ */
+const downloadMenteeTranscripts = procedure
+  .use(authUser("UserAdmin"))
+  .input(z.string())
+  .output(
+    z.object({
+      filename: z.string(),
+      data: z.string(), // base64 encoded zip data
+    }),
+  )
+  .query(async ({ input: userId }) => {
+    return await sequelize.transaction(async (transaction) => {
+      return await downloadMenteeTranscriptsImpl(userId, transaction);
     });
   });
 
@@ -179,6 +199,195 @@ function redactMenteeApplication(application: any): {
   return { redacted, redactedText };
 }
 
+/**
+ * Build a base64-encoded ZIP file from a list of files, anonymizing content
+ * for the given userName.
+ */
+async function buildZipArchive(
+  files: Array<{ name: string; content: string }>,
+  userName: string | null,
+): Promise<string> {
+  const archive = archiver("zip", {
+    zlib: { level: 9 }, // Maximum compression
+  });
+
+  const chunks: Uint8Array[] = [];
+
+  archive.on("data", (chunk: Uint8Array) => {
+    chunks.push(chunk);
+  });
+
+  const zipPromise = new Promise<Buffer>((resolve, reject) => {
+    archive.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+    archive.on("error", (err) => {
+      reject(err);
+    });
+  });
+
+  for (const file of files) {
+    archive.append(anonymizeUserName(file.content, userName), {
+      name: file.name,
+    });
+  }
+
+  await archive.finalize();
+  const zipBuffer = await zipPromise;
+  return zipBuffer.toString("base64");
+}
+
+/**
+ * Fetch mentorships and format plain text files for each mentorship.
+ *
+ * @param userId - The mentee user ID
+ * @param contentType - "summaries" for meeting summaries only, or
+ *                      "transcripts" for raw transcripts (fallback to
+ *                      summaries if raw transcript is absent).
+ * @param transaction - Sequelize transaction
+ */
+async function fetchMentorshipTextFiles(
+  userId: string,
+  contentType: "summaries" | "transcripts",
+  transaction: Transaction,
+) {
+  const summaryKeys =
+    contentType === "summaries"
+      ? [AI_MINUTES_SUMMARY_KEY]
+      : [AI_MEETING_TRANSCRIPT_KEY, AI_MINUTES_SUMMARY_KEY];
+
+  const mentorships = await db.Mentorship.findAll({
+    where: { menteeId: userId },
+    attributes: ["id", "mentorId"],
+    include: [
+      {
+        model: db.User,
+        as: "mentor",
+        attributes: ["id", "name"],
+      },
+      {
+        model: db.Group,
+        attributes: ["id", "name"],
+        include: [
+          {
+            model: db.Transcript,
+            attributes: ["id", "startedAt", "endedAt"],
+            include: [
+              {
+                model: db.Summary,
+                where: { key: { [Op.in]: summaryKeys } },
+                required: false,
+                attributes: ["key", "markdown"],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    order: [
+      [
+        { model: db.Group, as: "group" },
+        { model: db.Transcript, as: "transcripts" },
+        "startedAt",
+        "ASC",
+      ],
+    ], // Sort transcripts by oldest first
+    transaction,
+  });
+
+  const transcriptSummaries = mentorships.flatMap((mentorship) => {
+    if (!mentorship.group || !mentorship.group.transcripts) return [];
+
+    return mentorship.group.transcripts
+      .filter((transcript) => transcript.summaries.length > 0)
+      .map((transcript) => {
+        const summary =
+          transcript.summaries.find((s) => s.key === AI_MINUTES_SUMMARY_KEY) ||
+          transcript.summaries[0];
+        return {
+          mentorshipId: mentorship.id,
+          mentor: {
+            id: mentorship.mentor.id,
+            name: mentorship.mentor.name,
+          },
+          groupName: mentorship.group.name,
+          transcriptId: transcript.id,
+          startedAt: transcript.startedAt,
+          endedAt: transcript.endedAt,
+          summary: summary?.markdown || null,
+        };
+      });
+  });
+
+  const mentorshipTextFiles: Array<{
+    filename: string;
+    content: string;
+  }> = [];
+
+  for (const mentorship of mentorships) {
+    if (!mentorship.group || !mentorship.group.transcripts) continue;
+
+    const meetingsWithContent: Array<{
+      transcript: (typeof mentorship.group.transcripts)[0];
+      content: string;
+    }> = [];
+
+    for (const transcript of mentorship.group.transcripts) {
+      if (contentType === "transcripts") {
+        const rawTranscript = transcript.summaries.find(
+          (s) => s.key === AI_MEETING_TRANSCRIPT_KEY && s.markdown,
+        );
+        const fallbackSummary = transcript.summaries.find(
+          (s) => s.key === AI_MINUTES_SUMMARY_KEY && s.markdown,
+        );
+        const selected = rawTranscript || fallbackSummary;
+        if (selected) {
+          meetingsWithContent.push({
+            transcript,
+            content: selected.markdown,
+          });
+        }
+      } else {
+        const summary = transcript.summaries.find(
+          (s) => s.key === AI_MINUTES_SUMMARY_KEY && s.markdown,
+        );
+        if (summary) {
+          meetingsWithContent.push({
+            transcript,
+            content: summary.markdown,
+          });
+        }
+      }
+    }
+
+    if (meetingsWithContent.length === 0) continue;
+
+    let textContent = `导师: ${mentorship.mentor.name}\n`;
+    textContent += `小组: ${mentorship.group.name || "未命名"}\n`;
+    textContent += `师生关系ID: ${mentorship.id}\n`;
+    textContent += `生成时间: ${new Date().toISOString()}\n`;
+    textContent += `\n${"=".repeat(80)}\n\n`;
+
+    meetingsWithContent.forEach(({ transcript, content }, index) => {
+      textContent += `会议 ${index + 1}\n`;
+      textContent += `会议ID: ${transcript.id}\n`;
+      textContent += `开始时间: ${transcript.startedAt}\n`;
+      textContent += `结束时间: ${transcript.endedAt}\n`;
+      textContent += `\n${content}\n`;
+      textContent += `\n${"-".repeat(80)}\n\n`;
+    });
+
+    const filename = `mentorship_${mentorship.mentor.name}_${mentorship.id}.txt`;
+    mentorshipTextFiles.push({ filename, content: textContent });
+  }
+
+  return {
+    mentorships,
+    transcriptSummaries,
+    mentorshipTextFiles,
+  };
+}
+
 export async function downloadMenteeDataImpl(
   userId: string,
   transaction: Transaction,
@@ -268,98 +477,8 @@ export async function downloadMenteeDataImpl(
     : [];
 
   // 4. Transcript Summaries from all mentorships
-  const mentorships = await db.Mentorship.findAll({
-    where: { menteeId: userId },
-    attributes: ["id", "mentorId"],
-    include: [
-      {
-        model: db.User,
-        as: "mentor",
-        attributes: ["id", "name"],
-      },
-      {
-        model: db.Group,
-        attributes: ["id", "name"],
-        include: [
-          {
-            model: db.Transcript,
-            attributes: ["id", "startedAt", "endedAt"],
-            include: [
-              {
-                model: db.Summary,
-                where: { key: AI_MINUTES_SUMMARY_KEY },
-                required: false,
-                attributes: ["key", "markdown"],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    order: [
-      [
-        { model: db.Group, as: "group" },
-        { model: db.Transcript, as: "transcripts" },
-        "startedAt",
-        "ASC",
-      ],
-    ], // Sort transcripts by oldest first
-    transaction,
-  });
-
-  const transcriptSummaries = mentorships.flatMap((mentorship) => {
-    if (!mentorship.group || !mentorship.group.transcripts) return [];
-
-    return mentorship.group.transcripts
-      .filter((transcript) => transcript.summaries.length > 0)
-      .map((transcript) => ({
-        mentorshipId: mentorship.id,
-        mentor: {
-          id: mentorship.mentor.id,
-          name: mentorship.mentor.name,
-        },
-        groupName: mentorship.group.name,
-        transcriptId: transcript.id,
-        startedAt: transcript.startedAt,
-        endedAt: transcript.endedAt,
-        summary: transcript.summaries[0]?.markdown || null,
-      }));
-  });
-
-  // Prepare plain text files for each mentorship
-  const mentorshipTextFiles: Array<{
-    filename: string;
-    content: string;
-  }> = [];
-
-  for (const mentorship of mentorships) {
-    if (!mentorship.group || !mentorship.group.transcripts) continue;
-
-    const summariesWithContent = mentorship.group.transcripts.filter(
-      (transcript) => transcript.summaries.length > 0,
-    );
-
-    if (summariesWithContent.length === 0) continue;
-
-    let textContent = `导师: ${mentorship.mentor.name}\n`;
-    textContent += `小组: ${mentorship.group.name || "未命名"}\n`;
-    textContent += `师生关系ID: ${mentorship.id}\n`;
-    textContent += `生成时间: ${new Date().toISOString()}\n`;
-    textContent += `\n${"=".repeat(80)}\n\n`;
-
-    summariesWithContent.forEach((transcript, index) => {
-      const summary = transcript.summaries[0];
-      textContent += `会议 ${index + 1}\n`;
-      textContent += `会议ID: ${transcript.id}\n`;
-      textContent += `开始时间: ${transcript.startedAt}\n`;
-      textContent += `结束时间: ${transcript.endedAt}\n`;
-      textContent += `\n${summary.markdown}\n`;
-      textContent += `\n${"-".repeat(80)}\n\n`;
-    });
-
-    const filename = `mentorship_${mentorship.mentor.name}_${mentorship.id}.txt`;
-    mentorshipTextFiles.push({ filename, content: textContent });
-  }
+  const { transcriptSummaries, mentorshipTextFiles } =
+    await fetchMentorshipTextFiles(userId, "summaries", transaction);
 
   // Create plain text version of mentee application
   let menteeApplicationText = `学生申请表\n`;
@@ -458,82 +577,34 @@ export async function downloadMenteeDataImpl(
     ],
   };
 
-  // Create ZIP archive
-  const archive = archiver("zip", {
-    zlib: { level: 9 }, // Maximum compression
-  });
-
-  const chunks: Uint8Array[] = [];
-
-  // Collect ZIP data into chunks
-  archive.on("data", (chunk: Uint8Array) => {
-    chunks.push(chunk);
-  });
-
-  // Wait for archive to finish
-  const zipPromise = new Promise<Buffer>((resolve, reject) => {
-    archive.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
-    archive.on("error", (err) => {
-      reject(err);
-    });
-  });
-
-  // Add files to archive with anonymized content
-  archive.append(
-    anonymizeUserName(JSON.stringify(metadata, null, 2), user.name),
-    {
-      name: "metadata.json",
-    },
-  );
-  archive.append(
-    anonymizeUserName(JSON.stringify(menteeApplication, null, 2), user.name),
+  const filesToZip: Array<{ name: string; content: string }> = [
+    { name: "metadata.json", content: JSON.stringify(metadata, null, 2) },
     {
       name: "menteeApplication.json",
+      content: JSON.stringify(menteeApplication, null, 2),
     },
-  );
-  archive.append(anonymizeUserName(menteeApplicationText, user.name), {
-    name: "menteeApplication.txt",
-  });
-  archive.append(
-    anonymizeUserName(JSON.stringify(interviewResults, null, 2), user.name),
+    { name: "menteeApplication.txt", content: menteeApplicationText },
     {
       name: "interviewResults.json",
+      content: JSON.stringify(interviewResults, null, 2),
     },
-  );
-  archive.append(anonymizeUserName(interviewResultsText, user.name), {
-    name: "interviewResults.txt",
-  });
-  archive.append(
-    anonymizeUserName(JSON.stringify(internalNotes, null, 2), user.name),
+    { name: "interviewResults.txt", content: interviewResultsText },
     {
       name: "internalNotes.json",
+      content: JSON.stringify(internalNotes, null, 2),
     },
-  );
-  archive.append(anonymizeUserName(internalNotesText, user.name), {
-    name: "internalNotes.txt",
-  });
-  archive.append(
-    anonymizeUserName(JSON.stringify(transcriptSummaries, null, 2), user.name),
+    { name: "internalNotes.txt", content: internalNotesText },
     {
       name: "mentorships.json",
+      content: JSON.stringify(transcriptSummaries, null, 2),
     },
-  );
+    ...mentorshipTextFiles.map((f) => ({
+      name: f.filename,
+      content: f.content,
+    })),
+  ];
 
-  // Add plain text files for each mentorship
-  for (const { filename, content } of mentorshipTextFiles) {
-    archive.append(anonymizeUserName(content, user.name), { name: filename });
-  }
-
-  // Finalize the archive
-  await archive.finalize();
-
-  // Wait for ZIP to complete
-  const zipBuffer = await zipPromise;
-
-  // Convert to base64
-  const base64Data = zipBuffer.toString("base64");
+  const base64Data = await buildZipArchive(filesToZip, user.name);
 
   // Generate anonymous ID for filename
   const acceptanceYear =
@@ -546,6 +617,45 @@ export async function downloadMenteeDataImpl(
   };
 }
 
+export async function downloadMenteeTranscriptsImpl(
+  userId: string,
+  transaction: Transaction,
+): Promise<{ filename: string; data: string }> {
+  // Get user
+  const user = await db.User.findByPk(userId, {
+    attributes: ["id", "name", "menteeApplication"],
+    transaction,
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+
+  // Fetch mentorship text files containing raw meeting transcripts
+  // (with fallback to meeting summaries)
+  const { mentorshipTextFiles } = await fetchMentorshipTextFiles(
+    userId,
+    "transcripts",
+    transaction,
+  );
+
+  const filesToZip = mentorshipTextFiles.map((f) => ({
+    name: f.filename,
+    content: f.content,
+  }));
+
+  const base64Data = await buildZipArchive(filesToZip, user.name);
+
+  // Generate anonymous ID for filename
+  const acceptanceYear =
+    user.menteeApplication?.[menteeAcceptanceYearField] || null;
+  const anonymousId = getAnonymousId(userId, acceptanceYear);
+
+  return {
+    filename: `mentee_transcripts_${anonymousId}.zip`,
+    data: base64Data,
+  };
+}
+
 export default router({
   downloadMenteeData,
+  downloadMenteeTranscripts,
 });
