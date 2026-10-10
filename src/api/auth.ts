@@ -25,10 +25,15 @@ export const authIntegration = () =>
       throw internalServerError("INTEGRATION_AUTH_TOKEN is not set.");
     }
 
+    const tokenBuf = Buffer.from(token);
+    const expectedBuf = Buffer.from(expected);
+
+    // Check buffer byte lengths to prevent crypto.timingSafeEqual from
+    // throwing an unhandled TypeError when string byte lengths differ.
     if (
-      token.length !== expected.length ||
+      tokenBuf.length !== expectedBuf.length ||
       // Use timingSafeEqual to prevent timing attacks.
-      !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected))
+      !crypto.timingSafeEqual(tokenBuf, expectedBuf)
     ) {
       throw invalidTokenError();
     }
