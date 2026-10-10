@@ -24,18 +24,6 @@ import {
 } from "../../shared/applicationFields";
 
 /**
- * Generate a unique 6-character anonymous ID for a user.
- *
- * Format: YY-NNN
- * - YY: Last 2 digits of acceptance year (录取届)
- * - NNN: 3-digit hash derived from userId (000-999)
- *
- * @param userId - The user's UUID
- * @param acceptanceYear - The acceptance year (e.g., "2024")
- * @returns A 6-character string (e.g., "24-437")
- */
-
-/**
  * Anonymize user names by replacing all occurrences with "学生".
  * Replaces both the full name and the last two characters of the name.
  *
