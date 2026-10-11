@@ -2,16 +2,34 @@ services:
   yuantu:
     image: ${APP_IMAGE_BASE_NAME:?}.yuantu:latest
     container_name: yuantu
+    restart: always
     env_file: .env.yuantu
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   # The container for the "x" white label deployment. Docker doesn't allow 
   # single letter container names.
   xx:
     image: ${APP_IMAGE_BASE_NAME:?}.x:latest
     container_name: xx
+    restart: always
     env_file: .env.x
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
     container_name: nginx
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx.proxy.conf:/etc/nginx/proxy_params.conf:ro
@@ -24,3 +42,29 @@ services:
     depends_on:
       - yuantu
       - xx
+  autoheal:
+    image: m.daocloud.io/docker.io/library/docker:cli
+    container_name: autoheal
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - sh
+      - -c
+      - |
+        echo "Starting autoheal monitor..."
+        last_reboot=0
+        docker events \
+          --filter "type=container" \
+          --filter "event=die" \
+          --filter "container=yuantu" \
+          --filter "container=xx" \
+          --filter "container=nginx" | while read -r event_line; do
+            now=$$(date +%s)
+            if [ $$((now - last_reboot)) -ge 15 ]; then
+              echo "Container failure event detected: $$event_line"
+              echo "Rebooting stack containers..."
+              last_reboot=$$now
+              docker restart yuantu xx nginx || true
+            fi
+          done
