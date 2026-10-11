@@ -104,6 +104,17 @@ describe("jinshuju", () => {
       );
     });
 
+    it("should throw Invalid HMAC error when HMAC has multi-byte chars", () => {
+      const xField = encodeXField("yuantu", "url", "1");
+      const parts = xField.split(",");
+      // Multi-byte chars test buffer byte length vs string length.
+      parts[4] = "tampered✨";
+      const formEntry = { x_field_1: parts.join(",") };
+      expect(() => validateAndDecodeXField("yuantu", formEntry)).to.throw(
+        "Invalid HMAC in x_field_1",
+      );
+    });
+
     it("should throw error when timestamp is in the future", () => {
       const xField = encodeXField("yuantu", "url", "1");
       const parts = xField.split(",");
