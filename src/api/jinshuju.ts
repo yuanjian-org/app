@@ -60,9 +60,15 @@ export function validateAndDecodeXField(
   const data = parts.slice(0, -1).join(",");
   const expectedHmac = hmacChecksumUrlSafe(data);
 
+  // Check buffer byte lengths to prevent crypto.timingSafeEqual from
+  // throwing an unhandled TypeError or RangeError when string byte lengths
+  // differ (e.g. multi-byte UTF-8 inputs).
+  const hmacBuf = Buffer.from(hmac);
+  const expectedBuf = Buffer.from(expectedHmac);
+
   if (
-    hmac.length !== expectedHmac.length ||
-    !crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(expectedHmac))
+    hmacBuf.length !== expectedBuf.length ||
+    !crypto.timingSafeEqual(hmacBuf, expectedBuf)
   ) {
     throw generalBadRequestError(`Invalid HMAC in x_field_1`);
   }
