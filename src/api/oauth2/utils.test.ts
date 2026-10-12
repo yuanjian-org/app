@@ -47,6 +47,21 @@ describe("OAuth2 Utils", () => {
   });
 
   describe("hashUserIdForClient", () => {
+    let originalEnvSecret: string | undefined;
+
+    beforeEach(() => {
+      originalEnvSecret = process.env.NEXTAUTH_SECRET;
+      process.env.NEXTAUTH_SECRET = "test-secret-key-123";
+    });
+
+    afterEach(() => {
+      if (originalEnvSecret) {
+        process.env.NEXTAUTH_SECRET = originalEnvSecret;
+      } else {
+        delete process.env.NEXTAUTH_SECRET;
+      }
+    });
+
     it("should generate a consistent hash for the same client and user", () => {
       const hash1 = hashUserIdForClient("client1", "user1");
       const hash2 = hashUserIdForClient("client1", "user1");
@@ -62,6 +77,13 @@ describe("OAuth2 Utils", () => {
     it("should generate different hashes for the same client with different users", () => {
       const hash1 = hashUserIdForClient("client1", "user1");
       const hash2 = hashUserIdForClient("client1", "user2");
+      expect(hash1).to.not.equal(hash2);
+    });
+
+    it("should generate different hashes when NEXTAUTH_SECRET changes", () => {
+      const hash1 = hashUserIdForClient("client1", "user1");
+      process.env.NEXTAUTH_SECRET = "different-secret-key-456";
+      const hash2 = hashUserIdForClient("client1", "user1");
       expect(hash1).to.not.equal(hash2);
     });
   });
