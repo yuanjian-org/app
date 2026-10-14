@@ -32,6 +32,26 @@ describe("sendImpl", () => {
     sinon.restore();
   });
 
+  it("should throw error for invalid email format", async () => {
+    try {
+      await sendImpl("email", "invalid-email-string", "127.0.0.1", transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("请输入有效的邮箱地址");
+    }
+  });
+
+  it("should throw error for invalid phone format", async () => {
+    try {
+      await sendImpl("phone", "+86123", "127.0.0.1", transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("请输入有效的手机号码");
+    }
+  });
+
   it("should throw error for unsupported phone regions", async () => {
     try {
       await sendImpl("phone", "+441234567890", "127.0.0.1", transaction);

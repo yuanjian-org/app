@@ -4,7 +4,9 @@ import db from "../database/db";
 import { Op, Transaction } from "sequelize";
 import { ip, authUser } from "../auth";
 import { chinaPhonePrefix } from "../../shared/strings/chinaPhonePrefix";
+import { isValidEmail } from "../../shared/strings/isValidEmail";
 import { isValidPassword } from "../../shared/strings/isValidPassword";
+import { isValidPhone } from "../../shared/strings/isValidPhone";
 import { toChineseNumber } from "../../shared/strings/toChineseNumber";
 import { hash } from "bcryptjs";
 import { generalBadRequestError } from "../errors";
@@ -30,16 +32,26 @@ export async function sendImpl(
   ip: string | undefined,
   transaction: Transaction,
 ) {
-  if (
-    idType === "phone" &&
-    !id.startsWith(chinaPhonePrefix) &&
-    !id.startsWith("+1") &&
-    !id.startsWith("+39") &&
-    !id.startsWith("+7")
-  ) {
-    throw generalBadRequestError(
-      "目前尚不支持您所在地区的手机号。如需使用，请联系客服。",
-    );
+  // Security input validation: prevent invalid/malformed email or phone from
+  // polluting the database or sending unnecessary external SMS/email requests.
+  if (idType === "phone") {
+    if (!isValidPhone(id)) {
+      throw generalBadRequestError("请输入有效的手机号码。");
+    }
+    if (
+      !id.startsWith(chinaPhonePrefix) &&
+      !id.startsWith("+1") &&
+      !id.startsWith("+39") &&
+      !id.startsWith("+7")
+    ) {
+      throw generalBadRequestError(
+        "目前尚不支持您所在地区的手机号。如需使用，请联系客服。",
+      );
+    }
+  } else if (idType === "email") {
+    if (!isValidEmail(id)) {
+      throw generalBadRequestError("请输入有效的邮箱地址。");
+    }
   }
 
   const idField = idType === "phone" ? "phone" : "email";
