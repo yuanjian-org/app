@@ -78,9 +78,12 @@ export default async function tokenHandler(
   } = clientConfig;
 
   // Use timing-safe comparison to prevent timing attacks that could be used
-  // to guess the client secret character by character.
-  const clientIdBuf = Buffer.from(clientId ?? "");
-  const secretBuf = Buffer.from(clientSecret ?? "");
+  // to guess the client secret character by character. Ensure values are
+  // strings to prevent Buffer.from from treating numbers as allocation sizes.
+  const clientIdStr = typeof clientId === "string" ? clientId : "";
+  const secretStr = typeof clientSecret === "string" ? clientSecret : "";
+  const clientIdBuf = Buffer.from(clientIdStr);
+  const secretBuf = Buffer.from(secretStr);
   const expectedIdBuf = Buffer.from(expectedClientId);
   const expectedSecretBuf = Buffer.from(expectedClientSecret);
   const validClientId =

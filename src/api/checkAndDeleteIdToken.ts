@@ -29,8 +29,11 @@ export async function checkAndDeleteIdToken(
     throw generalBadRequestError(`${idText}验证码已过期，请重新验证。`);
   }
 
-  // Use timing-safe comparison to prevent side-channel timing attacks
-  const inputBuf = Buffer.from(token);
+  // Use timing-safe comparison to prevent side-channel timing attacks. Ensure
+  // token is a string to prevent Buffer.from from treating numeric inputs as
+  // allocation sizes.
+  const tokenStr = typeof token === "string" ? token : String(token ?? "");
+  const inputBuf = Buffer.from(tokenStr);
   const dbTokenBuf = Buffer.from(dbToken.token);
   const isTokenValid =
     inputBuf.length === dbTokenBuf.length &&

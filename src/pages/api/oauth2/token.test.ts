@@ -378,4 +378,17 @@ describe("OAuth2 tokenHandler", () => {
     expect(res.status).to.equal(401);
     expect(res.body.error).to.equal("invalid_client");
   });
+
+  it("should safely handle non-string client_id or client_secret", async () => {
+    const res = await request(server).post("/").send({
+      grant_type: "authorization_code",
+      code: "some-code",
+      redirect_uri: "https://app.example.com/callback",
+      client_id: 123456,
+      client_secret: 987654,
+    });
+
+    expect(res.status).to.equal(401);
+    expect(res.body.error).to.equal("invalid_client");
+  });
 });
