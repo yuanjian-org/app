@@ -63,7 +63,29 @@ describe("OAuth2 /api/oauth2/logout API Endpoint", function () {
     expect(res.header.location).to.equal(targetUrl);
   });
 
-  it("should fallback to root path when client_id is not provided", async () => {
+  it("should support safe relative post_logout_redirect_uri when client_id is not provided", async () => {
+    const targetUrl = "/auth/login";
+
+    const res = await request(app).get(
+      `/?post_logout_redirect_uri=${encodeURIComponent(targetUrl)}`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal(targetUrl);
+  });
+
+  it("should sanitize unsafe protocol-relative post_logout_redirect_uri to root path", async () => {
+    const targetUrl = "//evil.com/post-logout";
+
+    const res = await request(app).get(
+      `/?post_logout_redirect_uri=${encodeURIComponent(targetUrl)}`,
+    );
+
+    expect(res.status).to.equal(302);
+    expect(res.header.location).to.equal("/");
+  });
+
+  it("should fallback to root path when absolute client_id is not provided", async () => {
     const targetUrl = "https://demo.yuantuapp.com/post-logout";
 
     const res = await request(app).get(
