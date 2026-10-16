@@ -90,15 +90,16 @@ export function ensureAllowedMethods(
 }
 
 /**
- * Hashes the combination of the client ID and the local user ID.
- * This provides a unique ID per client for the same user,
- * and prevents clients from guessing user IDs in other clients.
+ * Hashes client ID and local user ID using HMAC-SHA256 with NEXTAUTH_SECRET.
+ * This provides a unique pairwise ID per client for the same user and
+ * prevents clients from performing offline brute-force/dictionary attacks.
  */
 export function hashUserIdForClient(clientId: string, userId: string): string {
+  const secret = process.env.NEXTAUTH_SECRET ?? "";
   // Use a null-byte separator to prevent length-extension collisions:
   // e.g. ("ab", "cd") vs ("a", "bcd") would otherwise hash identically.
   return crypto
-    .createHash("sha256")
+    .createHmac("sha256", secret)
     .update(`${clientId}\0${userId}`)
     .digest("base64url");
 }
