@@ -64,6 +64,23 @@ describe("OAuth2 Utils", () => {
       const hash2 = hashUserIdForClient("client1", "user2");
       expect(hash1).to.not.equal(hash2);
     });
+
+    it("should generate different hashes when NEXTAUTH_SECRET differs", () => {
+      const origSecret = process.env.NEXTAUTH_SECRET;
+      try {
+        process.env.NEXTAUTH_SECRET = "secret-key-1";
+        const hash1 = hashUserIdForClient("client1", "user1");
+        process.env.NEXTAUTH_SECRET = "secret-key-2";
+        const hash2 = hashUserIdForClient("client1", "user1");
+        expect(hash1).to.not.equal(hash2);
+      } finally {
+        if (origSecret !== undefined) {
+          process.env.NEXTAUTH_SECRET = origSecret;
+        } else {
+          delete process.env.NEXTAUTH_SECRET;
+        }
+      }
+    });
   });
 
   describe("encryptPayload and decryptPayload", () => {
