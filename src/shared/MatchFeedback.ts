@@ -60,3 +60,26 @@ export const zMatchFeedbackAndCreatedAt = z.object({
 export type MatchFeedbackAndCreatedAt = z.TypeOf<
   typeof zMatchFeedbackAndCreatedAt
 >;
+
+/**
+ * Summarizes feedback items by counting total items, rated/chosen items,
+ * and items that include a written reason.
+ */
+export function summarizeFeedbackItems<
+  T extends { score?: unknown; choice?: unknown; reason?: string },
+>(items?: T[]): { total: number; scores: number; reasons: number } {
+  if (!items) {
+    return { total: 0, scores: 0, reasons: 0 };
+  }
+  let scores = 0;
+  let reasons = 0;
+  for (const item of items) {
+    if (Boolean(item.score || item.choice)) {
+      scores += 1;
+    }
+    if (item.reason) {
+      reasons += 1;
+    }
+  }
+  return { total: items.length, scores, reasons };
+}

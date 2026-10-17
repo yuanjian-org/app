@@ -33,6 +33,7 @@ import ExamPassDateText from "components/ExamPassDateText";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { okTextColor, warningTextColor } from "theme/colors";
 import { defaultMentorCapacity, MentorPreference } from "shared/UserPreference";
+import { summarizeFeedbackItems } from "shared/MatchFeedback";
 import getI18nProps from "components/getI18nProps";
 import T from "components/T";
 
@@ -325,15 +326,11 @@ function MentorMatchFeedbackStateCell({ mentorId }: { mentorId: string }) {
     mentorId,
   });
 
-  const total = data?.mentees.length ?? 0;
-  const [choices, reasons] = data?.mentees.reduce(
-    ([choices, reasons], m) => {
-      if (m.choice) choices += 1;
-      if (m.reason) reasons += 1;
-      return [choices, reasons];
-    },
-    [0, 0],
-  ) ?? [0, 0];
+  const {
+    total,
+    scores: choices,
+    reasons,
+  } = summarizeFeedbackItems(data?.mentees);
 
   return (
     <MatchFeedbackStateCell
