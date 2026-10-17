@@ -85,6 +85,7 @@ import {
 } from "theme/colors";
 import { PiFlagCheckeredFill } from "react-icons/pi";
 import { MatchFeedbackStateCell } from "./mentors/manage";
+import { summarizeFeedbackItems } from "shared/MatchFeedback";
 import { DownloadIcon } from "@chakra-ui/icons";
 import { IconButton, Tooltip } from "@chakra-ui/react";
 import { toast } from "react-toastify";
@@ -609,15 +610,7 @@ function MenteeMatchFeedbackStateCell({ menteeId }: { menteeId: string }) {
     menteeId,
   });
 
-  const total = data?.mentors.length ?? 0;
-  const [scores, reasons] = data?.mentors.reduce(
-    ([scores, reasons], m) => {
-      if (m.score) scores += 1;
-      if (m.reason) reasons += 1;
-      return [scores, reasons];
-    },
-    [0, 0],
-  ) ?? [0, 0];
+  const { total, scores, reasons } = summarizeFeedbackItems(data?.mentors);
 
   return (
     <MatchFeedbackStateCell
