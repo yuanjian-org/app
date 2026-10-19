@@ -253,6 +253,18 @@ describe("setPhoneImpl", () => {
     sinon.restore();
   });
 
+  it("should throw error for invalid phone format", async () => {
+    const me = await db.User.create({ name: "me user" }, { transaction });
+
+    try {
+      await setPhoneImpl("invalid-phone", token, me, transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("请输入有效的手机号码");
+    }
+  });
+
   it("should update phone when existing user is not found", async () => {
     const me = await db.User.create({ name: "me user" }, { transaction });
 
@@ -691,6 +703,18 @@ describe("setEmailImpl", () => {
   afterEach(async () => {
     await transaction.rollback();
     sinon.restore();
+  });
+
+  it("should throw error for invalid email format", async () => {
+    const myUser = await createTestUser();
+
+    try {
+      await setEmailImpl(myUser.id, "invalid-email", "123456", transaction);
+      expect.fail("Expected error to be thrown");
+    } catch (error: any) {
+      void expect(error).to.be.instanceOf(TRPCError);
+      void expect(error.message).to.include("请输入有效的邮箱地址");
+    }
   });
 
   it("should set email for the current user when no existing user has this email", async () => {
