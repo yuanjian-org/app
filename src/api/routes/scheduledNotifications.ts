@@ -25,6 +25,7 @@ import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
 import { notify, notifyRolesIgnoreError } from "../notify";
 import { shudongGlobalSubscriberWhere } from "./shudongInternal";
+import { getImpl as getGlobalConfig } from "./globalConfigs";
 
 /**
  * Schedules a notification of the given type for the given subject, unless
@@ -45,6 +46,16 @@ export async function scheduleNotificationBeforeSavingData(
   subjectId: string,
   transaction: Transaction,
 ) {
+  if (type === "ShudongQuestion" || type === "ShudongResponse") {
+    const globalConfig = await getGlobalConfig(transaction);
+    if (globalConfig.enableShudongNotifications === false) {
+      console.log(
+        `Shudong notifications disabled globally. Skip scheduling ${type}`,
+      );
+      return;
+    }
+  }
+
   const count = await db.ScheduledNotification.count({
     where: { type, subjectId },
     transaction,
@@ -123,6 +134,12 @@ async function notifyShudongQuestions(
   timestamp: Moment,
   transaction: Transaction,
 ) {
+  const globalConfig = await getGlobalConfig(transaction);
+  if (globalConfig.enableShudongNotifications === false) {
+    console.log("Shudong notifications disabled globally.");
+    return;
+  }
+
   const newQuestions = await db.ShudongPost.findAll({
     where: {
       parentId: null,
@@ -166,6 +183,12 @@ async function notifyShudongResponses(
   timestamp: Moment,
   transaction: Transaction,
 ) {
+  const globalConfig = await getGlobalConfig(transaction);
+  if (globalConfig.enableShudongNotifications === false) {
+    console.log("Shudong notifications disabled globally.");
+    return;
+  }
+
   const question = await db.ShudongPost.findByPk(questionId, {
     attributes: shudongPostAttributes,
     transaction,

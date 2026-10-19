@@ -28,6 +28,9 @@ export default function Page() {
   const [showEditMessageTimeButton, setShowEditMessageTimeButton] = useState<
     boolean | undefined
   >(undefined);
+  const [enableShudongNotifications, setEnableShudongNotifications] = useState<
+    boolean | undefined
+  >(undefined);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
@@ -47,6 +50,9 @@ export default function Page() {
         }),
         ...(showEditMessageTimeButton !== undefined && {
           showEditMessageTimeButton,
+        }),
+        ...(enableShudongNotifications !== undefined && {
+          enableShudongNotifications,
         }),
       });
       toast.success("保存成功");
@@ -75,6 +81,19 @@ export default function Page() {
           onChange={(e) => setShowEditMessageTimeButton(e.target.checked)}
         >
           显示 &quot;编辑消息创建时间&quot; 按钮
+        </Checkbox>
+      </FormControl>
+
+      <FormControl>
+        <Checkbox
+          isChecked={
+            enableShudongNotifications ??
+            data?.enableShudongNotifications ??
+            true
+          }
+          onChange={(e) => setEnableShudongNotifications(e.target.checked)}
+        >
+          开启树洞通知
         </Checkbox>
       </FormControl>
 
