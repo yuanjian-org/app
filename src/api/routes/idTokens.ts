@@ -132,11 +132,6 @@ export async function setPhoneImpl(
   me: User,
   transaction: Transaction,
 ) {
-  // Validate phone format to prevent storing invalid numbers.
-  if (!isValidPhone(phone)) {
-    throw generalBadRequestError("请输入有效的手机号码。");
-  }
-
   await checkAndDeleteIdToken("phone", phone, token, transaction);
 
   const existing = await db.User.findOne({
@@ -334,11 +329,6 @@ export async function setEmailImpl(
   token: string,
   transaction: Transaction,
 ) {
-  // Validate email format to prevent storing invalid addresses.
-  if (!isValidEmail(email)) {
-    throw generalBadRequestError("请输入有效的邮箱地址。");
-  }
-
   await checkAndDeleteIdToken("email", email, token, transaction);
 
   const existing = await db.User.findOne({
