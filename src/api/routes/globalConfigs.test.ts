@@ -77,5 +77,11 @@ describe("Global Configs Internal Functions", () => {
       expect(configs).to.have.lengthOf(1);
       expect(configs[0].data).to.deep.equal({});
     });
+
+    it("should save and retrieve enableShudongNotifications", async () => {
+      await updateImpl({ enableShudongNotifications: false }, transaction);
+      const result = await getImpl(transaction);
+      expect(result.enableShudongNotifications).to.equal(false);
+    });
   });
 });

@@ -56,6 +56,25 @@ describe("scheduledNotifications", () => {
 
       expect(count).to.equal(1);
     });
+
+    it("should skip scheduling Shudong notification when disabled globally", async () => {
+      await db.GlobalConfig.create(
+        { data: { enableShudongNotifications: false } },
+        { transaction },
+      );
+
+      const type = "ShudongQuestion";
+      const subjectId = uuidv4();
+
+      await scheduleNotificationBeforeSavingData(type, subjectId, transaction);
+
+      const count = await db.ScheduledNotification.count({
+        where: { type, subjectId },
+        transaction,
+      });
+
+      expect(count).to.equal(0);
+    });
   });
 
   describe("sendScheduledNotifications", () => {
@@ -142,6 +161,51 @@ describe("scheduledNotifications", () => {
         transaction,
       });
       expect(count).to.equal(0);
+    });
+
+    it("should skip Shudong notifications when disabled globally", async () => {
+      await db.GlobalConfig.create(
+        { data: { enableShudongNotifications: false } },
+        { transaction },
+      );
+
+      const poster = await createTestUser("Poster");
+      const subscriber = await createTestUser("Subscriber");
+      const responder = await createTestUser("Responder");
+
+      const q = await db.ShudongPost.create(
+        {
+          authorId: poster.id,
+          markdown: "Sample question?",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      await db.ShudongSubscription.create(
+        { questionId: q.id, userId: subscriber.id },
+        { transaction },
+      );
+
+      await db.ShudongPost.create(
+        {
+          parentId: q.id,
+          authorId: responder.id,
+          markdown: "Sample response!",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      const past = moment().subtract(6, "minutes").toDate();
+      await db.ScheduledNotification.create(
+        { type: "ShudongResponse", subjectId: q.id, createdAt: past },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.called).to.equal(false);
     });
 
     it("should notify shudong subscribers and delete notification", async () => {
