@@ -1,7 +1,11 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import db from "../database/db";
-import { createInterview, updateInterview } from "./interviews";
+import {
+  createInterview,
+  listInterviewerStatsImpl,
+  updateInterview,
+} from "./interviews";
 import { findGroups } from "./groups";
 import sequelize from "../database/sequelize";
 
@@ -87,5 +91,31 @@ describe("interviews", () => {
       transaction,
     );
     expect(gs.length).is.equal(1);
+  });
+
+  it("`listInterviewerStatsImpl` should count ongoing relational mentorships", async () => {
+    const mentorId = await createUser("mentor@test.com");
+    const mentor = await db.User.findByPk(mentorId, { transaction });
+    if (mentor) {
+      mentor.roles = ["Mentor"];
+      await mentor.save({ transaction });
+    }
+
+    const menteeId = await createUser("mentee@test.com");
+
+    await db.Mentorship.create(
+      {
+        mentorId,
+        menteeId,
+        transactional: false,
+        endsAt: null,
+      },
+      { transaction },
+    );
+
+    const stats = await listInterviewerStatsImpl(transaction);
+    const mentorStats = stats.find((s) => s.user.id === mentorId);
+    expect(mentorStats).to.not.equal(undefined);
+    expect(mentorStats?.ongoingRelationalMentorships).to.equal(1);
   });
 });

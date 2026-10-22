@@ -67,6 +67,9 @@ export default widePage(() => {
                 <T>面试总量</T>
               </Th>
               <Th>
+                <T>一对一学生数</T>
+              </Th>
+              <Th>
                 <T>面试限制</T>
               </Th>
               <Th>
@@ -103,6 +106,7 @@ export default widePage(() => {
                   key={s.user.id}
                   user={s.user}
                   interviews={s.interviews}
+                  ongoingRelationalMentorships={s.ongoingRelationalMentorships}
                   preference={s.preference}
                   profile={s.profile}
                   avoid={s.avoid}
@@ -123,6 +127,7 @@ export default widePage(() => {
 function Row({
   user,
   interviews,
+  ongoingRelationalMentorships,
   preference,
   profile,
   avoid,
@@ -130,6 +135,7 @@ function Row({
 }: {
   user: User;
   interviews: number;
+  ongoingRelationalMentorships: number;
   preference: InterviewerPreference;
   profile: UserProfile;
   avoid: boolean;
@@ -177,6 +183,9 @@ function Row({
 
       {/* 面试总量 */}
       <Td>{interviews}</Td>
+
+      {/* 一对一学生数 */}
+      <Td>{ongoingRelationalMentorships}</Td>
 
       {/* 面试限制 */}
       <Td>
