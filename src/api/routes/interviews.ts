@@ -38,6 +38,7 @@ import {
   volunteerApplyingforMentorField,
   volunteerApplyingforMentorFieldYes,
 } from "../../shared/applicationFields";
+import { whereMentorshipIsOngoing } from "./mentorships";
 
 /**
  * Only MentorshipAdmin, interviewers of the interview, and users
@@ -337,6 +338,7 @@ const listInterviewerStats = procedure
       z.object({
         user: zUser,
         interviews: z.number(),
+        ongoingRelationalMentorships: z.number(),
         preference: zInterviewerPreference,
         profile: zUserProfile,
         avoid: z.boolean(),
@@ -344,45 +346,71 @@ const listInterviewerStats = procedure
     ),
   )
   .query(async () => {
-    const users = await db.User.findAll({
-      attributes: [
-        ...userAttributes,
-        "profile",
-        "preference",
-        "avoidAsInterviewer",
-      ],
-      include: userInclude,
-    });
-
-    // A map from user to the total number of interviews conducted by the user.
-    const user2interviews = (
-      await db.InterviewFeedback.findAll({
-        attributes: [
-          "interviewerId",
-          [sequelize.fn("COUNT", sequelize.col("interviewerId")), "count"],
-        ],
-        group: ["interviewerId"],
-      })
-    ).reduce<{ [key: string]: number }>((acc, curr) => {
-      acc[curr.interviewerId] = Number.parseInt(curr.getDataValue("count"));
-      return acc;
-    }, {});
-
-    return users
-      .filter(
-        (user) =>
-          user2interviews[user.id] ||
-          user.preference?.interviewer?.optIn === true ||
-          user.roles.includes("Mentor"),
-      )
-      .map((user) => ({
-        user,
-        interviews: user2interviews[user.id] ?? 0,
-        preference: user.preference?.interviewer ?? {},
-        profile: user.profile ?? {},
-        avoid: user.avoidAsInterviewer ?? false,
-      }));
+    return await listInterviewerStatsImpl();
   });
+
+export async function listInterviewerStatsImpl(transaction?: Transaction) {
+  const users = await db.User.findAll({
+    attributes: [
+      ...userAttributes,
+      "profile",
+      "preference",
+      "avoidAsInterviewer",
+    ],
+    include: userInclude,
+    transaction,
+  });
+
+  // A map from user to total number of interviews conducted by user.
+  const user2interviews = (
+    await db.InterviewFeedback.findAll({
+      attributes: [
+        "interviewerId",
+        [sequelize.fn("COUNT", sequelize.col("interviewerId")), "count"],
+      ],
+      group: ["interviewerId"],
+      transaction,
+    })
+  ).reduce<{ [key: string]: number }>((acc, curr) => {
+    acc[curr.interviewerId] = Number.parseInt(curr.getDataValue("count"));
+    return acc;
+  }, {});
+
+  // Map from user (mentorId) to number of ongoing relational mentorships.
+  const user2ongoingMentorships = (
+    await db.Mentorship.findAll({
+      attributes: [
+        "mentorId",
+        [sequelize.fn("COUNT", sequelize.col("mentorId")), "count"],
+      ],
+      where: {
+        transactional: false,
+        ...whereMentorshipIsOngoing,
+      },
+      group: ["mentorId"],
+      transaction,
+    })
+  ).reduce<{ [key: string]: number }>((acc, curr) => {
+    acc[curr.mentorId] = Number.parseInt(curr.getDataValue("count"));
+    return acc;
+  }, {});
+
+  return users
+    .filter(
+      (user) =>
+        user2interviews[user.id] ||
+        user.preference?.interviewer?.optIn === true ||
+        user.roles.includes("Mentor"),
+    )
+    .map((user) => ({
+      user,
+      interviews: user2interviews[user.id] ?? 0,
+      ongoingRelationalMentorships: user2ongoingMentorships[user.id] ?? 0,
+      preference: user.preference?.interviewer ?? {},
+      profile: user.profile ?? {},
+      avoid: user.avoidAsInterviewer ?? false,
+    }));
+}
 
 const update = procedure
   .use(authUser("MentorshipAdmin"))
