@@ -75,6 +75,8 @@ import NextLink from "next/link";
 import SwitchAndLabel from "components/SwitchAndLabel";
 import getI18nProps from "components/getI18nProps";
 import T from "components/T";
+import { useMyRoles } from "useMe";
+import { isPermitted } from "shared/Role";
 
 export default widePage(() => {
   const type: InterviewType =
@@ -167,11 +169,16 @@ function Applicants({
     });
   }, [applicants, sources]);
 
+  const myRoles = useMyRoles();
+  const canEdit = isPermitted(myRoles, "MentorshipAdmin");
+
   return (
     <TableContainer>
-      <Text marginBottom={sectionSpacing} color="gray" fontSize="sm">
-        <T>点击候选人以编辑面试官和面试讨论组：</T>
-      </Text>
+      {canEdit && (
+        <Text marginBottom={sectionSpacing} color="gray" fontSize="sm">
+          <T>点击候选人以编辑面试官和面试讨论组：</T>
+        </Text>
+      )}
 
       <Table size="sm">
         <Thead>
@@ -266,11 +273,17 @@ function Applicant({
     Interview | null | undefined
   >(undefined);
 
-  const TdEditLink = ({ children }: TableCellProps) => (
-    <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
-      {children}
-    </TdLink>
-  );
+  const myRoles = useMyRoles();
+  const canEdit = isPermitted(myRoles, "MentorshipAdmin");
+
+  const TdEditLink = ({ children }: TableCellProps) =>
+    canEdit ? (
+      <TdLink href="#" onClick={() => setInterviewInEditor(interview)}>
+        {children}
+      </TdLink>
+    ) : (
+      <Td>{children}</Td>
+    );
 
   return (
     <>
@@ -450,6 +463,9 @@ function Calibrations({
   calibrations: Calibration[];
   refetch: () => void;
 }) {
+  const myRoles = useMyRoles();
+  const canEdit = isPermitted(myRoles, "MentorshipAdmin");
+
   const create = async () => {
     // Find an unused name
     let name: string;
@@ -487,11 +503,13 @@ function Calibrations({
         </UnorderedList>
       </Box>
 
-      <Box>
-        <Button variant="outline" leftIcon={<AddIcon />} onClick={create}>
-          <T>新建面试讨论组</T>
-        </Button>
-      </Box>
+      {canEdit && (
+        <Box>
+          <Button variant="outline" leftIcon={<AddIcon />} onClick={create}>
+            <T>新建面试讨论组</T>
+          </Button>
+        </Box>
+      )}
 
       <TableContainer>
         <Table>
@@ -522,13 +540,17 @@ function Calibrations({
                 return (
                   <Tr key={c.id}>
                     <Td>
-                      <EditableWithIconOrLink
-                        editor="input"
-                        decorator="icon"
-                        defaultValue={c.name}
-                        maxWidth={60}
-                        onSubmit={(v) => update(c, v, c.active)}
-                      />
+                      {canEdit ? (
+                        <EditableWithIconOrLink
+                          editor="input"
+                          decorator="icon"
+                          defaultValue={c.name}
+                          maxWidth={60}
+                          onSubmit={(v) => update(c, v, c.active)}
+                        />
+                      ) : (
+                        c.name
+                      )}
                     </Td>
 
                     <TdLink href={`/calibrations/${c.id}`}>
@@ -538,6 +560,7 @@ function Calibrations({
                     <Td>
                       <SwitchAndLabel
                         isChecked={c.active}
+                        isDisabled={!canEdit}
                         onChange={(v) => update(c, c.name, v)}
                       />
                     </Td>

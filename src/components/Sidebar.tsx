@@ -95,13 +95,13 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "学生面试",
     action: "/interviews?type=MenteeInterview",
-    roles: "MentorshipAdmin",
+    roles: ["MentorshipAdmin", "MentorshipOperator"],
     feature: "interviews",
   },
   {
     name: "导师面试",
     action: "/interviews?type=MentorInterview",
-    roles: "MentorshipAdmin",
+    roles: ["MentorshipAdmin", "MentorshipOperator"],
     feature: "interviews",
   },
   {

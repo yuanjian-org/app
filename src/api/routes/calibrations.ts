@@ -102,7 +102,7 @@ const setManager = procedure
   });
 
 const list = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(zInterviewType)
   .output(z.array(zCalibration))
   .query(async ({ input: type }) => {
@@ -203,8 +203,8 @@ async function getCalibrationAndCheckPermission(
 }
 
 /**
- * Only MentorshipAdmin and participants of the calibration are allowed.
- * In the latter case, the calibration must be active.
+ * Only MentorshipAdmin, MentorshipOperator and participants of the
+ * calibration are allowed. In the latter case, the calibration must be active.
  *
  * @return the calibration if access is allowed. null otherwise
  *
@@ -222,7 +222,8 @@ export async function getCalibrationAndCheckPermissionSafe(
   });
   if (!c) throw notFoundError("面试讨论", calibrationId);
 
-  if (isPermitted(me.roles, "MentorshipAdmin")) return c;
+  if (isPermitted(me.roles, ["MentorshipAdmin", "MentorshipOperator"]))
+    return c;
 
   if (!c.active) return null;
 

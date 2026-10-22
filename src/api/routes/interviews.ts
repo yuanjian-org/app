@@ -41,8 +41,8 @@ import {
 import { whereMentorshipIsOngoing } from "./mentorships";
 
 /**
- * Only MentorshipAdmin, interviewers of the interview, and users
- * allowed by `getCalibrationAndCheckPermissionSafe` and
+ * Only MentorshipAdmin, MentorshipOperator, interviewers of the interview,
+ * and users allowed by `getCalibrationAndCheckPermissionSafe` and
  * `isPermittedToAccessMentee` are allowed to call this route.
  */
 const get = procedure
@@ -83,7 +83,8 @@ const get = procedure
         etag: date2etag(i.decisionUpdatedAt),
       };
 
-      if (isPermitted(me.roles, "MentorshipAdmin")) return ret;
+      if (isPermitted(me.roles, ["MentorshipAdmin", "MentorshipOperator"]))
+        return ret;
 
       if (i.feedbacks.some((f) => f.interviewer.id === me.id)) return ret;
 
@@ -138,7 +139,7 @@ export async function getInterviewIdForMentee(
 }
 
 const list = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(zInterviewType)
   .output(z.array(zInterview))
   .query(async ({ input: type }) => {
@@ -184,7 +185,7 @@ const listMine = procedure
  * any.
  */
 const listPendingCandidates = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .input(zInterviewType)
   .output(z.array(zUser))
   .query(async ({ input: type }) => {

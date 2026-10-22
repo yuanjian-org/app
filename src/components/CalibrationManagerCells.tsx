@@ -17,6 +17,8 @@ import { formatUserName } from "shared/strings/formatUserName";
 import { MdEdit } from "react-icons/md";
 import { Calibration as SharedCalibration } from "shared/Calibration";
 import T from "components/T";
+import { useMyRoles } from "useMe";
+import { isPermitted } from "shared/Role";
 
 export function CalibrationManagerHeaderCells() {
   return (
@@ -34,6 +36,17 @@ export function CalibrationManagerCells({
   refetch: () => void;
 }) {
   const [editing, setEditing] = useState<boolean>(false);
+  const myRoles = useMyRoles();
+  const canEdit = isPermitted(myRoles, "MentorshipAdmin");
+
+  if (!canEdit) {
+    return (
+      <Td>
+        {calibration.manager ? formatUserName(calibration.manager.name) : ""}
+      </Td>
+    );
+  }
+
   return (
     <>
       {editing && (
