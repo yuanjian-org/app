@@ -13,6 +13,7 @@ export const allRoles = [
   "MentorshipAssessor",
   "MentorshipAdmin",
   "MentorshipOperator",
+  "InterviewerManager",
 
   // See `docs/Glossary.md` for the definitions of this type.
   "TransactionalMentor",
@@ -93,6 +94,11 @@ const RoleProfiles: {
   MentorshipOperator: {
     displayName: "运营专员",
     actions: "负责导师和学生活动的运营",
+    privilegedUserDataAccess: true,
+  },
+  InterviewerManager: {
+    displayName: "面试主管",
+    actions: "查看与管理面试官列表",
     privilegedUserDataAccess: true,
   },
 

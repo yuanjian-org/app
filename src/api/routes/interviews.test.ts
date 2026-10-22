@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
 import db from "../database/db";
-import {
+import interviewsRouter, {
   createInterview,
   listInterviewerStatsImpl,
   updateInterview,
@@ -117,5 +117,45 @@ describe("interviews", () => {
     const mentorStats = stats.find((s) => s.user.id === mentorId);
     expect(mentorStats).to.not.equal(undefined);
     expect(mentorStats?.ongoingRelationalMentorships).to.equal(1);
+  });
+
+  it("`InterviewerManager` should be allowed to access stats and avoid", async () => {
+    const manager = { id: "mgr", roles: ["InterviewerManager"] } as any;
+    const caller = interviewsRouter.createCaller({
+      me: manager,
+      req: {} as any,
+      res: {} as any,
+    });
+
+    const stats = await caller.listInterviewerStats();
+    expect(stats).to.be.an("array");
+
+    const targetUserId = await createUser("target@test.com");
+    await caller.avoidAsInterviewer({ userId: targetUserId, avoid: true });
+    const target = await db.User.findByPk(targetUserId, { transaction });
+    void expect(target?.avoidAsInterviewer).to.be.true;
+  });
+
+  it("Regular user should be denied access to stats and avoid", async () => {
+    const regularUser = { id: "reg", roles: ["Mentor"] } as any;
+    const caller = interviewsRouter.createCaller({
+      me: regularUser,
+      req: {} as any,
+      res: {} as any,
+    });
+
+    try {
+      await caller.listInterviewerStats();
+      expect.fail("Should have thrown error");
+    } catch (e: any) {
+      expect(e.message).to.include("没有权限访问");
+    }
+
+    try {
+      await caller.avoidAsInterviewer({ userId: "some-id", avoid: true });
+      expect.fail("Should have thrown error");
+    } catch (e: any) {
+      expect(e.message).to.include("没有权限访问");
+    }
   });
 });

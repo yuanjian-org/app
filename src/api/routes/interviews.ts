@@ -321,7 +321,7 @@ export async function createInterview(
 }
 
 const avoidAsInterviewer = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "InterviewerManager"]))
   .input(z.object({ userId: z.string(), avoid: z.boolean() }))
   .mutation(async ({ input: { userId, avoid } }) => {
     const [cnt] = await db.User.update(
@@ -332,7 +332,7 @@ const avoidAsInterviewer = procedure
   });
 
 const listInterviewerStats = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "InterviewerManager"]))
   .output(
     z.array(
       z.object({

@@ -107,7 +107,7 @@ const managerDropdownMenuItems: DropdownMenuItem[] = [
   {
     name: "面试官",
     action: "/interviewers",
-    roles: "MentorshipAdmin",
+    roles: ["MentorshipAdmin", "InterviewerManager"],
     feature: "interviews",
   },
   {
