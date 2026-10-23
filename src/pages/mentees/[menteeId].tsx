@@ -132,13 +132,31 @@ function MenteeTabs({
   const me = useMe();
   const filtered = filterAndSortMentorship(mentorships, me);
 
+  // Check whether the user can access internal notes tab when filtered is empty
+  const isMentorOrAdmin =
+    isPermitted(me.roles, "MentorshipAdmin") ||
+    mentorships.some((m) => m.mentor.id === me.id);
+
+  // Check whether the user can access mentee self-filled profile
+  const canAccessMenteeProfile = features.menteeProfile && isMentorOrAdmin;
+
+  // Check whether the user can access application info
+  const canAccessApplicant =
+    features.interviews &&
+    (isPermitted(me.roles, "MentorshipOperator") || isMentorOrAdmin);
+
+  // Check whether the user can access interview page
+  const canAccessInterview = features.interviews && isMentorOrAdmin;
+
   return (
     <TabsWithUrlParam isLazy>
       <TabList>
         {filtered.length === 0 ? (
-          <Tab>
-            <T>内部笔记</T>
-          </Tab>
+          isMentorOrAdmin && (
+            <Tab>
+              <T>内部笔记</T>
+            </Tab>
+          )
         ) : filtered.length === 1 ? (
           <Tab>
             <Flex as="span" gap={1} align="center">
@@ -160,57 +178,53 @@ function MenteeTabs({
           ))
         )}
 
-        {features.menteeProfile && (
+        {canAccessMenteeProfile && (
           <Tab>
             <T>学生自填信息</T>
           </Tab>
         )}
 
-        {features.interviews && (
+        {canAccessApplicant && (
           <Tab>
             <T>申请表信息</T>
           </Tab>
         )}
 
-        {features.interviews &&
-          isPermitted(me.roles, ["Mentor", "MentorshipAdmin"]) && (
-            <Tab>
-              <T>面试页</T>
-            </Tab>
-          )}
+        {canAccessInterview && (
+          <Tab>
+            <T>面试页</T>
+          </Tab>
+        )}
 
         {/* <Tab>年度反馈</Tab> */}
       </TabList>
 
       <TabPanels>
-        {filtered.length === 0 ? (
-          <TabPanel px={0} pt={sectionSpacing}>
-            <ChatRoom menteeId={mentee.id} />
-          </TabPanel>
-        ) : (
-          filtered.map((m) => (
-            <TabPanel key={m.id} px={0} pt={sectionSpacing}>
-              <MentorshipPanel mentorship={m} />
-            </TabPanel>
-          ))
-        )}
+        {filtered.length === 0
+          ? isMentorOrAdmin && (
+              <TabPanel px={0} pt={sectionSpacing}>
+                <ChatRoom menteeId={mentee.id} />
+              </TabPanel>
+            )
+          : filtered.map((m) => (
+              <TabPanel key={m.id} px={0} pt={sectionSpacing}>
+                <MentorshipPanel mentorship={m} />
+              </TabPanel>
+            ))}
 
-        {features.menteeProfile && (
+        {canAccessMenteeProfile && (
           <TabPanel>
             <MenteeProfileTabPanel menteeId={mentee.id} />
           </TabPanel>
         )}
 
-        {features.interviews && (
+        {canAccessApplicant && (
           <TabPanel>
             <Applicant type="MenteeInterview" userId={mentee.id} />
           </TabPanel>
         )}
 
-        {features.interviews &&
-          isPermitted(me.roles, ["Mentor", "MentorshipAdmin"]) && (
-            <InterviewTabPanel menteeId={mentee.id} />
-          )}
+        {canAccessInterview && <InterviewTabPanel menteeId={mentee.id} />}
 
         {/* <TabPanel>
         <AssessmentsTable mentorshipId={mentorship.id} />
