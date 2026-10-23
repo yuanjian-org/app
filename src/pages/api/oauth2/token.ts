@@ -36,10 +36,13 @@ export default async function tokenHandler(
     client_id,
     client_secret,
     code_verifier,
-  } = req.body;
+  } = req.body || {};
 
   // 1. Verify client credentials. Can be passed in body or Basic Auth header.
-  const authHeader = req.headers.authorization;
+  const rawAuthHeader = req.headers.authorization;
+  const authHeader = Array.isArray(rawAuthHeader)
+    ? rawAuthHeader[0]
+    : rawAuthHeader;
   let clientId = client_id;
   let clientSecret = client_secret;
 
