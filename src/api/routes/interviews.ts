@@ -332,7 +332,7 @@ const avoidAsInterviewer = procedure
   });
 
 const listInterviewerStats = procedure
-  .use(authUser("MentorshipAdmin"))
+  .use(authUser(["MentorshipAdmin", "MentorshipOperator"]))
   .output(
     z.array(
       z.object({
