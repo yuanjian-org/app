@@ -16,7 +16,8 @@ import { formatUserName } from "shared/strings/formatUserName";
 import { toPinyin } from "shared/strings/toPinyin";
 import trpc, { trpcNext } from "trpc";
 import { sectionSpacing } from "theme/metrics";
-import { displayName } from "shared/Role";
+import { displayName, isPermitted } from "shared/Role";
+import { useMyRoles } from "useMe";
 import User, { getUserUrl } from "shared/User";
 import { InterviewerPreference } from "shared/UserPreference";
 import { UserProfile } from "shared/UserProfile";
@@ -141,6 +142,9 @@ function Row({
   avoid: boolean;
   refetch: () => void;
 }) {
+  const myRoles = useMyRoles();
+  const canEdit = isPermitted(myRoles, "MentorshipAdmin");
+
   const { data: state } = trpcNext.users.getUserState.useQuery({
     userId: user.id,
   });
@@ -148,7 +152,10 @@ function Row({
   const limit = preference.limit;
 
   const saveAvoid = async (avoid: boolean) => {
-    await trpc.interviews.avoidAsInterviewer.mutate({ userId: user.id, avoid });
+    await trpc.interviews.avoidAsInterviewer.mutate({
+      userId: user.id,
+      avoid,
+    });
     refetch();
   };
 
@@ -158,6 +165,7 @@ function Row({
       <Td>
         <Switch
           isChecked={avoid}
+          isDisabled={!canEdit}
           onChange={(e) => saveAvoid(e.target.checked)}
         />
       </Td>
