@@ -104,6 +104,21 @@ describe("auth.ts", () => {
       const result = await caller.testQuery();
       expect(result).to.equal("success");
     });
+
+    it("should handle authorization header as an array safely", async () => {
+      process.env.INTEGRATION_AUTH_TOKEN = "valid-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authIntegration()).query(() => "success"),
+      });
+      const caller = mockRouter.createCaller({
+        req: {
+          headers: { authorization: ["Bearer valid-token", "Bearer extra"] },
+        },
+      } as any);
+
+      const result = await caller.testQuery();
+      expect(result).to.equal("success");
+    });
   });
 
   describe("authUser", () => {

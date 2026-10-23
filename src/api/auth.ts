@@ -15,8 +15,9 @@ import { internalServerError } from "./errors";
  */
 export const authIntegration = () =>
   middleware(async ({ ctx, next }) => {
-    const token: string | undefined =
-      ctx.req.headers["authorization"]?.split(" ")[1];
+    const rawAuth = ctx.req.headers["authorization"];
+    const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
+    const token: string | undefined = authHeader?.split(" ")[1];
 
     if (!token) throw unauthorizedError();
 

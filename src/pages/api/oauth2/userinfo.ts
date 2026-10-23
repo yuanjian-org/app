@@ -22,7 +22,10 @@ export default async function userinfoHandler(
   }
 
   // 1. Verify the access token.
-  const authHeader = req.headers.authorization;
+  const rawAuthHeader = req.headers.authorization;
+  const authHeader = Array.isArray(rawAuthHeader)
+    ? rawAuthHeader[0]
+    : rawAuthHeader;
   const bearerPrefix = "Bearer ";
   if (!authHeader || !authHeader.startsWith(bearerPrefix)) {
     logError("Missing or invalid Authorization header");
