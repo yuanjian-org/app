@@ -133,35 +133,26 @@ function MenteeTabs({
   const filtered = filterAndSortMentorship(mentorships, me);
 
   // Check whether the user can access internal notes tab when filtered is empty
-  const canAccessInternalNotes =
+  const isMentorOrAdmin =
     isPermitted(me.roles, "MentorshipAdmin") ||
     mentorships.some((m) => m.mentor.id === me.id);
 
   // Check whether the user can access mentee self-filled profile
-  const canAccessMenteeProfile =
-    features.menteeProfile &&
-    (me.id === mentee.id ||
-      isPermitted(me.roles, ["Mentor", "MentorshipAdmin", "UserAdmin"]));
+  const canAccessMenteeProfile = features.menteeProfile && isMentorOrAdmin;
 
   // Check whether the user can access application info
   const canAccessApplicant =
     features.interviews &&
-    (me.id === mentee.id ||
-      isPermitted(me.roles, ["MentorshipAdmin", "MentorshipOperator"]) ||
-      mentorships.some((m) => m.mentor.id === me.id));
+    (isPermitted(me.roles, "MentorshipOperator") || isMentorOrAdmin);
 
   // Check whether the user can access interview page
-  const canAccessInterview =
-    features.interviews &&
-    (isPermitted(me.roles, "MentorshipAdmin") ||
-      (isPermitted(me.roles, "Mentor") &&
-        mentorships.some((m) => m.mentor.id === me.id)));
+  const canAccessInterview = features.interviews && isMentorOrAdmin;
 
   return (
     <TabsWithUrlParam isLazy>
       <TabList>
         {filtered.length === 0 ? (
-          canAccessInternalNotes && (
+          isMentorOrAdmin && (
             <Tab>
               <T>内部笔记</T>
             </Tab>
@@ -210,7 +201,7 @@ function MenteeTabs({
 
       <TabPanels>
         {filtered.length === 0
-          ? canAccessInternalNotes && (
+          ? isMentorOrAdmin && (
               <TabPanel px={0} pt={sectionSpacing}>
                 <ChatRoom menteeId={mentee.id} />
               </TabPanel>
