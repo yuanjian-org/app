@@ -383,6 +383,22 @@ describe("resetPasswordImpl", () => {
   });
 
   describe("phone number password reset", () => {
+    it("should throw error for invalid phone format", async () => {
+      try {
+        await resetPasswordImpl(
+          "phone",
+          "invalid-phone",
+          testToken,
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error).to.be.instanceOf(Error);
+        void expect(error.message).to.include("请输入有效的手机号码");
+      }
+    });
+
     it("should create new user if user does not exist", async () => {
       await createTestIdToken("phone", testPhone, testToken);
 
@@ -427,6 +443,22 @@ describe("resetPasswordImpl", () => {
   });
 
   describe("email password reset", () => {
+    it("should throw error for invalid email format", async () => {
+      try {
+        await resetPasswordImpl(
+          "email",
+          "invalid-email-format",
+          testToken,
+          hashedPassword,
+          transaction,
+        );
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error).to.be.instanceOf(Error);
+        void expect(error.message).to.include("请输入有效的邮箱地址");
+      }
+    });
+
     it("should create new user if user does not exist", async () => {
       await createTestIdToken("email", testEmail, testToken);
 
