@@ -144,6 +144,8 @@ jobs:
           sudo docker cp temp_extract:/app/nginx.${{ matrix.host_id }}.conf ./nginx.conf
           sudo docker cp temp_extract:/app/nginx.proxy.conf ./nginx.proxy.conf
           sudo docker cp temp_extract:/app/nginx.ssl.conf ./nginx.ssl.conf
+          # Used by the death-logger service in docker-compose.yml
+          sudo docker cp temp_extract:/app/docker-death-logger.sh ./docker-death-logger.sh
           sudo docker rm temp_extract
 
           echo ">>> Restarting Docker containers"

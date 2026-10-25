@@ -2,14 +2,17 @@ services:
   yqd:
     image: ${APP_IMAGE_BASE_NAME:?}.yqd:latest
     container_name: yqd
+    restart: unless-stopped
     env_file: .env.yqd
   sylp:
     image: ${APP_IMAGE_BASE_NAME:?}.sylp:latest
     container_name: sylp
+    restart: unless-stopped
     env_file: .env.sylp
   nginx:
     image: m.daocloud.io/docker.io/library/nginx:latest
     container_name: nginx
+    restart: unless-stopped
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx.proxy.conf:/etc/nginx/proxy_params.conf:ro
@@ -22,3 +25,14 @@ services:
     depends_on:
       - yqd
       - sylp
+  # Records why any container dies (exit code, OOM, last output lines) in
+  # ./logs/container-deaths.log. Restarts are done by the `restart:` policies.
+  death-logger:
+    image: m.daocloud.io/docker.io/library/docker:cli
+    container_name: death-logger
+    restart: unless-stopped
+    entrypoint: ["sh", "/docker-death-logger.sh"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker-death-logger.sh:/docker-death-logger.sh:ro
+      - ./logs:/logs

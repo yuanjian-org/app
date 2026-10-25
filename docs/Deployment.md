@@ -62,6 +62,13 @@ instructions in .env.template,
 1. `sudo chmod 600 ~/app/.env*`
 1. Add Github Actions' SSH public key to `~/.ssh/authorized_keys`.
 
+All containers use `restart: unless-stopped`, so Docker restarts them
+automatically when they crash and after host reboots. The `death-logger`
+container records the reason of every container death (exit code, OOM status,
+and the last lines of output) in `~/app/logs/container-deaths.log`. View it with
+`sudo tail -n 200 ~/app/logs/container-deaths.log` or
+`sudo docker logs death-logger`.
+
 For convenience of day-to-day admin operations (optional):
 
 1. Add `cd ~/app` to the end of `~/.bashrc`.

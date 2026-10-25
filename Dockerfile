@@ -64,6 +64,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 COPY --from=builder --chown=nextjs:nodejs /app/docker-compose.*.yml ./
 COPY --from=builder --chown=nextjs:nodejs /app/nginx.*.conf ./
+COPY --from=builder --chown=nextjs:nodejs /app/docker-death-logger.sh ./
 
 USER nextjs
 
