@@ -266,19 +266,28 @@ const reorderDraft = procedure
     });
   });
 
+export async function finalizeDraftImpl(
+  userId: string,
+  transaction?: Transaction,
+) {
+  const [cnt] = await db.MentorSelectionBatch.update(
+    {
+      finalizedAt: moment().toDate(),
+    },
+    { where: { userId, finalizedAt: null }, transaction },
+  );
+  invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
+  if (cnt === 0) {
+    throw generalBadRequestError("没有未完成的导师选择，请刷新页面重试");
+  }
+}
+
 const finalizeDraft = procedure
   .use(authUser())
   .mutation(async ({ ctx: { me } }) => {
-    const [cnt] = await db.MentorSelectionBatch.update(
-      {
-        finalizedAt: moment(),
-      },
-      { where: { userId: me.id, finalizedAt: null } },
-    );
-    invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
-    if (cnt === 0) {
-      throw generalBadRequestError("没有未完成的导师选择，请刷新页面重试");
-    }
+    await sequelize.transaction(async (transaction) => {
+      await finalizeDraftImpl(me.id, transaction);
+    });
   });
 
 const listFinalizedBatches = procedure
