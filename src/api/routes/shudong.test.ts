@@ -372,7 +372,7 @@ describe("shudong backend routes", () => {
       );
       expect(q.anonymousName).to.equal("匿名楼主");
 
-      // User A responds anonymously -> "匿名 A"
+      // User A responds anonymously -> "匿名 甲"
       const respA = await createPostImpl(
         userA,
         q.id,
@@ -380,9 +380,9 @@ describe("shudong backend routes", () => {
         true,
         transaction,
       );
-      expect(respA.anonymousName).to.equal("匿名 A");
+      expect(respA.anonymousName).to.equal("匿名 甲");
 
-      // User B responds anonymously -> "匿名 B"
+      // User B responds anonymously -> "匿名 乙"
       const respB = await createPostImpl(
         userB,
         q.id,
@@ -390,7 +390,7 @@ describe("shudong backend routes", () => {
         true,
         transaction,
       );
-      expect(respB.anonymousName).to.equal("匿名 B");
+      expect(respB.anonymousName).to.equal("匿名 乙");
 
       // OP responds anonymously to their own question -> "匿名楼主"
       const respOp = await createPostImpl(
@@ -402,7 +402,7 @@ describe("shudong backend routes", () => {
       );
       expect(respOp.anonymousName).to.equal("匿名楼主");
 
-      // User A replies again anonymously -> still "匿名 A"
+      // User A replies again anonymously -> still "匿名 甲"
       const respA2 = await createPostImpl(
         userA,
         respB.id,
@@ -410,7 +410,7 @@ describe("shudong backend routes", () => {
         true,
         transaction,
       );
-      expect(respA2.anonymousName).to.equal("匿名 A");
+      expect(respA2.anonymousName).to.equal("匿名 甲");
 
       // Verify thread scoped in getQuestionImpl
       const detail = await getQuestionImpl(op, q.id, transaction);
@@ -419,8 +419,8 @@ describe("shudong backend routes", () => {
       const rB = detail.responses.find((r) => r.id === respB.id);
       const rOp = detail.responses.find((r) => r.id === respOp.id);
 
-      expect(rA?.anonymousName).to.equal("匿名 A");
-      expect(rB?.anonymousName).to.equal("匿名 B");
+      expect(rA?.anonymousName).to.equal("匿名 甲");
+      expect(rB?.anonymousName).to.equal("匿名 乙");
       expect(rOp?.anonymousName).to.equal("匿名楼主");
     });
 
@@ -437,10 +437,10 @@ describe("shudong backend routes", () => {
       const r2 = await createPostImpl(user1, q2.id, "R2", true, transaction);
 
       expect(q1.anonymousName).to.equal("匿名楼主");
-      expect(r1.anonymousName).to.equal("匿名 A"); // user2 in thread 1
+      expect(r1.anonymousName).to.equal("匿名 甲"); // user2 in thread 1
 
       expect(q2.anonymousName).to.equal("匿名楼主");
-      expect(r2.anonymousName).to.equal("匿名 A"); // user1 in thread 2
+      expect(r2.anonymousName).to.equal("匿名 甲"); // user1 in thread 2
     });
   });
 

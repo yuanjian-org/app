@@ -81,22 +81,41 @@ export async function findShudongPostOrThrow(
   return post;
 }
 
+const HEAVENLY_STEMS = [
+  "甲",
+  "乙",
+  "丙",
+  "丁",
+  "戊",
+  "己",
+  "庚",
+  "辛",
+  "壬",
+  "癸",
+];
+
 /**
- * Converts a 0-indexed number into an uppercase alphabetical letter suffix
- * (0 -> "A", 1 -> "B", ..., 25 -> "Z", 26 -> "AA", etc.).
+ * Converts a 0-indexed number into a Chinese Heavenly Stem suffix
+ * (0 -> "甲", 1 -> "乙", ..., 9 -> "癸", 10 -> "甲甲", 11 -> "甲乙", etc.).
  */
 export function getLetterSuffix(index: number): string {
   let result = "";
   let i = index;
   while (i >= 0) {
-    result = String.fromCharCode((i % 26) + 65) + result;
-    i = Math.floor(i / 26) - 1;
+    result = HEAVENLY_STEMS[i % 10] + result;
+    i = Math.floor(i / 10) - 1;
   }
   return result;
 }
 
 export interface ThreadAuthorInfo {
+  /**
+   * User ID of the poster who created the root question (楼主).
+   */
   rootAuthorId: string;
+  /**
+   * Map from respondent User ID to their assigned pseudo-anonymous label (e.g., "匿名 甲", "匿名 乙").
+   */
   respondentMap: Map<string, string>;
 }
 
@@ -161,8 +180,8 @@ export async function getThreadAuthorMap(
 export async function formatShudongPost(
   post: ShudongPostModel,
   myId: string,
-  transaction?: Transaction,
   threadAuthorInfo?: ThreadAuthorInfo,
+  transaction?: Transaction,
 ): Promise<ShudongPost> {
   const upvote = await db.ShudongUpvote.findOne({
     where: { postId: post.id, userId: myId },
@@ -192,7 +211,7 @@ export async function formatShudongPost(
     if (post.authorId === info.rootAuthorId) {
       anonymousName = "匿名楼主";
     } else {
-      anonymousName = info.respondentMap.get(post.authorId) || "匿名 A";
+      anonymousName = info.respondentMap.get(post.authorId) || "匿名 甲";
     }
   }
 
@@ -240,7 +259,7 @@ export async function listQuestionsImpl(
   for (const q of questions) {
     const threadAuthorInfo = await getThreadAuthorMap(q.id, transaction);
     items.push(
-      await formatShudongPost(q, me.id, transaction, threadAuthorInfo),
+      await formatShudongPost(q, me.id, threadAuthorInfo, transaction),
     );
   }
   return items;
@@ -252,8 +271,8 @@ export async function listQuestionsImpl(
 export async function getResponsesImpl(
   me: User,
   parentId: string,
-  transaction?: Transaction,
   threadAuthorInfo?: ThreadAuthorInfo,
+  transaction?: Transaction,
 ) {
   checkShudongAccess(me);
   const responsesRaw = await db.ShudongPost.findAll({
@@ -276,7 +295,7 @@ export async function getResponsesImpl(
 
   const responses: ShudongPost[] = [];
   for (const r of responsesRaw) {
-    responses.push(await formatShudongPost(r, me.id, transaction, info));
+    responses.push(await formatShudongPost(r, me.id, info, transaction));
   }
   return responses;
 }
@@ -303,14 +322,14 @@ export async function getQuestionImpl(
   const question = await formatShudongPost(
     q,
     me.id,
-    transaction,
     threadAuthorInfo,
+    transaction,
   );
   const responses = await getResponsesImpl(
     me,
     questionId,
-    transaction,
     threadAuthorInfo,
+    transaction,
   );
 
   return { question, responses };
@@ -407,7 +426,7 @@ export async function createPostImpl(
   });
   invariant(fresh, "Failed to reload created post");
 
-  return await formatShudongPost(fresh, me.id, transaction);
+  return await formatShudongPost(fresh, me.id, undefined, transaction);
 }
 
 /**
@@ -452,7 +471,7 @@ export async function updatePostImpl(
   });
   invariant(fresh, "Failed to reload updated post");
 
-  return await formatShudongPost(fresh, me.id, transaction);
+  return await formatShudongPost(fresh, me.id, undefined, transaction);
 }
 
 /**
