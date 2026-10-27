@@ -569,6 +569,37 @@ describe("shudong backend routes", () => {
     });
   });
 
+  describe("AI generated post flag", () => {
+    it("should default isAiGenerated to false when creating a post", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const post = await createPostImpl(
+        mentor,
+        null,
+        "Human question",
+        true,
+        transaction,
+      );
+      void expect(post.isAiGenerated).to.be.false;
+    });
+
+    it("should return isAiGenerated true when set in DB", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const post = await createPostImpl(
+        mentor,
+        null,
+        "AI question",
+        true,
+        transaction,
+      );
+      await db.ShudongPost.update(
+        { isAiGenerated: true },
+        { where: { id: post.id }, transaction },
+      );
+      const detail = await getQuestionImpl(mentor, post.id, transaction);
+      void expect(detail.question.isAiGenerated).to.be.true;
+    });
+  });
+
   describe("input validation and error handling", () => {
     it("should reject empty post markdown on create and update", async () => {
       const mentor = await createTestUser(["Mentor"]);

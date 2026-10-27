@@ -345,6 +345,7 @@ export const shudongPostAttributes = [
   "deletedAt",
   // The fields below are required by formatShudongPost() in shudong.ts.
   "isAnonymous",
+  "isAiGenerated",
   "upvoteCount",
   "responseCount",
   "lastEditedAt",

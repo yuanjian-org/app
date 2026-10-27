@@ -22,8 +22,10 @@ import {
   FormControl,
   FormLabel,
   Icon,
+  Tooltip,
 } from "@chakra-ui/react";
 import { FiThumbsUp } from "react-icons/fi";
+import { BsRobot } from "react-icons/bs";
 import { FaBell } from "react-icons/fa";
 import {
   ChatIcon,
@@ -78,6 +80,18 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
             <Text fontWeight="bold" fontSize="sm">
               <UserLink user={post.author!} />
             </Text>
+          )}
+          {post.isAiGenerated && (
+            <Tooltip label="AI 生成" hasArrow placement="top">
+              <span>
+                <Icon
+                  as={BsRobot}
+                  boxSize={3.5}
+                  color="gray.400"
+                  aria-label="AI 生成"
+                />
+              </span>
+            </Tooltip>
           )}
           {/* Soft-deleted posts indicate deletion directly via content, */}
           {/* so no deleted label is shown. Edit badge is for active posts. */}
