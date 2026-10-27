@@ -50,6 +50,15 @@ class ShudongPost extends Model {
   @Column(DataType.BOOLEAN)
   isAnonymous: boolean;
 
+  /**
+   * Flag indicating if the post content was AI generated.
+   * Only settable via manual backend scripts.
+   */
+  @AllowNull(false)
+  @Default(false)
+  @Column(DataType.BOOLEAN)
+  isAiGenerated: boolean;
+
   @AllowNull(false)
   @Column(DataType.TEXT)
   markdown: string;

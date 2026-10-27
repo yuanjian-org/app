@@ -223,6 +223,7 @@ export async function formatShudongPost(
     upvoteCount: post.upvoteCount,
     responseCount: post.responseCount,
     isDeleted,
+    isAiGenerated: post.isAiGenerated ?? false,
     lastEditedAt: post.lastEditedAt,
     createdAt: post.createdAt,
     userHasUpvoted: !!upvote,

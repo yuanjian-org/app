@@ -14,6 +14,10 @@ export const zShudongPost = z.object({
   upvoteCount: z.number(),
   responseCount: z.number(),
   isDeleted: z.boolean(),
+  /**
+   * Indicates whether the post content was AI generated.
+   */
+  isAiGenerated: z.boolean(),
   lastEditedAt: zNullableDateColumn,
   createdAt: zDateColumn,
   userHasUpvoted: z.boolean(),
