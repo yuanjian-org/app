@@ -356,6 +356,92 @@ describe("shudong backend routes", () => {
       expect(dbPost?.authorId).to.equal(mentor.id);
       void expect(q.author).to.be.null;
     });
+
+    it("should assign pseudo-anonymous labels correctly within thread", async () => {
+      const op = await createTestUser(["Mentor"]);
+      const userA = await createTestUser(["Mentee"], "现届学子");
+      const userB = await createTestUser(["Mentee"], "现届学子");
+
+      // OP creates anonymous question
+      const q = await createPostImpl(
+        op,
+        null,
+        "Question by OP",
+        true,
+        transaction,
+      );
+      expect(q.anonymousName).to.equal("匿名楼主");
+
+      // User A responds anonymously -> "匿名 甲"
+      const respA = await createPostImpl(
+        userA,
+        q.id,
+        "Response by User A",
+        true,
+        transaction,
+      );
+      expect(respA.anonymousName).to.equal("匿名 甲");
+
+      // User B responds anonymously -> "匿名 乙"
+      const respB = await createPostImpl(
+        userB,
+        q.id,
+        "Response by User B",
+        true,
+        transaction,
+      );
+      expect(respB.anonymousName).to.equal("匿名 乙");
+
+      // OP responds anonymously to their own question -> "匿名楼主"
+      const respOp = await createPostImpl(
+        op,
+        q.id,
+        "OP reply",
+        true,
+        transaction,
+      );
+      expect(respOp.anonymousName).to.equal("匿名楼主");
+
+      // User A replies again anonymously -> still "匿名 甲"
+      const respA2 = await createPostImpl(
+        userA,
+        respB.id,
+        "User A follow-up",
+        true,
+        transaction,
+      );
+      expect(respA2.anonymousName).to.equal("匿名 甲");
+
+      // Verify thread scoped in getQuestionImpl
+      const detail = await getQuestionImpl(op, q.id, transaction);
+      expect(detail.question.anonymousName).to.equal("匿名楼主");
+      const rA = detail.responses.find((r) => r.id === respA.id);
+      const rB = detail.responses.find((r) => r.id === respB.id);
+      const rOp = detail.responses.find((r) => r.id === respOp.id);
+
+      expect(rA?.anonymousName).to.equal("匿名 甲");
+      expect(rB?.anonymousName).to.equal("匿名 乙");
+      expect(rOp?.anonymousName).to.equal("匿名楼主");
+    });
+
+    it("should scope pseudo-anonymous labels per thread/question", async () => {
+      const user1 = await createTestUser(["Mentor"]);
+      const user2 = await createTestUser(["Mentee"], "现届学子");
+
+      // Thread 1: user1 is OP
+      const q1 = await createPostImpl(user1, null, "Q1", true, transaction);
+      const r1 = await createPostImpl(user2, q1.id, "R1", true, transaction);
+
+      // Thread 2: user2 is OP
+      const q2 = await createPostImpl(user2, null, "Q2", true, transaction);
+      const r2 = await createPostImpl(user1, q2.id, "R2", true, transaction);
+
+      expect(q1.anonymousName).to.equal("匿名楼主");
+      expect(r1.anonymousName).to.equal("匿名 甲"); // user2 in thread 1
+
+      expect(q2.anonymousName).to.equal("匿名楼主");
+      expect(r2.anonymousName).to.equal("匿名 甲"); // user1 in thread 2
+    });
   });
 
   describe("editing, soft deleting, and upvoting", () => {

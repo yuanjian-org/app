@@ -81,14 +81,106 @@ export async function findShudongPostOrThrow(
   return post;
 }
 
+const HEAVENLY_STEMS = [
+  "甲",
+  "乙",
+  "丙",
+  "丁",
+  "戊",
+  "己",
+  "庚",
+  "辛",
+  "壬",
+  "癸",
+];
+
+/**
+ * Converts a 0-indexed number into a Chinese Heavenly Stem suffix
+ * (0 -> "甲", 1 -> "乙", ..., 9 -> "癸", 10 -> "甲甲", 11 -> "甲乙", etc.).
+ */
+export function getLetterSuffix(index: number): string {
+  let result = "";
+  let i = index;
+  while (i >= 0) {
+    result = HEAVENLY_STEMS[i % 10] + result;
+    i = Math.floor(i / 10) - 1;
+  }
+  return result;
+}
+
+export interface ThreadAuthorInfo {
+  /**
+   * User ID of the poster who created the root question (楼主).
+   */
+  rootAuthorId: string;
+  /**
+   * Map from respondent User ID to their assigned pseudo-anonymous label (e.g., "匿名 甲", "匿名 乙").
+   */
+  respondentMap: Map<string, string>;
+}
+
+/**
+ * Computes root author ID and pseudo-anonymous label mapping for respondents
+ * within a single question thread.
+ */
+export async function getThreadAuthorMap(
+  rootQuestionId: string,
+  transaction?: Transaction,
+): Promise<ThreadAuthorInfo> {
+  const rootQuestion = await db.ShudongPost.findByPk(rootQuestionId, {
+    attributes: ["id", "authorId"],
+    transaction,
+  });
+  if (!rootQuestion) {
+    return { rootAuthorId: "", respondentMap: new Map() };
+  }
+
+  let currentParentIds = [rootQuestionId];
+  const allThreadPosts: { authorId: string; createdAt: Date }[] = [];
+
+  while (currentParentIds.length > 0) {
+    const children = await db.ShudongPost.findAll({
+      where: {
+        parentId: { [Op.in]: currentParentIds },
+      },
+      attributes: ["id", "authorId", "createdAt"],
+      order: [["createdAt", "ASC"]],
+      transaction,
+    });
+    if (children.length === 0) break;
+    allThreadPosts.push(...children);
+    currentParentIds = children.map((c) => c.id);
+  }
+
+  allThreadPosts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+  const respondentMap = new Map<string, string>();
+  let count = 0;
+
+  for (const post of allThreadPosts) {
+    if (post.authorId === rootQuestion.authorId) {
+      continue;
+    }
+    if (!respondentMap.has(post.authorId)) {
+      const label = `匿名 ${getLetterSuffix(count)}`;
+      respondentMap.set(post.authorId, label);
+      count++;
+    }
+  }
+
+  return { rootAuthorId: rootQuestion.authorId, respondentMap };
+}
+
 /**
  * Formats a raw DB ShudongPost for client consumption.
  * Anonymizes author info if the post is marked anonymous or soft-deleted.
  * Checks whether the current user has upvoted and subscribed to the post.
+ * Assigns pseudo-anonymous labels scoped within the question thread.
  */
 export async function formatShudongPost(
   post: ShudongPostModel,
   myId: string,
+  threadAuthorInfo?: ThreadAuthorInfo,
   transaction?: Transaction,
 ): Promise<ShudongPost> {
   const upvote = await db.ShudongUpvote.findOne({
@@ -111,6 +203,18 @@ export async function formatShudongPost(
   const isAnonymous = isDeleted || post.isAnonymous;
   const author = !isAnonymous && post.author ? post.author : null;
 
+  let anonymousName: string | null = null;
+  if (isAnonymous) {
+    const info =
+      threadAuthorInfo ??
+      (await getThreadAuthorMap(rootQuestionId, transaction));
+    if (post.authorId === info.rootAuthorId) {
+      anonymousName = "匿名楼主";
+    } else {
+      anonymousName = info.respondentMap.get(post.authorId) || "匿名 甲";
+    }
+  }
+
   return zShudongPost.parse({
     id: post.id,
     parentId: post.parentId,
@@ -123,6 +227,7 @@ export async function formatShudongPost(
     createdAt: post.createdAt,
     userHasUpvoted: !!upvote,
     userIsSubscribed: !!subscription,
+    anonymousName,
   });
 }
 
@@ -152,7 +257,10 @@ export async function listQuestionsImpl(
 
   const items: ShudongPost[] = [];
   for (const q of questions) {
-    items.push(await formatShudongPost(q, me.id, transaction));
+    const threadAuthorInfo = await getThreadAuthorMap(q.id, transaction);
+    items.push(
+      await formatShudongPost(q, me.id, threadAuthorInfo, transaction),
+    );
   }
   return items;
 }
@@ -163,6 +271,7 @@ export async function listQuestionsImpl(
 export async function getResponsesImpl(
   me: User,
   parentId: string,
+  threadAuthorInfo?: ThreadAuthorInfo,
   transaction?: Transaction,
 ) {
   checkShudongAccess(me);
@@ -177,9 +286,16 @@ export async function getResponsesImpl(
     transaction,
   });
 
+  const info =
+    threadAuthorInfo ??
+    (await getThreadAuthorMap(
+      await findRootQuestionId(parentId, transaction),
+      transaction,
+    ));
+
   const responses: ShudongPost[] = [];
   for (const r of responsesRaw) {
-    responses.push(await formatShudongPost(r, me.id, transaction));
+    responses.push(await formatShudongPost(r, me.id, info, transaction));
   }
   return responses;
 }
@@ -202,8 +318,19 @@ export async function getQuestionImpl(
     throw notFoundError("树洞帖子", questionId);
   }
 
-  const question = await formatShudongPost(q, me.id, transaction);
-  const responses = await getResponsesImpl(me, questionId, transaction);
+  const threadAuthorInfo = await getThreadAuthorMap(questionId, transaction);
+  const question = await formatShudongPost(
+    q,
+    me.id,
+    threadAuthorInfo,
+    transaction,
+  );
+  const responses = await getResponsesImpl(
+    me,
+    questionId,
+    threadAuthorInfo,
+    transaction,
+  );
 
   return { question, responses };
 }
@@ -299,7 +426,7 @@ export async function createPostImpl(
   });
   invariant(fresh, "Failed to reload created post");
 
-  return await formatShudongPost(fresh, me.id, transaction);
+  return await formatShudongPost(fresh, me.id, undefined, transaction);
 }
 
 /**
@@ -344,7 +471,7 @@ export async function updatePostImpl(
   });
   invariant(fresh, "Failed to reload updated post");
 
-  return await formatShudongPost(fresh, me.id, transaction);
+  return await formatShudongPost(fresh, me.id, undefined, transaction);
 }
 
 /**

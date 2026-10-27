@@ -21,6 +21,10 @@ export const zShudongPost = z.object({
    * userIsSubscribed is only valid for questions (i.e. root posts).
    */
   userIsSubscribed: z.boolean().optional(),
+  /**
+   * Label generated for pseudo-anonymity within a thread (e.g., "匿名楼主", "匿名 A").
+   */
+  anonymousName: z.string().nullable().optional(),
 });
 
 export type ShudongPost = z.infer<typeof zShudongPost>;

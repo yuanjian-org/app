@@ -55,13 +55,16 @@ import Autosaver from "./Autosaver";
 export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
   // Soft-deleted or anonymous posts hide author details to protect identity
   const isAnon = !post.author;
-  const authorName = post.author ? formatUserName(post.author.name) : "匿名";
+  const anonDisplayName = post.anonymousName || "匿名";
+  const authorName = post.author
+    ? formatUserName(post.author.name)
+    : anonDisplayName;
 
   return (
     <HStack spacing={3} alignItems="center">
       <Avatar
         size="sm"
-        name={isAnon ? "匿名" : authorName}
+        name={isAnon ? anonDisplayName : authorName}
         bg={isAnon ? "gray.400" : "brand.a"}
         color="white"
       />
@@ -69,7 +72,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
         <HStack spacing={2} align="center">
           {isAnon ? (
             <Text fontWeight="bold" fontSize="sm" color="gray.600">
-              <T>匿名</T>
+              <T>{anonDisplayName}</T>
             </Text>
           ) : (
             <Text fontWeight="bold" fontSize="sm">
