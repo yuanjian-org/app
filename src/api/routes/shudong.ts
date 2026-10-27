@@ -242,19 +242,14 @@ export async function listQuestionsImpl(
 ) {
   checkShudongAccess(me);
 
-  // Security input validation: bound limit and offset to prevent Denial of
-  // Service (DoS), memory exhaustion, and negative offset SQL errors.
-  const safeLimit = Math.min(Math.max(1, limit), 100);
-  const safeOffset = Math.max(0, offset);
-
   const questions = await db.ShudongPost.findAll({
     where: {
       parentId: null,
       ...shudongPostWhereCondition,
     },
     order: [["createdAt", "DESC"]],
-    limit: safeLimit,
-    offset: safeOffset,
+    limit,
+    offset,
     attributes: shudongPostAttributes,
     include: shudongPostInclude,
     transaction,
