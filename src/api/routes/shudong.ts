@@ -23,15 +23,20 @@ import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
 import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import { shudongNewQuestionSubjectId } from "./shudongInternal";
+import { getTimestamp } from "../../shared/strings/getTimestamp";
 
 /**
  * Common where condition for active or soft-deleted posts that have replies.
  * Soft-deleted posts with responseCount > 0 are retained so that response
  * threads beneath them remain accessible.
  */
-export const shudongPostWhereCondition = {
-  [Op.or]: [{ deletedAt: null }, { responseCount: { [Op.gt]: 0 } }],
-};
+export function getShudongPostWhereCondition() {
+  return {
+    [Op.or]: [{ deletedAt: null }, { responseCount: { [Op.gt]: 0 } }],
+  };
+}
+
+export const shudongPostWhereCondition = getShudongPostWhereCondition();
 
 /**
  * Throws a permission error if the current user is not authorized to use
@@ -152,7 +157,9 @@ export async function getThreadAuthorMap(
     currentParentIds = children.map((c) => c.id);
   }
 
-  allThreadPosts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  allThreadPosts.sort(
+    (a, b) => getTimestamp(a.createdAt) - getTimestamp(b.createdAt),
+  );
 
   const respondentMap = new Map<string, string>();
   let count = 0;
@@ -244,8 +251,7 @@ export async function listQuestionsImpl(
 
   const questions = await db.ShudongPost.findAll({
     where: {
-      parentId: null,
-      ...shudongPostWhereCondition,
+      [Op.and]: [{ parentId: null }, getShudongPostWhereCondition()],
     },
     order: [["createdAt", "DESC"]],
     limit,
@@ -277,8 +283,7 @@ export async function getResponsesImpl(
   checkShudongAccess(me);
   const responsesRaw = await db.ShudongPost.findAll({
     where: {
-      parentId,
-      ...shudongPostWhereCondition,
+      [Op.and]: [{ parentId }, getShudongPostWhereCondition()],
     },
     order: [["createdAt", "ASC"]],
     attributes: shudongPostAttributes,
