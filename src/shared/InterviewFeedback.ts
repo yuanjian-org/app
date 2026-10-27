@@ -10,8 +10,9 @@ export const zInterviewer = z.object({
 
 export const zFeedbackDimension = z.object({
   name: z.string(),
-  score: z.number().optional(),
-  comment: z.string().optional(),
+  // Allow null as historical database records may store null for unset fields.
+  score: z.number().nullish(),
+  comment: z.string().nullish(),
 });
 export type FeedbackDimension = z.TypeOf<typeof zFeedbackDimension>;
 

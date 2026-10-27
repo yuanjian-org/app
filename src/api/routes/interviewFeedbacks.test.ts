@@ -129,9 +129,12 @@ describe("interviewFeedbacks routes", () => {
       // create without it, so date2etag gives 0.
       const initialEtag = 0;
 
-      // Use valid zFeedback data (dimensions field)
+      // Use valid zFeedback data including null score/comment values
       const updatedFeedback = {
-        dimensions: [{ name: "能力", score: 5, comment: "优秀" }],
+        dimensions: [
+          { name: "能力", score: 5, comment: "优秀" },
+          { name: "总评", score: null, comment: null },
+        ],
       };
 
       const newEtag = await updateInterviewFeedbackImpl(
