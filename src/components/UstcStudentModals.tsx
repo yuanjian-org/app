@@ -23,10 +23,10 @@ import { UserState } from "shared/UserState";
 import { toast } from "react-toastify";
 import { accountPageTitle } from "pages/accounts/[userId]";
 import { useSession } from "next-auth/react";
-import ContactCustomerService from "./ContactCustomerService";
 import { tokenMinSendIntervalInSeconds, tokenLength } from "shared/token";
 import T from "components/T";
 import { useTranslation } from "next-i18next/pages";
+import StudentValidationModalFooter from "./StudentValidationModalFooter";
 
 export function UstcStudentModals({
   userState,
@@ -206,24 +206,13 @@ export function UstcStudentValidationModal({
             </FormControl>
           </VStack>
         </ModalBody>
-        <ModalFooter>
-          <HStack spacing={componentSpacing} w="full">
-            <ContactCustomerService />
-
-            <Spacer />
-            <Button onClick={cancel} isDisabled={loadingSubmit}>
-              {cancelLabel}
-            </Button>
-            <Button
-              onClick={submit}
-              variant="brand"
-              isDisabled={!isInputValid}
-              isLoading={loadingSubmit}
-            >
-              <T>提交</T>
-            </Button>
-          </HStack>
-        </ModalFooter>
+        <StudentValidationModalFooter
+          cancelLabel={cancelLabel}
+          cancel={cancel}
+          submit={submit}
+          isInputValid={isInputValid}
+          loadingSubmit={loadingSubmit}
+        />
       </ModalContent>
     </ModalWithBackdrop>
   );
