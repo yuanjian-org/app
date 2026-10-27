@@ -623,5 +623,27 @@ describe("shudong backend routes", () => {
         expect(err.message).to.contain("树洞帖子");
       }
     });
+
+    it("should clamp out-of-bounds limit and offset values safely", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      await createPostImpl(mentor, null, "Question 1", true, transaction);
+
+      // Testing negative or excessive limit/offset values
+      const listNegativeOffset = await listQuestionsImpl(
+        mentor,
+        -10,
+        -5,
+        transaction,
+      );
+      expect(listNegativeOffset).to.be.an("array");
+
+      const listExcessiveLimit = await listQuestionsImpl(
+        mentor,
+        1000,
+        0,
+        transaction,
+      );
+      expect(listExcessiveLimit).to.be.an("array");
+    });
   });
 });
