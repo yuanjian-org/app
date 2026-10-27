@@ -297,7 +297,12 @@ describe("shudong backend routes", () => {
       const qDetail = await getQuestionImpl(mentor, question.id, transaction);
       expect(qDetail.responses.length).to.equal(1);
 
-      const resps = await getResponsesImpl(mentor, question.id, transaction);
+      const resps = await getResponsesImpl(
+        mentor,
+        question.id,
+        undefined,
+        transaction,
+      );
       expect(resps.length).to.equal(1);
     });
 
@@ -337,7 +342,12 @@ describe("shudong backend routes", () => {
       void expect(deletedAns.isDeleted).to.be.true;
       void expect(deletedAns.author).to.be.null;
 
-      const childResps = await getResponsesImpl(mentor, answer.id, transaction);
+      const childResps = await getResponsesImpl(
+        mentor,
+        answer.id,
+        undefined,
+        transaction,
+      );
       expect(childResps.length).to.equal(1);
       expect(childResps[0].id).to.equal(reply.id);
     });
