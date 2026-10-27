@@ -142,7 +142,6 @@ export default fullPage(() => {
                 so that the whole thing is a single responsive line that
                 wraps as needed and shares one font style. */}
             <Text fontSize="sm" color="gray.600">
-              <T>欢迎来到树洞！在这里你可以匿名或实名提问、交流与解答问题。</T>{" "}
               {/* Solid bell icon, vertically aligned with the inline text */}
               <Icon
                 as={MdNotifications}
@@ -155,7 +154,7 @@ export default fullPage(() => {
                 top="-2px"
                 mr={1}
               />
-              <T>接收未来新问题通知：</T>
+              <T>接收新问题通知：</T>
               <Select
                 size="xs"
                 // Layout props apply to Select's wrapper element. Keep it
@@ -171,11 +170,10 @@ export default fullPage(() => {
                   )
                 }
               >
-                <option value="default">默认</option>
-                <option value="yes">是</option>
-                <option value="no">否</option>
+                <option value="default">默认：导师开、其他用户关</option>
+                <option value="yes">开</option>
+                <option value="no">关</option>
               </Select>
-              <T>（导师默认是，其他用户默认否）</T>
             </Text>
           </VStack>
           <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
