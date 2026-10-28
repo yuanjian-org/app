@@ -397,7 +397,35 @@ export async function createPostImpl(
 
   if (parentId) {
     invariant(parent, "Parent post not found");
-    await parent.increment("responseCount", { by: 1, transaction });
+    // Increment response count on all ancestors in the parent chain so that
+    // responseCount includes all direct and indirect responses.
+    let currParentId: string | null = parentId;
+    let incrementBy = 1;
+
+    while (currParentId) {
+      const parentPost: ShudongPostModel | null = await db.ShudongPost.findByPk(
+        currParentId,
+        {
+          attributes: shudongPostAttributes,
+          transaction,
+        },
+      );
+      if (!parentPost) break;
+
+      const wasHidden =
+        parentPost.deletedAt !== null && parentPost.responseCount === 0;
+
+      await parentPost.increment("responseCount", {
+        by: incrementBy,
+        transaction,
+      });
+
+      if (wasHidden) {
+        incrementBy += 1;
+      }
+
+      currParentId = parentPost.parentId;
+    }
 
     // Auto-subscribe responder to root question
     invariant(rootQuestionId, "rootQuestionId should be defined");
@@ -476,8 +504,50 @@ export async function updatePostImpl(
 }
 
 /**
+ * Decrements response counts up the parent chain when a post becomes hidden
+ * (i.e. soft-deleted with responseCount === 0). Cascades if soft-deleted
+ * ancestors also become hidden.
+ */
+export async function handleNodeBecameHidden(
+  postId: string,
+  transaction: Transaction,
+) {
+  const post = await db.ShudongPost.findByPk(postId, {
+    attributes: ["id", "parentId"],
+    transaction,
+  });
+  if (!post || !post.parentId) return;
+
+  let currParentId: string | null = post.parentId;
+  let decrementBy = 1;
+
+  while (currParentId) {
+    const parent: ShudongPostModel | null = await db.ShudongPost.findByPk(
+      currParentId,
+      {
+        attributes: shudongPostAttributes,
+        transaction,
+      },
+    );
+    if (!parent) break;
+
+    await parent.increment("responseCount", {
+      by: -decrementBy,
+      transaction,
+    });
+    await parent.reload({ transaction });
+
+    if (parent.deletedAt !== null && parent.responseCount === 0) {
+      decrementBy += 1;
+    }
+
+    currParentId = parent.parentId;
+  }
+}
+
+/**
  * Soft deletes a post (deletedAt = now).
- * Decrements parent responseCount if this is a response.
+ * Decrements ancestor responseCounts if this post becomes completely hidden.
  */
 export async function deletePostImpl(
   me: User,
@@ -499,21 +569,10 @@ export async function deletePostImpl(
     { transaction },
   );
 
-  // Decrement response count on parent post only if this post will be completely hidden (responseCount === 0).
+  // Decrement response count on ancestor posts only if this post will be completely hidden (responseCount === 0).
   // If responseCount > 0, this post stays in the thread as an anonymized soft-deleted placeholder.
-  if (post.parentId && post.responseCount === 0) {
-    const parent = await db.ShudongPost.findByPk(post.parentId, {
-      attributes: shudongPostAttributes,
-      transaction,
-    });
-    invariant(
-      parent && parent.responseCount > 0,
-      "Parent post not found or responseCount invalid",
-    );
-    await parent.increment("responseCount", {
-      by: -1,
-      transaction,
-    });
+  if (post.responseCount === 0) {
+    await handleNodeBecameHidden(post.id, transaction);
   }
 }
 
