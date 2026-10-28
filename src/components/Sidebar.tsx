@@ -456,7 +456,7 @@ function SidebarContent({ onClose }: { onClose: () => void }) {
       <Box>
         <DropdownMenu
           title={myName}
-          icon={<Avatar size={"sm"} bg="brand.a" color="white" name={myName} />}
+          icon={<Avatar size={"sm"} name={myName} />}
           menuItems={userDropdownMenuItems}
           onClose={onClose}
         />

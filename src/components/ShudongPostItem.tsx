@@ -64,12 +64,9 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 
   return (
     <HStack spacing={3} alignItems="center">
-      <Avatar
-        size="sm"
-        name={isAnon ? anonDisplayName : authorName}
-        bg={isAnon ? "gray.400" : "brand.a"}
-        color="white"
-      />
+      {/* Omit hardcoded bg/color so Avatar computes a distinct color */}
+      {/* from the full display name via the global Avatar theme. */}
+      <Avatar size="sm" name={authorName} />
       <VStack spacing={0} align="start">
         <HStack spacing={2} align="center">
           {isAnon ? (
