@@ -230,13 +230,33 @@ describe("auth.ts", () => {
   });
 
   describe("authWebhook", () => {
-    it("should throw internal server error if WEBHOOK_TOKEN is not set", async () => {
+    it("should throw UNAUTHORIZED if authorization header is missing", async () => {
+      process.env.WEBHOOK_TOKEN = "test-webhook-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authWebhook).query(() => "success"),
+      });
+
+      const caller = mockRouter.createCaller({ req: { headers: {} } } as any);
+
+      let error: any;
+      try {
+        await caller.testQuery();
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.be.instanceOf(TRPCError);
+      expect((error as TRPCError).code).to.equal("UNAUTHORIZED");
+    });
+
+    it("should throw INTERNAL_SERVER_ERROR if WEBHOOK_TOKEN is not set", async () => {
       delete process.env.WEBHOOK_TOKEN;
       const mockRouter = router({
         testQuery: procedure.use(authWebhook).query(() => "success"),
       });
 
-      const caller = mockRouter.createCaller({} as any);
+      const caller = mockRouter.createCaller({
+        req: { headers: { authorization: "Bearer some-token" } },
+      } as any);
 
       let error: any;
       try {
@@ -248,13 +268,74 @@ describe("auth.ts", () => {
       expect((error as TRPCError).code).to.equal("INTERNAL_SERVER_ERROR");
     });
 
-    it("should succeed if WEBHOOK_TOKEN is set", async () => {
+    it("should throw BAD_REQUEST if webhook token is invalid", async () => {
+      process.env.WEBHOOK_TOKEN = "valid-webhook-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authWebhook).query(() => "success"),
+      });
+
+      const caller = mockRouter.createCaller({
+        req: { headers: { authorization: "Bearer invalid-token" } },
+      } as any);
+
+      let error: any;
+      try {
+        await caller.testQuery();
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.be.instanceOf(TRPCError);
+      expect((error as TRPCError).code).to.equal("BAD_REQUEST");
+    });
+
+    it("should throw BAD_REQUEST if webhook token byte length differs", async () => {
+      process.env.WEBHOOK_TOKEN = "valid-webhook-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authWebhook).query(() => "success"),
+      });
+
+      // Byte length differs due to multi-byte UTF-8 character
+      const caller = mockRouter.createCaller({
+        req: { headers: { authorization: "Bearer valid-webhook-tok€n" } },
+      } as any);
+
+      let error: any;
+      try {
+        await caller.testQuery();
+      } catch (e) {
+        error = e;
+      }
+      expect(error).to.be.instanceOf(TRPCError);
+      expect((error as TRPCError).code).to.equal("BAD_REQUEST");
+    });
+
+    it("should succeed if webhook token is valid", async () => {
       process.env.WEBHOOK_TOKEN = "test-webhook-token";
       const mockRouter = router({
         testQuery: procedure.use(authWebhook).query(() => "success"),
       });
 
-      const caller = mockRouter.createCaller({} as any);
+      const caller = mockRouter.createCaller({
+        req: { headers: { authorization: "Bearer test-webhook-token" } },
+      } as any);
+
+      const result = await caller.testQuery();
+      expect(result).to.equal("success");
+    });
+
+    it("should handle authorization header as an array safely", async () => {
+      process.env.WEBHOOK_TOKEN = "test-webhook-token";
+      const mockRouter = router({
+        testQuery: procedure.use(authWebhook).query(() => "success"),
+      });
+
+      const caller = mockRouter.createCaller({
+        req: {
+          headers: {
+            authorization: ["Bearer test-webhook-token", "Bearer extra"],
+          },
+        },
+      } as any);
 
       const result = await caller.testQuery();
       expect(result).to.equal("success");
