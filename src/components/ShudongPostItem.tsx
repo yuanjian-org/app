@@ -25,7 +25,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import { FiThumbsUp } from "react-icons/fi";
-import { BsRobot } from "react-icons/bs";
+import { PiStarFourFill } from "react-icons/pi";
 import { FaBell } from "react-icons/fa";
 import {
   ChatIcon,
@@ -85,9 +85,9 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
             <Tooltip label="AI 生成" hasArrow placement="top">
               <span>
                 <Icon
-                  as={BsRobot}
+                  as={PiStarFourFill}
                   boxSize={3.5}
-                  color="gray.400"
+                  color="gray.300"
                   aria-label="AI 生成"
                 />
               </span>
