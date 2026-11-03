@@ -579,6 +579,95 @@ describe("shudong backend routes", () => {
     });
   });
 
+  describe("nested response count handling", () => {
+    it("should include all direct and indirect responses in responseCount when creating nested replies", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      // Question Q
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Nested Question",
+        true,
+        transaction,
+      );
+      expect(q.responseCount).to.equal(0);
+
+      // Reply R1 under Q
+      const r1 = await createPostImpl(
+        mentor,
+        q.id,
+        "Response 1",
+        false,
+        transaction,
+      );
+
+      // Reply R1_1 under R1
+      const r1_1 = await createPostImpl(
+        mentor,
+        r1.id,
+        "Response 1.1",
+        false,
+        transaction,
+      );
+
+      // Reply R1_1_1 under R1_1
+      const r1_1_1 = await createPostImpl(
+        mentor,
+        r1_1.id,
+        "Response 1.1.1",
+        false,
+        transaction,
+      );
+
+      expect(r1_1_1.responseCount).to.equal(0);
+
+      // Verify response counts across all ancestors
+      const detailQ = await getQuestionImpl(mentor, q.id, transaction);
+      expect(detailQ.question.responseCount).to.equal(3);
+
+      const dbR1 = await db.ShudongPost.findByPk(r1.id, { transaction });
+      expect(dbR1?.responseCount).to.equal(2);
+
+      const dbR1_1 = await db.ShudongPost.findByPk(r1_1.id, { transaction });
+      expect(dbR1_1?.responseCount).to.equal(1);
+    });
+
+    it("should correctly update responseCount on ancestors when deleting nested responses", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Tree Question",
+        true,
+        transaction,
+      );
+      const r1 = await createPostImpl(mentor, q.id, "R1", false, transaction);
+      const r1_1 = await createPostImpl(
+        mentor,
+        r1.id,
+        "R1.1",
+        false,
+        transaction,
+      );
+
+      // Soft delete R1 (which has child R1.1)
+      await deletePostImpl(mentor, r1.id, transaction);
+
+      // R1 is now soft-deleted placeholder. responseCount on Q is still 2 (R1 placeholder + R1.1).
+      const dbQ1 = await db.ShudongPost.findByPk(q.id, { transaction });
+      expect(dbQ1?.responseCount).to.equal(2);
+
+      // Delete R1.1 (leaf node)
+      await deletePostImpl(mentor, r1_1.id, transaction);
+
+      // R1.1 deletion causes R1 to drop to responseCount 0 -> R1 becomes hidden -> Q drops to responseCount 0.
+      const dbQ2 = await db.ShudongPost.findByPk(q.id, { transaction });
+      expect(dbQ2?.responseCount).to.equal(0);
+    });
+  });
+
   describe("AI generated post flag", () => {
     it("should default isAiGenerated to false when creating a post", async () => {
       const mentor = await createTestUser(["Mentor"]);
