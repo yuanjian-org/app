@@ -6,6 +6,8 @@ import {
   createDraftImpl,
   updateDraftImpl,
   reorderDraftImpl,
+  destroyDraftImpl,
+  finalizeDraftImpl,
 } from "./mentorSelections";
 
 describe("mentorSelections routes", () => {
@@ -94,6 +96,31 @@ describe("mentorSelections routes", () => {
     });
   });
 
+  describe("destroyDraftImpl", () => {
+    it("should successfully destroy a draft selection", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+
+      await destroyDraftImpl(mentee.id, mentor1.id, transaction);
+
+      const batch = await db.MentorSelectionBatch.findOne({
+        where: { userId: mentee.id, finalizedAt: null },
+        include: [{ association: "selections" }],
+        transaction,
+      });
+
+      expect(batch?.selections.length).to.equal(0);
+    });
+
+    it("should throw an error if the mentor selection does not exist", async () => {
+      try {
+        await destroyDraftImpl(mentee.id, mentor1.id, transaction);
+        expect.fail("Expected destroyDraftImpl to throw an error");
+      } catch (err: any) {
+        expect(err.message).to.include("导师选择");
+      }
+    });
+  });
+
   describe("updateDraftImpl", () => {
     it("should successfully update the reason for an existing draft selection", async () => {
       await createDraftImpl(
@@ -174,6 +201,30 @@ describe("mentorSelections routes", () => {
         expect.fail("Expected reorderDraftImpl to throw an error");
       } catch (err: any) {
         expect(err.message).to.include("导师选择数量不匹配");
+      }
+    });
+  });
+
+  describe("finalizeDraftImpl", () => {
+    it("should finalize the mentor selection draft", async () => {
+      await createDraftImpl(mentee.id, mentor1.id, "Reason 1", transaction);
+
+      await finalizeDraftImpl(mentee.id, transaction);
+
+      const batch = await db.MentorSelectionBatch.findOne({
+        where: { userId: mentee.id },
+        transaction,
+      });
+
+      void expect(batch?.finalizedAt).to.not.be.null;
+    });
+
+    it("should throw if there is no draft to finalize", async () => {
+      try {
+        await finalizeDraftImpl(mentee.id, transaction);
+        expect.fail("Expected finalizeDraftImpl to throw an error");
+      } catch (err: any) {
+        expect(err.message).to.include("没有未完成的导师选择");
       }
     });
   });
