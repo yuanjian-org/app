@@ -159,6 +159,19 @@ const updateDraft = procedure
     });
   });
 
+export async function getDraftImpl(
+  userId: string,
+  mentorId: string,
+  transaction?: Transaction,
+) {
+  const batch = await getDraftBatch(userId, mentorId, transaction);
+  invariant(
+    !batch || batch.selections.length === 1,
+    "Expected at most 1 mentor selection batch",
+  );
+  return batch ? batch.selections[0] : null;
+}
+
 // Return null if the user hasn't selected this mentor.
 const getDraft = procedure
   .use(authUser())
@@ -169,24 +182,22 @@ const getDraft = procedure
   )
   .output(zMentorSelection.nullable())
   .query(async ({ ctx: { me }, input: { mentorId } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(me.id, mentorId, transaction);
-      invariant(
-        !batch || batch.selections.length === 1,
-        "Expected at most 1 mentor selection batch",
-      );
-      return batch ? batch.selections[0] : null;
-    });
+    return await getDraftImpl(me.id, mentorId);
   });
+
+export async function listDraftsImpl(
+  userId: string,
+  transaction?: Transaction,
+) {
+  const batch = await getDraftBatch(userId, undefined, transaction);
+  return batch?.selections ?? [];
+}
 
 const listDrafts = procedure
   .use(authUser())
   .output(z.array(zMentorSelection))
   .query(async ({ ctx: { me } }) => {
-    return await sequelize.transaction(async (transaction) => {
-      const batch = await getDraftBatch(me.id, undefined, transaction);
-      return batch?.selections ?? [];
-    });
+    return await listDraftsImpl(me.id);
   });
 
 /**
@@ -196,7 +207,7 @@ const listDrafts = procedure
 async function getDraftBatch(
   myId: string,
   mentorId: string | undefined,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   return await db.MentorSelectionBatch.findOne({
     where: {
@@ -266,34 +277,70 @@ const reorderDraft = procedure
     });
   });
 
+export async function finalizeDraftImpl(
+  userId: string,
+  transaction?: Transaction,
+) {
+  const [cnt] = await db.MentorSelectionBatch.update(
+    {
+      finalizedAt: moment(),
+    },
+    { where: { userId, finalizedAt: null }, transaction },
+  );
+  invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
+  if (cnt === 0) {
+    throw generalBadRequestError("没有未完成的导师选择，请刷新页面重试");
+  }
+}
+
 const finalizeDraft = procedure
   .use(authUser())
   .mutation(async ({ ctx: { me } }) => {
-    const [cnt] = await db.MentorSelectionBatch.update(
-      {
-        finalizedAt: moment(),
-      },
-      { where: { userId: me.id, finalizedAt: null } },
-    );
-    invariant(cnt <= 1, "Expected cnt <= 1 for mentor selection batch");
-    if (cnt === 0) {
-      throw generalBadRequestError("没有未完成的导师选择，请刷新页面重试");
-    }
+    await finalizeDraftImpl(me.id);
   });
+
+export async function listFinalizedBatchesImpl(
+  userId: string,
+  transaction?: Transaction,
+) {
+  return await db.MentorSelectionBatch.findAll({
+    where: {
+      userId,
+      finalizedAt: { [Op.ne]: null },
+    },
+    attributes: mentorSelectionBatchAttributes,
+    include: mentorSelectionBatchInclude,
+    transaction,
+  });
+}
 
 const listFinalizedBatches = procedure
   .use(authUser())
   .output(z.array(zMentorSelectionBatch))
   .query(async ({ ctx: { me } }) => {
-    return await db.MentorSelectionBatch.findAll({
-      where: {
-        userId: me.id,
-        finalizedAt: { [Op.ne]: null },
-      },
-      attributes: mentorSelectionBatchAttributes,
-      include: mentorSelectionBatchInclude,
-    });
+    return await listFinalizedBatchesImpl(me.id);
   });
+
+export async function listLastBatchFinalizedAtImpl(transaction?: Transaction) {
+  return (await db.MentorSelectionBatch.findAll({
+    attributes: [
+      "userId",
+      [
+        literal(`
+          CASE
+            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
+            ELSE MAX("finalizedAt")
+          END
+        `),
+        "finalizedAt",
+      ],
+    ],
+    group: ["userId"],
+    // Return the raw result, without wrapping it in Sequelize instances.
+    raw: true,
+    transaction,
+  })) as unknown as { userId: string; finalizedAt: string | null }[];
+}
 
 /**
  * @return the latest batch finalizedAt of all users. If a user has a draft
@@ -310,23 +357,7 @@ const listLastBatchFinalizedAt = procedure
     ),
   )
   .query(async () => {
-    return await db.MentorSelectionBatch.findAll({
-      attributes: [
-        "userId",
-        [
-          literal(`
-          CASE
-            WHEN COUNT(*) FILTER (WHERE "finalizedAt" IS NULL) > 0 THEN NULL
-            ELSE MAX("finalizedAt")
-          END
-        `),
-          "finalizedAt",
-        ],
-      ],
-      group: ["userId"],
-      // Return the raw result, without wrapping it in Sequelize instances.
-      raw: true,
-    });
+    return await listLastBatchFinalizedAtImpl();
   });
 
 export default router({
