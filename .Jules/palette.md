@@ -1,0 +1,3 @@
+## 2024-07-26 - Keyboard accessibility for Chakra UI Link acting as buttons
+**Learning:** In Chakra UI (and React in general), `<Link>` elements without an `href` prop (often used with `onClick` handlers as styled buttons) are not automatically focusable or screen-reader friendly. They don't receive tab focus natively like an `<a>` with an `href` or a `<button>`.
+**Action:** Always verify that `<Link>` elements acting as buttons have `role="button"`, `tabIndex={0}`, an appropriate `aria-label`, and an `onKeyDown` handler that triggers the action on the 'Enter' and Space keys (and calls `e.preventDefault()` to prevent default page scrolling for Space).
