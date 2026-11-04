@@ -1,12 +1,10 @@
-import { Link, Text, VStack, Button, Heading } from "@chakra-ui/react";
-import NextLink from "next/link";
+import { Link, Text, Heading } from "@chakra-ui/react";
 // @i18n-ignore-file
-import { loginUrl } from "shared/loginUrl";
-import { ChevronRightIcon } from "@chakra-ui/icons";
+import BaseLandingPage from "./BaseLandingPage";
 
 export default function DemoLandingPage() {
   return (
-    <VStack spacing={6} align="start" mt={10}>
+    <BaseLandingPage actionText="进入远图体验版">
       <Heading size="lg">欢迎来到远图平台体验版</Heading>
       <Text>
         这是一个用于演示和测试目的的独立环境。在这个平台上，您可以体验远图社会导师服务平台的功能。
@@ -29,16 +27,6 @@ export default function DemoLandingPage() {
         </Link>
         。
       </Text>
-      <Button
-        size="lg"
-        variant="brand"
-        as={NextLink}
-        href={loginUrl()}
-        mt={4}
-        rightIcon={<ChevronRightIcon />}
-      >
-        进入远图体验版
-      </Button>
-    </VStack>
+    </BaseLandingPage>
   );
 }
