@@ -112,39 +112,54 @@ export async function updateGroup(
   return addUserIds;
 }
 
-async function getGroupWithIdOnly(groupId: string) {
+async function getGroupWithIdOnly(groupId: string, transaction?: Transaction) {
   const group = await db.Group.findByPk(groupId, {
     attributes: ["id"],
+    transaction,
   });
   if (!group) throw notFoundError("分组", groupId);
   return group;
+}
+
+export async function destroyGroup(groupId: string, transaction: Transaction) {
+  const g = await getGroupWithIdOnly(groupId, transaction);
+  await g.destroy({ transaction });
 }
 
 const destroy = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    // Need a transaction for cascading destroys
-    await sequelize.transaction(
-      async (transaction) => await g.destroy({ transaction }),
-    );
+    await sequelize.transaction(async (t) => {
+      await destroyGroup(input.groupId, t);
+    });
   });
+
+export async function archiveGroup(groupId: string, transaction?: Transaction) {
+  const g = await getGroupWithIdOnly(groupId, transaction);
+  await g.update({ archived: true }, { transaction });
+}
 
 const archive = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: true });
+    await archiveGroup(input.groupId);
   });
+
+export async function unarchiveGroup(
+  groupId: string,
+  transaction?: Transaction,
+) {
+  const g = await getGroupWithIdOnly(groupId, transaction);
+  await g.update({ archived: false }, { transaction });
+}
 
 const unarchive = procedure
   .use(authUser("GroupAdmin"))
   .input(z.object({ groupId: z.string().uuid() }))
   .mutation(async ({ input }) => {
-    const g = await getGroupWithIdOnly(input.groupId);
-    await g.update({ archived: false });
+    await unarchiveGroup(input.groupId);
   });
 
 const whereUnowned = {
@@ -156,6 +171,39 @@ const whereUnowned = {
  * @param includeUnowned Whether to include unowned groups.
  * A group is unowned if and only if its partnershipId is null.
  */
+export async function listMyGroups(
+  userId: string,
+  includeOwned: boolean,
+  transaction?: Transaction,
+) {
+  return (
+    (
+      await db.GroupUser.findAll({
+        where: {
+          userId,
+        },
+        include: [
+          {
+            model: db.Group,
+            attributes: groupAttributes,
+            include: groupInclude,
+            where: {
+              archived: false,
+              ...(includeOwned ? {} : whereUnowned),
+            },
+          },
+        ],
+        transaction,
+      })
+    )
+      .map((groupUser) => groupUser.group)
+      // Filter out groups owned by interviews. We currently ask users to
+      // conduct
+      // interviews using WeChat calls.
+      .filter((g) => !g.interviewId)
+  );
+}
+
 const listMine = procedure
   .use(authUser())
   .input(
@@ -165,37 +213,43 @@ const listMine = procedure
   )
   .output(z.array(zGroup))
   .query(async ({ ctx: { me }, input }) => {
-    return (
-      (
-        await db.GroupUser.findAll({
-          where: {
-            userId: me.id,
-          },
-          include: [
-            {
-              model: db.Group,
-              attributes: groupAttributes,
-              include: groupInclude,
-              where: {
-                archived: false,
-                ...(input.includeOwned ? {} : whereUnowned),
-              },
-            },
-          ],
-        })
-      )
-        .map((groupUser) => groupUser.group)
-        // Filter out groups owned by interviews. We currently ask users to
-        // conduct
-        // interviews using WeChat calls.
-        .filter((g) => !g.interviewId)
-    );
+    return await listMyGroups(me.id, input.includeOwned);
   });
 
 /**
  * @param userIds Return all the groups if `userIds` is empty, otherwise groups that contains the given users.
  * @param includeUnowned Whether to include unowned groups. A group is unowned iff. its partnershipId is null.
  */
+export async function listGroups(
+  userIds: string[],
+  includeOwned: boolean,
+  includeArchived: boolean,
+  transaction?: Transaction,
+) {
+  const where = {
+    ...(includeArchived ? {} : { archived: false }),
+    ...(includeOwned ? {} : whereUnowned),
+  };
+
+  if (userIds.length === 0) {
+    return await db.Group.findAll({
+      attributes: groupAttributes,
+      include: groupInclude,
+      where,
+      transaction,
+    });
+  } else {
+    const gs = await findGroups(
+      userIds,
+      "inclusive",
+      groupInclude,
+      where,
+      transaction,
+    );
+    return gs as Group[];
+  }
+}
+
 const list = procedure
   .use(authUser(["GroupAdmin"]))
   .input(
@@ -207,35 +261,30 @@ const list = procedure
   )
   .output(z.array(zGroup))
   .query(async ({ input: { userIds, includeOwned, includeArchived } }) => {
-    const where = {
-      ...(includeArchived ? {} : { archived: false }),
-      ...(includeOwned ? {} : whereUnowned),
-    };
-
-    if (userIds.length === 0) {
-      return await db.Group.findAll({
-        attributes: groupAttributes,
-        include: groupInclude,
-        where,
-      });
-    } else {
-      const gs = await findGroups(userIds, "inclusive", groupInclude, where);
-      return gs as Group[];
-    }
+    return await listGroups(userIds, includeOwned, includeArchived);
   });
+
+export async function getGroup(
+  id: string,
+  user: User,
+  transaction?: Transaction,
+) {
+  const g = await db.Group.findByPk(id, {
+    attributes: groupAttributes,
+    include: groupInclude,
+    transaction,
+  });
+  if (!g) throw notFoundError("分组", id);
+  checkPermissionForGroup(user, g);
+  return g;
+}
 
 const get = procedure
   .use(authUser())
   .input(z.string())
   .output(zGroup)
   .query(async ({ input: id, ctx: { me } }) => {
-    const g = await db.Group.findByPk(id, {
-      attributes: groupAttributes,
-      include: groupInclude,
-    });
-    if (!g) throw notFoundError("分组", id);
-    checkPermissionForGroup(me, g);
-    return g;
+    return await getGroup(id, me);
   });
 
 export default router({
