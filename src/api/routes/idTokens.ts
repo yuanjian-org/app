@@ -284,6 +284,16 @@ export async function resetPasswordImpl(
   hashedPassword: string,
   transaction: Transaction,
 ) {
+  if (idType === "phone") {
+    if (!isValidPhone(id)) {
+      throw generalBadRequestError("请输入有效的手机号码。");
+    }
+  } else if (idType === "email") {
+    if (!isValidEmail(id)) {
+      throw generalBadRequestError("请输入有效的邮箱地址。");
+    }
+  }
+
   const idField = idType === "phone" ? "phone" : "email";
 
   await checkAndDeleteIdToken(idType, id, token, transaction);
