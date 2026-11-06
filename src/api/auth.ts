@@ -68,10 +68,28 @@ export const authUser = (permitted?: Role | Role[]) =>
 /**
  * Authenticate for webhooks.
  */
-export const authWebhook = middleware(async ({ next }) => {
-  if (!process.env.WEBHOOK_TOKEN) {
+export const authWebhook = middleware(async ({ ctx, next }) => {
+  const rawAuth = ctx.req.headers["authorization"];
+  const authHeader = Array.isArray(rawAuth) ? rawAuth[0] : rawAuth;
+  const token: string | undefined = authHeader?.split(" ")[1];
+
+  if (!token) throw unauthorizedError();
+
+  const expected = process.env.WEBHOOK_TOKEN;
+  if (!expected) {
     throw internalServerError("WEBHOOK_TOKEN is required but not set.");
   }
+
+  const tokenBuf = Buffer.from(token);
+  const expectedBuf = Buffer.from(expected);
+
+  if (
+    tokenBuf.length !== expectedBuf.length ||
+    !crypto.timingSafeEqual(tokenBuf, expectedBuf)
+  ) {
+    throw invalidTokenError();
+  }
+
   return await next();
 });
 
