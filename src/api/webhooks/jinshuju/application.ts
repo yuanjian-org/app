@@ -153,7 +153,9 @@ async function save(
   const addtionalRoles: Role[] = type == "Mentee" ? ["Mentee"] : [];
 
   if (user) {
-    // Overwrite existing application
+    // Overwrite existing application. Do not update `email` on an existing user
+    // from an unverified webhook payload, as `email` is used as a login and
+    // password-reset credential.
     await user.update(
       {
         phone,
@@ -166,10 +168,11 @@ async function save(
 
         // If a previously rejected or graduated mentee applies again, reset
         // their mentee status..
-        menteeStatus: user.menteeStatus == "现届学子" ? "现届学子" : null,
+        ...(type == "Mentee" && {
+          menteeStatus: user.menteeStatus == "现届学子" ? "现届学子" : null,
+        }),
 
         ...(await checkAndComputeUserFields({
-          email,
           name,
           isVolunteer: isPermitted(user.roles, "Volunteer"),
           oldUrl: user.url,
