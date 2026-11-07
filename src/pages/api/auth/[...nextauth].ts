@@ -138,20 +138,21 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
 
       async session({ token, session }) {
+        invariant(token.sub, "id not found");
+        const actor = await fetchActualUser(token.sub);
+
         const impersonate = token[impersonateTokenKey] as string | undefined;
-        const id = impersonate ?? token.sub;
-        invariant(id, "id not found");
+        // Re-verify UserAdmin role on every session lookup so a demoted admin
+        // cannot continue using a previously issued impersonation token.
+        const canImpersonate = Boolean(
+          impersonate && isPermitted(actor.roles, "UserAdmin"),
+        );
 
-        const original = await userCache.fetch(id);
-        invariant(original, "original not found");
-
-        const actual = !original.mergedTo
-          ? original
-          : await userCache.fetch(original.mergedTo);
-        invariant(actual, "actual not found");
-
-        session.me = actual;
-        if (impersonate) session.impersonated = true;
+        session.me =
+          canImpersonate && impersonate
+            ? await fetchActualUser(impersonate)
+            : actor;
+        if (canImpersonate) session.impersonated = true;
         // If the user signed in with yuantu-sso, expose the IdP's logout endpoint
         // so the frontend can redirect the user there upon logging out.
         if (
@@ -167,6 +168,18 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
       },
     },
   };
+}
+
+async function fetchActualUser(userId: string): Promise<User> {
+  const original = await userCache.fetch(userId);
+  invariant(original, "original not found");
+
+  const actual = !original.mergedTo
+    ? original
+    : await userCache.fetch(original.mergedTo);
+  invariant(actual, "actual not found");
+
+  return actual;
 }
 
 // https://next-auth.js.org/configuration/initialization#advanced-initialization

@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { authOptions, ImpersonationRequest } from "./[...nextauth]";
+import {
+  authOptions,
+  ImpersonationRequest,
+  invalidateUserCache,
+} from "./[...nextauth]";
 import db from "../../../api/database/db";
 import sequelize from "../../../api/database/sequelize";
 import { Transaction } from "sequelize";
@@ -215,5 +219,90 @@ describe("nextauth signIn callback", () => {
       user: {} as any,
     });
     expect(result).to.equal(true);
+  });
+});
+
+describe("nextauth session callback", () => {
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    const originalFindByPk = db.User.findByPk.bind(db.User);
+    sinon.stub(db.User, "findByPk").callsFake((id, options) => {
+      return originalFindByPk(id, { ...options, transaction });
+    });
+  });
+
+  afterEach(async () => {
+    if (transaction) {
+      await transaction.rollback();
+    }
+    sinon.restore();
+  });
+
+  it("should return impersonated user when actor is UserAdmin", async () => {
+    const admin = await db.User.create(
+      {
+        name: "Session Admin",
+        email: `session-admin-${Date.now()}@test.com`,
+        roles: ["UserAdmin"],
+      },
+      { transaction },
+    );
+    const target = await db.User.create(
+      {
+        name: "Target User",
+        email: `session-target-${Date.now()}@test.com`,
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    invalidateUserCache(admin.id);
+    invalidateUserCache(target.id);
+
+    const sessionCallback = authOptions().callbacks!.session!;
+    const result = await sessionCallback({
+      session: { expires: "" } as never,
+      token: { sub: admin.id, imp: target.id },
+      user: {} as never,
+      newSession: undefined,
+      trigger: "update",
+    });
+
+    expect(result.me.id).to.equal(target.id);
+    expect(result.impersonated).to.equal(true);
+  });
+
+  it("should ignore impersonation if actor is no longer UserAdmin", async () => {
+    const demotedAdmin = await db.User.create(
+      {
+        name: "Demoted Admin",
+        email: `demoted-admin-${Date.now()}@test.com`,
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    const targetAdmin = await db.User.create(
+      {
+        name: "Target Admin",
+        email: `target-admin-${Date.now()}@test.com`,
+        roles: ["UserAdmin"],
+      },
+      { transaction },
+    );
+    invalidateUserCache(demotedAdmin.id);
+    invalidateUserCache(targetAdmin.id);
+
+    const sessionCallback = authOptions().callbacks!.session!;
+    const result = await sessionCallback({
+      session: { expires: "" } as never,
+      token: { sub: demotedAdmin.id, imp: targetAdmin.id },
+      user: {} as never,
+      newSession: undefined,
+      trigger: "update",
+    });
+
+    expect(result.me.id).to.equal(demotedAdmin.id);
+    void expect(result.impersonated).to.be.undefined;
   });
 });
