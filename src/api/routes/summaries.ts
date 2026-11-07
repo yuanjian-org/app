@@ -47,6 +47,34 @@ export interface SummaryDescriptor {
   speakerStats: SpeakerStats;
 }
 
+/**
+ * Verifies that the transcript exists and the user is permitted to access its
+ * group's history.
+ */
+async function checkTranscriptPermission(
+  me: User,
+  transcriptId: string,
+  transaction: Transaction,
+) {
+  const t = await db.Transcript.findByPk(transcriptId, {
+    attributes: ["id"],
+    include: [
+      {
+        model: db.Group,
+        attributes: groupAttributes,
+        include: groupInclude,
+      },
+    ],
+    transaction,
+  });
+
+  if (!t) throw notFoundError("会议纪要", transcriptId);
+
+  // Users must be permitted to access the group's history to view or update
+  // its summaries.
+  checkPermissionForGroupHistory(me, t.group);
+}
+
 const list = procedure
   .use(authUser())
   .input(z.string())
@@ -62,21 +90,7 @@ export async function listImpl(
   transcriptId: string,
   transaction: Transaction,
 ): Promise<Summary[]> {
-  const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["id"],
-    include: [
-      {
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      },
-    ],
-    transaction,
-  });
-
-  if (!t) throw notFoundError("会议纪要", transcriptId);
-
-  checkPermissionForGroupHistory(me, t.group);
+  await checkTranscriptPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
@@ -121,22 +135,7 @@ export async function updateImpl(
   markdown: string,
   transaction: Transaction,
 ) {
-  const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["id"],
-    include: [
-      {
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      },
-    ],
-    transaction,
-  });
-
-  if (!t) throw notFoundError("会议纪要", transcriptId);
-
-  // Users must be members of the group to update its summaries.
-  checkPermissionForGroupHistory(me, t.group);
+  await checkTranscriptPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key },
