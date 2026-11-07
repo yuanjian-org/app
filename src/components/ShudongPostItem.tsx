@@ -83,12 +83,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
           )}
           {/* Show mentor badge on non-deleted posts authored by a mentor. */}
           {!post.isDeleted && post.isMentorPosted && (
-            <Badge
-              variant="subtle"
-              colorScheme="teal"
-              color="gray.600"
-              fontSize="xs"
-            >
+            <Badge variant="outline" colorScheme="teal" fontSize="xs">
               <T>导师</T>
             </Badge>
           )}
