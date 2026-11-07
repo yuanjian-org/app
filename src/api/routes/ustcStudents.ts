@@ -1,6 +1,6 @@
 import { procedure, router } from "../trpc";
 import { z } from "zod";
-import { addRole } from "../../shared/Role";
+import { addRole, displayName } from "../../shared/Role";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { authUser } from "../auth";
@@ -8,18 +8,38 @@ import { invalidateUserCache } from "../../pages/api/auth/[...nextauth]";
 import { MenteeStatus } from "../../shared/MenteeStatus";
 import invariant from "shared/invariant";
 import User from "../../shared/User";
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { setEmailImpl } from "./idTokens";
-import { generalBadRequestError } from "api/errors";
+import { generalBadRequestError, noPermissionError } from "api/errors";
+import { WhiteLabel, whiteLabel } from "../../shared/WhiteLabel";
 
 export async function validateImpl(
   me: User,
   email: string,
   token: string,
   transaction: Transaction,
+  currentWhiteLabel: WhiteLabel = "ustc",
 ) {
+  // Only allow USTC student self-validation on the ustc tenant.
+  if (currentWhiteLabel !== "ustc") {
+    throw noPermissionError("中科大学生认证", email);
+  }
+
   if (!email.endsWith("@mail.ustc.edu.cn")) {
     throw generalBadRequestError("邮箱必须是中科大邮箱。");
+  }
+
+  // Prevent transferring an already-verified USTC email across accounts to
+  // mint multiple Mentee accounts.
+  const existing = await db.User.findOne({
+    attributes: ["id"],
+    where: { email, id: { [Op.ne]: me.id } },
+    transaction,
+  });
+  if (existing) {
+    throw generalBadRequestError(
+      `此邮箱已被其他账号验证。请联系${displayName("UserAdmin")}。`,
+    );
   }
 
   await setEmailImpl(me.id, email, token, transaction);
@@ -53,7 +73,7 @@ const validate = procedure
   )
   .mutation(async ({ ctx: { me }, input }) => {
     await sequelize.transaction(async (transaction) => {
-      await validateImpl(me, input.email, input.token, transaction);
+      await validateImpl(me, input.email, input.token, transaction, whiteLabel);
     });
 
     invalidateUserCache(me.id);

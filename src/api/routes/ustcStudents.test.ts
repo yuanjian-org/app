@@ -75,4 +75,61 @@ describe("ustcStudents.validate", () => {
 
     await db.User.destroy({ where: { id: user.id } });
   });
+
+  it("should reject validation when whiteLabel is not ustc", async () => {
+    const user = await db.User.create({ name: "Test User", roles: [] });
+
+    let error: unknown;
+    try {
+      await sequelize.transaction(async (transaction) => {
+        await validateImpl(
+          user,
+          "test3@mail.ustc.edu.cn",
+          "123456",
+          transaction,
+          "yuantu",
+        );
+      });
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).to.be.instanceOf(TRPCError);
+    void expect(error).to.have.property(
+      "message",
+      "没有权限访问中科大学生认证 test3@mail.ustc.edu.cn。",
+    );
+
+    await db.User.destroy({ where: { id: user.id } });
+  });
+
+  it("should reject validation when USTC email is already bound to another user", async () => {
+    const email = `dup-${Date.now()}@mail.ustc.edu.cn`;
+    const existing = await db.User.create({
+      name: "Existing Student",
+      email,
+      roles: ["Mentee"],
+      menteeStatus: "现届学子",
+    });
+    const user = await db.User.create({ name: "Second User", roles: [] });
+
+    sinon.stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken").resolves();
+
+    let error: unknown;
+    try {
+      await sequelize.transaction(async (transaction) => {
+        await validateImpl(user, email, "123456", transaction);
+      });
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).to.be.instanceOf(TRPCError);
+    void expect(error).to.have.property(
+      "message",
+      "此邮箱已被其他账号验证。请联系用户管理员。",
+    );
+
+    await db.User.destroy({ where: { id: [existing.id, user.id] } });
+  });
 });
