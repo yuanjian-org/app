@@ -129,6 +129,12 @@ export function roleProfile(role: Role) {
   return RoleProfiles[role];
 }
 
+export function hasPrivilegedUserDataAccess(roles?: Role[] | null) {
+  return Boolean(
+    roles?.some((role) => roleProfile(role).privilegedUserDataAccess),
+  );
+}
+
 export function displayName(role: Role) {
   return RoleProfiles[role].displayName;
 }
