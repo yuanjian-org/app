@@ -47,21 +47,15 @@ export interface SummaryDescriptor {
   speakerStats: SpeakerStats;
 }
 
-const list = procedure
-  .use(authUser())
-  .input(z.string())
-  .output(z.array(zSummary))
-  .query(async ({ ctx: { me }, input: transcriptId }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await listImpl(me, transcriptId, transaction);
-    });
-  });
-
-export async function listImpl(
+/**
+ * Verifies that the transcript exists and the user is permitted to access its
+ * group's history.
+ */
+async function checkTranscriptPermission(
   me: User,
   transcriptId: string,
-  transaction: Transaction,
-): Promise<Summary[]> {
+  transaction?: Transaction,
+) {
   const t = await db.Transcript.findByPk(transcriptId, {
     attributes: ["id"],
     include: [
@@ -76,7 +70,25 @@ export async function listImpl(
 
   if (!t) throw notFoundError("会议纪要", transcriptId);
 
+  // Users must be permitted to access the group's history to view or update
+  // its summaries.
   checkPermissionForGroupHistory(me, t.group);
+}
+
+const list = procedure
+  .use(authUser())
+  .input(z.string())
+  .output(z.array(zSummary))
+  .query(async ({ ctx: { me }, input: transcriptId }) => {
+    return await listImpl(me, transcriptId);
+  });
+
+export async function listImpl(
+  me: User,
+  transcriptId: string,
+  transaction?: Transaction,
+): Promise<Summary[]> {
+  await checkTranscriptPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key: AI_MINUTES_SUMMARY_KEY },
@@ -121,22 +133,7 @@ export async function updateImpl(
   markdown: string,
   transaction: Transaction,
 ) {
-  const t = await db.Transcript.findByPk(transcriptId, {
-    attributes: ["id"],
-    include: [
-      {
-        model: db.Group,
-        attributes: groupAttributes,
-        include: groupInclude,
-      },
-    ],
-    transaction,
-  });
-
-  if (!t) throw notFoundError("会议纪要", transcriptId);
-
-  // Users must be members of the group to update its summaries.
-  checkPermissionForGroupHistory(me, t.group);
+  await checkTranscriptPermission(me, transcriptId, transaction);
 
   const s = await db.Summary.findOne({
     where: { transcriptId, key },
