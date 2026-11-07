@@ -135,7 +135,7 @@ export async function setPhoneImpl(
   await checkAndDeleteIdToken("phone", phone, token);
 
   const existing = await db.User.findOne({
-    attributes: ["id", "roles"],
+    attributes: ["id", "roles", "wechatUnionId"],
     where: { phone, id: { [Op.ne]: me.id } },
     transaction,
   });
@@ -183,6 +183,22 @@ export async function setPhoneImpl(
       const wechatUnionId = me2.wechatUnionId;
       const password = me2.password;
 
+      if (wechatUnionId) {
+        // Remove obsolete entries from next-auth's accounts table when
+        // transferring wechatUnionId so old WeChat accounts cannot still log
+        // into `existing`.
+        const Account = sequelize.models.account;
+        invariant(Account, "Account model is not initialized");
+        const unionIdsToRemove = [
+          wechatUnionId,
+          ...(existing.wechatUnionId ? [existing.wechatUnionId] : []),
+        ];
+        await Account.destroy({
+          where: { providerAccountId: unionIdsToRemove },
+          transaction,
+        });
+      }
+
       await me2.update(
         {
           email: null,
@@ -193,6 +209,10 @@ export async function setPhoneImpl(
           mergedTo: existing.id,
         },
         { transaction },
+      );
+      await db.User.update(
+        { mergedTo: existing.id },
+        { where: { mergedTo: me2.id }, transaction },
       );
       const isExistingPrivileged = hasPrivilegedUserDataAccess(existing.roles);
       await existing.update(
