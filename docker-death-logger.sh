@@ -6,7 +6,8 @@
 # Docker itself via each service's `restart:` policy; this script only logs.
 #
 # For every death it appends to $LOG_FILE (and prints to stdout, so
-# `docker logs death-logger` works too):
+# `docker logs death-logger` works too), keeping $LOG_FILE under $MAX_LOG_SIZE
+# bytes (1 MB by default):
 #   - timestamp, container name, exit code and a human-readable explanation
 #   - an "OOM" line if the kernel OOM killer killed the container
 #   - up to $TAIL_LINES lines of the container's output before it died
@@ -18,6 +19,7 @@
 set -u
 
 LOG_FILE="${LOG_FILE:-/logs/container-deaths.log}"
+MAX_LOG_SIZE="${MAX_LOG_SIZE:-1048576}"
 TAIL_LINES="${TAIL_LINES:-50}"
 # Remembers each container's previous death time, so that the log excerpt
 # for a death doesn't repeat output from earlier crashes.
@@ -25,8 +27,26 @@ STATE_DIR=/tmp/death-logger
 
 mkdir -p "$(dirname "$LOG_FILE")" "$STATE_DIR"
 
+# Keep $LOG_FILE within $MAX_LOG_SIZE bytes by trimming the oldest content.
+trim_log() {
+  [ -f "$LOG_FILE" ] || return 0
+  if [ "$(wc -c < "$LOG_FILE")" -le "$MAX_LOG_SIZE" ]; then
+    return 0
+  fi
+  # Keep the last $MAX_LOG_SIZE bytes and drop the first (likely partial) line
+  # whenever multiple lines remain. Overwrite in place to preserve the inode.
+  tail -c "$MAX_LOG_SIZE" "$LOG_FILE" | awk '
+    NR == 1 { first = $0; next }
+    { print }
+    END { if (NR == 1) print first }
+  ' > "$LOG_FILE.tmp" \
+    && cat "$LOG_FILE.tmp" > "$LOG_FILE" \
+    && rm -f "$LOG_FILE.tmp"
+}
+
 log() {
   printf '%s\n' "$*" | tee -a "$LOG_FILE"
+  trim_log
 }
 
 # Translate a container exit code into a likely cause.
@@ -93,6 +113,7 @@ while IFS='|' read -r action id name code nano; do
   docker logs "$@" --until "$event_time" --tail "$TAIL_LINES" "$id" 2>&1 \
     | sed 's/^/    | /' \
     | tee -a "$LOG_FILE"
+  trim_log
 done
 
 # `docker events` only exits if the Docker daemon goes away. Exit non-zero so
