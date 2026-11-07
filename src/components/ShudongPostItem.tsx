@@ -87,7 +87,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
                 <Icon
                   as={PiStarFourFill}
                   boxSize={3.5}
-                  color="gray.300"
+                  color="gray.400"
                   aria-label="AI 生成"
                 />
               </span>
