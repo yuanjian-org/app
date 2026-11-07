@@ -45,8 +45,8 @@ const providers: NextAuthOptions["providers"] = [
       const { idType, id, token } = credentials ?? {};
       if (!idType || !id || !token) return null;
       const idField = idType === "phone" ? "phone" : "email";
+      await checkAndDeleteIdToken(idType as IdType, id, token);
       return await sequelize.transaction(async (transaction) => {
-        await checkAndDeleteIdToken(idType as IdType, id, token, transaction);
         let u = await db.User.findOne({
           where: { [idField]: id },
           attributes: userAttributes,

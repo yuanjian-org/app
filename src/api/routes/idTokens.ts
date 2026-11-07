@@ -132,7 +132,7 @@ export async function setPhoneImpl(
   me: User,
   transaction: Transaction,
 ) {
-  await checkAndDeleteIdToken("phone", phone, token, transaction);
+  await checkAndDeleteIdToken("phone", phone, token);
 
   const existing = await db.User.findOne({
     attributes: ["id"],
@@ -286,7 +286,7 @@ export async function resetPasswordImpl(
 ) {
   const idField = idType === "phone" ? "phone" : "email";
 
-  await checkAndDeleteIdToken(idType, id, token, transaction);
+  await checkAndDeleteIdToken(idType, id, token);
   let user = await db.User.findOne({
     where: { [idField]: id },
     attributes: ["id", "roles"],
@@ -329,7 +329,7 @@ export async function setEmailImpl(
   token: string,
   transaction: Transaction,
 ) {
-  await checkAndDeleteIdToken("email", email, token, transaction);
+  await checkAndDeleteIdToken("email", email, token);
 
   const existing = await db.User.findOne({
     attributes: ["id"],

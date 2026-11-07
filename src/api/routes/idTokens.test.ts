@@ -6,7 +6,7 @@ import {
   sendImpl,
   setPhoneImpl,
 } from "./idTokens";
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { expect } from "chai";
 import * as smsModule from "../sms";
 import * as emailModule from "../../api/email";
@@ -245,11 +245,12 @@ describe("setPhoneImpl", () => {
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
-    await db.IdToken.create({ ip: "127.0.0.1", phone, token }, { transaction });
+    await db.IdToken.create({ ip: "127.0.0.1", phone, token });
   });
 
   afterEach(async () => {
     await transaction.rollback();
+    await db.IdToken.destroy({ where: { phone } });
     sinon.restore();
   });
 
@@ -363,14 +364,11 @@ describe("resetPasswordImpl", () => {
   // Helper function to create a test ID token
   async function createTestIdToken(idType: string, id: string, token: string) {
     const tokenData = idType === "phone" ? { phone: id } : { email: id };
-    return await db.IdToken.create(
-      {
-        ...tokenData,
-        token,
-        ip: "127.0.0.1",
-      },
-      { transaction },
-    );
+    return await db.IdToken.create({
+      ...tokenData,
+      token,
+      ip: "127.0.0.1",
+    });
   }
 
   beforeEach(async () => {
@@ -379,6 +377,9 @@ describe("resetPasswordImpl", () => {
 
   afterEach(async () => {
     await transaction.rollback();
+    await db.IdToken.destroy({
+      where: { [Op.or]: [{ phone: testPhone }, { email: testEmail }] },
+    });
     sinon.restore();
   });
 
@@ -549,13 +550,15 @@ describe("resetPasswordImpl", () => {
       await createTestIdToken("phone", testPhone, "correct-token");
 
       try {
-        await resetPasswordImpl(
-          "phone",
-          testPhone,
-          "wrong-token",
-          hashedPassword,
-          transaction,
-        );
+        await sequelize.transaction(async (tx) => {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "wrong-token",
+            hashedPassword,
+            tx,
+          );
+        });
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error.message).to.include("手机验证码错误");
@@ -563,7 +566,6 @@ describe("resetPasswordImpl", () => {
 
       const tokenRecord = await db.IdToken.findOne({
         where: { phone: testPhone },
-        transaction,
       });
       void expect(tokenRecord!.failedAttempts).to.equal(1);
     });
@@ -574,13 +576,15 @@ describe("resetPasswordImpl", () => {
       // 4 failed attempts
       for (let i = 0; i < 4; i++) {
         try {
-          await resetPasswordImpl(
-            "phone",
-            testPhone,
-            "wrong-token",
-            hashedPassword,
-            transaction,
-          );
+          await sequelize.transaction(async (tx) => {
+            await resetPasswordImpl(
+              "phone",
+              testPhone,
+              "wrong-token",
+              hashedPassword,
+              tx,
+            );
+          });
         } catch (error: any) {
           void expect(error.message).to.equal("手机验证码错误。");
         }
@@ -588,13 +592,15 @@ describe("resetPasswordImpl", () => {
 
       // 5th failed attempt
       try {
-        await resetPasswordImpl(
-          "phone",
-          testPhone,
-          "wrong-token",
-          hashedPassword,
-          transaction,
-        );
+        await sequelize.transaction(async (tx) => {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "wrong-token",
+            hashedPassword,
+            tx,
+          );
+        });
         expect.fail("Expected error to be thrown");
       } catch (error: any) {
         void expect(error.message).to.include("手机验证码错误次数过多");
@@ -602,7 +608,6 @@ describe("resetPasswordImpl", () => {
 
       const tokenRecord = await db.IdToken.findOne({
         where: { phone: testPhone },
-        transaction,
       });
       void expect(tokenRecord).to.be.null;
     });
@@ -620,7 +625,6 @@ describe("resetPasswordImpl", () => {
 
       const token = await db.IdToken.findOne({
         where: { phone: testPhone, token: testToken },
-        transaction,
       });
       void expect(token).to.be.null;
     });
