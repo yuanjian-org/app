@@ -9,6 +9,7 @@ import {
   auditLastMentorshipMeetings,
   createMentorship,
   updateMentorship,
+  updateMentorshipSchedule,
 } from "./mentorships";
 import invariant from "shared/invariant";
 import { oneOnOneYellowThreshold } from "shared/Mentorship";
@@ -254,5 +255,96 @@ describe("auditLastMentorshipMeetings", () => {
     void expect(ourMentorshipCall.args[0]).to.equal("一对一通话提醒");
     void expect(ourMentorshipCall.args[1]).to.include(mentor.id);
     void expect(ourMentorshipCall.args[3]).to.have.property("days");
+  });
+});
+
+describe("updateMentorshipSchedule", () => {
+  let transaction: Transaction;
+  let mentorshipId: string;
+  let mentor: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
+  let otherMentor: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
+  let admin: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+    mentor = await db.User.create(
+      {
+        email: `sched-mentor-${Date.now()}@test.com`,
+        name: "SchedMentor",
+        roles: ["Mentor"],
+      },
+      { transaction },
+    );
+    otherMentor = await db.User.create(
+      {
+        email: `sched-other-${Date.now()}@test.com`,
+        name: "OtherMentor",
+        roles: ["Mentor"],
+      },
+      { transaction },
+    );
+    admin = await db.User.create(
+      {
+        email: `sched-admin-${Date.now()}@test.com`,
+        name: "SchedAdmin",
+        roles: ["MentorshipAdmin"],
+      },
+      { transaction },
+    );
+    const mentee = await db.User.create(
+      {
+        email: `sched-mentee-${Date.now()}@test.com`,
+        name: "SchedMentee",
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    await createMentorship(mentor.id, mentee.id, false, null, transaction);
+    const mentorship = await db.Mentorship.findOne({
+      where: { mentorId: mentor.id, menteeId: mentee.id },
+      transaction,
+    });
+    invariant(mentorship, "mentorship must exist");
+    mentorshipId = mentorship.id;
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should allow the assigned mentor to update schedule", async () => {
+    const schedule = { week: 2, day: 3, hour: 19, minute: 30 };
+    await updateMentorshipSchedule(mentor, mentorshipId, schedule, transaction);
+
+    const updated = await db.Mentorship.findByPk(mentorshipId, { transaction });
+    expect(updated?.schedule).to.deep.equal(schedule);
+  });
+
+  it("should allow a MentorshipAdmin to update schedule", async () => {
+    const schedule = { week: 1, day: 5, hour: 20, minute: 0 };
+    await updateMentorshipSchedule(admin, mentorshipId, schedule, transaction);
+
+    const updated = await db.Mentorship.findByPk(mentorshipId, { transaction });
+    expect(updated?.schedule).to.deep.equal(schedule);
+  });
+
+  it("should reject an unrelated mentor from updating schedule", async () => {
+    const schedule = { week: 4, day: 6, hour: 10, minute: 0 };
+    let errorThrown = false;
+    try {
+      await updateMentorshipSchedule(
+        otherMentor,
+        mentorshipId,
+        schedule,
+        transaction,
+      );
+    } catch (error) {
+      errorThrown = true;
+      void expect(error).to.have.property(
+        "message",
+        `没有权限访问一对一匹配 ${mentorshipId}。`,
+      );
+    }
+    void expect(errorThrown).to.be.true;
   });
 });

@@ -5,10 +5,12 @@ import {
   isEndedTransactionalMentorship,
   reviewYellowThreshold,
   Mentorship,
+  MentorshipSchedule,
   oneOnOneYellowThreshold,
   zMentorship,
   zMentorshipSchedule,
 } from "../../shared/Mentorship";
+import User from "../../shared/User";
 import { z } from "zod";
 import {
   alreadyExistsError,
@@ -139,9 +141,33 @@ const updateSchedule = procedure
       schedule: zMentorshipSchedule,
     }),
   )
-  .mutation(async ({ input: { mentorshipId, schedule } }) => {
-    await db.Mentorship.update({ schedule }, { where: { id: mentorshipId } });
+  .mutation(async ({ ctx: { me }, input: { mentorshipId, schedule } }) => {
+    await sequelize.transaction(async (transaction) => {
+      await updateMentorshipSchedule(me, mentorshipId, schedule, transaction);
+    });
   });
+
+export async function updateMentorshipSchedule(
+  me: Pick<User, "id" | "roles">,
+  mentorshipId: string,
+  schedule: MentorshipSchedule,
+  transaction: Transaction,
+) {
+  const m = await db.Mentorship.findByPk(mentorshipId, {
+    attributes: ["id", "mentorId"],
+    lock: true,
+    transaction,
+  });
+  if (!m) throw notFoundError("一对一匹配", mentorshipId);
+
+  // Only MentorshipAdmin or the mentorship's assigned mentor may update its
+  // schedule.
+  if (m.mentorId !== me.id && !isPermitted(me.roles, "MentorshipAdmin")) {
+    throw noPermissionError("一对一匹配", mentorshipId);
+  }
+
+  await m.update({ schedule }, { transaction });
+}
 
 export async function updateMentorship(
   mentorshipId: string,
