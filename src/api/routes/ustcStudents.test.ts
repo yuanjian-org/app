@@ -21,7 +21,13 @@ describe("ustcStudents.validate", () => {
 
     // Use a real transaction, wait for it to finish, then assert from db.
     await sequelize.transaction(async (transaction) => {
-      await validateImpl(user, "test@mail.ustc.edu.cn", "123456", transaction);
+      await validateImpl(
+        user,
+        "test@mail.ustc.edu.cn",
+        "123456",
+        transaction,
+        "ustc",
+      );
     });
 
     const updatedUser = await db.User.findByPk(user.id);
@@ -43,7 +49,13 @@ describe("ustcStudents.validate", () => {
     let error: any;
     try {
       await sequelize.transaction(async (transaction) => {
-        await validateImpl(user, "test@example.com", "123456", transaction);
+        await validateImpl(
+          user,
+          "test@example.com",
+          "123456",
+          transaction,
+          "ustc",
+        );
       });
     } catch (e) {
       error = e;
@@ -65,7 +77,13 @@ describe("ustcStudents.validate", () => {
     sinon.stub(checkAndDeleteIdTokenModule, "checkAndDeleteIdToken").resolves();
 
     await sequelize.transaction(async (transaction) => {
-      await validateImpl(user, "test2@mail.ustc.edu.cn", "123456", transaction);
+      await validateImpl(
+        user,
+        "test2@mail.ustc.edu.cn",
+        "123456",
+        transaction,
+        "ustc",
+      );
     });
 
     const updatedUser = await db.User.findByPk(user.id);
@@ -97,7 +115,7 @@ describe("ustcStudents.validate", () => {
     expect(error).to.be.instanceOf(TRPCError);
     void expect(error).to.have.property(
       "message",
-      "没有权限访问中科大学生认证 test3@mail.ustc.edu.cn。",
+      "没有权限访问学生认证 test3@mail.ustc.edu.cn。",
     );
 
     await db.User.destroy({ where: { id: user.id } });
@@ -118,7 +136,7 @@ describe("ustcStudents.validate", () => {
     let error: unknown;
     try {
       await sequelize.transaction(async (transaction) => {
-        await validateImpl(user, email, "123456", transaction);
+        await validateImpl(user, email, "123456", transaction, "ustc");
       });
     } catch (e) {
       error = e;

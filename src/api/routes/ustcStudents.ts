@@ -18,11 +18,11 @@ export async function validateImpl(
   email: string,
   token: string,
   transaction: Transaction,
-  currentWhiteLabel: WhiteLabel = "ustc",
+  currentWhiteLabel: WhiteLabel,
 ) {
   // Only allow USTC student self-validation on the ustc tenant.
   if (currentWhiteLabel !== "ustc") {
-    throw noPermissionError("中科大学生认证", email);
+    throw noPermissionError("学生认证", email);
   }
 
   if (!email.endsWith("@mail.ustc.edu.cn")) {
