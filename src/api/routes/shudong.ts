@@ -80,6 +80,8 @@ export async function findShudongPostOrThrow(
   if (!post || post.deletedAt !== null) {
     throw notFoundError("树洞帖子", postId);
   }
+  invariant(post.authorId, "post.authorId must not be null");
+  invariant(post.author, "post.author must not be null");
   return post;
 }
 
@@ -136,6 +138,7 @@ export async function getThreadAuthorMap(
   if (!rootQuestion) {
     return { rootAuthorId: "", respondentMap: new Map() };
   }
+  invariant(rootQuestion.authorId, "rootQuestion.authorId must not be null");
 
   let currentParentIds = [rootQuestionId];
   const allThreadPosts: { authorId: string; createdAt: Date }[] = [];
@@ -160,6 +163,7 @@ export async function getThreadAuthorMap(
   let count = 0;
 
   for (const post of allThreadPosts) {
+    invariant(post.authorId, "post.authorId must not be null");
     if (post.authorId === rootQuestion.authorId) {
       continue;
     }
@@ -185,6 +189,11 @@ export async function formatShudongPost(
   threadAuthorInfo?: ThreadAuthorInfo,
   transaction?: Transaction,
 ): Promise<ShudongPost> {
+  // authorId on ShudongPost is never null, so both authorId and the included
+  // author relation must always be present.
+  invariant(post.authorId, "post.authorId must not be null");
+  invariant(post.author, "post.author must not be null");
+
   const upvote = await db.ShudongUpvote.findOne({
     where: { postId: post.id, userId: myId },
     attributes: ["userId"],
@@ -203,10 +212,9 @@ export async function formatShudongPost(
 
   const isDeleted = post.deletedAt !== null;
   const isAnonymous = isDeleted || post.isAnonymous;
-  const author = !isAnonymous && post.author ? post.author : null;
+  const author = isAnonymous ? null : post.author;
   // Tag non-deleted posts (including anonymous ones) authored by a mentor.
-  const isMentorPosted =
-    !isDeleted && !!post.author && isPermitted(post.author.roles, "Mentor");
+  const isMentorPosted = !isDeleted && isPermitted(post.author.roles, "Mentor");
 
   let anonymousName: string | null = null;
   if (isAnonymous) {

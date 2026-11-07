@@ -6,6 +6,7 @@ import sequelize from "../database/sequelize";
 import User from "../../shared/User";
 import {
   createPostImpl,
+  formatShudongPost,
   getQuestionImpl,
   getResponsesImpl,
   listQuestionsImpl,
@@ -711,8 +712,6 @@ describe("shudong backend routes", () => {
         expect(err.message).to.contain("内容不能为空");
       }
 
-      // Use isAnonymous=false so the author can update the post
-      // and the empty-content validation is reached.
       const post = await createPostImpl(
         mentor,
         null,
@@ -752,6 +751,63 @@ describe("shudong backend routes", () => {
         expect.fail("Should have thrown not found error");
       } catch (err: any) {
         expect(err.message).to.contain("树洞帖子");
+      }
+    });
+
+    it("should assert invariant on missing authorId or author", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const created = await createPostImpl(
+        mentor,
+        null,
+        "Question",
+        false,
+        transaction,
+      );
+
+      // Load post without including the author relation so post.author is
+      // undefined.
+      const postWithoutAuthor = await db.ShudongPost.findByPk(created.id, {
+        transaction,
+      });
+      if (!postWithoutAuthor) {
+        expect.fail("Expected post to exist");
+      }
+
+      try {
+        await formatShudongPost(
+          postWithoutAuthor,
+          mentor.id,
+          undefined,
+          transaction,
+        );
+        expect.fail("Should have thrown invariant error for missing author");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain(
+          "post.author must not be null",
+        );
+      }
+
+      // Load post without selecting authorId so post.authorId is undefined.
+      const postWithoutAuthorId = await db.ShudongPost.findByPk(created.id, {
+        attributes: ["id"],
+        transaction,
+      });
+      if (!postWithoutAuthorId) {
+        expect.fail("Expected post to exist");
+      }
+
+      try {
+        await formatShudongPost(
+          postWithoutAuthorId,
+          mentor.id,
+          undefined,
+          transaction,
+        );
+        expect.fail("Should have thrown invariant error for missing authorId");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain(
+          "post.authorId must not be null",
+        );
       }
     });
   });

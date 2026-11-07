@@ -150,6 +150,9 @@ async function notifyShudongQuestions(
     transaction,
   });
   if (newQuestions.length === 0) return;
+  for (const q of newQuestions) {
+    invariant(q.authorId, "q.authorId must not be null");
+  }
 
   const subscribers = await db.User.findAll({
     where: shudongGlobalSubscriberWhere,
@@ -157,9 +160,7 @@ async function notifyShudongQuestions(
     transaction,
   });
 
-  // Skip users whose only new questions are authored by themselves. Note
-  // that anonymous questions may have a null authorId and thus are never
-  // skipped.
+  // Skip users whose only new questions are authored by themselves.
   const recipientIds = subscribers
     .map((u) => u.id)
     .filter((id) => newQuestions.some((q) => q.authorId !== id));
@@ -229,6 +230,9 @@ async function notifyShudongResponses(
   }
 
   if (newResponses.length === 0) return;
+  for (const r of newResponses) {
+    invariant(r.authorId, "r.authorId must not be null");
+  }
 
   const subscriptions = await db.ShudongSubscription.findAll({
     where: { questionId },
