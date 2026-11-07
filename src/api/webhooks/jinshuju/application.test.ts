@@ -262,4 +262,89 @@ describe("submitApplication", () => {
     });
     void expect(updated?.menteeStatus).is.equal("现届学子");
   });
+
+  it("should set email when creating a new user via volunteer application", async () => {
+    const inputVolunteerApp = {
+      form: "OzuvWD",
+      entry: {
+        field_4: "新志愿者",
+        field_8: "new-volunteer@example.com",
+        field_9: "vol-wechat",
+        field_23: "北京",
+        field_24: "VolNick",
+        field_25: ["是"],
+        field_26: "+8615010000002",
+      },
+    };
+
+    await submit(inputVolunteerApp, transaction);
+    const created = await db.User.findOne({
+      where: { phone: "+8615010000002" },
+      transaction,
+    });
+    void expect(created).is.not.null;
+    void expect(created?.email).is.equal("new-volunteer@example.com");
+    void expect(created?.name).is.equal("新志愿者");
+  });
+
+  it("should not overwrite existing user email or reset menteeStatus via volunteer application", async () => {
+    const existingUser = await db.User.create(
+      {
+        phone: "+8615010000003",
+        email: "victim@example.com",
+        name: "原用户",
+        roles: ["UserAdmin"],
+        menteeStatus: "活跃校友",
+      },
+      { transaction },
+    );
+
+    const inputVolunteerApp = {
+      form: "OzuvWD",
+      entry: {
+        field_4: "原用户",
+        field_8: "attacker@example.com",
+        field_9: "attacker-wechat",
+        field_23: "上海",
+        field_24: "AttackerNick",
+        field_25: [],
+        field_26: "+8615010000003",
+      },
+    };
+
+    await submit(inputVolunteerApp, transaction);
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).is.equal("victim@example.com");
+    void expect(existingUser.menteeStatus).is.equal("活跃校友");
+    void expect(existingUser.roles).to.deep.equal(["UserAdmin"]);
+  });
+
+  it("should not set email on an existing user with null email via volunteer application", async () => {
+    const existingUser = await db.User.create(
+      {
+        phone: "+8615010000004",
+        email: null,
+        name: "无邮箱用户",
+        roles: ["UserAdmin"],
+      },
+      { transaction },
+    );
+
+    const inputVolunteerApp = {
+      form: "OzuvWD",
+      entry: {
+        field_4: "无邮箱用户",
+        field_8: "attacker@example.com",
+        field_9: "attacker-wechat",
+        field_23: "深圳",
+        field_24: "AttackerNick",
+        field_25: [],
+        field_26: "+8615010000004",
+      },
+    };
+
+    await submit(inputVolunteerApp, transaction);
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).is.null;
+  });
 });
