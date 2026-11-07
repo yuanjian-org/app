@@ -342,7 +342,7 @@ describe("updateMentorshipSchedule", () => {
       errorThrown = true;
       void expect(error).to.have.property(
         "message",
-        `您没有访问一对一匹配 ${mentorshipId} 的权限。`,
+        `没有权限访问一对一匹配 ${mentorshipId}。`,
       );
     }
     void expect(errorThrown).to.be.true;
