@@ -169,4 +169,100 @@ describe("checkAndDeleteIdToken", () => {
     });
     void expect(tokenRecord).to.equal(null);
   });
+
+  it("should persist failedAttempts and destroy token after 5 failed attempts inside managed transactions", async () => {
+    const managedPhone = "+8613800138999";
+    await db.IdToken.create({
+      phone: managedPhone,
+      token: "correct-token",
+      ip: "127.0.0.1",
+    });
+
+    try {
+      for (let i = 1; i <= 4; i++) {
+        try {
+          await sequelize.transaction(async (managedTx) => {
+            await checkAndDeleteIdToken(
+              "phone",
+              managedPhone,
+              "wrong-token",
+              managedTx,
+            );
+          });
+          expect.fail("Expected error to be thrown");
+        } catch (error: any) {
+          void expect(error.message).to.equal("手机验证码错误。");
+        }
+
+        const tokenRecord = await db.IdToken.findOne({
+          where: { phone: managedPhone },
+        });
+        void expect(tokenRecord).to.not.equal(null);
+        void expect(tokenRecord!.failedAttempts).to.equal(i);
+      }
+
+      try {
+        await sequelize.transaction(async (managedTx) => {
+          await checkAndDeleteIdToken(
+            "phone",
+            managedPhone,
+            "wrong-token",
+            managedTx,
+          );
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误次数过多");
+      }
+
+      const deletedRecord = await db.IdToken.findOne({
+        where: { phone: managedPhone },
+      });
+      void expect(deletedRecord).to.equal(null);
+    } finally {
+      await db.IdToken.destroy({ where: { phone: managedPhone } });
+    }
+  });
+
+  it("should persist deletion of expired token inside a managed transaction", async () => {
+    const managedPhone = "+8613800138998";
+    const expiredTime = moment()
+      .subtract(tokenMaxAgeInMins + 1, "minutes")
+      .toDate();
+    const created = await db.IdToken.create({
+      phone: managedPhone,
+      token: testToken,
+      ip: "127.0.0.1",
+    });
+
+    try {
+      await sequelize.query(
+        `UPDATE "IdTokens" SET "createdAt" = :createdAt WHERE id = :id`,
+        {
+          replacements: { createdAt: expiredTime, id: created.id },
+        },
+      );
+
+      try {
+        await sequelize.transaction(async (managedTx) => {
+          await checkAndDeleteIdToken(
+            "phone",
+            managedPhone,
+            testToken,
+            managedTx,
+          );
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("验证码已过期");
+      }
+
+      const deletedRecord = await db.IdToken.findOne({
+        where: { phone: managedPhone },
+      });
+      void expect(deletedRecord).to.equal(null);
+    } finally {
+      await db.IdToken.destroy({ where: { phone: managedPhone } });
+    }
+  });
 });
