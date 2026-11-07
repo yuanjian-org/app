@@ -222,8 +222,15 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      await db.ShudongSubscription.create(
-        { questionId: q.id, userId: subscriber.id },
+      // Subscribe poster, another subscriber, and the responder to verify
+      // eligible recipients are batched into a single notify() call while
+      // the responder is excluded from their own response notification.
+      await db.ShudongSubscription.bulkCreate(
+        [
+          { questionId: q.id, userId: poster.id },
+          { questionId: q.id, userId: subscriber.id },
+          { questionId: q.id, userId: responder.id },
+        ],
         { transaction },
       );
 
@@ -248,7 +255,8 @@ describe("scheduledNotifications", () => {
       expect(notifyStub.calledOnce).to.equal(true);
       const args = notifyStub.getCall(0).args;
       expect(args[0]).to.equal("树洞");
-      expect(args[1]).to.deep.equal([subscriber.id]);
+      expect(args[1]).to.have.members([poster.id, subscriber.id]);
+      expect(args[1]).to.not.include(responder.id);
       // Verify notification template IDs configured for Shudong response.
       expect(args[2].email).to.equal("E_114703550737");
       expect(args[2].domesticSms).to.equal("cFcyM4");

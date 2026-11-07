@@ -7,16 +7,16 @@ import { TRPCError } from "@trpc/server";
 describe("email", () => {
   let axiosPostStub: sinon.SinonStub;
   let originalEnv: NodeJS.ProcessEnv;
-  let originalIt: any;
+  let originalIt: typeof global.it;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
     process.env.AOKSEND_APP_KEY = "test_app_key";
     axiosPostStub = sinon.stub(axios, "post");
 
-    // Bypass the global.it check inside emailOne
+    // Bypass the global.it check inside email()
     originalIt = global.it;
-    global.it = undefined as any;
+    Reflect.set(global, "it", undefined);
   });
 
   afterEach(() => {
@@ -25,7 +25,7 @@ describe("email", () => {
     global.it = originalIt;
   });
 
-  it("should send emails correctly via AoKSend and sanitize emojis", async () => {
+  it("should batch emails via AoKSend and sanitize emojis", async () => {
     axiosPostStub.resolves({
       data: { code: 200, message: "OK" },
     });
@@ -40,31 +40,39 @@ describe("email", () => {
 
     await email(toEmails, templateId, templateData, baseUrl);
 
-    // emailOne should be called once for each email address
-    expect(axiosPostStub.callCount).to.equal(2);
+    // A single batch request should be made for all email addresses
+    expect(axiosPostStub.callCount).to.equal(1);
 
-    // Verify first call
-    const firstCallArgs = axiosPostStub.getCall(0).args;
-    expect(firstCallArgs[0]).to.equal(
+    // Verify batch call arguments
+    const callArgs = axiosPostStub.getCall(0).args;
+    expect(callArgs[0]).to.equal(
       "https://www.aoksend.com/index/api/send_email_batch",
     );
 
-    const formData1: FormData = firstCallArgs[1];
-    expect(formData1.get("app_key")).to.equal("test_app_key");
-    expect(formData1.get("template_id")).to.equal("E_12345");
-    expect(formData1.get("to")).to.equal("test1@example.com");
+    const formData: FormData = callArgs[1];
+    expect(formData.get("app_key")).to.equal("test_app_key");
+    expect(formData.get("template_id")).to.equal("E_12345");
+    expect(formData.getAll("to[]")).to.deep.equal(toEmails);
 
-    const data1 = JSON.parse(formData1.get("data") as string);
-    expect(data1).to.deep.equal({
+    const dataAll = formData.getAll("data[]");
+    expect(dataAll).to.have.length(1);
+    const data = JSON.parse(dataAll[0] as string);
+    expect(data).to.deep.equal({
       baseUrl: "https://example.com",
-      name: "John [表情符]", // Emjois should be sanitized
+      name: "John [表情符]", // Emojis should be sanitized
       message: "Hello world!",
     });
 
     // Verify headers
-    expect(firstCallArgs[2]).to.deep.equal({
+    expect(callArgs[2]).to.deep.equal({
       headers: { "Content-Type": "multipart/form-data" },
     });
+  });
+
+  it("should skip API call if recipient list is empty", async () => {
+    await email([], "E_12345", {}, "https://example.com");
+
+    expect(axiosPostStub.callCount).to.equal(0);
   });
 
   it("should skip actual API call if AOKSEND_APP_KEY is not configured", async () => {
@@ -83,8 +91,8 @@ describe("email", () => {
     let error: TRPCError | undefined;
     try {
       await email(["test@example.com"], "E_12345", {}, "https://example.com");
-    } catch (e: any) {
-      error = e;
+    } catch (e: unknown) {
+      error = e as TRPCError;
     }
 
     expect(error).to.not.equal(undefined);

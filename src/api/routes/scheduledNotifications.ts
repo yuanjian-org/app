@@ -236,28 +236,28 @@ async function notifyShudongResponses(
     transaction,
   });
 
-  const subscriberIds = subscriptions.map((s) => s.userId);
-  if (subscriberIds.length === 0) return;
+  // Skip subscribers whose only new responses are authored by themselves.
+  // Send a single batched notify() call for all eligible recipients to avoid
+  // triggering AoKSend rate limits.
+  const recipientIds = subscriptions
+    .map((s) => s.userId)
+    .filter((id) => newResponses.some((r) => r.authorId !== id));
+  if (recipientIds.length === 0) return;
 
-  for (const recipientId of subscriberIds) {
-    const relevant = newResponses.filter((r) => r.authorId !== recipientId);
-    if (relevant.length === 0) continue;
-
-    await notify(
-      "树洞",
-      [recipientId],
-      {
-        email: "E_114703550737",
-        domesticSms: "cFcyM4",
-        internationalSms: "sVrjE",
-      },
-      {
-        questionMarkdown: question.markdown,
-        questionLink: `${getBaseUrl()}/shudong/${questionId}`,
-      },
-      transaction,
-    );
-  }
+  await notify(
+    "树洞",
+    recipientIds,
+    {
+      email: "E_114703550737",
+      domesticSms: "cFcyM4",
+      internationalSms: "sVrjE",
+    },
+    {
+      questionMarkdown: question.markdown,
+      questionLink: `${getBaseUrl()}/shudong/${questionId}`,
+    },
+    transaction,
+  );
 }
 
 async function notifyTasks(
