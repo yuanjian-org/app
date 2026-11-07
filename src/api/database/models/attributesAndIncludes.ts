@@ -355,6 +355,7 @@ export const shudongPostAttributes = [
 export const shudongPostInclude = [
   {
     association: "author",
-    attributes: minUserAttributes,
+    // Include roles so formatShudongPost() can check if the author is a mentor.
+    attributes: [...minUserAttributes, "roles"],
   },
 ];

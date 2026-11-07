@@ -9,6 +9,7 @@ import {
 } from "../errors";
 import { Transaction, Op } from "sequelize";
 import User from "shared/User";
+import { isPermitted } from "shared/Role";
 import {
   canAccessShudong,
   canDeleteShudongQuestionTree,
@@ -203,6 +204,9 @@ export async function formatShudongPost(
   const isDeleted = post.deletedAt !== null;
   const isAnonymous = isDeleted || post.isAnonymous;
   const author = !isAnonymous && post.author ? post.author : null;
+  // Tag non-deleted posts (including anonymous ones) authored by a mentor.
+  const isMentorPosted =
+    !isDeleted && !!post.author && isPermitted(post.author.roles, "Mentor");
 
   let anonymousName: string | null = null;
   if (isAnonymous) {
@@ -220,6 +224,7 @@ export async function formatShudongPost(
     id: post.id,
     parentId: post.parentId,
     author,
+    isMentorPosted,
     markdown: post.markdown,
     upvoteCount: post.upvoteCount,
     responseCount: post.responseCount,

@@ -825,4 +825,50 @@ describe("shudong backend routes", () => {
       expect(remainingSubs).to.equal(0);
     });
   });
+
+  describe("mentor posted tag", () => {
+    it("should tag mentor posts and hide tag when deleted", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"], "现届学子");
+
+      // Anonymous question by mentor -> isMentorPosted is true
+      const mentorQuestion = await createPostImpl(
+        mentor,
+        null,
+        "Mentor question",
+        true,
+        transaction,
+      );
+      void expect(mentorQuestion.isMentorPosted).to.be.true;
+
+      // Non-anonymous response by mentee -> isMentorPosted is false
+      const menteeResponse = await createPostImpl(
+        mentee,
+        mentorQuestion.id,
+        "Mentee response",
+        false,
+        transaction,
+      );
+      void expect(menteeResponse.isMentorPosted).to.be.false;
+
+      // Non-anonymous response by mentor -> isMentorPosted is true
+      const mentorResponse = await createPostImpl(
+        mentor,
+        mentorQuestion.id,
+        "Mentor response",
+        false,
+        transaction,
+      );
+      void expect(mentorResponse.isMentorPosted).to.be.true;
+
+      // Soft-deleting a mentor's question with responses hides mentor tag
+      await deletePostImpl(mentor, mentorQuestion.id, transaction);
+      const detail = await getQuestionImpl(
+        mentee,
+        mentorQuestion.id,
+        transaction,
+      );
+      void expect(detail.question.isMentorPosted).to.be.false;
+    });
+  });
 });

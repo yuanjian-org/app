@@ -10,6 +10,10 @@ export const zShudongPost = z.object({
    * been soft-deleted.
    */
   author: zMinUser.nullable(),
+  /**
+   * Indicates whether the post was created by a mentor (false if soft-deleted).
+   */
+  isMentorPosted: z.boolean(),
   markdown: z.string(),
   upvoteCount: z.number(),
   responseCount: z.number(),
