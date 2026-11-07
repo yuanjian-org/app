@@ -7,16 +7,19 @@ import axios from "axios";
 import { internalServerError } from "./errors";
 
 /**
- * Send email via AoKSend.com
+ * Send email via AoKSend.com in a single batch request.
  */
-async function emailOne(
-  toEmail: string,
+export async function email(
+  toEmails: string[],
   templateId: string,
   templateData: Record<string, string>,
   baseUrl: string,
 ) {
   // Skip everything in unittest. https://stackoverflow.com/a/29183140
   if (typeof global.it === "function") return;
+
+  // Skip calling AoKSend API when there are no recipients.
+  if (toEmails.length === 0) return;
 
   // Sanitize emojis as they would cause AoKSend API to return 500 error.
   const sanitized: Record<string, string> = { baseUrl };
@@ -27,7 +30,8 @@ async function emailOne(
 
   console.log(
     `Sending mail via AoKSend, template id: ${templateId},` +
-      ` to: ${toEmail}, data: ${JSON.stringify(sanitized, null, 2)}`,
+      ` to: ${JSON.stringify(toEmails)},` +
+      ` data: ${JSON.stringify(sanitized, null, 2)}`,
   );
 
   const appKey = process.env.AOKSEND_APP_KEY;
@@ -39,16 +43,19 @@ async function emailOne(
   const form = new FormData();
   form.append("app_key", appKey);
   form.append("template_id", templateId);
-  form.append("to", toEmail);
-  form.append("data", JSON.stringify(sanitized));
+  // Pass recipients and shared template variables as array fields for the
+  // batch endpoint so all recipients are emailed in one API request.
+  for (const toEmail of toEmails) {
+    form.append("to[]", toEmail);
+  }
+  form.append("data[]", JSON.stringify(sanitized));
 
   /**
    * send_email_batch is an undocumented API provided by AoKSend support to
    * bypass the 3 per second rate limit of the official API described at
    * https://www.aoksend.com/doc/?id=86.
    *
-   * Currently we don't use the batch API to email multiple users at once. We
-   * could do it in the future. Refer to the message from AoKSend support:
+   * Refer to the message from AoKSend support:
    *
    * 参数其他的没变化 to 和 data 的格式变了
    *
@@ -80,17 +87,6 @@ async function emailOne(
       `邮件发送失败：${result.code}｜${result.message}`,
     );
   }
-}
-
-export async function email(
-  toEmails: string[],
-  templateId: string,
-  templateData: Record<string, string>,
-  baseUrl: string,
-) {
-  await Promise.all(
-    toEmails.map((to) => emailOne(to, templateId, templateData, baseUrl)),
-  );
 }
 
 /**
