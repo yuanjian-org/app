@@ -106,6 +106,19 @@ describe("Mentor Bookings Router", () => {
       void expect(createMessageAndScheduleEmailStub.calledOnce).to.be.true;
       void expect(notifyRolesStub.calledOnce).to.be.true;
     });
+
+    it("should support topic longer than 255 characters", async () => {
+      const longTopic = "话题".repeat(200);
+      await createMentorBooking(requester, null, longTopic, transaction);
+
+      const bookings = await db.MentorBooking.findAll({
+        where: { requesterId: requester.id },
+        transaction,
+      });
+
+      expect(bookings).to.have.lengthOf(1);
+      expect(bookings[0].topic).to.equal(longTopic);
+    });
   });
 
   describe("list", () => {

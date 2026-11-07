@@ -10,7 +10,7 @@ import {
   Default,
   AllowNull,
 } from "sequelize-typescript";
-import { CreationOptional, STRING, UUID, UUIDV4 } from "sequelize";
+import { CreationOptional, TEXT, UUID, UUIDV4 } from "sequelize";
 import User from "./User";
 
 @Table
@@ -36,10 +36,10 @@ export default class MentorBooking extends Model {
   assignedMentorId: string | null;
 
   @AllowNull(false)
-  @Column(STRING)
+  @Column(TEXT)
   topic: string;
 
-  @Column(STRING)
+  @Column(TEXT)
   notes: string | null;
 
   @ForeignKey(() => User)
