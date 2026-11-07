@@ -11,6 +11,7 @@ import {
   listQuestionsImpl,
   updatePostImpl,
   deletePostImpl,
+  deleteQuestionTreeImpl,
   toggleUpvoteImpl,
   toggleSubscriptionImpl,
   saveDraftImpl,
@@ -752,6 +753,76 @@ describe("shudong backend routes", () => {
       } catch (err: any) {
         expect(err.message).to.contain("树洞帖子");
       }
+    });
+  });
+
+  describe("physical question tree deletion", () => {
+    it("should physically delete post tree for ShudongAdmin", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const admin = await createTestUser(["ShudongAdmin"]);
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Question to physically delete",
+        true,
+        transaction,
+      );
+      const r1 = await createPostImpl(
+        mentor,
+        q.id,
+        "Response 1",
+        false,
+        transaction,
+      );
+      const r1_1 = await createPostImpl(
+        mentor,
+        r1.id,
+        "Nested Response 1.1",
+        false,
+        transaction,
+      );
+
+      await toggleUpvoteImpl(mentor, q.id, transaction);
+      await toggleUpvoteImpl(mentor, r1_1.id, transaction);
+      await saveDraftImpl(mentor, r1.id, null, "Reply draft", transaction);
+
+      // Non-admin (even the author) cannot physically delete the question tree
+      try {
+        await deleteQuestionTreeImpl(mentor, q.id, transaction);
+        expect.fail("Should have thrown permission error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("没有权限访问");
+      }
+
+      // Admin cannot physically delete a non-root response via this endpoint
+      try {
+        await deleteQuestionTreeImpl(admin, r1.id, transaction);
+        expect.fail("Should have thrown bad request error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("只能彻底删除顶层问题");
+      }
+
+      // Admin physically deletes the root question tree
+      await deleteQuestionTreeImpl(admin, q.id, transaction);
+
+      const remainingPosts = await db.ShudongPost.count({
+        where: { id: [q.id, r1.id, r1_1.id] },
+        transaction,
+      });
+      expect(remainingPosts).to.equal(0);
+
+      const remainingUpvotes = await db.ShudongUpvote.count({
+        where: { postId: [q.id, r1.id, r1_1.id] },
+        transaction,
+      });
+      expect(remainingUpvotes).to.equal(0);
+
+      const remainingSubs = await db.ShudongSubscription.count({
+        where: { questionId: q.id },
+        transaction,
+      });
+      expect(remainingSubs).to.equal(0);
     });
   });
 });

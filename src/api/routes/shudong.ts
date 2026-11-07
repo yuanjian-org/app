@@ -11,6 +11,7 @@ import { Transaction, Op } from "sequelize";
 import User from "shared/User";
 import {
   canAccessShudong,
+  canDeleteShudongQuestionTree,
   canEditOrDeleteShudongPost,
 } from "../../shared/ShudongPermissions";
 import { zShudongPost, ShudongPost } from "../../shared/Shudong";
@@ -577,6 +578,81 @@ export async function deletePostImpl(
 }
 
 /**
+ * Physically deletes a root question post and its entire descendant post tree,
+ * along with associated upvotes, subscriptions, drafts, and scheduled
+ * notifications. Only ShudongAdmin can perform this operation.
+ */
+export async function deleteQuestionTreeImpl(
+  me: User,
+  questionId: string,
+  transaction: Transaction,
+) {
+  checkShudongAccess(me);
+
+  if (!canDeleteShudongQuestionTree(me)) {
+    throw noPermissionError("树洞帖子", questionId);
+  }
+
+  const rootQuestion = await db.ShudongPost.findByPk(questionId, {
+    attributes: ["id", "parentId"],
+    transaction,
+  });
+  if (!rootQuestion) {
+    throw notFoundError("树洞帖子", questionId);
+  }
+  if (rootQuestion.parentId !== null) {
+    throw generalBadRequestError("只能彻底删除顶层问题");
+  }
+
+  // Collect all post IDs in the tree level by level from root to leaves.
+  const allPostIds: string[] = [rootQuestion.id];
+  let currentParentIds: string[] = [rootQuestion.id];
+
+  while (currentParentIds.length > 0) {
+    const children = await db.ShudongPost.findAll({
+      where: {
+        parentId: { [Op.in]: currentParentIds },
+      },
+      attributes: ["id"],
+      transaction,
+    });
+    if (children.length === 0) break;
+    const childIds = children.map((c) => c.id);
+    allPostIds.push(...childIds);
+    currentParentIds = childIds;
+  }
+
+  // Delete dependent records referencing any post in the tree before deleting
+  // the posts themselves to satisfy foreign key constraints.
+  await db.ShudongUpvote.destroy({
+    where: { postId: { [Op.in]: allPostIds } },
+    transaction,
+  });
+  await db.ShudongSubscription.destroy({
+    where: { questionId: { [Op.in]: allPostIds } },
+    transaction,
+  });
+  await db.DraftMessage.destroy({
+    where: {
+      [Op.or]: [
+        { shudongPostId: { [Op.in]: allPostIds } },
+        { shudongParentId: { [Op.in]: allPostIds } },
+      ],
+    },
+    transaction,
+  });
+  await db.ScheduledNotification.destroy({
+    where: { type: "ShudongResponse", subjectId: questionId },
+    transaction,
+  });
+
+  await db.ShudongPost.destroy({
+    where: { id: { [Op.in]: allPostIds } },
+    transaction,
+  });
+}
+
+/**
  * Toggles an upvote on a post for the current user.
  */
 export async function toggleUpvoteImpl(
@@ -802,6 +878,19 @@ const deletePost = procedure
     });
   });
 
+const deleteQuestionTree = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      questionId: z.string(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { questionId } }) => {
+    await sequelize.transaction(async (t) => {
+      await deleteQuestionTreeImpl(me, questionId, t);
+    });
+  });
+
 const toggleUpvote = procedure
   .use(authUser())
   .input(
@@ -873,6 +962,7 @@ export default router({
   createPost,
   updatePost,
   deletePost,
+  deleteQuestionTree,
   toggleUpvote,
   toggleSubscription,
   saveDraft,

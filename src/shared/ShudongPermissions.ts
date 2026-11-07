@@ -50,3 +50,13 @@ export function canEditOrDeleteShudongPost(
   // Non-admins can only modify their own posts
   return postAuthorId !== null && user.id === postAuthorId;
 }
+
+/**
+ * Determines whether a user can physically delete an entire Shudong question
+ * post tree. Only ShudongAdmin is permitted to perform physical tree deletion.
+ */
+export function canDeleteShudongQuestionTree(
+  user: Pick<User, "roles">,
+): boolean {
+  return isPermitted(user.roles, "ShudongAdmin");
+}
