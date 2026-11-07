@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
+import { zOrgWithMembers } from "../../shared/Org";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
@@ -86,9 +87,21 @@ describe("orgs API routes", () => {
   });
 
   describe("getOrgImpl", () => {
-    it("should retrieve an org with mentors and owners", async () => {
+    it("should retrieve an org with mentors and owners without exposing mentor roles", async () => {
       const org = await db.Org.create(
         { name: "Test Get Org" },
+        { transaction },
+      );
+      const mentor = await db.User.create(
+        {
+          email: "mentor_get@test.com",
+          name: "Mentor Get",
+          roles: ["Mentor", "UserAdmin"],
+        },
+        { transaction },
+      );
+      await db.OrgMentor.create(
+        { orgId: org.id, mentorId: mentor.id },
         { transaction },
       );
 
@@ -96,17 +109,19 @@ describe("orgs API routes", () => {
       void expect(retrievedOrg).to.not.be.null;
       void expect(retrievedOrg.id).to.equal(org.id);
       void expect(retrievedOrg.name).to.equal("Test Get Org");
-      void expect(retrievedOrg.mentors).to.be.an("array");
-      void expect(retrievedOrg.owners).to.be.an("array");
+      const parsed = zOrgWithMembers.parse(retrievedOrg);
+      void expect(parsed.mentors).to.have.lengthOf(1);
+      void expect("roles" in parsed.mentors[0]).to.be.false;
+      void expect(parsed.owners).to.be.an("array");
     });
 
     it("should throw not found error if org does not exist", async () => {
       let errorThrown = false;
       try {
         await getOrgImpl("00000000-0000-0000-0000-000000000000", transaction);
-      } catch (e: any) {
+      } catch (e: unknown) {
         errorThrown = true;
-        void expect(e.message).to.equal(
+        void expect((e as Error).message).to.equal(
           "机构 00000000-0000-0000-0000-000000000000 不存在。",
         );
       }
@@ -379,6 +394,69 @@ describe("orgs API routes", () => {
       } catch (e: any) {
         errorThrown = true;
         void expect(e.message).to.equal(`没有权限访问机构 ${org.id}。`);
+      }
+      void expect(errorThrown).to.be.true;
+    });
+
+    it("should reject adding a non-existent user as mentor", async () => {
+      const org = await db.Org.create(
+        { name: "Missing Mentor Org" },
+        { transaction },
+      );
+      const admin = await db.User.create(
+        { email: "admin_missing@test.com", name: "Admin", roles: ["OrgAdmin"] },
+        { transaction },
+      );
+      const missingId = "00000000-0000-0000-0000-000000000000";
+
+      let errorThrown = false;
+      try {
+        await addMentorImpl(
+          admin,
+          { orgId: org.id, mentorId: missingId },
+          transaction,
+        );
+      } catch (e: unknown) {
+        errorThrown = true;
+        void expect((e as Error).message).to.equal(
+          `用户 ${missingId} 不存在。`,
+        );
+      }
+      void expect(errorThrown).to.be.true;
+    });
+
+    it("should reject adding a user without the Mentor role", async () => {
+      const org = await db.Org.create(
+        { name: "Non-Mentor Org" },
+        { transaction },
+      );
+      const owner = await db.User.create(
+        { email: "owner_non_mentor@test.com", name: "Owner", roles: [] },
+        { transaction },
+      );
+      const mentee = await db.User.create(
+        {
+          email: "mentee_target@test.com",
+          name: "Mentee",
+          roles: ["Mentee"],
+        },
+        { transaction },
+      );
+      await db.OrgOwner.create(
+        { orgId: org.id, ownerId: owner.id },
+        { transaction },
+      );
+
+      let errorThrown = false;
+      try {
+        await addMentorImpl(
+          owner,
+          { orgId: org.id, mentorId: mentee.id },
+          transaction,
+        );
+      } catch (e: unknown) {
+        errorThrown = true;
+        void expect((e as Error).message).to.equal("只能将导师添加到机构。");
       }
       void expect(errorThrown).to.be.true;
     });

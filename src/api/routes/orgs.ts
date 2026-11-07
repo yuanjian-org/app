@@ -4,7 +4,11 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zOrg, zOrgWithMembers, OrgWithMembers } from "../../shared/Org";
 import { isPermitted } from "../../shared/Role";
-import { noPermissionError, notFoundError } from "../errors";
+import {
+  generalBadRequestError,
+  noPermissionError,
+  notFoundError,
+} from "../errors";
 import { minUserAttributes } from "../database/models/attributesAndIncludes";
 import { features } from "../../shared/Features";
 import { Transaction } from "sequelize";
@@ -43,7 +47,8 @@ export async function getOrgImpl(
       {
         model: db.User,
         as: "mentors",
-        attributes: [...minUserAttributes, "profile", "roles"],
+        // Do not include "roles" so org member listings never leak user roles.
+        attributes: [...minUserAttributes, "profile"],
       },
       {
         model: db.User,
@@ -138,6 +143,20 @@ export async function addMentorImpl(
   const { orgId, mentorId } = input;
   await checkOrgAdminOrOwner(me, orgId, transaction);
 
+  // Verify the target user exists and holds the "Mentor" role so org owners
+  // cannot add arbitrary users to exfiltrate their private profiles via
+  // orgs.get.
+  const targetUser = await db.User.findByPk(mentorId, {
+    attributes: ["id", "roles"],
+    transaction,
+  });
+  if (!targetUser) {
+    throw notFoundError("用户", mentorId);
+  }
+  if (!isPermitted(targetUser.roles, "Mentor")) {
+    throw generalBadRequestError("只能将导师添加到机构。");
+  }
+
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId },
     transaction,
@@ -195,7 +214,11 @@ const listPublic = procedure.output(z.array(zOrg)).query(async () => {
 const listUserOrgs = procedure
   .input(z.string())
   .output(z.array(zOrg))
-  .query(async ({ input: userId }) => {
+  .query(async ({ ctx, input: userId }) => {
+    // Allow unauthenticated access only when public orgs/mentors are enabled.
+    if (!ctx.session?.me && !features.publicOrgsMentors) {
+      throw noPermissionError("机构");
+    }
     return await listUserOrgsImpl(userId);
   });
 
