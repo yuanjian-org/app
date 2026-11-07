@@ -54,7 +54,7 @@ export interface SummaryDescriptor {
 async function checkTranscriptPermission(
   me: User,
   transcriptId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ) {
   const t = await db.Transcript.findByPk(transcriptId, {
     attributes: ["id"],
@@ -80,15 +80,13 @@ const list = procedure
   .input(z.string())
   .output(z.array(zSummary))
   .query(async ({ ctx: { me }, input: transcriptId }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await listImpl(me, transcriptId, transaction);
-    });
+    return await listImpl(me, transcriptId);
   });
 
 export async function listImpl(
   me: User,
   transcriptId: string,
-  transaction: Transaction,
+  transaction?: Transaction,
 ): Promise<Summary[]> {
   await checkTranscriptPermission(me, transcriptId, transaction);
 
