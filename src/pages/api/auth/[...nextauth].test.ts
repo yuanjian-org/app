@@ -146,3 +146,74 @@ describe("nextauth jwt callback", () => {
     expect(result.imp).to.equal("target-user");
   });
 });
+
+describe("nextauth signIn callback", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("should reject embedded-wechat-qr sign-in when both csrf cookie and state query are missing", async () => {
+    sinon.stub(console, "error");
+    const signInCallback = authOptions({
+      cookies: {},
+      query: {},
+    } as any).callbacks!.signIn!;
+
+    const result = await signInCallback({
+      account: { provider: "embedded-wechat-qr" } as any,
+      user: {} as any,
+    });
+    expect(result).to.equal(false);
+  });
+
+  it("should reject embedded-wechat-qr sign-in when both csrf and state are empty strings", async () => {
+    sinon.stub(console, "error");
+    const signInCallback = authOptions({
+      cookies: { "__Host-next-auth.csrf-token": "|signature" },
+      query: { state: "" },
+    } as any).callbacks!.signIn!;
+
+    const result = await signInCallback({
+      account: { provider: "embedded-wechat-qr" } as any,
+      user: {} as any,
+    });
+    expect(result).to.equal(false);
+  });
+
+  it("should reject embedded-wechat-qr sign-in when csrf and state do not match", async () => {
+    sinon.stub(console, "error");
+    const signInCallback = authOptions({
+      cookies: { "__Host-next-auth.csrf-token": "csrf-123|signature" },
+      query: { state: "csrf-456" },
+    } as any).callbacks!.signIn!;
+
+    const result = await signInCallback({
+      account: { provider: "embedded-wechat-qr" } as any,
+      user: {} as any,
+    });
+    expect(result).to.equal(false);
+  });
+
+  it("should allow embedded-wechat-qr sign-in when csrf and state match", async () => {
+    const signInCallback = authOptions({
+      cookies: { "__Host-next-auth.csrf-token": "csrf-123|signature" },
+      query: { state: "csrf-123" },
+    } as any).callbacks!.signIn!;
+
+    const result = await signInCallback({
+      account: { provider: "embedded-wechat-qr" } as any,
+      user: {} as any,
+    });
+    expect(result).to.equal(true);
+  });
+
+  it("should allow sign-in for other providers", async () => {
+    const signInCallback = authOptions().callbacks!.signIn!;
+
+    const result = await signInCallback({
+      account: { provider: "wechat-qr" } as any,
+      user: {} as any,
+    });
+    expect(result).to.equal(true);
+  });
+});
