@@ -8,6 +8,7 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { checkAndDeleteIdToken } from "../checkAndDeleteIdToken";
 import { IdType } from "shared/IdType";
+import { hasPrivilegedUserDataAccess } from "shared/Role";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
 
@@ -28,7 +29,10 @@ const providers: NextAuthOptions["providers"] = [
         attributes: [...userAttributes, "password"],
         include: userInclude,
       });
-      if (!user || !user.password) return null;
+      // Privileged users are prohibited from logging in with a password.
+      if (!user || !user.password || hasPrivilegedUserDataAccess(user.roles)) {
+        return null;
+      }
       const match = await compare(password, user.password);
       return match ? user : null;
     },

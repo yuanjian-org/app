@@ -146,6 +146,46 @@ describe("Auth Providers", () => {
 
       expect(result).to.equal(null);
     });
+
+    it("should fail authorization if user has a privileged role", async () => {
+      const transaction = await sequelize.transaction();
+      try {
+        const password = "mysecretpassword";
+        const hashedPassword = await hash(password, 10);
+        const testEmail = `${randomUUID()}@example.com`;
+
+        await db.User.create(
+          {
+            email: testEmail,
+            name: "Privileged Password User",
+            password: hashedPassword,
+            roles: ["UserAdmin"],
+          },
+          { transaction },
+        );
+
+        const origFindOne = db.User.findOne.bind(db.User);
+        sinon.stub(db.User, "findOne").callsFake((options) => {
+          return origFindOne({
+            ...options,
+            transaction,
+          });
+        });
+
+        const result = await idPasswordProvider.authorize!(
+          {
+            idType: "email",
+            id: testEmail,
+            password,
+          },
+          {} as never,
+        );
+
+        expect(result).to.equal(null);
+      } finally {
+        await transaction.rollback();
+      }
+    });
   });
 
   describe("id-token provider", () => {

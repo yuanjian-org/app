@@ -352,6 +352,23 @@ describe("updateImpl", () => {
     expect(updated?.roles).to.include("Mentor");
   });
 
+  it("should clear password when assigning a privileged role", async () => {
+    await targetUser.update({ password: "existing-password" }, { transaction });
+
+    const input = {
+      ...baseInput(targetUser),
+      roles: ["Volunteer" as const, "UserAdmin" as const],
+    };
+    await updateImpl(meManager, input, transaction);
+
+    const updated = await db.User.findByPk(targetUser.id, {
+      attributes: ["id", "roles", "password"],
+      transaction,
+    });
+    expect(updated?.roles).to.include("UserAdmin");
+    void expect(updated?.password).to.be.null;
+  });
+
   it("should throw generalBadRequestError for invalid Chinese name", async () => {
     try {
       await updateImpl(

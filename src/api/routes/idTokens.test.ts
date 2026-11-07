@@ -335,6 +335,32 @@ describe("setPhoneImpl", () => {
     void expect(existingUser.wechatUnionId).to.equal("existing-wechat");
     void expect(existingUser.password).to.equal("existing-password");
   });
+
+  it("should not copy password when merging into a privileged user", async () => {
+    const existingUser = await db.User.create(
+      {
+        phone,
+        name: "privileged existing user",
+        roles: ["UserAdmin"],
+        password: "old-privileged-password",
+      },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me user",
+        email: "me-priv@example.com",
+        password: "new-hashed-password",
+      },
+      { transaction },
+    );
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).to.equal("me-priv@example.com");
+    void expect(existingUser.password).to.be.null;
+  });
 });
 
 describe("resetPasswordImpl", () => {
