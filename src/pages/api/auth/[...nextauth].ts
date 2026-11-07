@@ -75,10 +75,13 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         // https://github.com/nextauthjs/next-auth/discussions/469
         if (account?.provider === "embedded-wechat-qr") {
           // https://next-auth.js.org/configuration/options#cookies
-          const csrf =
-            req?.cookies?.["__Host-next-auth.csrf-token"]?.split("|")[0];
-          const state = req?.query?.state;
-          if (csrf === state) {
+          const rawCsrfCookie =
+            req?.cookies?.["__Host-next-auth.csrf-token"] ??
+            req?.cookies?.["next-auth.csrf-token"];
+          const csrf = rawCsrfCookie?.split("|")[0];
+          const state =
+            typeof req?.query?.state === "string" ? req.query.state : undefined;
+          if (csrf && state && csrf === state) {
             return true;
           } else {
             console.error(
