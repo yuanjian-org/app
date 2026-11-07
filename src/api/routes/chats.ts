@@ -274,43 +274,57 @@ const saveDraftMessage = procedure
     }),
   )
   .mutation(async ({ ctx: { me }, input: { roomId, messageId, markdown } }) => {
-    checkDraftMessageInput(roomId, messageId);
-
-    // Sequelize's upsert() doesn't work well when there are multiple unique
-    // constraints. So we do upsert manually.
-
     await sequelize.transaction(async (transaction) => {
-      const condition =
-        roomId === undefined
-          ? { chatMessageId: messageId }
-          : { chatRoomId: roomId };
-      const cnt = await db.DraftMessage.count({
-        where: {
-          authorId: me.id,
-          ...condition,
-        },
+      await saveDraftMessageImpl(
+        me.id,
+        roomId,
+        messageId,
+        markdown,
         transaction,
-      });
-      if (cnt > 0) {
-        await db.DraftMessage.update(
-          { markdown },
-          {
-            where: condition,
-            transaction,
-          },
-        );
-      } else {
-        await db.DraftMessage.create(
-          {
-            authorId: me.id,
-            ...condition,
-            markdown,
-          },
-          { transaction },
-        );
-      }
+      );
     });
   });
+
+export async function saveDraftMessageImpl(
+  authorId: string,
+  roomId: string | undefined,
+  messageId: string | undefined,
+  markdown: string,
+  transaction: Transaction,
+) {
+  checkDraftMessageInput(roomId, messageId);
+
+  // Sequelize's upsert() doesn't work well when there are multiple unique
+  // constraints. So we do upsert manually.
+  // Include authorId in condition so updates only affect the caller's draft.
+  const condition = {
+    authorId,
+    ...(roomId === undefined
+      ? { chatMessageId: messageId }
+      : { chatRoomId: roomId }),
+  };
+  const cnt = await db.DraftMessage.count({
+    where: condition,
+    transaction,
+  });
+  if (cnt > 0) {
+    await db.DraftMessage.update(
+      { markdown },
+      {
+        where: condition,
+        transaction,
+      },
+    );
+  } else {
+    await db.DraftMessage.create(
+      {
+        ...condition,
+        markdown,
+      },
+      { transaction },
+    );
+  }
+}
 
 // No need for permission check because there isn't harmful side effect.
 const getDraftMessage = procedure
