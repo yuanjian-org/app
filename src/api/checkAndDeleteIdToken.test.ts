@@ -16,6 +16,9 @@ describe("checkAndDeleteIdToken", () => {
     await db.IdToken.destroy({
       where: { [Op.or]: [{ phone: testPhone }, { email: testEmail }] },
     });
+    await db.User.destroy({
+      where: { [Op.or]: [{ phone: testPhone }, { email: testEmail }] },
+    });
   });
 
   async function createTestIdToken(
@@ -138,5 +141,150 @@ describe("checkAndDeleteIdToken", () => {
       where: { phone: testPhone },
     });
     void expect(tokenRecord).to.equal(null);
+  });
+
+  describe("nested transactions", () => {
+    it("should commit both inner and outer transactions when validation and outer operations succeed", async () => {
+      await createTestIdToken("phone", testPhone, testToken);
+
+      await sequelize.transaction(async (outerTransaction) => {
+        await checkAndDeleteIdToken("phone", testPhone, testToken);
+        await db.User.create(
+          { phone: testPhone, name: "Nested Success User" },
+          { transaction: outerTransaction },
+        );
+      });
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(tokenRecord).to.equal(null);
+
+      const userRecord = await db.User.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(userRecord).to.not.equal(null);
+      void expect(userRecord!.name).to.equal("Nested Success User");
+    });
+
+    it("should commit inner transaction (failedAttempts and 5-attempt deletion) while rolling back outer transaction on invalid token", async () => {
+      await createTestIdToken("phone", testPhone, "correct-token");
+
+      for (let i = 1; i <= 4; i++) {
+        try {
+          await sequelize.transaction(async (outerTransaction) => {
+            await db.User.create(
+              { phone: testPhone, name: "Should Rollback" },
+              { transaction: outerTransaction },
+            );
+            await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
+          });
+          expect.fail("Expected error to be thrown");
+        } catch (error: any) {
+          void expect(error.message).to.equal("手机验证码错误。");
+        }
+
+        const tokenRecord = await db.IdToken.findOne({
+          where: { phone: testPhone },
+        });
+        void expect(tokenRecord).to.not.equal(null);
+        void expect(tokenRecord!.failedAttempts).to.equal(i);
+
+        const userRecord = await db.User.findOne({
+          where: { phone: testPhone },
+        });
+        void expect(userRecord).to.equal(null);
+      }
+
+      try {
+        await sequelize.transaction(async (outerTransaction) => {
+          await db.User.create(
+            { phone: testPhone, name: "Should Rollback" },
+            { transaction: outerTransaction },
+          );
+          await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误次数过多");
+      }
+
+      const deletedToken = await db.IdToken.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(deletedToken).to.equal(null);
+
+      const userRecord = await db.User.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(userRecord).to.equal(null);
+    });
+
+    it("should commit inner transaction (expired token deletion) while rolling back outer transaction on expired token", async () => {
+      const expiredTime = moment()
+        .subtract(tokenMaxAgeInMins + 1, "minutes")
+        .toDate();
+      const token = await createTestIdToken("phone", testPhone, testToken);
+
+      await sequelize.query(
+        `UPDATE "IdTokens" SET "createdAt" = :createdAt WHERE id = :id`,
+        {
+          replacements: { createdAt: expiredTime, id: token.id },
+        },
+      );
+
+      try {
+        await sequelize.transaction(async (outerTransaction) => {
+          await db.User.create(
+            { phone: testPhone, name: "Should Rollback" },
+            { transaction: outerTransaction },
+          );
+          await checkAndDeleteIdToken("phone", testPhone, testToken);
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("验证码已过期");
+      }
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(tokenRecord).to.equal(null);
+
+      const userRecord = await db.User.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(userRecord).to.equal(null);
+    });
+
+    it("should keep inner transaction committed while rolling back outer transaction when outer transaction throws after token validation", async () => {
+      await createTestIdToken("phone", testPhone, testToken);
+
+      try {
+        await sequelize.transaction(async (outerTransaction) => {
+          await checkAndDeleteIdToken("phone", testPhone, testToken);
+          await db.User.create(
+            { phone: testPhone, name: "Should Rollback" },
+            { transaction: outerTransaction },
+          );
+          throw new Error("Downstream error in outer transaction");
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.equal(
+          "Downstream error in outer transaction",
+        );
+      }
+
+      const tokenRecord = await db.IdToken.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(tokenRecord).to.equal(null);
+
+      const userRecord = await db.User.findOne({
+        where: { phone: testPhone },
+      });
+      void expect(userRecord).to.equal(null);
+    });
   });
 });
