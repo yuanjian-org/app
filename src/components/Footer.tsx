@@ -6,9 +6,15 @@ import T from "components/T";
 
 export default function Footer({ ...rest }: WrapProps) {
   const color = "gray.400";
-  const beian = "33010802014263";
+  // Use XHEF's own GongAn Beian and ICP numbers on the xhef deployment.
+  const isXhef = whiteLabel === "xhef";
+  const beian = isXhef ? "33040202000149" : "33010802014263";
   const isSongding = whiteLabel === "yqd" || whiteLabel === "sylp";
-  const icp = isSongding ? "沪ICP备2021004288号" : "浙ICP备2024117465号-4";
+  const icp = isSongding
+    ? "沪ICP备2021004288号"
+    : isXhef
+      ? "浙ICP备09080143号-1"
+      : "浙ICP备2024117465号-4";
 
   return (
     <Wrap
