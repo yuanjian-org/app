@@ -6,6 +6,7 @@ import providers from "./providers";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import * as checkAndDeleteIdTokenModule from "../checkAndDeleteIdToken";
+import * as whiteLabelModule from "shared/WhiteLabel";
 import { CredentialsConfig } from "next-auth/providers/credentials";
 
 describe("Auth Providers", () => {
@@ -184,6 +185,37 @@ describe("Auth Providers", () => {
         expect(result).to.equal(null);
       } finally {
         await transaction.rollback();
+      }
+    });
+
+    it("should allow privileged user password login on demo site", async () => {
+      sinon.stub(whiteLabelModule, "whiteLabel").value("demo");
+      const password = "mysecretpassword";
+      const hashedPassword = await hash(password, 10);
+      const testEmail = `${randomUUID()}@example.com`;
+
+      // Create a real user in the database and clean up in finally.
+      const user = await db.User.create({
+        email: testEmail,
+        name: "Demo Privileged User",
+        password: hashedPassword,
+        roles: ["UserAdmin"],
+      });
+
+      try {
+        const result = await idPasswordProvider.authorize!(
+          {
+            idType: "email",
+            id: testEmail,
+            password,
+          },
+          {} as never,
+        );
+
+        expect(result).to.not.equal(null);
+        expect(result?.id).to.equal(user.id);
+      } finally {
+        await db.User.destroy({ where: { id: user.id } });
       }
     });
   });

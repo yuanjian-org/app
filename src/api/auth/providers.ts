@@ -9,6 +9,7 @@ import {
 import { checkAndDeleteIdToken } from "../checkAndDeleteIdToken";
 import { IdType } from "shared/IdType";
 import { hasPrivilegedUserDataAccess } from "shared/Role";
+import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
 
@@ -29,8 +30,13 @@ const providers: NextAuthOptions["providers"] = [
         attributes: [...userAttributes, "password"],
         include: userInclude,
       });
-      // Privileged users are prohibited from logging in with a password.
-      if (!user || !user.password || hasPrivilegedUserDataAccess(user.roles)) {
+      // Privileged users are prohibited from logging in with a password,
+      // except on the demo site where demo accounts use password login.
+      if (
+        !user ||
+        !user.password ||
+        (whiteLabel !== "demo" && hasPrivilegedUserDataAccess(user.roles))
+      ) {
         return null;
       }
       const match = await compare(password, user.password);
