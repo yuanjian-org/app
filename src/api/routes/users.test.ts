@@ -991,6 +991,52 @@ describe("listImpl", () => {
     expect(u2!.wechatUnionId).equals("wx2");
     expect(u2!.mergedToUser?.id).equals("00000000-0000-0000-0000-000000000001");
   });
+
+  it("should redact phone, wechat, and point-of-contact fields for GroupAdmin", async () => {
+    const pocId = "00000000-0000-0000-0000-000000000010";
+    const targetId = "00000000-0000-0000-0000-000000000011";
+    await db.User.bulkCreate(
+      [
+        {
+          id: pocId,
+          name: "POC User",
+          roles: ["Volunteer"],
+          pinyin: "poc",
+        },
+        {
+          id: targetId,
+          name: "Target Volunteer",
+          email: "target_vol@example.com",
+          phone: "+8613800138000",
+          wechat: "wx_secret_id",
+          roles: ["Volunteer"],
+          pinyin: "target",
+          pointOfContactId: pocId,
+          pointOfContactNote: "Confidential internal admin note",
+        },
+      ],
+      { transaction },
+    );
+
+    const groupAdmin = {
+      id: "00000000-0000-0000-0000-000000000099",
+      roles: ["GroupAdmin"],
+    } as never;
+
+    const res = await usersModule.listImpl(
+      groupAdmin,
+      { ids: [targetId] },
+      transaction,
+    );
+
+    expect(res.items.length).equals(1);
+    expect(res.items[0].name).equals("Target Volunteer");
+    expect(res.items[0].email).equals("target_vol@example.com");
+    void expect(res.items[0].phone).to.be.null;
+    void expect(res.items[0].wechat).to.be.null;
+    void expect(res.items[0].pointOfContact).to.be.null;
+    void expect(res.items[0].pointOfContactNote).to.be.null;
+  });
 });
 
 describe("listMentorsImpl", () => {

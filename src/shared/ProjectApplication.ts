@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zUser } from "./User";
+import { zMinUser } from "./User";
 
 export const zProjectApplicationStatus = z
   .enum(["已批准", "已拒绝"])
@@ -19,7 +19,7 @@ export const zProjectApplication = z.object({
 export type ProjectApplication = z.TypeOf<typeof zProjectApplication>;
 
 export const zProjectApplicationWithUser = zProjectApplication.extend({
-  user: zUser,
+  user: zMinUser,
 });
 
 export type ProjectApplicationWithUser = z.TypeOf<

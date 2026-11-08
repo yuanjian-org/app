@@ -286,6 +286,24 @@ export async function listImpl(
     nextCursor = (filter.cursor ?? 0) + limit;
   }
 
+  // GroupAdmin only has access to name and email (see /who-can-see-my-data);
+  // redact phone, wechat, and point-of-contact fields for callers without
+  // UserAdmin, MentorshipAdmin, or MentorshipOperator roles.
+  if (
+    !isPermitted(me.roles, [
+      "UserAdmin",
+      "MentorshipAdmin",
+      "MentorshipOperator",
+    ])
+  ) {
+    for (const item of items) {
+      item.phone = null;
+      item.wechat = null;
+      item.pointOfContact = null;
+      item.pointOfContactNote = null;
+    }
+  }
+
   return {
     items: items as unknown as UserWithMergeInfo[],
     nextCursor,
@@ -987,6 +1005,8 @@ const getApplicant = procedure
       user.email = "redacted@redacted.com";
       user.wechat = "redacted";
       user.phone = "redacted";
+      user.pointOfContact = null;
+      user.pointOfContactNote = null;
 
       // Check if the user is a mentor of the mentee
       if (
