@@ -1,14 +1,18 @@
-name: Every 5m Sync Meetings
+name: Hourly Sync Meetings
 
 permissions: {}
 
 on:
   schedule:
-    # Runs every 5 minutes (the shortest interval GitHub Actions supports).
-    # Because GitHub Actions treats `schedule` as best-effort and frequently
-    # delays or drops scheduled runs under platform load, scheduling every 5
-    # minutes helps achieve an actual run frequency closer to every 10 minutes.
-    - cron: "*/5 * * * *"
+    # Runs at the 8th minute of every hour. Do not run close to 30m boundaries
+    # because there may be cases where users wait for a bit longer than
+    # `gracePeriodMinutes` to join a meeting after they have clicked the join
+    # button, and meetings are often scheduled at 30m boundaries.
+    #
+    # Note that Github have large scheduling delays which are often more than
+    # a few minutes.
+    #
+    - cron: "8 * * * *"
   workflow_dispatch:
 
 jobs:
