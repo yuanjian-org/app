@@ -13,6 +13,8 @@ import { minUserAttributes } from "../database/models/attributesAndIncludes";
 import { features } from "../../shared/Features";
 import { Transaction } from "sequelize";
 import User from "../database/models/User";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../pages/api/auth/[...nextauth]";
 
 import sequelize from "../database/sequelize";
 import { compareChinese } from "shared/strings/compareChinese";
@@ -216,8 +218,15 @@ const listUserOrgs = procedure
   .output(z.array(zOrg))
   .query(async ({ ctx, input: userId }) => {
     // Allow unauthenticated access only when public orgs/mentors are enabled.
-    if (!ctx.session?.me && !features.publicOrgsMentors) {
-      throw noPermissionError("机构");
+    if (!features.publicOrgsMentors) {
+      const session = await getServerSession(
+        ctx.req,
+        ctx.res,
+        authOptions(ctx.req),
+      );
+      if (!session) {
+        throw noPermissionError("机构");
+      }
     }
     return await listUserOrgsImpl(userId);
   });

@@ -261,9 +261,9 @@ describe("auditLastMentorshipMeetings", () => {
 describe("updateMentorshipSchedule", () => {
   let transaction: Transaction;
   let mentorshipId: string;
-  let mentor: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
-  let otherMentor: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
-  let admin: { id: string; roles: ("Mentor" | "MentorshipAdmin")[] };
+  let mentor: Awaited<ReturnType<typeof db.User.create>>;
+  let otherMentor: Awaited<ReturnType<typeof db.User.create>>;
+  let admin: Awaited<ReturnType<typeof db.User.create>>;
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();

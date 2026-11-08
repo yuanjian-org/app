@@ -23,6 +23,7 @@ type Kind =
   | "项目"
   | "树洞"
   | "树洞帖子"
+  | "中科大学生认证"
   | "数据"; // A general kind
 
 export const notFoundError = (kind: Kind, id?: string) =>
