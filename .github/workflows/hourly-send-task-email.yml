@@ -3,10 +3,13 @@ name: Every 10m Send Tasks And Emails
 permissions: {}
 
 on:
-  # Triggered every 10 minutes by cron-job.org via `workflow_dispatch` because
-  # GitHub Actions' native `schedule` trigger frequently delays or drops runs
-  # under load. See `docs/Deployment.md` ("4. Configure cron-job.org triggers")
-  # for setup instructions.
+  schedule:
+    - cron: "10 * * * *"
+  # Also triggered every 10 minutes by cron-job.org via `workflow_dispatch`
+  # because GitHub Actions' native `schedule` trigger frequently delays or drops
+  # runs under load. Keeping both provides double insurance. See
+  # `docs/Deployment.md` ("4. Configure cron-job.org triggers") for setup
+  # instructions.
   workflow_dispatch:
 
 jobs:

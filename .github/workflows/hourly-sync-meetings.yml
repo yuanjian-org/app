@@ -3,10 +3,21 @@ name: Every 10m Sync Meetings
 permissions: {}
 
 on:
-  # Triggered every 10 minutes by cron-job.org via `workflow_dispatch` because
-  # GitHub Actions' native `schedule` trigger frequently delays or drops runs
-  # under load. See `docs/Deployment.md` ("4. Configure cron-job.org triggers")
-  # for setup instructions.
+  schedule:
+    # Runs at the 8th minute of every hour. Do not run close to 30m boundaries
+    # because there may be cases where users wait for a bit longer than
+    # `gracePeriodMinutes` to join a meeting after they have clicked the join
+    # button, and meetings are often scheduled at 30m boundaries.
+    #
+    # Note that Github have large scheduling delays which are often more than
+    # a few minutes.
+    #
+    - cron: "8 * * * *"
+  # Also triggered every 10 minutes by cron-job.org via `workflow_dispatch`
+  # because GitHub Actions' native `schedule` trigger frequently delays or drops
+  # runs under load. Keeping both provides double insurance. See
+  # `docs/Deployment.md` ("4. Configure cron-job.org triggers") for setup
+  # instructions.
   workflow_dispatch:
 
 jobs:
