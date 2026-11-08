@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { zMinUser } from "./User";
-import { zRoles } from "./Role";
 import { zUserProfile } from "./UserProfile";
 import { zOptionalDateColumn } from "./DateColumn";
 
@@ -15,7 +14,6 @@ export type Org = z.infer<typeof zOrg>;
 
 export const zOrgMentor = zMinUser.and(
   z.object({
-    roles: zRoles.optional(),
     profile: zUserProfile.optional().nullable(),
   }),
 );

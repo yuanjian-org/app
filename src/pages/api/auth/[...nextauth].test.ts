@@ -261,13 +261,13 @@ describe("nextauth session callback", () => {
     invalidateUserCache(target.id);
 
     const sessionCallback = authOptions().callbacks!.session!;
-    const result = await sessionCallback({
+    const result = (await sessionCallback({
       session: { expires: "" } as never,
       token: { sub: admin.id, imp: target.id },
       user: {} as never,
       newSession: undefined,
       trigger: "update",
-    });
+    })) as { me: { id: string }; impersonated?: boolean };
 
     expect(result.me.id).to.equal(target.id);
     expect(result.impersonated).to.equal(true);
@@ -294,13 +294,13 @@ describe("nextauth session callback", () => {
     invalidateUserCache(targetAdmin.id);
 
     const sessionCallback = authOptions().callbacks!.session!;
-    const result = await sessionCallback({
+    const result = (await sessionCallback({
       session: { expires: "" } as never,
       token: { sub: demotedAdmin.id, imp: targetAdmin.id },
       user: {} as never,
       newSession: undefined,
       trigger: "update",
-    });
+    })) as { me: { id: string }; impersonated?: boolean };
 
     expect(result.me.id).to.equal(demotedAdmin.id);
     void expect(result.impersonated).to.be.undefined;

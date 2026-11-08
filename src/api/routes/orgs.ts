@@ -4,11 +4,17 @@ import { authUser } from "../auth";
 import db from "../database/db";
 import { zOrg, zOrgWithMembers, OrgWithMembers } from "../../shared/Org";
 import { isPermitted } from "../../shared/Role";
-import { noPermissionError, notFoundError } from "../errors";
+import {
+  generalBadRequestError,
+  noPermissionError,
+  notFoundError,
+} from "../errors";
 import { minUserAttributes } from "../database/models/attributesAndIncludes";
 import { features } from "../../shared/Features";
 import { Transaction } from "sequelize";
 import User from "../database/models/User";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../pages/api/auth/[...nextauth]";
 
 import sequelize from "../database/sequelize";
 import { compareChinese } from "shared/strings/compareChinese";
@@ -43,7 +49,8 @@ export async function getOrgImpl(
       {
         model: db.User,
         as: "mentors",
-        attributes: [...minUserAttributes, "profile", "roles"],
+        // Do not include "roles" so org member listings never leak user roles.
+        attributes: [...minUserAttributes, "profile"],
       },
       {
         model: db.User,
@@ -138,6 +145,20 @@ export async function addMentorImpl(
   const { orgId, mentorId } = input;
   await checkOrgAdminOrOwner(me, orgId, transaction);
 
+  // Verify the target user exists and holds the "Mentor" role so org owners
+  // cannot add arbitrary users to exfiltrate their private profiles via
+  // orgs.get.
+  const targetUser = await db.User.findByPk(mentorId, {
+    attributes: ["id", "roles"],
+    transaction,
+  });
+  if (!targetUser) {
+    throw notFoundError("用户", mentorId);
+  }
+  if (!isPermitted(targetUser.roles, "Mentor")) {
+    throw generalBadRequestError("只能将导师添加到机构。");
+  }
+
   await db.OrgMentor.findOrCreate({
     where: { orgId, mentorId },
     transaction,
@@ -195,7 +216,18 @@ const listPublic = procedure.output(z.array(zOrg)).query(async () => {
 const listUserOrgs = procedure
   .input(z.string())
   .output(z.array(zOrg))
-  .query(async ({ input: userId }) => {
+  .query(async ({ ctx, input: userId }) => {
+    // Allow unauthenticated access only when public orgs/mentors are enabled.
+    if (!features.publicOrgsMentors) {
+      const session = await getServerSession(
+        ctx.req,
+        ctx.res,
+        authOptions(ctx.req),
+      );
+      if (!session) {
+        throw noPermissionError("机构");
+      }
+    }
     return await listUserOrgsImpl(userId);
   });
 
