@@ -112,16 +112,16 @@ GitHub's `workflow_dispatch` REST API using https://cron-job.org.
 1. Create two cronjobs (one for `hourly-sync-meetings.yml` and one for
    `hourly-send-task-email.yml`) using the following settings:
    - **Common tab**:
-     - **Title**: `Hourly Sync Meetings` (Job 1) or
-       `Hourly Send Tasks And Emails` (Job 2)
+     - **Title**: `Sync Meetings` (Job 1) or `Send Tasks And Emails` (Job 2)
      - **URL**:
        ```
-       https://api.github.com/repos/<REPO>/actions/workflows/<FILE>/dispatches
+       https://api.github.com/repos/yuanjian-org/app/actions/workflows/<FILE>/dispatches
        ```
-       where `<REPO>` is `yuanjian-org/app`, and `<FILE>` is:
+       where `<FILE>` is:
        - Job 1: `hourly-sync-meetings.yml`
        - Job 2: `hourly-send-task-email.yml`
-     - **Execution schedule**: Select **Every 10 minutes**.
+     - **Execution schedule**: Select **Every 10 minutes** or an alternative
+       schedule.
    - **Advanced tab**:
      - **Request method**: `POST`
      - **Headers**:
