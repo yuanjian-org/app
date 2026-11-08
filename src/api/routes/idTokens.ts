@@ -26,6 +26,7 @@ import { email } from "../../api/email";
 import { checkAndDeleteIdToken } from "../../api/checkAndDeleteIdToken";
 import _ from "lodash";
 import { hasPrivilegedUserDataAccess } from "shared/Role";
+import { whiteLabel } from "shared/WhiteLabel";
 export async function sendImpl(
   idType: IdType,
   id: string,
@@ -194,12 +195,14 @@ export async function setPhoneImpl(
         },
         { transaction },
       );
-      const isExistingPrivileged = hasPrivilegedUserDataAccess(existing.roles);
+      const isExistingPrivileged =
+        whiteLabel !== "demo" && hasPrivilegedUserDataAccess(existing.roles);
       await existing.update(
         {
           ...(email && { email }),
           ...(wechatUnionId && { wechatUnionId }),
-          // Privileged users must not retain or receive a password hash.
+          // Privileged users must not retain or receive a password hash,
+          // except on the demo site.
           ...(isExistingPrivileged
             ? { password: null }
             : password && { password }),
@@ -298,7 +301,8 @@ export async function resetPasswordImpl(
   });
 
   if (user) {
-    if (hasPrivilegedUserDataAccess(user.roles)) {
+    // Allow privileged users to reset passwords only on the demo site.
+    if (whiteLabel !== "demo" && hasPrivilegedUserDataAccess(user.roles)) {
       throw generalBadRequestError("特权用户禁止使用密码登录。");
     }
   } else {

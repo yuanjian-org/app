@@ -535,8 +535,10 @@ export async function updateImpl(
         email,
         phone,
         // Clear any existing password when granting or retaining privileged
-        // roles so privileged accounts cannot log in with a password.
-        ...(hasPrivilegedUserDataAccess(input.roles) && { password: null }),
+        // roles so privileged accounts cannot log in with a password, except
+        // on the demo site.
+        ...(whiteLabel !== "demo" &&
+          hasPrivilegedUserDataAccess(input.roles) && { password: null }),
       }),
     },
     { transaction },

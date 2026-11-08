@@ -12,6 +12,7 @@ import sequelize from "../database/sequelize";
 import { Transaction, QueryTypes } from "sequelize";
 import sinon from "sinon";
 import * as mentorshipsModule from "./mentorships";
+import * as whiteLabelModule from "shared/WhiteLabel";
 
 describe("redactEmail", () => {
   it("should redact normal email", () => {
@@ -367,6 +368,24 @@ describe("updateImpl", () => {
     });
     expect(updated?.roles).to.include("UserAdmin");
     void expect(updated?.password).to.be.null;
+  });
+
+  it("should preserve password for privileged role on demo site", async () => {
+    sinon.stub(whiteLabelModule, "whiteLabel").value("demo");
+    await targetUser.update({ password: "existing-password" }, { transaction });
+
+    const input = {
+      ...baseInput(targetUser),
+      roles: ["Volunteer" as const, "UserAdmin" as const],
+    };
+    await updateImpl(meManager, input, transaction);
+
+    const updated = await db.User.findByPk(targetUser.id, {
+      attributes: ["id", "roles", "password"],
+      transaction,
+    });
+    expect(updated?.roles).to.include("UserAdmin");
+    void expect(updated?.password).to.equal("existing-password");
   });
 
   it("should throw generalBadRequestError for invalid Chinese name", async () => {
