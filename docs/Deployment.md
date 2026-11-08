@@ -81,3 +81,58 @@ For convenience of day-to-day admin operations (optional):
 1. Modify `/etc/cron.d/certbot` and append `--webroot -w <home>/app/certbot --deploy-hook 'docker compose --project-directory <home>/app restart'` to certbot's command line. This allows the certbot to renew the certificate without requiring to stop the running server.
 1. **REMEMBER**: For Aliyun ECS machines, reboot the host after a new domain name is acquired. For some reason Docker on these machines can't recognize the new certificate files otherwise.
 1. Register an account at https://redsift.com and set up SSL expiry notification emails for free.
+
+## 4. Configure cron-job.org triggers
+
+Because GitHub Actions' native `schedule` (cron) trigger is best-effort and
+frequently delays or drops runs under platform load, high-frequency workflows
+(`.github/workflows/hourly-sync-meetings.yml` and
+`.github/workflows/hourly-send-task-email.yml`) are triggered externally via
+GitHub's `workflow_dispatch` REST API using https://cron-job.org.
+
+### Step 1: Generate a GitHub Fine-Grained Personal Access Token (PAT)
+
+1. In GitHub, open **Settings** (top-right user avatar) > **Developer settings**
+   > **Personal access tokens** > **Fine-grained tokens** >
+   **Generate new token**.
+1. Set **Token name** (e.g., `cron-job.org workflow_dispatch`).
+1. Set **Resource owner** to `yuanjian-org`.
+1. Set **Expiration** (e.g., 1 year) and set a reminder to rotate the token
+   before it expires.
+1. Under **Repository access**, select **Only select repositories** and choose
+   `yuanjian-org/app`.
+1. Under **Permissions** > **Repository permissions**, set **Actions** to
+   **Read and write** (leave all other permissions at default).
+1. Click **Generate token** and copy the generated token (`github_pat_...`).
+
+### Step 2: Create the cron jobs on cron-job.org
+
+1. Sign up or log in at https://cron-job.org and go to **Cronjobs** >
+   **Create cronjob**.
+1. Create two cronjobs (one for `hourly-sync-meetings.yml` and one for
+   `hourly-send-task-email.yml`) using the following settings:
+   - **Common tab**:
+     - **Title**: `Every 10m Sync Meetings` (Job 1) or
+       `Every 10m Send Tasks And Emails` (Job 2)
+     - **URL**:
+       ```
+       https://api.github.com/repos/<REPO>/actions/workflows/<FILE>/dispatches
+       ```
+       where `<REPO>` is `yuanjian-org/app`, and `<FILE>` is:
+       - Job 1: `hourly-sync-meetings.yml`
+       - Job 2: `hourly-send-task-email.yml`
+     - **Execution schedule**: Select **Every 10 minutes**.
+   - **Advanced tab**:
+     - **Request method**: `POST`
+     - **Headers**:
+       - `Accept`: `application/vnd.github+json`
+       - `Authorization`: `Bearer <YOUR_GITHUB_PAT>`
+       - `X-GitHub-Api-Version`: `2022-11-28`
+       - `Content-Type`: `application/json`
+     - **Request body**:
+       ```json
+       {"ref":"main"}
+       ```
+1. Click **TEST RUN** to verify that GitHub responds with `204 No Content` and
+   that a new workflow run starts in the repository's **Actions** tab, then
+   click **CREATE**.
