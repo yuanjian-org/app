@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { Transaction } from "sequelize";
+import { zProjectApplicationWithUser } from "../../shared/ProjectApplication";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
@@ -25,6 +26,9 @@ describe("Project Applications Route Impl", () => {
       {
         email: `${crypto.randomUUID()}@example.com`,
         name: "Test User",
+        phone: `+86138${crypto.randomInt(10000000, 99999999)}`,
+        wechat: "secret-wechat",
+        pointOfContactNote: "confidential-note",
         roles,
       },
       { transaction },
@@ -56,7 +60,7 @@ describe("Project Applications Route Impl", () => {
     );
   };
 
-  it("should list applications for project owner", async () => {
+  it("should list applications for project owner without exposing applicant PII or admin notes", async () => {
     const owner = await createTestUser();
     const applicant = await createTestUser();
     const project = await createTestProject(owner.id);
@@ -66,6 +70,11 @@ describe("Project Applications Route Impl", () => {
     expect(result.length).to.equal(1);
     expect(result[0].id).to.equal(app.id);
     expect(result[0].user?.id).to.equal(applicant.id);
+    const parsed = zProjectApplicationWithUser.parse(result[0]);
+    void expect("phone" in parsed.user).to.be.false;
+    void expect("email" in parsed.user).to.be.false;
+    void expect("wechat" in parsed.user).to.be.false;
+    void expect("pointOfContactNote" in parsed.user).to.be.false;
   });
 
   it("should block non-owners from listing applications", async () => {

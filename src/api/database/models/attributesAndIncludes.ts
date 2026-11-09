@@ -328,8 +328,7 @@ export const projectApplicationAttributes = [
 export const projectApplicationInclude = [
   {
     association: "user",
-    attributes: userAttributes,
-    include: userInclude,
+    attributes: minUserAttributes,
   },
 ];
 
