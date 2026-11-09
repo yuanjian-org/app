@@ -1189,3 +1189,94 @@ describe("listMentorStatsImpl", () => {
     expect(res[1].mentorships).equals(3);
   });
 });
+
+describe("isPermittedtoAccessMentee", () => {
+  let transaction: Transaction;
+
+  beforeEach(async () => {
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    await transaction.rollback();
+  });
+
+  it("should deny an ended transactional mentor and allow ongoing or relational mentors", async () => {
+    const mentee = await db.User.create(
+      {
+        email: `mentee-perm-${Date.now()}@test.com`,
+        name: "PermMentee",
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    const endedTransactionalMentor = await db.User.create(
+      {
+        email: `ended-trans-${Date.now()}@test.com`,
+        name: "EndedTransMentor",
+        roles: ["Mentor", "TransactionalMentor"],
+      },
+      { transaction },
+    );
+    const activeTransactionalMentor = await db.User.create(
+      {
+        email: `active-trans-${Date.now()}@test.com`,
+        name: "ActiveTransMentor",
+        roles: ["Mentor", "TransactionalMentor"],
+      },
+      { transaction },
+    );
+    const endedRelationalMentor = await db.User.create(
+      {
+        email: `ended-rel-${Date.now()}@test.com`,
+        name: "EndedRelMentor",
+        roles: ["Mentor"],
+      },
+      { transaction },
+    );
+
+    await db.Mentorship.bulkCreate(
+      [
+        {
+          mentorId: endedTransactionalMentor.id,
+          menteeId: mentee.id,
+          transactional: true,
+          endsAt: new Date(Date.now() - 86400 * 1000).toISOString(),
+        },
+        {
+          mentorId: activeTransactionalMentor.id,
+          menteeId: mentee.id,
+          transactional: true,
+          endsAt: new Date(Date.now() + 86400 * 1000).toISOString(),
+        },
+        {
+          mentorId: endedRelationalMentor.id,
+          menteeId: mentee.id,
+          transactional: false,
+          endsAt: new Date(Date.now() - 86400 * 1000).toISOString(),
+        },
+      ],
+      { transaction },
+    );
+
+    const endedTransAllowed = await usersModule.isPermittedtoAccessMentee(
+      endedTransactionalMentor,
+      mentee.id,
+      transaction,
+    );
+    const activeTransAllowed = await usersModule.isPermittedtoAccessMentee(
+      activeTransactionalMentor,
+      mentee.id,
+      transaction,
+    );
+    const endedRelAllowed = await usersModule.isPermittedtoAccessMentee(
+      endedRelationalMentor,
+      mentee.id,
+      transaction,
+    );
+
+    void expect(endedTransAllowed).to.be.false;
+    void expect(activeTransAllowed).to.be.true;
+    void expect(endedRelAllowed).to.be.true;
+  });
+});

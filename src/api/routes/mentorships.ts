@@ -27,7 +27,6 @@ import {
 import { createGroup } from "./groups";
 import invariant from "shared/invariant";
 import { Op, Transaction } from "sequelize";
-import { isPermittedtoAccessMentee } from "./users";
 import { DateColumn, zNullableDateColumn } from "../../shared/DateColumn";
 import { getLastMessageCreatedAtImpl } from "./chats";
 import { compareDate } from "../../shared/strings/compareDate";
@@ -337,20 +336,31 @@ const get = procedure
   .output(zMentorship)
   .query(async ({ ctx: { me }, input: id }) => {
     return await sequelize.transaction(async (transaction) => {
-      const res = await db.Mentorship.findByPk(id, {
-        attributes: mentorshipAttributes,
-        include: mentorshipInclude,
-        transaction,
-      });
-      if (
-        !res ||
-        !(await isPermittedtoAccessMentee(me, res.mentee.id, transaction))
-      ) {
-        throw noPermissionError("一对一匹配", id);
-      }
-      return res;
+      return await getMentorshipImpl(me, id, transaction);
     });
   });
+
+export async function getMentorshipImpl(
+  me: Pick<User, "id" | "roles">,
+  id: string,
+  transaction: Transaction,
+) {
+  const res = await db.Mentorship.findByPk(id, {
+    attributes: mentorshipAttributes,
+    include: mentorshipInclude,
+    transaction,
+  });
+  // Only MentorshipAdmin or the mentorship's assigned mentor (while not an
+  // ended transactional mentorship) may view the mentorship details.
+  if (
+    !res ||
+    (!isPermitted(me.roles, "MentorshipAdmin") &&
+      (res.mentor.id !== me.id || isEndedTransactionalMentorship(res)))
+  ) {
+    throw noPermissionError("一对一匹配", id);
+  }
+  return res;
+}
 
 /**
  * Send admin emails that list mentors who haven't had meetings with their

@@ -1204,7 +1204,7 @@ export async function checkPermissionToAccessMentee(
  * conversation or notes contents between the mentee and their mentors.
  */
 export async function isPermittedtoAccessMentee(
-  me: User,
+  me: Pick<User, "id" | "roles">,
   menteeId: string,
   transaction?: Transaction,
   action: "any" | "readMetadata" = "any",
@@ -1213,21 +1213,40 @@ export async function isPermittedtoAccessMentee(
     isPermitted(me.roles, "MentorshipAdmin") ||
     (action === "readMetadata" &&
       isPermitted(me.roles, "MentorshipOperator")) ||
+    // Exclude ended transactional mentorships so short-term 1-on-1 mentors do
+    // not retain permanent access to a mentee's application, interviews, or
+    // internal discussion room after the mentorship ends.
     (await db.Mentorship.count({
-      where: { mentorId: me.id, menteeId },
+      where: {
+        mentorId: me.id,
+        menteeId,
+        [Op.or]: [
+          { transactional: false },
+          { endsAt: null },
+          { endsAt: { [Op.gt]: new Date() } },
+        ],
+      },
       transaction,
     })) > 0
   );
 }
 
 export async function isPermittedtoAccessMentor(
-  me: User,
+  me: Pick<User, "id" | "roles">,
   mentorId: string,
   transaction?: Transaction,
 ) {
   return (
     (await db.Mentorship.count({
-      where: { mentorId, menteeId: me.id },
+      where: {
+        mentorId,
+        menteeId: me.id,
+        [Op.or]: [
+          { transactional: false },
+          { endsAt: null },
+          { endsAt: { [Op.gt]: new Date() } },
+        ],
+      },
       transaction,
     })) > 0
   );
