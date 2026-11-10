@@ -361,6 +361,64 @@ describe("setPhoneImpl", () => {
     void expect(existingUser.email).to.equal("me-priv@example.com");
     void expect(existingUser.password).to.be.null;
   });
+
+  it("should delete obsolete accounts rows and flatten mergedTo chains on merge", async () => {
+    const oldUnionId = `old-union-${Date.now()}`;
+    const newUnionId = `new-union-${Date.now()}`;
+    const existingUser = await db.User.create(
+      {
+        phone,
+        name: "existing wechat user",
+        wechatUnionId: oldUnionId,
+      },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me wechat user",
+        wechatUnionId: newUnionId,
+      },
+      { transaction },
+    );
+    const previouslyMerged = await db.User.create(
+      {
+        name: "previously merged user",
+        mergedTo: me.id,
+      },
+      { transaction },
+    );
+
+    const Account = sequelize.models.account;
+    await Account.create(
+      {
+        type: "oauth",
+        provider: "wechat",
+        providerAccountId: oldUnionId,
+        userId: existingUser.id,
+      },
+      { transaction },
+    );
+    await Account.create(
+      {
+        type: "oauth",
+        provider: "wechat",
+        providerAccountId: newUnionId,
+        userId: me.id,
+      },
+      { transaction },
+    );
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    const remainingAccounts = await Account.count({
+      where: { providerAccountId: [oldUnionId, newUnionId] },
+      transaction,
+    });
+    expect(remainingAccounts).to.equal(0);
+
+    await previouslyMerged.reload({ transaction });
+    expect(previouslyMerged.mergedTo).to.equal(existingUser.id);
+  });
 });
 
 describe("resetPasswordImpl", () => {

@@ -305,4 +305,47 @@ describe("nextauth session callback", () => {
     expect(result.me.id).to.equal(demotedAdmin.id);
     void expect(result.impersonated).to.be.undefined;
   });
+
+  it("should resolve multi-hop mergedTo chains in session callback", async () => {
+    const finalUser = await db.User.create(
+      {
+        name: "Final User",
+        email: `final-${Date.now()}@test.com`,
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+    const middleUser = await db.User.create(
+      {
+        name: "Middle User",
+        email: `middle-${Date.now()}@test.com`,
+        roles: [],
+        mergedTo: finalUser.id,
+      },
+      { transaction },
+    );
+    const initialUser = await db.User.create(
+      {
+        name: "Initial User",
+        email: `initial-${Date.now()}@test.com`,
+        roles: [],
+        mergedTo: middleUser.id,
+      },
+      { transaction },
+    );
+    invalidateUserCache(finalUser.id);
+    invalidateUserCache(middleUser.id);
+    invalidateUserCache(initialUser.id);
+
+    const sessionCallback = authOptions().callbacks!.session!;
+    const result = await sessionCallback({
+      session: { expires: "" } as never,
+      token: { sub: initialUser.id },
+      user: {} as never,
+      newSession: undefined,
+      trigger: "update",
+    });
+
+    expect(result.me.id).to.equal(finalUser.id);
+  });
 });

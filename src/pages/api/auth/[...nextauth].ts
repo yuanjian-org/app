@@ -115,17 +115,20 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
             delete token[impersonateTokenKey];
           } else {
             // https://www.ietf.org/id/draft-knauer-secure-webhook-token-00.html#name-jwt-structure
-            const original = await db.User.findByPk(token.sub, {
+            let me = await db.User.findByPk(token.sub, {
               attributes: ["roles", "mergedTo"],
             });
-            invariant(original, "original not found");
+            invariant(me, "original not found");
 
-            const me = !original.mergedTo
-              ? original
-              : await db.User.findByPk(original.mergedTo, {
-                  attributes: ["roles"],
-                });
-            invariant(me, "me not found");
+            const visited = new Set<string>();
+            while (me.mergedTo) {
+              invariant(!visited.has(me.mergedTo), "mergedTo cycle detected");
+              visited.add(me.mergedTo);
+              me = await db.User.findByPk(me.mergedTo, {
+                attributes: ["roles", "mergedTo"],
+              });
+              invariant(me, "me not found");
+            }
 
             if (!isPermitted(me.roles, "UserAdmin")) {
               throw noPermissionError("用户", impersonate);
@@ -171,15 +174,18 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
 }
 
 async function fetchActualUser(userId: string): Promise<User> {
-  const original = await userCache.fetch(userId);
-  invariant(original, "original not found");
+  let current = await userCache.fetch(userId);
+  invariant(current, "original not found");
 
-  const actual = !original.mergedTo
-    ? original
-    : await userCache.fetch(original.mergedTo);
-  invariant(actual, "actual not found");
+  const visited = new Set<string>([userId]);
+  while (current.mergedTo) {
+    invariant(!visited.has(current.mergedTo), "mergedTo cycle detected");
+    visited.add(current.mergedTo);
+    current = await userCache.fetch(current.mergedTo);
+    invariant(current, "actual not found");
+  }
 
-  return actual;
+  return current;
 }
 
 // https://next-auth.js.org/configuration/initialization#advanced-initialization
