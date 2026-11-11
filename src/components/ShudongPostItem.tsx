@@ -26,7 +26,7 @@ import {
 } from "@chakra-ui/react";
 import { FiThumbsUp } from "react-icons/fi";
 import { PiStarFourFill } from "react-icons/pi";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaRegBell } from "react-icons/fa";
 import {
   ChatIcon,
   EditIcon,
@@ -521,8 +521,12 @@ export function ShudongPostItem({
               }
             }}
           >
-            {/* Show the bell icon only when subscribed. */}
-            {localIsSubscribed && <Icon as={FaBell} mr={1} boxSize={4} />}
+            {/* Show filled bell when subscribed, outline bell otherwise. */}
+            <Icon
+              as={localIsSubscribed ? FaBell : FaRegBell}
+              mr={1}
+              boxSize={4}
+            />
             <T>{localIsSubscribed ? "已订阅" : "订阅"}</T>
           </Text>
         )}
