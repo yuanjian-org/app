@@ -5,6 +5,8 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
+  Icon,
   VStack,
   Text,
   Textarea,
@@ -116,18 +118,21 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        {/* Share button placed right after the breadcrumb with spacing */}
-        <Flex align="center" justify="flex-start" gap={6}>
+        {/* Borderless gray share button placed right after the breadcrumb to
+            match the TopBar notification control and post action styling. */}
+        <HStack spacing={4} align="center">
           <PageBreadcrumb
             current="问题详情"
             parents={[{ name: "树洞", link: "/shudong" }]}
             marginBottom={0}
           />
-          <Button
-            leftIcon={<FiShare2 />}
-            size="sm"
-            variant="outline"
-            colorScheme="brand"
+          <HStack
+            as="button"
+            type="button"
+            spacing={1}
+            align="center"
+            fontSize="sm"
+            color="gray.600"
             flexShrink={0}
             onClick={() => {
               if (navigator.clipboard) {
@@ -136,9 +141,12 @@ export default fullPage(() => {
               }
             }}
           >
-            <T>分享</T>
-          </Button>
-        </Flex>
+            <Icon as={FiShare2} boxSize={4} />
+            <Text>
+              <T>分享</T>
+            </Text>
+          </HStack>
+        </HStack>
       </TopBar>
 
       <Box mx={pageMarginX} mt={pageMarginX}>
