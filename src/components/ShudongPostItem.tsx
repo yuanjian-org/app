@@ -621,6 +621,8 @@ export function ShudongPostItem({
             {post.responseCount > 0 && (
               <Button
                 size="xs"
+                // Match the "sm" font size of sibling action items in HStack
+                fontSize="sm"
                 variant="ghost"
                 leftIcon={
                   showChildResponses ? <ChevronUpIcon /> : <ChevronDownIcon />
