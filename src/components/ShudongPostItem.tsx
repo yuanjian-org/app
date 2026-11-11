@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 import {
   Box,
   Flex,
@@ -23,6 +24,7 @@ import {
   FormLabel,
   Icon,
   Tooltip,
+  Link,
 } from "@chakra-ui/react";
 import { FiThumbsUp } from "react-icons/fi";
 import { PiStarFourFill } from "react-icons/pi";
@@ -33,10 +35,12 @@ import {
   DeleteIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  ChevronRightIcon,
 } from "@chakra-ui/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import trpc, { trpcNext } from "trpc";
 import { ShudongPost } from "shared/Shudong";
+import { getUserUrl } from "shared/User";
 import {
   canDeleteShudongQuestionTree,
   canEditOrDeleteShudongPost,
@@ -77,16 +81,46 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
               <T>{anonDisplayName}</T>
             </Text>
           ) : (
-            <Text fontWeight="bold" fontSize="sm">
+            <Text
+              fontWeight="bold"
+              fontSize="sm"
+              onClick={(e) => e.stopPropagation()}
+            >
               <UserLink user={post.author!} />
             </Text>
           )}
           {/* Show mentor badge on non-deleted posts authored by a mentor. */}
-          {!post.isDeleted && post.isMentorPosted && (
-            <Badge variant="outline" colorScheme="teal" fontSize="xs">
-              <T>导师</T>
-            </Badge>
-          )}
+          {/* For non-anonymous mentors, extend the badge into a profile link */}
+          {/* so mentees can view the mentor's profile and book a chat. */}
+          {!post.isDeleted &&
+            post.isMentorPosted &&
+            (post.author ? (
+              <Link
+                as={NextLink}
+                href={getUserUrl(post.author)}
+                isExternal
+                onClick={(e) => e.stopPropagation()}
+                _hover={{ textDecoration: "none" }}
+                display="inline-flex"
+              >
+                <Badge
+                  variant="outline"
+                  colorScheme="teal"
+                  fontSize="xs"
+                  display="inline-flex"
+                  alignItems="center"
+                  cursor="pointer"
+                  _hover={{ bg: "teal.50" }}
+                >
+                  <T>导师</T> · <T>预约交流</T>
+                  <ChevronRightIcon boxSize={3.5} mr={-1} />
+                </Badge>
+              </Link>
+            ) : (
+              <Badge variant="outline" colorScheme="teal" fontSize="xs">
+                <T>导师</T>
+              </Badge>
+            ))}
           {post.isAiGenerated && (
             <Tooltip label="AI 生成" hasArrow placement="top">
               <span>
