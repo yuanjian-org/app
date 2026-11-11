@@ -78,6 +78,23 @@ describe("shudong backend routes", () => {
       const list = await listQuestionsImpl(mentee, 20, 0, transaction);
       expect(list.length).to.be.greaterThan(0);
 
+      // Verify other allowed mentee statuses can also access Shudong.
+      for (const status of [
+        "仅不定期",
+        "仅奖学金",
+        "活跃校友",
+        "学友",
+      ] as const) {
+        const allowedMentee = await createTestUser(["Mentee"], status);
+        const questions = await listQuestionsImpl(
+          allowedMentee,
+          20,
+          0,
+          transaction,
+        );
+        expect(questions.length).to.be.greaterThan(0);
+      }
+
       const resp = await createPostImpl(
         admin,
         post.id,

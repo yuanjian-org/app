@@ -8,8 +8,10 @@ import { MenteeStatus } from "./MenteeStatus";
  */
 export const allowedShudongMenteeStatuses: MenteeStatus[] = [
   "现届学子",
+  "仅不定期",
   "仅奖学金",
   "活跃校友",
+  "学友",
 ];
 
 /**
