@@ -16,16 +16,23 @@ import {
   FormControl,
   FormLabel,
   Switch,
-  Select,
+  HStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuOptionGroup,
+  MenuItemOption,
   Link,
   Icon,
 } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import NextLink from "next/link";
 import { MdAdd, MdNotifications } from "react-icons/md";
 import trpc, { trpcNext } from "trpc";
 import useMe from "useMe";
 import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
+import { isPermitted } from "shared/Role";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -78,8 +85,13 @@ export default fullPage(() => {
   }, [isOpen]);
 
   const subscribeAllChoice = pref?.shudongSubscribeAll ?? "default";
+  // When the preference is "default" (or unset), mentors receive notifications
+  // by default while other users do not.
+  const isSubscribedAll =
+    subscribeAllChoice === "yes" ||
+    (subscribeAllChoice === "default" && isPermitted(me.roles, "Mentor"));
 
-  const handleSubscribeAllChange = async (val: "yes" | "no" | "default") => {
+  const handleSubscribeAllChange = async (val: "yes" | "no") => {
     await trpc.users.setUserPreference.mutate({
       userId: me.id,
       preference: {
@@ -128,54 +140,40 @@ export default fullPage(() => {
   return (
     <>
       <TopBar {...topBarPaddings()}>
-        {/* Title and feature explanation share a VStack next to action button.
-            On mobile, the button is placed vertically below the VStack. */}
-        <Flex
-          direction={isMobile ? "column" : "row"}
-          justify="space-between"
-          align={isMobile ? "start" : "center"}
-          gap={isMobile ? 3 : 12}
-        >
-          <VStack align="start" spacing={1}>
+        {/* Header, notification menu, and action button share a single row
+            and wrap only if the viewport is too narrow. */}
+        <Flex justify="space-between" align="center" wrap="wrap" gap={3}>
+          <HStack spacing={4} align="center">
             <PageBreadcrumb current="树洞" marginBottom={0} />
-            {/* The notification controls are inlined after the welcome text
-                so that the whole thing is a single responsive line that
-                wraps as needed and shares one font style. */}
-            <Text fontSize="sm" color="gray.600">
-              {/* Solid bell icon, vertically aligned with the inline text */}
-              <Icon
-                as={MdNotifications}
-                boxSize={5}
-                // "middle" matches the Select below and centers the icon
-                // against the text line.
-                verticalAlign="middle"
-                // Nudge up by 2px without affecting line layout.
-                position="relative"
-                top="-2px"
-                mr={1}
-              />
-              <T>接收新问题通知：</T>
-              <Select
-                size="xs"
-                // Layout props apply to Select's wrapper element. Keep it
-                // inline so it flows with (and wraps like) the text.
-                display="inline-block"
-                w="auto"
-                verticalAlign="middle"
-                mx={1}
-                value={subscribeAllChoice}
-                onChange={(e) =>
-                  void handleSubscribeAllChange(
-                    e.target.value as "yes" | "no" | "default",
-                  )
-                }
-              >
-                <option value="default">默认：导师开、其他用户关</option>
-                <option value="yes">开</option>
-                <option value="no">关</option>
-              </Select>
-            </Text>
-          </VStack>
+            <Menu>
+              <MenuButton fontSize="sm" color="gray.600">
+                <HStack spacing={1} align="center">
+                  <Icon as={MdNotifications} boxSize={5} />
+                  <Text>
+                    <T>接收新问题通知：</T>
+                    <T>{isSubscribedAll ? "开" : "关"}</T>
+                  </Text>
+                  <ChevronDownIcon boxSize={4} />
+                </HStack>
+              </MenuButton>
+              <MenuList>
+                <MenuOptionGroup
+                  type="radio"
+                  value={isSubscribedAll ? "yes" : "no"}
+                  onChange={(val) =>
+                    void handleSubscribeAllChange(val as "yes" | "no")
+                  }
+                >
+                  <MenuItemOption value="yes">
+                    <T>开</T>
+                  </MenuItemOption>
+                  <MenuItemOption value="no">
+                    <T>关</T>
+                  </MenuItemOption>
+                </MenuOptionGroup>
+              </MenuList>
+            </Menu>
+          </HStack>
           <Button colorScheme="brand" leftIcon={<MdAdd />} onClick={onOpen}>
             <T>提问</T>
           </Button>
