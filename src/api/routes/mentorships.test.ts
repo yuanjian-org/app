@@ -8,6 +8,7 @@ import sinon from "sinon";
 import {
   auditLastMentorshipMeetings,
   createMentorship,
+  getMentorshipImpl,
   updateMentorship,
   updateMentorshipSchedule,
 } from "./mentorships";
@@ -346,5 +347,55 @@ describe("updateMentorshipSchedule", () => {
       );
     }
     void expect(errorThrown).to.be.true;
+  });
+
+  it("should restrict getMentorshipImpl to assigned mentor or MentorshipAdmin and block ended transactional mentors", async () => {
+    const fetchedByMentor = await getMentorshipImpl(
+      mentor,
+      mentorshipId,
+      transaction,
+    );
+    expect(fetchedByMentor.id).to.equal(mentorshipId);
+
+    const fetchedByAdmin = await getMentorshipImpl(
+      admin,
+      mentorshipId,
+      transaction,
+    );
+    expect(fetchedByAdmin.id).to.equal(mentorshipId);
+
+    let otherMentorRejected = false;
+    try {
+      await getMentorshipImpl(otherMentor, mentorshipId, transaction);
+    } catch (error) {
+      otherMentorRejected = true;
+      void expect(error).to.have.property(
+        "message",
+        `没有权限访问一对一匹配 ${mentorshipId}。`,
+      );
+    }
+    void expect(otherMentorRejected).to.be.true;
+
+    // Convert mentorship to an ended transactional mentorship and verify the
+    // mentor can no longer access it via getMentorshipImpl.
+    await db.Mentorship.update(
+      {
+        transactional: true,
+        endsAt: new Date(Date.now() - 86400 * 1000).toISOString(),
+      },
+      { where: { id: mentorshipId }, transaction },
+    );
+
+    let endedTransactionalRejected = false;
+    try {
+      await getMentorshipImpl(mentor, mentorshipId, transaction);
+    } catch (error) {
+      endedTransactionalRejected = true;
+      void expect(error).to.have.property(
+        "message",
+        `没有权限访问一对一匹配 ${mentorshipId}。`,
+      );
+    }
+    void expect(endedTransactionalRejected).to.be.true;
   });
 });
