@@ -4,9 +4,8 @@ import { PropsWithChildren, useEffect } from "react";
 
 import NavBars from "components/Navbars";
 import { breakpoint } from "theme/breakpoints";
-import { pageMarginTop } from "theme/metrics";
+import { appPageMaxWidth, pageMarginTop, pageMarginX } from "theme/metrics";
 import { AppPageType } from "AppPage";
-import { pageMarginX } from "theme/metrics";
 import PostLoginModels from "./PostLoginModels";
 import { useMyId } from "useMe";
 import { initFundebug } from "fundebug";
@@ -39,7 +38,7 @@ export default function AppPageContainer({
             })}
             maxWidth={{
               base: "100%",
-              ...(pageType === undefined && { xl: "1200px" }),
+              ...(pageType === undefined && { xl: appPageMaxWidth }),
             }}
             spacing={0}
           >

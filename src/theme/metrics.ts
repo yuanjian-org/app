@@ -10,6 +10,9 @@ export const componentSpacing = 4;
 export const publicPageMaxWidth = 850;
 export const publicPageMaxWidthWide = 1200;
 
+// Max container width (including pageMarginX) for normal logged-in pages
+export const appPageMaxWidth = "1200px";
+
 export const pageMarginX = {
   base: "16px",
   [breakpoint]: "30px",

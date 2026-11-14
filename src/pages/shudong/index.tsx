@@ -35,9 +35,11 @@ import { cmdOrCtrlChar } from "macOrWin";
 import { isPermitted } from "shared/Role";
 import { canAccessShudong } from "shared/ShudongPermissions";
 import TopBar, { topBarPaddings } from "components/TopBar";
+import { mobileSidbarIconLeftWithMargin } from "components/Navbars";
 import PageBreadcrumb from "components/PageBreadcrumb";
 import { fullPage } from "AppPage";
-import { pageMarginX } from "theme/metrics";
+import { breakpoint } from "theme/breakpoints";
+import { appPageMaxWidth, pageMarginX } from "theme/metrics";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
@@ -139,10 +141,22 @@ export default fullPage(() => {
 
   return (
     <>
-      <TopBar {...topBarPaddings()}>
+      <TopBar {...topBarPaddings()} ps={0} pe={0}>
         {/* Header, notification menu, and action button share a single row
-            and wrap only if the viewport is too narrow. */}
-        <Flex justify="space-between" align="center" wrap="wrap" gap={3}>
+            and wrap only if the viewport is too narrow. Boxed to
+            appPageMaxWidth so the 提问 button aligns flush with posts. */}
+        <Flex
+          justify="space-between"
+          align="center"
+          wrap="wrap"
+          gap={3}
+          ps={pageMarginX}
+          pe={{
+            base: mobileSidbarIconLeftWithMargin,
+            [breakpoint]: pageMarginX[breakpoint],
+          }}
+          maxW={{ base: "100%", xl: appPageMaxWidth }}
+        >
           <HStack spacing={4} align="center">
             <PageBreadcrumb current="树洞" marginBottom={0} />
             <Menu>
@@ -180,7 +194,12 @@ export default fullPage(() => {
         </Flex>
       </TopBar>
 
-      <Box mx={pageMarginX} mt={pageMarginX}>
+      {/* Match post width to normal-width pages (AppPageContainer) */}
+      <Box
+        px={pageMarginX}
+        mt={pageMarginX}
+        maxW={{ base: "100%", xl: appPageMaxWidth }}
+      >
         {isLoading ? (
           <Loader />
         ) : !questions || questions.length === 0 ? (

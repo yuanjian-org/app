@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -21,10 +21,9 @@ import useMe from "useMe";
 import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
 import { canAccessShudong } from "shared/ShudongPermissions";
-import TopBar, { topBarPaddings } from "components/TopBar";
-import PageBreadcrumb from "components/PageBreadcrumb";
-import { fullPage } from "AppPage";
-import { pageMarginX } from "theme/metrics";
+import PageBreadcrumb, {
+  pageBreadcrumbMarginBottom,
+} from "components/PageBreadcrumb";
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
@@ -35,7 +34,7 @@ import Autosaver from "components/Autosaver";
  * Question detail page displaying the root question, existing response tree,
  * and a response input panel placed at the bottom.
  */
-export default fullPage(() => {
+export default function Page() {
   const router = useRouter();
   const isMobile = useMobile();
   const questionId =
@@ -101,11 +100,9 @@ export default fullPage(() => {
 
   if (!hasAccess) {
     return (
-      <Box p={8}>
-        <Text color="gray.500">
-          <T>暂无权限访问树洞。</T>
-        </Text>
-      </Box>
+      <Text color="gray.500">
+        <T>暂无权限访问树洞。</T>
+      </Text>
     );
   }
 
@@ -117,135 +114,128 @@ export default fullPage(() => {
 
   return (
     <>
-      <TopBar {...topBarPaddings()}>
-        {/* Borderless gray share button placed right after the breadcrumb to
-            match the TopBar notification control and post action styling. */}
-        <HStack spacing={4} align="center">
-          <PageBreadcrumb
-            current="问题详情"
-            parents={[{ name: "树洞", link: "/shudong" }]}
-            marginBottom={0}
-          />
-          <HStack
-            as="button"
-            type="button"
-            spacing={1}
-            align="center"
-            fontSize="sm"
-            color="gray.600"
-            flexShrink={0}
-            onClick={() => {
-              if (navigator.clipboard) {
-                void navigator.clipboard.writeText(window.location.href);
-                toast.success("已复制链接到剪贴板");
-              }
-            }}
-          >
-            <Icon as={FiShare2} boxSize={4} />
-            <Text>
-              <T>分享</T>
-            </Text>
-          </HStack>
+      {/* Borderless gray share button placed right after the breadcrumb to
+          match post action styling, using normal page breadcrumb spacing. */}
+      <HStack spacing={4} align="center" mb={pageBreadcrumbMarginBottom}>
+        <PageBreadcrumb
+          current="问题详情"
+          parents={[{ name: "树洞首页", link: "/shudong" }]}
+          marginBottom={0}
+        />
+        <HStack
+          as="button"
+          type="button"
+          spacing={1}
+          align="center"
+          fontSize="sm"
+          color="gray.600"
+          flexShrink={0}
+          onClick={() => {
+            if (navigator.clipboard) {
+              void navigator.clipboard.writeText(window.location.href);
+              toast.success("已复制链接到剪贴板");
+            }
+          }}
+        >
+          <Icon as={FiShare2} boxSize={4} />
+          <Text>
+            <T>分享</T>
+          </Text>
         </HStack>
-      </TopBar>
+      </HStack>
 
-      <Box mx={pageMarginX} mt={pageMarginX}>
-        <VStack spacing={6} align="stretch">
-          {/* Root question display */}
-          <ShudongPostItem
-            post={question}
-            onRefetch={refetch}
-            isRootQuestion
-            onDeleteSuccess={() => void router.push("/shudong")}
+      <VStack spacing={6} align="stretch">
+        {/* Root question display */}
+        <ShudongPostItem
+          post={question}
+          onRefetch={refetch}
+          isRootQuestion
+          onDeleteSuccess={() => void router.push("/shudong")}
+        />
+
+        <Heading size="md" mt={2}>
+          {responses.length} <T>条回答</T>
+        </Heading>
+
+        {/* List of top-level responses */}
+        {responses.length === 0 ? (
+          <Text color="gray.500">
+            <T>暂无回答，抢沙发吧！</T>
+          </Text>
+        ) : (
+          <VStack spacing={4} align="stretch">
+            {responses.map((resp) => (
+              <ShudongPostItem key={resp.id} post={resp} onRefetch={refetch} />
+            ))}
+          </VStack>
+        )}
+
+        {/* Divider rendered only when responses exist to avoid visual
+            clutter */}
+        {responses.length > 0 && <Divider />}
+
+        {/* Response creation panel positioned at the bottom of thread */}
+        <Box
+          p={4}
+          borderWidth="1px"
+          borderRadius="md"
+          bg="white"
+          boxShadow="sm"
+        >
+          <Autosaver
+            data={responseMarkdown}
+            onSave={async (draft) => {
+              await trpc.shudong.saveDraft.mutate({
+                shudongParentId: questionId,
+                shudongPostId: null,
+                markdown: draft,
+              });
+            }}
           />
-
-          <Heading size="md" mt={2}>
-            {responses.length} <T>条回答</T>
+          <Heading size="md" mb={3}>
+            <T>写下你的回答</T>
           </Heading>
-
-          {/* List of top-level responses */}
-          {responses.length === 0 ? (
-            <Text color="gray.500">
-              <T>暂无回答，抢沙发吧！</T>
-            </Text>
-          ) : (
-            <VStack spacing={4} align="stretch">
-              {responses.map((resp) => (
-                <ShudongPostItem
-                  key={resp.id}
-                  post={resp}
-                  onRefetch={refetch}
-                />
-              ))}
-            </VStack>
-          )}
-
-          {/* Divider rendered only when responses exist to avoid visual clutter */}
-          {responses.length > 0 && <Divider />}
-
-          {/* Response creation panel positioned at the bottom of thread */}
-          <Box
-            p={4}
-            borderWidth="1px"
-            borderRadius="md"
-            bg="white"
-            boxShadow="sm"
-          >
-            <Autosaver
-              data={responseMarkdown}
-              onSave={async (draft) => {
-                await trpc.shudong.saveDraft.mutate({
-                  shudongParentId: questionId,
-                  shudongPostId: null,
-                  markdown: draft,
-                });
-              }}
-            />
-            <Heading size="md" mb={3}>
-              <T>写下你的回答</T>
-            </Heading>
-            <VStack spacing={3} align="stretch">
-              <Textarea
-                ref={responseInputRef}
-                placeholder={
-                  !isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""
+          <VStack spacing={3} align="stretch">
+            <Textarea
+              ref={responseInputRef}
+              placeholder={!isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""}
+              value={responseMarkdown}
+              onChange={(e) => setResponseMarkdown(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  void handleCreateResponse();
                 }
-                value={responseMarkdown}
-                onChange={(e) => setResponseMarkdown(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                    e.preventDefault();
-                    void handleCreateResponse();
-                  }
-                }}
-                rows={4}
-              />
-              <Flex justify="space-between" align="center">
-                <FormControl display="flex" alignItems="center" w="auto">
-                  <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
-                    <T>匿名回答</T>
-                  </FormLabel>
-                  <Switch
-                    id="resp-anon-switch"
-                    isChecked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                  />
-                </FormControl>
+              }}
+              rows={4}
+            />
+            <Flex justify="space-between" align="center">
+              <FormControl display="flex" alignItems="center" w="auto">
+                <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
+                  <T>匿名回答</T>
+                </FormLabel>
+                <Switch
+                  id="resp-anon-switch"
+                  isChecked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                />
+              </FormControl>
 
-                <Button
-                  colorScheme="brand"
-                  onClick={() => {
-                    void handleCreateResponse();
-                  }}
-                  isLoading={isSubmitting}
-                >
-                  <T>发表回答</T>
-                </Button>
-              </Flex>
-            </VStack>
-          </Box>
-        </VStack>
-      </Box>
+              <Button
+                colorScheme="brand"
+                onClick={() => {
+                  void handleCreateResponse();
+                }}
+                isLoading={isSubmitting}
+              >
+                <T>发表回答</T>
+              </Button>
+            </Flex>
+          </VStack>
+        </Box>
+      </VStack>
     </>
   );
-}, "树洞问题详情");
+}
+
+Page.title = "树洞问题详情";
