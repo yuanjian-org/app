@@ -41,10 +41,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import trpc, { trpcNext } from "trpc";
 import { ShudongPost } from "shared/Shudong";
 import { getUserUrl } from "shared/User";
-import {
-  canDeleteShudongQuestionTree,
-  canEditOrDeleteShudongPost,
-} from "shared/ShudongPermissions";
+import { canEditOrDeleteShudongPost } from "shared/ShudongPermissions";
 import useMe from "useMe";
 import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
@@ -152,9 +149,8 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 /**
  * Renders a single Shudong post (question, response, or sub-response) with
  * upvoting (+1 animation), subscription toggling, reply toggling,
- * draft auto-saving, inline editing, soft deletion, physical tree deletion
- * (for ShudongAdmin on feed page questions), and expandable nested child
- * responses.
+ * draft auto-saving, inline editing, soft deletion, and expandable nested
+ * child responses.
  */
 export function ShudongPostItem({
   post,
@@ -207,13 +203,6 @@ export function ShudongPostItem({
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
-
-  const {
-    isOpen: isDeleteTreeOpen,
-    onOpen: onDeleteTreeOpen,
-    onClose: onDeleteTreeClose,
-  } = useDisclosure();
-  const [isDeletingTree, setIsDeletingTree] = useState(false);
 
   // Fetches child responses lazily only when expanded to reduce initial
   // payload
@@ -349,33 +338,11 @@ export function ShudongPostItem({
     }
   };
 
-  // Physically deletes the entire question post tree (ShudongAdmin only)
-  const handleDeleteTree = async () => {
-    setIsDeletingTree(true);
-    try {
-      await trpc.shudong.deleteQuestionTree.mutate({ questionId: post.id });
-      toast.success("已彻底删除问题及其所有回复");
-      onDeleteTreeClose();
-      if (onDeleteSuccess) {
-        onDeleteSuccess();
-      } else if (onRefetch) {
-        onRefetch();
-      }
-    } finally {
-      setIsDeletingTree(false);
-    }
-  };
-
   // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
     !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
 
   const isQuestionNode = post.parentId === null || isRootQuestion;
-
-  // Physical tree delete button is shown on top-level question posts on the
-  // feed page for ShudongAdmin.
-  const canDeleteTree =
-    isHomePage && isQuestionNode && canDeleteShudongQuestionTree(me);
 
   return (
     <Box
@@ -388,46 +355,26 @@ export function ShudongPostItem({
     >
       <Flex justify="space-between" align="start" mb={3}>
         <ShudongPostMetadata post={post} />
-        {((canEditOrDelete && !post.isDeleted) || canDeleteTree) && (
+        {canEditOrDelete && !post.isDeleted && (
           <HStack spacing={1}>
-            {canEditOrDelete && !post.isDeleted && (
-              <>
-                <IconButton
-                  aria-label="编辑帖子"
-                  icon={<EditIcon />}
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => {
-                    setEditMarkdown(post.markdown);
-                    setIsEditing(!isEditing);
-                  }}
-                />
-                <IconButton
-                  aria-label="删除帖子"
-                  icon={<DeleteIcon />}
-                  size="xs"
-                  variant="ghost"
-                  colorScheme="red"
-                  onClick={onDeleteOpen}
-                />
-              </>
-            )}
-            {canDeleteTree && (
-              <IconButton
-                aria-label="彻底删除问题"
-                icon={<DeleteIcon />}
-                size="xs"
-                variant="ghost"
-                colorScheme="red"
-                onClick={(e) => {
-                  // Prevent card link wrapper on home page from intercepting
-                  // delete clicks
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDeleteTreeOpen();
-                }}
-              />
-            )}
+            <IconButton
+              aria-label="编辑帖子"
+              icon={<EditIcon />}
+              size="xs"
+              variant="ghost"
+              onClick={() => {
+                setEditMarkdown(post.markdown);
+                setIsEditing(!isEditing);
+              }}
+            />
+            <IconButton
+              aria-label="删除帖子"
+              icon={<DeleteIcon />}
+              size="xs"
+              variant="ghost"
+              colorScheme="red"
+              onClick={onDeleteOpen}
+            />
           </HStack>
         )}
       </Flex>
@@ -761,36 +708,6 @@ export function ShudongPostItem({
               colorScheme="red"
               onClick={() => {
                 void handleDelete();
-              }}
-            >
-              <T>删除</T>
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <Modal isOpen={isDeleteTreeOpen} onClose={onDeleteTreeClose}>
-        {/* Stop propagation on modal overlay and content so clicks inside */}
-        {/* the portal do not bubble through React tree to card Link wrapper */}
-        <ModalOverlay onClick={(e) => e.stopPropagation()} />
-        <ModalContent onClick={(e) => e.stopPropagation()}>
-          <ModalHeader>
-            <T>确认彻底删除</T>
-          </ModalHeader>
-          <ModalBody>
-            <Text>
-              <T>确定要彻底删除这个问题及其所有回复吗？此操作无法撤销。</T>
-            </Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button mr={3} onClick={onDeleteTreeClose}>
-              <T>取消</T>
-            </Button>
-            <Button
-              colorScheme="red"
-              isLoading={isDeletingTree}
-              onClick={() => {
-                void handleDeleteTree();
               }}
             >
               <T>删除</T>
