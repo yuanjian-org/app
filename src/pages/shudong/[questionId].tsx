@@ -30,6 +30,7 @@ import { ShudongPostItem } from "components/ShudongPostItem";
 import { ShudongEmojiBar } from "components/ShudongEmojiBar";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
+import MarkdownSupport from "components/MarkdownSupport";
 
 /**
  * Question detail page displaying the root question, existing response tree,
@@ -215,11 +216,14 @@ export default function Page() {
                 }}
                 rows={4}
               />
-              <ShudongEmojiBar
-                value={responseMarkdown}
-                onChange={setResponseMarkdown}
-                textareaRef={responseInputRef}
-              />
+              <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+                <ShudongEmojiBar
+                  value={responseMarkdown}
+                  onChange={setResponseMarkdown}
+                  textareaRef={responseInputRef}
+                />
+                <MarkdownSupport fontSize="sm" />
+              </Flex>
             </VStack>
             <Flex justify="space-between" align="center">
               <FormControl display="flex" alignItems="center" w="auto">

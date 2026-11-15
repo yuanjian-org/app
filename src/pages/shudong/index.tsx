@@ -50,6 +50,7 @@ import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
+import MarkdownSupport from "components/MarkdownSupport";
 
 type EffectiveSubscribeChoice = Exclude<ShudongSubscribeAll, "default">;
 
@@ -394,16 +395,19 @@ export default fullPage(() => {
                 }}
                 rows={5}
               />
-              <FormControl display="flex" alignItems="center">
-                <FormLabel htmlFor="anon-switch" mb="0">
-                  <T>匿名提问</T>
-                </FormLabel>
-                <Switch
-                  id="anon-switch"
-                  isChecked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                />
-              </FormControl>
+              <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+                <FormControl display="flex" alignItems="center" w="auto">
+                  <FormLabel htmlFor="anon-switch" mb="0">
+                    <T>匿名提问</T>
+                  </FormLabel>
+                  <Switch
+                    id="anon-switch"
+                    isChecked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                </FormControl>
+                <MarkdownSupport fontSize="sm" />
+              </Flex>
             </VStack>
           </ModalBody>
           <ModalFooter>

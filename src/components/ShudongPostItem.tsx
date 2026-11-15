@@ -46,6 +46,7 @@ import { cmdOrCtrlChar } from "macOrWin";
 import { prettifyDate } from "shared/strings/prettifyDate";
 import { formatUserName } from "shared/strings/formatUserName";
 import MarkdownStyler from "./MarkdownStyler";
+import MarkdownSupport from "./MarkdownSupport";
 import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
@@ -482,21 +483,27 @@ export function ShudongPostItem({
               textareaRef={editInputRef}
             />
           )}
-          <HStack justify="end">
-            <Button size="sm" onClick={() => setIsEditing(false)}>
-              <T>取消</T>
-            </Button>
-            <Button
-              size="sm"
-              colorScheme="brand"
-              onClick={() => {
-                void handleSaveEdit();
-              }}
-              isLoading={isSubmittingEdit}
-            >
-              <T>保存</T>
-            </Button>
-          </HStack>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+            <MarkdownSupport
+              fontSize="sm"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <HStack spacing={2} ml="auto">
+              <Button size="sm" onClick={() => setIsEditing(false)}>
+                <T>取消</T>
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="brand"
+                onClick={() => {
+                  void handleSaveEdit();
+                }}
+                isLoading={isSubmittingEdit}
+              >
+                <T>保存</T>
+              </Button>
+            </HStack>
+          </Flex>
         </VStack>
       ) : (
         <Box
@@ -730,11 +737,17 @@ export function ShudongPostItem({
             }}
             rows={2}
           />
-          <ShudongEmojiBar
-            value={replyMarkdown}
-            onChange={setReplyMarkdown}
-            textareaRef={replyInputRef}
-          />
+          <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+            <ShudongEmojiBar
+              value={replyMarkdown}
+              onChange={setReplyMarkdown}
+              textareaRef={replyInputRef}
+            />
+            <MarkdownSupport
+              fontSize="xs"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </Flex>
           <Flex justify="space-between" align="center">
             <FormControl display="flex" alignItems="center" w="auto">
               <FormLabel htmlFor="reply-anon-switch" mb="0" fontSize="xs">
