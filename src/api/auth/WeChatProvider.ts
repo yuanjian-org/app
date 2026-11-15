@@ -96,6 +96,13 @@ export default function WeChatProvider(
         // next-auth rely on email to search for existing users. We don't store
         // the email in the database. See code in adapter.ts.
         email: unionId2Email(profile.unionid),
+
+        // Capture Service Account OpenID for WeChat template notifications.
+        // WebsiteApp returns a separate OpenID scoped to Open Platform.
+        ...(platformType === "OfficialAccount" &&
+          profile.openid && {
+            wechatOpenId: profile.openid,
+          }),
       };
     },
 

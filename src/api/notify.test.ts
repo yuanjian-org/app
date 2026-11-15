@@ -10,6 +10,7 @@ import { NotificationType } from "shared/UserPreference";
 import sequelize from "./database/sequelize";
 import * as smsModule from "./sms";
 import * as emailModule from "./email";
+import * as wechatModule from "./wechat";
 import sinon from "sinon";
 
 describe("notify()", () => {
@@ -103,6 +104,7 @@ describe("notify()", () => {
   let transaction: Transaction;
   let smsStub: sinon.SinonStub;
   let emailStub: sinon.SinonStub;
+  let wechatStub: sinon.SinonStub;
 
   beforeEach(async () => {
     clearNotificationDedupeCache();
@@ -117,6 +119,9 @@ describe("notify()", () => {
     });
     emailStub = sinon.stub(emailModule, "email").callsFake(() => {
       // Mock implementation that always executes
+      return Promise.resolve();
+    });
+    wechatStub = sinon.stub(wechatModule, "wechat").callsFake(() => {
       return Promise.resolve();
     });
   });
@@ -795,6 +800,91 @@ describe("notify()", () => {
 
       await notify("基础", [user.id], templates, vars, transaction);
       void expect(smsStub.calledOnce).to.be.true;
+    });
+
+    it("should filter users by WeChat linkage and preference", async () => {
+      const uNoWechat = await db.User.create(
+        {
+          email: "nowx@test.com",
+          name: "No WeChat",
+          roles: ["Mentee"],
+        },
+        { transaction },
+      );
+      const uUnionOnly = await db.User.create(
+        {
+          wechatUnionId: "union_pref_1",
+          name: "Union Only",
+          roles: ["Mentor"],
+        },
+        { transaction },
+      );
+      const uOpenIdEnabled = await db.User.create(
+        {
+          wechatUnionId: "union_pref_2",
+          wechatOpenId: "openid_pref_2",
+          name: "OpenID Enabled",
+          roles: ["Mentor"],
+          preference: { wechatDisabled: ["点赞"] },
+        },
+        { transaction },
+      );
+      const uTypeDisabled = await db.User.create(
+        {
+          wechatOpenId: "openid_pref_3",
+          name: "Type Disabled",
+          roles: ["Mentor"],
+          preference: { wechatDisabled: ["树洞"] },
+        },
+        { transaction },
+      );
+      const uBaseDisabled = await db.User.create(
+        {
+          wechatOpenId: "openid_pref_4",
+          name: "Base Disabled",
+          roles: ["Mentor"],
+          preference: { wechatDisabled: ["基础"] },
+        },
+        { transaction },
+      );
+
+      await notify(
+        "树洞",
+        [
+          uNoWechat.id,
+          uUnionOnly.id,
+          uOpenIdEnabled.id,
+          uTypeDisabled.id,
+          uBaseDisabled.id,
+        ],
+        {
+          email: "E_114705350039",
+          domesticSms: "ep7Wd3",
+          internationalSms: "DyvYZ",
+          wechat: {
+            title: "树洞新提问",
+            content: "树洞有新的提问，点击查看",
+            url: "/shudong",
+          },
+        },
+        {},
+        transaction,
+      );
+
+      void expect(wechatStub.calledOnce).to.be.true;
+      const [recipients, message] = wechatStub.firstCall.args as [
+        wechatModule.WeChatRecipient[],
+        wechatModule.WeChatMessage,
+      ];
+      expect(recipients.map((r) => r.id)).to.have.members([
+        uUnionOnly.id,
+        uOpenIdEnabled.id,
+      ]);
+      expect(message).to.deep.equal({
+        title: "树洞新提问",
+        content: "树洞有新的提问，点击查看",
+        url: "/shudong",
+      });
     });
   });
 });

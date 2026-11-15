@@ -23,6 +23,7 @@ import {
   defaultMentorCapacity,
   zMentorPreference,
   zUserPreference,
+  zWeChatNotificationStatus,
 } from "../../shared/UserPreference";
 import { compareChinese } from "../../shared/strings/compareChinese";
 import { isValidChineseName } from "../../shared/strings/isValidChineseName";
@@ -53,6 +54,7 @@ import { zTraitsPreference } from "../../shared/Traits";
 import invariant from "../../shared/invariant";
 import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { encodeXField } from "../jinshuju";
+import { isWeChatNotificationConfigured } from "../wechat";
 
 // Import self module to allow Sinon stubbing of exported functions in tests
 import * as selfModule from "./users";
@@ -605,7 +607,7 @@ export async function updateWechatUnionId(
   }
 
   await existing.update(
-    { wechatUnionId },
+    { wechatUnionId, wechatOpenId: null },
     { where: { id: userId }, transaction },
   );
 }
@@ -723,6 +725,40 @@ const getUserPreference = procedure
     if (!user) throw notFoundError("用户", userId);
     return user.preference || {};
   });
+
+const getWechatNotificationStatus = procedure
+  .use(authUser())
+  .input(
+    z.object({
+      userId: z.string(),
+    }),
+  )
+  .output(zWeChatNotificationStatus)
+  .query(async ({ ctx: { me }, input: { userId } }) => {
+    return await getWechatNotificationStatusImpl(me, userId);
+  });
+
+export async function getWechatNotificationStatusImpl(
+  me: User,
+  userId: string,
+  transaction?: Transaction,
+) {
+  if (me.id !== userId && !isPermitted(me.roles, "UserAdmin")) {
+    throw noPermissionError("用户", userId);
+  }
+
+  const user = await db.User.findByPk(userId, {
+    attributes: ["wechatUnionId", "wechatOpenId"],
+    transaction,
+  });
+
+  if (!user) throw notFoundError("用户", userId);
+  return {
+    configured: isWeChatNotificationConfigured(),
+    wechatLinked: Boolean(user.wechatUnionId || user.wechatOpenId),
+    qrCodeUrl: process.env.WECHAT_OFFICIAL_ACCOUNT_QR_URL || null,
+  };
+}
 
 const getMentorTraitsPref = procedure
   .use(authUser())
@@ -1184,6 +1220,7 @@ export default router({
 
   setUserPreference,
   getUserPreference,
+  getWechatNotificationStatus,
 
   setPointOfContactAndNote,
 });

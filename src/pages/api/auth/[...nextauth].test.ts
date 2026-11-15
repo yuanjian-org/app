@@ -220,6 +220,30 @@ describe("nextauth signIn callback", () => {
     });
     expect(result).to.equal(true);
   });
+
+  it("should persist wechatOpenId on wechat browser sign-in", async () => {
+    const unionId = `union-signin-${Date.now()}`;
+    const openId = `openid-signin-${Date.now()}`;
+    const created = await db.User.create({
+      name: "Existing WeChat User",
+      wechatUnionId: unionId,
+    });
+
+    try {
+      const signInCallback = authOptions().callbacks!.signIn!;
+      const result = await signInCallback({
+        account: { provider: "wechat" } as never,
+        user: { id: unionId } as never,
+        profile: { unionid: unionId, openid: openId } as never,
+      });
+      expect(result).to.equal(true);
+
+      await created.reload();
+      expect(created.wechatOpenId).to.equal(openId);
+    } finally {
+      await created.destroy({ force: true });
+    }
+  });
 });
 
 describe("nextauth session callback", () => {

@@ -67,6 +67,16 @@ export const zUserPreference = z.object({
   // When absent, all notifications are enabled.
   smsDisabled: zNotificationTypes.optional(),
   emailDisabled: zNotificationTypes.optional(),
+  wechatDisabled: zNotificationTypes.optional(),
   shudongSubscribeAll: zShudongSubscribeAll.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
+
+export const zWeChatNotificationStatus = z.object({
+  configured: z.boolean(),
+  wechatLinked: z.boolean(),
+  qrCodeUrl: z.string().nullable(),
+});
+export type WeChatNotificationStatus = z.TypeOf<
+  typeof zWeChatNotificationStatus
+>;

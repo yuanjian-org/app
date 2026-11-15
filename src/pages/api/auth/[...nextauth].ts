@@ -13,6 +13,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { adapter } from "../../../api/auth/adapter";
 import providers from "../../../api/auth/providers";
 import { isSafeCallbackUrl } from "../../../shared/callbackUrl";
+import { saveWeChatOpenIdForUnionId } from "../../../api/wechat";
 
 declare module "next-auth" {
   interface Session {
@@ -71,7 +72,7 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
         return baseUrl;
       },
 
-      signIn: ({ account }) => {
+      signIn: async ({ account, profile }) => {
         // https://github.com/nextauthjs/next-auth/discussions/469
         if (account?.provider === "embedded-wechat-qr") {
           // https://next-auth.js.org/configuration/options#cookies
@@ -92,9 +93,26 @@ export function authOptions(req?: NextApiRequest): NextAuthOptions {
             );
             return false;
           }
-        } else {
-          return true;
         }
+
+        if (
+          account?.provider === "wechat" &&
+          profile &&
+          "openid" in profile &&
+          "unionid" in profile &&
+          typeof profile.openid === "string" &&
+          typeof profile.unionid === "string" &&
+          profile.openid &&
+          profile.unionid
+        ) {
+          try {
+            await saveWeChatOpenIdForUnionId(profile.unionid, profile.openid);
+          } catch (err) {
+            console.error("Failed to save WeChat OpenID during signIn:", err);
+          }
+        }
+
+        return true;
       },
 
       async jwt({ token, trigger, session, account }) {

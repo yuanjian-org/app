@@ -122,10 +122,12 @@ describe("updateWechatUnionId", () => {
   });
 
   it("should set wechatUnionId to null if null is provided", async () => {
+    await testUser.update({ wechatOpenId: "stale-openid" }, { transaction });
     await updateWechatUnionId(["UserAdmin"], testUser.id, null, transaction);
 
     const updatedUser = await db.User.findByPk(testUser.id, { transaction });
     void expect(updatedUser?.wechatUnionId).to.be.null;
+    void expect(updatedUser?.wechatOpenId).to.be.null;
   });
 
   it("should do nothing if undefined is provided", async () => {
@@ -1187,5 +1189,106 @@ describe("listMentorStatsImpl", () => {
 
     expect(res[1].user.name).equals("张三");
     expect(res[1].mentorships).equals(3);
+  });
+});
+
+describe("getWechatNotificationStatusImpl", () => {
+  let transaction: Transaction;
+  let originalEnv: NodeJS.ProcessEnv;
+
+  beforeEach(async () => {
+    originalEnv = { ...process.env };
+    transaction = await sequelize.transaction();
+  });
+
+  afterEach(async () => {
+    process.env = originalEnv;
+    await transaction.rollback();
+  });
+
+  it("should return status for self or UserAdmin only", async () => {
+    process.env.AUTH_WECHAT_APP_ID = "wx_app";
+    process.env.AUTH_WECHAT_APP_SECRET = "wx_secret";
+    process.env.WECHAT_NOTIFICATION_TEMPLATE_ID = "tmpl_1";
+    process.env.WECHAT_OFFICIAL_ACCOUNT_QR_URL = "/img/wechat-app-qrcode.jpg";
+
+    const linkedUser = await db.User.create(
+      {
+        name: "Linked",
+        roles: ["Mentor"],
+        wechatUnionId: "union_linked_test",
+      },
+      { transaction },
+    );
+    const unlinkedUser = await db.User.create(
+      {
+        name: "Unlinked",
+        roles: ["Mentee"],
+      },
+      { transaction },
+    );
+
+    const selfStatus = await usersModule.getWechatNotificationStatusImpl(
+      {
+        id: linkedUser.id,
+        name: linkedUser.name,
+        url: null,
+        roles: ["Mentor"],
+        email: null,
+        phone: null,
+        wechat: null,
+        menteeStatus: null,
+        pointOfContact: null,
+        pointOfContactNote: null,
+      },
+      linkedUser.id,
+      transaction,
+    );
+    expect(selfStatus).to.deep.equal({
+      configured: true,
+      wechatLinked: true,
+      qrCodeUrl: "/img/wechat-app-qrcode.jpg",
+    });
+
+    const adminStatus = await usersModule.getWechatNotificationStatusImpl(
+      {
+        id: linkedUser.id,
+        name: linkedUser.name,
+        url: null,
+        roles: ["UserAdmin"],
+        email: null,
+        phone: null,
+        wechat: null,
+        menteeStatus: null,
+        pointOfContact: null,
+        pointOfContactNote: null,
+      },
+      unlinkedUser.id,
+      transaction,
+    );
+    expect(adminStatus.wechatLinked).to.equal(false);
+
+    let denied = false;
+    try {
+      await usersModule.getWechatNotificationStatusImpl(
+        {
+          id: unlinkedUser.id,
+          name: unlinkedUser.name,
+          url: null,
+          roles: ["Mentee"],
+          email: null,
+          phone: null,
+          wechat: null,
+          menteeStatus: null,
+          pointOfContact: null,
+          pointOfContactNote: null,
+        },
+        linkedUser.id,
+        transaction,
+      );
+    } catch {
+      denied = true;
+    }
+    expect(denied).to.equal(true);
   });
 });

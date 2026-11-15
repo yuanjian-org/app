@@ -3,6 +3,7 @@ import { NotificationType } from "shared/UserPreference";
 import db from "./database/db";
 import { sms } from "./sms";
 import { email } from "./email";
+import { wechat, WeChatMessage } from "./wechat";
 import getBaseUrl from "shared/getBaseUrl";
 import Role from "shared/Role";
 import sequelize from "./database/sequelize";
@@ -13,6 +14,8 @@ type Templates = {
   // Submail SMS template ids.
   domesticSms: string;
   internationalSms: string;
+  // Optional WeChat Service Account summary card content.
+  wechat?: WeChatMessage;
 };
 
 // Deduplication window: 10 seconds in milliseconds.
@@ -106,6 +109,11 @@ export async function notifyRoles(
       email: "E_114706970517",
       domesticSms: "JCGmM2",
       internationalSms: "2VFsY",
+      wechat: {
+        title: subject,
+        content,
+        url: getBaseUrl(),
+      },
     },
     {
       subject,
@@ -143,7 +151,14 @@ export async function notify(
 
   const users = await db.User.findAll({
     where: { id: { [Op.in]: userIds } },
-    attributes: ["email", "phone", "preference"],
+    attributes: [
+      "id",
+      "email",
+      "phone",
+      "wechatUnionId",
+      "wechatOpenId",
+      "preference",
+    ],
     transaction,
   });
 
@@ -162,6 +177,8 @@ export async function notify(
     })),
   );
 
+  const baseUrl = getBaseUrl();
+
   const emailUsers = users.filter(
     (u) =>
       u.email &&
@@ -172,9 +189,32 @@ export async function notify(
     emailUsers.map((u) => u.email!),
     templates.email,
     templateVariables,
-    getBaseUrl(),
+    baseUrl,
+  );
+
+  const wechatUsers = users.filter(
+    (u) =>
+      (u.wechatOpenId || u.wechatUnionId) &&
+      !u.preference?.wechatDisabled?.includes("基础") &&
+      !u.preference?.wechatDisabled?.includes(type),
+  );
+  const wechatMessage: WeChatMessage = templates.wechat ?? {
+    title: templateVariables.subject || `${type}通知`,
+    content:
+      templateVariables.content || templateVariables.delta || "请点击查看详情",
+    url: baseUrl,
+  };
+  const wechatPromise = wechat(
+    wechatUsers.map((u) => ({
+      id: u.id,
+      wechatUnionId: u.wechatUnionId,
+      wechatOpenId: u.wechatOpenId,
+    })),
+    wechatMessage,
+    baseUrl,
+    transaction,
   );
 
   // Parallelize to speed up the function
-  await Promise.all([smsPromise, emailPromise]);
+  await Promise.all([smsPromise, emailPromise, wechatPromise]);
 }
