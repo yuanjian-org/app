@@ -18,6 +18,8 @@ describe("scheduledNotifications", () => {
 
   beforeEach(async () => {
     transaction = await sequelize.transaction();
+    await db.ScheduledNotification.destroy({ where: {}, transaction });
+    await db.GlobalConfig.destroy({ where: {}, transaction });
   });
 
   afterEach(async () => {
@@ -415,10 +417,14 @@ describe("scheduledNotifications", () => {
       const immediateMentor = await createTestUser("ImmediateMentor", [
         "Mentor",
       ]);
-      void immediateMentor;
 
       const subjectId = "00000000-0000-0000-0000-000000000000";
       const windowStart = moment().subtract(25, "hours").toDate();
+      // Hide any pre-existing posts in the local DB so counts are deterministic
+      await db.ShudongPost.update(
+        { deletedAt: new Date() },
+        { where: { deletedAt: null }, transaction },
+      );
       await db.ScheduledNotification.create(
         { type: "ShudongDailyDigest", subjectId, createdAt: windowStart },
         { transaction },
@@ -487,11 +493,16 @@ describe("scheduledNotifications", () => {
 
       await sendScheduledNotifications(transaction);
 
-      expect(notifyStub.callCount).to.equal(2);
+      // At least two calls (mentorDigest and menteeDigest); pre-existing daily
+      // digest users in a local DB may also receive a digest.
+      expect(notifyStub.callCount).to.be.at.least(2);
       const callsByUser = new Map<string, sinon.SinonSpyCall>();
       for (const call of notifyStub.getCalls()) {
         callsByUser.set(call.args[1][0], call);
       }
+      expect(callsByUser.has(quietDigest.id)).to.equal(false);
+      expect(callsByUser.has(immediateMentor.id)).to.equal(false);
+      expect(callsByUser.has(poster.id)).to.equal(false);
 
       const mentorCall = callsByUser.get(mentorDigest.id);
       expect(mentorCall).to.not.equal(undefined);

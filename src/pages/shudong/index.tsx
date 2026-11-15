@@ -54,8 +54,8 @@ import Autosaver from "components/Autosaver";
 type EffectiveSubscribeChoice = Exclude<ShudongSubscribeAll, "default">;
 
 const subscribeChoiceLabels: Record<EffectiveSubscribeChoice, string> = {
-  yes: "仅新问题",
-  yesWithResponses: "新问题及所有回复",
+  yes: "新问题",
+  yesWithResponses: "新问题并自动订阅",
   no: "关",
 };
 
@@ -123,7 +123,7 @@ export default fullPage(() => {
     });
     toast.success(
       val === "yesWithResponses"
-        ? "通知设置已更新，将自动订阅所有新问题的回复"
+        ? "通知设置已更新，将自动订阅后续新问题"
         : "通知设置已更新",
     );
     void refetchPref();
@@ -236,10 +236,23 @@ export default fullPage(() => {
                   }}
                 >
                   <MenuItemOption value="yes">
-                    <T>仅新问题</T>
+                    <T>新问题</T>
                   </MenuItemOption>
-                  <MenuItemOption value="yesWithResponses">
-                    <T>新问题及所有回复</T>
+                  <MenuItemOption
+                    value="yesWithResponses"
+                    alignItems="baseline"
+                  >
+                    <Text as="span" display="block">
+                      <T>新问题并自动订阅</T>
+                    </Text>
+                    <Text
+                      as="span"
+                      display="block"
+                      fontSize="xs"
+                      color="gray.500"
+                    >
+                      <T>自动订阅后续新问题以接收回复，可单独取消</T>
+                    </Text>
                   </MenuItemOption>
                   <MenuItemOption value="no">
                     <T>关</T>
@@ -247,7 +260,7 @@ export default fullPage(() => {
                 </MenuOptionGroup>
                 <MenuDivider />
                 <MenuOptionGroup
-                  title="通知频率"
+                  title="新问题和新回复的通知频率"
                   type="radio"
                   value={notificationFrequency}
                   onChange={(val) => {
@@ -259,8 +272,18 @@ export default fullPage(() => {
                   <MenuItemOption value="immediate">
                     <T>即时通知</T>
                   </MenuItemOption>
-                  <MenuItemOption value="daily">
-                    <T>每日汇总（北京时间晚八点发出）</T>
+                  <MenuItemOption value="daily" alignItems="baseline">
+                    <Text as="span" display="block">
+                      <T>每日汇总</T>
+                    </Text>
+                    <Text
+                      as="span"
+                      display="block"
+                      fontSize="xs"
+                      color="gray.500"
+                    >
+                      <T>北京时间晚八点发出</T>
+                    </Text>
                   </MenuItemOption>
                 </MenuOptionGroup>
               </MenuList>
