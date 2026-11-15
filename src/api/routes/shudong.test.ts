@@ -927,4 +927,125 @@ describe("shudong backend routes", () => {
       void expect(detail.question.isMentorPosted).to.be.false;
     });
   });
+
+  describe("soft-deleted post redaction", () => {
+    it("redacts content and metadata of deleted questions", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"], "现届学子");
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Sensitive question body",
+        false,
+        transaction,
+      );
+      await updatePostImpl(
+        mentor,
+        q.id,
+        "Edited sensitive question body",
+        transaction,
+      );
+      await db.ShudongPost.update(
+        { isAiGenerated: true },
+        { where: { id: q.id }, transaction },
+      );
+      await toggleUpvoteImpl(mentee, q.id, transaction);
+      await createPostImpl(mentee, q.id, "Helpful answer", false, transaction);
+
+      await deletePostImpl(mentor, q.id, transaction);
+
+      const list = await listQuestionsImpl(mentee, 20, 0, transaction);
+      const listEntry = list.find((item) => item.id === q.id);
+      void expect(listEntry).not.to.be.undefined;
+      void expect(listEntry?.isDeleted).to.be.true;
+      expect(listEntry?.markdown).to.equal("");
+      void expect(listEntry?.author).to.be.null;
+      void expect(listEntry?.anonymousName).to.be.null;
+      void expect(listEntry?.isMentorPosted).to.be.false;
+      void expect(listEntry?.isAiGenerated).to.be.false;
+      void expect(listEntry?.lastEditedAt).to.be.null;
+      expect(listEntry?.upvoteCount).to.equal(0);
+      void expect(listEntry?.userHasUpvoted).to.be.false;
+      expect(listEntry?.responseCount).to.equal(1);
+
+      const detail = await getQuestionImpl(mentee, q.id, transaction);
+      void expect(detail.question.isDeleted).to.be.true;
+      expect(detail.question.markdown).to.equal("");
+      void expect(detail.question.author).to.be.null;
+      void expect(detail.question.anonymousName).to.be.null;
+      void expect(detail.question.isMentorPosted).to.be.false;
+      void expect(detail.question.isAiGenerated).to.be.false;
+      void expect(detail.question.lastEditedAt).to.be.null;
+      expect(detail.question.upvoteCount).to.equal(0);
+      void expect(detail.question.userHasUpvoted).to.be.false;
+      expect(detail.question.responseCount).to.equal(1);
+      expect(detail.responses.length).to.equal(1);
+      expect(detail.responses[0].markdown).to.equal("Helpful answer");
+
+      const dbPost = await db.ShudongPost.findByPk(q.id, { transaction });
+      expect(dbPost?.markdown).to.equal("Edited sensitive question body");
+    });
+
+    it("omits pseudo-anonymous labels on deleted responses", async () => {
+      const op = await createTestUser(["Mentor"]);
+      const userA = await createTestUser(["Mentee"], "现届学子");
+      const userB = await createTestUser(["Mentee"], "现届学子");
+
+      const q = await createPostImpl(
+        op,
+        null,
+        "Root question",
+        true,
+        transaction,
+      );
+      const realNameResp = await createPostImpl(
+        userA,
+        q.id,
+        "Real-name reply with private detail",
+        false,
+        transaction,
+      );
+      await createPostImpl(
+        userB,
+        realNameResp.id,
+        "Child reply by userB",
+        true,
+        transaction,
+      );
+      const anonResp = await createPostImpl(
+        userA,
+        q.id,
+        "Anonymous reply by userA",
+        true,
+        transaction,
+      );
+      expect(anonResp.anonymousName).to.equal("匿名 甲");
+
+      await deletePostImpl(userA, realNameResp.id, transaction);
+
+      const detail = await getQuestionImpl(userB, q.id, transaction);
+      const deletedRealNameResp = detail.responses.find(
+        (r) => r.id === realNameResp.id,
+      );
+      const activeAnonResp = detail.responses.find((r) => r.id === anonResp.id);
+
+      void expect(deletedRealNameResp).not.to.be.undefined;
+      void expect(deletedRealNameResp?.isDeleted).to.be.true;
+      expect(deletedRealNameResp?.markdown).to.equal("");
+      void expect(deletedRealNameResp?.author).to.be.null;
+      void expect(deletedRealNameResp?.anonymousName).to.be.null;
+      expect(activeAnonResp?.anonymousName).to.equal("匿名 甲");
+
+      const childResponses = await getResponsesImpl(
+        userB,
+        realNameResp.id,
+        undefined,
+        transaction,
+      );
+      expect(childResponses.length).to.equal(1);
+      expect(childResponses[0].markdown).to.equal("Child reply by userB");
+      expect(childResponses[0].anonymousName).to.equal("匿名 乙");
+    });
+  });
 });

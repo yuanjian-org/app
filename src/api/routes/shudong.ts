@@ -182,7 +182,8 @@ export async function getThreadAuthorMap(
 
 /**
  * Formats a raw DB ShudongPost for client consumption.
- * Anonymizes author info if the post is marked anonymous or soft-deleted.
+ * Anonymizes author info if the post is marked anonymous or soft-deleted, and
+ * redacts content and metadata when the post has been soft-deleted.
  * Checks whether the current user has upvoted and subscribed to the post.
  * Assigns pseudo-anonymous labels scoped within the question thread.
  */
@@ -197,11 +198,15 @@ export async function formatShudongPost(
   invariant(post.authorId, "post.authorId must not be null");
   invariant(post.author, "post.author must not be null");
 
-  const upvote = await db.ShudongUpvote.findOne({
-    where: { postId: post.id, userId: myId },
-    attributes: ["userId"],
-    transaction,
-  });
+  const isDeleted = post.deletedAt !== null;
+
+  const upvote = isDeleted
+    ? null
+    : await db.ShudongUpvote.findOne({
+        where: { postId: post.id, userId: myId },
+        attributes: ["userId"],
+        transaction,
+      });
 
   const rootQuestionId = post.parentId
     ? await findRootQuestionId(post.id, transaction)
@@ -213,14 +218,16 @@ export async function formatShudongPost(
     transaction,
   });
 
-  const isDeleted = post.deletedAt !== null;
   const isAnonymous = isDeleted || post.isAnonymous;
   const author = isAnonymous ? null : post.author;
   // Tag non-deleted posts (including anonymous ones) authored by a mentor.
   const isMentorPosted = !isDeleted && isPermitted(post.author.roles, "Mentor");
 
+  // Do not assign thread-scoped pseudo-anonymous labels to soft-deleted posts,
+  // which would correlate deleted posts (including deleted real-name posts)
+  // with active anonymous posts by the same author in the thread.
   let anonymousName: string | null = null;
-  if (isAnonymous) {
+  if (!isDeleted && post.isAnonymous) {
     const info =
       threadAuthorInfo ??
       (await getThreadAuthorMap(rootQuestionId, transaction));
@@ -236,14 +243,14 @@ export async function formatShudongPost(
     parentId: post.parentId,
     author,
     isMentorPosted,
-    markdown: post.markdown,
-    upvoteCount: post.upvoteCount,
+    markdown: isDeleted ? "" : post.markdown,
+    upvoteCount: isDeleted ? 0 : post.upvoteCount,
     responseCount: post.responseCount,
     isDeleted,
-    isAiGenerated: post.isAiGenerated ?? false,
-    lastEditedAt: post.lastEditedAt,
+    isAiGenerated: !isDeleted && (post.isAiGenerated ?? false),
+    lastEditedAt: isDeleted ? null : post.lastEditedAt,
     createdAt: post.createdAt,
-    userHasUpvoted: !!upvote,
+    userHasUpvoted: !isDeleted && !!upvote,
     userIsSubscribed: !!subscription,
     anonymousName,
   });

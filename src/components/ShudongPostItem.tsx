@@ -118,7 +118,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
                 <T>导师</T>
               </Badge>
             ))}
-          {post.isAiGenerated && (
+          {!post.isDeleted && post.isAiGenerated && (
             <Tooltip label="AI 生成" hasArrow placement="top">
               <span>
                 <Icon
