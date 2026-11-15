@@ -1,0 +1,134 @@
+name: Weekly Agent Tasks
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+  id-token: write
+
+on:
+  schedule:
+    # Monday at 16:00 UTC (00:00 UTC+8 Tuesday): Weekly bug hunt.
+    - cron: "0 16 * * 1"
+    # Wednesday at 16:00 UTC (00:00 UTC+8 Thursday): Weekly test coverage.
+    - cron: "0 16 * * 3"
+    # Friday at 16:00 UTC (00:00 UTC+8 Saturday): Weekly code deduplication.
+    - cron: "0 16 * * 5"
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Weekly agent task to execute"
+        required: true
+        default: "weekly-bug-hunt"
+        type: choice
+        options:
+          - weekly-bug-hunt
+          - weekly-test-coverage
+          - weekly-deduplicate
+
+jobs:
+  run_agent_task:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: yuanjian
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: yuanjian
+        ports:
+          - 5432:5432
+        # Wait for the database to be ready before running tests.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "26"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Setup database and environment
+        run: |
+          DB_URI="postgres://yuanjian:password@localhost:5432/yuanjian"
+          echo "DATABASE_URI=${DB_URI}" > .env
+          echo "NEXTAUTH_SECRET=123" >> .env
+          npx ts-node --require tsconfig-paths/register \
+            tools/migrateDatabase.ts
+
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve scheduled task
+        id: resolve_task
+        env:
+          INPUT_TASK: ${{ inputs.task }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ -n "${INPUT_TASK}" ]; then
+            TASK="${INPUT_TASK}"
+          elif [ "${EVENT_SCHEDULE}" = "0 16 * * 1" ]; then
+            TASK="weekly-bug-hunt"
+          elif [ "${EVENT_SCHEDULE}" = "0 16 * * 3" ]; then
+            TASK="weekly-test-coverage"
+          else
+            TASK="weekly-deduplicate"
+          fi
+          SKILL_FILE=".agents/skills/${TASK}/SKILL.md"
+          echo "task=${TASK}" >> "$GITHUB_OUTPUT"
+          {
+            echo "prompt<<EOF"
+            echo "Read and strictly follow ${SKILL_FILE}."
+            echo "Execute the full ${TASK} workflow autonomously:"
+            echo "1. Check open PRs with gh pr list to avoid duplicates."
+            echo "2. Identify a single target and implement the changes"
+            echo "   on a new git branch."
+            echo "3. Verify with yarn lint, yarn test, and yarn build."
+            echo "4. Push the branch and open a PR with gh pr create."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Gemini CLI
+        uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          DATABASE_URI: postgres://yuanjian:password@localhost:5432/yuanjian
+          NEXTAUTH_SECRET: "123"
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gcp_location: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+          gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          gemini_cli_version: ${{ vars.GEMINI_CLI_VERSION }}
+          gemini_model: ${{ vars.GEMINI_MODEL }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          use_gemini_code_assist: ${{ vars.GOOGLE_GENAI_USE_GCA }}
+          use_vertex_ai: ${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}
+          settings: |-
+            {
+              "model": {
+                "maxSessionTurns": 50
+              }
+            }
+          prompt: ${{ steps.resolve_task.outputs.prompt }}
