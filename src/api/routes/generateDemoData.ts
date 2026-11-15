@@ -20,13 +20,8 @@ import { checkAndComputeUserFields } from "./checkAndComputeUserFields";
 import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
-import {
-  createPostImpl,
-  deletePostImpl,
-  listQuestionsImpl,
-  toggleUpvoteImpl,
-} from "./shudong";
-import { DemoShudongPost } from "./demoData";
+import { listQuestionsImpl } from "./shudong";
+import { buildShudongSeedPosts } from "./shudongSeeds";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -102,7 +97,7 @@ export async function generateDemoData(t: Transaction) {
 
 async function generateShudong(t: Transaction) {
   console.log("Creating shudong posts...");
-  if (!demo.shudong) return;
+  if (!demo.shudong || demo.shudong.length === 0) return;
 
   const existing = await listQuestionsImpl(admin as User, 1, 0, t);
   if (existing.length > 0) {
@@ -110,39 +105,12 @@ async function generateShudong(t: Transaction) {
     return;
   }
 
-  for (const postData of demo.shudong) {
-    await generateShudongPost(postData, null, t);
-  }
-}
-
-async function generateShudongPost(
-  postData: DemoShudongPost,
-  parentId: string | null,
-  t: Transaction,
-) {
-  const post = await createPostImpl(
-    postData.author as User,
-    parentId,
-    postData.markdown,
-    postData.isAnonymous,
-    t,
-  );
-
-  if (postData.upvotes) {
-    for (const upvoter of postData.upvotes) {
-      await toggleUpvoteImpl(upvoter as User, post.id, t);
-    }
-  }
-
-  if (postData.responses) {
-    for (const child of postData.responses) {
-      await generateShudongPost(child, post.id, t);
-    }
-  }
-
-  if (postData.isDeleted) {
-    await deletePostImpl(admin as User, post.id, t);
-  }
+  // Only mentee1..3 have menteeStatus ("现届学子") and Shudong access;
+  // mentee4..5 are interviewees without menteeStatus.
+  const menteeIds = [mentee1, mentee2, mentee3].map(id);
+  const mentorIds = [mentor1, mentor2, mentor3, mentor4, mentor5].map(id);
+  const posts = buildShudongSeedPosts(menteeIds, mentorIds, demo.shudong);
+  await db.ShudongPost.bulkCreate(posts, { transaction: t });
 }
 
 async function generateOrgs(t: Transaction) {
