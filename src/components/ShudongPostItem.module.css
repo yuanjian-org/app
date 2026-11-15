@@ -1,0 +1,9 @@
+/* Strip leading/trailing block margins inside Shudong post bodies only,
+ * without modifying shared MarkdownStyler.module.css rules. */
+.postBody > div > :first-child {
+  margin-top: 0;
+}
+
+.postBody > div > :last-child {
+  margin-bottom: 0;
+}

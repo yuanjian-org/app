@@ -177,9 +177,11 @@ export default function Page() {
 
         {/* Response creation panel positioned at the bottom of thread */}
         <Box
-          p={4}
+          px={{ base: 4, md: 5 }}
+          py={4}
           borderWidth="1px"
-          borderRadius="md"
+          borderColor="gray.200"
+          borderRadius="lg"
           bg="white"
           boxShadow="sm"
         >
