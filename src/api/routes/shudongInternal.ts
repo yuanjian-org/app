@@ -11,10 +11,10 @@ const mentorRole: Role = "Mentor";
 
 /**
  * Where clause on the User model that selects users who are globally
- * notified of new Shudong questions (without auto-subscribing them to
- * future replies). A user receives new question notifications if:
+ * notified of new Shudong questions. A user receives new question
+ * notifications if:
  *
- * - their `shudongSubscribeAll` preference is "yes", or
+ * - their `shudongSubscribeAll` preference is "yes" or "yesWithResponses", or
  * - they are a mentor and the preference is "default" or unset.
  *
  * TODO: filter out users who are blocked from accessing shudong in
@@ -23,6 +23,7 @@ const mentorRole: Role = "Mentor";
 export const shudongGlobalSubscriberWhere: WhereOptions = {
   [Op.or]: [
     { "preference.shudongSubscribeAll": "yes" },
+    { "preference.shudongSubscribeAll": "yesWithResponses" },
     {
       roles: { [Op.contains]: [mentorRole] },
       [Op.or]: [
@@ -31,6 +32,17 @@ export const shudongGlobalSubscriberWhere: WhereOptions = {
       ],
     },
   ],
+};
+
+/**
+ * Where clause on the User model that selects users who opted in to
+ * automatically subscribe to responses on all new Shudong questions.
+ *
+ * TODO: filter out users who are blocked from accessing shudong in
+ * canAccessShudong().
+ */
+export const shudongAutoSubscribeResponsesWhere: WhereOptions = {
+  "preference.shudongSubscribeAll": "yesWithResponses",
 };
 
 /**

@@ -34,6 +34,7 @@ import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
 import { isPermitted } from "shared/Role";
 import { canAccessShudong } from "shared/ShudongPermissions";
+import { ShudongSubscribeAll } from "shared/UserPreference";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { mobileSidbarIconLeftWithMargin } from "components/Navbars";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -45,6 +46,14 @@ import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
+
+type EffectiveSubscribeChoice = Exclude<ShudongSubscribeAll, "default">;
+
+const subscribeChoiceLabels: Record<EffectiveSubscribeChoice, string> = {
+  yes: "仅新问题",
+  yesWithResponses: "新问题及所有回复",
+  no: "关",
+};
 
 /**
  * Main Shudong feed page displaying top-level questions.
@@ -88,12 +97,15 @@ export default fullPage(() => {
 
   const subscribeAllChoice = pref?.shudongSubscribeAll ?? "default";
   // When the preference is "default" (or unset), mentors receive notifications
-  // by default while other users do not.
-  const isSubscribedAll =
-    subscribeAllChoice === "yes" ||
-    (subscribeAllChoice === "default" && isPermitted(me.roles, "Mentor"));
+  // for new questions by default while other users do not.
+  const effectiveSubscribeChoice: EffectiveSubscribeChoice =
+    subscribeAllChoice === "default"
+      ? isPermitted(me.roles, "Mentor")
+        ? "yes"
+        : "no"
+      : subscribeAllChoice;
 
-  const handleSubscribeAllChange = async (val: "yes" | "no") => {
+  const handleSubscribeAllChange = async (val: EffectiveSubscribeChoice) => {
     await trpc.users.setUserPreference.mutate({
       userId: me.id,
       preference: {
@@ -101,7 +113,11 @@ export default fullPage(() => {
         shudongSubscribeAll: val,
       },
     });
-    toast.success("新问题通知设置已更新");
+    toast.success(
+      val === "yesWithResponses"
+        ? "通知设置已更新，将自动订阅所有新问题的回复"
+        : "通知设置已更新",
+    );
     void refetchPref();
   };
 
@@ -164,8 +180,8 @@ export default fullPage(() => {
                 <HStack spacing={1} align="center">
                   <Icon as={MdNotifications} boxSize={5} />
                   <Text>
-                    <T>接收新问题通知：</T>
-                    <T>{isSubscribedAll ? "开" : "关"}</T>
+                    <T>接收通知：</T>
+                    <T>{subscribeChoiceLabels[effectiveSubscribeChoice]}</T>
                   </Text>
                   <ChevronDownIcon boxSize={4} />
                 </HStack>
@@ -173,13 +189,22 @@ export default fullPage(() => {
               <MenuList>
                 <MenuOptionGroup
                   type="radio"
-                  value={isSubscribedAll ? "yes" : "no"}
-                  onChange={(val) =>
-                    void handleSubscribeAllChange(val as "yes" | "no")
-                  }
+                  value={effectiveSubscribeChoice}
+                  onChange={(val) => {
+                    if (
+                      val === "yes" ||
+                      val === "yesWithResponses" ||
+                      val === "no"
+                    ) {
+                      void handleSubscribeAllChange(val);
+                    }
+                  }}
                 >
                   <MenuItemOption value="yes">
-                    <T>开</T>
+                    <T>仅新问题</T>
+                  </MenuItemOption>
+                  <MenuItemOption value="yesWithResponses">
+                    <T>新问题及所有回复</T>
                   </MenuItemOption>
                   <MenuItemOption value="no">
                     <T>关</T>

@@ -147,13 +147,21 @@ describe("shudong backend routes", () => {
       void expect(sub2.isSubscribed).to.be.false;
     });
 
-    it("should auto-subscribe poster only to new question", async () => {
+    it("auto-subscribes poster and yesWithResponses users", async () => {
       const posterMentee = await createTestUser(["Mentee"], "现届学子", {
         shudongSubscribeAll: "default",
       });
       const mentorDefault = await createTestUser(["Mentor"]);
       const menteeOptIn = await createTestUser(["Mentee"], "现届学子", {
         shudongSubscribeAll: "yes",
+      });
+      const menteeOptInResponses = await createTestUser(
+        ["Mentee"],
+        "现届学子",
+        { shudongSubscribeAll: "yesWithResponses" },
+      );
+      const mentorOptInResponses = await createTestUser(["Mentor"], null, {
+        shudongSubscribeAll: "yesWithResponses",
       });
       const menteeOptOut = await createTestUser(["Mentee"], "现届学子", {
         shudongSubscribeAll: "no",
@@ -167,7 +175,8 @@ describe("shudong backend routes", () => {
         transaction,
       );
 
-      // Check subscriptions in DB: only poster should be subscribed
+      // Check subscriptions in DB: poster and yesWithResponses users should be
+      // subscribed, while "default", "yes", and "no" users are not.
       const subs = await db.ShudongSubscription.findAll({
         where: { questionId: q.id },
         transaction,
@@ -175,9 +184,43 @@ describe("shudong backend routes", () => {
       const subUserIds = subs.map((s) => s.userId);
 
       expect(subUserIds).to.include(posterMentee.id);
+      expect(subUserIds).to.include(menteeOptInResponses.id);
+      expect(subUserIds).to.include(mentorOptInResponses.id);
       expect(subUserIds).not.to.include(mentorDefault.id);
       expect(subUserIds).not.to.include(menteeOptIn.id);
       expect(subUserIds).not.to.include(menteeOptOut.id);
+
+      const detail = await getQuestionImpl(
+        menteeOptInResponses,
+        q.id,
+        transaction,
+      );
+      void expect(detail.question.userIsSubscribed).to.be.true;
+
+      // Auto-subscribed user can still manually unsubscribe from a thread
+      const unsub = await toggleSubscriptionImpl(
+        menteeOptInResponses,
+        q.id,
+        transaction,
+      );
+      void expect(unsub.isSubscribed).to.be.false;
+
+      // Poster who also has yesWithResponses does not cause duplicate rows
+      const qFromAutoSubPoster = await createPostImpl(
+        mentorOptInResponses,
+        null,
+        "Question by yesWithResponses user",
+        false,
+        transaction,
+      );
+      const posterSubCount = await db.ShudongSubscription.count({
+        where: {
+          questionId: qFromAutoSubPoster.id,
+          userId: mentorOptInResponses.id,
+        },
+        transaction,
+      });
+      expect(posterSubCount).to.equal(1);
 
       // A new-question notification should still be scheduled for global
       // subscribers

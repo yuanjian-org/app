@@ -23,7 +23,10 @@ import {
 import invariant from "shared/invariant";
 import sequelize from "../database/sequelize";
 import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
-import { shudongNewQuestionSubjectId } from "./shudongInternal";
+import {
+  shudongAutoSubscribeResponsesWhere,
+  shudongNewQuestionSubjectId,
+} from "./shudongInternal";
 
 /**
  * Common where condition for active or soft-deleted posts that have replies.
@@ -387,10 +390,11 @@ export async function createPostImpl(
       transaction,
     );
   } else {
-    // Notify global subscribers of new questions without auto-subscribing
-    // them to it. All new questions share the same subject ID so that they
-    // are batched into one notification. Must schedule before saving data.
-    // See the callee's comment.
+    // Notify global subscribers of new questions. Users with
+    // shudongSubscribeAll === "yesWithResponses" are also auto-subscribed
+    // below. All new questions share the same subject ID so that they are
+    // batched into one notification. Must schedule before saving data. See
+    // the callee's comment.
     await scheduleNotificationBeforeSavingData(
       "ShudongQuestion",
       shudongNewQuestionSubjectId,
@@ -447,12 +451,24 @@ export async function createPostImpl(
       transaction,
     });
   } else {
-    // Auto-subscribe poster to root question (global subscribers are notified
-    // but not auto-subscribed).
-    await db.ShudongSubscription.findOrCreate({
-      where: { questionId: post.id, userId: me.id },
+    // Auto-subscribe the poster and users who opted in to auto-subscribe to
+    // responses on all new questions.
+    const subscriberIds = new Set<string>([me.id]);
+    const autoSubscribers = await db.User.findAll({
+      attributes: ["id"],
+      where: shudongAutoSubscribeResponsesWhere,
       transaction,
     });
+    for (const u of autoSubscribers) {
+      subscriberIds.add(u.id);
+    }
+    await db.ShudongSubscription.bulkCreate(
+      Array.from(subscriberIds).map((userId) => ({
+        questionId: post.id,
+        userId,
+      })),
+      { ignoreDuplicates: true, transaction },
+    );
   }
 
   const draftParentIdKey = parentId ?? "root";

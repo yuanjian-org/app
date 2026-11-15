@@ -280,6 +280,11 @@ describe("scheduledNotifications", () => {
         { preference: { shudongSubscribeAll: "yes" } },
         { transaction },
       );
+      const optedInWithResponses = await createTestUser("OptedInWithResponses");
+      await optedInWithResponses.update(
+        { preference: { shudongSubscribeAll: "yesWithResponses" } },
+        { transaction },
+      );
       const optedOut = await createTestUser("OptedOut", ["Mentor"]);
       await optedOut.update(
         { preference: { shudongSubscribeAll: "no" } },
@@ -306,6 +311,7 @@ describe("scheduledNotifications", () => {
       expect(args[0]).to.equal("树洞");
       expect(args[1]).to.include(mentor.id);
       expect(args[1]).to.include(optedIn.id);
+      expect(args[1]).to.include(optedInWithResponses.id);
       // The poster is not notified of their own question.
       expect(args[1]).to.not.include(poster.id);
       expect(args[1]).to.not.include(optedOut.id);

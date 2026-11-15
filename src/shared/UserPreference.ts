@@ -44,12 +44,29 @@ export const allNotificationTypes = [
 export type NotificationType = (typeof allNotificationTypes)[number];
 export const zNotificationTypes = z.array(z.enum(allNotificationTypes));
 
+/**
+ * Shudong notification preference for new posts:
+ * - "default": mentors receive new question notifications ("yes"); others do
+ *   not ("no").
+ * - "yes": receive notifications for new questions only.
+ * - "yesWithResponses": receive notifications for new questions and
+ *   automatically subscribe to all responses on new questions.
+ * - "no": do not receive notifications for new questions.
+ */
+export const zShudongSubscribeAll = z.enum([
+  "yes",
+  "yesWithResponses",
+  "no",
+  "default",
+]);
+export type ShudongSubscribeAll = z.TypeOf<typeof zShudongSubscribeAll>;
+
 export const zUserPreference = z.object({
   interviewer: zInterviewerPreference.optional(),
   mentor: zMentorPreference.optional(),
   // When absent, all notifications are enabled.
   smsDisabled: zNotificationTypes.optional(),
   emailDisabled: zNotificationTypes.optional(),
-  shudongSubscribeAll: z.enum(["yes", "no", "default"]).optional(),
+  shudongSubscribeAll: zShudongSubscribeAll.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;
