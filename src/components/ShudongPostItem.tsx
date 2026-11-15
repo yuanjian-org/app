@@ -26,7 +26,7 @@ import {
   Tooltip,
   Link,
 } from "@chakra-ui/react";
-import { FiThumbsUp } from "react-icons/fi";
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import { PiStarFourFill } from "react-icons/pi";
 import { FaBell, FaRegBell } from "react-icons/fa";
 import {
@@ -52,6 +52,7 @@ import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
 import Autosaver from "./Autosaver";
+import { ShudongEmojiBar } from "./ShudongEmojiBar";
 
 /**
  * Shared metadata header for Shudong questions and responses.
@@ -193,6 +194,7 @@ export function ShudongPostItem({
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
   const [editMarkdown, setEditMarkdown] = useState(post.markdown);
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
@@ -392,6 +394,7 @@ export function ShudongPostItem({
             }}
           />
           <Textarea
+            ref={editInputRef}
             value={editMarkdown}
             onChange={(e) => setEditMarkdown(e.target.value)}
             onKeyDown={(e) => {
@@ -403,6 +406,13 @@ export function ShudongPostItem({
             }}
             rows={3}
           />
+          {!isQuestionNode && (
+            <ShudongEmojiBar
+              value={editMarkdown}
+              onChange={setEditMarkdown}
+              textareaRef={editInputRef}
+            />
+          )}
           <HStack justify="end">
             <Button size="sm" onClick={() => setIsEditing(false)}>
               <T>取消</T>
@@ -458,7 +468,13 @@ export function ShudongPostItem({
                 }
               }}
             >
-              <Icon as={FiThumbsUp} mr={1} boxSize={4} />
+              {/* Filled red heart when upvoted, outline heart otherwise */}
+              <Icon
+                as={localHasUpvoted ? MdFavorite : MdFavoriteBorder}
+                color={localHasUpvoted ? "red.500" : undefined}
+                mr={1}
+                boxSize={4}
+              />
               {localUpvoteCount > 0 && localUpvoteCount}
             </Text>
 
@@ -627,6 +643,11 @@ export function ShudongPostItem({
               }
             }}
             rows={2}
+          />
+          <ShudongEmojiBar
+            value={replyMarkdown}
+            onChange={setReplyMarkdown}
+            textareaRef={replyInputRef}
           />
           <Flex justify="space-between" align="center">
             <FormControl display="flex" alignItems="center" w="auto">

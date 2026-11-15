@@ -27,6 +27,7 @@ import PageBreadcrumb, {
 import Loader from "components/Loader";
 import T from "components/T";
 import { ShudongPostItem } from "components/ShudongPostItem";
+import { ShudongEmojiBar } from "components/ShudongEmojiBar";
 import { toast } from "react-toastify";
 import Autosaver from "components/Autosaver";
 
@@ -196,19 +197,28 @@ export default function Page() {
             <T>写下你的回答</T>
           </Heading>
           <VStack spacing={3} align="stretch">
-            <Textarea
-              ref={responseInputRef}
-              placeholder={!isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""}
-              value={responseMarkdown}
-              onChange={(e) => setResponseMarkdown(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                  e.preventDefault();
-                  void handleCreateResponse();
+            <VStack spacing={1.5} align="stretch">
+              <Textarea
+                ref={responseInputRef}
+                placeholder={
+                  !isMobile ? `(${cmdOrCtrlChar()} + Enter 发送)` : ""
                 }
-              }}
-              rows={4}
-            />
+                value={responseMarkdown}
+                onChange={(e) => setResponseMarkdown(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    void handleCreateResponse();
+                  }
+                }}
+                rows={4}
+              />
+              <ShudongEmojiBar
+                value={responseMarkdown}
+                onChange={setResponseMarkdown}
+                textareaRef={responseInputRef}
+              />
+            </VStack>
             <Flex justify="space-between" align="center">
               <FormControl display="flex" alignItems="center" w="auto">
                 <FormLabel htmlFor="resp-anon-switch" mb="0" fontSize="sm">
