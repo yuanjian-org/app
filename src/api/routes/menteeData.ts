@@ -46,6 +46,44 @@ function anonymizeUserName(content: string, userName: string | null): string {
   return result;
 }
 
+type ZipFileEntry = {
+  name: string;
+  content: string;
+};
+
+type MenteeZipDownload = {
+  filename: string;
+  data: string;
+};
+
+type MenteeDownloadUser = {
+  id: string;
+  name: string | null;
+  menteeApplication: Record<string, unknown> | null;
+};
+
+const zMenteeZipDownload = z.object({
+  filename: z.string(),
+  data: z.string(), // base64 encoded zip data
+});
+
+function createMenteeDownloadQuery(
+  impl: (
+    userId: string,
+    transaction: Transaction,
+  ) => Promise<MenteeZipDownload>,
+) {
+  return procedure
+    .use(authUser("UserAdmin"))
+    .input(z.string())
+    .output(zMenteeZipDownload)
+    .query(async ({ input: userId }) => {
+      return await sequelize.transaction(async (transaction) => {
+        return await impl(userId, transaction);
+      });
+    });
+}
+
 /**
  * Download mentee data as a ZIP package containing:
  * 1. metadata.json - Metadata including userId, userName, generatedAt, etc.
@@ -61,40 +99,16 @@ function anonymizeUserName(content: string, userName: string | null): string {
  *
  * Returns a base64-encoded ZIP file containing all data as separate files.
  */
-const downloadMenteeData = procedure
-  .use(authUser("UserAdmin"))
-  .input(z.string())
-  .output(
-    z.object({
-      filename: z.string(),
-      data: z.string(), // base64 encoded zip data
-    }),
-  )
-  .query(async ({ input: userId }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await downloadMenteeDataImpl(userId, transaction);
-    });
-  });
+const downloadMenteeData = createMenteeDownloadQuery(downloadMenteeDataImpl);
 
 /**
  * Download raw meeting transcripts of a mentee as a ZIP package containing
  * only plain text files for each mentorship:
  * mentorship_[mentorName]_[mentorshipId].txt
  */
-const downloadMenteeTranscripts = procedure
-  .use(authUser("UserAdmin"))
-  .input(z.string())
-  .output(
-    z.object({
-      filename: z.string(),
-      data: z.string(), // base64 encoded zip data
-    }),
-  )
-  .query(async ({ input: userId }) => {
-    return await sequelize.transaction(async (transaction) => {
-      return await downloadMenteeTranscriptsImpl(userId, transaction);
-    });
-  });
+const downloadMenteeTranscripts = createMenteeDownloadQuery(
+  downloadMenteeTranscriptsImpl,
+);
 
 // Helper function to format values for plain text output
 function formatValue(value: any, indent: string = ""): string {
@@ -204,7 +218,7 @@ function redactMenteeApplication(application: any): {
  * for the given userName.
  */
 async function buildZipArchive(
-  files: Array<{ name: string; content: string }>,
+  files: ZipFileEntry[],
   userName: string | null,
 ): Promise<string> {
   const archive = archiver("zip", {
@@ -235,6 +249,34 @@ async function buildZipArchive(
   await archive.finalize();
   const zipBuffer = await zipPromise;
   return zipBuffer.toString("base64");
+}
+
+async function findMenteeForDownload(userId: string, transaction: Transaction) {
+  const user = await db.User.findByPk(userId, {
+    attributes: ["id", "name", "menteeApplication"],
+    transaction,
+  });
+  if (!user) throw notFoundError("用户", userId);
+  return user;
+}
+
+async function buildMenteeZipDownload(
+  user: MenteeDownloadUser,
+  filenamePrefix: string,
+  filesToZip: ZipFileEntry[],
+): Promise<MenteeZipDownload> {
+  const data = await buildZipArchive(filesToZip, user.name);
+
+  // Generate anonymous ID for filename
+  const rawYear = user.menteeApplication?.[menteeAcceptanceYearField];
+  const acceptanceYear =
+    typeof rawYear === "string" && rawYear.length > 0 ? rawYear : null;
+  const anonymousId = getAnonymousId(user.id, acceptanceYear);
+
+  return {
+    filename: `${filenamePrefix}_${anonymousId}.zip`,
+    data,
+  };
 }
 
 /**
@@ -319,10 +361,7 @@ async function fetchMentorshipTextFiles(
       });
   });
 
-  const mentorshipTextFiles: Array<{
-    filename: string;
-    content: string;
-  }> = [];
+  const mentorshipTextFiles: ZipFileEntry[] = [];
 
   for (const mentorship of mentorships) {
     if (!mentorship.group || !mentorship.group.transcripts) continue;
@@ -377,8 +416,8 @@ async function fetchMentorshipTextFiles(
       textContent += `\n${"-".repeat(80)}\n\n`;
     });
 
-    const filename = `mentorship_${mentorship.mentor.name}_${mentorship.id}.txt`;
-    mentorshipTextFiles.push({ filename, content: textContent });
+    const name = `mentorship_${mentorship.mentor.name}_${mentorship.id}.txt`;
+    mentorshipTextFiles.push({ name, content: textContent });
   }
 
   return {
@@ -391,14 +430,8 @@ async function fetchMentorshipTextFiles(
 export async function downloadMenteeDataImpl(
   userId: string,
   transaction: Transaction,
-): Promise<{ filename: string; data: string }> {
-  // Get user
-  const user = await db.User.findByPk(userId, {
-    attributes: ["id", "name", "menteeApplication"],
-    transaction,
-  });
-
-  if (!user) throw notFoundError("用户", userId);
+): Promise<MenteeZipDownload> {
+  const user = await findMenteeForDownload(userId, transaction);
 
   // 1. Mentee Application - redact private information
   const { redacted: redactedMenteeApplication, redactedText } =
@@ -573,11 +606,11 @@ export async function downloadMenteeDataImpl(
       "internalNotes.json",
       "internalNotes.txt",
       "mentorships.json",
-      ...mentorshipTextFiles.map((f) => f.filename),
+      ...mentorshipTextFiles.map((f) => f.name),
     ],
   };
 
-  const filesToZip: Array<{ name: string; content: string }> = [
+  const filesToZip: ZipFileEntry[] = [
     { name: "metadata.json", content: JSON.stringify(metadata, null, 2) },
     {
       name: "menteeApplication.json",
@@ -598,36 +631,17 @@ export async function downloadMenteeDataImpl(
       name: "mentorships.json",
       content: JSON.stringify(transcriptSummaries, null, 2),
     },
-    ...mentorshipTextFiles.map((f) => ({
-      name: f.filename,
-      content: f.content,
-    })),
+    ...mentorshipTextFiles,
   ];
 
-  const base64Data = await buildZipArchive(filesToZip, user.name);
-
-  // Generate anonymous ID for filename
-  const acceptanceYear =
-    user.menteeApplication?.[menteeAcceptanceYearField] || null;
-  const anonymousId = getAnonymousId(userId, acceptanceYear);
-
-  return {
-    filename: `mentee_data_${anonymousId}.zip`,
-    data: base64Data,
-  };
+  return await buildMenteeZipDownload(user, "mentee_data", filesToZip);
 }
 
 export async function downloadMenteeTranscriptsImpl(
   userId: string,
   transaction: Transaction,
-): Promise<{ filename: string; data: string }> {
-  // Get user
-  const user = await db.User.findByPk(userId, {
-    attributes: ["id", "name", "menteeApplication"],
-    transaction,
-  });
-
-  if (!user) throw notFoundError("用户", userId);
+): Promise<MenteeZipDownload> {
+  const user = await findMenteeForDownload(userId, transaction);
 
   // Fetch mentorship text files containing raw meeting transcripts
   // (with fallback to meeting summaries)
@@ -637,22 +651,11 @@ export async function downloadMenteeTranscriptsImpl(
     transaction,
   );
 
-  const filesToZip = mentorshipTextFiles.map((f) => ({
-    name: f.filename,
-    content: f.content,
-  }));
-
-  const base64Data = await buildZipArchive(filesToZip, user.name);
-
-  // Generate anonymous ID for filename
-  const acceptanceYear =
-    user.menteeApplication?.[menteeAcceptanceYearField] || null;
-  const anonymousId = getAnonymousId(userId, acceptanceYear);
-
-  return {
-    filename: `mentee_transcripts_${anonymousId}.zip`,
-    data: base64Data,
-  };
+  return await buildMenteeZipDownload(
+    user,
+    "mentee_transcripts",
+    mentorshipTextFiles,
+  );
 }
 
 export default router({
