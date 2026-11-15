@@ -3,6 +3,7 @@ import { Transaction } from "sequelize";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import {
+  getNextShudongDailyDigestSendTime,
   scheduleNotificationBeforeSavingData,
   sendScheduledNotifications,
 } from "./scheduledNotifications";
@@ -10,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import sinon from "sinon";
 import * as notifyModule from "../notify";
 import crypto from "crypto";
-import moment from "moment";
+import moment from "moment-timezone";
 
 describe("scheduledNotifications", () => {
   let transaction: Transaction;
@@ -211,6 +212,11 @@ describe("scheduledNotifications", () => {
     it("should notify shudong subscribers and delete notification", async () => {
       const poster = await createTestUser("Poster");
       const subscriber = await createTestUser("Subscriber");
+      const dailyDigestSub = await createTestUser("DailyDigestSub");
+      await dailyDigestSub.update(
+        { preference: { shudongNotificationFrequency: "daily" } },
+        { transaction },
+      );
       const responder = await createTestUser("Responder");
 
       const q = await db.ShudongPost.create(
@@ -222,13 +228,15 @@ describe("scheduledNotifications", () => {
         { transaction },
       );
 
-      // Subscribe poster, another subscriber, and the responder to verify
-      // eligible recipients are batched into a single notify() call while
-      // the responder is excluded from their own response notification.
+      // Subscribe poster, another subscriber, a daily-digest subscriber, and
+      // the responder to verify eligible immediate recipients are batched into
+      // a single notify() call while daily-digest users and the responder are
+      // excluded.
       await db.ShudongSubscription.bulkCreate(
         [
           { questionId: q.id, userId: poster.id },
           { questionId: q.id, userId: subscriber.id },
+          { questionId: q.id, userId: dailyDigestSub.id },
           { questionId: q.id, userId: responder.id },
         ],
         { transaction },
@@ -256,6 +264,7 @@ describe("scheduledNotifications", () => {
       const args = notifyStub.getCall(0).args;
       expect(args[0]).to.equal("树洞");
       expect(args[1]).to.have.members([poster.id, subscriber.id]);
+      expect(args[1]).to.not.include(dailyDigestSub.id);
       expect(args[1]).to.not.include(responder.id);
       // Verify notification template IDs configured for Shudong response.
       expect(args[2].email).to.equal("E_114703550737");
@@ -285,6 +294,13 @@ describe("scheduledNotifications", () => {
         { preference: { shudongSubscribeAll: "yesWithResponses" } },
         { transaction },
       );
+      const dailyDigestMentor = await createTestUser("DailyDigestMentor", [
+        "Mentor",
+      ]);
+      await dailyDigestMentor.update(
+        { preference: { shudongNotificationFrequency: "daily" } },
+        { transaction },
+      );
       const optedOut = await createTestUser("OptedOut", ["Mentor"]);
       await optedOut.update(
         { preference: { shudongSubscribeAll: "no" } },
@@ -312,8 +328,9 @@ describe("scheduledNotifications", () => {
       expect(args[1]).to.include(mentor.id);
       expect(args[1]).to.include(optedIn.id);
       expect(args[1]).to.include(optedInWithResponses.id);
-      // The poster is not notified of their own question.
+      // The poster and daily-digest users are excluded from immediate alerts.
       expect(args[1]).to.not.include(poster.id);
+      expect(args[1]).to.not.include(dailyDigestMentor.id);
       expect(args[1]).to.not.include(optedOut.id);
       expect(args[1]).to.not.include(other.id);
       // Verify notification template IDs configured for Shudong question.
@@ -327,6 +344,184 @@ describe("scheduledNotifications", () => {
         transaction,
       });
       expect(count).to.equal(0);
+    });
+
+    it("computes next 20:00 Beijing Time for ShudongDailyDigest", () => {
+      const morning = moment.tz("2026-11-15 09:30:00", "Asia/Shanghai");
+      expect(getNextShudongDailyDigestSendTime(morning).format()).to.equal(
+        moment.tz("2026-11-15 20:00:00", "Asia/Shanghai").format(),
+      );
+
+      const exact20 = moment.tz("2026-11-15 20:00:00", "Asia/Shanghai");
+      expect(getNextShudongDailyDigestSendTime(exact20).format()).to.equal(
+        moment.tz("2026-11-16 20:00:00", "Asia/Shanghai").format(),
+      );
+
+      const evening = moment.tz("2026-11-15 20:15:00", "Asia/Shanghai");
+      expect(getNextShudongDailyDigestSendTime(evening).format()).to.equal(
+        moment.tz("2026-11-16 20:00:00", "Asia/Shanghai").format(),
+      );
+    });
+
+    it("delays ShudongDailyDigest until next 20:00 Beijing Time", async () => {
+      const subjectId = "00000000-0000-0000-0000-000000000000";
+      await db.ScheduledNotification.create(
+        { type: "ShudongDailyDigest", subjectId, createdAt: new Date() },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.called).to.equal(false);
+      const count = await db.ScheduledNotification.count({
+        where: { type: "ShudongDailyDigest", subjectId },
+        transaction,
+      });
+      expect(count).to.equal(1);
+    });
+
+    it("sends personalized ShudongDailyDigest after 20:00 CST", async () => {
+      const poster = await createTestUser("Poster");
+      const responder = await createTestUser("Responder");
+
+      const mentorDigest = await createTestUser("王导师", ["Mentor"]);
+      await mentorDigest.update(
+        { preference: { shudongNotificationFrequency: "daily" } },
+        { transaction },
+      );
+
+      const menteeDigest = await createTestUser("李同学");
+      await menteeDigest.update(
+        {
+          preference: {
+            shudongSubscribeAll: "no",
+            shudongNotificationFrequency: "daily",
+          },
+        },
+        { transaction },
+      );
+
+      const quietDigest = await createTestUser("QuietDigest");
+      await quietDigest.update(
+        {
+          preference: {
+            shudongSubscribeAll: "no",
+            shudongNotificationFrequency: "daily",
+          },
+        },
+        { transaction },
+      );
+
+      const immediateMentor = await createTestUser("ImmediateMentor", [
+        "Mentor",
+      ]);
+      void immediateMentor;
+
+      const subjectId = "00000000-0000-0000-0000-000000000000";
+      const windowStart = moment().subtract(25, "hours").toDate();
+      await db.ScheduledNotification.create(
+        { type: "ShudongDailyDigest", subjectId, createdAt: windowStart },
+        { transaction },
+      );
+
+      const q1 = await db.ShudongPost.create(
+        {
+          authorId: poster.id,
+          markdown: "Question <1> about internships?",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+      await db.ShudongPost.create(
+        {
+          authorId: mentorDigest.id,
+          markdown: "Mentor own question",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+      const q3 = await db.ShudongPost.create(
+        {
+          authorId: poster.id,
+          markdown: "Second question from poster",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      await db.ShudongSubscription.bulkCreate(
+        [
+          { questionId: q1.id, userId: mentorDigest.id },
+          { questionId: q1.id, userId: menteeDigest.id },
+        ],
+        { transaction },
+      );
+
+      const r1 = await db.ShudongPost.create(
+        {
+          parentId: q1.id,
+          authorId: responder.id,
+          markdown: "Direct reply",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+      await db.ShudongPost.create(
+        {
+          parentId: r1.id,
+          authorId: responder.id,
+          markdown: "Nested sub-reply",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+      await db.ShudongPost.create(
+        {
+          parentId: q1.id,
+          authorId: menteeDigest.id,
+          markdown: "Mentee own reply",
+          isAnonymous: false,
+        },
+        { transaction },
+      );
+
+      await sendScheduledNotifications(transaction);
+
+      expect(notifyStub.callCount).to.equal(2);
+      const callsByUser = new Map<string, sinon.SinonSpyCall>();
+      for (const call of notifyStub.getCalls()) {
+        callsByUser.set(call.args[1][0], call);
+      }
+
+      const mentorCall = callsByUser.get(mentorDigest.id);
+      expect(mentorCall).to.not.equal(undefined);
+      expect(mentorCall!.args[0]).to.equal("树洞");
+      expect(mentorCall!.args[2]).to.deep.equal({
+        email: "E_114704061630",
+        domesticSms: "c4qSN3",
+        internationalSms: "zgkZJ3",
+      });
+      // Mentor sees q1 & q3 (not own question) and 3 replies on q1.
+      expect(mentorCall!.args[3].name).to.equal("导师");
+      expect(mentorCall!.args[3].summary).to.equal("2 个新问题、3 条新回复");
+      expect(mentorCall!.args[3].delta).to.include("&lt;1&gt;");
+      expect(mentorCall!.args[3].delta).to.include(q3.id);
+      expect(mentorCall!.args[3].delta).to.not.include("Mentor own question");
+      expect(mentorCall!.args[3].delta).to.include("3 条新回复");
+
+      const menteeCall = callsByUser.get(menteeDigest.id);
+      expect(menteeCall).to.not.equal(undefined);
+      // Mentee only subscribed to q1 and excludes own reply -> 2 replies.
+      expect(menteeCall!.args[3].name).to.equal("同学");
+      expect(menteeCall!.args[3].summary).to.equal("2 条新回复");
+      expect(menteeCall!.args[3].delta).to.not.include("新问题（");
+      expect(menteeCall!.args[3].delta).to.include("2 条新回复");
+
+      const remaining = await db.ScheduledNotification.count({
+        where: { type: "ShudongDailyDigest", subjectId },
+        transaction,
+      });
+      expect(remaining).to.equal(0);
     });
 
     it("should not notify tasks if there are no tasks", async () => {

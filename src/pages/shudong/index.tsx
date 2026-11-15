@@ -22,6 +22,7 @@ import {
   MenuList,
   MenuOptionGroup,
   MenuItemOption,
+  MenuDivider,
   Link,
   Icon,
 } from "@chakra-ui/react";
@@ -34,7 +35,10 @@ import useMobile from "useMobile";
 import { cmdOrCtrlChar } from "macOrWin";
 import { isPermitted } from "shared/Role";
 import { canAccessShudong } from "shared/ShudongPermissions";
-import { ShudongSubscribeAll } from "shared/UserPreference";
+import {
+  ShudongNotificationFrequency,
+  ShudongSubscribeAll,
+} from "shared/UserPreference";
 import TopBar, { topBarPaddings } from "components/TopBar";
 import { mobileSidbarIconLeftWithMargin } from "components/Navbars";
 import PageBreadcrumb from "components/PageBreadcrumb";
@@ -105,6 +109,10 @@ export default fullPage(() => {
         : "no"
       : subscribeAllChoice;
 
+  const notificationFrequency =
+    pref?.shudongNotificationFrequency ?? "immediate";
+  const isDailyDigest = notificationFrequency === "daily";
+
   const handleSubscribeAllChange = async (val: EffectiveSubscribeChoice) => {
     await trpc.users.setUserPreference.mutate({
       userId: me.id,
@@ -117,6 +125,22 @@ export default fullPage(() => {
       val === "yesWithResponses"
         ? "通知设置已更新，将自动订阅所有新问题的回复"
         : "通知设置已更新",
+    );
+    void refetchPref();
+  };
+
+  const handleFrequencyChange = async (val: ShudongNotificationFrequency) => {
+    await trpc.users.setUserPreference.mutate({
+      userId: me.id,
+      preference: {
+        ...(pref ?? {}),
+        shudongNotificationFrequency: val,
+      },
+    });
+    toast.success(
+      val === "daily"
+        ? "已切换为每日汇总，将于每天 20:00 汇总发送树洞通知"
+        : "已切换为即时通知",
     );
     void refetchPref();
   };
@@ -181,13 +205,24 @@ export default fullPage(() => {
                   <Icon as={MdNotifications} boxSize={5} />
                   <Text>
                     <T>接收通知：</T>
-                    <T>{subscribeChoiceLabels[effectiveSubscribeChoice]}</T>
+                    <T>
+                      {effectiveSubscribeChoice === "no" && isDailyDigest
+                        ? "仅已订阅"
+                        : subscribeChoiceLabels[effectiveSubscribeChoice]}
+                    </T>
+                    {isDailyDigest && (
+                      <>
+                        {" · "}
+                        <T>每日汇总</T>
+                      </>
+                    )}
                   </Text>
                   <ChevronDownIcon boxSize={4} />
                 </HStack>
               </MenuButton>
               <MenuList>
                 <MenuOptionGroup
+                  title="新问题通知"
                   type="radio"
                   value={effectiveSubscribeChoice}
                   onChange={(val) => {
@@ -208,6 +243,24 @@ export default fullPage(() => {
                   </MenuItemOption>
                   <MenuItemOption value="no">
                     <T>关</T>
+                  </MenuItemOption>
+                </MenuOptionGroup>
+                <MenuDivider />
+                <MenuOptionGroup
+                  title="通知频率"
+                  type="radio"
+                  value={notificationFrequency}
+                  onChange={(val) => {
+                    if (val === "immediate" || val === "daily") {
+                      void handleFrequencyChange(val);
+                    }
+                  }}
+                >
+                  <MenuItemOption value="immediate">
+                    <T>即时通知</T>
+                  </MenuItemOption>
+                  <MenuItemOption value="daily">
+                    <T>每日汇总（北京时间晚八点发出）</T>
                   </MenuItemOption>
                 </MenuOptionGroup>
               </MenuList>

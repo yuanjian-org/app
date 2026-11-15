@@ -4,6 +4,7 @@ import db from "./database/db";
 import { sms } from "./sms";
 import { email } from "./email";
 import getBaseUrl from "shared/getBaseUrl";
+import invariant from "shared/invariant";
 import Role from "shared/Role";
 import sequelize from "./database/sequelize";
 
@@ -125,6 +126,19 @@ export async function notify(
   templateVariables: Record<string, string>,
   transaction: Transaction,
 ) {
+  invariant(
+    templates.email.trim().length > 0,
+    "templates.email must not be empty",
+  );
+  invariant(
+    templates.domesticSms.trim().length > 0,
+    "templates.domesticSms must not be empty",
+  );
+  invariant(
+    templates.internationalSms.trim().length > 0,
+    "templates.internationalSms must not be empty",
+  );
+
   const now = Date.now();
   cleanupRecentNotifications(now);
 

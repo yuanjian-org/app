@@ -17,15 +17,43 @@ import {
   taskInclude,
   userAttributes,
 } from "../database/models/attributesAndIncludes";
-import moment, { Moment } from "moment";
+import moment, { Moment } from "moment-timezone";
+import _ from "lodash";
 import Role from "../../shared/Role";
 import { ScheduledNotificationType } from "shared/ScheduledNotificationType";
 import { castTask, isAutoTaskOrCreatorIsOther } from "./tasks";
 import { getTaskMarkdown } from "../../shared/Task";
 import markdown2html from "../../shared/markdown2html";
 import { notify, notifyRolesIgnoreError } from "../notify";
-import { shudongGlobalSubscriberWhere } from "./shudongInternal";
+import {
+  isShudongGlobalSubscriber,
+  shudongDailyDigestUserWhere,
+  shudongGlobalSubscriberWhere,
+} from "./shudongInternal";
 import { getImpl as getGlobalConfig } from "./globalConfigs";
+import ShudongPostModel from "../database/models/ShudongPost";
+
+export const shudongDailyDigestTimezone = "Asia/Shanghai";
+export const shudongDailyDigestHour = 20;
+
+/**
+ * Computes the target send time for a ShudongDailyDigest scheduled row:
+ * 20:00 Asia/Shanghai on the same calendar day if `createdAt` is strictly
+ * before 20:00 Asia/Shanghai, otherwise 20:00 Asia/Shanghai on the next day.
+ */
+export function getNextShudongDailyDigestSendTime(
+  createdAt: Date | Moment,
+): Moment {
+  const createdInChina = moment(createdAt).tz(shudongDailyDigestTimezone);
+  const target = createdInChina
+    .clone()
+    .startOf("day")
+    .hour(shudongDailyDigestHour);
+  if (!createdInChina.isBefore(target)) {
+    target.add(1, "day");
+  }
+  return target;
+}
 
 /**
  * Schedules a notification of the given type for the given subject, unless
@@ -46,7 +74,11 @@ export async function scheduleNotificationBeforeSavingData(
   subjectId: string,
   transaction: Transaction,
 ) {
-  if (type === "ShudongQuestion" || type === "ShudongResponse") {
+  if (
+    type === "ShudongQuestion" ||
+    type === "ShudongResponse" ||
+    type === "ShudongDailyDigest"
+  ) {
     const globalConfig = await getGlobalConfig(transaction);
     if (globalConfig.enableShudongNotifications === false) {
       console.log(
@@ -82,8 +114,11 @@ export async function sendScheduledNotifications(
     console.log(`Found ${all.length} scheduled notification`);
 
     for (const row of all) {
-      const delayed = moment(row.createdAt).add(minDelayInMinutes, "minutes");
-      if (delayed.isAfter(moment())) {
+      const sendAfter =
+        row.type === "ShudongDailyDigest"
+          ? getNextShudongDailyDigestSendTime(row.createdAt)
+          : moment(row.createdAt).add(minDelayInMinutes, "minutes");
+      if (sendAfter.isAfter(moment())) {
         console.log(`Delaying notification with row id ${row.id}`);
         continue;
       }
@@ -105,6 +140,9 @@ export async function sendScheduledNotifications(
           break;
         case "ShudongQuestion":
           await notifyShudongQuestions(timestamp, transaction);
+          break;
+        case "ShudongDailyDigest":
+          await notifyShudongDailyDigest(timestamp, transaction);
           break;
         default:
           invariant(false, `Unknown scheduled notification type: ${row.type}`);
@@ -156,12 +194,14 @@ async function notifyShudongQuestions(
 
   const subscribers = await db.User.findAll({
     where: shudongGlobalSubscriberWhere,
-    attributes: ["id"],
+    attributes: ["id", "preference"],
     transaction,
   });
 
-  // Skip users whose only new questions are authored by themselves.
+  // Skip users who opted into daily digest, and skip users whose only new
+  // questions are authored by themselves.
   const recipientIds = subscribers
+    .filter((u) => u.preference?.shudongNotificationFrequency !== "daily")
     .map((u) => u.id)
     .filter((id) => newQuestions.some((q) => q.authorId !== id));
   if (recipientIds.length === 0) return;
@@ -237,13 +277,20 @@ async function notifyShudongResponses(
   const subscriptions = await db.ShudongSubscription.findAll({
     where: { questionId },
     attributes: ["userId"],
+    include: [
+      {
+        association: "user",
+        attributes: ["id", "preference"],
+      },
+    ],
     transaction,
   });
 
-  // Skip subscribers whose only new responses are authored by themselves.
-  // Send a single batched notify() call for all eligible recipients to avoid
-  // triggering AoKSend rate limits.
+  // Skip daily-digest users and subscribers whose only new responses are
+  // authored by themselves. Send a single batched notify() call for all
+  // eligible recipients to avoid triggering AoKSend rate limits.
   const recipientIds = subscriptions
+    .filter((s) => s.user?.preference?.shudongNotificationFrequency !== "daily")
     .map((s) => s.userId)
     .filter((id) => newResponses.some((r) => r.authorId !== id));
   if (recipientIds.length === 0) return;
@@ -262,6 +309,205 @@ async function notifyShudongResponses(
     },
     transaction,
   );
+}
+
+function formatShudongQuestionPreview(markdown: string): string {
+  const collapsed = markdown.replace(/\s+/g, " ").trim();
+  const truncated =
+    collapsed.length > 60 ? collapsed.slice(0, 60) + "..." : collapsed;
+  return _.escape(truncated);
+}
+
+/**
+ * Sends a personalized daily digest of new Shudong questions and subscribed
+ * thread responses created since `timestamp` to each user who opted into
+ * `shudongNotificationFrequency === "daily"`.
+ */
+async function notifyShudongDailyDigest(
+  timestamp: Moment,
+  transaction: Transaction,
+) {
+  const globalConfig = await getGlobalConfig(transaction);
+  if (globalConfig.enableShudongNotifications === false) {
+    console.log("Shudong notifications disabled globally.");
+    return;
+  }
+
+  const digestUsers = await db.User.findAll({
+    where: shudongDailyDigestUserWhere,
+    attributes: ["id", "name", "roles", "preference"],
+    transaction,
+  });
+  if (digestUsers.length === 0) return;
+
+  const newQuestions = await db.ShudongPost.findAll({
+    where: {
+      parentId: null,
+      deletedAt: null,
+      createdAt: isOnOrAfter(timestamp),
+    },
+    order: [["createdAt", "ASC"]],
+    attributes: shudongPostAttributes,
+    transaction,
+  });
+  for (const q of newQuestions) {
+    invariant(q.authorId, "q.authorId must not be null");
+  }
+
+  const candidateResponses = await db.ShudongPost.findAll({
+    where: {
+      parentId: { [Op.ne]: null },
+      deletedAt: null,
+      createdAt: isOnOrAfter(timestamp),
+    },
+    order: [["createdAt", "ASC"]],
+    attributes: shudongPostAttributes,
+    transaction,
+  });
+  if (newQuestions.length === 0 && candidateResponses.length === 0) return;
+  for (const r of candidateResponses) {
+    invariant(r.authorId, "r.authorId must not be null");
+  }
+
+  const postMap = new Map<string, ShudongPostModel | null>();
+  for (const q of newQuestions) {
+    postMap.set(q.id, q);
+  }
+  const getPost = async (id: string) => {
+    if (postMap.has(id)) return postMap.get(id) ?? null;
+    const p = await db.ShudongPost.findByPk(id, {
+      attributes: shudongPostAttributes,
+      transaction,
+    });
+    postMap.set(id, p);
+    return p;
+  };
+
+  const responsesByQuestion = new Map<
+    string,
+    { question: ShudongPostModel; responses: ShudongPostModel[] }
+  >();
+  for (const resp of candidateResponses) {
+    let curr: ShudongPostModel | null = resp;
+    while (curr && curr.parentId) {
+      curr = await getPost(curr.parentId);
+    }
+    if (!curr || curr.deletedAt !== null) continue;
+    let entry = responsesByQuestion.get(curr.id);
+    if (!entry) {
+      entry = { question: curr, responses: [] };
+      responsesByQuestion.set(curr.id, entry);
+    }
+    entry.responses.push(resp);
+  }
+
+  const activeQuestionIds = Array.from(responsesByQuestion.keys());
+  const subscriptions =
+    activeQuestionIds.length > 0
+      ? await db.ShudongSubscription.findAll({
+          where: {
+            userId: { [Op.in]: digestUsers.map((u) => u.id) },
+            questionId: { [Op.in]: activeQuestionIds },
+          },
+          attributes: ["userId", "questionId"],
+          transaction,
+        })
+      : [];
+
+  const userSubscriptions = new Map<string, Set<string>>();
+  for (const sub of subscriptions) {
+    let set = userSubscriptions.get(sub.userId);
+    if (!set) {
+      set = new Set<string>();
+      userSubscriptions.set(sub.userId, set);
+    }
+    set.add(sub.questionId);
+  }
+
+  const baseUrl = getBaseUrl();
+
+  for (const user of digestUsers) {
+    const userNewQuestions = isShudongGlobalSubscriber(user)
+      ? newQuestions.filter((q) => q.authorId !== user.id)
+      : [];
+
+    const subscribedIds = userSubscriptions.get(user.id) ?? new Set<string>();
+    const updatedThreads: {
+      question: ShudongPostModel;
+      newResponseCount: number;
+    }[] = [];
+    for (const questionId of subscribedIds) {
+      const entry = responsesByQuestion.get(questionId);
+      if (!entry) continue;
+      const otherResponses = entry.responses.filter(
+        (r) => r.authorId !== user.id,
+      );
+      if (otherResponses.length > 0) {
+        updatedThreads.push({
+          question: entry.question,
+          newResponseCount: otherResponses.length,
+        });
+      }
+    }
+
+    if (userNewQuestions.length === 0 && updatedThreads.length === 0) {
+      continue;
+    }
+
+    const totalNewResponses = updatedThreads.reduce(
+      (sum, t) => sum + t.newResponseCount,
+      0,
+    );
+    const summaryParts: string[] = [];
+    const htmlSections: string[] = [];
+
+    if (userNewQuestions.length > 0) {
+      summaryParts.push(`${userNewQuestions.length} 个新问题`);
+      const items = userNewQuestions
+        .map((q) => {
+          const preview = formatShudongQuestionPreview(q.markdown);
+          return `<li><a href="${baseUrl}/shudong/${q.id}">${preview}</a></li>`;
+        })
+        .join("");
+      htmlSections.push(
+        `<b>新问题（${userNewQuestions.length} 个）：</b><ul>${items}</ul>`,
+      );
+    }
+
+    if (updatedThreads.length > 0) {
+      summaryParts.push(`${totalNewResponses} 条新回复`);
+      const items = updatedThreads
+        .map(({ question: q, newResponseCount }) => {
+          const preview = formatShudongQuestionPreview(q.markdown);
+          return (
+            `<li><a href="${baseUrl}/shudong/${q.id}">${preview}</a>` +
+            `（${newResponseCount} 条新回复）</li>`
+          );
+        })
+        .join("");
+      htmlSections.push(
+        `<b>订阅问题的新回复（${totalNewResponses} 条）：</b>` +
+          `<ul>${items}</ul>`,
+      );
+    }
+
+    await notify(
+      "树洞",
+      [user.id],
+      {
+        email: "E_114704061630",
+        domesticSms: "c4qSN3",
+        internationalSms: "zgkZJ3",
+      },
+      {
+        name: formatUserName(user.name, "friendly"),
+        summary: summaryParts.join("、"),
+        delta: htmlSections.join(""),
+        shudongLink: `${baseUrl}/shudong`,
+      },
+      transaction,
+    );
+  }
 }
 
 async function notifyTasks(

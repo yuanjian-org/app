@@ -4,10 +4,27 @@
  */
 
 import { Op, WhereOptions } from "sequelize";
-import Role from "../../shared/Role";
+import Role, { isPermitted } from "../../shared/Role";
+import { UserPreference } from "../../shared/UserPreference";
 
 // Force type check on the role name.
 const mentorRole: Role = "Mentor";
+
+/**
+ * Returns whether a user receives global notifications for new Shudong
+ * questions based on their `shudongSubscribeAll` preference and roles.
+ */
+export function isShudongGlobalSubscriber(user: {
+  roles: Role[];
+  preference?: UserPreference | null;
+}): boolean {
+  const choice = user.preference?.shudongSubscribeAll ?? "default";
+  return (
+    choice === "yes" ||
+    choice === "yesWithResponses" ||
+    (choice === "default" && isPermitted(user.roles, "Mentor"))
+  );
+}
 
 /**
  * Where clause on the User model that selects users who are globally
@@ -46,10 +63,29 @@ export const shudongAutoSubscribeResponsesWhere: WhereOptions = {
 };
 
 /**
+ * Where clause on the User model that selects users who opted into receiving
+ * a single daily digest of Shudong notifications instead of immediate alerts.
+ *
+ * TODO: filter out users who are blocked from accessing shudong in
+ * canAccessShudong().
+ */
+export const shudongDailyDigestUserWhere: WhereOptions = {
+  "preference.shudongNotificationFrequency": "daily",
+};
+
+/**
  * Fixed subject ID for "ShudongQuestion" scheduled notifications. New
  * questions are not tied to a specific subject, so all of them share this
  * nil UUID. The unique (type, subjectId) index on ScheduledNotification then
  * batches new questions posted within the delay window into one notification.
  */
 export const shudongNewQuestionSubjectId =
+  "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Fixed subject ID for "ShudongDailyDigest" scheduled notifications. Shares
+ * the nil UUID (scoped by `type = "ShudongDailyDigest"`) so all Shudong posts
+ * created before the next 20:00 Beijing Time run share one scheduled row.
+ */
+export const shudongDailyDigestSubjectId =
   "00000000-0000-0000-0000-000000000000";

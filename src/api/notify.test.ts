@@ -797,4 +797,26 @@ describe("notify()", () => {
       void expect(smsStub.calledOnce).to.be.true;
     });
   });
+
+  describe("template ID invariants", () => {
+    it("should throw invariant error if any template ID is empty", async () => {
+      for (const templates of [
+        { email: "", domesticSms: "yaD264", internationalSms: "0Rr8G" },
+        { email: "E_114706970517", domesticSms: "", internationalSms: "0Rr8G" },
+        {
+          email: "E_114706970517",
+          domesticSms: "yaD264",
+          internationalSms: "  ",
+        },
+      ]) {
+        let thrown: Error | undefined;
+        try {
+          await notify("基础", [], templates, {}, transaction);
+        } catch (e: unknown) {
+          thrown = e as Error;
+        }
+        expect(thrown?.message).to.include("Invariant failed");
+      }
+    });
+  });
 });

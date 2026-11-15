@@ -25,6 +25,7 @@ import sequelize from "../database/sequelize";
 import { scheduleNotificationBeforeSavingData } from "./scheduledNotifications";
 import {
   shudongAutoSubscribeResponsesWhere,
+  shudongDailyDigestSubjectId,
   shudongNewQuestionSubjectId,
 } from "./shudongInternal";
 
@@ -401,6 +402,14 @@ export async function createPostImpl(
       transaction,
     );
   }
+
+  // Schedule the daily digest before saving data so that users with daily
+  // digest enabled receive this post in the next 20:00 Beijing Time digest.
+  await scheduleNotificationBeforeSavingData(
+    "ShudongDailyDigest",
+    shudongDailyDigestSubjectId,
+    transaction,
+  );
 
   const post = await db.ShudongPost.create(
     {

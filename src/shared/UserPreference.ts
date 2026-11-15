@@ -61,6 +61,18 @@ export const zShudongSubscribeAll = z.enum([
 ]);
 export type ShudongSubscribeAll = z.TypeOf<typeof zShudongSubscribeAll>;
 
+/**
+ * Delivery frequency for Shudong notifications:
+ * - "immediate" (default when unset): send notifications soon after posts are
+ *   created.
+ * - "daily": batch all Shudong notifications (new questions and subscribed
+ *   thread responses) into a single daily digest at 20:00 Beijing Time.
+ */
+export const zShudongNotificationFrequency = z.enum(["immediate", "daily"]);
+export type ShudongNotificationFrequency = z.TypeOf<
+  typeof zShudongNotificationFrequency
+>;
+
 export const zUserPreference = z.object({
   interviewer: zInterviewerPreference.optional(),
   mentor: zMentorPreference.optional(),
@@ -68,5 +80,6 @@ export const zUserPreference = z.object({
   smsDisabled: zNotificationTypes.optional(),
   emailDisabled: zNotificationTypes.optional(),
   shudongSubscribeAll: zShudongSubscribeAll.optional(),
+  shudongNotificationFrequency: zShudongNotificationFrequency.optional(),
 });
 export type UserPreference = z.TypeOf<typeof zUserPreference>;

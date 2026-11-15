@@ -17,7 +17,10 @@ import {
   saveDraftImpl,
   getDraftImpl,
 } from "./shudong";
-import { shudongNewQuestionSubjectId } from "./shudongInternal";
+import {
+  shudongDailyDigestSubjectId,
+  shudongNewQuestionSubjectId,
+} from "./shudongInternal";
 
 describe("shudong backend routes", () => {
   let transaction: Transaction;
@@ -222,8 +225,7 @@ describe("shudong backend routes", () => {
       });
       expect(posterSubCount).to.equal(1);
 
-      // A new-question notification should still be scheduled for global
-      // subscribers
+      // A new-question notification and daily digest should be scheduled
       const scheduledCount = await db.ScheduledNotification.count({
         where: {
           type: "ShudongQuestion",
@@ -232,6 +234,15 @@ describe("shudong backend routes", () => {
         transaction,
       });
       expect(scheduledCount).to.equal(1);
+
+      const digestScheduledCount = await db.ScheduledNotification.count({
+        where: {
+          type: "ShudongDailyDigest",
+          subjectId: shudongDailyDigestSubjectId,
+        },
+        transaction,
+      });
+      expect(digestScheduledCount).to.equal(1);
     });
 
     it("should auto-subscribe responder to root question and schedule notification", async () => {

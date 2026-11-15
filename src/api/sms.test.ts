@@ -39,6 +39,25 @@ describe("sms", () => {
     sinon.restore();
   });
 
+  it("should throw invariant error if template IDs are empty", async () => {
+    for (const [domId, intlId] of [
+      ["", "intl_tmpl"],
+      ["dom_tmpl", ""],
+      ["   ", "intl_tmpl"],
+    ]) {
+      let thrown: Error | undefined;
+      try {
+        await sms(domId, intlId, [
+          { to: "+8615000000000", vars: { name: "test" } },
+        ]);
+      } catch (e: unknown) {
+        thrown = e as Error;
+      }
+      expect(thrown?.message).to.include("Invariant failed");
+    }
+    expect(axiosPostStub.callCount).to.equal(0);
+  });
+
   it("should return early if Submail credentials are not configured", async () => {
     delete process.env.SUBMAIL_DOMESTIC_APP_KEY;
     delete process.env.SUBMAIL_INTERNATIONAL_APP_KEY;

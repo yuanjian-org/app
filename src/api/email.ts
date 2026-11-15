@@ -5,6 +5,7 @@
 import z from "zod";
 import axios from "axios";
 import { internalServerError } from "./errors";
+import invariant from "../shared/invariant";
 
 /**
  * Send email via AoKSend.com in a single batch request.
@@ -15,6 +16,8 @@ export async function email(
   templateData: Record<string, string>,
   baseUrl: string,
 ) {
+  invariant(templateId.trim().length > 0, "templateId must not be empty");
+
   // Skip everything in unittest. https://stackoverflow.com/a/29183140
   if (typeof global.it === "function") return;
 

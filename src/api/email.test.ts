@@ -75,6 +75,19 @@ describe("email", () => {
     expect(axiosPostStub.callCount).to.equal(0);
   });
 
+  it("should throw invariant error if template ID is empty", async () => {
+    for (const emptyId of ["", "   "]) {
+      let thrown: Error | undefined;
+      try {
+        await email(["test@example.com"], emptyId, {}, "https://example.com");
+      } catch (e: unknown) {
+        thrown = e as Error;
+      }
+      expect(thrown?.message).to.include("Invariant failed");
+    }
+    expect(axiosPostStub.callCount).to.equal(0);
+  });
+
   it("should skip actual API call if AOKSEND_APP_KEY is not configured", async () => {
     delete process.env.AOKSEND_APP_KEY;
 

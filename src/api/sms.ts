@@ -6,6 +6,7 @@ import z from "zod";
 import axios, { AxiosResponse } from "axios";
 import { internalServerError } from "./errors";
 import { chinaPhonePrefix } from "../shared/strings/chinaPhonePrefix";
+import invariant from "../shared/invariant";
 
 export const idTokenInternationalSmsTemplateId = "0Rr8G";
 
@@ -17,6 +18,15 @@ export async function sms(
     vars: Record<string, string>;
   }[],
 ) {
+  invariant(
+    domesticTemplateId.trim().length > 0,
+    "domesticTemplateId must not be empty",
+  );
+  invariant(
+    internationalTemplateId.trim().length > 0,
+    "internationalTemplateId must not be empty",
+  );
+
   // Skip everything in unittest. https://stackoverflow.com/a/29183140
   if (typeof global.it === "function") return;
 
