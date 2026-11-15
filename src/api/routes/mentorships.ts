@@ -410,6 +410,9 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
   )) {
     // Sequentialize notify() to avoid flooding the server and getting
     // throttled. As a result, the current transaction may take a long time.
+    const menteeFormalName = formatUserName(m.mentee.name, "formal");
+    const days = String(moment().diff(last, "days"));
+    const menteeUrl = `${getBaseUrl()}/mentees/${m.mentee.id}`;
     await notify(
       "一对一通话提醒",
       [m.mentor.id],
@@ -417,12 +420,18 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
         email: "E_114703414835",
         domesticSms: "0Th9T4",
         internationalSms: "DUPBs3",
+        wechat: {
+          title: "一对一通话提醒",
+          content: `与${menteeFormalName}已${days}天未通话`,
+          url: menteeUrl,
+        },
       },
       {
         mentorFriendlyName: formatUserName(m.mentor.name, "friendly"),
-        menteeFormalName: formatUserName(m.mentee.name, "formal"),
-        menteeFormalNameAndLink: `<a href="${getBaseUrl()}/mentees/${m.mentee.id}">${formatUserName(m.mentee.name, "formal")}</a>`,
-        days: String(moment().diff(last, "days")),
+        menteeFormalName,
+        menteeFormalNameAndLink:
+          `<a href="${menteeUrl}">` + `${menteeFormalName}</a>`,
+        days,
       },
       transaction,
     );

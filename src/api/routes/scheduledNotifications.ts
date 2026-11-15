@@ -173,6 +173,11 @@ async function notifyShudongQuestions(
       email: "E_114705350039",
       domesticSms: "ep7Wd3",
       internationalSms: "DyvYZ",
+      wechat: {
+        title: "树洞新提问",
+        content: "树洞有新的提问，点击查看",
+        url: `${getBaseUrl()}/shudong`,
+      },
     },
     {},
     transaction,
@@ -248,6 +253,7 @@ async function notifyShudongResponses(
     .filter((id) => newResponses.some((r) => r.authorId !== id));
   if (recipientIds.length === 0) return;
 
+  const questionLink = `${getBaseUrl()}/shudong/${questionId}`;
   await notify(
     "树洞",
     recipientIds,
@@ -255,10 +261,15 @@ async function notifyShudongResponses(
       email: "E_114703550737",
       domesticSms: "cFcyM4",
       internationalSms: "sVrjE",
+      wechat: {
+        title: "树洞新回复",
+        content: question.markdown,
+        url: questionLink,
+      },
     },
     {
       questionMarkdown: question.markdown,
-      questionLink: `${getBaseUrl()}/shudong/${questionId}`,
+      questionLink,
     },
     transaction,
   );
@@ -319,6 +330,11 @@ async function notifyTasks(
       email: "E_114706042504",
       domesticSms: "rw7iV2",
       internationalSms: "iodG74",
+      wechat: {
+        title: "待办事项提醒",
+        content: `您有 ${htmls.length} 项待办事项待处理`,
+        url: getBaseUrl(),
+      },
     },
     templateData,
     transaction,
@@ -402,6 +418,11 @@ async function notifyKudos(
       email: "E_114706274956",
       domesticSms: "lQbr42",
       internationalSms: "GYEm92",
+      wechat: {
+        title: "收到新的赞美与点赞",
+        content: message,
+        url: getBaseUrl(),
+      },
     },
     templateData,
     transaction,
@@ -501,6 +522,7 @@ async function notifyChats(
 
       invariant(room.mentee, "Only mentee rooms are supported for now");
 
+      const roomLink = `${getBaseUrl()}/mentees/${room.mentee.id}`;
       await notify(
         "内部笔记",
         [u.id],
@@ -508,11 +530,16 @@ async function notifyChats(
           email: "E_114702895735",
           domesticSms: "mUMBp2",
           internationalSms: "G9qHA3",
+          wechat: {
+            title: "内部笔记更新",
+            content: `${authors}更新了${menteeName}的笔记`,
+            url: roomLink,
+          },
         },
         {
           menteeName,
           authors,
-          roomLink: `${getBaseUrl()}/mentees/${room.mentee.id}`,
+          roomLink,
           delta: filtered
             .map((m) => {
               const verb = moment(m.createdAt).isAfter(timestamp)

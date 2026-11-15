@@ -19,6 +19,7 @@ import {
   Wrap,
   Grid,
   Divider,
+  Link,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import trpc, { trpcNext } from "../../trpc";
@@ -33,6 +34,7 @@ import {
   MentorPreference,
   NotificationType,
   UserPreference,
+  WeChatNotificationStatus,
 } from "shared/UserPreference";
 import datePicker from "theme/datePicker";
 import { isPermitted } from "shared/Role";
@@ -62,6 +64,11 @@ export default function Page() {
     { userId: userId ?? "" },
     { enabled: !!userId },
   );
+  const { data: wechatStatus } =
+    trpcNext.users.getWechatNotificationStatus.useQuery(
+      { userId: userId ?? "" },
+      { enabled: !!userId },
+    );
   const [pref, setPref] = useState<UserPreference>();
   useEffect(() => setPref(oldPref), [oldPref]);
 
@@ -85,6 +92,12 @@ export default function Page() {
 
   const updateEmailDisabled = (k: NotificationType, v: "enable" | "disable") =>
     update({ ...pref, emailDisabled: setDisabled(pref?.emailDisabled, k, v) });
+
+  const updateWechatDisabled = (k: NotificationType, v: "enable" | "disable") =>
+    update({
+      ...pref,
+      wechatDisabled: setDisabled(pref?.wechatDisabled, k, v),
+    });
 
   const update = async (pref: UserPreference) => {
     invariant(userId, "userId is required for resetPreferences");
@@ -110,7 +123,7 @@ export default function Page() {
     }
   };
 
-  if (!user || !pref) return <Loader />;
+  if (!user || !pref || !wechatStatus) return <Loader />;
 
   const isMentor = isPermitted(user.roles, "Mentor");
 
@@ -139,8 +152,10 @@ export default function Page() {
 
       <NotificationPreferences
         data={pref}
+        wechatStatus={wechatStatus}
         updateSmsDisabled={updateSmsDisabled}
         updateEmailDisabled={updateEmailDisabled}
+        updateWechatDisabled={updateWechatDisabled}
       />
 
       <Button
@@ -403,16 +418,21 @@ function TraitPreference({
 
 function NotificationPreferences({
   data,
+  wechatStatus,
   updateSmsDisabled,
   updateEmailDisabled,
+  updateWechatDisabled,
 }: {
   data: UserPreference;
+  wechatStatus: WeChatNotificationStatus;
   updateSmsDisabled: (k: NotificationType, v: "enable" | "disable") => void;
   updateEmailDisabled: (k: NotificationType, v: "enable" | "disable") => void;
+  updateWechatDisabled: (k: NotificationType, v: "enable" | "disable") => void;
 }) {
   const me = useMe();
   const [confirmingInternationalSms, setConfirmingInternationalSms] =
     useState<boolean>(false);
+  const showWechat = wechatStatus.configured;
 
   const Row = ({ type }: { type: NotificationType }) => (
     <>
@@ -446,6 +466,19 @@ function NotificationPreferences({
           onChange={(v) => updateEmailDisabled(type, v ? "enable" : "disable")}
         />
       </GridItem>
+      {showWechat && (
+        <GridItem>
+          <SwitchAndLabel
+            isDisabled={
+              type !== "基础" && data.wechatDisabled?.includes("基础")
+            }
+            isChecked={!data.wechatDisabled?.includes(type)}
+            onChange={(v) =>
+              updateWechatDisabled(type, v ? "enable" : "disable")
+            }
+          />
+        </GridItem>
+      )}
     </>
   );
 
@@ -455,7 +488,10 @@ function NotificationPreferences({
         <T>通知偏好</T>
       </Heading>
 
-      <Grid templateColumns="1fr 1fr 1fr" gap={sectionSpacing}>
+      <Grid
+        templateColumns={showWechat ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr"}
+        gap={sectionSpacing}
+      >
         <GridItem />
         <GridItem>
           <Text>
@@ -467,6 +503,13 @@ function NotificationPreferences({
             <T>邮件通知</T>
           </Text>
         </GridItem>
+        {showWechat && (
+          <GridItem>
+            <Text>
+              <T>微信通知</T>
+            </Text>
+          </GridItem>
+        )}
 
         {allNotificationTypes
           .filter(
@@ -483,6 +526,28 @@ function NotificationPreferences({
             <Row key={type} type={type} />
           ))}
       </Grid>
+
+      {showWechat && (
+        <FormControl>
+          <FormHelperText>
+            {wechatStatus.wechatLinked ? (
+              <T>请确保已关注平台微信服务号，否则无法收到微信通知。</T>
+            ) : (
+              <T>
+                您尚未关联微信账号。请先使用微信登录一次平台并关注微信服务号，方可接收微信通知。
+              </T>
+            )}
+            {wechatStatus.qrCodeUrl && (
+              <>
+                {" "}
+                <Link href={wechatStatus.qrCodeUrl} isExternal>
+                  <T>查看服务号二维码</T>
+                </Link>
+              </>
+            )}
+          </FormHelperText>
+        </FormControl>
+      )}
 
       {confirmingInternationalSms && (
         <ConfirmationModal

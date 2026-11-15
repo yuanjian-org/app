@@ -200,6 +200,36 @@ describe("WeChatProvider", () => {
       expect(result).to.deep.equal({
         id: "MockUnionId",
         email: "+mock+union+id@wechat.fe",
+        wechatOpenId: "mock-openid",
+      });
+    });
+
+    it("should omit wechatOpenId for WebsiteApp QR login", () => {
+      const config = WeChatProvider({
+        clientId: "my-client-id",
+        clientSecret: "my-client-secret",
+        platformType: "WebsiteApp",
+      });
+
+      const mockProfile = {
+        openid: "website-app-openid",
+        nickname: "mock-nickname",
+        sex: 1,
+        province: "mock-province",
+        city: "mock-city",
+        country: "mock-country",
+        headimgurl: "mock-headimgurl",
+        privilege: [],
+        unionid: "MockUnionId",
+      };
+
+      const result = config.profile!(mockProfile, {
+        access_token: "mock",
+      } as never);
+
+      expect(result).to.deep.equal({
+        id: "MockUnionId",
+        email: "+mock+union+id@wechat.fe",
       });
     });
   });

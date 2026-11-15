@@ -31,6 +31,7 @@ export const adapter = {
     realEmail?: string;
     phone?: string;
     name?: string;
+    wechatOpenId?: string;
   }) {
     return await sequelize.transaction(async (transaction) => {
       return await adapter.createUserImpl(user, transaction);
@@ -43,13 +44,26 @@ export const adapter = {
       realEmail?: string;
       phone?: string;
       name?: string;
+      wechatOpenId?: string;
     },
     transaction: Transaction,
   ) {
     if (user.email.endsWith(wechatFakeEmailDomain)) {
       const wechatUnionId = email2UnionId(user.email);
       console.log("adapter.createUser(wechat):", wechatUnionId);
-      return await db.User.create({ wechatUnionId }, { transaction });
+      if (user.wechatOpenId) {
+        await db.User.update(
+          { wechatOpenId: null },
+          { where: { wechatOpenId: user.wechatOpenId }, transaction },
+        );
+      }
+      return await db.User.create(
+        {
+          wechatUnionId,
+          ...(user.wechatOpenId && { wechatOpenId: user.wechatOpenId }),
+        },
+        { transaction },
+      );
     } else if (user.email.endsWith(ssoFakeEmailDomain)) {
       const ssoUserId = email2SsoUserId(user.email);
       console.log("adapter.createUser(sso):", ssoUserId);

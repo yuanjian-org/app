@@ -289,6 +289,7 @@ describe("setPhoneImpl", () => {
         name: "me user",
         email: "me@example.com",
         wechatUnionId: "wechat-id-123",
+        wechatOpenId: "wechat-openid-123",
         password: "hashed-password",
       },
       { transaction },
@@ -299,12 +300,14 @@ describe("setPhoneImpl", () => {
     await me.reload({ transaction });
     void expect(me.email).to.be.null;
     void expect(me.wechatUnionId).to.be.null;
+    void expect(me.wechatOpenId).to.be.null;
     void expect(me.password).to.be.null;
     void expect(me.mergedTo).to.equal(existingUser.id);
 
     await existingUser.reload({ transaction });
     void expect(existingUser.email).to.equal("me@example.com");
     void expect(existingUser.wechatUnionId).to.equal("wechat-id-123");
+    void expect(existingUser.wechatOpenId).to.equal("wechat-openid-123");
     void expect(existingUser.password).to.equal("hashed-password");
   });
 

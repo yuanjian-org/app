@@ -175,18 +175,26 @@ export async function setPhoneImpl(
       // Get user password. A user may have a password prior to setting up
       // an account. Also get fresh email and wechatUnionId becaue why not.
       const me2 = await db.User.findByPk(me.id, {
-        attributes: ["id", "email", "wechatUnionId", "password"],
+        attributes: [
+          "id",
+          "email",
+          "wechatUnionId",
+          "wechatOpenId",
+          "password",
+        ],
         transaction,
       });
       invariant(me2, "User not found");
       const email = me2.email;
       const wechatUnionId = me2.wechatUnionId;
+      const wechatOpenId = me2.wechatOpenId;
       const password = me2.password;
 
       await me2.update(
         {
           email: null,
           wechatUnionId: null,
+          wechatOpenId: null,
           password: null,
           resetToken: null,
           resetTokenExpiresAt: null,
@@ -199,6 +207,7 @@ export async function setPhoneImpl(
         {
           ...(email && { email }),
           ...(wechatUnionId && { wechatUnionId }),
+          ...(wechatOpenId && { wechatOpenId }),
           // Privileged users must not retain or receive a password hash.
           ...(isExistingPrivileged
             ? { password: null }

@@ -23,6 +23,7 @@ import {
   JSONB,
   Op,
   STRING,
+  TEXT,
   UUID,
   UUIDV4,
 } from "sequelize";
@@ -70,6 +71,12 @@ class User extends Model {
   @Unique
   @Column(STRING)
   wechatUnionId: string | null;
+
+  // Service Account OpenID used for pushing WeChat template notifications.
+  // Distinct from WebsiteApp OpenID; paired with AUTH_WECHAT_APP_ID.
+  @Unique
+  @Column(TEXT)
+  wechatOpenId: string | null;
 
   // Used by Yuantu SSO. See hashUserIdForClient() and YuantuSsoProvider.ts
   @Unique

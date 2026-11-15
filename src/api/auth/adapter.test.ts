@@ -19,11 +19,13 @@ describe("adapter", () => {
   describe("createUser", () => {
     it("should create a wechat user", async () => {
       const email = "o+up+f8u+mu+a+j+o_+m2pxb1+q9z+nj+we+s6o@wechat.fe";
-      const user = await adapter.createUserImpl({ email }, transaction);
-      expect(user).to.not.equal(null);
-      expect((user as any).wechatUnionId).to.equal(
-        "oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
+      const user = await adapter.createUserImpl(
+        { email, wechatOpenId: "oa-openid-123" },
+        transaction,
       );
+      expect(user).to.not.equal(null);
+      expect(user.wechatUnionId).to.equal("oUpF8uMuAJO_M2pxb1Q9zNjWeS6o");
+      expect(user.wechatOpenId).to.equal("oa-openid-123");
     });
 
     it("should create an sso user without realEmail", async () => {
