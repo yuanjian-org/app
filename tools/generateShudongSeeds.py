@@ -311,10 +311,10 @@ def insert_threads(
         'INSERT INTO "ShudongPosts" ('
         ' "id", "parentId", "authorId",'
         ' "isAnonymous", "isAiGenerated", "markdown",'
-        ' "upvoteCount", "responseCount",'
+        ' "responseCount",'
         ' "createdAt", "updatedAt"'
         ") VALUES ("
-        " %s, %s, %s, TRUE, TRUE, %s, 0, %s, %s, %s"
+        " %s, %s, %s, TRUE, TRUE, %s, %s, %s, %s"
         ")",
         (
           post.id,

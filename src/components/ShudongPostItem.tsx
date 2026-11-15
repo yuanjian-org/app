@@ -26,7 +26,6 @@ import {
   Tooltip,
   Link,
 } from "@chakra-ui/react";
-import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import { PiStarFourFill } from "react-icons/pi";
 import { FaBell, FaRegBell } from "react-icons/fa";
 import {
@@ -37,9 +36,8 @@ import {
   ChevronUpIcon,
   ChevronRightIcon,
 } from "@chakra-ui/icons";
-import { motion, AnimatePresence } from "framer-motion";
 import trpc, { trpcNext } from "trpc";
-import { ShudongPost } from "shared/Shudong";
+import { ShudongEmoji, ShudongPost } from "shared/Shudong";
 import { getUserUrl } from "shared/User";
 import { canEditOrDeleteShudongPost } from "shared/ShudongPermissions";
 import useMe from "useMe";
@@ -52,7 +50,11 @@ import { toast } from "react-toastify";
 import T from "components/T";
 import { UserLink } from "./UserChip";
 import Autosaver from "./Autosaver";
-import { ShudongEmojiBar } from "./ShudongEmojiBar";
+import {
+  applyOptimisticReactionToggle,
+  ShudongEmojiBar,
+  ShudongEmojiPopover,
+} from "./ShudongEmojiBar";
 
 /**
  * Shared metadata header for Shudong questions and responses.
@@ -149,7 +151,7 @@ export function ShudongPostMetadata({ post }: { post: ShudongPost }) {
 
 /**
  * Renders a single Shudong post (question, response, or sub-response) with
- * upvoting (+1 animation), subscription toggling, reply toggling,
+ * emoji reactions, subscription toggling, reply toggling,
  * draft auto-saving, inline editing, soft deletion, and expandable nested
  * child responses.
  */
@@ -172,11 +174,17 @@ export function ShudongPostItem({
   const isMobile = useMobile();
   const router = useRouter();
 
-  // Optimistic upvote state provides instant UI feedback before mutation
+  // Optimistic reactions state provides instant UI feedback before mutation
   // completes
-  const [localHasUpvoted, setLocalHasUpvoted] = useState(post.userHasUpvoted);
-  const [localUpvoteCount, setLocalUpvoteCount] = useState(post.upvoteCount);
-  const [showPlusOneAnime, setShowPlusOneAnime] = useState(false);
+  const [localReactions, setLocalReactions] = useState(post.reactions);
+
+  useEffect(() => {
+    setLocalReactions(post.reactions);
+  }, [post.reactions]);
+
+  const activeEmojiSet = new Set(
+    localReactions.filter((r) => r.userHasReacted).map((r) => r.emoji),
+  );
 
   // Optimistic subscription state
   const [localIsSubscribed, setLocalIsSubscribed] = useState(
@@ -214,26 +222,23 @@ export function ShudongPostItem({
       { enabled: showChildResponses },
     );
 
-  const animeDurationInSeconds = 1.5;
-
-  // Toggle upvote optimistically to ensure snappy interactions
-  const handleUpvote = useCallback(async () => {
-    if (localHasUpvoted) {
-      setLocalHasUpvoted(false);
-      setLocalUpvoteCount((c) => Math.max(0, c - 1));
-    } else {
-      setLocalHasUpvoted(true);
-      setLocalUpvoteCount((c) => c + 1);
-      setShowPlusOneAnime(true);
-      setTimeout(
-        () => setShowPlusOneAnime(false),
-        animeDurationInSeconds * 1000,
-      );
-    }
-    const res = await trpc.shudong.toggleUpvote.mutate({ postId: post.id });
-    setLocalHasUpvoted(res.userHasUpvoted);
-    setLocalUpvoteCount(res.upvoteCount);
-  }, [localHasUpvoted, post.id]);
+  // Toggle an emoji reaction optimistically to ensure snappy interactions
+  const handleToggleReaction = useCallback(
+    async (emoji: ShudongEmoji) => {
+      const previous = localReactions;
+      setLocalReactions((prev) => applyOptimisticReactionToggle(prev, emoji));
+      try {
+        const res = await trpc.shudong.toggleReaction.mutate({
+          postId: post.id,
+          emoji,
+        });
+        setLocalReactions(res.reactions);
+      } catch {
+        setLocalReactions(previous);
+      }
+    },
+    [localReactions, post.id],
+  );
 
   // Toggle subscription optimistically
   const handleToggleSubscription = useCallback(
@@ -441,65 +446,63 @@ export function ShudongPostItem({
         </Box>
       )}
 
-      <HStack spacing={4} align="center" fontSize="sm" color="gray.600">
+      <Flex
+        wrap="wrap"
+        columnGap={4}
+        rowGap={2}
+        align="center"
+        fontSize="sm"
+        color="gray.600"
+      >
         {!post.isDeleted && (
-          <Box position="relative" display="flex" alignItems="center">
-            <Text
-              display="flex"
-              alignItems="center"
-              color={localHasUpvoted ? "black" : "gray.600"}
-              fontWeight={localHasUpvoted ? "bold" : "normal"}
-              cursor="pointer"
-              role="button"
-              tabIndex={0}
-              aria-label="点赞"
-              onClick={(e) => {
-                // Prevent card link wrapper on home page from intercepting
-                // upvote clicks
-                e.preventDefault();
-                e.stopPropagation();
-                void handleUpvote();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
+          <Flex
+            wrap="wrap"
+            gap={1.5}
+            align="center"
+            onClick={(e) => {
+              // Prevent card link wrapper on home page from intercepting
+              // reaction clicks
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <ShudongEmojiPopover
+              onSelect={(emoji) => void handleToggleReaction(emoji)}
+              activeEmojis={activeEmojiSet}
+              ariaLabel="添加表情回应"
+              color="gray.600"
+            />
+            {localReactions.map((r) => (
+              <HStack
+                key={r.emoji}
+                as="button"
+                type="button"
+                spacing={1}
+                px={2}
+                py={0.5}
+                borderRadius="full"
+                borderWidth="1px"
+                bg={r.userHasReacted ? "blue.50" : "gray.50"}
+                borderColor={r.userHasReacted ? "blue.200" : "gray.200"}
+                color={r.userHasReacted ? "brand.600" : "gray.600"}
+                fontWeight={r.userHasReacted ? "semibold" : "normal"}
+                _hover={{ bg: r.userHasReacted ? "blue.100" : "gray.100" }}
+                aria-label={`回应 ${r.emoji} ${r.count}`}
+                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  void handleUpvote();
-                }
-              }}
-            >
-              {/* Filled red heart when upvoted, outline heart otherwise */}
-              <Icon
-                as={localHasUpvoted ? MdFavorite : MdFavoriteBorder}
-                color={localHasUpvoted ? "red.500" : undefined}
-                mr={1}
-                boxSize={4}
-              />
-              {localUpvoteCount > 0 && localUpvoteCount}
-            </Text>
-
-            <AnimatePresence>
-              {showPlusOneAnime && (
-                <motion.div
-                  initial={{ opacity: 1, x: -10, y: 0 }}
-                  animate={{ opacity: 0, x: -10, y: -60 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: animeDurationInSeconds }}
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    fontSize: "1.8em",
-                    fontWeight: "bold",
-                    color: "orange",
-                    pointerEvents: "none",
-                    zIndex: 10,
-                  }}
-                >
-                  +1
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Box>
+                  void handleToggleReaction(r.emoji);
+                }}
+              >
+                <Text as="span" fontSize="sm" lineHeight="1">
+                  {r.emoji}
+                </Text>
+                <Text as="span" fontSize="xs" lineHeight="1">
+                  {r.count}
+                </Text>
+              </HStack>
+            ))}
+          </Flex>
         )}
 
         {!post.isDeleted && isQuestionNode && (
@@ -584,7 +587,7 @@ export function ShudongPostItem({
             {post.responseCount > 0 && (
               <Button
                 size="xs"
-                // Match the "sm" font size of sibling action items in HStack
+                // Match the "sm" font size of sibling action items
                 fontSize="sm"
                 variant="ghost"
                 leftIcon={
@@ -607,7 +610,7 @@ export function ShudongPostItem({
             )}
           </>
         )}
-      </HStack>
+      </Flex>
 
       {isReplying && (
         <VStack

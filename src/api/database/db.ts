@@ -23,7 +23,7 @@ import Kudos from "./models/Kudos";
 import LastReadChatRoom from "./models/LastReadChatRoom";
 import DraftMessage from "./models/DraftMessage";
 import ShudongPost from "./models/ShudongPost";
-import ShudongUpvote from "./models/ShudongUpvote";
+import ShudongReaction from "./models/ShudongReaction";
 import ShudongSubscription from "./models/ShudongSubscription";
 import MentorSelection from "./models/MentorSelection";
 import MentorSelectionBatch from "./models/MentorSelectionBatch";
@@ -68,7 +68,7 @@ const db = {
   LastReadChatRoom,
   DraftMessage,
   ShudongPost,
-  ShudongUpvote,
+  ShudongReaction,
   ShudongSubscription,
   MentorSelection,
   MentorSelectionBatch,

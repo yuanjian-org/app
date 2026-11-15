@@ -66,11 +66,6 @@ class ShudongPost extends Model {
   @AllowNull(false)
   @Default(0)
   @Column(DataType.INTEGER)
-  upvoteCount: number;
-
-  @AllowNull(false)
-  @Default(0)
-  @Column(DataType.INTEGER)
   responseCount: number;
 
   @Column(DataType.DATE)

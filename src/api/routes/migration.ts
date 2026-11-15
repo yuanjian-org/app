@@ -33,5 +33,42 @@ async function migrateSchema() {
 async function migrateData() {
   console.log("Migrating DB data...");
 
-  await Promise.resolve();
+  await migrateShudongUpvotes();
+}
+
+/**
+ * Copies legacy ShudongUpvotes rows into ShudongReactions with emoji '👍',
+ * then drops the obsolete ShudongUpvotes table and ShudongPosts.upvoteCount
+ * column once ShudongReactions exists.
+ */
+async function migrateShudongUpvotes() {
+  const [results] = await sequelize.query(`
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_name IN ('ShudongUpvotes', 'ShudongReactions');
+  `);
+  const tables = (
+    results as Array<{ table_name?: string; TABLE_NAME?: string }>
+  ).map((r) => r.table_name || r.TABLE_NAME);
+
+  if (!tables.includes("ShudongReactions")) {
+    return;
+  }
+
+  if (tables.includes("ShudongUpvotes")) {
+    await sequelize.query(`
+      INSERT INTO "ShudongReactions" (
+        "postId", "userId", "emoji", "createdAt", "updatedAt"
+      )
+      SELECT "postId", "userId", '👍', "createdAt", "updatedAt"
+      FROM "ShudongUpvotes"
+      ON CONFLICT ("postId", "userId", "emoji") DO NOTHING;
+    `);
+    await sequelize.query(`DROP TABLE IF EXISTS "ShudongUpvotes";`);
+  }
+
+  await sequelize.query(`
+    ALTER TABLE IF EXISTS "ShudongPosts"
+      DROP COLUMN IF EXISTS "upvoteCount";
+  `);
 }

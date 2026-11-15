@@ -14,7 +14,14 @@ import {
   canAccessShudong,
   canEditOrDeleteShudongPost,
 } from "../../shared/ShudongPermissions";
-import { zShudongPost, ShudongPost } from "../../shared/Shudong";
+import {
+  zShudongEmoji,
+  ShudongEmoji,
+  zShudongReactionSummary,
+  ShudongReactionSummary,
+  zShudongPost,
+  ShudongPost,
+} from "../../shared/Shudong";
 import ShudongPostModel from "../database/models/ShudongPost";
 import {
   shudongPostAttributes,
@@ -181,9 +188,62 @@ export async function getThreadAuthorMap(
 }
 
 /**
+ * Batch-fetches and aggregates per-emoji reaction counts for a list of posts.
+ * Preserves chronological order of first appearance per emoji on each post.
+ */
+export async function getPostReactionsMap(
+  postIds: string[],
+  myId: string,
+  transaction?: Transaction,
+): Promise<Map<string, ShudongReactionSummary[]>> {
+  const result = new Map<string, ShudongReactionSummary[]>();
+  if (postIds.length === 0) return result;
+
+  const rows = await db.ShudongReaction.findAll({
+    where: { postId: { [Op.in]: postIds } },
+    attributes: ["postId", "userId", "emoji", "createdAt", "id"],
+    order: [
+      ["createdAt", "ASC"],
+      ["id", "ASC"],
+    ],
+    transaction,
+  });
+
+  const byPost = new Map<string, Map<ShudongEmoji, ShudongReactionSummary>>();
+  for (const row of rows) {
+    const parsed = zShudongEmoji.safeParse(row.emoji);
+    if (!parsed.success) continue;
+    const emoji = parsed.data;
+    let emojiMap = byPost.get(row.postId);
+    if (!emojiMap) {
+      emojiMap = new Map();
+      byPost.set(row.postId, emojiMap);
+    }
+    const existing = emojiMap.get(emoji);
+    if (existing) {
+      existing.count += 1;
+      if (row.userId === myId) {
+        existing.userHasReacted = true;
+      }
+    } else {
+      emojiMap.set(emoji, {
+        emoji,
+        count: 1,
+        userHasReacted: row.userId === myId,
+      });
+    }
+  }
+
+  for (const [postId, emojiMap] of byPost.entries()) {
+    result.set(postId, Array.from(emojiMap.values()));
+  }
+  return result;
+}
+
+/**
  * Formats a raw DB ShudongPost for client consumption.
  * Anonymizes author info if the post is marked anonymous or soft-deleted.
- * Checks whether the current user has upvoted and subscribed to the post.
+ * Loads emoji reaction summaries and subscription state for the viewer.
  * Assigns pseudo-anonymous labels scoped within the question thread.
  */
 export async function formatShudongPost(
@@ -191,17 +251,17 @@ export async function formatShudongPost(
   myId: string,
   threadAuthorInfo?: ThreadAuthorInfo,
   transaction?: Transaction,
+  preloadedReactions?: ShudongReactionSummary[],
 ): Promise<ShudongPost> {
   // authorId on ShudongPost is never null, so both authorId and the included
   // author relation must always be present.
   invariant(post.authorId, "post.authorId must not be null");
   invariant(post.author, "post.author must not be null");
 
-  const upvote = await db.ShudongUpvote.findOne({
-    where: { postId: post.id, userId: myId },
-    attributes: ["userId"],
-    transaction,
-  });
+  const reactions =
+    preloadedReactions ??
+    (await getPostReactionsMap([post.id], myId, transaction)).get(post.id) ??
+    [];
 
   const rootQuestionId = post.parentId
     ? await findRootQuestionId(post.id, transaction)
@@ -237,13 +297,12 @@ export async function formatShudongPost(
     author,
     isMentorPosted,
     markdown: post.markdown,
-    upvoteCount: post.upvoteCount,
+    reactions,
     responseCount: post.responseCount,
     isDeleted,
     isAiGenerated: post.isAiGenerated ?? false,
     lastEditedAt: post.lastEditedAt,
     createdAt: post.createdAt,
-    userHasUpvoted: !!upvote,
     userIsSubscribed: !!subscription,
     anonymousName,
   });
@@ -273,11 +332,23 @@ export async function listQuestionsImpl(
     transaction,
   });
 
+  const reactionsMap = await getPostReactionsMap(
+    questions.map((q) => q.id),
+    me.id,
+    transaction,
+  );
+
   const items: ShudongPost[] = [];
   for (const q of questions) {
     const threadAuthorInfo = await getThreadAuthorMap(q.id, transaction);
     items.push(
-      await formatShudongPost(q, me.id, threadAuthorInfo, transaction),
+      await formatShudongPost(
+        q,
+        me.id,
+        threadAuthorInfo,
+        transaction,
+        reactionsMap.get(q.id) ?? [],
+      ),
     );
   }
   return items;
@@ -311,9 +382,23 @@ export async function getResponsesImpl(
       transaction,
     ));
 
+  const reactionsMap = await getPostReactionsMap(
+    responsesRaw.map((r) => r.id),
+    me.id,
+    transaction,
+  );
+
   const responses: ShudongPost[] = [];
   for (const r of responsesRaw) {
-    responses.push(await formatShudongPost(r, me.id, info, transaction));
+    responses.push(
+      await formatShudongPost(
+        r,
+        me.id,
+        info,
+        transaction,
+        reactionsMap.get(r.id) ?? [],
+      ),
+    );
   }
   return responses;
 }
@@ -615,39 +700,41 @@ export async function deletePostImpl(
 }
 
 /**
- * Toggles an upvote on a post for the current user.
+ * Toggles an emoji reaction on a post for the current user and returns
+ * the updated per-emoji reaction summaries for that post.
  */
-export async function toggleUpvoteImpl(
+export async function toggleReactionImpl(
   me: User,
   postId: string,
+  emoji: ShudongEmoji,
   transaction: Transaction,
-) {
+): Promise<{ reactions: ShudongReactionSummary[]; added: boolean }> {
   checkShudongAccess(me);
 
-  const post = await findShudongPostOrThrow(postId, transaction);
+  await findShudongPostOrThrow(postId, transaction);
 
-  const existing = await db.ShudongUpvote.findOne({
-    where: { postId, userId: me.id },
+  const existing = await db.ShudongReaction.findOne({
+    where: { postId, userId: me.id, emoji },
     transaction,
   });
 
+  let added: boolean;
   if (existing) {
     await existing.destroy({ transaction });
-    await post.increment("upvoteCount", {
-      by: -1,
-      transaction,
-    });
-    await post.reload({ transaction });
-    return { userHasUpvoted: false, upvoteCount: post.upvoteCount };
+    added = false;
   } else {
-    await db.ShudongUpvote.create({ postId, userId: me.id }, { transaction });
-    await post.increment("upvoteCount", {
-      by: 1,
-      transaction,
-    });
-    await post.reload({ transaction });
-    return { userHasUpvoted: true, upvoteCount: post.upvoteCount };
+    await db.ShudongReaction.create(
+      { postId, userId: me.id, emoji },
+      { transaction },
+    );
+    added = true;
   }
+
+  const reactionsMap = await getPostReactionsMap([postId], me.id, transaction);
+  return {
+    reactions: reactionsMap.get(postId) ?? [],
+    added,
+  };
 }
 
 /**
@@ -840,16 +927,23 @@ const deletePost = procedure
     });
   });
 
-const toggleUpvote = procedure
+const toggleReaction = procedure
   .use(authUser())
   .input(
     z.object({
       postId: z.string(),
+      emoji: zShudongEmoji,
     }),
   )
-  .mutation(async ({ ctx: { me }, input: { postId } }) => {
+  .output(
+    z.object({
+      reactions: z.array(zShudongReactionSummary),
+      added: z.boolean(),
+    }),
+  )
+  .mutation(async ({ ctx: { me }, input: { postId, emoji } }) => {
     return await sequelize.transaction(async (t) => {
-      return await toggleUpvoteImpl(me, postId, t);
+      return await toggleReactionImpl(me, postId, emoji, t);
     });
   });
 
@@ -911,7 +1005,7 @@ export default router({
   createPost,
   updatePost,
   deletePost,
-  toggleUpvote,
+  toggleReaction,
   toggleSubscription,
   saveDraft,
   getDraft,

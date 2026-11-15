@@ -24,7 +24,7 @@ import {
   createPostImpl,
   deletePostImpl,
   listQuestionsImpl,
-  toggleUpvoteImpl,
+  toggleReactionImpl,
 } from "./shudong";
 import { DemoShudongPost } from "./demoData";
 
@@ -128,9 +128,11 @@ async function generateShudongPost(
     t,
   );
 
-  if (postData.upvotes) {
-    for (const upvoter of postData.upvotes) {
-      await toggleUpvoteImpl(upvoter as User, post.id, t);
+  if (postData.reactions) {
+    for (const reaction of postData.reactions) {
+      for (const reactor of reaction.users) {
+        await toggleReactionImpl(reactor as User, post.id, reaction.emoji, t);
+      }
     }
   }
 

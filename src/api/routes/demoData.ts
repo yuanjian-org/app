@@ -13,13 +13,19 @@ import moment from "moment";
 import { UserPreference } from "../../shared/UserPreference";
 import { ProjectStatus, ProjectVisibility } from "../../shared/Project";
 import { ProjectProfile } from "../../shared/ProjectProfile";
+import { ShudongEmoji } from "../../shared/Shudong";
+
+export type DemoShudongReaction = {
+  emoji: ShudongEmoji;
+  users: readonly DemoUser[];
+};
 
 export type DemoShudongPost = {
   author: DemoUser;
   markdown: string;
   isAnonymous: boolean;
   isDeleted?: boolean;
-  upvotes?: readonly DemoUser[];
+  reactions?: readonly DemoShudongReaction[];
   responses?: readonly DemoShudongPost[];
 };
 
@@ -909,14 +915,17 @@ const demoData = {
       markdown:
         "大学期间如何平衡学术研究、实习与个人生活？大家有什么时间管理经验分享吗？",
       isAnonymous: false,
-      upvotes: [users.mentor1, users.mentee2, users.admin],
+      reactions: [
+        { emoji: "👍", users: [users.mentor1, users.mentee2] },
+        { emoji: "💡", users: [users.admin] },
+      ],
       responses: [
         {
           author: users.mentor1,
           markdown:
             "要学会给事情做优先级排序，推荐使用四象限法则（紧急/重要）。另外，每周给自己留出至少半天的‘无特定安排时间’，对舒缓压力非常有效。",
           isAnonymous: false,
-          upvotes: [users.mentee1, users.mentee2],
+          reactions: [{ emoji: "👏", users: [users.mentee1, users.mentee2] }],
           responses: [
             {
               author: users.mentee1,
@@ -929,14 +938,17 @@ const demoData = {
                   markdown:
                     "科研中的突发状况很常见。首先把‘总结失败原因’放入‘紧急且重要’，但不要过度沉溺于情绪。将复盘拆解成具体的小步行动。",
                   isAnonymous: false,
-                  upvotes: [users.mentee1, users.mentor2],
+                  reactions: [
+                    { emoji: "🙏", users: [users.mentee1] },
+                    { emoji: "💪", users: [users.mentor2] },
+                  ],
                 },
                 {
                   author: users.mentor2,
                   markdown:
                     "我也补充一点：科研实验失败往往是常态，可以建立一个‘实验异常记录本’，把每次失败当成排除错误选项的过程。",
                   isAnonymous: false,
-                  upvotes: [users.mentee1],
+                  reactions: [{ emoji: "💡", users: [users.mentee1] }],
                 },
               ],
             },
@@ -945,7 +957,7 @@ const demoData = {
               markdown:
                 "同感！我平时会用番茄工作法+Obsidian记录每日Todo，感觉效率提升了不少。",
               isAnonymous: true,
-              upvotes: [users.mentor1],
+              reactions: [{ emoji: "👍", users: [users.mentor1] }],
             },
           ],
         },
@@ -960,14 +972,14 @@ const demoData = {
               markdown:
                 "虽然上面的回复被删除了，但关于‘放弃不适合自己的实习’这一点其实很值得讨论。懂得及时止损也是一种非常重要的能力。",
               isAnonymous: false,
-              upvotes: [users.admin, users.mentee1],
+              reactions: [{ emoji: "💖", users: [users.admin, users.mentee1] }],
               responses: [
                 {
                   author: users.mentee2,
                   markdown:
                     "确实！之前有一份实习发现和自己期望相差很大，强撑了三个月反而错过了秋招机会。",
                   isAnonymous: false,
-                  upvotes: [users.mentor3],
+                  reactions: [{ emoji: "🤗", users: [users.mentor3] }],
                 },
               ],
             },
@@ -978,7 +990,7 @@ const demoData = {
           markdown:
             "在生物医药科研中，工作时间往往受细胞培养和实验周期限制。我的经验是做计划要留有至少20%的弹性缓冲区。",
           isAnonymous: false,
-          upvotes: [users.admin, users.mentor1],
+          reactions: [{ emoji: "👍", users: [users.admin, users.mentor1] }],
         },
       ],
     },
@@ -987,14 +999,20 @@ const demoData = {
       markdown:
         "面对跨专业考研/保研的焦虑，如何判断自己是真的喜欢新专业，还是仅仅为了逃避原专业？",
       isAnonymous: true,
-      upvotes: [users.mentee1, users.mentor3, users.mentor5],
+      reactions: [
+        { emoji: "🤗", users: [users.mentee1, users.mentor3] },
+        { emoji: "💪", users: [users.mentor5] },
+      ],
       responses: [
         {
           author: users.mentor5,
           markdown:
             "可以问自己三个问题：1. 如果新专业未来3年没有任何光鲜亮丽的标签，你还愿意每天研究它吗？2. 你是否深入阅读过该专业的核心教材或近期顶刊论文？3. 你接触过该行业的从业者并了解真实的日常吗？",
           isAnonymous: false,
-          upvotes: [users.mentee2, users.mentee3, users.admin],
+          reactions: [
+            { emoji: "👏", users: [users.mentee2, users.mentee3] },
+            { emoji: "👍", users: [users.admin] },
+          ],
           responses: [
             {
               author: users.mentee2,
@@ -1007,7 +1025,7 @@ const demoData = {
                   markdown:
                     "跨考数学/统计确实需要扎实的基础，建议可以先试听一两门MOOC公开课，检验一下自己的接受度。",
                   isAnonymous: false,
-                  upvotes: [users.mentee2],
+                  reactions: [{ emoji: "🙏", users: [users.mentee2] }],
                 },
               ],
             },
@@ -1026,7 +1044,9 @@ const demoData = {
               markdown:
                 "提醒大家：在树洞讨论跨专业转型时，请尽量分享具体的学习路径和资源，避免空泛宣泄情绪哦。",
               isAnonymous: false,
-              upvotes: [users.mentor1, users.mentor5],
+              reactions: [
+                { emoji: "👍", users: [users.mentor1, users.mentor5] },
+              ],
             },
           ],
         },
@@ -1035,7 +1055,7 @@ const demoData = {
           markdown:
             "逃避不可耻，但逃避解决不了长远问题。建议做一次SWOT分析，把原专业的优势和新专业的风险都列出来。",
           isAnonymous: false,
-          upvotes: [users.mentee1, users.mentee3],
+          reactions: [{ emoji: "💡", users: [users.mentee1, users.mentee3] }],
         },
       ],
     },
@@ -1050,13 +1070,16 @@ const demoData = {
           markdown:
             "看到原贴提到的职场新人人际交往困惑，想鼓励一句：刚入职场不必强求和所有人成为朋友，保持专业、真诚和清晰的边界即可。",
           isAnonymous: false,
-          upvotes: [users.mentee1, users.mentee2, users.admin],
+          reactions: [
+            { emoji: "🤗", users: [users.mentee1, users.mentee2] },
+            { emoji: "💖", users: [users.admin] },
+          ],
           responses: [
             {
               author: users.mentee1,
               markdown: "同意丙导师，‘边界感’这三个字太重要了！",
               isAnonymous: false,
-              upvotes: [users.mentor1],
+              reactions: [{ emoji: "😊", users: [users.mentor1] }],
             },
             {
               author: users.mentee3,
@@ -1069,7 +1092,9 @@ const demoData = {
                   markdown:
                     "保持工作沟通留痕（邮件、工作群记录），分工时明确责任边界和交付节点，必要时及时向项目负责人同步进展。",
                   isAnonymous: false,
-                  upvotes: [users.mentee3, users.admin],
+                  reactions: [
+                    { emoji: "👏", users: [users.mentee3, users.admin] },
+                  ],
                 },
               ],
             },
@@ -1082,21 +1107,24 @@ const demoData = {
       markdown:
         "推荐大家读项飚老师的《把自己作为方法》，里面关于‘乡绅’与‘附近’的讨论对理解当下社会心态非常有启发！",
       isAnonymous: false,
-      upvotes: [users.mentor1, users.mentor3, users.mentee1, users.mentee2],
+      reactions: [
+        { emoji: "💖", users: [users.mentor1, users.mentor3] },
+        { emoji: "👍", users: [users.mentee1, users.mentee2] },
+      ],
       responses: [
         {
           author: users.mentor3,
           markdown:
             "大赞这本！‘重建附近’也是我们在公益和社群建设中一直在尝试做的事情。",
           isAnonymous: false,
-          upvotes: [users.admin],
+          reactions: [{ emoji: "✨", users: [users.admin] }],
         },
         {
           author: users.mentee2,
           markdown:
             "读完这本书后，我也开始尝试关注宿舍楼下的保安大叔和食堂阿姨的生活，感觉生活真实了很多。",
           isAnonymous: false,
-          upvotes: [users.admin, users.mentor3],
+          reactions: [{ emoji: "💖", users: [users.admin, users.mentor3] }],
         },
       ],
     },

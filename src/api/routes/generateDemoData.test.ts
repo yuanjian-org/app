@@ -30,10 +30,10 @@ describe("generateDemoData", () => {
         const shudongPostsCount = await db.ShudongPost.count({ transaction });
         expect(shudongPostsCount).to.be.greaterThan(0);
 
-        const shudongUpvotesCount = await db.ShudongUpvote.count({
+        const shudongReactionsCount = await db.ShudongReaction.count({
           transaction,
         });
-        expect(shudongUpvotesCount).to.be.greaterThan(0);
+        expect(shudongReactionsCount).to.be.greaterThan(0);
 
         throw new Error("ROLLBACK_FOR_TEST");
       });

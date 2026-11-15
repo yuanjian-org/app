@@ -1,5 +1,6 @@
-import { RefObject } from "react";
+import { MouseEvent, RefObject } from "react";
 import {
+  Box,
   Button,
   Flex,
   Icon,
@@ -13,44 +14,12 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { MdOutlineAddReaction } from "react-icons/md";
-
-export const QUICK_SHUDONG_EMOJIS = [
-  "🤗",
-  "💖",
-  "💪",
-  "👏",
-  "🙏",
-  "😊",
-  "😂",
-  "🎉",
-] as const;
-
-export const ALL_SHUDONG_EMOJIS = [
-  "🤗",
-  "💖",
-  "💪",
-  "👏",
-  "🙏",
-  "🤝",
-  "😊",
-  "🥰",
-  "😄",
-  "😂",
-  "🙌",
-  "👍",
-  "🥺",
-  "😭",
-  "😅",
-  "🤔",
-  "😮",
-  "😎",
-  "🎉",
-  "✨",
-  "🌟",
-  "🌹",
-  "🍀",
-  "💡",
-] as const;
+import {
+  quickShudongEmojis,
+  shudongEmojis,
+  ShudongEmoji,
+  ShudongReactionSummary,
+} from "shared/Shudong";
 
 /**
  * Inserts an emoji at the current selection range (or appends at the end when
@@ -74,6 +43,125 @@ export function insertEmojiAtCursor(
 }
 
 /**
+ * Computes the next reaction summaries after the current user toggles an
+ * emoji reaction optimistically, removing pills whose count reaches zero.
+ */
+export function applyOptimisticReactionToggle(
+  reactions: ShudongReactionSummary[],
+  emoji: ShudongEmoji,
+): ShudongReactionSummary[] {
+  const idx = reactions.findIndex((r) => r.emoji === emoji);
+  if (idx === -1) {
+    return [...reactions, { emoji, count: 1, userHasReacted: true }];
+  }
+  const target = reactions[idx];
+  if (target.userHasReacted) {
+    if (target.count <= 1) {
+      return reactions.filter((_, i) => i !== idx);
+    }
+    return reactions.map((r, i) =>
+      i === idx ? { ...r, count: r.count - 1, userHasReacted: false } : r,
+    );
+  }
+  return reactions.map((r, i) =>
+    i === idx ? { ...r, count: r.count + 1, userHasReacted: true } : r,
+  );
+}
+
+/**
+ * Reusable trigger icon + 6x4 emoji popover picker used both for text
+ * insertion and for toggling post reactions.
+ */
+export function ShudongEmojiPopover({
+  onSelect,
+  activeEmojis,
+  ariaLabel = "更多表情",
+  color = "gray.500",
+}: {
+  onSelect: (emoji: ShudongEmoji) => void;
+  activeEmojis?: ReadonlySet<string>;
+  ariaLabel?: string;
+  color?: string;
+}) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  return (
+    <Box
+      as="span"
+      display="inline-flex"
+      onClick={(e: MouseEvent<HTMLSpanElement>) => {
+        // Stop bubbling after PopoverTrigger handles clicks so card links
+        // on /shudong do not navigate when opening the picker.
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      <Popover
+        isOpen={isOpen}
+        onOpen={onOpen}
+        onClose={onClose}
+        placement="top-start"
+        returnFocusOnClose={false}
+        isLazy
+      >
+        <PopoverTrigger>
+          <IconButton
+            type="button"
+            variant="ghost"
+            size="xs"
+            minW={7}
+            h={7}
+            color={color}
+            aria-label={ariaLabel}
+            icon={<Icon as={MdOutlineAddReaction} boxSize={4} />}
+            onMouseDown={(e) => e.preventDefault()}
+          />
+        </PopoverTrigger>
+        <Portal>
+          <PopoverContent
+            w="auto"
+            boxShadow="md"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <PopoverBody p={2}>
+              <SimpleGrid columns={6} spacing={1}>
+                {shudongEmojis.map((emoji) => (
+                  <Button
+                    key={emoji}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    minW={8}
+                    h={8}
+                    px={1}
+                    fontSize="lg"
+                    fontWeight="normal"
+                    bg={activeEmojis?.has(emoji) ? "blue.50" : undefined}
+                    aria-label={`选择表情 ${emoji}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSelect(emoji);
+                      onClose();
+                    }}
+                  >
+                    {emoji}
+                  </Button>
+                ))}
+              </SimpleGrid>
+            </PopoverBody>
+          </PopoverContent>
+        </Portal>
+      </Popover>
+    </Box>
+  );
+}
+
+/**
  * Compact bar of commonly used emojis plus a popover picker for inserting
  * emojis at the cursor position of a Shudong response Textarea.
  */
@@ -86,8 +174,6 @@ export function ShudongEmojiBar({
   onChange: (nextValue: string) => void;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
 }) {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
   const handleSelect = (emoji: string) => {
     const textarea = textareaRef.current;
     const { nextValue, nextCursor } = insertEmojiAtCursor(
@@ -108,7 +194,7 @@ export function ShudongEmojiBar({
 
   return (
     <Flex align="center" wrap="wrap" gap={0.5}>
-      {QUICK_SHUDONG_EMOJIS.map((emoji) => (
+      {quickShudongEmojis.map((emoji) => (
         <Button
           key={emoji}
           type="button"
@@ -126,57 +212,7 @@ export function ShudongEmojiBar({
           {emoji}
         </Button>
       ))}
-      <Popover
-        isOpen={isOpen}
-        onOpen={onOpen}
-        onClose={onClose}
-        placement="top-start"
-        returnFocusOnClose={false}
-        isLazy
-      >
-        <PopoverTrigger>
-          <IconButton
-            type="button"
-            variant="ghost"
-            size="xs"
-            minW={7}
-            h={7}
-            color="gray.500"
-            aria-label="更多表情"
-            icon={<Icon as={MdOutlineAddReaction} boxSize={4} />}
-            onMouseDown={(e) => e.preventDefault()}
-          />
-        </PopoverTrigger>
-        <Portal>
-          <PopoverContent w="auto" boxShadow="md">
-            <PopoverBody p={2}>
-              <SimpleGrid columns={6} spacing={1}>
-                {ALL_SHUDONG_EMOJIS.map((emoji) => (
-                  <Button
-                    key={emoji}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    minW={8}
-                    h={8}
-                    px={1}
-                    fontSize="lg"
-                    fontWeight="normal"
-                    aria-label={`插入表情 ${emoji}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      handleSelect(emoji);
-                      onClose();
-                    }}
-                  >
-                    {emoji}
-                  </Button>
-                ))}
-              </SimpleGrid>
-            </PopoverBody>
-          </PopoverContent>
-        </Portal>
-      </Popover>
+      <ShudongEmojiPopover onSelect={handleSelect} color="gray.500" />
     </Flex>
   );
 }

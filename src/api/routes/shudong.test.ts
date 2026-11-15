@@ -12,7 +12,7 @@ import {
   listQuestionsImpl,
   updatePostImpl,
   deletePostImpl,
-  toggleUpvoteImpl,
+  toggleReactionImpl,
   toggleSubscriptionImpl,
   saveDraftImpl,
   getDraftImpl,
@@ -564,25 +564,77 @@ describe("shudong backend routes", () => {
       void expect(dbPost?.deletedAt).to.not.be.null;
     });
 
-    it("should toggle upvotes correctly", async () => {
+    it("should toggle individual emoji reactions correctly", async () => {
       const mentor = await createTestUser(["Mentor"]);
+      const mentee = await createTestUser(["Mentee"], "现届学子");
       const q = await createPostImpl(
         mentor,
         null,
-        "Upvote question",
+        "Reaction question",
         true,
         transaction,
       );
 
-      // Upvote
-      const up1 = await toggleUpvoteImpl(mentor, q.id, transaction);
-      void expect(up1.userHasUpvoted).to.be.true;
-      expect(up1.upvoteCount).to.equal(1);
+      // Single user adds two distinct emojis
+      const r1 = await toggleReactionImpl(mentor, q.id, "🤗", transaction);
+      void expect(r1.added).to.be.true;
+      expect(r1.reactions).to.deep.equal([
+        { emoji: "🤗", count: 1, userHasReacted: true },
+      ]);
 
-      // Cancel upvote
-      const up2 = await toggleUpvoteImpl(mentor, q.id, transaction);
-      void expect(up2.userHasUpvoted).to.be.false;
-      expect(up2.upvoteCount).to.equal(0);
+      const r2 = await toggleReactionImpl(mentor, q.id, "💖", transaction);
+      void expect(r2.added).to.be.true;
+      expect(r2.reactions).to.deep.equal([
+        { emoji: "🤗", count: 1, userHasReacted: true },
+        { emoji: "💖", count: 1, userHasReacted: true },
+      ]);
+
+      // Another user adds overlapping 🤗 and a new 💪
+      const r3 = await toggleReactionImpl(mentee, q.id, "🤗", transaction);
+      void expect(r3.added).to.be.true;
+      expect(r3.reactions).to.deep.equal([
+        { emoji: "🤗", count: 2, userHasReacted: true },
+        { emoji: "💖", count: 1, userHasReacted: false },
+      ]);
+
+      const r4 = await toggleReactionImpl(mentee, q.id, "💪", transaction);
+      void expect(r4.added).to.be.true;
+      expect(r4.reactions).to.deep.equal([
+        { emoji: "🤗", count: 2, userHasReacted: true },
+        { emoji: "💖", count: 1, userHasReacted: false },
+        { emoji: "💪", count: 1, userHasReacted: true },
+      ]);
+
+      // Verify per-viewer flags via getQuestionImpl & listQuestionsImpl
+      const asMentor = await getQuestionImpl(mentor, q.id, transaction);
+      expect(asMentor.question.reactions).to.deep.equal([
+        { emoji: "🤗", count: 2, userHasReacted: true },
+        { emoji: "💖", count: 1, userHasReacted: true },
+        { emoji: "💪", count: 1, userHasReacted: false },
+      ]);
+
+      const listed = await listQuestionsImpl(mentee, 20, 0, transaction);
+      const found = listed.find((item) => item.id === q.id);
+      expect(found?.reactions).to.deep.equal([
+        { emoji: "🤗", count: 2, userHasReacted: true },
+        { emoji: "💖", count: 1, userHasReacted: false },
+        { emoji: "💪", count: 1, userHasReacted: true },
+      ]);
+
+      // Mentor toggles 💖 off (count drops to 0 -> removed) and 🤗 off
+      const r5 = await toggleReactionImpl(mentor, q.id, "💖", transaction);
+      void expect(r5.added).to.be.false;
+      expect(r5.reactions).to.deep.equal([
+        { emoji: "🤗", count: 2, userHasReacted: true },
+        { emoji: "💪", count: 1, userHasReacted: false },
+      ]);
+
+      const r6 = await toggleReactionImpl(mentor, q.id, "🤗", transaction);
+      void expect(r6.added).to.be.false;
+      expect(r6.reactions).to.deep.equal([
+        { emoji: "🤗", count: 1, userHasReacted: false },
+        { emoji: "💪", count: 1, userHasReacted: false },
+      ]);
     });
   });
 
@@ -817,8 +869,23 @@ describe("shudong backend routes", () => {
       }
 
       try {
-        await toggleUpvoteImpl(mentor, fakeId, transaction);
+        await toggleReactionImpl(mentor, fakeId, "👍", transaction);
         expect.fail("Should have thrown not found error");
+      } catch (err: any) {
+        expect(err.message).to.contain("树洞帖子");
+      }
+
+      const deletedQ = await createPostImpl(
+        mentor,
+        null,
+        "To delete",
+        true,
+        transaction,
+      );
+      await deletePostImpl(mentor, deletedQ.id, transaction);
+      try {
+        await toggleReactionImpl(mentor, deletedQ.id, "👍", transaction);
+        expect.fail("Should have thrown not found error for deleted post");
       } catch (err: any) {
         expect(err.message).to.contain("树洞帖子");
       }
