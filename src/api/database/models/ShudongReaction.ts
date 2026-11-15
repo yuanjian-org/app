@@ -13,12 +13,12 @@ import ShudongPost from "./ShudongPost";
 @Table({
   indexes: [
     {
-      fields: ["postId", "userId"],
+      fields: ["postId", "userId", "emoji"],
       unique: true,
     },
   ],
 })
-class ShudongUpvote extends Model {
+class ShudongReaction extends Model {
   @ForeignKey(() => ShudongPost)
   @AllowNull(false)
   @Column(DataType.UUID)
@@ -34,6 +34,10 @@ class ShudongUpvote extends Model {
 
   @BelongsTo(() => User, "userId")
   user: User;
+
+  @AllowNull(false)
+  @Column(DataType.TEXT)
+  emoji: string;
 }
 
-export default ShudongUpvote;
+export default ShudongReaction;

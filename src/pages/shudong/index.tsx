@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -58,6 +58,28 @@ const subscribeChoiceLabels: Record<EffectiveSubscribeChoice, string> = {
   yesWithResponses: "新问题并自动订阅",
   no: "关",
 };
+
+/**
+ * Returns the dot-separated label segments shown in the header notification
+ * button. Shortens "新问题并自动订阅 · 每日汇总" to "新问题 · 订阅 · 汇总" so
+ * the header stays compact without changing the dropdown menu text.
+ */
+function getNotificationSummaryParts(
+  choice: EffectiveSubscribeChoice,
+  isDailyDigest: boolean,
+): string[] {
+  if (!isDailyDigest) {
+    return [subscribeChoiceLabels[choice]];
+  }
+  switch (choice) {
+    case "yes":
+      return ["新问题", "汇总"];
+    case "yesWithResponses":
+      return ["新问题", "订阅", "汇总"];
+    case "no":
+      return ["仅已订阅", "汇总"];
+  }
+}
 
 /**
  * Main Shudong feed page displaying top-level questions.
@@ -205,17 +227,15 @@ export default fullPage(() => {
                   <Icon as={MdNotifications} boxSize={5} />
                   <Text>
                     <T>接收通知：</T>
-                    <T>
-                      {effectiveSubscribeChoice === "no" && isDailyDigest
-                        ? "仅已订阅"
-                        : subscribeChoiceLabels[effectiveSubscribeChoice]}
-                    </T>
-                    {isDailyDigest && (
-                      <>
-                        {" · "}
-                        <T>每日汇总</T>
-                      </>
-                    )}
+                    {getNotificationSummaryParts(
+                      effectiveSubscribeChoice,
+                      isDailyDigest,
+                    ).map((part, idx) => (
+                      <Fragment key={idx}>
+                        {idx > 0 && " · "}
+                        <T>{part}</T>
+                      </Fragment>
+                    ))}
                   </Text>
                   <ChevronDownIcon boxSize={4} />
                 </HStack>

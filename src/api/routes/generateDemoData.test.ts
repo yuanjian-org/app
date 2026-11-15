@@ -19,7 +19,7 @@ describe("generateDemoData", () => {
           where: { shudongPostId: { [Op.ne]: null } },
           transaction,
         });
-        await db.ShudongUpvote.destroy({ where: {}, transaction });
+        await db.ShudongReaction.destroy({ where: {}, transaction });
         await db.ShudongSubscription.destroy({ where: {}, transaction });
         await db.ShudongPost.update(
           { parentId: null },
@@ -58,6 +58,26 @@ describe("generateDemoData", () => {
           expect(post.isAiGenerated).to.equal(true);
         }
 
+        const expectedReactionsCount = shudongSeeds.reduce(
+          (sum, thread) =>
+            sum +
+            thread.posts.reduce(
+              (pSum, post) =>
+                pSum +
+                (post.reactions ?? []).reduce(
+                  (rSum, r) => rSum + r.users.length,
+                  0,
+                ),
+              0,
+            ),
+          0,
+        );
+        expect(expectedReactionsCount).to.be.greaterThan(0);
+        const shudongReactionsCount = await db.ShudongReaction.count({
+          transaction,
+        });
+        expect(shudongReactionsCount).to.equal(expectedReactionsCount);
+
         const rootCount = await db.ShudongPost.count({
           where: { parentId: null },
           transaction,
@@ -73,7 +93,8 @@ describe("generateDemoData", () => {
           expect(q.author).to.equal(null);
         }
 
-        // Thread #1 has a reply from "甲导师", which must carry mentor status.
+        // Thread #1 has a reply from "甲导师", which must carry mentor status,
+        // and both posts carry seed emoji reactions.
         const thread1RootMarkdown = shudongSeeds[0].posts[0].markdown.trim();
         const thread1 = questions.find(
           (q) => q.markdown === thread1RootMarkdown,
@@ -81,16 +102,37 @@ describe("generateDemoData", () => {
         if (!thread1) {
           throw new Error("Expected Thread #1 root question to be listed");
         }
+        expect(
+          thread1.reactions.map((r) => ({ emoji: r.emoji, count: r.count })),
+        ).to.deep.equal([
+          { emoji: "🤗", count: 2 },
+          { emoji: "😅", count: 1 },
+        ]);
+
         const detail = await getQuestionImpl(admin, thread1.id, transaction);
         expect(detail.responses.length).to.equal(1);
         expect(detail.responses[0].isMentorPosted).to.equal(true);
         expect(detail.responses[0].isAiGenerated).to.equal(true);
         expect(detail.responses[0].author).to.equal(null);
+        expect(
+          detail.responses[0].reactions.map((r) => ({
+            emoji: r.emoji,
+            count: r.count,
+          })),
+        ).to.deep.equal([
+          { emoji: "🙏", count: 1 },
+          { emoji: "💡", count: 2 },
+        ]);
 
-        // Calling generateDemoData again must be idempotent for Shudong posts.
+        // Calling generateDemoData again must be idempotent for Shudong posts
+        // and reactions.
         await generateDemoData(transaction);
         const postCountAfterRerun = await db.ShudongPost.count({ transaction });
         expect(postCountAfterRerun).to.equal(expectedPostsCount);
+        const reactionCountAfterRerun = await db.ShudongReaction.count({
+          transaction,
+        });
+        expect(reactionCountAfterRerun).to.equal(expectedReactionsCount);
 
         throw new Error("ROLLBACK_FOR_TEST");
       });

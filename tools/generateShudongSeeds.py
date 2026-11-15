@@ -3,56 +3,58 @@
 """
 Usage:
   ./tools/generateShudongSeeds.py <database_url> \\
+    <seeds_json> \\
     <user_id_1> <user_id_2> <user_id_3> <user_id_4>
 
-Imports the Shudong (树洞) threads from
-src/api/routes/shudongSeedThreads.json into the
-ShudongPosts table of the given database. Every imported
+Imports the Shudong (树洞) threads and emoji reactions from
+the given JSON file into the ShudongPosts and
+ShudongReactions tables of the given database. Every imported
 post is marked as anonymous and AI generated.
 
 Number of user IDs:
   N = 4 user IDs are required. N must equal the maximum
-  number of unique authors in any single thread of the
-  seed file. The script computes N from the loaded
-  threads and errors out with the expected value if a
-  different number of user IDs is given, so keep this
-  doc in sync if the seed file changes.
+  number of unique participants (post authors and emoji
+  reactors) in any single thread of the seed file. The script
+  computes N from the loaded threads and errors out with the
+  expected value if a different number of user IDs is given,
+  so keep this doc in sync if the seed file changes.
 
-Author mapping:
+User mapping:
   User IDs are cycled across threads. In the t-th thread
-  (0-based), the j-th unique author (0-based, in order of
-  first appearance) is mapped to user_ids[(t + j) % N].
-  Hence the same author name (e.g. "Alice") is usually
-  mapped to different users in different threads, while
-  different authors in the same thread always map to
-  different users.
+  (0-based), the j-th unique participant (0-based, post
+  authors first then any additional reactors in order of
+  first appearance) is mapped to user_ids[(t + j) % N]. Hence
+  the same participant name (e.g. "Alice") is usually mapped
+  to different users in different threads, while different
+  participants in the same thread always map to different
+  users.
 
 Data format:
-  shudongSeedThreads.json is a JSON array of thread
-  objects, each with a `posts` array of `{author,
-  replyTo, markdown}` objects in chronological order.
-  The first post is the root question and has
-  `replyTo = null`. For a reply, `replyTo` is the name
-  of the replied-to author, and the reply's parent is
-  the latest preceding post in the same thread written
-  by that author.
+  The seed JSON file is an array of thread objects, each
+  with a `posts` array of `{author, replyTo, markdown,
+  reactions?}` objects in chronological order. The first
+  post is the root question and has `replyTo = null`. For a
+  reply, `replyTo` is the name of the replied-to author, and
+  the reply's parent is the latest preceding post in the same
+  thread written by that author. Optional `reactions` is an
+  array of `{emoji, users}` objects using allowed
+  ShudongEmoji values from src/shared/Shudong.ts.
 
 Timestamps:
-  Posts are given realistic creation times as if they
-  had accumulated organically over the last two months:
-  questions get more frequent over time, posting follows
-  daily activity patterns in China Standard Time, and
-  replies follow the previous post in the thread after a
-  log-normally distributed delay.
+  Posts are given realistic creation times as if they had
+  accumulated organically over the last two months: questions
+  get more frequent over time, posting follows daily
+  activity patterns in China Standard Time, and replies and
+  reactions follow after log-normally distributed delays.
 
-No author is subscribed to any thread, and no
-notifications are scheduled.
+No author is subscribed to any thread, and no notifications
+are scheduled.
 
 Errors out if:
-  - shudongSeedThreads.json is missing, unreadable, or
-    malformed (e.g. invalid JSON, a thread without a
-    root question, a reply to an unknown author, empty
-    posts)
+  - The JSON file is missing, unreadable, or malformed (e.g.
+    invalid JSON, a thread without a root question, a reply
+    to an unknown author, empty posts, invalid/duplicate
+    reactions)
   - The number of user IDs is wrong, or user IDs are
     invalid, duplicated, or missing from the database
   - Any general error (e.g. cannot connect to DB)
@@ -66,18 +68,17 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List, NoReturn, Optional
+from typing import Any, Dict, List, NoReturn, Optional, Set, Tuple
 from zoneinfo import ZoneInfo
 import psycopg2  # type: ignore
 
 
-SEEDS_PATH = (
-  Path(__file__).resolve().parent.parent
-  / "src"
-  / "api"
-  / "routes"
-  / "shudongSeedThreads.json"
-)
+# Keep in sync with shudongEmojis in src/shared/Shudong.ts.
+SHUDONG_EMOJIS = {
+  "🤗", "💖", "💪", "👏", "🙏", "🤝", "😊", "🥰",
+  "😄", "😂", "🙌", "👍", "🥺", "😭", "😅", "🤔",
+  "😮", "😎", "🎉", "✨", "🌟", "🌹", "🍀", "💡",
+}
 
 # Time zone used to model when users are active.
 ACTIVITY_TZ = ZoneInfo("Asia/Shanghai")
@@ -112,17 +113,35 @@ REPLY_DELAY_MIN_MIN = 4
 
 
 @dataclass
+class ReactionSpec:
+  emoji: str
+  users: List[str] = field(default_factory=list)
+
+
+@dataclass
+class ReactionRow:
+  post_id: str
+  user_id: str
+  emoji: str
+  created_at: datetime
+
+
+@dataclass
 class Post:
   author: str
   # None for root questions.
   reply_to: Optional[str]
   markdown: str
+  reactions: List[ReactionSpec] = field(default_factory=list)
   # Fields below are filled in by assign_fields().
   id: str = ""
   parent_id: Optional[str] = None
   author_id: str = ""
   created_at: Optional[datetime] = None
   response_count: int = 0
+  reaction_rows: List[ReactionRow] = field(
+    default_factory=list
+  )
 
 
 @dataclass
@@ -131,18 +150,58 @@ class Thread:
   number: int
   posts: List[Post] = field(default_factory=list)
 
-  def unique_authors(self) -> List[str]:
-    """Author names in order of first appearance."""
-    authors: List[str] = []
+  def unique_users(self) -> List[str]:
+    """Participant names: authors first, then reactors."""
+    users: List[str] = []
     for post in self.posts:
-      if post.author not in authors:
-        authors.append(post.author)
-    return authors
+      if post.author not in users:
+        users.append(post.author)
+    for post in self.posts:
+      for spec in post.reactions:
+        for user in spec.users:
+          if user not in users:
+            users.append(user)
+    return users
 
 
 def fail(message: str) -> NoReturn:
   print(f"Error: {message}", file=sys.stderr)
   sys.exit(1)
+
+
+def parse_raw_reactions(
+  raw_reactions: Any, where: str, post_num: int
+) -> List[ReactionSpec]:
+  """Validate and convert JSON reactions on one post."""
+  if raw_reactions is None:
+    return []
+  if not isinstance(raw_reactions, list):
+    fail(
+      f"Invalid reactions on post #{post_num} in {where}."
+    )
+  specs: List[ReactionSpec] = []
+  for r_idx, raw_reaction in enumerate(raw_reactions):
+    if not isinstance(raw_reaction, dict):
+      fail(
+        f"Reaction #{r_idx + 1} on post #{post_num}"
+        f" in {where} must be an object."
+      )
+    emoji = raw_reaction.get("emoji")
+    users = raw_reaction.get("users")
+    if not isinstance(emoji, str):
+      fail(
+        f"Invalid emoji in reaction #{r_idx + 1}"
+        f" on post #{post_num} in {where}."
+      )
+    if not isinstance(users, list) or not all(
+      isinstance(u, str) for u in users
+    ):
+      fail(
+        f"Invalid users in reaction #{r_idx + 1}"
+        f" on post #{post_num} in {where}."
+      )
+    specs.append(ReactionSpec(emoji=emoji, users=list(users)))
+  return specs
 
 
 def parse_raw_post(
@@ -168,15 +227,19 @@ def parse_raw_post(
     fail(
       f"Invalid markdown on post #{post_num} in {where}."
     )
+  reactions = parse_raw_reactions(
+    raw_post.get("reactions"), where, post_num
+  )
   return Post(
     author=author,
     reply_to=reply_to,
     markdown=markdown.strip(),
+    reactions=reactions,
   )
 
 
 def load_threads(path: Path) -> List[Thread]:
-  """Load and convert threads from shudongSeedThreads.json."""
+  """Load and convert threads from the JSON seed file."""
   try:
     content = path.read_text(encoding="utf-8")
     raw_threads = json.loads(content)
@@ -202,6 +265,44 @@ def load_threads(path: Path) -> List[Thread]:
     ]
     threads.append(Thread(number=i + 1, posts=posts))
   return threads
+
+
+def validate_reactions(
+  reactions: List[ReactionSpec], where: str, post_num: int
+) -> None:
+  """Validate emoji reactions on a single post."""
+  seen_emojis: Set[str] = set()
+  for spec in reactions:
+    if spec.emoji not in SHUDONG_EMOJIS:
+      fail(
+        f"Invalid emoji '{spec.emoji}' on"
+        f" post #{post_num} in {where}."
+      )
+    if spec.emoji in seen_emojis:
+      fail(
+        f"Duplicate emoji '{spec.emoji}' on"
+        f" post #{post_num} in {where}."
+      )
+    seen_emojis.add(spec.emoji)
+    if not spec.users:
+      fail(
+        f"Empty users list for emoji '{spec.emoji}'"
+        f" on post #{post_num} in {where}."
+      )
+    seen_users: Set[str] = set()
+    for user in spec.users:
+      if not user.strip():
+        fail(
+          f"Empty user in reaction '{spec.emoji}'"
+          f" on post #{post_num} in {where}."
+        )
+      if user in seen_users:
+        fail(
+          f"Duplicate user '{user}' for emoji"
+          f" '{spec.emoji}' on post #{post_num}"
+          f" in {where}."
+        )
+      seen_users.add(user)
 
 
 def validate_threads(threads: List[Thread]) -> None:
@@ -232,6 +333,7 @@ def validate_threads(threads: List[Thread]) -> None:
           f"'{post.author}' replies to unknown"
           f" author '{post.reply_to}' in {where}."
         )
+      validate_reactions(post.reactions, where, i + 1)
 
 
 def accept_hour(t: datetime) -> bool:
@@ -261,11 +363,13 @@ def random_root_time(now: datetime) -> datetime:
       return t
 
 
-def random_reply_time(
-  prev: datetime, now: datetime
+def _random_time_after(
+  after: datetime,
+  now: datetime,
+  fallback_min: float,
+  fallback_max: float,
 ) -> datetime:
-  """Random creation time of a reply that follows the
-  previous post in the thread (created at `prev`)."""
+  """Sample a realistic timestamp strictly after `after`."""
   for _ in range(100):
     delay = max(
       REPLY_DELAY_MIN_MIN,
@@ -274,28 +378,50 @@ def random_reply_time(
         REPLY_DELAY_SIGMA,
       ),
     )
-    t = prev + timedelta(minutes=delay)
+    t = after + timedelta(minutes=delay)
     if t < now and accept_hour(t):
       return t
   # Fallback if no acceptable time is found, e.g. for
-  # threads close to now: pick a time between the
-  # previous post and now.
-  return prev + (now - prev) * random.uniform(0.2, 0.8)
+  # threads close to now: pick a time between `after`
+  # and `now`.
+  return after + (now - after) * random.uniform(
+    fallback_min, fallback_max
+  )
+
+
+def random_reply_time(
+  prev: datetime, now: datetime
+) -> datetime:
+  """Random creation time of a reply that follows the
+  previous post in the thread (created at `prev`)."""
+  return _random_time_after(prev, now, 0.2, 0.8)
+
+
+def random_reaction_times(
+  post_created_at: datetime, now: datetime, count: int
+) -> List[datetime]:
+  """Generate sorted reaction timestamps after a post."""
+  times = [
+    _random_time_after(post_created_at, now, 0.05, 0.95)
+    for _ in range(count)
+  ]
+  times.sort()
+  return times
 
 
 def assign_fields(
   threads: List[Thread], user_ids: List[str]
 ) -> None:
-  """Assign IDs, parent IDs, author IDs, response counts
-  and creation times to all posts."""
+  """Assign IDs, parent IDs, author IDs, response counts,
+  creation times, and reaction rows to all posts."""
   now = datetime.now(timezone.utc)
   n = len(user_ids)
   for t, thread in enumerate(threads):
-    # Cycle user IDs across threads. See "Author
-    # mapping" in the module docstring.
-    author_ids: Dict[str, str] = {
+    # Cycle user IDs across threads. See "User mapping"
+    # in the module docstring.
+    user_map: Dict[str, str] = {
       name: user_ids[(t + j) % n]
-      for j, name in enumerate(thread.unique_authors())
+      for j, name in enumerate(thread.unique_users())
     }
     by_id: Dict[str, Post] = {}
     # Latest post by each author so far in the thread,
@@ -304,9 +430,9 @@ def assign_fields(
     prev: Optional[Post] = None
     for post in thread.posts:
       post.id = str(uuid.uuid4())
-      post.author_id = author_ids[post.author]
+      post.author_id = user_map[post.author]
       if post.reply_to is None:
-        post.created_at = random_root_time(now)
+        created_at = random_root_time(now)
       else:
         parent = latest[post.reply_to]
         post.parent_id = parent.id
@@ -327,9 +453,30 @@ def assign_fields(
         # (匿名 甲, 匿名 乙, ...) consistent with thread
         # order.
         assert prev is not None and prev.created_at
-        post.created_at = random_reply_time(
+        created_at = random_reply_time(
           prev.created_at, now
         )
+      post.created_at = created_at
+      pairs: List[Tuple[str, str]] = [
+        (spec.emoji, u)
+        for spec in post.reactions
+        for u in spec.users
+      ]
+      if pairs:
+        times = random_reaction_times(
+          created_at, now, len(pairs)
+        )
+        post.reaction_rows = [
+          ReactionRow(
+            post_id=post.id,
+            user_id=user_map[reactor],
+            emoji=emoji,
+            created_at=reacted_at,
+          )
+          for (emoji, reactor), reacted_at in zip(
+            pairs, times
+          )
+        ]
       by_id[post.id] = post
       latest[post.author] = post
       prev = post
@@ -355,7 +502,7 @@ def insert_threads(
   cur: "psycopg2.extensions.cursor",
   threads: List[Thread],
 ) -> None:
-  """Insert posts. Does not commit.
+  """Insert posts and reactions. Does not commit.
 
   Unlike createPostImpl() in src/api/routes/shudong.ts,
   authors are intentionally NOT subscribed to threads.
@@ -368,10 +515,10 @@ def insert_threads(
         'INSERT INTO "ShudongPosts" ('
         ' "id", "parentId", "authorId",'
         ' "isAnonymous", "isAiGenerated", "markdown",'
-        ' "upvoteCount", "responseCount",'
+        ' "responseCount",'
         ' "createdAt", "updatedAt"'
         ") VALUES ("
-        " %s, %s, %s, TRUE, TRUE, %s, 0, %s, %s, %s"
+        " %s, %s, %s, TRUE, TRUE, %s, %s, %s, %s"
         ")",
         (
           post.id,
@@ -383,32 +530,47 @@ def insert_threads(
           post.created_at,
         ),
       )
+      for row in post.reaction_rows:
+        cur.execute(
+          'INSERT INTO "ShudongReactions" ('
+          ' "postId", "userId", "emoji",'
+          ' "createdAt", "updatedAt"'
+          ") VALUES (%s, %s, %s, %s, %s)",
+          (
+            row.post_id,
+            row.user_id,
+            row.emoji,
+            row.created_at,
+            row.created_at,
+          ),
+        )
 
 
 def main() -> None:
-  if len(sys.argv) < 3:
+  if len(sys.argv) < 4:
     print(
       f"Usage: {sys.argv[0]} <database_url>"
-      " <user_id_1> ... <user_id_N>",
+      " <seeds_json> <user_id_1> ... <user_id_N>",
       file=sys.stderr,
     )
     sys.exit(1)
 
   database_url = sys.argv[1]
-  user_ids = sys.argv[2:]
+  seeds_path = Path(sys.argv[2])
+  user_ids = sys.argv[3:]
 
-  threads = load_threads(SEEDS_PATH)
+  threads = load_threads(seeds_path)
   validate_threads(threads)
 
   # The number of user IDs must equal the maximum
-  # number of unique authors in any thread.
+  # number of unique participants in any thread.
   required = max(
-    len(t.unique_authors()) for t in threads
+    len(t.unique_users()) for t in threads
   )
   if len(user_ids) != required:
     fail(
       f"Expected exactly {required} user IDs (the max"
-      " number of unique authors in a thread), got"
+      " number of unique participants in a thread), got"
       f" {len(user_ids)}."
     )
 
@@ -433,10 +595,14 @@ def main() -> None:
   finally:
     conn.close()
 
-  total = sum(len(t.posts) for t in threads)
+  total_posts = sum(len(t.posts) for t in threads)
+  total_reactions = sum(
+    len(p.reaction_rows) for t in threads for p in t.posts
+  )
   print(
     f"Imported {len(threads)} threads"
-    f" ({total} posts).",
+    f" ({total_posts} posts,"
+    f" {total_reactions} reactions).",
     file=sys.stderr,
   )
 

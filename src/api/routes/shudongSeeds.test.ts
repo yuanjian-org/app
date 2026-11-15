@@ -1,6 +1,7 @@
 import { expect } from "chai";
+import { zShudongEmoji } from "../../shared/Shudong";
 import {
-  buildShudongSeedPosts,
+  buildShudongSeeds,
   isMentorSeedAuthor,
   RawShudongSeedThread,
   shudongSeeds,
@@ -19,9 +20,9 @@ describe("shudongSeeds", () => {
     "mentor-5",
   ];
 
-  it("builds 12 threads and 44 posts with valid metadata and counts", () => {
+  it("builds 12 threads, 44 posts, and valid emoji reactions", () => {
     const now = new Date("2026-11-15T12:00:00Z");
-    const posts = buildShudongSeedPosts(
+    const { posts, reactions } = buildShudongSeeds(
       menteeIds,
       mentorIds,
       shudongSeeds,
@@ -39,17 +40,66 @@ describe("shudongSeeds", () => {
     const roots = posts.filter((p) => p.parentId === null);
     expect(roots.length).to.equal(12);
 
+    const postById = new Map(posts.map((p) => [p.id, p]));
     for (const post of posts) {
       expect(post.isAnonymous).to.equal(true);
       expect(post.isAiGenerated).to.equal(true);
-      expect(post.upvoteCount).to.equal(0);
       expect(post.updatedAt.getTime()).to.equal(post.createdAt.getTime());
     }
 
-    // Walk per-thread slices to verify responseCount, author roles, and times.
+    const expectedReactionsTotal = shudongSeeds.reduce(
+      (sum, thread) =>
+        sum +
+        thread.posts.reduce(
+          (pSum, post) =>
+            pSum +
+            (post.reactions ?? []).reduce(
+              (rSum, r) => rSum + r.users.length,
+              0,
+            ),
+          0,
+        ),
+      0,
+    );
+    expect(expectedReactionsTotal).to.be.greaterThan(0);
+    expect(reactions.length).to.equal(expectedReactionsTotal);
+
+    const seenReactionKeys = new Set<string>();
+    const reactionsByPostId = new Map<string, typeof reactions>();
+    for (const r of reactions) {
+      const targetPost = postById.get(r.postId);
+      if (!targetPost) {
+        throw new Error(`Reaction references unknown post ${r.postId}`);
+      }
+      expect(zShudongEmoji.safeParse(r.emoji).success).to.equal(true);
+      const key = `${r.postId}:${r.userId}:${r.emoji}`;
+      expect(seenReactionKeys.has(key)).to.equal(false);
+      seenReactionKeys.add(key);
+
+      expect(r.createdAt.getTime()).to.be.at.least(
+        targetPost.createdAt.getTime(),
+      );
+      expect(r.createdAt.getTime()).to.be.at.most(now.getTime());
+      expect(r.updatedAt.getTime()).to.equal(r.createdAt.getTime());
+
+      const list = reactionsByPostId.get(r.postId) ?? [];
+      list.push(r);
+      reactionsByPostId.set(r.postId, list);
+    }
+
+    for (const list of reactionsByPostId.values()) {
+      for (let i = 1; i < list.length; i++) {
+        expect(list[i].createdAt.getTime()).to.be.at.least(
+          list[i - 1].createdAt.getTime(),
+        );
+      }
+    }
+
+    // Walk per-thread slices to verify responseCount, participant roles,
+    // and times.
     let offset = 0;
     const seenRootMenteeAuthors = new Set<string>();
-    const seenMentorAuthors = new Set<string>();
+    const seenMentorParticipants = new Set<string>();
 
     for (const thread of shudongSeeds) {
       const slice = posts.slice(offset, offset + thread.posts.length);
@@ -64,15 +114,15 @@ describe("shudongSeeds", () => {
         now.getTime() - 2 * MS_PER_DAY,
       );
 
-      // Distinct seed authors within the same thread must map to distinct
+      // Distinct seed participants within the same thread must map to distinct
       // user IDs, and roles must match.
-      const authorIdBySeedName = new Map<string, string>();
+      const userIdBySeedName = new Map<string, string>();
       for (let i = 0; i < thread.posts.length; i++) {
         const raw = thread.posts[i];
         const built = slice[i];
         if (isMentorSeedAuthor(raw.author)) {
           expect(mentorIds).to.include(built.authorId);
-          seenMentorAuthors.add(built.authorId);
+          seenMentorParticipants.add(built.authorId);
         } else {
           expect(menteeIds).to.include(built.authorId);
           if (i === 0) {
@@ -80,14 +130,14 @@ describe("shudongSeeds", () => {
           }
         }
 
-        const existingId = authorIdBySeedName.get(raw.author);
+        const existingId = userIdBySeedName.get(raw.author);
         if (existingId) {
           expect(built.authorId).to.equal(existingId);
         } else {
-          expect(Array.from(authorIdBySeedName.values())).to.not.include(
+          expect(Array.from(userIdBySeedName.values())).to.not.include(
             built.authorId,
           );
-          authorIdBySeedName.set(raw.author, built.authorId);
+          userIdBySeedName.set(raw.author, built.authorId);
         }
 
         if (i > 0) {
@@ -97,11 +147,41 @@ describe("shudongSeeds", () => {
           expect(built.createdAt.getTime()).to.be.lessThan(now.getTime());
         }
       }
+
+      for (let i = 0; i < thread.posts.length; i++) {
+        const raw = thread.posts[i];
+        const built = slice[i];
+        const postReactions = reactionsByPostId.get(built.id) ?? [];
+        const expectedPairs = (raw.reactions ?? []).flatMap((r) =>
+          r.users.map((user) => ({ emoji: r.emoji, user })),
+        );
+        expect(postReactions.length).to.equal(expectedPairs.length);
+
+        expectedPairs.forEach((pair, idx) => {
+          const actual = postReactions[idx];
+          expect(actual.emoji).to.equal(pair.emoji);
+          if (isMentorSeedAuthor(pair.user)) {
+            expect(mentorIds).to.include(actual.userId);
+            seenMentorParticipants.add(actual.userId);
+          } else {
+            expect(menteeIds).to.include(actual.userId);
+          }
+          const existingId = userIdBySeedName.get(pair.user);
+          if (existingId) {
+            expect(actual.userId).to.equal(existingId);
+          } else {
+            expect(Array.from(userIdBySeedName.values())).to.not.include(
+              actual.userId,
+            );
+            userIdBySeedName.set(pair.user, actual.userId);
+          }
+        });
+      }
     }
 
     // Cycling across 12 threads should use multiple mentees and mentors.
     expect(seenRootMenteeAuthors.size).to.equal(menteeIds.length);
-    expect(seenMentorAuthors.size).to.equal(mentorIds.length);
+    expect(seenMentorParticipants.size).to.equal(mentorIds.length);
 
     // Thread #2 (index 1) is a 4-post chain Alice -> 甲导师 -> Alice -> 甲导师.
     const thread2Start = shudongSeeds[0].posts.length;
@@ -177,6 +257,73 @@ describe("shudongSeeds", () => {
           },
         ],
         errorPart: "unknown author 'Carol'",
+      },
+      {
+        name: "invalid reaction emoji",
+        threads: [
+          {
+            posts: [
+              {
+                author: "Alice",
+                replyTo: null,
+                markdown: "q1",
+                reactions: [{ emoji: "🚀", users: ["Bob"] }],
+              },
+            ],
+          },
+        ],
+        errorPart: "Invalid emoji '🚀'",
+      },
+      {
+        name: "duplicate reaction emoji on same post",
+        threads: [
+          {
+            posts: [
+              {
+                author: "Alice",
+                replyTo: null,
+                markdown: "q1",
+                reactions: [
+                  { emoji: "👍", users: ["Bob"] },
+                  { emoji: "👍", users: ["Carol"] },
+                ],
+              },
+            ],
+          },
+        ],
+        errorPart: "Duplicate emoji '👍'",
+      },
+      {
+        name: "empty users list on reaction",
+        threads: [
+          {
+            posts: [
+              {
+                author: "Alice",
+                replyTo: null,
+                markdown: "q1",
+                reactions: [{ emoji: "👍", users: [] }],
+              },
+            ],
+          },
+        ],
+        errorPart: "Empty users list",
+      },
+      {
+        name: "duplicate user in reaction users",
+        threads: [
+          {
+            posts: [
+              {
+                author: "Alice",
+                replyTo: null,
+                markdown: "q1",
+                reactions: [{ emoji: "👍", users: ["Bob", "Bob"] }],
+              },
+            ],
+          },
+        ],
+        errorPart: "Duplicate user 'Bob'",
       },
     ];
 

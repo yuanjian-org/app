@@ -21,7 +21,7 @@ import { isPermitted } from "../../shared/Role";
 import { hash } from "bcryptjs";
 import { ProjectApplicationStatus } from "../../shared/ProjectApplication";
 import { listQuestionsImpl } from "./shudong";
-import { buildShudongSeedPosts } from "./shudongSeeds";
+import { buildShudongSeeds } from "./shudongSeeds";
 
 const demo = _.cloneDeep(demoData);
 const admin = demo.users.admin;
@@ -109,8 +109,15 @@ async function generateShudong(t: Transaction) {
   // mentee4..5 are interviewees without menteeStatus.
   const menteeIds = [mentee1, mentee2, mentee3].map(id);
   const mentorIds = [mentor1, mentor2, mentor3, mentor4, mentor5].map(id);
-  const posts = buildShudongSeedPosts(menteeIds, mentorIds, demo.shudong);
+  const { posts, reactions } = buildShudongSeeds(
+    menteeIds,
+    mentorIds,
+    demo.shudong,
+  );
   await db.ShudongPost.bulkCreate(posts, { transaction: t });
+  if (reactions.length > 0) {
+    await db.ShudongReaction.bulkCreate(reactions, { transaction: t });
+  }
 }
 
 async function generateOrgs(t: Transaction) {

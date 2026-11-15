@@ -1,12 +1,19 @@
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 import invariant from "shared/invariant";
+import { ShudongEmoji, zShudongEmoji } from "../../shared/Shudong";
 import rawShudongSeeds from "./shudongSeedThreads.json";
+
+export type RawShudongSeedReaction = {
+  emoji: string;
+  users: readonly string[];
+};
 
 export type RawShudongSeedPost = {
   author: string;
   replyTo: string | null;
   markdown: string;
+  reactions?: readonly RawShudongSeedReaction[];
 };
 
 export type RawShudongSeedThread = {
@@ -21,10 +28,22 @@ export type BuiltShudongSeedPost = {
   isAnonymous: boolean;
   isAiGenerated: boolean;
   markdown: string;
-  upvoteCount: number;
   responseCount: number;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type BuiltShudongSeedReaction = {
+  postId: string;
+  userId: string;
+  emoji: ShudongEmoji;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type BuiltShudongSeeds = {
+  posts: BuiltShudongSeedPost[];
+  reactions: BuiltShudongSeedReaction[];
 };
 
 export const shudongSeeds: readonly RawShudongSeedThread[] = rawShudongSeeds;
@@ -62,14 +81,59 @@ const REPLY_DELAY_SIGMA = 1.1;
 const REPLY_DELAY_MIN_MIN = 4;
 
 /**
- * Returns true if the seed author name represents a mentor (e.g. "甲导师").
+ * Returns true if the seed participant name represents a mentor (e.g.
+ * "甲导师").
  */
 export function isMentorSeedAuthor(author: string): boolean {
   return author.endsWith("导师");
 }
 
+function validatePostReactions(
+  reactions: readonly RawShudongSeedReaction[] | undefined,
+  postIndex: number,
+  where: string,
+): void {
+  if (!reactions) {
+    return;
+  }
+  const seenEmojis = new Set<string>();
+  for (const reaction of reactions) {
+    const parsedEmoji = zShudongEmoji.safeParse(reaction.emoji);
+    invariant(
+      parsedEmoji.success,
+      `Invalid emoji '${reaction.emoji}' on post #${postIndex + 1}` +
+        ` in ${where}.`,
+    );
+    invariant(
+      !seenEmojis.has(reaction.emoji),
+      `Duplicate emoji '${reaction.emoji}' on post #${postIndex + 1}` +
+        ` in ${where}.`,
+    );
+    seenEmojis.add(reaction.emoji);
+    invariant(
+      reaction.users.length > 0,
+      `Empty users list for emoji '${reaction.emoji}' on post` +
+        ` #${postIndex + 1} in ${where}.`,
+    );
+    const seenUsers = new Set<string>();
+    for (const user of reaction.users) {
+      invariant(
+        user.trim().length > 0,
+        `Empty user in reaction '${reaction.emoji}' on post` +
+          ` #${postIndex + 1} in ${where}.`,
+      );
+      invariant(
+        !seenUsers.has(user),
+        `Duplicate user '${user}' for emoji '${reaction.emoji}' on post` +
+          ` #${postIndex + 1} in ${where}.`,
+      );
+      seenUsers.add(user);
+    }
+  }
+}
+
 /**
- * Validates thread and post invariants on Shudong seed data.
+ * Validates thread, post, and reaction invariants on Shudong seed data.
  */
 export function validateShudongSeedThreads(
   threads: readonly RawShudongSeedThread[],
@@ -109,6 +173,7 @@ export function validateShudongSeedThreads(
             ` in ${where}.`,
         );
       }
+      validatePostReactions(post.reactions, i, where);
     }
   }
 }
@@ -131,7 +196,12 @@ function randomRootTime(now: Date): Date {
   }
 }
 
-function randomReplyTime(prev: Date, now: Date): Date {
+function randomTimeAfter(
+  after: Date,
+  now: Date,
+  fallbackMinFraction: number,
+  fallbackMaxFraction: number,
+): Date {
   for (let attempt = 0; attempt < 100; attempt++) {
     // Box-Muller transform using 1 - Math.random() in (0, 1] to avoid log(0).
     const u1 = 1 - Math.random();
@@ -141,16 +211,43 @@ function randomReplyTime(prev: Date, now: Date): Date {
       Math.log(REPLY_DELAY_MEDIAN_MIN) + REPLY_DELAY_SIGMA * z,
     );
     const delayMin = Math.max(REPLY_DELAY_MIN_MIN, logNorm);
-    const t = new Date(prev.getTime() + delayMin * MS_PER_MINUTE);
+    const t = new Date(after.getTime() + delayMin * MS_PER_MINUTE);
     if (t.getTime() < now.getTime() && acceptHour(t)) {
       return t;
     }
   }
-  const remaining = now.getTime() - prev.getTime();
-  return new Date(prev.getTime() + remaining * (0.2 + 0.6 * Math.random()));
+  const remaining = now.getTime() - after.getTime();
+  const fraction =
+    fallbackMinFraction +
+    (fallbackMaxFraction - fallbackMinFraction) * Math.random();
+  return new Date(after.getTime() + remaining * fraction);
 }
 
-function buildThreadAuthorMap(
+function randomReactionTimes(
+  postCreatedAt: Date,
+  now: Date,
+  count: number,
+): Date[] {
+  const times: Date[] = [];
+  for (let i = 0; i < count; i++) {
+    times.push(randomTimeAfter(postCreatedAt, now, 0.05, 0.95));
+  }
+  times.sort((a, b) => a.getTime() - b.getTime());
+  return times;
+}
+
+function recordParticipant(
+  name: string,
+  uniqueMentees: string[],
+  uniqueMentors: string[],
+): void {
+  const target = isMentorSeedAuthor(name) ? uniqueMentors : uniqueMentees;
+  if (!target.includes(name)) {
+    target.push(name);
+  }
+}
+
+function buildThreadUserMap(
   threadIndex: number,
   posts: readonly RawShudongSeedPost[],
   menteeIds: readonly string[],
@@ -159,12 +256,13 @@ function buildThreadAuthorMap(
   const uniqueMentees: string[] = [];
   const uniqueMentors: string[] = [];
   for (const post of posts) {
-    if (isMentorSeedAuthor(post.author)) {
-      if (!uniqueMentors.includes(post.author)) {
-        uniqueMentors.push(post.author);
+    recordParticipant(post.author, uniqueMentees, uniqueMentors);
+  }
+  for (const post of posts) {
+    for (const reaction of post.reactions ?? []) {
+      for (const user of reaction.users) {
+        recordParticipant(user, uniqueMentees, uniqueMentors);
       }
-    } else if (!uniqueMentees.includes(post.author)) {
-      uniqueMentees.push(post.author);
     }
   }
 
@@ -179,47 +277,44 @@ function buildThreadAuthorMap(
       ` got ${mentorIds.length}.`,
   );
 
-  // Cycle user IDs across threads within each role so the same seed author
-  // maps to different users across threads while different authors in the
-  // same thread always map to different users.
-  const authorMap = new Map<string, string>();
+  // Cycle user IDs across threads within each role so the same seed name
+  // maps to different users across threads while different participants in
+  // the same thread always map to different users.
+  const userMap = new Map<string, string>();
   uniqueMentees.forEach((name, j) => {
-    authorMap.set(name, menteeIds[(threadIndex + j) % menteeIds.length]);
+    userMap.set(name, menteeIds[(threadIndex + j) % menteeIds.length]);
   });
   uniqueMentors.forEach((name, k) => {
-    authorMap.set(name, mentorIds[(threadIndex + k) % mentorIds.length]);
+    userMap.set(name, mentorIds[(threadIndex + k) % mentorIds.length]);
   });
-  return authorMap;
+  return userMap;
 }
 
 /**
- * Converts seed threads into ShudongPost rows with realistic timestamps,
- * role-matched author IDs, resolved parent IDs, and ancestor responseCounts.
+ * Converts seed threads into ShudongPost and ShudongReaction rows with
+ * realistic timestamps, role-matched user IDs, resolved parent IDs, and
+ * ancestor responseCounts.
  */
-export function buildShudongSeedPosts(
+export function buildShudongSeeds(
   menteeIds: readonly string[],
   mentorIds: readonly string[],
   threads: readonly RawShudongSeedThread[] = shudongSeeds,
   now: Date = new Date(),
-): BuiltShudongSeedPost[] {
+): BuiltShudongSeeds {
   validateShudongSeedThreads(threads);
 
-  const allPosts: BuiltShudongSeedPost[] = [];
+  const posts: BuiltShudongSeedPost[] = [];
+  const reactions: BuiltShudongSeedReaction[] = [];
   for (let t = 0; t < threads.length; t++) {
     const thread = threads[t];
-    const authorMap = buildThreadAuthorMap(
-      t,
-      thread.posts,
-      menteeIds,
-      mentorIds,
-    );
+    const userMap = buildThreadUserMap(t, thread.posts, menteeIds, mentorIds);
     const byId = new Map<string, BuiltShudongSeedPost>();
     const latestByAuthor = new Map<string, BuiltShudongSeedPost>();
     let prevCreatedAt: Date | null = null;
 
     for (const rawPost of thread.posts) {
       const id = randomUUID();
-      const authorId = authorMap.get(rawPost.author);
+      const authorId = userMap.get(rawPost.author);
       invariant(authorId, `Missing author mapping for '${rawPost.author}'.`);
 
       let parentId: string | null = null;
@@ -240,7 +335,7 @@ export function buildShudongSeedPosts(
         }
 
         invariant(prevCreatedAt, "Missing previous post timestamp.");
-        createdAt = randomReplyTime(prevCreatedAt, now);
+        createdAt = randomTimeAfter(prevCreatedAt, now, 0.2, 0.8);
       }
 
       const builtPost: BuiltShudongSeedPost = {
@@ -250,7 +345,6 @@ export function buildShudongSeedPosts(
         isAnonymous: true,
         isAiGenerated: true,
         markdown: rawPost.markdown.trim(),
-        upvoteCount: 0,
         responseCount: 0,
         createdAt,
         updatedAt: createdAt,
@@ -258,8 +352,31 @@ export function buildShudongSeedPosts(
       byId.set(id, builtPost);
       latestByAuthor.set(rawPost.author, builtPost);
       prevCreatedAt = createdAt;
-      allPosts.push(builtPost);
+      posts.push(builtPost);
+
+      const pairs: { emoji: ShudongEmoji; user: string }[] = [];
+      for (const rawReaction of rawPost.reactions ?? []) {
+        const parsedEmoji = zShudongEmoji.parse(rawReaction.emoji);
+        for (const user of rawReaction.users) {
+          pairs.push({ emoji: parsedEmoji, user });
+        }
+      }
+      if (pairs.length > 0) {
+        const times = randomReactionTimes(createdAt, now, pairs.length);
+        pairs.forEach((pair, idx) => {
+          const userId = userMap.get(pair.user);
+          invariant(userId, `Missing user mapping for '${pair.user}'.`);
+          const reactionTime = times[idx];
+          reactions.push({
+            postId: id,
+            userId,
+            emoji: pair.emoji,
+            createdAt: reactionTime,
+            updatedAt: reactionTime,
+          });
+        });
+      }
     }
   }
-  return allPosts;
+  return { posts, reactions };
 }
