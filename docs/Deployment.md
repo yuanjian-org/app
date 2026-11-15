@@ -136,3 +136,72 @@ GitHub's `workflow_dispatch` REST API using https://cron-job.org.
 1. Click **TEST RUN** to verify that GitHub responds with `204 No Content` and
    that a new workflow run starts in the repository's **Actions** tab, then
    click **CREATE**.
+
+## 5. Configure Weekly Agent Tasks (Gemini CLI)
+
+The `.github/workflows/weekly-agent-tasks.yml` workflow runs Gemini CLI on a
+staggered weekly schedule (`weekly-bug-hunt` on Mondays, `weekly-test-coverage`
+on Wednesdays, and `weekly-deduplicate` on Fridays) and opens pull requests.
+
+### Step 1: Configure Gemini Authentication
+
+In GitHub, open **Settings** > **Secrets and variables** > **Actions** and
+configure **one** of the following authentication methods:
+
+- **Option A: Google AI Studio API Key (Simplest)**
+  1. Generate a Gemini API key at https://aistudio.google.com/apikey.
+  1. Under the **Secrets** tab, click **New repository secret**:
+     - **Name**: `GEMINI_API_KEY`
+     - **Secret**: `<YOUR_GEMINI_API_KEY>`
+
+- **Option B: Vertex AI Express API Key**
+  1. Under the **Secrets** tab, add `GOOGLE_API_KEY` with your Vertex AI API
+     key.
+  1. Under the **Variables** tab, click **New repository variable**:
+     - **Name**: `GOOGLE_GENAI_USE_VERTEXAI`
+     - **Value**: `true`
+
+- **Option C: Google Cloud Workload Identity Federation (WIF)**
+  1. Under the **Variables** tab, create the following repository variables:
+     - `GCP_WIF_PROVIDER`: Full Workload Identity Provider resource name
+       (e.g., `projects/123/locations/global/workloadIdentityPools/...`).
+     - `GOOGLE_CLOUD_PROJECT`: Google Cloud project ID.
+     - `GOOGLE_CLOUD_LOCATION`: Google Cloud region (e.g., `us-central1`).
+     - `SERVICE_ACCOUNT_EMAIL`: Google Cloud service account email.
+     - `GOOGLE_GENAI_USE_VERTEXAI`: Set to `true` (or set
+       `GOOGLE_GENAI_USE_GCA` to `true` for Gemini Code Assist).
+
+### Step 2: Optional Gemini CLI Variables
+
+You can optionally add the following under **Settings** > **Secrets and
+variables** > **Actions** > **Variables**:
+
+- **`GEMINI_MODEL`**: Override the default Gemini model (e.g.,
+  `gemini-2.5-pro`).
+- **`GEMINI_CLI_VERSION`**: Pin `@google/gemini-cli` to a specific version
+  (defaults to `latest`).
+
+### Step 3: Configure GitHub Pull Request Permissions
+
+Enable branch pushing and pull request creation using **one** of the options
+below:
+
+- **Option A: Built-in `GITHUB_TOKEN`**
+  1. Go to repository **Settings** > **Actions** > **General**.
+  1. Scroll to **Workflow permissions**, select **Read and write permissions**,
+     check **Allow GitHub Actions to create and approve pull requests**, and
+     click **Save**.
+
+- **Option B: Fine-Grained Personal Access Token (`GH_PAT`)**
+  *(Recommended if you want PRs opened by the agent to trigger CI checks)*
+  1. Open GitHub **Settings** (top-right user avatar) > **Developer settings**
+     > **Personal access tokens** > **Fine-grained tokens** >
+     **Generate new token**.
+  1. Set **Resource owner** to `yuanjian-org` and select **Only select
+     repositories** (`yuanjian-org/app`).
+  1. Under **Permissions** > **Repository permissions**, set:
+     - **Contents**: **Read and write**
+     - **Pull requests**: **Read and write**
+  1. Generate the token and save it under repository **Settings** >
+     **Secrets and variables** > **Actions** > **New repository secret** with
+     the name `GH_PAT`.
