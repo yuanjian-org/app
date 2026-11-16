@@ -14,6 +14,7 @@ import * as tokenModule from "../../shared/token";
 import sinon from "sinon";
 import moment from "moment";
 import { TRPCError } from "@trpc/server";
+import * as isDevModule from "shared/isDev";
 
 describe("sendImpl", () => {
   let transaction: Transaction;
@@ -361,6 +362,59 @@ describe("setPhoneImpl", () => {
     void expect(existingUser.email).to.equal("me-priv@example.com");
     void expect(existingUser.password).to.be.null;
   });
+
+  it("should copy password on privileged merge in local dev", async () => {
+    sinon.stub(isDevModule, "isDev").returns(true);
+    const existingUser = await db.User.create(
+      {
+        phone,
+        name: "privileged existing user",
+        roles: ["UserAdmin"],
+        password: "old-privileged-password",
+      },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me user",
+        email: "me-priv@example.com",
+        password: "new-hashed-password",
+      },
+      { transaction },
+    );
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).to.equal("me-priv@example.com");
+    void expect(existingUser.password).to.equal("new-hashed-password");
+  });
+
+  it("should retain privileged password on merge in local dev", async () => {
+    sinon.stub(isDevModule, "isDev").returns(true);
+    const existingUser = await db.User.create(
+      {
+        phone,
+        name: "privileged existing user",
+        roles: ["UserAdmin"],
+        password: "old-privileged-password",
+      },
+      { transaction },
+    );
+    const me = await db.User.create(
+      {
+        name: "me user",
+        email: "me-priv-retain@example.com",
+      },
+      { transaction },
+    );
+
+    await setPhoneImpl(phone, token, me, transaction);
+
+    await existingUser.reload({ transaction });
+    void expect(existingUser.email).to.equal("me-priv-retain@example.com");
+    void expect(existingUser.password).to.equal("old-privileged-password");
+  });
 });
 
 describe("resetPasswordImpl", () => {
@@ -534,6 +588,23 @@ describe("resetPasswordImpl", () => {
         void expect(error).to.be.instanceOf(Error);
         void expect(error.message).to.include("特权用户禁止使用密码登录");
       }
+    });
+
+    it("should allow privileged user password reset in local dev", async () => {
+      sinon.stub(isDevModule, "isDev").returns(true);
+      const user = await createTestUser("phone", testPhone, ["UserAdmin"]);
+      await createTestIdToken("phone", testPhone, testToken);
+
+      await resetPasswordImpl(
+        "phone",
+        testPhone,
+        testToken,
+        hashedPassword,
+        transaction,
+      );
+
+      await user.reload({ transaction });
+      void expect(user.password).to.equal(hashedPassword);
     });
   });
 

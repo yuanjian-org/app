@@ -1,4 +1,5 @@
 import z from "zod";
+import { isDev } from "./isDev";
 
 export const allRoles = [
   "SystemAlertSubscriber",
@@ -133,6 +134,14 @@ export function hasPrivilegedUserDataAccess(roles?: Role[] | null) {
   return Boolean(
     roles?.some((role) => roleProfile(role).privilegedUserDataAccess),
   );
+}
+
+/**
+ * Whether accounts with the given roles are prohibited from having or
+ * logging in with a password (privileged roles outside local development).
+ */
+export function isPasswordProhibited(roles?: Role[] | null) {
+  return !isDev() && hasPrivilegedUserDataAccess(roles);
 }
 
 export function displayName(role: Role) {
