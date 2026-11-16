@@ -1,10 +1,9 @@
 import { whiteLabel } from "shared/WhiteLabel";
-import { isDev } from "shared/isDev";
 import { procedure, router } from "../trpc";
 import { z } from "zod";
 import Role, {
   allRoles,
-  hasPrivilegedUserDataAccess,
+  isPasswordProhibited,
   isPermitted,
   roleProfile,
   zRoles,
@@ -556,8 +555,7 @@ export async function updateImpl(
         // Clear any existing password when granting or retaining privileged
         // roles outside local development so privileged accounts cannot log in
         // with a password.
-        ...(!isDev() &&
-          hasPrivilegedUserDataAccess(input.roles) && { password: null }),
+        ...(isPasswordProhibited(input.roles) && { password: null }),
       }),
     },
     { transaction },

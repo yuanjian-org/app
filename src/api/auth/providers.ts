@@ -8,8 +8,7 @@ import {
 } from "../database/models/attributesAndIncludes";
 import { checkAndDeleteIdToken } from "../checkAndDeleteIdToken";
 import { IdType } from "shared/IdType";
-import { hasPrivilegedUserDataAccess } from "shared/Role";
-import { isDev } from "shared/isDev";
+import { isPasswordProhibited } from "shared/Role";
 import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
@@ -36,9 +35,7 @@ const providers: NextAuthOptions["providers"] = [
       if (
         !user ||
         !user.password ||
-        (whiteLabel !== "demo" &&
-          !isDev() &&
-          hasPrivilegedUserDataAccess(user.roles))
+        (whiteLabel !== "demo" && isPasswordProhibited(user.roles))
       ) {
         return null;
       }
