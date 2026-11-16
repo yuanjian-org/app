@@ -991,7 +991,8 @@ describe("shudong backend routes", () => {
       );
       void expect(mentorResponse.isMentorPosted).to.be.true;
 
-      // Soft-deleting a mentor's question with responses hides mentor tag
+      // Soft-deleting a mentor's question with responses hides mentor tag,
+      // markdown content, and anonymousName label
       await deletePostImpl(mentor, mentorQuestion.id, transaction);
       const detail = await getQuestionImpl(
         mentee,
@@ -999,6 +1000,77 @@ describe("shudong backend routes", () => {
         transaction,
       );
       void expect(detail.question.isMentorPosted).to.be.false;
+      expect(detail.question.markdown).to.equal("");
+      void expect(detail.question.anonymousName).to.be.null;
+    });
+  });
+
+  describe("de-anonymization and soft-delete protections", () => {
+    it("should protect anonymous identities and deleted posts", async () => {
+      const op = await createTestUser(["Mentor"]);
+      const userA = await createTestUser(["Mentee"], "现届学子");
+      const userB = await createTestUser(["Mentee"], "现届学子");
+
+      // Non-anonymous OP creates a root question
+      const q = await createPostImpl(
+        op,
+        null,
+        "Named Question",
+        false,
+        transaction,
+      );
+
+      // User A replies non-anonymously (should not consume "匿名 甲")
+      const namedReplyA = await createPostImpl(
+        userA,
+        q.id,
+        "Named reply by A",
+        false,
+        transaction,
+      );
+
+      // Calling getQuestionImpl on a reply must fail
+      try {
+        await getQuestionImpl(userB, namedReplyA.id, transaction);
+        expect.fail("Should have thrown not found error for non-root post");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("树洞帖子");
+      }
+
+      // User B replies anonymously -> gets "匿名 甲"
+      const anonReplyB = await createPostImpl(
+        userB,
+        q.id,
+        "Anon reply by B",
+        true,
+        transaction,
+      );
+      expect(anonReplyB.anonymousName).to.equal("匿名 甲");
+
+      // Named OP replies anonymously -> gets "匿名 乙" instead of "匿名楼主"
+      const anonReplyOp = await createPostImpl(
+        op,
+        q.id,
+        "Anon reply by named OP",
+        true,
+        transaction,
+      );
+      expect(anonReplyOp.anonymousName).to.equal("匿名 乙");
+
+      // Soft-deleted post cannot be replied to
+      await deletePostImpl(userA, namedReplyA.id, transaction);
+      try {
+        await createPostImpl(
+          userB,
+          namedReplyA.id,
+          "Reply to deleted post",
+          false,
+          transaction,
+        );
+        expect.fail("Should have thrown not found error for deleted parent");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("树洞帖子");
+      }
     });
   });
 
