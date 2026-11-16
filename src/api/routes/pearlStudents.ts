@@ -37,8 +37,8 @@ const validate = procedure
     });
   });
 
-const PEARL_MAX_FAILED_ATTEMPTS = 5;
-const PEARL_LOCKOUT_MS = 15 * 60 * 1000;
+const pearlMaxFailedAttempts = 10;
+const pearlLockoutMs = 15 * 60 * 1000;
 const pearlValidationFailedAttempts = new Map<
   string,
   { count: number; firstFailedAt: number }
@@ -52,17 +52,23 @@ function isPearlRateLimited(key: string, now: number) {
   const info = pearlValidationFailedAttempts.get(key);
   return (
     info !== undefined &&
-    now - info.firstFailedAt < PEARL_LOCKOUT_MS &&
-    info.count >= PEARL_MAX_FAILED_ATTEMPTS
+    now - info.firstFailedAt < pearlLockoutMs &&
+    info.count >= pearlMaxFailedAttempts
   );
 }
 
 function recordPearlFailure(key: string, now: number) {
   const prev = pearlValidationFailedAttempts.get(key);
-  if (!prev || now - prev.firstFailedAt >= PEARL_LOCKOUT_MS) {
+  if (!prev || now - prev.firstFailedAt >= pearlLockoutMs) {
     pearlValidationFailedAttempts.set(key, { count: 1, firstFailedAt: now });
   } else {
     prev.count += 1;
+    if (prev.count >= pearlMaxFailedAttempts) {
+      console.error(
+        `Pearl student validation reached ${pearlMaxFailedAttempts} ` +
+          `failed attempts for ${key}`,
+      );
+    }
   }
 }
 
@@ -78,6 +84,10 @@ export async function validateImpl(
   const userKey = `user:${me.id}`;
   const pearlKey = `pearl:${pearlId}`;
   if (isPearlRateLimited(userKey, now) || isPearlRateLimited(pearlKey, now)) {
+    console.error(
+      `Pearl student validation locked out after ${pearlMaxFailedAttempts} ` +
+        `failed attempts for ${userKey} / ${pearlKey}`,
+    );
     throw generalBadRequestError("验证尝试次数过多，请稍后再试。");
   }
 

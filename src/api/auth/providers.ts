@@ -15,11 +15,11 @@ import YuantuSsoProvider from "./YuantuSsoProvider";
 
 // Precomputed bcrypt hash (cost 10) used when a user does not exist or has no
 // password set, preventing timing-based user enumeration.
-const DUMMY_PASSWORD_HASH =
+const dummyPasswordHash =
   "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
-const PASSWORD_MAX_FAILED_ATTEMPTS = 5;
-const PASSWORD_LOCKOUT_MS = 15 * 60 * 1000;
+const passwordMaxFailedAttempts = 10;
+const passwordLockoutMs = 15 * 60 * 1000;
 const passwordFailedAttempts = new Map<
   string,
   { count: number; firstFailedAt: number }
@@ -46,11 +46,15 @@ const providers: NextAuthOptions["providers"] = [
       const attemptInfo = passwordFailedAttempts.get(rateLimitKey);
       const isLockedOut =
         attemptInfo !== undefined &&
-        now - attemptInfo.firstFailedAt < PASSWORD_LOCKOUT_MS &&
-        attemptInfo.count >= PASSWORD_MAX_FAILED_ATTEMPTS;
+        now - attemptInfo.firstFailedAt < passwordLockoutMs &&
+        attemptInfo.count >= passwordMaxFailedAttempts;
 
       if (isLockedOut) {
-        await compare(password, DUMMY_PASSWORD_HASH);
+        console.error(
+          `Password login locked out after ${passwordMaxFailedAttempts} ` +
+            `failed attempts for ${rateLimitKey}`,
+        );
+        await compare(password, dummyPasswordHash);
         return null;
       }
 
@@ -65,18 +69,24 @@ const providers: NextAuthOptions["providers"] = [
         Boolean(user && user.password) &&
         (whiteLabel === "demo" || !isPasswordProhibited(user!.roles));
       const targetHash =
-        canUsePassword && user?.password ? user.password : DUMMY_PASSWORD_HASH;
+        canUsePassword && user?.password ? user.password : dummyPasswordHash;
       const match = await compare(password, targetHash);
 
       if (!canUsePassword || !match) {
         const prev = passwordFailedAttempts.get(rateLimitKey);
-        if (!prev || now - prev.firstFailedAt >= PASSWORD_LOCKOUT_MS) {
+        if (!prev || now - prev.firstFailedAt >= passwordLockoutMs) {
           passwordFailedAttempts.set(rateLimitKey, {
             count: 1,
             firstFailedAt: now,
           });
         } else {
           prev.count += 1;
+          if (prev.count >= passwordMaxFailedAttempts) {
+            console.error(
+              `Password login reached ${passwordMaxFailedAttempts} ` +
+                `failed attempts for ${rateLimitKey}`,
+            );
+          }
         }
         return null;
       }

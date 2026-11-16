@@ -149,8 +149,8 @@ describe("pearlStudents API routes", () => {
       }
     });
 
-    it("should lock out after 5 failed validation attempts", async () => {
-      for (let i = 0; i < 5; i++) {
+    it("should lock out after 10 failed validation attempts", async () => {
+      for (let i = 0; i < 10; i++) {
         try {
           await validateImpl(
             testUser,
@@ -166,7 +166,7 @@ describe("pearlStudents API routes", () => {
         }
       }
 
-      // 6th attempt even with correct details must be rate-limited
+      // 11th attempt even with correct details must be rate-limited
       try {
         await validateImpl(
           testUser,

@@ -251,7 +251,7 @@ describe("Auth Providers", () => {
       }
     });
 
-    it("should lock out password login after 5 failed attempts", async () => {
+    it("should lock out password login after 10 failed attempts", async () => {
       const password = "mysecretpassword";
       const hashedPassword = await hash(password, 10);
       const testEmail = `${randomUUID()}@example.com`;
@@ -264,7 +264,7 @@ describe("Auth Providers", () => {
       });
 
       try {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
           const failed = await idPasswordProvider.authorize!(
             {
               idType: "email",
@@ -276,7 +276,7 @@ describe("Auth Providers", () => {
           expect(failed).to.equal(null);
         }
 
-        // 6th attempt with the correct password must be rejected while locked
+        // 11th attempt with the correct password must be rejected while locked
         const lockedResult = await idPasswordProvider.authorize!(
           {
             idType: "email",
