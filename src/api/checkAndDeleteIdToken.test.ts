@@ -89,30 +89,44 @@ describe("checkAndDeleteIdToken", () => {
     void expect(tokenRecord!.failedAttempts).to.equal(1);
   });
 
-  it("should destroy token after 5 failed attempts", async () => {
+  it("locks out token after 5 failed attempts without deleting", async () => {
     await createTestIdToken("phone", testPhone, "correct-token");
 
     // 4 failed attempts
     for (let i = 0; i < 4; i++) {
       try {
         await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
-      } catch (error: any) {
-        void expect(error.message).to.equal("手机验证码错误。");
+        expect.fail("Expected error to be thrown");
+      } catch (error: unknown) {
+        void expect((error as Error).message).to.equal("手机验证码错误。");
       }
     }
 
-    // 5th failed attempt
+    // 5th failed attempt locks out the token without deleting the row
     try {
       await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
       expect.fail("Expected error to be thrown");
-    } catch (error: any) {
-      void expect(error.message).to.include("手机验证码错误次数过多");
+    } catch (error: unknown) {
+      void expect((error as Error).message).to.include(
+        "手机验证码错误次数过多",
+      );
     }
 
     const tokenRecord = await db.IdToken.findOne({
       where: { phone: testPhone },
     });
-    void expect(tokenRecord).to.equal(null);
+    void expect(tokenRecord).to.not.equal(null);
+    void expect(tokenRecord!.failedAttempts).to.equal(5);
+
+    // 6th attempt even with the correct token must still be rejected
+    try {
+      await checkAndDeleteIdToken("phone", testPhone, "correct-token");
+      expect.fail("Expected error to be thrown");
+    } catch (error: unknown) {
+      void expect((error as Error).message).to.include(
+        "手机验证码错误次数过多",
+      );
+    }
   });
 
   it("should throw error and destroy token if token is expired", async () => {
@@ -167,7 +181,7 @@ describe("checkAndDeleteIdToken", () => {
       void expect(userRecord!.name).to.equal("Nested Success User");
     });
 
-    it("should commit inner transaction (failedAttempts and 5-attempt deletion) while rolling back outer transaction on invalid token", async () => {
+    it("commits inner lockout and rolls back outer tx", async () => {
       await createTestIdToken("phone", testPhone, "correct-token");
 
       for (let i = 1; i <= 4; i++) {
@@ -180,8 +194,8 @@ describe("checkAndDeleteIdToken", () => {
             await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
           });
           expect.fail("Expected error to be thrown");
-        } catch (error: any) {
-          void expect(error.message).to.equal("手机验证码错误。");
+        } catch (error: unknown) {
+          void expect((error as Error).message).to.equal("手机验证码错误。");
         }
 
         const tokenRecord = await db.IdToken.findOne({
@@ -205,14 +219,17 @@ describe("checkAndDeleteIdToken", () => {
           await checkAndDeleteIdToken("phone", testPhone, "wrong-token");
         });
         expect.fail("Expected error to be thrown");
-      } catch (error: any) {
-        void expect(error.message).to.include("手机验证码错误次数过多");
+      } catch (error: unknown) {
+        void expect((error as Error).message).to.include(
+          "手机验证码错误次数过多",
+        );
       }
 
-      const deletedToken = await db.IdToken.findOne({
+      const lockedToken = await db.IdToken.findOne({
         where: { phone: testPhone },
       });
-      void expect(deletedToken).to.equal(null);
+      void expect(lockedToken).to.not.equal(null);
+      void expect(lockedToken!.failedAttempts).to.equal(5);
 
       const userRecord = await db.User.findOne({
         where: { phone: testPhone },

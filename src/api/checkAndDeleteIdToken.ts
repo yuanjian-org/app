@@ -13,8 +13,8 @@ export async function checkAndDeleteIdToken(
 ) {
   // Run token verification and state updates in a dedicated transaction that
   // returns the validation error instead of throwing inside the transaction
-  // callback. This ensures `failedAttempts` increments and expired/exhausted
-  // token deletions are committed rather than rolled back when validation fails.
+  // callback. This ensures `failedAttempts` increments and expired token
+  // deletions are committed rather than rolled back when validation fails.
   const error = await sequelize.transaction(async (transaction) => {
     const idField = idType === "phone" ? "phone" : "email";
     const dbToken = await db.IdToken.findOne({
