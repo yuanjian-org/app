@@ -154,7 +154,7 @@ export default function Page() {
         <PageBreadcrumb
           showBackArrow
           current="问题详情"
-          parents={[{ name: "树洞首页", link: "/shudong" }]}
+          parents={[{ name: "树洞", link: "/shudong" }]}
           marginBottom={0}
         />
 
