@@ -142,7 +142,7 @@ export async function getThreadAuthorMap(
   transaction?: Transaction,
 ): Promise<ThreadAuthorInfo> {
   const rootQuestion = await db.ShudongPost.findByPk(rootQuestionId, {
-    attributes: ["id", "authorId"],
+    attributes: ["id", "authorId", "isAnonymous", "deletedAt"],
     transaction,
   });
   if (!rootQuestion) {
@@ -150,15 +150,28 @@ export async function getThreadAuthorMap(
   }
   invariant(rootQuestion.authorId, "rootQuestion.authorId must not be null");
 
+  // Only assign "匿名楼主" when the root question itself is active and
+  // anonymous; otherwise an anonymous reply by a non-anonymous OP would be
+  // linked back to their named root question.
+  const anonymousRootAuthorId =
+    rootQuestion.isAnonymous && rootQuestion.deletedAt === null
+      ? rootQuestion.authorId
+      : "";
+
   let currentParentIds = [rootQuestionId];
-  const allThreadPosts: { authorId: string; createdAt: Date }[] = [];
+  const allThreadPosts: {
+    authorId: string;
+    isAnonymous: boolean;
+    deletedAt: Date | null;
+    createdAt: Date;
+  }[] = [];
 
   while (currentParentIds.length > 0) {
     const children = await db.ShudongPost.findAll({
       where: {
         parentId: { [Op.in]: currentParentIds },
       },
-      attributes: ["id", "authorId", "createdAt"],
+      attributes: ["id", "authorId", "isAnonymous", "deletedAt", "createdAt"],
       order: [["createdAt", "ASC"]],
       transaction,
     });
@@ -174,7 +187,13 @@ export async function getThreadAuthorMap(
 
   for (const post of allThreadPosts) {
     invariant(post.authorId, "post.authorId must not be null");
-    if (post.authorId === rootQuestion.authorId) {
+    // Only allocate respondent labels for active anonymous replies so that
+    // non-anonymous or soft-deleted posts do not consume labels or link to a
+    // user's subsequent anonymous posts.
+    if (!post.isAnonymous || post.deletedAt !== null) {
+      continue;
+    }
+    if (post.authorId === anonymousRootAuthorId) {
       continue;
     }
     if (!respondentMap.has(post.authorId)) {
@@ -184,7 +203,7 @@ export async function getThreadAuthorMap(
     }
   }
 
-  return { rootAuthorId: rootQuestion.authorId, respondentMap };
+  return { rootAuthorId: anonymousRootAuthorId, respondentMap };
 }
 
 /**
@@ -280,7 +299,7 @@ export async function formatShudongPost(
   const isMentorPosted = !isDeleted && isPermitted(post.author.roles, "Mentor");
 
   let anonymousName: string | null = null;
-  if (isAnonymous) {
+  if (!isDeleted && post.isAnonymous) {
     const info =
       threadAuthorInfo ??
       (await getThreadAuthorMap(rootQuestionId, transaction));
@@ -296,7 +315,7 @@ export async function formatShudongPost(
     parentId: post.parentId,
     author,
     isMentorPosted,
-    markdown: post.markdown,
+    markdown: isDeleted ? "" : post.markdown,
     reactions,
     responseCount: post.responseCount,
     isDeleted,
@@ -417,7 +436,11 @@ export async function getQuestionImpl(
     include: shudongPostInclude,
     transaction,
   });
-  if (!q || (q.deletedAt !== null && q.responseCount === 0)) {
+  if (
+    !q ||
+    q.parentId !== null ||
+    (q.deletedAt !== null && q.responseCount === 0)
+  ) {
     throw notFoundError("树洞帖子", questionId);
   }
 
@@ -462,11 +485,7 @@ export async function createPostImpl(
   let parent: ShudongPostModel | null = null;
   let rootQuestionId: string | null = null;
   if (parentId) {
-    parent = await db.ShudongPost.findByPk(parentId, {
-      attributes: shudongPostAttributes,
-      transaction,
-    });
-    invariant(parent, "Parent post not found");
+    parent = await findShudongPostOrThrow(parentId, transaction);
     rootQuestionId = await findRootQuestionId(parentId, transaction);
 
     // Must schedule before saving data. See the callee's comment.
