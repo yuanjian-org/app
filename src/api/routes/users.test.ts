@@ -1201,7 +1201,7 @@ describe("isPermittedtoAccessMentee", () => {
     await transaction.rollback();
   });
 
-  it("should deny an ended transactional mentor and allow ongoing or relational mentors", async () => {
+  it("should deny ended transactional mentorship access", async () => {
     const mentee = await db.User.create(
       {
         email: `mentee-perm-${Date.now()}@test.com`,
@@ -1278,5 +1278,25 @@ describe("isPermittedtoAccessMentee", () => {
     void expect(endedTransAllowed).to.be.false;
     void expect(activeTransAllowed).to.be.true;
     void expect(endedRelAllowed).to.be.true;
+
+    const menteeToEndedTrans = await usersModule.isPermittedtoAccessMentor(
+      mentee,
+      endedTransactionalMentor.id,
+      transaction,
+    );
+    const menteeToActiveTrans = await usersModule.isPermittedtoAccessMentor(
+      mentee,
+      activeTransactionalMentor.id,
+      transaction,
+    );
+    const menteeToEndedRel = await usersModule.isPermittedtoAccessMentor(
+      mentee,
+      endedRelationalMentor.id,
+      transaction,
+    );
+
+    void expect(menteeToEndedTrans).to.be.false;
+    void expect(menteeToActiveTrans).to.be.true;
+    void expect(menteeToEndedRel).to.be.true;
   });
 });
