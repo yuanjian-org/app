@@ -160,6 +160,7 @@ export async function getThreadAuthorMap(
 
   let currentParentIds = [rootQuestionId];
   const allThreadPosts: {
+    id: string;
     authorId: string;
     isAnonymous: boolean;
     deletedAt: Date | null;
@@ -172,7 +173,10 @@ export async function getThreadAuthorMap(
         parentId: { [Op.in]: currentParentIds },
       },
       attributes: ["id", "authorId", "isAnonymous", "deletedAt", "createdAt"],
-      order: [["createdAt", "ASC"]],
+      order: [
+        ["createdAt", "ASC"],
+        ["id", "ASC"],
+      ],
       transaction,
     });
     if (children.length === 0) break;
@@ -180,7 +184,10 @@ export async function getThreadAuthorMap(
     currentParentIds = children.map((c) => c.id);
   }
 
-  allThreadPosts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  allThreadPosts.sort(
+    (a, b) =>
+      a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
+  );
 
   const respondentMap = new Map<string, string>();
   let count = 0;

@@ -1219,13 +1219,13 @@ describe("shudong backend routes", () => {
       expect(listedHide?.anonymousName).to.equal("匿名楼主");
     });
 
-    it("toggles anonymity on replies with stable thread labels", async () => {
+    it("toggles anonymity on replies and updates thread labels", async () => {
       const op = await createTestUser(["Mentee"], "现届学子");
       const userA = await createTestUser(["Mentor"]);
       const userB = await createTestUser(["Mentee"], "现届学子");
 
       const q = await createPostImpl(op, null, "Thread Q", true, transaction);
-      // userA responds non-anonymously first ("匿名 甲" slot).
+      // userA responds non-anonymously first (does not consume a label).
       const respA = await createPostImpl(
         userA,
         q.id,
@@ -1233,7 +1233,8 @@ describe("shudong backend routes", () => {
         false,
         transaction,
       );
-      // userB responds anonymously ("匿名 乙" slot).
+      await new Promise((r) => setTimeout(r, 5));
+      // userB responds anonymously and gets "匿名 甲".
       const respB = await createPostImpl(
         userB,
         q.id,
@@ -1249,7 +1250,7 @@ describe("shudong backend routes", () => {
         false,
         transaction,
       );
-      // userA posts a nested reply anonymously under respB.
+      // userA posts a nested reply anonymously under respB ("匿名 乙").
       const nestedA = await createPostImpl(
         userA,
         respB.id,
@@ -1258,10 +1259,10 @@ describe("shudong backend routes", () => {
         transaction,
       );
 
-      expect(respB.anonymousName).to.equal("匿名 乙");
-      expect(nestedA.anonymousName).to.equal("匿名 甲");
+      expect(respB.anonymousName).to.equal("匿名 甲");
+      expect(nestedA.anonymousName).to.equal("匿名 乙");
 
-      // Toggle respA: non-anonymous -> anonymous ("匿名 甲")
+      // Toggle respA: non-anonymous -> anonymous ("匿名 甲" as earliest anon)
       const respAAnon = await updatePostImpl(
         userA,
         respA.id,
@@ -1306,7 +1307,7 @@ describe("shudong backend routes", () => {
       expect(nestedAPublic.author?.id).to.equal(userA.id);
       void expect(nestedAPublic.anonymousName).to.be.null;
 
-      // Toggle respB back to anonymous -> still "匿名 乙"
+      // Toggle respB back to anonymous -> "匿名 乙" (after anon respA)
       const respBReAnon = await updatePostImpl(
         userB,
         respB.id,
