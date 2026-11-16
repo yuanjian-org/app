@@ -667,7 +667,7 @@ describe("resetPasswordImpl", () => {
       void expect(tokenRecord!.failedAttempts).to.equal(1);
     });
 
-    it("should destroy token after 5 failed attempts", async () => {
+    it("should lock out token after 5 failures and keep rate limit", async () => {
       await createTestIdToken("phone", testPhone, "correct-token");
 
       // 4 failed attempts
@@ -687,7 +687,7 @@ describe("resetPasswordImpl", () => {
         }
       }
 
-      // 5th failed attempt
+      // 5th failed attempt locks out the token without deleting the row
       try {
         await sequelize.transaction(async (tx) => {
           await resetPasswordImpl(
@@ -706,7 +706,32 @@ describe("resetPasswordImpl", () => {
       const tokenRecord = await db.IdToken.findOne({
         where: { phone: testPhone },
       });
-      void expect(tokenRecord).to.be.null;
+      void expect(tokenRecord).to.not.be.null;
+      void expect(tokenRecord!.failedAttempts).to.equal(5);
+
+      // 6th attempt even with the correct token must still be rejected
+      try {
+        await sequelize.transaction(async (tx) => {
+          await resetPasswordImpl(
+            "phone",
+            testPhone,
+            "correct-token",
+            hashedPassword,
+            tx,
+          );
+        });
+        expect.fail("Expected error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("手机验证码错误次数过多");
+      }
+
+      // Immediately calling sendImpl must still be blocked by the rate limit
+      try {
+        await sendImpl("phone", testPhone, "127.0.0.1", transaction);
+        expect.fail("Expected rate limit error to be thrown");
+      } catch (error: any) {
+        void expect(error.message).to.include("验证码发送过于频繁，请稍后再试");
+      }
     });
 
     it("should delete token after successful reset", async () => {

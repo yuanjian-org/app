@@ -13,6 +13,22 @@ import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
 
+// Precomputed bcrypt hash (cost 10) used when a user does not exist or has no
+// password set, preventing timing-based user enumeration.
+const DUMMY_PASSWORD_HASH =
+  "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
+const PASSWORD_MAX_FAILED_ATTEMPTS = 5;
+const PASSWORD_LOCKOUT_MS = 15 * 60 * 1000;
+const passwordFailedAttempts = new Map<
+  string,
+  { count: number; firstFailedAt: number }
+>();
+
+export function clearPasswordFailedAttemptsForTest() {
+  passwordFailedAttempts.clear();
+}
+
 const providers: NextAuthOptions["providers"] = [
   {
     id: "id-password",
@@ -25,6 +41,19 @@ const providers: NextAuthOptions["providers"] = [
       const { idType, id, password } = credentials ?? {};
       if (!idType || !id || !password) return null;
       const idField = idType === "phone" ? "phone" : "email";
+      const rateLimitKey = `${idField}:${id}`;
+      const now = Date.now();
+      const attemptInfo = passwordFailedAttempts.get(rateLimitKey);
+      const isLockedOut =
+        attemptInfo !== undefined &&
+        now - attemptInfo.firstFailedAt < PASSWORD_LOCKOUT_MS &&
+        attemptInfo.count >= PASSWORD_MAX_FAILED_ATTEMPTS;
+
+      if (isLockedOut) {
+        await compare(password, DUMMY_PASSWORD_HASH);
+        return null;
+      }
+
       const user = await db.User.findOne({
         where: { [idField]: id },
         attributes: [...userAttributes, "password"],
@@ -32,15 +61,28 @@ const providers: NextAuthOptions["providers"] = [
       });
       // Privileged users are prohibited from logging in with a password,
       // except on the demo site or in local development.
-      if (
-        !user ||
-        !user.password ||
-        (whiteLabel !== "demo" && isPasswordProhibited(user.roles))
-      ) {
+      const canUsePassword =
+        Boolean(user && user.password) &&
+        (whiteLabel === "demo" || !isPasswordProhibited(user!.roles));
+      const targetHash =
+        canUsePassword && user?.password ? user.password : DUMMY_PASSWORD_HASH;
+      const match = await compare(password, targetHash);
+
+      if (!canUsePassword || !match) {
+        const prev = passwordFailedAttempts.get(rateLimitKey);
+        if (!prev || now - prev.firstFailedAt >= PASSWORD_LOCKOUT_MS) {
+          passwordFailedAttempts.set(rateLimitKey, {
+            count: 1,
+            firstFailedAt: now,
+          });
+        } else {
+          prev.count += 1;
+        }
         return null;
       }
-      const match = await compare(password, user.password);
-      return match ? user : null;
+
+      passwordFailedAttempts.delete(rateLimitKey);
+      return user;
     },
   },
 

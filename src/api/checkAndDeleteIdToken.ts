@@ -34,6 +34,15 @@ export async function checkAndDeleteIdToken(
       return generalBadRequestError(`${idText}验证码已过期，请重新验证。`);
     }
 
+    // Reject tokens that have already exhausted their 5 attempts. Keeping the
+    // row in the database (rather than deleting it on the 5th failure) ensures
+    // `sendImpl`'s rate limit is not reset by brute-force guesses.
+    if (dbToken.failedAttempts >= 5) {
+      return generalBadRequestError(
+        `${idText}验证码错误次数过多。请重新获取验证码。`,
+      );
+    }
+
     // Use timing-safe comparison to prevent side-channel timing attacks. Ensure
     // token is a string to prevent Buffer.from from treating numeric inputs as
     // allocation sizes.
@@ -45,18 +54,16 @@ export async function checkAndDeleteIdToken(
       crypto.timingSafeEqual(inputBuf, dbTokenBuf);
 
     if (!isTokenValid) {
-      // Brute-force protection: increment failed attempts and delete after a
-      // threshold.
+      // Brute-force protection: increment failed attempts and lock out after 5
+      // failures without deleting the row so send rate limiting stays enforced.
       const failedAttempts = dbToken.failedAttempts + 1;
+      await dbToken.update({ failedAttempts }, { transaction });
       if (failedAttempts >= 5) {
-        await dbToken.destroy({ transaction });
         return generalBadRequestError(
           `${idText}验证码错误次数过多。请重新获取验证码。`,
         );
-      } else {
-        await dbToken.update({ failedAttempts }, { transaction });
-        return generalBadRequestError(`${idText}验证码错误。`);
       }
+      return generalBadRequestError(`${idText}验证码错误。`);
     }
 
     await dbToken.destroy({ transaction });

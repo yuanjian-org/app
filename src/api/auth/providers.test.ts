@@ -250,6 +250,46 @@ describe("Auth Providers", () => {
         await db.User.destroy({ where: { id: user.id } });
       }
     });
+
+    it("should lock out password login after 5 failed attempts", async () => {
+      const password = "mysecretpassword";
+      const hashedPassword = await hash(password, 10);
+      const testEmail = `${randomUUID()}@example.com`;
+
+      const user = await db.User.create({
+        email: testEmail,
+        name: "Lockout Password User",
+        password: hashedPassword,
+        roles: [],
+      });
+
+      try {
+        for (let i = 0; i < 5; i++) {
+          const failed = await idPasswordProvider.authorize!(
+            {
+              idType: "email",
+              id: testEmail,
+              password: "wrongpassword",
+            },
+            {} as never,
+          );
+          expect(failed).to.equal(null);
+        }
+
+        // 6th attempt with the correct password must be rejected while locked
+        const lockedResult = await idPasswordProvider.authorize!(
+          {
+            idType: "email",
+            id: testEmail,
+            password,
+          },
+          {} as never,
+        );
+        expect(lockedResult).to.equal(null);
+      } finally {
+        await db.User.destroy({ where: { id: user.id } });
+      }
+    });
   });
 
   describe("id-token provider", () => {
