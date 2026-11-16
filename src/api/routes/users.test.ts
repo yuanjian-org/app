@@ -920,6 +920,72 @@ describe("listImpl", () => {
     ]);
   });
 
+  it("excludes mentorships expiring after module load", async () => {
+    const clock = sinon.useFakeTimers({
+      now: Date.now(),
+      toFake: ["Date"],
+    });
+    try {
+      const menteeId = crypto.randomUUID();
+      const mentorId = crypto.randomUUID();
+      await db.User.bulkCreate(
+        [
+          {
+            id: menteeId,
+            name: "Expiring Mentee",
+            roles: ["Volunteer"],
+            pinyin: "expiring mentee",
+          },
+          {
+            id: mentorId,
+            name: "Expiring Mentor",
+            roles: ["Volunteer"],
+            pinyin: "expiring mentor",
+          },
+        ],
+        { transaction },
+      );
+
+      await db.Mentorship.create(
+        {
+          menteeId,
+          mentorId,
+          transactional: false,
+          endsAt: new Date(Date.now() + 60_000),
+        },
+        { transaction },
+      );
+
+      const beforeExpiry = await usersModule.listImpl(
+        userAdmin,
+        {
+          matchesNameOrEmail: "Expiring Mentor",
+          includeMentorSearch: true,
+          ids: [menteeId, mentorId],
+        },
+        transaction,
+      );
+      expect(beforeExpiry.items.map((i) => i.id).sort()).to.deep.equal(
+        [menteeId, mentorId].sort(),
+      );
+
+      clock.tick(120_000);
+
+      const afterExpiry = await usersModule.listImpl(
+        userAdmin,
+        {
+          matchesNameOrEmail: "Expiring Mentor",
+          includeMentorSearch: true,
+          ids: [menteeId, mentorId],
+        },
+        transaction,
+      );
+      expect(afterExpiry.items.map((i) => i.id)).to.deep.equal([mentorId]);
+    } finally {
+      clock.restore();
+    }
+  });
+
   it("should filter by ids", async () => {
     await db.User.bulkCreate(
       [

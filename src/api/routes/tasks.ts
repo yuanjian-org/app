@@ -268,7 +268,7 @@ export default router({
 export async function createAutoTasks(transaction: Transaction) {
   // Find all ongoing mentorships
   const mentorships = await db.Mentorship.findAll({
-    where: whereMentorshipIsOngoing,
+    where: whereMentorshipIsOngoing(),
     attributes: [],
     include: [
       {

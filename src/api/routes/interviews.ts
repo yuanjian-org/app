@@ -385,7 +385,7 @@ export async function listInterviewerStatsImpl(transaction?: Transaction) {
       ],
       where: {
         transactional: false,
-        ...whereMentorshipIsOngoing,
+        ...whereMentorshipIsOngoing(),
       },
       group: ["mentorId"],
       transaction,

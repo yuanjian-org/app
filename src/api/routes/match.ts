@@ -561,7 +561,7 @@ async function listEligibleMentees(): Promise<MinUser[]> {
   const relational = await db.Mentorship.findAll({
     where: {
       transactional: false,
-      ...whereMentorshipIsOngoing,
+      ...whereMentorshipIsOngoing(),
     },
     attributes: ["menteeId"],
   });
