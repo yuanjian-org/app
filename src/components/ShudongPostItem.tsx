@@ -205,6 +205,7 @@ export function ShudongPostItem({
   post,
   onRefetch,
   isRootQuestion = false,
+  isSubResponse = false,
   hideEditDelete = false,
   onDeleteSuccess,
   isHomePage = false,
@@ -212,6 +213,7 @@ export function ShudongPostItem({
   post: ShudongPost;
   onRefetch?: () => void;
   isRootQuestion?: boolean;
+  isSubResponse?: boolean;
   hideEditDelete?: boolean;
   onDeleteSuccess?: () => void;
   isHomePage?: boolean;
@@ -250,6 +252,7 @@ export function ShudongPostItem({
   const [isEditing, setIsEditing] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const [editMarkdown, setEditMarkdown] = useState(post.markdown);
+  const [editIsAnon, setEditIsAnon] = useState(!post.author);
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
   const [showChildResponses, setShowChildResponses] = useState(false);
@@ -367,6 +370,7 @@ export function ShudongPostItem({
       await trpc.shudong.updatePost.mutate({
         postId: post.id,
         markdown: editMarkdown,
+        ...(post.isAuthor ? { isAnonymous: editIsAnon } : {}),
       });
       toast.success("修改成功");
       setIsEditing(false);
@@ -393,9 +397,15 @@ export function ShudongPostItem({
 
   // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
-    !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
+    !hideEditDelete &&
+    canEditOrDeleteShudongPost(me, post.isAuthor ? me.id : null);
 
   const isQuestionNode = post.parentId === null || isRootQuestion;
+  const editAnonLabel = isQuestionNode
+    ? "匿名提问"
+    : isSubResponse
+      ? "匿名回复"
+      : "匿名回答";
   const showReactionGroup = !post.isDeleted;
   const showSubscribeAction = !post.isDeleted && isQuestionNode;
   const showReplyAction = (isHomePage || !isRootQuestion) && !post.isDeleted;
@@ -436,6 +446,7 @@ export function ShudongPostItem({
               variant="ghost"
               onClick={() => {
                 setEditMarkdown(post.markdown);
+                setEditIsAnon(!post.author);
                 setIsEditing(!isEditing);
               }}
             />
@@ -476,18 +487,39 @@ export function ShudongPostItem({
             }}
             rows={3}
           />
-          {!isQuestionNode && (
-            <ShudongEmojiBar
-              value={editMarkdown}
-              onChange={setEditMarkdown}
-              textareaRef={editInputRef}
-            />
-          )}
           <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-            <MarkdownSupport
-              fontSize="sm"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {!isQuestionNode && (
+              <ShudongEmojiBar
+                value={editMarkdown}
+                onChange={setEditMarkdown}
+                textareaRef={editInputRef}
+              />
+            )}
+            <Box ml="auto">
+              <MarkdownSupport
+                fontSize="sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Box>
+          </Flex>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+            {post.isAuthor && (
+              <FormControl display="flex" alignItems="center" w="auto">
+                <FormLabel
+                  htmlFor={`edit-anon-switch-${post.id}`}
+                  mb="0"
+                  fontSize="sm"
+                >
+                  <T>{editAnonLabel}</T>
+                </FormLabel>
+                <Switch
+                  id={`edit-anon-switch-${post.id}`}
+                  size="sm"
+                  isChecked={editIsAnon}
+                  onChange={(e) => setEditIsAnon(e.target.checked)}
+                />
+              </FormControl>
+            )}
             <HStack spacing={2} ml="auto">
               <Button size="sm" onClick={() => setIsEditing(false)}>
                 <T>取消</T>
@@ -795,6 +827,7 @@ export function ShudongPostItem({
               <ShudongPostItem
                 key={child.id}
                 post={child}
+                isSubResponse
                 onRefetch={() => {
                   void refetchChildren();
                   if (onRefetch) onRefetch();

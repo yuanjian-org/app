@@ -276,6 +276,7 @@ export async function formatShudongPost(
   const isDeleted = post.deletedAt !== null;
   const isAnonymous = isDeleted || post.isAnonymous;
   const author = isAnonymous ? null : post.author;
+  const isAuthor = !isDeleted && post.authorId === myId;
   // Tag non-deleted posts (including anonymous ones) authored by a mentor.
   const isMentorPosted = !isDeleted && isPermitted(post.author.roles, "Mentor");
 
@@ -295,6 +296,7 @@ export async function formatShudongPost(
     id: post.id,
     parentId: post.parentId,
     author,
+    isAuthor,
     isMentorPosted,
     markdown: post.markdown,
     reactions,
@@ -582,19 +584,31 @@ export async function createPostImpl(
 }
 
 /**
- * Updates a post's content and sets lastEditedAt to current timestamp.
+ * Updates a post's content (and optionally anonymity for the post author) and
+ * sets lastEditedAt to current timestamp.
  */
 export async function updatePostImpl(
   me: User,
   postId: string,
   markdown: string,
   transaction: Transaction,
+  isAnonymous?: boolean,
 ) {
   checkShudongAccess(me);
 
   const post = await findShudongPostOrThrow(postId, transaction);
 
   if (!canEditOrDeleteShudongPost(me, post.authorId)) {
+    throw noPermissionError("树洞帖子", postId);
+  }
+
+  // Only the author may change anonymity so admins cannot reveal an
+  // anonymous poster's identity.
+  if (
+    isAnonymous !== undefined &&
+    isAnonymous !== post.isAnonymous &&
+    post.authorId !== me.id
+  ) {
     throw noPermissionError("树洞帖子", postId);
   }
 
@@ -606,6 +620,7 @@ export async function updatePostImpl(
   await post.update(
     {
       markdown: trimmed,
+      ...(isAnonymous !== undefined ? { isAnonymous } : {}),
       lastEditedAt: new Date(),
     },
     { transaction },
@@ -905,14 +920,17 @@ const updatePost = procedure
     z.object({
       postId: z.string(),
       markdown: z.string(),
+      isAnonymous: z.boolean().optional(),
     }),
   )
   .output(zShudongPost)
-  .mutation(async ({ ctx: { me }, input: { postId, markdown } }) => {
-    return await sequelize.transaction(async (t) => {
-      return await updatePostImpl(me, postId, markdown, t);
-    });
-  });
+  .mutation(
+    async ({ ctx: { me }, input: { postId, markdown, isAnonymous } }) => {
+      return await sequelize.transaction(async (t) => {
+        return await updatePostImpl(me, postId, markdown, t, isAnonymous);
+      });
+    },
+  );
 
 const deletePost = procedure
   .use(authUser())

@@ -564,6 +564,263 @@ describe("shudong backend routes", () => {
       void expect(dbPost?.deletedAt).to.not.be.null;
     });
 
+    it("should set per-viewer isAuthor accurately for posts", async () => {
+      const author = await createTestUser(["Mentor"]);
+      const other = await createTestUser(["Mentee"], "现届学子");
+      const admin = await createTestUser(["ShudongAdmin"]);
+
+      const anonQ = await createPostImpl(
+        author,
+        null,
+        "Anon Q",
+        true,
+        transaction,
+      );
+      const namedResp = await createPostImpl(
+        other,
+        anonQ.id,
+        "Named R",
+        false,
+        transaction,
+      );
+      const anonResp = await createPostImpl(
+        other,
+        anonQ.id,
+        "Anon R",
+        true,
+        transaction,
+      );
+
+      // Author sees isAuthor=true on own anon question, false on other's
+      const asAuthor = await getQuestionImpl(author, anonQ.id, transaction);
+      void expect(asAuthor.question.isAuthor).to.be.true;
+      void expect(asAuthor.question.author).to.be.null;
+      const rNamedForAuthor = asAuthor.responses.find(
+        (r) => r.id === namedResp.id,
+      );
+      const rAnonForAuthor = asAuthor.responses.find(
+        (r) => r.id === anonResp.id,
+      );
+      void expect(rNamedForAuthor?.isAuthor).to.be.false;
+      void expect(rAnonForAuthor?.isAuthor).to.be.false;
+
+      // Other user sees isAuthor=false on author's Q, true on own responses
+      const asOther = await getQuestionImpl(other, anonQ.id, transaction);
+      void expect(asOther.question.isAuthor).to.be.false;
+      const namedR = asOther.responses.find((r) => r.id === namedResp.id);
+      const anonR = asOther.responses.find((r) => r.id === anonResp.id);
+      void expect(namedR?.isAuthor).to.be.true;
+      void expect(anonR?.isAuthor).to.be.true;
+
+      // ShudongAdmin viewing another user's post sees isAuthor=false
+      const asAdmin = await getQuestionImpl(admin, anonQ.id, transaction);
+      void expect(asAdmin.question.isAuthor).to.be.false;
+
+      // Soft-deleting sets isAuthor=false even for the original author
+      await deletePostImpl(author, anonQ.id, transaction);
+      const afterDelete = await getQuestionImpl(author, anonQ.id, transaction);
+      void expect(afterDelete.question.isDeleted).to.be.true;
+      void expect(afterDelete.question.isAuthor).to.be.false;
+    });
+
+    it("should toggle anonymity when editing a root question", async () => {
+      const mentor = await createTestUser(["Mentor"]);
+      const viewer = await createTestUser(["Mentee"], "现届学子");
+
+      const q = await createPostImpl(
+        mentor,
+        null,
+        "Question",
+        true,
+        transaction,
+      );
+      void expect(q.author).to.be.null;
+      expect(q.anonymousName).to.equal("匿名楼主");
+      void expect(q.isAuthor).to.be.true;
+      void expect(q.isMentorPosted).to.be.true;
+
+      // Toggle true -> false
+      const named = await updatePostImpl(
+        mentor,
+        q.id,
+        "Question named",
+        transaction,
+        false,
+      );
+      expect(named.author?.id).to.equal(mentor.id);
+      void expect(named.anonymousName).to.be.null;
+      void expect(named.isAuthor).to.be.true;
+      void expect(named.isMentorPosted).to.be.true;
+
+      const viewerDetail1 = await getQuestionImpl(viewer, q.id, transaction);
+      expect(viewerDetail1.question.author?.id).to.equal(mentor.id);
+      void expect(viewerDetail1.question.anonymousName).to.be.null;
+      void expect(viewerDetail1.question.isAuthor).to.be.false;
+
+      // Toggle false -> true
+      const reAnon = await updatePostImpl(
+        mentor,
+        q.id,
+        "Question anon again",
+        transaction,
+        true,
+      );
+      void expect(reAnon.author).to.be.null;
+      expect(reAnon.anonymousName).to.equal("匿名楼主");
+      void expect(reAnon.isAuthor).to.be.true;
+      void expect(reAnon.isMentorPosted).to.be.true;
+
+      const viewerDetail2 = await getQuestionImpl(viewer, q.id, transaction);
+      void expect(viewerDetail2.question.author).to.be.null;
+      expect(viewerDetail2.question.anonymousName).to.equal("匿名楼主");
+    });
+
+    it("should toggle anonymity on responses and sub-responses", async () => {
+      const op = await createTestUser(["Mentor"]);
+      const userA = await createTestUser(["Mentee"], "现届学子");
+      const userB = await createTestUser(["Mentee"], "现届学子");
+
+      const q = await createPostImpl(op, null, "Thread Q", true, transaction);
+      const rA = await createPostImpl(
+        userA,
+        q.id,
+        "A response",
+        false,
+        transaction,
+      );
+      const rB = await createPostImpl(
+        userB,
+        q.id,
+        "B anon response",
+        true,
+        transaction,
+      );
+      const subOp = await createPostImpl(
+        op,
+        rA.id,
+        "OP sub-reply",
+        false,
+        transaction,
+      );
+
+      expect(rB.anonymousName).to.equal("匿名 乙");
+
+      // User A toggles response false -> true
+      const rAAnon = await updatePostImpl(
+        userA,
+        rA.id,
+        "A now anon",
+        transaction,
+        true,
+      );
+      void expect(rAAnon.author).to.be.null;
+      expect(rAAnon.anonymousName).to.equal("匿名 甲");
+      void expect(rAAnon.isAuthor).to.be.true;
+
+      // OP toggles sub-response false -> true -> "匿名楼主"
+      const subOpAnon = await updatePostImpl(
+        op,
+        subOp.id,
+        "OP sub-reply anon",
+        transaction,
+        true,
+      );
+      void expect(subOpAnon.author).to.be.null;
+      expect(subOpAnon.anonymousName).to.equal("匿名楼主");
+
+      // User A toggles back true -> false; User B keeps "匿名 乙"
+      const rANamed = await updatePostImpl(
+        userA,
+        rA.id,
+        "A named again",
+        transaction,
+        false,
+      );
+      expect(rANamed.author?.id).to.equal(userA.id);
+      void expect(rANamed.anonymousName).to.be.null;
+
+      const detail = await getQuestionImpl(op, q.id, transaction);
+      const fetchedB = detail.responses.find((r) => r.id === rB.id);
+      expect(fetchedB?.anonymousName).to.equal("匿名 乙");
+
+      const children = await getResponsesImpl(
+        op,
+        rA.id,
+        undefined,
+        transaction,
+      );
+      expect(children[0].anonymousName).to.equal("匿名楼主");
+    });
+
+    it("forbids ShudongAdmin from changing others' anonymity", async () => {
+      const author = await createTestUser(["Mentee"], "现届学子");
+      const admin = await createTestUser(["ShudongAdmin"]);
+
+      const anonPost = await createPostImpl(
+        author,
+        null,
+        "Sensitive question",
+        true,
+        transaction,
+      );
+
+      // Admin editing content with isAnonymous omitted preserves anonymity
+      const edited1 = await updatePostImpl(
+        admin,
+        anonPost.id,
+        "Moderated content",
+        transaction,
+      );
+      expect(edited1.markdown).to.equal("Moderated content");
+      void expect(edited1.author).to.be.null;
+
+      // Admin passing unchanged isAnonymous also succeeds
+      const edited2 = await updatePostImpl(
+        admin,
+        anonPost.id,
+        "Moderated content 2",
+        transaction,
+        true,
+      );
+      expect(edited2.markdown).to.equal("Moderated content 2");
+      void expect(edited2.author).to.be.null;
+
+      // Admin attempting to flip isAnonymous from true -> false must fail
+      try {
+        await updatePostImpl(
+          admin,
+          anonPost.id,
+          "Attempt reveal",
+          transaction,
+          false,
+        );
+        expect.fail("Should have thrown permission error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("没有权限访问树洞帖子");
+      }
+
+      // Named post cannot be flipped to anonymous by admin either
+      const namedPost = await createPostImpl(
+        author,
+        anonPost.id,
+        "Named response",
+        false,
+        transaction,
+      );
+      try {
+        await updatePostImpl(
+          admin,
+          namedPost.id,
+          "Attempt hide",
+          transaction,
+          true,
+        );
+        expect.fail("Should have thrown permission error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("没有权限访问树洞帖子");
+      }
+    });
+
     it("should toggle individual emoji reactions correctly", async () => {
       const mentor = await createTestUser(["Mentor"]);
       const mentee = await createTestUser(["Mentee"], "现届学子");

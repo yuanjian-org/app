@@ -59,6 +59,12 @@ export const zShudongPost = z.object({
    */
   author: zMinUser.nullable(),
   /**
+   * Indicates whether the post was created by the current viewer (false if
+   * soft-deleted). Allows authors of anonymous posts to edit or delete their
+   * own posts without exposing author identity to other viewers.
+   */
+  isAuthor: z.boolean(),
+  /**
    * Indicates whether the post was created by a mentor (false if
    * soft-deleted).
    */
