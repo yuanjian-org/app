@@ -40,9 +40,11 @@ import moment from "moment";
 import getBaseUrl from "../../shared/getBaseUrl";
 import { notify, notifyRoles } from "api/notify";
 
-export const whereMentorshipIsOngoing = {
-  [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
-};
+export function whereMentorshipIsOngoing() {
+  return {
+    [Op.or]: [{ endsAt: null }, { endsAt: { [Op.gt]: new Date() } }],
+  };
+}
 
 const create = procedure
   .use(authUser("MentorshipAdmin"))
@@ -319,7 +321,7 @@ const listOngoingRelationalMentorships = procedure
   .query(async () => {
     return await db.Mentorship.findAll({
       where: {
-        ...whereMentorshipIsOngoing,
+        ...whereMentorshipIsOngoing(),
         transactional: false,
       },
       attributes: mentorshipAttributes,
@@ -370,7 +372,7 @@ export async function auditLastMentorshipMeetings(transaction: Transaction) {
     attributes: mentorshipAttributes,
     include: mentorshipInclude,
     where: {
-      ...whereMentorshipIsOngoing,
+      ...whereMentorshipIsOngoing(),
       transactional: false,
     },
     transaction,

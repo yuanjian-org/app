@@ -144,7 +144,7 @@ export async function listImpl(
     const mentorships = await db.Mentorship.findAll({
       attributes: ["menteeId"],
       where: {
-        ...whereMentorshipIsOngoing,
+        ...whereMentorshipIsOngoing(),
         transactional: false,
       },
       include: [
@@ -1212,7 +1212,7 @@ async function hasActiveMentorshipAccess(
       where: {
         mentorId,
         menteeId,
-        [Op.or]: [{ transactional: false }, whereMentorshipIsOngoing],
+        [Op.or]: [{ transactional: false }, whereMentorshipIsOngoing()],
       },
       transaction,
     })) > 0
