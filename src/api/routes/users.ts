@@ -1200,12 +1200,31 @@ export async function checkPermissionToAccessMentee(
   }
 }
 
+async function hasActiveMentorshipAccess(
+  mentorId: string,
+  menteeId: string,
+  transaction?: Transaction,
+) {
+  // Exclude ended transactional mentorships so short-term 1-on-1 mentors and
+  // mentees do not retain permanent access after the mentorship ends.
+  return (
+    (await db.Mentorship.count({
+      where: {
+        mentorId,
+        menteeId,
+        [Op.or]: [{ transactional: false }, whereMentorshipIsOngoing],
+      },
+      transaction,
+    })) > 0
+  );
+}
+
 /**
  * Metadata is data about the mentee and their mentoerships, but not the actual
  * conversation or notes contents between the mentee and their mentors.
  */
 export async function isPermittedtoAccessMentee(
-  me: User,
+  me: Pick<User, "id" | "roles">,
   menteeId: string,
   transaction?: Transaction,
   action: "any" | "readMetadata" = "any",
@@ -1214,22 +1233,14 @@ export async function isPermittedtoAccessMentee(
     isPermitted(me.roles, "MentorshipAdmin") ||
     (action === "readMetadata" &&
       isPermitted(me.roles, "MentorshipOperator")) ||
-    (await db.Mentorship.count({
-      where: { mentorId: me.id, menteeId },
-      transaction,
-    })) > 0
+    (await hasActiveMentorshipAccess(me.id, menteeId, transaction))
   );
 }
 
 export async function isPermittedtoAccessMentor(
-  me: User,
+  me: Pick<User, "id" | "roles">,
   mentorId: string,
   transaction?: Transaction,
 ) {
-  return (
-    (await db.Mentorship.count({
-      where: { mentorId, menteeId: me.id },
-      transaction,
-    })) > 0
-  );
+  return await hasActiveMentorshipAccess(mentorId, me.id, transaction);
 }
