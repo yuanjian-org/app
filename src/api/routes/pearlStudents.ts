@@ -37,6 +37,41 @@ const validate = procedure
     });
   });
 
+const pearlMaxFailedAttempts = 10;
+const pearlLockoutMs = 15 * 60 * 1000;
+const pearlValidationFailedAttempts = new Map<
+  string,
+  { count: number; firstFailedAt: number }
+>();
+
+export function clearPearlValidationFailedAttemptsForTest() {
+  pearlValidationFailedAttempts.clear();
+}
+
+function isPearlRateLimited(key: string, now: number) {
+  const info = pearlValidationFailedAttempts.get(key);
+  return (
+    info !== undefined &&
+    now - info.firstFailedAt < pearlLockoutMs &&
+    info.count >= pearlMaxFailedAttempts
+  );
+}
+
+function recordPearlFailure(key: string, now: number) {
+  const prev = pearlValidationFailedAttempts.get(key);
+  if (!prev || now - prev.firstFailedAt >= pearlLockoutMs) {
+    pearlValidationFailedAttempts.set(key, { count: 1, firstFailedAt: now });
+  } else {
+    prev.count += 1;
+    if (prev.count >= pearlMaxFailedAttempts) {
+      console.error(
+        `Pearl student validation reached ${pearlMaxFailedAttempts} ` +
+          `failed attempts for ${key}`,
+      );
+    }
+  }
+}
+
 export async function validateImpl(
   me: User,
   name: string,
@@ -45,6 +80,26 @@ export async function validateImpl(
   wechat: string,
   transaction: Transaction,
 ) {
+  const now = Date.now();
+  const userKey = `user:${me.id}`;
+  const pearlKey = `pearl:${pearlId}`;
+  if (isPearlRateLimited(userKey, now) || isPearlRateLimited(pearlKey, now)) {
+    console.error(
+      `Pearl student validation locked out after ${pearlMaxFailedAttempts} ` +
+        `failed attempts for ${userKey} / ${pearlKey}`,
+    );
+    throw generalBadRequestError("验证尝试次数过多，请稍后再试。");
+  }
+
+  // Prevent a single user from claiming multiple PearlStudent records.
+  const alreadyVerifiedCount = await db.PearlStudent.count({
+    where: { userId: me.id },
+    transaction,
+  });
+  if (alreadyVerifiedCount > 0) {
+    throw generalBadRequestError("您已验证过珍珠生身份。");
+  }
+
   const student = await db.PearlStudent.findOne({
     where: {
       pearlId,
@@ -57,6 +112,8 @@ export async function validateImpl(
   });
 
   if (!student) {
+    recordPearlFailure(userKey, now);
+    recordPearlFailure(pearlKey, now);
     notifyRolesIgnoreError(
       ["UserAdmin"],
       "珍珠生验证失败",
@@ -68,6 +125,8 @@ export async function validateImpl(
   }
 
   if (student.userId) {
+    recordPearlFailure(userKey, now);
+    recordPearlFailure(pearlKey, now);
     notifyRolesIgnoreError(
       ["UserAdmin"],
       "珍珠生重复验证",
@@ -79,6 +138,9 @@ export async function validateImpl(
       `此珍珠生号已被验证。` + `请联系${displayName("UserAdmin")}。`,
     );
   }
+
+  pearlValidationFailedAttempts.delete(userKey);
+  pearlValidationFailedAttempts.delete(pearlKey);
 
   // Update mentee status only if it is null.
   const menteeStatus: MenteeStatus =

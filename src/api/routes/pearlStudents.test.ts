@@ -2,7 +2,10 @@ import { expect } from "chai";
 import db from "../database/db";
 import sequelize from "../database/sequelize";
 import { Transaction } from "sequelize";
-import { validateImpl } from "./pearlStudents";
+import {
+  clearPearlValidationFailedAttemptsForTest,
+  validateImpl,
+} from "./pearlStudents";
 import { menteeSourceField } from "../../shared/applicationFields";
 import { displayName } from "../../shared/Role";
 
@@ -12,6 +15,7 @@ describe("pearlStudents API routes", () => {
     let testUser: any;
 
     beforeEach(async () => {
+      clearPearlValidationFailedAttemptsForTest();
       transaction = await sequelize.transaction();
       testUser = await db.User.create(
         {
@@ -35,6 +39,7 @@ describe("pearlStudents API routes", () => {
     });
 
     afterEach(async () => {
+      clearPearlValidationFailedAttemptsForTest();
       if (transaction) await transaction.rollback();
     });
 
@@ -107,6 +112,73 @@ describe("pearlStudents API routes", () => {
         expect(e.message).to.equal(
           "此珍珠生号已被验证。请联系" + displayName("UserAdmin") + "。",
         );
+      }
+    });
+
+    it("should reject claiming a second pearl student identity", async () => {
+      await db.PearlStudent.create(
+        {
+          pearlId: "P456",
+          name: "Second Pearl",
+          lowerCaseNationalIdLastFour: "5678",
+        },
+        { transaction },
+      );
+
+      await validateImpl(
+        testUser,
+        "Test Pearl",
+        "P123",
+        "1234",
+        "wechat123",
+        transaction,
+      );
+
+      try {
+        await validateImpl(
+          testUser,
+          "Second Pearl",
+          "P456",
+          "5678",
+          "wechat123",
+          transaction,
+        );
+        expect.fail("Should have thrown error");
+      } catch (e: any) {
+        expect(e.message).to.equal("您已验证过珍珠生身份。");
+      }
+    });
+
+    it("should lock out after 10 failed validation attempts", async () => {
+      for (let i = 0; i < 10; i++) {
+        try {
+          await validateImpl(
+            testUser,
+            "Test Pearl",
+            "P123",
+            "0000",
+            "wechat123",
+            transaction,
+          );
+          expect.fail("Should have thrown error");
+        } catch (e: any) {
+          expect(e.message).to.equal("珍珠生信息不匹配。");
+        }
+      }
+
+      // 11th attempt even with correct details must be rate-limited
+      try {
+        await validateImpl(
+          testUser,
+          "Test Pearl",
+          "P123",
+          "1234",
+          "wechat123",
+          transaction,
+        );
+        expect.fail("Should have thrown rate limit error");
+      } catch (e: any) {
+        expect(e.message).to.equal("验证尝试次数过多，请稍后再试。");
       }
     });
   });

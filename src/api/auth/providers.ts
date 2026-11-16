@@ -13,6 +13,22 @@ import { whiteLabel } from "shared/WhiteLabel";
 import WeChatProvider from "./WeChatProvider";
 import YuantuSsoProvider from "./YuantuSsoProvider";
 
+// Precomputed bcrypt hash (cost 10) used when a user does not exist or has no
+// password set, preventing timing-based user enumeration.
+const dummyPasswordHash =
+  "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
+const passwordMaxFailedAttempts = 10;
+const passwordLockoutMs = 15 * 60 * 1000;
+const passwordFailedAttempts = new Map<
+  string,
+  { count: number; firstFailedAt: number }
+>();
+
+export function clearPasswordFailedAttemptsForTest() {
+  passwordFailedAttempts.clear();
+}
+
 const providers: NextAuthOptions["providers"] = [
   {
     id: "id-password",
@@ -25,6 +41,23 @@ const providers: NextAuthOptions["providers"] = [
       const { idType, id, password } = credentials ?? {};
       if (!idType || !id || !password) return null;
       const idField = idType === "phone" ? "phone" : "email";
+      const rateLimitKey = `${idField}:${id}`;
+      const now = Date.now();
+      const attemptInfo = passwordFailedAttempts.get(rateLimitKey);
+      const isLockedOut =
+        attemptInfo !== undefined &&
+        now - attemptInfo.firstFailedAt < passwordLockoutMs &&
+        attemptInfo.count >= passwordMaxFailedAttempts;
+
+      if (isLockedOut) {
+        console.error(
+          `Password login locked out after ${passwordMaxFailedAttempts} ` +
+            `failed attempts for ${rateLimitKey}`,
+        );
+        await compare(password, dummyPasswordHash);
+        return null;
+      }
+
       const user = await db.User.findOne({
         where: { [idField]: id },
         attributes: [...userAttributes, "password"],
@@ -32,15 +65,34 @@ const providers: NextAuthOptions["providers"] = [
       });
       // Privileged users are prohibited from logging in with a password,
       // except on the demo site or in local development.
-      if (
-        !user ||
-        !user.password ||
-        (whiteLabel !== "demo" && isPasswordProhibited(user.roles))
-      ) {
+      const canUsePassword =
+        Boolean(user && user.password) &&
+        (whiteLabel === "demo" || !isPasswordProhibited(user!.roles));
+      const targetHash =
+        canUsePassword && user?.password ? user.password : dummyPasswordHash;
+      const match = await compare(password, targetHash);
+
+      if (!canUsePassword || !match) {
+        const prev = passwordFailedAttempts.get(rateLimitKey);
+        if (!prev || now - prev.firstFailedAt >= passwordLockoutMs) {
+          passwordFailedAttempts.set(rateLimitKey, {
+            count: 1,
+            firstFailedAt: now,
+          });
+        } else {
+          prev.count += 1;
+          if (prev.count >= passwordMaxFailedAttempts) {
+            console.error(
+              `Password login reached ${passwordMaxFailedAttempts} ` +
+                `failed attempts for ${rateLimitKey}`,
+            );
+          }
+        }
         return null;
       }
-      const match = await compare(password, user.password);
-      return match ? user : null;
+
+      passwordFailedAttempts.delete(rateLimitKey);
+      return user;
     },
   },
 
