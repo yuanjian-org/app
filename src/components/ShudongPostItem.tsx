@@ -705,9 +705,9 @@ export function ShudongPostItem({
       {isReplying && (
         <VStack
           align="stretch"
-          spacing={2}
+          spacing={2.5}
           mt={3}
-          p={3}
+          p={3.5}
           bg="gray.50"
           borderRadius="md"
         >
@@ -721,40 +721,47 @@ export function ShudongPostItem({
               });
             }}
           />
-          <Textarea
-            ref={replyInputRef}
-            placeholder={
-              "写下你的回复" +
-              (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
-            }
-            value={replyMarkdown}
-            onChange={(e) => setReplyMarkdown(e.target.value)}
-            onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                void handleCreateReply();
+          <VStack spacing={1.5} align="stretch">
+            <Textarea
+              ref={replyInputRef}
+              bg="white"
+              placeholder={
+                "写下你的回复" +
+                (!isMobile ? ` (${cmdOrCtrlChar()} + Enter 发送)` : "")
               }
-            }}
-            rows={2}
-          />
-          <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-            <ShudongEmojiBar
               value={replyMarkdown}
-              onChange={setReplyMarkdown}
-              textareaRef={replyInputRef}
+              onChange={(e) => setReplyMarkdown(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  void handleCreateReply();
+                }
+              }}
+              rows={2}
             />
-            <MarkdownSupport
-              fontSize="xs"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </Flex>
+            <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
+              <ShudongEmojiBar
+                value={replyMarkdown}
+                onChange={setReplyMarkdown}
+                textareaRef={replyInputRef}
+              />
+              <MarkdownSupport
+                fontSize="sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Flex>
+          </VStack>
           <Flex justify="space-between" align="center">
             <FormControl display="flex" alignItems="center" w="auto">
-              <FormLabel htmlFor="reply-anon-switch" mb="0" fontSize="xs">
+              <FormLabel
+                htmlFor={`reply-anon-switch-${post.id}`}
+                mb="0"
+                fontSize="sm"
+              >
                 <T>匿名回复</T>
               </FormLabel>
               <Switch
-                id="reply-anon-switch"
+                id={`reply-anon-switch-${post.id}`}
                 size="sm"
                 isChecked={replyIsAnon}
                 onChange={(e) => setReplyIsAnon(e.target.checked)}
@@ -762,11 +769,11 @@ export function ShudongPostItem({
             </FormControl>
 
             <HStack spacing={2}>
-              <Button size="xs" onClick={() => setIsReplying(false)}>
+              <Button size="sm" onClick={() => setIsReplying(false)}>
                 <T>取消</T>
               </Button>
               <Button
-                size="xs"
+                size="sm"
                 colorScheme="brand"
                 onClick={() => {
                   void handleCreateReply();
