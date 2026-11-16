@@ -205,6 +205,7 @@ export function ShudongPostItem({
   post,
   onRefetch,
   isRootQuestion = false,
+  isNestedReply = false,
   hideEditDelete = false,
   onDeleteSuccess,
   isHomePage = false,
@@ -212,6 +213,7 @@ export function ShudongPostItem({
   post: ShudongPost;
   onRefetch?: () => void;
   isRootQuestion?: boolean;
+  isNestedReply?: boolean;
   hideEditDelete?: boolean;
   onDeleteSuccess?: () => void;
   isHomePage?: boolean;
@@ -250,7 +252,14 @@ export function ShudongPostItem({
   const [isEditing, setIsEditing] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const [editMarkdown, setEditMarkdown] = useState(post.markdown);
+  const [editIsAnon, setEditIsAnon] = useState(!post.author);
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setEditIsAnon(!post.author);
+    }
+  }, [post.author, isEditing]);
 
   const [showChildResponses, setShowChildResponses] = useState(false);
 
@@ -367,6 +376,7 @@ export function ShudongPostItem({
       await trpc.shudong.updatePost.mutate({
         postId: post.id,
         markdown: editMarkdown,
+        ...(post.userIsAuthor ? { isAnonymous: editIsAnon } : {}),
       });
       toast.success("修改成功");
       setIsEditing(false);
@@ -393,9 +403,18 @@ export function ShudongPostItem({
 
   // Edit/delete buttons are hidden on home page cards to maintain a clean feed
   const canEditOrDelete =
-    !hideEditDelete && canEditOrDeleteShudongPost(me, post.author?.id ?? null);
+    !hideEditDelete &&
+    canEditOrDeleteShudongPost(
+      me,
+      post.userIsAuthor ? me.id : (post.author?.id ?? null),
+    );
 
   const isQuestionNode = post.parentId === null || isRootQuestion;
+  const editAnonLabel = isQuestionNode
+    ? "匿名提问"
+    : isNestedReply
+      ? "匿名回复"
+      : "匿名回答";
   const showReactionGroup = !post.isDeleted;
   const showSubscribeAction = !post.isDeleted && isQuestionNode;
   const showReplyAction = (isHomePage || !isRootQuestion) && !post.isDeleted;
@@ -436,6 +455,7 @@ export function ShudongPostItem({
               variant="ghost"
               onClick={() => {
                 setEditMarkdown(post.markdown);
+                setEditIsAnon(!post.author);
                 setIsEditing(!isEditing);
               }}
             />
@@ -452,7 +472,7 @@ export function ShudongPostItem({
       </Flex>
 
       {isEditing ? (
-        <VStack align="stretch" spacing={2} mb={3}>
+        <VStack align="stretch" spacing={2.5} mb={3}>
           <Autosaver
             data={editMarkdown}
             onSave={async (draft) => {
@@ -463,31 +483,57 @@ export function ShudongPostItem({
               });
             }}
           />
-          <Textarea
-            ref={editInputRef}
-            value={editMarkdown}
-            onChange={(e) => setEditMarkdown(e.target.value)}
-            onKeyDown={(e) => {
-              // Cmd/Ctrl + Enter shortcut for fast saving on desktop
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                void handleSaveEdit();
-              }
-            }}
-            rows={3}
-          />
-          {!isQuestionNode && (
-            <ShudongEmojiBar
+          <VStack spacing={1.5} align="stretch">
+            <Textarea
+              ref={editInputRef}
               value={editMarkdown}
-              onChange={setEditMarkdown}
-              textareaRef={editInputRef}
+              onChange={(e) => setEditMarkdown(e.target.value)}
+              onKeyDown={(e) => {
+                // Cmd/Ctrl + Enter shortcut for fast saving on desktop
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  void handleSaveEdit();
+                }
+              }}
+              rows={3}
             />
-          )}
+            <Flex
+              justify={isQuestionNode ? "flex-end" : "space-between"}
+              align="center"
+              wrap="wrap"
+              gap={2}
+            >
+              {!isQuestionNode && (
+                <ShudongEmojiBar
+                  value={editMarkdown}
+                  onChange={setEditMarkdown}
+                  textareaRef={editInputRef}
+                />
+              )}
+              <MarkdownSupport
+                fontSize="sm"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Flex>
+          </VStack>
           <Flex justify="space-between" align="center" wrap="wrap" gap={2}>
-            <MarkdownSupport
-              fontSize="sm"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {post.userIsAuthor && (
+              <FormControl display="flex" alignItems="center" w="auto">
+                <FormLabel
+                  htmlFor={`edit-anon-switch-${post.id}`}
+                  mb="0"
+                  fontSize="sm"
+                >
+                  <T>{editAnonLabel}</T>
+                </FormLabel>
+                <Switch
+                  id={`edit-anon-switch-${post.id}`}
+                  size="sm"
+                  isChecked={editIsAnon}
+                  onChange={(e) => setEditIsAnon(e.target.checked)}
+                />
+              </FormControl>
+            )}
             <HStack spacing={2} ml="auto">
               <Button size="sm" onClick={() => setIsEditing(false)}>
                 <T>取消</T>
@@ -802,6 +848,7 @@ export function ShudongPostItem({
               <ShudongPostItem
                 key={child.id}
                 post={child}
+                isNestedReply
                 onRefetch={() => {
                   void refetchChildren();
                   if (onRefetch) onRefetch();

@@ -542,7 +542,7 @@ describe("shudong backend routes", () => {
 
       // Other user edit attempt should fail
       try {
-        await updatePostImpl(otherUser, q.id, "Hacked", transaction);
+        await updatePostImpl(otherUser, q.id, "Hacked", undefined, transaction);
         expect.fail("Should have failed");
       } catch (err: any) {
         expect(err.message).to.contain("没有权限访问");
@@ -553,6 +553,7 @@ describe("shudong backend routes", () => {
         mentor,
         q.id,
         "Updated text",
+        undefined,
         transaction,
       );
       expect(updated.markdown).to.equal("Updated text");
@@ -843,7 +844,7 @@ describe("shudong backend routes", () => {
       );
 
       try {
-        await updatePostImpl(mentor, post.id, "   ", transaction);
+        await updatePostImpl(mentor, post.id, "   ", undefined, transaction);
         expect.fail("Should have thrown bad request error");
       } catch (err: any) {
         expect(err.message).to.contain("内容不能为空");
@@ -855,7 +856,13 @@ describe("shudong backend routes", () => {
       const fakeId = crypto.randomUUID();
 
       try {
-        await updatePostImpl(mentor, fakeId, "Updated text", transaction);
+        await updatePostImpl(
+          mentor,
+          fakeId,
+          "Updated text",
+          undefined,
+          transaction,
+        );
         expect.fail("Should have thrown not found error");
       } catch (err: any) {
         expect(err.message).to.contain("树洞帖子");
@@ -992,6 +999,357 @@ describe("shudong backend routes", () => {
         transaction,
       );
       void expect(detail.question.isMentorPosted).to.be.false;
+    });
+  });
+
+  describe("userIsAuthor and toggling anonymity on edit", () => {
+    it("sets userIsAuthor for author, viewer, admin, deleted", async () => {
+      const author = await createTestUser(["Mentee"], "现届学子");
+      const other = await createTestUser(["Mentee"], "现届学子");
+      const admin = await createTestUser(["ShudongAdmin"]);
+
+      const anonQ = await createPostImpl(
+        author,
+        null,
+        "Anon Q",
+        true,
+        transaction,
+      );
+      const nonAnonResp = await createPostImpl(
+        author,
+        anonQ.id,
+        "Non-anon R",
+        false,
+        transaction,
+      );
+      const otherAnonResp = await createPostImpl(
+        other,
+        anonQ.id,
+        "Other anon R",
+        true,
+        transaction,
+      );
+      // Child reply keeps anonQ visible after soft-delete.
+      await createPostImpl(
+        other,
+        nonAnonResp.id,
+        "Nested reply",
+        false,
+        transaction,
+      );
+
+      // Author sees userIsAuthor = true on own anon/non-anon posts,
+      // and false on other's post.
+      const asAuthor = await getQuestionImpl(author, anonQ.id, transaction);
+      void expect(asAuthor.question.userIsAuthor).to.be.true;
+      const authorR = asAuthor.responses.find((r) => r.id === nonAnonResp.id);
+      const otherR = asAuthor.responses.find((r) => r.id === otherAnonResp.id);
+      void expect(authorR?.userIsAuthor).to.be.true;
+      void expect(otherR?.userIsAuthor).to.be.false;
+
+      // Another viewer and ShudongAdmin see userIsAuthor = false.
+      const asOther = await getQuestionImpl(other, anonQ.id, transaction);
+      void expect(asOther.question.userIsAuthor).to.be.false;
+      const asAdmin = await getQuestionImpl(admin, anonQ.id, transaction);
+      void expect(asAdmin.question.userIsAuthor).to.be.false;
+      const adminViewOtherR = asAdmin.responses.find(
+        (r) => r.id === nonAnonResp.id,
+      );
+      void expect(adminViewOtherR?.userIsAuthor).to.be.false;
+
+      // Soft-deleted posts report userIsAuthor = false even to their author.
+      await deletePostImpl(author, anonQ.id, transaction);
+      await deletePostImpl(author, nonAnonResp.id, transaction);
+      const afterDelete = await getQuestionImpl(author, anonQ.id, transaction);
+      void expect(afterDelete.question.isDeleted).to.be.true;
+      void expect(afterDelete.question.userIsAuthor).to.be.false;
+      const deletedR = afterDelete.responses.find(
+        (r) => r.id === nonAnonResp.id,
+      );
+      void expect(deletedR?.isDeleted).to.be.true;
+      void expect(deletedR?.userIsAuthor).to.be.false;
+    });
+
+    it("toggles anonymity in both directions on questions", async () => {
+      const poster = await createTestUser(["Mentee"], "现届学子");
+      const viewer = await createTestUser(["Mentor"]);
+
+      const q = await createPostImpl(
+        poster,
+        null,
+        "Initial anon question",
+        true,
+        transaction,
+      );
+      void expect(q.author).to.be.null;
+      expect(q.anonymousName).to.equal("匿名楼主");
+      void expect(q.userIsAuthor).to.be.true;
+
+      // Toggle anonymous -> non-anonymous
+      const unmasked = await updatePostImpl(
+        poster,
+        q.id,
+        "Revealed question",
+        false,
+        transaction,
+      );
+      expect(unmasked.markdown).to.equal("Revealed question");
+      expect(unmasked.author?.id).to.equal(poster.id);
+      void expect(unmasked.anonymousName).to.be.null;
+      void expect(unmasked.userIsAuthor).to.be.true;
+      void expect(unmasked.lastEditedAt).to.not.be.null;
+
+      const detailAfterReveal = await getQuestionImpl(
+        viewer,
+        q.id,
+        transaction,
+      );
+      expect(detailAfterReveal.question.author?.id).to.equal(poster.id);
+      void expect(detailAfterReveal.question.anonymousName).to.be.null;
+      void expect(detailAfterReveal.question.userIsAuthor).to.be.false;
+
+      const listAfterReveal = await listQuestionsImpl(
+        viewer,
+        20,
+        0,
+        transaction,
+      );
+      const listedReveal = listAfterReveal.find((item) => item.id === q.id);
+      expect(listedReveal?.author?.id).to.equal(poster.id);
+      void expect(listedReveal?.anonymousName).to.be.null;
+
+      // Toggle non-anonymous -> anonymous
+      const reAnon = await updatePostImpl(
+        poster,
+        q.id,
+        "Hidden again",
+        true,
+        transaction,
+      );
+      expect(reAnon.markdown).to.equal("Hidden again");
+      void expect(reAnon.author).to.be.null;
+      expect(reAnon.anonymousName).to.equal("匿名楼主");
+      void expect(reAnon.userIsAuthor).to.be.true;
+
+      const posterDetail = await getQuestionImpl(poster, q.id, transaction);
+      void expect(posterDetail.question.author).to.be.null;
+      expect(posterDetail.question.anonymousName).to.equal("匿名楼主");
+      void expect(posterDetail.question.userIsAuthor).to.be.true;
+
+      const viewerDetail = await getQuestionImpl(viewer, q.id, transaction);
+      void expect(viewerDetail.question.author).to.be.null;
+      expect(viewerDetail.question.anonymousName).to.equal("匿名楼主");
+      void expect(viewerDetail.question.userIsAuthor).to.be.false;
+
+      const listAfterHide = await listQuestionsImpl(viewer, 20, 0, transaction);
+      const listedHide = listAfterHide.find((item) => item.id === q.id);
+      void expect(listedHide?.author).to.be.null;
+      expect(listedHide?.anonymousName).to.equal("匿名楼主");
+    });
+
+    it("toggles anonymity on replies with stable thread labels", async () => {
+      const op = await createTestUser(["Mentee"], "现届学子");
+      const userA = await createTestUser(["Mentor"]);
+      const userB = await createTestUser(["Mentee"], "现届学子");
+
+      const q = await createPostImpl(op, null, "Thread Q", true, transaction);
+      // userA responds non-anonymously first ("匿名 甲" slot).
+      const respA = await createPostImpl(
+        userA,
+        q.id,
+        "A initial non-anon",
+        false,
+        transaction,
+      );
+      // userB responds anonymously ("匿名 乙" slot).
+      const respB = await createPostImpl(
+        userB,
+        q.id,
+        "B initial anon",
+        true,
+        transaction,
+      );
+      // OP posts a nested reply non-anonymously under respB.
+      const nestedOp = await createPostImpl(
+        op,
+        respB.id,
+        "OP nested non-anon",
+        false,
+        transaction,
+      );
+      // userA posts a nested reply anonymously under respB.
+      const nestedA = await createPostImpl(
+        userA,
+        respB.id,
+        "A nested anon",
+        true,
+        transaction,
+      );
+
+      expect(respB.anonymousName).to.equal("匿名 乙");
+      expect(nestedA.anonymousName).to.equal("匿名 甲");
+
+      // Toggle respA: non-anonymous -> anonymous ("匿名 甲")
+      const respAAnon = await updatePostImpl(
+        userA,
+        respA.id,
+        "A now anon",
+        true,
+        transaction,
+      );
+      void expect(respAAnon.author).to.be.null;
+      expect(respAAnon.anonymousName).to.equal("匿名 甲");
+      void expect(respAAnon.userIsAuthor).to.be.true;
+
+      // Toggle respB: anonymous -> non-anonymous
+      const respBPublic = await updatePostImpl(
+        userB,
+        respB.id,
+        "B now public",
+        false,
+        transaction,
+      );
+      expect(respBPublic.author?.id).to.equal(userB.id);
+      void expect(respBPublic.anonymousName).to.be.null;
+
+      // Toggle OP's nested reply: non-anonymous -> anonymous ("匿名楼主")
+      const nestedOpAnon = await updatePostImpl(
+        op,
+        nestedOp.id,
+        "OP nested anon",
+        true,
+        transaction,
+      );
+      void expect(nestedOpAnon.author).to.be.null;
+      expect(nestedOpAnon.anonymousName).to.equal("匿名楼主");
+
+      // Toggle userA's nested reply: anonymous -> non-anonymous
+      const nestedAPublic = await updatePostImpl(
+        userA,
+        nestedA.id,
+        "A nested public",
+        false,
+        transaction,
+      );
+      expect(nestedAPublic.author?.id).to.equal(userA.id);
+      void expect(nestedAPublic.anonymousName).to.be.null;
+
+      // Toggle respB back to anonymous -> still "匿名 乙"
+      const respBReAnon = await updatePostImpl(
+        userB,
+        respB.id,
+        "B anon again",
+        true,
+        transaction,
+      );
+      void expect(respBReAnon.author).to.be.null;
+      expect(respBReAnon.anonymousName).to.equal("匿名 乙");
+
+      // Verify thread state via getQuestionImpl and getResponsesImpl
+      const detail = await getQuestionImpl(op, q.id, transaction);
+      const fetchedA = detail.responses.find((r) => r.id === respA.id);
+      const fetchedB = detail.responses.find((r) => r.id === respB.id);
+      expect(fetchedA?.anonymousName).to.equal("匿名 甲");
+      expect(fetchedB?.anonymousName).to.equal("匿名 乙");
+
+      const children = await getResponsesImpl(
+        userB,
+        respB.id,
+        undefined,
+        transaction,
+      );
+      const fetchedNestedOp = children.find((r) => r.id === nestedOp.id);
+      const fetchedNestedA = children.find((r) => r.id === nestedA.id);
+      expect(fetchedNestedOp?.anonymousName).to.equal("匿名楼主");
+      expect(fetchedNestedA?.author?.id).to.equal(userA.id);
+      void expect(fetchedNestedA?.anonymousName).to.be.null;
+    });
+
+    it("blocks ShudongAdmin from changing others' anonymity", async () => {
+      const author = await createTestUser(["Mentee"], "现届学子");
+      const admin = await createTestUser(["ShudongAdmin"]);
+
+      const anonPost = await createPostImpl(
+        author,
+        null,
+        "Author anon post",
+        true,
+        transaction,
+      );
+      const publicResp = await createPostImpl(
+        author,
+        anonPost.id,
+        "Author public response",
+        false,
+        transaction,
+      );
+
+      // Admin can edit markdown when isAnonymous is undefined or unchanged.
+      const moderatedAnon = await updatePostImpl(
+        admin,
+        anonPost.id,
+        "Moderated anon",
+        undefined,
+        transaction,
+      );
+      expect(moderatedAnon.markdown).to.equal("Moderated anon");
+      void expect(moderatedAnon.author).to.be.null;
+
+      const moderatedSameFlag = await updatePostImpl(
+        admin,
+        anonPost.id,
+        "Moderated anon same flag",
+        true,
+        transaction,
+      );
+      expect(moderatedSameFlag.markdown).to.equal("Moderated anon same flag");
+      void expect(moderatedSameFlag.author).to.be.null;
+
+      // Admin cannot unmask an anonymous post.
+      try {
+        await updatePostImpl(
+          admin,
+          anonPost.id,
+          "Attempt unmask",
+          false,
+          transaction,
+        );
+        expect.fail("Should have thrown permission error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("没有权限访问");
+      }
+
+      // Admin cannot force a public post anonymous.
+      try {
+        await updatePostImpl(
+          admin,
+          publicResp.id,
+          "Attempt hide",
+          true,
+          transaction,
+        );
+        expect.fail("Should have thrown permission error");
+      } catch (err: unknown) {
+        expect((err as Error).message).to.contain("没有权限访问");
+      }
+
+      // Admin can toggle anonymity on their own post.
+      const adminOwn = await createPostImpl(
+        admin,
+        null,
+        "Admin own question",
+        true,
+        transaction,
+      );
+      const adminRevealed = await updatePostImpl(
+        admin,
+        adminOwn.id,
+        "Admin revealed",
+        false,
+        transaction,
+      );
+      expect(adminRevealed.author?.id).to.equal(admin.id);
+      void expect(adminRevealed.userIsAuthor).to.be.true;
     });
   });
 });

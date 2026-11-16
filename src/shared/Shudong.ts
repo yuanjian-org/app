@@ -59,6 +59,11 @@ export const zShudongPost = z.object({
    */
   author: zMinUser.nullable(),
   /**
+   * Indicates whether the current viewer is the author of this post (false if
+   * soft-deleted).
+   */
+  userIsAuthor: z.boolean(),
+  /**
    * Indicates whether the post was created by a mentor (false if
    * soft-deleted).
    */
